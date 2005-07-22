@@ -1,0 +1,65 @@
+d_spacing        variable inline double "" "" 1  1  3.13555
+omega_enabled    variable inline int "" "" 1  1  0
+chi_enabled      variable inline int "" "" 1  1  0
+normal_enabled   variable inline int "" "" 1  1  0
+parallel_enable  variable inline int "" "" 1  1  0
+focus_enabled    variable inline int "" "" 1  1  0
+id_ev_enabled    variable inline int "" "" 1  1  0
+stripe_enabled   variable inline int "" "" 1  1  1
+omega_params     variable inline double "" "" 1  4  0 0 0 0
+chi_params       variable inline double "" "" 1  4  0 0 0 0
+beam_offset      variable inline double "" "" 1  1  35000
+focus_param      variable inline double "" "" 1  1  1500
+id_ev_params     variable inline double "" "" 1  2  1 150
+stripe_params    variable inline double "" "" 2  4  2  0 5  4.5 8.5  8 11  10.5 15
+theta_list       variable inline record "" "" 1  4  theta_enabled theta_type dummy_params theta_records
+omega_list       variable inline record "" "" 1  4  omega_enabled omega_type omega_params omega_records
+chi_list         variable inline record "" "" 1  4  chi_enabled chi_type chi_params chi_records
+normal_list      variable inline record "" "" 1  4  normal_enabled normal_type dummy_params normal_records
+parallel_list    variable inline record "" "" 1  4  parallel_enable  parallel_type dummy_params parallel_record
+focus_list       variable inline record "" "" 1  4  focus_enabled focus_type dummy_params focus_records
+id_ev_list       variable inline record "" "" 1  4  id_ev_enabled id_ev_type id_ev_params id_ev_records
+stripe_list      variable inline record "" "" 1  4  stripe_enabled stripe_type dummy_params stripe_records
+theta_enabled    variable inline int "" "" 1  1  1
+theta_type       variable inline int "" "" 1  1  0
+theta_records    variable inline record "" "" 1  1  theta_real
+omega_type       variable inline int "" "" 1  1  2
+omega_records    variable inline record "" "" 1  1  omega
+chi_type         variable inline int "" "" 1  1  2
+chi_records      variable inline record "" "" 1  1  chi
+normal_type      variable inline int "" "" 1  1  4
+normal_records   variable inline record "" "" 1  2  normal beam_offset
+parallel_type    variable inline int "" "" 1  1  5
+parallel_record  variable inline record "" "" 1  2  parallel beam_offset
+focus_type       variable inline int "" "" 1  1  8
+focus_records    variable inline record "" "" 1  2  focus focus_param
+id_ev_type       variable inline int "" "" 1  1  3
+id_ev_records    variable inline record "" "" 1  2  id_ev d_spacing
+stripe_type      variable inline int "" "" 1  1  9
+stripe_records   variable inline record "" "" 1  2  stripe_select stripe_params
+dummy_params     variable inline double "" "" 1  1  0
+stripe_select    variable calc position_select "" "" stripe 4 300 600 900 1200 1 1 -1
+id_ev            device motor soft_motor "" "" 105500 0 0 2147483647 0 -1 -1 0.1 0 eV 1000 0 500
+theta_real       device motor soft_motor "" "" 10958870 0 -180000000 180000000 0 -1 -1 1e-06 0 deg 1000000 0 500000
+theta            device motor monochromator "" "" 10.95887 0 -1e+38 1e+38 0 -1 -1 1 0 deg 8  theta_list omega_list chi_list normal_list parallel_list focus_list id_ev_list stripe_list
+energy           device motor energy_motor "" "" 10400 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
+lambda           device motor wavelength_motor "" "" 1.1921635 0 0 1e+08 0 -1 -1 1 0 A theta d_spacing 0.01745329251994330
+omega            device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawomega pivot
+chi              device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawchi pivot
+pivot            device motor soft_motor "" "" 17825060 0 -1000000000 1000000000 0 -1 -1 0.001 0 um 10000 0 5000
+normal           device motor translation_mtr "" "" 17825.06 0 -5000000 5000000 0 -1 -1 1 0 um 0x0 3  rawomega rawchi pivot
+roll             device motor linear_function "" "" -5941.6866 0 -1e+10 1e+10 0 -1 -1 1 0 um 0x0 3  rawchi rawomega pivot  0.33333333 -0.33333333 -0.33333333  0 0 0  0.33333333 0.33333333 0.33333333
+rawomega         device motor soft_motor "" "" 17825060 0 -1000000000 1000000000 0 -1 -1 0.001 0 um 10000 0 5000
+rawchi           device motor soft_motor "" "" 17825060 0 -1000000000 1000000000 0 -1 -1 0.001 0 um 10000 0 5000
+parallel         device motor soft_motor "" "" 9205474 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
+focus            device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.0001 0 m 10000 0 5000
+stripe           device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.01 0 um 100000 0 50000
+I0               device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i0.dat 0 
+I                device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i.dat 0 
+timer1           device timer soft_timer "" ""
+mca1             device mca soft_mca "" "" 1024 1 0 channels.dat
+mca2             device mca soft_mca "" "" 1024 1 0 channels.dat
+mcs1             device mcs soft_mcs "" "" 2 512 "" 0 0 timer2 8950 1  I0 I
+Io               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
+It               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
+timer2           device timer mcs_timer "" "" mcs1

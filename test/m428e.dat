@@ -1,0 +1,3 @@
+gpib1       interface gpib epics_gpib "" "" 13 0 0xa 0xa 0x0 10id:gpib1
+keithley22  device amplifier keithley428 "" "" 1e+09 -0 0 gpib1:22
+timer1      device timer soft_timer "" ""

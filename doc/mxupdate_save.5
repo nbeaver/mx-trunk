@@ -1,0 +1,54 @@
+.\" Process this man page with
+.\" groff -man -Tascii mxupdate.8
+.\"
+.TH MXUPDATE_SAVE 5 "July 2005" "MX Administrator Manuals"
+.SH NAME
+mxupdate_save - mxupdate save/restore file format
+.SH DESCRIPTION
+This man page describes the format of save/restore files used by the
+.B mxupdate
+program.  The format is fairly simple and consists of two columns of text.
+The first column contains the name of the database variable while the second
+column contains the current value of the variable expressed in ASCII text.
+If the current value of the variable contains embedded whitespace, the
+value field is enclosed by double quotes.
+
+The last line of the file is different in that it contains merely a string
+of 8 consecutive asterisk characters.  The presence of this string at the
+end of the save file indicates that the save file is a valid save file.
+
+.SH EXAMPLES
+Here is an example of an MX save/restore file.
+
+.nf
+edge_energy.value   17997.6
+d_spacing.value   3.13555
+beam_offset.value   35000
+shutter_policy.value   0
+xafs_header1.value  "KB setup"
+xafs_header2.value  " "
+xafs_header3.value  " "
+sff_header1.value  "Pb edge"
+sff_header2.value  energy
+sff_header_fmt.value  "beamline_name | edge_energy | sff_header1 | sff_header2 | %devices"
+theta_enabled.value   1
+momega_enabled.value   0
+normpoly_enable.value   0
+normal_enabled.value   0
+id_ev_enabled.value   0
+momega_params.value   0 0 0 0
+normpoly_params.value   0 0 0 0
+id_ev_harmonic.value   1
+id_ev_offset.value   85
+id_ev_params.value   1 200
+conIo_enabled.value   0
+conIo_params.value   100 1 0 0 0
+********
+.fi
+
+.SH SEE ALSO
+.B mxupdate(8)
+
+.SH AUTHOR
+William Lavender <lavender@agni.phys.iit.edu>
+

@@ -1,0 +1,25 @@
+
+all: xdr.obj getopt.obj mxgnuplt.exe
+
+include ../libMx/Makehead.win32
+
+xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-WX -Z7 -Ixdr/src -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		xdr/src/xdr.c -Foxdr.obj
+
+getopt.obj: generic/src/getopt.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		generic/src/getopt.c -Fogetopt.obj
+
+mxgnuplt.obj: win32/src/mxgnuplt.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-WX -Z7 win32/src/mxgnuplt.c -Fmxgnuplt.obj
+
+mxgnuplt.exe: mxgnuplt.obj
+	link /nologo /debugtype:cv /out:mxgnuplt.exe mxgnuplt.obj \
+		$(MSDEV_DIR)\\lib\\user32.lib $(MSDEV_DIR)\\lib\\gdi32.lib
+
+mx_clean:
+	-rm *.obj *.exe
+

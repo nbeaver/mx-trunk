@@ -1,0 +1,1 @@
+mca1 device mca soft_mca "" "" 8192 1 4 ../test/channels.dat

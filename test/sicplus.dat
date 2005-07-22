@@ -1,0 +1,1 @@
+slow10k                          scan linear_scan input_scan "" "" 1 1 0  1  icp1_current 0 0 preset_time "1 timer1" text slow10k.011 gnuplot $f[0]  0  1  10000

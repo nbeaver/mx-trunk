@@ -1,0 +1,6 @@
+xia          interface generic xia_xerxes "" "" dxp4c2x c:\opt\mx\etc\preamp.cfg "c:\Program Files\Xia\mesa2x v3.0\Configs\U1us111501.sav"  0x7db4 0x8200 0x7d55 0x8002 0x4950 0x81cb 0x837b 0x815b 0x82d0 0x8300 0x8000 0x8086 0x8000
+mcaxia0      device mca xia_dxp_mca "" "" 8192 16 0 xia 0
+mcaxia1      device mca xia_dxp_mca "" "" 8192 16 0 xia 1
+mcaxia2      device mca xia_dxp_mca "" "" 8192 16 0 xia 2
+mcaxia3      device mca xia_dxp_mca "" "" 8192 16 0 xia 3
+xerxes_timer device timer mca_timer "" "" mcaxia1 1

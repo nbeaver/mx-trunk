@@ -1,0 +1,2 @@
+robot_interface interface rs232 tcp232 "" "" 38400 8 N 1 N 0x0d0a 0x0d0a -1 0x0 localhost 10000 0x0
+robot device sample_changer als_robot_java_server "" "" 0x0 robot_interface

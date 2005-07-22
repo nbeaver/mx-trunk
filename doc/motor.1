@@ -1,0 +1,153 @@
+.\" Process this man page with
+.\" groff -man -Tascii mxupdate.8
+.\"
+.TH MOTOR 1 "July 2005" "MX User Manuals"
+.SH NAME
+motor \- command line based user interface for MX
+.SH SYNOPSIS
+.B motor [
+.I options
+.B ]
+.SH DESCRIPTION
+.B motor
+is the original command line based interface for the MX data acquisition
+and control system.  It is capable of controlling all devices in an MX-based
+system and can run data acquisition scans as well.
+
+.SH OPTIONS
+.IP "-d debug_level"
+specifies the debugging level to run
+.B motor
+at.  The default value is 0.
+.IP -D
+requests that
+.B motor
+automatically start a program debugger such as that from Visual Studio or gdb
+at program startup time.
+.IP "-f device_database_name"
+requests that
+.B motor
+load its device database from the specified filename.  In this case,
+.B motor
+will attempt to save changed values to a new copy of the device database.
+.IP "-F device_database_name"
+requests that
+.B motor
+load its device database from the specified filename.  In this case,
+.B motor
+will
+.B not
+attempt to rewrite the device database when it exits.
+.IP "-g global_motorrc_file"
+specifys a script of motor commands that are to be run when
+.B motor
+starts up.  The default value for this filename is
+$MXDIR/etc/startup/motor.startup
+.IP -H
+tells
+.B motor
+not to install its normal signal handlers.  This is intended for
+debugging purposes.
+.IP -i
+tells
+.B motor
+not to run any startup scripts when it starts.  By default,
+.B motor
+attempts to run the scripts
+$MXDIR/etc/startup/motor.startup
+and
+$HOME/.mx/motor.startup
+if they exist.
+.IP -n
+tells
+.B motor
+to always save scans to the scan database without prompting.  The default
+behavior is to always prompt the user before saving.
+.IP -N
+tells
+.B motor
+to never change the saved scan database.  Changes to the scan database while 
+.B motor
+was running will be lost when
+.B motor
+exits.
+.IP "-p program_prompt_name"
+tells
+.B motor
+to change the default prompt from "motor>" to "program_prompt_name>".
+This is useful for visually identifying alternate versions of the
+.B motor
+shell script that use different databases.
+.IP "-P default_display_precision"
+specifys the default for how many digits after the decimal point are to be
+displayed by clients.
+.IP "-s scan_database_name"
+requests that
+.B motor
+load its scan database from the specified filename.  In this case,
+.B motor
+will attempt to save a changed version of the scan database with a new
+version when it exits.  This is the default behavior.
+.IP "-S scan_database_name"
+requests that
+.B motor
+load its scan database from the specified filename.  In this case,
+.B motor
+will
+.B not
+attempt to rewrite the scan database when it exits.
+.IP -t
+requests that 
+.B motor
+display a message when the open() routine for
+a given record is invoked.  The resulting messages look like
+.nf
+Jul 12 14:39:20 Opening record 'keithley4'.
+.fi
+This feature is to help in determining why 
+.B motor
+is hanging during startup.  Generally the record whose 'Opening record'
+message is displayed last is the record that is causing the problem.
+.IP -u
+tells 
+.B motor
+to configure its stdin and stdout to be unbuffered.  The original intent
+was to make it easier to send commands to
+.B motor
+over a pipe.  However, the author feels that this is not a good way to 
+write higher level programs that talk to the control system.  Instead,
+you should use the provided Python (MP), Tcl (MxTcl), etc. scripting
+interfaces for higher level programs, since sending commands over a pipe to
+.B motor
+is very inefficient.  Furthermore,
+.B motor
+is not really designed to be used in this fashion and is intended to
+be a user interface program.
+
+.SH NOTES
+.B motor
+is just a shell script wrapper around the real binary
+.B motor.shared.
+The shell script wrapper invokes the real binary using a command line like
+
+	$MXDIR/bin/motor.shared -F $MXDIR/etc/motor.dat -s $HOME/scan.dat $*
+
+If you wish to make available several different client databases depending
+on which kind of experiment you are running, the simplest way is to
+copy the 
+.B motor
+shell script to a different name and change the names of the database file
+it loads.  If you wished to put your alternate device database in mxerxes.dat
+and scans in sxerxes.dat, the appropriate command line in the shell script
+would be
+
+	$MXDIR/bin/motor.shared -p mxerxes -F $MXDIR/etc/mxerxes.dat -s $HOME/sxerxes.dat $*
+
+.SH FILES
+The following are conventional locations for these files.  The conventional
+value for MXDIR is /opt/mx.
+.IP $MXDIR/etc/motor.dat
+- record database for MX client programs.
+
+.SH AUTHOR
+William Lavender <lavender@agni.phys.iit.edu>

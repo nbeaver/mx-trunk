@@ -1,0 +1,4 @@
+17id      server network tcpip_server "" "" 0x0 localhost 9827
+cs0       device sca network_sca "" "" 17id cs0
+cs0_hv    device analog_output network_aoutput "" "" 0 1 0 V 0x0 17id cs0_hv
+cs0_delay device analog_output network_aoutput "" "" 0 1 0 sec 0x0 17id cs0_delay

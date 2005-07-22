@@ -1,0 +1,13 @@
+#s1       server spec spec_server "" "" localhost:7777
+s1       server spec spec_server "" "" localhost:fourc
+twotheta device motor spec_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 deg s1 tth 0x0
+theta    device motor spec_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 deg s1 th 0x0
+chi      device motor spec_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 deg s1 chi 0x0
+phi      device motor spec_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 deg s1 phi 0x0
+mon      device scaler spec_scaler "" "" 0 0 0x0 "" s1 mon
+det      device scaler spec_scaler "" "" 0 0 0x0 "" s1 det
+timer1   device timer spec_timer "" "" s1
+timer2   device timer soft_timer "" ""
+spec     interface rs232 spec_command "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 s1 0x0
+speed    variable spec_property spec_double "" "" s1 motor/tth/slew_rate 1 1 0
+A        variable spec_property spec_string "" "" s1 var/A 2 8 40 "" "" "" "" "" "" "" ""

@@ -1,0 +1,3 @@
+testscan                         scan linear_scan motor_scan "" "" 1 1 1  2theta 1  2theta 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  0.1  101
+peakscan                         scan linear_scan motor_scan "" "" 1 1 1  2theta 4  I1 I2 I3 2theta 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  8  0.1  101
+countscan                        scan linear_scan motor_scan "" "" 1 1 1  2theta 5  I1 I2 I3 2theta timer1 0 0 preset_count "50000 Imon" sff junk.out gnuplot $f[0]  8  0.1  101

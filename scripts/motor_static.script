@@ -1,0 +1,14 @@
+#! /bin/sh
+
+if [ x$MXDIR = x ]; then
+	MXDIR=/opt/mx
+fi
+
+LD_LIBRARY_PATH=${MXDIR}/lib
+
+DYLD_LIBRARY_PATH=${MXDIR}/lib
+
+export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+
+${MXDIR}/bin/motor.static -F ${MXDIR}/etc/motor.dat -S ${HOME}/scan.dat $*
+

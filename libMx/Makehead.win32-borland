@@ -1,0 +1,211 @@
+#
+# Name:    Makehead.win32-borland
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for Microsoft Win32 using Borland C++ 5.5.1.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+#
+
+INCLUDES  = $(MX_INCLUDES)
+
+#INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
+
+LIBRARIES = $(WIN32_LIBS)
+
+#LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
+
+#
+# You may also need to modify some of the following definitions, depending
+# on the drivers you plan to use.
+#
+
+#
+# You must specify the directory that Borland C++ was installed in.  Usually
+# this is c:\borland\bcc55. The name specified for Gnu Make MUST NOT contain
+# any spaces in it.
+#
+BCC_DIR	= c:/borland/bcc55
+#BCC_DIR		= c:/progra~1/borland/cbuilder5
+
+WIN32_LIBS	= import32.lib cw32.lib
+
+EXTRA_OBJS	= ..\\tools\\getopt.obj
+#
+
+#
+# Aerotech Unidex 500 includes and libraries.
+#
+
+U500_DIR      = c:\\U500\\mmi
+U500_INCLUDES = -I$(U500_DIR)\\include
+U500_LIBS     = $(U500_DIR)\\win32bc5.lib
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+# Intel x86 with Borland C++ under Win32.
+#
+
+.SUFFIXES:
+.SUFFIXES: .c .obj
+
+.c.obj:
+	$(CC) -c $(CFLAGS) $<
+
+BCCFLAGS = -I$(BCC_DIR)/include -w -w! \
+	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
+
+#CC		= bcc32 -q -I$(BCC_DIR)/include
+CC		= bcc32 -q
+CFLAGS		= $(BCCFLAGS) $(INCLUDES) \
+			-DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
+CFLAGS_EPICS	= $(CFLAGS)
+
+# Special cases for individual files.
+
+CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
+
+CFLAGS_MX_U500  = $(CFLAGS_U500)
+
+CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+#
+# I use a version of makedepend that I obtained from the web site
+# http://www.utexas.edu/ftp/microlib/nt/new/
+#
+# Disabled for now.
+#
+#MAKEDEPEND	= mkdepend -f- $(CFLAGS) $(U500_INCLUDES) *.c > Makefile.depend
+
+#MAKEDEPEND	= cp nul Makefile.depend
+
+MAKEDEPEND	= ( rm Makefile.depend ; touch Makefile.depend )
+
+MAKEDEPEND_CLEAN = ( rm Makefile.depend ; touch Makefile.depend )
+
+#
+#---------------------------------------------------
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
+SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#
+#---------------------------------------------------
+#
+
+RM		= rm
+MAKE		= make
+
+OBJ		= obj
+
+#
+MX_LIB_DIR	= ..\\libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_LIBRARY_PATH	= $(MX_LIB_DIR)\\$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_NAME	= libMx.lib
+
+MX_LIBRARY_DELETE = $(RM) libMx.*
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	ilink32 -D"" -aa -Tpd -x -Gn -Gi \
+		c0d32.obj $(MX_LIB_OBJS) ..\\tools\\xdr.obj, \
+		libMx.dll,, $(LIBRARIES)
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	cp mx*.h $(MX_INSTALL_DIR)/include
+	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
+	cp libMx.dll $(MX_INSTALL_DIR)/bin
+	touch $(MX_INSTALL_DIR)/etc/motor.dat
+	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	cp ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
+	cp ../plotgnu/showdata $(MX_INSTALL_DIR)/bin/showdata.pl
+	cp ../plotgnu/showplot $(MX_INSTALL_DIR)/bin/showplot.pl
+	cp ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
+	cp ../plotgnu/*.bat $(MX_INSTALL_DIR)/bin
+	cp ../tools/*.exe $(MX_INSTALL_DIR)/bin
+	cp ../tools/getopt.obj $(MX_INSTALL_DIR)/lib
+
+#
+#---------------------------------------------------
+#
+MOTOR_NAME	= motorbin.exe
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -e$(MOTOR_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+motor_install:
+	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+	cp ../scripts/motor.bat $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver.exe
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -e$(SERVER_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+server_install:
+	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+	cp ../scripts/startmxserver.bat $(MX_INSTALL_DIR)/sbin
+	cp ../scripts/mx.bat $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate.exe
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -e$(UPDATE_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+update_install:
+	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
+	cp ../scripts/startmxupdate.bat $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo.exe
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) -e$(MXDRIVERINFO_NAME) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+
+mxdriverinfo_install:
+	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+

@@ -1,0 +1,20 @@
+all: xdr.obj getopt.obj mxgnuplt.exe
+
+include ../libMx/Makehead.win32-borland
+
+xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
+	$(CC) $(CFLAGS) -c -Ixdr/src -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		xdr/src/xdr.c -Foxdr.obj
+
+getopt.obj: generic/src/getopt.c
+	$(CC) $(CFLAGS) -c generic/src/getopt.c -o getopt.obj
+
+mxgnuplt.obj: win32/src/mxgnuplt.c
+	$(CC) $(CFLAGS) -tWM -c win32/src/mxgnuplt.c -o mxgnuplt.obj
+
+mxgnuplt.exe: mxgnuplt.obj
+	$(CC) -tWM -L$(BCC_DIR)/lib -emxgnuplt.exe mxgnuplt.obj cw32mt.lib
+
+mx_clean:
+	-rm *.obj *.exe *.tds
+

@@ -1,0 +1,4 @@
+stp100_rs232  interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/ttyS5
+m1            device motor stp100_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um stp100_rs232 0 0 0 0 20 1 0.2
+time          device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
+timer1        device timer soft_timer "" ""

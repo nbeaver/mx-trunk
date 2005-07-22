@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mmono.dat -s ./smono.dat $*
+

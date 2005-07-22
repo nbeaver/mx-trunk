@@ -1,0 +1,40 @@
+#! /bin/sh
+
+if [ x$MXDIR = x ]; then
+	MXDIR=/opt/mx
+fi
+if [ x$MXPORT = x ]; then
+	MXPORT=9727
+fi
+
+MXUPDATE=${MXDIR}/sbin/mxupdate
+
+if [ x$LD_LIBRARY_PATH = x ]; then
+	LD_LIBRARY_PATH=${MXDIR}/lib
+else
+	LD_LIBRARY_PATH="${MXDIR}/lib:${LD_LIBRARY_PATH}"
+fi
+
+if [ x$DYLD_LIBRARY_PATH = x ]; then
+	DYLD_LIBRARY_PATH=${MXDIR}/lib
+else
+	DYLD_LIBRARY_PATH="${MXDIR}/lib:${DYLD_LIBRARY_PATH}"
+fi
+
+if [ x$SHLIB_PATH = x ]; then
+	SHLIB_PATH=${MXDIR}/lib
+else
+	SHLIB_PATH="${MXDIR}/lib:${SHLIB_PATH}"
+fi
+
+export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
+
+if [ -x $MXUPDATE ]; then
+	cd ${MXDIR}/run
+
+	echo $$ > ${MXDIR}/run/mxupdate.pid
+
+	exec $MXUPDATE $* localhost $MXPORT ${MXDIR}/etc/mxupdate.dat \
+		${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2
+fi
+

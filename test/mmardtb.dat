@@ -1,0 +1,22 @@
+mardtb_rs232 interface rs232 tcp232 "" "" 38400 8 N 1 H 0x0d0a 0x0d0a -1 0x0 192.0.2.3 23 0x0
+mardtb       interface generic mardtb "" "" mardtb_rs232 esd 0x0
+slit1v       device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 1 0 0
+slit1h       device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 2 0 0
+slit2v       device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 3 0 0
+slit2h       device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 4 0 0
+beamstop     device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 5 0 0
+phi          device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 -0.00125 0 deg mardtb 6 10000 1000
+theta        device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 11 0 0
+distance     device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 12 0 0
+vertrans     device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 13 0 0
+verrot       device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 14 0 0
+horfront     device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 15 0 0
+horrear      device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 16 0 0
+z            device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 17 0 0
+chi          device motor mardtb_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb 18 0 0
+time         device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
+p136         device analog_input mardtb_status "" "" 0 1 0 units 0x0 0 "" mardtb 136
+p137         device analog_input mardtb_status "" "" 0 1 0 units 0x0 0 "" mardtb 137
+clock        device analog_input mardtb_status "" "" 0 1 0 units 0x0 0 "" mardtb 138
+shutter      device relay mardtb_shutter "" "" mardtb
+timer1       device timer soft_timer "" ""

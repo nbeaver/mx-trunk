@@ -1,0 +1,4 @@
+grecord(ao,"$(P)$(M)_Dark") {
+	field(PREC,"3")
+}
+

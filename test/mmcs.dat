@@ -1,0 +1,20 @@
+d_spacing   variable inline double "" "" 1 1 3.13555
+edge_energy variable inline double "" "" 1  1 8980
+I0          device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i0.dat 0
+I           device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i.dat 0
+Idown       device scaler soft_scaler "" "" 0 0 0 timer1 theta 2 ./idown.dat 0
+Iup         device scaler soft_scaler "" "" 0 0 0 timer1 theta 2 ./iup.dat 0
+sis3801     device mcs soft_mcs "" "" 4 512 "" 0 0 timer1 8950 1 I0 I Idown Iup 
+theta       device motor soft_motor "" "" 10000 0 -1000000 1000000 0 -1 -1 0.001 0 deg 1000 0 5000
+omega       device motor soft_motor "" "" 25000 0 -1000000 1000000 0 -1 -1 0.001 0 um 1000 0 500
+energy      device motor energy_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
+e_minus_e0  device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 eV energy edge_energy
+m1_mce      device mce mcs_encoder "" "" 512 1000 0 theta sis3801 2 3
+Io          device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 0
+It          device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 1
+Im          device scaler mcs_scaler "" "" 0 0 0 timer1 sis3801 2
+Ip          device scaler mcs_scaler "" "" 0 0 0 timer1 sis3801 3
+Idiff       device scaler scaler_function "" "" 0 0 0 timer1 0x0 "" 2 It Io 2 -2 0 0
+sf_mcs      device mcs scaler_function_mcs "" "" 1 1000 "" 0 0 timer1 Idiff
+Idiff_mcs   device scaler mcs_scaler "" "" 0 0 0 timer1 sf_mcs 0
+timer1      device timer mcs_timer "" "" sis3801

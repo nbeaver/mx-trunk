@@ -1,0 +1,2 @@
+mcs_scan                         scan quick_scan mcs_qscan "" "" 1 1 1  theta 2  Io It 0 0 preset_time "1 timer2" sff junk.out gnuplot $f[0]  10  12 21
+mca_scan                         scan linear_scan motor_scan "" "" 1 1 1  energy 4  Io It mca1 mca2 0 0 preset_time "0.1 timer1" text junk.out gnuplot $f[0]  10000  5  81

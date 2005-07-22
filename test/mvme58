@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mvme58.dat -s ./svme58.dat $*
+

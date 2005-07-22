@@ -1,0 +1,20 @@
+portio      interface portio linux_portio "" "" /dev/portio
+lp0         interface generic lpt "" "" portio 0x378 SPP 0x1
+lp0_data    device digital_output lpt_out "" "" 0 lp0 data
+pin2        device digital_output bit_out "" "" 0 0 lp0_data 0 1 lp0_data 0 1
+pin3        device digital_output bit_out "" "" 0 0 lp0_data 1 1 lp0_data 1 1
+pin4        device digital_output bit_out "" "" 0 0 lp0_data 1 1 lp0_data 2 1
+mx_test0    device digital_output bit_out "" "" 0 0 lp0_data 0 1 lp0_data 0 1
+mx_test1    device digital_output bit_out "" "" 0 0 lp0_data 1 1 lp0_data 1 1
+mx_test2    device digital_output bit_out "" "" 0 0 lp0_data 1 1 lp0_data 2 1
+pmac1_rs232 interface rs232 tcp232 "" "" 38400 8 N 1 H 0xd 0xd -1 0x0 w31 3001 0x0
+pmac1       interface generic pmac "" "" rs232 pmac1_rs232 1
+test1       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 1
+m2          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 2
+m3          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 3
+omega       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 4.2867308533e-5 0 steps pmac1 0 4
+test5       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 5
+m6          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 6
+m7          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 7
+m8          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 8
+time        device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0

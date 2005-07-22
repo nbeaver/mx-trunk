@@ -1,0 +1,1 @@
+scan1                            scan quick_scan mcs_qscan "" "" 1 1 1  energy 2  Io It 0 0 preset_time "0.1 timer1" text scan1.out gnuplot log($f[0]/$f[1])  8950  1 101

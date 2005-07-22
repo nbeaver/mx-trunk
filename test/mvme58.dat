@@ -1,0 +1,12 @@
+#oms0       interface generic vme58_esrf "" "" /dev/oms0
+vme1       interface vme sis3100 "" "" 0x0 /dev/sis1100_0 0
+oms0       interface generic vme58 "" "" vme1 0 0x5000
+m1         device motor vme58_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um oms0 0 0x10 500 50 1000
+m2         device motor vme58_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um oms0 1 0x10 500 50 1000
+m3         device motor vme58_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um oms0 2 0x10 500 50 1000
+m4         device motor vme58_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um oms0 3 0x10 500 50 1000
+m12_center device motor slit_motor "" "" 0 0 -5000000 5000000 0 -1 -1 1 0 um 0x0 3 m2 m1
+m12_size   device motor slit_motor "" "" 0 0 -5000000 5000000 0 -1 -1 1 0 um 0x0 4 m2 m1
+m34_center device motor slit_motor "" "" 0 0 -5000000 5000000 0 -1 -1 1 0 um 0x0 3 m4 m3
+m34_size   device motor slit_motor "" "" 0 0 -5000000 5000000 0 -1 -1 1 0 um 0x0 4 m4 m3
+timer1     device timer soft_timer "" ""

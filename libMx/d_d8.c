@@ -1,0 +1,827 @@
+/*
+ * Name:    d_d8.c
+ *
+ * Purpose: MX driver for Bruker D8 controlled motors.
+ *
+ * Warning: This driver has only been tested with pre-production units.  Use
+ *          with commercially released controllers may need a few changes.
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include <math.h>
+
+#include "mx_util.h"
+#include "mx_driver.h"
+#include "d_d8.h"
+
+/* ============ Motor channels ============ */
+
+MX_RECORD_FUNCTION_LIST mxd_d8_motor_record_function_list = {
+	mxd_d8_motor_initialize_type,
+	mxd_d8_motor_create_record_structures,
+	mxd_d8_motor_finish_record_initialization,
+	mxd_d8_motor_delete_record,
+	mxd_d8_motor_print_structure,
+	mxd_d8_motor_read_parms_from_hardware,
+	mxd_d8_motor_write_parms_to_hardware,
+	mxd_d8_motor_open,
+	mxd_d8_motor_close
+};
+
+MX_MOTOR_FUNCTION_LIST mxd_d8_motor_motor_function_list = {
+	mxd_d8_motor_motor_is_busy,
+	mxd_d8_motor_move_absolute,
+	mxd_d8_motor_get_position,
+	mxd_d8_motor_set_position,
+	mxd_d8_motor_soft_abort,
+	mxd_d8_motor_immediate_abort,
+	mxd_d8_motor_positive_limit_hit,
+	mxd_d8_motor_negative_limit_hit,
+	mxd_d8_motor_find_home_position
+};
+
+/* D8 motor data structures. */
+
+MX_RECORD_FIELD_DEFAULTS mxd_d8_motor_record_field_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_ANALOG_MOTOR_STANDARD_FIELDS,
+	MX_MOTOR_STANDARD_FIELDS,
+	MXD_D8_MOTOR_STANDARD_FIELDS
+};
+
+long mxd_d8_motor_num_record_fields
+		= sizeof( mxd_d8_motor_record_field_defaults )
+			/ sizeof( mxd_d8_motor_record_field_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxd_d8_motor_rfield_def_ptr
+			= &mxd_d8_motor_record_field_defaults[0];
+
+#define D8_MOTOR_DEBUG	FALSE
+
+/* === */
+
+static mx_status_type
+mxd_d8_motor_get_pointers( MX_MOTOR *motor,
+				MX_D8_MOTOR **d8_motor,
+				MX_D8 **d8,
+				const char *calling_fname )
+{
+	const char fname[] = "mxd_d8_motor_get_pointers()";
+
+	MX_RECORD *d8_record;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_MOTOR pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	if ( d8_motor == (MX_D8_MOTOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_D8_MOTOR pointer passed by '%s' was NULL.",
+		calling_fname );
+	}
+
+	if ( d8 == (MX_D8 **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_D8 pointer passed by '%s' was NULL.",
+		calling_fname );
+	}
+
+	*d8_motor = (MX_D8_MOTOR *) (motor->record->record_type_struct);
+
+	if ( *d8_motor == (MX_D8_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_D8_MOTOR pointer for motor '%s' is NULL.",
+				motor->record->name );
+	}
+
+	d8_record = (MX_RECORD *) ((*d8_motor)->d8_record);
+
+	if ( d8_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Interface record pointer for D8 motor '%s' is NULL.",
+			motor->record->name );
+	}
+
+	*d8 = (MX_D8 *)(d8_record->record_type_struct);
+
+	if ( *d8 == (MX_D8 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_D8 pointer for D8 motor record '%s' is NULL.",
+			motor->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* === */
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_initialize_type( long type )
+{
+	/* Nothing needed here. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_create_record_structures( MX_RECORD *record )
+{
+	const char fname[] = "mxd_d8_motor_create_record_structures()";
+
+	MX_MOTOR *motor;
+	MX_D8_MOTOR *d8_motor;
+
+	/* Allocate memory for the necessary structures. */
+
+	motor = (MX_MOTOR *) malloc( sizeof(MX_MOTOR) );
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Can't allocate memory for MX_MOTOR structure." );
+	}
+
+	d8_motor = (MX_D8_MOTOR *) malloc( sizeof(MX_D8_MOTOR) );
+
+	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Can't allocate memory for MX_D8_MOTOR structure." );
+	}
+
+	/* Now set up the necessary pointers. */
+
+	record->record_class_struct = motor;
+	record->record_type_struct = d8_motor;
+	record->class_specific_function_list
+				= &mxd_d8_motor_motor_function_list;
+
+	motor->record = record;
+
+	/* A D8 motor is treated as an analog motor. */
+
+	motor->subclass = MXC_MTR_ANALOG;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_finish_record_initialization( MX_RECORD *record )
+{
+	mx_status_type status;
+
+	status = mx_motor_finish_record_initialization( record );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
+{
+	const char fname[] = "mxd_d8_motor_print_structure()";
+
+	MX_MOTOR *motor;
+	MX_RECORD *d8_record;
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	double position, move_deadband;
+	mx_status_type status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"MX_MOTOR pointer for record '%s' is NULL.", record->name );
+	}
+
+	d8_motor = (MX_D8_MOTOR *) (record->record_type_struct);
+
+	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"MX_D8_MOTOR pointer for record '%s' is NULL.", record->name );
+	}
+
+	d8_record = (MX_RECORD *) (d8_motor->d8_record);
+
+	if ( d8_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Interface record pointer for D8 motor '%s' is NULL.",
+			record->name );
+	}
+
+	d8 = (MX_D8 *) (d8_record->record_type_struct);
+
+	if ( d8 == (MX_D8 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"MX_D8 pointer for D8 motor record '%s' is NULL.",
+			record->name );
+	}
+
+	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
+
+	fprintf(file, "  Motor type        = D8_MOTOR motor.\n\n");
+
+	fprintf(file, "  name              = %s\n", record->name);
+	fprintf(file, "  port name         = %s\n", d8_record->name);
+	fprintf(file, "  drive number      = %d\n", d8_motor->drive_number);
+
+	status = mx_motor_get_position( record, &position );
+
+	if ( status.code != MXE_SUCCESS ) {
+		mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unable to read position of motor '%s'",
+			record->name );
+		}
+	
+	fprintf(file, "  position          = %g %s  (%g)\n",
+			motor->position, motor->units,
+			motor->raw_position.analog );
+	fprintf(file, "  scale             = %g %s per D8 unit.\n",
+			motor->scale, motor->units);
+	fprintf(file, "  offset            = %g %s.\n",
+			motor->offset, motor->units);
+	
+	fprintf(file, "  backlash          = %g %s  (%g)\n",
+		motor->backlash_correction, motor->units,
+		motor->raw_backlash_correction.analog );
+	
+	fprintf(file, "  negative limit    = %g %s  (%g)\n",
+		motor->negative_limit, motor->units,
+		motor->raw_negative_limit.analog );
+
+	fprintf(file, "  positive limit    = %g %s  (%g)\n",
+		motor->positive_limit, motor->units,
+		motor->raw_positive_limit.analog );
+
+	move_deadband = motor->scale * motor->raw_move_deadband.analog;
+
+	fprintf(file, "  move deadband     = %g %s  (%g)\n\n",
+		move_deadband, motor->units,
+		motor->raw_move_deadband.analog );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_read_parms_from_hardware( MX_RECORD *record )
+{
+	const char fname[] = "mxd_d8_motor_read_parms_from_hardware()";
+
+	MX_MOTOR *motor;
+	MX_D8_MOTOR *d8_motor;
+	MX_RECORD *d8_record;
+	MX_D8 *d8;
+	double position;
+	mx_status_type status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	d8_motor = (MX_D8_MOTOR *) (record->record_type_struct);
+
+	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_D8_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	d8_record = (MX_RECORD *)
+			(d8_motor->d8_record);
+
+	if ( d8_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Interface record pointer for D8 motor '%s' is NULL.",
+			record->name );
+	}
+
+	d8 = (MX_D8 *)
+			(d8_record->record_type_struct);
+
+	if ( d8 == (MX_D8 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"MX_D8 pointer for D8 motor record '%s' is NULL.",
+			record->name );
+	}
+
+
+	/* Get the current position.  This has the side effect of
+	 * updating the position value in the MX_MOTOR structure.
+	 */
+
+	status = mx_motor_get_position( record, &position );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* At present, the position is the only parameter we read out.
+	 * We rely on the non-volatile memory of the controller
+	 * for the rest of the controller parameters.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_write_parms_to_hardware( MX_RECORD *record )
+{
+	const char fname[] = "mxd_d8_motor_write_parms_to_hardware()";
+
+	MX_MOTOR *motor;
+	MX_D8_MOTOR *d8_motor;
+	MX_RECORD *d8_record;
+	MX_D8 *d8;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	d8_motor = (MX_D8_MOTOR *) (record->record_type_struct);
+
+	if ( d8_motor == (MX_D8_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+			"MX_D8_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	d8_record = (MX_RECORD *)
+			(d8_motor->d8_record);
+
+	if ( d8_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Interface record pointer for D8 motor '%s' is NULL.",
+			record->name );
+	}
+
+	d8 = (MX_D8 *)(d8_record->record_type_struct);
+
+	if ( d8 == (MX_D8 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"MX_D8 pointer for D8 motor record '%s' is NULL.",
+			record->name );
+	}
+
+	/* === Now we can set the motor position. === */
+
+#if 0	/* For now, this is disabled. */
+
+	status = mxd_d8_motor_set_position_steps(
+			motor, motor->raw_motor_steps );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* At present, the position is the only parameter we set here.
+	 * We rely on the non-volatile memory of the controller
+	 * for the rest of the controller parameters.
+	 */
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_open( MX_RECORD *record )
+{
+	const char fname[] = "mxd_d8_motor_open()";
+
+	MX_MOTOR *motor;
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	char response[80];
+	mx_status_type status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_MOTOR pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* See if the drive is initialized already by sending it a
+	 * get position command.
+	 */
+
+	sprintf( command, "AV%d", d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( strcmp( response, "AV0.--" ) == 0 ) {
+
+		MX_DEBUG(-2,("%s: Axis %d is not initialized yet.",
+			fname, d8_motor->drive_number));
+
+		sprintf( command, "AV%d,0.00", d8_motor->drive_number );
+
+		status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_close( MX_RECORD *record )
+{
+	/* Nothing to do. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ============ Motor specific functions ============ */
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_motor_is_busy()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	char response[80];
+	int num_items;
+	unsigned long drive_status;
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	num_items = sscanf( response, "ST%lu", &drive_status );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Drive status not found in D8 response '%s'.", response );
+	}
+
+	if ( drive_status & 0x01 ) {
+		motor->busy = TRUE;
+	} else {
+		motor->busy = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_move_absolute( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_move_absolute()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* Send the move command. */
+
+	sprintf( command, "GO%d,%g,%g", d8_motor->drive_number,
+					motor->raw_destination.analog,
+					d8_motor->d8_speed );
+
+	status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_get_position( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_get_position()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	char response[80];
+	double raw_position;
+	int num_tokens;
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "AV%d", d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	num_tokens = sscanf( response, "AV%lg", &raw_position );
+
+	if ( num_tokens != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"No position value seen in response to '%s' command.  "
+		"Response seen = '%s'", command, response );
+	}
+
+	motor->raw_position.analog = raw_position;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_set_position( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_set_position()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[40];
+	char response[80];
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "AV%d,%g", d8_motor->drive_number,
+					motor->raw_set_position.analog );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+#if 1
+#if 0
+	if ( fabs( motor->raw_set_position.analog ) < 1.0e-6 ) {
+#else
+	if (1) {
+#endif
+		sprintf( command, "ZI%d,0", d8_motor->drive_number );
+
+		status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		sprintf( command, "IN%d", d8_motor->drive_number );
+
+		status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_soft_abort( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_soft_abort()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[40];
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "HT%d", d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_immediate_abort( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_immediate_abort()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* Abort all drives, measurements, and macros. */
+
+	status = mxi_d8_command( d8, "HT", NULL, 0, D8_MOTOR_DEBUG );
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_positive_limit_hit()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	char response[80];
+	int num_items;
+	unsigned long drive_status;
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	num_items = sscanf( response, "ST%lu", &drive_status );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Drive status not found in D8 response '%s'.", response );
+	}
+
+	if ( (drive_status >> 9) & 0x01 ) {
+		motor->positive_limit_hit = TRUE;
+	} else {
+		motor->positive_limit_hit = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_negative_limit_hit()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	char response[80];
+	int num_items;
+	unsigned long drive_status;
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
+
+	status = mxi_d8_command( d8, command,
+			response, sizeof response, D8_MOTOR_DEBUG );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	num_items = sscanf( response, "ST%lu", &drive_status );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Drive status not found in D8 response '%s'.", response );
+	}
+
+	if ( (drive_status >> 8) & 0x01 ) {
+		motor->negative_limit_hit = TRUE;
+	} else {
+		motor->negative_limit_hit = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_d8_motor_find_home_position( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_d8_motor_find_home_position()";
+
+	MX_D8 *d8;
+	MX_D8_MOTOR *d8_motor;
+	char command[20];
+	mx_status_type status;
+
+	status = mxd_d8_motor_get_pointers( motor,
+			&d8_motor, &d8, fname );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( motor->home_search >= 0 ) {
+		sprintf( command, "FR%d,U", d8_motor->drive_number );
+	} else {
+		sprintf( command, "FR%d,D", d8_motor->drive_number );
+	}
+
+	status = mxi_d8_command( d8, command,
+					NULL, 0, D8_MOTOR_DEBUG );
+
+	return status;
+}
+

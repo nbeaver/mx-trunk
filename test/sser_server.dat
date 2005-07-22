@@ -1,0 +1,1 @@
+slow1k                           scan linear_scan input_scan "" "" 1 1 0  3  scaler1 scaler3 scaler15 0 0 preset_time "2 timer1" sff junk.out gnuplot $f[0]  0  1  1000

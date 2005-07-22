@@ -1,0 +1,2 @@
+umcbi  interface generic umcbi "" ""
+mca1   device mca trump_mca "" "" 8192 1 0 umcbi 1

@@ -1,0 +1,161 @@
+#! /bin/sh
+#
+# Script to start the MX server and MX update processes at boot time.
+#
+# This version of the script runs as root, but starts up mxserver and
+# mxupdate under a non-root user account which is 'mx' by default.
+#
+# The following is for the use of the Red Hat Linux chkconfig command:
+#
+# chkconfig: 2345 99 01
+# description: Server control script for the MX data acquisition \
+#              and control system.
+# processname: mxserver
+#
+
+if [ x$MXDIR = x ]; then
+	MXDIR=/opt/mx
+fi
+
+MXBIN=${MXDIR}/bin
+MXLOG=${MXDIR}/log
+MXRUN=${MXDIR}/run
+MXSBIN=${MXDIR}/sbin
+
+MX_EPICS_CONFIG=${MXSBIN}/mx_epics_config
+
+START_MXSERVER=${MXSBIN}/startmxserver
+START_MXUPDATE=${MXSBIN}/startmxupdate
+
+#---
+
+# The following makes sure that whoami is in the path on Solaris 2 and SunOS 4
+# and that libMx.dll is in the path on Cygwin.
+
+PATH="$PATH:$MXBIN:/usr/ucb"
+
+export PATH
+
+# Find out which user is running this script.
+
+SCRIPTUSER=`whoami`
+
+# Which user are the MX server and update processes to be run as?
+
+MXUSER_FILE=${MXDIR}/etc/mxuser.dat
+
+if [ -f ${MXUSER_FILE} ]; then
+	MXUSER=`cat ${MXUSER_FILE}`
+else
+	MXUSER=mx
+fi
+
+# Construct a prefix for the server startup commands below.
+
+if [ $SCRIPTUSER = $MXUSER ]; then
+	PREFIX=
+elif [ $SCRIPTUSER = "root" ]; then
+	PREFIX="/bin/su $MXUSER -c"
+else
+	echo "This script must be run either as the MX user '$MXUSER' or as 'root'."
+	echo "You are '$SCRIPTUSER', so this script is aborting."
+	exit 1
+fi
+
+#---
+
+MXSERVER_OPTIONS_FILE=${MXDIR}/etc/mxserver.opt
+
+if [ -f ${MXSERVER_OPTIONS_FILE} ]; then
+	MXSERVER_OPTIONS=`cat ${MXSERVER_OPTIONS_FILE}`
+fi
+
+START_MXSERVER_CMD="$START_MXSERVER ${MXSERVER_OPTIONS}"
+
+#---
+
+MXUPDATE_OPTIONS_FILE=${MXDIR}/etc/mxupdate.opt
+
+if [ -f ${MXUPDATE_OPTIONS_FILE} ]; then
+	MXUPDATE_OPTIONS=`cat ${MXUPDATE_OPTIONS_FILE}`
+fi
+
+START_MXUPDATE_CMD="$START_MXUPDATE ${MXUPDATE_OPTIONS}"
+
+#---
+
+#echo "SCRIPTUSER=$SCRIPTUSER"
+#echo "MXUSER=$MXUSER"
+#echo "PREFIX=$PREFIX"
+#echo "START_MXSERVER_CMD=$START_MXSERVER_CMD"
+#echo "START_MXUPDATE_CMD=$START_MXUPDATE_CMD"
+
+case $1 in
+    'start' )
+	echo "Starting the MX servers."
+
+	# If possible, fix any outstanding permission problems.
+
+	if [ $SCRIPTUSER = "root" ]; then
+		chown $MXUSER ${MXDIR}/log
+		chown $MXUSER ${MXDIR}/run
+		chown $MXUSER ${MXDIR}/state
+
+		chown $MXUSER ${MXDIR}/log/*.log
+	fi
+
+	if [ -f $MX_EPICS_CONFIG ]; then
+		. $MX_EPICS_CONFIG
+	fi
+
+	if [ -x $START_MXSERVER ]; then
+
+		if [ $SCRIPTUSER = "root" ]; then
+			$PREFIX "touch ${MXLOG}/mxserver.log"
+
+			( $PREFIX "$START_MXSERVER_CMD" < /dev/null >> ${MXLOG}/mxserver.log 2>&1 & )
+		else
+			touch ${MXLOG}/mxserver.log
+
+			( $START_MXSERVER_CMD < /dev/null >> ${MXLOG}/mxserver.log 2>&1 & )
+		fi
+
+		if [ -x $START_MXUPDATE ]; then
+			if [ $SCRIPTUSER = "root" ]; then
+				$PREFIX "touch ${MXLOG}/mxupdate.log"
+
+				( $PREFIX "$START_MXUPDATE_CMD" < /dev/null >> ${MXLOG}/mxupdate.log 2>&1 & )
+			else
+				touch ${MXLOG}/mxupdate.log
+
+				( $START_MXUPDATE_CMD < /dev/null >> ${MXLOG}/mxupdate.log 2>&1 & )
+			fi
+		fi
+	fi
+	;;
+    'stop' )
+	echo "Stopping the MX servers."
+
+	if [ -f ${MXRUN}/mxserver.pid ]; then
+		MXSERVER_PID=`cat ${MXRUN}/mxserver.pid`
+		kill $MXSERVER_PID
+		rm ${MXRUN}/mxserver.pid
+	fi
+
+	if [ -f ${MXRUN}/mxupdate.pid ]; then
+		MXUPDATE_PID=`cat ${MXRUN}/mxupdate.pid`
+		kill $MXUPDATE_PID
+		rm ${MXRUN}/mxupdate.pid
+	fi
+	;;
+    'restart' )
+	$0 stop
+	echo "Waiting 5 seconds for the servers to shut down."
+	sleep 5
+	$0 start
+	;;
+    *)
+	echo "Usage: ${MXDIR}/sbin/mx {start|stop|restart}"
+	;;
+esac
+

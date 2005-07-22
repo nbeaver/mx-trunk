@@ -1,0 +1,3 @@
+marccd_server server network tcpip_server "" "" 0x0 localhost 9827
+marccd        device ccd network_ccd "" "" marccd_server marccd
+shutter       device relay network_relay "" "" marccd_server shutter

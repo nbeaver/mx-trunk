@@ -1,0 +1,47 @@
+omega_params   variable inline double "" "" 1 4 0 0 0 0
+d_spacing      variable inline double "" "" 1 1 3.13555
+edge_energy    variable inline double "" "" 1 1 8980
+sff_header1    variable inline string "" "" 1 81 ""
+sff_header2    variable inline string "" "" 1 81 ""
+sff_header3    variable inline string "" "" 1 81 ""
+sff_header_fmt variable inline string "" "" 1 161 "edge_energy | sff_header1 | sff_header2 | sff_header3 | %devices"
+xafs_header1   variable inline string "" "" 1 81 ""
+xafs_header2   variable inline string "" "" 1 81 ""
+xafs_header3   variable inline string "" "" 1 81 ""
+test_array     variable inline double "" "" 2 2 4 0 1 2 3 10 11 12 13
+tty1           interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0
+theta_real     device motor soft_motor "" "" 0 0 -5400000 200000 0 -1 -1 -5e-05 0 deg 20000 0 10000
+rawomega       device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+rawchi         device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+pivot          device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+b_top          device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+b_bottom       device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+b_inboard      device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+b_outboard     device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+x1             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+x2             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+z1             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+z2             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+z3             device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+omega          device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawomega pivot
+time           device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
+scaler2        device scaler soft_scaler "" "" 0 0 0 timer1 omega 181 omega_g.dat 0
+timer1         device timer soft_timer "" ""
+#
+# The following set of soft CAMAC devices is used in the absence of 
+# true soft digital and analog I/O records.
+#
+camac1         interface camac soft_camac "" "" 0 0 camac.log
+#
+ain1           device analog_input   ks3512     "" "" 0 1 0 volts 0x0 0 "" camac1 1 0
+aout1          device analog_output  ks3112     "" "" 0 1 0 volts 0x0 camac1 2 0
+din1           device digital_input  ks3063_in  "" "" 0 camac1 3
+dout1          device digital_output ks3063_out "" "" 0 camac1 3
+#
+# Some inline variables that are treated like analog and digital I/O
+# ports by the client.
+#
+ain2           variable inline double "" "" 1 1 137
+aout2          variable inline double "" "" 1 1 0
+din2           variable inline int    "" "" 1 1 238
+dout2          variable inline int    "" "" 1 1 0

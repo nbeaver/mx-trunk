@@ -1,0 +1,62 @@
+robotserv server network tcpip_server "" "" 0x0 localhost 9827
+#
+# General Wago devices
+#
+temp1 device analog_input network_ainput "" "" 0 1 0 C 0x0 0 "" robotserv temp1
+temp2 device analog_input network_ainput "" "" 0 1 0 C 0x0 0 "" robotserv temp2
+din1  device digital_input network_dinput "" "" 0 robotserv din1
+dout1 device digital_output network_doutput "" "" 0 robotserv dout1
+#
+# Slide status records
+#
+hor_status   device digital_input network_dinput "" "" 0 robotserv hor_status
+vert_status  device digital_input network_dinput "" "" 0 robotserv vert_status
+srot_status  device digital_input network_dinput "" "" 0 robotserv srot_status
+small_status device digital_input network_dinput "" "" 0 robotserv small_status
+#
+# Slide control records
+#
+hor_ctrl     device digital_output network_doutput "" "" 0 robotserv hor_ctrl
+vert_ctrl    device digital_output network_doutput "" "" 0 robotserv vert_ctrl
+srot_ctrl    device digital_output network_doutput "" "" 0 robotserv srot_ctrl
+small_ctrl   device digital_output network_doutput "" "" 0 robotserv small_ctrl
+gripper_ctrl device digital_output network_doutput "" "" 0 robotserv gripper_ctrl
+#
+# Slide relay records
+#
+hor     device relay network_relay "" "" robotserv hor
+vert    device relay network_relay "" "" robotserv vert
+srot    device relay network_relay "" "" robotserv srot
+small   device relay network_relay "" "" robotserv small
+gripper device relay network_relay "" "" robotserv gripper
+#
+# RS-232 interfaces used by the dewar motors.
+#
+dewar_rot_rs232 interface rs232 network_rs232 "" "" 9600 8 N 1 N 0x0d 0x0d -1 0x0 robotserv dewar_rot_rs232
+dewar_x_rs232 interface rs232 network_rs232 "" "" 9600 8 N 1 N 0x0d 0x0d -1 0x0 robotserv dewar_x_rs232
+#
+# Dewar rotation stage 'rot'
+#
+dewar_rot      device motor network_motor "" "" 0 0 -10000000000 10000000000 0 -1 -1 1 0 deg robotserv dewar_rot
+dewar_rot_curr device analog_input network_ainput "" "" 0 1 0 amps 0x0 0 "" robotserv dewar_rot_curr
+dewar_rot_volt device analog_input network_ainput "" "" 0 1 0 volts 0x0 0 "" robotserv dewar_rot_volt
+dewar_rot_temp device analog_input network_ainput "" "" 0 1 0 C 0x0 0 "" robotserv dewar_rot_temp
+#
+# Dewar translation stage 'x'
+#
+dewar_x      device motor network_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm robotserv dewar_x
+dewar_x_curr device analog_input network_ainput "" "" 0 0.01 0 amps 0x0 0 "" robotserv dewar_x_curr
+dewar_x_volt device analog_input network_ainput "" "" 0 0.1 0 volts 0x0 0 "" robotserv dewar_x_volt
+dewar_x_temp device analog_input network_ainput "" "" 0 1 0 C 0x0 0 "" robotserv dewar_x_temp
+#
+# Dewar positioner record
+#
+dewar_position device motor network_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 units robotserv dewar_position
+#
+# ALS sample changing robot
+#
+robot device sample_changer network_sample_changer "" "" 0x0 robotserv robot
+#
+# Soft timer for scanning.
+#
+timer1 device timer soft_timer "" ""

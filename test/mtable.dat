@@ -1,0 +1,14 @@
+adsc_table                       device table adc_table "" ""  x1 y1 y2 z1 z2 z3 0.4 0.6 0.75 0.25 0.25 0.5
+x1                               device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+y1                               device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+y2                               device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+z1                               device motor soft_motor "" "" 1000 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+z2                               device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+z3                               device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.001 0 um 1000 0 500
+tx                               device motor table_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 um adsc_table 1
+ty                               device motor table_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 um adsc_table 2
+tz                               device motor table_motor "" "" 0.65 0 -20000000 20000000 0 -1 -1 1 0 um adsc_table 3
+troll                            device motor table_motor "" "" -0.2 0 -20000000 20000000 0 -1 -1 1 0 urad adsc_table 4
+tpitch                           device motor table_motor "" "" 1 0 -20000000 20000000 0 -1 -1 1 0 urad adsc_table 5
+tyaw                             device motor table_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 urad adsc_table 6
+timer1                           device timer soft_timer "" ""

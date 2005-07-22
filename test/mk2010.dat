@@ -1,0 +1,3 @@
+gpib0           interface gpib ni488 "" "" 10 1 0xa 0xa 0x0 0
+k2010           interface generic keithley2000 "" "" gpib0:6
+k2010_ain       device analog_input keithley2000_ainput "" "" 0 1 0 units 0x0 0 "" k2010 1

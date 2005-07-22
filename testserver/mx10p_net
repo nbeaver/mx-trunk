@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mx10p_net.dat -s ./sx10p_net.dat $*
+

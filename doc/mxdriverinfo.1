@@ -1,0 +1,345 @@
+.\" Process this man page with 
+.\" groff -man -Tascii mxdriverinfo.1
+.\"
+.TH MXDRIVERINFO 1 "July 2005" MX "MX User Manuals"
+.SH NAME
+mxdriverinfo \- MX database format display program
+.SH SYNOPSIS
+.B mxdriverinfo [
+.I option
+.B ]
+.SH DESCRIPTION
+.B mxdriverinfo
+is a tool for displaying the required format for a record description
+in an MX database file.  Each record description consists of a single
+line of text that may be arbitrarily long.  No line breaks are allowed.
+.B mxdriverinfo
+is most commonly used in the form
+.I mxdriverinfo -f driver_name.
+Although
+.B mxdriverinfo
+is useful when invoked directly, it is primarily
+intended for use with the MX database editor GUI currently under development.
+.SH OPTIONS
+.IP "-f driver_name"
+Display the record fields found in the MX database record description string.
+.IP "-a driver_name"
+Display
+.I all
+record fields, not just those in the database record description.
+Some of the fields that are not contained in the record description
+are used by MX network messages.
+.IP -s
+Display all available MX superclasses.
+.IP "-c superclass_name"
+Display all available MX classes for the specified superclass.
+.IP "-t class_name"
+Display all available MX driver types for the specified class.
+.IP -l 
+Display all available MX driver types in a three column format.
+The first column is the superclass name.  The second column is
+the class name.  And the third column is the driver type name.
+.IP -v
+Display the version of MX in use.
+.IP -d
+Turns on internal debugging.
+.SH EXAMPLE
+An example database entry would look like:
+
+.nf
+z1 device motor soft_motor "" "" 0 0 -1000 1000 0 -1 -1 0.01 0 mm 10 0 5
+.fi
+
+The format of this record may be found by running the command
+
+.I mxdriverinfo -f soft_motor
+
+This results in the output
+
+.nf
+name MXFT_STRING F:1 F:16
+mx_superclass MXFT_RECORDTYPE F:0
+mx_class MXFT_RECORDTYPE F:0
+mx_type MXFT_RECORDTYPE F:0
+label MXFT_STRING F:1 F:40
+acl_description MXFT_STRING F:1 F:40
+raw_position MXFT_LONG F:0
+raw_backlash_correction MXFT_LONG F:0
+raw_negative_limit MXFT_LONG F:0
+raw_positive_limit MXFT_LONG F:0
+raw_move_deadband MXFT_LONG F:0
+raw_minimum_speed_limit MXFT_DOUBLE F:0
+raw_maximum_speed_limit MXFT_DOUBLE F:0
+scale MXFT_DOUBLE F:0
+offset MXFT_DOUBLE F:0
+units MXFT_STRING F:1 F:16
+default_speed MXFT_DOUBLE F:0
+default_base_speed MXFT_DOUBLE F:0
+default_acceleration MXFT_DOUBLE F:0
+.fi
+
+Each line in the output of
+.I mxdriverinfo -f ...
+describes a single
+.I record field
+in the record description.  
+
+The first item in the line of output is the 
+.I name
+of the record field.
+
+The second item is the 
+.I field type
+such as 
+.B MXFT_STRING, MXFT_LONG,
+and so forth.
+
+The third item is the number of dimensions for this record field.
+
+The items beyond the third item is the size of each dimension in
+the record field.
+
+If we compare the output of 
+.I mxdriverinfo -f soft_motor
+to the database entry itself, we find the following correspondence:
+
+.nf
+name                    = "z1"
+mx_superclass           = "device"
+mx_class                = "motor"
+mx_type                 = "soft_motor"
+label                   = ""
+acl_description         = ""
+raw_position            = 0
+raw_backlash_correction = 0
+raw_negative_limit      = -1000
+raw_positive_limit      = 1000
+raw_move_deadband       = 0
+raw_minimum_speed_limit = -1
+raw_maximum_speed_limit = -1
+scale                   = 0.01
+offset                  = 0
+units                   = "mm"
+default_speed           = 10
+default_base_speed      = 0
+default_acceleration    = 5
+.fi
+
+.SH FIELD TYPES
+MX supports a variety of record field types.  They are displayed in
+.B mxdriverinfo
+as in the following list:
+
+.IP MXFT_STRING
+Character string variable.  In MX, a string must have at least one dimension.
+The length specified for the last dimension is the maximum length of
+the string.
+.IP MXFT_CHAR
+Represents a C 
+.I char
+variable.  Must have at least 8 bits per element.
+.IP MXFT_UCHAR
+Represents a C 
+.I unsigned char
+variable.  Must have at least 8 bits per element.
+.IP MXFT_SHORT
+Represents a C 
+.I short
+variable.  Must have at least 16 bits per element.
+.IP MXFT_USHORT
+Represents a C 
+.I unsigned short
+variable.  Must have at least 16 bits per element.
+.IP MXFT_INT
+Represents a C 
+.I int
+variable.  Must have at least 16 bits per element.
+.IP MXFT_UINT
+Represents a C 
+.I unsigned int
+variable.  Must have at least 16 bits per element.
+.IP MXFT_LONG
+Represents a C 
+.I long
+variable.  Must have at least 32 bits per element.
+.IP MXFT_ULONG
+Represents a C 
+.I unsigned long
+variable.  Must have at least 32 bits per element.
+.IP MXFT_FLOAT
+Represents a C
+.I float
+variable.  Must have at least 32 bits per element.
+.IP MXFT_DOUBLE
+Represents a C
+.I float
+variable.  Must have at least 64 bits per element.
+.IP MXFT_HEX
+This is the same as an MXFT_ULONG field, except that values for this field type
+are expected to be specified in hexadecimal notation, such as 0x8fdb.
+.IP MXFT_RECORD
+Represents a reference to another MX record in the current MX database.
+.IP MXFT_RECORDTYPE
+Represents the MX superclass, class, or type name of the current record.
+.IP MXFT_INTERFACE
+Represents an MX
+.I interface
+field.  Interface fields contain references to other records, possibly
+including address information.  They are most commonly used by controllers
+that have both RS-232 and GPIB ports.
+For example, an interface name like
+.I myrs232
+probably refers to an RS-232 port called
+.I myrs232
+, while
+.I mygpib:7
+probably refers to primary address 7 on GPIB bus 
+.I mygpib.
+However, the precise interpretation of MXFT_INTERFACE fields are up to the
+discretion of the driver writer.
+.SH DIMENSION DESCRIPTIONS
+The third through last items on each line of output from
+.I mxdriverinfo -f ...
+are encoded as
+.I dimension descriptions.
+There are two kinds of dimension descriptions, namely,
+.I fixed length
+dimension descriptions, such as
+.B F:6,
+and 
+.I varying length
+dimension descriptions, such as
+.B V:other_field_name,0.
+
+The third item on each line is the dimension description of the number
+of dimensions of this record field.  For example, 
+.B F:0
+means that the record field is a scalar variable, while
+.B F:1
+means that it is a one-dimensional array, and
+.B F:2
+means that it is a two-dimensional array.
+
+For items after the third item, the dimension description describes the
+number of elements in that dimension of the array.  As an example, 
+a two-dimensional record field of type MXFT_DOUBLE with 3 rows and 5 columns
+would be represented in the output of 
+.B mxdriverinfo
+as
+.nf
+value MXFT_DOUBLE F:2 F:3 F:5
+.fi
+
+If this field appeared in an inline double MX variable, the corresponding
+record description might look like:
+.nf
+myvar variable inline double "" "" 2  3 5  1.1 1.2 1.3 1.4 1.5 2.1 2.2 2.3 2.4 2.5 3.1 3.2 3.3 3.4 3.5
+.fi
+
+where 1.1 through 3.5 are the individual array element values.
+The array element values in an MX record field appear in row rank order
+which is the same arrangement as for C arrays.  In row rank order,
+the last dimension varies the fastest.
+
+.I Varying length
+dimension descriptions such as
+.B V:other_field_name,0
+describe record fields whose values depend on other record fields belonging
+to this record.  This is most easily explained by way of an example.
+Let us use the 
+.I linear_function
+record type for our example.  In this case, the output of 
+.B mxdriverinfo
+is:
+.nf
+$ mxdriverinfo -f linear_function
+name MXFT_STRING F:1 F:16
+mx_superclass MXFT_RECORDTYPE F:0
+mx_class MXFT_RECORDTYPE F:0
+mx_type MXFT_RECORDTYPE F:0
+label MXFT_STRING F:1 F:40
+acl_description MXFT_STRING F:1 F:40
+raw_position MXFT_DOUBLE F:0
+raw_backlash_correction MXFT_DOUBLE F:0
+raw_negative_limit MXFT_DOUBLE F:0
+raw_positive_limit MXFT_DOUBLE F:0
+deadband MXFT_DOUBLE F:0
+raw_minimum_speed_limit MXFT_DOUBLE F:0
+raw_maximum_speed_limit MXFT_DOUBLE F:0
+scale MXFT_DOUBLE F:0
+offset MXFT_DOUBLE F:0
+units MXFT_STRING F:1 F:16
+num_records MXFT_LONG F:0
+record_array MXFT_RECORD F:1 V:num_records,0
+real_scale MXFT_DOUBLE F:1 V:num_records,0
+real_offset MXFT_DOUBLE F:1 V:num_records,0
+move_fraction MXFT_DOUBLE F:1 V:num_records,0
+.fi
+
+In this result, the last four fields in the record, namely
+.I record_array, real_scale, real_offset,
+and
+.I move_fraction
+are varying length record fields.  In each of the four fields, the
+leading 
+.B F:1
+token means that these fields are one-dimensional arrays.  The last token
+.B V:num_records,0
+means that the number of elements in each of these one-dimensional arrays
+depends on the value of the field
+.I num_records.
+
+A real life example of use of this record type looks like
+.nf
+z_pitch device motor linear_function "" "" 1 0 -100000 100000 0 -1 -1 1 0 mm 3  z1 z2 z3  -1 0.5 0.5  0 0 0  0.5 0.25 0.25
+.fi
+
+where
+.nf
+num_records   = 3
+record_array  = z1 z2 z3
+real_scale    = -1 0.5 0.5
+real_offset   = 0 0 0
+move_fraction = 0.5 0.25 0.25
+.fi
+
+In most cases, the field referred to will be a scalar variable field
+such as 
+.I num_records
+which is represented as
+.B F:0.
+In this case, the trailing part of the varying dimension description will be
+.B ,0
+as in the examples above.
+However, if 
+.I num_records
+was a one-dimensional three element array, such as
+.nf
+num_records MXFT_LONG F:1 F:3
+.fi
+
+then it would be possible to have one-dimensional varying length fields
+that depended on individual elements of the 
+.I num_records
+field.  For example,
+.nf
+field1 MXFT_DOUBLE F:1 V:num_records,0
+field2 MXFT_DOUBLE F:1 V:num_records,1
+field3 MXFT_DOUBLE F:1 V:num_records,2
+.fi
+
+Alternately, one could have a multidimensional varying length field such as
+.nf
+varfield MXFT_DOUBLE F:3 V:num_records,0 V:num_records,1 V:num_records,2
+.fi
+
+The MX
+.I variable 
+superclass makes extensive use of this feature.  In fact, for variable
+records, even the number of dimensions for the 
+.I value
+field is of varying length.
+.\"
+.SH AUTHOR
+William Lavender <lavender@agni.phys.iit.edu>
+

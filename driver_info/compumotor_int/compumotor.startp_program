@@ -1,0 +1,30 @@
+; This command script is to be downloaded into a Compumotor 6000 or 6K
+; controller in order to set up the controller to be compatible with MX.
+; The script sets up a startup command program to be executed by the
+; Compumotor controller at power-on.  The commands for ERRLVL, EOT, and MA
+; _must_ be set as shown below or else the MX driver will not work.
+; If you need other commands to set motor parameters, network addresses,
+; and so forth, add them to the commands listed below.
+;
+; Please note that if you use ECHO1, you must add the 0x2 echo on flag to
+; the compumotor_int record that defines the connection to the interface.
+; This lets the driver know that it needs to discard echoed characters.
+;
+; For a single controller, it is better to set ECHO0 since that will 
+; eliminate the overhead of discarding the characters.  However, in a
+; multidrop daisy chain configuration, ECHO1 _must_ _be_ _set_ since the
+; controllers rely on the echoing to send the command on to the next
+; controller in the daisy chain.  If ECHO0 is set in a daisy chain
+; configuration, the configuration will mostly work but will randomly
+; lock up from time to time, so don't do it.
+;
+; William Lavender -- Last modified April 27, 2002
+;
+DEF mstart
+ERRLVL1          ; Have the controller generate a minimum amount of output.
+EOT13,10,0       ; Want all output lines to have the same line terminators.
+MA1              ; Use absolute mode for positioning.
+LH0              ; Disable limits (for testing only!)
+ENC0             ; Use motor step mode ( or set ENC1 for encoder step mode ).
+ECHO1            ; Enable command echoing.
+END

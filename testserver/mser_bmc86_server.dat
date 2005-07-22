@@ -1,0 +1,89 @@
+#
+# From idc10's database.
+#
+bmc73              server network tcpip_server "" "" 0x0 bmc73.ser.aps.anl.gov 9727
+#
+# Oceaneering X-Y stage
+#
+#uglide_rs232     interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd -1 0x0 /dev/ttyS1
+#uglide1          interface generic uglide "" "" uglide_rs232 0x0
+#x_stage          device motor uglide_motor "" "" 0 0 -2000 2000 0 -1 -1 1 0 um uglide1 X
+#y_stage          device motor uglide_motor "" "" 0 0 -2000 2000 0 -1 -1 1 0 um uglide1 Y
+#x_stage          device motor soft_motor "" "" 0 0 -2000 2000 0 -1 -1 1 0 um 1000 1000 1000
+#y_stage          device motor soft_motor "" "" 0 0 -2000 2000 0 -1 -1 1 0 um 1000 1000 1000
+#
+# modular pmac motors, 8 axes
+#
+#pmac1_rs232                      interface rs232 tcp232 "" "" 38400 8 N 1 H 0xd 0xd w11.ser.aps.anl.gov 3001 0x0
+#pmac1                            interface generic pmac "" "" rs232 pmac1_rs232 1
+pmac4_rs232      interface rs232 tty "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyS1
+pmac4            interface generic pmac "" "" rs232 pmac4_rs232 1
+pmac4_mce        device mce pmac_mce "" "" 2000 1 0 pmac4 0 sis3801 18 19 4
+sis3801          device mcs network_mcs "" "" 32 2000 "" 0 0 timer1 bmc73 sis3801
+timer1           device timer mcs_timer "" "" sis3801
+gs_out           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   0.085              0 um     pmac4 0 1
+gs_inb           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1  -0.085              0 um     pmac4 0 2
+gs_bot           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1  -0.085              0 um     pmac4 0 3
+gs_top           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   0.085              0 um     pmac4 0 4
+gs_hor           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   1.4746e-2          0 um     pmac4 0 5
+gs_vert          device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1   0.013202682        0 um     pmac4 0 6
+gs_z             device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1  -1.473e-5           0 mm     pmac4 0 7
+#g_hor            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   1.11906e-2         0 um     pmac4 0 24
+ds_up             device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   7.59222e-5         0 mm     pmac4 0 9
+ds_dn            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   7.59222e-5         0 mm     pmac4 0 22
+#g_vert           device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   7.5747e-2          0 um     pmac4 0 23
+g_vert_mm        device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   7.5747e-5          0 mm     pmac4 0 23 
+bs_h             device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1   0.001              0 ksteps pmac4 0 14
+gs_tilt          device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1   0.001              0 steps  pmac4 0 15
+bs_v             device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   0.001              0 ksteps pmac4 0 16
+d_vup            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1  -0.00060767         0 mm     pmac4 0 17
+d_vdn            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1  -0.00060767         0 mm     pmac4 0 18
+d_hor            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   0.001017           0 mm     pmac4 0 19
+#
+# Coordinate system motors
+#
+d_vert_cs        device motor pmac_cs_axis    "" "" 0 0 -10000000   10000000    0  -1  -1   1                  0 steps  pmac4 0 2 X 3 q31 q51 "" "" ""
+d_hor_cs         device motor pmac_cs_axis    "" "" 0 0 -10000000   10000000    0  -1  -1   1                  0 steps  pmac4 0 2 Z 3 q33 q53 "" "" ""
+#
+omega            device motor pmac_motor      "" "" 0 0 -10000000   10000000    0  -1  -1   2e-4               0 deg    pmac4 0 21
+phi              device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1   0.0017497          0 deg    pmac4 0 8
+kappa            device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1   3.496e-5           0 deg    pmac4 0 12
+z                device motor pmac_motor      "" "" 0 0 -1000000000 1000000000  0  -1  -1  -0.12471            0 um     pmac4 0 13
+d_vert           device motor translation_mtr "" "" 0 0 -10000000   10000000    0  -1  -1  -0.00060767         0 steps  0x1  2 d_vup d_vdn
+#
+m10         device motor pmac_motor "" "" 0 0 -100000000  100000000   0  -1  -1   1                  0 steps  pmac4 0 10
+m11         device motor pmac_motor "" "" 0 0 -100000000  100000000   0  -1  -1   1                  0 steps  pmac4 0 11
+#ds_dn       device motor pmac_motor "" "" 0 0 -100000000  100000000   0  -1  -1   1                  0 steps  pmac4 0 22
+g_vert      device motor pmac_motor "" "" 0 0 -10000000   10000000    0  -1  -1   7.5747e-2          0 um     pmac4 0 23
+g_hor       device motor pmac_motor "" "" 0 0 -10000000   10000000    0  -1  -1   1.11906e-2         0 um     pmac4 0 24
+#
+s2               device digital_output pmac_doutput "" "" 0 pmac4 0 m7000
+s1               device digital_output pmac_doutput "" "" 0 pmac4 0 m7001
+f1               device digital_output pmac_doutput "" "" 0 pmac4 0 m7002
+f2               device digital_output pmac_doutput "" "" 0 pmac4 0 m7003
+f3               device digital_output pmac_doutput "" "" 0 pmac4 0 m7004
+f4               device digital_output pmac_doutput "" "" 0 pmac4 0 m7005
+f5               device digital_output pmac_doutput "" "" 0 pmac4 0 m7006
+f6               device digital_output pmac_doutput "" "" 0 pmac4 0 m7007
+f7               device digital_output pmac_doutput "" "" 0 pmac4 0 m7008
+f8               device digital_output pmac_doutput "" "" 0 pmac4 0 m7009
+f9               device digital_output pmac_doutput "" "" 0 pmac4 0 m7010
+f10              device digital_output pmac_doutput "" "" 0 pmac4 0 m7011
+fs1              device digital_input pmac_dinput "" "" 0 pmac4 0 m7050
+fs2              device digital_input pmac_dinput "" "" 0 pmac4 0 m7051
+fs3              device digital_input pmac_dinput "" "" 0 pmac4 0 m7052
+fs4              device digital_input pmac_dinput "" "" 0 pmac4 0 m7053
+d_spacing        variable inline       double "" "" 1  1  1.9201557
+beam_offset      variable inline       double "" "" 1  1  31000
+edge_energy      variable inline       double "" "" 1 1 8980
+y_trans_enabled  variable inline int "" "" 1 1 0
+y_trans_params   variable inline double "" "" 1 4 15450 2.3578 1.4019 0.027499          
+z_trans_enabled  variable inline int "" "" 1 1 0
+focus_enabled    variable inline int "" "" 1 1 0
+focus_params     variable inline double "" "" 1 4 -572.78 0.29751  0 0
+roll_enabled     variable inline int "" "" 1 1 0
+roll_params      variable inline double "" "" 1 4 -441.47 0.074788 -4.4723e-6 0
+m_h_enabled      variable inline int "" "" 1 1 0
+m_h_params       variable inline double "" "" 1 4 0 0 0 0
+g_hor_offset     variable inline double "" "" 1 1 110
+g_vert_offset    variable inline double "" "" 1 1 180

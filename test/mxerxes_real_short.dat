@@ -1,0 +1,4 @@
+!include /opt/mx/etc/xia_mcas_local.dat
+!include /opt/mx/etc/xia_vars_local.dat
+!include /opt/mx/etc/xia_params_remote.dat
+!include /opt/mx/etc/xia_rois_remote.dat

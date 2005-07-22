@@ -1,0 +1,28 @@
+#! /bin/sh
+
+if [ x$MXDIR = x ]; then
+	MXDIR=/opt/mx
+fi
+
+if [ x$LD_LIBRARY_PATH = x ]; then
+	LD_LIBRARY_PATH=${MXDIR}/lib
+else
+	LD_LIBRARY_PATH="${MXDIR}/lib:${LD_LIBRARY_PATH}"
+fi
+
+if [ x$DYLD_LIBRARY_PATH = x ]; then
+	DYLD_LIBRARY_PATH=${MXDIR}/lib
+else
+	DYLD_LIBRARY_PATH="${MXDIR}/lib:${DYLD_LIBRARY_PATH}"
+fi
+
+if [ x$SHLIB_PATH = x ]; then
+	SHLIB_PATH=${MXDIR}/lib
+else
+	SHLIB_PATH="${MXDIR}/lib:${SHLIB_PATH}"
+fi
+
+export MXDIR LD_LIBRARY_PATH DYLD_LIBRARY_PATH SHLIB_PATH
+
+${MXDIR}/bin/motor.shared -F ${MXDIR}/etc/motor.dat -s ${HOME}/scan.dat $*
+

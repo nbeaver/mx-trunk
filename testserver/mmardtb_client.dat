@@ -1,0 +1,19 @@
+mardtb       server network tcpip_server "" "" 0x0 localhost 9827
+time         device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
+slit1v       device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb slit1v
+slit1h       device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb slit1h
+slit2v       device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb slit2v
+slit2h       device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb slit2h
+beamstop     device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb beamstop
+phi          device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 deg mardtb phi
+theta        device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb theta
+distance     device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb distance
+vertrans     device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb vertrans
+verrot       device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb verrot
+horfront     device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb horfront
+horrear      device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb horrear
+z            device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb z
+chi          device motor network_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps mardtb chi
+p136         device analog_input network_ainput "" "" 0 1 0 units 0x0 0 "" mardtb p136
+p137         device analog_input network_ainput "" "" 0 1 0 units 0x0 0 "" mardtb p137
+timer1       device timer soft_timer "" ""

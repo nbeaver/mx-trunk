@@ -1,0 +1,8 @@
+scipe_port   interface rs232 tcp232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 localhost 8293 0x0
+scipe_server interface generic scipe_server "" "" scipe_port
+2theta       device motor scipe_motor "" "" 18 0 -20000000 20000000 0 -1 -1 1 0 deg scipe_server TwoTheta
+Imon         device scaler scipe_scaler "" "" 0 0 0 timer1 scipe_server eCTM10_32_M
+I1           device scaler scipe_scaler "" "" 0 0 0 timer1 scipe_server eCTM10_32_1
+I2           device scaler scipe_scaler "" "" 0 0 0 timer1 scipe_server eCTM10_32_2
+I3           device scaler scipe_scaler "" "" 0 0 0 timer1 scipe_server eCTM10_32_3
+timer1       device timer scipe_timer "" "" scipe_server eCTM10_32_T 83333.333

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+export LD_LIBRARY_PATH
+
+../motor/motor.static -F ./mals_robot_java.dat -s ./sals_robot_java.dat $*
+

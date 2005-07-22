@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mp6000a.dat -s ./sp6000a.dat $*
+

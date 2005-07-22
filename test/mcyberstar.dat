@@ -1,0 +1,7 @@
+cs0_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0a 0x0a -1 0x0 /dev/ttyS0
+cs0       device sca cyberstar_x1000 "" "" cs0_rs232 0 0
+#
+# The HV scale and offset are set for ALS 8.3.1's Cyberstar X1000 panel meter.
+#
+cs0_hv    device analog_output cyberstar_x1000_aout "" "" 0 1.004 -5 V 0x0 cs0 1
+cs0_delay device analog_output cyberstar_x1000_aout "" "" 0 0.1 0 sec 0x0 cs0 2

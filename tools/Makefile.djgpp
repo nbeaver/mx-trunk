@@ -1,0 +1,10 @@
+all: xdr.o
+
+include ../libMx/Makehead.djgpp
+
+xdr.o: xdr/src/xdr.c xdr/src/xdr.h
+	gcc $(CFLAGS) -D__MX_LIBRARY__ -o xdr.o -c xdr/src/xdr.c 
+
+mx_clean:
+	-rm *.o *.exe
+

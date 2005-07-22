@@ -1,0 +1,11 @@
+lp0           interface generic linux_parport "" "" /dev/parport0 SPP 0x1
+lp0_data      device digital_output linux_parport_out "" "" 0 lp0 data
+pin2          device digital_output bit_out "" "" 0 0 lp0_data 0 1 lp0_data 0 1
+pin9          device digital_output bit_out "" "" 0 0 lp0_data 7 1 lp0_data 7 1
+mx_test0      device digital_output bit_out "" "" 0 0 lp0_data 0 1 lp0_data 0 1
+mx_test1      device digital_output bit_out "" "" 0 0 lp0_data 7 1 lp0_data 7 1
+server1       server network tcpip_server "" "" 0x0 127.0.0.1 9827
+stp100_rs232  interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 server1 stp100_rs232
+m1            device motor network_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 um server1 m1
+time          device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
+timer1        device timer soft_timer "" ""

@@ -1,0 +1,2 @@
+dout1    device digital_output soft_doutput "" "" 0
+tramp1   device amplifier udt_tramp "" "" 1.0e3 0 0 dout1

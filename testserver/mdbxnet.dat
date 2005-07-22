@@ -1,0 +1,6 @@
+db_server   server network tcpip_server "" "" 0x0 localhost 9827
+x           device motor network_motor "" "" 2.6525348e-314 0 -1000 1000 0 -1 -1 1 0 deg db_server x
+databox_mcs device mcs network_mcs "" "" 1 512 "" 0 0 timer1 db_server databox_mcs
+I           device scaler mcs_scaler "" "" 0 0 0x1 timer1 databox_mcs 0
+timer1      device timer mcs_timer "" "" databox_mcs
+x_mce       device mce network_mce "" "" 1000 1 0 db_server x_mce

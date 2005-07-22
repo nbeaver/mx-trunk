@@ -1,0 +1,87 @@
+.\" Process this man page with
+.\" groff -man -Tascii mxupdate.8
+.\"
+.TH MXUPDATE.DAT 5 "July 2005" "MX Administrator Manuals"
+.SH NAME
+mxupdate.dat - mxupdate configuration file
+.SH DESCRIPTION
+.B mxupdate.dat
+is the conventional name for a save/restore configuration file used by
+.B mxupdate.
+If
+.B mxupdate
+is being used for a manual save or restore, then some other name will likely
+be used, but the file format remains the same.  Please note that this new
+format of the file was introduced in MX 1.1.0.  Older versions of 
+.B mxupdate
+used a different format.
+
+.SH EXAMPLES
+
+Here is an example of the 
+.B mxupdate.dat
+format:
+
+.nf
+mx localhost@9727:edge_energy.value    0x0
+mx d_spacing.value      0x0
+mx theta_real.position  0x1 theta_real.set_position
+epics wml:scaler1.FREQ  0x0
+epics wml:m1.RBV        0x1 wml:m1.VAL
+epics_motor_position wml:m1.RBV 0x1
+.fi
+
+The first field identifies what kind of variable this is, with currently
+allowed values of 'mx', 'epics', and 'epics_motor_position'.  The next
+field is the name of the variable, while the third field is for setting
+optional hex flags to modify the behavior of the program.  A flag
+setting of 0x1 means to write the saved value back to a different
+variable than it was read from.  For example,
+
+.nf
+mx theta_real.position  0x1 theta_real.set_position
+.fi
+
+means save the value of theta_real.position and restore it to
+theta_real.set_position.  Similarly,
+
+.nf
+epics wml:m1.RBV        0x1 wml:m1.VAL
+.fi
+
+means save the value of wml:m1.RBV and restore it to wml:m1.VAL.  Of
+course, if wml:m1 is an EPICS motor record, the above line will do the
+wrong thing and actually command a move of wml:m1.  For
+that reason, I have introduced the special case
+
+.nf
+epics_motor_position wml:m1.RBV 0x1
+.fi
+
+For this case, 0x1 once again means that the saved value is to be
+restored to a different place than it was read from.  However, you do
+not need to specify the name of that place since 
+.B mxupdate
+knows how to handle restoring the value of an EPICS motor.
+
+One thing to watch out though, when saving EPICS PVs, 
+.B mxupdate
+constructs an MX variable name that is derived from the EPICS PV name.
+So 'wml1:m1.RBV' will be saved in mxsave.[12] under the MX variable name
+'wml:m1_RBV.value'.  The only case in which this is a problem is if the
+derived MX variable name is longer than 15 characters.  You can see an
+example of this in the testupdate files where 'wml:scaler1.FREQ' is
+mapped to 'wml:scaler1_FRE.value'.  Note that the Q has been chopped
+off.  I expect that I will fix this in MX 2.0 by increasing the maximum
+length of MX record names and field names to something like 80 characters
+each.  However, for now, if two different EPICS variables in
+.B mxupdate.dat
+are mapped to the same MX variable, only the first one will
+accurately have its value saved and restored.
+
+.SH SEE ALSO
+.B mxupdate(8)
+
+.SH AUTHOR
+William Lavender <lavender@agni.phys.iit.edu>
+

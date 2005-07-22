@@ -1,0 +1,63 @@
+qbpm_rs232    interface rs232 tty "" "" 19200 8 N 1 N 0x0a 0x0a -1 0x0 /dev/ttyS0
+#
+qbpm0        device amplifier qbpm "" "" 1e5 0 0 qbpm_rs232 0 0 0x1
+qbpm0_curr1  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm0 CURR1
+qbpm0_curr2  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm0 CURR2
+qbpm0_curr3  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm0 CURR3
+qbpm0_curr4  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm0 CURR4
+qbpm0_posx   device analog_input qbpm_ain "" "" 0 1 0 units 0x0 0 "" qbpm0 POSX
+qbpm0_posy   device analog_input qbpm_ain "" "" 0 1 0 units 0x0 0 "" qbpm0 POSY
+qbpm0_mcai   device mcai qbpm_mcai "" "" 4 4 1 0 units 0x0 qbpm0
+qbpm0_sum    device analog_input mcai_function "" "" 0 1 0 units 0x1 0 timer1 qbpm0_mcai 4 1 1 1 1 0 0 0 0
+qbpm0_average device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 AVERAGE
+qbpm0_avgcurr device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 AVGCURR
+qbpm0_wdwcurr device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 WDWCURR
+qbpm0_single  device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 SINGLE
+qbpm0_gx      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 GX
+qbpm0_gy      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 GY
+qbpm0_a1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 A1
+qbpm0_a2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 A2
+qbpm0_b1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 B1
+qbpm0_b2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 B2
+qbpm0_c1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 C1
+qbpm0_c2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 C2
+qbpm0_d1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 D1
+qbpm0_d2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm0 D2
+#qbpm0_din0    device digital_input qbpm_din "" "" 0 qbpm0 0
+#qbpm0_din1    device digital_input qbpm_din "" "" 0 qbpm0 1
+#qbpm0_din2    device digital_input qbpm_din "" "" 0 qbpm0 2
+#qbpm0_dout0   device digital_output qbpm_dout "" "" 0 qbpm0 0
+#qbpm0_dout1   device digital_output qbpm_dout "" "" 0 qbpm0 1
+#qbpm0_dout2   device digital_output qbpm_dout "" "" 0 qbpm0 2
+#
+#qbpm1        device amplifier qbpm "" "" 1e5 0 0 qbpm_rs232 1 0 0x0
+#qbpm1_curr1  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm1 CURR1
+#qbpm1_curr2  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm1 CURR2
+#qbpm1_curr3  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm1 CURR3
+#qbpm1_curr4  device analog_input qbpm_ain "" "" 0 1 0 units 0x1 0 timer1 qbpm1 CURR4
+#qbpm1_posx   device analog_input qbpm_ain "" "" 0 1 0 units 0x0 0 "" qbpm1 POSX
+#qbpm1_posy   device analog_input qbpm_ain "" "" 0 1 0 units 0x0 0 "" qbpm1 POSY
+#qbpm1_mcai   device mcai qbpm_mcai "" "" 4 4 1 0 units 0x0 qbpm1
+#qbpm1_sum    device analog_input mcai_function "" "" 0 1 0 units 0x1 0 timer1 qbpm1_mcai 4 1 1 1 1 0 0 0 0
+#qbpm1_average device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 AVERAGE
+#qbpm1_avgcurr device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 AVGCURR
+#qbpm1_wdwcurr device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 WDWCURR
+#qbpm1_single  device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 SINGLE
+#qbpm1_gx      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 GX
+#qbpm1_gy      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 GY
+#qbpm1_a1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 A1
+#qbpm1_a2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 A2
+#qbpm1_b1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 B1
+#qbpm1_b2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 B2
+#qbpm1_c1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 C1
+#qbpm1_c2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 C2
+#qbpm1_d1      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 D1
+#qbpm1_d2      device analog_output qbpm_aout "" "" 0 1 0 units 0x0 qbpm1 D2
+##qbpm1_din0    device digital_input qbpm_din "" "" 0 qbpm1 0
+##qbpm1_din1    device digital_input qbpm_din "" "" 0 qbpm1 1
+##qbpm1_din2    device digital_input qbpm_din "" "" 0 qbpm1 2
+##qbpm1_dout0   device digital_output qbpm_dout "" "" 0 qbpm1 0
+##qbpm1_dout1   device digital_output qbpm_dout "" "" 0 qbpm1 1
+##qbpm1_dout2   device digital_output qbpm_dout "" "" 0 qbpm1 2
+##
+timer1        device timer soft_timer "" ""

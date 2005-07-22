@@ -1,0 +1,11 @@
+icp1_rs232   interface rs232 tty "" "" 9600 8 N 1 N 0x0a 0x0a -1 0x0 /dev/ttyS0
+icp1         device amplifier icplus "" "" 1e5 0 0 icp1_rs232 1
+icp1_hv      device analog_output icplus_voltage "" "" 0 1 0 V 0x0 icp1 ""
+icp1_current device analog_input  icplus_current "" "" 0 1 0 A 0x0 0 "" icp1 ""
+icp1_din0    device digital_input icplus_din "" "" 0 icp1 0
+icp1_din1    device digital_input icplus_din "" "" 0 icp1 1
+icp1_din2    device digital_input icplus_din "" "" 0 icp1 2
+icp1_dout0   device digital_output icplus_dout "" "" 0 icp1 0
+icp1_dout1   device digital_output icplus_dout "" "" 0 icp1 1
+icp1_dout2   device digital_output icplus_dout "" "" 0 icp1 2
+timer1       device timer soft_timer "" ""

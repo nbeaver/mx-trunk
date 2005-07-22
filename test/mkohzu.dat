@@ -1,0 +1,4 @@
+com1 interface rs232 win32_com "" "" 38400 8 N 1 N 0x0d0a 0x0d0a -1 0x0 com1
+kohzu_sc interface generic kohzu_sc "" "" com1
+k1 device motor kohzu_sc_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1.0 0 steps kohzu_sc 1 0x0
+k2 device motor kohzu_sc_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1.0 0 steps kohzu_sc 2 0x0

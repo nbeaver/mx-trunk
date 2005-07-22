@@ -1,0 +1,118 @@
+beam_offset      variable inline double "" "" 1  1  35000
+edge_energy      variable inline double "" "" 1  1  9659
+id_ev_enabled    variable inline long "" "" 1  1  0
+id_ev_harmonic   variable inline long "" "" 1  1  1
+id_ev_linked     variable inline long "" "" 1  1  0
+id_ev_offset     variable inline double "" "" 1  1  100
+id_ev_params     variable inline double "" "" 1  2  0 0
+xafs_header1     variable inline string "" "" 1  81 "2 mM zn 180K"
+xafs_header2     variable inline string "" "" 1  81 PMT
+xafs_header3     variable inline string "" "" 1  81 12/13/98
+amplifier_list   variable inline string "" "" 2  1 5  ""
+beamline_name    variable inline string "" "" 1  20 "APS Sector 18-ID"
+d_spacing        variable inline double "" "" 1  1  3.13471
+id_ev_list       variable inline record "" "" 1  4  id_ev_enabled id_ev_type id_ev_params id_ev_records
+id_ev_records    variable inline record "" "" 1  2  id_ev d_spacing
+id_ev_type       variable inline long "" "" 1  1  3
+keithley_gains   variable inline long "" "" 1  2  6 7
+ring_energy      variable inline double "" "" 1  1  7
+tune_linked      variable inline long "" "" 1  1  0
+TrolleyY_linked  variable inline long "" "" 1  1  0
+TrolleyX_linked  variable inline long "" "" 1  1  0
+piezo_enable     variable inline long "" "" 1  1  0
+piezo_params     variable inline double "" "" 1  4  397057 -74.0649 0.00457784 -9.41931e-08
+tune_params      variable inline double "" "" 1  4  397057 -74.0649 0.00457784 -9.41931e-08
+Trolley_setup    variable epics_variable epics_long "" "" 18ID:MO1:En:Setup 1  1  1
+ApertureX        device motor pmac_bio_motor "" "" -0.00051569458 0 -5 5 0 -2 -2 1 0 mm 18ID:PA:X:ActPos 18ID:PA:X:RqsPos 18ID:PA:St:InPos 18ID:PA:St:Abort 18ID:PA:mx 1 0 0
+ApertureY        device motor pmac_bio_motor "" "" -0.00051569458 0 -5 5 0 -2 -2 1 0 mm 18ID:PA:X:ActPos 18ID:PA:X:RqsPos 18ID:PA:St:InPos 18ID:PA:St:Abort 18ID:PA:mr 1 0 0
+Bragg            device motor pmac_bio_motor "" "" 10.399696 0 -5 30 0 -1 -1 1 0 deg 18ID:MO1:sr:ActPos 18ID:MO1:sr:RqsPos 18ID:MO1:En:InPos 18ID:MO1:En:Abort 18ID:MO1:mr 4.592778e-06 0 0
+DownStream       device motor pmac_bio_motor "" "" 2.4413391e-05 0 -35 5 0 -1 -1 1 0 mm 18ID:DN:sy2:ActPos 18ID:DN:sy2:RqsPos 18ID:DN:St:InPos 18ID:DN:St2:Abort 18ID:DN:my2 1 0 0
+ENERGY           device motor pmac_bio_motor "" "" 10.317847 0 5 35 0 -1 -1 1000 0 eV 18ID:MO1:E:ActPos 18ID:MO1:E:RqsPos 18ID:MO1:En:InPos 18ID:MO1:En:Abort 18ID:MO1:mr 1 0 0
+HslitC           device motor pmac_bio_motor "" "" -0.00013391154 0 -7 10 0 -1 -1 1 0 mm 18ID:CS:XC:ActPos 18ID:CS:XC:RqsPos 18ID:CS:Ah:InPos 18ID:CS:Ah:Abort 18ID:CS:mhc 1 0 0
+HslitHeight      device motor pmac_bio_motor "" "" 2.6691079e-05 0 -15 10 0 -1 -1 1 0 mm 18ID:CS:HY:ActPos 18ID:CS:HY:RqsPos 18ID:CS:Sh:InPos 18ID:CS:Sh:Abort 18ID:CS:mhy 1 0 0
+HslitS           device motor pmac_bio_motor "" "" 6.0000175 0 0 7.6 0 -1 -1 1 0 mm 18ID:CS:XS:ActPos 18ID:CS:XS:RqsPos 18ID:CS:Ah:InPos 18ID:CS:Ah:Abort 18ID:CS:mhs 1 0 0
+LAMBDA           device motor pmac_bio_motor "" "" 1.2016306 0 0.0001 25 0 -1 -1 1 0 A 18ID:MO1:L:ActPos 18ID:MO1:L:RqsPos 18ID:MO1:En:InPos 18ID:MO1:En:Abort 18ID:MO1:mr 1 0 0
+mirrorAngle      device motor pmac_bio_motor "" "" 0.00028907643 0 -2 10 0 0 1.3 1 0 mm 18ID:MI:A:ActPos 18ID:MI:A:RqsPos 18ID:MI:St:InPos 18ID:MI:St:Abort 18ID:MI:my1 1 0 0
+mirrorHeight     device motor pmac_bio_motor "" "" 2.0795845 0 -10 5 0 0 1.3 1 0 mm 18ID:MI:Y:ActPos 18ID:MI:Y:RqsPos 18ID:MI:St:InPos 18ID:MI:St:Abort 18ID:MI:my1 1 0 0
+XY_positioner1x device motor pmac_bio_motor "" "" -45.000125 0 -45 45 0 -1 -1 1 0 mm 18ID:XY:X1:ActPos 18ID:XY:X1:RqsPos 18ID:XY:P1:InPos 18ID:XY:P1:Abort 18ID:XY:mx1 1 0 0
+XY_positioner1y device motor pmac_bio_motor "" "" 45.000125 0 -45 45 0 -1 -1 1 0 mm 18ID:XY:Y1:ActPos 18ID:XY:Y1:RqsPos 18ID:XY:P1:InPos 18ID:XY:P1:Abort 18ID:XY:my1 1 0 0
+XY_positioner2x device motor pmac_bio_motor "" "" -44.999883 0 -45 45 0 -1 -1 1 0 mm 18ID:XY:X2:ActPos 18ID:XY:X2:RqsPos 18ID:XY:P2:InPos 18ID:XY:P2:Abort 18ID:XY:mx2 1 0 0
+XY_positioner2y device motor pmac_bio_motor "" "" 45.000125 0 -45 45 0 -1 -1 1 0 mm 18ID:XY:Y2:ActPos 18ID:XY:Y2:RqsPos 18ID:XY:P2:InPos 18ID:XY:P2:Abort 18ID:XY:my2 1 0 0
+XY_wedge_x       device motor pmac_bio_motor "" "" -23.1 0 -24 24 0 -1 -1 1 0 mm 18ID:XY:Xw:ActPos 18ID:XY:Xw:RqsPos 18ID:XY:We:InPos 18ID:XY:We:Abort 18ID:XY:mxw 1 0 0
+XY_wedge_y       device motor pmac_bio_motor "" "" -10.499941 0 0 21 0 -1 -1 1 0 mm 18ID:XY:Yw:ActPos 18ID:XY:Yw:RqsPos 18ID:XY:We:InPos 18ID:XY:We:Abort 18ID:XY:myw 1 0 0
+XY_table_x       device motor pmac_bio_motor "" "" 25 0 -24 24 0 -1 -1 1 0 mm 18ID:XY:Xt:ActPos 18ID:XY:Xt:RqsPos 18ID:XY:Tb:InPos 18ID:XY:Tb:Abort 18ID:XY:mxt 1 0 0
+XY_table_y       device motor pmac_bio_motor "" "" -0.3 0 0 21 0 -1 -1 1 0 mm 18ID:XY:Yt:ActPos 18ID:XY:Yt:RqsPos 18ID:XY:Tb:InPos 18ID:XY:Tb:Abort 18ID:XY:myt 1 0 0
+Table_YB         device motor pmac_bio_motor "" "" 969.41624 0 0 0 0 -1 -1 1 0 mm 18ID:TB:YB:ActPos 18ID:TB:YB:RqsPos 18ID:TB:Ps:InPos 18ID:TB:Ps:Abort 18ID:TB:myb 1 0 0
+table_y          device motor pmac_bio_motor "" "" 969.41624 0 0 370 0 -1 -1 1 0 mm 18ID:TB:YB:ActPos 18ID:TB:YB:RqsPos 18ID:TB:Ps:InPos 18ID:TB:Ps:Abort 18ID:TB:myb 1 0 0
+Table_X          device motor pmac_bio_motor "" "" -0.022439368 0 -50 50 0 -2 -2 1 0 mm 18ID:TB:X:ActPos 18ID:TB:X:RqsPos 18ID:TB:Ps:InPos 18ID:TB:Ps:Abort 18ID:TB:mx1 1 0 0
+Table_A          device motor pmac_bio_motor "" "" -0.041825393 0 -50 50 0 -2 -2 1 0 mm 18ID:TB:A:ActPos 18ID:TB:A:RqsPos 18ID:TB:Ps:InPos 18ID:TB:Ps:Abort 18ID:TB:mx1 1 0 0
+Table_Y          device motor pmac_bio_motor "" "" -1.7853367 0 -50 50 0 -2 -2 1 0 mm 18ID:TB:Y:ActPos 18ID:TB:Y:RqsPos 18ID:TB:St:InPos 18ID:TB:St:Abort 18ID:TB:my1 1 0 0
+Table_P          device motor pmac_bio_motor "" "" -6.9987566 0 -50 50 0 -2 -2 1 0 mm 18ID:TB:P:ActPos 18ID:TB:P:RqsPos 18ID:TB:St:InPos 18ID:TB:St:Abort 18ID:TB:my1 1 0 0
+Table_R          device motor pmac_bio_motor "" "" 29.342476 0 -50 50 0 -2 -2 1 0 mm 18ID:TB:R:ActPos 18ID:TB:R:RqsPos 18ID:TB:St:InPos 18ID:TB:St:Abort 18ID:TB:my1 1 0 0
+HuberSlitXcent   device motor pmac_bio_motor "" "" 2.2250369 0 -49 49 0 -2 -2 1 0 mm 18ID:HS:XC:ActPos 18ID:HS:XC:RqsPos 18ID:HS:Ah:InPos 18ID:HS:Ah:Abort 18ID:HS:mhi 1 0 0
+HuberSlitXsize   device motor pmac_bio_motor "" "" -4.8130102 0 -49 49 0 -2 -2 1 0 mm 18ID:HS:XS:ActPos 18ID:HS:XS:RqsPos 18ID:HS:Ah:InPos 18ID:HS:Ah:Abort 18ID:HS:mhi 1 0 0
+HuberSlitYcent   device motor pmac_bio_motor "" "" -5.9856413 0 -49 49 0 -2 -2 1 0 mm 18ID:HS:YC:ActPos 18ID:HS:YC:RqsPos 18ID:HS:Av:InPos 18ID:HS:Av:Abort 18ID:HS:mvb 1 0 0
+HuberSlitYsize   device motor pmac_bio_motor "" "" -14.208919 0 -49 49 0 -2 -2 1 0 mm 18ID:HS:YS:ActPos 18ID:HS:YS:RqsPos 18ID:HS:Av:InPos 18ID:HS:Av:Abort 18ID:HS:mvb 1 0 0
+Multilayer_slit  device motor pmac_bio_motor "" "" -22.863593 0 -49 49 0 -1 -1 1 0 mm 18ID:MA:S:ActPos 18ID:MA:S:RqsPos 18ID:MA:St:InPos 18ID:MA:St:Abort 18ID:MA:ms 1 0 0
+Multilayer_angl  device motor pmac_bio_motor "" "" 12.39917 0 -49 49 0 -1 -1 1 0 mm 18ID:MA:A:ActPos 18ID:MA:A:RqsPos 18ID:MA:St:InPos 18ID:MA:St:Abort 18ID:MA:ma 1 0 0
+Goniometer_x1    device motor pmac_bio_motor "" "" 4.1066479 0 -49 49 0 -1 -1 1 0 mm 18ID:GH:X1:ActPos 18ID:GH:X1:RqsPos 18ID:GH:Ps:InPos 18ID:GH:Ps:Abort 18ID:GH:mx1 1 0 0
+Goniometer_x2    device motor pmac_bio_motor "" "" 0.73128978 0 -49 49 0 -1 -1 1 0 mm 18ID:GH:X2:ActPos 18ID:GH:X2:RqsPos 18ID:GH:Ps:InPos 18ID:GH:Ps:Abort 18ID:GH:mx2 1 0 0
+MonoTune         device motor pmac_bio_motor "" "" -0.1560398 0 -25000 25000 0 -2 -2 1 0 urad 18ID:MO1:N:ActPos 18ID:MO1:N:RqsPos 18ID:MO1:Tn:InPos 18ID:MO1:Tn:Abort 18ID:MO1:mnl 1 0 0
+MonoYaw          device motor pmac_bio_motor "" "" 2.2372837 0 -4000 4000 0 -2 -2 1 0 urad 18ID:MO1:W:ActPos 18ID:MO1:W:RqsPos 18ID:MO1:Yw:InPos 18ID:MO1:Yw:Abort 18ID:MO1:mnl 1 0 0
+TrolleyX         device motor pmac_bio_motor "" "" 85.000164 0 25 129 0 -1 -1 1 0 mm 18ID:MO1:stx:ActPos 18ID:MO1:stx:RqsPos 18ID:MO1:En:InPos 18ID:MO1:En:Abort 18ID:MO1:mtx 1 0 0
+TrolleyY         device motor pmac_bio_motor "" "" -17.742805 0 -21.4 -17.5 0 -1 -1 1 0 mm 18ID:MO1:sty:ActPos 18ID:MO1:sty:RqsPos 18ID:MO1:En:InPos 18ID:MO1:En:Abort 18ID:MO1:mty 1 0 0
+piezo_left       device motor pmac_bio_motor "" "" 0.00060316736 0 -30 30 0 -1 -1 1 0 um 18ID:MO1:tnl:ActPos 18ID:MO1:tnl:RqsPos 18ID:MO1:Tn:InPos 18ID:MO1:Tn:Abort 18ID:MO1:mnl 1 0 0
+piezo_right      device motor pmac_bio_motor "" "" 0.00070076711 0 -30 30 0 -1 -1 1 0 um 18ID:MO1:tnr:ActPos 18ID:MO1:tnr:RqsPos 18ID:MO1:Tn:InPos 18ID:MO1:Tn:Abort 18ID:MO1:mnr 1 0 0
+VslitC           device motor pmac_bio_motor "" "" -0.00048701841 0 -20 5 0 -1 -1 1 0 mm 18ID:CS:YC:ActPos 18ID:CS:YC:RqsPos 18ID:CS:Av:InPos 18ID:CS:Av:Abort 18ID:CS:mvc 1 0 0
+VslitS           device motor pmac_bio_motor "" "" 4.9989874 0 0 5 0 -1 -1 1 0 mm 18ID:CS:YS:ActPos 18ID:CS:YS:RqsPos 18ID:CS:Av:InPos 18ID:CS:Av:Abort 18ID:CS:mvs 1 0 0
+gap              device motor aps_gap "" "" 179.99758 0 11 200 0 -1 -1 1 0 mm 18 1
+id_ev            device motor aps_gap "" "" 13.994672 0 3.191 40 0 -1 -1 1000 0 eV 18 2
+bragg            device motor aps_18id_motor "" "" 10.399696 0 7.5 35 0 -1 -1 1 0 deg Bragg TrolleyY TrolleyY_linked TrolleyX TrolleyX_linked Trolley_setup id_ev id_ev_linked id_ev_offset id_ev_harmonic MonoTune tune_linked tune_params piezo_left piezo_right piezo_enable piezo_params timer1 scaler13 scaler14 d_spacing 0.01745329251994330
+energy           device motor energy_motor "" "" 9854.9103 0 0 1e+08 0 -1 -1 1 0 eV bragg d_spacing 0.01745329251994330
+lambda           device motor wavelength_motor "" "" 1.2016288 0 0 1e+08 0 -1 -1 1 0 A bragg d_spacing 0.01745329251994330
+k                device motor xafs_wavenumber "" "" 13.153291 0 0 1e+08 0 -1 -1 1 0 A-1 energy
+e_minus_e0       device motor delta_motor "" "" 659.07806 0 -1e+08 1e+08 0 -1 -1 1 0 eV energy edge_energy
+phi              device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m5
+chi              device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m6
+stepmot1         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 mm 18ID:m1
+stepmot2         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m2
+stepmot3         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 mm 18ID:m3
+stepmot4         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m4
+stepmot5         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m5
+stepmot6         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m6
+stepmot7         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m7
+stepmot8         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m8
+stepmot9         device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m9
+stepmot10        device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m10
+stepmot11        device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m11
+stepmot12        device motor epics_motor "" "" -5.5027499 0 -100000 100000 0 -1 -1 1 0 um 18ID:m12
+stepmot13        device motor epics_motor "" "" 1.98605 0 -100000 100000 0 -1 -1 1 0 um 18ID:m13
+stepmot14        device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m14
+stepmot15        device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m15
+stepmot16        device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 um 18ID:m16
+soft1            device motor soft_motor "" "" -10 0 -1 1 0 -1 -1 1 0 mm 1 0 0.5
+soft2            device motor soft_motor "" "" 31592 0 -1 1 0 -1 -1 1 0 mm 1 0 0.5
+soft3            device motor soft_motor "" "" 20000 0 -1 1 0 -1 -1 1 0 mm 1 0 0.5
+q2q_m1m2         device motor linear_function "" "" 0 0 -100000 100000 0 -1 -1 1 0 deg 0x0 2  stepmot1 stepmot2  0.5 0.25  0 0  0.5 0.5
+struck7201       device mcs epics_mcs "" "" 32 1024 "" 0 0 timer1 18ID:mcs 18ID:mcs: 0 0x0
+Bragg_mce        device mce mcs_encoder "" "" 1024 4.592778e-06 0 Bragg struck7201 2 3
+mcs6             device scaler mcs_scaler "" "" 0 0 1 timer1 struck7201 6
+mcs7             device scaler mcs_scaler "" "" 0 0 1 timer1 struck7201 7
+mcs8             device scaler mcs_scaler "" "" 0 0 1 timer1 struck7201 8
+timer1           device timer mcs_timer "" "" struck7201
+scaler2          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 2
+scaler3          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 3
+scaler4          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 4
+scaler5          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 5
+scaler6          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 6
+scaler7          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 7
+scaler8          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 8
+scaler9          device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 9
+scaler10         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 10
+scaler11         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 11
+scaler12         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 12
+scaler13         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 13
+scaler14         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 14
+scaler15         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 15
+scaler16         device scaler epics_scaler "" "" 0 0 1 timer2 18ID:scaler1 16
+timer2           device timer epics_timer "" "" 18ID:scaler1

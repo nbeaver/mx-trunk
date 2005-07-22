@@ -1,0 +1,18 @@
+sr630_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0a 0x0a 10 0x0 /dev/ttyS7
+sr630 interface generic sr630 "" "" sr630_rs232
+c1  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 1
+c2  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 2
+c3  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 3
+c4  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 4
+c5  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 5
+c6  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 6
+c7  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 7
+c8  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 8
+c9  device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 9
+c10 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 10
+c11 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 11
+c12 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 12
+c13 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 13
+c14 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 14
+c15 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 15
+c16 device analog_input sr630_ainput "" "" 0 1 0 units 0x0 0 "" sr630 16

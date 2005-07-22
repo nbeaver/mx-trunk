@@ -1,0 +1,10 @@
+#! /bin/sh
+
+MXDIR=/opt/mx
+
+LD_LIBRARY_PATH="../libMx:/usr/local/epics/extensions/lib/Linux:/usr/local/epics/base/lib/Linux"
+
+export MXDIR LD_LIBRARY_PATH
+
+../motor/motor.shared -F /home/lavender/test/motor.dat -s ./scannew.dat $*
+

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./msr570_client.dat -s ./ssr570_client.dat $*
+

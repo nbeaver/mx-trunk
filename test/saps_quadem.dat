@@ -1,0 +1,2 @@
+quadscan                         scan linear_scan input_scan "" "" 1 1 0  10  i1 i2 i3 i4 sum1 sum2 diff1 diff2 pos1 pos2  0 0 preset_time "1 timer1" text quadscan.005 gnuplot $f[0]  0  1  100000
+rotscan                          scan linear_scan motor_scan "" "" 1 1 1  rotation 9  rotation scaler2 scaler6 diff1 diff2 i1 i2 i3 i4  0 0 preset_time "1 timer1" text rotscan.002 none $f[0]  -2000  100  41

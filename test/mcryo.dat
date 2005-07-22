@@ -1,0 +1,4 @@
+cryo_rs232       interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0 -1 0x0 /dev/ttyd2
+cryostream_temp  device analog_input cryostream600_status "" "" 0 1 0 K 0x0 0 "" cryo_rs232 1
+cryostream_mtr   device motor cryostream600_motor "" "" 0 0 0 350 0 -1 -1 1 0 K cryo_rs232 300 0
+timer1          device timer soft_timer "" ""

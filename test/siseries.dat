@@ -1,0 +1,1 @@
+omegascan                        scan linear_scan input_scan "" "" 1 1 0  4  iseries1_volt iseries2_volt iseries3_volt iseries4_volt  0 0 preset_time "1 timer1" text omegascan.007 gnuplot $f[0];$f[1];$f[2];$f[3]  0  1  10000

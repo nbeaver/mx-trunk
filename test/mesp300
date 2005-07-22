@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mesp300.dat -s ./sesp300.dat $*
+

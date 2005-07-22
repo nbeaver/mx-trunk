@@ -1,0 +1,18 @@
+This database adds a place to store a dark current value for a single
+MCS channel.  Thus, each channel of an MCS will have its own instance of
+this additional record.  For example, suppose you have a set of MCS records
+loaded in the EPICS 'st.cmd' script that look like
+
+dbLoadRecords("mcaApp/Db/mca.db","P=s10id:,M=mcs1,CARD=0,SIGNAL=0,DTYPE=Struck STR7201 MCS,NCHAN=2000", share)
+dbLoadRecords("mcaApp/Db/mca.db","P=s10id:,M=mcs2,CARD=0,SIGNAL=1,DTYPE=Struck STR7201 MCS,NCHAN=2000", share)
+dbLoadRecords("mcaApp/Db/mca.db","P=s10id:,M=mcs3,CARD=0,SIGNAL=2,DTYPE=Struck STR7201 MCS,NCHAN=2000", share)
+dbLoadRecords("mcaApp/Db/mca.db","P=s10id:,M=mcs4,CARD=0,SIGNAL=3,DTYPE=Struck STR7201 MCS,NCHAN=2000", share)
+
+Then, all that you would need to add to support dark currents for these
+channels is to add something like the following lines to 'st.cmd'.
+
+dbLoadRecords("iocBoot/ioc1/mcs_dark.db","P=s10id:,M=mcs1", top)
+dbLoadRecords("iocBoot/ioc1/mcs_dark.db","P=s10id:,M=mcs2", top)
+dbLoadRecords("iocBoot/ioc1/mcs_dark.db","P=s10id:,M=mcs3", top)
+dbLoadRecords("iocBoot/ioc1/mcs_dark.db","P=s10id:,M=mcs4", top)
+

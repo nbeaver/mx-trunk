@@ -1,0 +1,1 @@
+fooscan                          scan linear_scan input_scan "" "" 1 1 0  4  m_lane energy theta stripe_select  0 0 preset_time "1 timer1" text fooscan.007 none $f[0]  0  1  100000

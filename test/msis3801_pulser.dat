@@ -1,0 +1,2 @@
+vme1    interface vme vxi_memacc "" "" 0x0
+pulser1 device pulse_generator sis3801_pulser "" "" vme1 a16 0 0x3800 0x6 0x0

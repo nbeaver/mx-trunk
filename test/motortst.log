@@ -1,0 +1,514 @@
+Wed Oct 25 22:40:52 2000  lavender  Scan myscan started
+Wed Oct 25 22:40:58 2000  lavender  Scan myscan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Nov 06 00:06:12 2000  lavender  Scan testfast started
+Mon Nov 06 00:06:18 2000  lavender  Scan testfast ended
+Mon Nov 06 01:03:40 2000  lavender  Scan testfast started
+Mon Nov 06 01:03:50 2000  lavender  Scan testfast ended
+Wed Dec 20 12:58:10 2000  lavender  Scan testfast started
+Wed Dec 20 12:58:16 2000  lavender  Scan testfast ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Wed Dec 20 12:58:24 2000  lavender  Scan testfast started
+Wed Dec 20 12:58:28 2000  lavender  Scan testfast ended
+Wed Dec 20 16:04:04 2000  lavender  Scan test2 started
+Wed Dec 20 16:04:16 2000  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Dec 21 15:29:03 2000  lavender  Scan test2 started
+Thu Dec 21 15:29:08 2000  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Dec 21 16:08:11 2000  lavender  Scan test2 started
+Thu Dec 21 16:08:14 2000  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Thu Dec 21 16:08:22 2000  lavender  Scan test2 started
+Thu Dec 21 16:08:28 2000  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Jan 23 13:51:05 2001  lavender  Scan test2 started
+Tue Jan 23 13:51:09 2001  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Tue Jan 23 13:51:31 2001  lavender  Scan test2 started
+Tue Jan 23 13:51:37 2001  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Tue Jan 23 13:51:43 2001  lavender  Scan test2 started
+Tue Jan 23 13:53:26 2001  lavender  Scan test2 ended
+Tue Jan 23 13:56:46 2001  lavender  Scan test2 started
+Tue Jan 23 13:56:55 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Jan 23 13:57:06 2001  lavender  Scan test2 started
+Tue Jan 23 13:57:08 2001  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Tue Jan 23 14:05:28 2001  lavender  Scan test2 started
+Tue Jan 23 14:05:42 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Jan 23 14:08:45 2001  lavender  Scan test2 started
+Tue Jan 23 14:18:32 2001  lavender  Scan test2 ended
+Tue Jan 23 22:47:51 2001  lavender  Scan test2 started
+Tue Jan 23 22:47:52 2001  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Tue Jan 23 22:48:08 2001  lavender  Scan test2 started
+Tue Jan 23 22:49:53 2001  lavender  Scan test2 ended
+Fri Jan 26 19:28:32 2001  lavender  Scan test2 started
+Fri Jan 26 19:28:36 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Jan 26 19:32:42 2001  lavender  Scan test2 started
+Fri Jan 26 19:32:45 2001  lavender  Scan test2 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Fri Jan 26 19:32:51 2001  lavender  Scan test2 started
+Fri Jan 26 19:34:34 2001  lavender  Scan test2 ended
+Tue Feb 06 16:48:32 2001  lavender  Scan timescan started
+Tue Feb 06 16:48:46 2001  lavender  Scan timescan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Feb 06 16:49:50 2001  lavender  Scan timescan2 started
+Tue Feb 06 16:51:06 2001  lavender  Scan timescan2 ended    MXE_INTERRUPTED   Wait for time 80 was interrupted
+Tue Feb 27 16:15:03 2001  lavender  Scan test2 started
+Tue Feb 27 16:15:16 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Mar 13 10:54:41 2001  lavender  Scan test2 started
+Tue Mar 13 10:54:59 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Mar 13 10:55:19 2001  lavender  Scan test2 started
+Tue Mar 13 10:57:15 2001  lavender  Scan test2 ended
+Tue Mar 13 11:06:32 2001  lavender  Scan test2 started
+Tue Mar 13 11:06:48 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Mar 13 11:41:16 2001  lavender  Scan test2 started
+Tue Mar 13 11:41:29 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 09:47:32 2001  lavender  Scan cuedge started
+Wed Mar 14 09:48:22 2001  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 09:51:49 2001  lavender  Scan cuedge2 started
+Wed Mar 14 09:52:24 2001  lavender  Scan cuedge2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 09:54:28 2001  lavender  Scan cuedge3 started
+Wed Mar 14 09:54:50 2001  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 09:55:48 2001  lavender  Scan cuedge_a started
+Wed Mar 14 09:56:22 2001  lavender  Scan cuedge_a ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 09:57:17 2001  lavender  Scan cuedge_b started
+Wed Mar 14 09:57:35 2001  lavender  Scan cuedge_b ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:00:41 2001  lavender  Scan cuedge started
+Wed Mar 14 10:00:53 2001  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:04:31 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 10:05:04 2001  lavender  Scan cuedge_foo ended    MXE_INTERRUPTED   The measurement retry loop was interrupted.
+Wed Mar 14 10:06:30 2001  lavender  Scan cuedge started
+Wed Mar 14 10:07:09 2001  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:08:33 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 10:09:21 2001  lavender  Scan cuedge_foo ended
+Wed Mar 14 10:11:42 2001  lavender  Scan cuedge started
+Wed Mar 14 10:14:39 2001  lavender  Scan cuedge ended
+Wed Mar 14 10:15:36 2001  lavender  Scan cuedge2 started
+Wed Mar 14 10:19:00 2001  lavender  Scan cuedge2 ended
+Wed Mar 14 10:20:13 2001  lavender  Scan testmca started
+Wed Mar 14 10:23:51 2001  lavender  Scan testmca ended
+Wed Mar 14 10:24:15 2001  lavender  Scan testmca2 started
+Wed Mar 14 10:26:06 2001  lavender  Scan testmca2 ended
+Wed Mar 14 10:41:48 2001  lavender  Scan test2 started
+Wed Mar 14 10:43:15 2001  lavender  Scan test2 started
+Wed Mar 14 10:43:53 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:44:38 2001  lavender  Scan testmca started
+Wed Mar 14 10:44:44 2001  lavender  Scan testmca ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:44:57 2001  lavender  Scan testmca started
+Wed Mar 14 10:45:03 2001  lavender  Scan testmca ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:45:13 2001  lavender  Scan testmca2 started
+Wed Mar 14 10:45:41 2001  lavender  Scan testmca2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:46:07 2001  lavender  Scan cuedge started
+Wed Mar 14 10:46:47 2001  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:46:50 2001  lavender  Scan cuedge started
+Wed Mar 14 10:46:54 2001  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 10:47:28 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 10:48:17 2001  lavender  Scan cuedge_foo ended
+Wed Mar 14 10:50:01 2001  lavender  Scan cuedge2_foo started
+Wed Mar 14 10:50:50 2001  lavender  Scan cuedge2_foo ended
+Wed Mar 14 11:18:29 2001  lavender  Scan test2 started
+Wed Mar 14 11:18:38 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 11:19:08 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 11:19:25 2001  lavender  Scan cuedge_foo ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Mar 14 11:19:37 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 11:20:26 2001  lavender  Scan cuedge_foo ended
+Wed Mar 14 11:21:04 2001  lavender  Scan cuedge2_foo started
+Wed Mar 14 11:21:13 2001  lavender  Scan cuedge2_foo ended    MXE_FUNCTION_FAILED   basename_length '-1097722' is greater than sizeof(mca_filename) '241'.  This shouldn't be possible, so this is a bug if you see this message.
+Wed Mar 14 11:25:32 2001  lavender  Scan cuedge2_foo started
+Wed Mar 14 11:26:20 2001  lavender  Scan cuedge2_foo ended
+Wed Mar 14 11:27:39 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 11:28:26 2001  lavender  Scan cuedge_foo ended
+Wed Mar 14 11:29:21 2001  lavender  Scan cuedge2_foo started
+Wed Mar 14 11:30:11 2001  lavender  Scan cuedge2_foo ended
+Wed Mar 14 11:33:05 2001  lavender  Scan cuedge_foo started
+Wed Mar 14 11:33:53 2001  lavender  Scan cuedge_foo ended
+Wed Mar 14 11:33:58 2001  lavender  Scan cuedge2_foo started
+Wed Mar 14 11:34:49 2001  lavender  Scan cuedge2_foo ended
+Fri Mar 16 13:38:18 2001  lavender  Scan mcs_scan started
+Fri Mar 16 13:38:18 2001  lavender  Scan mcs_scan ended    MXE_UNSUPPORTED   Parameter type 1020 is not supported by this driver.
+Fri Mar 16 13:39:23 2001  lavender  Scan mcs_scan started
+Fri Mar 16 13:40:05 2001  lavender  Scan mcs_scan ended
+Tue Apr 17 13:23:11 2001  lavender  Scan test2 started
+Tue Apr 17 13:34:46 2001  lavender  Scan test2 started
+Tue Apr 17 13:36:32 2001  lavender  Scan test2 ended
+Tue Apr 17 13:38:29 2001  lavender  Scan test2 started
+Tue Apr 17 13:44:11 2001  lavender  Scan test2 started
+Tue Apr 17 13:55:59 2001  lavender  Scan test2 started
+Tue Apr 17 14:00:01 2001  lavender  Scan test2 started
+Tue Apr 17 14:01:30 2001  lavender  Scan test2 started
+Tue Apr 17 14:05:27 2001  lavender  Scan test2 started
+Tue Apr 17 14:08:38 2001  lavender  Scan test2 started
+Tue Apr 17 14:15:02 2001  lavender  Scan test2 started
+Tue Apr 17 14:16:21 2001  lavender  Scan test2 started
+Tue Apr 17 14:18:16 2001  lavender  Scan test2 started
+Tue Apr 17 14:19:28 2001  lavender  Scan test2 started
+Tue Apr 17 14:21:35 2001  lavender  Scan test2 started
+Tue Apr 17 14:21:41 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Apr 17 14:23:49 2001  lavender  Scan test2 started
+Tue Apr 17 14:25:18 2001  lavender  Scan test2 started
+Tue Apr 17 14:28:45 2001  lavender  Scan test2 started
+Tue Apr 17 14:32:37 2001  lavender  Scan test2 started
+Tue Apr 17 14:32:49 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Apr 17 14:35:12 2001  lavender  Scan test2 started
+Tue Apr 17 14:35:19 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Apr 17 14:36:14 2001  lavender  Scan test2 started
+Tue Apr 17 14:36:21 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Apr 17 14:37:24 2001  lavender  Scan test2 started
+Tue Apr 17 14:37:43 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Apr 17 14:40:08 2001  lavender  Scan xafs_sff started
+Tue Apr 17 14:41:37 2001  lavender  Scan xafs_sff ended
+Wed May 16 16:47:50 2001  lavender  Scan mcs_scan started
+Wed May 16 16:47:55 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Wed May 16 16:48:03 2001  lavender  Scan testmca started
+Wed May 16 16:48:06 2001  lavender  Scan testmca ended    MXE_INTERRUPTED   An attempt to send the 'exit' command to 'plotgnu' failed.
+Thu May 17 12:28:47 2001  lavender  Scan test2 started
+Thu May 17 12:28:52 2001  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Sat Sep 08 20:36:02 2001  lavender  Scan edgescan started
+Sat Sep 08 20:36:15 2001  lavender  Scan edgescan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Sat Nov 03 18:51:35 2001  lavender  Scan xafs_test started
+Sat Nov 03 18:51:39 2001  lavender  Scan xafs_test ended    MXE_NOT_FOUND   The timer record 'timer1' does not exist.
+Sat Nov 03 19:01:31 2001  lavender  Scan cuedge_a started
+Sat Nov 03 19:01:37 2001  lavender  Scan cuedge_a ended    MXE_UNPARSEABLE_STRING   The timer name cannot be found in the measurement_arguments field '0 timer1' for scan 'cuedge_a'.
+Sat Nov 03 19:02:35 2001  lavender  Scan cuedge_a started
+Sat Nov 03 19:02:41 2001  lavender  Scan cuedge_a ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Sat Nov 03 19:03:43 2001  lavender  Scan xafs_test started
+Sat Nov 03 19:03:56 2001  lavender  Scan xafs_test ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Dec 07 11:47:18 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:47:49 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 11:49:30 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:49:42 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:50:22 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:50:28 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:51:31 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:51:57 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:52:46 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:53:09 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:54:01 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:54:31 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 11:55:02 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:55:29 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:55:53 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:56:24 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 11:57:59 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:58:44 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 11:59:07 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:59:13 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 11:59:40 2001  lavender  Scan mcs_scan started
+Fri Dec 07 11:59:45 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 12:00:06 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:00:14 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 12:00:36 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:00:41 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 12:01:05 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:01:12 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 12:01:34 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:02:03 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:02:22 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:03:22 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:03:34 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:04:21 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:07:55 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:08:32 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:09:39 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:10:25 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:11:24 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:12:15 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:12:35 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:13:18 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:29:14 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:29:53 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:30:52 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:31:26 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:32:00 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:32:53 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 12:33:37 2001  lavender  Scan mcs_scan started
+Fri Dec 07 12:34:26 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 13:49:49 2001  lavender  Scan mcs_scan started
+Fri Dec 07 13:50:23 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 13:51:22 2001  lavender  Scan mcs_scan started
+Fri Dec 07 13:52:02 2001  lavender  Scan mcs_scan ended
+Fri Dec 07 14:15:40 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:15:50 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 14:15:57 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:17:01 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 14:20:39 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:23:29 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 14:23:44 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:25:41 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 14:25:55 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:26:41 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Dec 07 14:27:12 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:27:19 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Fri Dec 07 14:27:57 2001  lavender  Scan mcs_scan started
+Fri Dec 07 14:28:12 2001  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Apr 12 17:38:54 2002  lavender  Scan slow1k started
+Fri Apr 12 17:39:02 2002  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Apr 12 17:40:06 2002  lavender  Scan slow1k started
+Fri Apr 12 17:40:10 2002  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Apr 12 17:40:22 2002  lavender  Scan slow1k started
+Fri Apr 12 17:40:27 2002  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Apr 12 17:40:56 2002  lavender  Scan slow1k started
+Fri Apr 12 17:41:00 2002  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Apr 12 17:41:11 2002  lavender  Scan slow1k started
+Fri Apr 12 17:41:14 2002  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Jun 20 09:57:02 2002  lavender  Scan count1 started
+Thu Jun 20 09:58:19 2002  lavender  Scan count1 ended
+Thu Jun 20 09:58:26 2002  lavender  Scan edgescan started
+Thu Jun 20 10:03:58 2002  lavender  Scan edgescan ended
+Thu Jun 20 10:19:39 2002  lavender  Scan mcs_scan started
+Thu Jun 20 10:19:41 2002  lavender  Scan mcs_scan ended    MXE_UNSUPPORTED   Parameter type 1004 is not supported by this driver.
+Thu Jun 20 10:20:01 2002  lavender  Scan xafs_sff started
+Thu Jun 20 10:21:40 2002  lavender  Scan xafs_sff ended
+Thu Jun 20 10:22:13 2002  lavender  Scan test2 started
+Thu Jun 20 10:24:01 2002  lavender  Scan test2 ended
+Thu Jun 20 10:24:12 2002  lavender  Scan test2 started
+Thu Jun 20 10:24:16 2002  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Jun 20 10:24:20 2002  lavender  Scan xafs_sff started
+Thu Jun 20 10:24:25 2002  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Aug 05 12:34:13 2002  lavender  Scan test2 started
+Mon Aug 05 12:34:21 2002  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Aug 05 12:35:44 2002  lavender  Scan test2 started
+Mon Aug 05 12:35:50 2002  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Aug 05 12:36:48 2002  lavender  Scan test2 started
+Mon Aug 05 12:36:54 2002  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Sep 03 16:55:02 2002  lavender  Scan vslit_scan started
+Tue Sep 03 16:55:20 2002  lavender  Scan vslit_scan ended    MXE_INTERRUPTED   An attempt to send the 'exit' command to 'plotgnu' failed.
+Tue Sep 03 16:56:08 2002  lavender  Scan vslit_scan started
+Tue Sep 03 16:56:15 2002  lavender  Scan vslit_scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Tue Sep 03 16:57:06 2002  lavender  Scan vslit_scan started
+Tue Sep 03 16:57:27 2002  lavender  Scan vslit_scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Tue Sep 03 16:57:48 2002  lavender  Scan vslit_scan started
+Tue Sep 03 16:58:31 2002  lavender  Scan vslit_scan ended
+Tue Sep 03 16:58:37 2002  lavender  Scan vslit_scan2 started
+Tue Sep 03 16:58:37 2002  lavender  Scan vslit_scan2 ended    MXE_UNSUPPORTED   Saving pseudomotor start positions is not supported by the driver for record 'vslit_center'.
+Tue Sep 03 17:02:00 2002  lavender  Scan vslit_scan2 started
+Tue Sep 03 17:03:07 2002  lavender  Scan vslit_scan2 ended
+Tue Sep 03 17:05:23 2002  lavender  Scan z_avg_scan started
+Tue Sep 03 17:05:30 2002  lavender  Scan z_avg_scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Tue Sep 03 17:06:34 2002  lavender  Scan z_avg_scan started
+Tue Sep 03 17:07:17 2002  lavender  Scan z_avg_scan ended
+Tue Sep 03 17:07:22 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:07:22 2002  lavender  Scan z_avg_scan2 ended    MXE_UNSUPPORTED   Parameter type 1029 is not supported by this driver.
+Tue Sep 03 17:10:51 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:10:52 2002  lavender  Scan z_avg_scan2 ended    MXE_UNSUPPORTED   Parameter type 1029 is not supported by this driver.
+Tue Sep 03 17:13:21 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:13:21 2002  lavender  Scan z_avg_scan2 ended    MXE_UNSUPPORTED   Parameter type 1030 is not supported by this driver.
+Tue Sep 03 17:14:25 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:15:26 2002  lavender  Scan z_avg_scan2 ended
+Tue Sep 03 17:41:44 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:41:52 2002  lavender  Scan z_avg_scan2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Tue Sep 03 17:44:15 2002  lavender  Scan z_avg_scan2 started
+Tue Sep 03 17:45:16 2002  lavender  Scan z_avg_scan2 ended
+Fri Sep 06 10:23:32 2002  lavender  Scan z_avg_scan2 started
+Fri Sep 06 10:23:42 2002  lavender  Scan z_avg_scan2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Fri Sep 06 10:23:48 2002  lavender  Scan z_avg_scan2 started
+Fri Sep 06 10:24:40 2002  lavender  Scan z_avg_scan2 ended
+Fri Sep 06 10:42:49 2002  lavender  Scan z_avg_scan2 started
+Fri Sep 06 10:43:32 2002  lavender  Scan z_avg_scan2 ended
+Fri Sep 27 21:16:54 2002  lavender  Scan cuedge started
+Fri Sep 27 21:19:49 2002  lavender  Scan cuedge ended
+Fri Sep 27 21:21:11 2002  lavender  Scan mcs_scan started
+Fri Sep 27 21:21:12 2002  lavender  Scan mcs_scan ended    MXE_UNSUPPORTED   Parameter type 1004 is not supported by this driver.
+Fri Sep 27 21:22:13 2002  lavender  Scan mcs_scan started
+Fri Sep 27 21:22:15 2002  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Fri Sep 27 21:22:17 2002  lavender  Scan mcs_scan started
+Fri Sep 27 21:22:18 2002  lavender  Scan mcs_scan ended    MXE_UNSUPPORTED   Parameter type 1004 is not supported by this driver.
+Fri Sep 27 21:23:13 2002  lavender  Scan mcs_scan started
+Fri Sep 27 21:23:15 2002  lavender  Scan mcs_scan ended    MXE_UNSUPPORTED   Parameter type 1004 is not supported by this driver.
+Fri Sep 27 22:16:08 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:16:40 2002  lavender  Scan mcs_scan ended
+Fri Sep 27 22:17:38 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:20:06 2002  lavender  Scan mcs_scan ended    MXE_INTERRUPTED   Quick scan was interrupted.
+Fri Sep 27 22:20:27 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:21:03 2002  lavender  Scan mcs_scan ended
+Fri Sep 27 22:21:48 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:22:33 2002  lavender  Scan mcs_scan ended
+Fri Sep 27 22:32:06 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:32:39 2002  lavender  Scan mcs_scan ended
+Fri Sep 27 22:34:28 2002  lavender  Scan mcs_scan started
+Fri Sep 27 22:34:59 2002  lavender  Scan mcs_scan ended
+Mon Oct 07 11:19:52 2002  lavender  Scan cuedge3 started
+Mon Oct 07 11:19:58 2002  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Oct 07 11:26:34 2002  lavender  Scan cuedge3 started
+Mon Oct 07 11:26:46 2002  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Oct 07 11:28:12 2002  lavender  Scan cuedge3 started
+Mon Oct 07 11:28:17 2002  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Oct 07 11:28:43 2002  lavender  Scan cuedge3 started
+Mon Oct 07 11:28:51 2002  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Nov 29 15:03:32 2002  lavender  Scan edgescan started
+Fri Nov 29 15:08:48 2002  lavender  Scan edgescan ended
+Thu Dec 05 13:05:30 2002  lavender  Scan vslit_scan2 started
+Thu Dec 05 13:06:37 2002  lavender  Scan vslit_scan2 ended
+Mon Jan 06 19:03:37 2003  lavender  Scan cuedge3 started
+Mon Jan 06 19:03:40 2003  lavender  Scan cuedge3 ended    MXE_IPC_IO_ERROR   An attempt to send the 'exit' command to 'plotgnu' failed.
+Mon Jan 06 19:03:57 2003  lavender  Scan cuedge3 started
+Mon Jan 06 19:04:16 2003  lavender  Scan cuedge3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jan 06 19:04:24 2003  lavender  Scan cuedge3 started
+Mon Jan 06 19:06:28 2003  lavender  Scan cuedge3 ended
+Mon Jan 06 19:22:09 2003  lavender  Scan test2 started
+Mon Jan 06 19:24:00 2003  lavender  Scan test2 ended
+Tue Jan 07 00:55:54 2003  lavender  Scan test2 started
+Tue Jan 07 00:57:39 2003  lavender  Scan test2 ended
+Mon Jun 30 13:04:58 2003  lavender  Scan xafs_sff started
+Mon Jun 30 13:06:36 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 13:42:40 2003  lavender  Scan xafs_sff started
+Mon Jun 30 13:42:41 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 14:35:42 2003  lavender  Scan xafs_sff started
+Mon Jun 30 14:35:48 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 14:41:18 2003  lavender  Scan xafs_sff started
+Mon Jun 30 14:41:23 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 16:06:54 2003  lavender  Scan xafs_sff started
+Mon Jun 30 16:06:56 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 16:53:49 2003  lavender  Scan xafs_sff started
+Mon Jun 30 16:53:55 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 16:55:31 2003  lavender  Scan e0scan started
+Mon Jun 30 16:56:15 2003  lavender  Scan e0scan ended
+Mon Jun 30 16:56:37 2003  lavender  Scan e0scan started
+Mon Jun 30 16:56:42 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jun 30 16:59:30 2003  lavender  Scan e0scan started
+Mon Jun 30 16:59:33 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 17:03:18 2003  lavender  Scan e0scan started
+Mon Jun 30 17:03:25 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jun 30 18:23:46 2003  lavender  Scan xafs_sff started
+Mon Jun 30 18:23:48 2003  lavender  Scan xafs_sff ended    MXE_WOULD_EXCEED_LIMIT   Error: move of 'energy' to -30 eV would exceed negative limit at 0 eV.
+Mon Jun 30 18:23:53 2003  lavender  Scan e0scan started
+Mon Jun 30 18:23:59 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:24:05 2003  lavender  Scan e0scan started
+Mon Jun 30 18:24:16 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:24:21 2003  lavender  Scan xafs_sff started
+Mon Jun 30 18:24:26 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:25:33 2003  lavender  Scan mylist_e0 started
+Mon Jun 30 18:25:41 2003  lavender  Scan mylist_e0 ended
+Mon Jun 30 18:26:40 2003  lavender  Scan mylist_e0 started
+Mon Jun 30 18:26:48 2003  lavender  Scan mylist_e0 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:42:59 2003  lavender  Scan e0scan started
+Mon Jun 30 18:43:25 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:43:27 2003  lavender  Scan e0scan started
+Mon Jun 30 18:43:32 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:43:52 2003  lavender  Scan mylist_e0 started
+Mon Jun 30 18:44:05 2003  lavender  Scan mylist_e0 ended
+Mon Jun 30 18:44:27 2003  lavender  Scan xafs_sff started
+Mon Jun 30 18:44:40 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:44:42 2003  lavender  Scan xafs_sff started
+Mon Jun 30 18:44:46 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:45:52 2003  lavender  Scan e0scan started
+Mon Jun 30 18:46:08 2003  lavender  Scan e0scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:46:16 2003  lavender  Scan mylist_e0 started
+Mon Jun 30 18:46:21 2003  lavender  Scan mylist_e0 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jun 30 18:46:26 2003  lavender  Scan xafs_sff started
+Mon Jun 30 18:46:45 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Jul 01 21:17:51 2003  lavender  Scan xafs_sff started
+Tue Jul 01 21:18:00 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:28:26 2003  lavender  Scan xafs_sff started
+Wed Jul 02 13:29:34 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:30:45 2003  lavender  Scan slow1k started
+Wed Jul 02 13:30:53 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:31:44 2003  lavender  Scan cuedge started
+Wed Jul 02 13:31:47 2003  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:31:57 2003  lavender  Scan cuedge started
+Wed Jul 02 13:32:03 2003  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:32:17 2003  lavender  Scan cuedge started
+Wed Jul 02 13:32:48 2003  lavender  Scan cuedge ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:32:56 2003  lavender  Scan edgescan started
+Wed Jul 02 13:33:03 2003  lavender  Scan edgescan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 13:33:10 2003  lavender  Scan slow1k started
+Wed Jul 02 13:33:17 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 02 15:55:34 2003  lavender  Scan xafs_sff started
+Wed Jul 02 15:55:47 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Wed Jul 16 16:41:43 2003  lavender  Scan xafs_sff started
+Wed Jul 16 16:43:26 2003  lavender  Scan xafs_sff ended
+Thu Jul 17 13:11:08 2003  lavender  Scan fooscan started
+Thu Jul 17 13:13:24 2003  lavender  Scan fooscan ended
+Thu Jul 17 13:29:33 2003  lavender  Scan fooscan started
+Thu Jul 17 13:29:43 2003  lavender  Scan fooscan ended    MXE_CORRUPT_DATA_STRUCTURE   An attempt to send the 'exit' command to 'plotgnu' failed.
+Thu Jul 17 13:48:28 2003  lavender  Scan fooscan started
+Thu Jul 17 13:48:47 2003  lavender  Scan fooscan ended    MXE_CORRUPT_DATA_STRUCTURE   An attempt to send the 'exit' command to 'plotgnu' failed.
+Thu Jul 17 13:59:13 2003  lavender  Scan fooscan started
+Thu Jul 17 14:01:19 2003  lavender  Scan fooscan ended
+Thu Jul 17 14:25:10 2003  lavender  Scan fooscan started
+Thu Jul 17 14:27:43 2003  lavender  Scan fooscan ended
+Thu Jul 17 14:34:06 2003  lavender  Scan fooscan started
+Thu Jul 17 14:44:10 2003  lavender  Scan fooscan ended
+Thu Jul 17 15:10:55 2003  lavender  Scan fooscan started
+Thu Jul 17 15:13:05 2003  lavender  Scan fooscan ended
+Fri Jul 18 12:44:59 2003  lavender  Scan xafs_sff started
+Fri Jul 18 12:46:43 2003  lavender  Scan xafs_sff ended
+Fri Jul 18 12:52:07 2003  lavender  Scan xafs_sff started
+Fri Jul 18 12:54:12 2003  lavender  Scan xafs_sff ended
+Fri Jul 18 12:58:12 2003  lavender  Scan xafs_sff started
+Fri Jul 18 12:59:55 2003  lavender  Scan xafs_sff ended
+Fri Jul 18 13:00:46 2003  lavender  Scan xafs_scan started
+Fri Jul 18 13:02:33 2003  lavender  Scan xafs_scan ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Jul 18 13:03:41 2003  lavender  Scan xafs_sff started
+Fri Jul 18 13:03:41 2003  lavender  Scan xafs_sff ended    MXE_ILLEGAL_ARGUMENT   The special token 'x_motors' in the SFF format string is not a valid special token.
+Fri Jul 18 13:10:17 2003  lavender  Scan xafs_sff started
+Fri Jul 18 13:13:51 2003  lavender  Scan xafs_sff ended
+Fri Jul 18 13:25:35 2003  lavender  Scan test3 started
+Fri Jul 18 13:27:44 2003  lavender  Scan test3 ended
+Fri Jul 18 13:53:28 2003  lavender  Scan test3 started
+Fri Jul 18 13:55:29 2003  lavender  Scan test3 ended
+Fri Jul 18 13:56:13 2003  lavender  Scan test3a started
+Fri Jul 18 13:57:00 2003  lavender  Scan test3a ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Jul 18 14:03:51 2003  lavender  Scan test3 started
+Fri Jul 18 14:03:54 2003  lavender  Scan test3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Jul 18 14:04:16 2003  lavender  Scan test3 started
+Fri Jul 18 14:06:27 2003  lavender  Scan test3 ended
+Fri Jul 18 14:08:08 2003  lavender  Scan test3a started
+Fri Jul 18 14:08:38 2003  lavender  Scan test3a ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Fri Jul 18 14:12:39 2003  lavender  Scan test3a started
+Fri Jul 18 14:14:45 2003  lavender  Scan test3a ended
+Fri Jul 18 14:19:23 2003  lavender  Scan test3a started
+Fri Jul 18 14:22:33 2003  lavender  Scan test3a ended
+Fri Jul 18 15:16:37 2003  lavender  Scan slow1k started
+Fri Jul 18 15:16:48 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 11:33:16 2003  lavender  Scan xafs_sff started
+Mon Jul 21 11:33:18 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   An attempt to send the 'exit' command to 'plotgnu' failed.
+Mon Jul 21 11:33:30 2003  lavender  Scan xafs_sff started
+Mon Jul 21 11:35:14 2003  lavender  Scan xafs_sff ended
+Mon Jul 21 11:36:21 2003  lavender  Scan xafs_sff started
+Mon Jul 21 11:38:03 2003  lavender  Scan xafs_sff ended
+Mon Jul 21 11:38:47 2003  lavender  Scan xafs_sff started
+Mon Jul 21 12:37:24 2003  lavender  Scan xafs_sff ended
+Mon Jul 21 14:18:24 2003  lavender  Scan xafs_sff started
+Mon Jul 21 14:19:05 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:19:34 2003  lavender  Scan test2 started
+Mon Jul 21 14:19:42 2003  lavender  Scan test2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:19:46 2003  lavender  Scan test3 started
+Mon Jul 21 14:19:51 2003  lavender  Scan test3 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:25:38 2003  lavender  Scan xafs_sff started
+Mon Jul 21 14:25:47 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:27:22 2003  lavender  Scan xafs_sff started
+Mon Jul 21 14:27:31 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jul 21 14:28:14 2003  lavender  Scan xafs_sff started
+Mon Jul 21 14:28:25 2003  lavender  Scan xafs_sff ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:31:25 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:31:41 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:32:10 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:32:17 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:32:34 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:32:39 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   The measurement retry loop was interrupted.
+Mon Jul 21 14:32:51 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:33:24 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:33:45 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:36:17 2003  lavender  Scan xafs_sff2 ended
+Mon Jul 21 14:47:25 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:47:53 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 14:48:28 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:48:39 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jul 21 14:51:35 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:51:42 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jul 21 14:53:44 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:53:54 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Mon Jul 21 14:55:07 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 14:55:14 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Mon Jul 21 15:03:36 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 15:06:10 2003  lavender  Scan xafs_sff2 ended
+Mon Jul 21 15:30:24 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 15:33:09 2003  lavender  Scan xafs_sff2 ended
+Mon Jul 21 15:36:13 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 15:38:44 2003  lavender  Scan xafs_sff2 ended
+Mon Jul 21 15:39:28 2003  lavender  Scan xafs_sff2 started
+Mon Jul 21 15:42:04 2003  lavender  Scan xafs_sff2 ended
+Tue Jul 22 11:03:29 2003  lavender  Scan xafs_sff2 started
+Tue Jul 22 11:03:42 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Tue Jul 22 11:04:31 2003  lavender  Scan xafs_sff2 started
+Tue Jul 22 11:04:37 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Motor moves aborted.
+Tue Jul 22 11:07:34 2003  lavender  Scan xafs_sff2 started
+Tue Jul 22 11:07:40 2003  lavender  Scan xafs_sff2 ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Jul 31 00:33:22 2003  lavender  Scan slow1k started
+Thu Jul 31 00:33:24 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Jul 31 00:33:39 2003  lavender  Scan slow1k started
+Thu Jul 31 00:33:46 2003  lavender  Scan slow1k ended    MXE_INTERRUPTED   Measurement integration time was interrupted.
+Thu Jul 31 00:33:58 2003  lavender  Scan test2 started
+Thu Jul 31 00:34:12 2003  lavender  Scan test2 ended    MXE_INTERRUPTED   The measurement retry loop was interrupted.

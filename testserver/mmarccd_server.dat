@@ -1,0 +1,2 @@
+marccd  device ccd remote_marccd "" "" "" 0
+shutter device relay remote_marccd_shutter "" "" marccd

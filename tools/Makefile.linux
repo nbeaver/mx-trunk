@@ -1,0 +1,23 @@
+#
+# tools/Makefile.linux
+#
+
+EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
+		-DUSE_DIRENT -DSYS_UNIX
+
+EDITLINE_GCCWARN = -Wall -Wshadow -Wpointer-arith -Wwrite-strings \
+		-Wunused -Wcomment -Wswitch
+
+EDITLINE_CC = "gcc $(EDITLINE_GCCWARN)"
+EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -O -g"
+EDITLINE_RANLIB = ranlib
+
+EDITLINE_MAKECMD = \
+  make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
+
+all:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+mx_clean:
+	( cd unix/src/editline ; make clean )
+

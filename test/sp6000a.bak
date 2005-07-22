@@ -1,0 +1,1 @@
+timescan                         scan linear_scan input_scan "" "" 1 1 0  1  p6000a  0 0 preset_time "1 timer1" text junk.out gnuplot $f[0]  0  1  10000

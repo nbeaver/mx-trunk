@@ -1,0 +1,3 @@
+xia       interface generic xia_handel "" "" "c:\program files\xia\kepler\config\sercat_silver.ini"
+mcaxia0   device mca xia_dxp_mca "" "" 8192 16 0 xia 0
+xia_timer device timer mca_timer "" "" mcaxia0 1

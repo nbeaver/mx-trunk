@@ -1,0 +1,6 @@
+mr interface rs232 tty "" "" 9600 7 E 1 N 0x0d0a 0x0d -1 0x0 /dev/ttyS0
+m1      device motor mclennan "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 steps mr 1 -1
+din1    device digital_input mclennan_din "" "" 0 m1 1
+dout1   device digital_output mclennan_dout "" "" 0 m1 1
+ain1    device analog_input mclennan_ain "" "" 0 1 0 units 0x0 0 "" m1 1
+aout3   device analog_output mclennan_aout "" "" 0 1 0 units 0x0 m1 3

@@ -1,0 +1,5 @@
+esp300_rs232 interface rs232 tty "" "" 19200 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/usb/ttyUSB1
+esp300_1     interface generic esp "" "" esp300_rs232
+sam_vert     device motor esp_motor "" "" 0 0 -50000 50000 0 -1 -1 1 0 um esp300_1 1
+sam_in       device motor esp_motor "" "" 0 0 -50000 50000 0 -1 -1 1 0 um esp300_1 2
+sam_hor      device motor esp_motor "" "" 0 0 -50000 50000 0 -1 -1 1 0 um esp300_1 3

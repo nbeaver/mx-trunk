@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../server/mxserver -p 9727 -f msr570_server.dat -C msoftsrv.acl $*
+

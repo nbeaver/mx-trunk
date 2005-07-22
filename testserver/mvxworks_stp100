@@ -1,0 +1,12 @@
+# VxWorks boot script that starts an MX server.
+
+shellPromptSet "mx> "
+
+ld < ../tools/getopt.o
+
+ld < ../libMx/libMx.o
+
+ld < ../server/mxserver.o
+
+mxserver("mvxworks_stp100_serv.dat","mvxworks_serv.acl")
+

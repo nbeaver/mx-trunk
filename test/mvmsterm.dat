@@ -1,0 +1,1 @@
+vmsterm interface rs232 vms_terminal "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 TXA0:

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.shared -F ./mdbxnet.dat -s ./sdbxnet.dat $*
+

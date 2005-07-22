@@ -1,0 +1,48 @@
+By default, the HSC-1 Huber Slit Controllers are delivered with default values
+that do not allow the slit blades to be moved to anywhere the blades can 
+physically reach.  The default values for parameters 1 and 2 are:
+
+Parameter  |         Name         |  Default Value  |  Default in um
+===========+======================+=================+===============
+    1      |  Outer Motion Limit  |      4400       |    11000 um
+    2      |    Origin Position   |       400       |     1000 um
+
+The MX drivers for the HSC-1 assume that these two parameters have been
+redefined to have the following values:
+
+Parameter  |         Name         |    New Value    | New value in um
+===========+======================+=================+================
+    1      |  Outer Motion Limit  |     10400       |    26000 um
+    2      |    Origin Position   |      5200       |    13000 um
+
+The reprogramming must be done using a terminal program like Kermit or
+Minicom.  Suppose you have an HSC-1 controller with a serial number of
+XIAHSC-B-0001.  Then the appropriate commands to send to the HSC-1 
+would be:
+
+    !XIAHSC-B-0001 W 1 10400
+    !XIAHSC-B-0001 W 2 5200
+
+Next, in the MX config file, specify the limits, scales and offsets of the
+various axes as follows:
+
+ XIA motor name | negative limit | positive limit | scale | offset
+                |  (raw units)   |  (raw units)   |       |
+================+================+================+=======+========
+       A        |    -65535      |     65535      |  2.5  | -13000
+       B        |    -65535      |     65535      |  2.5  | -13000
+       C        |    -65535      |     65535      |  2.5  |      0
+       S        |         0      |    131071      |  2.5  | -26000
+
+Then, you will be able to move the A, B, and C motors from -13000 um to
++13000 um and the S motor from 0 um to 26000 um.
+
+Please note that the HSC-1 motor positions can only be set to the
+value 0.  A 'set motor ... position' command to any other value than
+zero will fail.  The 'set motor ... position 0' command itself will 
+cause the HSC-1 to execute an "Immediate Calibration" or "0 I" command.
+
+Also note that the slit size motor S cannot be moved to a negative value,
+so if S is at zero and there is a visible gap between the blades, then you
+will have to manually close the slit by hand.
+

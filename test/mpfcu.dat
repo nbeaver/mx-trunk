@@ -1,0 +1,13 @@
+pfcu_rs232  interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0d0a -1 0x0 /dev/ttyS1
+#
+pfcu        interface generic pfcu "" "" pfcu_rs232 0x0
+pfcu1       device digital_output pfcu_filter_summary "" "" 0 pfcu 1
+pfcu2       device digital_output pfcu_filter_summary "" "" 0 pfcu 2
+pfcu11      device relay pfcu_filter "" "" pfcu 1 1
+pfcu12      device relay pfcu_filter "" "" pfcu 1 2
+pfcu13      device relay pfcu_filter "" "" pfcu 1 3
+pfcu14      device relay pfcu_filter "" "" pfcu 1 4
+pfcu21      device relay pfcu_filter "" "" pfcu 2 1
+pfcu22      device relay pfcu_filter "" "" pfcu 2 2
+pfcu23      device relay pfcu_filter "" "" pfcu 2 3
+pfcu24      device relay pfcu_filter "" "" pfcu 2 4

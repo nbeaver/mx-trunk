@@ -1,0 +1,16 @@
+#! /bin/sh
+
+if [ x${MXDIR} = x ]; then
+	MXDIR=/opt/mx
+fi
+
+if [ x${LD_LIBRARY_PATH} = x ]; then
+	LD_LIBRARY_PATH=../libMx
+else
+	LD_LIBRARY_PATH="../libMx:${LD_LIBRARY_PATH}"
+fi
+
+export MXDIR LD_LIBRARY_PATH
+
+../motor/motor.static -F ${MXDIR}/etc/mxserver.dat -S /dev/null $*
+

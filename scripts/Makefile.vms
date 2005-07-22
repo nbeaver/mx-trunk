@@ -1,0 +1,104 @@
+#
+# This version of the MX top level makefile is customized for OpenVMS.
+#
+# This makefile should be invoked from the top level MX directory by a
+# command like
+#
+#    make -f [.scripts]Makefile.vms
+#
+#---------------------------------------------------------------------------
+
+MX_ARCH = vms
+
+MX_INSTALL_DIR = dua0:[users.lavender.mxtest]
+
+#---------------------------------------------------------------------------
+#
+# Create a modified version of MX_INSTALL_DIR with the trailing ]
+# stripped off.
+#
+
+MX_INSTALL_STEM = $(subst ],,$(MX_INSTALL_DIR))
+
+all: build
+
+build:
+	define/job mx_arch $(MX_ARCH)
+	$(CD) tools
+	$(MAKE) -f Makefile.$(MX_ARCH)
+	$(CD) ../libMx
+	$(MAKE)
+	$(CD) ../motor
+	$(MAKE)
+	$(CD) ../server
+	$(MAKE)
+	$(CD) ../update
+	$(MAKE)
+	$(CD) ../update_new
+	$(MAKE)
+	$(CD) ../util
+	$(MAKE)
+
+clean:
+	define/job mx_arch $(MX_ARCH)
+	$(CD) tools
+	$(MAKE) -f Makefile.$(MX_ARCH) mx_clean
+	$(CD) ../libMx
+	$(MAKE) mx_clean
+	$(CD) ../motor
+	$(MAKE) mx_clean
+	$(CD) ../server
+	$(MAKE) mx_clean
+	$(CD) ../update
+	$(MAKE) mx_clean
+	$(CD) ../update_new
+	$(MAKE) mx_clean
+	$(CD) ../util
+	$(MAKE) mx_clean
+
+distclean:
+	define/job mx_arch $(MX_ARCH)
+	$(CD) tools
+	$(MAKE) -f Makefile.$(MX_ARCH) mx_clean
+	$(CD) ../libMx
+	$(MAKE) mx_distclean
+	$(CD) ../motor
+	$(MAKE) mx_distclean
+	$(CD) ../server
+	$(MAKE) mx_distclean
+	$(CD) ../update
+	$(MAKE) mx_distclean
+	$(CD) ../update_new
+	$(MAKE) mx_distclean
+	$(CD) ../util
+	$(MAKE) mx_distclean
+
+depend:
+	define/job mx_arch $(MX_ARCH)
+	$(CD) libMx
+	$(MAKE) mx_depend
+	$(CD) ../motor
+	$(MAKE) mx_depend
+	$(CD) ../server
+	$(MAKE) mx_depend
+	$(CD) ../update
+	$(MAKE) mx_depend
+	$(CD) ../update_new
+	$(MAKE) mx_depend
+	$(CD) ../util
+	$(MAKE) mx_depend
+
+install:
+	define/job mx_arch $(MX_ARCH)
+	define/job mx_install_dir \"$(MX_INSTALL_STEM)\"
+	$(CD) libMx
+	$(MAKE) mx_install
+	$(CD) ../motor
+	$(MAKE) mx_install
+	$(CD) ../server
+	$(MAKE) mx_install
+	$(CD) ../update
+	$(MAKE) mx_install
+	$(CD) ../util
+	$(MAKE) mx_install
+

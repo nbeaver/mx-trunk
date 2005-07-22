@@ -1,0 +1,2 @@
+gpib0      interface gpib ni488 "" "" 10 0 0xa 0xa 0x0 0
+keithley4  device amplifier keithley428 "" "" 1e9 -0 .0003 gpib0:4

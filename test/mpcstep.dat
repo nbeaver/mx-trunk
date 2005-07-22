@@ -1,0 +1,5 @@
+portio  interface portio linux_portio "" "" /dev/portio
+nulogic interface generic pcstep "" "" portio 0x210 0xc0 0xc0
+m1      device motor pcstep_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.0001 0 um nulogic 1 20000 500 10000 1 0 0
+m2      device motor pcstep_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.0001 0 um nulogic 2 20000 500 10000 1 0 0
+timer1  device timer soft_timer "" ""

@@ -1,0 +1,2 @@
+!include /opt/mx/etc/motor_base_test.dat
+!include /opt/mx/etc/motor_autoscale.dat

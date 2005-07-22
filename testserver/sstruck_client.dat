@@ -1,0 +1,6 @@
+testmcs                          scan linear_scan input_scan "" "" 1 1 0  4  mcs1 mcs2 mcs3 time 0 0 preset_time "1 timer1" text junk.out none $f[0]  0  1  1000000
+testpulse                        scan quick_scan mcs_qscan "" "" 1 1 1  dummy 3  mcs1 mcs2 mcs3 0 0 preset_pulse_period "1 pulser1" text testscan.out none $f[0]  0  1 11
+testpulse2                       scan quick_scan mcs_qscan "" "" 1 1 1  dummy 3  mcs1 mcs2 mcs3 0 0 preset_pulse_period "2 pulser1" text testscan.out none $f[0]  0  1 11
+testquick                        scan quick_scan mcs_qscan "" "" 1 1 1  m18 5  mcs1 mcs2 mcs3 mcs17 mcs18 0 0 preset_time "0.1 timer1" text testscan.037 none $f[0]  0  100000 101
+testquick1                       scan quick_scan mcs_qscan "" "" 1 1 1  m1 5  mcs1 mcs2 mcs3 mcs17 mcs18 0 0 preset_time "0.1 timer1" text testscan.042 none $f[0]  0  10000 101
+testquick1a                      scan quick_scan mcs_qscan "" "" 1 1 1  m1 5  mcs1 mcs2 mcs3 mcs17 mcs18 0 0 preset_time "0.1 timer1" text testscan.031 none $f[0]  0  -10000 101

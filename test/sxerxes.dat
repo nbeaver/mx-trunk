@@ -1,0 +1,5 @@
+testscan                         scan linear_scan input_scan "" "" 1 1 0  2  time sca0_0 0 0 preset_time "1e-06 timer1" sff junk.out gnuplot $f[1]  0  1  1000
+testscan1                        scan linear_scan input_scan "" "" 1 1 0  2  time sca0_0 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[1]  0  1  1000
+testall                          scan linear_scan input_scan "" "" 1 1 0  14  time sca0_0 sca1_0 sca2_0 sca3_0 sca4_0 sca5_0 sca6_0 sca7_0 sca8_0 sca9_0 sca10_0 sca11_0 sca12_0 0 0 preset_time "1e-06 timer1" sff junk.out gnuplot $f[1]  0  1  1000
+testcorr                         scan linear_scan input_scan "" "" 1 1 0  3  time sca0_0 corrected_roi 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[1]  0  1  1000
+testcorrall                      scan linear_scan input_scan "" "" 1 1 0  9  time sca0_0 corrected_roi real_time live_time num_fast_peaks num_events num_underflows num_overflows 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[1]  0  1  1000

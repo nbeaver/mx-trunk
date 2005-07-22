@@ -1,0 +1,6 @@
+panther_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/ttyS1
+m1            device motor panther_hi "" "" 102500 0 -1000000 1000000 0 -1 -1 0.01 0 um panther_rs232 A 18340 2001 5 5 8 F 1 6 50 -1
+m2            device motor panther_hi "" "" 97500 0 -1000000 1000000 0 -1 -1 0.01 0 um panther_rs232 B 18340 2001 5 5 8 F 1 6 50 -1
+center        device motor slit_motor "" "" 1000 0 -2000000 2000000 0 -1 -1 1 0 um 0x0 1 m2 m1
+size          device motor slit_motor "" "" 50 0 -2000000 2000000 0 -1 -1 1 0 um 0x0 2 m2 m1
+timer1        device timer soft_timer "" ""

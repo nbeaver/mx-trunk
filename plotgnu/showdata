@@ -1,0 +1,106 @@
+#! /usr/bin/perl
+
+if ( ($#ARGV < 0) || ($#ARGV > 1) ) {
+    print "showplot: Wrong number of arguments.\n";
+    print "\n";
+    print "Usage: showdata input_filename [ 'plot_arguments' ]\n";
+    print "\n";
+    exit 1;
+}
+
+# Process the command line arguments.
+
+$input_filename = $ARGV[0];
+
+if ( $#ARGV == 0 ) {
+	$plot_arguments = "\$f[0]";
+} else {
+	$plot_arguments = $ARGV[1];
+}
+
+# Open the input file.
+
+open(INPUT, $input_filename) || die "Cannot open file '$input_filename'";
+
+#### Look for file type identifier in the first line of the file. ####
+
+$input_line = <INPUT>;
+
+if ( ! defined( $input_line ) ) {
+	print STDERR "No text in plot file.\n";
+	exit 1;
+}
+
+@line1 = split(/ /, $input_line);
+
+if ( $line1[0] eq "#" ) {
+	if ( $line1[1] eq "SFF" ) {
+		# Skip header of current SFF file.
+
+		$num_header_lines = $line1[3];
+
+		for ( $i = 0; $i < $num_header_lines; $i++ ) {
+			$input_line = <INPUT>;
+
+			if ( ! defined( $input_line ) ) {
+			    print STDERR "SFF header terminated at line $i\n";
+			}
+		}
+	}
+}
+if ( $line1[0] eq "SFF" ) {
+	# Skip header of old SFF file.
+
+	$num_header_lines = $line1[2];
+
+	for ( $i = 0; $i < $num_header_lines; $i++ ) {
+		$input_line = <INPUT>;
+
+		if ( ! defined( $input_line ) ) {
+			print STDERR "SFF header terminated at line $i\n";
+		}
+	}
+}
+if ( $line1[0] eq "MRCAT_XAFS" ) {
+	# Skip header of MRCAT XAFS file.
+
+	$num_header_lines = 17;
+
+	for ( $i = 0; $i < $num_header_lines; $i++ ) {
+		$input_line = <INPUT>;
+
+		if ( ! defined( $input_line ) ) {
+		    print STDERR "MRCAT_XAFS header terminated at line $i\n";
+		}
+	}
+}
+
+#### Process the data file. ####
+
+@parameters = split( /;/, $plot_arguments );
+
+while ($input_line = <INPUT>) {
+
+	@f = split( " ", $input_line );
+
+	print STDOUT $f[0] . " ";
+
+	shift @f;
+
+	for ( $i = 0; $i <= $#parameters; $i++ ) {
+
+		$result = eval "$parameters[$i]";
+
+		if ( ! defined($result) ) {
+			print STDERR
+"Error evaluating expression '$parameters[$i]'.  Result set to 0.\n";
+
+			$result = 0;
+		}
+		print STDOUT $result . " ";
+	}
+	print STDOUT "\n";
+}
+
+close(INPUT);
+

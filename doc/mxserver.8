@@ -1,0 +1,115 @@
+.\" Process this man page with
+.\" groff -man -Tascii mxupdate.8
+.\"
+.TH MXSERVER 8 "July 2005" "MX Administrator Manuals"
+.SH NAME
+mxserver \- server for the MX data acquisition and control system
+.SH SYNOPSIS
+.B mxserver [
+.I options
+.B ]
+.SH DESCRIPTION
+.B mxserver
+is the primary server for the MX data acquisition and control system.
+It is the responsibility of the MX server to manage data acquisition hardware
+on behalf of client application programs.  The MX server is normally not
+started directly, but instead is implicitly started by running the init
+script 
+.B mx(8)
+with a command line like
+
+	/opt/mx/sbin/mx start
+
+if MXDIR is set to /opt/mx.  If you start the MX server using the
+$MXDIR/sbin/mx script described above, you can specify additional command line
+arguments for the MX server in the file $MXDIR/etc/mxserver.opt.  This is
+most frequently used to enable the -t option.
+
+.SH OPTIONS
+.IP "-b fmt"
+specifies the format to use for client communication.  Currently, the possible
+values for
+.I fmt
+are 'raw', 'xdr', 'ascii'.  Normally this argument is only used for testing
+the server, since it is generally better to let the client and server
+autonegotiate the best format at connection time.
+.IP "-C acl_filename"
+specifies the name of the client connection ACL file.
+.IP "-d debug_level"
+specifies the debugging level to run the server at.  The default value is 0.
+.IP -D
+requests that 
+.B mxserver
+automatically start a program debugger such as that from Visual Studio or gdb
+at program startup time.
+.IP "-e filename"
+redirects the output of stderr to the specified file name.  In this case,
+the buffering of stderr is not changed.
+.IP "-E filename"
+is the same as the previous option, except stderr is configured to be
+unbuffered.
+.IP "-f database_filename"
+specifies the name of the MX database file that describes the devices to be
+controlled by this MX server.
+You should almost always specify this option flag.
+.IP "-l log_number"
+specifies which of the logs to use from the available values of
+LOG_LOCAL0 to LOG_LOCAL7.  Note that you specify the numerical value
+alone without LOG_LOCAL in front of it.
+.IP "-L log_number"
+does the same thing as the
+.I -l
+option, except that messages are also logged to stderr in this case.
+.IP "-n microseconds"
+requests that the MX server sleep at the start of each pass through the
+event loop for the requested number of microseconds.  The default behavior
+is to not perform any sleep in the event loop.  You should only use this
+option as a stopgap if you have reason to believe that the MX server is
+sending commands to a data acquisition device too frequently, which should
+almost never happen.
+.IP "-p port_number"
+specifies the TCP port number that the server will wait for clients on.
+.IP "-P default_display_precision"
+specifys the default for how many digits after the decimal point are to be
+displayed by clients.
+.IP -s
+requests that the MX server display a stack traceback when sent
+a SIGINT signal.  The default is not to display a stack traceback.
+.IP -S
+requests that the MX server
+.B not
+display a stack traceback when sent a SIGINT signal.  In the current version
+of the MX server, this is essentially redundant.
+.IP -t
+requests that the server display a message when the open() routine for
+a given record is invoked.  The resulting messages look like
+.nf
+Jul 12 14:39:20 Opening record 'keithley4'.
+.fi
+This feature is to help in determining why an MX server is hanging during 
+server startup.  Generally the record whose 'Opening record' message is
+displayed last in the server log is the record that is causing the problem.
+.IP "-u filename"
+specifies the name of a Unix domain socket that the server will wait for
+clients on.  Please note that the '-t' and '-u' options are
+.B not
+mutually exclusive.  It is possible for a given server to monitor both
+a TCP socket and a Unix domain socket for client connections.
+.IP -Z
+requests the MX server to not install its normal signal handlers.  This option
+is intended for debugging purposes.
+
+.SH FILES
+The following are conventional locations for these file.  The conventional
+value for MXDIR is /opt/mx.
+.IP $MXDIR/etc/mxserver.dat
+- record database for the MX server.
+.IP $MXDIR/etc/mxserver.acl
+- client connection ACL file.
+
+.SH SEE_ALSO
+.B mxserver.dat(5), mxserver.acl(5), mx(8)
+
+.SH AUTHOR
+William Lavender <lavender@agni.phys.iit.edu>
+

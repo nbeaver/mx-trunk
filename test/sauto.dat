@@ -1,0 +1,5 @@
+testscan                         scan linear_scan motor_scan "" "" 1 1 1  energy 1  Ifilt 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  8950  1  101
+test2                            scan linear_scan motor_scan "" "" 1 1 1  energy 4  Ifilt filters I0 keithley1 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0];$f[2]  8950  1  101
+multiscan                        scan linear_scan motor_scan "" "" 1 3 3  energy smy smx 5  I0 Ifilt keithley1 filters mca1 0 0 preset_time "1 timer1" sff multiscan.011 gnuplot $f[0];$f[1]  8970 -20 -20  10 10 10  3 5 5
+testmca                          scan linear_scan motor_scan "" "" 1 1 1  energy 5  I0 Ifilt keithley1 filters mca1 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0];$f[1]  8950  1  101
+test3                            scan linear_scan motor_scan "" "" 1 1 1  energy 4  Ifilt filters I0 keithley1 0 0 preset_time "5 timer1" sff junk.out gnuplot $f[2]  8950  1  101

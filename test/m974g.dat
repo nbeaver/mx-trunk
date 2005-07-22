@@ -1,0 +1,4 @@
+gpib1    interface gpib epics_gpib "" "" 13 0 0xa 0xa 0x0 10id:gpib1
+ortec    interface generic ortec974 "" "" gpib1:5
+scaler2  device scaler ortec974_scaler "" "" 0 0 1 timer1 ortec 2
+timer1   device timer ortec974_timer "" "" ortec

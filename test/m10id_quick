@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./m10id_quick.dat -s ./s10id_quick.dat $*
+

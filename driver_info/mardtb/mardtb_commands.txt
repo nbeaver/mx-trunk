@@ -1,0 +1,231 @@
+Help for a subset of the full MarDTB command structure.
+
+Script done on Sun Jul 11 15:09:05 2004
+*******************************************************************************
+/R1/HOME>help
+RTOS_Lexikon  (short information)
+SHARE        DATE         DATESET      CLOCK        PROM         AUTOSTART    
+ED           HELP         ?            DM           SM           DD           
+DR           DL           A            AFTER        ALL          AT           
+CLOCKSET     C            DIR          DD           DL           DM           
+DISABLE      DR           ECHO         ENABLE       ER           ERASE        
+I            GO           LU           L            NOTRACE      O            
+PER          PI           PO           PREVENT      RELEASE      REWIND       
+S            SD           SM           SH           SU           T            
+TRACE        TRIGGER      UNLOAD       WHEN         WHO          CD           
+CXD          CUD          CUXD         PWD          DEFINE       ACTIVATE     
+CONTINUE     SHOW         TERMINATE    SUSPEND      RM           WAIT         
+FORM         FILES        RETURN       CF           FREE         MKDIR        
+RMDIR        SYNC         FIND         BADBLOCK     RENAME       LINK         
+TOUCH        LOAD         LIBSET       LOADX        COPY         CP           
+CPB          TYPE         SYSTEM_GO    SYSTEM_ABORT SYSTEM_RESET EX           
+EXECUTE      SHELL        ECHO         VER          CHECK_ON     CHECK_OFF    
+CHECK_ADR    CHECK_BUS    RTOSFILES    ENVSET       INSTALL      CRC_EN       
+CRC_DI       MOUNT        UNMOUNT      FORMINFO     DISCMOVE     FLASH_INFO   
+CLEARFLASH   MOVETOFLASH  IP           MES          LOCK         UNLOCK       
+OWNST        INIT_SOCKET  HOSTNAME     DOMAINNAME   PING         IP_ADDR      
+IP_CONF      IP_GATEWAY   IP_SUBNET    CLOSESOCKET  RUSER        TELNET_DAEMON
+CRYPT        LOAD_PASSWD  GETPWNAM     LINEEDIT     LE           UPDATE_EEP   
+LINEEDIT     LE           WE           WD           WORD         FTP          
+FTPDAEMON    FTPSERVER    CAN402_PDO_RXCAN402_PDO_TXCAN_B_RX     CAN_SDO_RW   
+CANSLAVECONF CAN_B_TX     CAN_NMT      CAN_BAUD     CAN_MODE     CAN_VERBOSE  
+CAN402RX_DSP CAN_DEVTYP   CAN_DEFRES   CAN_STOREP   CAN_EVTIM    CAN_NMT      
+SCANCMD      SCANSTAT     SCANMESS     SCANDATA     SERVER_VERBOSSTATUS_DUMP  
+SCANPORT     DIO_WR       DIO_RD       EXPOSURE     EXPOSURE_TOUTSHUTTER      
+IO_VERBOSE   ADC_ADJUST   ADC_SET      ADC_DUMP     ADC_NOTFRQ   RC_EX        
+FLASH_STORE  FLASH_RESTORESET_PARAM    TASK_STATE   MESSAGE_FOCUSMAIN_VERBOSE 
+VERSION      INFO         INFO_ERROR   PARA_DEFAULT MESSAGE_CONF DTB          
+DTB_ABORT    DTB_VERBOSE  STEPPER_VERBOSTEPPER_SRV  STEPPER_STATESTEPPER_MEMOR
+STEPPER_CONF STEPPER_CMD  STEPPER_CMD_TSTEPPER_SCAN STEPLOC_REFPOSTEP_SCANSTRU
+STEP_SCANVALUSTEP_SCANSIM 
+-------------------------------------------------------------------------------
+usage  : dtb_verbose  level  
+         level = 0: no messages 
+         level > 0: infos       
+-------------------------------------------------------------------------------
+usage  : EXPOSURE  mode, steps, time/speed, close_delay, gear, offset, tout
+         - mode      1: dose-mode
+                     2: time-mode
+         - steps      : no of fullsteps
+         - time/speed : time-mode: delay [250us] between 2 timetics
+                        dose-mode: Speed[Fullsteps/256 at Max.Intensity (65536)]
+         - close_delay: delay [250us] close shutter
+         - gear       : only valid in time-mode 
+                        0:1/2step;1:1/4st;2:1/8st;3:1/16st;4:1/32st each timetic
+         - offset     : adc-offset
+         - tout       : timeout
+-------------------------------------------------------------------------------
+usage  : io_verbose  level  
+         level = 0: no messages 
+         level > 0: infos       
+-------------------------------------------------------------------------------
+usage  : SHUTTER mode
+         - mode      1: open
+                     0: close
+-------------------------------------------------------------------------------
+usage: STATUS_DUMP mode, submode, parano
+       mode: 0: all para; 1; submode
+    submode: display 1 para (parano)
+
+Example: 
+/R1/HOME>status_dump 0
+
+  offs:Pno:valuehex ...
+0x0000:  1:00400100   2:0000003C   3:00000000   4:00400100 
+0x0010:  5:0000003C   6:00000000   7:00400100   8:000000C8 
+0x0020:  9:00000000  10:00400100  11:000000C8  12:00000000 
+0x0030: 13:00400100  14:00000000  15:00000000  16:00400100 
+0x0040: 17:FFFDCD80  18:00000000  19:00000000  20:00000000 
+0x0050: 21:00000000  22:00000000  23:00000000  24:00000000 
+0x0060: 25:00000000  26:00000000  27:00000000  28:00000000 
+0x0070: 29:00000000  30:00000000  31:21030501  32:00000000 
+0x0080: 33:00000000  34:21030501  35:00025670  36:00000000 
+0x0090: 37:21030501  38:FFFFEC51  39:00000000  40:21030501 
+0x00A0: 41:000005EB  42:00000000  43:21030501  44:00001795 
+0x00B0: 45:00000000  46:21030501  47:00000550  48:00000000 
+0x00C0: 49:21070501  50:FFFF8182  51:00000000  52:21070501 
+0x00D0: 53:00000000  54:00000000  55:00000000  56:00000000 
+0x00E0: 57:00000000  58:00000000  59:00000000  60:00000000 
+0x00F0: 61:00000000  62:00000000  63:00000000  64:00000000 
+0x0100: 65:00000000  66:00000000  67:00000000  68:00000000 
+0x0110: 69:00000000  70:00000000  71:00000000  72:00000000 
+0x0120: 73:00000000  74:00000000  75:00000000  76:00000000 
+0x0130: 77:00000000  78:00000000  79:00000000  80:00000000 
+0x0140: 81:00000000  82:00000000  83:00000000  84:00000000 
+0x0150: 85:00000000  86:00000000  87:00000000  88:00000000 
+0x0160: 89:00000000  90:00000000  91:00000000  92:00000000 
+0x0170: 93:00000000  94:00000000  95:00000000  96:00000000 
+0x0180: 97:00000000  98:00000000  99:00000000 100:00000000 
+0x0190:101:00000000 102:00000000 103:00000000 104:00000000 
+0x01A0:105:00000000 106:00000000 107:00000000 108:00000000 
+0x01B0:109:00000000 110:00010000 111:00000000 112:00000000 
+0x01C0:113:00000000 114:00000000 115:00000000 116:00000000 
+0x01D0:117:00000000 118:00000000 119:00000000 120:00000000 
+0x01E0:121:00000000 122:00000000 123:00000000 124:00000000 
+0x01F0:125:00000000 126:00000000 127:00000000 128:00010001 
+0x0200:129:00000000 130:00000000 131:00000000 132:00000000 
+0x0210:133:00000000 134:00000000 135:00000000 136:00000000 
+0x0220:137:00000000 138:00000000 139:00000000 140:00000000 
+
+-------------------------------------------------------------------------------
+=== STEP_SCANSIM ===
+usage  : ION_SIMU      
+ stepper_channel, adc_channel
+  stepper_channel: 1...6 (local stepper)
+  adc_channel    : 1,2
+ Make Peak at Pos = 500 range From <250 == 0,500 == Max, >750==0
+-------------------------------------------------------------------------------
+STEP_SCANSTRUCT: .ist_data:       582 .soll_data:       582
+-------------------------------------------------------------------------------
+usage STEP_SCANVALUES no,no2
+  no2=0,   no: 0:  print all, no>0: print no, no<0: init. all values
+  no>0, no2>0: print values no...no2
+-------------------------------------------------------------------------------
+usage  : STEPLOC_REFPOS chan1, delayed, refswitch, timeout
+          - chan1     : 
+          - delayed   : sign: +:pos. edge; -:neg.edge; value [ms]
+          - refswitch : 1:5 2:6
+          - timeout   : [ms]
+-------------------------------------------------------------------------------
+usage  : STEPPER_CMD chan, mode, position/velocity, vmax, amax, tout, pos2, vmax2, amax2, average
+example: stepper_cmd 5,2,12000, 10000, 1000 
+          - chan      : channel (1...) 
+          - mode     0: stop abruptly
+                     1: stop smoothly
+                     2: go position  (abs.)
+                     3: 
+                     4: 
+                     5: go velocity 
+                     6: go position (rel.) 
+                     7: homing mode 
+usage  : STEPPER_CMD chan,7, homing_method, home_pos, switch_v, zero_v, a, tout
+         homing_method:(17...22,35) 
+                        17,18: homing on neg./pos. limit switch
+                        19,20: homing on pos. home switch
+                        21,22: homing on neg. home switch
+                        35: homing on current position
+                     8: scan, move (abs. position) 
+                     9: move, scan (abs. position) 
+                    10: scan, scan (abs. position) 
+                    11: scan, move (rel. position) 
+                    12: move, scan (rel. position) 
+                    13: scan, scan (rel. position) 
+            - tout    : timeout
+-------------------------------------------------------------------------------
+=== STEPPER_CONF ===
+usage  : STEPPERCONF  config_file
+     config_file : /drive/path/filename; example: /r0/conf/stepper.csv
+actual configuration : 
+ch name     net modno stateaddr 
+ 1 slit1v     0   1 0004BBC4       12800        4000 0102
+ 2 slit1h     0   2 0004BBD0       12800        4000 0102
+ 3 slit2v     0   3 0004BBDC       12800        4000 0102
+ 4 slit2h     0   4 0004BBE8       12800        4000 0102
+ 5 beamstop   0   5 0004BBF4       25600         500 0102
+ 6 phiachse   0   6 0004BC00        4000           0 0103
+ 7           -1   0 0004BC0C
+ 8           -1   0 0004BC18
+ 9           -1   0 0004BC24
+10           -1   0 0004BC30
+11 theta      1   1 0004BC3C
+12 distance   1   2 0004BC48
+13 vertrans   1   3 0004BC54
+14 verrot     1   4 0004BC60
+15 horfront   1   5 0004BC6C
+16 horrear    1   6 0004BC78
+17 zachse     1   7 0004BC84
+18 chi        1   8 0004BC90
+19 NOTFOUND  -1   9 0004BC9C
+20 NOTFOUND  -1  10 0004BCA8
+21           -1   0 0004BCB4
+22           -1   0 0004BCC0
+23           -1   0 0004BCCC
+24           -1   0 0004BCD8
+25           -1   0 0004BCE4
+26           -1   0 0004BCF0
+27           -1   0 0004BCFC
+28           -1   0 0004BD08
+29           -1   0 0004BD14
+30           -1   0 0004BD20
+31           -1   0 0004BD2C
+32           -1   0 0004BD38
+-------------------------------------------------------------------------------
+usage  : STEPPER_MEMORY node,id1,id2,timeout,index
+         node    : CAN-Node (1,2,..)
+         id1     : CAN-Id RX-SDO (0x000...0x7FF) or module_no
+         id2     : CAN-Id TX-SDO (0x000...0x7FF) or 0 (if id1 = module_no
+         timeout : 0: wait for ever
+                  >0: timeout(ms)
+         index   : 0x2000 ....0x2004,0x2078  Objektindex
+-------------------------------------------------------------------------------
+usage  : STEPPER_SCAN chan1, mode, position, vmax, amax, average
+          - chan1     : stepper axis 1 
+          - mode     0: stop abruptly
+                     1: stop smoothly
+                     2: go position  (abs.)
+                     6: go position (rel.) 
+          - average:  : n*153.6 usec
+-------------------------------------------------------------------------------
+usage: STEPPER_SRV channel, module_no
+-------------------------------------------------------------------------------
+usage  : STEPPER_STATE channel, dsp_mode
+   channel: 0: all stepper, /= 0:stwpperno 
+   dsp_mode 0: print header 1: no header
+-------------------------------------------------------------------------------
+=== STEPPER_VERBOSE ===
+usage  : step_verbose  level  
+         level = 0: no messages 
+         level > 0: infos       
+-------------------------------------------------------------------------------
+usage  : TASK_STATE task_no 
+         task_no (=dtb_no):  0...**
+         task_no = -1    (show all)
+-------------------------------------------------------------------------------
+=== VERSION ===
+SOFTWARE-VERSION :      3.50
+         DTB-NO. :        30
+  CONTROLLER-NO. :        34
+  RTOS-IMAGE-NO. :        10
+  RTOS-IMAGE-NAME: :\rtos\cmdfiles\base360\sys36v10.cmd
+       created at: Wed Nov 28 14:44:16 2001
+-------------------------------------------------------------------------------

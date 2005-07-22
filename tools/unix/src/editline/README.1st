@@ -1,0 +1,6 @@
+The only part of the 'editline' package that has been modified is the
+makefile which has been modified to fit better into the MX build system.
+The original makefile may be found in the file 'Makefile.orig'.
+
+    William Lavender
+

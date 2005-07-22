@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mmcu2.dat -s ./smcu2.dat -i $*
+

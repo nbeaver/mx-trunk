@@ -1,0 +1,20 @@
+serv1           server network tcpip_server "" "" 0x0 localhost 9827
+mx_scan_fault   variable inline string "" "" 2  4 40  autoscale:Ifilt autoscale:I0 simple:fault,0;reset,1 simple:faultreset,0;faultreset,0
+mx_scan_permit  variable inline string "" "" 2  1 40  simple:permit,1
+autoscale_I0    device autoscale autoscale_net "" "" I0_real keithley1 timer1 1 5000 50000 100 1000 serv1 autoscale_I0
+autoscale_Ifilt device autoscale autoscale_net "" "" Ifilt_real filters timer1 1 5000 50000 100 1000 serv1 autoscale_Ifilt
+fault           variable net_variable net_int "" "" serv1 fault.value 1  1  0
+reset           variable net_variable net_int "" "" serv1 reset.value 1  1  0
+faultreset      variable net_variable net_int "" "" serv1 faultreset.value 1  1  0
+permit          variable net_variable net_int "" "" serv1 permit.value 1  1  0
+energy          device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 eV serv1 energy
+smx             device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 um serv1 smx
+smy             device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 um serv1 smy
+I0_real         device scaler network_scaler "" "" 15756 16238 0x1 timer1 serv1 I0_real
+Ifilt_real      device scaler network_scaler "" "" 395527 5139 0x1 timer1 serv1 Ifilt_real
+I0              device scaler autoscale_scaler "" "" 15756000 16238  0 timer1 autoscale_I0 0x1 1e+10
+Ifilt           device scaler autoscale_scaler "" "" 395527 5139  0 timer1 autoscale_Ifilt  0 0
+timer1          device timer network_timer "" "" serv1 timer1
+filters         device digital_output network_doutput "" ""  0 serv1 filters
+keithley1       device amplifier net_amplifier "" "" 10000000 0 0 serv1 keithley1
+mca1            device mca network_mca "" "" 1024 1 0 serv1 mca1

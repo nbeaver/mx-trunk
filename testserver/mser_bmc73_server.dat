@@ -1,0 +1,108 @@
+#
+# Test PMAC motors
+#
+pmac1_rs232  interface rs232 tty     "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyS0       
+pmac1        interface generic pmac  "" "" rs232 pmac1_rs232 1
+pmac1_mce    device mce   pmac_mce   "" "" 2000 1 0 pmac1 0 sis3801 17 18 4
+ap_up        device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   -3.9857e-3      0 um    pmac1 0 1
+ap_dn        device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1    3.9857e-3      0 um    pmac1 0 2
+ap_inb       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1    3.9857e-3      0 um    pmac1 0 3
+ap_out       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   -3.9857e-3      0 um    pmac1 0 4
+ap_h         device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1    4.043e-2       0 um    pmac1 0 17
+ap_v         device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1    0.08           0 um    pmac1 0 18
+roll         device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.0055096       0 um    pmac1 0 5
+tune_inb     device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.10516         0 urad  pmac1 0 6
+tune_out     device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.10516         0 urad  pmac1 0 7
+focus        device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.018978        0 um    pmac1 0 8
+y_trans      device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.066309        0 um    pmac1 0 9
+z_trans      device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.2096          0 um    pmac1 0 10
+#z_trans_soft device motor soft_motor "" "" 0 0 -10000000 10000000 0 -1 -1   1              0 steps 1000000 1000000 1000000 
+tune_quick   device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   0.10516      0 urad  pmac1 0 11
+x_trans      device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1  -1.216814e-3  0 mm    pmac1 0 21
+theta_real   device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   4.592401e-6  0 deg   pmac1 0 19
+ds_us       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   7.5792e-5    0 mm    pmac1 0 23
+#ds_dn       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   7.5792e-5    0 mm    pmac1 0 24
+x_swap       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   7.5792e-5    0 mm    pmac1 0 22
+m_y_us       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   -1.61739e-4   0 mm    pmac1 0 13
+m_y_ds       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   -1.61739e-4   0 mm    pmac1 0 14
+m_b_us       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1  -8.959e-6    0 mm    pmac1 0 15
+m_b_ds       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1  -8.959e-6    0 mm    pmac1 0 16
+m_lane       device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1   1.63416e-4   0 mm    pmac1 0 12
+#
+# Pseudomotors
+#
+tune         device motor translation_mtr "" "" 0 0 -10000000 10000000 0    -1   -1      1   0 urad  0x1  2 tune_inb tune_out
+twist        device motor linear_function "" "" 0 0 -10000000 10000000 0    -1   -1      1   0 urad  0x1  2 tune_inb tune_out 0.5 -0.5 0 0 0.5 0.5
+#
+# National Instruments PCI-to-VME bus interface
+#
+#vme1        interface vme vxi_memacc "" ""
+#
+# Struck 1100/3100 PCI-to-VME bus interface
+#
+vme1         interface vme sis3100 "" "" 0x0 /dev/sis1100_0 0
+#
+# SIS 3807 pulse generator related records
+#
+sis3807      interface generic sis3807 "" "" vme1 a16 0 0x4800 1 0xff 0
+pulser1      device pulse_generator sis3807_pulser "" "" sis3807 1 0
+#
+# SIS 3801 MCS related records
+#
+sis3801      device mcs sis3801 "" "" 32 2000 "" 0 0 timer1 vme1 a16 0 0x3800 0x2 0
+#
+# Scaler channels used by the pseudoscalers below.
+#
+# Scaler channels for the 'sis3801' MCS record are numbered starting at 1.
+#
+scaler0     device scaler mcs_scaler "" "" 0 0 0   ""     sis3801 1
+scaler1     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 2
+scaler2     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 3
+scaler3     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 4
+scaler4     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 5
+scaler5     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 6
+scaler6     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 7
+scaler7     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 8
+scaler8     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 9
+scaler9     device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 10
+scaler10    device scaler mcs_scaler "" "" 0 0 0   ""     sis3801 11
+scaler11    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 12
+scaler12    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 13
+scaler13    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 14
+scaler14    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 15
+scaler15    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 16
+scaler16    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 17
+scaler17    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 18
+scaler18    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 19
+scaler19    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 20
+scaler20    device scaler mcs_scaler "" "" 0 0 0   ""     sis3801 21
+scaler21    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 22
+scaler22    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 23
+scaler23    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 24
+scaler24    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 25
+scaler25    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 26
+scaler26    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 27
+scaler27    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 28
+scaler28    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 29
+scaler29    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 30
+scaler30    device scaler mcs_scaler "" "" 0 0 0   ""     sis3801 31
+scaler31    device scaler mcs_scaler "" "" 0 0 0x1 timer1 sis3801 32
+#
+timer1      device timer mcs_timer "" "" sis3801
+#
+# MCS related pseudoscalers
+#
+I0          device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler8 4 scaler8 scaler9 scaler10 scaler11 1 1 1 1 0 0 0 0
+I0d         device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler4 4 scaler4 scaler5 scaler6 scaler7 1 1 1 1 0 0 0 0
+#
+sc_tb       device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler4 2 scaler4 scaler5 1 1 0 0
+sc_io       device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler6 2 scaler6 scaler7 1 1 0 0
+#
+sd_tb       device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler4 2 scaler4 scaler5 1 -1 0 0
+sd_io       device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler6 2 scaler6 scaler7 1 -1 0 0
+#
+sc_utb      device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler9 2 scaler9 scaler11 1 1 0 0
+sc_uio      device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler8 2 scaler8 scaler10 1 1 0 0
+#
+sd_utb      device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler9 2 scaler9 scaler11 1 -1 0 0
+sd_uio      device scaler scaler_function "" "" 0 0 0 "" 0x0 scaler8 2 scaler8 scaler10 1 -1 0 0

@@ -1,0 +1,5 @@
+mm4005_rs232                     interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/ttyS0
+mm4005_1                         interface generic esp "" "" mm4005_rs232
+mirror1                          device motor esp_motor "" "" 1226.3 0 -50000 50000 0 -1 -1 1 0 um mm4005_1 1
+mirror2                          device motor esp_motor "" "" 0 0 -50000 50000 0 -1 -1 1 0 um mm4005_1 2
+mirror3                          device motor esp_motor "" "" 9939.95 0 -50000 50000 0 -1 -1 1 0 um mm4005_1 3

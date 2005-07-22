@@ -1,0 +1,67 @@
+#
+# General Wago devices
+#
+wago1 interface modbus modbus_tcp "" "" 0x0 wago1 502 0xff
+temp1 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" wago1 0x4 16 0x4
+temp2 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" wago1 0x5 16 0x4
+din1  device digital_input modbus_dinput "" "" 0 wago1 0x0 16 0x1
+dout1 device digital_output wago750_modbus_doutput "" "" 0 wago1 0x0 16 0xf
+#
+# Slide status records
+#
+hor_status   device digital_input modbus_dinput "" "" 0 wago1 0x0 2 0x1
+vert_status  device digital_input modbus_dinput "" "" 0 wago1 0x2 2 0x1
+srot_status  device digital_input modbus_dinput "" "" 0 wago1 0x4 2 0x1
+small_status device digital_input modbus_dinput "" "" 0 wago1 0x6 2 0x1
+#
+# Slide control records
+#
+hor_ctrl     device digital_output modbus_doutput "" "" 0 wago1 0x0 1 0x5
+vert_ctrl    device digital_output modbus_doutput "" "" 0 wago1 0x1 1 0x5
+srot_ctrl    device digital_output modbus_doutput "" "" 0 wago1 0x4 1 0x5
+small_ctrl   device digital_output modbus_doutput "" "" 0 wago1 0x5 1 0x5
+gripper_ctrl device digital_output modbus_doutput "" "" 0 wago1 0x8 1 0x5
+#
+# Slide relay records
+#
+hor     device relay generic_relay "" "" 0x1000 0 hor_status 0 2 0x1 0x2 hor_ctrl 0 1 1 0
+vert    device relay generic_relay "" "" 0x10 0 vert_status 0 2 0x1 0x2 vert_ctrl 0 1 1 0
+srot    device relay generic_relay "" "" 0x1000 0 srot_status 0 2 0x1 0x2 srot_ctrl 0 1 1 0
+small   device relay generic_relay "" "" 0x1000 0 small_status 0 2 0x1 0x2 small_ctrl 0 1 1 0
+gripper device relay blind_relay "" "" 0 gripper_ctrl 0 1 1 0
+#
+# RS-232 interfaces used by the dewar motors.
+#
+###dewar_rot_rs232 interface rs232 wago750_serial "" "" 9600 8 N 1 N 0x0d 0x0d 5.0 0x0 wago1 0x0 0x0 3
+###dewar_x_rs232 interface rs232 wago750_serial "" "" 9600 8 N 1 N 0x0d 0x0d 5.0 0x0 wago1 0x2 0x2 3
+#
+dewar_rot_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d 5.0 0x0 /dev/ttyS0
+dewar_x_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d 5.0 0x0 /dev/ttyS1
+#
+# Motors
+#
+dewar_rot      device motor smartmotor "" "" 0 -500 -10000000000 10000000000 0 -1 -1 0.002 0 deg dewar_rot_rs232 0 0x1000
+dewar_x      device motor smartmotor "" "" 0 -800 -600 39500 0 -1 -1 0.00254 0 mm dewar_x_rs232 0 0x0
+dewar_position device motor als_dewar_positioner "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 units dewar_rot dewar_x vert small 0x1 98.5 0.0 67.6 26.4 12.2 30.0
+#
+# Motor currents
+#
+dewar_rot_curr device analog_input smartmotor_ain "" "" 0 0.01 0 amps 0x0 0 "" dewar_rot UI
+dewar_x_curr device analog_input smartmotor_ain "" "" 0 0.01 0 amps 0x0 0 "" dewar_x UI
+#
+# Motor voltages
+#
+dewar_rot_volt device analog_input smartmotor_ain "" "" 0 0.1 0 volts 0x0 0 "" dewar_rot UJ
+dewar_x_volt device analog_input smartmotor_ain "" "" 0 0.1 0 volts 0x0 0 "" dewar_x UJ
+#
+# Motor temperatures
+dewar_rot_temp device analog_input smartmotor_ain "" "" 0 1 0 C 0x0 0 "" dewar_rot TEMP
+dewar_x_temp device analog_input smartmotor_ain "" "" 0 1 0 C 0x0 0 "" dewar_x TEMP
+#
+# ALS sample changing robot
+#
+robot device sample_changer sercat_als_robot "" "" 0x0 dewar_position hor vert srot small gripper 5000 0
+#
+# Soft timer for scanning.
+#
+timer1 device timer soft_timer "" ""

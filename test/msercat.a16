@@ -1,0 +1,9 @@
+vme1    interface vme vxi_memacc "" ""
+energy  device motor soft_motor "" "" 8953000 0 -1000000000 1000000000 0 -1 -1 0.001 0 eV 1000 0 500
+struck1 device mcs sis3801 "" "" 32 1000 vme1 a16 0 0x3800 0x2 0
+I0      device scaler mcs_scaler "" "" 0 0 1 timer1 struck1 1
+It      device scaler mcs_scaler "" "" 0 0 1 timer1 struck1 2
+If      device scaler mcs_scaler "" "" 0 0 1 timer1 struck1 3
+Iref    device scaler mcs_scaler "" "" 0 0 1 timer1 struck1 4
+timer1  device timer mcs_timer "" "" struck1
+eps00   device digital_input vme_dinput "" "" 0 vme1 a16 0 0xffc0 d16

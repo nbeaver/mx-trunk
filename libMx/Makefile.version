@@ -1,0 +1,16 @@
+#
+# Name: Makefile.ver
+#
+# This file contains the version number of the MX library.  The definitions
+# here are used to generate the version numbers of shared libraries on those
+# platforms that support shared library version numbers.
+#
+# In addition, the file 'libmx/mx_version.c' has a dependency on this file
+# so that its idea of the MX version number is updated when this file
+# is updated.
+#
+
+MX_MAJOR_VERSION	= 1
+MX_MINOR_VERSION	= 1
+MX_UPDATE_VERSION	= 0
+

@@ -1,0 +1,6 @@
+#! /bin/sh
+
+export LD_LIBRARY_PATH=/opt/mx/lib
+
+/opt/mx/sbin/mxserver -p 9827 -f maps_adcmod2_serv.dat -C msoftsrv.acl -S $*
+

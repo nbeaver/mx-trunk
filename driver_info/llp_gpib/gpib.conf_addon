@@ -1,0 +1,35 @@
+
+/* Devices for use with the MX Linux GPIB driver. */
+
+device { name = gpib0.1     pad=1    sad=0 }
+device { name = gpib0.2     pad=2    sad=0 }
+device { name = gpib0.3     pad=3    sad=0 }
+device { name = gpib0.4     pad=4    sad=0 }
+device { name = gpib0.5     pad=5    sad=0 }
+device { name = gpib0.6     pad=6    sad=0 }
+device { name = gpib0.7     pad=7    sad=0 }
+device { name = gpib0.8     pad=8    sad=0 }
+device { name = gpib0.9     pad=9    sad=0 }
+device { name = gpib0.10    pad=10   sad=0 }
+device { name = gpib0.11    pad=11   sad=0 }
+device { name = gpib0.12    pad=12   sad=0 }
+device { name = gpib0.13    pad=13   sad=0 }
+device { name = gpib0.14    pad=14   sad=0 }
+device { name = gpib0.15    pad=15   sad=0 }
+device { name = gpib0.16    pad=16   sad=0 }
+device { name = gpib0.17    pad=17   sad=0 }
+device { name = gpib0.18    pad=18   sad=0 }
+device { name = gpib0.19    pad=19   sad=0 }
+device { name = gpib0.20    pad=20   sad=0 }
+device { name = gpib0.21    pad=21   sad=0 }
+device { name = gpib0.22    pad=22   sad=0 }
+device { name = gpib0.23    pad=23   sad=0 }
+device { name = gpib0.24    pad=24   sad=0 }
+device { name = gpib0.25    pad=25   sad=0 }
+device { name = gpib0.26    pad=26   sad=0 }
+device { name = gpib0.27    pad=27   sad=0 }
+device { name = gpib0.28    pad=28   sad=0 }
+device { name = gpib0.29    pad=29   sad=0 }
+device { name = gpib0.30    pad=30   sad=0 }
+device { name = gpib0.31    pad=31   sad=0 }
+

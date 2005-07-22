@@ -1,0 +1,12 @@
+#! /bin/sh
+
+TOPDIR=..
+#TOPDIR=/home/lavender/mxdev/0.70.0/mx
+
+LD_LIBRARY_PATH=$TOPDIR/libMx
+
+export LD_LIBRARY_PATH
+
+$TOPDIR/server/mxserver -p 9827 -f $TOPDIR/testserver/mmarccd_server.dat \
+		-C $TOPDIR/testserver/msoftsrv.acl -S $*
+

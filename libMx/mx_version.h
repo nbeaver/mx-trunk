@@ -1,0 +1,26 @@
+/*
+ * Name:    mx_version.h
+ *
+ * Purpose: Header file for functions to display the version of MX being used.
+ *
+ * Author:  William Lavender
+ *
+ *---------------------------------------------------------------------------
+ *
+ * Copyright 1999-2001 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+MX_API int mx_get_major_version( void );
+
+MX_API int mx_get_minor_version( void );
+
+MX_API int mx_get_update_version( void );
+
+MX_API char *mx_get_version_date( void );
+
+MX_API char *mx_get_version_string( void );
+

@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./msmartmotor_cli.dat -s ./ssmartmotor_cli.dat $*
+

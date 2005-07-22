@@ -1,0 +1,10 @@
+#! /bin/sh
+
+if [ x${MXDIR} = x ]; then
+	MXDIR=/opt/mx
+fi
+
+export MXDIR
+
+../motor/motor.static -F ${MXDIR}/etc/motor_new.dat -s $HOME/scan.dat $*
+

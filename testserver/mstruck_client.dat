@@ -1,0 +1,23 @@
+testserver server network tcpip_server "" "" 0x0 localhost 9727
+#
+# Dummy devices
+#
+dummy   device motor soft_motor "" "" 1000 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+time    device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
+#
+# VME devices
+#
+sis3801 device mcs network_mcs "" "" 32 2000 "" 0 0 timer1 testserver sis3801
+mcs1    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 0
+mcs2    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 1
+mcs3    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 2
+mcs17   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 16
+mcs18   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 17
+timer1  device timer mcs_timer "" "" sis3801
+pulser1 device pulse_generator network_pulser "" "" testserver pulser1
+#
+# PMAC devices
+#
+pmac1_mce   device mce network_mce "" "" 2000 1 0 testserver pmac1_mce
+m1          device motor network_motor "" "" 0 0 -100000000 100000000 0 -1 -1 1 0 steps testserver m1
+m18         device motor network_motor "" "" 0 0 -100000000 100000000 0 -1 -1 1 0 steps testserver m18

@@ -1,0 +1,4 @@
+qbpm1_scan                       scan linear_scan input_scan "" "" 1 1 0  1  qbpm1_sum  0 0 preset_time "1 timer1" text qbpm1_scan.005 gnuplot $f[0]  0  1  10000
+curr_scan                        scan linear_scan input_scan "" "" 1 1 0  8  qbpm0_curr1 qbpm0_curr2 qbpm0_curr3 qbpm0_curr4 qbpm1_curr1 qbpm1_curr2 qbpm1_curr3 qbpm1_curr4  0 0 preset_time "1 timer1" text curr_scan.002 gnuplot $f[0];$f[1];$f[2];$f[3];$f[4];$f[5];$f[6];$f[7]  0  1  100000
+curr0_scan                       scan linear_scan input_scan "" "" 1 1 0  4  qbpm0_curr1 qbpm0_curr2 qbpm0_curr3 qbpm0_curr4  0 0 preset_time "1 timer1" text curr0_scan.008 gnuplot $f[0];$f[1];$f[2];$f[3]  0  1  100000
+curr1_scan                       scan linear_scan input_scan "" "" 1 1 0  4  qbpm1_curr1 qbpm1_curr2 qbpm1_curr3 qbpm1_curr4  0 0 preset_time "1 timer1" text curr1_scan.003 gnuplot $f[0];$f[1];$f[2];$f[3]  0  1  100000

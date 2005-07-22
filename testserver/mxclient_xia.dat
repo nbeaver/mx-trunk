@@ -1,0 +1,566 @@
+10id_bugeye     server network tcpip_server "" "" 0x0 164.54.244.40 9727
+xia_mca_enable  variable net_variable net_int "" "" 10id_bugeye xia_mca_enable.value 1  16  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+xia             interface generic xia_network "" "" 10id_bugeye xia
+mcaxia0         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia0 -1 -1
+mcaxia1         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia1 -1 -1
+mcaxia2         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia2 -1 -1
+mcaxia3         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia3 -1 -1
+mcaxia4         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia4 -1 -1
+mcaxia5         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia5 -1 -1
+mcaxia6         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia6 -1 -1
+mcaxia7         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia7 -1 -1
+mcaxia8         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia8 -1 -1
+mcaxia9         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia9 -1 -1
+mcaxia10        device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia10 -1 -1
+mcaxia11        device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia11 -1 -1
+mcaxia12        device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia12 -1 -1
+xerxes_timer    device timer mca_timer "" "" mcaxia1 1
+real_time0      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 4 ""
+real_time1      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 4 ""
+real_time2      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 4 ""
+real_time3      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 4 ""
+real_time4      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 4 ""
+real_time5      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 4 ""
+real_time6      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 4 ""
+real_time7      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 4 ""
+real_time8      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 4 ""
+real_time9      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 4 ""
+real_time10     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 4 ""
+real_time11     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 4 ""
+real_time12     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 4 ""
+live_time0      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 5 ""
+live_time1      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 5 ""
+live_time2      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 5 ""
+live_time3      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 5 ""
+live_time4      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 5 ""
+live_time5      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 5 ""
+live_time6      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 5 ""
+live_time7      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 5 ""
+live_time8      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 5 ""
+live_time9      device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 5 ""
+live_time10     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 5 ""
+live_time11     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 5 ""
+live_time12     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 5 ""
+num_events0     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 9 ""
+num_events1     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 9 ""
+num_events2     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 9 ""
+num_events3     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 9 ""
+num_events4     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 9 ""
+num_events5     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 9 ""
+num_events6     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 9 ""
+num_events7     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 9 ""
+num_events8     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 9 ""
+num_events9     device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 9 ""
+num_events10    device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 9 ""
+num_events11    device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 9 ""
+num_events12    device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 9 ""
+num_fast_peak0  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 8 ""
+num_fast_peak1  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 8 ""
+num_fast_peak2  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 8 ""
+num_fast_peak3  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 8 ""
+num_fast_peak4  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 8 ""
+num_fast_peak5  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 8 ""
+num_fast_peak6  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 8 ""
+num_fast_peak7  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 8 ""
+num_fast_peak8  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 8 ""
+num_fast_peak9  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 8 ""
+num_fast_peak10 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 8 ""
+num_fast_peak11 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 8 ""
+num_fast_peak12 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 8 ""
+icr0     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia0 6 ""
+icr1     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia1 6 ""
+icr2     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia2 6 ""
+icr3     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia3 6 ""
+icr4     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia4 6 ""
+icr5     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia5 6 ""
+icr6     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia6 6 ""
+icr7     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia7 6 ""
+icr8     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia8 6 ""
+icr9     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia9 6 ""
+icr10    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia10 6 ""
+icr11    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia11 6 ""
+icr12    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia12 6 ""
+ocr0     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia0 7 ""
+ocr1     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia1 7 ""
+ocr2     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia2 7 ""
+ocr3     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia3 7 ""
+ocr4     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia4 7 ""
+ocr5     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia5 7 ""
+ocr6     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia6 7 ""
+ocr7     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia7 7 ""
+ocr8     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia8 7 ""
+ocr9     	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia9 7 ""
+ocr10    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia10 7 ""
+ocr11    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia11 7 ""
+ocr12    	device analog_input xia_dxp_input "" "" 0 1 0 counts 0x0 0 xerxes_timer mcaxia12 7 ""
+num_underflow0  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 10 ""
+num_underflow1  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 10 ""
+num_underflow2  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 10 ""
+num_underflow3  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 10 ""
+num_underflow4  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 10 ""
+num_underflow5  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 10 ""
+num_underflow6  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 10 ""
+num_underflow7  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 10 ""
+num_underflow8  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 10 ""
+num_underflow9  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 10 ""
+num_underflow10 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 10 ""
+num_underflow11 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 10 ""
+num_underflow12 device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 10 ""
+num_overflow0   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia0 11 ""
+num_overflow1   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia1 11 ""
+num_overflow2   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia2 11 ""
+num_overflow3   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia3 11 ""
+num_overflow4   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia4 11 ""
+num_overflow5   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia5 11 ""
+num_overflow6   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia6 11 ""
+num_overflow7   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia7 11 ""
+num_overflow8   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia8 11 ""
+num_overflow9   device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia9 11 ""
+num_overflow10  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia10 11 ""
+num_overflow11  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia11 11 ""
+num_overflow12  device analog_input xia_dxp_input "" "" 0 1 0 counts 0x1000 0 xerxes_timer mcaxia12 11 ""
+weighted_sum0   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum0
+weighted_sum1   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum1
+weighted_sum2   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum2
+weighted_sum3   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum3
+weighted_sum4   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum4
+weighted_sum5   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum5
+weighted_sum6   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum6
+weighted_sum7   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum7
+weighted_sum8   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum8
+weighted_sum9   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum9
+weighted_sum10  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum10
+weighted_sum11  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum11
+weighted_sum12  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum12
+weighted_sum13  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum13
+weighted_sum14  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum14
+weighted_sum15  device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye weighted_sum15
+gaindac0        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac0
+gaindac1        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac1
+gaindac2        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac2
+gaindac3        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac3
+gaindac4        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac4
+gaindac5        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac5
+gaindac6        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac6
+gaindac7        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac7
+gaindac8        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac8
+gaindac9        device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac9
+gaindac10       device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac10
+gaindac11       device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac11
+gaindac12       device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye gaindac12
+roi0_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_0
+roi0_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_1
+roi0_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_2
+roi0_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_3
+roi0_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_4
+roi0_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_5
+roi0_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_6
+roi0_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_7
+roi0_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_8
+roi0_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_9
+roi0_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_10
+roi0_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_11
+roi0_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_12
+roi0_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_13
+roi0_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_14
+roi0_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi0_15
+roi1_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_0
+roi1_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_1
+roi1_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_2
+roi1_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_3
+roi1_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_4
+roi1_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_5
+roi1_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_6
+roi1_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_7
+roi1_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_8
+roi1_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_9
+roi1_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_10
+roi1_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_11
+roi1_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_12
+roi1_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_13
+roi1_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_14
+roi1_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi1_15
+roi2_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_0
+roi2_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_1
+roi2_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_2
+roi2_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_3
+roi2_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_4
+roi2_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_5
+roi2_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_6
+roi2_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_7
+roi2_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_8
+roi2_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_9
+roi2_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_10
+roi2_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_11
+roi2_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_12
+roi2_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_13
+roi2_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_14
+roi2_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi2_15
+roi3_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_0
+roi3_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_1
+roi3_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_2
+roi3_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_3
+roi3_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_4
+roi3_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_5
+roi3_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_6
+roi3_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_7
+roi3_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_8
+roi3_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_9
+roi3_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_10
+roi3_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_11
+roi3_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_12
+roi3_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_13
+roi3_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_14
+roi3_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi3_15
+roi4_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_0
+roi4_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_1
+roi4_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_2
+roi4_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_3
+roi4_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_4
+roi4_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_5
+roi4_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_6
+roi4_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_7
+roi4_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_8
+roi4_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_9
+roi4_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_10
+roi4_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_11
+roi4_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_12
+roi4_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_13
+roi4_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_14
+roi4_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi4_15
+roi5_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_0
+roi5_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_1
+roi5_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_2
+roi5_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_3
+roi5_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_4
+roi5_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_5
+roi5_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_6
+roi5_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_7
+roi5_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_8
+roi5_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_9
+roi5_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_10
+roi5_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_11
+roi5_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_12
+roi5_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_13
+roi5_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_14
+roi5_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi5_15
+roi6_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_0
+roi6_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_1
+roi6_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_2
+roi6_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_3
+roi6_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_4
+roi6_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_5
+roi6_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_6
+roi6_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_7
+roi6_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_8
+roi6_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_9
+roi6_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_10
+roi6_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_11
+roi6_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_12
+roi6_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_13
+roi6_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_14
+roi6_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi6_15
+roi7_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_0
+roi7_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_1
+roi7_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_2
+roi7_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_3
+roi7_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_4
+roi7_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_5
+roi7_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_6
+roi7_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_7
+roi7_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_8
+roi7_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_9
+roi7_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_10
+roi7_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_11
+roi7_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_12
+roi7_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_13
+roi7_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_14
+roi7_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi7_15
+roi8_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_0
+roi8_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_1
+roi8_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_2
+roi8_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_3
+roi8_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_4
+roi8_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_5
+roi8_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_6
+roi8_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_7
+roi8_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_8
+roi8_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_9
+roi8_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_10
+roi8_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_11
+roi8_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_12
+roi8_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_13
+roi8_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_14
+roi8_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi8_15
+roi9_0          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_0
+roi9_1          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_1
+roi9_2          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_2
+roi9_3          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_3
+roi9_4          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_4
+roi9_5          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_5
+roi9_6          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_6
+roi9_7          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_7
+roi9_8          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_8
+roi9_9          device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_9
+roi9_10         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_10
+roi9_11         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_11
+roi9_12         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_12
+roi9_13         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_13
+roi9_14         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_14
+roi9_15         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi9_15
+roi10_0         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_0
+roi10_1         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_1
+roi10_2         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_2
+roi10_3         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_3
+roi10_4         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_4
+roi10_5         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_5
+roi10_6         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_6
+roi10_7         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_7
+roi10_8         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_8
+roi10_9         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_9
+roi10_10        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_10
+roi10_11        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_11
+roi10_12        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_12
+roi10_13        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_13
+roi10_14        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_14
+roi10_15        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi10_15
+roi11_0         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_0
+roi11_1         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_1
+roi11_2         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_2
+roi11_3         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_3
+roi11_4         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_4
+roi11_5         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_5
+roi11_6         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_6
+roi11_7         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_7
+roi11_8         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_8
+roi11_9         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_9
+roi11_10        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_10
+roi11_11        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_11
+roi11_12        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_12
+roi11_13        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_13
+roi11_14        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_14
+roi11_15        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi11_15
+roi12_0         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_0
+roi12_1         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_1
+roi12_2         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_2
+roi12_3         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_3
+roi12_4         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_4
+roi12_5         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_5
+roi12_6         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_6
+roi12_7         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_7
+roi12_8         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_8
+roi12_9         device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_9
+roi12_10        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_10
+roi12_11        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_11
+roi12_12        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_12
+roi12_13        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_13
+roi12_14        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_14
+roi12_15        device scaler network_scaler "" "" 0 0 0x0 "" 10id_bugeye roi12_15
+corr_roi0_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_0
+corr_roi0_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_1
+corr_roi0_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_2
+corr_roi0_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_3
+corr_roi0_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_4
+corr_roi0_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_5
+corr_roi0_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_6
+corr_roi0_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_7
+corr_roi0_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_8
+corr_roi0_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_9
+corr_roi0_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_10
+corr_roi0_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_11
+corr_roi0_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_12
+corr_roi0_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_13
+corr_roi0_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_14
+corr_roi0_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi0_15
+corr_roi1_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_0
+corr_roi1_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_1
+corr_roi1_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_2
+corr_roi1_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_3
+corr_roi1_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_4
+corr_roi1_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_5
+corr_roi1_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_6
+corr_roi1_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_7
+corr_roi1_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_8
+corr_roi1_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_9
+corr_roi1_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_10
+corr_roi1_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_11
+corr_roi1_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_12
+corr_roi1_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_13
+corr_roi1_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_14
+corr_roi1_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi1_15
+corr_roi2_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_0
+corr_roi2_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_1
+corr_roi2_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_2
+corr_roi2_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_3
+corr_roi2_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_4
+corr_roi2_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_5
+corr_roi2_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_6
+corr_roi2_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_7
+corr_roi2_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_8
+corr_roi2_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_9
+corr_roi2_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_10
+corr_roi2_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_11
+corr_roi2_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_12
+corr_roi2_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_13
+corr_roi2_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_14
+corr_roi2_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi2_15
+corr_roi3_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_0
+corr_roi3_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_1
+corr_roi3_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_2
+corr_roi3_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_3
+corr_roi3_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_4
+corr_roi3_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_5
+corr_roi3_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_6
+corr_roi3_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_7
+corr_roi3_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_8
+corr_roi3_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_9
+corr_roi3_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_10
+corr_roi3_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_11
+corr_roi3_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_12
+corr_roi3_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_13
+corr_roi3_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_14
+corr_roi3_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi3_15
+corr_roi4_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_0
+corr_roi4_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_1
+corr_roi4_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_2
+corr_roi4_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_3
+corr_roi4_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_4
+corr_roi4_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_5
+corr_roi4_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_6
+corr_roi4_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_7
+corr_roi4_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_8
+corr_roi4_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_9
+corr_roi4_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_10
+corr_roi4_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_11
+corr_roi4_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_12
+corr_roi4_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_13
+corr_roi4_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_14
+corr_roi4_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi4_15
+corr_roi5_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_0
+corr_roi5_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_1
+corr_roi5_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_2
+corr_roi5_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_3
+corr_roi5_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_4
+corr_roi5_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_5
+corr_roi5_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_6
+corr_roi5_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_7
+corr_roi5_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_8
+corr_roi5_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_9
+corr_roi5_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_10
+corr_roi5_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_11
+corr_roi5_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_12
+corr_roi5_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_13
+corr_roi5_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_14
+corr_roi5_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi5_15
+corr_roi6_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_0
+corr_roi6_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_1
+corr_roi6_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_2
+corr_roi6_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_3
+corr_roi6_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_4
+corr_roi6_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_5
+corr_roi6_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_6
+corr_roi6_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_7
+corr_roi6_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_8
+corr_roi6_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_9
+corr_roi6_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_10
+corr_roi6_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_11
+corr_roi6_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_12
+corr_roi6_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_13
+corr_roi6_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_14
+corr_roi6_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi6_15
+corr_roi7_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_0
+corr_roi7_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_1
+corr_roi7_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_2
+corr_roi7_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_3
+corr_roi7_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_4
+corr_roi7_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_5
+corr_roi7_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_6
+corr_roi7_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_7
+corr_roi7_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_8
+corr_roi7_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_9
+corr_roi7_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_10
+corr_roi7_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_11
+corr_roi7_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_12
+corr_roi7_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_13
+corr_roi7_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_14
+corr_roi7_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi7_15
+corr_roi8_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_0
+corr_roi8_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_1
+corr_roi8_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_2
+corr_roi8_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_3
+corr_roi8_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_4
+corr_roi8_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_5
+corr_roi8_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_6
+corr_roi8_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_7
+corr_roi8_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_8
+corr_roi8_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_9
+corr_roi8_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_10
+corr_roi8_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_11
+corr_roi8_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_12
+corr_roi8_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_13
+corr_roi8_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_14
+corr_roi8_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi8_15
+corr_roi9_0     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_0
+corr_roi9_1     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_1
+corr_roi9_2     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_2
+corr_roi9_3     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_3
+corr_roi9_4     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_4
+corr_roi9_5     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_5
+corr_roi9_6     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_6
+corr_roi9_7     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_7
+corr_roi9_8     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_8
+corr_roi9_9     device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_9
+corr_roi9_10    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_10
+corr_roi9_11    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_11
+corr_roi9_12    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_12
+corr_roi9_13    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_13
+corr_roi9_14    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_14
+corr_roi9_15    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi9_15
+corr_roi10_0    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_0
+corr_roi10_1    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_1
+corr_roi10_2    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_2
+corr_roi10_3    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_3
+corr_roi10_4    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_4
+corr_roi10_5    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_5
+corr_roi10_6    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_6
+corr_roi10_7    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_7
+corr_roi10_8    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_8
+corr_roi10_9    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_9
+corr_roi10_10   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_10
+corr_roi10_11   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_11
+corr_roi10_12   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_12
+corr_roi10_13   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_13
+corr_roi10_14   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_14
+corr_roi10_15   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi10_15
+corr_roi11_0    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_0
+corr_roi11_1    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_1
+corr_roi11_2    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_2
+corr_roi11_3    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_3
+corr_roi11_4    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_4
+corr_roi11_5    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_5
+corr_roi11_6    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_6
+corr_roi11_7    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_7
+corr_roi11_8    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_8
+corr_roi11_9    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_9
+corr_roi11_10   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_10
+corr_roi11_11   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_11
+corr_roi11_12   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_12
+corr_roi11_13   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_13
+corr_roi11_14   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_14
+corr_roi11_15   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi11_15
+corr_roi12_0    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_0
+corr_roi12_1    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_1
+corr_roi12_2    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_2
+corr_roi12_3    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_3
+corr_roi12_4    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_4
+corr_roi12_5    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_5
+corr_roi12_6    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_6
+corr_roi12_7    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_7
+corr_roi12_8    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_8
+corr_roi12_9    device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_9
+corr_roi12_10   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_10
+corr_roi12_11   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_11
+corr_roi12_12   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_12
+corr_roi12_13   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_13
+corr_roi12_14   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_14
+corr_roi12_15   device analog_input network_ainput "" "" 0 1 0 counts 0x1000 0 xerxes_timer 10id_bugeye corr_roi12_15

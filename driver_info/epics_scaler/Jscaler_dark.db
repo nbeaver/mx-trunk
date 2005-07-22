@@ -1,0 +1,198 @@
+grecord(scaler,"$(P)$(S)") {
+	field(PRIO,"HIGH")
+	field(FLNK,"$(P)$(S)_fan0.PROC  PP MS")
+	field(FREQ,"10000000")
+	field(OUT,"#C$(C) S0 @")
+	field(PREC,"3")
+}
+grecord(fanout,"$(P)$(S)_fan0") {
+	field(LNK1,"$(P)$(S)_fan1.PROC  PP MS")
+	field(LNK2,"$(P)$(S)_fan2.PROC  PP MS")
+	field(LNK3,"$(P)$(S)_fan3.PROC  PP MS")
+}
+grecord(fanout,"$(P)$(S)_fan1") {
+	field(LNK1,"$(P)$(S)_SD2.VAL  PP MS")
+	field(LNK2,"$(P)$(S)_SD3.VAL  PP MS")
+	field(LNK3,"$(P)$(S)_SD4.VAL  PP MS")
+	field(LNK4,"$(P)$(S)_SD5.VAL  PP MS")
+	field(LNK5,"$(P)$(S)_SD6.VAL  PP MS")
+}
+grecord(fanout,"$(P)$(S)_fan2") {
+	field(LNK1,"$(P)$(S)_SD7.VAL  PP MS")
+	field(LNK2,"$(P)$(S)_SD8.VAL  PP MS")
+	field(LNK3,"$(P)$(S)_SD9.VAL  PP MS")
+	field(LNK4,"$(P)$(S)_SD10.VAL  PP MS")
+	field(LNK5,"$(P)$(S)_SD11.VAL  PP MS")
+}
+grecord(fanout,"$(P)$(S)_fan3") {
+	field(LNK1,"$(P)$(S)_SD12.VAL  PP MS")
+	field(LNK2,"$(P)$(S)_SD13.VAL  PP MS")
+	field(LNK3,"$(P)$(S)_SD14.VAL  PP MS")
+	field(LNK4,"$(P)$(S)_SD15.VAL  PP MS")
+	field(LNK5,"$(P)$(S)_SD16.VAL  PP MS")
+}
+grecord(ao,"$(P)$(S)_Dark2") {
+	field(FLNK,"$(P)$(S)_SD2.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD2") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S2  NPP MS")
+	field(INPB,"$(P)$(S)_Dark2.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark3") {
+	field(FLNK,"$(P)$(S)_SD3.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD3") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S3  NPP MS")
+	field(INPB,"$(P)$(S)_Dark3.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark4") {
+	field(FLNK,"$(P)$(S)_SD4.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD4") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S4  NPP MS")
+	field(INPB,"$(P)$(S)_Dark4.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark5") {
+	field(FLNK,"$(P)$(S)_SD5.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD5") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S5  NPP MS")
+	field(INPB,"$(P)$(S)_Dark5.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark6") {
+	field(FLNK,"$(P)$(S)_SD6.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD6") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S6  NPP MS")
+	field(INPB,"$(P)$(S)_Dark6.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark7") {
+	field(FLNK,"$(P)$(S)_SD7.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD7") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S7  NPP MS")
+	field(INPB,"$(P)$(S)_Dark7.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark8") {
+	field(FLNK,"$(P)$(S)_SD8.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD8") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S8  NPP MS")
+	field(INPB,"$(P)$(S)_Dark8.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark9") {
+	field(FLNK,"$(P)$(S)_SD9.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD9") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S9  NPP MS")
+	field(INPB,"$(P)$(S)_Dark9.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark10") {
+	field(FLNK,"$(P)$(S)_SD10.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD10") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S10  NPP MS")
+	field(INPB,"$(P)$(S)_Dark10.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark11") {
+	field(FLNK,"$(P)$(S)_SD11.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD11") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S11  NPP MS")
+	field(INPB,"$(P)$(S)_Dark11.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark12") {
+	field(FLNK,"$(P)$(S)_SD12.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD12") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S12  NPP MS")
+	field(INPB,"$(P)$(S)_Dark12.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark13") {
+	field(FLNK,"$(P)$(S)_SD13.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD13") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S13  NPP MS")
+	field(INPB,"$(P)$(S)_Dark13.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark14") {
+	field(FLNK,"$(P)$(S)_SD14.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD14") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S14  NPP MS")
+	field(INPB,"$(P)$(S)_Dark14.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark15") {
+	field(FLNK,"$(P)$(S)_SD15.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD15") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S15  NPP MS")
+	field(INPB,"$(P)$(S)_Dark15.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}
+grecord(ao,"$(P)$(S)_Dark16") {
+	field(FLNK,"$(P)$(S)_SD16.VAL  PP MS")
+	field(PREC,"3")
+}
+grecord(calc,"$(P)$(S)_SD16") {
+	field(CALC,"A-B*C")
+	field(INPA,"$(P)$(S).S16  NPP MS")
+	field(INPB,"$(P)$(S)_Dark16.VAL  NPP MS")
+	field(INPC,"$(P)$(S).T  NPP MS")
+	field(PREC,"3")
+}

@@ -1,0 +1,55 @@
+
+
+                 MX - A Data Acquisition and Control System
+
+                            by William M. Lavender
+
+MX is a data acquisition and control system that is designed to serve
+several functions:
+
+    o As a portable toolkit for writing data acquisition and control programs.
+
+    o As a standalone system capable of controlling entire experiments.
+
+    o As a platform for building device control servers to be used by other
+      applications.
+
+    o As a way of extending other control systems and of glueing disparate
+      control systems together.
+
+MX has been developed primarily for use in the X-ray and synchrotron radiation
+field, but may be useful for other types of experiments.
+
+DOCUMENTATION:
+
+Most MX documentation may be found at the MX web site:
+
+    http://www.imca.aps.anl.gov/mx/
+
+INSTALLATION:
+
+The installation procedure for MX is documented in the MX Users and Developer's
+Manual which may be found at:
+
+    http://www.imca.aps.anl.gov/mx/manual/
+
+COPYRIGHT:
+
+Most of MX was written by William Lavender and is copyright by the Illinois
+Institute of Technology.  MX is freely distributable and is covered by an
+MIT X11 or XFree86 style license that may be found in the file 'LICENSE'
+that is included with every source code distribution of MX.
+
+A few parts of the distribution are covered by other copyrights.  These
+include:
+
+    tools/generic/src/getopt.c - Written by Henry Spencer and covered by
+          a license given at the top of the file.
+
+    tools/unix/src/editline/ - The files in this directory are copyrighted
+          by Simmule Turner and Rich Salz and are covered by a license found
+          in the file 'tools/unix/src/editline/README'.  The makefile for
+          this package has been modified to fit better into the MX build
+          system, but the original makefile may be found in the file
+          'Makefile.orig'.
+

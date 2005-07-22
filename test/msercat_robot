@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -i -F ./msercat_robot.dat -s ./ssercat_robot.dat $*
+

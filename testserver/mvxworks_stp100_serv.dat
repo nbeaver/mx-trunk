@@ -1,0 +1,2 @@
+stp100_rs232  interface rs232 vxworks_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /tyCo/1
+m1            device motor stp100_motor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um stp100_rs232 0 0 0 0 20 1 0.2

@@ -1,0 +1,10 @@
+#! /bin/sh
+
+if [ x${MXDIR} = x ]; then
+	MXDIR=/opt/mx
+fi
+
+export MXDIR
+
+../motor/motor.static -F ${MXDIR}/etc/mxerxes_4chan.dat -s $HOME/sxerxes_4chan.dat $*
+

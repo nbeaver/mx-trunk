@@ -1,0 +1,14 @@
+6k_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 S 0xd0a 0xd0a -1 0x0 theseus 3554 0x0
+6k       interface generic compumotor_int "" "" 6k_rs232 0  1  1 8
+m1       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 1 0x1001
+m2       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 2 0x1001
+m3       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 3 0x1001
+m4       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 4 0x1
+m5       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 5 0x1
+m6       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 6 0x1
+m7       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 7 0x1
+m8       device motor compumotor "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um 6k 1 8 0x1
+mlin12   device motor compumotor_lin "" "" 0 0 -2000000 2000000 0 -1 -1 1 0 um 0x1 2  m1 m2  0.5 -0.5  0 0  0.5 0.5
+mlin12a  device motor compumotor_lin "" "" 0 0 -2000000 2000000 0 -1 -1 1 0 um  0 2  m1 m2  0.5 -0.5  0 0  0.5 0.5
+mlin123  device motor compumotor_lin "" "" 0 0 -2000000 2000000 0 -1 -1 1 0 um 0x1 3  m1 m2 m3  0.33333333 0.33333333 0.33333333  0 0 0  0.33333333 0.33333333 0.33333333
+mlin56   device motor compumotor_lin "" "" 0 0 -2000000 2000000 0 -1 -1 1 0 um  0 2  m5 m6  1 -1  0 0  0.5 0.5

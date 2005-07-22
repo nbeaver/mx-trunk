@@ -1,0 +1,6 @@
+test1                            scan linear_scan input_scan "" "" 1 1 0  2  Io time 0 0 preset_time "0.01 timer1" text junk.out gnuplot $f[1]  0  1  10000
+test2                            scan linear_scan input_scan "" "" 1 1 0  3  Io It time 0 0 preset_time "0.01 timer1" text junk.out gnuplot $f[1]  0  1  10000
+test3                            scan linear_scan input_scan "" "" 1 1 0  4  Io It If time 0 0 preset_time "0.01 timer1" text junk.out gnuplot $f[1]  0  1  10000
+test4                            scan linear_scan input_scan "" "" 1 1 0  5  Io It If Iref time 0 0 preset_time "0.01 timer1" text junk.out gnuplot $f[1]  0  1  10000
+test0                            scan linear_scan input_scan "" "" 1 1 0  1  time 0 0 preset_time "0.01 timer1" text junk.out gnuplot $f[1]  0  1  10000
+slow10k                          scan linear_scan input_scan "" "" 1 1 0  5  Io It If Iref time 0 0 preset_time "1 timer1" text junk.out gnuplot $f[1]  0  1  10000

@@ -1,0 +1,9 @@
+x3     server network tcpip_server "" "" 0x0 localhost 9827
+m1     device motor network_motor "" "" 50 0 -20000000 20000000 0 -1 -1 1 0 um x3 m1
+m2     device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 um x3 m2
+Io     device scaler network_scaler "" "" 0 0 0 timer1 x3 Io
+It     device scaler network_scaler "" "" 0 0 0 timer1 x3 It
+If     device scaler network_scaler "" "" 0 0 0 timer1 x3 If
+Iref   device scaler network_scaler "" "" 0 0 0 timer1 x3 Iref
+timer1 device timer network_timer "" "" x3 timer1
+time   device motor elapsed_time "" "" 673211 0 -2147483648 2147483647 0 -1 -1 1 0 sec 955569303

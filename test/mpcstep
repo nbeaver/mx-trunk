@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F ./mpcstep.dat -s ./spcstep.dat $*
+

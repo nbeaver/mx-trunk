@@ -1,0 +1,15 @@
+portio   interface portio linux_portio "" "" /dev/portio
+nulogic  interface generic pcstep "" "" portio 0x210 0x8c0 0x8c0
+am9513a  interface generic am9513 "" "" portio 0x1a0 0x1b0
+am9513b  interface generic am9513 "" "" portio 0x1a2 0x1b0
+mc6821   interface generic mc6821 "" "" portio 0x1a4 0xff  0
+in1      device digital_input mc6821_in "" ""  0 mc6821 B
+out1     device digital_output mc6821_out "" ""  0 mc6821 A
+m1       device motor pcstep_motor "" "" 200278 0 -20000000 20000000 0 -1 -1 0.0001 0 um nulogic 1 20000 500 10000 1 0 0
+m2       device motor pcstep_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.0001 0 um nulogic 2 20000 500 10000 1 0 0
+Io       device scaler am9513_scaler "" "" 0 0 0 timer1 2  am9513a:2 am9513a:3 0x4 0x2
+It       device scaler am9513_scaler "" "" 0 0 0 timer1 2  am9513a:4 am9513a:5 0x4 0x4
+If       device scaler am9513_scaler "" "" 0 0 0 timer1 2  am9513b:2 am9513b:3 0x4 0x2
+Iref     device scaler am9513_scaler "" "" 0 0 0 timer1 2  am9513b:4 am9513b:5 0x4 0x4
+timer1   device timer am9513_timer "" "" 1  am9513a:1 1000000
+time     device motor elapsed_time "" "" 1043665 0 -2147483648 2147483647 0 -1 -1 1 0 sec 955569303

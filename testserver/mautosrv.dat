@@ -1,0 +1,20 @@
+fault           variable inline int "" "" 1 1 0
+reset           variable inline int "" "" 1 1 0
+faultreset      variable inline int "" "" 1 1 0
+permit          variable inline int "" "" 1 1 0
+autoscale_I0    device autoscale autoscale_amp "" "" I0_real keithley1 timer1 1 5000 50000 100 1000
+autoscale_Ifilt device autoscale autoscale_filter "" "" Ifilt_real filters timer1 1 5000 50000 100 1000 0 0xff
+energy          device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 eV 1000 0 500
+smx             device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 um 1000 0 500
+smy             device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 um 1000 0 500
+I0_real         device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i0.dat 1  keithley1
+Ifilt_real      device scaler soft_scaler "" "" 0 0 0 timer1 energy 101 ./i.dat 1  filters
+scaler_timer    device timer soft_timer "" ""
+mca_timer       device timer mca_timer "" "" mca1 0
+timer1          device timer timer_fanout "" "" 2  scaler_timer mca_timer
+portb           device digital_input soft_dinput "" "" 0
+porta           device digital_output soft_doutput "" "" 0
+filters         device digital_output bit_out "" "" 0 0 porta 3 4 porta 3 4
+filterstat      device digital_input bit_in "" "" 0 0 porta 3 4
+keithley1       device amplifier soft_amplifier "" "" 10000000 0 0
+mca1            device mca soft_mca "" "" 1024 1 0 channels.dat

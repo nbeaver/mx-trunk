@@ -1,0 +1,346 @@
+bmc86        server network tcpip_server "" "" 0x0 localhost 9727
+bmc73        server network tcpip_server "" "" 0x0 164.54.208.73 9727
+edge_element     variable inline       string     "" "" 1 20 "Au"
+edge_name     variable inline       string     "" "" 1 20 "L3"
+#
+pmac1_mce          device mce network_mce "" "" 2000 1 0 bmc73 pmac1_mce
+pmac4_mce          device mce network_mce "" "" 2000 1 0 bmc86 pmac4_mce
+#
+#
+# name             super  class type          la al p b -limit    +limit   d      <s   >s scale    o units ser remote
+dummy              device motor soft_motor    "" "" 0   0 -10000000 10000000 0 -1 -1 1 0 cnts 22 2 1
+g_hor            device motor network_motor "" "" 0 0   -10000000   10000000   0 -1 -1 1            0             um    bmc86 g_hor
+g_vert           device motor network_motor "" "" 0 0   -10000000   10000000   0 -1 -1 1            0             um    bmc86 g_vert
+m22              device motor network_motor "" "" 0 0   -10000000   10000000   0 -1 -1 1            0             um    bmc86 m22
+#x_stage            device motor network_motor "" "" 0   0 -10000000 10000000 0 -1 -1 1 0 um bmc86 x_stage
+#y_stage            device motor network_motor "" "" 0   0 -10000000 10000000 0 -1 -1 1 0 um bmc86 y_stage
+#x_stage            device motor soft_motor "" "" 0   0 -10000000 10000000 0 -1 -1 1 0 um 1000 1000 1000
+#y_stage            device motor soft_motor "" "" 0   0 -10000000 10000000 0 -1 -1 1 0 um 1000 1000 1000
+# name             super  class type          la al p   b         -limit      +limit     d     <s   >s   scale  o  units   ser    remote
+ap_up               device motor network_motor "" "" 0   25      -10000000    10000000  0     -1   1   1      0  um      bmc73    ap_up
+ap_dn               device motor network_motor "" "" 0   25      -10000000    10000000  0     -1   1   1      0  um      bmc73    ap_dn
+ap_inb              device motor network_motor "" "" 0   25      -10000000    10000000  0     -1   1   1      0  um      bmc73    ap_inb
+ap_out               device motor network_motor "" "" 0   25      -10000000    10000000  0     -1   1   1      0  um      bmc73    ap_out
+ap_h               device motor network_motor "" "" 0   25      -10000000    10000000  0     -1   1   1      0  um      bmc73    ap_h
+ap_v               device motor network_motor "" "" 0   30       -10000000    10000000  0     -1   -1   1      0  um    bmc73    ap_v
+theta_real         device motor network_motor "" "" 0   0.5     -10000000    10000000  0     -1   -1   1      0  deg    bmc73   theta_real
+roll               device motor network_motor "" "" 0  -100     -10000000    10000000  0     -1   -1   1      0  um   bmc73   roll
+#
+tune_inb           device motor network_motor "" "" 0  -400       -10000000    10000000  0     -1   -1   1      0  urad  bmc73    tune_inb
+tune_out           device motor network_motor "" "" 0  -400       -10000000    10000000  0     -1   -1   1      0  urad  bmc73    tune_out
+#
+focus              device motor network_motor "" "" 0  -250     -10000000    10000000  0     -1   -1   1      0  um      bmc73    focus
+y_trans            device motor network_motor "" "" 0  -120      -10000000    10000000  0     -1   -1   1      0  um     bmc73   y_trans
+z_trans            device motor network_motor "" "" 0  -1200      -10000000    10000000  0     -1   -1   1      0  um    bmc73    z_trans
+x_trans            device motor network_motor "" "" 0  -0.1       -10000000    10000000  0     -1   -1   1      0  mm    bmc73    x_trans
+tune               device motor network_motor "" "" 0  -400       -10000000    10000000  0     -1   -1   1      0  urad  bmc73    tune
+twist              device motor network_motor "" "" 0  -100       -10000000    10000000  0     -1   -1   1      0  urad  bmc73    twist
+#tune_quick         device motor network_motor "" "" 0  -400       -10000000    10000000  0     -1   -1   1      0  urad  bmc73    tune_quick
+#
+# Mirror tank
+#
+#m_t_us             device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1   0 mm    bmc73 m_t_us
+#m_t_ds             device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1   0 mm    bmc73 m_t_ds
+#
+# Mirror support
+#
+m_y_us             device motor network_motor "" "" 0  -0.16     -10000000    10000000  0     -1   -1   1  0 mm    bmc73 m_y_us
+m_y_ds             device motor network_motor "" "" 0  -0.16      -10000000    10000000  0     -1   -1   1  0 mm   bmc73 m_y_ds
+#
+# Mirror bender
+#
+m_b_us             device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1  0 mm   bmc73 m_b_us
+m_b_ds             device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1  0 mm   bmc73 m_b_ds
+#
+# Mirror stripe/lane
+#
+m_lane             device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1  0 mm bmc73 m_lane
+# pmac 2 records
+#
+gs_out             device motor network_motor "" "" 0  -85      -10000000    10000000  0     -1   -1   1        0             um    bmc86 gs_out
+gs_inb             device motor network_motor "" "" 0  -85      -10000000    10000000  0     -1   -1   1       0             um    bmc86 gs_inb
+gs_top             device motor network_motor "" "" 0  -85      -10000000    10000000  0     -1   -1   1       0            um    bmc86 gs_top
+gs_bot             device motor network_motor "" "" 0  -85     -10000000    10000000  0     -1   -1   1        0            um    bmc86 gs_bot
+gs_hor             device motor network_motor "" "" 0  -15      -4000       3000  0     -1   -1   1            0          um    bmc86 gs_hor
+gs_vert            device motor network_motor "" "" 0  -13         -36000    -28000  0     -1   -1   1            0          um    bmc86 gs_vert
+gs_z               device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1            0             mm    bmc86 gs_z
+#g_hor              device motor network_motor "" "" 0   0         -3000    3000  0     -1   -1   1            0            um    bmc86 g_hor
+ds_up              device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1            0             mm    bmc86 ds_up
+ds_dn              device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1            0             mm    bmc86 ds_dn
+#g_vert             device motor network_motor "" "" 0   0         -35000      10000000  0     -1   -1   1            0           um    bmc86 g_vert
+g_vert_mm          device motor network_motor "" "" 0   0         -35         10000000  0     -1   -1   1        0           mm    bmc86 g_vert_mm
+omega              device motor network_motor "" "" 0   0         -91          91  0     -1   -1   1            0 deg   bmc86 omega
+#omega              device motor network_motor "" "" 0   0         -181       181    0     -1   -1   1            0 deg   bmc86 omega
+kappa              device motor network_motor "" "" 0   0         -31          31  0     -1   -1   1            0 deg bmc86 kappa
+phi                device motor network_motor "" "" 0   0         -91          270  0     -1   -1   1            0 deg bmc86 phi
+z                  device motor network_motor "" "" 0   0         0           16000 0     -1   -1   1            0 um bmc86 z
+#mirror_angle    device motor linear_function "" "" 0 0 -1e8 1e8 0 -1 -1 1.23031  0 mrad 0 2 m_y_us m_y_ds 1 -1 0 0 0.5 0.5
+ds_angle         device motor linear_function "" "" 0 0 -1e7 1e7 0 -1 -1 1        0 mrad 0 2 ds_up ds_dn 0.929368 0.265393 0 0 .22 .78
+#
+d_vup              device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1   189.6736      mm bmc86 d_vup
+d_vdn              device motor network_motor "" "" 0   0         -10000000    10000000  0     -1   -1   1   189.6736      mm bmc86 d_vdn
+#
+# to adjust d_hor, home position is value of offset -- 1698.191 from drawing
+# 
+# adjustment of 6.5mm upstream 4/9/2003 not yet in offset.  J. Fait
+#
+d_hor              device motor network_motor "" "" 0   0         -10000000   10000000   0     -1   -1   1           1705.0191     mm bmc86 d_hor
+bs_v               device motor network_motor "" "" 0   0         -10000000   10000000   0     -1   -1   1            0            ksteps bmc86 bs_v
+bs_h               device motor network_motor "" "" 0   0         -10000000   10000000   0     -1   -1   1            0            ksteps bmc86 bs_h
+gs_tilt            device motor network_motor "" "" 0   0         -100000000  100000000  0     -1   -1   1            0            ksteps bmc86 gs_tilt
+d_vert             device motor network_motor "" "" 0   0         -10000000   10000000   0     -1   -1   1            0 mm bmc86 d_vert
+#
+# Guard slit pseudomotors
+#
+gsv_center         device motor slit_motor    "" "" 0   0         -200000     200000 0 -1 -1 1 0 um 0x0 1 gs_bot gs_top
+gsv_size           device motor slit_motor    "" "" 0   0         -200000     200000 0 -1 -1 1 0 um 0x0 2 gs_bot gs_top
+gsh_center         device motor slit_motor    "" "" 0   0         -200000     200000 0 -1 -1 1 0 um 0x0 1 gs_inb gs_out
+gsh_size           device motor slit_motor    "" "" 0   0         -200000     200000 0 -1 -1 1 0 um 0x0 2 gs_inb gs_out
+#
+# Distances used by the A frame detector motor (currently in mm).
+#
+#  modified for new plates for mar165 5/29/03 JF
+A_parameter      variable inline double "" "" 1 1 302
+B_parameter      variable inline double "" "" 1 1 624.9
+C_parameter      variable inline double "" "" 1 1 258.2
+#
+# Heights of the upstream and downstream supports relative to the
+# goniometer height.
+#
+dv_upstream        device motor delta_motor   "" "" 0   0 -1e8 1e8 0 -1 -1 1 0 mm d_vup g_vert_mm
+dv_downstream      device motor delta_motor   "" "" 0   0 -1e8 1e8 0 -1 -1 1 0 mm d_vdn g_vert_mm
+#
+dv_vert          device motor translation_mtr "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 0x0 2 dv_upstream dv_downstream
+#
+# Pseudomotors used by the A frame detector motor.
+#
+det_distance    device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 1 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor
+det_hor_angle   device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 57.295779513 0 deg 2 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor
+det_offset      device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 3 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor
+#
+mirror_angle     device motor linear_function "" "" 0 0 -1e8 1e8 0 -1 -1 1.23031 0 mrad 0 2 m_y_us m_y_ds 1 -1 0 0 0.5 0.5
+mirror_height    device motor translation_mtr "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 0 2 m_y_us m_y_ds
+mirror_focus     device motor translation_mtr "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 0 2 m_b_us m_b_ds
+mirror_ellipt    device motor linear_function "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 0 2 m_b_us m_b_ds 1 -1 0 0 0.5 0.5
+#
+# The detector angle is the combination of the angle of the detector to the
+# horizontal and the mirror angle.
+#
+det_angle        device motor linear_function "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 deg 0 2 det_hor_angle mirror_angle 1 0.1145916 0 0 1 0
+#
+# Elapsed time motor
+#
+time                device motor elapsed_time "" "" 0 0 -2147483648 2147483647 0 -1 -1 1 0 sec 0
+#
+# Joerger VSC-16 counter/timer related records
+#
+#joerger_timer device timer network_timer "" "" id2 joerger_timer
+#joerger2  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger2
+#joerger3  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger3
+#joerger4  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger4
+#joerger5  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger5
+#joerger6  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger6
+#joerger7  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger7
+#joerger8  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger8
+#joerger9  device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger9
+#joerger10 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger10
+#joerger11 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger11
+#joerger12 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger12
+#joerger13 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger13
+#joerger14 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger14
+#joerger15 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger15
+#joerger16 device scaler network_scaler "" "" 0 0 0x2 joerger_timer id2 joerger16
+#
+# SIS 3807 pulse generator related records
+#
+pulser1    device pulse_generator network_pulser "" "" bmc73 pulser1
+#
+# SIS 3801 MCS related records
+#
+sis3801    device mcs network_mcs "" "" 32 2000 "" 0 0 timer1 bmc73 sis3801
+#
+# Scaler channels for the 'network_mcs' record are numbered starting at 0.
+#
+#Initial value of the dark current goes here+
+#                                           |
+#                                           v
+scaler0    device scaler mcs_scaler "" "" 0 0 0   ""     sis3801 0
+scaler1    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 1
+scaler2    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 2
+scaler3    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 3
+scaler4    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 4
+scaler5    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 5
+scaler6    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 6
+scaler7    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 7
+scaler8    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 8
+scaler9    device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 9
+scaler10   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 10
+scaler11   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 11
+scaler12   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 12
+scaler13   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 13
+scaler14   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 14
+scaler15   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 15
+scaler16   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 16
+scaler17   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 17
+scaler18   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 18
+scaler19   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 19
+scaler20   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 20
+scaler21   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 21
+scaler22   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 22
+scaler23   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 23
+scaler24   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 24
+scaler25   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 25
+scaler26   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 26
+scaler27   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 27
+scaler28   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 28
+scaler29   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 29
+scaler30   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 30
+scaler31   device scaler mcs_scaler "" "" 0 0 0x2 timer1 sis3801 31
+timer1     device timer mcs_timer "" "" sis3801
+#
+# Operating system timer (use only for testing, _not_ for data acquisition)
+#
+soft_timer device timer soft_timer "" ""
+#
+# MCS related pseudoscalers
+#
+I0         device scaler network_scaler "" "" 0 0 0 timer1 bmc73 I0
+I0d        device scaler network_scaler "" "" 0 0 0 timer1 bmc73 I0d
+#
+sc_tb      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sc_tb
+sc_io      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sc_io
+sd_tb      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sd_tb
+sd_io      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sd_io
+sc_utb      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sc_utb
+sc_uio      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sc_uio
+sd_utb      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sd_utb
+sd_uio      device scaler network_scaler "" "" 0 0 0 timer1 bmc73 sd_uio
+#
+# MCS related mathop variables
+#
+ratio_tb   variable calc mathop "" "" 2 -1 0x1 divide sd_tb sc_tb 1 1 0
+ratio_io   variable calc mathop "" "" 2 -1 0x1 divide sd_io sc_io 1 1 0
+ratio_utb   variable calc mathop "" "" 2 -1 0x1 divide sd_utb sc_utb 1 1 0
+ratio_uio   variable calc mathop "" "" 2 -1 0x1 divide sd_uio sc_uio 1 1 0
+#
+# theta pseudomotor variables and records
+#
+theta            device motor monochromator "" "" 9.176 0 -1e+38 1e+38 0 -1 -1 1 0 deg 6 theta_list y_trans_list z_trans_list focus_list roll_list m_h_list
+energy           device motor energy_motor "" "" 12398 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.0174533
+lambda           device motor wavelength_motor "" "" 1.00004 0 0 1e+08 0 -1 -1 1 0 A theta d_spacing 0.0174533
+wavenumber       device motor wavenumber_motor "" "" 6.28295 0 0 1e+08 0 -1 -1 1 0 A-1 theta d_spacing 0.0174533
+k                device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
+e_minus_e0      device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 eV energy edge_energy
+#
+# Theta dependency
+#
+theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
+theta_enabled    variable inline int "" "" 1 1 1
+theta_type       variable inline int "" "" 1 1 0
+theta_records    variable inline record "" "" 1 1 theta_real
+#
+# Bragg normal dependency
+#
+y_trans_enabled  variable net_variable net_int "" "" bmc86 y_trans_enabled.value 1 1 1
+y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type dummy_params y_trans_records
+y_trans_type     variable inline int "" "" 1 1 4
+y_trans_records  variable inline record "" "" 1 2 y_trans beam_offset
+#
+#Bragg normal polynomial dependency
+#
+#y_trans_enabled  variable net_variable net_int "" "" bmc86 y_trans_enabled.value 1 1 1
+#y_trans_params   variable net_variable net_double "" "" bmc86 y_trans_params.value 1 4 15450 2.3578 1.4019 0.027499
+#y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type y_trans_params y_trans_records
+#y_trans_type     variable inline int "" "" 1 1 2
+#y_trans_records  variable inline record "" "" 1 1 y_trans
+#
+# Bragg parallel dependency
+#
+z_trans_enabled  variable net_variable net_int "" "" bmc86 z_trans_enabled.value 1 1 1
+z_trans_list     variable inline record "" "" 1 4 z_trans_enabled z_trans_type dummy_params z_trans_records
+z_trans_type     variable inline int "" "" 1 1 5
+z_trans_records  variable inline record "" "" 1 2 z_trans beam_offset
+#
+# Focus dependency
+#
+focus_enabled    variable net_variable net_int "" "" bmc86 focus_enabled.value 1 1 0
+focus_params     variable net_variable net_double "" "" bmc86 focus_params.value 1 4 -572.78 0.29751 0 0
+focus_list       variable inline record "" "" 1 4 focus_enabled focus_type focus_params focus_records
+focus_type       variable inline int "" "" 1 1 8
+focus_records    variable inline record "" "" 1 2 focus d_spacing
+#
+# Roll dependency
+#
+roll_enabled    variable net_variable net_int "" "" bmc86 roll_enabled.value 1 1 0
+roll_params     variable net_variable net_double "" "" bmc86 roll_params.value 1 4 -441.47 0.074788 -4.4723e-6 0
+roll_list       variable inline record "" "" 1 4 roll_enabled roll_type roll_params roll_records
+roll_type       variable inline int "" "" 1 1 8
+roll_records    variable inline record "" "" 1 2 roll d_spacing 
+#
+#mirror height dependancy
+#
+m_h_enabled    variable net_variable net_int "" "" bmc86 m_h_enabled.value 1 1 0
+m_h_params     variable net_variable net_double "" "" bmc86 m_h_params.value 1 4 5449.2 -750.49 34.165 -0.54352
+m_h_list       variable inline record "" "" 1 4 m_h_enabled m_h_type m_h_params m_h_records
+m_h_type       variable inline int "" "" 1 1 2
+m_h_records    variable inline record "" "" 1 1 mirror_height
+#
+dummy_params     variable inline double "" "" 1 1 0
+d_spacing        variable net_variable net_double "" "" bmc86 d_spacing.value 1  1  1.9194     
+beam_offset      variable net_variable net_double "" "" bmc86 beam_offset.value 1  1  31000   
+#
+xafs_header1   variable inline string "" "" 1 81 ""
+xafs_header2   variable inline string "" "" 1 81 ""
+xafs_header3   variable inline string "" "" 1 81 ""
+xafs_header4   variable inline string "" "" 1 81 ""
+sff_header1    variable inline string "" "" 1 81 ""
+sff_header2    variable inline string "" "" 1 81 ""
+sff_header3    variable inline string "" "" 1 81 ""
+sff_header_fmt variable inline string "" "" 1 161 "beamline_name | edge_energy | sff_header1 | sff_header2 | %devices"
+beamline_name    variable inline       string     "" "" 1 20 "APS Sector 22-ID"
+mx_beamline      variable inline       string     "" "" 1 20 "ser22bm"
+ring_energy      variable inline       double     "" "" 1 1 7
+edge_energy      variable net_variable net_double "" "" bmc86 edge_energy.value 1 1 8980
+#
+#
+g_hor_offset     variable net_variable net_double "" "" bmc86 g_hor_offset.value 1 1 0
+g_vert_offset    variable net_variable net_double "" "" bmc86 g_vert_offset.value 1 1 0
+#
+# The following must be present for xafs datafile format to work. (WML)
+#
+amplifier_list  variable inline string "" "" 2 1 5 ""
+#
+# modular pmac motors, 8 axes
+#
+#ap_v               device motor network_motor "" "" 0 0 -10000000 10000000 0      -1   -1     -1   0 steps id2 ap_v
+#
+s1               device digital_output network_doutput "" "" 0 bmc86  s1
+s2               device digital_output network_doutput "" "" 0 bmc86  s2
+f1               device digital_output network_doutput "" "" 0 bmc86  f1
+f2               device digital_output network_doutput "" "" 0 bmc86  f2
+f3               device digital_output network_doutput "" "" 0 bmc86  f3
+f4               device digital_output network_doutput "" "" 0 bmc86  f4
+f5               device digital_output network_doutput "" "" 0 bmc86  f5
+f6               device digital_output network_doutput "" "" 0 bmc86  f6
+f7               device digital_output network_doutput "" "" 0 bmc86  f7
+f8               device digital_output network_doutput "" "" 0 bmc86  f8
+f9               device digital_output network_doutput "" "" 0 bmc86  f9
+f10              device digital_output network_doutput "" "" 0 bmc86  f10
+fs0              device digital_input network_dinput "" "" 0 bmc86  fs1
+fs1              device digital_input network_dinput "" "" 0 bmc86  fs1
+fs2              device digital_input network_dinput "" "" 0 bmc86  fs2
+fs3              device digital_input network_dinput "" "" 0 bmc86  fs3
+fs4              device digital_input network_dinput "" "" 0 bmc86  fs4
+shutter          device relay generic_relay "" "" 0x8 0 fs1 0 2 0x1 0x2 s2 0 1 0x0 0x1
+#
+# Used by the optimization scans
+#
+optimize_log     variable inline string "" "" 1 80 /opt/mx/log/optimize.log
+#
+# Fake motors used for pseudomotor scan testing
+#
+#fake_c_same      device motor slit_motor "" "" 0 0 -1e10 1e10 0 -1 -1 1 0 mm 0x0 1 d_vdn d_vup
+#fake_w_same      device motor slit_motor "" "" 0 0 -1e10 1e10 0 -1 -1 1 0 mm 0x0 2 d_vdn d_vup
+#fake_c_opp       device motor slit_motor "" "" 0 0 -1e10 1e10 0 -1 -1 1 0 mm 0x0 3 d_vdn d_vup
+#fake_w_opp       device motor slit_motor "" "" 0 0 -1e10 1e10 0 -1 -1 1 0 mm 0x0 4 d_vdn d_vup
+#fake_trans       device motor translation_mtr "" "" 0 0 -1e10 1e10 0 -1 -1 1 0 mm 0x0 2 d_vdn d_vup

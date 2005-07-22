@@ -1,0 +1,5 @@
+uglide_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0d0a 0x0d -1 0x0 /dev/ttyS5
+uglide1      interface generic uglide "" "" uglide_rs232 0x0
+x            device motor uglide_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 um uglide1 X
+y            device motor uglide_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 um uglide1 Y
+timer1       device timer soft_timer "" ""

@@ -1,0 +1,35 @@
+#
+# Relay control
+#
+portio   interface generic linux_portio "" "" /dev/portio
+ra1_in   device digital_input portio_dinput "" "" 0 portio 0x300 8
+ra2_in   device digital_input portio_dinput "" "" 0 portio 0x301 8
+rb1_in   device digital_input portio_dinput "" "" 0 portio 0x302 8
+rb2_in   device digital_input portio_dinput "" "" 0 portio 0x303 8
+ra1_out  device digital_output portio_doutput "" "" 0 portio 0x300 8
+ra2_out  device digital_output portio_doutput "" "" 0 portio 0x301 8
+rb1_out  device digital_output portio_doutput "" "" 0 portio 0x302 8
+rb2_out  device digital_output portio_doutput "" "" 0 portio 0x303 8
+ra_in    device digital_input portio_dinput "" "" 0 portio 0x300 16
+rb_in    device digital_input portio_dinput "" "" 0 portio 0x302 16
+ra_out   device digital_output portio_doutput "" "" 0 portio 0x300 16
+rb_out   device digital_output portio_doutput "" "" 0 portio 0x302 16
+#
+# Huber slit control
+#
+hsc1_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd -1 0x0 /dev/ttyS0
+hsc1_1     interface generic hsc1 "" "" hsc1_rs232 2 XIAHSC-C-0154 XIAHSC-C-176
+#
+# Vertical slits
+#
+bxv_top    device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1  2.5 -13000 um hsc1_1 0 B
+bxv_bottom device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1  2.5 -13000 um hsc1_1 0 A
+bxv_center device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1 -2.5      0 um hsc1_1 0 C
+bxv_size   device motor hsc1_motor "" "" 0 0      0 131071 0 -1 -1  2.5 -26000 um hsc1_1 0 S
+#
+# Horizonal slits
+#
+bxh_outb   device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1  2.5 -13000 um hsc1_1 1 B
+bxh_inb    device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1  2.5 -13000 um hsc1_1 1 A
+bxh_center device motor hsc1_motor "" "" 0 0 -65535  65535 0 -1 -1  2.5      0 um hsc1_1 1 C
+bxh_size   device motor hsc1_motor "" "" 0 0      0 131071 0 -1 -1  2.5 -26000 um hsc1_1 1 S

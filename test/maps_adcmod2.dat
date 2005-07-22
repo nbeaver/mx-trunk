@@ -1,0 +1,21 @@
+vme1     interface vme sis3100 "" "" 0x0 /dev/sis1100_0 0
+#vme1     interface vme epics_vme "" "" 0x0 xxx:vme1
+adcmod2  interface generic aps_adcmod2 "" "" vme1 0 0x00f000 10 500 10
+amp0     device amplifier aps_adcmod2_amplifier "" "" 1e12 0 0.001 adcmod2 0
+ainput0  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 0
+ainput1  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 1
+ainput2  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 2
+ainput3  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 3
+ainput4  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 4
+ainput5  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 5
+ainput6  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 6
+ainput7  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 7
+ainput8  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 8
+ainput9  device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 9
+ainput10 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 10
+ainput11 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 11
+ainput12 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 12
+ainput13 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 13
+ainput14 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 14
+ainput15 device analog_input aps_adcmod2_ainput "" "" 0 1 0 ADU 0x0 0 "" adcmod2 15
+timer1   device timer soft_timer "" ""

@@ -1,0 +1,16 @@
+#
+# tools/Makefile.vxworks
+#
+
+all: getopt.o
+
+include ../libMx/Makehead.vxworks
+
+XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
+
+getopt.o:
+	$(XCC) -c generic/src/getopt.c
+
+mx_clean:
+	-rm *.o
+

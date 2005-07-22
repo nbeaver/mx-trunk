@@ -1,0 +1,2 @@
+panther_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/ttyS1
+m1            device motor panther_he "" "" 0 0 -1000000 1000000 0 -1 -1 0.01 0 um panther_rs232 0 18340 2001 5 5 8 F 1 6 50 -1 200 0 300 0 20 5 5

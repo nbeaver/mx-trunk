@@ -1,0 +1,33 @@
+pmac1_rs232 interface rs232 tty "" "" 38400 8 N 1 H 0xd 0xd -1 0x0 /dev/ttyS0
+id2         server network tcpip_server "" "" 0x0 id2 9727
+time        device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
+sis3801     device mcs network_mcs "" "" 32 2000 "" 0 0 timer1 id2 sis3801
+scaler1     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 1
+scaler2     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 2
+scaler3     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 3
+scaler4     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 4
+scaler5     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 5
+scaler6     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 6
+scaler7     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 7
+scaler8     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 8
+scaler9     device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 9
+scaler10    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 10
+scaler11    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 11
+scaler12    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 12
+scaler13    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 13
+scaler14    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 14
+scaler15    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 15
+scaler16    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 16
+timer1      device timer mcs_timer "" "" sis3801
+pmac1       interface generic pmac "" "" rs232 pmac1_rs232 1
+m1          device motor pmac_motor "" "" -3 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 1
+m2          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 2
+m3          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 3
+m4          device motor pmac_motor "" "" 0 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 4
+m5          device motor pmac_motor "" "" 750001 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 5
+m6          device motor pmac_motor "" "" 750000 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 6
+m7          device motor pmac_motor "" "" 6 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 7
+m8          device motor pmac_motor "" "" -19481559 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 8
+mtrans      device motor translation_mtr "" "" 750001 0 -1e+10 1e+10 0 -1 -1 1 0 steps 0x1 2  m5 m6
+mlinear     device motor linear_function "" "" 750001 0 -1e+10 1e+10 0 -1 -1 1 0 steps 0x1 2  m5 m6  0.5 0.5  0 0  0.5 0.5
+m1_mce      device mce mcs_encoder "" "" 5000 1 0 m1 sis3801 8 9

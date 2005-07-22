@@ -1,0 +1,3 @@
+server1 server network tcpip_server "" "" 0x0 127.0.0.1 9827
+din1    device digital_input  network_dinput  "" "" 0 server1 din1
+timer1  device timer soft_timer "" ""

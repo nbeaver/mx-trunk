@@ -1,0 +1,10 @@
+m1 device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:m1
+m2 device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:m2
+m3 device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:m3
+m4 device motor epics_motor "" "" 0 0 -100000 100000 0 -1 -1 1 0 steps wml:m4
+scaler2 device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 2
+scaler3 device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 3
+scaler4 device scaler epics_scaler "" "" 0 0 1 timer1 wml:scaler1 4
+timer1  device timer epics_timer "" "" wml:scaler1
+timer2  device timer soft_timer "" ""
+freq variable epics_variable epics_double "" "" wml:scaler1.FREQ 1 1 0

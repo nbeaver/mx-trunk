@@ -1,0 +1,17 @@
+!include /opt/mx/etc/motor.dat
+amp    device amplifier aps_quadem_amplifier "" "" 1e12 0 0 17bm:EM1
+i1     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current1
+i2     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current2
+i3     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current3
+i4     device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Current4
+off1   device analog_output epics_aoutput "" "" 0 1 0 ADU 0x0 17bm:EM1Offset1
+off2   device analog_output epics_aoutput "" "" 0 1 0 ADU 0x0 17bm:EM1Offset2
+off3   device analog_output epics_aoutput "" "" 0 1 0 ADU 0x0 17bm:EM1Offset3
+off4   device analog_output epics_aoutput "" "" 0 1 0 ADU 0x0 17bm:EM1Offset4
+sum1   device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Sum1
+sum2   device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Sum2
+diff1  device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Diff1
+diff2  device analog_input epics_ainput "" "" 0 1 0 ADU 0x0 0 "" 17bm:EM1Diff2
+pos1   device analog_input epics_ainput "" "" 0 1 0 units 0x0 0 "" 17bm:EM1Position1
+pos2   device analog_input epics_ainput "" "" 0 1 0 units 0x0 0 "" 17bm:EM1Position2
+#timer1 device timer soft_timer "" ""

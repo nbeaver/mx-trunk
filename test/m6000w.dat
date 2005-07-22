@@ -1,0 +1,4 @@
+com2     interface rs232 win32_com "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 com2
+zeta6104 interface generic compumotor_int "" "" com2 0 1  1 1
+m1       device motor compumotor "" "" 250000 0 -1410065408 10000000 0 -1 -1 1 0 steps zeta6104 1 1 0x0 
+timer1   device timer soft_timer "" ""

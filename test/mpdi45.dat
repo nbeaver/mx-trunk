@@ -1,0 +1,11 @@
+pdi45_rs232  interface rs232 tty "" "" 9600 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyS5
+pdi45        interface generic pdi45 "" "" pdi45_rs232
+din1         device digital_input pdi45_dinput "" "" 0 pdi45 6 0x0
+dout1        device digital_output pdi45_doutput "" "" 0 pdi45 7 0x0
+adc1         device analog_input pdi45_ainput "" "" 0 1 0 V 0x0 0 "" pdi45 0
+dac1         device analog_output pdi45_aoutput "" "" 0 1 0 V 0x0 pdi45 0
+m1           device motor dac_motor "" "" 0 0 -10 10 0 -1 -1 1 0 volts dac1
+I0           device scaler pdi45_scaler "" "" 0 0 1 timer1 pdi45 4
+It           device scaler pdi45_scaler "" "" 0 0 1 timer1 pdi45 5
+timer1       device timer pdi45_timer "" "" pdi45 2
+pwm1         device pulse_generator pdi45_pulser "" "" pdi45 3

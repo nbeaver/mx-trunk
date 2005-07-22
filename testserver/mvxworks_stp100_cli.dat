@@ -1,0 +1,2 @@
+serv1  server network tcpip_server "" "" 0x0 192.168.137.5 9727
+m1     device motor network_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 um serv1 m1

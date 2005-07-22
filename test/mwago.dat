@@ -1,0 +1,8 @@
+wago1 interface modbus modbus_tcp "" "" 0x0 wago1 502 0xff
+temp1 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" wago1 0x2 16 0x4
+temp2 device analog_input modbus_ainput "" "" 0 0.1 0 units 0x0 0 "" wago1 0x3 16 0x4
+din1 device digital_input modbus_dinput "" "" 0 wago1 0x4 16 0x1
+dout1 device digital_output wago750_modbus_doutput "" "" 0 wago1 0x0 16 0xf
+cmd device analog_output wago750_modbus_aoutput "" "" 0 1 0 units 0x0 wago1 0x0 16 0x6
+stat device analog_input modbus_ainput "" "" 0 1 0 units 0x0 0 "" wago1 0x0 16 0x3
+wagoserial interface rs232 wago750_serial "" "" 9600 8 N 1 N 0x0d0a 0x0d0a 5.0 0x0 wago1 0x0 0x0 3

@@ -1,0 +1,5 @@
+libusb interface usb libusb "" "" 0x0
+phidget1 interface generic phidget_old_stepper_controller "" "" libusb 0
+m1 device motor phidget_old_stepper "" "" 0 0 -100000 100000 0 -1 -1 0.001 0 deg phidget1 0 1000 0 500
+m2 device motor phidget_old_stepper "" "" 0 0 -100000 100000 0 -1 -1 0.001 0 deg phidget1 1 1000 0 500
+timer1 device timer soft_timer "" ""

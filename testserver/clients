@@ -1,0 +1,4 @@
+#!/bin/sh
+
+mxput localhost@9827:mx_database.status clients
+

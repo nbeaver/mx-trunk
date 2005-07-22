@@ -1,0 +1,19 @@
+bmc73    server network tcpip_server "" "" 0x0 localhost 9827
+amp0     device amplifier net_amplifier "" "" 1e12 0 0.001 bmc73 amp0
+ainput0  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput0 
+ainput1  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput1 
+ainput2  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput2 
+ainput3  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput3 
+ainput4  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput4 
+ainput5  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput5 
+ainput6  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput6 
+ainput7  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput7 
+ainput8  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput8 
+ainput9  device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput9 
+ainput10 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput10 
+ainput11 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput11 
+ainput12 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput12 
+ainput13 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput13 
+ainput14 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput14 
+ainput15 device analog_input network_ainput "" "" 0 1 0 ADU 0X0 0 "" bmc73 ainput15 
+timer1     device timer soft_timer "" ""

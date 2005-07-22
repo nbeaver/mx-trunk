@@ -1,0 +1,6 @@
+smxy_rs232                       interface rs232 tty "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 /dev/ttyS1
+smxy_port                        interface generic compumotor_int "" "" smxy_rs232 0x2 4  1 2 3 4  1 1 1 1
+smy                              device motor compumotor "" "" 0 0 -500000000 500000000 0 -1 -1 1 0 steps smxy_port 1 1 0x1000
+smx                              device motor compumotor "" "" 0 0 -500000000 500000000 0 -1 -1 1 0 steps smxy_port 2 1 0x1000
+smw                              device motor compumotor "" "" 0 0 -500000000 500000000 0 -1 -1 1 0 steps smxy_port 3 1 0x1000
+smv                              device motor compumotor "" "" 1 0 -500000000 500000000 0 -1 -1 1 0 steps smxy_port 4 1 0x1000

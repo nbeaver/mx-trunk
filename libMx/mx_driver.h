@@ -1,0 +1,698 @@
+/*
+ * Name:     mx_driver.h
+ *
+ * Purpose:  Contains the preprocessor symbols defining all the MX class
+ *           and device types.
+ *
+ * Notes:    Each site is expected to add any special classes defined at
+ *           that site.
+ *
+ *           Also, do _not_ rely on the numerical value of the #defines
+ *           in this file.  They have changed before and may change again.
+ *           If you need to save type information in a file, the preferred
+ *           mechanism is to use the MX_DRIVER lists to convert the
+ *           numerical value back to a text string that can be saved
+ *           in a file.
+ *
+ * Author:   William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 1999-2005 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#ifndef __MX_DRIVER_H__
+#define __MX_DRIVER_H__
+
+#include "mx_record.h"
+
+#ifdef MX_DEFINE_DRIVER_LISTS
+
+MX_API MX_DRIVER mx_superclass_list[];
+MX_API MX_DRIVER mx_class_list[];
+MX_API MX_DRIVER mx_type_list[];
+
+#endif /* MX_DEFINE_DRIVER_LISTS */
+
+/* The following is a list of currently supported server protocols.
+ * The protocol values are ORed together to form the value of the field
+ * server_protocols_active in the MX_LIST_HEAD structure for the list.
+ * This means that the values must be powers of 2.
+ *
+ * For a client or standalone program, server_protocols_active will normally
+ * be set to zero.
+ */
+
+#define MXPROT_MX		1
+
+/* The following three defines are used to select the level of a record. */
+
+/* It is important that MXR_ANY be defined specifically as (-1), since
+ * the savefile record classes are listed as bitmasks below.
+ */
+
+#define MXR_ANY			(-1)	/* any superclass */
+#define MXC_ANY			(-2)	/* any class */
+#define MXT_ANY			(-3)	/* any type */
+
+/* --- Superclasses --- */
+
+#define MXR_LIST_HEAD			1
+#define MXR_INTERFACE			2
+#define MXR_DEVICE			3
+#define MXR_SCAN			4
+#define MXR_VARIABLE			5
+#define MXR_SERVER			6
+#define MXR_SPECIAL			7
+
+#define MXR_PLACEHOLDER			32768
+
+/* --- List head class --- */
+
+#define MXL_LIST_HEAD			1
+
+/* --- Interface classes --- */
+
+#define MXI_RS232			2
+#define MXI_GPIB   			3
+#define MXI_CAMAC			4
+#define MXI_GENERIC			5
+#define MXI_PORTIO			6
+#define MXI_VME				7
+#define MXI_MMIO			8
+#define MXI_MODBUS			9
+#define MXI_USB				10
+
+/* --- Device classes --- */
+
+#define MXC_ANALOG_INPUT		21
+#define MXC_ANALOG_OUTPUT		22
+#define MXC_DIGITAL_INPUT		23
+#define MXC_DIGITAL_OUTPUT		24
+#define MXC_MOTOR			25
+#define MXC_ENCODER			26
+#define MXC_SCALER			27
+#define MXC_TIMER			28
+#define MXC_AMPLIFIER			29
+#define MXC_RELAY			30
+#define MXC_MULTICHANNEL_ANALYZER	31
+#define MXC_MULTICHANNEL_SCALER		32
+#define MXC_MULTICHANNEL_ENCODER	33
+#define MXC_TABLE			34
+#define MXC_AUTOSCALE			35
+#define MXC_PULSE_GENERATOR		36
+#define MXC_SINGLE_CHANNEL_ANALYZER	37
+#define MXC_CCD				38
+#define MXC_SAMPLE_CHANGER		39
+#define MXC_MULTICHANNEL_ANALOG_INPUT	40
+#define MXC_MULTICHANNEL_ANALOG_OUTPUT	41
+#define MXC_MULTICHANNEL_DIGITAL_INPUT	42
+#define MXC_MULTICHANNEL_DIGITAL_OUTPUT	43
+
+/* --- Scan classes --- */
+
+#define MXS_LINEAR_SCAN			51
+#define MXS_LIST_SCAN			52
+#define MXS_XAFS_SCAN			53
+#define MXS_QUICK_SCAN			54
+
+/* --- Variable classes --- */
+
+#define MXV_INLINE			61
+#define MXV_NETWORK			62
+#define MXV_EPICS			63
+#define MXV_CALC			64
+#define MXV_PMAC			65
+#define MXV_SPEC			66
+
+/* --- Server classes --- */
+
+#define MXN_NETWORK_SERVER		81
+#define MXN_SPEC			82
+
+/* --- Special classes --- */
+
+#define MXZ_GROUP			91
+
+/* --- List head type --- */
+
+#define MXT_LIST_HEAD			99
+
+/* --- Interface types --- */
+
+#define MXI_232_SOFTWARE		100
+#define MXI_232_TTY			101
+#define MXI_232_COM			102
+#define MXI_232_FOSSIL			103
+#define MXI_232_KS3344			104
+#define MXI_232_WIN32COM		105
+#define MXI_232_TCP232			106
+#define MXI_232_EPICS			107
+#define MXI_232_NETWORK			108
+#define MXI_232_VMS			109
+#define MXI_232_VXWORKS			110
+#define MXI_232_WAGO750_SERIAL		111
+#define MXI_232_SPEC_COMMAND		112
+
+#define MXI_GPIB_SOFTWARE		200
+#define MXI_GPIB_NI488			201
+#define MXI_GPIB_LINUX			202
+#define MXI_GPIB_K500SERIAL		203
+#define MXI_GPIB_EPICS			204
+#define MXI_GPIB_MICRO488EX		205
+#define MXI_GPIB_NETWORK		206
+
+#define MXI_CAM_SOFTWARE		300
+#define MXI_CAM_DSP6001			301
+#define MXI_CAM_ESONE			302
+
+#define MXI_GEN_MM3000			400
+#define MXI_GEN_MM4000			401
+#define MXI_GEN_ESP                     402
+#define MXI_GEN_PMAC			403
+#define MXI_GEN_COMPUMOTOR		404
+#define MXI_GEN_ORTEC974		405
+#define MXI_GEN_GGCS			406
+#define MXI_GEN_UMCBI			407
+#define MXI_GEN_D8			408
+#define MXI_GEN_PDI40			409
+#define MXI_GEN_PDI45			410
+#define MXI_GEN_VP9000			411
+#define MXI_GEN_8255			412
+#define MXI_GEN_AM9513			413
+#define MXI_GEN_HSC1			414
+#define MXI_GEN_VME58			415
+#define MXI_GEN_VSC16			416
+#define MXI_GEN_SCIPE			417
+#define MXI_GEN_PCMOTION32		418
+#define MXI_GEN_PCSTEP			419
+#define MXI_GEN_6821			420
+#define MXI_GEN_DATABOX			421
+
+#define MXI_GEN_XIA_XERXES		423
+#define MXI_GEN_XIA_NETWORK		424
+#define MXI_GEN_XIA_HANDEL		425
+#define MXI_GEN_LPT			426
+#define MXI_GEN_SIS3807			427
+#define MXI_GEN_MARDTB			428
+#define MXI_GEN_UGLIDE			429
+#define MXI_GEN_VME58_ESRF		430
+#define MXI_GEN_APS_ADCMOD2		431
+#define MXI_GEN_LINUX_PARPORT		432
+#define MXI_GEN_CXTILT02		433
+#define MXI_GEN_ISERIES			434
+#define MXI_GEN_PHIDGET_OLD_STEPPER	435
+#define MXI_GEN_PFCU			436
+#define MXI_GEN_KEITHLEY2700		437
+#define MXI_GEN_KEITHLEY2400		438
+#define MXI_GEN_KEITHLEY2000		439
+#define MXI_GEN_U500			440
+#define MXI_GEN_KOHZU_SC		441
+#define MXI_GEN_PMC_MCAPI		442
+#define MXI_GEN_PICOMOTOR		443
+#define MXI_GEN_SR630			444
+#define MXI_GEN_TPG262			445
+#define MXI_GEN_CM17A			446
+
+#define MXI_PIO_PORTIO			500
+#define MXI_PIO_DOS			501
+#define MXI_PIO_DRIVERLINX		502
+#define MXI_PIO_IOPL			503
+#define MXI_PIO_IOPERM			504
+#define MXI_PIO_VXWORKS			505
+
+#define MXI_VME_VXI_MEMACC		600
+#define MXI_VME_EPICS			601
+#define MXI_VME_SIS3100			602
+#define MXI_VME_VXWORKS			603
+#define MXI_VME_MMAP			604
+#define MXI_VME_RTEMS			605
+
+#define MXI_MOD_TCP			700
+#define MXI_MOD_SERIAL_RTU		701
+
+#define MXI_USB_LIBUSB			800
+
+/* --- Analog input types --- */
+
+#define MXT_AIN_SOFTWARE		10000
+#define MXT_AIN_KS3512			10001
+#define MXT_AIN_PDI45			10002
+#define MXT_AIN_LABPC			10003
+#define MXT_AIN_EPICS			10004
+#define MXT_AIN_NETWORK			10005
+#define MXT_AIN_PMAC			10006
+#define MXT_AIN_XIA_DXP			10007
+#define MXT_AIN_XIA_DXP_SUM		10008
+#define MXT_AIN_MCA_VALUE		10009
+#define MXT_AIN_MARDTB_STATUS		10010
+#define MXT_AIN_SCIPE			10011
+#define MXT_AIN_CRYOSTREAM600		10012
+#define MXT_AIN_MCLENNAN		10013
+#define MXT_AIN_ICPLUS			10014
+#define MXT_AIN_QBPM			10015
+#define MXT_AIN_SI9650			10016
+#define MXT_AIN_MDRIVE			10017
+#define MXT_AIN_APS_ADCMOD2		10018
+#define MXT_AIN_APS_ADCMOD2_AVERAGE	10019
+#define MXT_AIN_ITC503			10020
+#define MXT_AIN_SMARTMOTOR		10021
+#define MXT_AIN_CXTILT02		10022
+#define MXT_AIN_MODBUS			10023
+#define MXT_AIN_ISERIES			10024
+#define MXT_AIN_MCAI_FUNCTION		10025
+#define MXT_AIN_KEITHLEY2700		10026
+#define MXT_AIN_KEITHLEY2400		10027
+#define MXT_AIN_KEITHLEY2000		10028
+#define MXT_AIN_U500			10029
+#define MXT_AIN_PMC_MCAPI		10030
+#define MXT_AIN_PICOMOTOR		10031
+#define MXT_AIN_TRACKER			10032
+#define MXT_AIN_SR630			10033
+#define MXT_AIN_P6000A			10034
+#define MXT_AIN_TPG262			10035
+
+/* --- Analog input subclasses -- */
+
+#define MXT_AIN_LONG			101
+#define MXT_AIN_DOUBLE			102
+
+/* --- Analog output types --- */
+
+#define MXT_AOU_SOFTWARE		20000
+#define MXT_AOU_KS3112			20001
+#define MXT_AOU_PDI45			20002
+#define MXT_AOU_LABPC			20003
+#define MXT_AOU_EPICS			20004
+#define MXT_AOU_NETWORK			20005
+#define MXT_AOU_PMAC			20006
+#define MXT_AOU_SCIPE			20007
+#define MXT_AOU_MCLENNAN		20008
+#define MXT_AOU_ICPLUS			20009
+#define MXT_AOU_QBPM			20010
+#define MXT_AOU_CYBERSTAR_X1000		20011
+#define MXT_AOU_ITC503			20012
+#define MXT_AOU_SMARTMOTOR		20013
+#define MXT_AOU_MODBUS			20014
+#define MXT_AOU_WAGO750_MODBUS		20015
+#define MXT_AOU_ISERIES			20016
+#define MXT_AOU_KEITHLEY2400		20017
+#define MXT_AOU_U500			20018
+#define MXT_AOU_PMC_MCAPI		20019
+#define MXT_AOU_TRACKER			20020
+#define MXT_AOU_SR630			20021
+
+/* --- Analog output subclasses -- */
+
+#define MXT_AOU_LONG			201
+#define MXT_AOU_DOUBLE			202
+
+/* --- Digital input types --- */
+
+#define MXT_DIN_SOFTWARE		30000
+#define MXT_DIN_KS3063			30001
+#define MXT_DIN_PDI45			30002
+#define MXT_DIN_LABPC			30003
+#define MXT_DIN_EPICS			30004
+#define MXT_DIN_NETWORK			30005
+#define MXT_DIN_8255			30006
+#define MXT_DIN_6821			30007
+#define MXT_DIN_BIT			30008
+#define MXT_DIN_VME			30009
+#define MXT_DIN_PMAC			30010
+#define MXT_DIN_COMPUMOTOR		30011
+#define MXT_DIN_LPT			30012
+#define MXT_DIN_PORTIO			30013
+#define MXT_DIN_SCIPE			30014
+#define MXT_DIN_MCLENNAN		30015
+#define MXT_DIN_ICPLUS			30016
+#define MXT_DIN_QBPM			30017
+#define MXT_DIN_MDRIVE			30018
+#define MXT_DIN_LINUX_PARPORT		30019
+#define MXT_DIN_SMARTMOTOR		30020
+#define MXT_DIN_MODBUS			30021
+#define MXT_DIN_ISERIES			30022
+#define MXT_DIN_U500			30023
+#define MXT_DIN_PMC_MCAPI		30024
+#define MXT_DIN_PICOMOTOR		30025
+#define MXT_DIN_TRACKER			30026
+
+/* --- Digital output types --- */
+
+#define MXT_DOU_SOFTWARE		40000
+#define MXT_DOU_KS3063			40001
+#define MXT_DOU_PDI45			40002
+#define MXT_DOU_LABPC			40003
+#define MXT_DOU_EPICS			40004
+#define MXT_DOU_NETWORK			40005
+#define MXT_DOU_8255			40006
+#define MXT_DOU_6821			40007
+#define MXT_DOU_BIT			40008
+#define MXT_DOU_VME			40009
+#define MXT_DOU_PMAC			40010
+#define MXT_DOU_COMPUMOTOR		40011
+#define MXT_DOU_LPT			40012
+#define MXT_DOU_PORTIO			40013
+#define MXT_DOU_SCIPE			40014
+#define MXT_DOU_MCLENNAN		40015
+#define MXT_DOU_ICPLUS			40016
+#define MXT_DOU_QBPM			40017
+#define MXT_DOU_MDRIVE			40018
+#define MXT_DOU_LINUX_PARPORT		40019
+#define MXT_DOU_SMARTMOTOR		40020
+#define MXT_DOU_MODBUS			40021
+#define MXT_DOU_WAGO750_MODBUS		40022
+#define MXT_DOU_ISERIES			40023
+#define MXT_DOU_KEITHLEY2400		40024
+#define MXT_DOU_U500			40025
+#define MXT_DOU_PFCU_FILTER_SUMMARY	40026
+#define MXT_DOU_PMC_MCAPI		40027
+#define MXT_DOU_PICOMOTOR		40028
+#define MXT_DOU_TRACKER			40029
+#define MXT_DOU_TPG262			40030
+#define MXT_DOU_CM17A			40031
+
+/* --- Motor subclasses --- */
+
+#define MXC_MTR_STEPPER			501
+#define MXC_MTR_ANALOG			502
+
+/* --- Motor types --- */
+
+#define MXT_MTR_SOFTWARE		50000
+#define MXT_MTR_E500			50001
+#define MXT_MTR_SMC24			50002
+#define MXT_MTR_PANTHER_HI		50003
+#define MXT_MTR_PANTHER_HE		50004
+#define MXT_MTR_MMC32			50005
+#define MXT_MTR_PM304			50006
+#define MXT_MTR_EPICS			50007
+#define MXT_MTR_MM3000			50008
+#define MXT_MTR_MM4000			50009
+#define MXT_MTR_ESP			50010
+#define MXT_MTR_PMAC			50011
+#define MXT_MTR_PMAC_EPICS_TC		50012
+#define MXT_MTR_PMAC_EPICS_BIO		50013
+#define MXT_MTR_APS_GAP			50014
+#define MXT_MTR_COMPUMOTOR		50015
+#define MXT_MTR_NETWORK			50016
+#define MXT_MTR_GGCS			50017
+#define MXT_MTR_D8			50018
+#define MXT_MTR_VP9000			50019
+#define MXT_MTR_AM9513			50020
+#define MXT_MTR_HSC1			50021
+#define MXT_MTR_E662			50022
+#define MXT_MTR_STP100			50023
+#define MXT_MTR_PDI40			50024
+#define MXT_MTR_VME58			50025
+#define MXT_MTR_SCIPE			50026
+#define MXT_MTR_PCMOTION32		50027
+#define MXT_MTR_PCSTEP			50028
+#define MXT_MTR_DAC_MOTOR		50029
+#define MXT_MTR_LAKESHORE330		50030
+#define MXT_MTR_DATABOX			50031
+#define MXT_MTR_DISABLED		50032
+#define MXT_MTR_MARDTB			50033
+#define MXT_MTR_CRYOSTREAM600		50034
+#define MXT_MTR_SI9650			50035
+#define MXT_MTR_UGLIDE			50036
+#define MXT_MTR_MCLENNAN		50037
+#define MXT_MTR_MDRIVE			50038
+#define MXT_MTR_ITC503			50039
+#define MXT_MTR_PMAC_COORDINATE_SYSTEM	50040
+#define MXT_MTR_SMARTMOTOR		50041
+#define MXT_MTR_PHIDGET_OLD_STEPPER	50042
+#define MXT_MTR_SPEC			50043
+#define MXT_MTR_U500			50044
+#define MXT_MTR_KOHZU_SC		50045
+#define MXT_MTR_PMC_MCAPI		50046
+#define MXT_MTR_PICOMOTOR		50047
+#define MXT_MTR_MCU2			50048
+
+   /* Pseudomotors. */
+
+#define MXT_MTR_ENERGY			55001
+#define MXT_MTR_WAVELENGTH		55002
+#define MXT_MTR_WAVENUMBER		55003
+#define MXT_MTR_SLIT_MOTOR		55004
+#define MXT_MTR_TRANSLATION		55005
+#define MXT_MTR_XAFS_WAVENUMBER		55006
+#define MXT_MTR_DELTA           	55007
+#define MXT_MTR_ELAPSED_TIME		55008
+#define MXT_MTR_MONOCHROMATOR		55009
+#define MXT_MTR_LINEAR_FUNCTION		55010
+#define MXT_MTR_TABLE			55011
+#define MXT_MTR_THETA_2THETA		55012
+#define MXT_MTR_Q			55013
+#define MXT_MTR_SEGMENTED_MOVE		55014
+#define MXT_MTR_TANGENT_ARM		55015
+#define MXT_MTR_SINE_ARM		55016
+#define MXT_MTR_AFRAME_DETECTOR_MOTOR	55017
+#define MXT_MTR_ADSC_TWO_THETA		55018
+#define MXT_MTR_RECORD_FIELD		55019
+
+#define MXT_MTR_APS_18ID		55102
+#define MXT_MTR_ALS_DEWAR_POSITIONER	55103
+
+#define MXT_MTR_COMPUMOTOR_LINEAR	55501
+
+/* --- Encoder types --- */
+
+#define MXT_ENC_SOFTWARE		60000
+#define MXT_ENC_KS3640			60001
+
+/* --- Scaler types --- */
+
+#define MXT_SCL_SOFTWARE		70000
+#define MXT_SCL_QS450			70001
+#define MXT_SCL_KS3610			70002
+#define MXT_SCL_PDI45			70003
+#define MXT_SCL_EPICS			70004
+#define MXT_SCL_ORTEC974		70005
+#define MXT_SCL_NETWORK			70006
+#define MXT_SCL_AM9513			70007
+#define MXT_SCL_MCS			70008
+#define MXT_SCL_VSC16			70009
+#define MXT_SCL_SCIPE			70010
+#define MXT_SCL_MCA_CHANNEL		70011
+#define MXT_SCL_MCA_ROI_INTEGRAL	70012
+#define MXT_SCL_MCA_ALTERNATE_TIME	70013
+#define MXT_SCL_DATABOX			70014
+#define MXT_SCL_AUTOSCALE		70015
+#define MXT_SCL_GAIN_TRACKING		70016
+#define MXT_SCL_SCALER_FUNCTION		70017
+#define MXT_SCL_SPEC			70018
+#define MXT_SCL_GM10			70019
+
+/* --- Timer types --- */
+
+#define MXT_TIM_SOFTWARE		80000
+#define MXT_TIM_RTC018			80001
+#define MXT_TIM_PDI45			80002
+#define MXT_TIM_EPICS			80003
+#define MXT_TIM_ORTEC974		80004
+#define MXT_TIM_NETWORK			80005
+#define MXT_TIM_AM9513			80006
+#define MXT_TIM_MCS			80007
+#define MXT_TIM_VSC16			80008
+#define MXT_TIM_SCIPE			80009
+#define MXT_TIM_MCA			80010
+#define MXT_TIM_FANOUT			80011
+#define MXT_TIM_DATABOX			80012
+#define MXT_TIM_PFCU_SHUTTER		80013
+#define MXT_TIM_SPEC			80014
+#define MXT_TIM_GM10			80015
+
+/* --- Amplifier types --- */
+
+#define MXT_AMP_SOFTWARE		90000
+#define MXT_AMP_NETWORK			90001
+#define MXT_AMP_KEITHLEY428		90002
+#define MXT_AMP_SR570			90003
+#define MXT_AMP_SCIPE			90004
+#define MXT_AMP_ICPLUS			90005
+#define MXT_AMP_QBPM			90006
+#define MXT_AMP_APS_ADCMOD2		90007
+#define MXT_AMP_UDT_TRAMP		90008
+#define MXT_AMP_APS_QUADEM		90009
+#define MXT_AMP_KEITHLEY2700		90010
+#define MXT_AMP_KEITHLEY2400		90011
+#define MXT_AMP_KEITHLEY2000		90012
+
+/* --- Relay types --- */
+
+#define MXT_RLY_SOFTWARE		100000
+#define MXT_RLY_NETWORK			100001
+#define MXT_RLY_GENERIC			100002
+#define MXT_RLY_BLIND  			100003
+#define MXT_RLY_BINARY 			100004
+#define MXT_RLY_MARCCD			100005
+#define MXT_RLY_PFCU_FILTER		100006
+#define MXT_RLY_PFCU_SHUTTER		100007
+#define MXT_RLY_MARDTB_SHUTTER		100008
+
+/* --- Multichannel analyzer types --- */
+
+#define MXT_MCA_SOFTWARE		110000
+#define MXT_MCA_NETWORK			110001
+#define MXT_MCA_EPICS			110002
+#define MXT_MCA_TRUMP			110003
+#define MXT_MCA_XIA_DXP			110004
+#define MXT_MCA_ROENTEC_RCL		110005
+
+/* --- Multichannel encoder types --- */
+
+#define MXT_MCE_SOFTWARE		120001
+#define MXT_MCE_NETWORK			120002
+#define MXT_MCE_MCS			120003
+#define MXT_MCE_DATABOX			120004
+#define MXT_MCE_MCS_TIME		120005
+#define MXT_MCE_PMAC			120006
+
+/* --- Multichannel scaler types --- */
+
+#define MXT_MCS_SOFTWARE		130000
+#define MXT_MCS_NETWORK			130001
+#define MXT_MCS_EPICS			130002
+#define MXT_MCS_DATABOX			130003
+#define MXT_MCS_SIS3801			130004
+#define MXT_MCS_XIA_DXP			130005
+#define MXT_MCS_SCALER_FUNCTION		130006
+
+/* --- Table types --- */
+
+#define MXT_TAB_ADC			140001
+
+/* --- Autoscale types --- */
+
+#define MXT_AUT_FILTER			150001
+#define MXT_AUT_AMPLIFIER		150002
+#define MXT_AUT_NETWORK			150003
+#define MXT_AUT_FILTER_AMPLIFIER	150004
+
+/* --- Pulse generator types --- */
+
+#define MXT_PGN_SOFTWARE		160001
+#define MXT_PGN_NETWORK			160002
+#define MXT_PGN_SIS3807			160003
+#define MXT_PGN_SIS3801			160004
+#define MXT_PGN_PDI45			160005
+
+/* --- Single channel analyzer types --- */
+
+#define MXT_SCA_SOFTWARE		170001
+#define MXT_SCA_NETWORK			170002
+#define MXT_SCA_CYBERSTAR_X1000		170003
+
+/* --- CCD types --- */
+
+#define MXT_CCD_SOFTWARE		180001
+#define MXT_CCD_NETWORK			180002
+#define MXT_CCD_MARCCD			180003
+
+/* --- Sample changer types --- */
+
+#define MXT_CHG_SOFTWARE		190001
+#define MXT_CHG_NETWORK			190002
+#define MXT_CHG_ALS_ROBOT_JAVA		190003
+#define MXT_CHG_SERCAT_ALS_ROBOT	190004
+
+/* --- Multichannel analog input types --- */
+
+#define MXT_MCAI_SOFTWARE		200001
+#define MXT_MCAI_NETWORK		200002
+#define MXT_MCAI_QBPM			200003
+#define MXT_MCAI_KEITHLEY2700		200004
+
+/* --- Scan types --- */
+
+#define MXS_LIN_INPUT 			401001
+#define MXS_LIN_MOTOR			401002
+#define MXS_LIN_2THETA			401003
+#define MXS_LIN_SLIT			401004
+#define MXS_LIN_PSEUDOMOTOR		401005
+
+#define MXS_LST_FILE			403001
+#define MXS_LST_MEMORY			403002
+
+#define MXS_XAF_STANDARD		405001
+
+#define MXS_QUI_MCS			407001
+
+#define MXS_QUI_JOERGER			407101
+#define MXS_QUI_APS_ID			407102
+
+/* --- Variable types --- */
+
+#define MXV_INL_STRING			500001
+#define MXV_INL_CHAR			500002
+#define MXV_INL_UCHAR			500003
+#define MXV_INL_SHORT			500004
+#define MXV_INL_USHORT			500005
+#define MXV_INL_INT			500006
+#define MXV_INL_UINT			500007
+#define MXV_INL_LONG			500008
+#define MXV_INL_ULONG			500009
+#define MXV_INL_FLOAT			500010
+#define MXV_INL_DOUBLE			500011
+#define MXV_INL_RECORD			500031
+
+#define MXV_NET_STRING			501001
+#define MXV_NET_CHAR			501002
+#define MXV_NET_UCHAR			501003
+#define MXV_NET_SHORT			501004
+#define MXV_NET_USHORT			501005
+#define MXV_NET_INT			501006
+#define MXV_NET_UINT			501007
+#define MXV_NET_LONG			501008
+#define MXV_NET_ULONG			501009
+#define MXV_NET_FLOAT			501010
+#define MXV_NET_DOUBLE			501011
+#define MXV_NET_RECORD			501031
+
+#define MXV_EPI_STRING			502001
+#define MXV_EPI_CHAR			502002
+#define MXV_EPI_SHORT			502004
+#define MXV_EPI_INT			502006
+#define MXV_EPI_LONG			502008
+#define MXV_EPI_FLOAT			502010
+#define MXV_EPI_DOUBLE			502011
+
+#define MXV_CAL_MATHOP			503001
+#define MXV_CAL_POLYNOMIAL		503002
+
+#define MXV_CAL_APS_TOPUP_INTERLOCK	503501
+#define MXV_CAL_APS_TOPUP_TIME_TO_INJECT 503502
+
+#define MXV_CAL_POSITION_SELECT		503601
+
+#define MXV_PMA_LONG			504008
+#define MXV_PMA_ULONG			504009
+#define MXV_PMA_DOUBLE			504011
+
+#define MXV_SPEC_STRING			505001
+#define MXV_SPEC_CHAR			505002
+#define MXV_SPEC_UCHAR			505003
+#define MXV_SPEC_SHORT			505004
+#define MXV_SPEC_USHORT			505005
+#define MXV_SPEC_LONG			505008
+#define MXV_SPEC_ULONG			505009
+#define MXV_SPEC_FLOAT			505010
+#define MXV_SPEC_DOUBLE			505011
+
+/* --- Server types --- */
+
+#define MXN_NET_TCPIP			600001
+#define MXN_NET_UNIX			600002
+
+#define MXN_SPEC_SERVER			601001
+
+/* --- Special types --- */
+
+#define MXZ_GRP_STANDARD		700001
+
+#endif /* __MX_DRIVER_H__ */

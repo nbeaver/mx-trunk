@@ -1,0 +1,2 @@
+xflash_rs232 interface rs232 tty "" "" 38400 8 N 1 H 0x0d 0x0d 10 0x0 /dev/ttyS4
+xflash device mca roentec_rcl_mca "" "" 4096 8 0 xflash_rs232

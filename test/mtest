@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -F mtest.dat -S $HOME/scan.dat
+

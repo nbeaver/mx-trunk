@@ -1,0 +1,11 @@
+10id_mono1  server network tcpip_server "" "" 0x0 localhost 9727
+theta_rs232 interface rs232 network_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 10id_mono1 theta_rs232
+6k_rs232    interface rs232 network_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 10id_mono1 6k_rs232
+theta_real  device motor network_motor "" "" 0 0 -5400000 200000 0 -1 -1 1 0 deg 10id_mono1 theta_real
+momega      device motor delta_motor "" "" 0 0 -1e+08 1e+08 1 -1 -1 1 0 um rawmomega mpivot
+mchi        device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawmchi mpivot
+mpivot      device motor network_motor "" "" 0 -20 -1e08 1e08 0 -1 -1 1 0 um 10id_mono1 mpivot
+normal      device motor network_motor "" "" 0 0 -1e08 1e08 0 -1 -1 1 0 um 10id_mono1 normal
+old_normal  device motor translation_mtr "" "" 0 0 -1e08 1e08 0 -1 -1 1 0 um 0x0 3  rawmomega rawmchi mpivot
+rawmomega   device motor network_motor "" "" 0 -20 -1e08 1e08 2 -1 -1 1 0 um 10id_mono1 rawmomega
+rawmchi     device motor network_motor "" "" 0 -20 -1e08 1e08 0 -1 -1 1 0 um 10id_mono1 rawmchi

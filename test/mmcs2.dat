@@ -1,0 +1,14 @@
+sis3801 device mcs epics_mcs "" "" 8 512 "" 0 0 timer2 wml1:mcs "" 0x0
+Io      device scaler mcs_scaler "" "" 0 0 1 timer2 sis3801 1
+It      device scaler mcs_scaler "" "" 0 0 1 timer2 sis3801 2
+If      device scaler mcs_scaler "" "" 0 0 1 timer2 sis3801 3
+Iref    device scaler mcs_scaler "" "" 0 0 1 timer2 sis3801 4
+timer2  device timer mcs_timer "" "" sis3801
+m1      device motor epics_motor "" "" 10.156 0 -1000000 1000000 0 -1 -1 1 0 steps wml1:m1
+m2      device motor epics_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps wml1:m2
+m3      device motor epics_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps wml1:m3
+m4      device motor epics_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps wml1:m4
+I2      device scaler epics_scaler "" "" 0 0 1 timer1 wml1:scaler1 2
+I3      device scaler epics_scaler "" "" 0 0 1 timer1 wml1:scaler1 3
+I4      device scaler epics_scaler "" "" 0 0 1 timer1 wml1:scaler1 4
+timer1  device timer epics_timer "" "" wml1:scaler1

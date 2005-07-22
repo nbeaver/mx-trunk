@@ -1,0 +1,4 @@
+testmcs                          scan quick_scan mcs_qscan "" "" 1 1 1  x 1  I 0 0 preset_time "1 timer1" text testmcs.out none $f[0]  1  3 21
+testbad                          scan quick_scan mcs_qscan "" "" 1 1 1  x 1  I 0 0 preset_time "1 timer1" text testmcs.out none $f[0]  1  3.033 20
+testcount                        scan linear_scan motor_scan "" "" 1 1 1  x 1  timer1 0 0 preset_count "20000 I" text testcount.dat none $f[0]  1  0.1  11
+testscan                         scan linear_scan motor_scan "" "" 1 1 1  x 1  I 0 0 preset_time "1 timer1" text testscan.out none $f[0]  1  0.1  11

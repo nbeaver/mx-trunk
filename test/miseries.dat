@@ -1,0 +1,18 @@
+box1 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0d0a -1 0x0 idc25 1000 0x3
+#
+iseries1      interface generic iseries "" "" box1 *01
+iseries1_volt device analog_input iseries_ainput "" "" 0 1 0 volts 0x0 0 "" iseries1 V01 0 3
+iseries1_sp1  device digital_input iseries_dinput "" "" 0 iseries1 R01 0
+#
+iseries2      interface generic iseries "" "" box1 *02
+iseries2_volt device analog_input iseries_ainput "" "" 0 1 0 volts 0x0 0 "" iseries2 V01 0 3
+iseries2_sp1  device digital_input iseries_dinput "" "" 0 iseries2 R01 0
+#
+iseries3      interface generic iseries "" "" box1 *03
+iseries3_volt device analog_input iseries_ainput "" "" 0 1 0 volts 0x0 0 "" iseries3 V01 0 3
+iseries3_sp1  device digital_input iseries_dinput "" "" 0 iseries3 R01 0
+#
+iseries4      interface generic iseries "" "" box1 *04
+iseries4_volt device analog_input iseries_ainput "" "" 0 1 0 volts 0x0 0 "" iseries4 V01 0 3
+iseries4_sp1  device digital_input iseries_dinput "" "" 0 iseries4 R01 0
+timer1        device timer soft_timer "" ""

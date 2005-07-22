@@ -1,0 +1,9 @@
+17id      server network tcpip_server "" "" 0x0 localhost 9827
+d_spacing variable net_variable net_double "" "" 17id d_spacing.value 1  1  3.13555
+theta     device motor network_motor "" "" 0 0 -1000 1000 0 -1 -1 1 0 deg 17id theta
+energy    device motor energy_motor "" "" 1.7976931e+308 0 0 100000 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
+mcs1      device mcs network_mcs "" "" 4 512 "" 0 0 timer1 17id mcs1
+mcs1_mce  device mce mcs_encoder "" "" 512 5 0 theta mcs1 2 3
+Io        device scaler mcs_scaler "" "" 0 0 1 timer1 mcs1 0
+It        device scaler mcs_scaler "" "" 0 0 1 timer1 mcs1 1
+timer1    device timer mcs_timer "" "" mcs1

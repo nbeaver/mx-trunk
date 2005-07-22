@@ -1,0 +1,23 @@
+xia_server   server network tcpip_server "" "" 0x000 164.54.208.106 9727
+#xia_server   server network tcpip_server "" "" 0x000 192.168.137.6 9727
+xia          interface generic xia_network "" "" xia_server xia
+mca0         device mca xia_dxp_mca "" "" 8192 16 16 xia mca0 -1 -1
+roi0         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi0
+roi1         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi1
+roi2         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi2
+roi3         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi3
+roi4         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi4
+roi5         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi5
+roi6         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi6
+roi7         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi7
+roi8         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi8
+roi9         device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi9
+roi10        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi10
+roi11        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi11
+roi12        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi12
+roi13        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi13
+roi14        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi14
+roi15        device scaler network_scaler "" "" 0 0 0 xia_timer xia_server roi15
+livetime     device scaler network_scaler "" "" 0 0 0 xia_timer xia_server livetime
+realtime     device scaler network_scaler "" "" 0 0 0 xia_timer xia_server realtime
+xia_timer    device timer mca_timer "" "" mca0 1

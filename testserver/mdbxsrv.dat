@@ -1,0 +1,7 @@
+databox_rs232 interface rs232 tty "" "" 9600 8 N 1 S 0xd0a 0xd0a -1 0x0 /dev/ttyS0
+databox       interface generic databox "" "" databox_rs232 0 240
+x             device motor databox_motor "" "" 1 0 -20000000 20000000 0 -1 -1 1 0 deg databox X 200
+I             device scaler databox_scaler "" "" 417 0 0 timer1 databox
+timer1        device timer databox_timer "" "" databox
+databox_mcs   device mcs databox_mcs "" "" 1 1000 "" 0 0 timer1 databox
+x_mce         device mce databox_encoder "" "" 1000 1 0 x databox_mcs

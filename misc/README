@@ -1,0 +1,9 @@
+This directory is for miscellaneous files that do not fit anywhere else.
+So far it includes:
+
+  linux_mvme162/ - A 16 MByte MVME162 running Linux does not have enough
+	memory to successfully link the default version of libMx.so.
+	This directory contains alternate versions of libMx/Makefile,
+	libMx/Makehead.linux and libMx/mx_driver.c for building a version
+	of libMx.so with only a subset of the normal set of drivers.
+

@@ -1,0 +1,10 @@
+#! /bin/sh
+
+if [ x${MXDIR} = x ]; then
+	MXDIR=/opt/mx
+fi
+
+export MXDIR
+
+../motor/motor.static -F ./mxerxes_real_short.dat -s ./sxerxes_real_short.dat -i $*
+

@@ -1,0 +1,37 @@
+#
+# Test PMAC
+#
+pmac1_rs232   interface rs232 tcp232 "" "" 38400 8 N 1 H 0xd 0xd -1 0x0 w11 3001 0x0
+pmac1         interface generic pmac "" "" rs232 pmac1_rs232 1
+#
+# Test detector motors.
+#
+d_vup         device motor disabled_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.1 0 mm pmac1 0 1
+d_vdn         device motor disabled_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.1 0 mm pmac1 0 2
+d_hor         device motor disabled_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.1 0 mm pmac1 0 3
+#
+# Simulated goniometer motor.
+#
+gs_vert       device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.1 0 mm 2000 0 1000
+#
+# Detector height pseudomotor
+#
+d_ver         device motor translation_mtr "" "" 0 0 -1000000000 1000000000 0 -1 -1 1 0 mm 0x0 2 d_vup d_vdn
+#
+# Distances used by the A frame detector motor (currently in mm).
+#
+A_parameter   variable inline double "" "" 1 1 302.0
+B_parameter   variable inline double "" "" 1 1 508.0
+C_parameter   variable inline double "" "" 1 1 254.0
+#
+# Heights of the upstream and downstream supports relative to the
+# goniometer height.
+#
+dv_upstream   device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm d_vup gs_vert
+dv_downstream device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm d_vdn gs_vert
+#
+# Pseudomotors used by the A frame detector motor.
+#
+det_distance  device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 1 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor
+det_hor_angle device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 57.295779513 0 deg 2 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor
+det_offset    device motor aframe_det_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 mm 3 A_parameter B_parameter C_parameter dv_downstream dv_upstream d_hor

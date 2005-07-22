@@ -1,0 +1,4009 @@
+/*
+ * Name:     mx_field.c
+ *
+ * Purpose:  Generic MX_RECORD_FIELD support.
+ *
+ *           Please note that the functions in this file are prototyped
+ *           in libMx/mx_record.h
+ *
+ * Author:   William Lavender
+ *
+ *-----------------------------------------------------------------------
+ *
+ * Copyright 1999-2005 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "mxconfig.h"
+#include "mx_util.h"
+#include "mx_types.h"
+#include "mx_driver.h"
+#include "mx_record.h"
+#include "mx_array.h"
+#include "mx_variable.h"
+
+#include "mx_scan.h"
+
+#include "mx_rs232.h"
+#include "mx_camac.h"
+
+#include "mx_analog_input.h"
+#include "mx_analog_output.h"
+#include "mx_digital_input.h"
+#include "mx_digital_output.h"
+#include "mx_motor.h"
+#include "mx_scaler.h"
+#include "mx_timer.h"
+
+typedef struct {
+	long type_code;
+	const char type_text[30];
+} MX_FIELD_TYPE_NAME;
+
+/*=====================================================================*/
+
+MX_EXPORT const char *
+mx_get_field_label_string( MX_RECORD *record, long label_value )
+{
+	const char fname[] = "mx_get_field_label_string()";
+
+	static const char unknown_label_value[] = "unknown";
+	static const char null_record_value[] = "NULL";
+
+	long i;
+
+	MX_RECORD_FIELD *record_field_array, *record_field;
+
+	if ( record == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+
+		return null_record_value;
+	}
+
+	if ( label_value < 0 ) {
+		return unknown_label_value;
+	}
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &( record_field_array[i] );
+
+		if ( label_value == record_field->label_value ) {
+			return record_field->name;
+		}
+	}
+
+	return unknown_label_value;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT const char *
+mx_get_field_type_string( long field_type )
+{
+	static MX_FIELD_TYPE_NAME field_type_list[] = {
+	{ MXFT_STRING,		"MXFT_STRING" },
+	{ MXFT_CHAR,		"MXFT_CHAR" },
+	{ MXFT_UCHAR,		"MXFT_UCHAR" },
+	{ MXFT_SHORT,		"MXFT_SHORT" },
+	{ MXFT_USHORT,		"MXFT_USHORT" },
+	{ MXFT_INT,		"MXFT_INT" },
+	{ MXFT_UINT,		"MXFT_UINT" },
+	{ MXFT_LONG,		"MXFT_LONG" },
+	{ MXFT_ULONG,		"MXFT_ULONG" },
+	{ MXFT_FLOAT,		"MXFT_FLOAT" },
+	{ MXFT_DOUBLE,		"MXFT_DOUBLE" },
+
+	{ MXFT_HEX,		"MXFT_HEX" },
+
+	{ MXFT_RECORD,		"MXFT_RECORD" },
+	{ MXFT_RECORDTYPE,	"MXFT_RECORDTYPE" },
+	{ MXFT_INTERFACE,	"MXFT_INTERFACE" },
+	};
+
+	static int num_field_types
+		= sizeof(field_type_list) / sizeof(field_type_list[0]);
+
+	const char unknown_field_type[] = "MXFT_UNKNOWN";
+
+	int i;
+	const char *ptr;
+
+	for ( i = 0; i < num_field_types; i++ ) {
+		if ( field_type_list[i].type_code == field_type )
+			break;		/* exit the for() loop */
+	}
+
+	if ( i >= num_field_types ) {
+		ptr = unknown_field_type;
+	} else {
+		ptr = field_type_list[i].type_text;
+	}
+
+	return ptr;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT MX_RECORD_FIELD *
+mx_get_record_field( MX_RECORD *record, const char *field_name )
+{
+	MX_RECORD_FIELD *field_array;
+	long i, num_record_fields;
+
+	if ( record == NULL ) {
+		return NULL;
+	}
+
+	if ( field_name == NULL ) {
+		return NULL;
+	}
+
+	num_record_fields = record->num_record_fields;
+
+	if ( num_record_fields <= 0 ) {
+		return NULL;
+	}
+
+	field_array = record->record_field_array;
+
+	if ( field_array == NULL ) {
+		return NULL;
+	}
+
+	for ( i = 0; i < num_record_fields; i++ ) {
+
+		if ( strcmp( field_name, field_array[i].name ) == 0 ) {
+
+			return &field_array[i];
+		}
+	}
+
+	return NULL;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_find_record_field( MX_RECORD *record, const char *name_of_field_to_find,
+				MX_RECORD_FIELD **field_that_was_found )
+{
+	const char fname[] = "mx_find_record_field()";
+
+	MX_RECORD_FIELD *field;
+	long i, num_record_fields;
+
+	if ( record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+					"NULL MX_RECORD pointer passed." );
+	}
+
+	if ( name_of_field_to_find == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+				"NULL record field name pointer passed." );
+	}
+
+	if ( field_that_was_found == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+"Address of location to place the address of the MX_RECORD_FIELD was NULL.");
+	}
+
+	num_record_fields = record->num_record_fields;
+
+	if ( num_record_fields <= 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"Number of record fields = %ld for record '%s' is less than or equal to zero.",
+			num_record_fields, record->name );
+	}
+
+	field = record->record_field_array;
+
+	if ( field == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"record_field_array for record '%s' was NULL.",
+			record->name );
+	}
+
+	*field_that_was_found = NULL;
+
+	for ( i = 0; i < num_record_fields; i++ ) {
+		if ( strcmp( name_of_field_to_find, field[i].name ) == 0 ) {
+			*field_that_was_found = &field[i];
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+	if ( i >= num_record_fields ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record field '%s' was not found in record '%s'",
+			name_of_field_to_find, record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_find_record_field_defaults(
+		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
+		long num_record_fields,
+		const char *name_of_field_to_find,
+		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found )
+{
+	const char fname[] = "mx_find_record_field_defaults()";
+
+	long index_of_field_that_was_found;
+	mx_status_type status;
+
+	if (default_field_that_was_found == (MX_RECORD_FIELD_DEFAULTS **)NULL){
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"Address of location to place the address of "
+			"the MX_RECORD_FIELD_DEFAULTS was NULL." );
+	}
+
+	status = mx_find_record_field_defaults_index(
+			record_field_default_array,
+			num_record_fields,
+			name_of_field_to_find,
+			&index_of_field_that_was_found );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*default_field_that_was_found
+	    = &record_field_default_array[ index_of_field_that_was_found ];
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_find_record_field_defaults_index(
+		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
+		long num_record_fields,
+		const char *name_of_field_to_find,
+		long *index_of_field_that_was_found )
+{
+	const char fname[] = "mx_find_record_field_defaults_index()";
+
+	long i;
+
+	if (record_field_default_array == (MX_RECORD_FIELD_DEFAULTS *) NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"NULL MX_RECORD_FIELD_DEFAULTS pointer passed." );
+	}
+
+	if ( num_record_fields <= 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"Number of record fields = %ld for record_field_default_array = %p "
+	"is less than or equal to zero.",
+			num_record_fields, record_field_default_array );
+	}
+
+	if ( name_of_field_to_find == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+				"NULL record field name pointer passed." );
+	}
+
+	if ( index_of_field_that_was_found == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"Address of location to place the index of "
+			"the MX_RECORD_FIELD_DEFAULTS was NULL." );
+	}
+
+	*index_of_field_that_was_found = -1;
+
+	for ( i = 0; i < num_record_fields; i++ ) {
+		if ( strcmp( name_of_field_to_find,
+				record_field_default_array[i].name ) == 0 ) {
+
+			*index_of_field_that_was_found = i;
+
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+	if ( i >= num_record_fields ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Record field '%s' was not found for record_field_default_array = %p",
+			name_of_field_to_find, record_field_default_array );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT void *
+mx_get_field_value_pointer( MX_RECORD_FIELD *field )
+{
+	void *value_pointer;
+
+	if ( field->flags & MXFF_VARARGS ) {
+		value_pointer = mx_read_void_pointer_from_memory_location(
+						field->data_pointer );
+	} else {
+		value_pointer = field->data_pointer;
+	}
+	return value_pointer;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_construct_ptr_to_field_data(
+		MX_RECORD *record,
+		MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
+		void **field_data_ptr )
+{
+	const char fname[] = "mx_construct_ptr_to_field_data()";
+
+	char *structure_ptr;
+
+	MX_DEBUG( 8,("%s: record = '%s', field defaults = '%s'",
+		fname, record->name, record_field_defaults->name ));
+
+	/* Construct a pointer to the field data. */
+
+	switch( record_field_defaults->structure_id ) {
+	case MXF_REC_RECORD_STRUCT:
+		structure_ptr = (char *) record;
+		break;
+	case MXF_REC_SUPERCLASS_STRUCT:
+		structure_ptr = (char *) record->record_superclass_struct;
+		break;
+	case MXF_REC_CLASS_STRUCT:
+		structure_ptr = (char *) record->record_class_struct;
+		break;
+	case MXF_REC_TYPE_STRUCT:
+		structure_ptr = (char *) record->record_type_struct;
+		break;
+	default:
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname, 
+		"Record field '%s' has an unrecognized structure id type %d.",
+			record_field_defaults->name,
+			record_field_defaults->structure_id );
+		break;
+	}
+
+	/* *field_data_ptr contains the address of the given
+	 * structure element.
+	 */
+
+	*field_data_ptr
+		= structure_ptr + record_field_defaults->structure_offset;
+
+	MX_DEBUG( 8,
+	("%s: structure_ptr = %p, field offset = 0x%lx, *field_data_ptr = %p",
+		fname, structure_ptr,
+		(long) record_field_defaults->structure_offset,
+		*field_data_ptr ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_construct_ptr_to_field_value(
+		MX_RECORD *record,
+		MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
+		void **field_value_ptr )
+{
+	void *field_data_ptr;
+	mx_status_type status;
+
+	status = mx_construct_ptr_to_field_data( record,
+				record_field_defaults, &field_data_ptr );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	if ( record_field_defaults->flags & MXFF_VARARGS ) {
+		*field_value_ptr =
+		    mx_read_void_pointer_from_memory_location(field_data_ptr);
+
+	} else {
+		*field_value_ptr = field_data_ptr;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_setup_typeinfo_for_record_type_fields( long num_record_fields,
+		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
+		long mx_type, long mx_class, long mx_superclass )
+{
+	const char fname[] = "mx_setup_typeinfo_for_record_type_fields()";
+
+	MX_RECORD_FIELD_DEFAULTS *field;
+	MX_DRIVER **driver_list_array;
+	MX_DRIVER *mx_superclass_list, *mx_class_list, *mx_type_list;
+	MX_DRIVER *driver;
+	long i;
+	mx_status_type status;
+
+	if ( record_field_defaults_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"record_field_defaults_array argument was NULL." );
+	}
+
+	driver_list_array = mx_get_driver_lists();
+
+	/* Setup typeinfo for the superclass field. */
+
+	mx_superclass_list = driver_list_array[0];
+
+	for ( i = 0; ; i++ ) {
+		if ( mx_superclass_list[i].mx_superclass == mx_superclass ) {
+			driver = &mx_superclass_list[i];
+			break;
+		}
+		if ( mx_superclass_list[i].mx_superclass == 0 ) {
+			driver = NULL;
+			break;
+		}
+	}
+
+	if ( driver == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Superclass %ld is not a legal superclass.",
+			mx_superclass );
+	}
+
+	status = mx_find_record_field_defaults( record_field_defaults_array,
+				num_record_fields, "mx_superclass", &field );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	field->typeinfo = driver;
+
+	/* Setup typeinfo for the class field. */
+
+	mx_class_list = driver_list_array[1];
+
+	for ( i = 0; ; i++ ) {
+		if ( mx_class_list[i].mx_class == mx_class ) {
+			driver = &mx_class_list[i];
+			break;
+		}
+		if ( mx_class_list[i].mx_class == 0 ) {
+			driver = NULL;
+			break;
+		}
+	}
+
+	if ( driver == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Class %ld is not a legal class.", mx_class );
+	}
+
+	status = mx_find_record_field_defaults( record_field_defaults_array,
+				num_record_fields, "mx_class", &field );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	field->typeinfo = driver;
+
+	/* Setup typeinfo for the type field. */
+
+	mx_type_list = driver_list_array[2];
+
+	for ( i = 0; ; i++ ) {
+		if ( mx_type_list[i].mx_type == mx_type ) {
+			driver = &mx_type_list[i];
+			break;
+		}
+		if ( mx_type_list[i].mx_type == 0 ) {
+			driver = NULL;
+			break;
+		}
+	}
+
+	if ( driver == NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Type %ld is not a legal type.", mx_type );
+	}
+
+	status = mx_find_record_field_defaults( record_field_defaults_array,
+				num_record_fields, "mx_type", &field );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	field->typeinfo = driver;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_create_record_from_description(
+		MX_RECORD *record_list,
+		char *description,
+		MX_RECORD **created_record,
+		unsigned long flags )
+{
+	const char fname[] = "mx_create_record_from_description()";
+
+	MX_RECORD *current_record;
+	MX_RECORD *record;
+	MX_RECORD_FUNCTION_LIST *record_function_list;
+	MX_DRIVER **driver_list_array;
+	MX_DRIVER *mx_superclass_list, *mx_class_list;
+	MX_DRIVER *superclass_driver;
+	MX_DRIVER *class_driver, *type_driver;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array;
+	MX_RECORD_FIELD_PARSE_STATUS parse_status;
+	char token[4][MXU_BUFFER_LENGTH + 1];
+	mx_status_type (*fptr)( MX_RECORD * );
+	mx_status_type mx_status;
+	int i, record_name_length;
+	char *list_name;
+	char separators[] = MX_RECORD_FIELD_SEPARATORS;
+
+	MX_DEBUG( 8,("#####################################################"));
+	MX_DEBUG( 8,("%s: description = '%s'", fname, description));
+
+	/* Null this out in case we return with an error. */
+
+	*created_record = NULL;
+
+	/* Parse the first four fields of the record description
+	 * to find out what kind of record description it is.
+	 */
+
+	mx_initialize_parse_status( &parse_status, description, separators );
+
+	for ( i = 0; i < 4; i++ ) {
+		mx_status = mx_get_next_record_token( &parse_status,
+				token[i], sizeof( token[0] ) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+		    if ( i == 0 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"No tokens were found on line '%s'.", description );
+		    } else
+		    if ( i == 1 ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Only 1 token was found on line '%s'.", description );
+		    } else {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Only %d tokens were found on line '%s'.", i, description );
+		    }
+		}
+	}
+
+#if 0
+	for ( i = 0; i < 4; i++ ) {
+		fprintf(stderr, "token[%d] = '%s' ", i, token[i]);
+	}
+	fprintf(stderr,"\n");
+#endif
+
+	record_name_length = strlen( token[0] );
+
+	if ( record_name_length >= MXU_RECORD_NAME_LENGTH ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The number of characters '%d' in record name '%s' "
+		"is longer than the maximum allowed length of %d.",
+			record_name_length, token[0],
+			MXU_RECORD_NAME_LENGTH - 1 );
+	}
+
+	/* The first field is the name of this record.  It should be unique. */
+
+	record = mx_get_record( record_list, token[0] );
+
+	if ( record != (MX_RECORD *) NULL ) {
+
+		if ( flags & MXFC_ALLOW_RECORD_REPLACEMENT ) {
+
+			mx_status = mx_delete_record( record );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+		} else if ( flags & MXFC_ALLOW_SCAN_REPLACEMENT ) {
+
+			if ( record->mx_superclass != MXR_SCAN ) {
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Preexisting record '%s' is not a scan record and may not be deleted.",
+					record->name );
+
+			} else if ( strcmp( token[1], "scan" ) != 0 ) {
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Scan record '%s' may not be replaced by non-scan description '%s'",
+					record->name, description );
+
+			} else {
+				mx_status = mx_delete_record( record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+		} else {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The record name '%s' is already in use in record list %p",
+				token[0], record_list );
+		}
+	}
+
+	/* Create a new record in the record list and copy the record
+	 * name into it.  Since the record list is circular, inserting
+	 * the record before the first record is equivalent to inserting
+	 * it after the last record.
+	 */
+
+	current_record = mx_create_record();
+
+	if ( current_record == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Out of memory allocating first data record.");
+	}
+
+	mx_strncpy( current_record->name, token[0], MXU_RECORD_NAME_LENGTH );
+
+	mx_status = mx_insert_before_record( record_list, current_record );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		free( current_record );
+
+		return mx_status;
+	}
+
+	driver_list_array = mx_get_driver_lists();
+
+	/* === Figure out what record SUPERCLASS this is. === */
+
+	mx_superclass_list = driver_list_array[0];
+
+	superclass_driver = NULL;
+
+	for ( i = 0; ; i++ ) {
+		/* Check for the end of the list. */
+
+		if ( mx_superclass_list[i].mx_superclass == 0 ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		list_name = mx_superclass_list[i].name;
+
+		if ( list_name == NULL ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		if ( strcmp( token[1], list_name ) == 0 ) {
+			superclass_driver = &( mx_superclass_list[i] );
+
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+	if ( superclass_driver == (MX_DRIVER *) NULL ) {
+		mx_delete_record( current_record );
+
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Record superclass '%s' is unrecognizable on line '%s'.",
+			token[1], description );
+	}
+
+	current_record->mx_superclass = superclass_driver->mx_superclass;
+
+	/* === Figure out what record CLASS this is. === */
+
+	mx_class_list = driver_list_array[1];
+
+	class_driver = NULL;
+
+	for ( i = 0; ; i++ ) {
+		/* Check for the end of the list. */
+
+		if ( mx_class_list[i].mx_class == 0 ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		list_name = mx_class_list[i].name;
+
+		if ( list_name == NULL ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		if ( strcmp( token[2], list_name ) == 0 ) {
+			class_driver = &( mx_class_list[i] );
+
+			break;		/* Exit the for() loop. */
+		}
+	}
+
+	if ( class_driver == (MX_DRIVER *) NULL ) {
+		mx_delete_record( current_record );
+
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Record class '%s' is unrecognizable on line '%s'",
+					token[2], description );
+	}
+
+	current_record->mx_class = class_driver->mx_class;
+
+	/* === Figure out what record TYPE this is. === */
+
+	type_driver = mx_get_driver_by_name( token[3] );
+
+	if ( type_driver == (MX_DRIVER *) NULL ) {
+		mx_delete_record( current_record );
+
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Record type '%s' is unrecognizable on line '%s'",
+					token[3], description );
+	}
+
+	current_record->mx_type = type_driver->mx_type;
+
+	/* Does this record type have new style record field support
+	 * that we can use to initialize the record?
+	 */
+
+	if ( ( type_driver->num_record_fields == NULL )
+	  || ( *(type_driver->num_record_fields) <= 0 )
+	  || ( type_driver->record_field_defaults_ptr == NULL ) )
+	{
+		/* If no record fields are defined, invoke the old
+		 * interface initialization function.
+		 */
+
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+			"The driver for record '%s' does not define "
+			"any record fields!", current_record->name );
+
+		mx_delete_record( current_record );
+
+		return mx_status;
+
+	} else {
+		/* Record field support _is_ available, so use it to
+		 * initialize the record.
+		 */
+
+		MX_DEBUG( 8,("%s: record type '%s' uses record fields.",
+			fname, token[3]));
+
+		current_record->num_record_fields
+			= *(type_driver->num_record_fields);
+
+		record_field_defaults_array
+			= *(type_driver->record_field_defaults_ptr);
+
+		/* Allocate an array for the record fields of the
+		 * current record.
+		 */
+
+		current_record->record_field_array
+		    = (MX_RECORD_FIELD *) malloc(
+				current_record->num_record_fields
+				* sizeof(MX_RECORD_FIELD) );
+
+		if ( current_record->record_field_array
+					== (MX_RECORD_FIELD *) NULL ) {
+
+			mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Ran out of memory allocating record field array for record '%s'",
+				current_record->name );
+
+			mx_delete_record( current_record );
+
+			return mx_status;
+		}
+
+		/* The create_record_structures function from the
+		 * MX_RECORD_FUNCTION_LIST is invoked before we do
+		 * anything else, so that any data structures that
+		 * have to be set up before we process the record 
+		 * field list can be done.  For the example of an
+		 * "e500" record, this means malloc-ing an MX_CAMAC
+		 * structure and an MX_E500 structure and setting up
+		 * the pointers to them in the MX_RECORD.
+		 */
+
+		record_function_list
+			= type_driver->record_function_list;
+
+		if ( record_function_list
+				== (MX_RECORD_FUNCTION_LIST *) NULL ) {
+
+			mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"No record function list defined for record type %ld.",
+					current_record->mx_type);
+
+			mx_delete_record( current_record );
+
+			return mx_status;
+		}
+
+		current_record->record_function_list	/* save the pointer */
+			= record_function_list;
+
+		fptr = record_function_list->create_record_structures;
+
+		if ( fptr == NULL ) {
+			mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"No create_record_structures function defined for record type %ld.",
+					current_record->mx_type);
+
+			mx_delete_record( current_record );
+
+			return mx_status;
+		}
+
+		mx_status = (*fptr)( current_record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_delete_record( current_record );
+
+			return mx_status;
+		}
+
+		/* Now parse the record field array. */
+
+		mx_status = mx_parse_record_fields( current_record,
+				record_field_defaults_array, &parse_status );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_status = mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Cannot parse record description '%s' for record '%s'",
+				description, current_record->name );
+
+			mx_delete_record( current_record );
+
+			return mx_status;
+		}
+	}
+
+	*created_record = current_record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+static mx_status_type
+mx_parse_string_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_string_field()";
+
+	MX_DEBUG( 8,("%s: dataptr = %p, token = '%s'",
+			fname, dataptr, token));
+
+	mx_strncpy( (char *) dataptr, token,
+			parse_status->max_string_token_length );
+
+	if ( strlen(token) >= parse_status->max_string_token_length ) {
+
+		if ( record == (MX_RECORD *) NULL ) {
+			mx_warning(
+			"String token '%s' was too long.  "
+			"The string was truncated to '%s'.",
+				token, (char *) dataptr );
+		} else {
+			mx_warning(
+			"String token '%s' for record '%s' was too long.  "
+			"The string was truncated to '%s'.",
+				token, record->name, (char *) dataptr );
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_string_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	char *ptr;
+	int whitespace, string_length;
+
+	MX_DEBUG( 8,
+		("mx_construct_string_field: dataptr = %p, *dataptr = '%s'",
+		dataptr, (char *) dataptr));
+
+	ptr = (char *) dataptr;
+
+	string_length = strlen(ptr);
+
+	/* Are there any whitespace characters in this string? */
+
+	if ( string_length == 0 ) {
+			sprintf( token_buffer, "\"\"" );
+	} else {
+		if (strcspn(ptr, MX_RECORD_FIELD_SEPARATORS) < string_length) {
+			whitespace = TRUE;
+		} else {
+			whitespace = FALSE;
+		}
+		if ( whitespace) {
+			sprintf( token_buffer, "\"%s\"", (char *) dataptr);
+		} else {
+			sprintf( token_buffer, "%s", (char *) dataptr);
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_char_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_char_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%c", (char *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Char not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_char_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%c", *((char *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uchar_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_uchar_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%c", (unsigned char *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned char not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uchar_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%c", *((unsigned char *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_short_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_short_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%hd", (short *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Short not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_short_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%hd", *((short *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_ushort_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_ushort_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%hu", (unsigned short *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned short not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_ushort_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%hu", *((unsigned short *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_int_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_int_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%d", (int *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Long not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_int_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%d", *((int *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uint_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_uint_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%u", (unsigned int *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned int not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uint_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%u", *((unsigned int *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_long_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_long_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%ld", (long *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Long not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_long_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%ld", *((long *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_ulong_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_ulong_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%lu", (unsigned long *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned long not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_ulong_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	sprintf( token_buffer, "%lu", *((unsigned long *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_float_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_float_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%g", (float *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Float not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_float_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	int precision;
+
+	if ( record != NULL ) {
+		precision = record->precision;
+	} else {
+		precision = 15;
+	}
+	sprintf( token_buffer, "%.*g", precision, *((float *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_double_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_double_field()";
+
+	int num_items;
+
+	num_items = sscanf( token, "%lg", (double *) dataptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Double not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_double_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	int precision;
+
+	if ( record != NULL ) {
+		precision = record->precision;
+	} else {
+		precision = 15;
+	}
+	sprintf( token_buffer, "%.*g", precision, *((double *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_hex_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_hex_field()";
+
+	char *endptr;
+	unsigned long *value_ptr;
+
+	value_ptr = (unsigned long *) dataptr;
+
+	*value_ptr = strtoul( token, &endptr, 0 );
+
+	if ( *endptr != '\0' ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned long or hex value not found in token '%s'", token );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_hex_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	unsigned long data_value;
+	int width;
+
+	data_value = *((unsigned long *) dataptr);
+
+	if ( data_value < 256L ) {
+		width = 2;
+	} else if ( data_value < 65536L ) {
+		width = 4;
+	} else if ( data_value < 16777216L ) {
+		width = 6;
+	} else {
+		width = 8;
+	}
+
+	sprintf( token_buffer, "%#*lx", width, data_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_mx_record_field( void *memory_location, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_mx_record_field()";
+
+	MX_RECORD *list_head_record;
+	MX_LIST_HEAD *list_head_struct;
+	MX_RECORD *referenced_record;
+	MX_RECORD *placeholder_record;
+	void **fixup_record_array;
+	long num_fixup_records, num_fixup_record_blocks;
+	size_t new_array_size;
+	mx_status_type status;
+
+	MX_DEBUG( 8,(
+	"%s: Token = '%s', memory_location = %p, referencing record = '%s'",
+			fname, token, memory_location, record->name));
+
+	/* If placeholder records are not in use, just look up the
+	 * record entry in the list.  Otherwise, construct a placeholder
+	 * record.
+	 */
+
+	list_head_record = (MX_RECORD *) (record->list_head);
+
+	list_head_struct
+	    = (MX_LIST_HEAD *) (list_head_record->record_superclass_struct);
+
+	if ( list_head_struct->fixup_records_in_use == FALSE ) {
+		referenced_record = mx_get_record( list_head_record, token );
+
+		if ( referenced_record == NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The record '%s' mentioned by '%s' does not exist.",
+				token, record->name );
+		}
+
+		mx_write_void_pointer_to_memory_location( memory_location,
+						referenced_record );
+
+	} else {
+
+		/* Construct a placeholder for this record name that is to be
+		 * replaced later by a pointer to the real record.  This is 
+		 * in order to allow for forward references to record names.
+		 */
+
+		status = mx_construct_placeholder_record(
+				record, token, &placeholder_record );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		mx_write_void_pointer_to_memory_location( memory_location,
+							placeholder_record );
+
+		MX_DEBUG( 8,
+		("%s: placeholder name = '%s', memory_location = %p",
+			fname, placeholder_record->name, memory_location));
+
+		/* Add 'memory_location' to the list of MX_RECORD pointers that
+		 * need to be fixed up later by mx_fixup_placeholder_records().
+		 */
+
+		num_fixup_records = list_head_struct->num_fixup_records;
+
+		fixup_record_array = list_head_struct->fixup_record_array;
+
+		if (num_fixup_records % MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE == 0){
+			num_fixup_record_blocks
+			= num_fixup_records / MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE;
+
+			num_fixup_record_blocks++;
+
+			new_array_size = num_fixup_record_blocks
+				* MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE
+				* sizeof(void *);
+
+			/* The ANSI C standard says that if the first
+			 * argument of realloc() is NULL, then it should
+			 * act just like malloc().  Unfortunately,
+			 * not all "ANSI C" implementations seem to
+			 * know this.  acc under SunOS 4.1.4 is an
+			 * example of this.
+			 */
+
+			if ( fixup_record_array == NULL ) {
+				fixup_record_array = (void **) malloc(
+					new_array_size );
+			} else {
+				fixup_record_array = (void **) realloc(
+					fixup_record_array,  new_array_size );
+			}
+
+			if ( fixup_record_array == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+"Ran out of memory trying to increase size of fixup record array.  "
+"Requested array element blocks = %ld, requested array size = %ld bytes.",
+				num_fixup_record_blocks, (long) new_array_size);
+			}
+
+			list_head_struct->fixup_record_array
+				= fixup_record_array;
+		}
+
+		/* Save in the placeholder record the array index value
+		 * of where the placeholder is located in the fixup record
+		 * array.
+		 */
+
+		placeholder_record->record_flags = num_fixup_records;
+
+		/* Store a pointer to the placeholder record in the fixup
+		 * record array.
+		 */
+
+		fixup_record_array[ num_fixup_records ] = memory_location;
+
+		list_head_struct->num_fixup_records = num_fixup_records + 1;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_mx_record_field( void *memory_location,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	MX_RECORD *referenced_record;
+
+	referenced_record = (MX_RECORD *)
+		mx_read_void_pointer_from_memory_location( memory_location );
+
+	if ( referenced_record == NULL ) {
+		sprintf( token_buffer, "NULL_record" );
+	} else {
+		sprintf( token_buffer, "%s", referenced_record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_recordtype_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_recordtype_field()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not done yet." );
+}
+
+static mx_status_type
+mx_construct_recordtype_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	const char fname[] = "mx_construct_recordtype_field()";
+
+	MX_DRIVER *driver;
+
+	driver = (MX_DRIVER *)(record_field->typeinfo);
+
+	if ( driver == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Field '%s' in record '%s' has a NULL typeinfo entry.",
+			record_field->name, record->name );
+	}
+
+	sprintf( token_buffer, "%s", driver->name );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_interface_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	const char fname[] = "mx_parse_interface_field()";
+
+	MX_INTERFACE *interface;
+	char *ptr;
+	mx_status_type status;
+
+	interface = (MX_INTERFACE *) dataptr;
+
+	if ( interface == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"Memory has not been allocated for the MX_INTERFACE field for record '%s'",
+			record->name );
+	}
+
+	/* Look for the colon ':' that separates the record name from
+	 * the address field.
+	 */
+
+	ptr = strchr( token, ':' );
+
+	if ( ptr != NULL ) {
+		*ptr = '\0';
+
+		ptr++;
+	}
+
+	/* Parse the record name. */
+
+	status = mx_parse_mx_record_field( &(interface->record), token,
+				record, field, parse_status );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	/* Parse the address field. */
+
+	interface->address_name[0] = '\0';
+
+	if ( ptr == NULL ) {
+		interface->address = 0;
+	} else {
+		strncat( interface->address_name, ptr, 
+				MXU_INTERFACE_ADDRESS_NAME_LENGTH );
+
+		interface->address = atol( ptr );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_interface_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	MX_INTERFACE *interface;
+
+	interface = (MX_INTERFACE *) dataptr;
+
+	if ( strlen(interface->address_name) > 0 ) {
+		sprintf( token_buffer, "%s:%s",
+			interface->record->name,
+			interface->address_name );
+	} else {
+		strcpy( token_buffer, interface->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+static mx_status_type
+mx_compute_static_subarray_size( void *array_ptr,
+		long dimension_level,
+		MX_RECORD *record,
+		MX_RECORD_FIELD *field,
+		size_t *subarray_size )
+{
+	const char fname[] = "mx_compute_static_subarray_size()";
+
+	long i, multiplier, num_dimensions;
+
+	num_dimensions = field->num_dimensions;
+
+#if 0
+	MX_DEBUG( 8,("%s: array_ptr = %p, dimension_level = %ld",
+		fname, array_ptr, dimension_level));
+	MX_DEBUG( 8,("%s: record = '%s', field = '%s'",
+		fname, record->name, field->name));
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+	    MX_DEBUG( 8,("%s: dimension[%ld] = %ld, element_size[%ld] = %ld",
+	      fname, i, field->dimension[i],
+	      i, (long) field->data_element_size[i]));
+	}
+#endif
+
+	*subarray_size = field->data_element_size[0];
+
+	for ( i = num_dimensions - 1;
+			i >= (num_dimensions - dimension_level); i-- ) {
+
+		multiplier = field->dimension[i];
+
+		MX_DEBUG( 8,
+		("%s: i = %ld, *subarray_size was %ld; multiplying by %ld.",
+			fname, i, (long)*subarray_size, multiplier));
+
+		*subarray_size *= multiplier;
+	}
+
+	MX_DEBUG( 8,("%s: *subarray_size = %ld", fname, (long)*subarray_size));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_parse_array_description( void *array_ptr,
+		long dimension_level,
+		MX_RECORD *record,
+		MX_RECORD_FIELD *field,
+		MX_RECORD_FIELD_PARSE_STATUS *parse_status,
+		mx_status_type (*token_parser) ( void *, char *,
+					MX_RECORD *, MX_RECORD_FIELD *,
+					MX_RECORD_FIELD_PARSE_STATUS * ) )
+{
+	const char fname[] = "mx_parse_array_description()";
+
+	const char short_label[] = "parsing array";
+
+	long i, n, num_dimension_elements, new_dimension_level;
+	long row_ptr_step_size;
+	size_t dimension_element_size, subarray_size;
+	char *row_ptr, *element_ptr;
+	void *new_array_ptr;
+	char token_buffer[500];
+	mx_status_type status;
+
+	dimension_element_size = field->data_element_size[ dimension_level ];
+
+	n = field->num_dimensions - dimension_level - 1;
+
+	num_dimension_elements = field->dimension[n];
+
+	new_dimension_level = dimension_level - 1;
+
+	MX_DEBUG( 8,
+	("%s: dimension_level = %ld, n = %ld, num_dimension_elements = %ld",
+		 short_label, dimension_level, n, num_dimension_elements));
+	MX_DEBUG( 8,("%s:    array_ptr = %p", short_label, array_ptr));
+
+	if ( dimension_level < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Negative dimension_level %ld passed for record field '%s.%s'",
+			dimension_level, record->name, field->name );
+	}
+	if ( ((long)dimension_element_size) <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+
+	"Illegal value %ld for data_element_size for record field '%s.%s' at "
+	"dimension_level %ld.  This is almost certainly an error in the "
+	"MX_RECORD_FIELD_DEFAULTS definition.",
+
+			(long) dimension_element_size,
+			record->name, field->name,
+			dimension_level );
+	}
+	if ( num_dimension_elements < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Negative num_dimension_elements %ld passed for record field '%s.%s'.  "
+	"This is probably due to failing to initialize an MXFF_VARARGS field.",
+			dimension_level, record->name, field->name );
+	}
+
+	/*-----*/
+
+	if (dimension_level == 0) {
+	    if (field->datatype == MXFT_STRING) {
+
+		/**** Strings must be handled specially. ****/
+
+		/* Get the token. */
+
+		status = mx_get_next_record_token( parse_status,
+			token_buffer, sizeof(token_buffer) );
+
+		if ( status.code != MXE_SUCCESS ) {
+			return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Next string token not found." );
+		}
+
+		MX_DEBUG( 8, ("%s: *****> String token  = '%s'",
+				short_label, token_buffer));
+
+		/* Parse the string. */
+
+		status = (*token_parser)( (void *) array_ptr,
+				token_buffer, record, field, parse_status );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		MX_DEBUG( 8,("%s: *****> String token successfully parsed.",
+			short_label));
+	    } else {
+
+		/** At bottom level of the array, so start parsing tokens. **/
+
+		MX_DEBUG( 8,
+			("%s: +++> Token parser to be invoked for %ld tokens",
+			short_label, num_dimension_elements));
+		MX_DEBUG( 8,
+			("%s: +++> dimension_element_size = %lu",
+			short_label, (unsigned long) dimension_element_size));
+
+		for ( i = 0, element_ptr = (char *)array_ptr;
+		      i < num_dimension_elements;
+		      i++, element_ptr += dimension_element_size ) {
+
+			/* Get the token. */
+
+			status = mx_get_next_record_token( parse_status,
+				token_buffer, sizeof(token_buffer) );
+
+			if ( status.code != MXE_SUCCESS ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+					"Array was too short." );
+			}
+
+			MX_DEBUG( 8,
+		("%s: *****> Array token [%ld] = '%s', element_ptr = %p",
+				short_label, i, token_buffer, element_ptr ));
+
+			/* Parse the token. */
+
+			status = (*token_parser)( (void *) element_ptr,
+				token_buffer, record, field, parse_status );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+		}
+	    }
+	} else {
+		/** More levels in the array to descend through. **/
+
+		MX_DEBUG( 8, ("%s: -> Go to next dimension level = %ld",
+			short_label, new_dimension_level));
+
+		row_ptr = (char *)array_ptr;
+
+		if ( field->flags & MXFF_VARARGS ) {
+			row_ptr_step_size = (long) dimension_element_size;
+
+		} else {
+			status = mx_compute_static_subarray_size( array_ptr,
+				dimension_level, record, field,
+				&subarray_size );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			row_ptr_step_size = (long) subarray_size;
+		}
+
+		MX_DEBUG( 8,("%s: row_ptr = %p, row_ptr_step_size = %ld",
+			fname, row_ptr, row_ptr_step_size));
+
+		for ( i = 0; i < num_dimension_elements; i++ ) {
+
+			if ( field->flags & MXFF_VARARGS ) {
+				new_array_ptr =
+				    mx_read_void_pointer_from_memory_location(
+					row_ptr );
+			} else {
+				new_array_ptr = row_ptr;
+			}
+
+			status = mx_parse_array_description( new_array_ptr,
+				new_dimension_level, record, field,
+				parse_status, token_parser );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+		      	row_ptr += row_ptr_step_size;
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT void
+mx_initialize_parse_status( MX_RECORD_FIELD_PARSE_STATUS *parse_status,
+				char *description, char *separators )
+{
+	if ( parse_status == NULL )
+		return;
+
+	parse_status->description = description;
+	parse_status->separators = separators;
+
+	if ( separators == NULL ) {
+		parse_status->num_separators = 0;
+	} else {
+		parse_status->num_separators = strlen( separators );
+	}
+
+	parse_status->start_of_trailing_whitespace = NULL;
+	parse_status->max_string_token_length = 0;
+
+	return;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT long
+mx_get_max_string_token_length( MX_RECORD_FIELD *field )
+{
+	long last_dimension, max_length;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return 0L;
+	}
+	if ( field->datatype != MXFT_STRING ) {
+		return 0L;
+	}
+	if ( field->num_dimensions < 1 ) {
+		return 0L;
+	}
+
+	last_dimension = field->num_dimensions - 1;
+
+	max_length = field->dimension[ last_dimension ];
+
+	return max_length;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
+		MX_RECORD_FIELD_DEFAULTS *field_defaults )
+{
+	const char fname[] = "mx_copy_defaults_to_record_field()";
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD_FIELD_DEFAULTS pointer passed was NULL." );
+	}
+
+	field->label_value          = field_defaults->label_value;
+	field->field_number         = field_defaults->field_number;
+	field->name                 = field_defaults->name;
+	field->datatype             = field_defaults->datatype;
+	field->typeinfo             = field_defaults->typeinfo;
+	field->num_dimensions       = field_defaults->num_dimensions;
+	field->dimension            = field_defaults->dimension;
+	field->data_pointer         = NULL;		/* Filled in later. */
+	field->data_element_size    = field_defaults->data_element_size;
+	field->process_function     = field_defaults->process_function;
+	field->flags                = field_defaults->flags;
+	field->client_callback_list = NULL;
+	field->server_callback_list = NULL;
+	field->application_ptr      = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_parse_record_fields( MX_RECORD *record,
+			MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status )
+{
+	const char fname[] = "mx_parse_record_fields()";
+
+	MX_RECORD_FIELD *record_field, *record_field_array;
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
+	mx_status_type (*fptr)(void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
+					MX_RECORD_FIELD_PARSE_STATUS *);
+
+	/* field_data_ptr is the value of record_field->data_pointer,
+	 * while field_value_ptr is the location that the actual data
+	 * may be found at.
+	 * 
+	 * For a non-varargs field, field_value_ptr = field_data_ptr.
+	 *
+	 * For a varargs field, field_value_ptr =
+	 *       mx_read_void_pointer_from_memory_location( field_data_ptr ).
+	 *
+	 * There _must_ be a more intuitive pair of names for these two
+	 * variables, but I haven't been able to come up with them yet.
+	 */
+
+	void *field_data_ptr;
+	void *field_value_ptr;
+
+	void *array_ptr;
+	long i, j, token_number, expected_num_tokens;
+	long num_record_fields, field_type;
+	long dimension_size;
+	int allocate_the_array;
+	char token_buffer[500];
+	mx_status_type status;
+
+	if ( record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL.");
+	}
+
+	/* There must be at least MX_NUM_RECORD_ID_FIELDS records
+	 * in a valid MX_RECORD_FIELD array.  This corresponds to the 
+	 * part of a record description like "testmotor  dev motor e500".
+	 */
+
+	num_record_fields = record->num_record_fields;
+
+	MX_DEBUG( 8,
+		("********* Record '%s', num_record_fields = %ld *********",
+		record->name, num_record_fields));
+
+	if (num_record_fields < MX_NUM_RECORD_ID_FIELDS) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"Too few record fields for the record '%s'.  "
+			"Num defined = %ld, min allowed = %d",
+			record->name, num_record_fields,
+			MX_NUM_RECORD_ID_FIELDS );
+	}
+
+	/* Now get a pointer to the record_field array. */
+
+	record_field_array = record->record_field_array;
+
+	if ( record_field_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for the record %s is NULL.",
+			record->name );
+	}
+
+	/* How many tokens are there supposed to be in the description? */
+
+	expected_num_tokens = MX_NUM_RECORD_ID_FIELDS;
+
+	for ( i = MX_NUM_RECORD_ID_FIELDS; i < num_record_fields; i++ ) {
+		record_field = &record_field_array[i];
+
+		if ( record_field->flags & MXFF_IN_DESCRIPTION )
+			expected_num_tokens++;
+	}
+
+	/* Loop through all of the fields in the record list. */
+
+	token_number = MX_NUM_RECORD_ID_FIELDS;
+
+	for ( i = 0; i < num_record_fields; i++ ) {
+
+		/* Copy default values for this field to the
+		 * MX_RECORD_FIELD structure.
+		 */
+
+		record_field = &record_field_array[i];
+
+		record_field_defaults = &record_field_defaults_array[i];
+
+		mx_copy_defaults_to_record_field(
+			record_field, record_field_defaults );
+
+		MX_DEBUG( 8,("====== Field = '%s' ======",record_field->name));
+
+		MX_DEBUG( 8, ("record_field = %p, record_field_defaults = %p",
+			record_field, record_field_defaults));
+
+		/* What type of record is this supposed to be? */
+
+		field_type = record_field->datatype;
+
+		/* Construct a pointer to the field data. */
+
+		status = mx_construct_ptr_to_field_data(
+			record, record_field_defaults, &field_data_ptr );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		record_field->data_pointer = field_data_ptr;
+
+		MX_DEBUG( 8,( "record_field->data_pointer = %p",
+			record_field->data_pointer));
+
+		/*** The first MX_NUM_RECORD_ID_FIELDS had their data value
+		 *** fields initialized in mx_create_record_from_description(),
+		 *** so we don't do anything further to initialize them.
+		 ***/
+
+		if ( i < MX_NUM_RECORD_ID_FIELDS ) {
+			continue;  /* Go back to the start of the for() loop.*/
+		}
+
+		/***************************************************/
+		/*** Proceed on for i >= MX_NUM_RECORD_ID_FIELDS ***/
+		/***************************************************/
+
+		MX_DEBUG( 8,("%s: record_field->num_dimensions = %ld",
+			fname, record_field->num_dimensions));
+
+		if ( record_field->num_dimensions > 0 ) {
+			if ( record_field->dimension == NULL ) {
+				MX_DEBUG( 8,
+				("%s: record_field->dimension == NULL.",
+					fname));
+			} else {
+				MX_DEBUG( 8,
+				("%s: record_field->dimension[0] = %ld",
+					fname, record_field->dimension[0]));
+			}
+		}
+
+		/* If this is a varargs field, replace any
+		 * varargs cookies with the actual array dimensions
+		 * and then allocate memory for the field.
+		 */
+
+		if ( record_field->flags & MXFF_VARARGS ) {
+			status = mx_replace_varargs_cookies_with_values(
+				record, i, FALSE );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			MX_DEBUG( 8,(
+	"MXFF_VARARGS: num_dimensions = %ld, record_field->data_pointer = %p",
+				record_field->num_dimensions,
+				record_field->data_pointer));
+
+			if ( record_field->num_dimensions < 0 ) {
+				return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"Record field '%s' has a negative number of dimensions = %ld",
+					record_field->name,
+					record_field->num_dimensions );
+			} else if ( record_field->num_dimensions == 0 ) {
+				return mx_error(
+					MXE_UNSUPPORTED, fname,
+"Record field '%s': An MXFF_VARARGS field with num_dimensions = 0 "
+"is not currently supported.", record_field->name );
+
+			} else {
+				/* Don't allocate the array if one or more
+				 * of the dimension sizes is <= 0.
+				 */
+
+				allocate_the_array = TRUE;
+
+				for ( j = 0; j < record_field->num_dimensions;
+						j++ )
+				{
+					dimension_size
+						= record_field->dimension[j];
+
+					MX_DEBUG( 8,(
+			"MXFF_VARARGS: j = %ld, dimension_size = %ld",
+						j, dimension_size));
+
+					if ( dimension_size <= 0 )
+						allocate_the_array = FALSE;
+
+					/* An array dimension of zero is
+					 * allowed since the record field
+					 * is assumed to be a pointer that
+					 * may be repointed at run time by
+					 * a device driver.  An example of
+					 * this is the 'scaler_data' field
+					 * of the MX MCS driver.
+					 *
+					 * On the other hand, an array 
+					 * dimension with a negative value
+					 * is probably due to a programming
+					 * bug, such as a varargs field that
+					 * did not have a varargs cookie
+					 * installed, so we emit a warning
+					 * about it.
+					 */
+
+					if ( dimension_size < 0 ) {
+						mx_warning(
+"Array dimension %ld of record field '%s' for record '%s' has a negative "
+"size, namely %ld.  This is probably a sign of a programming bug.",
+						j, record_field->name,
+						record->name,
+						dimension_size );
+					}
+				}
+
+				MX_DEBUG( 8,
+				("MXFF_VARARGS: allocate_the_array = %d",
+					allocate_the_array));
+
+				if ( allocate_the_array == FALSE ) {
+					array_ptr = NULL;
+				} else {
+					array_ptr = mx_allocate_array(
+						record_field->num_dimensions,
+						record_field->dimension,
+					    record_field->data_element_size );
+
+					if ( array_ptr == NULL ) {
+						return mx_error(
+							MXE_OUT_OF_MEMORY,
+							fname,
+			"Attempt to allocate memory for varargs field '%s' "
+			"in record '%s' failed.", record_field->name,
+						record->name );
+					}
+				}
+				MX_DEBUG( 8,(
+					"MXFF_VARARGS: --> array_ptr = %p",
+					array_ptr ));
+
+				mx_write_void_pointer_to_memory_location(
+					field_data_ptr, array_ptr );
+			}
+		}
+
+		/* Is this token supposed to be listed in the record 
+		 * description string?
+		 */
+
+		if ( (record_field->flags & MXFF_IN_DESCRIPTION) == 0 ) {
+
+			MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, no token expected.",
+				i, record_field->name,
+				mx_get_field_type_string(field_type)));
+
+		} else {
+			/**********************************************
+			 * Figure out which function is used to parse *
+			 * the field.                                 *
+			 **********************************************/
+
+			status = mx_get_token_parser( field_type, &fptr );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			/* Construct a pointer to the field values. */
+
+			if ( record_field->flags & MXFF_VARARGS ) {
+				field_value_ptr =
+				    mx_read_void_pointer_from_memory_location(
+					field_data_ptr );
+
+			} else {
+				field_value_ptr = field_data_ptr;
+			}
+
+			MX_DEBUG( 8,
+			    ("%s: field_data_ptr = %p, field_value_ptr = %p",
+				fname, field_data_ptr, field_value_ptr));
+
+			/* If this field is a string field, get the maximum
+			 * length of a string token for use by the token
+			 * parser.
+			 */
+
+			if ( field_type == MXFT_STRING ) {
+				parse_status->max_string_token_length =
+				  mx_get_max_string_token_length(record_field);
+			} else {
+				parse_status->max_string_token_length = 0;
+			}
+
+			/* If the input field is zero-dimensional or
+			 * a one-dimensional string, call the token
+			 * parser directly.
+			 */
+
+			if ( (record_field->num_dimensions == 0)
+			  || ((field_type == MXFT_STRING)
+			     && (record_field->num_dimensions == 1)) ) {
+
+				/*** Single Token ***/
+
+				/* Is there a next token for this field? */
+
+				status = mx_get_next_record_token(parse_status, 
+					token_buffer, sizeof(token_buffer) );
+
+				if ( status.code != MXE_SUCCESS ) {
+					return mx_error(
+					MXE_UNPARSEABLE_STRING, fname,
+				"Record description string was too short.  "
+				"Did not find valid token(s) for field '%s'",
+						record_field->name );
+				}
+
+				MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, token[%ld] = '%s'",
+					i, record_field->name, 
+					mx_get_field_type_string(field_type),
+					token_number, token_buffer));
+
+				token_number++;
+
+				/* Now parse the token. */
+
+				status = (*fptr)(field_value_ptr, token_buffer,
+					record, record_field, parse_status);
+			} else {
+				/*** Array of tokens ***/
+
+				/* Call mx_parse_array_description() to
+				 * get all of the tokens and put them into 
+				 * the array.
+				 */
+
+				MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, %ld dimensional array",
+					i, record_field->name,
+					mx_get_field_type_string(field_type),
+					record_field->num_dimensions));
+
+				token_number++;
+
+				status = mx_parse_array_description(
+					field_value_ptr,
+					(record_field->num_dimensions - 1),
+					record, record_field,
+					parse_status, fptr );
+			}
+			switch( status.code ) {
+			case MXE_SUCCESS:
+				break;
+			case MXE_UNPARSEABLE_STRING:
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+			"Invalid token found in record '%s' at field '%s'.",
+					record->name, record_field->name );
+				break;
+			default:
+				return status;
+				break;
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_get_next_record_token( MX_RECORD_FIELD_PARSE_STATUS *parse_status,
+			char *output_buffer,
+			size_t output_buffer_length)
+{
+	const char fname[] = "mx_get_next_record_token()";
+
+	int i, j, k, in_quoted_string, remaining_length, num_separators;
+	int saw_separator;
+	char *remaining_string, *separators;
+
+	MX_DEBUG( 8,("%s entered.", fname));
+
+	/* This implementation should be thread-safe if strlen()
+	 * is thread-safe.
+	 */
+
+	if ( parse_status == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL MX_RECORD_FIELD_PARSE_STATUS structure passed." );
+	}
+
+	if ( output_buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"NULL output buffer pointer passed." );
+	}
+
+	/* Need to start differently depending on whether this is the
+	 * first call to this function for this description string.
+	 * We use start_of_trailing_whitespace == NULL as the indicator
+	 * that this is the first call.
+	 */
+
+	if ( parse_status->start_of_trailing_whitespace == NULL ) {
+
+		remaining_string = parse_status->description;
+	} else {
+		remaining_string = parse_status->start_of_trailing_whitespace;
+		remaining_string++;
+	}
+
+	separators = parse_status->separators;
+	num_separators = parse_status->num_separators;
+
+	remaining_length = strlen(remaining_string);
+
+	if ( remaining_length <= 0 ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"String passed was of zero length." );
+	}
+
+	/* Skip any leading whitespace. */
+
+	for ( i = 0; i < remaining_length; i++ ) {
+		saw_separator = FALSE;
+
+		for ( j = 0; j < num_separators; j++ ) {
+			if ( remaining_string[i] == separators[j] ) {
+				saw_separator = TRUE;
+				break;       /* Exit the inner for() loop. */
+			}
+		}
+
+		if ( saw_separator == FALSE )
+			break;               /* Exit the outer for() loop. */
+	}
+
+	if ( i >= remaining_length ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"String passed consisted entirely of whitespace." );
+	}
+
+	/* Is the non-whitespace character a double quote character
+	 * denoting the beginning of a string?
+	 */
+
+	if ( remaining_string[i] != '"' ) {
+		/* Anything other than a quoted string. */
+
+		for ( k=0;
+		      (i < remaining_length) && (k < output_buffer_length - 1);
+		      i++, k++ ) {
+
+			saw_separator = FALSE;
+
+			for ( j = 0; j < num_separators; j++ ) {
+				if ( remaining_string[i] == separators[j] ) {
+					saw_separator = TRUE;
+					break; /* Exit the inner for() loop */
+				}
+			}
+
+			if ( saw_separator == TRUE ) {
+				break;         /* Exit the outer for() loop */
+			} else {
+				output_buffer[k] = remaining_string[i];
+			}
+		}
+
+		/* Make sure the output buffer is null terminated. */
+
+		if ( k >= output_buffer_length - 1 ) {
+			output_buffer[output_buffer_length - 1] = '\0';
+		} else {
+			output_buffer[k] = '\0';
+		}
+	} else {
+		in_quoted_string = TRUE;
+
+		i++;      /* Skip over the " character. */
+
+		for ( k=0;
+		      (i < remaining_length) && (k < output_buffer_length - 1);
+		      i++, k++ ) {
+
+			/* When we see another double quote, we are at
+			 * the end of the quoted string token.
+			 */
+
+			if ( remaining_string[i] == '"' ) {
+				in_quoted_string = FALSE;
+				i++;         /* Skip over the " character. */
+				break;       /* Exit the for() loop. */
+			}
+
+			output_buffer[k] = remaining_string[i];
+		}
+
+		/* Make sure the output buffer is null terminated. */
+
+		if ( k >= output_buffer_length - 1 ) {
+			output_buffer[output_buffer_length - 1] = '\0';
+		} else {
+			output_buffer[k] = '\0';
+		}
+
+		/* Did the string terminate normally? */
+
+		if ( in_quoted_string == TRUE ) {
+			if ( (k >= output_buffer_length - 1)
+			  && (i < remaining_length) ) {
+
+				return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+"String token was too long to fit in calling routine's buffer size of %ld.  "
+"The token in error started with '%s'", (long) output_buffer_length,
+					output_buffer );
+
+			} else {
+				return mx_error(
+					MXE_UNEXPECTED_END_OF_DATA, fname,
+				"End of quoted string token not seen.  "
+				"The token in error started with '%s'",
+					output_buffer );
+			}
+		}
+	}
+
+	if ( i >= remaining_length ) {
+		/* This is expected to end up pointed at a trailing '\0'
+		 * character if things are going normally.  In this case,
+		 * any attempt to get a "next token" out of the description
+		 * will result in an error.
+		 */
+
+		parse_status->start_of_trailing_whitespace
+			= &remaining_string[remaining_length];
+	} else {
+		parse_status->start_of_trailing_whitespace
+			= &remaining_string[i];
+	}
+
+	MX_DEBUG( 8,("%s: token found = '%s'", fname, output_buffer));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_get_token_parser( long field_type,
+		mx_status_type ( **token_parser ) (
+			void *dataptr,
+			char *token,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status )
+		)
+{
+	const char fname[] = "mx_get_token_parser()";
+
+	/* Figure out which function is used to parse the field. */
+
+	switch( field_type ) {
+	case MXFT_STRING:
+		*token_parser = mx_parse_string_field;
+		break;
+	case MXFT_CHAR:
+		*token_parser = mx_parse_char_field;
+		break;
+	case MXFT_UCHAR:
+		*token_parser = mx_parse_uchar_field;
+		break;
+	case MXFT_SHORT:
+		*token_parser = mx_parse_short_field;
+		break;
+	case MXFT_USHORT:
+		*token_parser = mx_parse_ushort_field;
+		break;
+	case MXFT_INT:
+		*token_parser = mx_parse_int_field;
+		break;
+	case MXFT_UINT:
+		*token_parser = mx_parse_uint_field;
+		break;
+	case MXFT_LONG:
+		*token_parser = mx_parse_long_field;
+		break;
+	case MXFT_ULONG:
+		*token_parser = mx_parse_ulong_field;
+		break;
+	case MXFT_FLOAT:
+		*token_parser = mx_parse_float_field;
+		break;
+	case MXFT_DOUBLE:
+		*token_parser = mx_parse_double_field;
+		break;
+	case MXFT_HEX:
+		*token_parser = mx_parse_hex_field;
+		break;
+	case MXFT_RECORD:
+		*token_parser = mx_parse_mx_record_field;
+		break;
+	case MXFT_RECORDTYPE:
+		*token_parser = mx_parse_recordtype_field;
+		break;
+	case MXFT_INTERFACE:
+		*token_parser = mx_parse_interface_field;
+		break;
+	default:
+		*token_parser = NULL;
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname, 
+			"Unrecognized field type %ld.", field_type );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_get_token_constructor( long field_type,
+		mx_status_type ( **token_constructor ) (
+			void *dataptr,
+			char *token_buffer,
+			size_t token_buffer_length,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field )
+		)
+{
+	const char fname[] = "mx_get_token_constructor()";
+
+	/* Figure out which function is used to
+	 * construct the token for this field type.
+	 */
+
+	switch( field_type ) {
+	case MXFT_STRING:
+		*token_constructor = mx_construct_string_field;
+		break;
+	case MXFT_CHAR:
+		*token_constructor = mx_construct_char_field;
+		break;
+	case MXFT_UCHAR:
+		*token_constructor = mx_construct_uchar_field;
+		break;
+	case MXFT_SHORT:
+		*token_constructor = mx_construct_short_field;
+		break;
+	case MXFT_USHORT:
+		*token_constructor = mx_construct_ushort_field;
+		break;
+	case MXFT_INT:
+		*token_constructor = mx_construct_int_field;
+		break;
+	case MXFT_UINT:
+		*token_constructor = mx_construct_uint_field;
+		break;
+	case MXFT_LONG:
+		*token_constructor = mx_construct_long_field;
+		break;
+	case MXFT_ULONG:
+		*token_constructor = mx_construct_ulong_field;
+		break;
+	case MXFT_FLOAT:
+		*token_constructor = mx_construct_float_field;
+		break;
+	case MXFT_DOUBLE:
+		*token_constructor = mx_construct_double_field;
+		break;
+	case MXFT_HEX:
+		*token_constructor = mx_construct_hex_field;
+		break;
+	case MXFT_RECORD:
+		*token_constructor = mx_construct_mx_record_field;
+		break;
+	case MXFT_RECORDTYPE:
+		*token_constructor = mx_construct_recordtype_field;
+		break;
+	case MXFT_INTERFACE:
+		*token_constructor = mx_construct_interface_field;
+		break;
+	default:
+		*token_constructor = NULL;
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unrecognized field type %ld.", field_type );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_create_array_description( void *array_ptr,
+		long dimension_level,
+		char *buffer_ptr, size_t max_buffer_length,
+		MX_RECORD *record, MX_RECORD_FIELD *field,
+		mx_status_type (*token_creater) ( void *, char *, size_t,
+					MX_RECORD *, MX_RECORD_FIELD * ) )
+{
+	const char fname[] = "mx_create_array_description()";
+
+	const char short_label[] = "creating array";
+
+	long i, n, num_dimension_elements, new_dimension_level;
+	long row_ptr_step_size;
+	size_t dimension_element_size, subarray_size;
+	char *row_ptr, *element_ptr;
+	void *new_array_ptr;
+	char *new_buffer_ptr;
+	long buffer_current_length, new_buffer_length;
+	mx_status_type status;
+
+	MX_DEBUG( 2,(".................................................."));
+
+	dimension_element_size = field->data_element_size[ dimension_level ];
+
+	n = field->num_dimensions - dimension_level - 1;
+
+	num_dimension_elements = field->dimension[n];
+
+	new_dimension_level = dimension_level - 1;
+
+	if ( record != NULL ) {
+		MX_DEBUG( 8,("%s: record = '%s'", fname, record->name));
+	}
+	if ( field != NULL ) {
+		MX_DEBUG( 8,("%s: field = '%s'", fname, field->name));
+	}
+
+	MX_DEBUG( 8,
+	("%s: dimension_level = %ld, n = %ld, num_dimension_elements = %ld",
+		 short_label, dimension_level, n, num_dimension_elements));
+	MX_DEBUG( 8,
+	("%s:    array_ptr = %p, buffer_ptr = %p, max_buffer_length = %ld",
+		short_label, array_ptr, buffer_ptr, (long) max_buffer_length));
+
+	if (dimension_level == 0) {
+	    if (field->datatype == MXFT_STRING) {
+
+		/**** Strings must be handled specially. ****/
+
+		strcat( buffer_ptr, " " );
+
+		buffer_current_length = (long) strlen(buffer_ptr);
+
+		new_buffer_ptr = buffer_ptr + buffer_current_length;
+		new_buffer_length = (long) max_buffer_length
+						- buffer_current_length;
+
+		if ( new_buffer_length <= 0 ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"No room left for next token in array description." );
+		}
+
+		/* Create the token. */
+
+		status = (*token_creater)( array_ptr,
+		    new_buffer_ptr, (size_t) new_buffer_length, record, field );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		MX_DEBUG( 8,("%s: *****> String token = '%s'",
+				short_label, new_buffer_ptr));
+
+	    } else {
+
+		/** At bottom level of the array, so start creating tokens. **/
+
+		MX_DEBUG( 8,
+			("%s: +++> Token creater to be invoked for %ld tokens",
+			short_label, num_dimension_elements));
+
+		element_ptr = (char *) array_ptr;
+
+		for ( i = 0; i < num_dimension_elements; i++ ) {
+
+			strcat( buffer_ptr, " " );
+
+			buffer_current_length = (long) strlen(buffer_ptr);
+
+			new_buffer_ptr = buffer_ptr + buffer_current_length;
+			new_buffer_length = (long) max_buffer_length
+						- buffer_current_length;
+
+			MX_DEBUG( 9,
+	("%s: i = %ld, buffer_current_length = %ld, new_buffer_length = %ld",
+				short_label, i, buffer_current_length,
+				new_buffer_length));
+
+			if ( new_buffer_length <= 0 ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"No room left for next token in array description." );
+			}
+
+			/* Create the token. */
+
+			MX_DEBUG( 2,
+		("%s: About to create token %ld from element_ptr %p",
+				short_label, i, element_ptr));
+
+			status = (*token_creater)( (void *) element_ptr,
+				new_buffer_ptr, (size_t) new_buffer_length,
+				record, field );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			MX_DEBUG( 8,
+		("%s: *****> Array token [%ld] = '%s', element_ptr = %p",
+			short_label, i, new_buffer_ptr, element_ptr ));
+
+			element_ptr += dimension_element_size;
+		}
+	    }
+	} else {
+		/** More levels in the array to descend through. **/
+
+		MX_DEBUG( 8,
+("%s: -> At dimension level %ld.  Go to next dimension level = %ld",
+			short_label, dimension_level, new_dimension_level));
+
+		row_ptr = (char *)array_ptr;
+
+		if ( field->flags & MXFF_VARARGS ) {
+			row_ptr_step_size = (long) dimension_element_size;
+
+		} else {
+			status = mx_compute_static_subarray_size( array_ptr,
+				dimension_level, record, field,
+				&subarray_size );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			row_ptr_step_size = (long) subarray_size;
+		}
+
+		MX_DEBUG( 8,("%s: row_ptr = %p, row_ptr_step_size = %ld",
+			fname, row_ptr, row_ptr_step_size));
+
+		for ( i = 0; i < num_dimension_elements; i++ ) {
+
+			if ( field->flags & MXFF_VARARGS ) {
+				new_array_ptr =
+				    mx_read_void_pointer_from_memory_location(
+					row_ptr );
+
+				MX_DEBUG( 2,
+	("%s: DEREFERENCING row %ld row_ptr %p to get new_array_ptr %p",
+					fname, i, row_ptr, new_array_ptr));
+			} else {
+				new_array_ptr = row_ptr;
+
+				MX_DEBUG( 2,
+	("%s: NO DEREFERENCE needed for row %ld row_ptr %p",
+					fname, i, row_ptr));
+			}
+
+			buffer_current_length = (long) strlen(buffer_ptr);
+
+			new_buffer_ptr = buffer_ptr + buffer_current_length;
+			new_buffer_length = (long) max_buffer_length
+						- buffer_current_length;
+
+			status = mx_create_array_description( new_array_ptr,
+				new_dimension_level,
+				new_buffer_ptr, (size_t) new_buffer_length,
+				record, field, token_creater );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			row_ptr += row_ptr_step_size;
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_create_description_from_record(
+		MX_RECORD *current_record,
+		char *description_buffer,
+		size_t description_buffer_length )
+{
+	const char fname[] = "mx_create_description_from_record()";
+
+	MX_RECORD_FIELD *record_field, *record_field_array;
+	mx_status_type (*fptr)( void *, char *, size_t,
+				MX_RECORD *, MX_RECORD_FIELD * );
+
+	/* See the comment in mx_create_record_from_description()
+	 * for the difference between the following two pointers.
+	 */
+
+	void *field_data_ptr;
+	void *field_value_ptr;
+
+	char token_buffer[MXU_BUFFER_LENGTH+1];
+	char *buffer_ptr;
+	long i, num_record_fields, field_type;
+	long token_number, buffer_current_length, buffer_space_left;
+	mx_status_type status;
+
+	if ( current_record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+	if ( description_buffer == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"description_buffer pointer is NULL.");
+	}
+	if ( ((long) description_buffer_length) <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal description buffer length = %ld",
+			(long) description_buffer_length );
+	}
+
+	/* Does this record type have new style record field support
+	 * that we can use to write out the record?
+	 */
+
+	record_field_array = current_record->record_field_array;
+
+	if ( record_field_array == NULL ) {
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"The old style record using write_record_description() is no longer supported."
+				);
+
+	} else {
+		/* Record field support _is_available, so use it to
+		 * write out the record.
+		 */
+
+		MX_DEBUG( 8,("%s: record '%s' uses new record field support.",
+			fname, current_record->name));
+
+		strcpy( description_buffer, "" );
+
+		buffer_ptr = description_buffer;
+
+		num_record_fields = current_record->num_record_fields;
+
+		if ( num_record_fields < MX_NUM_RECORD_ID_FIELDS ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+"Record '%s' has only %ld record fields.  The minimum allowed is %d",
+				current_record->name,
+				num_record_fields,
+				MX_NUM_RECORD_ID_FIELDS );
+		}
+
+		/* The record name field is formatted specially.  We use
+		 * the pointer current_record->name directly, since all
+		 * records MUST have this field.
+		 */
+
+		sprintf( description_buffer, "%*s", -(MXU_FIELD_NAME_LENGTH),
+			current_record->name );
+
+		buffer_current_length = (long) strlen(description_buffer);
+		buffer_ptr = description_buffer + buffer_current_length;
+
+		token_number = 1;
+
+		for ( i = 1; i < num_record_fields; i++ ) {
+			/* What type of record field is this? */
+
+			record_field = &record_field_array[i];
+
+			field_type = record_field->datatype;
+
+			/* Is this token supposed to be listed in the record
+			 * description string?
+			 */
+
+			if ((record_field->flags & MXFF_IN_DESCRIPTION) == 0){
+				MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, no token expected.",
+					i, record_field->name,
+					mx_get_field_type_string(field_type)));
+			} else {
+				field_data_ptr = record_field->data_pointer;
+
+				/* Put a space between fields. */
+
+				strcat( buffer_ptr, " " );
+
+				/* Construct a pointer to the place in the
+				 * description buffer where the token is
+				 * to be written to.
+				 */
+
+				buffer_current_length
+					= (long) strlen( description_buffer );
+
+				buffer_ptr = description_buffer
+					+ buffer_current_length;
+
+				/******************************************
+				 * Figure out which function is used to   *
+				 * construct the token(s) for this field. *
+				 ******************************************/
+
+				status = mx_get_token_constructor(
+							field_type, &fptr );
+
+				if ( status.code != MXE_SUCCESS )
+					return status;
+
+				/* Construct a pointer to the field values. */
+
+				if ( record_field->flags & MXFF_VARARGS ) {
+					field_value_ptr =
+				    mx_read_void_pointer_from_memory_location(
+						field_data_ptr );
+
+				} else {
+					field_value_ptr = field_data_ptr;
+				}
+
+				MX_DEBUG( 8,
+			("%s: field_data_ptr = %p, field_value_ptr = %p",
+				    fname, field_data_ptr, field_value_ptr));
+
+				/* Is this field zero-dimensional or
+				 * a one-dimensional string?
+				 */
+
+				if ( (record_field->num_dimensions == 0)
+				  || ((field_type == MXFT_STRING)
+				     && (record_field->num_dimensions == 1))){
+
+					/*** Single Token ***/
+
+					/* Construct the token. */
+
+					status = (*fptr)(
+						field_value_ptr,
+						token_buffer,
+						sizeof(token_buffer),
+						current_record,
+						record_field);
+
+					if ( status.code != MXE_SUCCESS )
+						return status;
+
+					MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, token[%ld] = '%s'",
+					i, record_field->name,
+					mx_get_field_type_string(field_type),
+					token_number, token_buffer));
+
+					token_number++;
+
+					/* Now copy the token to the
+					 * description buffer.
+					 */
+
+					buffer_space_left =
+						(long)description_buffer_length
+						- buffer_current_length - 1;
+
+					if ( strlen(token_buffer)
+						> buffer_space_left ) {
+
+						return mx_error(
+							MXE_WOULD_EXCEED_LIMIT,
+							fname,
+			"Token '%s' is too long to fit into the remaining "
+			"%ld bytes in the description buffer",
+							token_buffer,
+							buffer_space_left );
+					}
+
+					strcat( buffer_ptr, token_buffer );
+				} else {
+					/*** Array of tokens ***/
+
+					/* Call mx_create_array_description()
+					 * to construct a character string
+					 * description which consists of
+					 * the printable ASCII values of the
+					 * array elements.
+					 */
+
+					MX_DEBUG( 8,
+		("Field[%ld] = '%s', field type = %s, %ld dimensional array",
+					i, record_field->name,
+					mx_get_field_type_string(field_type),
+					record_field->num_dimensions));
+
+					token_number++;
+
+					buffer_space_left =
+						(long)description_buffer_length
+						- buffer_current_length - 1;
+
+					status
+				= mx_create_array_description(
+					    field_value_ptr,
+					    (record_field->num_dimensions - 1),
+					    buffer_ptr, buffer_space_left,
+					    current_record, record_field,
+					    fptr );
+
+					if ( status.code != MXE_SUCCESS )
+						return status;
+				}
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_construct_placeholder_record( MX_RECORD *referencing_record,
+		char *record_name, MX_RECORD **placeholder_record )
+{
+	const char fname[] = "mx_construct_placeholder_record()";
+
+	if ( record_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+				"Pointer to record name is NULL." );
+	}
+	if ( placeholder_record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD ** passed was NULL." );
+	}
+
+	MX_DEBUG( 8, ("%s: record name = '%s'", fname, record_name));
+
+	*placeholder_record = (MX_RECORD *) malloc( sizeof(MX_RECORD) );
+
+	if ( *placeholder_record == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Out of memory trying to allocate placeholder record for '%s'",
+			record_name );
+	}
+
+	memset( *placeholder_record, 0x0, sizeof(MX_RECORD) );
+
+	mx_strncpy( (*placeholder_record)->name,
+			record_name, MXU_RECORD_NAME_LENGTH );
+
+	(*placeholder_record)->mx_superclass = MXR_PLACEHOLDER;
+
+	(*placeholder_record)->allocated_by = referencing_record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#define KEEP_SCAN_PLACEHOLDERS	TRUE
+
+#if KEEP_SCAN_PLACEHOLDERS
+static void
+mxp_scan_save_placeholder( MX_RECORD *referencing_record,
+			MX_RECORD *placeholder_record )
+{
+	static const char fname[] = "mxp_scan_save_placeholer()";
+
+	MX_SCAN *scan;
+
+	if ( referencing_record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The referencing_record pointer passed was NULL." );
+		return;
+	}
+	if ( placeholder_record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The placeholder_record pointer passed was NULL." );
+		return;
+	}
+
+	scan = (MX_SCAN *) referencing_record->record_superclass_struct;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SCAN pointer for scan '%s' is NULL.",
+			referencing_record->name );
+		return;
+	}
+
+	/* Increase the size of missing_record_array. */
+
+	if ( scan->missing_record_array == (MX_RECORD **) NULL ) {
+		scan->missing_record_array =
+			(MX_RECORD **) malloc( sizeof(MX_RECORD *) );
+
+		scan->num_missing_records = 1;
+	} else {
+		scan->missing_record_array = (MX_RECORD **)
+			realloc( scan->missing_record_array,
+				(scan->num_missing_records + 1)
+					* sizeof(MX_RECORD *) );
+
+		scan->num_missing_records++;
+	}
+
+	if ( scan->missing_record_array == (MX_RECORD **) NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+    "Ran out of memory trying to allocate a %ld array of MX_RECORD pointers.",
+    			scan->num_missing_records );
+		return;
+	}
+
+	/* Save the placeholder record in the missing record array so that
+	 * we can find it if we need to delete it at some later date.
+	 */
+
+	scan->missing_record_array[ scan->num_missing_records - 1 ]
+		= placeholder_record;
+
+	return;
+}
+#endif
+
+MX_EXPORT mx_status_type
+mx_fixup_placeholder_records( MX_RECORD *list_head_record )
+{
+	const char fname[] = "mx_fixup_placeholder_records()";
+
+	MX_LIST_HEAD *list_head_struct;
+	MX_RECORD *real_record, *placeholder_record, *referencing_record;
+	void **fixup_record_array;
+	void *memory_location;
+	long i, num_fixup_records;
+
+	list_head_struct
+	    = (MX_LIST_HEAD *) (list_head_record->record_superclass_struct);
+
+	num_fixup_records = list_head_struct->num_fixup_records;
+
+	if ( num_fixup_records <= 0 ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	fixup_record_array = list_head_struct->fixup_record_array;
+
+	if ( fixup_record_array == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"fixup_record_array = NULL, although num_fixup_records = %ld",
+			num_fixup_records );
+	}
+
+	/* Look for the real record corresponding to the name mentioned
+	 * in the placeholder record.
+	 */
+
+	for ( i = 0; i < num_fixup_records; i++ ) {
+		memory_location = fixup_record_array[i];
+
+		MX_DEBUG( 8, ("%s: i = %ld, memory_location = %p",
+			fname, i, memory_location));
+
+		/* If memory_location is NULL, the corresponding 
+		 * placeholder record has already been deleted.
+		 */
+
+		if ( memory_location == NULL ) {
+
+			continue;   /* Go back to the top of the for() loop. */
+		}
+
+		placeholder_record = (MX_RECORD *)
+		  mx_read_void_pointer_from_memory_location( memory_location );
+
+		if ( placeholder_record == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"fixup_record_array[%ld] == NULL when num_fixup_records = %ld.",
+				i, num_fixup_records );
+		}
+
+		referencing_record
+			= (MX_RECORD *)(placeholder_record->allocated_by);
+
+		MX_DEBUG( 8, ("%s: placeholder = %p, referencing_record = %p",
+			fname, placeholder_record, referencing_record));
+
+		if ( referencing_record == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"Placeholder for record '%s' is not referenced by any record.",
+				placeholder_record->name );
+		}
+
+		MX_DEBUG( 8, ("%s: name = '%s', referencing record = '%s'.",
+			fname, placeholder_record->name,
+			referencing_record->name ));
+
+		real_record = mx_get_record(
+				list_head_record, placeholder_record->name );
+
+		if ( real_record == NULL ) {
+			if ( referencing_record->mx_superclass != MXR_SCAN ) {
+				return mx_error( MXE_NOT_FOUND, fname,
+			"Record '%s' mentioned by record '%s' does not exist.",
+					placeholder_record->name,
+					referencing_record->name );
+			} else {
+#if KEEP_SCAN_PLACEHOLDERS
+				mx_warning(
+		"Record '%s' mentioned by scan record '%s' does not exist.  "
+		"Scan record '%s' will not be scannable.",
+					placeholder_record->name,
+					referencing_record->name,
+					referencing_record->name );
+
+				mxp_scan_save_placeholder( referencing_record,
+							placeholder_record );
+
+#else /* KEEP_SCAN_PLACEHOLDERS */
+				mx_warning(
+		"Record '%s' mentioned by scan record '%s' does not exist.  "
+		"Scan record '%s' will be deleted.",
+					placeholder_record->name,
+					referencing_record->name,
+					referencing_record->name );
+
+				free( placeholder_record );
+
+				/* Marking the record as broken _should_ result
+				 * in the record being deleted by the function
+				 * that called us.
+				 */
+
+				referencing_record->record_flags
+					|= MXF_REC_BROKEN;
+#endif /* KEEP_SCAN_PLACEHOLDERS */
+			}
+		} else {
+
+			MX_DEBUG( 8, ("%s: real_record = %p '%s'",
+				fname, real_record, real_record->name));
+
+			free( placeholder_record );
+
+			mx_write_void_pointer_to_memory_location(
+						memory_location, real_record );
+		}
+	}
+
+	list_head_struct->fixup_records_in_use = FALSE;
+
+	list_head_struct->num_fixup_records = 0;
+
+	free( list_head_struct->fixup_record_array );
+
+	list_head_struct->fixup_record_array = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
+{
+	const char fname[] = "mx_get_datatype_sizeof_array()";
+
+	static size_t string_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_STRING_SIZEOF;
+	static size_t char_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_CHAR_SIZEOF;
+	static size_t uchar_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_UCHAR_SIZEOF;
+	static size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_SHORT_SIZEOF;
+	static size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_USHORT_SIZEOF;
+	static size_t int_sizeof[MXU_FIELD_MAX_DIMENSIONS]   = MXA_INT_SIZEOF;
+	static size_t uint_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_UINT_SIZEOF;
+	static size_t long_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_LONG_SIZEOF;
+	static size_t ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_ULONG_SIZEOF;
+	static size_t float_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_FLOAT_SIZEOF;
+	static size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_DOUBLE_SIZEOF;
+
+	switch( datatype ) {
+	case MXFT_STRING:
+		*sizeof_array = string_sizeof;
+		break;
+	case MXFT_CHAR:
+		*sizeof_array = char_sizeof;
+		break;
+	case MXFT_UCHAR:
+		*sizeof_array = uchar_sizeof;
+		break;
+	case MXFT_SHORT:
+		*sizeof_array = short_sizeof;
+		break;
+	case MXFT_USHORT:
+		*sizeof_array = ushort_sizeof;
+		break;
+	case MXFT_INT:
+		*sizeof_array = int_sizeof;
+		break;
+	case MXFT_UINT:
+		*sizeof_array = uint_sizeof;
+		break;
+	case MXFT_LONG:
+		*sizeof_array = long_sizeof;
+		break;
+	case MXFT_ULONG:
+		*sizeof_array = ulong_sizeof;
+		break;
+	case MXFT_FLOAT:
+		*sizeof_array = float_sizeof;
+		break;
+	case MXFT_DOUBLE:
+		*sizeof_array = double_sizeof;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported datatype argument %ld.", datatype );
+		break;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
+			long datatype,
+			long num_dimensions,
+			long *dimension,
+			size_t *data_element_size,
+			void *value_ptr )
+{
+	const char fname[] = "mx_construct_temp_record_field()";
+
+	size_t *sizeof_array;
+	long i;
+	mx_status_type status;
+
+	if ( temp_record_field == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD_FIELD pointer passed is NULL." );
+	}
+	if ( dimension == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"dimension array pointer passed is NULL." );
+	}
+	if ( data_element_size == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"data_element_size array pointer passed is NULL." );
+	}
+	temp_record_field->label_value = 0;
+	temp_record_field->field_number = 0;
+	temp_record_field->name = NULL;
+	temp_record_field->datatype = datatype;
+	temp_record_field->typeinfo = NULL;
+	temp_record_field->num_dimensions = num_dimensions;
+	temp_record_field->dimension = dimension;
+	temp_record_field->data_element_size = data_element_size;
+	temp_record_field->process_function = NULL;
+	temp_record_field->flags = MXFF_VARARGS;
+	temp_record_field->client_callback_list = NULL;
+	temp_record_field->server_callback_list = NULL;
+	temp_record_field->application_ptr = NULL;
+	temp_record_field->data_pointer = value_ptr;
+
+	if ( num_dimensions <= 0L ) {
+		temp_record_field->data_element_size[0] = 0L;
+
+	} else if ( data_element_size[0] == 0L ) {
+		status = mx_get_datatype_sizeof_array( datatype,
+						&sizeof_array );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		for ( i = 0; i < num_dimensions; i++ ) {
+			temp_record_field->data_element_size[i]
+				= sizeof_array[i];
+		}
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* mx_traverse_field() is used to walk through all the array levels of
+ * the data managed by an MX_RECORD_FIELD and apply a handler function
+ * to the data at each level.
+ */
+
+MX_EXPORT mx_status_type
+mx_traverse_field( MX_RECORD *record,
+		MX_RECORD_FIELD *field,
+		MX_TRAVERSE_FIELD_HANDLER *handler_fn,
+		void *handler_data_ptr,
+		long *array_indices )
+{
+	const char fname[] = "mx_traverse_field()";
+
+	void *array_ptr;
+	long i, dimension_level;
+	mx_status_type status;
+
+	MX_DEBUG( 4,("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
+
+	/* Get a pointer to the data in the record field. */
+
+	if ( field->flags & MXFF_VARARGS ) {
+		array_ptr = mx_read_void_pointer_from_memory_location(
+				field->data_pointer );
+		MX_DEBUG( 4,
+		("%s: DEREFERENCING data_pointer %p to get array_ptr %p",
+			fname, field->data_pointer, array_ptr));
+	} else {
+		array_ptr = field->data_pointer;
+
+		MX_DEBUG( 4,("%s: NO DEREFERENCE of data pointer %p",
+			fname, field->data_pointer));
+	}
+
+	if ( array_ptr == NULL ) {
+
+		/* There is nothing in the field, so there is nothing to do. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* dimension_level tells us how far away we are from the lowest
+	 * level in the field array.
+	 */
+
+	dimension_level = field->num_dimensions;
+
+	MX_DEBUG( 4,("%s: field->num_dimensions = %ld",
+			fname, field->num_dimensions));
+
+	if ( dimension_level < 0 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"Illegal number of dimensions %ld for field '%s' in record '%s'",
+			dimension_level, field->name, record->name );
+	}
+
+	/* At some arbitrary level in traversing the field data, the
+	 * pointer array_ptr points to some slice of the total data
+	 * belonging to the field.  If defined, array_indices is used
+	 * to contain the array index of this slice in the field data
+	 * as a whole.  Since we are at the top level, array_ptr
+	 * currently refers to the array as a whole, so we initialize
+	 * all the array indices to -1L to indicate that they are not
+	 * valid values.
+	 */
+
+	if ( array_indices != NULL ) {
+		for ( i = 0; i < field->num_dimensions; i++ ) {
+			array_indices[i] = -1L;
+		}
+	}
+
+	/* Invoke the traverse_field handler on the top level of the array. */
+
+	MX_DEBUG( 4,("%s: dimension_level = %ld", fname, dimension_level));
+
+	if (( dimension_level == 0 )
+	  || (( field->datatype == MXFT_STRING ) && ( dimension_level == 1 )))
+	{
+		MX_DEBUG( 4,("ROUTE *, ROUTE *, ROUTE *, ROUTE *, ROUTE *"));
+		MX_DEBUG( 4,("ROUTE *, record = '%s', field = '%s'",
+				record->name, field->name));
+
+		status = (*handler_fn)( record,
+				field,
+				handler_data_ptr,
+				array_indices,
+				array_ptr,
+				dimension_level );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+	} else {
+		MX_DEBUG( 4,("ROUTE 0, ROUTE 0, ROUTE 0, ROUTE 0, ROUTE 0"));
+		MX_DEBUG( 4,("ROUTE 0, record = '%s', field = '%s'",
+				record->name, field->name));
+
+		status = (*handler_fn)( record,
+				field,
+				handler_data_ptr,
+				array_indices,
+				array_ptr,
+				dimension_level );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		/* If we are not starting at the bottom level of the array,
+		 * recurse down to the next lower level.
+		 */
+
+		dimension_level--;
+
+		status = mx_traverse_field_array( record,
+						field,
+						handler_fn,
+						handler_data_ptr,
+						array_indices,
+						array_ptr,
+						dimension_level );
+	}
+
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mx_traverse_field_array( MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			MX_TRAVERSE_FIELD_HANDLER *handler_fn,
+			void *handler_data_ptr,
+			long *array_indices,
+			void *array_ptr,
+			long dimension_level )
+{
+	const char fname[] = "mx_traverse_field_array()";
+
+	long i, n, num_dimension_elements, new_dimension_level;
+	long row_ptr_step_size;
+	size_t dimension_element_size, subarray_size;
+	char *row_ptr, *element_ptr;
+	void *new_array_ptr;
+	int dynamically_allocated;
+	mx_status_type status;
+
+	MX_DEBUG( 8,
+	("====== mx_traverse_field_array(), dimension_level = %ld  ======",
+		dimension_level));
+
+	MX_DEBUG( 8,
+	("Record '%s', field '%s', dimension level = %ld, num_dimensions = %ld",
+		record->name, field->name, dimension_level,
+		field->num_dimensions));
+
+	if ( field->flags & MXFF_VARARGS ) {
+		dynamically_allocated = TRUE;
+	} else {
+		dynamically_allocated = FALSE;
+	}
+
+	dimension_element_size = field->data_element_size[ dimension_level ];
+
+	n = field->num_dimensions - dimension_level - 1;
+
+	num_dimension_elements = field->dimension[n];
+
+	new_dimension_level = dimension_level - 1;
+
+	MX_DEBUG( 8,
+	("%s: dimension_level = %ld, n = %ld, num_dimension_elements = %ld",
+		fname, dimension_level, n, num_dimension_elements));
+	MX_DEBUG( 8,("%s:    array_ptr = %p", fname, array_ptr));
+
+	/* Decide what we have to do about the next level down. */
+
+	if ( ( dimension_level == 0 ) 
+	  || ( (field->datatype == MXFT_STRING) && (dimension_level == 1) ) )
+	{
+
+		MX_DEBUG( 4,("ROUTE 1, ROUTE 1, ROUTE 1, ROUTE1, ROUTE 1"));
+
+#if 0
+		if ( field->datatype == MXFT_STRING ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Encountered an MXFT_STRING at dimension level 0.  "
+	"This message should never appear, so if you see it "
+	"you've found a bug in MX and should report it to the author." );
+		}
+#endif
+
+		/* Step through the bottom level of the array.  */
+
+		element_ptr = (char *)array_ptr;
+
+		for ( i = 0; i < num_dimension_elements; i++ ) {
+
+			MX_DEBUG( 4,("ROUTE 1, i = %ld, n = %ld", i, n));
+
+			if ( array_indices != NULL ) {
+				array_indices[n] = i;
+
+				MX_DEBUG( 4,
+					("ROUTE 1, array_indices[%ld] = %ld",
+					n, array_indices[n]));
+			}
+
+#if 1
+			if ( field->datatype == MXFT_STRING ) {
+				new_array_ptr =
+		mx_read_void_pointer_from_memory_location( element_ptr );
+			} else {
+				new_array_ptr = element_ptr;
+			}
+#else
+			new_array_ptr = element_ptr;
+#endif
+
+			status = (*handler_fn)( record,
+						field,
+						handler_data_ptr,
+						array_indices,
+						new_array_ptr,
+						dimension_level );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			element_ptr += dimension_element_size;
+		}
+#if 0
+	} else
+	if ( (field->datatype == MXFT_STRING) && (dimension_level == 1) ) {
+
+		/* Strings are specially handled. */
+
+		MX_DEBUG( 4,("ROUTE 2, ROUTE 2, ROUTE 2, ROUTE 2, ROUTE 2"));
+
+		if ( array_indices != NULL ) {
+			array_indices[n] = 0;
+		}
+
+		if ( dynamically_allocated ) {
+			new_array_ptr =
+		    mx_read_void_pointer_from_memory_location( array_ptr );
+
+			MX_DEBUG( 4,
+	("%s: DEREFERENCING string array_ptr %p to get new_array_ptr %p",
+					fname, array_ptr, new_array_ptr));
+		} else {
+			new_array_ptr = array_ptr;
+
+			MX_DEBUG( 4,("%s: NO DEREFERENCE of array_ptr %p",
+					fname,  array_ptr ));
+		}
+
+		status = (*handler_fn)( record,
+					field,
+					handler_data_ptr,
+					array_indices,
+					new_array_ptr,
+					dimension_level );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+#endif
+	} else {
+		MX_DEBUG( 4,("ROUTE 3, ROUTE 3, ROUTE 3, ROUTE3, ROUTE 3"));
+
+		/* More levels in the array to descend through. */
+
+		MX_DEBUG( 8,("%s: -> Go to next dimension level = %ld",
+			fname, new_dimension_level));
+
+		/* Compute how far apart in memory the row pointers are. */
+
+		if ( dynamically_allocated ) {
+			row_ptr_step_size = (long) dimension_element_size;
+		} else {
+			status = mx_compute_static_subarray_size( array_ptr,
+				dimension_level, record, field,
+				&subarray_size );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			row_ptr_step_size = (long) subarray_size;
+		}
+
+		/* Step through each subarray corresponding to one
+		 * element in this row.
+		 */
+
+		row_ptr = (char *) array_ptr;
+
+		MX_DEBUG( 8,("%s: row_ptr = %p, row_ptr_step_size = %ld",
+			fname, row_ptr, row_ptr_step_size));
+
+		for ( i = 0; i < num_dimension_elements; i++ ) {
+
+			MX_DEBUG( 4,("ROUTE 3, i = %ld, n = %ld", i, n));
+
+			if ( array_indices != NULL ) {
+				array_indices[n] = i;
+
+				MX_DEBUG( 4,
+					("ROUTE 3, array_indices[%ld] = %ld",
+					n, array_indices[n]));
+			}
+
+			/* Invoke the handler function for this level. */
+
+			status = (*handler_fn)( record,
+						field,
+						handler_data_ptr,
+						array_indices,
+						array_ptr,
+						dimension_level );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+
+			/* Get the array pointer for the next layer down. */
+
+			if ( dynamically_allocated ) {
+				new_array_ptr =
+				    mx_read_void_pointer_from_memory_location(
+					row_ptr );
+
+				MX_DEBUG( 4,
+	("%s: DEREFERENCING row %ld row_ptr %p to get new_array_ptr %p",
+					fname, i, row_ptr, new_array_ptr));
+			} else {
+				new_array_ptr = row_ptr;
+
+				MX_DEBUG( 4,
+	("%s: NO DEREFERENCE of row %ld row_ptr %p",
+					fname, i, row_ptr ));
+			}
+
+			/* Go to the next layer down. */
+
+			status = mx_traverse_field_array( record,
+							field,
+							handler_fn,
+							handler_data_ptr,
+							array_indices,
+							new_array_ptr,
+							new_dimension_level );
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
+	
+			row_ptr += row_ptr_step_size;
+		}
+	}
+	if ( array_indices != NULL ) {
+		array_indices[n] = -1;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
+mx_create_field_from_description( MX_RECORD *record,
+		MX_RECORD_FIELD *record_field,
+		MX_RECORD_FIELD_PARSE_STATUS *parse_status,
+		char *field_description )
+{
+	const char fname[] = "mx_create_field_from_description()";
+
+	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
+	MX_RECORD_FIELD_PARSE_STATUS *parse_status_ptr;
+	void *pointer_to_value;
+	mx_status_type mx_status;
+	mx_status_type ( *token_parser ) ( void *, char *,
+				MX_RECORD *, MX_RECORD_FIELD *,
+				MX_RECORD_FIELD_PARSE_STATUS * );
+
+	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
+
+	if ( record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+	if ( record_field == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( field_description == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"field_description pointer passed was NULL." );
+	}
+
+	if ( record_field->flags & MXFF_VARARGS ) {
+		pointer_to_value
+			= mx_read_void_pointer_from_memory_location(
+				record_field->data_pointer );
+	} else {
+		pointer_to_value = record_field->data_pointer;
+	}
+
+	mx_status = mx_get_token_parser( record_field->datatype,
+						&token_parser );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( parse_status != NULL ) {
+		parse_status_ptr = parse_status;
+	} else {
+		mx_initialize_parse_status( &temp_parse_status,
+					field_description, separators );
+
+		parse_status_ptr = &temp_parse_status;
+	}
+
+	/* If the field is a string field, get the maximum length of
+	 * a string token for use by the token parser.
+	 */
+
+	if ( record_field->datatype == MXFT_STRING ) {
+		parse_status_ptr->max_string_token_length =
+				mx_get_max_string_token_length( record_field );
+	} else {
+		parse_status_ptr->max_string_token_length = 0L;
+	}
+
+	/* Parse the field description. */
+
+	if ( (record_field->num_dimensions == 0)
+	  || ((record_field->datatype == MXFT_STRING)
+	    && (record_field->num_dimensions == 1)) ) {
+
+		mx_status = mx_get_next_record_token( parse_status_ptr,
+					field_description,
+					1 + strlen( field_description ) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = (*token_parser)( pointer_to_value,
+				field_description, NULL, record_field,
+				parse_status_ptr );
+	} else {
+		mx_status = mx_parse_array_description( pointer_to_value,
+				record_field->num_dimensions - 1, NULL,
+				record_field, parse_status_ptr, token_parser );
+	}
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_create_description_from_field( MX_RECORD *record,
+		MX_RECORD_FIELD *record_field,
+		char *field_description_buffer,
+		size_t field_description_buffer_length )
+{
+	const char fname[] = "mx_create_description_from_field()";
+
+	void *pointer_to_value;
+	mx_status_type mx_status;
+	mx_status_type ( *token_constructor )
+		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
+
+	MX_DEBUG( 2,("%s invoked.", fname));
+
+	MX_DEBUG( 2,("%s: record = %p, record_field = %p, buffer = %p",
+		fname, record, record_field, field_description_buffer));
+
+	if ( record == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+	if ( record_field == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	MX_DEBUG( 2,("%s: record '%s', field '%s': ",
+		fname, record->name, record_field->name ));
+
+	if ( record_field->flags & MXFF_VARARGS ) {
+		pointer_to_value
+			= mx_read_void_pointer_from_memory_location(
+				record_field->data_pointer );
+		MX_DEBUG( 2,
+		("%s: DEREFERENCING data_pointer %p to get pointer_to_value %p",
+			fname, record_field->data_pointer, pointer_to_value));
+	} else {
+		pointer_to_value = record_field->data_pointer;
+
+		MX_DEBUG( 2,
+		("%s: NO DEREFERENCE of data pointer %p",
+			fname, record_field->data_pointer));
+	}
+
+	mx_status = mx_get_token_constructor(
+			record_field->datatype, &token_constructor );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: token_constructor = %p", fname, token_constructor));
+
+	{
+	  long i, j, k;
+	  char **twod_string;
+	  char ***threed_string;
+	  double *oned_double;
+	  double **twod_double;
+	  double ***threed_double;
+
+	  MX_DEBUG( 2,("%s: FOOEY...", fname));
+	  MX_DEBUG( 2,("%s: record_field->name = %p",
+			fname, record_field->name));
+	  MX_DEBUG( 2,("%s: record_field->name = '%s'",
+			fname, record_field->name));
+
+	  if ( record_field->datatype == MXFT_STRING ) {
+		MX_DEBUG( 2,("%s: MXFT_STRING field, num_dimensions = %ld",
+			fname, record_field->num_dimensions));
+
+		if ( record_field->num_dimensions == 1 ) {
+		    MX_DEBUG( 2,("%s: 1-d string = %p",
+				fname, (char *) pointer_to_value ));
+		    MX_DEBUG( 2,("%s: 1-d string = '%s'",
+				fname, (char *) pointer_to_value ));
+		} else
+		if ( record_field->num_dimensions == 2 ) {
+		    twod_string = ( char ** ) pointer_to_value;
+
+		    MX_DEBUG( 2,("%s: twod_string = %p", fname, twod_string));
+
+		    for ( i = 0; i < record_field->dimension[0]; i++ ) {
+			MX_DEBUG( 2,("%s: twod_string[%ld] = %p",
+				fname, i, twod_string[i]));
+			MX_DEBUG( 2,("%s: twod_string[%ld] = '%s'",
+				fname, i, twod_string[i]));
+		    }
+		} else
+		if ( record_field->num_dimensions == 3 ) {
+		    threed_string = ( char ***) pointer_to_value;
+
+		    MX_DEBUG( 2,("%s: threed_string = %p",
+				fname, threed_string));
+
+		    for ( i = 0; i < record_field->dimension[0]; i++ ) {
+			MX_DEBUG( 2,("%s: threed_string[%ld] = %p",
+				fname, i, threed_string[i]));
+
+			for ( j = 0; j < record_field->dimension[1]; j++ ) {
+			    MX_DEBUG( 2,("%s: threed_string[%ld][%ld] = %p",
+				fname, i, j, threed_string[i][j]));
+
+			    MX_DEBUG( 2,("%s: threed_string[%ld][%ld] = '%s'",
+				fname, i, j, threed_string[i][j]));
+			}
+		    }
+		} else {
+		    MX_DEBUG( 2,("%s: not a 1-d or 2-d string array.", fname));
+		}
+	  } else if ( record_field->datatype == MXFT_DOUBLE ) {
+		MX_DEBUG( 2,("%s: MXFT_DOUBLE field, num_dimensions = %ld",
+			fname, record_field->num_dimensions));
+
+		for ( i = 0; i < record_field->num_dimensions; i++ ) {
+			MX_DEBUG( 2,("%s: dimension[%ld] = %ld",
+				fname, i, record_field->dimension[i]));
+		}
+
+		if ( record_field->num_dimensions == 1 ) {
+		    oned_double = (double *) pointer_to_value;
+
+		    MX_DEBUG( 2,("%s: oned_double = %p", fname, oned_double));
+
+		    for ( i = 0; i < record_field->dimension[0]; i++ ) {
+			MX_DEBUG( 2,("%s: &oned_double[%ld] = %p",
+				fname, i, &(oned_double[i]) ));
+
+			MX_DEBUG( 2,("%s: oned_double[%ld] = %g",
+				fname, i, oned_double[i]));
+		    }
+		} else if ( record_field->num_dimensions == 2 ) {
+		    twod_double = (double **) pointer_to_value;
+
+		    MX_DEBUG( 2,("%s: twod_double = %p", fname, twod_double));
+
+		    for ( i = 0; i < record_field->dimension[0]; i++ ) {
+			MX_DEBUG( 2,("%s: twod_double[%ld] = %p",
+			    fname, i, twod_double[i] ));
+
+			for ( j = 0; j < record_field->dimension[1]; j++ ) {
+				MX_DEBUG( 2,("%s: &twod_double[%ld][%ld] = %p",
+				fname, i, j, &(twod_double[i][j]) ));
+
+				MX_DEBUG( 2,("%s: twod_double[%ld][%ld] = %g",
+				fname, i, j, twod_double[i][j] ));
+			}
+		    }
+		} else
+		if ( record_field->num_dimensions == 3 ) {
+		    threed_double = ( double *** ) pointer_to_value;
+
+		    MX_DEBUG( 2,("%s: threed_double = %p",
+				fname, threed_double));
+
+		    for ( i = 0; i < record_field->dimension[0]; i++ ) {
+			MX_DEBUG( 2,("%s: threed_double[%ld] = %p",
+				fname, i, threed_double[i]));
+
+			for ( j = 0; j < record_field->dimension[1]; j++ ) {
+			    MX_DEBUG( 2,("%s: threed_double[%ld][%ld] = %p",
+				fname, i, j, threed_double[i][j]));
+
+			    for ( k = 0; k < record_field->dimension[2]; k++ ) {
+				MX_DEBUG( 2,
+				("%s: &threed_double[%ld][%ld][%ld] = %p",
+				    fname, i, j, k, &(threed_double[i][j][k])));
+
+				MX_DEBUG( 2,
+				("%s: threed_double[%ld][%ld][%ld] = %g",
+				    fname, i, j, k, threed_double[i][j][k] ));
+			    }
+			}
+		    }
+		} else {
+		    MX_DEBUG( 2,("%s: num_dimensions = %ld",
+			fname, record_field->num_dimensions));
+		}
+	  } else {
+		MX_DEBUG( 2,("%s: datatype = %ld",
+			fname, record_field->datatype));
+		MX_DEBUG( 2,("%s: datatype = %s", fname,
+			mx_get_field_type_string( record_field->datatype ) ));
+	  }
+	}
+
+	/* Construct the string description of this field. */
+
+	strcpy( field_description_buffer, "" );
+
+	if ( (record_field->num_dimensions == 0)
+	  || ((record_field->datatype == MXFT_STRING)
+	     && (record_field->num_dimensions == 1)) ) {
+
+		mx_status = (*token_constructor)( pointer_to_value,
+				field_description_buffer,
+				field_description_buffer_length,
+				record, record_field );
+	} else {
+		mx_status = mx_create_array_description( pointer_to_value,
+				record_field->num_dimensions - 1,
+				field_description_buffer,
+				field_description_buffer_length,
+				record, record_field, token_constructor );
+	}
+	return mx_status;
+}
+

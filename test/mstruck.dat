@@ -1,0 +1,24 @@
+dummy   device motor soft_motor "" "" 1000 0 -100000000 100000000 0 -1 -1 0.001 0 deg 1000 0 500
+time    device motor elapsed_time "" "" 0 0 -2.1474836e+09 2.1474836e+09 0 -1 -1 1 0 sec 0
+#
+# VME devices
+#
+#vme1    interface vme vxi_memacc "" "" 0x0
+vme1    interface vme sis3100 "" "" 0x0 /dev/sis1100_0 0
+sis3801 device mcs sis3801 "" "" 32 2000 "" 0 0 timer1 vme1 a16 0 0x3800 0x6 0x0
+mcs1    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 1
+mcs2    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 2
+mcs3    device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 3
+mcs17   device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 17
+mcs18   device scaler mcs_scaler "" "" 0 0 1 timer1 sis3801 18
+timer1  device timer mcs_timer "" "" sis3801
+sis3807 interface generic sis3807 "" "" vme1 a16 0 0x4800 1 0xff 0
+pulser1 device pulse_generator sis3807_pulser "" "" sis3807 1 0
+#
+# PMAC devices
+#
+pmac1_rs232 interface rs232 tty "" "" 38400 8 N 1 N 0xd 0xd -1 0x0 /dev/ttyS0
+pmac1       interface generic pmac "" "" rs232 pmac1_rs232 1
+pmac1_mce   device mce pmac_mce "" "" 2000 1 0 pmac1 0 sis3801 17 18 4
+m1          device motor pmac_motor "" "" 0 0 -100000000 100000000 0 -1 -1 1 0 steps pmac1 0 1
+m18         device motor pmac_motor "" "" 0 0 -100000000 100000000 0 -1 -1 1 0 steps pmac1 0 18

@@ -1,0 +1,1 @@
+slit_scan                        scan linear_scan pseudomotor_scan "" "" 1 1 1  vslit_center 3  vslit_center m3 m4 0 0.1 preset_time "1 timer1" text slit_scan.002 gnuplot $f[0]  -10000  100  201

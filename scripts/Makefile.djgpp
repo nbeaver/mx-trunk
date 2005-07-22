@@ -1,0 +1,96 @@
+#
+# This version of the MX top level makefile is customized for DJGPP.
+#
+# This makefile should be invoked from the top level MX directory by a
+# command like
+#
+#    make -f scripts/Makefile.djgpp
+#
+#---------------------------------------------------------------------------
+
+MX_ARCH = djgpp
+
+MX_INSTALL_DIR = c:/opt/mx
+
+#---------------------------------------------------------------------------
+
+MAKECMD = make MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
+
+all: build
+
+build:
+	cd tools
+	$(MAKECMD) -f Makefile.$(MX_ARCH)
+	cd ..\libMx
+	$(MAKECMD)
+	cd ..\motor
+	$(MAKECMD)
+	cd ..\server
+	$(MAKECMD)
+	cd ..\update
+	$(MAKECMD)
+	cd ..\update_new
+	$(MAKECMD)
+	cd ..\util
+	$(MAKECMD)
+
+clean:
+	cd tools
+	$(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean
+	cd ..\libMx
+	$(MAKECMD) mx_clean
+	cd ..\motor
+	$(MAKECMD) mx_clean
+	cd ..\server
+	$(MAKECMD) mx_clean
+	cd ..\update
+	$(MAKECMD) mx_clean
+	cd ..\update_new
+	$(MAKECMD) mx_clean
+	cd ..\util
+	$(MAKECMD) mx_clean
+
+distclean:
+	cd tools
+	$(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean
+	cd ..\libMx
+	$(MAKECMD) mx_distclean
+	cd ..\motor
+	$(MAKECMD) mx_distclean
+	cd ..\server
+	$(MAKECMD) mx_distclean
+	cd ..\update
+	$(MAKECMD) mx_distclean
+	cd ..\update_new
+	$(MAKECMD) mx_distclean
+	cd ..\util
+	$(MAKECMD) mx_distclean
+
+depend:
+	cd libMx
+	$(MAKECMD) mx_depend
+	cd ..\motor
+	$(MAKECMD) mx_depend
+	cd ..\server
+	$(MAKECMD) mx_depend
+	cd ..\update
+	$(MAKECMD) mx_depend
+	cd ..\update_new
+	$(MAKECMD) mx_depend
+	cd ..\util
+	$(MAKECMD) mx_depend
+
+install:
+	cd libMx
+	$(MAKECMD) mx_install
+	cd ..\motor
+	$(MAKECMD) mx_install
+	cd ..\server
+	$(MAKECMD) mx_install
+	cd ..\update
+	$(MAKECMD) mx_install
+	cd ..\update_new
+	$(MAKECMD) mx_install
+	cd ..\util
+	$(MAKECMD) mx_install
+

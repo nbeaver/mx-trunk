@@ -1,0 +1,20 @@
+#
+# tools/Makefile.macosx
+#
+
+EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
+		-DUSE_DIRENT -DSYS_UNIX
+
+EDITLINE_CC = cc
+EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
+EDITLINE_RANLIB = ranlib
+
+EDITLINE_MAKECMD = \
+  make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
+
+all:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+
+mx_clean:
+	( cd unix/src/editline ; make clean )
+

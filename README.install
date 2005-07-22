@@ -1,0 +1,102 @@
+
+Steps for building MX:
+
+1.  Change the value of the MX_ARCH variable below to match the platform you
+    are compiling the MX system for.  The available platforms are:
+
+      cygwin      - Compile for Cygwin 1.3.2
+      djgpp       - Compile for DOS extender with DJGPP 2.0.2
+      hpux        - Compile for HP 9000/7xx under HP-UX 10.20
+      irix        - Compile for SGI under Irix 6.3 or 6.5
+      linux       - Compile for i386 under Linux 2.0, 2.2, or 2.4
+      macosx      - Compile for PPC Macintosh under MacOS X.
+      solaris     - Compile for Sun Sparc under Solaris 2.5 or 2.6
+      solaris-gcc - Compile for Sun Sparc under Solaris 2.6 using GCC 2.8.1
+      sunos4      - Compile for Sun Sparc under SunOS 4.1.4
+      win32       - Compile for Microsoft Win32 with Visual C++ 4, 5, or 6
+
+    At present, you must have Gnu make installed on Win32 platforms in
+    order to build MX.  The "nmake" program that comes with Visual C++
+    is not sufficient.  The easiest way to get this is to install the
+    Cygwin environment from http://www.cygwin.com/.
+
+    At some point in the future, I may well require Gnu make on all platforms
+    so that my makefiles can use the conditionals available in Gnu make.
+    For now though, the vendor supplied "make" still works on the supported
+    commercial Unix platforms.
+
+2.  Set MX_INSTALL_DIR to the directory that you want to install MX in.
+
+3.  Check "mx/libMx/mxconfig.h" to see if any of the defines need to be
+    changed.  These defines indicate the presence or absence of optional
+    external packages such as EPICS.  Setting a define to "1" indicates
+    the presence of the package, while setting it to "0" indicates its
+    absence.
+
+4.  Modify the definitions of the makefile variables INCLUDES, LIB_DIRS,
+    and LIBRARIES in the file "mx/libMx/Makehead.$(MX_ARCH)" to reflect the
+    optional packages configured in step 3.  For example, if MX_ARCH = linux,
+    then the file to modify is "mx/libMx/Makehead.linux".  Other defines
+    relating to particular external packages may have to be modified as
+    well, but you should not modify anything in the makefile after the
+    line that says
+
+      "Generally, you should not have to modify anything after this point."
+
+5.  Do a "make clean" command.
+
+6.  Do a "make depend" command.
+
+7.  Do a "make" command.
+
+8.  If MX builds correctly, do "make install" to install the binaries
+    in the requested location.  The directory $(MX_INSTALL_DIR) must exist
+    before you do "make install".
+
+    On Win32, $(MX_INSTALL_DIR) should use forward slashes like / rather
+    than backslashes.
+
+9.  Now you must edit the configuration files in $(MX_INSTALL_DIR)/etc.
+    This process is sufficiently long-winded that it deserves its own
+    manual.  I haven't written that manual yet, but for the moment you
+    can use the program "mxdriverinfo" as a guide to figuring out the
+    correct format for a given record type.  Read the file 
+    "mx/doc/mxdriverinfo.man" for more information.  Also, there are
+    a variety of test databases in the "mx/test" and "mx/testserv"
+    directories that can be used for inspiration.
+
+10. Set up the environment variable MXDIR equal to the value defined
+    for $(MX_INSTALL_DIR) above.  Many tools will default to MXDIR = "/opt/mx",
+    but it is better to just set up the define.
+
+11. Add the directory "$(MX_INSTALL_DIR)/bin" to the PATH.
+
+12. Add the shared library directory "$(MX_INSTALL_DIR)/lib" to the shared
+    library path.  On most unix systems, this is LD_LIBRARY_PATH, but on
+    MacOS X it is DYLD_LIBRARY_PATH, while on HP/UX it is SHLIB_PATH.
+    On Win32, the necessary DLLs automatically get copied to the directory
+    $(MX_INSTALL_DIR)/bin, so Win32 users can skip this step.
+
+13. If you are setting up an MX server on a Unix system with System V style
+    startup scripts (Linux, Solaris, etc.), then you can use the file
+    "$(MX_INSTALL_DIR)/sbin/mx" as a startup and shutdown script.  All that
+    should be necessary is to create the appropriate links in the /etc/rc?.d
+    directories.  On other Unix systems, you can use the script as a guide
+    to what to do.
+
+    If you are setting up an MX server on a Win32 system, then you can use
+    the file "$(MX_INSTALL_DIR)/sbin/mx.bat" as a guide for what needs to be
+    done to start up the MX server.
+
+14. The source code for MX extension packages should be unpacked in the same
+    directory that you unpacked the MX tar file in.  Thus, you should end
+    up with a directory containing subdirectories like "mx", "mp", "mxtcl",
+    and so forth.  In general, the procedure for building and installing them
+    is the same procedure of configuring the Makefile followed by "make clean",
+    "make depend", "make", and "make install", but you should read any bundled
+    instructions for more information.  In particular, the MxTcl package has
+    an extra file "mxtcl/libMxTcl/Makehead.$(MX_ARCH)" that must be modified.
+
+If it all fails, then contact me (Bill Lavender) at the email address of
+lavender@agni.phys.iit.edu and I will see what I can do for you.
+

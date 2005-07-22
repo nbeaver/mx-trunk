@@ -1,0 +1,167 @@
+#
+# Name:    Makehead.vms
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for OpenVMS 7.3.1.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES and LIBRARIES.
+#
+
+#
+INCLUDES	= $(MX_INCLUDES)
+
+LIBRARIES	= $(VMS_LIBRARIES)
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point if you
+# are using Compaq TCP/IP Services for OpenVMS.
+#
+# This code has not yet been tested with Multinet or other non-HP versions
+# of OpenVMS TCP/IP, so I don't know if it works with them as is.
+#
+
+VMS_LIBRARIES = \
+ TCPIP$$RPC:TCPIP$$RPCXDR/library, TCPIP$$LIBRARY:TCPIP$$LIB/library
+
+#
+# Compaq C V6.4-005 on OpenVMS VAX 7.3.1
+#
+CC		= cc
+CFLAGS		= /debug /noopt $(INCLUDES) /define=("OS_VMS","DEBUG") \
+  /warnings=(disable=longextern,errors=all)  /error_limit=10 
+
+CFLAGS_EPICS	= $(CFLAGS)
+
+# Special cases for individual files.
+
+CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
+
+CFLAGS_MX_VERS  = /debug /noopt $(INCLUDES) /define=("OS_VMS","DEBUG", \
+	"MX_MAJOR_VERSION=$(MX_MAJOR_VERSION)", \
+	"MX_MINOR_VERSION=$(MX_MINOR_VERSION)", \
+	"MX_UPDATE_VERSION=$(MX_UPDATE_VERSION)") \
+	/warnings=(disable=longextern,errors=all)  /error_limit=10 
+
+CFLAGS_MAKEDEPEND = $(CFLAGS)
+
+COMPILE		= $(CC)
+DEFINE		= /define=
+
+MAKEDEPEND_CLEAN = copy nl: Makefile.depend
+
+#
+# The following _might_ work, but it would take a long, long time to
+# execute under the TS10 VAX emulator I am using, so I haven't tried it.
+#
+#MAKEDEPEND	= cc $(INCLUDES) /define=("OS_VMS","DEBUG") \
+#	/mms_dependencies=(file=Makefile.depend,nosystem_include_files) *.c
+#
+
+MAKEDEPEND	= $(MAKEDEPEND_CLEAN)
+
+#
+#---------------------------------------------------
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.obj)
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.obj)
+SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.obj)
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
+
+#
+#---------------------------------------------------
+#
+
+RM		= delete
+MAKE		= make
+
+OBJ		= obj
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= [-.libMx]
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= /include=$(MX_INC_DIR)
+
+MX_LIBRARY_PATH	= $(MX_LIB_DIR)$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_NAME	= libMx.olb
+
+MX_LIBRARY_DELETE = delete $(MX_LIBRARY_NAME);*
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	library/create libMx *.obj
+
+library_install:
+	-create/directory $(MX_INSTALL_DIR).bin]
+	-create/directory $(MX_INSTALL_DIR).etc]
+	-create/directory $(MX_INSTALL_DIR).include]
+	-create/directory $(MX_INSTALL_DIR).lib]
+	-create/directory $(MX_INSTALL_DIR).log]
+	-create/directory $(MX_INSTALL_DIR).run]
+	-create/directory $(MX_INSTALL_DIR).sbin]
+	-create/directory $(MX_INSTALL_DIR).state]
+	copy mx*.h $(MX_INSTALL_DIR).include]
+	copy $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR).lib]
+
+#
+#---------------------------------------------------
+#
+
+MOTOR_NAME	= motorbin.exe
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	delete motor.olb;*
+	library/create motor *.obj
+	link /exe=$(MOTOR_NAME) motor.obj, motor/library, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
+motor_install:
+	copy $(MOTOR_NAME) $(MX_INSTALL_DIR).bin]
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver.exe
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	delete mxserver.olb;*
+	library/create mxserver *.obj
+	link /exe=$(SERVER_NAME) ms_main.obj, mxserver/library, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
+server_install:
+	copy $(SERVER_NAME) $(MX_INSTALL_DIR).sbin]
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate.exe
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	link /exe=$(UPDATE_NAME) mu_update.obj, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
+update_install:
+	copy $(UPDATE_NAME) $(MX_INSTALL_DIR).sbin]
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo.exe
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	link /exe=$(MXDRIVERINFO_NAME) mxdriverinfo.obj, \
+    $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
+
+mxdriverinfo_install:
+	copy $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR).bin]
+

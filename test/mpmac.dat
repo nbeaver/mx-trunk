@@ -1,0 +1,7 @@
+pmac1_rs232 interface rs232 tcp232 "" "" 38400 8 N 1 H 0xd 0xd -1 0x0 w11 3001 0x0
+pmac1       interface generic pmac "" "" rs232 pmac1_rs232 1
+m1          device motor pmac_motor "" "" -4768 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 1
+m2          device motor pmac_motor "" "" 42010 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 2
+m3          device motor pmac_motor "" "" 3800 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 3
+m4          device motor pmac_motor "" "" 40001 0 -10000000 10000000 0 -1 -1 1 0 steps pmac1 0 4
+timer1      device timer soft_timer "" ""

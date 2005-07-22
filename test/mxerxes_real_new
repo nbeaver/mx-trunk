@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -p mxerxes_new -F /opt/mx/etc/mxerxes_new.dat -s ./sxerxes_real.dat $*
+

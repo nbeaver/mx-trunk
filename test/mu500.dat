@@ -1,0 +1,4 @@
+u500 interface generic u500 "" "" 1 c:\U500\mmi\U500c.jwp c:\U500\mmi\Litho.prm "" ""
+lithox device motor u500_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.0001 0 mm u500 1 X 20
+lithoy device motor u500_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.0001 0 mm u500 1 Y 20
+lithoz device motor u500_motor "" "" 0 0 -1e30 1e30 0 -1 -1 0.0001 0 deg u500 1 Z -1

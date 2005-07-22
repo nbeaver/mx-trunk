@@ -1,0 +1,6 @@
+gpib0      interface gpib ni488 "" "" 10 0 0xa 0xa 0x0 0
+k2400      interface generic keithley2400 "" "" gpib0:11
+k2400_ain  device analog_input keithley2400_ainput "" "" 0 1 0 units 0x0 0 "" k2400 1
+k2400_aout device analog_output keithley2400_aoutput "" "" 0 1 0 units 0x0 k2400 1
+k2400_dout device digital_output keithley2400_doutput "" "" 0 k2400
+k2400_amp  device amplifier keithley2400_amp "" "" 1 0 0 k2400 1

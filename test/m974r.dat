@@ -1,0 +1,4 @@
+serial_a0  interface rs232 epics_rs232 "" "" 9600 8 N 1 S 0xd 0xd -1 0x0 10id:seriala[0]
+ortec      interface generic ortec974 "" "" serial_a0
+scaler2    device scaler ortec974_scaler "" "" 0 0 1 timer1 ortec 2
+timer1     device timer ortec974_timer "" "" ortec

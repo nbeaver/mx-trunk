@@ -1,0 +1,32 @@
+bmc73       server network tcpip_server "" "" 0x0 localhost 9827
+#
+theta_real  device motor network_motor "" "" 0   0     -10000000    10000000  0     -1   -1   1  0 deg bmc73 theta_real
+m_lane      device motor network_motor "" "" 0   0     -10000000    10000000  0     -1   -1   1  0 mm bmc73 m_lane
+#
+# Monochromator pseudomotor
+#
+theta            device motor monochromator "" "" 9.176 0 -1e+38 1e+38 0 -1 -1 1 0 deg 2 theta_list stripe_list
+energy           device motor energy_motor "" "" 12398 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.0174533
+#
+d_spacing        variable inline double "" "" 1  1  1.9194
+#
+# Theta dependency
+#
+theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
+theta_enabled    variable inline int "" "" 1 1 1
+theta_type       variable inline int "" "" 1 1 0
+theta_records    variable inline record "" "" 1 1 theta_real
+#
+# Stripe dependency
+#
+stripe_list    variable inline record "" "" 1  4  stripe_enabled stripe_type dummy_params stripe_records  
+stripe_type    variable inline int "" "" 1  1  9  
+stripe_enabled variable net_variable net_int "" "" bmc73 stripe_enabled.value 1  1  1  
+stripe_records variable inline record "" "" 1  2  stripe_select stripe_params  
+stripe_params  variable net_variable net_double "" "" bmc73 stripe_params.value 2  2  2  5 23.5  23.0 38.0    
+##stripe_select  variable net_variable net_int "" "" bmc73 stripe_select.value 1 1 -1  
+stripe_select  variable calc position_select "" "" m_lane 2 25 0 1 1 -1  
+#
+dummy_params     variable inline double "" "" 1 1 0
+#
+timer1         device timer soft_timer "" ""

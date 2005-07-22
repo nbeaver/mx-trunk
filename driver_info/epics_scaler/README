@@ -1,0 +1,26 @@
+This EPICS database implements two additional records per EPICS scaler channel.
+The for scaler channel 2 the records are
+
+  $(P)$(S)_Dark2.VAL   - Dark current per second for scaler channel 2.
+  $(P)$(S)_SD2.VAL     - The dark current subtracted value for scaler2.
+
+where $(P) and $(S) are defined to have the same values as in the standard
+Jscaler.db database.  The database is loaded into the EPICS VME crate by
+adding a line to the 'st.cmd' startup script that looks like
+
+dbLoadRecords("iocBoot/ioc1/Jscaler_dark.db","P=s10id:,S=scaler1,C=0", top)
+
+Please note that this database contains a definition for the scaler record
+$(P) and $(S) itself and thus is not immediately compatible with the standard
+Jscaler.db database.  This is due to the fact that EPICS does not supply
+any way for an add-on database to add forward links to existing records.
+If you wish to combine Jscaler.db and Jscaler_dark.db, the simplest way
+is to merely move the FLNK field whose value is "$(P)$(S)_cts1.PROC" in 
+Jscaler.db to the LNK4 field of Fanout record "$(P)$(S)_fan0" defined
+in Jscaler_dark.db.
+
+Hopefully, something equivalent to the dark current fields in Jscaler_dark.db
+will be added to some future version of Jscaler.db.
+
+William Lavender
+

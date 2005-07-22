@@ -1,0 +1,2 @@
+server1 server network tcpip_server "" "" 0x0 localhost 9827
+rot device motor network_motor "" "" 0 0 -10000000000 10000000000 0 -1 -1 1 0 units server1 rot

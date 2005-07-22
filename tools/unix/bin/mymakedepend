@@ -1,0 +1,14 @@
+#! /bin/sh
+
+dependencyfile=$1
+
+shift
+
+cat /dev/null > $dependencyfile
+
+makedepend -f $dependencyfile $*
+
+if [ -f $dependencyfile.bak ]; then
+	rm $dependencyfile.bak
+fi
+

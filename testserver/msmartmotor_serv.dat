@@ -1,0 +1,5 @@
+ttyS1 interface rs232 tty "" "" 9600 8 N 1 N 0x0d 0x0d -1 0x0 /dev/ttyS1
+rot device motor smartmotor "" "" 0 0 -10000000000 10000000000 0 -1 -1 1 0 units ttyS1 0 0x0
+rot_current device analog_input smartmotor_ain "" "" 0 0.01 0 amps 0x0 0 "" rot UI
+rot_voltage device analog_input smartmotor_ain "" "" 0 0.1 0 volts 0x0 0 "" rot UJ
+rot_temp device analog_input smartmotor_ain "" "" 0 1 0 C 0x0 0 "" rot TEMP

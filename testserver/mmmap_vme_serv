@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../server/mxserver -p 9827 -f mmmap_vme_serv.dat -C mvme_serv.acl $*
+

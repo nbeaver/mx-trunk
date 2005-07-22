@@ -1,0 +1,20 @@
+mdrive_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0d0a 0x0a -1 0x0 relish1 4663 0x0
+m1           device motor mdrive "" "" 0 0 -100000000 100000000 0 -1 -1 0.01953125 0 um mdrive_rs232 1
+m2           device motor mdrive "" "" 0 0 -100000000 100000000 0 -1 -1 0.01953125 0 um mdrive_rs232 2
+m3           device motor mdrive "" "" 0 0 -100000000 100000000 0 -1 -1 0.01953125 0 um mdrive_rs232 3
+m4           device motor mdrive "" "" 0 0 -100000000 100000000 0 -1 -1 0.01953125 0 um mdrive_rs232 4
+vslit_center device motor slit_motor "" "" 0 0 -1.0e12 1.0e12 0 -1 -1 1 0 um 0x0 1 m3 m4
+vslit_size   device motor slit_motor "" "" 0 0 -1.0e12 1.0e12 0 -1 -1 1 0 um 0x0 2 m3 m4
+m1_i1        device digital_input mdrive_din "" "" 0 m1 1
+m1_i2        device digital_input mdrive_din "" "" 0 m1 2
+m2_i1        device digital_input mdrive_din "" "" 0 m2 1
+m2_i2        device digital_input mdrive_din "" "" 0 m2 2
+m3_i1        device digital_input mdrive_din "" "" 0 m3 1
+m3_i2        device digital_input mdrive_din "" "" 0 m3 2
+m4_i1        device digital_input mdrive_din "" "" 0 m4 1
+m4_i2        device digital_input mdrive_din "" "" 0 m4 2
+m1_i5        device analog_input mdrive_ain "" "" 0 1 0 raw 0x0 0 "" m1
+m2_i5        device analog_input mdrive_ain "" "" 0 1 0 raw 0x0 0 "" m2
+m3_i5        device analog_input mdrive_ain "" "" 0 1 0 raw 0x0 0 "" m3
+m4_i5        device analog_input mdrive_ain "" "" 0 1 0 raw 0x0 0 "" m4
+timer1       device timer soft_timer "" ""

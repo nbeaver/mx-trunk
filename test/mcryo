@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../motor/motor.static -i -F ./mcryo.dat -s ./scryo.dat $*
+

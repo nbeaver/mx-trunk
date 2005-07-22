@@ -1,0 +1,29 @@
+serv server network tcpip_server "" "" 0x000 192.168.205.2 9727
+#serv server network tcpip_server "" "" 0x100 192.168.137.103 9827
+#serv server network tcpip_server "" "" 0x400 localhost 9827
+double0 variable net_variable net_double "" "" serv double0.value 1 1 0
+double1 variable net_variable net_double "" "" serv double1.value 1 5 0 0 0 0 0
+double2 variable net_variable net_double "" "" serv double2.value 2 2 3 0 0 0 0 0 0
+double3 variable net_variable net_double "" "" serv double3.value 3 2 3 4 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+string0 variable net_variable net_string "" "" serv string0.value 1 20 ""
+string1 variable net_variable net_string "" "" serv string1.value 1 81 ""
+string2 variable net_variable net_string "" "" serv string2.value 2 3 40 "" "" ""
+stringa variable net_variable net_string "" "" serv stringa.value 2 3 10 "" "" ""
+char1   variable net_variable net_char "" "" serv char1.value 1 4 0 0 0 0
+char2   variable net_variable net_char "" "" serv char2.value 2 2 4 0 0 0 0 0 0 0 0
+uchar1  variable net_variable net_uchar "" "" serv uchar1.value 1 4 0 0 0 0
+uchar2  variable net_variable net_uchar "" "" serv uchar2.value 2 2 4 0 0 0 0 0 0 0 0
+short1  variable net_variable net_short "" "" serv short1.value 1 4 0 0 0 0
+short2  variable net_variable net_short "" "" serv short2.value 2 2 4 0 0 0 0 0 0 0 0
+ushort1 variable net_variable net_ushort "" "" serv ushort1.value 1 4 0 0 0 0
+ushort2 variable net_variable net_ushort "" "" serv ushort2.value 2 2 4 0 0 0 0 0 0 0 0
+int1    variable net_variable net_int "" "" serv int1.value 1 4 0 0 0 0
+int2    variable net_variable net_int "" "" serv int2.value 2 2 4 0 0 0 0 0 0 0 0
+uint1   variable net_variable net_uint "" "" serv uint1.value 1 4 0 0 0 0
+uint2   variable net_variable net_uint "" "" serv uint2.value 2 2 4 0 0 0 0 0 0 0 0
+long1   variable net_variable net_long "" "" serv long1.value 1 4 0 0 0 0
+long2   variable net_variable net_long "" "" serv long2.value 2 2 4 0 0 0 0 0 0 0 0
+ulong1  variable net_variable net_ulong "" "" serv ulong1.value 1 4 0 0 0 0
+ulong2  variable net_variable net_ulong "" "" serv ulong2.value 2 2 4 0 0 0 0 0 0 0 0
+float1  variable net_variable net_float "" "" serv float1.value 1 4 0 0 0 0
+float2  variable net_variable net_float "" "" serv float2.value 2 2 4 0 0 0 0 0 0 0 0
