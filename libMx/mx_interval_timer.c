@@ -90,6 +90,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
 
 	MX_EPICS_ITIMER_PRIVATE *epics_itimer_private;
 
+	MX_DEBUG(-2,("%s invoked for EPICS timers.", fname));
+
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
@@ -153,7 +155,7 @@ MX_EXPORT mx_status_type
 mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
 				double *seconds_till_expiration )
 {
-	/* I do not know how to do this with EPICS. */
+	/* FIXME: I do not know how to do this with EPICS. */
 
 	*seconds_till_expiration = 0.0;
 
@@ -183,6 +185,158 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 
 	epicsTimerStartDelay( epics_itimer_private->timer,
 					itimer->timer_period );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/******************** Microsoft Windows multimedia timers ********************/
+
+#elif defined( OS_WIN32 )
+
+#include <windows.h>
+
+typedef struct {
+	UINT timer_id;
+} MX_WIN32_MMTIMER_PRIVATE;
+
+static void CALLBACK
+mx_interval_timer_thread_handler( UINT timer_id,
+				UINT reserved_msg,
+				DWORD user_data,
+				DWORD reserved1,
+				DWORD reserved2 )
+{
+	MX_INTERVAL_TIMER *itimer;
+
+	itimer = (MX_INTERVAL_TIMER *) user_data;
+
+	if ( itimer->callback_function != NULL ) {
+		itimer->callback_function( itimer, itimer->callback_args );
+	}
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
+{
+	static const char fname[] = "mx_interval_timer_create()";
+
+	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+
+	MX_DEBUG(-2,("%s invoked for Win32 multimedia timers.", fname));
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)
+				malloc( sizeof(MX_WIN32_MMTIMER_PRIVATE) );
+
+	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for a MX_WIN32_MMTIMER_PRIVATE structure." );
+	}
+
+	itimer->private = win32_mmtimer_private;
+
+	win32_mmtimer_private->timer_id = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
+{
+	static const char fname[] = "mx_interval_timer_destroy()";
+
+	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+	}
+
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+
+	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL )
+		return MX_SUCCESSFUL_RESULT;
+
+	mx_free( win32_mmtimer_private );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration )
+{
+	/* FIXME: I do not know how to do this with Win32 multimedia timers. */
+
+	*seconds_till_expiration = 0.0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
+				double timer_period_in_seconds )
+{
+	static const char fname[] = "mx_interval_timer_set_time()";
+
+	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+	UINT event_delay_ms, timer_flags;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+	}
+
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+
+	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_MMTIMER_PRIVATE pointer for timer %p is NULL.",
+			itimer );
+	};
+
+	if( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		timer_flags = TIME_ONESHOT;
+	} else {
+		timer_flags = TIME_PERIODIC;
+	}
+
+	/* Convert the timer period to milliseconds. */
+
+	event_delay_ms = (UINT) mx_round( 1000.0 * timer_period_in_seconds );
+
+	/* Setup the timer callback.
+	 * 
+	 * FIXME: The second argument of timeSetEvent(), which is the timer
+	 *        resolution, is currently set to 0, which requests the highest
+	 *        possible resolution.  We should check to see if this has too
+	 *        much overhead.
+	 */
+
+	win32_mmtimer_private->timer_id = timeSetEvent( event_delay_ms, 0,
+					mx_interval_timer_thread_handler,
+					(DWORD) itimer,
+					timer_flags );
+
+	if ( win32_mmtimer_private->timer_id == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to start a multimedia timer failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+				last_error_code, message_buffer );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -247,6 +401,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
 #endif
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
 	int status, saved_errno;
+
+	MX_DEBUG(-2,("%s invoked for POSIX realtime timers.", fname));
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -532,6 +688,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
 	MX_SETITIMER_PRIVATE *setitimer_private;
 	int status, saved_errno;
 
+	MX_DEBUG(-2,("%s invoked for BSD setitimer timers.", fname));
+
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
@@ -716,5 +874,9 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else
+
+#error MX interval timer functions have not yet been defined for this platform.
 
 #endif
