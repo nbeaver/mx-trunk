@@ -1,0 +1,9 @@
+The version of 'mxupdate' in this directory is the version from MX 1.1 and
+before.  If you are not ready to convert your 'mxupdate.dat' file from the
+old version's file format to the new file format, overwrite the 'mxupdate'
+binary in your $MXDIR/sbin directory with the one from the 'update_old'
+directory.  Please note that this old version of 'mxupdate' will be deleted
+in the next release.
+
+William Lavender (July 25, 2005)
+

@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = linux
+MX_ARCH = win32
 
 MX_INSTALL_DIR = /opt/mx
 
@@ -60,7 +60,7 @@ build:
 	( cd motor ; $(MAKECMD) )
 	( cd server ; $(MAKECMD) )
 	( cd update ; $(MAKECMD) )
-	( cd update_new ; $(MAKECMD) )
+	( cd update_old ; $(MAKECMD) )
 	( cd util ; $(MAKECMD) )
 
 clean:
@@ -69,7 +69,7 @@ clean:
 	( cd motor ; $(MAKECMD) mx_clean )
 	( cd server ; $(MAKECMD) mx_clean )
 	( cd update ; $(MAKECMD) mx_clean )
-	( cd update_new ; $(MAKECMD) mx_clean )
+	( cd update_old ; $(MAKECMD) mx_clean )
 	( cd util ; $(MAKECMD) mx_clean )
 
 distclean:
@@ -78,7 +78,7 @@ distclean:
 	( cd motor ; $(MAKECMD) mx_distclean )
 	( cd server ; $(MAKECMD) mx_distclean )
 	( cd update ; $(MAKECMD) mx_distclean )
-	( cd update_new ; $(MAKECMD) mx_distclean )
+	( cd update_old ; $(MAKECMD) mx_distclean )
 	( cd util ; $(MAKECMD) mx_distclean )
 
 depend:
@@ -86,7 +86,7 @@ depend:
 	( cd motor ; $(MAKECMD) mx_depend )
 	( cd server ; $(MAKECMD) mx_depend )
 	( cd update ; $(MAKECMD) mx_depend )
-	( cd update_new ; $(MAKECMD) mx_depend )
+	( cd update_old ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
 install:
@@ -94,6 +94,6 @@ install:
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )
 	( cd update ; $(MAKECMD) mx_install )
-###	( cd update_new ; $(MAKECMD) mx_install )
+###	( cd update_old ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
 

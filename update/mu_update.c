@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,13 +20,16 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 
 #include "mx_unistd.h"
 
+#include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_version.h"
+#include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_socket.h"
@@ -35,10 +38,14 @@
 
 #include "mu_update.h"
 
+int mxupd_quiet_exit;
+
 static void
 mxupd_exit_handler( void )
 {
-	mx_info( "*** MX update process exiting. ***" );
+	if ( mxupd_quiet_exit == FALSE ) {
+		mx_info( "*** MX update process exiting. ***" );
+	}
 }
 
 static void
@@ -138,44 +145,50 @@ mxupd_setup_output_functions( void )
 int
 main( int argc, char *argv[] )
 {
-	const char fname[] = "main()";
+	static const char fname[] = "main()";
 
-	static MXUPD_UPDATE_LIST update_list_array[MXUPD_NUM_UPDATE_LISTS];
+	MXUPD_UPDATE_LIST update_list;
 
-	MXUPD_UPDATE_LIST *update_list;
+	MX_RECORD *record_list;
 
-	MX_RECORD *server_record;
-	char server_name[MXU_HOSTNAME_LENGTH+1];
-	int server_port;
-
-	MX_CLOCK_TICK event_interval[MXUPD_NUM_UPDATE_LISTS];
-	MX_CLOCK_TICK next_event_time[MXUPD_NUM_UPDATE_LISTS];
+	MX_CLOCK_TICK event_interval;
+	MX_CLOCK_TICK next_event_time;
 	MX_CLOCK_TICK current_time;
 
-	double event_interval_in_seconds[MXUPD_NUM_UPDATE_LISTS]
-		= { 30.0, 1.0 };
+	double update_interval_in_seconds = 30.0;
 
 	FILE *update_list_file;
 	char update_list_filename[MXU_FILENAME_LENGTH+1];
 	char autosave1_filename[MXU_FILENAME_LENGTH+1];
 	char autosave2_filename[MXU_FILENAME_LENGTH+1];
 	char *autosave_filename;
-	char ident_string[80];
-	int i, debug_level, num_non_option_arguments, update_lists_empty;
+	char hostname[80];
+	char ident_string[100];
+	int i, debug_level, num_non_option_arguments;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int default_display_precision;
-	mx_status_type status;
+	int no_restore, restore_only, save_only;
+	mx_status_type mx_status;
 
 	static char usage[] =
-"Usage: mxupdate [-d debug_level] [-l log_number] [-L log_number]\n"
-"  [-P display_precision] server_name server_port update_list_filename\n"
-"  autosave_filename_1 autosave_filename_2\n\n";
+"Usage: mxupdate [options] update_list_filename autosave_fn1 [ autosave_fn2 ]\n"
+"\n"
+"The available options are:\n"
+"       -d debug_level\n"
+"       -l log_number        (log to syslog)\n"
+"       -L log_number        (log to syslog and stderr)\n"
+"       -P display_precision\n"
+"       -R                   (never restore parameters)\n"
+"       -r                   (restore a set of parameters)\n"
+"       -s                   (save a set of parameters)\n"
+"       -u update_interval_in_seconds\n"
+"\n";
 
 #if HAVE_GETOPT
 	int c, error_flag;
 #endif
 
-	mxupd_setup_output_functions();
+	mxupd_quiet_exit = FALSE;
 
 #if ! defined( OS_WIN32 )
 	mxupd_install_signal_and_exit_handlers();
@@ -190,12 +203,16 @@ main( int argc, char *argv[] )
 	syslog_number = -1;
 	syslog_options = 0;
 
+	no_restore = FALSE;
+	restore_only = FALSE;
+	save_only = FALSE;
+
 #if HAVE_GETOPT
 	/* Process command line arguments via getopt, if any. */
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:l:L:P:")) != -1 ) {
+	while ((c = getopt(argc, argv, "d:l:L:P:Rrsu:")) != -1 ) {
 		switch(c) {
 		case 'd':
 			debug_level = atoi( optarg );
@@ -215,6 +232,18 @@ main( int argc, char *argv[] )
 		case 'P':
 			default_display_precision = atoi( optarg );
 			break;
+		case 'R':
+			no_restore = TRUE;
+			break;
+		case 'r':
+			restore_only = TRUE;
+			break;
+		case 's':
+			save_only = TRUE;
+			break;
+		case 'u':
+			update_interval_in_seconds = atof( optarg );
+			break;
 		case '?':
 			error_flag = TRUE;
 			break;
@@ -222,6 +251,7 @@ main( int argc, char *argv[] )
 
 		if ( error_flag == TRUE ) {
 			fputs( usage, stderr );
+			mxupd_quiet_exit = TRUE;
 			exit(1);
 		}
 	}
@@ -238,37 +268,73 @@ main( int argc, char *argv[] )
 
 #endif /* HAVE_GETOPT */
 
-	if ( num_non_option_arguments != 5 ) {
-		fprintf(stderr, "Error: incorrect number of arguments.\n\n");
+	if ( save_only && restore_only ) {
+		fprintf(stderr,
+			"Error: You must not specify both the save '-s'\n"
+			"and restore '-r' command switches.\n" );
 		fputs( usage, stderr );
+		mxupd_quiet_exit = TRUE;
 		exit(1);
+	}
+
+	if ( restore_only && no_restore ) {
+		fprintf(stderr,
+			"Error: You must not specify both the restore '-r'\n"
+			"and no restore '-R' command switches.\n" );
+		fputs( usage, stderr );
+		mxupd_quiet_exit = TRUE;
+		exit(1);
+	}
+
+	if ( save_only || restore_only ) {
+		if ( num_non_option_arguments != 2 ) {
+			fprintf(stderr,
+				"Error: incorrect number of arguments.\n\n");
+			fputs( usage, stderr );
+			mxupd_quiet_exit = TRUE;
+			exit(1);
+		}
+	} else {
+		if ( num_non_option_arguments != 3 ) {
+			fprintf(stderr,
+				"Error: incorrect number of arguments.\n\n");
+			fputs( usage, stderr );
+			mxupd_quiet_exit = TRUE;
+			exit(1);
+		}
+	}
+
+	if ( (save_only == FALSE) && (restore_only == FALSE) ) {
+		mxupd_setup_output_functions();
 	}
 
 	/* Copy the other command line arguments. */
 
-	mx_strncpy( server_name, argv[i], MXU_HOSTNAME_LENGTH + 1);
+	mx_strncpy( update_list_filename, argv[i], MXU_FILENAME_LENGTH);
 
-	server_port = atoi( argv[i+1] );
+	mx_strncpy( autosave1_filename, argv[i+1], MXU_FILENAME_LENGTH);
 
-	mx_strncpy( update_list_filename, argv[i+2], MXU_FILENAME_LENGTH + 1);
-	mx_strncpy( autosave1_filename, argv[i+3], MXU_FILENAME_LENGTH + 1);
-	mx_strncpy( autosave2_filename, argv[i+4], MXU_FILENAME_LENGTH + 1);
+	if ( save_only || restore_only ) {
+		/* Set the second filename to an empty string. */
+
+		strcpy( autosave2_filename, "" );
+	} else {
+		mx_strncpy( autosave2_filename, argv[i+2], MXU_FILENAME_LENGTH);
+	}
 
 	mx_set_debug_level( debug_level );
 
 	if ( install_syslog_handler ) {
-		sprintf( ident_string, "mxupdate@%d", server_port );
+		mx_gethostname( hostname, sizeof(hostname) - 1 );
 
-		status = mx_install_syslog_handler( ident_string,
+		sprintf( ident_string, "mxupdate@%s", hostname );
+
+		mx_status = mx_install_syslog_handler( ident_string,
 					syslog_number, syslog_options );
 
-		if ( status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS )
 			exit(1);
 	}
-
-	mx_info( "*** MX update utility %s started at %s ***",
-			mx_get_version_string(),
-			mx_current_time_string( NULL, 0 ) );
 
 	/* Initialize the MX time keeping functions. */
 
@@ -276,24 +342,26 @@ main( int argc, char *argv[] )
 
 	current_time = mx_current_clock_tick();
 
-	MX_DEBUG(-2,
-	("%g clock ticks per second, current time = (%ld,%ld)",
-		mx_clock_ticks_per_second(),
-		current_time.high_order,
-		(long) current_time.low_order));
+	event_interval = mx_convert_seconds_to_clock_ticks(
+					update_interval_in_seconds );
 
-	for ( i = 0; i < MXUPD_NUM_UPDATE_LISTS; i++ ) {
-		event_interval[i] = mx_convert_seconds_to_clock_ticks(
-					event_interval_in_seconds[i] );
+	if ( (save_only == FALSE) && (restore_only == FALSE) ) {
+		mx_info( "*** MX update utility %s started ***",
+				mx_get_version_string() );
 
-		MX_DEBUG(-2,
-		("Event interval %d:  %g seconds, (%ld,%ld) clock ticks.",
-			i, event_interval_in_seconds[i],
-			event_interval[i].high_order,
-			(long) event_interval[i].low_order));
+		mx_info(
+		"%g clock ticks per second, current time = (%ld,%ld)",
+			mx_clock_ticks_per_second(),
+			current_time.high_order,
+			(long) current_time.low_order);
 
-		next_event_time[i] = current_time;
+		mx_info("Event interval:  %g seconds, (%lu,%lu) clock ticks.",
+			update_interval_in_seconds,
+			event_interval.high_order,
+			event_interval.low_order);
 	}
+
+	next_event_time = current_time;
 
 	/* Initialize the subsecond sleep functions (if they need it). */
 
@@ -313,24 +381,22 @@ main( int argc, char *argv[] )
 		exit( MXE_FILE_IO_ERROR );
 	}
 
-	/* Connect to the remote MX server */
+	/* Create an empty MX database. */
 
-	status = mxupd_connect_to_mx_server( &server_record,
-						server_name, server_port,
+	mx_status = mxupd_create_empty_mx_database( &record_list,
 						default_display_precision );
 
-	if ( status.code != MXE_SUCCESS )
-		exit( status.code );
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
 
 	/* Construct the update list data structure. */
 
-	status = mxupd_construct_update_list( MXUPD_NUM_UPDATE_LISTS,
-				update_list_array,
+	mx_status = mxupd_construct_update_list( &update_list,
 				update_list_file, update_list_filename,
-				server_record );
+				record_list );
 
-	if ( status.code != MXE_SUCCESS )
-		exit( status.code );
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
 
 #if 0
 	/* Print out the list of records in the generated record list. */
@@ -340,7 +406,7 @@ main( int argc, char *argv[] )
 
 		MX_DEBUG(-2,("%s: List of local database records:", fname));
 
-		list_head_record = server_record->list_head;
+		list_head_record = record_list->list_head;
 
 		current_record = list_head_record->next_record;
 
@@ -353,48 +419,30 @@ main( int argc, char *argv[] )
 #endif
 
 #if 0
-	/* Print out the contents of each update list. */
-
-	MX_DEBUG(-2,("%s: Number of update lists = %d",
-				fname, MXUPD_NUM_UPDATE_LISTS ));
-
-	for ( i = 0; i < MXUPD_NUM_UPDATE_LISTS; i++ ) {
+	{
+		/* Print out the contents of each update list. */
 
 		MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
 		MXUPD_UPDATE_LIST_ENTRY *update_list_entry_array;
-		int j;
 
-		update_list = &update_list_array[i];
+		MX_DEBUG(-2,("*** Update list: (%ld entries)",
+				update_list.num_entries ));
 
-		MX_DEBUG(-2,("*** Update list %d: (%ld entries)",
-			i, update_list->num_entries ));
+		update_list_entry_array = update_list.entry_array;
 
-		update_list_entry_array = update_list->entry_array;
-
-		for ( j = 0; j < update_list->num_entries; j++ ) {
-			update_list_entry = &update_list_entry_array[j];
+		for ( i = 0; i < update_list.num_entries; i++ ) {
+			update_list_entry = &update_list_entry_array[i];
 
 			MX_DEBUG(-2,("        %s",
-			  update_list_entry->local_record->name));
+			  update_list_entry->read_record->name));
 		}
 	}
 #endif
 
-	/* Check to see if all of the update lists are empty. */
+	/* Check to see if the update list is empty. */
 
-	update_lists_empty = TRUE;
-
-	for ( i = 0; i < MXUPD_NUM_UPDATE_LISTS; i++ ) {
-		update_list = &update_list_array[i];
-
-		if ( update_list->num_entries != 0 ) {
-			update_lists_empty = FALSE;
-			break;
-		}
-	}
-
-	if ( update_lists_empty ) {
-		mx_warning( "All of the MX update lists are empty." );
+	if ( update_list.num_entries == 0 ) {
+		mx_warning( "The MX update list is empty." );
 
 		mx_info("Mxupdate has nothing to do, so it will exit now.");
 
@@ -405,20 +453,48 @@ main( int argc, char *argv[] )
 	 * the MX database.
 	 */
 
-	update_list = &update_list_array[0];
+	if ( ( save_only || no_restore ) == FALSE ) {
 
-	status = mxupd_restore_fields_from_autosave_files(
+		mx_status = mxupd_restore_fields_from_autosave_files(
 			autosave1_filename, autosave2_filename,
-			update_list );
+			&update_list );
 
-	if ( status.code != MXE_SUCCESS )
-		exit(status.code);
+		if ( mx_status.code != MXE_SUCCESS )
+			exit(mx_status.code);
+	}
 
-	/*********************** Loop forever. *************************/
+	/* If we are _only_ restoring, then we are done. */
+
+	if ( restore_only ) {
+		mxupd_quiet_exit = TRUE;
+		exit(0);
+	}
+
+	/* If we are only saving, then fetch the current values and then
+	 * save them.
+	 */
+
+	if ( save_only ) {
+		mx_status = mxupd_poll_update_list( &update_list );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit(mx_status.code);
+
+		mx_status = mxupd_save_fields_to_autosave_file(
+					autosave1_filename, &update_list );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit(mx_status.code);
+
+		mxupd_quiet_exit = TRUE;
+		exit(0);
+	}
+
+	/*********************** Loop forever *************************/
 
 	autosave_filename = autosave1_filename;
 
-	MX_DEBUG(-2,("%s: Starting update loop.", fname));
+	mx_info("%s: Starting update loop.", fname);
 
 	while(1) {
 		current_time = mx_current_clock_tick();
@@ -426,20 +502,18 @@ main( int argc, char *argv[] )
 		/* Check to see if it is time to rewrite an autosave file. */
 
 		if ( mx_compare_clock_ticks( current_time,
-					next_event_time[0] ) > 0 ) {
+					next_event_time ) > 0 ) {
 
-			MX_DEBUG(1,
+			MX_DEBUG( 1,
 	("***** Time to rewrite autosave file.  current_time = (%ld,%ld)",
 				current_time.high_order,
 				(long) current_time.low_order));
 
-			update_list = &update_list_array[0];
+			mx_status = mxupd_save_fields_to_autosave_file(
+					autosave_filename, &update_list );
 
-			status = mxupd_save_fields_to_autosave_file(
-					autosave_filename, update_list );
-
-			if ( status.code == MXE_NETWORK_CONNECTION_LOST )
-				exit( status.code );
+			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
+				exit( mx_status.code );
 
 			if ( autosave_filename == autosave1_filename ) {
 				autosave_filename = autosave2_filename;
@@ -447,75 +521,67 @@ main( int argc, char *argv[] )
 				autosave_filename = autosave1_filename;
 			}
 
-			next_event_time[0] = mx_add_clock_ticks(
-						next_event_time[0],
-						event_interval[0] );
+			next_event_time = mx_add_clock_ticks(
+						next_event_time,
+						event_interval );
 		}
 
-		/* Check to see if the next event time for a given
+		mx_msleep(10);
+
+		/* Check to see if the next event time for the given
 		 * polling interval has arrived.
 		 */
 
-		for ( i = 1; i < MXUPD_NUM_UPDATE_LISTS; i++ ) {
-			if ( mx_compare_clock_ticks( current_time,
-					next_event_time[i] ) > 0 ) {
+		if ( mx_compare_clock_ticks( current_time,
+					next_event_time ) > 0 ) {
 
-				MX_DEBUG(1,
-	("===== Time to update poll group %d.  current_time = (%ld,%ld)",
-				i, current_time.high_order,
-				(long) current_time.low_order));
+			MX_DEBUG( 1,
+			("===== Time to update.  current_time = (%lu,%lu)",
+				current_time.high_order,
+				current_time.low_order));
 
-				update_list = &update_list_array[i];
+			mx_status = mxupd_poll_update_list( &update_list );
 
-				status = mxupd_poll_update_list( update_list );
+			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
+				exit( mx_status.code );
 
-				if (status.code == MXE_NETWORK_CONNECTION_LOST)
-					exit( status.code );
-
-				next_event_time[i] = mx_add_clock_ticks(
-						next_event_time[i],
-						event_interval[i] );
-			}
+			next_event_time = mx_add_clock_ticks(
+						next_event_time,
+						event_interval );
 		}
-		mx_msleep(10);
 	}
 }
 
 mx_status_type
-mxupd_connect_to_mx_server( MX_RECORD **server_record,
-				char *server_name, int server_port,
+mxupd_create_empty_mx_database( MX_RECORD **record_list,
 				int default_display_precision )
 {
-	const char fname[] = "mxupd_connect_to_mx_server()";
+	static const char fname[] = "mxupd_create_empty_mx_database()";
 
-	MX_RECORD *record_list;
 	MX_LIST_HEAD *list_head_struct;
-	static char description[MXU_RECORD_DESCRIPTION_LENGTH + 1];
-	int i, max_retries;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: server_name = '%s', server_port = %d",
-			fname, server_name, server_port ));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	/* Initialize MX device drivers. */
 
-	status = mx_initialize_drivers();
+	mx_status = mx_initialize_drivers();
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Set up a record list to put this server record in. */
+	/* Set up the record list. */
 
-	record_list = mx_initialize_record_list();
+	*record_list = mx_initialize_record_list();
 
-	if ( record_list == NULL ) {
+	if ( (*record_list) == NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to setup an MX record list." );
 	}
 
 	/* Set the default floating point display precision. */
 
-	list_head_struct = mx_get_record_list_head_struct( record_list );
+	list_head_struct = mx_get_record_list_head_struct( *record_list );
 
 	if ( list_head_struct == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -529,81 +595,122 @@ mxupd_connect_to_mx_server( MX_RECORD **server_record,
 	mx_strncpy( list_head_struct->program_name, "mxupdate",
 				MXU_PROGRAM_NAME_LENGTH );
 
-	/* Create a record description for this server. */
-
-	sprintf( description,
-		"remote_server server network tcpip_server \"\" \"\" 0x0 %s %d",
-			server_name, server_port );
-
-	MX_DEBUG(-2,("%s: description = '%s'", fname, description));
-
-	status = mx_create_record_from_description( record_list, description,
-							server_record, 0 );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	status = mx_finish_record_initialization( *server_record );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
 	/* Mark the record list as ready to be used. */
 
 	list_head_struct->list_is_active = TRUE;
 	list_head_struct->fixup_records_in_use = FALSE;
 
-	/* Try to connect to the MX server. */
-
-	max_retries = 100;
-
-	for ( i = 0; i < max_retries; i++ ) {
-		status = mx_open_hardware( *server_record );
-
-		if ( status.code == MXE_SUCCESS )
-			break;                 /* Exit the for() loop. */
-
-		switch( status.code ) {
-		case MXE_NETWORK_IO_ERROR:
-			break;                 /* Try again. */
-		default:
-			return status;
-			break;
-		}
-		mx_msleep(1000);
-	}
-
-	if ( status.code != MXE_SUCCESS ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"%d attempts to connect to the MX server '%s' at port %d have failed.  "
-"Update process aborting...", max_retries, server_name, server_port );
-	}
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mx_format_variable_description( MX_RECORD *server_record,
-		char *record_name, char *field_name, int record_number,
-		char *description, long description_length,
-		long datatype, long num_dimensions, long *dimension_array )
+mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
+				char *network_field_id,
+				int record_number,
+				MX_RECORD **created_record,
+				char *record_name,
+				size_t max_record_name_length,
+				char *field_name,
+				size_t max_field_name_length )
 {
-	const char fname[] = "mx_format_variable_description()";
+	static const char fname[] = "mxupd_add_mx_variable_to_database()";
 
+	MX_RECORD *server_record;
 	size_t buffer_left;
 	long i, num_elements;
+	long datatype, num_dimensions;
+	long dimension_array[MXU_FIELD_MAX_DIMENSIONS];
+	char server_name[MXU_HOSTNAME_LENGTH+1];
+	char server_arguments[MXU_SERVER_ARGUMENTS_LENGTH+1];
+	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char *ptr;
+	char description[MXU_RECORD_DESCRIPTION_LENGTH+1];
+	mx_status_type mx_status;
 
-	if ( num_dimensions <= 0 ) {
+	MX_DEBUG( 2,("=== %s invoked for network_field_id = '%s' ===",
+		fname, network_field_id));
+
+	/* Break up the network_field_id string passed to us
+	 * into its component parts.
+	 */
+
+	mx_status = mx_parse_network_field_id( network_field_id,
+			server_name, sizeof(server_name) - 1,
+			server_arguments, sizeof(server_arguments) - 1,
+			record_name, max_record_name_length,
+			field_name, max_field_name_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: server_name = '%s', server_arguments = '%s'",
+			fname, server_name, server_arguments));
+	MX_DEBUG( 2,("%s: record_name = '%s', field_name = '%s'",
+			fname, record_name, field_name));
+
+	mx_strncpy( record_field_name, record_name,
+			MXU_RECORD_FIELD_NAME_LENGTH );
+
+	strncat( record_field_name, ".", MXU_RECORD_FIELD_NAME_LENGTH );
+
+	strncat( record_field_name, field_name, MXU_RECORD_FIELD_NAME_LENGTH );
+
+	MX_DEBUG( 2,("%s: record_field_name = '%s'", fname, record_field_name));
+
+	/* If the returned server_name or server_arguments strings are
+	 * of zero length, set them to default values.
+	 */
+
+	if ( strlen( server_name ) == 0 ) {
+		mx_strncpy( server_name, "localhost", MXU_HOSTNAME_LENGTH );
+	}
+	if ( strlen( server_arguments ) == 0 ) {
+		mx_strncpy( server_arguments, "9727",
+				MXU_SERVER_ARGUMENTS_LENGTH );
+	}
+
+	/* Find the requested server record in the database, or
+	 * create a new one.
+	 */
+
+	mx_status = mx_get_mx_server_record( record_list,
+			server_name, server_arguments,
+			&server_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Ask the server for information about this record field. */
+
+	MX_DEBUG( 2,("%s: record_field_name = '%s'",
+			fname, record_field_name));
+
+	mx_status = mx_get_field_type( server_record,
+			record_field_name,
+			MXU_FIELD_MAX_DIMENSIONS,
+			&datatype,
+			&num_dimensions,
+			dimension_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Variable records cannot use num_dimensions = 0. */
+
+	if ( num_dimensions == 0 ) {
 		num_dimensions = 1;
 		dimension_array[0] = 1;
 	}
+
+	MX_DEBUG( 2,
+	("datatype = %ld, num_dimensions = %ld, dimension_array[0] = %ld",
+			datatype, num_dimensions, dimension_array[0] ));
 
 	/* Create an MX database record of class 'net_variable' */
 
 	sprintf(description, "record%d variable net_variable ", record_number);
 
-	buffer_left = description_length - strlen(description) - 1;
+	buffer_left = sizeof(description) - strlen(description) - 1;
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -669,7 +776,7 @@ mx_format_variable_description( MX_RECORD *server_record,
 	switch( datatype ) {
 	case MXFT_STRING:
 		for ( i = 0; i < num_elements; i++ ) {
-			buffer_left = description_length
+			buffer_left = sizeof(description)
 					- strlen(description) - 1;
 
 			strncat( description, "\"\" ", buffer_left );
@@ -677,27 +784,307 @@ mx_format_variable_description( MX_RECORD *server_record,
 		break;
 	default:
 		for ( i = 0; i < num_elements; i++ ) {
-			buffer_left = description_length
+			buffer_left = sizeof(description)
 					- strlen(description) - 1;
 
 			strncat( description, "0 ", buffer_left );
 		}
 		break;
 	}
-	return MX_SUCCESSFUL_RESULT;
+
+	/* Now that we have a record description for the variable,
+	 * add it to the MX database.
+	 */
+
+	MX_DEBUG( 2,("%s: description = '%s'", fname, description));
+
+	mx_status = mx_create_record_from_description( server_record->list_head,
+					description, created_record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_finish_record_initialization( *created_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_open_hardware( *created_record );
+
+	return mx_status;
+}
+
+#if ( HAVE_EPICS == 0 )
+
+static mx_status_type
+mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
+				char *epics_pv_name,
+				int record_number,
+				MX_RECORD **created_record,
+				char *record_name,
+				size_t max_record_name_length,
+				char *field_name,
+				size_t max_field_name_length )
+{
+	static const char fname[] = "mxupd_add_epics_variable_to_database()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Support for EPICS PVs is not compiled into this copy of mxupdate." );
+}
+
+#else /* HAVE_EPICS */
+
+#include "mx_epics.h"
+
+static mx_status_type
+mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
+				char *epics_pv_name,
+				int record_number,
+				MX_RECORD **created_record,
+				char *record_name,
+				size_t max_record_name_length,
+				char *field_name,
+				size_t max_field_name_length )
+{
+	static const char fname[] = "mxupd_add_epics_variable_to_database()";
+
+	size_t buffer_left;
+	long i, length;
+	long epics_datatype, epics_array_length;
+	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+	char *ptr, *r_ptr;
+	char description[MXU_RECORD_DESCRIPTION_LENGTH+1];
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for epics_pv_name = '%s'",
+		fname, epics_pv_name));
+
+	/* Convert the EPICS PV name to an MX variable record field name.
+	 *
+	 * We do this by changing the last period in the PV name to an 
+	 * underscore and then appending .value to the end.
+	 */
+
+	r_ptr = NULL;
+
+	ptr = strrchr( epics_pv_name, '.' );
+
+	if ( ptr == NULL ) {
+		sprintf( record_name, "%s_VAL", epics_pv_name );
+	} else {
+		length = ptr - epics_pv_name;
+
+		MX_DEBUG( 2,("%s: length = %ld", fname, length));
+
+		memcpy( record_name, epics_pv_name, length );
+
+		r_ptr = record_name + length;
+
+		ptr++;
+
+		sprintf( r_ptr, "_%s", ptr );
+	}
+
+	if ( max_record_name_length >= MXU_RECORD_NAME_LENGTH ) {
+		record_name[MXU_RECORD_NAME_LENGTH - 1] = '\0';
+	}
+
+	strcpy( field_name, "value" );
+
+	sprintf( record_field_name, "%s.%s", record_name, field_name );
+
+	MX_DEBUG( 2,("%s: record_field_name = '%s'", fname, record_field_name));
+
+	/* Ask the server for information about this record field. */
+
+	mx_status = mx_epics_get_pv_type( epics_pv_name,
+					&epics_datatype,
+					&epics_array_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("epics_datatype = %ld, epics_array_length = %ld",
+			epics_datatype, epics_array_length));
+
+	/* Create an MX database record of class 'epics_variable' */
+
+	sprintf(description,
+		"record%d variable epics_variable ", record_number);
+
+	buffer_left = sizeof(description) - strlen(description) - 1;
+
+	switch( epics_datatype ) {
+	case MX_CA_STRING:
+		strncat( description, "epics_string ", buffer_left );
+		break;
+	case MX_CA_CHAR:
+		strncat( description, "epics_char ", buffer_left );
+		break;
+	case MX_CA_SHORT:
+		strncat( description, "epics_short ", buffer_left );
+		break;
+	case MX_CA_LONG:
+		strncat( description, "epics_long ", buffer_left );
+		break;
+	case MX_CA_FLOAT:
+		strncat( description, "epics_float ", buffer_left );
+		break;
+	case MX_CA_DOUBLE:
+		strncat( description, "epics_double ", buffer_left );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Remote EPICS PV '%s' is of type %ld "
+			"which is not supported by this program.",
+			epics_pv_name, epics_datatype );
+		break;
+	}
+
+	ptr = description + strlen(description);
+
+	sprintf( ptr, "\"\" \"\" %s 1 %ld ",
+			epics_pv_name, epics_array_length );
+
+	switch( epics_datatype ) {
+	case MX_CA_STRING:
+		strncat( description, "\"\" ", buffer_left );
+		break;
+	default:
+		for ( i = 0; i < epics_array_length; i++ ) {
+			buffer_left = sizeof(description)
+					- strlen(description) - 1;
+
+			strncat( description, "0 ", buffer_left );
+		}
+		break;
+	}
+
+	/* Now that we have a record description for the variable,
+	 * add it to the MX database.
+	 */
+
+	MX_DEBUG( 2,("%s: description = '%s'", fname, description));
+
+	mx_status = mx_create_record_from_description( record_list->list_head,
+					description, created_record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_finish_record_initialization( *created_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_open_hardware( *created_record );
+
+	return mx_status;
 }
 
 static mx_status_type
-mxupd_add_to_update_list( long update_list_number,
-		long num_update_lists,
-		MXUPD_UPDATE_LIST *update_list_array,
-		char *record_name,
-		char *field_name,
-		MX_RECORD *local_record )
+mxupd_epics_motor_position_write_function( void *list_entry_ptr )
 {
-	const char fname[] = "mxupd_add_to_update_list()";
+	static const char fname[] =
+		"mxupd_epics_motor_position_write_function()";
 
-	MXUPD_UPDATE_LIST *update_list;
+	MXUPD_UPDATE_LIST_ENTRY *list_entry;
+	double motor_set_position;
+	char epics_motor_record_name[ MXUPD_FIELD_ID_NAME_LENGTH+1 ];
+	char *ptr;
+	int set_flag;
+	MX_EPICS_PV set_pv;
+	MX_EPICS_PV val_pv;
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked.", fname));
+
+	if ( list_entry_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The list_entry_ptr passed was NULL." );
+	}
+
+	list_entry = (MXUPD_UPDATE_LIST_ENTRY *) list_entry_ptr;
+
+	motor_set_position = *(double *) list_entry->read_value_pointer;
+
+	MX_DEBUG( 2,("%s: motor_set_position = %g", fname, motor_set_position));
+
+	MX_DEBUG( 2,("%s: record_field_id = '%s'",
+				fname, list_entry->record_field_id));
+
+	/* Construct the EPICS motor record name without .RBV on the end. */
+
+	mx_strncpy( epics_motor_record_name, list_entry->record_field_id,
+					MXUPD_FIELD_ID_NAME_LENGTH );
+
+	/* Find the last '.' in the string. */
+
+	ptr = strrchr( epics_motor_record_name, '.' );
+
+	if ( ptr == NULL ) {
+		/* If there are no '.' characters in the string, then the
+		 * entire string is assumed to be the motor record name.
+		 */
+	} else {
+		/* Null terminate at the end of the motor name. */
+
+		*ptr = '\0';
+	}
+
+	mx_info("Restoring position of EPICS motor '%s'.",
+			epics_motor_record_name);
+
+	mx_epics_pvname_init( &set_pv, "%s.SET", epics_motor_record_name );
+	mx_epics_pvname_init( &val_pv, "%s.VAL", epics_motor_record_name );
+
+	/* Now perform the intricate minuet required to restore the
+	 * motor position.
+	 */
+
+	/* Change the motor record from 'Use' to 'Set' mode. */
+
+	set_flag = 1;
+
+	mx_status = mx_caput( &set_pv, MX_CA_SHORT, 1, &set_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Change the user position in the EPICS database. */
+
+	mx_status = mx_caput( &val_pv, MX_CA_DOUBLE, 1, &motor_set_position );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Put the motor record back into 'Use' mode. */
+
+	set_flag = 0;
+
+	mx_status = mx_caput( &set_pv, MX_CA_SHORT, 1, &set_flag );
+
+	return mx_status;
+}
+
+#endif /* HAVE_EPICS */
+
+static mx_status_type
+mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
+				char *protocol_id,
+				char *record_field_id,
+				char *extra_arguments,
+				unsigned long update_flags,
+				char *read_record_name,
+				char *read_field_name,
+				MX_RECORD *read_record,
+				char *write_record_name,
+				char *write_field_name,
+				MX_RECORD *write_record,
+				mx_status_type (*write_function)(void *) )
+{
+	static const char fname[] = "mxupd_add_to_update_list()";
+
 	MXUPD_UPDATE_LIST_ENTRY *update_list_entry_array;
 	MXUPD_UPDATE_LIST_ENTRY *update_list_entry, *ptr;
 	MX_RECORD_FIELD *field;
@@ -709,18 +1096,10 @@ mxupd_add_to_update_list( long update_list_number,
 
 	unsigned long j, new_num_entries;
 	size_t new_entry_array_size;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	if ( update_list_number >= num_update_lists ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Update list number %ld is outside the allowed range 0 to %ld.",
-			update_list_number, num_update_lists-1 );
-	}
-
-	update_list = &update_list_array[ update_list_number ];
-
-	MX_DEBUG( 2,("%s: Adding record '%s' to update list %ld.",
-		fname, local_record->name, update_list_number));
+	MX_DEBUG( 2,("%s: Adding record '%s' to update list.",
+		fname, read_record->name));
 
 	j = update_list->num_entries;
 
@@ -729,9 +1108,9 @@ mxupd_add_to_update_list( long update_list_number,
 
 		new_num_entries = (j + 1 + MXUPD_UPDATE_ARRAY_BLOCK_SIZE);
 
-		MX_DEBUG(-2,
-		("%s: Increasing size of update list %ld to have %ld entries.",
-			fname, update_list_number, new_num_entries));
+		MX_DEBUG( 2,
+		("%s: Increasing size of update list to have %ld entries.",
+			fname, new_num_entries));
 
 		new_entry_array_size = new_num_entries
 					* sizeof( MXUPD_UPDATE_LIST_ENTRY );
@@ -742,8 +1121,8 @@ mxupd_add_to_update_list( long update_list_number,
 		if ( ptr == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory reallocating the entry array "
-			"for update list %ld to have %ld elements.",
-				update_list_number, new_num_entries );
+			"for the update list to have %ld elements.",
+				new_num_entries );
 		}
 
 		update_list->entry_array = ptr;
@@ -755,37 +1134,115 @@ mxupd_add_to_update_list( long update_list_number,
 
 	/* Initialize the items in the update_list_entry structure. */
 
-	mx_strncpy( update_list_entry->record_name,
-				record_name, MXU_RECORD_NAME_LENGTH + 1);
+	mx_strncpy( update_list_entry->protocol_id, protocol_id,
+				MXUPD_PROTOCOL_ID_NAME_LENGTH );
+	mx_strncpy( update_list_entry->record_field_id, record_field_id,
+				MXUPD_FIELD_ID_NAME_LENGTH );
+	mx_strncpy( update_list_entry->extra_arguments, extra_arguments,
+				MXUPD_FIELD_ID_NAME_LENGTH );
 
-	mx_strncpy( update_list_entry->field_name,
-				field_name, MXU_FIELD_NAME_LENGTH + 1);
+	update_list_entry->update_flags = update_flags;
 
-	update_list_entry->local_record = local_record;
+	mx_strncpy( update_list_entry->read_record_name,
+				read_record_name, MXU_RECORD_NAME_LENGTH + 1);
 
-	status = mx_find_record_field( local_record, "value", &field );
+	mx_strncpy( update_list_entry->read_field_name,
+				read_field_name, MXU_FIELD_NAME_LENGTH + 1);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	update_list_entry->read_record = read_record;
 
-	update_list_entry->local_value_field = field;
+	MX_DEBUG( 2,("%s: read_record_name = '%s'", fname, read_record_name));
+	MX_DEBUG( 2,("%s: read_field_name = '%s'", fname, read_field_name));
+	MX_DEBUG( 2,("%s: read_record = '%s'", fname, read_record->name));
 
-	update_list_entry->local_value_pointer
+	mx_strncpy( update_list_entry->write_record_name,
+				write_record_name, MXU_RECORD_NAME_LENGTH + 1);
+
+	mx_strncpy( update_list_entry->write_field_name,
+				write_field_name, MXU_FIELD_NAME_LENGTH + 1);
+
+	update_list_entry->write_record = write_record;
+
+	MX_DEBUG( 2,("%s: write_record_name = '%s'", fname, write_record_name));
+	MX_DEBUG( 2,("%s: write_field_name = '%s'", fname, write_field_name));
+
+	if ( write_record == NULL ) {
+		MX_DEBUG( 2,("%s: write_record = (null)", fname));
+	} else {
+		MX_DEBUG( 2,
+		("%s: write_record = '%s'", fname, write_record->name));
+	}
+
+	mx_status = mx_find_record_field( read_record, "value", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	update_list_entry->read_value_field = field;
+
+	update_list_entry->read_value_pointer
 					= mx_get_field_value_pointer( field );
 
-	status = mx_get_token_constructor( field->datatype, &constructor );
+	mx_status = mx_get_token_constructor( field->datatype, &constructor );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	update_list_entry->token_constructor = constructor;
 
-	status = mx_get_token_parser( field->datatype, &parser );
+	mx_status = mx_get_token_parser( field->datatype, &parser );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	update_list_entry->token_parser = parser;
+
+	/*---*/
+
+	update_list_entry->write_function = write_function;
+
+	if ( write_function != NULL ) {
+		update_list_entry->write_value_field = NULL;
+		update_list_entry->write_value_pointer = NULL;
+	} else {
+		mx_status = mx_find_record_field( write_record,
+						"value", &field );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		update_list_entry->write_value_field = field;
+
+		update_list_entry->write_value_pointer
+					= mx_get_field_value_pointer( field );
+
+		mx_status = mx_get_token_constructor( field->datatype,
+							&constructor );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( constructor != update_list_entry->token_constructor ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The write field '%s.%s' is not the same data type "
+			"as the read field '%s.%s'.",
+				write_record_name, write_field_name,
+				read_record_name, read_field_name );
+		}
+
+		mx_status = mx_get_token_parser( field->datatype, &parser );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( parser != update_list_entry->token_parser ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The write field '%s.%s' is not the same data type "
+			"as the read field '%s.%s'.",
+				write_record_name, write_field_name,
+				read_record_name, read_field_name );
+		}
+	}
 
 	/* We're done so increment the number of entries in the list. */
 
@@ -795,50 +1252,77 @@ mxupd_add_to_update_list( long update_list_number,
 }
 
 mx_status_type
-mxupd_construct_update_list( long num_update_lists,
-		MXUPD_UPDATE_LIST *update_list_array,
-                FILE *update_list_file, char *update_list_filename,
-                MX_RECORD *server_record )
+mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
+                		FILE *update_list_file,
+				char *update_list_filename,
+				MX_RECORD *record_list )
 {
-	const char fname[] = "mxupd_construct_update_list()";
+	static const char fname[] = "mxupd_construct_update_list()";
 
-	MX_RECORD *created_record;
-	static char description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
-	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
-	char record_name[MXU_RECORD_NAME_LENGTH+1];
-	char field_name[MXU_FIELD_NAME_LENGTH+1];
-	char format[80];
-	char buffer[80];
-	long datatype, num_dimensions;
-	long dimension_array[MXU_FIELD_MAX_DIMENSIONS];
+	MX_RECORD *created_read_record, *created_write_record;
+	char read_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char read_field_name[MXU_FIELD_NAME_LENGTH+1];
+	char write_record_name[MXU_RECORD_NAME_LENGTH+1];
+	char write_field_name[MXU_FIELD_NAME_LENGTH+1];
+	char format[50];
+	char buffer[350];
+	char protocol_id[MXUPD_PROTOCOL_ID_NAME_LENGTH+1];
+	char record_field_id[MXUPD_FIELD_ID_NAME_LENGTH+1];
+	char extra_arguments[MXUPD_FIELD_ID_NAME_LENGTH+1];
 	char *ptr;
-	long write_to_savefile, poll_group;
 	long i, num_items_read;
-	mx_status_type status;
+	unsigned long update_flags;
+	mx_status_type mx_status;
+	mx_status_type (*write_function)(void *);
 
-	MX_DEBUG(-2,("%s: update_list_filename = '%s', server_record = '%s'",
-			fname, update_list_filename, server_record->name ));
+	MX_DEBUG( 2,("%s: update_list_filename = '%s'",
+			fname, update_list_filename));
 
 	/* Allocate initial blocks of space to store the update list entries.*/
 
-	for ( i = 0; i < num_update_lists; i++ ) {
-		update_list_array[i].num_entries = 0;
+	update_list->num_entries = 0;
 
-		update_list_array[i].entry_array = (MXUPD_UPDATE_LIST_ENTRY *)
+	update_list->entry_array = (MXUPD_UPDATE_LIST_ENTRY *)
 			malloc( MXUPD_UPDATE_ARRAY_BLOCK_SIZE
 				* sizeof(MXUPD_UPDATE_LIST_ENTRY) );
 
-		if ( update_list_array[i].entry_array == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
+	if ( update_list->entry_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate %d update list entries",
 				MXUPD_UPDATE_ARRAY_BLOCK_SIZE );
-		}
 	}
 
 	/* Now read in all of the items in the update list. */
 
-	sprintf( format, "%%%ds %%ld %%ld",
-			MXU_RECORD_FIELD_NAME_LENGTH );
+	/* The format of each line is:
+	 *
+	 * protocol_id record_field_id flags extra_arguments
+	 *
+	 * An example on a local server would be:
+	 *
+	 *    mx localhost:edge_energy.value 0x0
+	 *
+	 * Note that the extra arguments are optional and that the
+	 * default port number is 9727.
+	 *
+	 * For a motor position, we want to restore the position to
+	 * different field from where we read it.
+	 *
+	 *    mx 192.168.1.2:theta.position 0x1 192.168.1.2:theta.set_position
+	 *
+	 * where the flag value 0x1 is what tells mxupdate to restore
+	 * to a different variable name.
+	 *
+	 * If the server is on nonstandard port 7890, you would use
+	 * something like:
+	 *
+	 *    mx example.com@7890:d_spacing.value 0x0
+	 */
+
+	sprintf( format, "%%%ds %%%ds %%lx %%%ds",
+			(int) (sizeof(protocol_id) - 1),
+			(int) (sizeof(record_field_id) - 1),
+			(int) (sizeof(extra_arguments) - 1) );
 
 	MX_DEBUG( 2,("%s: format = '%s'", fname, format));
 
@@ -857,118 +1341,176 @@ mxupd_construct_update_list( long num_update_lists,
 
 		MX_DEBUG( 2,("%s: Line %ld = '%s'",fname,i,buffer));
 
-		num_items_read = sscanf( buffer, format, record_field_name,
-					&write_to_savefile, &poll_group );
+		num_items_read = sscanf( buffer, format, protocol_id,
+			record_field_id, &update_flags, extra_arguments );
 
-		if ( num_items_read != 3 ) {
+		if ( num_items_read < 3 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-	"Line %ld of update list file '%s' is unparseable.  Contents = '%s'",
+			"Line %ld of update list file '%s' is incorrectly "
+			"formatted.  Contents = '%s'",
 				i, update_list_filename, buffer );
 		}
-
-		MX_DEBUG( 2,
-	("record_field_name = '%s', write_to_savefile = %ld, poll_group = %ld",
-			record_field_name, write_to_savefile, poll_group));
-
-		ptr = strchr( record_field_name, '.' );
-
-		if ( ptr == NULL ) {
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-"Record field name '%s' from line %ld of update list file '%s' does not "
-"have a period character in it.", record_field_name, i, update_list_filename );
+		if ( num_items_read == 3 ) {
+			strcpy( extra_arguments, "" );
 		}
 
-		*ptr = '\0';
+		MX_DEBUG( 2,("protocol_id = '%s', record_field_id = '%s', "
+				"update_flags = %#lx, extra_arguments = '%s'",
+			protocol_id, record_field_id, update_flags,
+			extra_arguments ));
 
-		mx_strncpy( record_name, record_field_name,
-						MXU_RECORD_NAME_LENGTH + 1);
+		write_function = NULL;
 
-		*ptr = '.';
+		/* Add the record to read from. */
 
-		ptr++;
+		if ( strcmp( protocol_id, "mx" ) == 0 ) {
+			MX_DEBUG( 2,
+			("%s: *** add mx read variable for '%s' ***",
+			 	fname, record_field_id));
 
-		mx_strncpy( field_name, ptr, MXU_FIELD_NAME_LENGTH + 1);
+			mx_status = mxupd_add_mx_variable_to_database(
+				record_list,
+				record_field_id, i, &created_read_record,
+				read_record_name, sizeof(read_record_name) - 1,
+				read_field_name, sizeof(read_field_name) - 1 );
+		} else
+		if ( strcmp( protocol_id, "epics" ) == 0 ) {
+			MX_DEBUG( 2,
+			("%s: *** add epics read variable for '%s' ***",
+			 	fname, record_field_id));
 
-		MX_DEBUG( 2,("Line %ld: record_name = '%s', field_name = '%s'",
-			i, record_name, field_name));
+			mx_status = mxupd_add_epics_variable_to_database(
+				record_list,
+				record_field_id, i, &created_read_record,
+				read_record_name, sizeof(read_record_name) - 1,
+				read_field_name, sizeof(read_field_name) - 1 );
+		} else
+		if ( strcmp( protocol_id, "epics_motor_position" ) == 0 ) {
+			MX_DEBUG( 2,
+		("%s: *** add epics motor position read variable for '%s' ***",
+			 	fname, record_field_id));
 
-		/* Ask the server for information about this record field. */
+			mx_status = mxupd_add_epics_variable_to_database(
+				record_list,
+				record_field_id, i, &created_read_record,
+				read_record_name, sizeof(read_record_name) - 1,
+				read_field_name, sizeof(read_field_name) - 1 );
+		} else {
+			ptr = strrchr( protocol_id, '.' );
 
-		status = mx_get_field_type( server_record,
-				record_field_name,
-				MXU_FIELD_MAX_DIMENSIONS,
-				&datatype,
-				&num_dimensions,
-				dimension_array );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		MX_DEBUG( 2,
-	("datatype = %ld, num_dimensions = %ld, dimension_array[0] = %ld",
-			datatype, num_dimensions, dimension_array[0] ));
-
-		/* Create a record in the local database that corresponds
-		 * to the remote record field.
-		 */
-
-		status = mx_format_variable_description( server_record,
-			record_name, field_name, i,
-			description, sizeof(description),
-			datatype, num_dimensions,
-			dimension_array );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		MX_DEBUG( 2,("description = '%s'", description));
-
-		status = mx_create_record_from_description(
-				server_record->list_head,
-				description, &created_record, 0 );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		status = mx_finish_record_initialization( created_record );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		status = mx_open_hardware( created_record );
-
-		if ( status.code != MXE_SUCCESS )
-			return status;
-
-		/* If write_to_savefile is TRUE, add this record to list 0. */
-
-		if ( write_to_savefile ) {
-			status = mxupd_add_to_update_list( 0,
-				num_update_lists, update_list_array,
-				record_name, field_name, created_record );
-
-			if ( status.code != MXE_SUCCESS )
-				return status;
-		}
-
-		/* If poll_group is non-zero, add this record to the 
-		 * specified poll group.
-		 */
-
-		if ( poll_group > 0 ) {
-			if ( poll_group >= num_update_lists ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Poll group number %ld is outside the allowed range of 1 to %ld.",
-					poll_group, num_update_lists - 1 );
+			if ( ptr && (strcmp( ptr, ".value" ) == 0) ) {
+				return mx_error( MXE_UNSUPPORTED, fname,
+		    "Update list file '%s' appears to be using the file "
+		    "format used by MX 1.1 and before.  You must convert "
+		    "this file to the new format used by MX 1.2 and above.",
+					update_list_filename );
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+		    "Unsupported protocol type '%s' requested for line '%s'",
+			    		protocol_id, buffer );
 			}
-
-			status = mxupd_add_to_update_list( poll_group,
-				num_update_lists, update_list_array,
-				record_name, field_name, created_record );
-
-			if ( status.code != MXE_SUCCESS )
-				return status;
 		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If requested, add the record to write to. */
+
+		MX_DEBUG( 2,("%s: update_flags = %#lx", fname, update_flags));
+
+		if ( ( update_flags & 0x1 ) == 0 ) {
+			MX_DEBUG( 2,
+		("%s: *** created_write_record == created_read_record ***",
+		 		fname));
+
+			created_write_record = created_read_record;
+
+			mx_strncpy( write_record_name, read_record_name,
+					MXU_RECORD_NAME_LENGTH );
+			mx_strncpy( write_field_name, read_field_name,
+					MXU_FIELD_NAME_LENGTH );
+		} else {
+			i++;
+
+			if ( strcmp( protocol_id, "mx" ) == 0 ) {
+				MX_DEBUG( 2,
+			("%s: *** add mx write variable for '%s' ***",
+			 	fname, extra_arguments));
+
+			    mx_status = mxupd_add_mx_variable_to_database(
+					record_list, extra_arguments,
+					i, &created_write_record,
+				write_record_name, sizeof(write_record_name)-1,
+				write_field_name, sizeof(write_field_name)-1 );
+			} else
+			if ( strcmp( protocol_id, "epics" ) == 0 ) {
+				MX_DEBUG( 2,
+			("%s: *** add epics write variable for '%s' ***",
+			 	fname, extra_arguments));
+
+			    mx_status = mxupd_add_epics_variable_to_database(
+					record_list, extra_arguments,
+					i, &created_write_record,
+				write_record_name, sizeof(write_record_name)-1,
+				write_field_name, sizeof(write_field_name)-1 );
+			} else
+			if (strcmp( protocol_id, "epics_motor_position" ) == 0)
+			{
+				created_write_record = NULL;
+				strcpy( write_record_name, "" );
+				strcpy( write_field_name, "" );
+
+#if HAVE_EPICS
+				write_function =
+				    mxupd_epics_motor_position_write_function;
+#else /* HAVE_EPICS */
+				return mx_error( MXE_UNSUPPORTED, fname,
+	    "Support for EPICS is not compiled into this copy of mxupdate." );
+#endif /* HAVE_EPICS */
+
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+		    "Unsupported protocol type '%s' requested for line '%s'",
+		    		protocol_id, buffer );
+			}
+		}
+
+		/* Add the record(s) to the update list. */
+
+		MX_DEBUG( 2,
+		    ("%s: about to call mxupd_add_to_update_list()", fname));
+
+		MX_DEBUG( 2,("%s: read_record_name = '%s'",
+			fname, read_record_name));
+		MX_DEBUG( 2,("%s: read_field_name = '%s'",
+			fname, read_field_name));
+		MX_DEBUG( 2,("%s: created_read_record = '%s'",
+			fname, created_read_record->name));
+
+		MX_DEBUG( 2,("%s: write_record_name = '%s'",
+			fname, write_record_name));
+		MX_DEBUG( 2,("%s: write_field_name = '%s'",
+			fname, write_field_name));
+
+		if ( created_write_record == NULL ) {
+			MX_DEBUG( 2,
+				("%s: created_write_record = (null)", fname));
+		} else {
+			MX_DEBUG( 2,("%s: created_write_record = '%s'",
+				fname, created_write_record->name));
+		}
+
+		mx_status = mxupd_add_to_update_list( update_list,
+				protocol_id, record_field_id, extra_arguments,
+				update_flags,
+				read_record_name, read_field_name,
+				created_read_record,
+				write_record_name, write_field_name,
+				created_write_record,
+				write_function );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -978,7 +1520,7 @@ mxupd_poll_update_list( MXUPD_UPDATE_LIST *update_list )
 {
 	MXUPD_UPDATE_LIST_ENTRY *entry_array, *entry;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	entry_array = update_list->entry_array;
 
@@ -986,10 +1528,10 @@ mxupd_poll_update_list( MXUPD_UPDATE_LIST *update_list )
 
 		entry = &entry_array[i];
 
-		status = mx_receive_variable( entry->local_record );
+		mx_status = mx_receive_variable( entry->read_record );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -998,7 +1540,7 @@ mx_status_type
 mxupd_save_fields_to_autosave_file( char *autosave_filename,
 			MXUPD_UPDATE_LIST *update_list )
 {
-	const char fname[] = "mxupd_save_fields_to_autosave_file()";
+	static const char fname[] = "mxupd_save_fields_to_autosave_file()";
 
 	MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
 	MX_RECORD_FIELD *value_field;
@@ -1007,15 +1549,15 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 	char buffer[500];
 	int saved_errno, result;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	MX_DEBUG(1,("%s: saving fields to autosave file '%s'",
+	MX_DEBUG( 1,("%s: saving fields to autosave file '%s'",
 		fname, autosave_filename));
 
-	status = mxupd_poll_update_list( update_list );
+	mx_status = mxupd_poll_update_list( update_list );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Delete the previous version of the autosave file, if it exists. */
 
@@ -1053,18 +1595,20 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 	for ( i = 0; i < update_list->num_entries; i++ ) {
 		update_list_entry = &(update_list->entry_array)[i];
 
-		sprintf( buffer, "%s.%s", update_list_entry->record_name,
-				update_list_entry->field_name );
+		sprintf( buffer, "%s.%s", update_list_entry->read_record_name,
+				update_list_entry->read_field_name );
 
-		MX_DEBUG( 2,("%s: Saving value of '%s'", fname, buffer ));
+		MX_DEBUG( 2,("%s: Saving value of '%s.%s'", fname,
+				update_list_entry->read_record_name,
+				update_list_entry->read_field_name ));
 
 		fprintf( autosave_file, "%-s  ", buffer );
 
 		buffer[0] = '\0';
 
-		value_field = update_list_entry->local_value_field;
+		value_field = update_list_entry->read_value_field;
 
-		value_ptr = update_list_entry->local_value_pointer;
+		value_ptr = update_list_entry->read_value_pointer;
 
 		if ( (value_field->num_dimensions == 0)
 		  || ((value_field->datatype == MXFT_STRING)
@@ -1072,24 +1616,24 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 
 			/* Single token */
 
-			status = ( update_list_entry->token_constructor ) (
+			mx_status = ( update_list_entry->token_constructor ) (
 					value_ptr,
 					buffer,
 					sizeof(buffer),
-					update_list_entry->local_record,
+					update_list_entry->read_record,
 					value_field );
 		} else {
-			status = mx_create_array_description(
+			mx_status = mx_create_array_description(
 					value_ptr,
 					value_field->num_dimensions - 1,
 					buffer,
 					sizeof(buffer),
-					update_list_entry->local_record,
+					update_list_entry->read_record,
 					value_field,
 					update_list_entry->token_constructor );
 		}
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG( 2,("%s: buffer = '%s'", fname, buffer));
 
@@ -1101,45 +1645,63 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 	fprintf( autosave_file, "********\n" );
 	fclose( autosave_file );
 
-	return status;
+	return mx_status;
 }
+
+#define CLOSE_AUTOSAVE_FILES \
+		do {                                           \
+			if ( autosave1 != NULL ) {             \
+				(void) fclose( autosave1 );    \
+			}                                      \
+			if ( autosave2 != NULL ) {             \
+				(void) fclose( autosave2 );    \
+			}                                      \
+		} while(0)
 
 static mx_status_type
 mxupd_choose_autosave_file_to_use(
 		char *autosave1_filename,
 		char *autosave2_filename,
-		FILE **autosave_to_use,
 		char **filename_to_use )
 {
-	const char fname[] = "mxupd_choose_autosave_file_to_use()";
+	static const char fname[] = "mxupd_choose_autosave_file_to_use()";
 
 	FILE *autosave1, *autosave2, *older_file, *newer_file;
+	FILE *autosave_to_use;
 	char *older_filename, *newer_filename;
 	struct stat stat_struct1, stat_struct2;
 	char buffer[500];
 	int saved_errno, savefile_is_complete;
 
-	*autosave_to_use = NULL;
+	autosave_to_use = NULL;
 	*filename_to_use = NULL;
 
 	/* Do the autosave files exist and are they readable? */
 
-	autosave1 = fopen( autosave1_filename, "r" );
+	if ( strlen(autosave1_filename) == 0 ) {
+		autosave1 = NULL;
+	} else {
+		autosave1 = fopen( autosave1_filename, "r" );
 
-	if ( autosave1 == NULL ) {
-		saved_errno = errno;
-		mx_info(
+		if ( autosave1 == NULL ) {
+			saved_errno = errno;
+			mx_info(
 "Warning: Couldn't open autosave file '%s' for reading.  Reason = '%s'",
-			autosave1_filename, strerror(saved_errno) );
+				autosave1_filename, strerror(saved_errno) );
+		}
 	}
 
-	autosave2 = fopen( autosave2_filename, "r" );
+	if ( strlen(autosave2_filename) == 0 ) {
+		autosave2 = NULL;
+	} else {
+		autosave2 = fopen( autosave2_filename, "r" );
 
-	if ( autosave2 == NULL ) {
-		saved_errno = errno;
-		mx_info( 
+		if ( autosave2 == NULL ) {
+			saved_errno = errno;
+			mx_info( 
 "Warning: Couldn't open autosave file '%s' for reading.  Reason = '%s'",
-			autosave2_filename, strerror(saved_errno) );
+				autosave2_filename, strerror(saved_errno) );
+		}
 	}
 
 	if ( autosave1 == NULL && autosave2 == NULL ) {
@@ -1147,20 +1709,20 @@ mxupd_choose_autosave_file_to_use(
 	}
 
 	if ( autosave1 == NULL && autosave2 != NULL ) {
-		*autosave_to_use = autosave2;
+		autosave_to_use = autosave2;
 		*filename_to_use = autosave2_filename;
 	} else
 	if ( autosave1 != NULL && autosave2 == NULL ) {
-		*autosave_to_use = autosave1;
+		autosave_to_use = autosave1;
 		*filename_to_use = autosave1_filename;
 	} else {
-		*autosave_to_use = NULL;         /* Both files exist. */
+		autosave_to_use = NULL;         /* Both files exist. */
 		*filename_to_use = NULL;
 	}
 
 	savefile_is_complete = FALSE;
 
-	if ( *autosave_to_use == NULL ) {
+	if ( autosave_to_use == NULL ) {
 
 		/* If both autosave files exist, check to see which file
 		 * is newer.
@@ -1169,12 +1731,16 @@ mxupd_choose_autosave_file_to_use(
 		if ( fstat( fileno(autosave1), &stat_struct1 ) != 0 ) {
 			saved_errno = errno;
 
+			CLOSE_AUTOSAVE_FILES;
+
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Couldn't fstat() autosave file 1.  Reason = '%s'",
 				strerror( saved_errno ) );
 		}
 		if ( fstat( fileno(autosave2), &stat_struct2 ) != 0 ) {
 			saved_errno = errno;
+
+			CLOSE_AUTOSAVE_FILES;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"Couldn't fstat() autosave file 2.  Reason = '%s'",
@@ -1208,46 +1774,38 @@ mxupd_choose_autosave_file_to_use(
 		}
 
 		if ( savefile_is_complete ) {
-			*autosave_to_use = newer_file;
+			autosave_to_use = newer_file;
 			*filename_to_use = newer_filename;
-
-			fclose( older_file );
-
-			rewind( *autosave_to_use );
 		} else {
-			*autosave_to_use = older_file;
+			autosave_to_use = older_file;
 			*filename_to_use = older_filename;
-
-			fclose( newer_file );
 		}
 	}
 
 	if ( savefile_is_complete == FALSE ) {
 
-		/* Is the file '*autosave_to_use' a complete savefile?
+		/* Is the file 'autosave_to_use' a complete savefile?
 		 * Look for a line in the file starting with an asterisk.
 		 */
 
-		fgets(buffer, sizeof buffer, *autosave_to_use);
+		fgets(buffer, sizeof buffer, autosave_to_use);
 
-		while (!feof(*autosave_to_use) && !ferror(*autosave_to_use)){
+		while (!feof(autosave_to_use) && !ferror(autosave_to_use)){
 
 			if ( buffer[0] == '*' ) {
 				savefile_is_complete = TRUE;
 				break;     /* Exit the while() loop. */
 			}
-			fgets(buffer, sizeof buffer, *autosave_to_use);
+			fgets(buffer, sizeof buffer, autosave_to_use);
 		}
 
-		if ( savefile_is_complete ) {
-			rewind( *autosave_to_use );
-		} else {
-			fclose( *autosave_to_use );
-
-			*autosave_to_use = NULL;
+		if ( savefile_is_complete == FALSE ) {
 			*filename_to_use = NULL;
 		}
 	}
+
+	CLOSE_AUTOSAVE_FILES;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1258,7 +1816,8 @@ mxupd_restore_fields_from_autosave_files(
 			char *autosave1_filename, char * autosave2_filename,
 			MXUPD_UPDATE_LIST *update_list )
 {
-	const char fname[] = "mxupd_restore_fields_from_autosave_files()";
+	static const char fname[] =
+			"mxupd_restore_fields_from_autosave_files()";
 
 	MXUPD_UPDATE_LIST_ENTRY *update_list_entry;
 	MX_RECORD_FIELD *value_field;
@@ -1270,23 +1829,56 @@ mxupd_restore_fields_from_autosave_files(
 	char buffer[500];
 	char *buffer_ptr;
 	char autosave_record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
-	char update_list_record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+	char update_list_read_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
+	char update_list_write_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
+	char autosave_backup_filename[ MXU_FILENAME_LENGTH + 1 ];
+	int saved_errno;
 	long i;
+	unsigned long update_flags;
 	size_t length;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxupd_choose_autosave_file_to_use(
+	mx_status = mxupd_choose_autosave_file_to_use(
 				autosave1_filename, autosave2_filename,
-				&autosave_to_use, &filename_to_use );
+				&filename_to_use );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( autosave_to_use == NULL ) {
+	if ( filename_to_use == NULL ) {
 		mx_info(
 "Warning: No complete autosave file was found.  No parameters will be restored."
 			);
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	sprintf( autosave_backup_filename, "%s_bak", filename_to_use );
+
+	MX_DEBUG(-2,("%s: autosave_backup_filename = '%s'",
+		fname, autosave_backup_filename));
+
+	mx_status = mx_copy_file( filename_to_use,
+				autosave_backup_filename, 0644 );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_warning( "The attempt to backup autosave file '%s' failed.",
+				filename_to_use );
+	} else {
+		mx_info( "Autosave file '%s' copied to backup file '%s'",
+			filename_to_use, autosave_backup_filename );
+	}
+
+	autosave_to_use = fopen( filename_to_use, "r" );
+
+	if ( autosave_to_use == NULL ) {
+		saved_errno = errno;
+		mx_warning(
+"Could not open autosave file '%s' for reading, so no parameters will be "
+"restored.  Reason = '%s'.  This is odd since we successfully opened that "
+"file just a moment ago.",
+			filename_to_use, strerror(saved_errno) );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -1334,27 +1926,41 @@ mxupd_restore_fields_from_autosave_files(
 
 		buffer_ptr += strspn( buffer_ptr, SEPARATORS );
 
-		sprintf( update_list_record_field_name, "%s.%s",
-			update_list_entry->record_name,
-			update_list_entry->field_name );
+		sprintf( update_list_read_field_name, "%s.%s",
+			update_list_entry->read_record_name,
+			update_list_entry->read_field_name );
+
+		sprintf( update_list_write_field_name, "%s.%s",
+			update_list_entry->write_record_name,
+			update_list_entry->write_field_name );
+
+		MX_DEBUG( 2,("%s: autosave_record_field_name = '%s'",
+			fname, autosave_record_field_name));
+		MX_DEBUG( 2,("%s: update_list_read_field_name = '%s'",
+			fname, update_list_read_field_name));
+		MX_DEBUG( 2,("%s: update_list_write_field_name = '%s'",
+			fname, update_list_write_field_name));
 
 		if ( strcmp( autosave_record_field_name,
-				update_list_record_field_name ) != 0 ) {
+				update_list_read_field_name ) != 0 ) {
 
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
 	"Autosave file '%s' and the autosave update list are out of "
 	"synchronization at line %ld.  Autosave record field name = '%s', "
-	"Update list record field name = '%s'", filename_to_use, i, 
+	"Update list read field name = '%s'", filename_to_use, i, 
 				autosave_record_field_name,
-				update_list_record_field_name );
+				update_list_read_field_name );
 
 			return MX_SUCCESSFUL_RESULT;
 		}
-
 		
-		value_field = update_list_entry->local_value_field;
-
-		value_ptr = update_list_entry->local_value_pointer;
+		if ( update_list_entry->write_value_field == NULL ) {
+			value_field = update_list_entry->read_value_field;
+			value_ptr = update_list_entry->read_value_pointer;
+		} else {
+			value_field = update_list_entry->write_value_field;
+			value_ptr = update_list_entry->write_value_pointer;
+		}
 
 		/* Initialize the token parser. */
 
@@ -1380,35 +1986,51 @@ mxupd_restore_fields_from_autosave_files(
 
 			/* Single token */
 
-			status = mx_get_next_record_token( &parse_status,
+			mx_status = mx_get_next_record_token( &parse_status,
 					token_buffer, sizeof(token_buffer) );
 
-			if ( status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS )
 				return MX_SUCCESSFUL_RESULT;
 
-			status = (update_list_entry->token_parser) (
+			mx_status = (update_list_entry->token_parser) (
 					value_ptr,
 					token_buffer,
-					update_list_entry->local_record,
+					update_list_entry->write_record,
 					value_field,
 					&parse_status );
 		} else {
 			/* Array of tokens. */
 
-			status = mx_parse_array_description(
+			mx_status = mx_parse_array_description(
 					value_ptr,
 					value_field->num_dimensions - 1,
-					update_list_entry->local_record,
+					update_list_entry->write_record,
 					value_field,
 					&parse_status,
 					update_list_entry->token_parser );
 		}
-		if ( status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS )
 			return MX_SUCCESSFUL_RESULT;
 
-		mx_info("Restoring value of '%s'.",autosave_record_field_name);
+		if ( update_list_entry->write_function == NULL ) {
+			update_flags = update_list_entry->update_flags;
 
-		(void) mx_send_variable( update_list_entry->local_record );
+			if ( update_flags & 0x1 ) {
+				mx_info( "Restoring value of '%s' to '%s'.",
+					autosave_record_field_name,
+					update_list_write_field_name );
+			} else {
+				mx_info( "Restoring value of '%s'.",
+					autosave_record_field_name );
+			}
+
+			(void) mx_send_variable(
+					update_list_entry->write_record );
+		} else {
+			mx_status = update_list_entry->write_function(
+						update_list_entry );
+		}
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
+
