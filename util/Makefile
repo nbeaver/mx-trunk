@@ -15,6 +15,9 @@
 
 MXDRIVERINFO_SRCS = mxdriverinfo.c
 
+# Mxserial is not available on all platforms, so we instead define the
+# MXSERIAL_SRCS macro in the platform-specific Makehead.* files.
+
 #
 #--------------------------------------------------------------------------
 #
@@ -40,7 +43,7 @@ include ../libMx/Makehead.$(MX_ARCH)
 # Makefile targets.
 #
 
-mx_build: $(MXDRIVERINFO_NAME)
+mx_build: $(MXDRIVERINFO_NAME) $(MXSERIAL_NAME)
 
 mx_clean:
 	-$(RM) *.$(OBJ)
@@ -51,6 +54,7 @@ mx_clean:
 	-$(RM) *.tds
 	-$(RM) core*
 	-$(RM) $(MXDRIVERINFO_NAME)
+	-$(RM) $(MXSERIAL_NAME)
 
 mx_distclean: mx_clean
 	-$(MAKEDEPEND_CLEAN)
@@ -58,7 +62,7 @@ mx_distclean: mx_clean
 mx_depend:
 	$(MAKEDEPEND)
 
-mx_install: mxdriverinfo_install
+mx_install: util_install
 
 include Makefile.depend
 

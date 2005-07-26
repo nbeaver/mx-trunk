@@ -213,6 +213,6 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS)
 	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
-mxdriverinfo_install:
+util_install:
 	/usr/ucb/install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 

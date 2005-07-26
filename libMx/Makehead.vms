@@ -162,6 +162,6 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /exe=$(MXDRIVERINFO_NAME) mxdriverinfo.obj, \
     $(MX_LIBRARY_PATH)/library, $(LIBRARIES)
 
-mxdriverinfo_install:
+util_install:
 	copy $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR).bin]
 

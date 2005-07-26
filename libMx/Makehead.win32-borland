@@ -206,6 +206,6 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
-mxdriverinfo_install:
+util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 

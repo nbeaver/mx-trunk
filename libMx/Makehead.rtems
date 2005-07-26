@@ -191,5 +191,5 @@ MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME):
 
-mxdriverinfo_install:
+util_install:
 

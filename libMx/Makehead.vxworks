@@ -219,6 +219,6 @@ MXDRIVERINFO_NAME    = mxdriverinfo_cmd.o
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(LD) -o $(MXDRIVERINFO_NAME) -r $(MXDRIVERINFO_OBJS)
 
-mxdriverinfo_install:
+util_install:
 	$(INSTALL) -c -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 

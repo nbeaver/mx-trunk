@@ -220,6 +220,6 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS_LINK) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
-mxdriverinfo_install:
+util_install:
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O $(MXDRIVERINFO_NAME) 
 

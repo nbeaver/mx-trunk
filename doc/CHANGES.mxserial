@@ -1,0 +1,92 @@
+Note:  Mxserial originally started out as a separate package and had a 
+separately maintained changelog.  Now that mxserial is part of the base MX
+package, future changes will be described in the main MX doc/CHANGES file.
+For historical reference, this file contains the old changelog from before
+the time mxserial was merged into the base MX package.
+
+   (William Lavender - July 26, 2005)
+
+Version 1.1.0 (07/13/05):
+	Minor changes were made to make 'mxserial' compatible with MX 1.1.0.
+
+Version 1.0.0 (04/26/04):
+	The default receive speed has been changed to 10000 bits per second.
+
+	The record description for connecting to the remote server has been
+	changed to match changes to the 'tcpip_server' driver in MX.
+
+Version 0.66.1 (08/24/03):
+	The procedure for marking an MX database as ready to be used has
+	changed slightly for MX 0.66.0 and above.  'mxserial' has been
+	modified to follow the new procedure.  This change merely consists
+	of adding the line
+
+	    list_head_struct->fixup_records_in_use = FALSE;
+
+	after the call to mx_finish_record_initialization() for the server
+	record.
+
+Version 0.65.0 (04/01/03):
+	Two new command line options have been added to 'mxserial'.
+	They are:
+
+	-f filename	Specifies the name of a file to be sent to the
+			remote serial port before beginning interactive
+			mode.
+
+	-s speed	Specifies the maximum speed in bits per second
+			that 'mxserial' will try to read from the remote
+			serial port.  The default is 1000, which will
+			use the relatively low speed of 100 characters
+			per second.  There is no explicitly specified
+			maximum speed.
+
+Version 0.62.0 (12/03/02):
+	This is the initial release of Mxserial.
+
+	Mxserial is a utility program for connecting to MX controlled
+	RS-232 ports in a manner analogous to Kermit, HyperTerminal,
+	cu, and so forth.  Mxserial is invoked as follows:
+
+		Usage: mxserial [-d debug_level] record_address
+		    where record_address is
+	
+		        port_name
+		    or  hostname:port_name
+		    or  hostname@port:port_name
+	
+		Example: mxserial localhost@9727:theta_rs232
+
+	In the above description, 'port_name' is the name of the RS-232
+	record in the remote MX server.  'hostname' is the name of the
+	computer the remote MX server is running on.  The hostname
+	defaults to 'localhost'.  'port' is the TCP port number that 
+	the remote MX server is using.  The port number defaults to 9727.
+
+	Once you have successfully connected to the remote RS-232 record,
+	characters you type will be sent to the RS-232 device, while
+	responses from the RS-232 device will be sent back to your screen.
+	You disconnect from the remote RS-232 device by typing ctrl-C on
+	your keyboard.  Eventually, command line arguments will be provided
+	for uploading and downloading files to the remote RS-232 device,
+	but this has not been done yet.
+
+	WARNING: Mxserial assumes that it is the only MX client that is
+	currently communicating with the remote RS-232 port.  It constantly
+	looks for new characters from the remote RS-232 device.  This means
+	that any other MX clients that might try to talk to the same RS-232
+	device must be shut down or paused while Mxserial is connected to
+	the port.  If both Mxserial and some other MX client are both
+	trying to talk with the same RS-232 device at the same time, the 
+	communication may become garbled with some of the responses intended
+	for the other MX client going to Mxserial and some of the responses
+	to Mxserial requests going to the other MX client.  Thus, you should
+	not have Mxserial connected to an RS-232 device when you are trying
+	to use that RS-232 device for any other purpose.
+
+	NOTE: Currently Mxserial intentionally restricts the display of
+	responses from the remote RS-232 device to a maximum of 100 characters
+	per second.  This is to minimize the load on an MX server that may
+	also be being used for some other purpose.  This restriction will
+	be removed in a later release.
+

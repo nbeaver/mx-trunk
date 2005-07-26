@@ -877,6 +877,8 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 
 #else
 
+#if 0
 #error MX interval timer functions have not yet been defined for this platform.
+#endif
 
 #endif

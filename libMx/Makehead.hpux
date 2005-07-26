@@ -218,7 +218,7 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 	chatr -s +s enable $(MXDRIVERINFO_NAME)
 
-mxdriverinfo_install:
+util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
 	chmod 755 $(MX_INSTALL_DIR)/bin/*
 
