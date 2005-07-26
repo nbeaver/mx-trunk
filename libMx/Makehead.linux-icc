@@ -148,7 +148,7 @@ MAKEDEPEND	= icc -MM $(CFLAGS) -I/usr/local/include \
 	$(READLINE_INCLUDES) $(EPICS_INCLUDES) $(NI_VISA_INCLUDES) \
 	$(SIS3100_INCLUDES) $(XIA_HANDEL_INCLUDES) *.c > Makefile.depend
 
-MAKEDEPEND_CLEAN = cp /dev/null Makefile.depend
+MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------

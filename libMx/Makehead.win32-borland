@@ -91,7 +91,7 @@ DEFINE		= -D
 
 MAKEDEPEND	= ( rm Makefile.depend ; touch Makefile.depend )
 
-MAKEDEPEND_CLEAN = ( rm Makefile.depend ; touch Makefile.depend )
+MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------

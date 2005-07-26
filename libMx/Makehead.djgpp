@@ -83,7 +83,7 @@ DEFINE		= -D
 MAKEDEPEND	= gcc -MM $(CFLAGS) $(READLINE_INCLUDES) \
 	*.c > Makefile.depend
 
-MAKEDEPEND_CLEAN = ( rm Makefile.depend ; touch /c Makefile.depend )
+MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------

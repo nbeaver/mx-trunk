@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 
@@ -54,7 +54,7 @@ MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
 all: build
 
-build:
+build: depend_files
 	( cd tools ; $(MAKECMD) -f Makefile.$(MX_ARCH) )
 	( cd libMx ; $(MAKECMD) )
 	( cd motor ; $(MAKECMD) )
@@ -63,7 +63,7 @@ build:
 	( cd update_old ; $(MAKECMD) )
 	( cd util ; $(MAKECMD) )
 
-clean:
+clean: depend_files
 	( cd tools ; $(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean )
 	( cd libMx ; $(MAKECMD) mx_clean )
 	( cd motor ; $(MAKECMD) mx_clean )
@@ -72,7 +72,7 @@ clean:
 	( cd update_old ; $(MAKECMD) mx_clean )
 	( cd util ; $(MAKECMD) mx_clean )
 
-distclean:
+distclean: depend_files
 	( cd tools ; $(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean )
 	( cd libMx ; $(MAKECMD) mx_distclean )
 	( cd motor ; $(MAKECMD) mx_distclean )
@@ -81,7 +81,7 @@ distclean:
 	( cd update_old ; $(MAKECMD) mx_distclean )
 	( cd util ; $(MAKECMD) mx_distclean )
 
-depend:
+depend: depend_files
 	( cd libMx ; $(MAKECMD) mx_depend )
 	( cd motor ; $(MAKECMD) mx_depend )
 	( cd server ; $(MAKECMD) mx_depend )
@@ -89,11 +89,36 @@ depend:
 	( cd update_old ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
-install:
+install: depend_files
 	( cd libMx ; $(MAKECMD) mx_install )
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )
 	( cd update ; $(MAKECMD) mx_install )
 ###	( cd update_old ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
+
+#------------------------------------------------------------------------------
+
+MD = Makefile.depend
+
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) \
+					update_old/$(MD) util/$(MD)
+
+libMx/$(MD):
+	touch libMx/$(MD)
+
+motor/$(MD):
+	touch motor/$(MD)
+
+server/$(MD):
+	touch server/$(MD)
+
+update/$(MD):
+	touch update/$(MD)
+
+update_old/$(MD):
+	touch update_old/$(MD)
+
+util/$(MD):
+	touch util/$(MD)
 

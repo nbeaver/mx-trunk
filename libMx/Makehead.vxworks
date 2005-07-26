@@ -113,7 +113,7 @@ COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= $(CC) -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
 
-MAKEDEPEND_CLEAN = cp /dev/null Makefile.depend
+MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------

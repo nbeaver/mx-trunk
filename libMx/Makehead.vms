@@ -51,11 +51,11 @@ CFLAGS_MAKEDEPEND = $(CFLAGS)
 COMPILE		= $(CC)
 DEFINE		= /define=
 
-MAKEDEPEND_CLEAN = copy nl: Makefile.depend
+MAKEDEPEND_CLEAN = delete Makefile.depend;*
 
 #
 # The following _might_ work, but it would take a long, long time to
-# execute under the TS10 VAX emulator I am using, so I haven't tried it.
+# execute under the SIMH VAX emulator I am using, so I haven't tried it.
 #
 #MAKEDEPEND	= cc $(INCLUDES) /define=("OS_VMS","DEBUG") \
 #	/mms_dependencies=(file=Makefile.depend,nosystem_include_files) *.c

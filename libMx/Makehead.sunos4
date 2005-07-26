@@ -76,7 +76,7 @@ DEFINE		= -D
 MAKEDEPEND	= acc -xM1 $(CFLAGS) $(READLINE_INCLUDES) \
 	$(EPICS_INCLUDES) *.c > Makefile.depend
 
-MAKEDEPEND_CLEAN = cp /dev/null Makefile.depend
+MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------
