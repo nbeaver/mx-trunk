@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004 Illinois Institute of Technology
+ * Copyright 2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -282,6 +282,11 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	int port_number;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	mclennan = NULL;
+	mclennan_ainput = NULL;
+
 	mx_status = mxd_mclennan_ain_get_pointers( ainput,
 					&mclennan_ainput, &mclennan, fname );
 
@@ -394,6 +399,11 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	char command[80];
 	int port_number;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	mclennan = NULL;
+	mclennan_aoutput = NULL;
 
 	mx_status = mxd_mclennan_aout_get_pointers( aoutput,
 					&mclennan_aoutput, &mclennan, fname );

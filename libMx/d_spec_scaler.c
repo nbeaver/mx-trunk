@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -162,6 +162,10 @@ mxd_spec_scaler_read( MX_SCALER *scaler )
 	char property_name[SV_NAME_LEN];
 	long value;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	spec_scaler = NULL;
 
 	mx_status = mxd_spec_scaler_get_pointers(
 				scaler, &spec_scaler, fname );

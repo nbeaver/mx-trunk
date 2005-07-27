@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,6 +169,11 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	picomotor_controller = NULL;
+	picomotor_ainput = NULL;
 
 	mx_status = mxd_picomotor_ain_get_pointers( ainput,
 			&picomotor_ainput, &picomotor_controller, fname );

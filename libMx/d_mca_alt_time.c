@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,15 +31,9 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mca_alt_time_record_function_list = {
-	mxd_mca_alt_time_initialize_type,
-	mxd_mca_alt_time_create_record_structures,
-	mxd_mca_alt_time_finish_record_initialization,
-	mxd_mca_alt_time_delete_record,
 	NULL,
-	mxd_mca_alt_time_read_parms_from_hardware,
-	mxd_mca_alt_time_write_parms_to_hardware,
-	mxd_mca_alt_time_open,
-	mxd_mca_alt_time_close
+	mxd_mca_alt_time_create_record_structures,
+	mxd_mca_alt_time_finish_record_initialization
 };
 
 MX_SCALER_FUNCTION_LIST mxd_mca_alt_time_scaler_function_list = {
@@ -143,12 +137,6 @@ mxd_mca_alt_time_get_pointers( MX_SCALER *scaler,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_mca_alt_time_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_mca_alt_time_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[]
@@ -212,54 +200,6 @@ mxd_mca_alt_time_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_mca_alt_time_delete_record( MX_RECORD *record )
-{
-	MX_MCA_ALT_TIME *mca_alt_time;
-
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	mca_alt_time = (MX_MCA_ALT_TIME *) record->record_type_struct;
-
-	if ( mca_alt_time != NULL ) {
-		free( mca_alt_time );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_alt_time_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_alt_time_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_alt_time_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_alt_time_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_mca_alt_time_read( MX_SCALER *scaler )
 {
 	static const char fname[] = "mxd_mca_alt_time_read()";
@@ -267,31 +207,36 @@ mxd_mca_alt_time_read( MX_SCALER *scaler )
 	MX_MCA_ALT_TIME *mca_alt_time;
 	MX_MCA_TIMER *mca_timer;
 	double alternate_time;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_alt_time_get_pointers( scaler,
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	mca_timer = NULL;
+	mca_alt_time = NULL;
+
+	mx_status = mxd_mca_alt_time_get_pointers( scaler,
 					&mca_alt_time, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	switch( mca_alt_time->time_type ) {
 	case MXF_MCA_ALT_TIME_LIVE_TIME:
-		status = mx_mca_get_live_time( mca_timer->mca_record,
+		mx_status = mx_mca_get_live_time( mca_timer->mca_record,
 							&alternate_time );
 		break;
 
 	case MXF_MCA_ALT_TIME_REAL_TIME:
-		status = mx_mca_get_real_time( mca_timer->mca_record,
+		mx_status = mx_mca_get_real_time( mca_timer->mca_record,
 							&alternate_time );
 		break;
 
 	case MXF_MCA_ALT_TIME_COMPLEMENTARY_TIME:
 		if ( mca_timer->use_real_time ) {
-			status = mx_mca_get_live_time( mca_timer->mca_record,
+			mx_status = mx_mca_get_live_time( mca_timer->mca_record,
 							&alternate_time );
 		} else {
-			status = mx_mca_get_real_time( mca_timer->mca_record,
+			mx_status = mx_mca_get_real_time( mca_timer->mca_record,
 							&alternate_time );
 		}
 		break;
@@ -307,6 +252,6 @@ mxd_mca_alt_time_read( MX_SCALER *scaler )
 	scaler->raw_value
 		= mx_round( mca_alt_time->timer_scale * alternate_time );
 
-	return status;
+	return mx_status;
 }
 

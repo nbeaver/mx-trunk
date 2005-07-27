@@ -261,6 +261,10 @@ mxi_k500serial_open( MX_RECORD *record )
 	int i;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	gpib = NULL;
+
 	mx_status = mxi_k500serial_get_record_pointers( record, &gpib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )

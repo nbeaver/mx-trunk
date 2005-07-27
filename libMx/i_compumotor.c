@@ -453,6 +453,10 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 	int num_items;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	compumotor_interface = NULL;
+
 	mx_status = mxi_compumotor_get_pointers( record,
 				&compumotor_interface, fname );
 

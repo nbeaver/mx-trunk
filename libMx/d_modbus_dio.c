@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -204,6 +204,10 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 	mx_uint16_type mx_uint16_array[2];
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	modbus_dinput = NULL;
+
 	mx_status = mxd_modbus_din_get_pointers( dinput,
 						&modbus_dinput, fname );
 
@@ -373,6 +377,10 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	mx_uint8_type mx_uint8_array[4];
 	mx_uint16_type mx_uint16_array[4];
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	modbus_doutput = NULL;
 
 	mx_status = mxd_modbus_dout_get_pointers( doutput,
 						&modbus_doutput, fname );

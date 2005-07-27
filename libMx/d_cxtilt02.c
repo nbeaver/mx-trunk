@@ -179,6 +179,11 @@ mxd_cxtilt02_read( MX_ANALOG_INPUT *ainput )
 	MX_CXTILT02 *cxtilt02;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	cxtilt02 = NULL;
+	cxtilt02_angle = NULL;
+
 	mx_status = mxd_cxtilt02_get_pointers( ainput,
 					&cxtilt02_angle, &cxtilt02, fname );
 

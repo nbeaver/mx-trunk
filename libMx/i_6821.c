@@ -7,12 +7,14 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_6821_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,13 +34,13 @@
 #include "i_6821.h"
 
 MX_RECORD_FUNCTION_LIST mxi_6821_record_function_list = {
-	mxi_6821_initialize_type,
-	mxi_6821_create_record_structures,
-	mxi_6821_finish_record_initialization,
-	mxi_6821_delete_record,
 	NULL,
-	mxi_6821_read_parms_from_hardware,
-	mxi_6821_write_parms_to_hardware,
+	mxi_6821_create_record_structures,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxi_6821_open,
 	mxi_6821_close
 };
@@ -59,14 +61,12 @@ long mxi_6821_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_6821_rfield_def_ptr
 			= &mxi_6821_record_field_defaults[0];
 
-#define MXI_6821_DEBUG		FALSE
-
 static mx_status_type
 mxi_6821_get_pointers( MX_RECORD *record,
 				MX_6821 **mc6821,
 				const char *calling_fname )
 {
-	const char fname[] = "mxi_6821_get_pointers()";
+	static const char fname[] = "mxi_6821_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -93,15 +93,9 @@ mxi_6821_get_pointers( MX_RECORD *record,
 /*=== Public functions ===*/
 
 MX_EXPORT mx_status_type
-mxi_6821_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_6821_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_6821_create_record_structures()";
+	static const char fname[] = "mxi_6821_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_6821 *mc6821;
@@ -138,46 +132,9 @@ mxi_6821_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_6821_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_6821_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_6821_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_6821_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_6821_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_6821_open()";
+	static const char fname[] = "mxi_6821_open()";
 
 	MX_6821 *mc6821;
 	mx_status_type mx_status;
@@ -233,7 +190,7 @@ mxi_6821_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_6821_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_6821_close()";
+	static const char fname[] = "mxi_6821_close()";
 
 	MX_6821 *mc6821;
 	mx_status_type mx_status;

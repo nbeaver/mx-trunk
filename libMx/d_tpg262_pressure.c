@@ -182,6 +182,11 @@ mxd_tpg262_pressure_read( MX_ANALOG_INPUT *ainput )
 	double measurement_value;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	tpg262 = NULL;
+	tpg262_pressure = NULL;
+
 	mx_status = mxd_tpg262_pressure_get_pointers( ainput,
 					&tpg262_pressure, &tpg262, fname );
 

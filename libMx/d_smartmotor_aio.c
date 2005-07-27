@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -320,6 +320,11 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 	int num_items;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	smartmotor = NULL;
+	smartmotor_ainput = NULL;
+
 	mx_status = mxd_smartmotor_ain_get_pointers( ainput,
 				&smartmotor_ainput, &smartmotor, fname );
 
@@ -455,6 +460,11 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	char *port_name;
 	int num_items;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	smartmotor = NULL;
+	smartmotor_aoutput = NULL;
 
 	mx_status = mxd_smartmotor_aout_get_pointers( aoutput,
 				&smartmotor_aoutput, &smartmotor, fname );

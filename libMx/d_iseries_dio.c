@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -289,6 +289,11 @@ mxd_iseries_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_ISERIES *iseries;
 	double double_value;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	iseries = NULL;
+	iseries_dinput = NULL;
 
 	mx_status = mxd_iseries_din_get_pointers( dinput,
 					&iseries_dinput, &iseries, fname );

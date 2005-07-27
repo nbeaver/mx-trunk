@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,18 +27,10 @@ typedef struct {
 #define MXF_MCA_ALT_TIME_REAL_TIME		1
 #define MXF_MCA_ALT_TIME_COMPLEMENTARY_TIME	2
 
-MX_API mx_status_type mxd_mca_alt_time_initialize_type( long type );
 MX_API mx_status_type mxd_mca_alt_time_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_mca_alt_time_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_mca_alt_time_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_mca_alt_time_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_mca_alt_time_write_parms_to_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_mca_alt_time_open( MX_RECORD *record );
-MX_API mx_status_type mxd_mca_alt_time_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_mca_alt_time_read( MX_SCALER *scaler );
 

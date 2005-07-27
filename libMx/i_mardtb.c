@@ -118,6 +118,10 @@ mxi_mardtb_open( MX_RECORD *record )
 	MX_MARDTB *mardtb;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	mardtb = NULL;
+
 	mx_status = mxi_mardtb_get_pointers( record, &mardtb, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )

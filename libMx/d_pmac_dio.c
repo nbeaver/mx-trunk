@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2003 Illinois Institute of Technology
+ * Copyright 2001-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -371,6 +371,11 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	pmac = NULL;
+	pmac_dinput = NULL;
 
 	mx_status = mxd_pmac_din_get_pointers( dinput,
 					&pmac_dinput, &pmac, fname );

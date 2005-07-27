@@ -406,6 +406,10 @@ mxd_vp9000_open( MX_RECORD *record )
 	long acceleration_parameter;
 	mx_status_type status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	motor = NULL;
+
 	status = mxd_vp9000_get_record_pointers( record, &motor, fname );
 
 	if ( status.code != MXE_SUCCESS )

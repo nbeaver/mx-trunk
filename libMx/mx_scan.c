@@ -2442,6 +2442,10 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	ptrdiff_t basename_length;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	datafile_filename = NULL;
+
 	if ( num_mcas <= 0 ) {
 		return MX_SUCCESSFUL_RESULT;
 	}

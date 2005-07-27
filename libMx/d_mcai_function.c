@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,6 +223,10 @@ mxd_mcai_function_read( MX_ANALOG_INPUT *ainput )
 	double *scale, *offset, *channel_array;
 	long i;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	mcai_function = NULL;
 
 	mx_status = mxd_mcai_function_get_pointers( ainput,
 						&mcai_function, fname );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -266,6 +266,11 @@ mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 	char response[80];
 	int num_items, hex_value;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	pdi45 = NULL;
+	pdi45_dinput = NULL;
 
 	mx_status = mxd_pdi45_din_get_pointers( dinput,
 					&pdi45_dinput, &pdi45, fname );

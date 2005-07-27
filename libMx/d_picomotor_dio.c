@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,6 +276,11 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char *ptr;
 	int num_items, channel_number;
 	mx_status_type mx_status;
+
+	/* Supppress bogus GCC 4 uninitialized variable warnings. */
+
+	picomotor_controller = NULL;
+	picomotor_dinput = NULL;
 
 	mx_status = mxd_picomotor_din_get_pointers( dinput,
 			&picomotor_dinput, &picomotor_controller, fname );

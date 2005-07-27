@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,6 +145,11 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 	MX_USB_DEVICE *usb_device, *usb_bootloader_device;
 	int num_bytes_written;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	usb_record = NULL;
+	phidget_old_stepper_controller = NULL;
 
 	mx_status = mxi_phidget_old_stepper_get_pointers( record,
 						&phidget_old_stepper_controller,

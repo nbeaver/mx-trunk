@@ -137,6 +137,8 @@ typedef struct {
 
 #elif defined(__INTEL_COMPILER)
 #  define mx_socklen_t		socklen_t
+#elif defined(OS_LINUX)
+#  define mx_socklen_t		socklen_t
 #else
 #  define mx_socklen_t		int
 #endif

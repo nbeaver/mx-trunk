@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -135,6 +135,10 @@ mxd_network_aoutput_finish_record_initialization( MX_RECORD *record )
 	MX_ANALOG_OUTPUT *aoutput;
 	MX_NETWORK_AOUTPUT *network_aoutput;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	network_aoutput = NULL;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -506,6 +506,10 @@ mxd_sercat_als_robot_initialize( MX_SAMPLE_CHANGER *changer )
 	MX_RECORD *x_motor_record;
 	unsigned long dewar_positioner_status;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	x_motor_record = NULL;
 
 	mx_status = mxd_sercat_als_robot_get_pointers( changer,
 						&sercat_als_robot, fname );

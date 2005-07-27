@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2004 Illinois Institute of Technology
+ * Copyright 2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -277,6 +277,11 @@ mxd_scipe_ain_read( MX_ANALOG_INPUT *ainput )
 	char *result_ptr;
 	int num_items, scipe_response_code;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	scipe_server = NULL;
+	scipe_ainput = NULL;
 
 	mx_status = mxd_scipe_ain_get_pointers( ainput,
 					&scipe_ainput, &scipe_server, fname );

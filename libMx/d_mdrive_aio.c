@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,6 +181,11 @@ mxd_mdrive_ain_read( MX_ANALOG_INPUT *ainput )
 	char response[80];
 	int num_items;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	mdrive = NULL;
+	mdrive_ainput = NULL;
 
 	mx_status = mxd_mdrive_ain_get_pointers( ainput,
 					&mdrive_ainput, &mdrive, fname );

@@ -393,6 +393,10 @@ mxv_mathop_receive_variable( MX_VARIABLE *variable )
 	double value;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	value = 0.0;
+
 	mx_status = mxv_mathop_compute_value( variable, &value );
 
 	if ( mx_status.code != MXE_SUCCESS )

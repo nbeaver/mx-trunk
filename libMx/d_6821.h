@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,20 +55,11 @@ typedef struct {
 
 /* First the input functions. */
 
-MX_API mx_status_type mxd_6821_in_initialize_type( long type );
 MX_API mx_status_type mxd_6821_in_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_6821_in_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_print_structure( FILE *file,
-							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_write_parms_to_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_open( MX_RECORD *record );
-MX_API mx_status_type mxd_6821_in_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_6821_in_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_6821_in_record_function_list;
@@ -80,20 +71,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_6821_in_rfield_def_ptr;
 
 /* Second the output functions. */
 
-MX_API mx_status_type mxd_6821_out_initialize_type( long type );
 MX_API mx_status_type mxd_6821_out_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_6821_out_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_out_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_6821_out_print_structure( FILE *file,
-							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_out_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_6821_out_write_parms_to_hardware(
-							MX_RECORD *record );
 MX_API mx_status_type mxd_6821_out_open( MX_RECORD *record );
-MX_API mx_status_type mxd_6821_out_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_6821_out_read( MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput );
 

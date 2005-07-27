@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,8 +30,7 @@ mx_mcai_get_pointers( MX_RECORD *record,
 		MX_MCAI_FUNCTION_LIST **flist_ptr,
 		const char *calling_fname )
 {
-	static const char fname[] =
-		"mx_mcai_get_pointers()";
+	static const char fname[] = "mx_mcai_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -49,24 +48,19 @@ mx_mcai_get_pointers( MX_RECORD *record,
 			record->mx_type );
 	}
 
-	if (mcai != (MX_MCAI **) NULL)
-	{
-		*mcai = (MX_MCAI *)
-						record->record_class_struct;
+	if (mcai != (MX_MCAI **) NULL) {
+		*mcai = (MX_MCAI *) record->record_class_struct;
 
-		if ( *mcai ==
-				(MX_MCAI *) NULL )
-		{
+		if ( *mcai == (MX_MCAI *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "MX_MCAI pointer for record '%s' passed by '%s' is NULL.",
 				record->name, calling_fname );
 		}
 	}
 
-	if (flist_ptr != (MX_MCAI_FUNCTION_LIST **) NULL)
-	{
+	if (flist_ptr != (MX_MCAI_FUNCTION_LIST **) NULL) {
 		*flist_ptr = (MX_MCAI_FUNCTION_LIST *)
-				(record->class_specific_function_list);
+				record->class_specific_function_list;
 
 		if ( *flist_ptr ==
 			(MX_MCAI_FUNCTION_LIST *) NULL )
@@ -87,8 +81,7 @@ mx_mcai_initialize_type( long record_type,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
 			long *maximum_num_channels_varargs_cookie )
 {
-	static const char fname[] =
-		"mx_mcai_initialize_type()";
+	static const char fname[] = "mx_mcai_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
@@ -171,11 +164,9 @@ mx_mcai_initialize_type( long record_type,
 }
 
 MX_EXPORT mx_status_type
-mx_mcai_finish_record_initialization(
-			MX_RECORD *mcai_record )
+mx_mcai_finish_record_initialization( MX_RECORD *mcai_record )
 {
-	static const char fname[] =
-		"mx_mcai_finish_record_initialization()";
+	static const char fname[] = "mx_mcai_finish_record_initialization()";
 
 	MX_MCAI *mcai;
 	MX_RECORD_FIELD *channel_array_field;
@@ -186,12 +177,9 @@ mx_mcai_finish_record_initialization(
 			"MX_RECORD pointer passed is NULL." );
 	}
 
-	mcai = (MX_MCAI *)
-		mcai_record->record_class_struct;
+	mcai = (MX_MCAI *) mcai_record->record_class_struct;
 
-	if ( mcai ==
-			(MX_MCAI *) NULL )
-	{
+	if ( mcai == (MX_MCAI *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_MCAI pointer for record '%s' is NULL.",
 			mcai_record->name );
@@ -203,14 +191,13 @@ mx_mcai_finish_record_initialization(
 	 */
 
 	mx_status = mx_find_record_field( mcai_record,
-						"channel_array",
-						&channel_array_field );
+					"channel_array",
+					&channel_array_field );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	channel_array_field->dimension[0] =
-		(long) mcai->maximum_num_channels;
+	channel_array_field->dimension[0] = (long) mcai->maximum_num_channels;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -219,8 +206,8 @@ mx_mcai_finish_record_initialization(
 
 MX_EXPORT mx_status_type
 mx_mcai_read( MX_RECORD *record,
-					unsigned long *num_channels,
-					double **channel_array )
+		unsigned long *num_channels,
+		double **channel_array )
 {
 	static const char fname[] = "mx_mcai_read()";
 
@@ -228,6 +215,11 @@ mx_mcai_read( MX_RECORD *record,
 	MX_MCAI_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_MCAI * );
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	mcai = NULL;
+	function_list = NULL;
 
 	mx_status = mx_mcai_get_pointers( record,
 			&mcai, &function_list, fname );
@@ -239,8 +231,7 @@ mx_mcai_read( MX_RECORD *record,
 
 	if ( read_fn == NULL ){
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"read function ptr for MX_MCAI ptr 0x%p is NULL.",
-			mcai);
+		    "read function ptr for MX_MCAI ptr 0x%p is NULL.", mcai );
 	}
 
 	mx_status = (*read_fn)( mcai );

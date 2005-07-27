@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -297,6 +297,11 @@ mxd_linux_parport_in_read( MX_DIGITAL_INPUT *dinput )
 	MX_LINUX_PARPORT *linux_parport;
 	mx_uint8_type value;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	linux_parport = NULL;
+	linux_parport_in = NULL;
 
 	mx_status = mxd_linux_parport_in_get_pointers( dinput->record,
 				&linux_parport_in, &linux_parport, fname );

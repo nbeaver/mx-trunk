@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -447,6 +447,10 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 	int the_move_can_be_performed;
 	unsigned long flags;
 	mx_status_type mx_status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	dewar_rot_destination = dewar_x_destination = 0.0;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
 						&als_dewar_positioner, fname );

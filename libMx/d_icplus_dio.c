@@ -278,6 +278,11 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	int port_number, num_items;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	icplus = NULL;
+	icplus_dinput = NULL;
+
 	mx_status = mxd_icplus_din_get_pointers( dinput,
 					&icplus_dinput, &icplus, fname );
 

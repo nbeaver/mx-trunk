@@ -57,19 +57,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_6821, port_b_data_direction), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxi_6821_initialize_type( long type );
-MX_API mx_status_type mxi_6821_create_record_structures(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_6821_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_6821_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_6821_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_6821_write_parms_to_hardware(
-					MX_RECORD *record );
+MX_API mx_status_type mxi_6821_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_6821_open( MX_RECORD *record );
 MX_API mx_status_type mxi_6821_close( MX_RECORD *record );
-MX_API mx_status_type mxi_6821_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_6821_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_6821_generic_function_list;

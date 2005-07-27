@@ -18,7 +18,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -790,6 +790,10 @@ smc24_cw_ccw_pulses_soft_abort( MX_MOTOR *motor )
 {
 	long steps_to_go;
 	mx_status_type status;
+
+	/* Suppress bogus GCC 4 uninitialized variable warning. */
+
+	steps_to_go = 0L;
 
 	/* How far does the motor have left to go? */
 
