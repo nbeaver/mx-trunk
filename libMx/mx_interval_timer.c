@@ -1,18 +1,15 @@
 /*
  * Name:    mx_interval_timer.c
  *
- * Purpose: Functions for using MX interval timers.  The interval timers
- *          are modeled after the Posix timer_create(), timer_settime(), etc.
- *          routines.  However, the Posix timers are not available on all
- *          supported MX platforms, so we have to provide a wrapper.
+ * Purpose: Functions for using MX interval timers.  Interval timers are
+ *          used to arrange for a function to be invoked at periodic
+ *          intervals.
  *
  * Author:  William Lavender
  *
- * WARNING: This code has not been tested and is not really finished.
- *
  *----------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +21,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_mutex.h"
 #include "mx_interval_timer.h"
 
 /*************************** EPICS timers **************************/
@@ -152,21 +151,10 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 }
 
 MX_EXPORT mx_status_type
-mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
-				double *seconds_till_expiration )
-{
-	/* FIXME: I do not know how to do this with EPICS. */
-
-	*seconds_till_expiration = 0.0;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 				double timer_period_in_seconds )
 {
-	static const char fname[] = "mx_interval_timer_set_time()";
+	static const char fname[] = "mx_interval_timer_start()";
 
 	MX_EPICS_ITIMER_PRIVATE *epics_itimer_private;
 
@@ -185,6 +173,17 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 
 	epicsTimerStartDelay( epics_itimer_private->timer,
 					itimer->timer_period );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration )
+{
+	/* FIXME: I do not know how to do this with EPICS. */
+
+	*seconds_till_expiration = 0.0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -269,21 +268,10 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 }
 
 MX_EXPORT mx_status_type
-mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
-				double *seconds_till_expiration )
-{
-	/* FIXME: I do not know how to do this with Win32 multimedia timers. */
-
-	*seconds_till_expiration = 0.0;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 				double timer_period_in_seconds )
 {
-	static const char fname[] = "mx_interval_timer_set_time()";
+	static const char fname[] = "mx_interval_timer_start()";
 
 	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
 	UINT event_delay_ms, timer_flags;
@@ -337,6 +325,17 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 		"Win32 error code = %ld, error message = '%s'",
 				last_error_code, message_buffer );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration )
+{
+	/* FIXME: I do not know how to do this with Win32 multimedia timers. */
+
+	*seconds_till_expiration = 0.0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -516,72 +515,10 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
-				double *seconds_till_expiration )
-{
-	static const char fname[] = "mx_interval_timer_get_time()";
-
-	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
-	struct itimerspec value;
-	int status, saved_errno;
-
-	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_INTERVAL_TIMER pointer passed was NULL." );
-	}
-
-	if ( seconds_till_expiration == (double *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The seconds_till_expiration passed was NULL." );
-	}
-
-	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private;
-
-	if ( posix_itimer_private == (MX_POSIX_ITIMER_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_POSIX_ITIMER_PRIVATE pointer for timer %p is NULL.",
-			itimer );
-	}
-
-	status = timer_gettime( posix_itimer_private->timer_id, &value );
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		switch( saved_errno ) {
-		case EINVAL:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The specified timer does not exist." );
-			break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"This system does not support Posix realtime timers "
-		"although the compiler said that it does.  "
-		"This should not be able to happen." );
-			break;
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected error reading from a Posix realtime timer.  "
-		"Errno = %d, error message = '%s'",
-				saved_errno, strerror(saved_errno) );
-			break;
-		}
-	}
-
-	*seconds_till_expiration = (double) value.it_value.tv_sec;
-
-	*seconds_till_expiration += 1.0e-9 * (double) value.it_value.tv_nsec;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*--------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 				double timer_period_in_seconds )
 {
-	static const char fname[] = "mx_interval_timer_set_time()";
+	static const char fname[] = "mx_interval_timer_start()";
 
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
 	struct itimerspec itimer_value;
@@ -656,44 +593,175 @@ mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/************************ BSD style setitimer() timers ***********************/
-
-#elif defined( OS_UNIX )
-
-#include <sys/time.h>
-
-typedef struct {
-} MX_SETITIMER_PRIVATE;
-
-static void
-mx_interval_timer_signal_handler( int signum, siginfo_t *siginfo, void *cruft )
-{
-	MX_INTERVAL_TIMER *itimer;
-
-	itimer = (MX_INTERVAL_TIMER *) siginfo->si_value.sival_ptr;
-
-	if ( itimer->callback_function != NULL ) {
-		itimer->callback_function( itimer, itimer->callback_args );
-	}
-}
-
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration )
 {
-	static const char fname[] = "mx_interval_timer_create()";
+	static const char fname[] = "mx_interval_timer_read()";
 
-	struct sigaction sa;
-	MX_SETITIMER_PRIVATE *setitimer_private;
+	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
+	struct itimerspec value;
 	int status, saved_errno;
-
-	MX_DEBUG(-2,("%s invoked for BSD setitimer timers.", fname));
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
+
+	if ( seconds_till_expiration == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The seconds_till_expiration passed was NULL." );
+	}
+
+	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private;
+
+	if ( posix_itimer_private == (MX_POSIX_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_POSIX_ITIMER_PRIVATE pointer for timer %p is NULL.",
+			itimer );
+	}
+
+	status = timer_gettime( posix_itimer_private->timer_id, &value );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The specified timer does not exist." );
+			break;
+		case ENOSYS:
+			return mx_error( MXE_UNSUPPORTED, fname,
+		"This system does not support Posix realtime timers "
+		"although the compiler said that it does.  "
+		"This should not be able to happen." );
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected error reading from a Posix realtime timer.  "
+		"Errno = %d, error message = '%s'",
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
+	}
+
+	*seconds_till_expiration = (double) value.it_value.tv_sec;
+
+	*seconds_till_expiration += 1.0e-9 * (double) value.it_value.tv_nsec;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/************************ BSD style setitimer() timers ***********************/
+
+#elif defined( OS_UNIX )
+
+#include <signal.h>
+#include <errno.h>
+#include <sys/time.h>
+
+typedef struct {
+	int dummy;
+} MX_SETITIMER_PRIVATE;
+
+static MX_INTERVAL_TIMER *mx_setitimer_interval_timer = NULL;
+static MX_MUTEX *mx_setitimer_mutex = NULL;
+
+#define RELEASE_SETITIMER_INTERVAL_TIMER \
+		do {							\
+			(void) mx_mutex_lock( mx_setitimer_mutex );	\
+			mx_setitimer_interval_timer = NULL;		\
+			(void) mx_mutex_unlock( mx_setitimer_mutex );	\
+		} while(0)
+
+static void
+mx_interval_timer_signal_handler( int signum )
+{
+	static const char fname[] = "mx_interval_timer_signal_handler()";
+
+	MX_INTERVAL_TIMER *itimer;
+
+	(void) mx_mutex_lock( mx_setitimer_mutex );
+
+	itimer = mx_setitimer_interval_timer;
+
+	(void) mx_mutex_unlock( mx_setitimer_mutex );
+
+	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		mx_warning(
+		    "%s was invoked although no interval timer was started.",
+			fname );
+
+		return;
+	}
+
+	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
+		fname, itimer->callback_function));
+
+	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		RELEASE_SETITIMER_INTERVAL_TIMER;
+	}
+
+	if ( itimer->callback_function != NULL ) {
+		itimer->callback_function( itimer, itimer->callback_args );
+	}
+
+	MX_DEBUG(-2,("%s complete.", fname));
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				void *callback_function,
+				void *callback_args )
+{
+	static const char fname[] = "mx_interval_timer_create()";
+
+	MX_SETITIMER_PRIVATE *setitimer_private;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for BSD setitimer timers.", fname));
+	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
+	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
+	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+
+	if ( mx_setitimer_mutex == NULL ) {
+		mx_status = mx_mutex_create( &mx_setitimer_mutex, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	switch( timer_type ) {
+	case MXIT_ONE_SHOT_TIMER:
+	case MXIT_PERIODIC_TIMER:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Interval timer type %d is unsupported.", timer_type );
+		break;
+	}
+
+	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
+
+	if ( (*itimer) == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
+	}
+
+	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
 
 	setitimer_private = (MX_SETITIMER_PRIVATE *)
 				malloc( sizeof(MX_SETITIMER_PRIVATE) );
@@ -703,14 +771,14 @@ mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
 	"Unable to allocate memory for a MX_SETITIMER_PRIVATE structure." );
 	}
 
-	itimer->private = setitimer_private;
+	MX_DEBUG(-2,("%s: setitimer_private = %p", fname, setitimer_private));
 
-	/* Set up the signal handler. */
-
-	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = mx_interval_timer_signal_handler;
-
-	status = sigaction( SIGALRM, &sa, NULL );
+	(*itimer)->timer_type = timer_type;
+	(*itimer)->timer_period = -1.0;
+	(*itimer)->num_overruns = 0;
+	(*itimer)->callback_function = callback_function;
+	(*itimer)->callback_args = callback_args;
+	(*itimer)->private = setitimer_private;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -723,7 +791,73 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	static const char fname[] = "mx_interval_timer_destroy()";
 
 	MX_SETITIMER_PRIVATE *setitimer_private;
+	double seconds_left;
+	mx_status_type mx_status;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
+
+	if ( setitimer_private != (MX_SETITIMER_PRIVATE *) NULL ) {
+		mx_free( setitimer_private );
+	}
+
+	mx_free( itimer );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+{
+	static const char fname[] = "mx_interval_timer_is_busy()";
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	if ( busy == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy pointer passed was NULL." );
+	}
+
+	(void) mx_mutex_lock( mx_setitimer_mutex );
+
+	if ( mx_setitimer_interval_timer == itimer ) {
+		*busy = TRUE;
+	} else {
+		*busy = FALSE;
+	}
+
+	(void) mx_mutex_unlock( mx_setitimer_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
+				double timer_period_in_seconds )
+{
+	static const char fname[] = "mx_interval_timer_start()";
+
+	MX_SETITIMER_PRIVATE *setitimer_private;
+	struct itimerval itimer_value;
+	struct sigaction sa;
 	int status, saved_errno;
+	unsigned long timer_ulong_seconds, timer_ulong_usec;
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -732,8 +866,89 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 
 	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
 
-	if ( setitimer_private != (MX_SETITIMER_PRIVATE *) NULL ) {
-		mx_free( setitimer_private );
+	if ( setitimer_private == (MX_SETITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_SETITIMER_PRIVATE pointer for timer %p is NULL.",
+			itimer );
+	}
+
+	/* Convert the timer period to a struct timespec. */
+
+	timer_ulong_seconds = (unsigned long) timer_period_in_seconds;
+
+	timer_ulong_usec = (unsigned long)
+				( 1.0e6 * ( timer_period_in_seconds
+					- (double) timer_ulong_seconds ) );
+
+	/* The way we use the timer values depends on whether or not
+	 * we configure the timer as a one-shot timer or a periodic
+	 * timer.
+	 */
+
+	itimer_value.it_value.tv_sec  = timer_ulong_seconds;
+	itimer_value.it_value.tv_usec = timer_ulong_usec;
+
+	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		itimer_value.it_interval.tv_sec  = 0;
+		itimer_value.it_interval.tv_usec = 0;
+
+		sa.sa_flags = SA_ONESHOT;
+	} else {
+		itimer_value.it_interval.tv_sec  = timer_ulong_seconds;
+		itimer_value.it_interval.tv_usec = timer_ulong_usec;
+
+		sa.sa_flags = 0;
+	}
+
+	sa.sa_handler = mx_interval_timer_signal_handler;
+
+	/* Is an interval timer already running? */
+
+	(void) mx_mutex_lock( mx_setitimer_mutex );
+
+	if ( mx_setitimer_interval_timer != (MX_INTERVAL_TIMER *) NULL ) {
+		(void) mx_mutex_unlock( mx_setitimer_mutex );
+
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"There can only be one setitimer-based interval timer started "
+		"at a time and one is already started." );
+	}
+
+	mx_setitimer_interval_timer = itimer;
+
+	(void) mx_mutex_unlock( mx_setitimer_mutex );
+
+	/* Set up the signal handler. */
+
+	status = sigaction( SIGALRM, &sa, NULL );
+
+	/* Set the timer period. */
+
+	status = setitimer( ITIMER_REAL, &itimer_value, NULL );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		RELEASE_SETITIMER_INTERVAL_TIMER;
+
+		switch( saved_errno ) {
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The specified timer does not exist." );
+			break;
+		case ENOSYS:
+			return mx_error( MXE_UNSUPPORTED, fname,
+		"This system does not support Posix realtime timers "
+		"although the compiler said that it does.  "
+		"This should not be able to happen." );
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected error writing to a Posix realtime timer.  "
+		"Errno = %d, error message = '%s'",
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -742,10 +957,26 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
+{
+	signal( SIGALRM, SIG_IGN );     /* Disable the signal handler. */
+
+	RELEASE_SETITIMER_INTERVAL_TIMER;
+
+	if ( seconds_left != NULL ) {
+		*seconds_left = 0.0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 				double *seconds_till_expiration )
 {
-	static const char fname[] = "mx_interval_timer_get_time()";
+	static const char fname[] = "mx_interval_timer_read()";
 
 	MX_SETITIMER_PRIVATE *setitimer_private;
 	struct itimerval value;
@@ -795,90 +1026,8 @@ mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*--------------------------------------------------------------------------*/
-
-MX_EXPORT mx_status_type
-mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
-				double timer_period_in_seconds )
-{
-	static const char fname[] = "mx_interval_timer_set_time()";
-
-	MX_SETITIMER_PRIVATE *setitimer_private;
-	struct itimerval itimer_value;
-	int status, saved_errno;
-	unsigned long timer_ulong_seconds, timer_ulong_usec;
-
-	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_INTERVAL_TIMER pointer passed was NULL." );
-	}
-
-	setitimer_private = (MX_SETITIMER_PRIVATE *) itimer->private;
-
-	if ( setitimer_private == (MX_SETITIMER_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_SETITIMER_PRIVATE pointer for timer %p is NULL.",
-			itimer );
-	}
-
-	/* Convert the timer period to a struct timespec. */
-
-	timer_ulong_seconds = (unsigned long) timer_period_in_seconds;
-
-	timer_ulong_usec = (unsigned long)
-				( 1.0e6 * ( timer_period_in_seconds
-					- (double) timer_ulong_seconds ) );
-
-	/* The way we use the timer values depends on whether or not
-	 * we configure the timer as a one-shot timer or a periodic
-	 * timer.
-	 */
-
-	itimer_value.it_value.tv_sec  = timer_ulong_seconds;
-	itimer_value.it_value.tv_usec = timer_ulong_usec;
-
-	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
-		itimer_value.it_interval.tv_sec  = 0;
-		itimer_value.it_interval.tv_usec = 0;
-	} else {
-		itimer_value.it_interval.tv_sec  = timer_ulong_seconds;
-		itimer_value.it_interval.tv_usec = timer_ulong_usec;
-	}
-
-	/* Set the timer period. */
-
-	status = setitimer( ITIMER_REAL, &itimer_value, NULL );
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		switch( saved_errno ) {
-		case EINVAL:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The specified timer does not exist." );
-			break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"This system does not support Posix realtime timers "
-		"although the compiler said that it does.  "
-		"This should not be able to happen." );
-			break;
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected error writing to a Posix realtime timer.  "
-		"Errno = %d, error message = '%s'",
-				saved_errno, strerror(saved_errno) );
-			break;
-		}
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 #else
 
-#if 0
 #error MX interval timer functions have not yet been defined for this platform.
-#endif
 
 #endif

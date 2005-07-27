@@ -38,18 +38,27 @@ struct mx_interval_timer_struct {
 typedef struct mx_interval_timer_struct MX_INTERVAL_TIMER;
 
 MX_API mx_status_type
-mx_interval_timer_create( MX_INTERVAL_TIMER *itimer );
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				void *callback_function,
+				void *callback_args );
 
 MX_API mx_status_type
 mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer );
 
 MX_API mx_status_type
-mx_interval_timer_get_time( MX_INTERVAL_TIMER *itimer,
-				double *seconds_till_expiration );
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy );
 
 MX_API mx_status_type
-mx_interval_timer_set_time( MX_INTERVAL_TIMER *itimer,
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 				double timer_period_in_seconds );
+
+MX_API mx_status_type
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left );
+
+MX_API mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration );
 
 #endif /* __MX_INTERVAL_TIMER_H__ */
 

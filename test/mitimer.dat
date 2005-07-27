@@ -1,0 +1,3 @@
+time   device motor elapsed_time "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 sec 0
+d1     device digital_input soft_dinput "" "" 25
+timer1 device timer interval_timer "" ""

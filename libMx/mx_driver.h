@@ -506,6 +506,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_TIM_PFCU_SHUTTER		80013
 #define MXT_TIM_SPEC			80014
 #define MXT_TIM_GM10			80015
+#define MXT_TIM_INTERVAL		80016
 
 /* --- Amplifier types --- */
 

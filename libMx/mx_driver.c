@@ -24,6 +24,7 @@
 #include "mx_types.h"
 
 #include "mx_driver.h"
+#include "mx_interval_timer.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 
@@ -313,6 +314,7 @@
 #include "d_spec_timer.h"
 #include "d_gm10_scaler.h"
 #include "d_gm10_timer.h"
+#include "d_interval_timer.h"
 
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
@@ -2670,6 +2672,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_gm10_timer_timer_function_list,
 				&mxd_gm10_timer_num_record_fields,
 				&mxd_gm10_timer_rfield_def_ptr},
+
+{"interval_timer", MXT_TIM_INTERVAL,      MXC_TIMER,          MXR_DEVICE,
+				&mxd_interval_timer_record_function_list,
+				NULL,
+				&mxd_interval_timer_timer_function_list,
+				&mxd_interval_timer_num_record_fields,
+				&mxd_interval_timer_rfield_def_ptr},
 
 {"soft_amplifier", MXT_AMP_SOFTWARE,  MXC_AMPLIFIER,      MXR_DEVICE,
 				&mxd_soft_amplifier_record_function_list,

@@ -591,12 +591,8 @@ mx_standard_signal_error_handler( int signal_number )
 
 	if ( recursion ) {
 		mx_warning( "We seem to be crashing inside the signal handler, "
-				"so it is best to give up now.");
-
-		mx_info("Attempting to force a core dump in '%s'.",
-				directory_name );
-
-		mx_force_core_dump();
+				"so it is best to give up now.  Exiting...");
+		_exit(1);
 	}
 
 	recursion++;
