@@ -196,6 +196,8 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 typedef struct {
 	UINT timer_id;
+	TIMECAPS timecaps;
+	UINT timer_resolution;
 } MX_WIN32_MMTIMER_PRIVATE;
 
 static void CALLBACK
@@ -212,23 +214,55 @@ mx_interval_timer_thread_handler( UINT timer_id,
 	if ( itimer->callback_function != NULL ) {
 		itimer->callback_function( itimer, itimer->callback_args );
 	}
+
+	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		(void) mx_interval_timer_stop( itimer, NULL );
+	}
+
+	return;
 }
 
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				void *callback_function,
+				void *callback_args )
 {
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+	MMRESULT result;
 
 	MX_DEBUG(-2,("%s invoked for Win32 multimedia timers.", fname));
+	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
+	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
+	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
 
-	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
+
+	switch( timer_type ) {
+	case MXIT_ONE_SHOT_TIMER:
+	case MXIT_PERIODIC_TIMER:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Interval timer type %d is unsupported.", timer_type );
+		break;
+	}
+
+	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
+
+	if ( (*itimer) == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
+	}
+
+	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
 
 	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)
 				malloc( sizeof(MX_WIN32_MMTIMER_PRIVATE) );
@@ -238,12 +272,44 @@ mx_interval_timer_create( MX_INTERVAL_TIMER *itimer )
 	"Unable to allocate memory for a MX_WIN32_MMTIMER_PRIVATE structure." );
 	}
 
-	itimer->private = win32_mmtimer_private;
+	MX_DEBUG(-2,("%s: win32_mmtimer_private = %p",
+			fname, win32_mmtimer_private));
+
+	(*itimer)->timer_type = timer_type;
+	(*itimer)->timer_period = -1.0;
+	(*itimer)->num_overruns = 0;
+	(*itimer)->callback_function = callback_function;
+	(*itimer)->callback_args = callback_args;
+	(*itimer)->private = win32_mmtimer_private;
 
 	win32_mmtimer_private->timer_id = 0;
 
+	result = timeGetDevCaps( &(win32_mmtimer_private->timecaps),
+				sizeof( win32_mmtimer_private->timecaps ) );
+
+	switch( result ) {
+	case TIMERR_NOERROR:
+		break;
+	case TIMERR_STRUCT:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"An attempt to call timeGetDevCaps() for Win32 multimedia "
+		"timers failed with a TIMERR_STRUCT error code.");
+		break;
+	default:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected status %lu returned by timeGetDevCaps()",
+			result );
+		break;
+	}
+
+	win32_mmtimer_private->timer_resolution =
+		min( max(win32_mmtimer_private->timecaps.wPeriodMin, 0),
+			win32_mmtimer_private->timecaps.wPeriodMax );
+
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
@@ -251,6 +317,8 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	static const char fname[] = "mx_interval_timer_destroy()";
 
 	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+	double seconds_left;
+	mx_status_type mx_status;
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -262,10 +330,55 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL )
 		return MX_SUCCESSFUL_RESULT;
 
+	if ( win32_mmtimer_private->timer_id != 0 ) {
+		mx_status = mx_interval_timer_stop( itimer, &seconds_left );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	mx_free( win32_mmtimer_private );
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+{
+	static const char fname[] = "mx_interval_timer_is_busy()";
+
+	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	if ( busy == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The busy pointer passed was NULL." );
+	}
+
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+
+	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_MMTIMER_PRIVATE pointer for timer %p is NULL.",
+			itimer );
+	};
+
+	if ( win32_mmtimer_private->timer_id == 0 ) {
+		*busy = FALSE;
+	} else {
+		*busy = TRUE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
@@ -276,6 +389,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
 	UINT event_delay_ms, timer_flags;
 	DWORD last_error_code;
+	MMRESULT result;
 	TCHAR message_buffer[100];
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
@@ -300,6 +414,28 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	/* Convert the timer period to milliseconds. */
 
 	event_delay_ms = (UINT) mx_round( 1000.0 * timer_period_in_seconds );
+
+	/* Select the timer resolution. */
+
+	result = timeBeginPeriod( win32_mmtimer_private->timer_resolution );
+
+	switch( result ) {
+	case TIMERR_NOERROR:
+		break;
+	case TIMERR_NOCANDO:
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested multimedia timer resolution %lu is outside "
+		"the allowed range of %lu to %lu.",
+			win32_mmtimer_private->timer_resolution,
+			win32_mmtimer_private->timecaps.wPeriodMin,
+			win32_mmtimer_private->timecaps.wPeriodMax );
+		break;
+	default:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected status %lu returned by timeBeginPeriod()",
+			result );
+		break;
+	}
 
 	/* Setup the timer callback.
 	 * 
@@ -328,6 +464,94 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
+				double *seconds_till_expiration )
+{
+	static const char fname[] = "mx_interval_timer_stop()";
+
+	
+	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
+	MMRESULT result;
+	UINT timer_id;
+	mx_status_type mx_status;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+	}
+
+	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
+
+	if ( win32_mmtimer_private == (MX_WIN32_MMTIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_MMTIMER_PRIVATE pointer for timer %p is NULL.",
+			itimer );
+	};
+
+	if ( seconds_till_expiration != NULL ) {
+		mx_status = mx_interval_timer_read( itimer,
+						seconds_till_expiration );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	timer_id = win32_mmtimer_private->timer_id;
+
+	win32_mmtimer_private->timer_id = 0;
+
+	result = timeKillEvent( timer_id );
+
+	switch( result ) {
+	case TIMERR_NOERROR:
+		break;
+	case MMSYSERR_INVALPARAM:
+		return mx_error( MXE_NOT_FOUND, fname,
+	"The timer id %lu specified for timeKillEvent() does not exist.",
+			timer_id );
+		break;
+	default:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected status %lu returned by timeGetDevCaps()",
+			result );
+		break;
+	}
+
+	/* Reset the time resolution. */
+
+	result = timeEndPeriod( win32_mmtimer_private->timer_resolution );
+
+	switch( result ) {
+	case TIMERR_NOERROR:
+		break;
+	case TIMERR_NOCANDO:
+#if 1
+		mx_warning( "%s: TIMERR_NOCANDO returned for timeEndPeriod().",
+			fname );
+#else
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested multimedia timer resolution %lu is outside "
+		"the allowed range of %lu to %lu.",
+			win32_mmtimer_private->timer_resolution,
+			win32_mmtimer_private->timecaps.wPeriodMin,
+			win32_mmtimer_private->timecaps.wPeriodMax );
+#endif
+		break;
+	default:
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected status %lu returned by timeBeginPeriod()",
+			result );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
