@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,6 +95,16 @@ mxdf_sff_open( MX_DATAFILE *datafile )
 			"Cannot open datafile '%s'.  Reason = '%s'",
 			datafile->filename, strerror( saved_errno ) );
 	}
+
+#if 1
+	if ( setvbuf( sff_file_struct->file, (char *)NULL, _IOLBF, 0) != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot set line buffering on datafile '%s'.  Reason = '%s'",
+			datafile->filename, strerror( saved_errno ) );
+	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
