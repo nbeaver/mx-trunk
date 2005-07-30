@@ -646,7 +646,7 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 	if ( i >= heap_handle_attempts ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Unable to get a complete array of process heap "
-		"handles after %d attempts.", heap_handle_attempts );
+		"handles after %lu attempts.", heap_handle_attempts );
 	}
 
 	total_heap_bytes = 0;
@@ -675,7 +675,7 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 
 #if 1
 		MX_DEBUG(-2,
-	("meminfo: Heap %d, heap_bytes = %lu, allocated_bytes = %lu",
+	("meminfo: Heap %lu, heap_bytes = %lu, allocated_bytes = %lu",
 			i, (unsigned long) local_heap_bytes,
 			(unsigned long) local_allocated_bytes));
 #endif

@@ -365,7 +365,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	non_blocking = TRUE;
 
 #if defined( OS_WIN32 )
-#   if defined(__BORLANDC__)
+#   if defined(__BORLANDC__) || defined(__GNUC__)
 	status = ioctlsocket( (*server_socket)->socket_fd,
 					FIONBIO, (void *) &non_blocking );
 #   else
@@ -726,7 +726,7 @@ mx_socket_close( MX_SOCKET *mx_socket )
 	non_blocking = TRUE;
 
 #if defined( OS_WIN32 )
-#   if defined(__BORLANDC__)
+#   if defined(__BORLANDC__) || defined(__GNUC__)
 	status = ioctlsocket( mx_socket->socket_fd,
 					FIONBIO, (void *) &non_blocking );
 #   else

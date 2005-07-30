@@ -1198,7 +1198,8 @@ MX_DRIVER mx_type_list[] = {
 
 #endif /* OS_LINUX */
 
-#if defined(OS_MSDOS) || ( defined(OS_WIN32) && !defined(__BORLANDC__) )
+#if defined(OS_MSDOS) \
+	|| ( defined(OS_WIN32) && !defined(__BORLANDC__) && !defined(__GNUC__) )
 {"dos_portio",     MXI_PIO_DOS,       MXI_PORTIO,         MXR_INTERFACE,
 				&mxi_dos_portio_record_function_list,
 				NULL,

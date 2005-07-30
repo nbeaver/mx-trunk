@@ -274,8 +274,6 @@ mx_error_default_output_function( char *string )
 MX_EXPORT long
 mx_win32_error_message( long error_code, char *buffer, size_t buffer_length )
 {
-	const char fname[] = "mx_win32_error_message()";
-
 	long num_chars, null_index;
 
 	num_chars = FormatMessage(

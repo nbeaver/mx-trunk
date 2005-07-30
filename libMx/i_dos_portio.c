@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,8 @@
 
 #include "mx_osdef.h"
 
-#if defined(OS_MSDOS) || ( defined(OS_WIN32) && !defined(__BORLANDC__) )
+#if defined(OS_MSDOS) \
+    || ( defined(OS_WIN32) && !defined(__BORLANDC__) && !defined(__GNUC__) )
 
 #include <conio.h>
 

@@ -35,6 +35,11 @@
  * but this will not be true, in general, on any other platform.
  */
 
+#if defined(OS_WIN32) && defined(__GNUC__)
+    /* For MinGW to get a definition of _declspec(). */
+#   include <windef.h>
+#endif
+
 #if defined(OS_WIN32)
 #   ifdef __MX_LIBRARY__
 #	define MX_API		_declspec(dllexport)

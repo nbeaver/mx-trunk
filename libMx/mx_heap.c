@@ -85,7 +85,7 @@ mx_heap_check( void )
 	static const char fname[] = "mx_heap_check()";
 
 	mx_warning( "%s: Win32 heap checking is only supported for "
-			"debug versions of the C runtime libraries." );
+			"debug versions of the C runtime libraries.", fname );
 
 	return TRUE;
 }

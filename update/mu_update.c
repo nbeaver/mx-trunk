@@ -40,6 +40,8 @@
 
 int mxupd_quiet_exit;
 
+#if ! defined( OS_WIN32 )
+
 static void
 mxupd_exit_handler( void )
 {
@@ -83,6 +85,8 @@ mxupd_install_signal_and_exit_handlers( void )
 #endif
 	return;
 }
+
+#endif  /* ! OS_WIN32 */
 
 /*------------------------------------------------------------------*/
 

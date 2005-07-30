@@ -1,0 +1,170 @@
+#
+# Name:    Makehead.win32-mingw
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for MinGW under Microsoft Win32.
+#
+#          Cygwin may be found at http://www.mingw.org/
+#
+
+INCLUDES	= $(MX_INCLUDES)
+#
+LIB_DIRS	= -L$(MX_LIB_DIR)
+LIBRARIES	=
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point.
+#
+
+#
+# gcc specific flags
+#
+GCCFLAGS = -Wall -Werror \
+-Wstrict-prototypes \
+-Wpointer-arith \
+-Wcast-align \
+-Wcast-qual \
+-Wshadow \
+-Wmissing-prototypes \
+-Wnested-externs \
+-Winline
+
+# Intel x86 with MinGW 4.1.1 under Microsoft Win32.
+#
+CC		= gcc
+CFLAGS		= -g -O $(GCCFLAGS) $(INCLUDES) \
+				-DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
+
+CFLAGS_EPICS    = $(CFLAGS)
+CFLAGS_MX_EPICS = $(CFLAGS)
+
+# Special cases for individual files.
+
+CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
+
+COMPILE		= $(CC) -c
+DEFINE		= -D
+MAKEDEPEND	= gcc -MM $(CFLAGS) $(READLINE_INCLUDES) \
+	*.c > Makefile.depend
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+#
+#---------------------------------------------------
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
+SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#
+#---------------------------------------------------
+#
+
+
+RM		= rm -f
+MAKE		= make
+
+OBJ		= o
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_LIBRARY_PATH = $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_NAME = libMx.a
+
+MX_LIBRARY_DELETE = $(RM) libMx*
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	gcc -shared -o libMx.dll -Wl,--out-implib,libMx.a \
+		$(MX_LIB_OBJS) ../tools/xdr.o -lwsock32 -lwinmm
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/etc/startup
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	install -m 644 mx*.h $(MX_INSTALL_DIR)/include
+	install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
+	install -m 755 libMx.dll $(MX_INSTALL_DIR)/bin
+	touch $(MX_INSTALL_DIR)/etc/motor.dat
+	touch $(MX_INSTALL_DIR)/etc/scan.dat
+	install -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
+	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin/showdata.pl
+	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin/showplot.pl
+	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
+
+#
+#---------------------------------------------------
+#
+MOTOR_NAME	= motorbin
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES)
+
+motor_install:
+	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+	install -m 755 ../scripts/motor $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(SERVER_NAME) $(SERVER_OBJS) \
+			$(LIB_DIRS) -lMx $(LIBRARIES) -lwsock32
+
+server_install:
+	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxserver $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/mx $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
+	touch $(MX_INSTALL_DIR)/etc/mxserver.acl
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(UPDATE_NAME) $(UPDATE_OBJS) \
+				$(LIB_DIRS) -lMx $(LIBRARIES)
+
+update_install:
+	install -m 755 $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
+	install -m 755 ../scripts/startmxupdate $(MX_INSTALL_DIR)/sbin
+	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
+		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES)
+
+util_install:
+	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+

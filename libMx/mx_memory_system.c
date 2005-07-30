@@ -195,7 +195,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
  * nevertheless seems to do the job.
  */
 
-#if ! defined(ERROR_PRODUCT_VERSION)
+#if ! defined(ERROR_PRODUCT_VERSION) || defined(__GNUC__)
 
 /* MEMORYSTATUSEX is not defined in our copy of the Platform SDK,
  * so we must define it ourself.

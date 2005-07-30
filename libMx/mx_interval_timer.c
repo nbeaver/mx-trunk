@@ -190,7 +190,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /******************** Microsoft Windows multimedia timers ********************/
 
-#elif defined( OS_WIN32 )
+#elif defined(OS_WIN32)
 
 #include <windows.h>
 
@@ -298,7 +298,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected status %lu returned by timeGetDevCaps()",
-			result );
+			(unsigned long) result );
 		break;
 	}
 
@@ -424,8 +424,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		break;
 	case TIMERR_NOCANDO:
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested multimedia timer resolution %lu is outside "
-		"the allowed range of %lu to %lu.",
+		"The requested multimedia timer resolution %u is outside "
+		"the allowed range of %u to %u.",
 			win32_mmtimer_private->timer_resolution,
 			win32_mmtimer_private->timecaps.wPeriodMin,
 			win32_mmtimer_private->timecaps.wPeriodMax );
@@ -433,7 +433,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected status %lu returned by timeBeginPeriod()",
-			result );
+			(unsigned long) result );
 		break;
 	}
 
@@ -511,13 +511,13 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 		break;
 	case MMSYSERR_INVALPARAM:
 		return mx_error( MXE_NOT_FOUND, fname,
-	"The timer id %lu specified for timeKillEvent() does not exist.",
+	"The timer id %u specified for timeKillEvent() does not exist.",
 			timer_id );
 		break;
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected status %lu returned by timeGetDevCaps()",
-			result );
+			(unsigned long) result );
 		break;
 	}
 
@@ -544,7 +544,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected status %lu returned by timeBeginPeriod()",
-			result );
+			(unsigned long) result );
 		break;
 	}
 
@@ -882,6 +882,20 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 /************************ BSD style setitimer() timers ***********************/
 
 #elif defined( OS_UNIX )
+
+/* WARNING: BSD setitimer() timers should only be used as a last resort,
+ *          since they have some definite limitations in their functionality.
+ *
+ *          1.  There can only be one setitimer() based timer in a given
+ *              process.
+ *          2.  They are based on SIGALRM signals.  SIGALRM tends to be
+ *              widely used for a variety of purposes in Unix, so it can
+ *              be hard to ensure that two different parts of an MX based
+ *              program are not fighting for control of SIGALRM.
+ *
+ *          If you have any other way of implementing interval timers on a
+ *          particular platform, you should use that alternate method instead.
+ */
 
 #include <signal.h>
 #include <errno.h>

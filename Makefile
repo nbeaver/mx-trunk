@@ -20,6 +20,7 @@
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1
+#   win32-mingw   - Compile for Microsoft Win32 with MinGW 4.1.1 and MSYS-1.0.10
 #
 # Set MX_INSTALL_DIR to the directory that you want to install MX in.
 # Next, check "mx/libMx/mxconfig.h" to see if any of the defines need to
@@ -38,7 +39,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = win32-mingw
 
 MX_INSTALL_DIR = /opt/mx
 

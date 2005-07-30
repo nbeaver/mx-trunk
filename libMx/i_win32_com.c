@@ -738,7 +738,6 @@ win32com_write_parms( MX_RS232 *rs232 )
 {
 	static const char fname[] = "win32com_write_parms()";
 
-	MX_RECORD *record;
 	MX_WIN32COM *win32com;
 	BOOL win32_status;
 	DCB dcb;
@@ -797,7 +796,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM speed = %d for WIN32COM '%s'.", 
+		"Unsupported WIN32COM speed = %ld for WIN32COM '%s'.", 
 		rs232->speed, rs232->record->name);
 
 		break;

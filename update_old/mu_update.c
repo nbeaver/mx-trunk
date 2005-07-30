@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,6 +34,8 @@
 #include "mx_syslog.h"
 
 #include "mu_update.h"
+
+#if ! defined( OS_WIN32 )
 
 static void
 mxupd_exit_handler( void )
@@ -76,6 +78,8 @@ mxupd_install_signal_and_exit_handlers( void )
 #endif
 	return;
 }
+
+#endif  /* ! OS_WIN32 */
 
 /*------------------------------------------------------------------*/
 
