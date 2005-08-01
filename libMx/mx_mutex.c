@@ -230,7 +230,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 /*-------------------------------------------------------------------------*/
 
-#else
+#elif 0
 
 MX_EXPORT mx_status_type
 mx_mutex_create( MX_MUTEX **mutex, int type )
@@ -267,6 +267,10 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 {
 	return MXE_UNSUPPORTED;
 }
+
+#else
+
+#error MX mutex functions have not yet been defined for this platform.
 
 #endif
 

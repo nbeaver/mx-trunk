@@ -881,20 +881,24 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_UNIX )
+#elif defined( OS_DJGPP ) || defined( OS_UNIX )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
- *          since they have some definite limitations in their functionality.
+ *          since they have some significant limitations in their
+ *          functionality.
  *
  *          1.  There can only be one setitimer() based timer in a given
  *              process.
- *          2.  They are based on SIGALRM signals.  SIGALRM tends to be
- *              widely used for a variety of purposes in Unix, so it can
- *              be hard to ensure that two different parts of an MX based
- *              program are not fighting for control of SIGALRM.
+ *          2.  They are usually based on SIGALRM signals.  SIGALRM tends
+ *              to be widely used for a variety of purposes in Unix, so it
+ *              can be hard to ensure that two different parts of an MX
+ *              based program are not fighting for control of SIGALRM.
+ *
+ *              Note that DJGPP is an exception in that it has a dedicated
+ *              signal (SIGTIMR) for private use by setitimer().
  *
  *          If you have any other way of implementing interval timers on a
- *          particular platform, you should use that alternate method instead.
+ *          particular platform, you should use that other method instead.
  */
 
 #include <signal.h>
@@ -1138,6 +1142,12 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		sa.sa_flags = 0;
 	}
 
+	/* Attempt to restart system calls when possible. */
+
+	sa.sa_flags |= SA_RESTART;
+
+	/* Set the function to be used by the signal handler. */
+
 	sa.sa_handler = mx_interval_timer_signal_handler;
 
 	/* Is an interval timer already running? */
@@ -1174,15 +1184,9 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The specified timer does not exist." );
 			break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"This system does not support Posix realtime timers "
-		"although the compiler said that it does.  "
-		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected error writing to a Posix realtime timer.  "
+		"Unexpected error writing to ITIMER_REAL.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
 			break;
@@ -1197,12 +1201,54 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 MX_EXPORT mx_status_type
 mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 {
-	signal( SIGALRM, SIG_IGN );     /* Disable the signal handler. */
+	static const char fname[] = "mx_interval_timer_stop()";
+
+	struct itimerval itimer_value;
+	int status, saved_errno;
+
+	/* Read the time left on the timer, if requested, but do not abort
+	 * if the attempt to read the timer value fails.
+	 */
+
+	if ( seconds_left != NULL ) {
+		(void) mx_interval_timer_read( itimer, seconds_left );
+	}
+
+	/* First, disable the signal handler. */
+
+	signal( SIGALRM, SIG_IGN );
+
+	/* Then, disable the timer by setting all its intervals to 0. */
+
+	itimer_value.it_value.tv_sec  = 0;
+	itimer_value.it_value.tv_usec = 0;
+
+	itimer_value.it_interval.tv_sec = 0;
+	itimer_value.it_interval.tv_usec = 0;
+
+	status = setitimer( ITIMER_REAL, &itimer_value, NULL );
+
+	/* Mark the timer as available. */
 
 	RELEASE_SETITIMER_INTERVAL_TIMER;
 
-	if ( seconds_left != NULL ) {
-		*seconds_left = 0.0;
+	/* Check to see if there were any errors from the setitimer() call. */
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The specified timer does not exist." );
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected error writing to ITIMER_REAL.  "
+		"Errno = %d, error message = '%s'",
+				saved_errno, strerror(saved_errno) );
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
