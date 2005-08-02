@@ -25,7 +25,7 @@ typedef struct {
 
 typedef mx_status_type (*MX_THREAD_FUNCTION)( MX_THREAD *, void * );
 
-MX_API mx_status_type mx_thread_begin( MX_THREAD **thread,
+MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
 					MX_THREAD_FUNCTION *thread_function,
 					void *thread_arguments );
 
