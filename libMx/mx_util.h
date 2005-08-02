@@ -544,5 +544,6 @@ MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
 #define MXE_NOT_AVAILABLE			1044
 #define MXE_STOP_REQUESTED			1045
 #define MXE_BAD_HANDLE				1046
+#define MXE_OBJECT_ABANDONED			1047
 
 #endif /* __MX_UTIL_H__ */

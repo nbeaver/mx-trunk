@@ -78,6 +78,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_NOT_AVAILABLE,			"MXE_NOT_AVAILABLE" },
 { MXE_STOP_REQUESTED,			"MXE_STOP_REQUESTED" },
 { MXE_BAD_HANDLE,			"MXE_BAD_HANDLE" },
+{ MXE_OBJECT_ABANDONED,			"MXE_OBJECT_ABANDONED" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)
