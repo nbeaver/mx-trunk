@@ -68,7 +68,10 @@ mx_thread_start_function( void *args_ptr )
 
 	/* Invoke MX's thread function. */
 
-	mx_status = (*thread_function)( thread, thread_arguments );
+	MX_DEBUG(-2,
+	("mx_thread_start_function: thread_function = %p", thread_function));
+
+	mx_status = (thread_function)( thread, thread_arguments );
 
 	/* End the thread when the MX thread function terminates. */
 
@@ -157,10 +160,10 @@ mx_thread_create( MX_THREAD **thread,
 }
 
 MX_EXPORT void
-mx_thread_end( MX_THREAD *thread,
+mx_thread_destroy( MX_THREAD *thread,
 		int thread_exit_status )
 {
-	static const char fname[] = "mx_thread_end()";
+	static const char fname[] = "mx_thread_destroy()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private;
 
@@ -263,7 +266,10 @@ mx_thread_start_function( void *args_ptr )
 
 	/* Invoke MX's thread function. */
 
-	mx_status = (*thread_function)( thread, thread_arguments );
+	MX_DEBUG(-2,
+	("mx_thread_start_function: thread_function = %p", thread_function));
+
+	mx_status = (thread_function)( thread, thread_arguments );
 
 	/* End the thread when the MX thread function terminates. */
 
@@ -355,10 +361,10 @@ mx_thread_create( MX_THREAD **thread,
 }
 
 MX_EXPORT void
-mx_thread_end( MX_THREAD *thread,
+mx_thread_destroy( MX_THREAD *thread,
 		int thread_exit_status )
 {
-	static const char fname[] = "mx_thread_end()";
+	static const char fname[] = "mx_thread_destroy()";
 
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 

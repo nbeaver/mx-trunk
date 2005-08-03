@@ -23,13 +23,13 @@ typedef struct {
 	void *thread_ptr;
 } MX_THREAD;
 
-typedef mx_status_type (*MX_THREAD_FUNCTION)( MX_THREAD *, void * );
+typedef mx_status_type (MX_THREAD_FUNCTION)( MX_THREAD *, void * );
 
 MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
-					MX_THREAD_FUNCTION *thread_function,
+					MX_THREAD_FUNCTION thread_function,
 					void *thread_arguments );
 
-MX_API void mx_thread_end( MX_THREAD *thread, int thread_exit_status );
+MX_API void mx_thread_destroy( MX_THREAD *thread, int thread_exit_status );
 
 MX_API mx_status_type mx_thread_free( MX_THREAD *thread );
 
