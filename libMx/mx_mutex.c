@@ -21,6 +21,8 @@
 #include "mx_unistd.h"
 #include "mx_mutex.h"
 
+/************************ Microsoft Win32 ***********************/
+
 #if defined(OS_WIN32)
 
 #include <windows.h>
@@ -219,9 +221,24 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	return MXE_UNKNOWN_ERROR;
 }
 
+/************************ Posix Pthreads ***********************/
+
 #elif defined(_POSIX_THREADS)
 
 #include <pthread.h>
+
+#if defined(OS_LINUX)
+
+/* FIXME: For some future version of Linux, this will not be necessary.
+ *        It might not be necessary now if you define USE_UNIX98, but I
+ *        am not currently certain of all the consequences of doing that.
+ */
+
+extern int pthread_mutexattr_settype( pthread_mutexattr_t *, int );
+
+#define PTHREAD_MUTEX_RECURSIVE		PTHREAD_MUTEX_RECURSIVE_NP
+
+#endif /* OS_LINUX */
 
 MX_EXPORT mx_status_type
 mx_mutex_create( MX_MUTEX **mutex, int type )
@@ -229,7 +246,8 @@ mx_mutex_create( MX_MUTEX **mutex, int type )
 	static const char fname[] = "mx_mutex_create()";
 
 	pthread_mutex_t *p_mutex_ptr;
-	int status;
+	pthread_mutexattr_t p_mutex_attr;
+	int status, init_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -237,6 +255,8 @@ mx_mutex_create( MX_MUTEX **mutex, int type )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MUTEX pointer passed was NULL." );
 	}
+
+	/* Allocate the data structures we need. */
 
 	*mutex = (MX_MUTEX *) malloc( sizeof(MX_MUTEX) );
 
@@ -254,9 +274,76 @@ mx_mutex_create( MX_MUTEX **mutex, int type )
 
 	(*mutex)->mutex_ptr = p_mutex_ptr;
 
-	status = pthread_mutex_init( p_mutex_ptr, NULL );
+	/* Configure a pthread_mutexattr_t object to request
+	 * recursive mutexes.
+	 */
+
+	status = pthread_mutexattr_init( &p_mutex_attr );
 
 	switch( status ) {
+	case 0:
+		break;
+	case ENOMEM:
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for a pthread_mutexattr_t object." );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected Pthreads error code %d returned "
+			"by pthread_mutexattr_init().  Error message = '%s'.",
+				status, strerror( status ) );
+		break;
+	}
+	
+	status = pthread_mutexattr_settype( &p_mutex_attr,
+					PTHREAD_MUTEX_RECURSIVE );
+
+	switch( status ) {
+	case 0:
+		break;
+	case EINVAL:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"One or more of the arguments to pthread_mutexattr_settype() "
+		"were invalid." );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected Pthreads error code %d returned "
+			"by pthread_mutexattr_settype().  "
+			"Error message = '%s'.",
+				status, strerror( status ) );
+		break;
+	}
+
+	/* Create the mutex. */
+
+	init_status = pthread_mutex_init( p_mutex_ptr, &p_mutex_attr );
+
+	/* We want the mutex attributes object to be destroyed, no matter
+	 * what value was returned by pthread_mutex_init().
+	 */
+	
+	status = pthread_mutexattr_destroy( &p_mutex_attr );
+
+	switch( status ) {
+	case 0:
+		break;
+	case EINVAL:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	    "The argument given to pthread_mutexattr_destroy() was invalid." );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Unexpected Pthreads error code %d returned "
+			"by pthread_mutexattr_destroy().  "
+			"Error message = '%s'.",
+				status, strerror( status ) );
+		break;
+	}
+	
+	/* Now check the status from pthread_mutex_init(). */
+
+	switch( init_status ) {
 	case 0:
 		return MX_SUCCESSFUL_RESULT;
 		break;
@@ -286,7 +373,7 @@ mx_mutex_create( MX_MUTEX **mutex, int type )
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected Pthreads error code %d returned.  "
 		"Error message = '%s'.",
-			status, strerror( status ) );
+			init_status, strerror( init_status ) );
 		break;
 	}
 }
