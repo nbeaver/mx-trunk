@@ -19,8 +19,9 @@
 
 typedef struct {
 	long thread_exit_status;
-
 	void *thread_ptr;
+	void *stop_request_handler;
+	void *stop_request_arguments;
 } MX_THREAD;
 
 /* Define a macro for use by mx_thread_wait() to signify that the wait
@@ -30,6 +31,8 @@ typedef struct {
 #define MX_THREAD_INFINITE_WAIT		(-1.0)
 
 typedef mx_status_type (MX_THREAD_FUNCTION)( MX_THREAD *, void * );
+
+typedef void (MX_THREAD_STOP_REQUEST_HANDLER)( MX_THREAD *, void * );
 
 MX_API mx_status_type mx_thread_initialize( void );
 
@@ -45,8 +48,12 @@ MX_API mx_status_type mx_thread_kill( MX_THREAD *thread );
 
 MX_API mx_status_type mx_thread_stop( MX_THREAD *thread );
 
-MX_API mx_status_type mx_thread_check_for_stop_request( MX_THREAD *thread,
-							int *stop_requested );
+MX_API mx_status_type mx_thread_check_for_stop_request( MX_THREAD *thread );
+
+MX_API mx_status_type mx_thread_set_stop_request_handler(
+				MX_THREAD *thread,
+				MX_THREAD_STOP_REQUEST_HANDLER *handler,
+				void *stop_request_arguments );
 
 MX_API mx_status_type mx_thread_wait( MX_THREAD *thread,
 					long *thread_exit_status,
