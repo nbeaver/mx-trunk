@@ -51,6 +51,8 @@ mx_get_current_thread_handle( void )
 	HANDLE process_pseudo_handle;
 	HANDLE thread_pseudo_handle, thread_real_handle;
 	BOOL status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
 
 	process_pseudo_handle = GetCurrentProcess();
 
@@ -65,9 +67,6 @@ mx_get_current_thread_handle( void )
 				DUPLICATE_SAME_ACCESS );
 
 	if ( status == 0 ) {
-		DWORD last_error_code;
-		TCHAR message_buffer[100];
-
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -78,7 +77,7 @@ mx_get_current_thread_handle( void )
 			"Win32 error code = %ld, error message = '%s'.",
 			last_error_code, message_buffer );
 
-		return INVALID_HANDLE_VALUE;
+		return NULL;
 	}
 
 	return thread_real_handle;
@@ -94,6 +93,8 @@ mx_thread_start_function( void *args_ptr )
 	MX_THREAD_FUNCTION *thread_function;
 	void *thread_arguments;
 	BOOL status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
 	if ( args_ptr == NULL ) {
@@ -124,9 +125,6 @@ mx_thread_start_function( void *args_ptr )
 	status = TlsSetValue( mx_current_thread_index, thread );
 
 	if ( status == 0 ) {
-		DWORD last_error_code;
-		TCHAR message_buffer[100];
-
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -218,9 +216,29 @@ mx_thread_initialize( void )
 
 	thread_private->thread_handle = mx_get_current_thread_handle();
 
-	if ( thread_private->thread_handle == INVALID_HANDLE_VALUE ) {
+	if ( thread_private->thread_handle == NULL ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to get a handle for the initial thread." );
+	}
+
+	/* Create an unsignaled event object with manual reset.  This
+	 * object is used by other threads to request that the main
+	 * thread shut itself down.
+	 */
+
+	thread_private->stop_event_handle =
+				CreateEvent( NULL, TRUE, FALSE, NULL );
+
+	if ( thread_private->stop_event_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to create a stop event object for main thread %p.  "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
 	}
 
 	/* Save a thread-specific pointer to the MX_THREAD structure by
@@ -230,9 +248,6 @@ mx_thread_initialize( void )
 	status = TlsSetValue( mx_current_thread_index, thread );
 
 	if ( status == 0 ) {
-		DWORD last_error_code;
-		TCHAR message_buffer[100];
-
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
@@ -342,8 +357,8 @@ mx_thread_create( MX_THREAD **thread,
 	thread_private->thread_id = thread_id;
 
 	/* Create an unsignaled event object with manual reset.  This
-	 * object is used by other threads to request that this thread
-	 * shut itself down.
+	 * object is used by other threads to request that the new
+	 * thread shut itself down.
 	 */
 
 	thread_private->stop_event_handle =
@@ -356,7 +371,7 @@ mx_thread_create( MX_THREAD **thread,
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to create stop event object for thread %p.  "
+			"Unable to create a stop event object for thread %p.  "
 			"Win32 error code = %ld, error_message = '%s'",
 			thread, last_error_code, message_buffer );
 	}
@@ -419,6 +434,10 @@ mx_thread_free( MX_THREAD *thread )
 	static const char fname[] = "mx_thread_free()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private;
+	BOOL status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
@@ -434,11 +453,49 @@ mx_thread_free( MX_THREAD *thread )
 	"The thread_private field for the MX_THREAD pointer passed was NULL.");
 	}
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	status = CloseHandle( thread_private->stop_event_handle );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		/* Do not abort here.  We want to attempt to close the
+		 * thread handle as well.
+		 */
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to close the stop event handle for thread %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+	}
+
+	status = CloseHandle( thread_private->thread_handle );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		/* Do not abort here.  We want to free the MX_THREAD and
+		 * MX_WIN32_THREAD_PRIVATE structures as well.
+		 */
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to close the thread handle for thread %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+	}
+
 	mx_free( thread_private );
 
 	mx_free( thread );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -532,8 +589,7 @@ mx_thread_check_for_stop_request( MX_THREAD *thread,
 	static const char fname[] = "mx_thread_check_for_stop_request()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private;
-	BOOL status;
-	DWORD last_error_code;
+	DWORD wait_status, last_error_code;
 	TCHAR message_buffer[100];
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -555,9 +611,10 @@ mx_thread_check_for_stop_request( MX_THREAD *thread,
 	"The thread_private field for the MX_THREAD pointer passed was NULL.");
 	}
 
-	status = WaitForSingleObject( thread_private->stop_event_handle, 0 );
+	wait_status = WaitForSingleObject(
+				thread_private->stop_event_handle, 0 );
 
-	switch( status ) {
+	switch( wait_status ) {
 	case WAIT_ABANDONED:
 		return mx_error( MXE_OBJECT_ABANDONED, fname,
 			"The stop event object for thread %p has been "
@@ -603,8 +660,179 @@ mx_thread_wait( MX_THREAD *thread,
 {
 	static const char fname[] = "mx_thread_wait()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Not yet implemented." );
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	BOOL status;
+	DWORD wait_status, dword_exit_status, last_error_code;
+	DWORD milliseconds_to_wait;
+	TCHAR message_buffer[100];
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
+
+	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The thread_private field for the MX_THREAD pointer passed was NULL.");
+	}
+
+	if ( max_seconds_to_wait < 0.0 ) {
+		milliseconds_to_wait = INFINITE;
+	} else {
+		milliseconds_to_wait = mx_round( 1000.0 * max_seconds_to_wait );
+	}
+
+	wait_status = WaitForSingleObject( thread_private->thread_handle,
+					milliseconds_to_wait );
+
+	switch( wait_status ) {
+	case WAIT_ABANDONED:
+		return mx_error( MXE_OBJECT_ABANDONED, fname,
+			"The object for thread %p has been "
+			"abandoned.  This should NEVER happen.", thread );
+		break;
+	case WAIT_OBJECT_0:
+		/* The thread has terminated.  Do not return yet. */
+
+		break;
+	case WAIT_TIMEOUT:
+		return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after %g seconds of waiting for thread %p "
+			"to terminate.", max_seconds_to_wait );
+		break;
+	case WAIT_FAILED:
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Attempt to check for thread termination failed.  "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+		break;
+	default:
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error code from WaitForSingleObject().  "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+		break;
+	}
+
+	/* If requested, get the exit status for this thread. */
+
+	if ( thread_exit_status != NULL ) {
+		status = GetExitCodeThread( thread_private->thread_handle,
+						&dword_exit_status );
+
+		if ( status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to get exit status for thread %p.  "
+				"Win32 error code = %ld, error_message = '%s'",
+				thread, last_error_code, message_buffer );
+		}
+
+		*thread_exit_status = (long) dword_exit_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_current_thread( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_get_current_thread()";
+
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( thread == (MX_THREAD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	/* A pointer to the MX_THREAD structure is stored in
+	 * a thread-specific Thread Local Storage index.
+	 */
+
+	*thread = TlsGetValue( mx_current_thread_index );
+
+	if ( (*thread) == (MX_THREAD *) NULL ) {
+		last_error_code = GetLastError();
+
+		if ( last_error_code != ERROR_SUCCESS ) {
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unexpected error code from TlsGetValue().  "
+				"Win32 error code = %ld, error_message = '%s'",
+				thread, last_error_code, message_buffer );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT void
+mx_show_thread_info( MX_THREAD *thread, char *message )
+{
+	static const char fname[] = "mx_show_thread_info()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+
+	if ( (message != NULL) && (strlen(message) > 0) ) {
+		mx_info( message );
+	}
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+
+		return;
+	}
+
+	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
+
+	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The thread_private field for the MX_THREAD pointer passed was NULL.");
+
+		return;
+	}
+
+	mx_info( "  thread pointer             = %p", thread );
+	mx_info( "  thread_private pointer     = %p", thread_private );
+	mx_info( "  Win32 thread id            = %lu",
+				(unsigned long) thread_private->thread_id );
+	mx_info( "  Win32 thread handle        = %lu",
+				(unsigned long) thread_private->thread_handle );
+	mx_info( "  Win32 stop event handle    = %lu",
+			(unsigned long) thread_private->stop_event_handle );
+
+	return;
 }
 
 /*********************** Posix Pthreads **********************/

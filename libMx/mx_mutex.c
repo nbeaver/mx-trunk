@@ -100,7 +100,7 @@ mx_mutex_destroy( MX_MUTEX *mutex )
 	    "The mutex_ptr field for the MX_MUTEX pointer passed was NULL.");
 	}
 
-	status = CloseHandle( mutex_handle_ptr );
+	status = CloseHandle( *mutex_handle_ptr );
 
 	if ( status == 0 ) {
 		last_error_code = GetLastError();
@@ -124,8 +124,9 @@ mx_mutex_destroy( MX_MUTEX *mutex )
 MX_EXPORT long
 mx_mutex_lock( MX_MUTEX *mutex )
 {
+	static const char fname[] = "mx_mutex_lock()";
+
 	HANDLE *mutex_handle_ptr;
-	DWORD last_error_code;
 	BOOL status;
 
 	if ( mutex == (MX_MUTEX *) NULL )
@@ -136,7 +137,7 @@ mx_mutex_lock( MX_MUTEX *mutex )
 	if ( mutex_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = WaitForSingleObject( mutex_handle_ptr, INFINITE );
+	status = WaitForSingleObject( *mutex_handle_ptr, INFINITE );
 
 	switch( status ) {
 	case WAIT_ABANDONED:
@@ -149,9 +150,23 @@ mx_mutex_lock( MX_MUTEX *mutex )
 		return MXE_TIMED_OUT;
 		break;
 	case WAIT_FAILED:
-		last_error_code = GetLastError();
+		{
+			DWORD last_error_code;
+			TCHAR message_buffer[100];
 
-		return MXE_OPERATING_SYSTEM_ERROR;
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unexpected error from WaitForSingleObject() "
+				"for mutex %p. "
+				"Win32 error code = %ld, error_message = '%s'",
+				mutex, last_error_code, message_buffer );
+
+			return MXE_OPERATING_SYSTEM_ERROR;
+		}
 		break;
 	}
 
@@ -161,8 +176,9 @@ mx_mutex_lock( MX_MUTEX *mutex )
 MX_EXPORT long
 mx_mutex_unlock( MX_MUTEX *mutex )
 {
+	static const char fname[] = "mx_mutex_unlock()";
+
 	HANDLE *mutex_handle_ptr;
-	DWORD last_error_code;
 	BOOL status;
 
 	if ( mutex == (MX_MUTEX *) NULL )
@@ -173,10 +189,22 @@ mx_mutex_unlock( MX_MUTEX *mutex )
 	if ( mutex_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = ReleaseMutex( mutex_handle_ptr );
+	status = ReleaseMutex( *mutex_handle_ptr );
 
 	if ( status == 0 ) {
+		DWORD last_error_code;
+		TCHAR message_buffer[100];
+
 		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error from WaitForSingleObject() "
+			"for mutex %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			mutex, last_error_code, message_buffer );
 
 		return MXE_OPERATING_SYSTEM_ERROR;
 	}
@@ -187,8 +215,9 @@ mx_mutex_unlock( MX_MUTEX *mutex )
 MX_EXPORT long
 mx_mutex_trylock( MX_MUTEX *mutex )
 {
+	static const char fname[] = "mx_mutex_trylock()";
+
 	HANDLE *mutex_handle_ptr;
-	DWORD last_error_code;
 	BOOL status;
 
 	if ( mutex == (MX_MUTEX *) NULL )
@@ -199,7 +228,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	if ( mutex_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = WaitForSingleObject( mutex_handle_ptr, 0 );
+	status = WaitForSingleObject( *mutex_handle_ptr, 0 );
 
 	switch( status ) {
 	case WAIT_ABANDONED:
@@ -212,9 +241,23 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 		return MXE_NOT_AVAILABLE;
 		break;
 	case WAIT_FAILED:
-		last_error_code = GetLastError();
+		{
+			DWORD last_error_code;
+			TCHAR message_buffer[100];
 
-		return MXE_OPERATING_SYSTEM_ERROR;
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unexpected error from WaitForSingleObject() "
+				"for mutex %p. "
+				"Win32 error code = %ld, error_message = '%s'",
+				mutex, last_error_code, message_buffer );
+
+			return MXE_OPERATING_SYSTEM_ERROR;
+		}
 		break;
 	}
 
