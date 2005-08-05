@@ -3,7 +3,7 @@
 # are compiling the MX system for.  The available platforms are:
 #
 #   bsd           - Compile for FreeBSD 4.8, NetBSD 1.6, or OpenBSD 3.3
-#   cygwin        - Compile for Cygwin 1.3.x
+#   cygwin        - Compile for Cygwin 1.5.x
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3
 #   hpux          - Compile for HP 9000/7xx under HP-UX 10.20
 #   irix          - Compile for SGI under Irix 6.3 or 6.5
@@ -13,14 +13,14 @@
 #   macosx        - Compile for PPC Macintosh under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
 #   rtems         - Compile for i386 under RTEMS 4.6pre4
-#   solaris       - Compile for Sun Sparc under Solaris 2.5
+#   solaris       - Compile for Sun Sparc under Solaris 2.6
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 using GCC
 #   sunos4        - Compile for Sun Sparc under SunOS 4.1.4
 #   vms           - Compile for OpenVMS 7.3.1
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1
-#   win32-mingw   - Compile for Microsoft Win32 with MinGW 4.1.1 and MSYS-1.0.10
+#   win32-mingw   - Compile for Microsoft Win32 with MinGW 4.1.1 and MSYS 1.0.10
 #
 # Set MX_INSTALL_DIR to the directory that you want to install MX in.
 # Next, check "mx/libMx/mxconfig.h" to see if any of the defines need to
@@ -39,7 +39,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 
