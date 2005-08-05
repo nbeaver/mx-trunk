@@ -45,6 +45,37 @@ static DWORD mx_current_thread_index;
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+static mx_status_type
+mx_thread_get_pointers( MX_THREAD *thread,
+			MX_WIN32_THREAD_PRIVATE **thread_private,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_thread_get_pointers()";
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+	if ( thread_private == (MX_WIN32_THREAD_PRIVATE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_WIN32_THREAD_PRIVATE pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	*thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
+
+	if ( (*thread_private) == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_THREAD_PRIVATE pointer for thread %p is NULL.",
+			thread );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 static HANDLE
 mx_get_current_thread_handle( void )
 {
@@ -206,6 +237,9 @@ mx_thread_initialize( void )
 		"Unable to allocate memory for an MX_THREAD structure." );
 	}
 
+	thread->stop_request_handler = NULL;
+	thread->stop_request_arguments = NULL;
+
 	/* Allocate the private thread structure. */
 
 	thread_private = (MX_WIN32_THREAD_PRIVATE *)
@@ -316,6 +350,9 @@ mx_thread_create( MX_THREAD **thread,
 		"Unable to allocate memory for an MX_THREAD structure." );
 	}
 
+	(*thread)->stop_request_handler = NULL;
+	(*thread)->stop_request_arguments = NULL;
+
 	/* Allocate the private thread structure. */
 
 	thread_private = (MX_WIN32_THREAD_PRIVATE *)
@@ -412,24 +449,14 @@ mx_thread_exit( MX_THREAD *thread,
 	static const char fname[] = "mx_thread_exit()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
+	if ( mx_status.code != MXE_SUCCESS )
 		return;
-	}
-
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-
-		return;
-	}
 
 	/* Terminate the thread. */
 
@@ -453,17 +480,10 @@ mx_thread_free( MX_THREAD *thread )
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -521,20 +541,14 @@ mx_thread_kill( MX_THREAD *thread )
 	BOOL status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	status = TerminateThread( thread_private->thread_handle, -1 );
 
@@ -564,20 +578,14 @@ mx_thread_stop( MX_THREAD *thread )
 	BOOL status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Nicely ask the thread to stop. */
 
@@ -601,26 +609,23 @@ mx_thread_stop( MX_THREAD *thread )
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
-mx_thread_check_for_stop_request( MX_THREAD *thread,
-				int *stop_requested )
+mx_thread_check_for_stop_request( MX_THREAD *thread )
 {
 	static const char fname[] = "mx_thread_check_for_stop_request()";
 
+	MX_THREAD_STOP_REQUEST_HANDLER *stop_request_handler;
 	MX_WIN32_THREAD_PRIVATE *thread_private;
 	DWORD wait_status, last_error_code;
 	TCHAR message_buffer[100];
+	int stop_requested;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
-	if ( stop_requested == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The stop_requested pointer passed was NULL." );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
 
@@ -628,6 +633,8 @@ mx_thread_check_for_stop_request( MX_THREAD *thread,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The thread_private field for the MX_THREAD pointer passed was NULL.");
 	}
+
+	stop_requested = FALSE;
 
 	wait_status = WaitForSingleObject(
 				thread_private->stop_event_handle, 0 );
@@ -639,10 +646,10 @@ mx_thread_check_for_stop_request( MX_THREAD *thread,
 			"abandoned.  This should NEVER happen.", thread );
 		break;
 	case WAIT_OBJECT_0:
-		*stop_requested = TRUE;
+		stop_requested = TRUE;
 		break;
 	case WAIT_TIMEOUT:
-		*stop_requested = FALSE;
+		stop_requested = FALSE;
 		break;
 	case WAIT_FAILED:
 		last_error_code = GetLastError();
@@ -668,7 +675,56 @@ mx_thread_check_for_stop_request( MX_THREAD *thread,
 		break;
 	}
 
+	/* If a stop has been requested, invoke the stop request handler. */
+
+	if ( stop_requested ) {
+		stop_request_handler = (MX_THREAD_STOP_REQUEST_HANDLER *)
+						thread->stop_request_handler;
+
+		if ( stop_request_handler != NULL ) {
+			/* Invoke the handler. */
+
+			MX_DEBUG(-2,("%s: Invoking the stop request handler.",
+				fname));
+
+			(stop_request_handler)( thread,
+					thread->stop_request_arguments );
+		}
+
+		/* Terminate the thread. */
+
+		(void) mx_thread_exit( thread, 0 );
+
+		mx_warning( "%s: mx_thread_exit() returned to the "
+			"calling routine.  This should not happen.", fname );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_set_stop_request_handler( MX_THREAD *thread,
+			MX_THREAD_STOP_REQUEST_HANDLER *stop_request_handler,
+			void *stop_request_arguments )
+{
+	static const char fname[] = "mx_thread_set_stop_request_handler()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	 thread->stop_request_handler = stop_request_handler;
+	 thread->stop_request_arguments = stop_request_arguments;
+
+	 return MX_SUCCESSFUL_RESULT;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -685,20 +741,14 @@ mx_thread_wait( MX_THREAD *thread,
 	DWORD wait_status, dword_exit_status, last_error_code;
 	DWORD milliseconds_to_wait;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-	}
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( max_seconds_to_wait < 0.0 ) {
 		milliseconds_to_wait = INFINITE;
@@ -826,25 +876,15 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	static const char fname[] = "mx_show_thread_info()";
 
 	MX_WIN32_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
 
 	if ( (message != NULL) && (strlen(message) > 0) ) {
 		mx_info( message );
-	}
-
-	if ( thread == (MX_THREAD *) NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_THREAD pointer passed was NULL." );
-
-		return;
-	}
-
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The thread_private field for the MX_THREAD pointer passed was NULL.");
-
-		return;
 	}
 
 	mx_info( "  thread pointer             = %p", thread );
