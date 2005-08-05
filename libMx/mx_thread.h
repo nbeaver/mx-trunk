@@ -34,7 +34,7 @@ typedef mx_status_type (MX_THREAD_FUNCTION)( MX_THREAD *, void * );
 MX_API mx_status_type mx_thread_initialize( void );
 
 MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
-					MX_THREAD_FUNCTION thread_function,
+					MX_THREAD_FUNCTION *thread_function,
 					void *thread_arguments );
 
 MX_API void mx_thread_exit( MX_THREAD *thread, long thread_exit_status );
@@ -42,6 +42,11 @@ MX_API void mx_thread_exit( MX_THREAD *thread, long thread_exit_status );
 MX_API mx_status_type mx_thread_free( MX_THREAD *thread );
 
 MX_API mx_status_type mx_thread_kill( MX_THREAD *thread );
+
+MX_API mx_status_type mx_thread_stop( MX_THREAD *thread );
+
+MX_API mx_status_type mx_thread_check_for_stop_request( MX_THREAD *thread,
+							int *stop_requested );
 
 MX_API mx_status_type mx_thread_wait( MX_THREAD *thread,
 					long *thread_exit_status,
