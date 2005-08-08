@@ -62,11 +62,16 @@ MX_API mx_status_type mx_thread_wait( MX_THREAD *thread,
 					long *thread_exit_status,
 					double max_seconds_to_wait );
 
-MX_API mx_status_type mx_thread_save_pointer( MX_THREAD *thread );
+MX_API mx_status_type mx_thread_save_thread_pointer( MX_THREAD *thread );
 
 MX_API mx_status_type mx_get_current_thread( MX_THREAD **thread );
 
 MX_API void mx_show_thread_info( MX_THREAD *thread, char *message );
+
+
+#if defined(OS_WIN32)
+MX_API mx_status_type mx_win32_thread_get_handle_and_id( MX_THREAD *thread );
+#endif
 
 #endif /* __MX_THREAD_H__ */
 

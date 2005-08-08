@@ -64,7 +64,7 @@ mx_thread_get_pointers( MX_THREAD *thread,
 			calling_fname );
 	}
 
-	*thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
+	*thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_private;
 
 	if ( (*thread_private) == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -119,6 +119,40 @@ mx_get_current_thread_handle( void )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+MX_EXPORT mx_status_type
+mx_win32_thread_get_handle_and_id( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_win32_thread_get_handle_and_id()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_THREAD pointer passed was NULL." );
+	}
+
+	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_private;
+
+	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_THREAD_PRIVATE pointer for thread %p is NULL.",
+			thread );
+	}
+
+	thread_private->thread_id = GetCurrentThreadId();
+
+	thread_private->thread_handle = mx_get_current_thread_handle();
+
+	if ( thread_private->thread_handle == NULL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get a handle for the initial thread." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 static unsigned __stdcall
 mx_thread_start_function( void *args_ptr )
 {
@@ -128,9 +162,6 @@ mx_thread_start_function( void *args_ptr )
 	MX_THREAD *thread;
 	MX_THREAD_FUNCTION *thread_function;
 	void *thread_arguments;
-	BOOL status;
-	DWORD last_error_code;
-	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
 	if ( args_ptr == NULL ) {
@@ -154,26 +185,14 @@ mx_thread_start_function( void *args_ptr )
 		return FALSE;
 	}
 
-	/* Save a thread-specific pointer to the MX_THREAD structure using
-	 * the Thread Local Storage created in mx_thread_initialize().
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
 	 */
 
-	status = TlsSetValue( mx_current_thread_index, thread );
+	mx_status = mx_thread_save_thread_pointer( thread );
 
-	if ( status == 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to save the MX_THREAD pointer in "
-			"thread local storage.  "
-			"Win32 error code = %ld, error message = '%s'.",
-			last_error_code, message_buffer );
-
+	if ( mx_status.code != MXE_SUCCESS )
 		return FALSE;
-	}
 
 	/* Invoke MX's thread function. */
 
@@ -204,6 +223,7 @@ mx_thread_initialize( void )
 	BOOL status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
@@ -229,17 +249,65 @@ mx_thread_initialize( void )
 	 * program's initial thread.
 	 */
 
+	mx_status = mx_thread_build_data_structures( &thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_win32_thread_get_handle_and_id( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
+	 */
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Record the fact that the initialization has been completed.
+	 * Only one thread will be running at the time that the flag
+	 * is set, so it is not necessary to use a mutex for the
+	 * mx_threads_are_initialized_flag.
+	 */
+
+	mx_threads_are_initialized = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_build_data_structures( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_thread_build_data_structures()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+
+	if ( thread == (MX_THREAD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
 	/* Allocate the MX_THREAD structure. */
 
-	thread = (MX_THREAD *) malloc( sizeof(MX_THREAD) );
+	*thread = (MX_THREAD *) malloc( sizeof(MX_THREAD) );
 
-	if ( thread == (MX_THREAD *) NULL ) {
+	if ( *thread == (MX_THREAD *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for an MX_THREAD structure." );
 	}
 
-	thread->stop_request_handler = NULL;
-	thread->stop_request_arguments = NULL;
+	(*thread)->stop_request_handler = NULL;
+	(*thread)->stop_request_arguments = NULL;
 
 	/* Allocate the private thread structure. */
 
@@ -251,16 +319,8 @@ mx_thread_initialize( void )
 	"Unable to allocate memory for a MX_WIN32_THREAD_PRIVATE structure." );
 	}
 	
-	thread->thread_ptr = thread_private;
-
-	thread_private->thread_id = GetCurrentThreadId();
-
-	thread_private->thread_handle = mx_get_current_thread_handle();
-
-	if ( thread_private->thread_handle == NULL ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to get a handle for the initial thread." );
-	}
+	(*thread)->thread_private = thread_private;
+	(*thread)->stop_request_handler = NULL;
 
 	/* Create an unsignaled event object with manual reset.  This
 	 * object is used by other threads to request that the main
@@ -281,33 +341,6 @@ mx_thread_initialize( void )
 			"Win32 error code = %ld, error_message = '%s'",
 			thread, last_error_code, message_buffer );
 	}
-
-	/* Save a thread-specific pointer to the MX_THREAD structure by
-	 * using the Pthreads key we created above.
-	 */
-
-	status = TlsSetValue( mx_current_thread_index, thread );
-
-	if ( status == 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to save the MX_THREAD pointer in "
-			"thread local storage.  "
-			"Win32 error code = %ld, error message = '%s'.",
-			last_error_code, message_buffer );
-	}
-
-	/* Record the fact that the initialization has been completed.
-	 * Only one thread will be running at the time that the flag
-	 * is set, so it is not necessary to use a mutex for the
-	 * mx_threads_are_initialized_flag.
-	 */
-
-	mx_threads_are_initialized = TRUE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -407,29 +440,12 @@ mx_thread_create( MX_THREAD **thread,
 		"The MX_THREAD pointer passed was NULL." );
 	}
 
-	/* Allocate the MX_THREAD structure. */
+	mx_status = mx_thread_build_data_structures( thread );
 
-	*thread = (MX_THREAD *) malloc( sizeof(MX_THREAD) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( *thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an MX_THREAD structure." );
-	}
-
-	(*thread)->stop_request_handler = NULL;
-	(*thread)->stop_request_arguments = NULL;
-
-	/* Allocate the private thread structure. */
-
-	thread_private = (MX_WIN32_THREAD_PRIVATE *)
-				malloc( sizeof(MX_WIN32_THREAD_PRIVATE) );
-
-	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Unable to allocate memory for a MX_WIN32_THREAD_PRIVATE structure." );
-	}
-	
-	(*thread)->thread_ptr = thread_private;
+	thread_private = (MX_WIN32_THREAD_PRIVATE *) (*thread)->thread_private;
 
 	thread_arg_struct = (MX_WIN32_THREAD_ARGUMENTS_PRIVATE *)
 			malloc( sizeof(MX_WIN32_THREAD_ARGUMENTS_PRIVATE) );
@@ -466,26 +482,6 @@ mx_thread_create( MX_THREAD **thread,
 	}
 
 	thread_private->thread_id = thread_id;
-
-	/* Create an unsignaled event object with manual reset.  This
-	 * object is used by other threads to request that the new
-	 * thread shut itself down.
-	 */
-
-	thread_private->stop_event_handle =
-				CreateEvent( NULL, TRUE, FALSE, NULL );
-
-	if ( thread_private->stop_event_handle == NULL ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to create a stop event object for thread %p.  "
-			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
-	}
 
 	/* Allow the thread to start executing. */
 
@@ -628,7 +624,7 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_ptr;
+	thread_private = (MX_WIN32_THREAD_PRIVATE *) thread->thread_private;
 
 	if ( thread_private == (MX_WIN32_THREAD_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -826,6 +822,39 @@ mx_thread_wait( MX_THREAD *thread,
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
+mx_thread_save_thread_pointer( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_save_thread_pointer()";
+
+	int status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	/* Save a thread-specific pointer to the MX_THREAD structure using
+	 * the Thread Local Storage created in mx_thread_initialize().
+	 */
+
+	status = TlsSetValue( mx_current_thread_index, thread );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to save the MX_THREAD pointer in "
+			"thread local storage.  "
+			"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
 mx_get_current_thread( MX_THREAD **thread )
 {
 	static const char fname[] = "mx_get_current_thread()";
@@ -987,7 +1016,7 @@ mx_thread_start_function( void *args_ptr )
 	 * can be returned by mx_get_current_thread().
 	 */
 
-	mx_status = mx_thread_save_pointer( thread );
+	mx_status = mx_thread_save_thread_pointer( thread );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return NULL;
@@ -1121,7 +1150,7 @@ mx_thread_initialize( void )
 	 * can be returned by mx_get_current_thread().
 	 */
 
-	mx_status = mx_thread_save_pointer( thread );
+	mx_status = mx_thread_save_thread_pointer( thread );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1490,9 +1519,9 @@ mx_thread_wait( MX_THREAD *thread,
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
-mx_thread_save_pointer( MX_THREAD *thread )
+mx_thread_save_thread_pointer( MX_THREAD *thread )
 {
-	static const char fname[] = "mx_thread_save_pointer()";
+	static const char fname[] = "mx_thread_save_thread_pointer()";
 
 	int status;
 

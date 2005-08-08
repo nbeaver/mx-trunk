@@ -48,20 +48,59 @@ mx_interval_timer_thread_handler( UINT timer_id,
 	static const char fname[] = "mx_interval_timer_thread_handler()";
 
 	MX_INTERVAL_TIMER *itimer;
+	MX_THREAD *thread;
+	mx_status_type mx_status;
 
 	itimer = (MX_INTERVAL_TIMER *) user_data;
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+
+		return;
+	}
 
 	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
 	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
 			fname, itimer->callback_function));
 
+	/* Setup an MX_THREAD structure for this thread. */
+
+	mx_status = mx_thread_build_data_structures( &thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_status = mx_win32_thread_get_handle_and_id( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	/* Invoke the callback function. */
+
 	if ( itimer->callback_function != NULL ) {
 		itimer->callback_function( itimer, itimer->callback_args );
 	}
 
+	/* if this is supposed to be a one-shot timer, then
+	 * make sure that the timer is turned off.
+	 */
+
 	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
 		(void) mx_interval_timer_stop( itimer, NULL );
 	}
+
+	mx_status = mx_thread_free_data_structures( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	/* End the thread by returning to the caller. */
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -498,6 +537,11 @@ mx_interval_timer_thread_handler( union sigval sigev_value )
 	/* Setup an MX_THREAD structure for this thread. */
 
 	mx_status = mx_thread_build_data_structures( &thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	mx_status = mx_thread_save_thread_pointer( thread );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return;
