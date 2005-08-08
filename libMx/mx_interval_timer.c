@@ -492,6 +492,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
+	clockid_t clock_id;
 	int status, saved_errno;
 
 	MX_DEBUG(-2,("%s invoked for POSIX realtime timers.", fname));
@@ -547,9 +548,15 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 					mx_interval_timer_thread_handler;
 	posix_itimer_private->evp.sigev_notify_attributes = NULL;
 
-	status = timer_create( CLOCK_REALTIME, 
-				&(posix_itimer_private->evp),
-				&(posix_itimer_private->timer_id) );
+#if defined(OS_SOLARIS)
+	clock_id = CLOCK_HIGHRES;
+#else
+	clock_id = CLOCK_REALTIME;
+#endif
+
+	status = timer_create( clock_id, 
+			&(posix_itimer_private->evp),
+			&(posix_itimer_private->timer_id) );
 
 	if ( status == 0 ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -563,8 +570,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 			break;
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The system did not recognize the clock CLOCK_REALTIME.  "
-		"This should not be able to happen." );
+		"One or more of the arguments to timer_create() were invalid.");
 			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
