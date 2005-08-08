@@ -259,24 +259,26 @@ mx_thread_initialize( void )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Save a thread-specific pointer to the MX_THREAD structure that
-	 * can be returned by mx_get_current_thread().
-	 */
-
-	mx_status = mx_thread_save_thread_pointer( thread );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Record the fact that the initialization has been completed.
 	 * Only one thread will be running at the time that the flag
 	 * is set, so it is not necessary to use a mutex for the
-	 * mx_threads_are_initialized_flag.
+	 * mx_threads_are_initialized flag.
 	 */
 
 	mx_threads_are_initialized = TRUE;
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
+	 *
+	 * This must happen _after_ the mx_threads_are_initialized flag
+	 * is set to TRUE, since mx_thread_save_thread_pointer() will itself
+	 * recursively invoke mx_thread_initialize() if the flag is still
+	 * set to FALSE.
+	 */
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -829,6 +831,14 @@ mx_thread_save_thread_pointer( MX_THREAD *thread )
 	int status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Save a thread-specific pointer to the MX_THREAD structure using
 	 * the Thread Local Storage created in mx_thread_initialize().
@@ -1146,15 +1156,6 @@ mx_thread_initialize( void )
 
 	thread_private->kill_requested = FALSE;
 
-	/* Save a thread-specific pointer to the MX_THREAD structure that
-	 * can be returned by mx_get_current_thread().
-	 */
-
-	mx_status = mx_thread_save_thread_pointer( thread );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Record the fact that the initialization has been completed.
 	 * Only one thread will be running at the time that the flag
 	 * is set, so it is not necessary to use a mutex for the
@@ -1163,7 +1164,18 @@ mx_thread_initialize( void )
 
 	mx_threads_are_initialized = TRUE;
 
-	return MX_SUCCESSFUL_RESULT;
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
+	 *
+	 * This must happen _after_ the mx_threads_are_initialized flag
+	 * is set to TRUE, since mx_thread_save_thread_pointer() will itself
+	 * recursively invoke mx_thread_initialize() if the flag is still
+	 * set to FALSE.
+	 */
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -1524,6 +1536,14 @@ mx_thread_save_thread_pointer( MX_THREAD *thread )
 	static const char fname[] = "mx_thread_save_thread_pointer()";
 
 	int status;
+	mx_status_type mx_status;
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	/* Save a thread specific pointer to the MX_THREAD structure using
 	 * the Pthreads key created in mx_thread_initialize().
