@@ -417,9 +417,24 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #include <signal.h>
 #include <errno.h>
 
+/* Select the notification method for the realtime timers.  The possible
+ * values are SIGEV_THREAD or SIGEV_SIGNAL.  SIGEV_SIGNAL has much tighter
+ * constraints than SIGEV_THREAD on the functions that can be invoked by
+ * the event handler, since SIGEV_SIGNAL only allows functions that are
+ * signal safe in the event handler.  You should always select SIGEV_THREAD
+ * unless it is not available on the operating system that you are using.
+ */
+
+#define MX_SIGEV_TYPE	SIGEV_THREAD
+
 typedef struct {
 	timer_t timer_id;
 	struct sigevent evp;
+
+#if ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
+	int signal_number;
+#endif
+
 } MX_POSIX_ITIMER_PRIVATE;
 
 /*--------------------------------------------------------------------------*/
@@ -455,6 +470,8 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 
 /*--------------------------------------------------------------------------*/
 
+#if ( MX_SIGEV_TYPE == SIGEV_THREAD )
+
 static void
 mx_interval_timer_thread_handler( union sigval sigev_value )
 {
@@ -481,6 +498,266 @@ mx_interval_timer_thread_handler( union sigval sigev_value )
 	return;
 }
 
+static mx_status_type
+mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	posix_itimer_private->evp.sigev_value.sival_ptr = itimer;
+
+	posix_itimer_private->evp.sigev_notify = SIGEV_THREAD;
+	posix_itimer_private->evp.sigev_notify_function =
+					mx_interval_timer_thread_handler;
+	posix_itimer_private->evp.sigev_notify_attributes = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+#elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
+
+#if !defined(_POSIX_REALTIME_SIGNALS)
+#error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
+#endif
+
+#define MX_NUM_TIMER_SIGNALS	( SIGRTMAX - SIGRTMIN + 1 )
+
+static MX_INTERVAL_TIMER **mx_interval_timer_signal_array;
+static int mx_interval_timer_num_signals;
+
+static MX_MUTEX *mx_interval_timer_signal_mutex = NULL;
+
+static mx_status_type
+mx_interval_timer_initialize_signal_array( void )
+{
+	static const char fname[] =
+			"mx_interval_timer_initialize_signal_array()";
+
+	mx_status_type mx_status;
+
+	mx_interval_timer_num_signals = SIGRTMAX - SIGRTMIN + 1;
+
+	MX_DEBUG(-2,("%s: mx_interval_timer_num_signals = %d",
+			fname, mx_interval_timer_num_signals));
+
+	mx_interval_timer_signal_array = (MX_INTERVAL_TIMER **)
+	    calloc(mx_interval_timer_num_signals, sizeof(MX_INTERVAL_TIMER *));
+
+	if ( mx_interval_timer_signal_array == (MX_INTERVAL_TIMER **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+  "Unable to allocate memory for a %d element mx_interval_timer_signal_array.",
+			mx_interval_timer_num_signals );
+	}
+
+	mx_status = mx_mutex_create( &mx_interval_timer_signal_mutex, 0 );
+
+	return mx_status;
+}
+
+static mx_status_type
+mx_interval_timer_allocate_signal_number( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	static const char fname[] =
+			"mx_interval_timer_allocate_signal_number()";
+
+	int i, signal_number;
+	long status;
+
+	status = mx_mutex_lock( mx_interval_timer_signal_mutex );
+
+	if ( status != MXE_SUCCESS ) {
+		return mx_error( status, fname,
+			"Unable to lock mx_interval_timer_signal_mutex." );
+	}
+
+	for ( i = 0; i < mx_interval_timer_num_signals; i++ ) {
+		if ( mx_interval_timer_signal_array[i] == NULL ) {
+			break;			/* Exit the for() loop. */
+		}
+	}
+
+	if ( i >= mx_interval_timer_num_signals ) {
+		status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
+
+		if ( status != MXE_SUCCESS ) {
+			(void) mx_error( status, fname,
+			"Unable to unlock mx_interval_timer_signal_mutex." );
+		}
+
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"All %d of the Posix realtime signals are already in use.",
+			mx_interval_timer_num_signals );
+	}
+
+	signal_number = i + SIGRTMIN;
+
+	posix_itimer_private->signal_number = signal_number;
+
+	mx_interval_timer_signal_array[i] = itimer;
+
+	status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
+
+	if ( status != MXE_SUCCESS ) {
+		return mx_error( status, fname,
+		"Unable to unlock mx_interval_timer_signal_mutex." );
+	}
+
+	MX_DEBUG(-2,("%s: Allocated signal number %d", fname, signal_number));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_interval_timer_free_signal_number( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	static const char fname[] = "mx_interval_timer_free_signal_number()";
+
+	int i, signal_number, was_in_use;
+	long status;
+
+	signal_number = posix_itimer_private->signal_number;
+
+	i = signal_number - SIGRTMIN;
+
+	if ( (i < 0) || (i >= mx_interval_timer_num_signals) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The signal number %d in use by interval timer %p is outside "
+		"the allowed range of %d to %d.", signal_number, itimer,
+						SIGRTMIN, SIGRTMAX );
+	}
+
+	status = mx_mutex_lock( mx_interval_timer_signal_mutex );
+
+	if ( status != MXE_SUCCESS ) {
+		return mx_error( status, fname,
+			"Unable to lock mx_interval_timer_signal_mutex." );
+	}
+
+	if ( mx_interval_timer_signal_array[i] == NULL ) {
+		was_in_use = FALSE;
+	} else {
+		was_in_use = TRUE;
+	}
+
+	mx_interval_timer_signal_array[i] = NULL;
+
+	status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
+
+	if ( status != MXE_SUCCESS ) {
+		return mx_error( status, fname,
+		"Unable to unlock mx_interval_timer_signal_mutex." );
+	}
+
+	if ( was_in_use == FALSE ) {
+		mx_warning("%s: Freeing realtime signal number %d "
+		"although it was not in use.", fname, signal_number );
+	}
+
+	MX_DEBUG(-2,("%s: Freed signal number %d.", fname, signal_number));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static void
+mx_interval_timer_signal_handler( int signum, siginfo_t *siginfo, void *cruft )
+{
+	static const char fname[] = "mx_interval_timer_signal_handler()";
+
+	MX_INTERVAL_TIMER *itimer;
+
+	MX_DEBUG(-2,("%s invoked for signal %d", fname, signum));
+
+	itimer = (MX_INTERVAL_TIMER *) siginfo->si_value.sival_ptr;
+
+	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
+	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
+			fname, itimer->callback_function));
+
+	if ( itimer->callback_function != NULL ) {
+		itimer->callback_function( itimer, itimer->callback_args );
+	}
+
+	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		(void) mx_interval_timer_stop( itimer, NULL );
+	}
+
+	MX_DEBUG(-2,("%s complete.", fname));
+
+	return;
+}
+
+static mx_status_type
+mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	static const char fname[] = "mx_interval_timer_create_event_handler()";
+
+	struct sigaction sa;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	if ( mx_interval_timer_signal_mutex == (MX_MUTEX *) NULL ) {
+		mx_status = mx_interval_timer_initialize_signal_array();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_interval_timer_allocate_signal_number( itimer,
+							posix_itimer_private );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	posix_itimer_private->evp.sigev_value.sival_ptr = itimer;
+
+	posix_itimer_private->evp.sigev_notify = SIGEV_SIGNAL;
+	posix_itimer_private->evp.sigev_signo =
+					posix_itimer_private->signal_number;
+
+	sa.sa_flags = SA_SIGINFO;
+	sa.sa_sigaction = mx_interval_timer_signal_handler;
+
+	status = sigaction( posix_itimer_private->signal_number, &sa, NULL );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to setup signal handler with sigaction().  "
+			"Errno = %d, error message = '%s'.",
+				saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
+				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_free_signal_number( itimer,
+							posix_itimer_private );
+	return mx_status;
+}
+
+#else
+#error MX_SIGEV_TYPE must be either SIGEV_THREAD or SIGEV_SIGNAL.  SIGEV_THREAD is by far the better choice.
+#endif /* MX_SIGEV_TYPE */
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -492,8 +769,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
-	clockid_t clock_id;
 	int status, saved_errno;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for POSIX realtime timers.", fname));
 	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
@@ -539,22 +816,17 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->callback_args = callback_args;
 	(*itimer)->private = posix_itimer_private;
 
+	/* Configure the event handler for the timer. */
+
+	mx_status = mx_interval_timer_create_event_handler( *itimer,
+							posix_itimer_private );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Create the Posix timer. */
 
-	posix_itimer_private->evp.sigev_value.sival_ptr = *itimer;
-
-	posix_itimer_private->evp.sigev_notify = SIGEV_THREAD;
-	posix_itimer_private->evp.sigev_notify_function =
-					mx_interval_timer_thread_handler;
-	posix_itimer_private->evp.sigev_notify_attributes = NULL;
-
-#if defined(OS_SOLARIS)
-	clock_id = CLOCK_HIGHRES;
-#else
-	clock_id = CLOCK_REALTIME;
-#endif
-
-	status = timer_create( clock_id, 
+	status = timer_create( CLOCK_REALTIME, 
 			&(posix_itimer_private->evp),
 			&(posix_itimer_private->timer_id) );
 
@@ -621,6 +893,12 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 		"Errno = %d, error message = '%s'",
 			saved_errno, strerror(saved_errno) );
 	}
+
+	mx_status = mx_interval_timer_destroy_event_handler( itimer,
+							posix_itimer_private );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_free( posix_itimer_private );
 
