@@ -315,6 +315,71 @@ mx_thread_initialize( void )
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
+mx_thread_free_data_structures( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_free_data_structures()";
+
+	MX_WIN32_THREAD_PRIVATE *thread_private;
+	BOOL status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	status = CloseHandle( thread_private->stop_event_handle );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		/* Do not abort here.  We want to attempt to close the
+		 * thread handle as well.
+		 */
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to close the stop event handle for thread %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+	}
+
+	status = CloseHandle( thread_private->thread_handle );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		/* Do not abort here.  We want to free the MX_THREAD and
+		 * MX_WIN32_THREAD_PRIVATE structures as well.
+		 */
+
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to close the thread handle for thread %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			thread, last_error_code, message_buffer );
+	}
+
+	mx_free( thread_private );
+
+	mx_free( thread );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
 mx_thread_create( MX_THREAD **thread,
 		MX_THREAD_FUNCTION *thread_function,
 		void *thread_arguments )
@@ -464,71 +529,6 @@ mx_thread_exit( MX_THREAD *thread,
 	thread->thread_exit_status = thread_exit_status;
 
 	_endthreadex( (int) thread_exit_status );
-}
-
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
-MX_EXPORT mx_status_type
-mx_thread_free( MX_THREAD *thread )
-{
-	static const char fname[] = "mx_thread_free()";
-
-	MX_WIN32_THREAD_PRIVATE *thread_private;
-	BOOL status;
-	DWORD last_error_code;
-	TCHAR message_buffer[100];
-	mx_status_type mx_status;
-
-	MX_DEBUG(-2,("%s invoked.", fname));
-
-	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = MX_SUCCESSFUL_RESULT;
-
-	status = CloseHandle( thread_private->stop_event_handle );
-
-	if ( status == 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		/* Do not abort here.  We want to attempt to close the
-		 * thread handle as well.
-		 */
-
-		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to close the stop event handle for thread %p. "
-			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
-	}
-
-	status = CloseHandle( thread_private->thread_handle );
-
-	if ( status == 0 ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		/* Do not abort here.  We want to free the MX_THREAD and
-		 * MX_WIN32_THREAD_PRIVATE structures as well.
-		 */
-
-		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to close the thread handle for thread %p. "
-			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
-	}
-
-	mx_free( thread_private );
-
-	mx_free( thread );
-
-	return mx_status;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -939,7 +939,7 @@ mx_thread_get_pointers( MX_THREAD *thread,
 			calling_fname );
 	}
 
-	*thread_private = (MX_POSIX_THREAD_PRIVATE *) thread->thread_ptr;
+	*thread_private = (MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
 
 	if ( (*thread_private) == (MX_POSIX_THREAD_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -961,7 +961,6 @@ mx_thread_start_function( void *args_ptr )
 	MX_THREAD *thread;
 	MX_THREAD_FUNCTION *thread_function;
 	void *thread_arguments;
-	int status;
 	mx_status_type mx_status;
 
 	if ( args_ptr == NULL ) {
@@ -984,36 +983,14 @@ mx_thread_start_function( void *args_ptr )
 		return NULL;
 	}
 
-	/* Save a thread specific pointer to the MX_THREAD structure using
-	 * the Pthreads key created in mx_thread_initialize().
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
 	 */
 
-	status = pthread_setspecific( mx_current_thread_key, thread );
+	mx_status = mx_thread_save_pointer( thread );
 
-	if ( status != 0 ) {
-		switch( status ) {
-		case ENOMEM:
-			(void) mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Insufficient memory is available to associate "
-			"the MX_THREAD pointer with the current thread key." );
-
-			return NULL;
-			break;
-		case EINVAL:
-			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Invalid Pthread key specified for pthread_setspecific()." );
-
-			return NULL;
-			break;
-		default:
-			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
-		"pthread_setspecific() returned an unknown error code %d.",
-				status );
-
-			return NULL;
-			break;
-		}
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return NULL;
 
 	/* Invoke MX's thread function. */
 
@@ -1095,6 +1072,7 @@ mx_thread_initialize( void )
 	MX_THREAD *thread;
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	int status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
@@ -1128,55 +1106,25 @@ mx_thread_initialize( void )
 	 * program's initial thread.
 	 */
 
-	/* Allocate the MX_THREAD structure. */
+	mx_status = mx_thread_build_data_structures( &thread );
 
-	thread = (MX_THREAD *) malloc( sizeof(MX_THREAD) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( thread == (MX_THREAD *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an MX_THREAD structure." );
-	}
-
-	/* Allocate the private thread structure. */
-
-	thread_private = (MX_POSIX_THREAD_PRIVATE *)
-				malloc( sizeof(MX_POSIX_THREAD_PRIVATE) );
-
-	if ( thread_private == (MX_POSIX_THREAD_PRIVATE *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Unable to allocate memory for a MX_POSIX_THREAD_PRIVATE structure." );
-	}
-	
-	thread->thread_ptr = thread_private;
+	thread_private = (MX_POSIX_THREAD_PRIVATE *) thread->thread_private;
 
 	thread_private->thread_id = pthread_self();
 
 	thread_private->kill_requested = FALSE;
 
-	/* Save a thread-specific pointer to the MX_THREAD structure by
-	 * using the Pthreads key we created above.
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
 	 */
 
-	status = pthread_setspecific( mx_current_thread_key, thread );
+	mx_status = mx_thread_save_pointer( thread );
 
-	if ( status != 0 ) {
-		switch( status ) {
-		case ENOMEM:
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Insufficient memory is available to associate "
-			"the MX_THREAD pointer with the current thread key." );
-			break;
-		case EINVAL:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Invalid Pthread key specified for pthread_setspecific()." );
-			break;
-		default:
-			return mx_error( MXE_UNKNOWN_ERROR, fname,
-		"pthread_setspecific() returned an unknown error code %d.",
-				status );
-			break;
-		}
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Record the fact that the initialization has been completed.
 	 * Only one thread will be running at the time that the flag
@@ -1192,25 +1140,11 @@ mx_thread_initialize( void )
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
-mx_thread_create( MX_THREAD **thread,
-		MX_THREAD_FUNCTION *thread_function,
-		void *thread_arguments )
+mx_thread_build_data_structures( MX_THREAD **thread )
 {
-	static const char fname[] = "mx_thread_create()";
+	static const char fname[] = "mx_thread_build_data_structures()";
 
 	MX_POSIX_THREAD_PRIVATE *thread_private;
-	MX_POSIX_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
-	int status;
-	mx_status_type mx_status;
-
-	MX_DEBUG(-2,("%s invoked.", fname));
-
-	if ( mx_threads_are_initialized == FALSE ) {
-		mx_status = mx_thread_initialize();
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
 
 	if ( thread == (MX_THREAD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1238,9 +1172,70 @@ mx_thread_create( MX_THREAD **thread,
 	
 	thread_private->kill_requested = FALSE;
 
-	(*thread)->thread_ptr = thread_private;
+	(*thread)->thread_private = thread_private;
 	(*thread)->thread_exit_status = -1;
 	(*thread)->stop_request_handler = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+/* mx_thread_free_data_structures() frees all of the data structures allocated
+ * for the thread.
+ */
+
+MX_EXPORT mx_status_type
+mx_thread_free_data_structures( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_free_data_structures()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_free( thread_private );
+
+	mx_free( thread );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_create( MX_THREAD **thread,
+		MX_THREAD_FUNCTION *thread_function,
+		void *thread_arguments )
+{
+	static const char fname[] = "mx_thread_create()";
+
+	MX_POSIX_THREAD_PRIVATE *thread_private;
+	MX_POSIX_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
+	int status;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	mx_status = mx_thread_build_data_structures( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	thread_private = (MX_POSIX_THREAD_PRIVATE *) (*thread)->thread_private;
 
 	thread_arg_struct = (MX_POSIX_THREAD_ARGUMENTS_PRIVATE *)
 			malloc( sizeof(MX_POSIX_THREAD_ARGUMENTS_PRIVATE) );
@@ -1315,34 +1310,6 @@ mx_thread_exit( MX_THREAD *thread,
 	 */
 
 	(void) pthread_exit( (void *) thread_exit_status );	/* ICK! */
-}
-
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
-/* mx_thread_free() frees all of the data structures allocated
- * for the thread.
- */
-
-MX_EXPORT mx_status_type
-mx_thread_free( MX_THREAD *thread )
-{
-	static const char fname[] = "mx_thread_free()";
-
-	MX_POSIX_THREAD_PRIVATE *thread_private;
-	mx_status_type mx_status;
-
-	MX_DEBUG(-2,("%s invoked.", fname));
-
-	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_free( thread_private );
-
-	mx_free( thread );
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -1515,6 +1482,43 @@ mx_thread_wait( MX_THREAD *thread,
 		 */
 
 		*thread_exit_status = (long) value_ptr;		/* ICK! */
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_save_pointer( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_save_pointer()";
+
+	int status;
+
+	/* Save a thread specific pointer to the MX_THREAD structure using
+	 * the Pthreads key created in mx_thread_initialize().
+	 */
+
+	status = pthread_setspecific( mx_current_thread_key, thread );
+
+	if ( status != 0 ) {
+		switch( status ) {
+		case ENOMEM:
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Insufficient memory is available to associate "
+			"the MX_THREAD pointer with the current thread key." );
+			break;
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Invalid Pthread key specified for pthread_setspecific()." );
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"pthread_setspecific() returned an unknown error code %d.",
+				status );
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

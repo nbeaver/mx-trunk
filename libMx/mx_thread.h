@@ -19,7 +19,8 @@
 
 typedef struct {
 	long thread_exit_status;
-	void *thread_ptr;
+	void *thread_private;
+
 	void *stop_request_handler;
 	void *stop_request_arguments;
 } MX_THREAD;
@@ -36,13 +37,15 @@ typedef void (MX_THREAD_STOP_REQUEST_HANDLER)( MX_THREAD *, void * );
 
 MX_API mx_status_type mx_thread_initialize( void );
 
+MX_API mx_status_type mx_thread_build_data_structures( MX_THREAD **thread );
+
+MX_API mx_status_type mx_thread_free_data_structures( MX_THREAD *thread );
+
 MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
 					MX_THREAD_FUNCTION *thread_function,
 					void *thread_arguments );
 
 MX_API void mx_thread_exit( MX_THREAD *thread, long thread_exit_status );
-
-MX_API mx_status_type mx_thread_free( MX_THREAD *thread );
 
 MX_API mx_status_type mx_thread_kill( MX_THREAD *thread );
 
@@ -58,6 +61,8 @@ MX_API mx_status_type mx_thread_set_stop_request_handler(
 MX_API mx_status_type mx_thread_wait( MX_THREAD *thread,
 					long *thread_exit_status,
 					double max_seconds_to_wait );
+
+MX_API mx_status_type mx_thread_save_pointer( MX_THREAD *thread );
 
 MX_API mx_status_type mx_get_current_thread( MX_THREAD **thread );
 
