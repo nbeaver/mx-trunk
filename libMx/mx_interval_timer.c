@@ -465,7 +465,11 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * unless it is not available on the operating system that you are using.
  */
 
-#define MX_SIGEV_TYPE	SIGEV_THREAD
+#if defined(OS_SOLARIS)
+#   define MX_SIGEV_TYPE	SIGEV_SIGNAL
+#else
+#   define MX_SIGEV_TYPE	SIGEV_THREAD
+#endif
 
 typedef struct {
 	timer_t timer_id;
@@ -603,145 +607,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 #error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
 #endif
 
-#define MX_NUM_TIMER_SIGNALS	( SIGRTMAX - SIGRTMIN + 1 )
-
-static MX_INTERVAL_TIMER **mx_interval_timer_signal_array;
-static int mx_interval_timer_num_signals;
-
-static MX_MUTEX *mx_interval_timer_signal_mutex = NULL;
-
-static mx_status_type
-mx_interval_timer_initialize_signal_array( void )
-{
-	static const char fname[] =
-			"mx_interval_timer_initialize_signal_array()";
-
-	mx_status_type mx_status;
-
-	mx_interval_timer_num_signals = SIGRTMAX - SIGRTMIN + 1;
-
-	MX_DEBUG(-2,("%s: mx_interval_timer_num_signals = %d",
-			fname, mx_interval_timer_num_signals));
-
-	mx_interval_timer_signal_array = (MX_INTERVAL_TIMER **)
-	    calloc(mx_interval_timer_num_signals, sizeof(MX_INTERVAL_TIMER *));
-
-	if ( mx_interval_timer_signal_array == (MX_INTERVAL_TIMER **) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-  "Unable to allocate memory for a %d element mx_interval_timer_signal_array.",
-			mx_interval_timer_num_signals );
-	}
-
-	mx_status = mx_mutex_create( &mx_interval_timer_signal_mutex, 0 );
-
-	return mx_status;
-}
-
-static mx_status_type
-mx_interval_timer_allocate_signal_number( MX_INTERVAL_TIMER *itimer,
-				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
-{
-	static const char fname[] =
-			"mx_interval_timer_allocate_signal_number()";
-
-	int i, signal_number;
-	long status;
-
-	status = mx_mutex_lock( mx_interval_timer_signal_mutex );
-
-	if ( status != MXE_SUCCESS ) {
-		return mx_error( status, fname,
-			"Unable to lock mx_interval_timer_signal_mutex." );
-	}
-
-	for ( i = 0; i < mx_interval_timer_num_signals; i++ ) {
-		if ( mx_interval_timer_signal_array[i] == NULL ) {
-			break;			/* Exit the for() loop. */
-		}
-	}
-
-	if ( i >= mx_interval_timer_num_signals ) {
-		status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
-
-		if ( status != MXE_SUCCESS ) {
-			(void) mx_error( status, fname,
-			"Unable to unlock mx_interval_timer_signal_mutex." );
-		}
-
-		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"All %d of the Posix realtime signals are already in use.",
-			mx_interval_timer_num_signals );
-	}
-
-	signal_number = i + SIGRTMIN;
-
-	posix_itimer_private->signal_number = signal_number;
-
-	mx_interval_timer_signal_array[i] = itimer;
-
-	status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
-
-	if ( status != MXE_SUCCESS ) {
-		return mx_error( status, fname,
-		"Unable to unlock mx_interval_timer_signal_mutex." );
-	}
-
-	MX_DEBUG(-2,("%s: Allocated signal number %d", fname, signal_number));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_interval_timer_free_signal_number( MX_INTERVAL_TIMER *itimer,
-				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
-{
-	static const char fname[] = "mx_interval_timer_free_signal_number()";
-
-	int i, signal_number, was_in_use;
-	long status;
-
-	signal_number = posix_itimer_private->signal_number;
-
-	i = signal_number - SIGRTMIN;
-
-	if ( (i < 0) || (i >= mx_interval_timer_num_signals) ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The signal number %d in use by interval timer %p is outside "
-		"the allowed range of %d to %d.", signal_number, itimer,
-						SIGRTMIN, SIGRTMAX );
-	}
-
-	status = mx_mutex_lock( mx_interval_timer_signal_mutex );
-
-	if ( status != MXE_SUCCESS ) {
-		return mx_error( status, fname,
-			"Unable to lock mx_interval_timer_signal_mutex." );
-	}
-
-	if ( mx_interval_timer_signal_array[i] == NULL ) {
-		was_in_use = FALSE;
-	} else {
-		was_in_use = TRUE;
-	}
-
-	mx_interval_timer_signal_array[i] = NULL;
-
-	status = mx_mutex_unlock( mx_interval_timer_signal_mutex );
-
-	if ( status != MXE_SUCCESS ) {
-		return mx_error( status, fname,
-		"Unable to unlock mx_interval_timer_signal_mutex." );
-	}
-
-	if ( was_in_use == FALSE ) {
-		mx_warning("%s: Freeing realtime signal number %d "
-		"although it was not in use.", fname, signal_number );
-	}
-
-	MX_DEBUG(-2,("%s: Freed signal number %d.", fname, signal_number));
-
-	return MX_SUCCESSFUL_RESULT;
-}
+#include "mx_signal.h"
 
 /*---*/
 
@@ -783,15 +649,15 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 	int status, saved_errno;
 	mx_status_type mx_status;
 
-	if ( mx_interval_timer_signal_mutex == (MX_MUTEX *) NULL ) {
-		mx_status = mx_interval_timer_initialize_signal_array();
+	if ( mx_signals_are_initialized() == FALSE ) {
+		mx_status = mx_signal_initialize();
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
 
-	mx_status = mx_interval_timer_allocate_signal_number( itimer,
-							posix_itimer_private );
+	mx_status = mx_signal_allocate( MXF_ANY_REALTIME_SIGNAL,
+				&(posix_itimer_private->signal_number) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -825,8 +691,8 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 {
 	mx_status_type mx_status;
 
-	mx_status = mx_interval_timer_free_signal_number( itimer,
-							posix_itimer_private );
+	mx_status = mx_signal_free( posix_itimer_private->signal_number );
+
 	return mx_status;
 }
 
