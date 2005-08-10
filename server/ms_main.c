@@ -42,6 +42,7 @@
 #include "mx_hrt.h"
 #include "mx_log.h"
 #include "mx_syslog.h"
+#include "mx_signal.h"
 
 #include "mx_process.h"
 #include "ms_mxserver.h"
@@ -528,6 +529,13 @@ mxserver_main( int argc, char *argv[] )
 	if ( bypass_signal_handlers == FALSE ) {
 		mxsrv_install_signal_and_exit_handlers(display_stack_traceback);
 	}
+
+#if defined( _POSIX_REALTIME_SIGNALS )
+	mx_status = mx_signal_initialize();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
+#endif
 
 	mx_set_user_interrupt_function( mxsrv_user_interrupt_function );
 

@@ -5,6 +5,10 @@
  *
  * Author:  William Lavender
  *
+ * WARNING: These functions are advisory only in nature.  In general, they
+ *          have no mechanism for preventing a thread that does not use these
+ *          functions from manipulating a signal.
+ *
  *--------------------------------------------------------------------------
  *
  * Copyright 2005 Illinois Institute of Technology
@@ -14,9 +18,12 @@
  *
  */
 
+#define MX_SIGNAL_DEBUG		TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include <errno.h>
 
 #include "mx_osdef.h"
 #include "mx_unistd.h"
@@ -34,16 +41,31 @@ static int mx_num_signals;
 
 static MX_MUTEX *mx_signal_mutex = NULL;
 
+static void
+mx_signal_dummy_handler( int signal_number,
+			siginfo_t *siginfo,
+			void *cruft )
+{
+	return;
+}
+
 MX_EXPORT mx_status_type
 mx_signal_initialize( void )
 {
 	static const char fname[] = "mx_signal_initialize()";
 
+	int i, status, saved_errno;
+	struct sigaction sa, old_sa;
+	sigset_t set;
 	mx_status_type mx_status;
 
 	mx_num_signals = MX_NUM_SIGNALS;
 
+#if MX_SIGNAL_DEBUG
 	MX_DEBUG(-2,("%s: mx_num_signals = %d", fname, mx_num_signals));
+#endif
+
+	/* Create an array to store the allocation status of each signal. */
 
 	mx_signal_array = (int *) calloc(mx_num_signals, sizeof(int));
 
@@ -52,6 +74,212 @@ mx_signal_initialize( void )
   "Unable to allocate memory for a %d element mx_signal_array.",
 			mx_num_signals );
 	}
+
+	/* See if any of the non-realtime signals are already in use. */
+
+	for ( i = 1; i < SIGRTMIN; i++ ) {
+		/* See if the signal is already in use. */
+
+		status = sigaction( i, NULL, &old_sa );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			if ( saved_errno == EINVAL ) {
+				/* There may be gaps in the supported
+				 * signal numbers, so mark this signal
+				 * number as in use and continue on to
+				 * the next signal.
+				 */
+
+				mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+				MX_DEBUG(-2,("%s: Signal %d is invalid.",
+					fname, i));
+#endif
+				continue;  /* Go to the top of the for() loop.*/
+			}
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to get the signal handling status for "
+			"signal %d.  Errno = %d, error message = '%s'.",
+				i, saved_errno, strerror(saved_errno) );
+		}
+
+		if ( old_sa.sa_handler != SIG_DFL ) {
+			/* This signal is not using the default handler,
+			 * so we assume that it is already being used by 
+			 * something else.
+			 */
+
+			mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+			MX_DEBUG(-2,("%s: Signal %d is already in use.",
+				fname, i));
+#endif
+		}
+	}
+
+	/* Just in case there are signal numbers higher than SIGRTMAX. */
+
+	for ( i = SIGRTMAX+1; i <= mx_num_signals; i++ ) {
+		/* See if the signal is already in use. */
+
+		status = sigaction( i, NULL, &old_sa );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			if ( saved_errno == EINVAL ) {
+				/* There may be gaps in the supported
+				 * signal numbers, so mark this signal
+				 * number as in use and continue on to
+				 * the next signal.
+				 */
+
+				mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+				MX_DEBUG(-2,("%s: Signal %d is invalid.",
+					fname, i));
+#endif
+				continue;  /* Go to the top of the for() loop.*/
+			}
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to get the signal handling status for "
+			"signal %d.  Errno = %d, error message = '%s'.",
+				i, saved_errno, strerror(saved_errno) );
+		}
+
+		if ( old_sa.sa_handler != SIG_DFL ) {
+			/* This signal is not using the default handler,
+			 * so we assume that it is already being used by 
+			 * something else.
+			 */
+
+			mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+			MX_DEBUG(-2,("%s: Signal %d is already in use.",
+				fname, i));
+#endif
+		}
+	}
+
+	/* Install dummy signal handlers for the realtime signals and mask
+	 * off delivery of the signals.  Usenet posts by David Butenhof say
+	 * that the signal handlers need to be here for sigwait(),
+	 * sigwaitinfo(), and sigtimedwait() to work correctly on all
+	 * platforms.
+	 */
+
+	status = sigemptyset( &set );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"A call to sigemptyset() failed with errno = %d, "
+			"error message = '%s'.",
+				saved_errno, strerror(saved_errno) );
+	}
+
+	for ( i = SIGRTMIN; i <= SIGRTMAX; i++ ) {
+		/* See if the signal is already in use. */
+
+		status = sigaction( i, NULL, &old_sa );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to get the signal handling status for realtime "
+			"signal %d.  Errno = %d, error message = '%s'.",
+				i, saved_errno, strerror(saved_errno) );
+		}
+
+		if ( old_sa.sa_handler != SIG_DFL ) {
+			/* This signal is not using the default handler,
+			 * so we assume that it is already being used by 
+			 * something else.
+			 */
+
+			mx_signal_array[i-1] = TRUE;
+
+#if MX_SIGNAL_DEBUG
+			MX_DEBUG(-2,
+			("%s: Realtime signal %d is already in use.",
+				fname, i));
+#endif
+
+			continue;    /* Go back to the top of the for() loop. */
+		}
+
+#if MX_SIGNAL_DEBUG
+		MX_DEBUG(-2,
+		("%s: Installing dummy signal handler for realtime signal %d.",
+			fname, i));
+#endif
+
+		sa.sa_flags = SA_SIGINFO;
+		sa.sa_sigaction = mx_signal_dummy_handler;
+
+		status = sigaction( i, &sa, NULL );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to install signal handler for realtime "
+			"signal %i.  Errno = %d, error message = '%s'.",
+				i, saved_errno, strerror(saved_errno) );
+		}
+
+		/* Add the signal to the set of signals to be blocked. */
+
+		status = sigaddset( &set, i );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			if ( saved_errno == EINVAL ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"sigaddset() says that signal %d is an invalid "
+				"or unsupported signal number.", i );
+			} else {
+				return mx_error(
+				MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to add signal %d to the blocked signal "
+				"set with sigaddset().  "
+				"Errno = %d, error message = '%s'.",
+					i, saved_errno, strerror(saved_errno) );
+			}
+		}
+	}	
+
+	/* Block the unused realtime signals. */
+
+	status = pthread_sigmask( SIG_BLOCK, &set, NULL );
+
+	if ( status != 0 ) {
+		switch( status ) {
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The first argument to pthread_sigmask() was invalid.");
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to block signals using pthread_sigmask().  "
+			"Errno = %d, error message = '%s'.",
+				status, strerror(status) );
+			break;
+		}
+	}
+
+	/* Create the mutex that is used to manage access to mx_signal_array. */
 
 	mx_status = mx_mutex_create( &mx_signal_mutex, 0 );
 
@@ -138,8 +366,10 @@ mx_signal_allocate( int requested_signal_number,
 
 	MX_SIGNAL_MUTEX_UNLOCK;
 
+#if MX_SIGNAL_DEBUG
 	MX_DEBUG(-2,("%s: Allocated signal number %d",
 			fname, *allocated_signal_number));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -189,7 +419,9 @@ mx_signal_free( int signal_number )
 		"although it was not in use.", fname, signal_number );
 	}
 
+#if MX_SIGNAL_DEBUG
 	MX_DEBUG(-2,("%s: Freed signal number %d.", fname, signal_number));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

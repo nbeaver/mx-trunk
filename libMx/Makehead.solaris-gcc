@@ -68,10 +68,20 @@ GCCFLAGS = -Wall -Werror \
 #
 # Sun UltraSparc with GCC 3.2.1 under Solaris 8
 #
+#    See the file mx/libMx/mx_interval_timer.c for the explanation of
+#    the -D_POSIX_PER_PROCESS_TIMER_SOURCE, which _must_ be present for
+#    versions of Solaris up to and including Solaris 8.  For Solaris 2.5
+#    and before, you may need to define -D_POSIX_PER_PROCESS_TIMERS
+#    instead, but I have no access to machines running that old a version
+#    of Solaris anymore.
+#
+#    Defining -D_POSIX_THREAD_SEMANTICS should be self explanatory.  You
+#    run the risk of getting pre-Posix behavior otherwise.
+#
 CC		= gcc
-###CFLAGS		= -g -O -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_SOLARIS \
-###				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS		= -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_SOLARIS \
+				-D_POSIX_PER_PROCESS_TIMER_SOURCE \
+				-D_POSIX_THREAD_SEMANTICS \
 				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 

@@ -7,6 +7,60 @@
  *
  * Author:  William Lavender
  *
+ * WARNING FOR SOLARIS:
+ *          For versions of Solaris up to and including Solaris 8, you _must_
+ *          define the preprocessor symbol _POSIX_PER_PROCESS_TIMER_SOURCE
+ *          when compiling to get correct behavior from MX interval timers.
+ *          The man page for timer_create() in Solaris 2.6 includes the
+ *          paragraph:
+ *
+ *              The timer may be created per-LWP or per-process.  Expiration
+ *              signals for a per-LWP timer will be sent to the creating LWP.
+ *              Expiration signals for a per-process timer will be sent to
+ *              the process.  A per-LWP timer will automatically be deleted
+ *              when the creating LWP ends.  By default, timers are created
+ *              per-LWP.  If the symbol _POSIX_PER_PROCESS_TIMER_SOURCE is
+ *              defined or the symbol _POSIX_C_SOURCE is defined to have a
+ *              value greater than 199500L before the inclusion of <time.h>,
+ *              timers will be created per-process.
+ *
+ *          The Solaris 2.5 man page has a similar statement, except for the
+ *          fact that it mentions _POSIX_PER_PROCESS_TIMERS rather than
+ *          _POSIX_PER_PROCESS_TIMER_SOURCE.  Apparently the name was changed
+ *          in going to Solaris 2.6 for no obvious reason.
+ *
+ *          For Solaris 7 and 8, the man page for timer_create no longer
+ *          mentions _POSIX_PER_PROCESS_TIMER_SOURCE.  However, you _still_
+ *          need to define it to get correct behavior.  This is confirmed
+ *          by a posting from Sun employee Roger Faulkner to the Usenet
+ *          news group comp.programming.threads on November 24, 2002 where
+ *          he says:
+ *
+ *              By default, in Solaris 8 and previous releases,
+ *              timers have per-LWP semantics (th1s violates POSIX semantics).
+ *              This has been fixed in Solaris 9.
+ *
+ *              To get correct per-process semantics, you need to compile \
+ *              like this:
+ *
+ *                 cc -mt -D_POSIX_C_SOURCE=199506 sigtest.c -lrt -lpthread
+ *              or:
+ *                 cc -mt -D_POSIX_PER_PROCESS_TIMER_SOURCE sigtest.c -lrt \
+ *                 -lpthread
+ *
+ *          For Solaris, MX uses timer_create() based timers with SIGEV_SIGNAL
+ *          notification since Solaris does not support SIGEV_THREAD 
+ *          notification (boo!).  MX then creates a new thread which then
+ *          waits in sigwaitinfo() for the timing signals to arrive.  If
+ *          you have the default behavior of thread-specific timers, then
+ *          only the thread that created the timer will see the signal when
+ *          the timer expires.  However, since MX is waiting in a different
+ *          thread in sigwaitinfo() for the signal, the signal never gets
+ *          delivered unless you recompile to use per-process timers.
+ *
+ *          I have not yet had a chance to verify the claim that the problem
+ *          is fixed in Solaris 9 and above.  (WML)
+ *
  *----------------------------------------------------------------------
  *
  * Copyright 2004-2005 Illinois Institute of Technology
@@ -458,11 +512,9 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #include <errno.h>
 
 /* Select the notification method for the realtime timers.  The possible
- * values are SIGEV_THREAD or SIGEV_SIGNAL.  SIGEV_SIGNAL has much tighter
- * constraints than SIGEV_THREAD on the functions that can be invoked by
- * the event handler, since SIGEV_SIGNAL only allows functions that are
- * signal safe in the event handler.  You should always select SIGEV_THREAD
- * unless it is not available on the operating system that you are using.
+ * values are SIGEV_THREAD or SIGEV_SIGNAL.  Generally SIGEV_THREAD is a
+ * better choice since SIGEV_SIGNAL limits the maximum number of timers
+ * to the total number of realtime signals for the process.
  */
 
 #if defined(OS_SOLARIS)
@@ -477,6 +529,7 @@ typedef struct {
 
 #if ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
 	int signal_number;
+	MX_THREAD *thread;
 #endif
 
 } MX_POSIX_ITIMER_PRIVATE;
@@ -611,42 +664,181 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 /*---*/
 
-static void
-mx_interval_timer_signal_handler( int signum, siginfo_t *siginfo, void *cruft )
+static mx_status_type
+mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 {
-	static const char fname[] = "mx_interval_timer_signal_handler()";
+	static const char fname[] = "mx_interval_timer_signal_thread()";
 
 	MX_INTERVAL_TIMER *itimer;
+	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
+	sigset_t signal_set;
+	siginfo_t siginfo;
+	int signal_number, status, saved_errno;
+	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked for signal %d", fname, signum));
+	MX_DEBUG(-2,("%s invoked.", fname));
 
-	itimer = (MX_INTERVAL_TIMER *) siginfo->si_value.sival_ptr;
+	itimer = (MX_INTERVAL_TIMER *) args;
 
-	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
-	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
+	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *) itimer->private;
+
+	/* Setup the signal mask that the thread uses. */
+
+	status = sigemptyset( &signal_set );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"A call to sigemptyset() failed with errno = %d, "
+			"error message = '%s'.",
+				saved_errno, strerror(saved_errno) );
+	}
+
+	status = sigaddset( &signal_set, posix_itimer_private->signal_number );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		if ( saved_errno == EINVAL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"sigaddset() says that signal %d is an invalid "
+			"or unsupported signal number.",
+				posix_itimer_private->signal_number );
+		} else {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to add signal %d to the blocked signal set "
+			"with sigaddset().  Errno = %d, error message = '%s'.",
+				posix_itimer_private->signal_number,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
+
+#if 1
+	/* Unblock the signal for this thread. */
+
+	status = pthread_sigmask( SIG_UNBLOCK, &signal_set, NULL );
+
+	if ( status != 0 ) {
+		switch( status ) {
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The first argument to pthread_sigmask() was invalid.");
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to unblock signal %d using pthread_sigmask().  "
+			"Errno = %d, error message = '%s'.",
+				posix_itimer_private->signal_number,
+				status, strerror(status) );
+			break;
+		}
+	}
+#endif
+
+	/* Wait in an infinite loop for signals to arrive. */
+
+	while (1) {
+		MX_DEBUG(-2,("%s: About to invoke sigwaitinfo()", fname));
+
+		signal_number = sigwaitinfo( &signal_set, &siginfo );
+
+		MX_DEBUG(-2,
+		("%s: Returned from sigwaitinfo(), signal_number = %d",
+			fname, signal_number));
+
+		if ( signal_number < 0 ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case ENOSYS:
+				return mx_error( MXE_NOT_AVAILABLE, fname,
+			"sigwaitinfo() is not available on this platform.  "
+			"This means that MX interval timers will not work on "
+			"this platform." );
+				break;
+			case EINTR:
+				return mx_error( MXE_INTERRUPTED, fname,
+			"sigwaitinfo() was interrupted by an unblocked, caught "
+			"signal for interval timer %p (thread %p).",
+					itimer, thread );
+				break;
+			default:
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error code returned by sigwaitinfo() for "
+			"interval timer %p (thread %p).  "
+			"Errno = %d, error message = '%s'.",
+					itimer, thread, saved_errno,
+					strerror( saved_errno ) );
+			}
+		}
+
+		/* Invoke the callback function. */
+
+		MX_DEBUG(-2,("%s: Invoking callback function %p",
 			fname, itimer->callback_function));
 
-	if ( itimer->callback_function != NULL ) {
-		itimer->callback_function( itimer, itimer->callback_args );
+		if ( itimer->callback_function != NULL ) {
+			itimer->callback_function( itimer,
+						itimer->callback_args );
+		}
+
+		/* If this is supposed to be a one-shot timer, then
+		 * make sure that the timer is turned off and then exit.
+		 */
+
+		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+			(void) mx_interval_timer_stop( itimer, NULL );
+
+			/* Get rid of the MX_THREAD structure for this thread.*/
+
+			mx_status = mx_thread_free_data_structures( thread );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+#if 1
+			/* Block the signal again. */
+
+			status = pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
+
+			if ( status != 0 ) {
+				switch( status ) {
+				case EINVAL:
+					return mx_error(
+					    MXE_ILLEGAL_ARGUMENT, fname,
+			"The first argument to pthread_sigmask() was invalid.");
+					break;
+				default:
+					return mx_error(
+					    MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to reblock signal %d using pthread_sigmask().  "
+			"Errno = %d, error message = '%s'.",
+					posix_itimer_private->signal_number,
+						status, strerror(status) );
+					break;
+				}
+			}
+#endif
+
+			/* End the thread by returning to the caller. */
+
+			MX_DEBUG(-2,("%s exiting.", fname));
+	
+			return MX_SUCCESSFUL_RESULT;
+		}
 	}
 
-	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
-		(void) mx_interval_timer_stop( itimer, NULL );
-	}
-
-	MX_DEBUG(-2,("%s complete.", fname));
-
-	return;
+	MX_DEBUG(-2,("%s: Should not get here.", fname));
+	
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
 mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 				MX_POSIX_ITIMER_PRIVATE *posix_itimer_private )
 {
-	static const char fname[] = "mx_interval_timer_create_event_handler()";
-
-	struct sigaction sa;
-	int status, saved_errno;
 	mx_status_type mx_status;
 
 	if ( mx_signals_are_initialized() == FALSE ) {
@@ -668,19 +860,18 @@ mx_interval_timer_create_event_handler( MX_INTERVAL_TIMER *itimer,
 	posix_itimer_private->evp.sigev_signo =
 					posix_itimer_private->signal_number;
 
-	sa.sa_flags = SA_SIGINFO;
-	sa.sa_sigaction = mx_interval_timer_signal_handler;
+	/* It is not necessary to install a signal handler here, since that
+	 * will already have been done for us by mx_signal_initialize().
+	 */
 
-	status = sigaction( posix_itimer_private->signal_number, &sa, NULL );
+	/* Create a thread to service the signals. */
 
-	if ( status != 0 ) {
-		saved_errno = errno;
+	mx_status = mx_thread_create( &(posix_itimer_private->thread),
+					mx_interval_timer_signal_thread,
+					itimer );
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to setup signal handler with sigaction().  "
-			"Errno = %d, error message = '%s'.",
-				saved_errno, strerror(saved_errno) );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -697,7 +888,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 }
 
 #else
-#error MX_SIGEV_TYPE must be either SIGEV_THREAD or SIGEV_SIGNAL.  SIGEV_THREAD is by far the better choice.
+#error MX_SIGEV_TYPE must be either SIGEV_THREAD or SIGEV_SIGNAL.  If available, SIGEV_THREAD is usually the better choice.
 #endif /* MX_SIGEV_TYPE */
 
 /*--------------------------------------------------------------------------*/

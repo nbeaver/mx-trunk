@@ -20,11 +20,13 @@
 #include <signal.h>
 #include <errno.h>
 
+#include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_driver.h"
 #include "mx_array.h"
 #include "mx_handle.h"
+#include "mx_signal.h"
 #include "mx_list_head.h"
 #include "mx_net.h"
 
@@ -289,7 +291,7 @@ mx_delete_record( MX_RECORD *record )
 	MX_RECORD_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
 	long i, num_parent_records;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -366,11 +368,11 @@ mx_delete_record( MX_RECORD *record )
 
 			parent_record = record->parent_record_array[0];
 
-			status = mx_delete_parent_dependency(
+			mx_status = mx_delete_parent_dependency(
 					record, TRUE, parent_record );
 
-			if ( status.code != MXE_SUCCESS )
-					return status;
+			if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 		}
 	}
 
@@ -390,10 +392,10 @@ mx_delete_record( MX_RECORD *record )
 	 */
 
 	if ( list_head_struct->fixup_records_in_use ) {
-		status = mx_delete_placeholders( record, list_head_struct );
+		mx_status = mx_delete_placeholders( record, list_head_struct );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Decrement the number of records in the record list. */
@@ -425,9 +427,9 @@ mx_delete_record( MX_RECORD *record )
 	fptr = flist->delete_record;
 
 	if ( fptr == NULL ) {
-		status = mx_default_delete_record_handler( record );
+		mx_status = mx_default_delete_record_handler( record );
 	} else {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
 		/* Question to ponder: Should a failure of the
 		 * 'delete_record' function stop us from removing
@@ -483,7 +485,7 @@ mx_delete_placeholders( MX_RECORD *record, MX_LIST_HEAD *list_head )
 
 	long i, num_record_fields;
 	MX_RECORD_FIELD *record_field_array, *record_field;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 8,("*** %s invoked for record '%s' ***",
 			fname, record->name));
@@ -509,14 +511,14 @@ mx_delete_placeholders( MX_RECORD *record, MX_LIST_HEAD *list_head )
 
 				break;
 			default:
-				status = mx_traverse_field( record,
+				mx_status = mx_traverse_field( record,
 						record_field,
 						mx_delete_placeholder_handler,
 						list_head,
 						NULL );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
 				break;
 			}
@@ -639,7 +641,7 @@ mx_insert_before_record( MX_RECORD *current_record, MX_RECORD *new_record )
 	static const char fname[] = "mx_insert_before_record()";
 
 	MX_RECORD *previous_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( current_record == (MX_RECORD *) NULL) {
 		previous_record = (MX_RECORD *) NULL;
@@ -652,9 +654,9 @@ mx_insert_before_record( MX_RECORD *current_record, MX_RECORD *new_record )
 				current_record );
 		}
 	}
-	status = mx_insert_after_record( previous_record, new_record );
+	mx_status = mx_insert_after_record( previous_record, new_record );
 
-	return status;
+	return mx_status;
 }
 
 /* mx_insert_after_record() adds a record to the list just after the one
@@ -756,11 +758,11 @@ mx_get_record( MX_RECORD *specified_record, char *record_name )
 MX_EXPORT mx_status_type
 mx_delete_record_list( MX_RECORD *record_list )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_delete_record_class( record_list, MXR_ANY );
+	mx_status = mx_delete_record_class( record_list, MXR_ANY );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -772,7 +774,7 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 	MX_RECORD *next_record;
 	MX_RECORD *last_record;
 	long current_record_class;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record_list == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -795,7 +797,7 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 		    "This shouldn't happen." );
 	}
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	/* Traverse the list until we reach the end. */
 
@@ -806,10 +808,10 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 		/* Delete the record if the record class matches. */
 
 		if ( current_record_class & record_class ) {
-			status = mx_delete_record( current_record );
+			mx_status = mx_delete_record( current_record );
 
-			if ( status.code != MXE_SUCCESS ) {
-				return status;
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return mx_status;
 			}
 		}
 
@@ -828,14 +830,14 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 	current_record_class = current_record->mx_class;
 
 	if ( current_record_class & record_class ) {
-		status = mx_delete_record( current_record );
+		mx_status = mx_delete_record( current_record );
 
-		if ( status.code != MXE_SUCCESS ) {
-			return status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
 		}
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT MX_RECORD *
@@ -888,13 +890,13 @@ mx_initialize_drivers( void )
 	MX_RECORD_FIELD_DEFAULTS *array_element;
 	MX_RECORD_FUNCTION_LIST *flist_ptr;
 	mx_status_type (*fptr) ( long );
-	mx_status_type status;
+	mx_status_type mx_status;
 	long *num_record_fields_ptr;
 	long i, j, num_record_fields;
 
 	MX_DEBUG( 6,("%s invoked.", fname));
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	/* Go through the list of compiled in drivers. */
 
@@ -926,7 +928,7 @@ mx_initialize_drivers( void )
 				    *(list_ptr->num_record_fields),
 				    *(list_ptr->record_field_defaults_ptr)));
 
-				status
+				mx_status
 				    = mx_setup_typeinfo_for_record_type_fields(
 					*(list_ptr->num_record_fields),
 					*(list_ptr->record_field_defaults_ptr),
@@ -934,8 +936,8 @@ mx_initialize_drivers( void )
 					list_ptr->mx_class,
 					list_ptr->mx_superclass );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 
 			/* Next, do type specific initialization. */
@@ -955,10 +957,10 @@ mx_initialize_drivers( void )
 				/* If all is well, invoke the function. */
 
 				if ( fptr != NULL ) {
-					status = (*fptr)( list_ptr->mx_type );
+					mx_status = (*fptr)( list_ptr->mx_type );
 
-					if ( status.code != MXE_SUCCESS )
-						return status;
+					if ( mx_status.code != MXE_SUCCESS )
+						return mx_status;
 				}
 			}
 
@@ -985,7 +987,7 @@ mx_initialize_drivers( void )
 
 	MX_DEBUG( 6,("%s done.", fname));
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1002,7 +1004,7 @@ mx_read_database_file( MX_RECORD *record_list_head,
 	size_t length;
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char token[ MXU_FILENAME_LENGTH + 1 ];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
@@ -1076,32 +1078,32 @@ mx_read_database_file( MX_RECORD *record_list_head,
 			 * it is the !include statement.
 			 */
 
-			status = mx_get_next_record_token( &parse_status,
+			mx_status = mx_get_next_record_token( &parse_status,
 						token, sizeof( token ) );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			/* The next token should be the include file name
 			 * that we are looking for.
 			 */
 
-			status = mx_get_next_record_token( &parse_status,
+			mx_status = mx_get_next_record_token( &parse_status,
 						token, sizeof( token ) );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			MX_DEBUG( 2,("%s: Trying to read include file '%s'",
 				fname, token));
 
 			/* Try to read the include file. */
 
-			status = mx_read_database_file( record_list_head,
+			mx_status = mx_read_database_file( record_list_head,
 						token, flags );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			MX_DEBUG( 2,("%s: Successfully read include file '%s'",
 				fname, token));
@@ -1110,14 +1112,14 @@ mx_read_database_file( MX_RECORD *record_list_head,
 			 * record description and try to parse it.
 			 */
 
-			status = mx_create_record_from_description(
+			mx_status = mx_create_record_from_description(
 					record_list_head, buffer,
 					&created_record, flags );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 			    if ( (flags & MXFC_DELETE_BROKEN_RECORDS) == 0 ) {
 
-				return status;
+				return mx_status;
 
 			    } else {
 				if ( created_record == (MX_RECORD *) NULL ) {
@@ -1164,7 +1166,7 @@ mx_finish_record_initialization( MX_RECORD *record )
 	MX_RECORD_ARRAY_DEPENDENCY_STRUCT dependency_struct;
 	mx_status_type ( *fptr )( MX_RECORD * );
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 6,("%s: *** Record '%s' ***", fname, record->name));
 
@@ -1184,10 +1186,10 @@ mx_finish_record_initialization( MX_RECORD *record )
 	fptr = flist->finish_record_initialization;
 
 	if ( fptr != NULL ) {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Now that the device specific initialization has finished,
@@ -1215,12 +1217,12 @@ mx_finish_record_initialization( MX_RECORD *record )
 				dependency_struct.dependency_is_to_parent
 								= TRUE;
 
-				status = mx_traverse_field( record, field,
+				mx_status = mx_traverse_field( record, field,
 					    mx_record_array_dependency_handler,
 					    &dependency_struct, NULL );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
 				break;
 			}
@@ -1237,7 +1239,7 @@ mx_finish_database_initialization( MX_RECORD *record_list_head )
 
 	MX_RECORD *current_record, *next_record;
 	MX_LIST_HEAD *list_head_struct;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -1260,10 +1262,10 @@ mx_finish_database_initialization( MX_RECORD *record_list_head )
 	 * function mx_fixup_placeholder_records() does.
 	 */
 
-	status = mx_fixup_placeholder_records( record_list_head );
+	mx_status = mx_fixup_placeholder_records( record_list_head );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Finally, we invoke the "finish_record_initialization"
 	 * function for all of the records to allow them to perform
@@ -1294,27 +1296,27 @@ mx_finish_database_initialization( MX_RECORD *record_list_head )
 			mx_warning( "Deleting broken record '%s'.",
 				current_record->name );
 
-			status = mx_delete_record( current_record );
+			mx_status = mx_delete_record( current_record );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		} else {
-			status =
+			mx_status =
 			    mx_finish_record_initialization( current_record );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 			    if ( current_record->mx_superclass != MXR_SCAN ) {
 
-				return status;
+				return mx_status;
 
 			    } else {
 				mx_warning( "Deleting broken scan record '%s'.",
 					current_record->name );
 
-				status = mx_delete_record( current_record );
+				mx_status = mx_delete_record( current_record );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			    }
 			}
 		}
@@ -1344,7 +1346,7 @@ mx_write_database_file( MX_RECORD *record_list, char *filename,
 	char buffer[MXU_RECORD_DESCRIPTION_LENGTH+1];
 	int superclass_is_a_match, saved_errno;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 7, ("%s invoked.  Filename = '%s'", fname, filename));
 
@@ -1391,10 +1393,10 @@ mx_write_database_file( MX_RECORD *record_list, char *filename,
 
 		if ( superclass_is_a_match == TRUE ) {
 
-			status = mx_create_description_from_record(
+			mx_status = mx_create_description_from_record(
 				current_record, buffer, sizeof buffer );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_error( MXE_FUNCTION_FAILED, fname,
 			    "Couldn't format output string for record '%s'",
 					current_record->name );
@@ -1422,7 +1424,7 @@ mx_initialize_hardware( MX_RECORD *record_list_head, int inithw_flags )
 	static const char fname[] = "mx_initialize_hardware()";
 
 	MX_RECORD *current_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 7,("%s invoked.", fname));
 
@@ -1453,12 +1455,12 @@ mx_initialize_hardware( MX_RECORD *record_list_head, int inithw_flags )
 			mx_info( "Opening record '%s'.", current_record->name );
 		}
 
-		status = mx_open_hardware( current_record );
+		mx_status = mx_open_hardware( current_record );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 
 			if ( inithw_flags & MXF_INITHW_ABORT_ON_FAULT ) {
-				return status;
+				return mx_status;
 			} else {
 				current_record->record_flags |= MXF_REC_FAULTED;
 			}
@@ -1481,14 +1483,14 @@ mx_initialize_hardware( MX_RECORD *record_list_head, int inithw_flags )
 
 		if ( (current_record->record_flags & MXF_REC_FAULTED) == 0 ) {
 
-			status = mx_finish_delayed_initialization(
+			mx_status = mx_finish_delayed_initialization(
 							current_record );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 
 				if ( inithw_flags & MXF_INITHW_ABORT_ON_FAULT )
 				{
-					return status;
+					return mx_status;
 				} else {
 					current_record->record_flags
 						|= MXF_REC_FAULTED;
@@ -1506,7 +1508,7 @@ mx_shutdown_hardware( MX_RECORD *record_list_head )
 	static const char fname[] = "mx_shutdown_hardware()";
 
 	MX_RECORD *current_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 7,
 		("mx_shutdown_hardware() invoked.  record list head = 0x%p",
@@ -1543,10 +1545,10 @@ mx_shutdown_hardware( MX_RECORD *record_list_head )
 
 		MX_DEBUG(7, ("record name = '%s'", current_record->name) );
 
-		status = mx_close_hardware( current_record );
+		mx_status = mx_close_hardware( current_record );
 
-		if ( status.code != MXE_SUCCESS ) {
-			return status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
 		}
 
 		current_record = current_record->previous_record;
@@ -1568,7 +1570,7 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 {
 	static const char fname[] = "mx_setup_database()";
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record_list == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1591,8 +1593,15 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 	 * failed write.
 	 */
 
-#ifdef SIGPIPE
+#if defined( SIGPIPE )
 	signal( SIGPIPE, SIG_IGN );
+#endif
+
+#if defined( _POSIX_REALTIME_SIGNALS )
+	mx_status = mx_signal_initialize();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 #endif
 
 	/* Set the MX debugging level to zero. */
@@ -1609,10 +1618,10 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 
 	/* Initialize the MX device drivers. */
 
-	status = mx_initialize_drivers();
+	mx_status = mx_initialize_drivers();
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Create a new record list. */
 
@@ -1625,19 +1634,19 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 
 	/* Read in the database and initialize the corresponding hardware. */
 
-	status = mx_read_database_file( *record_list, filename, 0 );
+	mx_status = mx_read_database_file( *record_list, filename, 0 );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_finish_database_initialization( *record_list );
+	mx_status = mx_finish_database_initialization( *record_list );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_initialize_hardware( *record_list, 0 );
+	mx_status = mx_initialize_hardware( *record_list, 0 );
 
-	return status;
+	return mx_status;
 }
 
 /* ========= */
@@ -1712,7 +1721,7 @@ mx_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( FILE *, MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("mx_print_structure() invoked for record '%s'",
 		record->name) );
@@ -1743,9 +1752,9 @@ mx_print_structure( FILE *file, MX_RECORD *record )
 
 	/* Invoke the function. */
 
-	status = (*fptr)( file, record );
+	mx_status = (*fptr)( file, record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1755,7 +1764,7 @@ mx_read_parms_from_hardware( MX_RECORD *record )
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(7, ("mx_read_parms_from_hardware() invoked for record '%s'",
 		record->name) );
@@ -1777,9 +1786,9 @@ mx_read_parms_from_hardware( MX_RECORD *record )
 	if ( fptr == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
-		return status;
+		return mx_status;
 	}
 }
 	
@@ -1846,7 +1855,7 @@ mx_close_hardware( MX_RECORD *record )
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(7, ("%s invoked for record '%s'", fname, record->name) );
 
@@ -1867,9 +1876,9 @@ mx_close_hardware( MX_RECORD *record )
 	if ( fptr == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
-		return status;
+		return mx_status;
 	}
 }
 
@@ -1880,7 +1889,7 @@ mx_finish_delayed_initialization( MX_RECORD *record )
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1899,9 +1908,9 @@ mx_finish_delayed_initialization( MX_RECORD *record )
 	if ( fptr == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
-		return status;
+		return mx_status;
 	}
 }
 
@@ -1912,7 +1921,7 @@ mx_resynchronize_record( MX_RECORD *record )
 
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1931,9 +1940,9 @@ mx_resynchronize_record( MX_RECORD *record )
 	if ( fptr == NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	} else {
-		status = (*fptr)( record );
+		mx_status = (*fptr)( record );
 
-		return status;
+		return mx_status;
 	}
 }
 
@@ -1951,7 +1960,7 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 	MX_RECORD *dependent_record;
 	MX_INTERFACE *interface;
 	void *value_ptr;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( dimension_level > 0 ) {
 
@@ -1995,23 +2004,23 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 	if ( dependency_struct->add_dependency ) {
 		if ( dependency_struct->dependency_is_to_parent ) {
 
-			status = mx_add_parent_dependency( record, TRUE,
+			mx_status = mx_add_parent_dependency( record, TRUE,
 							dependent_record );
 		} else {
-			status = mx_add_child_dependency( record, TRUE,
+			mx_status = mx_add_child_dependency( record, TRUE,
 							dependent_record );
 		}
 	} else {
 		if ( dependency_struct->dependency_is_to_parent ) {
 
-			status = mx_delete_parent_dependency( record, TRUE,
+			mx_status = mx_delete_parent_dependency( record, TRUE,
 							dependent_record );
 		} else {
-			status = mx_delete_child_dependency( record, TRUE,
+			mx_status = mx_delete_child_dependency( record, TRUE,
 							dependent_record );
 		}
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2026,7 +2035,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 	long old_num_parent_records, new_num_parent_records;
 	long old_num_parent_array_blocks, new_num_parent_array_blocks;
 	long i, new_num_parent_array_elements;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( current_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2046,11 +2055,11 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_find_record_field( current_record, "parent_record_array",
+	mx_status = mx_find_record_field( current_record, "parent_record_array",
 					&parent_record_array_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* How many parent records are there currently? */
 
@@ -2130,11 +2139,11 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 		parent_record_array[old_num_parent_records]));
 
 	if ( add_child_pointer_in_parent ) {
-		status = mx_add_child_dependency( parent_record, FALSE,
+		mx_status = mx_add_child_dependency( parent_record, FALSE,
 						current_record );
 
-		if ( status.code != MXE_SUCCESS ) {
-			return status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
 		}
 	}
 
@@ -2164,7 +2173,7 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 	long old_num_parent_records, new_num_parent_records;
 	long old_num_parent_array_blocks, new_num_parent_array_blocks;
 	long i, j, new_num_parent_array_elements;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( current_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2184,11 +2193,11 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_find_record_field( current_record, "parent_record_array",
+	mx_status = mx_find_record_field( current_record, "parent_record_array",
 					&parent_record_array_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* How many parent records are there currently? */
 
@@ -2238,11 +2247,11 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 		if ( parent_record_array[i] == parent_record ) {
 
 			if ( delete_child_pointer_in_parent ) {
-				status = mx_delete_child_dependency(
+				mx_status = mx_delete_child_dependency(
 					parent_record, FALSE, current_record );
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 			}
 
@@ -2331,7 +2340,7 @@ mx_add_child_dependency(MX_RECORD *current_record,
 	long old_num_child_records, new_num_child_records;
 	long old_num_child_array_blocks, new_num_child_array_blocks;
 	long i, new_num_child_array_elements;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( current_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2351,11 +2360,11 @@ mx_add_child_dependency(MX_RECORD *current_record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_find_record_field( current_record, "child_record_array",
+	mx_status = mx_find_record_field( current_record, "child_record_array",
 					&child_record_array_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* How many child records are there currently? */
 
@@ -2427,11 +2436,11 @@ mx_add_child_dependency(MX_RECORD *current_record,
 	child_record_array[ old_num_child_records ] = child_record;
 
 	if ( add_parent_pointer_in_child ) {
-		status = mx_add_parent_dependency( child_record, FALSE,
+		mx_status = mx_add_parent_dependency( child_record, FALSE,
 						current_record );
 
-		if ( status.code != MXE_SUCCESS ) {
-			return status;
+		if ( mx_status.code != MXE_SUCCESS ) {
+			return mx_status;
 		}
 	}
 
@@ -2461,7 +2470,7 @@ mx_delete_child_dependency(MX_RECORD *current_record,
 	long old_num_child_records, new_num_child_records;
 	long old_num_child_array_blocks, new_num_child_array_blocks;
 	long i, j, new_num_child_array_elements;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( current_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2481,11 +2490,11 @@ mx_delete_child_dependency(MX_RECORD *current_record,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_find_record_field( current_record, "child_record_array",
+	mx_status = mx_find_record_field( current_record, "child_record_array",
 					&child_record_array_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* How many child records are there currently? */
 
@@ -2535,12 +2544,12 @@ mx_delete_child_dependency(MX_RECORD *current_record,
 		if ( child_record_array[i] == child_record ) {
 
 			if ( delete_parent_pointer_in_child ) {
-				status = mx_delete_parent_dependency(
+				mx_status = mx_delete_parent_dependency(
 						child_record, FALSE,
 						current_record );
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 			}
 
