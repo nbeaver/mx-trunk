@@ -939,6 +939,211 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	return;
 }
 
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
+{
+	static const char fname[] = "mx_tls_alloc()";
+
+	DWORD *tls_index_ptr;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	*key = (MX_THREAD_LOCAL_STORAGE *)
+			malloc( sizeof(MX_THREAD_LOCAL_STORAGE) );
+
+	if ( (*key) == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate an MX_THREAD_LOCAL_STORAGE structure." );
+	}
+
+	tls_index_ptr = (DWORD *) malloc( sizeof(DWORD) );
+
+	if ( tls_index_ptr == (DWORD *) NULL ) {
+		mx_free( *key );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate a TLS index object." );
+	}
+
+	*tls_index_ptr = TlsAlloc();
+
+	if ( (*tls_index_ptr) == TLS_OUT_OF_INDEXES ) {
+		last_error_code = GetLastError();
+
+		mx_free( *key );
+		mx_free( tls_index_ptr );
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to create a new Thread Local Storage index.  "
+			"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+	(*key)->tls_private = tls_index_ptr;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_free()";
+
+	DWORD *tls_index_ptr;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	BOOL status;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	tls_index_ptr = (DWORD *) key->tls_private;
+
+	if ( tls_index_ptr == (DWORD *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			 "The Win32 Thread Local Storage index pointer for "
+			"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+	} else {
+		status = TlsFree( *tls_index_ptr );
+
+		if ( status != 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to free Thread Local Storage "
+				"index %ld.  Win32 error code = %ld, "
+				"error message = '%s'.",
+					*tls_index_ptr,
+					last_error_code, message_buffer );
+		}
+		mx_free( tls_index_ptr );
+	}
+	mx_free( key );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void *
+mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_get_value()";
+
+	DWORD *tls_index_ptr;
+	void *result;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	tls_index_ptr = (DWORD *) key->tls_private;
+
+	if ( tls_index_ptr == (DWORD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Thread Local Storage index pointer for "
+		"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+
+		return NULL;
+	}
+
+	result = TlsGetValue( *tls_index_ptr );
+
+	if ( result == 0 ) {
+
+		/* It is OK to store a 0 into a TLS key, so the only way to
+		 * distinguish this from an error is to see if GetLastError()
+		 * returns ERROR_SUCCESS, which means there was no error.
+		 */
+
+		last_error_code = GetLastError();
+
+		if ( last_error_code != ERROR_SUCCESS ) {
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to get the value from Thread Local "
+				"Storage index %ld.  Win32 error code = %ld, "
+				"error message = '%s'.",
+					*tls_index_ptr,
+					last_error_code, message_buffer );
+
+			return NULL;
+		}
+	}
+
+	return result;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
+{
+	static const char fname[] = "mx_tls_set_value()";
+
+	DWORD *tls_index_ptr;
+	BOOL status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	tls_index_ptr = (DWORD *) key->tls_private;
+
+	if ( tls_index_ptr == (DWORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Thread Local Storage index pointer for "
+		"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+	}
+
+	status = TlsSetValue( *tls_index_ptr, value );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to set the value of Thread Local Storage "
+			"index %ld.  Win32 error code = %ld, "
+			"error message = '%s'.",
+			*tls_index_ptr, last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*********************** Posix Pthreads **********************/
 
 #elif defined(_POSIX_THREADS)
@@ -1643,7 +1848,7 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 {
 	static const char fname[] = "mx_tls_alloc()";
 
-	pthread_key_t *pthread_key;
+	pthread_key_t *pthread_key_ptr;
 	int status;
 
 	if ( key == (MX_THREAD_LOCAL_STORAGE **) NULL ) {
@@ -1659,20 +1864,20 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 		"Unable to allocate an MX_THREAD_LOCAL_STORAGE structure." );
 	}
 
-	pthread_key = (pthread_key_t *) malloc( sizeof(pthread_key_t) );
+	pthread_key_ptr = (pthread_key_t *) malloc( sizeof(pthread_key_t) );
 
-	if ( pthread_key == (pthread_key_t *) NULL ) {
+	if ( pthread_key_ptr == (pthread_key_t *) NULL ) {
 		mx_free( *key );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate a pthread_key_t object." );
 	}
 
-	status = pthread_key_create( pthread_key, NULL );
+	status = pthread_key_create( pthread_key_ptr, NULL );
 
 	if ( status != 0 ) {
 		mx_free( *key );
-		mx_free( pthread_key );
+		mx_free( pthread_key_ptr );
 
 		switch( status ) {
 		case EAGAIN:
@@ -1696,7 +1901,7 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 		}
 	}
 
-	(*key)->tls_private = pthread_key;
+	(*key)->tls_private = pthread_key_ptr;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1708,7 +1913,7 @@ mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
 {
 	static const char fname[] = "mx_tls_free()";
 
-	pthread_key_t *pthread_key;
+	pthread_key_t *pthread_key_ptr;
 	int status;
 	mx_status_type mx_status;
 
@@ -1719,14 +1924,14 @@ mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
 		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
 	}
 
-	pthread_key = (pthread_key_t *) key->tls_private;
+	pthread_key_ptr = (pthread_key_t *) key->tls_private;
 
-	if ( pthread_key == (pthread_key_t *) NULL ) {
+	if ( pthread_key_ptr == (pthread_key_t *) NULL ) {
 		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			 "The Pthread key pointer for "
 			"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
 	} else {
-		status = pthread_key_delete( *pthread_key );
+		status = pthread_key_delete( *pthread_key_ptr );
 
 		switch( status ) {
 		case 0:
@@ -1735,7 +1940,7 @@ mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
 		case EINVAL:
 			mx_status = mx_error( MXE_NOT_FOUND, fname,
 			"The specified Pthread key %lu did not exist.",
-				(unsigned long) *pthread_key );
+				(unsigned long) *pthread_key_ptr );
 			break;
 		default:
 			mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
@@ -1744,7 +1949,7 @@ mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
 				status, strerror(status) );
 			break;
 		}
-		mx_free( pthread_key );
+		mx_free( pthread_key_ptr );
 	}
 	mx_free( key );
 
@@ -1758,7 +1963,7 @@ mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
 {
 	static const char fname[] = "mx_tls_get_value()";
 
-	pthread_key_t *pthread_key;
+	pthread_key_t *pthread_key_ptr;
 	void *result;
 
 	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
@@ -1768,9 +1973,9 @@ mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
 		return NULL;
 	}
 
-	pthread_key = (pthread_key_t *) key->tls_private;
+	pthread_key_ptr = (pthread_key_t *) key->tls_private;
 
-	if ( pthread_key == (pthread_key_t *) NULL ) {
+	if ( pthread_key_ptr == (pthread_key_t *) NULL ) {
 		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The Pthread key pointer for MX_THREAD_LOCAL_STORAGE "
 		"pointer %p was NULL.", key );
@@ -1778,7 +1983,7 @@ mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
 		return NULL;
 	}
 
-	result = pthread_getspecific( *pthread_key );
+	result = pthread_getspecific( *pthread_key_ptr );
 
 	return result;
 }
@@ -1790,7 +1995,7 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 {
 	static const char fname[] = "mx_tls_set_value()";
 
-	pthread_key_t *pthread_key;
+	pthread_key_t *pthread_key_ptr;
 	int status;
 
 	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
@@ -1798,15 +2003,15 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
 	}
 
-	pthread_key = (pthread_key_t *) key->tls_private;
+	pthread_key_ptr = (pthread_key_t *) key->tls_private;
 
-	if ( pthread_key == (pthread_key_t *) NULL ) {
+	if ( pthread_key_ptr == (pthread_key_t *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The Pthread key pointer for MX_THREAD_LOCAL_STORAGE "
 		"pointer %p was NULL.", key );
 	}
 
-	status = pthread_setspecific( *pthread_key, value );
+	status = pthread_setspecific( *pthread_key_ptr, value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
