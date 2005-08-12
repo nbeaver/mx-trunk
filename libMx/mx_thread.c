@@ -1636,6 +1636,181 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 	return;
 }
 
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
+{
+	static const char fname[] = "mx_tls_alloc()";
+
+	pthread_key_t *pthread_key;
+	int status;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	*key = (MX_THREAD_LOCAL_STORAGE *)
+			malloc( sizeof(MX_THREAD_LOCAL_STORAGE) );
+
+	if ( (*key) == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate an MX_THREAD_LOCAL_STORAGE structure." );
+	}
+
+	pthread_key = (pthread_key_t *) malloc( sizeof(pthread_key_t) );
+
+	if ( pthread_key == (pthread_key_t *) NULL ) {
+		mx_free( *key );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate a pthread_key_t object." );
+	}
+
+	status = pthread_key_create( pthread_key, NULL );
+
+	if ( status != 0 ) {
+		mx_free( *key );
+		mx_free( pthread_key );
+
+		switch( status ) {
+		case EAGAIN:
+
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Unable to create a Pthread key since either the system "
+		"lacked the necessary resources to create the key or the "
+		"PTHREAD_KEYS_MAX limit on the total number of keys per "
+		"process has been exceeded." );
+			break;
+		case ENOMEM:
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Insufficient memory available to create a new Pthread key." );
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error returned by pthread_key_create().  "
+			"Status = %d, error message = '%s'.",
+				status, strerror(status) );
+			break;
+		}
+	}
+
+	(*key)->tls_private = pthread_key;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_free()";
+
+	pthread_key_t *pthread_key;
+	int status;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	pthread_key = (pthread_key_t *) key->tls_private;
+
+	if ( pthread_key == (pthread_key_t *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			 "The Pthread key pointer for "
+			"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+	} else {
+		status = pthread_key_delete( *pthread_key );
+
+		switch( status ) {
+		case 0:
+			/* Success */
+			break;
+		case EINVAL:
+			mx_status = mx_error( MXE_NOT_FOUND, fname,
+			"The specified Pthread key %lu did not exist.",
+				(unsigned long) *pthread_key );
+			break;
+		default:
+			mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error returned by pthread_key_delete().  "
+			"Status = %d, error message = '%s'.",
+				status, strerror(status) );
+			break;
+		}
+		mx_free( pthread_key );
+	}
+	mx_free( key );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void *
+mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_get_value()";
+
+	pthread_key_t *pthread_key;
+	void *result;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	pthread_key = (pthread_key_t *) key->tls_private;
+
+	if ( pthread_key == (pthread_key_t *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Pthread key pointer for MX_THREAD_LOCAL_STORAGE "
+		"pointer %p was NULL.", key );
+
+		return NULL;
+	}
+
+	result = pthread_getspecific( *pthread_key );
+
+	return result;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
+{
+	static const char fname[] = "mx_tls_set_value()";
+
+	pthread_key_t *pthread_key;
+	int status;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	pthread_key = (pthread_key_t *) key->tls_private;
+
+	if ( pthread_key == (pthread_key_t *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Pthread key pointer for MX_THREAD_LOCAL_STORAGE "
+		"pointer %p was NULL.", key );
+	}
+
+	status = pthread_setspecific( *pthread_key, value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*-------------------------------------------------------------------------*/
 
 #else

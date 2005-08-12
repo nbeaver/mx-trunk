@@ -68,6 +68,24 @@ MX_API mx_status_type mx_get_current_thread( MX_THREAD **thread );
 
 MX_API void mx_show_thread_info( MX_THREAD *thread, char *message );
 
+/*---*/
+
+/* Functions for Thread Local Storage (aka Thread Specific Data, etc.). */
+
+typedef struct {
+	void *tls_private;
+} MX_THREAD_LOCAL_STORAGE;
+
+MX_API mx_status_type mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key );
+
+MX_API mx_status_type mx_tls_free( MX_THREAD_LOCAL_STORAGE *key );
+
+MX_API void *mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key );
+
+MX_API mx_status_type mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key,
+							void *value );
+
+/*---*/
 
 #if defined(OS_WIN32)
 MX_API mx_status_type mx_win32_thread_get_handle_and_id( MX_THREAD *thread );
