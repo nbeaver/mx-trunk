@@ -70,6 +70,8 @@
  *
  */
 
+#define MX_INTERVAL_TIMER_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -114,9 +116,11 @@ mx_interval_timer_thread_handler( UINT timer_id,
 		return;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
 	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
 			fname, itimer->callback_function));
+#endif
 
 	/* Setup an MX_THREAD structure for this thread. */
 
@@ -156,7 +160,9 @@ mx_interval_timer_thread_handler( UINT timer_id,
 
 	/* End the thread by returning to the caller. */
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return;
 }
@@ -174,10 +180,12 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	MX_WIN32_MMTIMER_PRIVATE *win32_mmtimer_private;
 	MMRESULT result;
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for Win32 multimedia timers.", fname));
 	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
 	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
 	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
 
 	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -201,7 +209,9 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
 
 	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *)
 				malloc( sizeof(MX_WIN32_MMTIMER_PRIVATE) );
@@ -211,8 +221,10 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for a MX_WIN32_MMTIMER_PRIVATE structure." );
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: win32_mmtimer_private = %p",
 			fname, win32_mmtimer_private));
+#endif
 
 	(*itimer)->timer_type = timer_type;
 	(*itimer)->timer_period = -1.0;
@@ -587,9 +599,11 @@ mx_interval_timer_thread_handler( union sigval sigev_value )
 		return;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
 	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
 			fname, itimer->callback_function));
+#endif
 
 	/* Setup an MX_THREAD structure for this thread. */
 
@@ -626,7 +640,9 @@ mx_interval_timer_thread_handler( union sigval sigev_value )
 
 	/* End the thread by returning to the caller. */
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return;
 }
@@ -676,7 +692,9 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 	int signal_number, status, saved_errno;
 	mx_status_type mx_status;
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	itimer = (MX_INTERVAL_TIMER *) args;
 
@@ -739,13 +757,18 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 	/* Wait in an infinite loop for signals to arrive. */
 
 	while (1) {
+
+#if MX_INTERVAL_TIMER_DEBUG
 		MX_DEBUG(-2,("%s: About to invoke sigwaitinfo()", fname));
+#endif
 
 		signal_number = sigwaitinfo( &signal_set, &siginfo );
 
+#if MX_INTERVAL_TIMER_DEBUG
 		MX_DEBUG(-2,
 		("%s: Returned from sigwaitinfo(), signal_number = %d",
 			fname, signal_number));
+#endif
 
 		if ( signal_number < 0 ) {
 			saved_errno = errno;
@@ -776,8 +799,10 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 
 		/* Invoke the callback function. */
 
+#if MX_INTERVAL_TIMER_DEBUG
 		MX_DEBUG(-2,("%s: Invoking callback function %p",
 			fname, itimer->callback_function));
+#endif
 
 		if ( itimer->callback_function != NULL ) {
 			itimer->callback_function( itimer,
@@ -824,7 +849,9 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 
 			/* End the thread by returning to the caller. */
 
+#if MX_INTERVAL_TIMER_DEBUG
 			MX_DEBUG(-2,("%s exiting.", fname));
+#endif
 	
 			return MX_SUCCESSFUL_RESULT;
 		}
@@ -905,10 +932,12 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	int status, saved_errno;
 	mx_status_type mx_status;
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for POSIX realtime timers.", fname));
 	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
 	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
 	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
 
 	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -932,7 +961,9 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
 
 	posix_itimer_private = (MX_POSIX_ITIMER_PRIVATE *)
 				malloc( sizeof(MX_POSIX_ITIMER_PRIVATE) );
@@ -1350,7 +1381,9 @@ mx_interval_timer_signal_handler( int signum )
 
 	(void) mx_mutex_unlock( mx_setitimer_mutex );
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
+#endif
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		mx_warning(
@@ -1360,8 +1393,10 @@ mx_interval_timer_signal_handler( int signum )
 		return;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: itimer->callback_function = %p",
 		fname, itimer->callback_function));
+#endif
 
 	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
 		RELEASE_SETITIMER_INTERVAL_TIMER;
@@ -1371,7 +1406,9 @@ mx_interval_timer_signal_handler( int signum )
 		itimer->callback_function( itimer, itimer->callback_args );
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 }
 
 /*--------------------------------------------------------------------------*/
@@ -1387,10 +1424,12 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	MX_SETITIMER_PRIVATE *setitimer_private;
 	mx_status_type mx_status;
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for BSD setitimer timers.", fname));
 	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
 	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
 	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
 
 	if ( mx_setitimer_mutex == NULL ) {
 		mx_status = mx_mutex_create( &mx_setitimer_mutex, 0 );
@@ -1421,7 +1460,9 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
 
 	setitimer_private = (MX_SETITIMER_PRIVATE *)
 				malloc( sizeof(MX_SETITIMER_PRIVATE) );
@@ -1431,7 +1472,9 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for a MX_SETITIMER_PRIVATE structure." );
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: setitimer_private = %p", fname, setitimer_private));
+#endif
 
 	(*itimer)->timer_type = timer_type;
 	(*itimer)->timer_period = -1.0;
