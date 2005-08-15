@@ -29,7 +29,7 @@
 #include <windows.h>
 
 MX_EXPORT mx_status_type
-mx_mutex_create( MX_MUTEX **mutex, int type )
+mx_mutex_create( MX_MUTEX **mutex )
 {
 	static const char fname[] = "mx_mutex_create()";
 
@@ -285,7 +285,7 @@ extern int pthread_mutexattr_settype( pthread_mutexattr_t *, int );
 #endif /* OS_LINUX */
 
 MX_EXPORT mx_status_type
-mx_mutex_create( MX_MUTEX **mutex, int type )
+mx_mutex_create( MX_MUTEX **mutex )
 {
 	static const char fname[] = "mx_mutex_create()";
 
@@ -583,7 +583,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 #elif 0
 
 MX_EXPORT mx_status_type
-mx_mutex_create( MX_MUTEX **mutex, int type )
+mx_mutex_create( MX_MUTEX **mutex )
 {
 	static const char fname[] = "mx_mutex_create()";
 

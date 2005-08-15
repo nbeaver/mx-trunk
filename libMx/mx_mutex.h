@@ -18,12 +18,10 @@
 #define __MX_MUTEX_H__
 
 typedef struct {
-	int mutex_type;
-
 	void *mutex_ptr;
 } MX_MUTEX;
 
-MX_API mx_status_type mx_mutex_create( MX_MUTEX **mutex, int type );
+MX_API mx_status_type mx_mutex_create( MX_MUTEX **mutex );
 
 MX_API mx_status_type mx_mutex_destroy( MX_MUTEX *mutex );
 

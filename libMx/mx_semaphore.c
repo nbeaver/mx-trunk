@@ -30,13 +30,15 @@
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-		unsigned long initial_value )
+		unsigned long initial_value,
+		char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
 	HANDLE *semaphore_handle_ptr;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	size_t name_length;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -61,10 +63,23 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	
 	(*semaphore)->semaphore_ptr = semaphore_handle_ptr;
 
+	if ( name == NULL ) {
+		(*semaphore)->name = NULL;
+	} else {
+		name_length = strlen( name );
+
+		name_length++;
+
+		(*semaphore)->name = (char *)
+					malloc( name_length * sizeof(char) );
+
+		mx_strncpy( (*semaphore)->name, name, name_length );
+	}
+
 	*semaphore_handle_ptr = CreateSemaphore( NULL,
 						initial_value,
 						initial_value,
-						NULL );
+						(*semaphore)->name );
 
 	if ( *semaphore_handle_ptr == NULL ) {
 		last_error_code = GetLastError();
@@ -118,6 +133,10 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 			"Unable to close the Win32 handle for semaphore %p. "
 			"Win32 error code = %ld, error_message = '%s'",
 			semaphore, last_error_code, message_buffer );
+	}
+
+	if ( semaphore->name != NULL ) {
+		mx_free( semaphore->name );
 	}
 
 	mx_free( semaphore_handle_ptr );

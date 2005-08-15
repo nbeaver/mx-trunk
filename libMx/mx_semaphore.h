@@ -18,13 +18,14 @@
 #define __MX_SEMAPHORE_H__
 
 typedef struct {
-	int semaphore_type;
-
 	void *semaphore_ptr;
+
+	char *name;
 } MX_SEMAPHORE;
 
 MX_API mx_status_type mx_semaphore_create( MX_SEMAPHORE **semaphore,
-					unsigned long initial_value );
+					unsigned long initial_value,
+					char *name );
 
 MX_API mx_status_type mx_semaphore_destroy( MX_SEMAPHORE *semaphore );
 
