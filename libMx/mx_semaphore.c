@@ -279,6 +279,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
+	unsigned long sem_value_max;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -314,10 +315,15 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 		switch( saved_errno ) {
 		case EINVAL:
+
+#if defined(OS_SOLARIS)
+			sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
+#else
+			sem_value_max = SEM_VALUE_MAX;
+#endif
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The requested initial value %lu exceeds the maximum "
-			"allowed value of %lu.", initial_value,
-				(unsigned long) SEM_VALUE_MAX );
+			"allowed value of %lu.", initial_value, sem_value_max );
 			break;
 		case ENOSPC:
 			return mx_error( MXE_NOT_AVAILABLE, fname,
@@ -503,6 +509,10 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 		saved_errno = errno;
 
 		switch( saved_errno ) {
+#if defined(OS_SOLARIS)
+		/* Saw this value returned on Solaris 8.  (WML) */
+		case 0:
+#endif
 		case EAGAIN:
 			return MXE_NOT_AVAILABLE;
 			break;
@@ -519,6 +529,11 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 			return MXE_MIGHT_CAUSE_DEADLOCK;
 			break;
 		default:
+#if 1
+			MX_DEBUG(-2,
+		("mx_semaphore_trylock(): errno = %d, error message = '%s'.",
+					saved_errno, strerror(saved_errno) ));
+#endif
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
