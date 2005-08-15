@@ -63,6 +63,8 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	
 	(*semaphore)->semaphore_ptr = semaphore_handle_ptr;
 
+	/* Allocate space for a name if one was specified. */
+
 	if ( name == NULL ) {
 		(*semaphore)->name = NULL;
 	} else {
@@ -343,17 +345,20 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 #elif defined(_POSIX_SEMAPHORES)
 
+#include <fcntl.h>
 #include <semaphore.h>
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-			unsigned long initial_value )
+			unsigned long initial_value,
+			char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 	unsigned long sem_value_max;
+	size_t name_length;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -380,46 +385,157 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	(*semaphore)->semaphore_ptr = p_semaphore_ptr;
 
+	/* Is the initial value of the semaphore greater than the 
+	 * maximum allowed value?
+	 */
+#if defined(OS_SOLARIS)
+	sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
+#else
+	sem_value_max = SEM_VALUE_MAX;
+#endif
+
+	if ( initial_value > sem_value_max ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested initial value (%lu) for the semaphore "
+		"is larger than the maximum allowed value of %lu.",
+			initial_value, sem_value_max );
+	}
+
+	/* Allocate space for a name if one was specified. */
+
+	if ( name == NULL ) {
+		(*semaphore)->name = NULL;
+	} else {
+		name_length = strlen( name );
+
+		name_length++;
+
+		(*semaphore)->name = (char *)
+					malloc( name_length * sizeof(char) );
+
+		mx_strncpy( (*semaphore)->name, name, name_length );
+	}
+
 	/* Create the semaphore. */
 
-	status = sem_init( p_semaphore_ptr, 0, (unsigned int) initial_value );
+	if ( (*semaphore)->name == NULL ) {
 
-	if ( status != 0 ) {
-		saved_errno = errno;
+		/* Create an unnamed semaphore. */
 
-		switch( saved_errno ) {
-		case EINVAL:
+		status = sem_init( p_semaphore_ptr, 0,
+					(unsigned int) initial_value );
 
-#if defined(OS_SOLARIS)
-			sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
-#else
-			sem_value_max = SEM_VALUE_MAX;
-#endif
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case EINVAL:
+
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The requested initial value %lu exceeds the maximum "
 			"allowed value of %lu.", initial_value, sem_value_max );
-			break;
-		case ENOSPC:
-			return mx_error( MXE_NOT_AVAILABLE, fname,
+				break;
+			case ENOSPC:
+				return mx_error( MXE_NOT_AVAILABLE, fname,
 	    "A resource required to create the semaphore is not available.");
-		    	break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
+			    	break;
+			case ENOSYS:
+				return mx_error( MXE_UNSUPPORTED, fname,
 		"Posix semaphores are not supported on this platform." );
-			break;
-		case EPERM:
-			return mx_error( MXE_PERMISSION_DENIED, fname,
+				break;
+			case EPERM:
+				return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The current process lacks the appropriated privilege "
 			"to create the semaphore." );
-			break;
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
+				break;
+			default:
+				return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected sem_init() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-			break;
+				break;
+			}
+		}
+
+	} else {
+		/* Create a named semaphore. */
+
+		p_semaphore_ptr = sem_open( (*semaphore)->name,
+					O_CREAT,
+					0644,
+					(unsigned int) initial_value );
+
+		if ( p_semaphore_ptr == SEM_FAILED ) {
+			saved_errno = errno;
+
+			switch( saved_errno ) {
+			case EACCES:
+				return mx_error( MXE_PERMISSION_DENIED, fname,
+				"Could not connect to semaphore '%s'.",
+					(*semaphore)->name );
+				break;
+			case EEXIST:
+				return mx_error( MXE_PERMISSION_DENIED, fname,
+				"Semaphore '%s' already exists, but you "
+				"requested exclusive access.",
+					(*semaphore)->name );
+				break;
+			case EINTR:
+				return mx_error( MXE_INTERRUPTED, fname,
+			    "sem_open() for semaphore '%s' was interrupted.",
+			    		(*semaphore)->name );
+				break;
+			case EINVAL:
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Either sem_open() is not supported for "
+				"semaphore '%s' or the requested initial "
+				"value %lu was larger than the maximum (%lu).",
+					(*semaphore)->name,
+					initial_value,
+					sem_value_max );
+				break;
+			case EMFILE:
+				return mx_error( MXE_NOT_AVAILABLE, fname,
+				"Ran out of semaphore or file descriptors "
+				"for this process." );
+				break;
+			case ENAMETOOLONG:
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"Semaphore name '%s' is longer than the "
+				"maximum allowed length for this system.",
+					(*semaphore)->name );
+				break;
+			case ENFILE:
+				return mx_error( MXE_NOT_AVAILABLE, fname,
+				"Too many semaphores are currently open "
+				"on this computer." );
+				break;
+			case ENOENT:
+				return mx_error( MXE_NOT_FOUND, fname,
+				"Semaphore '%s' was not found and the call "
+				"to sem_open() did not specify O_CREAT.",
+					(*semaphore)->name );
+				break;
+			case ENOSPC:
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"There is insufficient space for the creation "
+				"of the new named semaphore." );
+				break;
+			case ENOSYS:
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"The function sem_open() is not supported "
+				"on this platform." );
+				break;
+			default:
+				return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unexpected sem_open() error code %d returned.  "
+			"Error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+				break;
+			}
 		}
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -446,7 +562,15 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 			"passed was NULL.");
 	}
 
-	status = sem_destroy( p_semaphore_ptr );
+	if ( semaphore->name == NULL ) {
+		/* Destroy an unnamed semaphore. */
+
+		status = sem_destroy( p_semaphore_ptr );
+	} else {
+		/* Close a named semaphore. */
+
+		status = sem_close( p_semaphore_ptr );
+	}
 
 	if ( status != 0 ) {
 		saved_errno = errno;
@@ -460,7 +584,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 			break;
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"The semaphore passed to sem_destroy() was not "
+				"The semaphore passed was not "
 				"a valid semaphore." );
 			break;
 		case ENOSYS:
@@ -469,11 +593,15 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Unexpected sem_destroy() error code %d returned.  "
+			"Unexpected error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
 			break;
 		}
+	}
+
+	if ( semaphore->name != NULL ) {
+		mx_free( semaphore->name );
 	}
 
 	mx_free( p_semaphore_ptr );

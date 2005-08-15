@@ -281,7 +281,7 @@ mx_signal_initialize( void )
 
 	/* Create the mutex that is used to manage access to mx_signal_array. */
 
-	mx_status = mx_mutex_create( &mx_signal_mutex, 0 );
+	mx_status = mx_mutex_create( &mx_signal_mutex );
 
 	return mx_status;
 }
