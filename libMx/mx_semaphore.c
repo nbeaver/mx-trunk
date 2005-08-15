@@ -29,7 +29,8 @@
 #include <windows.h>
 
 MX_EXPORT mx_status_type
-mx_semaphore_create( MX_SEMAPHORE **semaphore, int type )
+mx_semaphore_create( MX_SEMAPHORE **semaphore,
+		unsigned long initial_value )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
@@ -60,7 +61,10 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore, int type )
 	
 	(*semaphore)->semaphore_ptr = semaphore_handle_ptr;
 
-	*semaphore_handle_ptr = CreateMutex( NULL, FALSE, NULL );
+	*semaphore_handle_ptr = CreateSemaphore( NULL,
+						initial_value,
+						initial_value,
+						NULL );
 
 	if ( *semaphore_handle_ptr == NULL ) {
 		last_error_code = GetLastError();
@@ -98,7 +102,8 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 
 	if ( semaphore_handle_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The semaphore_ptr field for the MX_SEMAPHORE pointer passed was NULL.");
+			"The semaphore_ptr field for the MX_SEMAPHORE pointer "
+			"passed was NULL.");
 	}
 
 	status = CloseHandle( *semaphore_handle_ptr );
@@ -190,7 +195,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = ReleaseMutex( *semaphore_handle_ptr );
+	status = ReleaseSemaphore( *semaphore_handle_ptr, 1, NULL );
 
 	if ( status == 0 ) {
 		DWORD last_error_code;
@@ -263,6 +268,56 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	}
 
 	return MXE_UNKNOWN_ERROR;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	HANDLE *semaphore_handle_ptr;
+	BOOL status;
+	LONG old_value;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( current_value == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The current_value pointer passed was NULL." );
+	}
+
+	semaphore_handle_ptr = semaphore->semaphore_ptr;
+
+	if ( semaphore_handle_ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The semaphore handle pointer for semaphore %p is NULL.",
+			semaphore );
+	}
+
+	status = ReleaseSemaphore( *semaphore_handle_ptr, 0, &old_value );
+
+	if ( status == 0 ) {
+		DWORD last_error_code;
+		TCHAR message_buffer[100];
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error from WaitForSingleObject() "
+			"for semaphore %p. "
+			"Win32 error code = %ld, error_message = '%s'",
+			semaphore, last_error_code, message_buffer );
+	}
+
+	*current_value = (unsigned long) old_value;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /************************ Posix Pthreads ***********************/
