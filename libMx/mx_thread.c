@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_THREAD_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -196,7 +198,9 @@ mx_thread_start_function( void *args_ptr )
 
 	/* Invoke MX's thread function. */
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s: thread_function = %p", fname, thread_function));
+#endif
 
 	mx_status = (thread_function)( thread, thread_arguments );
 
@@ -225,7 +229,9 @@ mx_thread_initialize( void )
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	/* Create a Thread Local Storage index that we will use to store a
 	 * pointer to the current thread for each thread.
@@ -360,7 +366,9 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -428,7 +436,9 @@ mx_thread_create( MX_THREAD **thread,
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( mx_threads_are_initialized == FALSE ) {
 		mx_status = mx_thread_initialize();
@@ -515,7 +525,9 @@ mx_thread_exit( MX_THREAD *thread,
 	MX_WIN32_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -542,7 +554,9 @@ mx_thread_kill( MX_THREAD *thread )
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -579,7 +593,9 @@ mx_thread_stop( MX_THREAD *thread )
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -619,7 +635,9 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 	int stop_requested;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -683,8 +701,10 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 		if ( stop_request_handler != NULL ) {
 			/* Invoke the handler. */
 
+#if MX_THREAD_DEBUG
 			MX_DEBUG(-2,("%s: Invoking the stop request handler.",
 				fname));
+#endif
 
 			(stop_request_handler)( thread,
 					thread->stop_request_arguments );
@@ -713,7 +733,9 @@ mx_thread_set_stop_request_handler( MX_THREAD *thread,
 	MX_WIN32_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -742,7 +764,9 @@ mx_thread_wait( MX_THREAD *thread,
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1199,7 +1223,9 @@ mx_thread_get_pointers( MX_THREAD *thread,
 static void *
 mx_thread_start_function( void *args_ptr )
 {
+#if MX_THREAD_DEBUG
 	static const char fname[] = "mx_thread_start_function()";
+#endif
 
 	MX_POSIX_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
 	MX_THREAD *thread;
@@ -1238,7 +1264,9 @@ mx_thread_start_function( void *args_ptr )
 
 	/* Invoke MX's thread function. */
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s: thread_function = %p", fname, thread_function));
+#endif
 
 	mx_status = (thread_function)( thread, thread_arguments );
 
@@ -1265,7 +1293,9 @@ mx_thread_stop_request_handler( void *arg )
 	MX_THREAD_STOP_REQUEST_HANDLER *handler;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( arg == NULL ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1285,8 +1315,10 @@ mx_thread_stop_request_handler( void *arg )
 		return;
 
 	if ( thread_private->kill_requested ) {
+#if MX_THREAD_DEBUG
 		MX_DEBUG(-2,("%s: mx_thread_kill() was called, so the "
 			"stop request handler will not be invoked.", fname ));
+#endif
 
 		return;
 	}
@@ -1294,9 +1326,11 @@ mx_thread_stop_request_handler( void *arg )
 	handler = thread->stop_request_handler;
 
 	if ( handler == NULL ) {
+#if MX_THREAD_DEBUG
 		MX_DEBUG(-2,
 ("%s: No stop request handler was configured, so no handler will be executed.",
 			fname));
+#endif
 
 		return;
 	}
@@ -1318,7 +1352,9 @@ mx_thread_initialize( void )
 	int status;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	/* Create a Pthread key that we will use to store a pointer to
 	 * the current thread for each thread.  The stop request handler
@@ -1439,7 +1475,9 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1467,7 +1505,9 @@ mx_thread_create( MX_THREAD **thread,
 	int status;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( mx_threads_are_initialized == FALSE ) {
 		mx_status = mx_thread_initialize();
@@ -1533,7 +1573,9 @@ mx_thread_exit( MX_THREAD *thread,
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1569,7 +1611,9 @@ mx_thread_kill( MX_THREAD *thread )
 	int status;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1608,7 +1652,9 @@ mx_thread_stop( MX_THREAD *thread )
 	int status;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1639,9 +1685,11 @@ mx_thread_stop( MX_THREAD *thread )
 MX_EXPORT mx_status_type
 mx_thread_check_for_stop_request( MX_THREAD *thread )
 {
+#if MX_THREAD_DEBUG
 	static const char fname[] = "mx_thread_check_for_stop_request()";
 
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	pthread_testcancel();
 
@@ -1660,7 +1708,9 @@ mx_thread_set_stop_request_handler( MX_THREAD *thread,
 	MX_POSIX_THREAD_PRIVATE *thread_private;
 	mx_status_type mx_status;
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
@@ -1689,7 +1739,9 @@ mx_thread_wait( MX_THREAD *thread,
 
 	/* FIXME: Currently we pay no attention to 'max_seconds_to_wait'. */
 
+#if MX_THREAD_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
 
