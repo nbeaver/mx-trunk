@@ -37,10 +37,13 @@ struct mx_interval_timer_struct {
 
 typedef struct mx_interval_timer_struct MX_INTERVAL_TIMER;
 
+typedef void (MX_INTERVAL_TIMER_CALLBACK)(
+			struct mx_interval_timer_struct *, void * );
+
 MX_API mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
-				void *callback_function,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
 				void *callback_args );
 
 MX_API mx_status_type

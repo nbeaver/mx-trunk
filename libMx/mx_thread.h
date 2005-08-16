@@ -17,13 +17,15 @@
 #ifndef __MX_THREAD_H__
 #define __MX_THREAD_H__
 
-typedef struct {
+struct mx_thread_struct {
 	long thread_exit_status;
 	void *thread_private;
 
-	void *stop_request_handler;
+	void (*stop_request_handler)( struct mx_thread_struct *, void * );
 	void *stop_request_arguments;
-} MX_THREAD;
+};
+
+typedef struct mx_thread_struct MX_THREAD;
 
 /* Define a macro for use by mx_thread_wait() to signify that the wait
  * should last forever.

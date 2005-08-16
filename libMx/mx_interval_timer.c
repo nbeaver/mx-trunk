@@ -172,7 +172,7 @@ mx_interval_timer_thread_handler( UINT timer_id,
 MX_EXPORT mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
-				void *callback_function,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
 				void *callback_args )
 {
 	static const char fname[] = "mx_interval_timer_create()";
@@ -923,7 +923,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 MX_EXPORT mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
-				void *callback_function,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
 				void *callback_args )
 {
 	static const char fname[] = "mx_interval_timer_create()";
@@ -1416,7 +1416,7 @@ mx_interval_timer_signal_handler( int signum )
 MX_EXPORT mx_status_type
 mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 				int timer_type,
-				void *callback_function,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
 				void *callback_args )
 {
 	static const char fname[] = "mx_interval_timer_create()";
