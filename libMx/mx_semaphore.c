@@ -343,7 +343,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /************************ Posix Pthreads ***********************/
 
-#elif defined(_POSIX_SEMAPHORES)
+#elif defined(_POSIX_SEMAPHORES) || defined(OS_IRIX)
 
 #include <fcntl.h>
 #include <semaphore.h>
@@ -388,7 +388,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	/* Is the initial value of the semaphore greater than the 
 	 * maximum allowed value?
 	 */
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_IRIX)
 	sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
 #else
 	sem_value_max = SEM_VALUE_MAX;

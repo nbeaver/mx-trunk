@@ -39,6 +39,7 @@
 #include <sys/types.h>
 
 #include "mxconfig.h"
+#include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_types.h"
 #include "mx_driver.h"
@@ -343,6 +344,50 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* For some reason, inet_ntoa() on Irix does not always work,
+ * so we provide our own copy here.
+ */
+
+#if defined(OS_IRIX)
+#  define inet_ntoa my_inet_ntoa
+
+#  define MY_INET_NTOA_LENGTH	(12+3)
+
+static char *
+my_inet_ntoa( struct in_addr in )
+{
+	static char address[MY_INET_NTOA_LENGTH+1];
+	unsigned long address_value;
+	unsigned long nibble1, nibble2, nibble3, nibble4;
+
+	address_value = in.s_addr;
+
+	nibble4 = address_value % 256L;
+
+	address_value /= 256L;
+
+	nibble3 = address_value % 256L;
+
+	address_value /= 256L;
+
+	nibble2 = address_value % 256L;
+
+	address_value /= 256L;
+
+	nibble1 = address_value;
+
+	if ( nibble1 >= 256L ) {
+		sprintf( address, "-1.-1.-1.-1" );
+	}
+
+	sprintf( address, "%lu.%lu.%lu.%lu",
+		nibble1, nibble2, nibble3, nibble4 );
+
+	return &(address[0]);
+}
+
+#endif  /* OS_IRIX */
 
 mx_status_type
 mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,

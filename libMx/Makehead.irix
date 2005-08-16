@@ -13,10 +13,10 @@
 INCLUDES	= $(MX_INCLUDES) $(READLINE_INCLUDES)
 
 LIB_DIRS	= -L/usr/lib32 -L$(MX_LIB_DIR)
-LIBRARIES	= -lexc -lm -lmalloc
+LIBRARIES	= -lexc -lm -lmalloc -lpthread
 
 #LIB_DIRS	= -L/usr/lib32 -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lexc -lm -lmalloc
+#LIBRARIES	= $(EPICS_LIBRARIES) -lexc -lm -lmalloc -lpthread
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the

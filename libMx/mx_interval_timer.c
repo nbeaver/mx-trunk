@@ -517,7 +517,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /*************************** POSIX realtime timers **************************/
 
-#elif defined(_POSIX_TIMERS)
+#elif defined(_POSIX_TIMERS) || defined(OS_IRIX)
 
 #include <time.h>
 #include <signal.h>
@@ -529,7 +529,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * to the total number of realtime signals for the process.
  */
 
-#if defined(OS_SOLARIS)
+#if defined(OS_SOLARIS) || defined(OS_IRIX)
 #   define MX_SIGEV_TYPE	SIGEV_SIGNAL
 #else
 #   define MX_SIGEV_TYPE	SIGEV_THREAD
@@ -1330,7 +1330,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_DJGPP ) || defined( OS_UNIX )
+#elif defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
@@ -1432,7 +1432,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 #endif
 
 	if ( mx_setitimer_mutex == NULL ) {
-		mx_status = mx_mutex_create( &mx_setitimer_mutex, 0 );
+		mx_status = mx_mutex_create( &mx_setitimer_mutex );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

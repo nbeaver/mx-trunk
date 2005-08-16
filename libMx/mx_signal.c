@@ -85,7 +85,12 @@ mx_signal_initialize( void )
 		if ( status != 0 ) {
 			saved_errno = errno;
 
-			if ( saved_errno == EINVAL ) {
+			switch( saved_errno ) {
+			case EINVAL:
+			case ENOSYS:
+#if defined(OS_IRIX)
+			case 0:
+#endif
 				/* There may be gaps in the supported
 				 * signal numbers, so mark this signal
 				 * number as in use and continue on to
@@ -103,7 +108,8 @@ mx_signal_initialize( void )
 
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to get the signal handling status for "
-			"signal %d.  Errno = %d, error message = '%s'.",
+			"signal %d (case 1).  "
+			"Errno = %d, error message = '%s'.",
 				i, saved_errno, strerror(saved_errno) );
 		}
 
@@ -132,7 +138,9 @@ mx_signal_initialize( void )
 		if ( status != 0 ) {
 			saved_errno = errno;
 
-			if ( saved_errno == EINVAL ) {
+			switch( saved_errno ) {
+			case EINVAL:
+			case ENOSYS:
 				/* There may be gaps in the supported
 				 * signal numbers, so mark this signal
 				 * number as in use and continue on to
@@ -148,9 +156,12 @@ mx_signal_initialize( void )
 				continue;  /* Go to the top of the for() loop.*/
 			}
 
+			MX_DEBUG(-2,("%s: MARKER 2", fname));
+
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to get the signal handling status for "
-			"signal %d.  Errno = %d, error message = '%s'.",
+			"signal %d (case 2).  "
+			"Errno = %d, error message = '%s'.",
 				i, saved_errno, strerror(saved_errno) );
 		}
 
@@ -195,9 +206,12 @@ mx_signal_initialize( void )
 		if ( status != 0 ) {
 			saved_errno = errno;
 
+			MX_DEBUG(-2,("%s: MARKER 3", fname));
+
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to get the signal handling status for realtime "
-			"signal %d.  Errno = %d, error message = '%s'.",
+			"signal %d (case 3).  "
+			"Errno = %d, error message = '%s'.",
 				i, saved_errno, strerror(saved_errno) );
 		}
 

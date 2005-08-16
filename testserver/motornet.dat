@@ -1,4 +1,5 @@
-17id           server network tcpip_server "" "" 0x0 127.0.0.1 9827
+#17id           server network tcpip_server "" "" 0x0 127.0.0.1 9827
+17id           server network tcpip_server "" "" 0x0 164.54.200.77 9827
 #17id           server network tcpip_server "" "" 0x0 192.168.137.103 9727
 omega_params   variable net_variable net_double "" "" 17id omega_params.value 1  4  0 0 0 0
 d_spacing      variable net_variable net_double "" "" 17id d_spacing.value 1  1  3.13555
