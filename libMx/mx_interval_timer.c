@@ -1330,7 +1330,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_DJGPP )
+#elif defined( OS_MACOSX ) || defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
@@ -1595,7 +1595,11 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		itimer_value.it_interval.tv_sec  = 0;
 		itimer_value.it_interval.tv_usec = 0;
 
-		sa.sa_flags = SA_ONESHOT;
+#if 0
+		sa.sa_flags = SA_ONESHOT;  /* Not available on MacOS X. */
+#else
+		sa.sa_flags = SA_RESETHAND;
+#endif
 	} else {
 		itimer_value.it_interval.tv_sec  = timer_ulong_seconds;
 		itimer_value.it_interval.tv_usec = timer_ulong_usec;
