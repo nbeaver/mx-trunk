@@ -391,8 +391,13 @@ mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 
 	fd = open( semaphore->name, O_RDWR | O_CREAT | O_EXCL, 0600 );
 
+	MX_DEBUG(-2,("%s: MARKER A, fd = %d", fname, fd));
+
 	if ( fd < 0 ) {
 		saved_errno = errno;
+
+		MX_DEBUG(-2,("%s: MARKER A.1, saved_errno = %d",
+				fname, saved_errno));
 
 		switch( saved_errno ) {
 		case EEXIST:
@@ -419,6 +424,9 @@ mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 	/* Convert the file descriptor to a file pointer. */
 
 	(*new_semaphore_file) = fdopen( fd, "w" );
+
+	MX_DEBUG(-2,("%s: MARKER B, *new_semaphore_file = %p",
+		fname, *new_semaphore_file));
 
 	if ( (*new_semaphore_file) == NULL ) {
 		saved_errno = errno;
@@ -514,6 +522,9 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	*new_semaphore_file = NULL;
 
+	MX_DEBUG(-2,("%s: MARKER 1, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
+
 	system_v_private = semaphore->semaphore_ptr;
 
 	if ( system_v_private == NULL ) {
@@ -537,6 +548,9 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	mx_status = mx_named_semaphore_create_new_file( semaphore,
 						new_semaphore_file );
+
+	MX_DEBUG(-2,("%s: MARKER 2, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
@@ -583,8 +597,14 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 		/* We can now try again to create the semaphore file. */
 
+		MX_DEBUG(-2,("%s: MARKER 2.1, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
+
 		mx_status = mx_named_semaphore_create_new_file( semaphore,
 							new_semaphore_file );
+
+		MX_DEBUG(-2,("%s: MARKER 2.2, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -602,6 +622,9 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	if ( system_v_private->semaphore_key == (-1) ) {
 
+		MX_DEBUG(-2,("%s: MARKER 3, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
+
 		if ( *new_semaphore_file != NULL ) {
 			fclose( *new_semaphore_file );
 
@@ -612,6 +635,9 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 		"The semaphore file '%s' does not exist or is not accessable.",
 			semaphore->name );
 	}
+
+	MX_DEBUG(-2,("%s: MARKER 4, *new_semaphore_file = %p",
+			fname, *new_semaphore_file));
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: semaphore key = %#lx", 
@@ -705,6 +731,9 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		system_v_private->semaphore_key = IPC_PRIVATE;
 
 		create_new_semaphore = TRUE;
+
+		MX_DEBUG(-2,("%s: Private semaphore, create_new_semaphore = %d",
+			fname, create_new_semaphore));
 	} else {
 		mx_status = mx_named_semaphore_get_key( *semaphore,
 							&new_semaphore_file );
@@ -712,11 +741,14 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( new_semaphore_file != NULL ) {
-			create_new_semaphore = TRUE;
-		} else {
+		if ( new_semaphore_file == NULL ) {
 			create_new_semaphore = FALSE;
+		} else {
+			create_new_semaphore = TRUE;
 		}
+
+		MX_DEBUG(-2,("%s: Named semaphore, create_new_semaphore = %d",
+			fname, create_new_semaphore));
 	}
 
 #if MX_SEMAPHORE_DEBUG
@@ -945,22 +977,21 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 				break;
 			}
 		}
-	}
 
-	if ( semaphore->name != NULL ) {
-		status = remove( semaphore->name );
+		if ( semaphore->name != NULL ) {
+			status = remove( semaphore->name );
 
-		if ( status != 0 ) {
-			saved_errno = errno;
+			if ( status != 0 ) {
+				saved_errno = errno;
 
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Cannot remove semaphore file '%s'.  "
-			"Errno = %d, error message = '%s'.",
-				semaphore->name, saved_errno,
-				strerror(saved_errno) );
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"Cannot remove semaphore file '%s'.  "
+				"Errno = %d, error message = '%s'.",
+					semaphore->name, saved_errno,
+					strerror(saved_errno) );
+			}
+			mx_free( semaphore->name );
 		}
-
-		mx_free( semaphore->name );
 	}
 
 	mx_free( system_v_private );
