@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	FALSE
+#define MX_SEMAPHORE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -371,25 +371,148 @@ typedef struct {
 } MX_SYSTEM_V_SEMAPHORE_PRIVATE;
 
 static mx_status_type
-mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore, int *create_new_semaphore )
+mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
+				FILE **new_semaphore_file )
 {
-	static const char fname[] = "mx_named_semaphore_get_key()";
+	static const char fname[] = "mx_named_semaphore_create_new_file()";
 
-	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
-	int fd, file_status, saved_errno, bytes_written;
-	char buffer[40];
-	size_t length;
+	int fd, saved_errno;
 
 	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
-	if ( create_new_semaphore == (int *) NULL ) {
+	if ( new_semaphore_file == (FILE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The create_new_semaphore pointer passed was NULL." );
+		"The FILE pointer passed was NULL." );
 	}
 
-	*create_new_semaphore = FALSE;
+	*new_semaphore_file = NULL;
+
+	fd = open( semaphore->name, O_RDWR | O_CREAT | O_EXCL, 0600 );
+
+	if ( fd < 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EEXIST:
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Semaphore file '%s' already exists.",
+				semaphore->name );
+			break;
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"The filesystem permissions do not allow us to "
+			"write to semaphore file '%s'.",
+				semaphore->name );
+			break;
+		default:
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An attempt to create semaphore file '%s' failed.  "
+			"Errno = %d, error message = '%s'.",
+				semaphore->name, saved_errno,
+				strerror( saved_errno ) );
+			break;
+		}
+	}
+
+	/* Convert the file descriptor to a file pointer. */
+
+	(*new_semaphore_file) = fdopen( fd, "w" );
+
+	if ( (*new_semaphore_file) == NULL ) {
+		saved_errno = errno;
+
+		(void) close(fd);
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Unable to convert file descriptor %d for semaphore file '%s' "
+		"to a file pointer.", fd, semaphore->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
+					unsigned long *process_id )
+{
+	static const char fname[] =
+			"mx_named_semaphore_get_server_process_id()";
+
+	FILE *semaphore_file;
+	int num_items, saved_errno;
+	char buffer[80];
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( process_id == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The process_id pointer passed was NULL." );
+	}
+
+	semaphore_file = fopen( semaphore->name, "r" );
+
+	if ( semaphore_file == (FILE *) NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Unable to open semaphore file '%s' for reading.  "
+			"Errno = %d, error message = '%s'.",
+				semaphore->name, saved_errno,
+				strerror( saved_errno ) );
+	}
+
+	fgets( buffer, sizeof(buffer), semaphore_file );
+
+	if ( feof(semaphore_file) || ferror(semaphore_file) ) {
+		(void) fclose(semaphore_file);
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Unable to read semaphore id string from semaphore file '%s'.",
+			semaphore->name );
+	}
+
+	(void) fclose(semaphore_file);
+
+	num_items = sscanf( buffer, "%lu", process_id );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unable to find the server process id in the line '%s' "
+		"read from semaphore file '%s'.", buffer, semaphore->name);
+	}
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: process_id = %lu", fname, *process_id));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
+			FILE **new_semaphore_file )
+{
+	static const char fname[] = "mx_named_semaphore_get_key()";
+
+	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
+	int file_status, saved_errno;
+	unsigned long process_id;
+	mx_status_type mx_status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( new_semaphore_file == (FILE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The FILE pointer passed was NULL." );
+	}
+
+	*new_semaphore_file = NULL;
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -406,80 +529,69 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore, int *create_new_semaphore )
 	 * to an existing semaphore.
 	 */
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: semaphore->name = '%s'.", fname, semaphore->name));
+#endif
 
-	/* Does the file already exist? */
+	/* Attempt to create the semaphore file. */
 
-	file_status = access( semaphore->name, F_OK );
+	mx_status = mx_named_semaphore_create_new_file( semaphore,
+						new_semaphore_file );
 
-	if ( file_status != 0 ) {
-		saved_errno = errno;
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+	case MXE_NOT_AVAILABLE:
+		/* The semaphore file already exists.  Does it belong to
+		 * a currently running server?
+		 */
 
-		if ( saved_errno != ENOENT ) {
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An attempt to check access to the semaphore file '%s' "
-			"failed.  Errno = %d, error message = '%s'.",
-				semaphore->name, saved_errno,
-				strerror( saved_errno ) );
+		mx_status = mx_named_semaphore_get_server_process_id(
+					semaphore, &process_id );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( mx_process_exists( process_id ) ) {
+			/* A process with that process id exists, so we
+			 * assume that it is the server and exit withou
+			 * changing the file.  Note that *new_semaphore_file
+			 * will be NULL at this point.
+			 */
+			break;
 		}
 
-		/* The semaphore file does not exist, so we must create it. */
+		/* The server process mentioned by the semaphore file
+		 * no longer exists, so delete the semaphore file.
+		 */
+#if MX_SEMAPHORE_DEBUG
+		MX_DEBUG(-2,("%s: removing stale semaphore '%s'.",
+			fname, semaphore->name));
+#endif
 
-		fd = open( semaphore->name, O_RDWR | O_CREAT | O_EXCL, 600 );
-
-		if ( fd < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An attempt to create semaphore file '%s' failed.  "
-			"Errno = %d, error message = '%s'.",
-				semaphore->name, saved_errno,
-				strerror( saved_errno ) );
-		}
-
-		/* Write the current process ID to the file. */
-
-		sprintf( buffer, "%lu\n", mx_process_id() );
-
-		length = strlen(buffer);
-
-		bytes_written = write( fd, buffer, length );
-
-		if ( bytes_written < 0 ) {
-			saved_errno = errno;
-
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An attempt to write the process ID to semaphore file "
-			"'%s' failed.  Errno = %d, error message = '%s'.",
-				semaphore->name, saved_errno,
-				strerror( saved_errno ) );
-		} else
-		if ( bytes_written < length ) {
-			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Only %lu bytes out of %lu bytes were written to the "
-			"semaphore file '%s'.",
-				(unsigned long) bytes_written,
-				(unsigned long) length,
-				semaphore->name );
-		}
-
-		/* Close the semaphore file. */
-
-		file_status = close( fd );
+		file_status = remove( semaphore->name );
 
 		if ( file_status != 0 ) {
 			saved_errno = errno;
 
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-			"An attempt to close the semaphore file '%s' failed.  "
+			"Cannot remove stale semaphore file '%s'.  "
 			"Errno = %d, error message = '%s'.",
 				semaphore->name, saved_errno,
-				strerror( saved_errno ) );
+				strerror(saved_errno) );
 		}
 
-		/* Record the fact that we need to create a new semaphore. */
+		/* We can now try again to create the semaphore file. */
 
-		*create_new_semaphore = TRUE;
+		mx_status = mx_named_semaphore_create_new_file( semaphore,
+							new_semaphore_file );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
+	default:
+		return mx_status;
+		break;
 	}
 
 	/* Construct the semaphore key from the filename.
@@ -489,13 +601,27 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore, int *create_new_semaphore )
 	system_v_private->semaphore_key = ftok( semaphore->name, 1 );
 
 	if ( system_v_private->semaphore_key == (-1) ) {
+
+		if ( *new_semaphore_file != NULL ) {
+			fclose( *new_semaphore_file );
+
+			*new_semaphore_file = NULL;
+		}
+
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"The semaphore file '%s' does not exist or is not accessable.",
 			semaphore->name );
 	}
 
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: semaphore key = %#lx", 
+			fname, system_v_private->semaphore_key));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
@@ -505,8 +631,9 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	static const char fname[] = "mx_semaphore_create()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
-	int create_new_semaphore, num_semaphores, semget_flags;
-	int status, saved_errno;
+	FILE *new_semaphore_file;
+	int num_semaphores, semget_flags;
+	int status, saved_errno, create_new_semaphore;
 	size_t name_length;
 	union semun value_union;
 	mx_status_type mx_status;
@@ -567,6 +694,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	/* Get the semaphore key. */
 
 	create_new_semaphore = FALSE;
+	new_semaphore_file = NULL;
 
 	if ( (*semaphore)->name == NULL ) {
 
@@ -579,11 +707,22 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		create_new_semaphore = TRUE;
 	} else {
 		mx_status = mx_named_semaphore_get_key( *semaphore,
-							&create_new_semaphore );
+							&new_semaphore_file );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		if ( new_semaphore_file != NULL ) {
+			create_new_semaphore = TRUE;
+		} else {
+			create_new_semaphore = FALSE;
+		}
 	}
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: create_new_semaphore = %d",
+			fname, create_new_semaphore));
+#endif
 
 	if ( create_new_semaphore == FALSE ) {
 		num_semaphores = 0;
@@ -668,11 +807,64 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 			}
 		}
 
-		system_v_private->creator_process = getuid();
+		system_v_private->creator_process = getpid();
 
 #if defined(_POSIX_THREADS)
 		system_v_private->creator_thread = pthread_self();
 #endif
+
+		if ( new_semaphore_file != (FILE *) NULL ) {
+			/* Write the process ID, semaphore key and
+			 * semaphore ID to the semaphore file.
+			 */
+
+#if MX_SEMAPHORE_DEBUG
+			MX_DEBUG(-2,
+			("%s: process ID = %lu, key = %#lx, sem ID = %lu",fname,
+			    (unsigned long) system_v_private->creator_process,
+			    (unsigned long) system_v_private->semaphore_key,
+			    (unsigned long) system_v_private->semaphore_id));
+#endif
+
+			status = fprintf( new_semaphore_file, "%lu %#lx %lu\n",
+			    (unsigned long) system_v_private->creator_process,
+				(unsigned long) system_v_private->semaphore_key,
+				(unsigned long) system_v_private->semaphore_id);
+
+			if ( status < 0 ) {
+				saved_errno = errno;
+
+				(void) fclose( new_semaphore_file );
+
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"Unable to write identification to semaphore "
+				"file '%s'.  Errno = %d, error message = '%s'.",
+					(*semaphore)->name,
+					saved_errno, strerror( saved_errno ) );
+			}
+
+			status = fclose( new_semaphore_file );
+
+			if ( status < 0 ) {
+				saved_errno = errno;
+
+				return mx_error( MXE_FILE_IO_ERROR, fname,
+				"Unable to close semaphore file '%s'.  "
+				"Errno = %d, error message = '%s'.",
+					(*semaphore)->name,
+					saved_errno, strerror( saved_errno ) );
+			}
+
+			new_semaphore_file = NULL;
+		}
+	}
+
+	if ( new_semaphore_file != (FILE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The FILE pointer for semaphore file '%s' was non-NULL at "
+		"a time that it should have been NULL.  This is an "
+		"internal error in MX and should be reported.",
+			(*semaphore)->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -706,7 +898,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	if ( semaphore->name == NULL ) {
 		destroy_semaphore = TRUE;
 	} else {
-		if ( system_v_private->creator_process == getuid() ) {
+		if ( system_v_private->creator_process == getpid() ) {
 #if defined(_POSIX_THREADS)
 		    if ( system_v_private->creator_thread == pthread_self() ){
 			destroy_semaphore = TRUE;
@@ -756,6 +948,18 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	}
 
 	if ( semaphore->name != NULL ) {
+		status = remove( semaphore->name );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot remove semaphore file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+				semaphore->name, saved_errno,
+				strerror(saved_errno) );
+		}
+
 		mx_free( semaphore->name );
 	}
 
