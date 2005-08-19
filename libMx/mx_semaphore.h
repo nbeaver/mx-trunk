@@ -18,10 +18,16 @@
 #define __MX_SEMAPHORE_H__
 
 typedef struct {
-	void *semaphore_ptr;
-
 	char *name;
+
+	int semaphore_type;
+	void *semaphore_ptr;
 } MX_SEMAPHORE;
+
+#define MXT_SEM_INVALID	0
+#define MXT_SEM_WIN32	1
+#define MXT_SEM_SYSV	2
+#define MXT_SEM_POSIX	3
 
 MX_API mx_status_type mx_semaphore_create( MX_SEMAPHORE **semaphore,
 					unsigned long initial_value,

@@ -80,6 +80,7 @@ static MX_ERROR_MESSAGE error_message_list[] = {
 { MXE_BAD_HANDLE,			"MXE_BAD_HANDLE" },
 { MXE_OBJECT_ABANDONED,			"MXE_OBJECT_ABANDONED" },
 { MXE_MIGHT_CAUSE_DEADLOCK,		"MXE_MIGHT_CAUSE_DEADLOCK" },
+{ MXE_ALREADY_EXISTS,			"MXE_ALREADY_EXISTS" },
 { 0, "" } };
 
 static long num_error_messages = sizeof(error_message_list)

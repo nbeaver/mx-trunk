@@ -14,12 +14,13 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	TRUE
+#define MX_SEMAPHORE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
+#include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
 #include "mx_semaphore.h"
@@ -42,7 +43,9 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	TCHAR message_buffer[100];
 	size_t name_length;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -64,6 +67,8 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	}
 	
 	(*semaphore)->semaphore_ptr = semaphore_handle_ptr;
+
+	(*semaphore)->semaphore_type = MXT_SEM_WIN32;
 
 	/* Allocate space for a name if one was specified. */
 
@@ -110,7 +115,9 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -343,9 +350,42 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/************************ System V Semaphores ***********************/
+/*********************** Unix and Posix systems **********************/
+
+#elif defined(OS_UNIX)
+
+/* NOTE:  On some platforms, such as Linux and MacOS X, it is necessary
+ * to include support for both System V and Posix semaphores.  The reason
+ * is that on those platforms, one kind of semaphore only supports named
+ * semaphores, while the other kind only supports unnamed semaphores.
+ * So you need both.  The choice of which kind of semaphore to use is
+ * made using the variables called mx_use_posix_unnamed_semaphores and 
+ * mx_use_posix_named_semaphores as defined below.
+ *
+ * We use static variables below rather than #defines since that keeps
+ * GCC from complaining about 'defined but not used' functions.
+ */
+
+#if defined(OS_LINUX)
+
+static int mx_use_posix_unnamed_semaphores = TRUE;
+static int mx_use_posix_named_semaphores   = FALSE;
 
 #elif defined(OS_MACOSX)
+
+static int mx_use_posix_unnamed_semaphores = FALSE;
+static int mx_use_posix_named_semaphores   = TRUE;
+
+#else
+
+static int mx_use_posix_unnamed_semaphores = TRUE;
+static int mx_use_posix_named_semaphores   = TRUE;
+
+#endif
+
+/*======================= System V Semaphores ======================*/
+
+#if defined(OS_LINUX) || defined(OS_MACOSX)
 
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -356,8 +396,25 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 #  include <pthread.h>
 #endif
 
-#if defined(OS_MACOSX)
-#  define SEMVMX	32767
+#if defined(OS_LINUX) || defined(OS_MACOSX)
+#  define SEMVMX  32767
+#endif
+
+#if !defined(SEM_A)
+#define SEM_A  0200	/* Alter permission */
+#define SEM_R  0400	/* Read permission  */
+#endif
+
+#if _SEM_SEMUN_UNDEFINED
+/* I wonder what possible advantage there is to making this
+ * union definition optional?
+ */
+union semun {
+	int val;
+	struct semid_ds *buf;
+	unsigned short int *array;
+	struct seminfo *__buf;
+};
 #endif
 
 typedef struct {
@@ -371,10 +428,10 @@ typedef struct {
 } MX_SYSTEM_V_SEMAPHORE_PRIVATE;
 
 static mx_status_type
-mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
+mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 				FILE **new_semaphore_file )
 {
-	static const char fname[] = "mx_named_semaphore_create_new_file()";
+	static const char fname[] = "mx_sysv_named_semaphore_create_new_file()";
 
 	int fd, saved_errno;
 
@@ -391,17 +448,21 @@ mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 
 	fd = open( semaphore->name, O_RDWR | O_CREAT | O_EXCL, 0600 );
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: MARKER A, fd = %d", fname, fd));
+#endif
 
 	if ( fd < 0 ) {
 		saved_errno = errno;
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: MARKER A.1, saved_errno = %d",
 				fname, saved_errno));
+#endif
 
 		switch( saved_errno ) {
 		case EEXIST:
-			return mx_error( MXE_NOT_AVAILABLE, fname,
+			return mx_error( MXE_ALREADY_EXISTS, fname,
 			"Semaphore file '%s' already exists.",
 				semaphore->name );
 			break;
@@ -425,8 +486,10 @@ mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 
 	(*new_semaphore_file) = fdopen( fd, "w" );
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: MARKER B, *new_semaphore_file = %p",
 		fname, *new_semaphore_file));
+#endif
 
 	if ( (*new_semaphore_file) == NULL ) {
 		saved_errno = errno;
@@ -442,11 +505,11 @@ mx_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 }
 
 static mx_status_type
-mx_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
+mx_sysv_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 					unsigned long *process_id )
 {
 	static const char fname[] =
-			"mx_named_semaphore_get_server_process_id()";
+			"mx_sysv_named_semaphore_get_server_process_id()";
 
 	FILE *semaphore_file;
 	int num_items, saved_errno;
@@ -478,7 +541,7 @@ mx_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 	if ( feof(semaphore_file) || ferror(semaphore_file) ) {
 		(void) fclose(semaphore_file);
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
+		return mx_error( MXE_NOT_FOUND, fname,
 		"Unable to read semaphore id string from semaphore file '%s'.",
 			semaphore->name );
 	}
@@ -488,7 +551,7 @@ mx_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 	num_items = sscanf( buffer, "%lu", process_id );
 
 	if ( num_items != 1 ) {
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		return mx_error( MXE_NOT_FOUND, fname,
 		"Unable to find the server process id in the line '%s' "
 		"read from semaphore file '%s'.", buffer, semaphore->name);
 	}
@@ -501,13 +564,13 @@ mx_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 }
 
 static mx_status_type
-mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
+mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 			FILE **new_semaphore_file )
 {
-	static const char fname[] = "mx_named_semaphore_get_key()";
+	static const char fname[] = "mx_sysv_named_semaphore_get_key()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
-	int file_status, saved_errno;
+	int file_status, saved_errno, process_exists;
 	unsigned long process_id;
 	mx_status_type mx_status;
 
@@ -522,8 +585,10 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	*new_semaphore_file = NULL;
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: MARKER 1, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -546,27 +611,49 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	/* Attempt to create the semaphore file. */
 
-	mx_status = mx_named_semaphore_create_new_file( semaphore,
+	mx_status = mx_sysv_named_semaphore_create_new_file( semaphore,
 						new_semaphore_file );
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: MARKER 2, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
 		break;
-	case MXE_NOT_AVAILABLE:
+	case MXE_ALREADY_EXISTS:
 		/* The semaphore file already exists.  Does it belong to
 		 * a currently running server?
 		 */
 
-		mx_status = mx_named_semaphore_get_server_process_id(
+		process_exists = FALSE;
+
+		mx_status = mx_sysv_named_semaphore_get_server_process_id(
 					semaphore, &process_id );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+			/* Check to see if the process corresponding to
+			 * that process id is still running.
+			 */
 
-		if ( mx_process_exists( process_id ) ) {
+			process_exists = mx_process_exists( process_id );
+			break;
+		case MXE_NOT_FOUND:
+			/* If the server process id could not be found in
+			 * the semaphore file, just delete the semaphore
+			 * file.
+			 */
+
+			break;
+		default:
+			/* Otherwise, return an error. */
+
+			return mx_status;
+		}
+
+		if ( process_exists ) {
 			/* A process with that process id exists, so we
 			 * assume that it is the server and exit withou
 			 * changing the file.  Note that *new_semaphore_file
@@ -597,14 +684,18 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 		/* We can now try again to create the semaphore file. */
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: MARKER 2.1, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
-		mx_status = mx_named_semaphore_create_new_file( semaphore,
+		mx_status = mx_sysv_named_semaphore_create_new_file( semaphore,
 							new_semaphore_file );
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: MARKER 2.2, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -622,8 +713,10 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	if ( system_v_private->semaphore_key == (-1) ) {
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: MARKER 3, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
 		if ( *new_semaphore_file != NULL ) {
 			fclose( *new_semaphore_file );
@@ -636,12 +729,14 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 			semaphore->name );
 	}
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: MARKER 4, *new_semaphore_file = %p",
 			fname, *new_semaphore_file));
+#endif
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s: semaphore key = %#lx", 
-			fname, system_v_private->semaphore_key));
+		fname, (unsigned long) system_v_private->semaphore_key));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -649,12 +744,12 @@ mx_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
-MX_EXPORT mx_status_type
-mx_semaphore_create( MX_SEMAPHORE **semaphore,
+static mx_status_type
+mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 			unsigned long initial_value,
 			char *name )
 {
-	static const char fname[] = "mx_semaphore_create()";
+	static const char fname[] = "mx_sysv_semaphore_create()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	FILE *new_semaphore_file;
@@ -664,12 +759,9 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	union semun value_union;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	/* Allocate the data structures we need. */
 
@@ -690,6 +782,8 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	}
 
 	(*semaphore)->semaphore_ptr = system_v_private;
+
+	(*semaphore)->semaphore_type = MXT_SEM_SYSV;
 
 	/* Is the initial value of the semaphore greater than the 
 	 * maximum allowed value?
@@ -732,10 +826,12 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 
 		create_new_semaphore = TRUE;
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: Private semaphore, create_new_semaphore = %d",
 			fname, create_new_semaphore));
+#endif
 	} else {
-		mx_status = mx_named_semaphore_get_key( *semaphore,
+		mx_status = mx_sysv_named_semaphore_get_key( *semaphore,
 							&new_semaphore_file );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -747,8 +843,10 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 			create_new_semaphore = TRUE;
 		}
 
+#if MX_SEMAPHORE_DEBUG
 		MX_DEBUG(-2,("%s: Named semaphore, create_new_semaphore = %d",
 			fname, create_new_semaphore));
+#endif
 	}
 
 #if MX_SEMAPHORE_DEBUG
@@ -774,6 +872,12 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	}
 
 	/* Create or connect to the semaphore. */
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: semaphore_key = %#lx, semget_flags = %#o", fname,
+		(unsigned long) system_v_private->semaphore_key,
+			semget_flags ));
+#endif
 
 	system_v_private->semaphore_id =
 		semget( system_v_private->semaphore_key,
@@ -812,19 +916,15 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Either the semaphore key %lu, filename '%s' does not "
 			"exist or semaphore number 0 was not found.",
-					system_v_private->semaphore_key,
-					(*semaphore)->name );
+				(unsigned long) system_v_private->semaphore_key,
+				(*semaphore)->name );
 				break;
 			case EPERM:
+			case EACCES:
 				return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The current process lacks the appropriated privilege "
-			"to access the semaphore." );
+			"to access the semaphore in the requested manner." );
 				break;
-			case EACCES:
-				return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The operation and the mode of the semaphore set "
-			"do not match." );
-			    	break;
 			case ERANGE:
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Attempted to set semaphore value (%lu) outside the allowed "
@@ -902,20 +1002,17 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+static mx_status_type
+mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 {
-	static const char fname[] = "mx_semaphore_destroy()";
+	static const char fname[] = "mx_sysv_semaphore_destroy()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	int status, saved_errno, destroy_semaphore;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -956,8 +1053,8 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Either the semaphore key %lu, filename '%s' does not "
 			"exist or semaphore number 0 was not found.",
-					system_v_private->semaphore_key,
-					semaphore->name );
+				(unsigned long) system_v_private->semaphore_key,
+				semaphore->name );
 				break;
 			case EPERM:
 				return mx_error( MXE_PERMISSION_DENIED, fname,
@@ -1001,15 +1098,12 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT long
-mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+static long
+mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 {
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -1064,15 +1158,12 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT long
-mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+static long
+mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 {
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -1127,15 +1218,12 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT long
-mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+static long
+mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -1190,8 +1278,8 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT mx_status_type
-mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+static mx_status_type
+mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			unsigned long *current_value )
 {
 	static const char fname[] = "mx_semaphore_get_value()";
@@ -1199,16 +1287,9 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	int status, saved_errno, semaphore_value;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
-	if ( current_value == (unsigned long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The current_value pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	system_v_private = semaphore->semaphore_ptr;
 
@@ -1238,31 +1319,30 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/************************ Posix Pthreads ***********************/
+#endif    /* System V semaphores */
 
-#elif defined(_POSIX_SEMAPHORES) || defined(OS_IRIX) || defined(OS_MACOSX)
+/*======================= Posix Pthreads ======================*/
+
+#if defined(_POSIX_SEMAPHORES) || defined(OS_IRIX)
 
 #include <fcntl.h>
 #include <semaphore.h>
 
-MX_EXPORT mx_status_type
-mx_semaphore_create( MX_SEMAPHORE **semaphore,
+static mx_status_type
+mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 			unsigned long initial_value,
 			char *name )
 {
-	static const char fname[] = "mx_semaphore_create()";
+	static const char fname[] = "mx_posix_semaphore_create()";
 
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 	unsigned long sem_value_max;
 	size_t name_length;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	/* Allocate the data structures we need. */
 
@@ -1281,6 +1361,8 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	}
 
 	(*semaphore)->semaphore_ptr = p_semaphore_ptr;
+
+	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
 
 	/* Is the initial value of the semaphore greater than the 
 	 * maximum allowed value?
@@ -1436,20 +1518,17 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+static mx_status_type
+mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 {
-	static const char fname[] = "mx_semaphore_destroy()";
+	static const char fname[] = "mx_posix_semaphore_destroy()";
 
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
@@ -1508,14 +1587,11 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT long
-mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+static long
+mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 {
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
@@ -1551,14 +1627,11 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT long
-mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+static long
+mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 {
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
@@ -1588,14 +1661,11 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT long
-mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+static long
+mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL )
-		return MXE_NULL_ARGUMENT;
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
@@ -1640,8 +1710,8 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	return MXE_SUCCESS;
 }
 
-MX_EXPORT mx_status_type
-mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+static mx_status_type
+mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			unsigned long *current_value )
 {
 	static const char fname[] = "mx_semaphore_get_value()";
@@ -1649,16 +1719,9 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno, semaphore_value;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
-
-	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEMAPHORE pointer passed was NULL." );
-	}
-	if ( current_value == (unsigned long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The current_value pointer passed was NULL." );
-	}
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
@@ -1688,13 +1751,162 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*-------------------------------------------------------------------------*/
+#endif   /* Posix semaphores */
+
+/*=============================================================*/
+
+/* The following functions route semaphore calls to the correct
+ * Posix or System V function depending on which kinds of semaphores
+ * are supported on the current platform.
+ */
+
+MX_EXPORT mx_status_type
+mx_semaphore_create( MX_SEMAPHORE **semaphore,
+		unsigned long initial_value,
+		char *name )
+{
+	static const char fname[] = "mx_semaphore_create()";
+
+	mx_status_type mx_status;
+
+	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	if ( name == (char *) NULL ) {
+		if ( mx_use_posix_unnamed_semaphores ) {
+			mx_status = mx_posix_semaphore_create( semaphore,
+								initial_value,
+								name );
+		} else {
+			mx_status = mx_sysv_semaphore_create( semaphore,
+								initial_value,
+								name );
+		}
+	} else {
+		if ( mx_use_posix_named_semaphores ) {
+			mx_status = mx_posix_semaphore_create( semaphore,
+								initial_value,
+								name );
+		} else {
+			mx_status = mx_sysv_semaphore_create( semaphore,
+								initial_value,
+								name );
+		}
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+{
+	static const char fname[] = "mx_semaphore_destroy()";
+
+	mx_status_type mx_status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	if ( semaphore->semaphore_type == MXT_SEM_POSIX ) {
+		mx_status = mx_posix_semaphore_destroy( semaphore );
+	} else {
+		mx_status = mx_sysv_semaphore_destroy( semaphore );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT long
+mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+{
+	long result;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	if ( semaphore->semaphore_type == MXT_SEM_POSIX ) {
+		result = mx_posix_semaphore_lock( semaphore );
+	} else {
+		result = mx_sysv_semaphore_lock( semaphore );
+	}
+
+	return result;
+}
+
+MX_EXPORT long
+mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+{
+	long result;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	if ( semaphore->semaphore_type == MXT_SEM_POSIX ) {
+		result = mx_posix_semaphore_unlock( semaphore );
+	} else {
+		result = mx_sysv_semaphore_unlock( semaphore );
+	}
+
+	return result;
+}
+
+MX_EXPORT long
+mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+{
+	long result;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	if ( semaphore->semaphore_type == MXT_SEM_POSIX ) {
+		result = mx_posix_semaphore_trylock( semaphore );
+	} else {
+		result = mx_sysv_semaphore_trylock( semaphore );
+	}
+
+	return result;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	mx_status_type mx_status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( current_value == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The current_value pointer passed was NULL." );
+	}
+
+	if ( semaphore->semaphore_type == MXT_SEM_POSIX ) {
+		mx_status = mx_posix_semaphore_get_value( semaphore,
+							current_value );
+	} else {
+		mx_status = mx_sysv_semaphore_get_value( semaphore,
+							current_value );
+	}
+
+	return mx_status;
+}
+
+/***************************************************************/
 
 #elif 0
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-		unsigned long initial_value )
+		unsigned long initial_value,
+		char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
@@ -1727,6 +1939,16 @@ MX_EXPORT long
 mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
 	return MXE_UNSUPPORTED;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"MX semaphore functions are not supported for this operating system." );
 }
 
 #else
