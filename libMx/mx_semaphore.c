@@ -366,7 +366,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
  * GCC from complaining about 'defined but not used' functions.
  */
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_SOLARIS)
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = FALSE;
@@ -385,7 +385,7 @@ static int mx_use_posix_named_semaphores   = TRUE;
 
 /*======================= System V Semaphores ======================*/
 
-#if defined(OS_LINUX) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_MACOSX)
 
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -396,7 +396,7 @@ static int mx_use_posix_named_semaphores   = TRUE;
 #  include <pthread.h>
 #endif
 
-#if defined(OS_LINUX) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_MACOSX)
 #  define SEMVMX  32767
 #endif
 
@@ -405,7 +405,7 @@ static int mx_use_posix_named_semaphores   = TRUE;
 #define SEM_R  0400	/* Read permission  */
 #endif
 
-#if _SEM_SEMUN_UNDEFINED
+#if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS)
 /* I wonder what possible advantage there is to making this
  * union definition optional?
  */
