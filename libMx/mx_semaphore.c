@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	FALSE
+#define MX_SEMAPHORE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -374,7 +374,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #elif defined(OS_MACOSX)
 
 static int mx_use_posix_unnamed_semaphores = FALSE;
-static int mx_use_posix_named_semaphores   = TRUE;
+static int mx_use_posix_named_semaphores   = FALSE;
 
 #else
 
@@ -1101,6 +1101,8 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 static long
 mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 {
+	static char fname[] = "mx_sysv_semaphore_lock()";
+
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
@@ -1151,6 +1153,11 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 			return MXE_WOULD_EXCEED_LIMIT;
 			break;
 		default:
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Unexpected error code returned by semop().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1161,6 +1168,8 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 static long
 mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 {
+	static const char fname[] = "mx_sysv_semaphore_unlock()";
+
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
@@ -1211,6 +1220,11 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 			return MXE_WOULD_EXCEED_LIMIT;
 			break;
 		default:
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Unexpected error code returned by semop().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1221,6 +1235,8 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 static long
 mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
+	static const char fname[] = "mx_sysv_semaphore_trylock()";
+
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
@@ -1271,6 +1287,11 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 			return MXE_WOULD_EXCEED_LIMIT;
 			break;
 		default:
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Unexpected error code returned by semop().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1319,11 +1340,24 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#else     /* Do not have System V semaphores */
+
+#define mx_sysv_semaphore_unsupported \
+		mx_error( MXE_UNSUPPORTED, fname, \
+		"System V semaphores are not supported on this computer." )
+
+#define mx_sysv_semaphore_create(x,y,z)  mx_sysv_semaphore_unsupported
+#define mx_sysv_semaphore_destroy(x)     mx_sysv_semaphore_unsupported
+#define mx_sysv_semaphore_lock(x)        MXE_UNSUPPORTED
+#define mx_sysv_semaphore_unlock(x)      MXE_UNSUPPORTED
+#define mx_sysv_semaphore_trylock(x)     MXE_UNSUPPORTED
+#define mx_sysv_semaphore_get_value(x,y) mx_sysv_semaphore_unsupported
+
 #endif    /* System V semaphores */
 
 /*======================= Posix Pthreads ======================*/
 
-#if defined(_POSIX_SEMAPHORES) || defined(OS_IRIX)
+#if defined(_POSIX_SEMAPHORES) || defined(OS_IRIX) || defined(OS_MACOSX)
 
 #include <fcntl.h>
 #include <semaphore.h>
@@ -1367,10 +1401,10 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 	/* Is the initial value of the semaphore greater than the 
 	 * maximum allowed value?
 	 */
-#if defined(OS_SOLARIS) || defined(OS_IRIX)
-	sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
-#else
+#if defined(OS_LINUX) || defined(OS_MACOSX)
 	sem_value_max = SEM_VALUE_MAX;
+#else
+	sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
 #endif
 
 	if ( initial_value > sem_value_max ) {
@@ -1590,13 +1624,34 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 static long
 mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 {
+	static const char fname[] = "mx_posix_semaphore_lock()";
+
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
+
+#if 0
+	MX_DEBUG(-2,("%s: semaphore = %p", fname, semaphore));
+	MX_DEBUG(-2,("%s: semaphore->name = %p", fname, semaphore->name));
+	if ( semaphore->name != NULL ) {
+		MX_DEBUG(-2,("%s: semaphore->name = '%s'",
+				fname, semaphore->name));
+	}
+	MX_DEBUG(-2,("%s: semaphore->semaphore_type = %d",
+			fname, semaphore->semaphore_type));
+	MX_DEBUG(-2,("%s: semaphore->semaphore_ptr = %p",
+			fname, semaphore->semaphore_ptr));
+#endif
 
 	p_semaphore_ptr = semaphore->semaphore_ptr;
 
 	if ( p_semaphore_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
+
+#if 0
+	MX_DEBUG(-2,("%s: p_semaphore_ptr = %p", fname, p_semaphore_ptr));
+	MX_DEBUG(-2,("%s: *p_semaphore_ptr = %d",
+			fname, (int) (*p_semaphore_ptr) ));
+#endif
 
 	status = sem_wait( p_semaphore_ptr );
 
@@ -1620,6 +1675,11 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 			return MXE_MIGHT_CAUSE_DEADLOCK;
 			break;
 		default:
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+			    "Unexpected error code returned by sem_wait().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1630,6 +1690,8 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 static long
 mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 {
+	static const char fname[] = "mx_posix_semaphore_unlock()";
+
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 
@@ -1654,6 +1716,11 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 			return MXE_UNSUPPORTED;
 			break;
 		default:
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+			    "Unexpected error code returned by sem_post().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1664,6 +1731,8 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 static long
 mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
+	static const char fname[] = "mx_posix_semaphore_trylock()";
+
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 
@@ -1698,11 +1767,11 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 			return MXE_MIGHT_CAUSE_DEADLOCK;
 			break;
 		default:
-#if 1
-			MX_DEBUG(-2,
-		("mx_semaphore_trylock(): errno = %d, error message = '%s'.",
-					saved_errno, strerror(saved_errno) ));
-#endif
+			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
+			    "Unexpected error code returned by sem_trywait().  "
+				"Errno = %d, error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+
 			return MXE_UNKNOWN_ERROR;
 			break;
 		}
@@ -1750,6 +1819,19 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#else     /* Do not have Posix semaphores */
+
+#define mx_posix_semaphore_unsupported \
+		mx_error( MXE_UNSUPPORTED, fname, \
+		"Posix semaphores are not supported on this computer." )
+
+#define mx_posix_semaphore_create(x,y,z)  mx_posix_semaphore_unsupported
+#define mx_posix_semaphore_destroy(x)     mx_posix_semaphore_unsupported
+#define mx_posix_semaphore_lock(x)        MXE_UNSUPPORTED
+#define mx_posix_semaphore_unlock(x)      MXE_UNSUPPORTED
+#define mx_posix_semaphore_trylock(x)     MXE_UNSUPPORTED
+#define mx_posix_semaphore_get_value(x,y) mx_posix_semaphore_unsupported
 
 #endif   /* Posix semaphores */
 
