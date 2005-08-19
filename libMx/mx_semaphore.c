@@ -374,7 +374,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #elif defined(OS_MACOSX)
 
 static int mx_use_posix_unnamed_semaphores = FALSE;
-static int mx_use_posix_named_semaphores   = FALSE;
+static int mx_use_posix_named_semaphores   = TRUE;
 
 #else
 
@@ -1394,8 +1394,6 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Unable to allocate memory for a sem_t structure." );
 	}
 
-	(*semaphore)->semaphore_ptr = p_semaphore_ptr;
-
 	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
 
 	/* Is the initial value of the semaphore greater than the 
@@ -1549,6 +1547,14 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		}
 	}
 
+	(*semaphore)->semaphore_ptr = p_semaphore_ptr;
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: p_semaphore_ptr = %p", fname, p_semaphore_ptr));
+	MX_DEBUG(-2,("%s: (*semaphore)->semaphore_ptr = %p",
+			fname, (*semaphore)->semaphore_ptr));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1629,7 +1635,7 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: semaphore = %p", fname, semaphore));
 	MX_DEBUG(-2,("%s: semaphore->name = %p", fname, semaphore->name));
 	if ( semaphore->name != NULL ) {
@@ -1647,10 +1653,8 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( p_semaphore_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: p_semaphore_ptr = %p", fname, p_semaphore_ptr));
-	MX_DEBUG(-2,("%s: *p_semaphore_ptr = %d",
-			fname, (int) (*p_semaphore_ptr) ));
 #endif
 
 	status = sem_wait( p_semaphore_ptr );
@@ -1783,7 +1787,7 @@ static mx_status_type
 mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			unsigned long *current_value )
 {
-	static const char fname[] = "mx_semaphore_get_value()";
+	static const char fname[] = "mx_posix_semaphore_get_value()";
 
 	sem_t *p_semaphore_ptr;
 	int status, saved_errno, semaphore_value;
