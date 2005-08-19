@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	TRUE
+#define MX_SEMAPHORE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1362,6 +1362,10 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 #include <fcntl.h>
 #include <semaphore.h>
 
+typedef struct {
+	sem_t *p_semaphore;
+} MX_POSIX_SEMAPHORE_PRIVATE;
+
 static mx_status_type
 mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 			unsigned long initial_value,
@@ -1369,7 +1373,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 {
 	static const char fname[] = "mx_posix_semaphore_create()";
 
-	sem_t *p_semaphore_ptr;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 	unsigned long sem_value_max;
 	size_t name_length;
@@ -1387,12 +1391,15 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Unable to allocate memory for an MX_SEMAPHORE structure." );
 	}
 
-	p_semaphore_ptr = (sem_t *) malloc( sizeof(sem_t) );
+	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *)
+				malloc( sizeof(MX_POSIX_SEMAPHORE_PRIVATE) );
 
-	if ( p_semaphore_ptr == (sem_t *) NULL ) {
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for a sem_t structure." );
+"Unable to allocate memory for a MX_POSIX_SEMAPHORE_PRIVATE structure." );
 	}
+
+	(*semaphore)->semaphore_ptr = posix_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
 
@@ -1433,7 +1440,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 
 		/* Create an unnamed semaphore. */
 
-		status = sem_init( p_semaphore_ptr, 0,
+		status = sem_init( posix_private->p_semaphore, 0,
 					(unsigned int) initial_value );
 
 		if ( status != 0 ) {
@@ -1471,12 +1478,12 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 	} else {
 		/* Create a named semaphore. */
 
-		p_semaphore_ptr = sem_open( (*semaphore)->name,
+		posix_private->p_semaphore = sem_open( (*semaphore)->name,
 					O_CREAT,
 					0644,
 					(unsigned int) initial_value );
 
-		if ( p_semaphore_ptr == (sem_t *) SEM_FAILED ) {
+		if ( posix_private->p_semaphore == (sem_t *) SEM_FAILED ) {
 			saved_errno = errno;
 
 			switch( saved_errno ) {
@@ -1547,12 +1554,9 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		}
 	}
 
-	(*semaphore)->semaphore_ptr = p_semaphore_ptr;
-
 #if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: p_semaphore_ptr = %p", fname, p_semaphore_ptr));
-	MX_DEBUG(-2,("%s: (*semaphore)->semaphore_ptr = %p",
-			fname, (*semaphore)->semaphore_ptr));
+	MX_DEBUG(-2,("%s: posix_private->p_semaphore = %p",
+			fname, posix_private->p_semaphore));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1563,16 +1567,16 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 {
 	static const char fname[] = "mx_posix_semaphore_destroy()";
 
-	sem_t *p_semaphore_ptr;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	p_semaphore_ptr = semaphore->semaphore_ptr;
+	posix_private = semaphore->semaphore_ptr;
 
-	if ( p_semaphore_ptr == NULL ) {
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The semaphore_ptr field for the MX_SEMAPHORE pointer "
 			"passed was NULL.");
@@ -1581,11 +1585,11 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	if ( semaphore->name == NULL ) {
 		/* Destroy an unnamed semaphore. */
 
-		status = sem_destroy( p_semaphore_ptr );
+		status = sem_destroy( posix_private->p_semaphore );
 	} else {
 		/* Close a named semaphore. */
 
-		status = sem_close( p_semaphore_ptr );
+		status = sem_close( posix_private->p_semaphore );
 	}
 
 	if ( status != 0 ) {
@@ -1620,7 +1624,7 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		mx_free( semaphore->name );
 	}
 
-	mx_free( p_semaphore_ptr );
+	mx_free( posix_private );
 
 	mx_free( semaphore );
 
@@ -1632,10 +1636,10 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 {
 	static const char fname[] = "mx_posix_semaphore_lock()";
 
-	sem_t *p_semaphore_ptr;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: semaphore = %p", fname, semaphore));
 	MX_DEBUG(-2,("%s: semaphore->name = %p", fname, semaphore->name));
 	if ( semaphore->name != NULL ) {
@@ -1648,16 +1652,18 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 			fname, semaphore->semaphore_ptr));
 #endif
 
-	p_semaphore_ptr = semaphore->semaphore_ptr;
+	posix_private = semaphore->semaphore_ptr;
 
-	if ( p_semaphore_ptr == NULL )
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-#if 1
-	MX_DEBUG(-2,("%s: p_semaphore_ptr = %p", fname, p_semaphore_ptr));
+#if 0
+	MX_DEBUG(-2,("%s: posix_private->p_semaphore = %p",
+			fname, posix_private->p_semaphore));
+	MX_DEBUG(-2,("%s: About to call sem_wait()", fname));
 #endif
 
-	status = sem_wait( p_semaphore_ptr );
+	status = sem_wait( posix_private->p_semaphore );
 
 	if ( status != 0 ) {
 		saved_errno = errno;
@@ -1696,15 +1702,15 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 {
 	static const char fname[] = "mx_posix_semaphore_unlock()";
 
-	sem_t *p_semaphore_ptr;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	p_semaphore_ptr = semaphore->semaphore_ptr;
+	posix_private = semaphore->semaphore_ptr;
 
-	if ( p_semaphore_ptr == NULL )
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = sem_post( p_semaphore_ptr );
+	status = sem_post( posix_private->p_semaphore );
 
 	if ( status != 0 ) {
 		saved_errno = errno;
@@ -1737,15 +1743,15 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 {
 	static const char fname[] = "mx_posix_semaphore_trylock()";
 
-	sem_t *p_semaphore_ptr;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	p_semaphore_ptr = semaphore->semaphore_ptr;
+	posix_private = semaphore->semaphore_ptr;
 
-	if ( p_semaphore_ptr == NULL )
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-	status = sem_trywait( p_semaphore_ptr );
+	status = sem_trywait( posix_private->p_semaphore );
 
 	if ( status != 0 ) {
 		saved_errno = errno;
@@ -1789,22 +1795,29 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 {
 	static const char fname[] = "mx_posix_semaphore_get_value()";
 
-	sem_t *p_semaphore_ptr;
-	int status, saved_errno, semaphore_value;
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
+	int semaphore_value, status, saved_errno;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	p_semaphore_ptr = semaphore->semaphore_ptr;
+	status = saved_errno = 0;  /* Keep quiet about unused variables. */
 
-	if ( p_semaphore_ptr == NULL ) {
+	posix_private = semaphore->semaphore_ptr;
+
+	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The semaphore_ptr field for the MX_SEMAPHORE pointer "
 			"passed was NULL.");
 	}
 
-	status = sem_getvalue( p_semaphore_ptr, &semaphore_value );
+#if defined(OS_MACOSX)
+	/* sem_getvalue() does not seem to work on MacOS X. */
+
+	semaphore_value = 0;
+#else
+	status = sem_getvalue( posix_private->p_semaphore, &semaphore_value );
 
 	if ( status != 0 ) {
 		saved_errno = errno;
@@ -1818,6 +1831,7 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			break;
 		}
 	}
+#endif
 
 	*current_value = (unsigned long) semaphore_value;
 
