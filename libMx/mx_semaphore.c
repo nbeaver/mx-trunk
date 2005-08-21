@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	FALSE
+#define MX_SEMAPHORE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -23,6 +23,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_thread.h"
 #include "mx_semaphore.h"
 
 /************************ Microsoft Win32 ***********************/
@@ -376,6 +377,11 @@ static int mx_use_posix_named_semaphores   = FALSE;
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
 
+#elif 0
+
+static int mx_use_posix_unnamed_semaphores = FALSE;
+static int mx_use_posix_named_semaphores   = FALSE;
+
 #else
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
@@ -385,7 +391,7 @@ static int mx_use_posix_named_semaphores   = TRUE;
 
 /*======================= System V Semaphores ======================*/
 
-#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_MACOSX)
+#if 1
 
 #include <sys/types.h>
 #include <sys/ipc.h>
@@ -396,7 +402,7 @@ static int mx_use_posix_named_semaphores   = TRUE;
 #  include <pthread.h>
 #endif
 
-#if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_MACOSX)
+#if 1
 #  define SEMVMX  32767
 #endif
 
@@ -1442,6 +1448,10 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 
 		status = sem_init( posix_private->p_semaphore, 0,
 					(unsigned int) initial_value );
+#if MX_SEMAPHORE_DEBUG
+		MX_DEBUG(-2,("%s: unnamed semaphore = %p",
+			fname, posix_private->p_semaphore));
+#endif
 
 		if ( status != 0 ) {
 			saved_errno = errno;
@@ -1482,6 +1492,11 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 					O_CREAT,
 					0644,
 					(unsigned int) initial_value );
+
+#if MX_SEMAPHORE_DEBUG
+		MX_DEBUG(-2,("%s: named semaphore = %p",
+			fname, posix_private->p_semaphore));
+#endif
 
 		if ( posix_private->p_semaphore == (sem_t *) SEM_FAILED ) {
 			saved_errno = errno;
@@ -1639,7 +1654,7 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: semaphore = %p", fname, semaphore));
 	MX_DEBUG(-2,("%s: semaphore->name = %p", fname, semaphore->name));
 	if ( semaphore->name != NULL ) {
@@ -1657,7 +1672,7 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: posix_private->p_semaphore = %p",
 			fname, posix_private->p_semaphore));
 	MX_DEBUG(-2,("%s: About to call sem_wait()", fname));
@@ -1799,7 +1814,8 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	int semaphore_value, status, saved_errno;
 
 #if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for thread %p.",
+		fname, mx_get_current_thread_pointer() ));
 #endif
 
 	status = saved_errno = 0;  /* Keep quiet about unused variables. */
@@ -1811,6 +1827,11 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			"The semaphore_ptr field for the MX_SEMAPHORE pointer "
 			"passed was NULL.");
 	}
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: posix_private->p_semaphore = %p",
+		fname, posix_private->p_semaphore));
+#endif
 
 #if defined(OS_MACOSX)
 	/* sem_getvalue() does not seem to work on MacOS X. */
@@ -1833,10 +1854,17 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	}
 #endif
 
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: semaphore value = %lu",
+		fname, (unsigned long) semaphore_value));
+#endif
+
 	*current_value = (unsigned long) semaphore_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*=============================================================*/
 
 #else     /* Do not have Posix semaphores */
 

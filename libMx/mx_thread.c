@@ -2076,3 +2076,20 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 #endif
 
+/******************* Cross platform functions ******************/
+
+MX_API MX_THREAD *
+mx_get_current_thread_pointer( void )
+{
+	MX_THREAD *thread;
+	mx_status_type mx_status;
+
+	mx_status = mx_get_current_thread( &thread );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return NULL;
+	} else {
+		return thread;
+	}
+}
+

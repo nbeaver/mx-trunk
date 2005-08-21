@@ -68,6 +68,8 @@ MX_API mx_status_type mx_thread_save_thread_pointer( MX_THREAD *thread );
 
 MX_API mx_status_type mx_get_current_thread( MX_THREAD **thread );
 
+MX_API MX_THREAD *mx_get_current_thread_pointer( void );
+
 MX_API void mx_show_thread_info( MX_THREAD *thread, char *message );
 
 /*---*/
