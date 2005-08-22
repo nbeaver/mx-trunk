@@ -372,7 +372,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = FALSE;
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(OS_IRIX)
 
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
