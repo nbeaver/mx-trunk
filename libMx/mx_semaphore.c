@@ -1312,7 +1312,7 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	static const char fname[] = "mx_semaphore_get_value()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
-	int status, saved_errno, semaphore_value;
+	int saved_errno, semaphore_value;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -1331,7 +1331,7 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	if ( semaphore_value < 0 ) {
 		saved_errno = errno;
 
-		switch( status ) {
+		switch( saved_errno ) {
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected semctl() error code %d returned.  "
