@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	TRUE
+#define MX_SEMAPHORE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -372,7 +372,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = FALSE;
 
-#elif defined(OS_MACOSX) || defined(OS_IRIX)
+#elif defined(OS_MACOSX)
 
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
@@ -1405,6 +1405,13 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 "Unable to allocate memory for a MX_POSIX_SEMAPHORE_PRIVATE structure." );
 	}
 
+	posix_private->p_semaphore = (sem_t *) malloc( sizeof(sem_t) );
+
+	if ( posix_private->p_semaphore == (sem_t *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for a sem_t object." );
+	}
+
 	(*semaphore)->semaphore_ptr = posix_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
@@ -1639,6 +1646,8 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		mx_free( semaphore->name );
 	}
 
+	mx_free( posix_private->p_semaphore );
+
 	mx_free( posix_private );
 
 	mx_free( semaphore );
@@ -1654,7 +1663,7 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: semaphore = %p", fname, semaphore));
 	MX_DEBUG(-2,("%s: semaphore->name = %p", fname, semaphore->name));
 	if ( semaphore->name != NULL ) {
@@ -1672,7 +1681,7 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: posix_private->p_semaphore = %p",
 			fname, posix_private->p_semaphore));
 	MX_DEBUG(-2,("%s: About to call sem_wait()", fname));
