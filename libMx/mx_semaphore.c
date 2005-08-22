@@ -374,18 +374,22 @@ static int mx_use_posix_named_semaphores   = FALSE;
 
 #elif defined(OS_MACOSX)
 
+/* FIXME: MacOS X might be better off with System V named semaphores since
+ *        sem_getvalue() does not work for Posix named semaphores there.
+ */
+
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
 
-#elif 0
-
-static int mx_use_posix_unnamed_semaphores = FALSE;
-static int mx_use_posix_named_semaphores   = FALSE;
-
-#else
+#elif defined(OS_IRIX)
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = TRUE;
+
+#else
+
+static int mx_use_posix_unnamed_semaphores = FALSE;
+static int mx_use_posix_named_semaphores   = FALSE;
 
 #endif
 
@@ -1405,11 +1409,17 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 "Unable to allocate memory for a MX_POSIX_SEMAPHORE_PRIVATE structure." );
 	}
 
-	posix_private->p_semaphore = (sem_t *) malloc( sizeof(sem_t) );
+	/* If the semaphore is unnamed, then we need to allocate memory
+	 * for the sem_t object;
+	 */
 
-	if ( posix_private->p_semaphore == (sem_t *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for a sem_t object." );
+	if ( name == NULL ) {
+		posix_private->p_semaphore = (sem_t *) malloc( sizeof(sem_t) );
+
+		if ( posix_private->p_semaphore == (sem_t *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Unable to allocate memory for a sem_t object." );
+		}
 	}
 
 	(*semaphore)->semaphore_ptr = posix_private;
@@ -1642,11 +1652,11 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		}
 	}
 
-	if ( semaphore->name != NULL ) {
+	if ( semaphore->name == NULL ) {
+		mx_free( posix_private->p_semaphore );
+	} else {
 		mx_free( semaphore->name );
 	}
-
-	mx_free( posix_private->p_semaphore );
 
 	mx_free( posix_private );
 
