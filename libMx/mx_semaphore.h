@@ -21,7 +21,7 @@ typedef struct {
 	char *name;
 
 	int semaphore_type;
-	void *semaphore_ptr;
+	void *private;
 } MX_SEMAPHORE;
 
 #define MXT_SEM_INVALID	0
@@ -29,9 +29,16 @@ typedef struct {
 #define MXT_SEM_SYSV	2
 #define MXT_SEM_POSIX	3
 
+/* Note: If 'initial_value' is less than zero, then we are attempting
+ *       to attach to an existing semaphore, rather than create a new
+ *       semaphore.
+ */
+
+#define mx_semaphore_open(s,n)		mx_semaphore_create((s), -1, (n))
+
 MX_API mx_status_type mx_semaphore_create( MX_SEMAPHORE **semaphore,
-					unsigned long initial_value,
-					char *name );
+						long initial_value,
+						char *name );
 
 MX_API mx_status_type mx_semaphore_destroy( MX_SEMAPHORE *semaphore );
 

@@ -34,8 +34,8 @@
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-		unsigned long initial_value,
-		char *name )
+			long initial_value,
+			char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
@@ -125,7 +125,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 		"The MX_SEMAPHORE pointer passed was NULL." );
 	}
 
-	semaphore_handle_ptr = semaphore->semaphore_ptr;
+	semaphore_handle_ptr = semaphore->private;
 
 	if ( semaphore_handle_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -169,7 +169,7 @@ mx_semaphore_lock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->semaphore_ptr;
+	semaphore_handle_ptr = semaphore->private;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -221,7 +221,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->semaphore_ptr;
+	semaphore_handle_ptr = semaphore->private;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -260,7 +260,7 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	if ( semaphore == (MX_SEMAPHORE *) NULL )
 		return MXE_NULL_ARGUMENT;
 
-	semaphore_handle_ptr = semaphore->semaphore_ptr;
+	semaphore_handle_ptr = semaphore->private;
 
 	if ( semaphore_handle_ptr == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -320,7 +320,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 		"The current_value pointer passed was NULL." );
 	}
 
-	semaphore_handle_ptr = semaphore->semaphore_ptr;
+	semaphore_handle_ptr = semaphore->private;
 
 	if ( semaphore_handle_ptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -600,7 +600,7 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 			fname, *new_semaphore_file));
 #endif
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -756,8 +756,8 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 static mx_status_type
 mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
-			unsigned long initial_value,
-			char *name )
+				long initial_value,
+				char *name )
 {
 	static const char fname[] = "mx_sysv_semaphore_create()";
 
@@ -791,7 +791,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 			"MX_SYSTEM_V_SEMAPHORE_PRIVATE structure." );
 	}
 
-	(*semaphore)->semaphore_ptr = system_v_private;
+	(*semaphore)->private = system_v_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_SYSV;
 
@@ -1024,7 +1024,7 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1117,7 +1117,7 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1184,7 +1184,7 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1251,7 +1251,7 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	struct sembuf sembuf_struct;
 	int status, saved_errno;
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1322,7 +1322,7 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	system_v_private = semaphore->semaphore_ptr;
+	system_v_private = semaphore->private;
 
 	if ( system_v_private == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1377,16 +1377,199 @@ typedef struct {
 } MX_POSIX_SEMAPHORE_PRIVATE;
 
 static mx_status_type
+mx_posix_sem_init( MX_SEMAPHORE *semaphore,
+			int pshared,
+			unsigned int value )
+{
+	static const char fname[] = "mx_posix_sem_init()";
+
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
+	int status, saved_errno;
+
+	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private;
+
+	/* Create an unnamed semaphore. */
+
+	status = sem_init( posix_private->p_semaphore, pshared, value );
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: unnamed semaphore = %p",
+		fname, posix_private->p_semaphore));
+#endif
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EINVAL:
+
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested initial value %lu exceeds the maximum "
+		"allowed value.", value );
+			break;
+		case ENOSPC:
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+    "A resource required to create the semaphore is not available.");
+		    	break;
+		case ENOSYS:
+			return mx_error( MXE_UNSUPPORTED, fname,
+	"Posix semaphores are not supported on this platform." );
+			break;
+		case EPERM:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+		"The current process lacks the appropriated privilege "
+		"to create the semaphore." );
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unexpected sem_init() error code %d returned.  "
+		"Error message = '%s'.",
+			saved_errno, strerror( saved_errno ) );
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_posix_sem_open( MX_SEMAPHORE *semaphore,
+			int open_flag,
+			mode_t mode,
+			unsigned int value )
+{
+	static const char fname[] = "mx_posix_sem_open()";
+
+	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
+	int saved_errno;
+
+	posix_private = (MX_POSIX_SEMAPHORE_PRIVATE *) semaphore->private;
+
+	/* Create or open a named semaphore. */
+
+	posix_private->p_semaphore = sem_open( semaphore->name,
+						open_flag, mode, value );
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s: named semaphore = %p",
+		fname, posix_private->p_semaphore));
+#endif
+
+	if ( posix_private->p_semaphore == (sem_t *) SEM_FAILED ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EACCES:
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+				"Could not connect to semaphore '%s'.",
+					semaphore->name );
+			break;
+		case EEXIST:
+			return mx_error_quiet( MXE_ALREADY_EXISTS, fname,
+				"Semaphore '%s' already exists, but you "
+				"requested exclusive access.",
+					semaphore->name );
+			break;
+		case EINTR:
+			return mx_error( MXE_INTERRUPTED, fname,
+			    "sem_open() for semaphore '%s' was interrupted.",
+			    		semaphore->name );
+			break;
+		case EINVAL:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Either sem_open() is not supported for "
+				"semaphore '%s' or the requested initial "
+				"value %u was larger than the maximum "
+				"allowed value.",
+					semaphore->name, value );
+			break;
+		case EMFILE:
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+				"Ran out of semaphore or file descriptors "
+				"for this process." );
+			break;
+		case ENAMETOOLONG:
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"Semaphore name '%s' is longer than the "
+				"maximum allowed length for this system.",
+					semaphore->name );
+			break;
+		case ENFILE:
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+				"Too many semaphores are currently open "
+				"on this computer." );
+			break;
+		case ENOENT:
+			return mx_error( MXE_NOT_FOUND, fname,
+				"Semaphore '%s' was not found and the call "
+				"to sem_open() did not specify O_CREAT.",
+					semaphore->name );
+			break;
+		case ENOSPC:
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"There is insufficient space for the creation "
+				"of the new named semaphore." );
+			break;
+		case ENOSYS:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"The function sem_open() is not supported "
+				"on this platform." );
+			break;
+		default:
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+			"Unexpected sem_open() error code %d returned.  "
+			"Error message = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_posix_sem_unlink( MX_SEMAPHORE *semaphore )
+{
+	static const char fname[] = "mx_posix_sem_unlink()";
+
+	int status, saved_errno;
+
+	MX_DEBUG(-2,("%s invoked for semaphore '%s'",
+		fname, semaphore->name));
+
+	status = sem_unlink( semaphore->name );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error for sem_unlink( '%s' ),  "
+			"Errno = %d, error message = '%s'",
+				semaphore->name, saved_errno,
+				strerror( saved_errno ) );
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-----*/
+
+static mx_status_type
 mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
-			unsigned long initial_value,
-			char *name )
+				long initial_value,
+				char *name )
 {
 	static const char fname[] = "mx_posix_semaphore_create()";
 
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
-	unsigned long sem_value_max;
+	long sem_value_max;
 	size_t name_length;
+	mx_status_type mx_status;
 
 #if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -1422,7 +1605,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		}
 	}
 
-	(*semaphore)->semaphore_ptr = posix_private;
+	(*semaphore)->private = posix_private;
 
 	(*semaphore)->semaphore_type = MXT_SEM_POSIX;
 
@@ -1437,8 +1620,8 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	if ( initial_value > sem_value_max ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested initial value (%lu) for the semaphore "
-		"is larger than the maximum allowed value of %lu.",
+		"The requested initial value (%ld) for the semaphore "
+		"is larger than the maximum allowed value of %ld.",
 			initial_value, sem_value_max );
 	}
 
@@ -1461,127 +1644,66 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	if ( (*semaphore)->name == NULL ) {
 
-		/* Create an unnamed semaphore. */
-
-		status = sem_init( posix_private->p_semaphore, 0,
-					(unsigned int) initial_value );
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: unnamed semaphore = %p",
-			fname, posix_private->p_semaphore));
-#endif
-
-		if ( status != 0 ) {
-			saved_errno = errno;
-
-			switch( saved_errno ) {
-			case EINVAL:
-
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The requested initial value %lu exceeds the maximum "
-			"allowed value of %lu.", initial_value, sem_value_max );
-				break;
-			case ENOSPC:
-				return mx_error( MXE_NOT_AVAILABLE, fname,
-	    "A resource required to create the semaphore is not available.");
-			    	break;
-			case ENOSYS:
-				return mx_error( MXE_UNSUPPORTED, fname,
-		"Posix semaphores are not supported on this platform." );
-				break;
-			case EPERM:
-				return mx_error( MXE_PERMISSION_DENIED, fname,
-			"The current process lacks the appropriated privilege "
-			"to create the semaphore." );
-				break;
-			default:
-				return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Unexpected sem_init() error code %d returned.  "
-			"Error message = '%s'.",
-				saved_errno, strerror( saved_errno ) );
-				break;
-			}
+		if ( initial_value < 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Cannot open an existing unnamed Posix semaphore.  "
+			"They can only be created." );
 		}
 
-	} else {
-		/* Create a named semaphore. */
+		/* Create an unnamed semaphore. */
 
-		posix_private->p_semaphore = sem_open( (*semaphore)->name,
-					O_CREAT,
+		mx_status = mx_posix_sem_init( *semaphore, 0,
+					(unsigned int) initial_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		if ( initial_value < 0 ) {
+
+			/* Open an existing named semaphore. */
+
+			mx_status = mx_posix_sem_open( *semaphore, 0, 0, 0 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+		} else {
+			/* Create a new named semaphore. */
+
+			mx_status = mx_posix_sem_open( *semaphore,
+					O_CREAT | O_EXCL,
 					0644,
 					(unsigned int) initial_value );
 
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: named semaphore = %p",
-			fname, posix_private->p_semaphore));
-#endif
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				break;
+			case MXE_ALREADY_EXISTS:
+				/* If the semaphore already exists, try to
+				 * delete it.
+				 */
 
-		if ( posix_private->p_semaphore == (sem_t *) SEM_FAILED ) {
-			saved_errno = errno;
+				MX_DEBUG(-2,
+				("%s: removing stale semaphore '%s'.",
+					fname, (*semaphore)->name ));
 
-			switch( saved_errno ) {
-			case EACCES:
-				return mx_error( MXE_PERMISSION_DENIED, fname,
-				"Could not connect to semaphore '%s'.",
-					(*semaphore)->name );
-				break;
-			case EEXIST:
-				return mx_error( MXE_PERMISSION_DENIED, fname,
-				"Semaphore '%s' already exists, but you "
-				"requested exclusive access.",
-					(*semaphore)->name );
-				break;
-			case EINTR:
-				return mx_error( MXE_INTERRUPTED, fname,
-			    "sem_open() for semaphore '%s' was interrupted.",
-			    		(*semaphore)->name );
-				break;
-			case EINVAL:
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Either sem_open() is not supported for "
-				"semaphore '%s' or the requested initial "
-				"value %lu was larger than the maximum (%lu).",
-					(*semaphore)->name,
-					initial_value,
-					sem_value_max );
-				break;
-			case EMFILE:
-				return mx_error( MXE_NOT_AVAILABLE, fname,
-				"Ran out of semaphore or file descriptors "
-				"for this process." );
-				break;
-			case ENAMETOOLONG:
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"Semaphore name '%s' is longer than the "
-				"maximum allowed length for this system.",
-					(*semaphore)->name );
-				break;
-			case ENFILE:
-				return mx_error( MXE_NOT_AVAILABLE, fname,
-				"Too many semaphores are currently open "
-				"on this computer." );
-				break;
-			case ENOENT:
-				return mx_error( MXE_NOT_FOUND, fname,
-				"Semaphore '%s' was not found and the call "
-				"to sem_open() did not specify O_CREAT.",
-					(*semaphore)->name );
-				break;
-			case ENOSPC:
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"There is insufficient space for the creation "
-				"of the new named semaphore." );
-				break;
-			case ENOSYS:
-				return mx_error( MXE_UNSUPPORTED, fname,
-				"The function sem_open() is not supported "
-				"on this platform." );
+				mx_status = mx_posix_sem_unlink( *semaphore );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* Then create a new semaphore. */
+
+				mx_status = mx_posix_sem_open( *semaphore,
+					O_CREAT | O_EXCL,
+					0644,
+					(unsigned int) initial_value );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 				break;
 			default:
-				return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Unexpected sem_open() error code %d returned.  "
-			"Error message = '%s'.",
-				saved_errno, strerror( saved_errno ) );
-				break;
+				return mx_status;
 			}
 		}
 	}
@@ -1606,7 +1728,7 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	posix_private = semaphore->semaphore_ptr;
+	posix_private = semaphore->private;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1682,11 +1804,11 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 	}
 	MX_DEBUG(-2,("%s: semaphore->semaphore_type = %d",
 			fname, semaphore->semaphore_type));
-	MX_DEBUG(-2,("%s: semaphore->semaphore_ptr = %p",
-			fname, semaphore->semaphore_ptr));
+	MX_DEBUG(-2,("%s: semaphore->private = %p",
+			fname, semaphore->private));
 #endif
 
-	posix_private = semaphore->semaphore_ptr;
+	posix_private = semaphore->private;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1739,7 +1861,7 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	posix_private = semaphore->semaphore_ptr;
+	posix_private = semaphore->private;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1780,7 +1902,7 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
 	int status, saved_errno;
 
-	posix_private = semaphore->semaphore_ptr;
+	posix_private = semaphore->private;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL )
 		return MXE_CORRUPT_DATA_STRUCTURE;
@@ -1839,7 +1961,7 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 	status = saved_errno = 0;  /* Keep quiet about unused variables. */
 
-	posix_private = semaphore->semaphore_ptr;
+	posix_private = semaphore->private;
 
 	if ( posix_private == (MX_POSIX_SEMAPHORE_PRIVATE *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1909,8 +2031,8 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-		unsigned long initial_value,
-		char *name )
+			long initial_value,
+			char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
@@ -2052,8 +2174,8 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
-		unsigned long initial_value,
-		char *name )
+			long initial_value,
+			char *name )
 {
 	static const char fname[] = "mx_semaphore_create()";
 
