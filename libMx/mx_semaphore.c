@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	FALSE
+#define MX_SEMAPHORE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -438,10 +438,11 @@ typedef struct {
 } MX_SYSTEM_V_SEMAPHORE_PRIVATE;
 
 static mx_status_type
-mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
-				FILE **new_semaphore_file )
+mx_sysv_named_semaphore_exclusive_create_file( MX_SEMAPHORE *semaphore,
+						FILE **new_semaphore_file )
 {
-	static const char fname[] = "mx_sysv_named_semaphore_create_new_file()";
+	static const char fname[] =
+		"mx_sysv_named_semaphore_exclusive_create_file()";
 
 	int fd, saved_errno;
 
@@ -458,17 +459,8 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 
 	fd = open( semaphore->name, O_RDWR | O_CREAT | O_EXCL, 0600 );
 
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: MARKER A, fd = %d", fname, fd));
-#endif
-
 	if ( fd < 0 ) {
 		saved_errno = errno;
-
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: MARKER A.1, saved_errno = %d",
-				fname, saved_errno));
-#endif
 
 		switch( saved_errno ) {
 		case EEXIST:
@@ -495,11 +487,6 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 	/* Convert the file descriptor to a file pointer. */
 
 	(*new_semaphore_file) = fdopen( fd, "w" );
-
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: MARKER B, *new_semaphore_file = %p",
-		fname, *new_semaphore_file));
-#endif
 
 	if ( (*new_semaphore_file) == NULL ) {
 		saved_errno = errno;
@@ -551,7 +538,7 @@ mx_sysv_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 	if ( feof(semaphore_file) || ferror(semaphore_file) ) {
 		(void) fclose(semaphore_file);
 
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Unable to read semaphore id string from semaphore file '%s'.",
 			semaphore->name );
 	}
@@ -561,7 +548,7 @@ mx_sysv_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 	num_items = sscanf( buffer, "%lu", process_id );
 
 	if ( num_items != 1 ) {
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"Unable to find the server process id in the line '%s' "
 		"read from semaphore file '%s'.", buffer, semaphore->name);
 	}
@@ -574,10 +561,10 @@ mx_sysv_named_semaphore_get_server_process_id( MX_SEMAPHORE *semaphore,
 }
 
 static mx_status_type
-mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
-			FILE **new_semaphore_file )
+mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
+					FILE **new_semaphore_file )
 {
-	static const char fname[] = "mx_sysv_named_semaphore_get_key()";
+	static const char fname[] = "mx_sysv_named_semaphore_create_new_file()";
 
 	MX_SYSTEM_V_SEMAPHORE_PRIVATE *system_v_private;
 	int file_status, saved_errno, process_exists;
@@ -594,11 +581,6 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 	}
 
 	*new_semaphore_file = NULL;
-
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: MARKER 1, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
 
 	system_v_private = semaphore->private;
 
@@ -621,13 +603,8 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 	/* Attempt to create the semaphore file. */
 
-	mx_status = mx_sysv_named_semaphore_create_new_file( semaphore,
-						new_semaphore_file );
-
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: MARKER 2, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
+	mx_status = mx_sysv_named_semaphore_exclusive_create_file( semaphore,
+							new_semaphore_file );
 
 	switch( mx_status.code ) {
 	case MXE_SUCCESS:
@@ -669,7 +646,10 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 			 * changing the file.  Note that *new_semaphore_file
 			 * will be NULL at this point.
 			 */
-			break;
+
+			 return mx_error( MXE_ALREADY_EXISTS, fname,
+		 "Semaphore '%s' is owned by already existing process id %lu.",
+		 		semaphore->name, process_id );
 		}
 
 		/* The server process mentioned by the semaphore file
@@ -694,18 +674,8 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 
 		/* We can now try again to create the semaphore file. */
 
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: MARKER 2.1, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
-
-		mx_status = mx_sysv_named_semaphore_create_new_file( semaphore,
-							new_semaphore_file );
-
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: MARKER 2.2, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
+		mx_status = mx_sysv_named_semaphore_exclusive_create_file(
+						semaphore, new_semaphore_file );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -714,40 +684,6 @@ mx_sysv_named_semaphore_get_key( MX_SEMAPHORE *semaphore,
 		return mx_status;
 		break;
 	}
-
-	/* Construct the semaphore key from the filename.
-	 * We always use 1 as the integer identifier.
-	 */
-
-	system_v_private->semaphore_key = ftok( semaphore->name, 1 );
-
-	if ( system_v_private->semaphore_key == (-1) ) {
-
-#if MX_SEMAPHORE_DEBUG
-		MX_DEBUG(-2,("%s: MARKER 3, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
-
-		if ( *new_semaphore_file != NULL ) {
-			fclose( *new_semaphore_file );
-
-			*new_semaphore_file = NULL;
-		}
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"The semaphore file '%s' does not exist or is not accessable.",
-			semaphore->name );
-	}
-
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: MARKER 4, *new_semaphore_file = %p",
-			fname, *new_semaphore_file));
-#endif
-
-#if MX_SEMAPHORE_DEBUG
-	MX_DEBUG(-2,("%s: semaphore key = %#lx", 
-		fname, (unsigned long) system_v_private->semaphore_key));
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -765,6 +701,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 	FILE *new_semaphore_file;
 	int num_semaphores, semget_flags;
 	int status, saved_errno, create_new_semaphore;
+	unsigned long process_id;
 	size_t name_length;
 	union semun value_union;
 	mx_status_type mx_status;
@@ -828,6 +765,12 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	if ( (*semaphore)->name == NULL ) {
 
+		if ( initial_value < 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Cannot open an existing unnamed System V semaphore.  "
+			"They can only be created." );
+		}
+
 		/* No name was specified, so we create a new
 		 * private semaphore.
 		 */
@@ -841,11 +784,56 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 			fname, create_new_semaphore));
 #endif
 	} else {
-		mx_status = mx_sysv_named_semaphore_get_key( *semaphore,
-							&new_semaphore_file );
+		if ( initial_value < 0 ) {
+			/* We will connect to an old named semaphore.
+			 *
+			 * Check to see if a valid semaphore file is already
+			 * there by asking for the server id.
+			 */
+
+			MX_DEBUG(-2,
+			("%s: Connecting to existing semaphore '%s'.",
+				fname, (*semaphore)->name ));
+
+			mx_status =
+				mx_sysv_named_semaphore_get_server_process_id(
+					*semaphore, &process_id );
+		} else {
+			/* We will create a new named semaphore. */
+
+			MX_DEBUG(-2,("%s: Creating new semaphore '%s'.",
+				fname, (*semaphore)->name ));
+
+			mx_status = mx_sysv_named_semaphore_create_new_file(
+					*semaphore, &new_semaphore_file );
+		}
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Construct the semaphore key from the filename.
+		 * We always use 1 as the integer identifier.
+		 */
+
+		system_v_private->semaphore_key = ftok( (*semaphore)->name, 1 );
+
+		if ( system_v_private->semaphore_key == (-1) ) {
+
+			if ( new_semaphore_file != NULL ) {
+				fclose( new_semaphore_file );
+
+				new_semaphore_file = NULL;
+			}
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The semaphore file '%s' does not exist or is not accessable.",
+				(*semaphore)->name );
+		}
+
+#if MX_SEMAPHORE_DEBUG
+		MX_DEBUG(-2,("%s: semaphore key = %#lx", 
+		    fname, (unsigned long) system_v_private->semaphore_key));
+#endif
 
 		if ( new_semaphore_file == NULL ) {
 			create_new_semaphore = FALSE;
@@ -897,7 +885,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 		saved_errno = errno;
 
 		return mx_error( MXE_IPC_IO_ERROR, fname,
-		"Cannot connect to preexisting semaphore key %lu, file '%s'.  "
+		"Cannot connect to preexisting semaphore key %#lx, file '%s'.  "
 		"Errno = %d, error message = '%s'.",
 			(unsigned long) system_v_private->semaphore_key,
 			(*semaphore)->name,
@@ -1404,7 +1392,7 @@ mx_posix_sem_init( MX_SEMAPHORE *semaphore,
 		case EINVAL:
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested initial value %lu exceeds the maximum "
+		"The requested initial value %u exceeds the maximum "
 		"allowed value.", value );
 			break;
 		case ENOSPC:
@@ -1566,7 +1554,6 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 	static const char fname[] = "mx_posix_semaphore_create()";
 
 	MX_POSIX_SEMAPHORE_PRIVATE *posix_private;
-	int status, saved_errno;
 	long sem_value_max;
 	size_t name_length;
 	mx_status_type mx_status;
