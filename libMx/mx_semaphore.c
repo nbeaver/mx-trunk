@@ -67,7 +67,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		"Unable to allocate memory for a HANDLE pointer." );
 	}
 	
-	(*semaphore)->semaphore_ptr = semaphore_handle_ptr;
+	(*semaphore)->private = semaphore_handle_ptr;
 
 	(*semaphore)->semaphore_type = MXT_SEM_WIN32;
 
@@ -86,10 +86,27 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		mx_strncpy( (*semaphore)->name, name, name_length );
 	}
 
-	*semaphore_handle_ptr = CreateSemaphore( NULL,
+	if ( initial_value < 0 ) {
+
+		/* Connect to an existing semaphore. */
+
+		if ( (*semaphore)->name == NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Cannot connect to an existing semaphore if the "
+			"semaphore name is NULL." );
+		}
+
+		*semaphore_handle_ptr = OpenSemaphore( SEMAPHORE_ALL_ACCESS,
+							FALSE,
+							(*semaphore)->name );
+	} else {
+		/* Create a new semaphore. */
+
+		*semaphore_handle_ptr = CreateSemaphore( NULL,
 						initial_value,
 						initial_value,
 						(*semaphore)->name );
+	}
 
 	if ( *semaphore_handle_ptr == NULL ) {
 		last_error_code = GetLastError();
@@ -98,7 +115,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 			message_buffer, sizeof(message_buffer) );
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to create a semaphore.  "
+			"Unable to create or open a semaphore.  "
 			"Win32 error code = %ld, error_message = '%s'",
 			last_error_code, message_buffer );
 	}
@@ -238,7 +255,7 @@ mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
 			message_buffer, sizeof(message_buffer) );
 
 		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unexpected error from WaitForSingleObject() "
+			"Unexpected error from ReleaseSemaphore() "
 			"for semaphore %p. "
 			"Win32 error code = %ld, error_message = '%s'",
 			semaphore, last_error_code, message_buffer );
@@ -301,15 +318,36 @@ mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
 	return MXE_UNKNOWN_ERROR;
 }
 
+/* The current value of a Win32 semaphore is only available for the NT series
+ * via the undocumented NtQuerySemaphore() function.
+ */
+
+static int ntdll_is_available = TRUE;
+
+static HINSTANCE hinst_ntdll = NULL;
+
+typedef long NTSTATUS;
+
+typedef NTSTATUS ( __stdcall *NtQuerySemaphore_type)( HANDLE,
+					UINT, PVOID, ULONG, PULONG );
+
+static NtQuerySemaphore_type ptrNtQuerySemaphore = NULL;
+
 MX_EXPORT mx_status_type
 mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			unsigned long *current_value )
 {
 	static const char fname[] = "mx_semaphore_get_value()";
 
+	struct {
+		ULONG current_value;
+		ULONG maximum_value;
+	} win32_semaphore_info;
+
 	HANDLE *semaphore_handle_ptr;
-	BOOL status;
-	LONG old_value;
+	UINT semaphore_info_class;
+	ULONG return_length;
+	NTSTATUS status;
 
 	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -328,25 +366,77 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			semaphore );
 	}
 
-	status = ReleaseSemaphore( *semaphore_handle_ptr, 0, &old_value );
+	/* If NTDLL.DLL is not available, all we can do is return 0. */
 
-	if ( status == 0 ) {
-		DWORD last_error_code;
-		TCHAR message_buffer[100];
+	if ( ntdll_is_available == FALSE ) {
+		*current_value = 0;
 
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unexpected error from WaitForSingleObject() "
-			"for semaphore %p. "
-			"Win32 error code = %ld, error_message = '%s'",
-			semaphore, last_error_code, message_buffer );
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	*current_value = (unsigned long) old_value;
+	/* If the pointer to NtQuerySemaphore is NULL, then we have not
+	 * yet explicitly loaded NTDLL.DLL.  If so, then we must load it.
+	 */
+
+	if ( ptrNtQuerySemaphore == NULL ) {
+
+		if ( hinst_ntdll != NULL ) {
+
+			ntdll_is_available = FALSE;
+
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"Somehow the instance of NTDLL.DLL is not NULL, "
+			"but the pointer to NtQuerySemaphore() "
+			"_is_ NULL.  This should not be able to happen." );
+		}
+
+		hinst_ntdll = LoadLibrary(TEXT("ntdll.dll"));
+
+		if ( hinst_ntdll == NULL ) {
+			mx_warning(
+			"NTDLL.DLL is not available on this computer, "
+			"so it will not be possible to query the value "
+			"of a Win32 semaphore." );
+
+			ntdll_is_available = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		ptrNtQuerySemaphore = (NtQuerySemaphore_type)
+			GetProcAddress( hinst_ntdll,
+					TEXT("NtQuerySemaphore") );
+
+		if ( ptrNtQuerySemaphore == NULL ) {
+			mx_warning(
+			"NtQuerySemaphore() was not found in NTDLL.DLL." );
+
+			/* I have no idea if it is safe to do FreeLibrary()
+			 * on NTDLL.DLL, so it is safest not to try.
+			 */
+
+			ntdll_is_available = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	semaphore_info_class = 0;
+
+	status = (ptrNtQuerySemaphore)( *semaphore_handle_ptr,
+					semaphore_info_class,
+					&win32_semaphore_info,
+					sizeof(win32_semaphore_info),
+					&return_length );
+
+	if ( status < 0 ) {
+		*current_value = -1;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to invoke NtQuerySemaphore() failed." );
+	}
+
+	*current_value = win32_semaphore_info.current_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
