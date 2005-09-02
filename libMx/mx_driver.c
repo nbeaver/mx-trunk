@@ -450,6 +450,7 @@
 
 #if HAVE_TCPIP
 #include "n_spec.h"
+#include "n_bluice_dcss.h"
 #endif
 
 #if HAVE_EPICS
@@ -628,6 +629,8 @@ MX_DRIVER mx_class_list[] = {
 {"network",        0, MXN_NETWORK_SERVER, MXR_SERVER,
 				NULL, NULL, NULL, NULL, NULL},
 {"spec",           0, MXN_SPEC,           MXR_SERVER,
+				NULL, NULL, NULL, NULL, NULL},
+{"bluice",         0, MXN_BLUICE,         MXR_SERVER,
 				NULL, NULL, NULL, NULL, NULL},
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
@@ -3635,6 +3638,12 @@ MX_DRIVER mx_type_list[] = {
 				NULL, NULL,
 				&mxn_spec_server_num_record_fields,
 				&mxn_spec_server_rfield_def_ptr},
+
+{"bluice_dcss_server", MXN_BLUICE_DCSS_SERVER,  MXN_BLUICE,  MXR_SERVER,
+				&mxn_bluice_dcss_server_record_function_list,
+				NULL, NULL,
+				&mxn_bluice_dcss_server_num_record_fields,
+				&mxn_bluice_dcss_server_rfield_def_ptr},
 #endif
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}

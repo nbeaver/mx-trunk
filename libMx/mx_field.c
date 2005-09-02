@@ -53,7 +53,7 @@ typedef struct {
 MX_EXPORT const char *
 mx_get_field_label_string( MX_RECORD *record, long label_value )
 {
-	const char fname[] = "mx_get_field_label_string()";
+	static const char fname[] = "mx_get_field_label_string()";
 
 	static const char unknown_label_value[] = "unknown";
 	static const char null_record_value[] = "NULL";
@@ -179,7 +179,7 @@ MX_EXPORT mx_status_type
 mx_find_record_field( MX_RECORD *record, const char *name_of_field_to_find,
 				MX_RECORD_FIELD **field_that_was_found )
 {
-	const char fname[] = "mx_find_record_field()";
+	static const char fname[] = "mx_find_record_field()";
 
 	MX_RECORD_FIELD *field;
 	long i, num_record_fields;
@@ -242,7 +242,7 @@ mx_find_record_field_defaults(
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found )
 {
-	const char fname[] = "mx_find_record_field_defaults()";
+	static const char fname[] = "mx_find_record_field_defaults()";
 
 	long index_of_field_that_was_found;
 	mx_status_type status;
@@ -277,7 +277,7 @@ mx_find_record_field_defaults_index(
 		const char *name_of_field_to_find,
 		long *index_of_field_that_was_found )
 {
-	const char fname[] = "mx_find_record_field_defaults_index()";
+	static const char fname[] = "mx_find_record_field_defaults_index()";
 
 	long i;
 
@@ -349,7 +349,7 @@ mx_construct_ptr_to_field_data(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
 		void **field_data_ptr )
 {
-	const char fname[] = "mx_construct_ptr_to_field_data()";
+	static const char fname[] = "mx_construct_ptr_to_field_data()";
 
 	char *structure_ptr;
 
@@ -430,7 +430,7 @@ mx_setup_typeinfo_for_record_type_fields( long num_record_fields,
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
 		long mx_type, long mx_class, long mx_superclass )
 {
-	const char fname[] = "mx_setup_typeinfo_for_record_type_fields()";
+	static const char fname[] = "mx_setup_typeinfo_for_record_type_fields()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	MX_DRIVER **driver_list_array;
@@ -543,7 +543,7 @@ mx_create_record_from_description(
 		MX_RECORD **created_record,
 		unsigned long flags )
 {
-	const char fname[] = "mx_create_record_from_description()";
+	static const char fname[] = "mx_create_record_from_description()";
 
 	MX_RECORD *current_record;
 	MX_RECORD *record;
@@ -892,7 +892,7 @@ mx_parse_string_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_string_field()";
+	static const char fname[] = "mx_parse_string_field()";
 
 	MX_DEBUG( 8,("%s: dataptr = %p, token = '%s'",
 			fname, dataptr, token));
@@ -957,7 +957,7 @@ mx_parse_char_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_char_field()";
+	static const char fname[] = "mx_parse_char_field()";
 
 	int num_items;
 
@@ -985,7 +985,7 @@ mx_parse_uchar_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_uchar_field()";
+	static const char fname[] = "mx_parse_uchar_field()";
 
 	int num_items;
 
@@ -1013,7 +1013,7 @@ mx_parse_short_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_short_field()";
+	static const char fname[] = "mx_parse_short_field()";
 
 	int num_items;
 
@@ -1041,7 +1041,7 @@ mx_parse_ushort_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_ushort_field()";
+	static const char fname[] = "mx_parse_ushort_field()";
 
 	int num_items;
 
@@ -1069,7 +1069,7 @@ mx_parse_int_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_int_field()";
+	static const char fname[] = "mx_parse_int_field()";
 
 	int num_items;
 
@@ -1097,7 +1097,7 @@ mx_parse_uint_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_uint_field()";
+	static const char fname[] = "mx_parse_uint_field()";
 
 	int num_items;
 
@@ -1125,7 +1125,7 @@ mx_parse_long_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_long_field()";
+	static const char fname[] = "mx_parse_long_field()";
 
 	int num_items;
 
@@ -1153,7 +1153,7 @@ mx_parse_ulong_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_ulong_field()";
+	static const char fname[] = "mx_parse_ulong_field()";
 
 	int num_items;
 
@@ -1181,7 +1181,7 @@ mx_parse_float_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_float_field()";
+	static const char fname[] = "mx_parse_float_field()";
 
 	int num_items;
 
@@ -1216,7 +1216,7 @@ mx_parse_double_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_double_field()";
+	static const char fname[] = "mx_parse_double_field()";
 
 	int num_items;
 
@@ -1251,7 +1251,7 @@ mx_parse_hex_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_hex_field()";
+	static const char fname[] = "mx_parse_hex_field()";
 
 	char *endptr;
 	unsigned long *value_ptr;
@@ -1298,7 +1298,7 @@ mx_parse_mx_record_field( void *memory_location, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_mx_record_field()";
+	static const char fname[] = "mx_parse_mx_record_field()";
 
 	MX_RECORD *list_head_record;
 	MX_LIST_HEAD *list_head_struct;
@@ -1443,7 +1443,7 @@ mx_parse_recordtype_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_recordtype_field()";
+	static const char fname[] = "mx_parse_recordtype_field()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname, "Not done yet." );
 }
@@ -1453,7 +1453,7 @@ mx_construct_recordtype_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	const char fname[] = "mx_construct_recordtype_field()";
+	static const char fname[] = "mx_construct_recordtype_field()";
 
 	MX_DRIVER *driver;
 
@@ -1475,7 +1475,7 @@ mx_parse_interface_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	const char fname[] = "mx_parse_interface_field()";
+	static const char fname[] = "mx_parse_interface_field()";
 
 	MX_INTERFACE *interface;
 	char *ptr;
@@ -1554,7 +1554,7 @@ mx_compute_static_subarray_size( void *array_ptr,
 		MX_RECORD_FIELD *field,
 		size_t *subarray_size )
 {
-	const char fname[] = "mx_compute_static_subarray_size()";
+	static const char fname[] = "mx_compute_static_subarray_size()";
 
 	long i, multiplier, num_dimensions;
 
@@ -1604,7 +1604,7 @@ mx_parse_array_description( void *array_ptr,
 					MX_RECORD *, MX_RECORD_FIELD *,
 					MX_RECORD_FIELD_PARSE_STATUS * ) )
 {
-	const char fname[] = "mx_parse_array_description()";
+	static const char fname[] = "mx_parse_array_description()";
 
 	const char short_label[] = "parsing array";
 
@@ -1822,7 +1822,7 @@ MX_EXPORT mx_status_type
 mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults )
 {
-	const char fname[] = "mx_copy_defaults_to_record_field()";
+	static const char fname[] = "mx_copy_defaults_to_record_field()";
 
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1858,7 +1858,7 @@ mx_parse_record_fields( MX_RECORD *record,
 			MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status )
 {
-	const char fname[] = "mx_parse_record_fields()";
+	static const char fname[] = "mx_parse_record_fields()";
 
 	MX_RECORD_FIELD *record_field, *record_field_array;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
@@ -2239,7 +2239,7 @@ mx_get_next_record_token( MX_RECORD_FIELD_PARSE_STATUS *parse_status,
 			char *output_buffer,
 			size_t output_buffer_length)
 {
-	const char fname[] = "mx_get_next_record_token()";
+	static const char fname[] = "mx_get_next_record_token()";
 
 	int i, j, k, in_quoted_string, remaining_length, num_separators;
 	int saw_separator;
@@ -2422,7 +2422,7 @@ mx_get_token_parser( long field_type,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status )
 		)
 {
-	const char fname[] = "mx_get_token_parser()";
+	static const char fname[] = "mx_get_token_parser()";
 
 	/* Figure out which function is used to parse the field. */
 
@@ -2495,7 +2495,7 @@ mx_get_token_constructor( long field_type,
 			MX_RECORD_FIELD *record_field )
 		)
 {
-	const char fname[] = "mx_get_token_constructor()";
+	static const char fname[] = "mx_get_token_constructor()";
 
 	/* Figure out which function is used to
 	 * construct the token for this field type.
@@ -2568,7 +2568,7 @@ mx_create_array_description( void *array_ptr,
 		mx_status_type (*token_creater) ( void *, char *, size_t,
 					MX_RECORD *, MX_RECORD_FIELD * ) )
 {
-	const char fname[] = "mx_create_array_description()";
+	static const char fname[] = "mx_create_array_description()";
 
 	const char short_label[] = "creating array";
 
@@ -2756,7 +2756,7 @@ mx_create_description_from_record(
 		char *description_buffer,
 		size_t description_buffer_length )
 {
-	const char fname[] = "mx_create_description_from_record()";
+	static const char fname[] = "mx_create_description_from_record()";
 
 	MX_RECORD_FIELD *record_field, *record_field_array;
 	mx_status_type (*fptr)( void *, char *, size_t,
@@ -2993,7 +2993,7 @@ MX_EXPORT mx_status_type
 mx_construct_placeholder_record( MX_RECORD *referencing_record,
 		char *record_name, MX_RECORD **placeholder_record )
 {
-	const char fname[] = "mx_construct_placeholder_record()";
+	static const char fname[] = "mx_construct_placeholder_record()";
 
 	if ( record_name == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3094,7 +3094,7 @@ mxp_scan_save_placeholder( MX_RECORD *referencing_record,
 MX_EXPORT mx_status_type
 mx_fixup_placeholder_records( MX_RECORD *list_head_record )
 {
-	const char fname[] = "mx_fixup_placeholder_records()";
+	static const char fname[] = "mx_fixup_placeholder_records()";
 
 	MX_LIST_HEAD *list_head_struct;
 	MX_RECORD *real_record, *placeholder_record, *referencing_record;
@@ -3229,7 +3229,7 @@ mx_fixup_placeholder_records( MX_RECORD *list_head_record )
 MX_EXPORT mx_status_type
 mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 {
-	const char fname[] = "mx_get_datatype_sizeof_array()";
+	static const char fname[] = "mx_get_datatype_sizeof_array()";
 
 	static size_t string_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_STRING_SIZEOF;
@@ -3296,7 +3296,7 @@ mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 			size_t *data_element_size,
 			void *value_ptr )
 {
-	const char fname[] = "mx_construct_temp_record_field()";
+	static const char fname[] = "mx_construct_temp_record_field()";
 
 	size_t *sizeof_array;
 	long i;
@@ -3359,7 +3359,7 @@ mx_traverse_field( MX_RECORD *record,
 		void *handler_data_ptr,
 		long *array_indices )
 {
-	const char fname[] = "mx_traverse_field()";
+	static const char fname[] = "mx_traverse_field()";
 
 	void *array_ptr;
 	long i, dimension_level;
@@ -3482,7 +3482,7 @@ mx_traverse_field_array( MX_RECORD *record,
 			void *array_ptr,
 			long dimension_level )
 {
-	const char fname[] = "mx_traverse_field_array()";
+	static const char fname[] = "mx_traverse_field_array()";
 
 	long i, n, num_dimension_elements, new_dimension_level;
 	long row_ptr_step_size;
@@ -3716,7 +3716,7 @@ mx_create_field_from_description( MX_RECORD *record,
 		MX_RECORD_FIELD_PARSE_STATUS *parse_status,
 		char *field_description )
 {
-	const char fname[] = "mx_create_field_from_description()";
+	static const char fname[] = "mx_create_field_from_description()";
 
 	MX_RECORD_FIELD_PARSE_STATUS temp_parse_status;
 	MX_RECORD_FIELD_PARSE_STATUS *parse_status_ptr;
@@ -3805,7 +3805,7 @@ mx_create_description_from_field( MX_RECORD *record,
 		char *field_description_buffer,
 		size_t field_description_buffer_length )
 {
-	const char fname[] = "mx_create_description_from_field()";
+	static const char fname[] = "mx_create_description_from_field()";
 
 	void *pointer_to_value;
 	mx_status_type mx_status;

@@ -125,7 +125,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	key_curses.c key_dos.c key_unix.c key_vms.c key_win32.c \
 	m_count.c m_none.c m_pulse_period.c m_time.c mx_amplifier.c \
 	mx_analog_input.c mx_analog_output.c mx_array.c mx_autoscale.c \
-	mx_bit.c mx_camac.c mx_ccd.c mx_clock.c mx_coprocess.c \
+	mx_bit.c mx_bluice.c mx_camac.c mx_ccd.c mx_clock.c mx_coprocess.c \
 	mx_dead_reckoning.c mx_debug.c mx_datafile.c \
 	mx_digital_input.c mx_digital_output.c mx_driver.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
@@ -145,7 +145,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c \
 	mx_variable.c mx_vepics.c \
 	mx_version.c mx_vinline.c mx_vme.c mx_vnet.c mx_warning.c \
-	n_spec.c n_tcpip.c n_unix.c \
+	n_bluice_dcss.c n_spec.c n_tcpip.c n_unix.c \
 	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
 	ph_aps_topup.c ph_simple.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
