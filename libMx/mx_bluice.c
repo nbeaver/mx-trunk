@@ -49,7 +49,7 @@ mx_bluice_get_pointers( MX_RECORD *bluice_server_record,
 	}
 
 	bluice_server_ptr = (MX_BLUICE_SERVER *)
-				bluice_server_record->record_type_struct;
+				bluice_server_record->record_class_struct;
 
 	if ( bluice_server_ptr == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -115,8 +115,10 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	}
 #endif
 
-	sprintf( message_header, "%-15lu%-10lu",
+	sprintf( message_header, "%*lu%*lu",
+		MX_BLUICE_MSGHDR_TEXT_LENGTH,
 		(unsigned long) text_data_length,
+		MX_BLUICE_MSGHDR_BINARY_LENGTH,
 		(unsigned long) binary_data_length );
 
 #if BLUICE_DEBUG_MESSAGE
@@ -156,9 +158,9 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 MX_EXPORT mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,
-				size_t *actual_data_length,
 				char *data_buffer,
-				size_t data_buffer_length )
+				size_t data_buffer_length,
+				size_t *actual_data_length )
 {
 	static const char fname[] = "mx_bluice_receive_message()";
 
@@ -176,8 +178,6 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Receive the header of the message. */
-
 	mx_status = mx_socket_receive( bluice_server_socket,
 					message_header,
 					MX_BLUICE_MSGHDR_LENGTH,
@@ -186,14 +186,11 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( message_header[MX_BLUICE_MSGHDR_LENGTH-1] != '\0' ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The message header received from Blu-Ice server '%s' "
-		"was not terminated with a null byte.  Instead, it was "
-		"terminated with a %#x byte.",
-			bluice_server_record->name,
-			message_header[MX_BLUICE_MSGHDR_LENGTH-1] );
-	}
+	/* Make sure the message header is null terminated. */
+
+	message_header[MX_BLUICE_MSGHDR_LENGTH-1] = '\0';
+
+	MX_DEBUG(-2,("%s: message header = '%s'", fname, message_header));
 
 	/* Get the length of the binary data. */
 
@@ -214,6 +211,11 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	text_data_length = atol( message_header );
 
 	total_data_length = text_data_length + binary_data_length;
+
+	MX_DEBUG(-2,("%s: text = %lu, binary = %lu, total = %lu",
+		fname, (unsigned long) text_data_length,
+		(unsigned long) binary_data_length,
+		(unsigned long) total_data_length));
 
 	if ( data_buffer == NULL ) {
 		data_pointer = bluice_server->receive_buffer;
@@ -242,10 +244,8 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 					NULL, 0 );
 
 #if BLUICE_DEBUG_MESSAGE
-	MX_DEBUG(-2,(
-	"%s: server = '%s', total data length = %u, data_pointer = %p",
-			fname, bluice_server_record->name,
-			total_data_length, data_pointer ));
+	MX_DEBUG(-2,("%s: received '%s' from server '%s'.",
+		fname, data_pointer, bluice_server_record->name));
 #endif
 
 	return mx_status;
@@ -283,7 +283,7 @@ mx_bluice_num_unread_bytes_available( MX_RECORD *bluice_server_record,
 	}
 
 	mx_status = mx_socket_num_input_bytes_available( bluice_server->socket,
-						num_bytes_available );
+							num_bytes_available );
 
 	return mx_status;
 }
