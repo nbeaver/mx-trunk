@@ -48,7 +48,9 @@ MX_API mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			size_t binary_data_length );
+			size_t binary_data_length,
+			size_t required_data_length,
+			int send_header );
 
 MX_API mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,

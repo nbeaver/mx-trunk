@@ -81,14 +81,17 @@ MX_EXPORT mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			size_t binary_data_length )
+			size_t binary_data_length,
+			size_t required_data_length,
+			int send_header )
 {
 	static const char fname[] = "mx_bluice_send_message()";
 
 	MX_BLUICE_SERVER *bluice_server;
 	MX_SOCKET *bluice_server_socket;
 	char message_header[MX_BLUICE_MSGHDR_LENGTH];
-	size_t text_data_length;
+	char null_pad[500];
+	size_t text_data_length, bytes_sent, null_bytes_to_send;
 	mx_status_type mx_status;
 
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
@@ -97,7 +100,13 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	text_data_length = strlen( text_data ) + 1;
+	if ( required_data_length > sizeof(null_pad) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The required data length %lu is longer than the "
+		"maximum allowed length of %lu.",
+			(unsigned long) required_data_length,
+			(unsigned long) sizeof(null_pad) );
+	}
 
 #if BLUICE_DEBUG_MESSAGE
 	MX_DEBUG(-2,("%s: sending '%s' to server '%s'.",
@@ -115,24 +124,28 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	}
 #endif
 
-	sprintf( message_header, "%*lu%*lu",
-		MX_BLUICE_MSGHDR_TEXT_LENGTH,
-		(unsigned long) text_data_length,
-		MX_BLUICE_MSGHDR_BINARY_LENGTH,
-		(unsigned long) binary_data_length );
+	bytes_sent = 0;
 
-#if BLUICE_DEBUG_MESSAGE
-	MX_DEBUG(-2,("%s: message_header = '%s'", fname, message_header));
-#endif
+	text_data_length = strlen( text_data ) + 1;
 
-	/* Send the message header. */
+	if ( send_header ) {
+		sprintf( message_header, "%*lu%*lu",
+			MX_BLUICE_MSGHDR_TEXT_LENGTH,
+			(unsigned long) text_data_length,
+			MX_BLUICE_MSGHDR_BINARY_LENGTH,
+			(unsigned long) binary_data_length );
 
-	mx_status = mx_socket_send( bluice_server_socket,
+		/* Send the message header. */
+
+		mx_status = mx_socket_send( bluice_server_socket,
 					&message_header,
 					MX_BLUICE_MSGHDR_LENGTH );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		bytes_sent += MX_BLUICE_MSGHDR_LENGTH;
+	}
 
 	/* Send the text data. */
 
@@ -143,12 +156,34 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	bytes_sent += text_data_length;
+
 	/* Send the binary data (if any). */
 
 	if ( ( binary_data_length > 0 ) && ( binary_data != NULL ) ) {
 		mx_status = mx_socket_send( bluice_server_socket,
 						binary_data,
 						binary_data_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		bytes_sent += binary_data_length;
+	}
+
+	if ( required_data_length >= 0 ) {
+		if ( bytes_sent < required_data_length ) {
+			null_bytes_to_send = required_data_length - bytes_sent;
+
+			memset( null_pad, 0, null_bytes_to_send );
+
+			mx_status = mx_socket_send( bluice_server_socket,
+						null_pad,
+						null_bytes_to_send );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 	}
 
 	return mx_status;
@@ -190,8 +225,6 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	message_header[MX_BLUICE_MSGHDR_LENGTH-1] = '\0';
 
-	MX_DEBUG(-2,("%s: message header = '%s'", fname, message_header));
-
 	/* Get the length of the binary data. */
 
 	binary_data_length = atol( &message_header[MX_BLUICE_MSGHDR_BINARY] );
@@ -212,10 +245,12 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	total_data_length = text_data_length + binary_data_length;
 
+#if 0
 	MX_DEBUG(-2,("%s: text = %lu, binary = %lu, total = %lu",
 		fname, (unsigned long) text_data_length,
 		(unsigned long) binary_data_length,
 		(unsigned long) total_data_length));
+#endif
 
 	if ( data_buffer == NULL ) {
 		data_pointer = bluice_server->receive_buffer;

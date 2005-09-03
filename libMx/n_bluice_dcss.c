@@ -171,8 +171,6 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 	mx_username( user_name, MXU_USERNAME_LENGTH );
 
-	MX_DEBUG(-2,("%s: user_name = '%s'.", fname, user_name));
-
 #if 1
 	strcpy( user_name, "tigerw" );
 #endif
@@ -182,28 +180,25 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: host_name = '%s'", fname, host_name));
-
 	display_name = getenv("DISPLAY");
 
 	if ( display_name == NULL ) {
 		sprintf( client_type_response,
-			"htos_client_is_gui %s %s :0",
-			user_name, host_name );
+			"htos_client_is_gui %s %s %s :0",
+			user_name, bluice_dcss_server->session_id, host_name );
 	} else {
 		sprintf( client_type_response,
-			"htos_client_is_gui %s %s %s",
-			user_name, host_name, display_name );
+			"htos_client_is_gui %s %s %s %s",
+			user_name, bluice_dcss_server->session_id,
+			host_name, display_name );
 	}
-
-	MX_DEBUG(-2,("%s: client_type_response = '%s'",
-		fname, client_type_response));
 
 	/* Now we are ready to connect to the DCSS. */
 
 	mx_status = mx_tcp_socket_open_as_client( &(bluice_server->socket),
 				bluice_dcss_server->hostname,
-				bluice_dcss_server->port_number, 0,
+				bluice_dcss_server->port_number,
+				MXF_SOCKET_DISABLE_NAGLE_ALGORITHM,
 				MX_SOCKET_DEFAULT_BUFFER_SIZE );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -214,7 +209,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	 */
 
 	wait_ms = 100;
-	num_retries = 50;
+	num_retries = 100;
 
 	for ( i = 0; i < num_retries; i++ ) {
 		mx_status = mx_socket_num_input_bytes_available(
@@ -237,8 +232,6 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 				record->name,
 				0.001 * (double) ( num_retries * wait_ms ) );
 	}
-
-	MX_DEBUG(-2,("%s: The first message is available.", fname));
 
 	/* The first message has arrived.  Read it in to the
 	 * internal receive buffer.
@@ -265,17 +258,18 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	/* Send back the client type response. */
 
 	mx_status = mx_bluice_send_message( record,
-					client_type_response, NULL, 0 );
+					client_type_response, NULL, 0,
+					200, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* If DCSS recognizes the username we sent, it will then send
-	 * us a challenge message.
+	 * us a success message.
 	 */
 
 	wait_ms = 100;
-	num_retries = 50;
+	num_retries = 100;
 
 	for ( i = 0; i < num_retries; i++ ) {
 		mx_status = mx_socket_num_input_bytes_available(
@@ -293,15 +287,13 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 	if ( i >= num_retries ) {
 		return mx_error( MXE_TIMED_OUT, fname,
-			"Timed out waiting for the challenge message from "
+			"Timed out waiting for login status from "
 			"Blu-Ice DCSS server '%s' after %g seconds.",
 				record->name,
 				0.001 * (double) ( num_retries * wait_ms ) );
 	}
 
-	MX_DEBUG(-2,("%s: The challenge message is available.", fname));
-
-	/* The challenge message has arrived.  Read it in to the
+	/* The status message has arrived.  Read it in to the
 	 * internal receive buffer.
 	 */
 
@@ -311,18 +303,22 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Is the message a 'stoc_respond_to_challenge' message? */
+	/* Is the message a 'stoc_login_complete' message? */
 
-	if (strcmp(bluice_server->receive_buffer,"stoc_respond_to_challenge")
-		!= 0)
+	if ( strncmp( bluice_server->receive_buffer,
+			"stog_login_complete", 19 ) != 0 )
 	{
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not receive the 'stoc_respond_to_challenge' message from "
-		"Blu-Ice DCSS server '%s' that we were expecting.  "
-		"Instead, we received '%s'.  Perhaps the server did not "
-		"recognize you as an allowed user?",
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Blu-Ice DCSS login was not successful for server '%s'.  "
+		"Response from server = '%s'",
 			record->name, bluice_server->receive_buffer );
 	}
+
+	MX_DEBUG(-2,("%s: DCSS login successful.", fname));
+
+	/* FIXME: At this point we need to create a thread that monitors
+	 * messages sent by the DCSS server.
+	 */
 
 	return mx_status;
 }
