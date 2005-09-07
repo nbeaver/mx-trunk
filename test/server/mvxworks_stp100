@@ -2,11 +2,11 @@
 
 shellPromptSet "mx> "
 
-ld < ../tools/getopt.o
+ld < ../../tools/getopt.o
 
-ld < ../libMx/libMx.o
+ld < ../../libMx/libMx.o
 
-ld < ../server/mxserver.o
+ld < ../../server/mxserver.o
 
 mxserver("mvxworks_stp100_serv.dat","mvxworks_serv.acl")
 

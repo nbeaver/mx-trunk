@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mstp100_test.dat -s ./sstp100_test.dat $*
+../../motor/motor.static -F ./mstp100_test.dat -s ./sstp100_test.dat $*
 

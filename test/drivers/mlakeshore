@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mlakeshore.dat -s ./slakeshore.dat $*
+../../motor/motor.static -F ./mlakeshore.dat -s ./slakeshore.dat $*
 

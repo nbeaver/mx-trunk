@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../server/mxserver -p 9827 -f mvar_serv.dat -C msoftsrv.acl -S $*
+../../server/mxserver -p 9827 -f mvar_serv.dat -C msoftsrv.acl -S $*
 

@@ -4,5 +4,5 @@ LD_LIBRARY_PATH=/usr/local/vxipnp/linux/lib
 
 export LD_LIBRARY_PATH
 
-../motor/motor.static -F ./msis3801_pulser.dat -s ./ssis3801_pulser.dat $*
+../../motor/motor.static -F ./msis3801_pulser.dat -s ./ssis3801_pulser.dat $*
 

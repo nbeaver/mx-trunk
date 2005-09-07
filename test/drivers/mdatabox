@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mdatabox.dat -s ./sdatabox.dat $*
+../../motor/motor.static -F ./mdatabox.dat -s ./sdatabox.dat $*
 

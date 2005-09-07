@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mser_remote.dat -s ./sser_remote.dat $*
+../../motor/motor.static -F ./mser_remote.dat -s ./sser_remote.dat $*
 

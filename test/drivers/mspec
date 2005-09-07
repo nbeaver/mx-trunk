@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mspec.dat -s ./sspec.dat -i $*
+../../motor/motor.static -F ./mspec.dat -s ./sspec.dat -i $*
 

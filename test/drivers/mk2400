@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mk2400.dat -s ./sk2400.dat $*
+../../motor/motor.static -F ./mk2400.dat -s ./sk2400.dat $*
 

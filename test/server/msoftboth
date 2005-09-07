@@ -1,6 +1,6 @@
 #! /bin/sh
 
-../server/mxserver -p 9827 -u ./mytest.socket -f msoftsrv.dat -C msoftsrv.acl -S $*
+../../server/mxserver -p 9827 -u ./mytest.socket -f msoftsrv.dat -C msoftsrv.acl -S $*
 
 rm ./mytest.socket
 

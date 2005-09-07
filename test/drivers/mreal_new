@@ -6,5 +6,5 @@ fi
 
 export MXDIR
 
-../motor/motor.static -F ${MXDIR}/etc/motor_new.dat -s $HOME/scan.dat $*
+../../motor/motor.static -F ${MXDIR}/etc/motor_new.dat -s $HOME/scan.dat $*
 

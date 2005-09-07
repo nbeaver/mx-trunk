@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mpmac.dat -s ./spmac.dat $*
+../../motor/motor.static -F ./mpmac.dat -s ./spmac.dat $*
 

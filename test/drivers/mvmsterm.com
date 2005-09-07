@@ -1,4 +1,4 @@
 $!
-$ motorbin := mcr [-.motor]motorbin.exe
+$ motorbin := mcr [-.-.motor]motorbin.exe
 $!
 $ motorbin "-F" mvmsterm.dat

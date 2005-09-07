@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./motorunix.dat -s ./scanunix.dat $*
+../../motor/motor.static -F ./motorunix.dat -s ./scanunix.dat $*
 

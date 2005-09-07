@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mx3_cli.dat -s ./sx3_cli.dat $*
+../../motor/motor.static -F ./mx3_cli.dat -s ./sx3_cli.dat $*
 

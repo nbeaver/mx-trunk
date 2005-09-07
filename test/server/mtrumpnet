@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mtrumpnet.dat -s ./strumpnet.dat $*
+../../motor/motor.static -F ./mtrumpnet.dat -s ./strumpnet.dat $*
 

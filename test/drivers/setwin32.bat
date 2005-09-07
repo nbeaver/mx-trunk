@@ -1,4 +1,4 @@
 @echo off
 
-set path=..\libMx;%PATH%
+set path=..\..\libMx;%PATH%
 

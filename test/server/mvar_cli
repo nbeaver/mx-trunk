@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mvar_cli.dat -s ./svar_cli.dat $*
+../../motor/motor.static -F ./mvar_cli.dat -s ./svar_cli.dat $*
 

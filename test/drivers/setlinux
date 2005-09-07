@@ -1,3 +1,3 @@
 
-export LD_LIBRARY_PATH="../libMx"
+export LD_LIBRARY_PATH="../../libMx"
 

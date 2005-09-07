@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../server/mxserver -p 9827 -f mmono_stripe_serv.dat -C msoftsrv.acl $*
+../../server/mxserver -p 9827 -f mmono_stripe_serv.dat -C msoftsrv.acl $*
 

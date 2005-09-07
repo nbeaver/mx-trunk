@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -i -F ./msmallcli.dat -s ./ssmallcli.dat $*
+../../motor/motor.static -i -F ./msmallcli.dat -s ./ssmallcli.dat $*
 

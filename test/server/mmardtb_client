@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mmardtb_client.dat -s ./smardtb_client.dat $*
+../../motor/motor.static -F ./mmardtb_client.dat -s ./smardtb_client.dat $*
 

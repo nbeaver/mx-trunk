@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -i -F ./muglide.dat -s ./suglide.dat $*
+../../motor/motor.static -i -F ./muglide.dat -s ./suglide.dat $*
 

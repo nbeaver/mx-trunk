@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mitc503.dat -s ./sitc503.dat $*
+../../motor/motor.static -F ./mitc503.dat -s ./sitc503.dat $*
 

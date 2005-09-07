@@ -1,4 +1,4 @@
 @echo off
 
-..\server\mxserver -p 9827 -f mu500serv.dat -C msoftsrv.acl %1 %2 %3 %4 %5 %6 %7 %8 %9
+..\..\server\mxserver -p 9827 -f mu500serv.dat -C msoftsrv.acl %1 %2 %3 %4 %5 %6 %7 %8 %9
 

@@ -1,1 +1,1 @@
-../plotgnu/plotgnu.pl
+../../plotgnu/plotgnu.pl

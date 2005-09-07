@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mpfcu.dat -s ./spfcu.dat $*
+../../motor/motor.static -F ./mpfcu.dat -s ./spfcu.dat $*
 

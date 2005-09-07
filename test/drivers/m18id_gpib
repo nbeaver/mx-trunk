@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./m18id_gpib.dat -s ./s18id_gpib.dat $*
+../../motor/motor.static -F ./m18id_gpib.dat -s ./s18id_gpib.dat $*
 

@@ -5,12 +5,12 @@ if [ x${MXDIR} = x ]; then
 fi
 
 if [ x${LD_LIBRARY_PATH} = x ]; then
-	LD_LIBRARY_PATH=../libMx
+	LD_LIBRARY_PATH=../../libMx
 else
-	LD_LIBRARY_PATH="../libMx:${LD_LIBRARY_PATH}"
+	LD_LIBRARY_PATH="../../libMx:${LD_LIBRARY_PATH}"
 fi
 
 export MXDIR LD_LIBRARY_PATH
 
-../server/mxserver -p 9727 -f mtest_server.dat -C ${MXDIR}/etc/mxserver.acl $*
+../../server/mxserver -p 9727 -f mtest_server.dat -C ${MXDIR}/etc/mxserver.acl $*
 

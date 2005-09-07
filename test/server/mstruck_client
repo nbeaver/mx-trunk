@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mstruck_client.dat -s ./sstruck_client.dat $*
+../../motor/motor.static -F ./mstruck_client.dat -s ./sstruck_client.dat $*
 

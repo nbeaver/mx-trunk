@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mmarccd_client.dat -s ./smarccd_client.dat $*
+../../motor/motor.static -F ./mmarccd_client.dat -s ./smarccd_client.dat $*
 

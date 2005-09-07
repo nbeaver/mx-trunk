@@ -1,6 +1,6 @@
 #! /bin/sh
 
-export LD_LIBRARY_PATH=../libMx
+export LD_LIBRARY_PATH=../../libMx
 
-../motor/motor.shared -i -F ./mmmap_vme.dat -s ./smmap_vme.dat $*
+../../motor/motor.shared -i -F ./mmmap_vme.dat -s ./smmap_vme.dat $*
 

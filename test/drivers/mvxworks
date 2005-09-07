@@ -2,11 +2,11 @@
 
 shellPromptSet "mx> "
 
-ld < ../tools/getopt.o
+ld < ../../tools/getopt.o
 
-ld < ../libMx/libMx.o
+ld < ../../libMx/libMx.o
 
-ld < ../motor/motor_shell.o
+ld < ../../motor/motor_shell.o
 
 #
 # The following command _must_ be typed at the VxWorks prompt and not

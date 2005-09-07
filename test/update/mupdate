@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../update/mxupdate mupdate.dat mupdate_save.1 mupdate_save.2
+../../update/mxupdate mupdate.dat mupdate_save.1 mupdate_save.2
 

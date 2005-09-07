@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -p mxclient_xia -F ./mxclient_xia.dat -s ./sclient_xia.dat $*
+../../motor/motor.static -p mxclient_xia -F ./mxclient_xia.dat -s ./sclient_xia.dat $*
 

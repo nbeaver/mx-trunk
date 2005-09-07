@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -i -F ./mitimer.dat -s ./sitimer.dat $*
+../../motor/motor.static -i -F ./mitimer.dat -s ./sitimer.dat $*
 

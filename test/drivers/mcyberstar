@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -F ./mcyberstar.dat -s ./scyberstar.dat $*
+../../motor/motor.static -F ./mcyberstar.dat -s ./scyberstar.dat $*
 

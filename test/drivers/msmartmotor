@@ -1,4 +1,4 @@
 #! /bin/sh
 
-../motor/motor.static -i -F ./msmartmotor.dat -s ./ssmartmotor.dat $*
+../../motor/motor.static -i -F ./msmartmotor.dat -s ./ssmartmotor.dat $*
 
