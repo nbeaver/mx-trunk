@@ -1,1 +1,0 @@
-testscan                         scan linear_scan input_scan "" "" 1 1 0  5  clock p136 p137 shutter time  0 0 preset_time "1 timer1" text testscan.010 none $f[0]  0  1  10000

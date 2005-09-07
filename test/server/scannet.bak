@@ -1,3 +1,0 @@
-test                             scan linear_scan motor_scan "" "" 1 1 1  theta 1  theta 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  0.05  101
-omegascan                        scan linear_scan motor_scan "" "" 1 1 1  omega 1  scaler2 0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  -10  1  21
-timescan                         scan linear_scan motor_scan "" "" 1 1 1  time 3  theta omega time 0 0 preset_time "1 timer1" text timescan.out gnuplot $f[0]  0  2  10000

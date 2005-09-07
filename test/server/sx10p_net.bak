@@ -1,1 +1,0 @@
-testscan                         scan linear_scan input_scan "" "" 1 1 0  4  roi0 roi1 roi2 roi3  0 0 preset_time "1 xia_timer" text testscan.004 gnuplot $f[0];$f[1];$f[2];$f[3]  0  1  10000
