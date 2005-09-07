@@ -434,7 +434,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_MTR_PMC_MCAPI		50046
 #define MXT_MTR_PICOMOTOR		50047
 #define MXT_MTR_MCU2			50048
-#define MXT_MTR_BLUICE_DCSS		50049
+#define MXT_MTR_BLUICE			50049
 
    /* Pseudomotors. */
 
@@ -490,7 +490,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_SCL_SCALER_FUNCTION		70017
 #define MXT_SCL_SPEC			70018
 #define MXT_SCL_GM10			70019
-#define MXT_SCL_BLUICE_DCSS_ION_CHAMBER	70020
+#define MXT_SCL_BLUICE_ION_CHAMBER	70020
 
 /* --- Timer types --- */
 
@@ -511,7 +511,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_TIM_SPEC			80014
 #define MXT_TIM_GM10			80015
 #define MXT_TIM_INTERVAL		80016
-#define MXT_TIM_BLUICE_DCSS		80017
+#define MXT_TIM_BLUICE			80017
 
 /* --- Amplifier types --- */
 
@@ -540,7 +540,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_RLY_PFCU_FILTER		100006
 #define MXT_RLY_PFCU_SHUTTER		100007
 #define MXT_RLY_MARDTB_SHUTTER		100008
-#define MXT_RLY_BLUICE_DCSS_SHUTTER	100009
+#define MXT_RLY_BLUICE_SHUTTER		100009
 
 /* --- Multichannel analyzer types --- */
 
@@ -691,8 +691,8 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXV_SPEC_FLOAT			505010
 #define MXV_SPEC_DOUBLE			505011
 
-#define MXV_BLUICE_DCSS_MASTER		506001
-#define MXV_BLUICE_DCSS_COMMAND		506002
+#define MXV_BLUICE_MASTER		506001
+#define MXV_BLUICE_COMMAND		506002
 
 /* --- Server types --- */
 
@@ -702,6 +702,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXN_SPEC_SERVER			601001
 
 #define MXN_BLUICE_DCSS_SERVER		602001
+#define MXN_BLUICE_DHS_SERVER		602002
 
 /* --- Special types --- */
 

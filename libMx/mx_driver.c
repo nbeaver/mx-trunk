@@ -25,6 +25,7 @@
 
 #include "mx_driver.h"
 #include "mx_interval_timer.h"
+#include "mx_thread.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 
@@ -439,6 +440,7 @@
 
 #include "v_pmac.h"
 #include "v_spec.h"
+#include "v_bluice_master.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -622,6 +624,8 @@ MX_DRIVER mx_class_list[] = {
 {"pmac",           0, MXV_PMAC,           MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 {"spec_property",  0, MXV_SPEC,           MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
+{"bluice_variable",0, MXV_BLUICE,         MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */
@@ -3605,6 +3609,24 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxv_spec_double_num_record_fields,
 				&mxv_spec_double_rfield_def_ptr},
+
+/*----*/
+
+{"bluice_master",  MXV_BLUICE_MASTER, MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_master_record_function_list,
+				&mxv_bluice_master_variable_function_list,
+				NULL,
+				&mxv_bluice_master_num_record_fields,
+				&mxv_bluice_master_rfield_def_ptr},
+
+#if 0
+{"bluice_command", MXV_BLUICE_COMMAND, MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_command_record_function_list,
+				&mxv_bluice_command_variable_function_list,
+				NULL,
+				&mxv_bluice_command_num_record_fields,
+				&mxv_bluice_command_rfield_def_ptr},
+#endif
 
   /* =================== Server types ================== */
 

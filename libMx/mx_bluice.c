@@ -81,8 +81,8 @@ MX_EXPORT mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			size_t binary_data_length,
-			size_t required_data_length,
+			long binary_data_length,
+			long required_data_length,
 			int send_header )
 {
 	static const char fname[] = "mx_bluice_send_message()";
@@ -91,7 +91,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	MX_SOCKET *bluice_server_socket;
 	char message_header[MX_BLUICE_MSGHDR_LENGTH];
 	char null_pad[500];
-	size_t text_data_length, bytes_sent, null_bytes_to_send;
+	long text_data_length, bytes_sent, null_bytes_to_send;
 	mx_status_type mx_status;
 
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
@@ -100,7 +100,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( required_data_length > sizeof(null_pad) ) {
+	if ( required_data_length > ((long) sizeof(null_pad)) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The required data length %lu is longer than the "
 		"maximum allowed length of %lu.",
@@ -113,7 +113,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			fname, text_data, bluice_server_record->name ));
 
 	if ( ( binary_data_length > 0 ) && ( binary_data != NULL ) ) {
-		size_t i;
+		long i;
 
 		fprintf(stderr, "%s: Binary data: ", fname);
 
@@ -194,16 +194,17 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 MX_EXPORT mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 				char *data_buffer,
-				size_t data_buffer_length,
-				size_t *actual_data_length )
+				long data_buffer_length,
+				long *actual_data_length )
 {
 	static const char fname[] = "mx_bluice_receive_message()";
 
 	MX_BLUICE_SERVER *bluice_server;
 	MX_SOCKET *bluice_server_socket;
 	char message_header[MX_BLUICE_MSGHDR_LENGTH];
-	size_t text_data_length, binary_data_length, total_data_length;
-	size_t maximum_length;
+	long text_data_length, binary_data_length, total_data_length;
+	long maximum_length;
+	size_t actual_bytes_received;
 	char *data_pointer;
 	mx_status_type mx_status;
 
@@ -275,13 +276,15 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	mx_status = mx_socket_receive( bluice_server_socket,
 					data_pointer,
 					total_data_length,
-					actual_data_length,
+					&actual_bytes_received,
 					NULL, 0 );
 
 #if BLUICE_DEBUG_MESSAGE
 	MX_DEBUG(-2,("%s: received '%s' from server '%s'.",
 		fname, data_pointer, bluice_server_record->name));
 #endif
+
+	*actual_data_length = actual_bytes_received;
 
 	return mx_status;
 }

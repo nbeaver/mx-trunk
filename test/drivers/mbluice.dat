@@ -1,1 +1,2 @@
 s1       server bluice bluice_dcss_server "" "" localhost 14243 3282119982E7C317C64D9574BE00000
+master   variable bluice_variable bluice_master "" "" s1 1 1 0

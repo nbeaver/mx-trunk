@@ -156,8 +156,8 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	pr_timer.c pr_variable.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
 	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c \
-	u_xia_dxp.c v_aps_topup.c v_mathop.c v_pmac.c v_position_select.c \
-	v_spec.c
+	u_xia_dxp.c v_aps_topup.c v_bluice_master.c v_mathop.c v_pmac.c \
+	v_position_select.c v_spec.c
 
 #
 #--------------------------------------------------------------------------

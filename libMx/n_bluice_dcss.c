@@ -22,6 +22,8 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_socket.h"
+#include "mx_thread.h"
+
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 
@@ -50,6 +52,200 @@ long mxn_bluice_dcss_server_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr
 			= &mxn_bluice_dcss_server_record_field_defaults[0];
+
+/*-------------------------------------------------------------------------*/
+
+typedef mx_status_type (MXN_BLUICE_DCSS_MSG_HANDLER)( MX_THREAD *,
+		MX_RECORD *, MX_BLUICE_SERVER *, MX_BLUICE_DCSS_SERVER *);
+
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_master;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_slave;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
+
+static struct {
+	char message_name[40];
+	MXN_BLUICE_DCSS_MSG_HANDLER *message_handler;
+} dcss_handler_list[] = {
+	{"stog_become_master", stog_become_master},
+	{"stog_become_slave", stog_become_slave},
+	{"stog_configure_hardware_host", NULL},
+	{"stog_configure_ion_chamber", NULL},
+	{"stog_configure_operation", NULL},
+	{"stog_configure_pseudo_motor", NULL},
+	{"stog_configure_real_motor", NULL},
+	{"stog_configure_run", NULL},
+	{"stog_configure_runs", NULL},
+	{"stog_configure_shutter", NULL},
+	{"stog_configure_string", NULL},
+	{"stog_set_permission_level", stog_set_permission_level},
+	{"stog_update_client", NULL},
+	{"stog_update_client_list", NULL},
+};
+
+static int num_dcss_handlers = sizeof( dcss_handler_list )
+				/ sizeof( dcss_handler_list[0] );
+
+/*-------------------------------------------------------------------------*/
+
+/* Once started, mxn_bluice_dcss_monitor_thread() is the only thread
+ * that is allowed to receive messages from DCSS.
+ */
+
+static mx_status_type
+mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mxn_bluice_dcss_monitor_thread()";
+
+	MX_RECORD *dcss_server_record;
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	MXN_BLUICE_DCSS_MSG_HANDLER *message_fn;
+	long actual_data_length;
+	char message_type_name[80];
+	char message_type_format[20];
+	int i, num_items;
+	mx_status_type mx_status;
+
+	if ( args == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
+
+	dcss_server_record = (MX_RECORD *) args;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.",
+			fname, dcss_server_record->name));
+
+	bluice_server = (MX_BLUICE_SERVER *)
+				dcss_server_record->record_class_struct;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for record '%s' is NULL.",
+			dcss_server_record->name );
+	}
+
+	bluice_dcss_server = (MX_BLUICE_DCSS_SERVER *)
+				dcss_server_record->record_type_struct;
+
+	if ( bluice_dcss_server == (MX_BLUICE_DCSS_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_DCSS_SERVER pointer for record '%s' is NULL.",
+			dcss_server_record->name );
+	}
+
+	sprintf( message_type_format, "%%%ds", sizeof(message_type_name) );
+
+	while (1) {
+		mx_status = mx_bluice_receive_message( dcss_server_record,
+						NULL, 0, &actual_data_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 0
+		MX_DEBUG(-2,("%s: received '%s' from Blu-Ice server '%s'.",
+			fname, bluice_server->receive_buffer,
+			dcss_server_record->name ));
+#endif
+
+		/* Figure out what kind of message this is. */
+
+		num_items = sscanf( bluice_server->receive_buffer,
+				message_type_format,
+				message_type_name );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Message type name not found in message '%s' "
+			"received from DCSS server '%s'.",
+				bluice_server->receive_buffer,
+				dcss_server_record->name );
+		}
+
+		for ( i = 0; i < num_dcss_handlers; i++ ) {
+			if ( strcmp( message_type_name, 
+				dcss_handler_list[i].message_name ) == 0 )
+			{
+				break;		/* Exit the for() loop. */
+			}
+		}
+
+		if ( i >= num_dcss_handlers ) {
+			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Message type '%s' received in message '%s' from "
+			"DCSS server '%s' does not currently have a handler.",
+				message_type_name,
+				bluice_server->receive_buffer,
+				dcss_server_record->name );
+		} else {
+			message_fn = dcss_handler_list[i].message_handler;
+
+			if ( message_fn == NULL ) {
+				MX_DEBUG( 2,("%s: Message type '%s' SKIPPED.",
+					fname, message_type_name ));
+			} else {
+				MX_DEBUG(-2,("%s: Invoking handler for '%s'",
+						fname, message_type_name));
+
+				mx_status = (*message_fn)( thread,
+						dcss_server_record,
+						bluice_server,
+						bluice_dcss_server );
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_become_master( MX_THREAD *thread,
+		MX_RECORD *server_record,
+		MX_BLUICE_SERVER *bluice_server,
+		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_become_master()";
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	bluice_dcss_server->is_master = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_become_slave( MX_THREAD *thread,
+		MX_RECORD *server_record,
+		MX_BLUICE_SERVER *bluice_server,
+		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_become_slave()";
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	bluice_dcss_server->is_master = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_set_permission_level( MX_THREAD *thread,
+		MX_RECORD *server_record,
+		MX_BLUICE_SERVER *bluice_server,
+		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_set_permission_level()";
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
@@ -85,6 +281,9 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	bluice_dcss_server->record = record;
+	bluice_dcss_server->dcss_monitor_thread = NULL;
+	bluice_dcss_server->client_number = 0;
+	bluice_dcss_server->is_master = FALSE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -116,9 +315,9 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	char host_name[MXU_HOSTNAME_LENGTH+1];
 	char *display_name;
 	char client_type_response[CLIENT_TYPE_RESPONSE_LENGTH+1];
-	int i, num_retries, num_bytes_available;
+	int i, num_retries, num_bytes_available, num_items;
 	unsigned long wait_ms;
-	size_t actual_data_length;
+	long actual_data_length;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -314,11 +513,30 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 			record->name, bluice_server->receive_buffer );
 	}
 
-	MX_DEBUG(-2,("%s: DCSS login successful.", fname));
+	num_items = sscanf( bluice_server->receive_buffer,
+			"stog_login_complete %lu",
+			&(bluice_dcss_server->client_number) );
 
-	/* FIXME: At this point we need to create a thread that monitors
-	 * messages sent by the DCSS server.
+	if ( num_items != 1 ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Did not find the client number in the message '%s' "
+		"from DCSS server '%s'.",
+			bluice_server->receive_buffer, record->name );
+	}
+
+	MX_DEBUG(-2,("%s: DCSS login successful for client %lu.",
+		fname, bluice_dcss_server->client_number));
+
+	/* At this point we need to create a thread that monitors
+	 * messages sent by the DCSS server.  From this point on,
+	 * only mxn_bluice_dcss_monitor_thread() is allowed to
+	 * receive messages from the DCSS server.
 	 */
+
+	mx_status = mx_thread_create(
+			&(bluice_dcss_server->dcss_monitor_thread),
+			mxn_bluice_dcss_monitor_thread,
+			record );
 
 	return mx_status;
 }

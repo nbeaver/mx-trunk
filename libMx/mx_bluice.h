@@ -38,8 +38,8 @@ typedef struct {
 	MX_SOCKET *socket;
 
 	char *receive_buffer;
-	size_t receive_buffer_length;
-	size_t num_received_bytes;
+	long receive_buffer_length;
+	long num_received_bytes;
 } MX_BLUICE_SERVER;
 
 /* ----- */
@@ -48,15 +48,15 @@ MX_API mx_status_type
 mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
-			size_t binary_data_length,
-			size_t required_data_length,
+			long binary_data_length,
+			long required_data_length,
 			int send_header );
 
 MX_API mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 				char *data_buffer,
-				size_t data_buffer_size,
-				size_t *actual_data_length );
+				long data_buffer_size,
+				long *actual_data_length );
 
 /* ----- */
 

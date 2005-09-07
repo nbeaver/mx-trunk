@@ -29,6 +29,10 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	int port_number;
 	char session_id[MXU_SESSION_ID_LENGTH+1];
+
+	MX_THREAD *dcss_monitor_thread;
+	unsigned long client_number;
+	int is_master;
 } MX_BLUICE_DCSS_SERVER;
 
 /* Define all of the client interface functions. */
