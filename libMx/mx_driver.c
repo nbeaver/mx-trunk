@@ -441,6 +441,7 @@
 #include "v_pmac.h"
 #include "v_spec.h"
 #include "v_bluice_master.h"
+#include "v_bluice_command.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -3619,14 +3620,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxv_bluice_master_num_record_fields,
 				&mxv_bluice_master_rfield_def_ptr},
 
-#if 0
 {"bluice_command", MXV_BLUICE_COMMAND, MXV_BLUICE, MXR_VARIABLE,
 				&mxv_bluice_command_record_function_list,
 				&mxv_bluice_command_variable_function_list,
 				NULL,
 				&mxv_bluice_command_num_record_fields,
 				&mxv_bluice_command_rfield_def_ptr},
-#endif
 
   /* =================== Server types ================== */
 
