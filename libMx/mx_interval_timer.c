@@ -1330,7 +1330,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_MACOSX ) || defined( OS_DJGPP )
+#elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
