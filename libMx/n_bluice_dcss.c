@@ -23,6 +23,7 @@
 #include "mx_record.h"
 #include "mx_socket.h"
 #include "mx_thread.h"
+#include "mx_mutex.h"
 
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
@@ -30,7 +31,7 @@
 MX_RECORD_FUNCTION_LIST mxn_bluice_dcss_server_record_function_list = {
 	NULL,
 	mxn_bluice_dcss_server_create_record_structures,
-	mxn_bluice_dcss_server_finish_record_initialization,
+	NULL,
 	NULL,
 	NULL,
 	NULL,
@@ -60,6 +61,7 @@ typedef mx_status_type (MXN_BLUICE_DCSS_MSG_HANDLER)( MX_THREAD *,
 
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_master;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_slave;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_motor;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
 
 static struct {
@@ -71,8 +73,8 @@ static struct {
 	{"stog_configure_hardware_host", NULL},
 	{"stog_configure_ion_chamber", NULL},
 	{"stog_configure_operation", NULL},
-	{"stog_configure_pseudo_motor", NULL},
-	{"stog_configure_real_motor", NULL},
+	{"stog_configure_pseudo_motor", stog_configure_motor},
+	{"stog_configure_real_motor", stog_configure_motor},
 	{"stog_configure_run", NULL},
 	{"stog_configure_runs", NULL},
 	{"stog_configure_shutter", NULL},
@@ -185,7 +187,7 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 				MX_DEBUG( 2,("%s: Message type '%s' SKIPPED.",
 					fname, message_type_name ));
 			} else {
-				MX_DEBUG(-2,("%s: Invoking handler for '%s'",
+				MX_DEBUG( 2,("%s: Invoking handler for '%s'",
 						fname, message_type_name));
 
 				mx_status = (*message_fn)( thread,
@@ -217,9 +219,9 @@ stog_become_master( MX_THREAD *thread,
 
 static mx_status_type
 stog_become_slave( MX_THREAD *thread,
-		MX_RECORD *server_record,
-		MX_BLUICE_SERVER *bluice_server,
-		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
 	static const char fname[] = "stog_become_slave()";
 
@@ -232,10 +234,29 @@ stog_become_slave( MX_THREAD *thread,
 }
 
 static mx_status_type
+stog_configure_motor( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_configure_motor()";
+
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	mx_status = mx_bluice_configure_motor( bluice_server,
+					bluice_server->receive_buffer );
+
+	return mx_status;
+}
+
+static mx_status_type
 stog_set_permission_level( MX_THREAD *thread,
-		MX_RECORD *server_record,
-		MX_BLUICE_SERVER *bluice_server,
-		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
 	static const char fname[] = "stog_set_permission_level()";
 
@@ -280,22 +301,13 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 	record->record_type_struct = bluice_dcss_server;
 	record->class_specific_function_list = NULL;
 
+	bluice_server->socket = NULL;
+	bluice_server->mutex = NULL;
+
 	bluice_dcss_server->record = record;
 	bluice_dcss_server->dcss_monitor_thread = NULL;
 	bluice_dcss_server->client_number = 0;
 	bluice_dcss_server->is_master = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxn_bluice_dcss_server_finish_record_initialization( MX_RECORD *record )
-{
-	MX_BLUICE_SERVER *bluice_server;
-
-	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
-
-	bluice_server->socket = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -23,7 +23,9 @@
 #include "mx_types.h"
 #include "mx_socket.h"
 #include "mx_thread.h"
+#include "mx_mutex.h"
 #include "mx_variable.h"
+
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 #include "v_bluice_master.h"

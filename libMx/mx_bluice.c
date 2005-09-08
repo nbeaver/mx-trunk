@@ -20,6 +20,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_socket.h"
+#include "mx_mutex.h"
 #include "mx_bluice.h"
 
 #define BLUICE_DEBUG		TRUE
@@ -341,6 +342,357 @@ mx_bluice_discard_unread_bytes( MX_RECORD *bluice_server_record )
 		return mx_status;
 
 	mx_status = mx_socket_discard_unread_input( bluice_server_socket );
+
+	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_get_message_type( char *message_string, int *message_type )
+{
+	static const char fname[] = "mx_bluice_get_message_type()";
+
+	if ( message_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'message_string' pointer passed was NULL." );
+	}
+	if ( message_type == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'message_type' pointer passed was NULL." );
+	}
+
+	if ( strncmp( message_string, "gtos", 4 ) == 0 ) {
+		*message_type = MXT_BLUICE_GTOS;
+	} else
+	if ( strncmp( message_string, "stog", 4 ) == 0 ) {
+		*message_type = MXT_BLUICE_STOG;
+	} else
+	if ( strncmp( message_string, "htos", 4 ) == 0 ) {
+		*message_type = MXT_BLUICE_HTOS;
+	} else
+	if ( strncmp( message_string, "stoh", 4 ) == 0 ) {
+		*message_type = MXT_BLUICE_STOH;
+	} else
+	if ( strncmp( message_string, "stoc", 4 ) == 0 ) {
+		*message_type = MXT_BLUICE_STOC;
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Blu-Ice message '%s' starts with an illegal message type.",
+			message_string);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* We do not have polymorphism in C, so the following is a kludge to let us
+ * sort of simulate polymorphism.  That way we do not have to have a separate
+ * routine for finding each kind of Blu-Ice foreign device.
+ */
+
+MX_EXPORT mx_status_type
+mx_bluice_get_device_pointer( char *name,
+				void **foreign_device_array,
+				int *num_foreign_devices,
+				size_t foreign_pointer_size,
+				size_t foreign_device_size,
+				void **foreign_device )
+{
+	static const char fname[] = "mx_bluice_get_device_pointer()";
+
+	size_t i;
+	int num_elements;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device_ptr;
+
+	if ( name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'name' pointer passed was NULL." );
+	}
+	if ( foreign_device_array == (void **) NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'foreign_device_array' pointer passed was NULL." );
+	}
+	if ( num_foreign_devices == (int *) NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'num_foreign_devices' pointer passed was NULL." );
+	}
+	if ( foreign_device == (void **) NULL) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'foreign_device' pointer passed was NULL." );
+	}
+
+	MX_DEBUG( 2,("%s: name = '%s'", fname, name));
+
+	MX_DEBUG( 2,("%s: *foreign_device_array = %p",
+		fname, *foreign_device_array));
+
+	MX_DEBUG( 2,("%s: foreign_device = %p", fname, foreign_device));
+
+	foreign_device_ptr = NULL;
+
+	for ( i = 0; i < *num_foreign_devices; i++ ) {
+		foreign_device_ptr = foreign_device_array[i];
+
+		MX_DEBUG( 2,("%s: foreign_device_array[%d] = %p",
+			fname, i, foreign_device_ptr));
+
+		if ( foreign_device_ptr == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+			continue;	/* Skip to the next entry. */
+		} else {
+			MX_DEBUG( 2,
+			  ("%s: name = '%s', foreign_device_ptr->name = '%s'",
+				fname, name, foreign_device_ptr->name));
+
+			if ( strcmp( foreign_device_ptr->name, name ) == 0 ) {
+				MX_DEBUG( 2,("%s: exiting loop at i = %d",
+					fname, i));
+
+				break;	/* Exit the for() loop. */
+			}
+			MX_DEBUG( 2,("%s: name did not match.", fname));
+		}
+	}
+
+	MX_DEBUG( 2,("%s: i = %d", fname, i));
+
+	/* If a preexisting device has been found, return now. */
+
+	if ( i < *num_foreign_devices ) {
+		*foreign_device = foreign_device_array[i];
+
+		MX_DEBUG( 2,("%s: #1 *foreign_device = %p",
+				fname, *foreign_device));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, make sure the array is big enough for the new pointer. */
+
+	if ( i >= *num_foreign_devices ) {
+		num_elements = 0;
+
+		if ( *num_foreign_devices == 0 ) {
+			MX_DEBUG( 2,("%s: Allocating new array.", fname));
+
+			num_elements = MX_BLUICE_ARRAY_BLOCK_SIZE;
+
+			*foreign_device_array = (MX_BLUICE_FOREIGN_DEVICE *)
+				malloc( num_elements * foreign_pointer_size );
+		} else
+		if (((*num_foreign_devices) % MX_BLUICE_ARRAY_BLOCK_SIZE) == 0)
+		{
+			MX_DEBUG( 2,("%s: Expanding old array.", fname));
+
+			num_elements =
+			  (*num_foreign_devices) + MX_BLUICE_ARRAY_BLOCK_SIZE;
+
+			*foreign_device_array = (MX_BLUICE_FOREIGN_DEVICE *)
+				realloc( (*foreign_device_array),
+		    			num_elements * foreign_pointer_size );
+
+		}
+
+		if ( (num_elements > 0) && 
+		 ((*foreign_device_array) == (MX_BLUICE_FOREIGN_DEVICE *) NULL))
+		{
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory allocating an %d element array "
+			"of Blu-Ice foreign devices.", num_elements );
+		}
+	}
+
+	/* Add the new entry to the array. */
+
+	*foreign_device =
+		(MX_BLUICE_FOREIGN_DEVICE *) malloc( foreign_device_size );
+
+	if ( (*foreign_device) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate a Blu-Ice foreign device of %lu bytes.",
+			(unsigned long) foreign_device_size );
+	}
+
+	foreign_device_ptr = *foreign_device;
+
+	mx_strncpy( foreign_device_ptr->name, name, MXU_BLUICE_NAME_LENGTH );
+
+	foreign_device_array[*num_foreign_devices] = *foreign_device;
+
+	(*num_foreign_devices)++;
+
+	MX_DEBUG( 2,("%s: #2 *foreign_device = %p", fname, *foreign_device));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
+				char *config_string )
+{
+	static const char fname[] = "mx_bluice_configure_motor()";
+
+	void *foreign_motor_ptr;
+	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	char format_string[40];
+	char name[MXU_BLUICE_NAME_LENGTH+1];
+	int message_type, num_items;
+	mx_status_type mx_status;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
+	if ( config_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'config_string' pointer passed was NULL." );
+	}
+
+	mx_status = mx_bluice_get_message_type( config_string, &message_type );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	sprintf( format_string, "%%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
+
+	num_items = sscanf( config_string, format_string, name );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Device name not found in message '%s' from "
+		"Blu-Ice server '%s'.",
+			config_string, bluice_server->record->name );
+	}
+
+	/* Get a pointer to the Blu-Ice foreign motor structure. */
+
+	mx_status = mx_bluice_get_device_pointer( name,
+					(void **) &(bluice_server->motor_array),
+					&(bluice_server->num_motors),
+					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
+					sizeof(MX_BLUICE_FOREIGN_MOTOR),
+					&foreign_motor_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	foreign_motor = foreign_motor_ptr;
+
+	MX_DEBUG(-2,("%s: foreign_motor = '%s'", fname, foreign_motor->name));
+
+	/* Now parse the rest of the configuration string. */
+
+	switch( message_type ) {
+	case MXT_BLUICE_STOG:
+		if ( strncmp( config_string,
+			"stog_configure_real_motor", 25 ) == 0 )
+		{
+			foreign_motor->is_pseudo = FALSE;
+
+			sprintf( format_string,
+"%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%lg %%lg %%lg %%lg %%d %%d %%d %%d %%d",
+				MXU_BLUICE_NAME_LENGTH,
+				MXU_BLUICE_NAME_LENGTH );
+
+			num_items = sscanf( config_string, format_string,
+				foreign_motor->dhs_server_name,
+				foreign_motor->dhs_name,
+				&(foreign_motor->position),
+				&(foreign_motor->upper_limit),
+				&(foreign_motor->lower_limit),
+				&(foreign_motor->scale_factor),
+				&(foreign_motor->speed),
+				&(foreign_motor->acceleration_time),
+				&(foreign_motor->backlash),
+				&(foreign_motor->upper_limit_on),
+				&(foreign_motor->lower_limit_on),
+				&(foreign_motor->motor_lock_on),
+				&(foreign_motor->backlash_on),
+				&(foreign_motor->reverse_on) );
+
+			if ( num_items != 14 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
+				config_string, bluice_server->record->name );
+			}
+		} else
+		if ( strncmp( config_string,
+			"stog_configure_pseudo_motor", 27 ) == 0 )
+		{
+			foreign_motor->is_pseudo = TRUE;
+
+			foreign_motor->scale_factor = 0.0;
+			foreign_motor->speed = 0.0;
+			foreign_motor->acceleration_time = 0.0;
+			foreign_motor->backlash = 0.0;
+			foreign_motor->backlash_on = FALSE;
+			foreign_motor->reverse_on = FALSE;
+
+			sprintf( format_string,
+			"%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%d %%d %%d",
+				MXU_BLUICE_NAME_LENGTH,
+				MXU_BLUICE_NAME_LENGTH );
+
+			num_items = sscanf( config_string, format_string,
+				foreign_motor->dhs_server_name,
+				foreign_motor->dhs_name,
+				&(foreign_motor->position),
+				&(foreign_motor->upper_limit),
+				&(foreign_motor->lower_limit),
+				&(foreign_motor->upper_limit_on),
+				&(foreign_motor->lower_limit_on),
+				&(foreign_motor->motor_lock_on) );
+
+			if ( num_items != 8 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+"Message '%s' from Blu-Ice server '%s' did not have the expected format.",
+				config_string, bluice_server->record->name );
+			}
+		} else {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Unexpected 'stog' message type in Blu-Ice "
+			"message '%s' from DCSS '%s'.", config_string,
+				bluice_server->record->name );
+		}
+		break;
+	default:
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Unexpected message type in Blu-Ice "
+		"message '%s' from DCSS '%s'.", config_string,
+			bluice_server->record->name );
+		break;
+	}
+
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+	MX_DEBUG(-2,("%s: Foreign motor '%s':", fname, foreign_motor->name));
+	MX_DEBUG(-2,("%s: is pseudo = %d", fname, foreign_motor->is_pseudo));
+	MX_DEBUG(-2,("%s: DHS server = '%s'",
+				fname, foreign_motor->dhs_server_name));
+	MX_DEBUG(-2,("%s: DHS name = '%s'",
+				fname, foreign_motor->dhs_name));
+	MX_DEBUG(-2,("%s: position = %g", fname, foreign_motor->position));
+	MX_DEBUG(-2,("%s: upper limit = %g",
+				fname, foreign_motor->upper_limit));
+	MX_DEBUG(-2,("%s: lower limit = %g",
+				fname, foreign_motor->lower_limit));
+	MX_DEBUG(-2,("%s: scale factor = %g",
+				fname, foreign_motor->scale_factor));
+	MX_DEBUG(-2,("%s: speed = %g", fname, foreign_motor->speed));
+	MX_DEBUG(-2,("%s: acceleration time = %g",
+				fname, foreign_motor->acceleration_time));
+	MX_DEBUG(-2,("%s: backlash = %g", fname, foreign_motor->backlash));
+	MX_DEBUG(-2,("%s: upper limit on = %d",
+				fname, foreign_motor->upper_limit_on));
+	MX_DEBUG(-2,("%s: lower limit on = %d",
+				fname, foreign_motor->lower_limit_on));
+	MX_DEBUG(-2,("%s: motor lock on = %d",
+				fname, foreign_motor->motor_lock_on));
+	MX_DEBUG(-2,("%s: backlash on = %d",
+				fname, foreign_motor->backlash_on));
+	MX_DEBUG(-2,("%s: reverse on = %d",
+				fname, foreign_motor->reverse_on));
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 
 	return mx_status;
 }
