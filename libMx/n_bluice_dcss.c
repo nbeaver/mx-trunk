@@ -62,6 +62,7 @@ typedef mx_status_type (MXN_BLUICE_DCSS_MSG_HANDLER)( MX_THREAD *,
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_master;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_slave;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_motor;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_log;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
 
 static struct {
@@ -79,6 +80,7 @@ static struct {
 	{"stog_configure_runs", NULL},
 	{"stog_configure_shutter", NULL},
 	{"stog_configure_string", NULL},
+	{"stog_log", stog_log},
 	{"stog_set_permission_level", stog_set_permission_level},
 	{"stog_update_client", NULL},
 	{"stog_update_client_list", NULL},
@@ -253,6 +255,20 @@ stog_configure_motor( MX_THREAD *thread,
 }
 
 static mx_status_type
+stog_log( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_log()";
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 stog_set_permission_level( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
@@ -301,6 +317,7 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 	record->record_type_struct = bluice_dcss_server;
 	record->class_specific_function_list = NULL;
 
+	bluice_server->record = record;
 	bluice_server->socket = NULL;
 	bluice_server->mutex = NULL;
 

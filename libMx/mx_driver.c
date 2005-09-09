@@ -26,6 +26,7 @@
 #include "mx_driver.h"
 #include "mx_interval_timer.h"
 #include "mx_thread.h"
+#include "mx_mutex.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 
@@ -44,6 +45,8 @@
 
 #include "mx_net.h"
 #include "mx_epics.h"
+#include "mx_spec.h"
+#include "mx_bluice.h"
 
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
@@ -76,9 +79,6 @@
 #include "mx_vinline.h"
 #include "mx_vnet.h"
 #include "mx_vepics.h"
-
-#include "mx_net.h"
-#include "mx_spec.h"
 
 #include "mx_list_head.h"
 
@@ -268,6 +268,7 @@
 #include "d_picomotor.h"
 #include "d_pmc_mcapi.h"
 #include "d_mcu2.h"
+#include "d_bluice_motor.h"
 
 #include "d_energy.h"
 #include "d_wavelength.h"
@@ -2151,6 +2152,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_mcu2_motor_function_list,
 				&mxd_mcu2_num_record_fields,
 				&mxd_mcu2_rfield_def_ptr},
+
+{"bluice_motor",   MXT_MTR_BLUICE,    MXC_MOTOR,          MXR_DEVICE,
+				&mxd_bluice_motor_record_function_list,
+				NULL,
+				&mxd_bluice_motor_motor_function_list,
+				&mxd_bluice_motor_num_record_fields,
+				&mxd_bluice_motor_rfield_def_ptr},
 
 #if HAVE_U500
 {"u500_motor",     MXT_MTR_U500,      MXC_MOTOR,          MXR_DEVICE,

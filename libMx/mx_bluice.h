@@ -58,6 +58,10 @@ typedef struct {
 	int motor_lock_on;
 	int backlash_on;					/* real only */
 	int reverse_on;						/* real only */
+
+	/* The following are non-Blu-Ice fields for the use of MX. */
+
+	int move_in_progress;
 } MX_BLUICE_FOREIGN_MOTOR;
 
 /* ----- */
@@ -117,12 +121,16 @@ MX_API mx_status_type
 mx_bluice_get_message_type( char *message_string, int *message_type );
 
 MX_API mx_status_type
-mx_bluice_get_device_pointer( char *name,
+mx_bluice_setup_device_pointer( char *name,
 				void **foreign_device_array,
 				int *num_foreign_devices,
 				size_t foreign_pointer_size,
 				size_t foreign_device_size,
 				void **foreign_device );
+
+#define mx_bluice_get_device_pointer( n, fda, nfd, fd ) \
+		mx_bluice_setup_device_pointer( (n), \
+			(void **) &(fda), &(nfd), 0, 0, (fd) )
 
 /* ----- */
 

@@ -391,17 +391,18 @@ mx_bluice_get_message_type( char *message_string, int *message_type )
  */
 
 MX_EXPORT mx_status_type
-mx_bluice_get_device_pointer( char *name,
+mx_bluice_setup_device_pointer( char *name,
 				void **foreign_device_array,
 				int *num_foreign_devices,
 				size_t foreign_pointer_size,
 				size_t foreign_device_size,
 				void **foreign_device )
 {
-	static const char fname[] = "mx_bluice_get_device_pointer()";
+	static const char fname[] = "mx_bluice_setup_device_pointer()";
 
 	size_t i;
-	int num_elements;
+	int num_elements, old_num_elements;
+	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device_ptr;
 
 	if ( name == (char *) NULL ) {
@@ -466,13 +467,31 @@ mx_bluice_get_device_pointer( char *name,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* NOTE: If either foreign_pointer_size or foreign_device_size 
+	 *       are set to 0, this means that we are only searching for
+	 *       existing device entries.  If we have not found one by
+	 *       the time we get to this point in the function, we return
+	 *       an MXE_NOT_FOUND error.
+	 */
+
+	if ( (foreign_pointer_size == 0) || (foreign_device_size == 0 ) ) {
+
+		*foreign_device = NULL;
+
+		return mx_error( MXE_NOT_FOUND, fname,
+			"Blu-Ice device '%s' was not found.", name );
+	}
+
 	/* Otherwise, make sure the array is big enough for the new pointer. */
 
 	if ( i >= *num_foreign_devices ) {
+		old_num_elements = 0;
 		num_elements = 0;
 
 		if ( *num_foreign_devices == 0 ) {
 			MX_DEBUG( 2,("%s: Allocating new array.", fname));
+
+			old_num_elements = 0;
 
 			num_elements = MX_BLUICE_ARRAY_BLOCK_SIZE;
 
@@ -483,13 +502,23 @@ mx_bluice_get_device_pointer( char *name,
 		{
 			MX_DEBUG( 2,("%s: Expanding old array.", fname));
 
+			old_num_elements = *num_foreign_devices;
+
 			num_elements =
-			  (*num_foreign_devices) + MX_BLUICE_ARRAY_BLOCK_SIZE;
+				old_num_elements + MX_BLUICE_ARRAY_BLOCK_SIZE;
 
 			*foreign_device_array = (MX_BLUICE_FOREIGN_DEVICE *)
 				realloc( (*foreign_device_array),
 		    			num_elements * foreign_pointer_size );
 
+		}
+
+		if ( num_elements != old_num_elements ) {
+			ptr = (char *) (*foreign_device_array) +
+				    foreign_pointer_size * old_num_elements;
+
+			memset( ptr, 0,
+		    foreign_pointer_size * (num_elements - old_num_elements) );
 		}
 
 		if ( (num_elements > 0) && 
@@ -511,6 +540,8 @@ mx_bluice_get_device_pointer( char *name,
 		"Unable to allocate a Blu-Ice foreign device of %lu bytes.",
 			(unsigned long) foreign_device_size );
 	}
+
+	memset( *foreign_device, 0, foreign_device_size );
 
 	foreign_device_ptr = *foreign_device;
 
@@ -567,7 +598,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get a pointer to the Blu-Ice foreign motor structure. */
 
-	mx_status = mx_bluice_get_device_pointer( name,
+	mx_status = mx_bluice_setup_device_pointer( name,
 					(void **) &(bluice_server->motor_array),
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
@@ -580,6 +611,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	foreign_motor = foreign_motor_ptr;
 
 	MX_DEBUG(-2,("%s: foreign_motor = '%s'", fname, foreign_motor->name));
+
+	foreign_motor->move_in_progress = FALSE;
 
 	/* Now parse the rest of the configuration string. */
 
@@ -605,8 +638,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 				&(foreign_motor->speed),
 				&(foreign_motor->acceleration_time),
 				&(foreign_motor->backlash),
-				&(foreign_motor->upper_limit_on),
 				&(foreign_motor->lower_limit_on),
+				&(foreign_motor->upper_limit_on),
 				&(foreign_motor->motor_lock_on),
 				&(foreign_motor->backlash_on),
 				&(foreign_motor->reverse_on) );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,22 +61,27 @@
 
 /* Status bit definitions for the 'status' and 'extended_status' fields. */
 
-#define MXSF_MTR_IS_BUSY		0x1
-#define MXSF_MTR_POSITIVE_LIMIT_HIT	0x2
-#define MXSF_MTR_NEGATIVE_LIMIT_HIT	0x4
-#define MXSF_MTR_HOME_SEARCH_SUCCEEDED	0x8
-#define MXSF_MTR_FOLLOWING_ERROR	0x10
-#define MXSF_MTR_DRIVE_FAULT		0x20
-#define MXSF_MTR_AXIS_DISABLED		0x40
-#define MXSF_MTR_OPEN_LOOP		0x80
+#define MXSF_MTR_IS_BUSY			0x1
+#define MXSF_MTR_POSITIVE_LIMIT_HIT		0x2
+#define MXSF_MTR_NEGATIVE_LIMIT_HIT		0x4
+#define MXSF_MTR_HOME_SEARCH_SUCCEEDED		0x8
+#define MXSF_MTR_FOLLOWING_ERROR		0x10
+#define MXSF_MTR_DRIVE_FAULT			0x20
+#define MXSF_MTR_AXIS_DISABLED			0x40
+#define MXSF_MTR_OPEN_LOOP			0x80
+#define MXSF_MTR_CONTROLLER_DISABLED		0x100
+#define MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT	0x200
+#define MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT	0x400
 
-#define MXSF_MTR_ERROR			0x80000000
+#define MXSF_MTR_ERROR				0x80000000
 
 
 #define MXSF_MTR_ERROR_BITMASK	\
-	( MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT \
-	  | MXSF_MTR_FOLLOWING_ERROR | MXSF_MTR_DRIVE_FAULT \
-	  | MXSF_MTR_AXIS_DISABLED | MXSF_MTR_OPEN_LOOP | MXSF_MTR_ERROR )
+  ( MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT \
+  | MXSF_MTR_FOLLOWING_ERROR | MXSF_MTR_DRIVE_FAULT \
+  | MXSF_MTR_AXIS_DISABLED | MXSF_MTR_OPEN_LOOP | MXSF_MTR_CONTROLLER_DISABLED \
+  | MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT | MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT \
+  | MXSF_MTR_ERROR )
 
 /* The maximum length of the string used to transmit the 'extended_status'
  * field across the network.
