@@ -396,12 +396,12 @@ mx_bluice_get_message_type( char *message_string, int *message_type )
 
 MX_EXPORT mx_status_type
 mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
-				char *name,
-				void **foreign_device_array_ptr,
-				int *num_foreign_devices_ptr,
-				size_t foreign_pointer_size,
-				size_t foreign_device_size,
-				void **foreign_device_ptr )
+			char *name,
+			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
+			int *num_foreign_devices_ptr,
+			size_t foreign_pointer_size,
+			size_t foreign_device_size,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr )
 {
 	static const char fname[] = "mx_bluice_setup_device_pointer()";
 
@@ -418,7 +418,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'name' pointer passed was NULL." );
 	}
-	if ( foreign_device_array_ptr == (void **) NULL) {
+	if ( foreign_device_array_ptr == (MX_BLUICE_FOREIGN_DEVICE ***) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'foreign_device_array_ptr' pointer passed was NULL." );
 	}
@@ -426,7 +426,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'num_foreign_devices_ptr' pointer passed was NULL." );
 	}
-	if ( foreign_device_ptr == (void **) NULL) {
+	if ( foreign_device_ptr == (MX_BLUICE_FOREIGN_DEVICE **) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'foreign_device_ptr' pointer passed was NULL." );
 	}
@@ -438,15 +438,24 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: foreign_device_ptr = %p", fname, foreign_device_ptr));
 #endif
 
+	if ( (*num_foreign_devices_ptr) > 0 ) {
+		if ( (*foreign_device_array_ptr) == NULL ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"'*foreign_device_array_ptr' is NULL even though "
+			"'*num_foreign_devices_ptr' is %d.",
+				*num_foreign_devices_ptr );
+		}
+	}
+
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
 	*foreign_device_ptr = NULL;
 
 	for ( i = 0; i < *num_foreign_devices_ptr; i++ ) {
-		foreign_device = foreign_device_array_ptr[i];
+		foreign_device = (*foreign_device_array_ptr)[i];
 
 #if BLUICE_DEBUG_SETUP
-		MX_DEBUG(-2,("%s: foreign_device_array_ptr[%d] = %p",
+		MX_DEBUG(-2,("%s: (*foreign_device_array_ptr)[%d] = %p",
 			fname, i, foreign_device));
 #endif
 
@@ -480,7 +489,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	/* If a preexisting device has been found, return now. */
 
 	if ( i < *num_foreign_devices_ptr ) {
-		*foreign_device_ptr = foreign_device_array_ptr[i];
+		*foreign_device_ptr = (*foreign_device_array_ptr)[i];
 
 #if BLUICE_DEBUG_SETUP
 		MX_DEBUG(-2,("%s: #1 *foreign_device_ptr = %p",
@@ -509,6 +518,9 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			"Blu-Ice device '%s' was not found.", name );
 	}
 
+	MX_DEBUG(-2,("%s: MARKER 1 -> *foreign_device_array_ptr = %p",
+		fname, *foreign_device_array_ptr));
+
 	/* Otherwise, make sure the array is big enough for the new pointer. */
 
 	if ( i >= *num_foreign_devices_ptr ) {
@@ -524,7 +536,8 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 			num_elements = MX_BLUICE_ARRAY_BLOCK_SIZE;
 
-			*foreign_device_array_ptr = (MX_BLUICE_FOREIGN_DEVICE *)
+			*foreign_device_array_ptr
+			    = (MX_BLUICE_FOREIGN_DEVICE **)
 				malloc( num_elements * foreign_pointer_size );
 		} else
 		if (((*num_foreign_devices_ptr)
@@ -539,37 +552,29 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			num_elements =
 				old_num_elements + MX_BLUICE_ARRAY_BLOCK_SIZE;
 
-			*foreign_device_array_ptr = (MX_BLUICE_FOREIGN_DEVICE *)
-				realloc( (*foreign_device_array_ptr),
+			*foreign_device_array_ptr
+			    = (MX_BLUICE_FOREIGN_DEVICE **)
+				    realloc( (*foreign_device_array_ptr),
 		    			num_elements * foreign_pointer_size );
-
 		}
 
 #if BLUICE_DEBUG_SETUP
 		{
 			int j;
-			char *char_ptr;
 
 			MX_DEBUG(-2,("%s: num_elements = %d",
 				fname, num_elements));
 
-			char_ptr = (char *) foreign_device_array_ptr;
+			MX_DEBUG(-2,("%s: foreign_device_array_ptr = %p",
+				fname, foreign_device_array_ptr));
 
-			MX_DEBUG(-2,
-			("%s: foreign_device_array_ptr = %p, char_ptr = %p",
-				fname, foreign_device_array_ptr, char_ptr));
 			MX_DEBUG(-2,("%s: *foreign_device_array_ptr = %p",
 				fname, *foreign_device_array_ptr));
 
 			for ( j = 0; j < 4; j++ ) {
-#if 1
 			    MX_DEBUG(-2,
-			    	("%s: foreign_device_array_ptr[%d] = %p",
-			    	fname, j, foreign_device_array_ptr[j]));
-#else
-			    MX_DEBUG(-2,("%s: char_ptr[%d] = %p",
-			    	fname, j, char_ptr + j * foreign_pointer_size));
-#endif
+			    	("%s: (*foreign_device_array_ptr)[%d] = %p",
+			    	fname, j, (*foreign_device_array_ptr)[j]));
 			}
 		}
 #endif
@@ -583,7 +588,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		}
 
 		if ( (num_elements > 0) && 
-	    ((*foreign_device_array_ptr) == (MX_BLUICE_FOREIGN_DEVICE *) NULL))
+	    ((*foreign_device_array_ptr) == (MX_BLUICE_FOREIGN_DEVICE **) NULL))
 		{
 			mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
@@ -592,6 +597,9 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			"of Blu-Ice foreign devices.", num_elements );
 		}
 	}
+
+	MX_DEBUG(-2,("%s: MARKER 2 -> *foreign_device_array_ptr = %p",
+		fname, *foreign_device_array_ptr));
 
 	/* Add the new entry to the array. */
 
@@ -617,7 +625,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 	MX_DEBUG(-2,("%s: MARKER BEFORE", fname));
 
-	foreign_device_array_ptr[*num_foreign_devices_ptr]
+	(*foreign_device_array_ptr)[*num_foreign_devices_ptr]
 					= *foreign_device_ptr;
 
 	MX_DEBUG(-2,("%s: MARKER AFTER", fname));
@@ -636,18 +644,20 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 MX_EXPORT mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
-				MX_BLUICE_SERVER *bluice_server,
-				char *name,
-				void **foreign_device_array_ptr,
-				int *num_foreign_devices_ptr,
-				void **foreign_device_ptr,
-				double timeout_in_seconds )
+			MX_BLUICE_SERVER *bluice_server,
+			char *name,
+			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
+			int *num_foreign_devices_ptr,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr,
+			double timeout_in_seconds )
 {
 	static const char fname[] =
 			"mx_bluice_wait_for_device_pointer_initialization()";
 
 	unsigned long i, wait_ms, max_attempts;
 	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s INVOKED for device '%s'", fname, name));
 
 	/* Wait for the Blu-Ice server thread to assign a value to the pointer.
 	 */
@@ -658,12 +668,23 @@ mx_bluice_wait_for_device_pointer_initialization(
 		mx_round( (1000.0 * timeout_in_seconds) / (double) wait_ms );
 
 	for ( i = 0; i < max_attempts; i++ ) {
+
+		MX_DEBUG(-2,
+		("%s: ATTEMPT # %lu, *foreign_device_array_ptr = %p",
+			fname, i, *foreign_device_array_ptr));
+
+		MX_DEBUG(-2,
+		("%s: invoking mx_bluice_setup_device_pointer()", fname));
+
 		mx_status = mx_bluice_setup_device_pointer( bluice_server,
 						name,
 						foreign_device_array_ptr,
 						num_foreign_devices_ptr,
 						0, 0,
 						foreign_device_ptr );
+
+		MX_DEBUG(-2,
+		("%s: returned from mx_bluice_setup_device_pointer()", fname));
 
 		if ( mx_status.code == MXE_NOT_FOUND ) {
 			mx_msleep( wait_ms );
@@ -685,6 +706,9 @@ mx_bluice_wait_for_device_pointer_initialization(
 		"for Blu-Ice server '%s'.", timeout_in_seconds,
 					bluice_server->record->name );
 	}
+
+	MX_DEBUG(-2,("%s COMPLETE for device '%s', *foreign_device_ptr = %p",
+		fname, name, *foreign_device_ptr));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -994,7 +1018,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_motor()";
 
-	void *foreign_motor_ptr;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char format_string[40];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
@@ -1028,22 +1052,43 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get a pointer to the Blu-Ice foreign motor structure. */
 
-	MX_DEBUG(-2,("%s: &(bluice_server->motor_array) = %p",
-		fname, &(bluice_server->motor_array)));
+	motor_device_array =
+		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
+
+	MX_DEBUG(-2,("%s: MARKER #A &motor_device_array = %p",
+		fname, &motor_device_array));
+
+	MX_DEBUG(-2,("%s: MARKER #A motor_device_array = %p",
+		fname, motor_device_array));
+
+	MX_DEBUG(-2,("%s: MARKER #A bluice_server->motor_array = %p",
+		fname, bluice_server->motor_array));
 
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					name,
-					(void **) &(bluice_server->motor_array),
+					&motor_device_array,
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR),
-					&foreign_motor_ptr );
+					&foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	foreign_motor = foreign_motor_ptr;
+	bluice_server->motor_array =
+			(MX_BLUICE_FOREIGN_MOTOR **) motor_device_array;
+
+	MX_DEBUG(-2,("%s: MARKER #B &motor_device_array = %p",
+		fname, &motor_device_array));
+
+	MX_DEBUG(-2,("%s: MARKER #B motor_device_array = %p",
+		fname, motor_device_array));
+
+	MX_DEBUG(-2,("%s: MARKER #B bluice_server->motor_array = %p",
+		fname, bluice_server->motor_array));
+
+	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
 
 	foreign_motor->mx_motor = NULL;
 	foreign_motor->move_in_progress = FALSE;

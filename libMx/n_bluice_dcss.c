@@ -61,6 +61,7 @@ static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_motor;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_log;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_completed;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_update_motor_position;
 
 static struct {
 	char message_name[40];
@@ -82,6 +83,7 @@ static struct {
 	{"stog_set_permission_level", stog_set_permission_level},
 	{"stog_update_client", NULL},
 	{"stog_update_client_list", NULL},
+	{"stog_update_motor_position", stog_update_motor_position},
 };
 
 static int num_dcss_handlers = sizeof( dcss_handler_list )
@@ -290,8 +292,8 @@ stog_motor_move_completed( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_motor_move_completed()";
 
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
-	void *foreign_device_ptr;
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
 	mx_status_type mx_status;
@@ -350,11 +352,19 @@ stog_motor_move_completed( MX_THREAD *thread,
 
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
+	/* The following two step is to avoid generating a GCC error
+	 * of the form 'dereferencing type-punned pointer will break
+	 * strict-aliasing rules'.
+	 */
+
+	motor_device_array = 
+		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
+
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 						motor_name,
-						bluice_server->motor_array,
+						motor_device_array,
 						bluice_server->num_motors,
-						&foreign_device_ptr );
+						&foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -362,7 +372,7 @@ stog_motor_move_completed( MX_THREAD *thread,
 		return mx_status;
 	}
 
-	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device_ptr;
+	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
 
 	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -391,6 +401,121 @@ stog_set_permission_level( MX_THREAD *thread,
 	static const char fname[] = "stog_set_permission_level()"; 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_update_motor_position( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_update_motor_position()";
+
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
+	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	char *ptr, *token_ptr, *motor_name, *status_ptr;
+	double motor_position;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name ));
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.", 
+	    		bluice_server->receive_buffer, server_record->name );
+	}
+
+	/* Get the motor name. */
+
+	motor_name = mx_string_split( &ptr, " " );
+
+	if ( motor_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Motor name not found in message received from Blu-Ice server '%s'.",
+	    		server_record->name );
+	}
+
+	/* Get the motor position. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not find the motor position in a message received "
+		"from Blu-Ice server '%s'.", server_record->name );
+	}
+
+	motor_position = atof( token_ptr );
+
+	/* Get the motion status. */
+
+	status_ptr = mx_string_split( &ptr, " " );
+
+	if ( status_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not find the motion status in a message received "
+		"from Blu-Ice server '%s'.", server_record->name );
+	}
+
+	/* Was there any trailing text? */
+
+	token_ptr = mx_string_split( &ptr, "{}" );
+
+	if ( token_ptr != NULL ) {
+		mx_warning( "%s: Ignoring extra text '%s' at the end "
+			"of an update_motor_position message from "
+			"Blu-Ice server '%s'", fname, token_ptr,
+			server_record->name );
+	}
+
+	MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
+			fname, motor_name, motor_position, status_ptr));
+
+	/* Update the values in the motor structures. */
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	motor_device_array = 
+		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+						motor_name,
+						motor_device_array,
+						bluice_server->num_motors,
+						&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_status;
+	}
+
+	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
+
+	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
+		"has not been initialized.", motor_name );
+	}
+
+	/* Update the motion status. */
+
+	foreign_motor->position = motor_position;
+	foreign_motor->move_in_progress = TRUE;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
 }
