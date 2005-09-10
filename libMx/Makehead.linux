@@ -225,6 +225,10 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+
 #
 #---------------------------------------------------
 #

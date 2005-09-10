@@ -15,9 +15,18 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all:
-	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
+all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_clean:
+	-rm *.o
 	( cd unix/src/editline ; make clean )
+
+strlcpy.o: generic/src/strlcpy.c
+	$(CC) -c generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	$(CC) -c generic/src/strlcat.c
+
+unix/src/editline/libedit.a:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 

@@ -27,6 +27,7 @@
 #include "mx_interval_timer.h"
 #include "mx_thread.h"
 #include "mx_mutex.h"
+#include "mx_semaphore.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 
@@ -46,7 +47,6 @@
 #include "mx_net.h"
 #include "mx_epics.h"
 #include "mx_spec.h"
-#include "mx_bluice.h"
 
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
@@ -79,6 +79,8 @@
 #include "mx_vinline.h"
 #include "mx_vnet.h"
 #include "mx_vepics.h"
+
+#include "mx_bluice.h"
 
 #include "mx_list_head.h"
 

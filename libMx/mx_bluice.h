@@ -18,6 +18,11 @@
 #ifndef __MX_BLUICE_H__
 #define __MX_BLUICE_H__
 
+#include "mx_socket.h"
+#include "mx_mutex.h"
+#include "mx_thread.h"
+#include "mx_motor.h"
+
 #define MX_BLUICE_MSGHDR_TEXT_LENGTH	12
 #define MX_BLUICE_MSGHDR_BINARY_LENGTH	13
 
@@ -61,6 +66,7 @@ typedef struct {
 
 	/* The following are non-Blu-Ice fields for the use of MX. */
 
+	MX_MOTOR *mx_motor;
 	int move_in_progress;
 } MX_BLUICE_FOREIGN_MOTOR;
 
@@ -71,7 +77,21 @@ typedef struct {
 
 	MX_SOCKET *socket;
 
-	MX_MUTEX *mutex;
+	/* socket_send_mutex is used to prevent garbled messages from 
+	 * being sent to the Blu-Ice server's socket by multiple threads
+	 * trying to send at the same time.
+	 *
+	 * Received messages do not need a mutex since only the receive
+	 * thread is allowed to receive messages from the server.
+	 */
+
+	MX_MUTEX *socket_send_mutex;
+
+	/* foreign_data_mutex is used to protect the foreign data arrays
+	 * from corruption.
+	 */
+
+	MX_MUTEX *foreign_data_mutex;
 
 	char *receive_buffer;
 	long receive_buffer_length;
@@ -81,7 +101,7 @@ typedef struct {
 	MX_RECORD *record_array;
 
 	int num_motors;
-	MX_BLUICE_FOREIGN_MOTOR *motor_array;
+	MX_BLUICE_FOREIGN_MOTOR **motor_array;
 } MX_BLUICE_SERVER;
 
 /* ----- */
@@ -98,16 +118,8 @@ MX_API mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 				char *data_buffer,
 				long data_buffer_size,
-				long *actual_data_length );
-
-/* ----- */
-
-MX_API mx_status_type
-mx_bluice_num_unread_bytes_available( MX_RECORD *bluice_server_record,
-					int *num_bytes_available );
-
-MX_API mx_status_type
-mx_bluice_discard_unread_bytes( MX_RECORD *bluice_server_record );
+				long *actual_data_length,
+				double timeout_in_seconds );
 
 /* ----- */
 
@@ -121,16 +133,56 @@ MX_API mx_status_type
 mx_bluice_get_message_type( char *message_string, int *message_type );
 
 MX_API mx_status_type
-mx_bluice_setup_device_pointer( char *name,
-				void **foreign_device_array,
-				int *num_foreign_devices,
+mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
+				char *name,
+				void **foreign_device_array_ptr,
+				int *num_foreign_devices_ptr,
 				size_t foreign_pointer_size,
 				size_t foreign_device_size,
-				void **foreign_device );
+				void **foreign_device_ptr );
 
-#define mx_bluice_get_device_pointer( n, fda, nfd, fd ) \
-		mx_bluice_setup_device_pointer( (n), \
+#define mx_bluice_get_device_pointer( b, n, fda, nfd, fd ) \
+		mx_bluice_setup_device_pointer( (b), (n), \
 			(void **) &(fda), &(nfd), 0, 0, (fd) )
+
+MX_API mx_status_type
+mx_bluice_wait_for_device_pointer_initialization(
+				MX_BLUICE_SERVER *bluice_server,
+				char *name,
+				void **foreign_device_array_ptr,
+				int *num_foreign_devices_ptr,
+				void **foreign_device_ptr,
+				double timeout_in_seconds );
+
+/* ----- */
+
+MX_API mx_status_type
+mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server, int *master_flag );
+
+MX_API mx_status_type
+mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server, int take_master );
+
+MX_API mx_status_type
+mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
+
+/* ----- */
+
+#define MXF_BLUICE_SEV_UNKNOWN	(-1)
+#define MXF_BLUICE_SEV_INFO	1
+#define MXF_BLUICE_SEV_WARNING	2
+#define MXF_BLUICE_SEV_ERROR	3
+
+#define MXF_BLUICE_LOC_UNKNOWN	(-1)
+#define MXF_BLUICE_LOC_SERVER	1
+
+MX_API mx_status_type
+mx_bluice_parse_log_message( char *log_message,
+				int *severity,
+				int *locale,
+				char *device_name,
+				size_t device_name_length,
+				char *message_body,
+				size_t message_body_length );
 
 /* ----- */
 

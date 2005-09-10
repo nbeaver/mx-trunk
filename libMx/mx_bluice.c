@@ -19,11 +19,13 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_socket.h"
-#include "mx_mutex.h"
+#include "mx_driver.h"
 #include "mx_bluice.h"
+#include "n_bluice_dcss.h"
 
 #define BLUICE_DEBUG		TRUE
+
+#define BLUICE_DEBUG_SETUP	TRUE
 
 #define BLUICE_DEBUG_MESSAGE	TRUE
 
@@ -129,6 +131,8 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	text_data_length = strlen( text_data ) + 1;
 
+	mx_mutex_lock( bluice_server->socket_send_mutex );
+
 	if ( send_header ) {
 		sprintf( message_header, "%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
@@ -142,8 +146,10 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 					&message_header,
 					MX_BLUICE_MSGHDR_LENGTH );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_mutex_unlock( bluice_server->socket_send_mutex );
 			return mx_status;
+		}
 
 		bytes_sent += MX_BLUICE_MSGHDR_LENGTH;
 	}
@@ -154,8 +160,10 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 					text_data,
 					text_data_length );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->socket_send_mutex );
 		return mx_status;
+	}
 
 	bytes_sent += text_data_length;
 
@@ -166,8 +174,10 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 						binary_data,
 						binary_data_length );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mx_mutex_unlock( bluice_server->socket_send_mutex );
 			return mx_status;
+		}
 
 		bytes_sent += binary_data_length;
 	}
@@ -182,21 +192,32 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 						null_pad,
 						null_bytes_to_send );
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mx_mutex_unlock(
+					bluice_server->socket_send_mutex );
+
 				return mx_status;
+			}
 		}
 	}
+
+	mx_mutex_unlock( bluice_server->socket_send_mutex );
 
 	return mx_status;
 }
 
 /* ====================================================================== */
 
+/* WARNING: After the Blu-Ice server record's open() routine has run, only
+ * the server receive thread may invoke mx_bluice_receive_message().
+ */
+
 MX_EXPORT mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 				char *data_buffer,
 				long data_buffer_length,
-				long *actual_data_length )
+				long *actual_data_length,
+				double timeout_in_seconds )
 {
 	static const char fname[] = "mx_bluice_receive_message()";
 
@@ -206,6 +227,8 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	long text_data_length, binary_data_length, total_data_length;
 	long maximum_length;
 	size_t actual_bytes_received;
+	int num_bytes_available;
+	unsigned long i, wait_ms, max_attempts;
 	char *data_pointer;
 	mx_status_type mx_status;
 
@@ -214,6 +237,43 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Wait for a new message to come in.
+	 *
+	 * A negative timeout means wait forever., so we only need to loop
+	 * if the timeout is >= 0.
+	 */
+
+	if ( timeout_in_seconds >= 0.0 ) {
+		wait_ms = 10;
+		max_attempts =
+		    mx_round((1000.0 * timeout_in_seconds) / (double) wait_ms);
+
+		for ( i = 0; i < max_attempts; i++ ) {
+			mx_status = mx_socket_num_input_bytes_available(
+					bluice_server->socket,
+					&num_bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_bytes_available != 0 ) {
+				break;		/* Exit the while loop. */
+			}
+
+			mx_msleep( wait_ms );
+		}
+
+		if ( i >= max_attempts ) {
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after %g seconds of waiting for "
+			"Blu-Ice server '%s' to send a message.",
+				timeout_in_seconds,
+				bluice_server_record->name );
+		}
+	}
+
+	/* Read in the header from the Blu-Ice server. */
 
 	mx_status = mx_socket_receive( bluice_server_socket,
 					message_header,
@@ -293,62 +353,6 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_bluice_num_unread_bytes_available( MX_RECORD *bluice_server_record,
-					int *num_bytes_available )
-{
-	static const char fname[] = "mx_bluice_num_unread_bytes_available()";
-
-	MX_BLUICE_SERVER *bluice_server;
-	MX_SOCKET *bluice_server_socket;
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_get_pointers( bluice_server_record,
-				&bluice_server, &bluice_server_socket, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( num_bytes_available == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The num_bytes_available argument passed was NULL." );
-	}
-
-	/* Check the server socket to see if any bytes are available. */
-
-	if ( mx_socket_is_open( bluice_server_socket ) == FALSE ) {
-		return mx_error( MXE_NETWORK_CONNECTION_LOST, fname,
-			"Blu-Ice server'%s' is not connected.",
-	    		bluice_server_record->name );
-	}
-
-	mx_status = mx_socket_num_input_bytes_available( bluice_server->socket,
-							num_bytes_available );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mx_bluice_discard_unread_bytes( MX_RECORD *bluice_server_record )
-{
-	static const char fname[] = "mx_bluice_discard_unread_bytes()";
-
-	MX_SOCKET *bluice_server_socket;
-	mx_status_type mx_status;
-
-	mx_status = mx_bluice_get_pointers( bluice_server_record, NULL,
-					&bluice_server_socket, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_socket_discard_unread_input( bluice_server_socket );
-
-	return mx_status;
-}
-
-/* ====================================================================== */
-
-MX_EXPORT mx_status_type
 mx_bluice_get_message_type( char *message_string, int *message_type )
 {
 	static const char fname[] = "mx_bluice_get_message_type()";
@@ -391,78 +395,99 @@ mx_bluice_get_message_type( char *message_string, int *message_type )
  */
 
 MX_EXPORT mx_status_type
-mx_bluice_setup_device_pointer( char *name,
-				void **foreign_device_array,
-				int *num_foreign_devices,
+mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
+				char *name,
+				void **foreign_device_array_ptr,
+				int *num_foreign_devices_ptr,
 				size_t foreign_pointer_size,
 				size_t foreign_device_size,
-				void **foreign_device )
+				void **foreign_device_ptr )
 {
 	static const char fname[] = "mx_bluice_setup_device_pointer()";
 
 	size_t i;
 	int num_elements, old_num_elements;
 	char *ptr;
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device_ptr;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
 	if ( name == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'name' pointer passed was NULL." );
 	}
-	if ( foreign_device_array == (void **) NULL) {
+	if ( foreign_device_array_ptr == (void **) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The 'foreign_device_array' pointer passed was NULL." );
+		"The 'foreign_device_array_ptr' pointer passed was NULL." );
 	}
-	if ( num_foreign_devices == (int *) NULL) {
+	if ( num_foreign_devices_ptr == (int *) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The 'num_foreign_devices' pointer passed was NULL." );
+		"The 'num_foreign_devices_ptr' pointer passed was NULL." );
 	}
-	if ( foreign_device == (void **) NULL) {
+	if ( foreign_device_ptr == (void **) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The 'foreign_device' pointer passed was NULL." );
+		"The 'foreign_device_ptr' pointer passed was NULL." );
 	}
 
-	MX_DEBUG( 2,("%s: name = '%s'", fname, name));
+#if BLUICE_DEBUG_SETUP
+	MX_DEBUG(-2,("%s: name = '%s'", fname, name));
+	MX_DEBUG(-2,("%s: *foreign_device_array_ptr = %p",
+		fname, *foreign_device_array_ptr));
+	MX_DEBUG(-2,("%s: foreign_device_ptr = %p", fname, foreign_device_ptr));
+#endif
 
-	MX_DEBUG( 2,("%s: *foreign_device_array = %p",
-		fname, *foreign_device_array));
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
-	MX_DEBUG( 2,("%s: foreign_device = %p", fname, foreign_device));
+	*foreign_device_ptr = NULL;
 
-	foreign_device_ptr = NULL;
+	for ( i = 0; i < *num_foreign_devices_ptr; i++ ) {
+		foreign_device = foreign_device_array_ptr[i];
 
-	for ( i = 0; i < *num_foreign_devices; i++ ) {
-		foreign_device_ptr = foreign_device_array[i];
+#if BLUICE_DEBUG_SETUP
+		MX_DEBUG(-2,("%s: foreign_device_array_ptr[%d] = %p",
+			fname, i, foreign_device));
+#endif
 
-		MX_DEBUG( 2,("%s: foreign_device_array[%d] = %p",
-			fname, i, foreign_device_ptr));
-
-		if ( foreign_device_ptr == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		if ( foreign_device == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 			continue;	/* Skip to the next entry. */
 		} else {
-			MX_DEBUG( 2,
-			  ("%s: name = '%s', foreign_device_ptr->name = '%s'",
-				fname, name, foreign_device_ptr->name));
+#if BLUICE_DEBUG_SETUP
+			MX_DEBUG(-2,
+			  ("%s: name = '%s', foreign_device->name = '%s'",
+				fname, name, foreign_device->name));
+#endif
 
-			if ( strcmp( foreign_device_ptr->name, name ) == 0 ) {
-				MX_DEBUG( 2,("%s: exiting loop at i = %d",
+			if ( strcmp( foreign_device->name, name ) == 0 ) {
+#if BLUICE_DEBUG_SETUP
+				MX_DEBUG(-2,("%s: exiting loop at i = %d",
 					fname, i));
+#endif
 
 				break;	/* Exit the for() loop. */
 			}
-			MX_DEBUG( 2,("%s: name did not match.", fname));
+#if BLUICE_DEBUG_SETUP
+			MX_DEBUG(-2,("%s: name did not match.", fname));
+#endif
 		}
 	}
 
-	MX_DEBUG( 2,("%s: i = %d", fname, i));
+#if BLUICE_DEBUG_SETUP
+	MX_DEBUG(-2,("%s: i = %d", fname, i));
+#endif
 
 	/* If a preexisting device has been found, return now. */
 
-	if ( i < *num_foreign_devices ) {
-		*foreign_device = foreign_device_array[i];
+	if ( i < *num_foreign_devices_ptr ) {
+		*foreign_device_ptr = foreign_device_array_ptr[i];
 
-		MX_DEBUG( 2,("%s: #1 *foreign_device = %p",
-				fname, *foreign_device));
+#if BLUICE_DEBUG_SETUP
+		MX_DEBUG(-2,("%s: #1 *foreign_device_ptr = %p",
+				fname, *foreign_device_ptr));
+#endif
+
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -476,7 +501,9 @@ mx_bluice_setup_device_pointer( char *name,
 
 	if ( (foreign_pointer_size == 0) || (foreign_device_size == 0 ) ) {
 
-		*foreign_device = NULL;
+		*foreign_device_ptr = NULL;
+
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_NOT_FOUND, fname,
 			"Blu-Ice device '%s' was not found.", name );
@@ -484,37 +511,71 @@ mx_bluice_setup_device_pointer( char *name,
 
 	/* Otherwise, make sure the array is big enough for the new pointer. */
 
-	if ( i >= *num_foreign_devices ) {
+	if ( i >= *num_foreign_devices_ptr ) {
 		old_num_elements = 0;
 		num_elements = 0;
 
-		if ( *num_foreign_devices == 0 ) {
-			MX_DEBUG( 2,("%s: Allocating new array.", fname));
+		if ( *num_foreign_devices_ptr == 0 ) {
+#if BLUICE_DEBUG_SETUP
+			MX_DEBUG(-2,("%s: Allocating new array.", fname));
+#endif
 
 			old_num_elements = 0;
 
 			num_elements = MX_BLUICE_ARRAY_BLOCK_SIZE;
 
-			*foreign_device_array = (MX_BLUICE_FOREIGN_DEVICE *)
+			*foreign_device_array_ptr = (MX_BLUICE_FOREIGN_DEVICE *)
 				malloc( num_elements * foreign_pointer_size );
 		} else
-		if (((*num_foreign_devices) % MX_BLUICE_ARRAY_BLOCK_SIZE) == 0)
+		if (((*num_foreign_devices_ptr)
+				% MX_BLUICE_ARRAY_BLOCK_SIZE) == 0)
 		{
-			MX_DEBUG( 2,("%s: Expanding old array.", fname));
+#if BLUICE_DEBUG_SETUP
+			MX_DEBUG(-2,("%s: Expanding old array.", fname));
+#endif
 
-			old_num_elements = *num_foreign_devices;
+			old_num_elements = *num_foreign_devices_ptr;
 
 			num_elements =
 				old_num_elements + MX_BLUICE_ARRAY_BLOCK_SIZE;
 
-			*foreign_device_array = (MX_BLUICE_FOREIGN_DEVICE *)
-				realloc( (*foreign_device_array),
+			*foreign_device_array_ptr = (MX_BLUICE_FOREIGN_DEVICE *)
+				realloc( (*foreign_device_array_ptr),
 		    			num_elements * foreign_pointer_size );
 
 		}
 
+#if BLUICE_DEBUG_SETUP
+		{
+			int j;
+			char *char_ptr;
+
+			MX_DEBUG(-2,("%s: num_elements = %d",
+				fname, num_elements));
+
+			char_ptr = (char *) foreign_device_array_ptr;
+
+			MX_DEBUG(-2,
+			("%s: foreign_device_array_ptr = %p, char_ptr = %p",
+				fname, foreign_device_array_ptr, char_ptr));
+			MX_DEBUG(-2,("%s: *foreign_device_array_ptr = %p",
+				fname, *foreign_device_array_ptr));
+
+			for ( j = 0; j < 4; j++ ) {
+#if 1
+			    MX_DEBUG(-2,
+			    	("%s: foreign_device_array_ptr[%d] = %p",
+			    	fname, j, foreign_device_array_ptr[j]));
+#else
+			    MX_DEBUG(-2,("%s: char_ptr[%d] = %p",
+			    	fname, j, char_ptr + j * foreign_pointer_size));
+#endif
+			}
+		}
+#endif
+
 		if ( num_elements != old_num_elements ) {
-			ptr = (char *) (*foreign_device_array) +
+			ptr = (char *) (*foreign_device_array_ptr) +
 				    foreign_pointer_size * old_num_elements;
 
 			memset( ptr, 0,
@@ -522,8 +583,10 @@ mx_bluice_setup_device_pointer( char *name,
 		}
 
 		if ( (num_elements > 0) && 
-		 ((*foreign_device_array) == (MX_BLUICE_FOREIGN_DEVICE *) NULL))
+	    ((*foreign_device_array_ptr) == (MX_BLUICE_FOREIGN_DEVICE *) NULL))
 		{
+			mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory allocating an %d element array "
 			"of Blu-Ice foreign devices.", num_elements );
@@ -532,26 +595,393 @@ mx_bluice_setup_device_pointer( char *name,
 
 	/* Add the new entry to the array. */
 
-	*foreign_device =
+	*foreign_device_ptr =
 		(MX_BLUICE_FOREIGN_DEVICE *) malloc( foreign_device_size );
 
-	if ( (*foreign_device) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+	if ( (*foreign_device_ptr) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate a Blu-Ice foreign device of %lu bytes.",
 			(unsigned long) foreign_device_size );
 	}
 
-	memset( *foreign_device, 0, foreign_device_size );
+	MX_DEBUG(-2,("%s: new *foreign_device_ptr = %p",
+		fname, *foreign_device_ptr));
 
-	foreign_device_ptr = *foreign_device;
+	memset( *foreign_device_ptr, 0, foreign_device_size );
 
-	mx_strncpy( foreign_device_ptr->name, name, MXU_BLUICE_NAME_LENGTH );
+	foreign_device = *foreign_device_ptr;
 
-	foreign_device_array[*num_foreign_devices] = *foreign_device;
+	mx_strncpy( foreign_device->name, name, MXU_BLUICE_NAME_LENGTH );
 
-	(*num_foreign_devices)++;
+	MX_DEBUG(-2,("%s: MARKER BEFORE", fname));
 
-	MX_DEBUG( 2,("%s: #2 *foreign_device = %p", fname, *foreign_device));
+	foreign_device_array_ptr[*num_foreign_devices_ptr]
+					= *foreign_device_ptr;
+
+	MX_DEBUG(-2,("%s: MARKER AFTER", fname));
+
+	(*num_foreign_devices_ptr)++;
+
+#if BLUICE_DEBUG_SETUP
+	MX_DEBUG(-2,("%s: #2 *foreign_device_ptr = %p",
+				fname, *foreign_device_ptr));
+#endif
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_bluice_wait_for_device_pointer_initialization(
+				MX_BLUICE_SERVER *bluice_server,
+				char *name,
+				void **foreign_device_array_ptr,
+				int *num_foreign_devices_ptr,
+				void **foreign_device_ptr,
+				double timeout_in_seconds )
+{
+	static const char fname[] =
+			"mx_bluice_wait_for_device_pointer_initialization()";
+
+	unsigned long i, wait_ms, max_attempts;
+	mx_status_type mx_status;
+
+	/* Wait for the Blu-Ice server thread to assign a value to the pointer.
+	 */
+	
+	wait_ms = 100;
+
+	max_attempts = 
+		mx_round( (1000.0 * timeout_in_seconds) / (double) wait_ms );
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		mx_status = mx_bluice_setup_device_pointer( bluice_server,
+						name,
+						foreign_device_array_ptr,
+						num_foreign_devices_ptr,
+						0, 0,
+						foreign_device_ptr );
+
+		if ( mx_status.code == MXE_NOT_FOUND ) {
+			mx_msleep( wait_ms );
+		} else {
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( (*foreign_device_ptr) == NULL ) {
+				mx_msleep( wait_ms );
+			} else {
+				break;		/* Exit the for() loop. */
+			}
+		}
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %g seconds to lock the mutex "
+		"for Blu-Ice server '%s'.", timeout_in_seconds,
+					bluice_server->record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
+				int *master_flag )
+{
+	static const char fname[] = "mx_bluice_is_master()";
+
+	MX_RECORD *bluice_server_record;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed is NULL." );
+	}
+	if ( master_flag == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'master_flag' argument passed is NULL." );
+	}
+
+	bluice_server_record = bluice_server->record;
+
+	if ( bluice_server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_BLUICE_SERVER pointer %p "
+		"that was passed is NULL.", bluice_server );
+	}
+	
+	/* DHS server connections effectively are always master. */
+
+	if ( bluice_server_record->mx_type == MXN_BLUICE_DHS_SERVER ) {
+		*master_flag = TRUE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We have to check for DCSS servers. */
+
+	bluice_dcss_server = (MX_BLUICE_DCSS_SERVER *)
+				bluice_server_record->record_type_struct;
+
+	if ( bluice_dcss_server == (MX_BLUICE_DCSS_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_DCSS_SERVER pointer for Blu-Ice server '%s' "
+		"is NULL.", bluice_server_record->name );
+	}
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( bluice_dcss_server->is_master ) {
+		*master_flag = TRUE;
+	} else {
+		*master_flag = FALSE;
+	}
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
+			int take_master )
+{
+	static const char fname[] = "mx_bluice_take_master()";
+
+	MX_RECORD *bluice_server_record;
+	mx_status_type mx_status;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed is NULL." );
+	}
+
+	bluice_server_record = bluice_server->record;
+
+	if ( bluice_server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for the MX_BLUICE_SERVER pointer %p "
+		"that was passed is NULL.", bluice_server );
+	}
+
+	if ( bluice_server_record->mx_type == MXN_BLUICE_DHS_SERVER ) {
+
+		/* DHS server connections are effectively always masters
+		 * so we need not do anything here.
+		 */
+
+		 return MX_SUCCESSFUL_RESULT;
+	}
+	
+	if ( take_master ) {
+		mx_status = mx_bluice_send_message( bluice_server->record,
+			"gtos_become_master force", NULL, 0, -1, TRUE );
+	} else {
+		mx_status = mx_bluice_send_message( bluice_server->record,
+			"gtos_become_slave", NULL, 0, -1, TRUE );
+	}
+
+	return mx_status;
+}
+
+MX_API mx_status_type
+mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
+{
+	static const char fname[] = "mx_bluice_check_for_master()";
+
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	int master_flag;
+	unsigned long i, wait_ms, max_attempts, auto_take_master;
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_is_master( bluice_server, &master_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( master_flag ) {
+		return MX_SUCCESSFUL_RESULT;
+	} else {
+		/* We can only get here for DCSS servers. */
+
+		bluice_dcss_server = (MX_BLUICE_DCSS_SERVER *)
+				bluice_server->record->record_type_struct;
+
+		auto_take_master = bluice_dcss_server->bluice_dcss_flags
+					& MXF_BLUICE_DCSS_AUTO_TAKE_MASTER;
+
+		if ( auto_take_master ) {
+			mx_status = mx_bluice_take_master(bluice_server, TRUE);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Wait to become master. */
+
+			wait_ms = 100;
+			max_attempts = 50;
+
+			for ( i = 0; i < max_attempts; i++ ) {
+				mx_status = mx_bluice_is_master( bluice_server,
+								&master_flag );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				if ( master_flag ) {
+					return MX_SUCCESSFUL_RESULT;
+				}
+
+				mx_msleep( wait_ms );
+			}
+
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after waiting %g seconds to become master "
+			"for Blu-Ice server '%s'.",
+				0.001 * (double)( wait_ms * max_attempts ),
+				bluice_server->record->name );
+		} else {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"Your client is not currently master for "
+			"Blu-Ice server '%s'.",
+				bluice_server->record->name );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_parse_log_message( char *log_message,
+				int *severity,
+				int *locale,
+				char *device_name,
+				size_t device_name_length,
+				char *message_body,
+				size_t message_body_length )
+{
+	static const char fname[] = "mx_bluice_parse_log_message()";
+
+	char *ptr, *token_ptr;
+
+	if ( log_message == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'log_message' pointer passed was NULL." );
+	}
+	if ( severity == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'severity' pointer passed was NULL." );
+	}
+	if ( locale == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'locale' pointer passed was NULL." );
+	}
+	if ( device_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'device_name' pointer passed was NULL." );
+	}
+	if ( message_body == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'message_body' pointer passed was NULL." );
+	}
+
+	MX_DEBUG( 2,("%s: log_message = '%s'", fname, log_message));
+
+	ptr = log_message;
+
+	/* Skip over the log message_token. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find any non-blank characters in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	MX_DEBUG( 2,("%s: command = '%s', ptr = '%s'",
+		fname, token_ptr, ptr ));
+
+	/* Get the severity level. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the severity level in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	if ( strcmp( token_ptr, "info" ) == 0 ) {
+		*severity = MXF_BLUICE_SEV_INFO;
+	} else
+	if ( strcmp( token_ptr, "warning" ) == 0 ) {
+		*severity = MXF_BLUICE_SEV_WARNING;
+	} else
+	if ( strcmp( token_ptr, "error" ) == 0 ) {
+		*severity = MXF_BLUICE_SEV_ERROR;
+	} else {
+		*severity = MXF_BLUICE_SEV_UNKNOWN;
+
+		mx_warning( "Unrecognized severity level '%s' in the "
+			"message from the Blu-Ice server.", token_ptr );
+	}
+
+	MX_DEBUG( 2,
+	("%s: severity level = %d, severity token = '%s', ptr = '%s'",
+		fname, *severity, token_ptr, ptr ));
+
+	/* Get the locale. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the locale in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	if ( strcmp( token_ptr, "server" ) == 0 ) {
+		*locale = MXF_BLUICE_LOC_SERVER;
+	} else {
+		*locale = MXF_BLUICE_LOC_UNKNOWN;
+
+		mx_warning( "Unrecognized locale '%s' in the "
+			"message from the Blu-Ice server.", token_ptr );
+	}
+
+	MX_DEBUG( 2,("%s: locale = %d, locale token = '%s', ptr = '%s'",
+		fname, *locale, token_ptr, ptr ));
+
+	/* Get the device name. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Did not find the device name in the log message "
+		"from the Blu-Ice server." );
+	}
+
+	strlcpy( device_name, token_ptr, device_name_length );
+
+	MX_DEBUG( 2,("%s: device_name = '%s', ptr = '%s'",
+		fname, device_name, ptr));
+
+	/* Copy the rest of the string to the message_body argument. */
+
+	strlcpy( message_body, ptr, message_body_length );
+
+	MX_DEBUG( 2,("%s: message_body = '%s'", fname, message_body));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -598,7 +1028,12 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get a pointer to the Blu-Ice foreign motor structure. */
 
-	mx_status = mx_bluice_setup_device_pointer( name,
+	MX_DEBUG(-2,("%s: &(bluice_server->motor_array) = %p",
+		fname, &(bluice_server->motor_array)));
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					name,
 					(void **) &(bluice_server->motor_array),
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
@@ -610,8 +1045,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	foreign_motor = foreign_motor_ptr;
 
-	MX_DEBUG(-2,("%s: foreign_motor = '%s'", fname, foreign_motor->name));
-
+	foreign_motor->mx_motor = NULL;
 	foreign_motor->move_in_progress = FALSE;
 
 	/* Now parse the rest of the configuration string. */

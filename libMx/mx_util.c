@@ -984,73 +984,6 @@ mx_divide_safely( double numerator, double denominator )
 	return result;
 }
 
-/* mx_difference() computes a relative difference function.
- *
- * Derived from pages 250-251 in "C Programming FAQs" by Steve Summit,
- * Addison Wesley, 1996.
- */
-
-MX_EXPORT double
-mx_difference( double value1, double value2 )
-{
-	double abs1, abs2, maxabs, result;
-
-	if ( value1 >= 0.0 ) {
-		abs1 = value1;
-	} else {
-		abs1 = - value1;
-	}
-
-	if ( value2 >= 0.0 ) {
-		abs2 = value2;
-	} else {
-		abs2 = - value2;
-	}
-
-	if ( abs1 >= abs2 ) {
-		maxabs = abs1;
-	} else {
-		maxabs = abs2;
-	}
-	
-	if ( maxabs == 0.0 ) {
-		result = 0.0;
-	} else {
-		result = ( value1 - value2 ) / maxabs;
-
-		if ( result < 0.0 ) {
-			result = - result;
-		}
-	}
-
-	return result;
-}
-
-/* Another function from "C Programming FAQs" is the following simple
- * wildcard matcher from page 228 which is attributed to Arjan Kenter.
- *
- * mx_match() does what I need without requiring the inclusion
- * of complicated regular expression matching functions.
- *
- * As an example, the call mx_match( "a*b.c", "aplomb.c" ) would return 1.
- */
-
-MX_EXPORT int
-mx_match( char *pattern, char *string )
-{
-	switch( *pattern ) {
-	case '\0':	return ! *string;
-
-	case '*':	return mx_match( pattern+1, string ) ||
-				( *string && mx_match( pattern, string+1 ) );
-
-	case '?':	return *string && mx_match( pattern+1, string+1 );
-
-	default:	return *pattern == *string &&
-					mx_match( pattern+1, string+1 );
-	}
-}
-
 /* --- */
 
 #define ARRAY_BLOCK_SIZE	100
@@ -1480,6 +1413,85 @@ mx_skip_string_fields( char *buffer, int num_fields )
 	}
 
 	return ptr;
+}
+
+MX_EXPORT char *
+mx_string_split( char **string_ptr, const char *delim )
+{
+	char *ptr, *start_ptr, *strchr_ptr;
+
+	if ( string_ptr == NULL )
+		return NULL;
+
+	ptr = *string_ptr;
+
+	if ( ptr == NULL )
+		return NULL;
+
+	start_ptr = NULL;
+
+	/* Find the start of the token. */
+
+	while ( (*ptr) != '\0' ) {
+		strchr_ptr = strchr( delim, *ptr );
+
+		if ( strchr_ptr == NULL ) {
+			start_ptr = ptr;
+			break;			/* Exit the while() loop. */
+		} else {
+			*ptr = '\0';
+		}
+
+		ptr++;
+	}
+
+	/* If we did not find the start of a token, all we can do is
+	 * quit and return NULL.
+	 */
+
+	if ( start_ptr == NULL ) {
+		*string_ptr = NULL;
+
+		return NULL;
+	}
+
+	/* Find the end of the token. */
+
+	while ( (*ptr) != '\0' ) {
+
+		strchr_ptr = strchr( delim, *ptr );
+
+		if ( strchr_ptr != NULL ) {
+			/* We have found the end of the token, so
+			 * null out any trailing delimiters and 
+			 * then return.
+			 */
+
+			while ( strchr_ptr != NULL ) {
+				*ptr = '\0';
+
+				ptr++;
+
+				/* Note that if (*ptr) == '\0', then strchr() 
+				 * will return NULL.
+				 */
+
+				strchr_ptr = strchr( delim, *ptr );
+			}
+
+			*string_ptr = ptr;
+
+			return start_ptr;
+		}
+
+		ptr++;
+	}
+
+	/* If we get here, the token ended at the end of the original string,
+	 * so we just return the start of token pointer.
+	 */
+
+	return start_ptr;
 }
 
 #if defined(OS_VXWORKS)

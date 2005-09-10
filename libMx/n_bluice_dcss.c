@@ -21,10 +21,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_socket.h"
-#include "mx_thread.h"
-#include "mx_mutex.h"
-
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 
@@ -63,6 +59,7 @@ static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_master;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_slave;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_motor;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_log;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_completed;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
 
 static struct {
@@ -81,6 +78,7 @@ static struct {
 	{"stog_configure_shutter", NULL},
 	{"stog_configure_string", NULL},
 	{"stog_log", stog_log},
+	{"stog_motor_move_completed", stog_motor_move_completed},
 	{"stog_set_permission_level", stog_set_permission_level},
 	{"stog_update_client", NULL},
 	{"stog_update_client_list", NULL},
@@ -142,7 +140,7 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 
 	while (1) {
 		mx_status = mx_bluice_receive_message( dcss_server_record,
-						NULL, 0, &actual_data_length );
+					NULL, 0, &actual_data_length, -1 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -214,7 +212,11 @@ stog_become_master( MX_THREAD *thread,
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
 	bluice_dcss_server->is_master = TRUE;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -230,7 +232,11 @@ stog_become_slave( MX_THREAD *thread,
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
 	bluice_dcss_server->is_master = FALSE;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -241,16 +247,10 @@ stog_configure_motor( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
-	static const char fname[] = "stog_configure_motor()";
-
 	mx_status_type mx_status;
-
-	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
-		fname, bluice_server->receive_buffer, server_record->name ));
 
 	mx_status = mx_bluice_configure_motor( bluice_server,
 					bluice_server->receive_buffer );
-
 	return mx_status;
 }
 
@@ -262,8 +262,122 @@ stog_log( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_log()";
 
+	int severity, locale;
+	char device_name[MXU_BLUICE_NAME_LENGTH+1];
+	char message_body[500];
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_parse_log_message( bluice_server->receive_buffer,
+					&severity, &locale,
+					device_name, sizeof(device_name),
+					message_body, sizeof(message_body) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,
+    ("%s: severity = %d, locale = %d, device_name = '%s', message_body = '%s'.",
+		fname, severity, locale, device_name, message_body));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_motor_move_completed( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_motor_move_completed()";
+
+	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	void *foreign_device_ptr;
+	char *ptr, *token_ptr, *motor_name, *status_ptr;
+	double motor_position;
+	mx_status_type mx_status;
+
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.", 
+	    		bluice_server->receive_buffer, server_record->name );
+	}
+
+	/* Get the motor name. */
+
+	motor_name = mx_string_split( &ptr, " " );
+
+	if ( motor_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Motor name not found in message received from Blu-Ice server '%s'.",
+	    		server_record->name );
+	}
+
+	/* Get the motor position. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not find the motor position in a message received "
+		"from Blu-Ice server '%s'.", server_record->name );
+	}
+
+	motor_position = atof( token_ptr );
+
+	/* Was there any trailing status information? */
+
+	status_ptr = mx_string_split( &ptr, "{}" );
+
+	if ( status_ptr == NULL ) {
+		MX_DEBUG(-2,("%s: motor '%s', position = %g",
+			fname, motor_name, motor_position));
+	} else {
+		MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
+			fname, motor_name, motor_position, status_ptr));
+	}
+
+	/* Update the values in the motor structures. */
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+						motor_name,
+						bluice_server->motor_array,
+						bluice_server->num_motors,
+						&foreign_device_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_status;
+	}
+
+	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device_ptr;
+
+	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
+		"has not been initialized.", motor_name );
+	}
+
+	/* Update the motion status. */
+
+	foreign_motor->position = motor_position;
+	foreign_motor->move_in_progress = FALSE;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -274,8 +388,7 @@ stog_set_permission_level( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
-	static const char fname[] = "stog_set_permission_level()";
-
+	static const char fname[] = "stog_set_permission_level()"; 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 
@@ -292,6 +405,7 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	mx_status_type mx_status;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -319,14 +433,20 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 
 	bluice_server->record = record;
 	bluice_server->socket = NULL;
-	bluice_server->mutex = NULL;
 
 	bluice_dcss_server->record = record;
 	bluice_dcss_server->dcss_monitor_thread = NULL;
 	bluice_dcss_server->client_number = 0;
 	bluice_dcss_server->is_master = FALSE;
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_mutex_create( &(bluice_server->socket_send_mutex) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_mutex_create( &(bluice_server->foreign_data_mutex) );
+
+	return mx_status;
 }
 
 #define CLIENT_TYPE_RESPONSE_LENGTH \
@@ -466,7 +586,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	 */
 
 	mx_status = mx_bluice_receive_message( record, NULL, 0,
-						&actual_data_length );
+						&actual_data_length, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -526,7 +646,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	 */
 
 	mx_status = mx_bluice_receive_message( record, NULL, 0,
-						&actual_data_length );
+						&actual_data_length, -1 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -576,6 +696,15 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 	MX_BLUICE_SERVER *bluice_server;
 	MX_SOCKET *server_socket;
 	mx_status_type mx_status;
+
+	/* FIXME: There is a lot more that has to be done to correctly 
+	 * shut down this driver.  In particular, the thread running
+	 * mxn_bluice_dcss_monitor_thread() should be shut down before
+	 * closing the socket below.  Otherwise, occasionally the
+	 * thread will generate a 'socket closed unexpectedly' error
+	 * when the mx_socket_close() call below pulls the rug out from
+	 * underneath the mxn_bluice_dcss_monitor_thread() function.
+	 */
 
 	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
 

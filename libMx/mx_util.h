@@ -310,7 +310,41 @@ MX_API int mx_free_pointer( void *pointer );
 				} \
 			} while (0)
 
-/* mx_strncpy() is a replacement for strncpy() that ensures that the
+#if 0
+
+/* These provide definitions of snprintf() and vsnprintf() for systems
+ * that do not come with them.  On most such systems, snprintf() and
+ * vsnprintf() are merely redefined as sprintf() and vsprintf().
+ * Obviously, this removes the buffer overrun safety on such platforms.
+ * However, snprintf() and vsnprintf() are supported on most systems
+ * and hopefully the buffer overruns will be detected on systems
+ * that that support them.
+ */
+
+MX_API int snprintf( char *dest, size_t maxlen, const char *format, ... );
+
+MX_API int vsnprintf( char *dest, size_t maxlen, const char *format,
+							va_list args );
+
+#endif
+
+#if defined(OS_LINUX)
+
+/* These provide definitions of strlcpy() and strlcat() for systems that
+ * do not come with them.  For systems that do not come with them, the
+ * OpenBSD source code for strlcpy() and strlcat() is bundled with the
+ * base MX distribution in the directory mx/tools/generic/src.
+ */
+
+MX_API size_t strlcpy( char *dest, const char *src, size_t maxlen );
+
+MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
+
+#endif
+
+/* OBSOLETE: Uses of mx_strncpy() should be replaced by strlcpy().
+ *
+ * mx_strncpy() is a replacement for strncpy() that ensures that the
  * string is '\0' terminated.
  */
 
@@ -320,7 +354,9 @@ MX_API int mx_free_pointer( void *pointer );
 				(dest)[((n)-1)] = '\0'; \
 			} while (0)
 
-/* mx_strappend() appends a string to the end of an already existing
+/* OBSOLETE: Uses of mx_strappend() should be replaced by strlcat().
+ *
+ * mx_strappend() appends a string to the end of an already existing
  * string, while making sure that it does not extend the length of
  * the string beyond the supplied buffer length.
  */
@@ -493,6 +529,17 @@ MX_API char *mx_ctime_string( void );
 MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
 
 MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
+
+/* mx_string_split() extracts the next token from a string using the
+ * characters in 'delim' as token separators.  It is similar to strsep()
+ * except for the fact that it treats a string of several delimiters in
+ * a row as being only one delimiter.  By contrast, strsep() would say
+ * that there were empty tokens between each of the delimiter characters.
+ * 
+ * Please note that the original contents of *string_ptr are modified.
+ */
+
+MX_API char *mx_string_split( char **string_ptr, const char *delim );
 
 /* === Define error message numbers. === */
 

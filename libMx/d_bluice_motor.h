@@ -60,3 +60,4 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_motor_rfield_def_ptr;
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
 
 #endif /* __D_BLUICE_MOTOR_H__ */
+

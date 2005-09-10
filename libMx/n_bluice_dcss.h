@@ -19,6 +19,8 @@
 
 #include "mx_socket.h"
 
+#define MXF_BLUICE_DCSS_AUTO_TAKE_MASTER	0x1
+
 /* ===== Blu-Ice DCSS server record data structures ===== */
 
 #define MXU_SESSION_ID_LENGTH	100
@@ -29,6 +31,7 @@ typedef struct {
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	int port_number;
 	char session_id[MXU_SESSION_ID_LENGTH+1];
+	unsigned long bluice_dcss_flags;
 
 	MX_THREAD *dcss_monitor_thread;
 	unsigned long client_number;
@@ -60,7 +63,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
   \
   {-1, -1, "session_id", MXFT_STRING, NULL, 1, {MXU_SESSION_ID_LENGTH}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, session_id), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "bluice_dcss_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_DCSS_SERVER, bluice_dcss_flags), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #endif /* __N_BLUICE_DCSS_H__ */
 
