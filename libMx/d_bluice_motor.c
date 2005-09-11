@@ -331,7 +331,7 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_DEVICE *device_ptr, **motor_device_array;
+	MX_BLUICE_FOREIGN_DEVICE *device_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -351,14 +351,11 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	 * the foreign_motor pointer.
 	 */
 
-	motor_device_array =
-		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
+	MX_DEBUG(-2,("%s: &(bluice_server->motor_array) = %p",
+			fname, &(bluice_server->motor_array)));
 
-	MX_DEBUG(-2,("%s: &motor_device_array = %p",
-			fname, &motor_device_array));
-
-	MX_DEBUG(-2,("%s: motor_device_array = %p",
-			fname, motor_device_array));
+	MX_DEBUG(-2,("%s: bluice_server->motor_array = %p",
+			fname, bluice_server->motor_array));
 
 	MX_DEBUG(-2,
 	    ("%s: About to wait for device pointer initialization.", fname));
@@ -366,7 +363,7 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
 						bluice_motor->bluice_name,
-						&motor_device_array,
+		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
 						&(bluice_server->num_motors),
 						&device_ptr,
 						5.0 );

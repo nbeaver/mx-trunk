@@ -292,7 +292,7 @@ stog_motor_move_completed( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_motor_move_completed()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
@@ -357,12 +357,9 @@ stog_motor_move_completed( MX_THREAD *thread,
 	 * strict-aliasing rules'.
 	 */
 
-	motor_device_array = 
-		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
-
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 						motor_name,
-						motor_device_array,
+						bluice_server->motor_array,
 						bluice_server->num_motors,
 						&foreign_device );
 
@@ -413,7 +410,7 @@ stog_update_motor_position( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_update_motor_position()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
@@ -485,12 +482,9 @@ stog_update_motor_position( MX_THREAD *thread,
 
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
-	motor_device_array = 
-		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
-
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 						motor_name,
-						motor_device_array,
+						bluice_server->motor_array,
 						bluice_server->num_motors,
 						&foreign_device );
 

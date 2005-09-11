@@ -143,7 +143,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 #define mx_bluice_get_device_pointer( b, n, fda, nfd, fd ) \
 		mx_bluice_setup_device_pointer( (b), (n), \
-						&(fda), &(nfd), 0, 0, (fd) )
+		    (MX_BLUICE_FOREIGN_DEVICE ***) &(fda), &(nfd), 0, 0, (fd) )
 
 MX_API mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(

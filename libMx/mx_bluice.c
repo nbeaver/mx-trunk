@@ -1018,7 +1018,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_motor()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device, **motor_device_array;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char format_string[40];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
@@ -1052,14 +1052,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get a pointer to the Blu-Ice foreign motor structure. */
 
-	motor_device_array =
-		(MX_BLUICE_FOREIGN_DEVICE **) bluice_server->motor_array;
-
-	MX_DEBUG(-2,("%s: MARKER #A &motor_device_array = %p",
-		fname, &motor_device_array));
-
-	MX_DEBUG(-2,("%s: MARKER #A motor_device_array = %p",
-		fname, motor_device_array));
+	MX_DEBUG(-2,("%s: MARKER #A &(bluice_server->motor_array) = %p",
+		fname, &(bluice_server->motor_array)));
 
 	MX_DEBUG(-2,("%s: MARKER #A bluice_server->motor_array = %p",
 		fname, bluice_server->motor_array));
@@ -1067,7 +1061,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					name,
-					&motor_device_array,
+		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR),
@@ -1076,14 +1070,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	bluice_server->motor_array =
-			(MX_BLUICE_FOREIGN_MOTOR **) motor_device_array;
-
-	MX_DEBUG(-2,("%s: MARKER #B &motor_device_array = %p",
-		fname, &motor_device_array));
-
-	MX_DEBUG(-2,("%s: MARKER #B motor_device_array = %p",
-		fname, motor_device_array));
+	MX_DEBUG(-2,("%s: MARKER #B &(bluice_server->motor_array) = %p",
+		fname, &(bluice_server->motor_array)));
 
 	MX_DEBUG(-2,("%s: MARKER #B bluice_server->motor_array = %p",
 		fname, bluice_server->motor_array));
