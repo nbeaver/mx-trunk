@@ -22,6 +22,10 @@
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_motor.h"
+#include "mx_scaler.h"
+#include "mx_timer.h"
+#include "mx_relay.h"
+#include "mx_variable.h"
 
 #define MX_BLUICE_MSGHDR_TEXT_LENGTH	12
 #define MX_BLUICE_MSGHDR_BINARY_LENGTH	13
@@ -46,6 +50,21 @@ typedef struct {
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 } MX_BLUICE_FOREIGN_DEVICE;
 
+#define MXF_BLUICE_TIMER_UNKNOWN	(-1)
+#define MXF_BLUICE_TIMER_CLOCK		1
+
+typedef struct {
+	char name[MXU_BLUICE_NAME_LENGTH+1];
+	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
+	char counter_name[MXU_BLUICE_NAME_LENGTH+1];
+	int channel_number;
+	char timer_name[MXU_BLUICE_NAME_LENGTH+1];
+	int timer_type;
+
+	MX_SCALER *mx_scaler;
+	MX_TIMER *mx_timer;
+} MX_BLUICE_FOREIGN_ION_CHAMBER;
+
 typedef struct {
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
@@ -69,6 +88,23 @@ typedef struct {
 	MX_MOTOR *mx_motor;
 	int move_in_progress;
 } MX_BLUICE_FOREIGN_MOTOR;
+
+typedef struct {
+	char name[MXU_BLUICE_NAME_LENGTH+1];
+	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
+	int shutter_status;
+
+	MX_RELAY *mx_relay;
+} MX_BLUICE_FOREIGN_SHUTTER;
+
+typedef struct {
+	char name[MXU_BLUICE_NAME_LENGTH+1];
+	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
+	unsigned long string_length;
+	char *string;
+
+	MX_VARIABLE *mx_string_variable;
+} MX_BLUICE_FOREIGN_STRING;
 
 /* ----- */
 
@@ -100,8 +136,17 @@ typedef struct {
 	int num_records;
 	MX_RECORD *record_array;
 
+	int num_ion_chambers;
+	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
+
 	int num_motors;
 	MX_BLUICE_FOREIGN_MOTOR **motor_array;
+
+	int num_shutters;
+	MX_BLUICE_FOREIGN_SHUTTER **shutter_array;
+
+	int num_strings;
+	MX_BLUICE_FOREIGN_STRING **string_array;
 } MX_BLUICE_SERVER;
 
 /* ----- */
@@ -187,8 +232,25 @@ mx_bluice_parse_log_message( char *log_message,
 /* ----- */
 
 MX_API mx_status_type
+mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
+				char *configuration_string );
+
+MX_API mx_status_type
 mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 				char *configuration_string );
+
+MX_API mx_status_type
+mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
+				char *configuration_string );
+
+MX_API mx_status_type
+mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
+				char *configuration_string );
+
+MX_API mx_status_type
+mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
+				char *motion_status_message,
+				int move_in_progress );
 
 #endif /* __MX_BLUICE_H__ */
 

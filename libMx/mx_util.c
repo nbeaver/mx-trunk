@@ -1488,8 +1488,11 @@ mx_string_split( char **string_ptr, const char *delim )
 	}
 
 	/* If we get here, the token ended at the end of the original string,
-	 * so we just return the start of token pointer.
+	 * so we just return the start of token pointer.  Also, set *string_ptr
+	 * to NULL to indicate that we have parsed all of the string.
 	 */
+
+	*string_ptr = NULL;
 
 	return start_ptr;
 }

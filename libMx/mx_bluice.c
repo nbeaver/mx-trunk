@@ -23,11 +23,11 @@
 #include "mx_bluice.h"
 #include "n_bluice_dcss.h"
 
-#define BLUICE_DEBUG		TRUE
-
-#define BLUICE_DEBUG_SETUP	TRUE
+#define BLUICE_DEBUG_SETUP	FALSE
 
 #define BLUICE_DEBUG_MESSAGE	TRUE
+
+#define BLUICE_DEBUG_CONFIG	TRUE
 
 #define BLUICE_DEBUG_TIMING	TRUE
 
@@ -112,7 +112,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	}
 
 #if BLUICE_DEBUG_MESSAGE
-	MX_DEBUG(-2,("%s: sending '%s' to server '%s'.",
+	MX_DEBUG(-3,("%s: sending '%s' to server '%s'.",
 			fname, text_data, bluice_server_record->name ));
 
 	if ( ( binary_data_length > 0 ) && ( binary_data != NULL ) ) {
@@ -341,7 +341,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 					NULL, 0 );
 
 #if BLUICE_DEBUG_MESSAGE
-	MX_DEBUG(-2,("%s: received '%s' from server '%s'.",
+	MX_DEBUG(-3,("%s: received '%s' from server '%s'.",
 		fname, data_pointer, bluice_server_record->name));
 #endif
 
@@ -518,8 +518,10 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			"Blu-Ice device '%s' was not found.", name );
 	}
 
+#if BLUICE_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: MARKER 1 -> *foreign_device_array_ptr = %p",
 		fname, *foreign_device_array_ptr));
+#endif
 
 	/* Otherwise, make sure the array is big enough for the new pointer. */
 
@@ -579,6 +581,10 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		}
 #endif
 
+		if ( old_num_elements == 0 ) {
+			memset( *foreign_device_array_ptr, 0,
+				foreign_pointer_size * num_elements );
+		} else
 		if ( num_elements != old_num_elements ) {
 			ptr = (char *) (*foreign_device_array_ptr) +
 				    foreign_pointer_size * old_num_elements;
@@ -598,8 +604,10 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		}
 	}
 
+#if BLUICE_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: MARKER 2 -> *foreign_device_array_ptr = %p",
 		fname, *foreign_device_array_ptr));
+#endif
 
 	/* Add the new entry to the array. */
 
@@ -614,8 +622,10 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			(unsigned long) foreign_device_size );
 	}
 
+#if BLUICE_DEBUG_SETUP
 	MX_DEBUG(-2,("%s: new *foreign_device_ptr = %p",
 		fname, *foreign_device_ptr));
+#endif
 
 	memset( *foreign_device_ptr, 0, foreign_device_size );
 
@@ -623,12 +633,8 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 	mx_strncpy( foreign_device->name, name, MXU_BLUICE_NAME_LENGTH );
 
-	MX_DEBUG(-2,("%s: MARKER BEFORE", fname));
-
 	(*foreign_device_array_ptr)[*num_foreign_devices_ptr]
 					= *foreign_device_ptr;
-
-	MX_DEBUG(-2,("%s: MARKER AFTER", fname));
 
 	(*num_foreign_devices_ptr)++;
 
@@ -1013,6 +1019,183 @@ mx_bluice_parse_log_message( char *log_message,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
+mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
+				char *config_string )
+{
+	static const char fname[] = "mx_bluice_configure_ion_chamber()";
+
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
+	char *ptr, *token_ptr;
+	char *ion_chamber_name, *dhs_server_name, *counter_name, *timer_name;
+	int message_type, channel_number, timer_type;
+	mx_status_type mx_status;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
+	if ( config_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'config_string' pointer passed was NULL." );
+	}
+
+	mx_status = mx_bluice_get_message_type( config_string, &message_type );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.",
+			bluice_server->receive_buffer,
+			bluice_server->record->name );
+	}
+
+	/* Get the ion chamber name. */
+
+	ion_chamber_name = mx_string_split( &ptr, " " );
+
+	if ( ion_chamber_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Ion chamber name not found in message received from "
+		"Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	/* Get the DHS server name. */
+
+	dhs_server_name = mx_string_split( &ptr, " " );
+
+	if ( dhs_server_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"DHS server name not found in message received from "
+		"Blu-Ice server '%s' for ion_chamber '%s'.",
+			bluice_server->record->name,
+			ion_chamber_name );
+	}
+
+	/* Get the counter name. */
+
+	counter_name = mx_string_split( &ptr, " " );
+
+	if ( counter_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Ion chamber counter name not found in message received from "
+		"Blu-Ice server '%s' for ion_chamber '%s'.",
+			bluice_server->record->name,
+			ion_chamber_name );
+	}
+
+	/* Get the channel number. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Ion chamber channel number not found in message received from "
+		"Blu-Ice server '%s' for ion_chamber '%s'.",
+			bluice_server->record->name,
+			ion_chamber_name );
+	}
+
+	channel_number = atoi( token_ptr );
+
+	/* Get the timer name. */
+
+	timer_name = mx_string_split( &ptr, " " );
+
+	if ( timer_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Ion chamber timer name not found in message received from "
+		"Blu-Ice server '%s' for ion_chamber '%s'.",
+			bluice_server->record->name,
+			ion_chamber_name );
+	}
+
+	/* Get the timer type. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Ion chamber timer type not found in message received from "
+		"Blu-Ice server '%s' for ion_chamber '%s'.",
+			bluice_server->record->name,
+			ion_chamber_name );
+	}
+
+	if ( strcmp( token_ptr, "clock" ) == 0 ) {
+		timer_type = MXF_BLUICE_TIMER_CLOCK;
+	} else {
+		timer_type = MXF_BLUICE_TIMER_UNKNOWN;
+
+		mx_warning(
+		"Unknown timer type '%s' seen for Blu-Ice ion chamber '%s'.",
+			token_ptr, ion_chamber_name );
+	}
+
+	/* Get a pointer to the Blu-Ice foreign ion chamber structure. */
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					ion_chamber_name,
+	    (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->ion_chamber_array),
+					&(bluice_server->num_ion_chambers),
+					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER *),
+					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER),
+					&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	foreign_ion_chamber = (MX_BLUICE_FOREIGN_ION_CHAMBER *) foreign_device;
+
+	foreign_ion_chamber->mx_scaler = NULL;
+	foreign_ion_chamber->mx_timer = NULL;
+
+	strlcpy( foreign_ion_chamber->dhs_server_name,
+			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
+
+	strlcpy( foreign_ion_chamber->counter_name,
+			counter_name, MXU_BLUICE_NAME_LENGTH+1 );
+
+	foreign_ion_chamber->channel_number = channel_number;
+
+	strlcpy( foreign_ion_chamber->timer_name,
+			timer_name, MXU_BLUICE_NAME_LENGTH+1 );
+
+	foreign_ion_chamber->timer_type = timer_type;
+
+#if BLUICE_DEBUG_CONFIG
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+	MX_DEBUG(-2,("%s: Foreign ion chamber '%s':",
+				fname, foreign_ion_chamber->name));
+	MX_DEBUG(-2,("%s: DHS server = '%s'",
+				fname, foreign_ion_chamber->dhs_server_name));
+	MX_DEBUG(-2,("%s: Counter name = '%s'",
+				fname, foreign_ion_chamber->counter_name));
+	MX_DEBUG(-2,("%s: Channel number = %d",
+				fname, foreign_ion_chamber->channel_number));
+	MX_DEBUG(-2,("%s: Timer name = '%s'",
+				fname, foreign_ion_chamber->timer_name));
+	MX_DEBUG(-2,("%s: Timer type = %d",
+				fname, foreign_ion_chamber->timer_type));
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+#endif
+
+	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
 mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 				char *config_string )
 {
@@ -1052,11 +1235,13 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 
 	/* Get a pointer to the Blu-Ice foreign motor structure. */
 
+#if 0
 	MX_DEBUG(-2,("%s: MARKER #A &(bluice_server->motor_array) = %p",
 		fname, &(bluice_server->motor_array)));
 
 	MX_DEBUG(-2,("%s: MARKER #A bluice_server->motor_array = %p",
 		fname, bluice_server->motor_array));
+#endif
 
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
@@ -1070,11 +1255,13 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s: MARKER #B &(bluice_server->motor_array) = %p",
 		fname, &(bluice_server->motor_array)));
 
 	MX_DEBUG(-2,("%s: MARKER #B bluice_server->motor_array = %p",
 		fname, bluice_server->motor_array));
+#endif
 
 	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
 
@@ -1164,6 +1351,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		break;
 	}
 
+#if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 	MX_DEBUG(-2,("%s: Foreign motor '%s':", fname, foreign_motor->name));
 	MX_DEBUG(-2,("%s: is pseudo = %d", fname, foreign_motor->is_pseudo));
@@ -1193,7 +1381,366 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: reverse on = %d",
 				fname, foreign_motor->reverse_on));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+#endif
 
 	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
+				char *config_string )
+{
+	static const char fname[] = "mx_bluice_configure_shutter()";
+
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	char *ptr, *token_ptr, *shutter_name, *dhs_server_name;
+	int message_type, shutter_status;
+	mx_status_type mx_status;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
+	if ( config_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'config_string' pointer passed was NULL." );
+	}
+
+	mx_status = mx_bluice_get_message_type( config_string, &message_type );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.",
+			bluice_server->receive_buffer,
+			bluice_server->record->name );
+	}
+
+	/* Get the shutter name. */
+
+	shutter_name = mx_string_split( &ptr, " " );
+
+	if ( shutter_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Shutter name not found in message received from "
+		"Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	/* Get the DHS server name. */
+
+	dhs_server_name = mx_string_split( &ptr, " " );
+
+	if ( dhs_server_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"DHS server name not found in message received from "
+		"Blu-Ice server '%s' for shutter '%s'.",
+			bluice_server->record->name,
+			shutter_name );
+	}
+
+	/* Get the shutter status. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Shutter status not found in message received from "
+		"Blu-Ice server '%s' for shutter '%s'.",
+			bluice_server->record->name,
+			shutter_name );
+	}
+
+	if ( strcmp( token_ptr, "closed" ) == 0 ) {
+		shutter_status = MXF_RELAY_IS_CLOSED;
+	} else
+	if ( strcmp( token_ptr, "open" ) == 0 ) {
+		shutter_status = MXF_RELAY_IS_OPEN;
+	} else {
+		shutter_status = MXF_RELAY_ILLEGAL_STATUS;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Unrecognizable shutter status '%s' received for "
+		"Blu-Ice shutter '%s'.", token_ptr,
+			bluice_server->record->name );
+	}
+
+	/* Get a pointer to the Blu-Ice foreign shutter structure. */
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					shutter_name,
+		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
+					&(bluice_server->num_shutters),
+					sizeof(MX_BLUICE_FOREIGN_SHUTTER *),
+					sizeof(MX_BLUICE_FOREIGN_SHUTTER),
+					&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	foreign_shutter = (MX_BLUICE_FOREIGN_SHUTTER *) foreign_device;
+
+	foreign_shutter->mx_relay = NULL;
+
+	strlcpy( foreign_shutter->dhs_server_name,
+			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
+
+	foreign_shutter->shutter_status = shutter_status;
+
+#if BLUICE_DEBUG_CONFIG
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+	MX_DEBUG(-2,("%s: Foreign shutter '%s':",fname, foreign_shutter->name));
+	MX_DEBUG(-2,("%s: DHS server = '%s'",
+				fname, foreign_shutter->dhs_server_name));
+	MX_DEBUG(-2,("%s: Shutter status = %d",
+				fname, foreign_shutter->shutter_status));
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+#endif
+
+	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
+				char *config_string )
+{
+	static const char fname[] = "mx_bluice_configure_string()";
+
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_FOREIGN_STRING *foreign_string;
+	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_contents;
+	size_t string_length;
+	int message_type;
+	mx_status_type mx_status;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_BLUICE_SERVER pointer passed was NULL." );
+	}
+	if ( config_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The 'config_string' pointer passed was NULL." );
+	}
+
+	mx_status = mx_bluice_get_message_type( config_string, &message_type );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.",
+			bluice_server->receive_buffer,
+			bluice_server->record->name );
+	}
+
+	/* Get the string name. */
+
+	string_name = mx_string_split( &ptr, " " );
+
+	if ( string_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"String name not found in message received from "
+		"Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	/* Get the DHS server name. */
+
+	dhs_server_name = mx_string_split( &ptr, " " );
+
+	if ( dhs_server_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"DHS server name not found in message received from "
+		"Blu-Ice server '%s' for string '%s'.",
+			bluice_server->record->name,
+			string_name );
+	}
+
+	/* Treat the rest of the receive buffer as the string contents. */
+
+	string_contents = ptr;
+
+	if ( string_contents == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Empty string seen in message received from "
+		"Blu-Ice server '%s' for string '%s'.",
+			bluice_server->record->name,
+			string_name );
+	}
+
+	/* Get a pointer to the Blu-Ice foreign string structure. */
+
+	mx_status = mx_bluice_setup_device_pointer(
+					bluice_server,
+					string_name,
+		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
+					&(bluice_server->num_strings),
+					sizeof(MX_BLUICE_FOREIGN_STRING *),
+					sizeof(MX_BLUICE_FOREIGN_STRING),
+					&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	foreign_string = (MX_BLUICE_FOREIGN_STRING *) foreign_device;
+
+	foreign_string->mx_string_variable = NULL;
+
+	strlcpy( foreign_string->dhs_server_name,
+			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
+
+	string_length = strlen( string_contents );
+
+	if ( foreign_string->string == (char *) NULL ) {
+		foreign_string->string = (char *) malloc( string_length );
+	} else {
+		foreign_string->string = (char *)
+			realloc( foreign_string->string, string_length );
+	}
+
+	if ( foreign_string->string == (char *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte string "
+		"for Blu-Ice foreign string '%s'.",
+			(unsigned long) string_length, string_name );
+	}
+
+	strlcpy( foreign_string->string, string_contents, string_length+1 );
+
+#if BLUICE_DEBUG_CONFIG
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+	MX_DEBUG(-2,("%s: Foreign string '%s':", fname, foreign_string->name));
+	MX_DEBUG(-2,("%s: DHS server = '%s'",
+				fname, foreign_string->dhs_server_name));
+	MX_DEBUG(-2,("%s: String contents = '%s'",
+				fname, foreign_string->string));
+	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
+#endif
+
+	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
+				char *status_message,
+				int move_in_progress )
+{
+	static const char fname[] = "mx_bluice_update_motion_status()";
+
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	char *ptr, *token_ptr, *motor_name, *status_ptr;
+	double motor_position;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer,
+		bluice_server->record->name ));
+
+	/* Skip over the command name. */
+
+	ptr = bluice_server->receive_buffer;
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The message '%s' received from Blu-Ice server '%s' "
+		"contained only space characters.", 
+	    		bluice_server->receive_buffer,
+			bluice_server->record->name );
+	}
+
+	/* Get the motor name. */
+
+	motor_name = mx_string_split( &ptr, " " );
+
+	if ( motor_name == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Motor name not found in message received from Blu-Ice server '%s'.",
+	    		bluice_server->record->name );
+	}
+
+	/* Get the motor position. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not find the motor position in a message received "
+		"from Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	motor_position = atof( token_ptr );
+
+	/* Was there any trailing status information? */
+
+	status_ptr = mx_string_split( &ptr, "{}" );
+
+	if ( status_ptr == NULL ) {
+		MX_DEBUG(-2,("%s: motor '%s', position = %g",
+			fname, motor_name, motor_position));
+	} else {
+		MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
+			fname, motor_name, motor_position, status_ptr));
+	}
+
+	/* Update the values in the motor structures. */
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+						motor_name,
+						bluice_server->motor_array,
+						bluice_server->num_motors,
+						&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_status;
+	}
+
+	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
+
+	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
+		"has not been initialized.", motor_name );
+	}
+
+	/* Update the motion status. */
+
+	foreign_motor->position = motor_position;
+	foreign_motor->move_in_progress = FALSE;
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

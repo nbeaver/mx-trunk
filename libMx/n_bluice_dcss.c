@@ -57,10 +57,16 @@ typedef mx_status_type (MXN_BLUICE_DCSS_MSG_HANDLER)( MX_THREAD *,
 
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_master;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_become_slave;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_ion_chamber;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_motor;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_shutter;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_string;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_log;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_completed;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_started;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_report_shutter_state;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_string_completed;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_update_motor_position;
 
 static struct {
@@ -70,17 +76,20 @@ static struct {
 	{"stog_become_master", stog_become_master},
 	{"stog_become_slave", stog_become_slave},
 	{"stog_configure_hardware_host", NULL},
-	{"stog_configure_ion_chamber", NULL},
+	{"stog_configure_ion_chamber", stog_configure_ion_chamber},
 	{"stog_configure_operation", NULL},
 	{"stog_configure_pseudo_motor", stog_configure_motor},
 	{"stog_configure_real_motor", stog_configure_motor},
 	{"stog_configure_run", NULL},
 	{"stog_configure_runs", NULL},
-	{"stog_configure_shutter", NULL},
-	{"stog_configure_string", NULL},
+	{"stog_configure_shutter", stog_configure_shutter},
+	{"stog_configure_string", stog_configure_string},
 	{"stog_log", stog_log},
 	{"stog_motor_move_completed", stog_motor_move_completed},
+	{"stog_motor_move_started", stog_motor_move_started},
+	{"stog_report_shutter_state", stog_report_shutter_state},
 	{"stog_set_permission_level", stog_set_permission_level},
+	{"stog_set_string_completed", stog_set_string_completed},
 	{"stog_update_client", NULL},
 	{"stog_update_client_list", NULL},
 	{"stog_update_motor_position", stog_update_motor_position},
@@ -244,6 +253,19 @@ stog_become_slave( MX_THREAD *thread,
 }
 
 static mx_status_type
+stog_configure_ion_chamber( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_configure_ion_chamber( bluice_server,
+					bluice_server->receive_buffer );
+	return mx_status;
+}
+
+static mx_status_type
 stog_configure_motor( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
@@ -252,6 +274,32 @@ stog_configure_motor( MX_THREAD *thread,
 	mx_status_type mx_status;
 
 	mx_status = mx_bluice_configure_motor( bluice_server,
+					bluice_server->receive_buffer );
+	return mx_status;
+}
+
+static mx_status_type
+stog_configure_shutter( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_configure_shutter( bluice_server,
+					bluice_server->receive_buffer );
+	return mx_status;
+}
+
+static mx_status_type
+stog_configure_string( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_configure_string( bluice_server,
 					bluice_server->receive_buffer );
 	return mx_status;
 }
@@ -290,16 +338,44 @@ stog_motor_move_completed( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
-	static const char fname[] = "stog_motor_move_completed()";
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_update_motion_status( bluice_server,
+						bluice_server->receive_buffer,
+						FALSE );
+	return mx_status;
+}
+
+static mx_status_type
+stog_motor_move_started( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_update_motion_status( bluice_server,
+						bluice_server->receive_buffer,
+						TRUE );
+	return mx_status;
+}
+
+static mx_status_type
+stog_report_shutter_state( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_report_shutter_state()"; 
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
-	char *ptr, *token_ptr, *motor_name, *status_ptr;
-	double motor_position;
+	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	char *ptr, *token_ptr, *shutter_name;
+	int shutter_status;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
-		fname, bluice_server->receive_buffer, server_record->name ));
+		fname, bluice_server->receive_buffer, server_record->name));
 
 	/* Skip over the command name. */
 
@@ -310,57 +386,51 @@ stog_motor_move_completed( MX_THREAD *thread,
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The message '%s' received from Blu-Ice server '%s' "
-		"contained only space characters.", 
-	    		bluice_server->receive_buffer, server_record->name );
+		"contained only space characters.",
+			bluice_server->receive_buffer, server_record->name );
 	}
 
-	/* Get the motor name. */
+	/* Get the shutter name. */
 
-	motor_name = mx_string_split( &ptr, " " );
+	shutter_name = mx_string_split( &ptr, " " );
 
-	if ( motor_name == NULL ) {
+	if ( shutter_name == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-	"Motor name not found in message received from Blu-Ice server '%s'.",
-	    		server_record->name );
+	"Shutter name not found in message received from Blu-Ice server '%s'.",
+			server_record->name );
 	}
 
-	/* Get the motor position. */
+	/* Get the shutter status. */
 
 	token_ptr = mx_string_split( &ptr, " " );
 
 	if ( token_ptr == NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not find the motor position in a message received "
-		"from Blu-Ice server '%s'.", server_record->name );
+		"Did not find the shutter status in a message received from "
+		"Blu-Ice server '%s'.", server_record->name );
 	}
 
-	motor_position = atof( token_ptr );
-
-	/* Was there any trailing status information? */
-
-	status_ptr = mx_string_split( &ptr, "{}" );
-
-	if ( status_ptr == NULL ) {
-		MX_DEBUG(-2,("%s: motor '%s', position = %g",
-			fname, motor_name, motor_position));
+	if ( strcmp( token_ptr, "open" ) == 0 ) {
+		shutter_status = MXF_RELAY_IS_OPEN;
+	} else
+	if ( strcmp( token_ptr, "closed" ) == 0 ) {
+		shutter_status = MXF_RELAY_IS_CLOSED;
 	} else {
-		MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
-			fname, motor_name, motor_position, status_ptr));
+		shutter_status = MXF_RELAY_ILLEGAL_STATUS;
+
+		mx_warning(
+	"Illegal shutter status '%s' returned for Blu-Ice shutter '%s'.",
+			token_ptr, shutter_name );
 	}
 
-	/* Update the values in the motor structures. */
+	/* Update the value in the shutter structure. */
 
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
-	/* The following two step is to avoid generating a GCC error
-	 * of the form 'dereferencing type-punned pointer will break
-	 * strict-aliasing rules'.
-	 */
-
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
-						motor_name,
-						bluice_server->motor_array,
-						bluice_server->num_motors,
+						shutter_name,
+						bluice_server->shutter_array,
+						bluice_server->num_shutters,
 						&foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -369,24 +439,37 @@ stog_motor_move_completed( MX_THREAD *thread,
 		return mx_status;
 	}
 
-	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
+	foreign_shutter = (MX_BLUICE_FOREIGN_SHUTTER *) foreign_device;
 
-	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+	if ( foreign_shutter == (MX_BLUICE_FOREIGN_SHUTTER *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
-		"has not been initialized.", motor_name );
+		"The MX_BLUICE_FOREIGN_SHUTTER pointer for DCSS shutter '%s' "
+		"has not been initialized.", shutter_name );
 	}
 
-	/* Update the motion status. */
+	/* Update the shutter status. */
 
-	foreign_motor->position = motor_position;
-	foreign_motor->move_in_progress = FALSE;
+	foreign_shutter->shutter_status = shutter_status;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+stog_set_string_completed( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	mx_status_type mx_status;
+
+	mx_status = mx_bluice_configure_string( bluice_server,
+						bluice_server->receive_buffer );
+
+	return mx_status;
 }
 
 static mx_status_type
@@ -396,6 +479,7 @@ stog_set_permission_level( MX_THREAD *thread,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
 	static const char fname[] = "stog_set_permission_level()"; 
+
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 
@@ -407,111 +491,13 @@ stog_update_motor_position( MX_THREAD *thread,
 			MX_RECORD *server_record,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
-{
-	static const char fname[] = "stog_update_motor_position()";
-
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
-	char *ptr, *token_ptr, *motor_name, *status_ptr;
-	double motor_position;
+{ 
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
-		fname, bluice_server->receive_buffer, server_record->name ));
-
-	/* Skip over the command name. */
-
-	ptr = bluice_server->receive_buffer;
-
-	token_ptr = mx_string_split( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"The message '%s' received from Blu-Ice server '%s' "
-		"contained only space characters.", 
-	    		bluice_server->receive_buffer, server_record->name );
-	}
-
-	/* Get the motor name. */
-
-	motor_name = mx_string_split( &ptr, " " );
-
-	if ( motor_name == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-	"Motor name not found in message received from Blu-Ice server '%s'.",
-	    		server_record->name );
-	}
-
-	/* Get the motor position. */
-
-	token_ptr = mx_string_split( &ptr, " " );
-
-	if ( token_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not find the motor position in a message received "
-		"from Blu-Ice server '%s'.", server_record->name );
-	}
-
-	motor_position = atof( token_ptr );
-
-	/* Get the motion status. */
-
-	status_ptr = mx_string_split( &ptr, " " );
-
-	if ( status_ptr == NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Did not find the motion status in a message received "
-		"from Blu-Ice server '%s'.", server_record->name );
-	}
-
-	/* Was there any trailing text? */
-
-	token_ptr = mx_string_split( &ptr, "{}" );
-
-	if ( token_ptr != NULL ) {
-		mx_warning( "%s: Ignoring extra text '%s' at the end "
-			"of an update_motor_position message from "
-			"Blu-Ice server '%s'", fname, token_ptr,
-			server_record->name );
-	}
-
-	MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
-			fname, motor_name, motor_position, status_ptr));
-
-	/* Update the values in the motor structures. */
-
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
-
-	mx_status = mx_bluice_get_device_pointer( bluice_server,
-						motor_name,
-						bluice_server->motor_array,
-						bluice_server->num_motors,
-						&foreign_device );
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-		return mx_status;
-	}
-
-	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
-
-	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
-		mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
-		"has not been initialized.", motor_name );
-	}
-
-	/* Update the motion status. */
-
-	foreign_motor->position = motor_position;
-	foreign_motor->move_in_progress = TRUE;
-
-	mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_bluice_update_motion_status( bluice_server,
+						bluice_server->receive_buffer,
+						TRUE );
+	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/

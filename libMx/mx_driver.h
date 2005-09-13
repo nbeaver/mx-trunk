@@ -693,6 +693,7 @@ MX_API MX_DRIVER mx_type_list[];
 
 #define MXV_BLUICE_MASTER		506001
 #define MXV_BLUICE_COMMAND		506002
+#define MXV_BLUICE_STRING		506003
 
 /* --- Server types --- */
 

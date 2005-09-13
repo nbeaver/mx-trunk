@@ -325,6 +325,7 @@
 #include "d_blind_relay.h"
 #include "d_pfcu.h"
 #include "d_mardtb_shutter.h"
+#include "d_bluice_shutter.h"
 
 #include "d_soft_amplifier.h"
 #include "d_net_amplifier.h"
@@ -445,6 +446,7 @@
 #include "v_spec.h"
 #include "v_bluice_master.h"
 #include "v_bluice_command.h"
+#include "v_bluice_string.h"
 
 #if HAVE_TCPIP
 #include "n_tcpip.h"
@@ -2982,6 +2984,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_mardtb_shutter_num_record_fields,
 				&mxd_mardtb_shutter_rfield_def_ptr},
 
+{"bluice_shutter", MXT_RLY_BLUICE_SHUTTER, MXC_RELAY,     MXR_DEVICE,
+				&mxd_bluice_shutter_record_function_list,
+				NULL,
+				&mxd_bluice_shutter_relay_function_list,
+				&mxd_bluice_shutter_num_record_fields,
+				&mxd_bluice_shutter_rfield_def_ptr},
+
 {"adc_table",      MXT_TAB_ADC,       MXC_TABLE,          MXR_DEVICE,
 				&mxd_adc_table_record_function_list,
 				NULL,
@@ -3636,6 +3645,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxv_bluice_command_num_record_fields,
 				&mxv_bluice_command_rfield_def_ptr},
+
+{"bluice_string",  MXV_BLUICE_STRING,  MXV_BLUICE, MXR_VARIABLE,
+				&mxv_bluice_string_record_function_list,
+				&mxv_bluice_string_variable_function_list,
+				NULL,
+				&mxv_bluice_string_num_record_fields,
+				&mxv_bluice_string_rfield_def_ptr},
 
   /* =================== Server types ================== */
 
