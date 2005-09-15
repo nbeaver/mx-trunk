@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bluice.h"
+#include "d_bluice_timer.h"
 #include "n_bluice_dcss.h"
 
 MX_RECORD_FUNCTION_LIST mxn_bluice_dcss_server_record_function_list = {
@@ -64,6 +65,7 @@ static MXN_BLUICE_DCSS_MSG_HANDLER stog_configure_string;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_log;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_completed;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_motor_move_started;
+static MXN_BLUICE_DCSS_MSG_HANDLER stog_report_ion_chambers;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_report_shutter_state;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_permission_level;
 static MXN_BLUICE_DCSS_MSG_HANDLER stog_set_string_completed;
@@ -87,6 +89,7 @@ static struct {
 	{"stog_log", stog_log},
 	{"stog_motor_move_completed", stog_motor_move_completed},
 	{"stog_motor_move_started", stog_motor_move_started},
+	{"stog_report_ion_chambers", stog_report_ion_chambers},
 	{"stog_report_shutter_state", stog_report_shutter_state},
 	{"stog_set_permission_level", stog_set_permission_level},
 	{"stog_set_string_completed", stog_set_string_completed},
@@ -358,6 +361,227 @@ stog_motor_move_started( MX_THREAD *thread,
 						bluice_server->receive_buffer,
 						TRUE );
 	return mx_status;
+}
+
+static mx_status_type
+stog_report_ion_chambers( MX_THREAD *thread,
+			MX_RECORD *server_record,
+			MX_BLUICE_SERVER *bluice_server,
+			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
+{
+	static const char fname[] = "stog_report_ion_chambers()"; 
+
+	MX_TIMER *timer;
+	MX_BLUICE_TIMER *bluice_timer;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_FOREIGN_ION_CHAMBER *first_ion_chamber;
+	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
+	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
+	char format[80];
+	char first_ion_chamber_name[MXU_BLUICE_NAME_LENGTH+1];
+	char *ptr, *ion_chamber_name, *token_ptr;
+	int num_items;
+	long i, num_ion_chambers;
+	double measurement_value;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
+		fname, bluice_server->receive_buffer, server_record->name));
+
+	/* Find the name of the first ion chamber, so that we can find
+	 * the associated MX_BLUICE_TIMER structure.
+	 */
+
+	snprintf( format, sizeof(format),
+		"%%*s %%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
+
+	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
+
+	num_items = sscanf( bluice_server->receive_buffer, format,
+				first_ion_chamber_name );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Did not find the name of the first ion chamber in "
+		"the message '%s' from Blu-Ice server '%s'.",
+			bluice_server->receive_buffer,
+			bluice_server->record->name );
+	}
+
+	/* First, get the ion chamber pointer for the first ion chamber. */
+
+	mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	mx_status = mx_bluice_get_device_pointer( bluice_server,
+					first_ion_chamber_name,
+					bluice_server->ion_chamber_array,
+					bluice_server->num_ion_chambers,
+					&foreign_device );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_status;
+	}
+
+	first_ion_chamber = (MX_BLUICE_FOREIGN_ION_CHAMBER *) foreign_device;
+
+	if ( first_ion_chamber == (MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The ion chamber pointer returned for ion chamber '%s' "
+		"is NULL.", first_ion_chamber_name );
+	}
+
+	/* Get the timer from the first_ion_chamber structure. */
+
+	timer = first_ion_chamber->mx_timer;
+
+	if ( timer == (MX_TIMER *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The MX_TIMER pointer for ion chamber '%s' has not "
+		"been initialized.", first_ion_chamber_name );
+	}
+
+	if ( timer->record == (MX_RECORD *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_TIMER %p used by Blu-Ice "
+		"ion chamber '%s' is NULL.",
+			timer, first_ion_chamber_name );
+	}
+
+	/* The MX_BLUICE_TIMER structure contains information about all
+	 * of the ion chambers known by this timer.
+	 */
+
+	bluice_timer = (MX_BLUICE_TIMER *) timer->record->record_type_struct;
+
+	if ( bluice_timer == (MX_BLUICE_TIMER *) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_TIMER pointer for Blu-Ice timer '%s' is NULL.",
+			timer->record->name );
+	}
+
+	num_ion_chambers = bluice_timer->num_ion_chambers;
+
+	ion_chamber_array = bluice_timer->foreign_ion_chamber_array;
+
+	if ( ion_chamber_array == (MX_BLUICE_FOREIGN_ION_CHAMBER **) NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The array of ion chamber pointers for Blu-Ice timer '%s' "
+		"has not been initialized.", timer->record->name );
+	}
+
+	/* Mark the current measurement as being over. */
+
+	bluice_timer->measurement_in_progress = FALSE;
+
+	/*** Now we can walk through the message received from the server. ***/
+
+	ptr = bluice_server->receive_buffer;
+
+	/* Skip over the command name. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The supposed stog_report_ion_chambers message from "
+		"Blu-Ice server '%s' is actually blank.  "
+		"This should never happen.", bluice_server->record->name );
+	}
+
+	/* Skip over the measurement time. */
+
+	token_ptr = mx_string_split( &ptr, " " );
+
+	if ( token_ptr == NULL ) {
+		mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Could not find the measurement time string in the message "
+		"from Blu-Ice server '%s'.", bluice_server->record->name );
+	}
+
+	while (1) {
+		/* The next string should be an ion chamber name. */
+
+		ion_chamber_name = mx_string_split( &ptr, " " );
+
+		if ( ion_chamber_name == NULL ) {
+
+			/* We have found the end of the list of ion chambers,
+			 * so break out of the while() loop.
+			 */
+
+			break;
+		}
+
+		/* The next string should be the ion chamber measurement. */
+
+		token_ptr = mx_string_split( &ptr, " " );
+
+		if ( token_ptr == NULL ) {
+			mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"No measurement was reported for ion chamber '%s' "
+			"according to Blu-Ice server '%s'.",
+				ion_chamber_name, bluice_server->record->name );
+		}
+
+		measurement_value = atof( token_ptr );
+
+		/* Search for the ion chamber in the timer's 
+		 * ion chamber array.
+		 */
+
+		for ( i = 0; i < num_ion_chambers; i++ ) {
+			foreign_ion_chamber = ion_chamber_array[i];
+
+			if ( foreign_ion_chamber == NULL ) {
+				mx_warning( "Skipping NULL ion chamber %ld "
+				"for Blu-Ice timer '%s'.",
+					i, timer->record->name );
+			}
+
+			if ( strcmp( foreign_ion_chamber->name,
+					ion_chamber_name ) == 0 )
+			{
+				/* SUCCESS!  We now can save
+				 * the measurement value.
+				 */
+
+				foreign_ion_chamber->value = measurement_value;
+
+				break;	/* Exit the for() loop. */
+			}
+		}
+
+		if ( i >= num_ion_chambers ) {
+			mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"Ion chamber '%s' was not found in the "
+			"ion chamber array for Blu-Ice timer '%s'.",
+				ion_chamber_name, timer->record->name );
+		}
+	}
+
+	mx_mutex_unlock( bluice_server->foreign_data_mutex );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type

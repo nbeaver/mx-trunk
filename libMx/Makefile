@@ -30,9 +30,9 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c d_aps_gap.c \
 	d_aps_quadem_amplifier.c \
 	d_auto_amplifier.c d_adc_table.c d_auto_filter.c \
-	d_auto_filter_amplifier.c d_auto_net.c \
-	d_auto_scaler.c d_bit.c d_blind_relay.c \
-	d_bluice_motor.c d_bluice_shutter.c d_cm17a_doutput.c \
+	d_auto_filter_amplifier.c d_auto_net.c d_auto_scaler.c d_bit.c \
+	d_blind_relay.c d_bluice_motor.c d_bluice_ion_chamber.c \
+	d_bluice_shutter.c d_bluice_timer.c d_cm17a_doutput.c \
 	d_compumotor.c d_compumotor_dio.c d_compumotor_linear.c \
 	d_cryostream600_motor.c d_cryostream600_status.c \
 	d_cyberstar_x1000.c d_cyberstar_x1000_aout.c d_cxtilt02.c \

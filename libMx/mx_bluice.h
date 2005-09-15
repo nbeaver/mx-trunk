@@ -61,6 +61,8 @@ typedef struct {
 	char timer_name[MXU_BLUICE_NAME_LENGTH+1];
 	int timer_type;
 
+	double value;
+
 	MX_SCALER *mx_scaler;
 	MX_TIMER *mx_timer;
 } MX_BLUICE_FOREIGN_ION_CHAMBER;

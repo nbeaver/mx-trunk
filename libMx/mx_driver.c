@@ -319,6 +319,8 @@
 #include "d_gm10_scaler.h"
 #include "d_gm10_timer.h"
 #include "d_interval_timer.h"
+#include "d_bluice_ion_chamber.h"
+#include "d_bluice_timer.h"
 
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
@@ -2589,6 +2591,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_gm10_scaler_num_record_fields,
 				&mxd_gm10_scaler_rfield_def_ptr},
 
+{"bluice_ion_chamber", MXT_SCL_BLUICE_ION_CHAMBER, MXC_SCALER, MXR_DEVICE,
+				&mxd_bluice_ion_chamber_record_function_list,
+				NULL,
+				&mxd_bluice_ion_chamber_scaler_function_list,
+				&mxd_bluice_ion_chamber_num_record_fields,
+				&mxd_bluice_ion_chamber_rfield_def_ptr},
+
 {"mcs_encoder",    MXT_MCE_MCS,       MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_mcs_encoder_record_function_list,
 				NULL,
@@ -2700,6 +2709,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_interval_timer_timer_function_list,
 				&mxd_interval_timer_num_record_fields,
 				&mxd_interval_timer_rfield_def_ptr},
+
+{"bluice_timer",   MXT_TIM_BLUICE,        MXC_TIMER,          MXR_DEVICE,
+				&mxd_bluice_timer_record_function_list,
+				NULL,
+				&mxd_bluice_timer_timer_function_list,
+				&mxd_bluice_timer_num_record_fields,
+				&mxd_bluice_timer_rfield_def_ptr},
 
 {"soft_amplifier", MXT_AMP_SOFTWARE,  MXC_AMPLIFIER,      MXR_DEVICE,
 				&mxd_soft_amplifier_record_function_list,

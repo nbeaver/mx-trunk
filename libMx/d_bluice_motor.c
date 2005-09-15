@@ -479,6 +479,11 @@ mxd_bluice_motor_set_position( MX_MOTOR *motor )
 		break;
 	}
 
+	mx_status = mx_bluice_check_for_master( bluice_server );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_bluice_send_message( bluice_server->record,
 					command, NULL, 0, -1, TRUE );
 	return mx_status;
@@ -509,6 +514,11 @@ mxd_bluice_motor_soft_abort( MX_MOTOR *motor )
 		break;
 	}
 
+	mx_status = mx_bluice_check_for_master( bluice_server );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_bluice_send_message( bluice_server->record,
 					command, NULL, 0, -1, TRUE );
 	return mx_status;
@@ -538,6 +548,11 @@ mxd_bluice_motor_immediate_abort( MX_MOTOR *motor )
 		strcpy( command, "stoh_abort_all hard" );
 		break;
 	}
+
+	mx_status = mx_bluice_check_for_master( bluice_server );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
 					command, NULL, 0, -1, TRUE );
@@ -647,6 +662,11 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		foreign_motor->motor_lock_on,
 		foreign_motor->backlash_on,
 		foreign_motor->reverse_on );
+
+	mx_status = mx_bluice_check_for_master( bluice_server );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
 					command, NULL, 0, -1, TRUE );
