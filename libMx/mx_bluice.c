@@ -25,15 +25,11 @@
 
 #define BLUICE_DEBUG_SETUP	FALSE
 
-#define BLUICE_DEBUG_MESSAGE	TRUE
+#define BLUICE_DEBUG_MESSAGE	FALSE
 
-#define BLUICE_DEBUG_CONFIG	TRUE
+#define BLUICE_DEBUG_CONFIG	FALSE
 
-#define BLUICE_DEBUG_TIMING	TRUE
-
-#if BLUICE_DEBUG_TIMING
-#include "mx_hrt_debug.h"
-#endif
+#define BLUICE_DEBUG_MOTION	FALSE
 
 static mx_status_type
 mx_bluice_get_pointers( MX_RECORD *bluice_server_record,
@@ -514,7 +510,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
-		return mx_error( MXE_NOT_FOUND, fname,
+		return mx_error_quiet( MXE_NOT_FOUND, fname,
 			"Blu-Ice device '%s' was not found.", name );
 	}
 
@@ -663,8 +659,6 @@ mx_bluice_wait_for_device_pointer_initialization(
 	unsigned long i, wait_ms, max_attempts;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s INVOKED for device '%s'", fname, name));
-
 	/* Wait for the Blu-Ice server thread to assign a value to the pointer.
 	 */
 	
@@ -675,22 +669,12 @@ mx_bluice_wait_for_device_pointer_initialization(
 
 	for ( i = 0; i < max_attempts; i++ ) {
 
-		MX_DEBUG(-2,
-		("%s: ATTEMPT # %lu, *foreign_device_array_ptr = %p",
-			fname, i, *foreign_device_array_ptr));
-
-		MX_DEBUG(-2,
-		("%s: invoking mx_bluice_setup_device_pointer()", fname));
-
 		mx_status = mx_bluice_setup_device_pointer( bluice_server,
 						name,
 						foreign_device_array_ptr,
 						num_foreign_devices_ptr,
 						0, 0,
 						foreign_device_ptr );
-
-		MX_DEBUG(-2,
-		("%s: returned from mx_bluice_setup_device_pointer()", fname));
 
 		if ( mx_status.code == MXE_NOT_FOUND ) {
 			mx_msleep( wait_ms );
@@ -712,9 +696,6 @@ mx_bluice_wait_for_device_pointer_initialization(
 		"for Blu-Ice server '%s'.", timeout_in_seconds,
 					bluice_server->record->name );
 	}
-
-	MX_DEBUG(-2,("%s COMPLETE for device '%s', *foreign_device_ptr = %p",
-		fname, name, *foreign_device_ptr));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1157,7 +1138,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 
 	foreign_ion_chamber = (MX_BLUICE_FOREIGN_ION_CHAMBER *) foreign_device;
 
-	foreign_ion_chamber->mx_scaler = NULL;
+	foreign_ion_chamber->mx_analog_input = NULL;
 	foreign_ion_chamber->mx_timer = NULL;
 
 	strlcpy( foreign_ion_chamber->dhs_server_name,
@@ -1656,9 +1637,11 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	double motor_position;
 	mx_status_type mx_status;
 
+#if BLUICE_DEBUG_MOTION
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer,
 		bluice_server->record->name ));
+#endif
 
 	/* Skip over the command name. */
 
@@ -1700,6 +1683,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	status_ptr = mx_string_split( &ptr, "{}" );
 
+#if BLUICE_DEBUG_MOTION
 	if ( status_ptr == NULL ) {
 		MX_DEBUG(-2,("%s: motor '%s', position = %g",
 			fname, motor_name, motor_position));
@@ -1707,6 +1691,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 		MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
 			fname, motor_name, motor_position, status_ptr));
 	}
+#endif
 
 	/* Update the values in the motor structures. */
 

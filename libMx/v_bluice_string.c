@@ -14,7 +14,7 @@
  *
  */
 
-#define MXV_BLUICE_STRING_DEBUG	TRUE
+#define BLUICE_STRING_DEBUG		FALSE
 
 #include <stdio.h>
 
@@ -243,8 +243,10 @@ mxv_bluice_string_open( MX_RECORD *record )
 			record->name, num_dimensions );
 	}
 
+#if BLUICE_STRING_DEBUG
 	MX_DEBUG(-2,
 	    ("%s: About to wait for device pointer initialization.", fname));
+#endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
@@ -256,12 +258,14 @@ mxv_bluice_string_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_STRING_DEBUG
+	MX_DEBUG(-2,
+	("%s: Successfully waited for device pointer initialization.", fname));
+#endif
+
 	bluice_string->foreign_string = (MX_BLUICE_FOREIGN_STRING *) device_ptr;
 
 	bluice_string->foreign_string->mx_string_variable = variable;
-
-	MX_DEBUG(-2,("%s: String '%s', bluice_string->foreign_string = %p",
-		fname, record->name, bluice_string->foreign_string));
 
 	return MX_SUCCESSFUL_RESULT;
 }

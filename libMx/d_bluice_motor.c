@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_BLUICE_MOTOR_DEBUG	TRUE
+#define BLUICE_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -351,14 +351,10 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	 * the foreign_motor pointer.
 	 */
 
-	MX_DEBUG(-2,("%s: &(bluice_server->motor_array) = %p",
-			fname, &(bluice_server->motor_array)));
-
-	MX_DEBUG(-2,("%s: bluice_server->motor_array = %p",
-			fname, bluice_server->motor_array));
-
+#if BLUICE_MOTOR_DEBUG
 	MX_DEBUG(-2,
 	    ("%s: About to wait for device pointer initialization.", fname));
+#endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
@@ -370,12 +366,14 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_MOTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: Successfully waited for device pointer initialization.", fname));
+#endif
+
 	bluice_motor->foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) device_ptr;
 
 	bluice_motor->foreign_motor->mx_motor = motor;
-
-	MX_DEBUG(-2,("%s: Motor '%s', bluice_motor->foreign_motor = %p",
-		fname, record->name, bluice_motor->foreign_motor));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -575,7 +573,7 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -614,7 +612,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),

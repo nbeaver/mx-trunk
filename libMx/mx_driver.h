@@ -277,6 +277,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_AIN_SR630			10033
 #define MXT_AIN_P6000A			10034
 #define MXT_AIN_TPG262			10035
+#define MXT_AIN_BLUICE_ION_CHAMBER	10036
 
 /* --- Analog input subclasses -- */
 
@@ -490,7 +491,6 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_SCL_SCALER_FUNCTION		70017
 #define MXT_SCL_SPEC			70018
 #define MXT_SCL_GM10			70019
-#define MXT_SCL_BLUICE_ION_CHAMBER	70020
 
 /* --- Timer types --- */
 

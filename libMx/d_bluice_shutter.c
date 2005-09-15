@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_SHUTTER_DEBUG 	TRUE
+#define BLUICE_SHUTTER_DEBUG 	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -210,8 +210,10 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_SHUTTER_DEBUG
 	MX_DEBUG(-2,
 	    ("%s: About to wait for device pointer initialization.", fname));
+#endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
@@ -223,13 +225,15 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_SHUTTER_DEBUG
+	MX_DEBUG(-2,
+	("%s: Successfully waited for device pointer initialization.", fname));
+#endif
+
 	bluice_shutter->foreign_shutter =
 			(MX_BLUICE_FOREIGN_SHUTTER *) device_ptr;
 
 	bluice_shutter->foreign_shutter->mx_relay = relay;
-
-	MX_DEBUG(-2,("%s: Relay '%s', bluice_shutter->foreign_shutter = %p",
-		fname, record->name, bluice_shutter->foreign_shutter));
 
 	return MX_SUCCESSFUL_RESULT;
 }

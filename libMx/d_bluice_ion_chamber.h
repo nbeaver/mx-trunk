@@ -1,7 +1,7 @@
 /*
  * Name:    d_bluice_ion_chamber.h
  *
- * Purpose: Header file for Blu-Ice ion chambers used as scalers.
+ * Purpose: Header file for Blu-Ice ion chambers used as analog_inputs.
  *
  *-----------------------------------------------------------------------
  *
@@ -28,11 +28,11 @@ MX_API mx_status_type mxd_bluice_ion_chamber_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_bluice_ion_chamber_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_bluice_ion_chamber_clear( MX_SCALER *scaler );
-MX_API mx_status_type mxd_bluice_ion_chamber_read( MX_SCALER *scaler );
+MX_API mx_status_type mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list;
-extern MX_SCALER_FUNCTION_LIST mxd_bluice_ion_chamber_scaler_function_list;
+extern MX_ANALOG_INPUT_FUNCTION_LIST
+			mxd_bluice_ion_chamber_analog_input_function_list;
 
 extern long mxd_bluice_ion_chamber_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr;

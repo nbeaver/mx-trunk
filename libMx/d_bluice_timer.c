@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_BLUICE_TIMER_DEBUG	TRUE
+#define BLUICE_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -24,7 +24,6 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
-#include "mx_scaler.h"
 #include "mx_timer.h"
 
 #include "mx_bluice.h"
@@ -275,8 +274,8 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 		if ( foreign_ion_chamber ==
 			(MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL )
 		{
-			MX_DEBUG(-2,("%s: Skipping NULL ion chamber %ld",
-				fname, i ));
+			mx_warning("%s: Skipping NULL ion chamber %ld",
+				fname, i );
 
 			continue;    /* Go back to the top of the for() loop. */
 		}
@@ -347,8 +346,8 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 		if ( foreign_ion_chamber ==
 			(MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL )
 		{
-			MX_DEBUG(-2,("%s: Skipping NULL ion chamber %ld",
-				fname, i ));
+			mx_warning("%s: Skipping NULL ion chamber %ld",
+				fname, i );
 
 			continue;    /* Go back to the top of the for() loop. */
 		}
@@ -377,7 +376,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 
 	/* Optionally display all of the ion chambers we have found. */
 
-#if 1
+#if BLUICE_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Ion chambers for Blu-Ice timer '%s' are ",
 				fname, record->name));
 
@@ -453,8 +452,10 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
+#if BLUICE_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Timer '%s' start command = '%s'",
 		fname, timer->record->name, command ));
+#endif
 
 	mx_status = mx_bluice_check_for_master( bluice_server );
 

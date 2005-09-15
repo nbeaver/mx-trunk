@@ -234,6 +234,7 @@
 #include "d_p6000a.h"
 #include "d_tpg262_pressure.h"
 #include "d_cm17a_doutput.h"
+#include "d_bluice_ion_chamber.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -319,7 +320,6 @@
 #include "d_gm10_scaler.h"
 #include "d_gm10_timer.h"
 #include "d_interval_timer.h"
-#include "d_bluice_ion_chamber.h"
 #include "d_bluice_timer.h"
 
 #include "d_network_relay.h"
@@ -1578,6 +1578,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_tpg262_pressure_num_record_fields,
 				&mxd_tpg262_pressure_rfield_def_ptr},
 
+{"bluice_ion_chamber", MXT_AIN_BLUICE_ION_CHAMBER, MXC_ANALOG_INPUT, MXR_DEVICE,
+				&mxd_bluice_ion_chamber_record_function_list,
+				NULL,
+			&mxd_bluice_ion_chamber_analog_input_function_list,
+				&mxd_bluice_ion_chamber_num_record_fields,
+				&mxd_bluice_ion_chamber_rfield_def_ptr},
+
 
 {"soft_dinput",    MXT_DIN_SOFTWARE,   MXC_DIGITAL_INPUT,  MXR_DEVICE,
 				&mxd_soft_dinput_record_function_list,
@@ -2590,13 +2597,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_gm10_scaler_scaler_function_list,
 				&mxd_gm10_scaler_num_record_fields,
 				&mxd_gm10_scaler_rfield_def_ptr},
-
-{"bluice_ion_chamber", MXT_SCL_BLUICE_ION_CHAMBER, MXC_SCALER, MXR_DEVICE,
-				&mxd_bluice_ion_chamber_record_function_list,
-				NULL,
-				&mxd_bluice_ion_chamber_scaler_function_list,
-				&mxd_bluice_ion_chamber_num_record_fields,
-				&mxd_bluice_ion_chamber_rfield_def_ptr},
 
 {"mcs_encoder",    MXT_MCE_MCS,       MXC_MULTICHANNEL_ENCODER, MXR_DEVICE,
 				&mxd_mcs_encoder_record_function_list,

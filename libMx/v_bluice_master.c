@@ -14,7 +14,7 @@
  *
  */
 
-#define MXV_BLUICE_MASTER_DEBUG	TRUE
+#define BLUICE_MASTER_DEBUG		FALSE
 
 #include <stdio.h>
 
@@ -176,7 +176,9 @@ mxv_bluice_master_send_variable( MX_VARIABLE *variable )
 
 	take_master = *( (int *) value_ptr );
 
+#if BLUICE_MASTER_DEBUG
 	MX_DEBUG(-2,("%s: take_master = %d", fname, take_master ));
+#endif
 
 	if ( take_master ) {
 		strcpy( command, "gtos_become_master force" );

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXV_BLUICE_COMMAND_DEBUG	TRUE
+#define BLUICE_COMMAND_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -176,7 +176,9 @@ mxv_bluice_command_send_variable( MX_VARIABLE *variable )
 
 	command_ptr = (char *) value_ptr;
 
+#if BLUICE_COMMAND_DEBUG
 	MX_DEBUG(-2,("%s: command_ptr = '%s'", fname, command_ptr ));
+#endif
 
 	mx_status = mx_bluice_send_message(
 				bluice_command->bluice_server_record,

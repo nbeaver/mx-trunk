@@ -1,7 +1,7 @@
 /*
  * Name:    d_bluice_ion_chamber.c
  *
- * Purpose: MX scaler driver for Blu-Ice ion chambers used as scalers.
+ * Purpose: MX analog input driver for Blu-Ice ion chambers.
  *
  * Author:  William Lavender
  *
@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_BLUICE_ION_CHAMBER_DEBUG	TRUE
+#define BLUICE_ION_CHAMBER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,12 +22,12 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_scaler.h"
+#include "mx_analog_input.h"
 
 #include "mx_bluice.h"
 #include "d_bluice_ion_chamber.h"
 
-/* Initialize the scaler driver jump table. */
+/* Initialize the analog_input driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list = {
 	NULL,
@@ -40,23 +40,17 @@ MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list = {
 	mxd_bluice_ion_chamber_open
 };
 
-MX_SCALER_FUNCTION_LIST mxd_bluice_ion_chamber_scaler_function_list = {
-	mxd_bluice_ion_chamber_clear,
-	NULL,
-	mxd_bluice_ion_chamber_read,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mx_scaler_default_get_parameter_handler,
-	mx_scaler_default_set_parameter_handler
+MX_ANALOG_INPUT_FUNCTION_LIST
+mxd_bluice_ion_chamber_analog_input_function_list = {
+	mxd_bluice_ion_chamber_read
 };
 
-/* MX bluice scaler data structures. */
+/* MX bluice analog_input data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_bluice_ion_chamber_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_SCALER_STANDARD_FIELDS,
+	MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_BLUICE_ION_CHAMBER_STANDARD_FIELDS
 };
 
@@ -70,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr
 /*=======================================================================*/
 
 static mx_status_type
-mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
+mxd_bluice_ion_chamber_get_pointers( MX_ANALOG_INPUT *analog_input,
 			MX_BLUICE_ION_CHAMBER **bluice_ion_chamber,
 			MX_BLUICE_SERVER **bluice_server,
 			MX_BLUICE_FOREIGN_ION_CHAMBER **foreign_ion_chamber,
@@ -81,9 +75,9 @@ mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber_ptr;
 	MX_RECORD *bluice_server_record;
 
-	if ( scaler == (MX_SCALER *) NULL ) {
+	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SCALER pointer passed by '%s' was NULL.",
+		"The MX_ANALOG_INPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 	if ( bluice_ion_chamber == (MX_BLUICE_ION_CHAMBER **) NULL ) {
@@ -93,12 +87,12 @@ mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
 	}
 
 	bluice_ion_chamber_ptr = (MX_BLUICE_ION_CHAMBER *)
-				scaler->record->record_type_struct;
+				analog_input->record->record_type_struct;
 
 	if ( bluice_ion_chamber_ptr == (MX_BLUICE_ION_CHAMBER *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_BLUICE_ION_CHAMBER pointer for record '%s' is NULL.",
-			scaler->record->name );
+			analog_input->record->name );
 	}
 
 	if ( bluice_ion_chamber != (MX_BLUICE_ION_CHAMBER **) NULL ) {
@@ -110,7 +104,7 @@ mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
 	if ( bluice_server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The 'bluice_server_record' pointer for record '%s' "
-		"is NULL.", scaler->record->name );
+		"is NULL.", analog_input->record->name );
 	}
 
 	switch( bluice_server_record->mx_type ) {
@@ -136,7 +130,7 @@ mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
 			"The MX_BLUICE_SERVER pointer for Blu-Ice server "
 			"record '%s' used by record '%s' is NULL.",
 				bluice_server_record->name,
-				scaler->record->name );
+				analog_input->record->name );
 		}
 	}
 
@@ -147,8 +141,8 @@ mxd_bluice_ion_chamber_get_pointers( MX_SCALER *scaler,
 		if ( (*foreign_ion_chamber) ==
 				(MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The foreign_ion_chamber pointer for scaler '%s' "
-			"has not been initialized.", scaler->record->name );
+			"The foreign_ion_chamber pointer for analog_input '%s' "
+			"has not been initialized.", analog_input->record->name );
 		}
 	}
 
@@ -163,19 +157,20 @@ mxd_bluice_ion_chamber_create_record_structures( MX_RECORD *record )
 	static const char fname[] =
 		"mxd_bluice_ion_chamber_create_record_structures()";
 
-	MX_SCALER *scaler;
+	MX_ANALOG_INPUT *ainput;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
 
 	/* Allocate memory for the necessary structures. */
 
-	scaler = (MX_SCALER *) malloc( sizeof(MX_SCALER) );
+	ainput = (MX_ANALOG_INPUT *) malloc( sizeof(MX_ANALOG_INPUT) );
 
-	if ( scaler == NULL ) {
+	if ( ainput == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_SCALER structure." );
+		"Can't allocate memory for MX_ANALOG_INPUT structure." );
 	}
 
-	bluice_ion_chamber = (MX_BLUICE_ION_CHAMBER *) malloc( sizeof(MX_BLUICE_ION_CHAMBER) );
+	bluice_ion_chamber = (MX_BLUICE_ION_CHAMBER *)
+				malloc( sizeof(MX_BLUICE_ION_CHAMBER) );
 
 	if ( bluice_ion_chamber == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -184,14 +179,19 @@ mxd_bluice_ion_chamber_create_record_structures( MX_RECORD *record )
 
 	/* Now set up the necessary pointers. */
 
-	record->record_class_struct = scaler;
+	record->record_class_struct = ainput;
 	record->record_type_struct = bluice_ion_chamber;
 	record->class_specific_function_list
-			= &mxd_bluice_ion_chamber_scaler_function_list;
+			= &mxd_bluice_ion_chamber_analog_input_function_list;
 
-	scaler->record = record;
+	ainput->record = record;
+	bluice_ion_chamber->record = record;
 
 	bluice_ion_chamber->foreign_ion_chamber = NULL;
+
+	/* Raw analog input values are stored as doubles. */
+
+	ainput->subclass = MXT_AIN_DOUBLE;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -201,7 +201,7 @@ mxd_bluice_ion_chamber_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_bluice_ion_chamber_open()";
 
-	MX_SCALER *scaler;
+	MX_ANALOG_INPUT *ainput;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *device_ptr;
@@ -212,16 +212,18 @@ mxd_bluice_ion_chamber_open( MX_RECORD *record )
 			"MX_RECORD pointer passed was NULL." );
 	}
 
-	scaler = (MX_SCALER *) record->record_class_struct;
+	ainput = (MX_ANALOG_INPUT *) record->record_class_struct;
 
-	mx_status = mxd_bluice_ion_chamber_get_pointers( scaler,
+	mx_status = mxd_bluice_ion_chamber_get_pointers( ainput,
 			&bluice_ion_chamber, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_ION_CHAMBER_DEBUG
 	MX_DEBUG(-2,
 	    ("%s: About to wait for device pointer initialization.", fname));
+#endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
@@ -233,53 +235,21 @@ mxd_bluice_ion_chamber_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_ION_CHAMBER_DEBUG
+	MX_DEBUG(-2,
+	("%s: Successfully waited for device pointer initialization.", fname));
+#endif
+
 	bluice_ion_chamber->foreign_ion_chamber =
 			(MX_BLUICE_FOREIGN_ION_CHAMBER *) device_ptr;
 
-	bluice_ion_chamber->foreign_ion_chamber->mx_scaler = scaler;
-
-	MX_DEBUG(-2,
-	("%s: Scaler '%s', bluice_ion_chamber->foreign_ion_chamber = %p",
-		fname, record->name, bluice_ion_chamber->foreign_ion_chamber));
+	bluice_ion_chamber->foreign_ion_chamber->mx_analog_input = ainput;
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_bluice_ion_chamber_clear( MX_SCALER *scaler )
-{
-	static const char fname[] = "mxd_bluice_ion_chamber_clear()";
-
-	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
-	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
-	mx_status_type mx_status;
-
-	mx_status = mxd_bluice_ion_chamber_get_pointers( scaler,
-				&bluice_ion_chamber, &bluice_server,
-				&foreign_ion_chamber, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
-
-	foreign_ion_chamber->value = 0;
-
-	mx_mutex_unlock( bluice_server->foreign_data_mutex );
-
-	scaler->value = 0;
-
-#if MXD_BLUICE_ION_CHAMBER_DEBUG
-	MX_DEBUG(-2,("%s: Scaler '%s' cleared.",
-		fname, scaler->record->name));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_bluice_ion_chamber_read( MX_SCALER *scaler )
+mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput )
 {
 	static const char fname[] = "mxd_bluice_ion_chamber_read()";
 
@@ -288,28 +258,23 @@ mxd_bluice_ion_chamber_read( MX_SCALER *scaler )
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
 	mx_status_type mx_status;
 
-	mx_status = mxd_bluice_ion_chamber_get_pointers( scaler,
+	mx_status = mxd_bluice_ion_chamber_get_pointers( ainput,
 				&bluice_ion_chamber, &bluice_server,
 				&foreign_ion_chamber, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* FIXME!!! Blu-Ice is actually reporting floating point values for
-	 * the ion chambers, so we need to change the 'bluice_ion_chamber'
-	 * driver from a scaler driver to an analog input driver.
-	 */
-
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
-	scaler->raw_value = foreign_ion_chamber->value;
+	ainput->raw_value.double_value = foreign_ion_chamber->value;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 
-#if MXD_BLUICE_ION_CHAMBER_DEBUG
-	MX_DEBUG(-2,("%s: Scaler '%s' raw value = %ld",
-		fname, scaler->record->name, scaler->raw_value));
+#if BLUICE_ION_CHAMBER_DEBUG
+	MX_DEBUG(-2,("%s: Analog input '%s' raw value = %g",
+		fname, ainput->record->name, ainput->raw_value.double_value));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

@@ -22,7 +22,7 @@
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_motor.h"
-#include "mx_scaler.h"
+#include "mx_analog_input.h"
 #include "mx_timer.h"
 #include "mx_relay.h"
 #include "mx_variable.h"
@@ -63,7 +63,7 @@ typedef struct {
 
 	double value;
 
-	MX_SCALER *mx_scaler;
+	MX_ANALOG_INPUT *mx_analog_input;
 	MX_TIMER *mx_timer;
 } MX_BLUICE_FOREIGN_ION_CHAMBER;
 

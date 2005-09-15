@@ -14,7 +14,7 @@
  *
  */
 
-#define MXN_BLUICE_DCSS_DEBUG		TRUE
+#define BLUICE_DCSS_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,8 +129,10 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 
 	dcss_server_record = (MX_RECORD *) args;
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, dcss_server_record->name));
+#endif
 
 	bluice_server = (MX_BLUICE_SERVER *)
 				dcss_server_record->record_class_struct;
@@ -221,10 +223,12 @@ stog_become_master( MX_THREAD *thread,
 		MX_BLUICE_SERVER *bluice_server,
 		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
+#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_become_master()";
 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
+#endif
 
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
@@ -241,10 +245,12 @@ stog_become_slave( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
+#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_become_slave()";
 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
+#endif
 
 	mx_mutex_lock( bluice_server->foreign_data_mutex );
 
@@ -313,7 +319,9 @@ stog_log( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
+#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_log()";
+#endif
 
 	int severity, locale;
 	char device_name[MXU_BLUICE_NAME_LENGTH+1];
@@ -328,9 +336,11 @@ stog_log( MX_THREAD *thread,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,
     ("%s: severity = %d, locale = %d, device_name = '%s', message_body = '%s'.",
 		fname, severity, locale, device_name, message_body));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -385,8 +395,10 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	double measurement_value;
 	mx_status_type mx_status;
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name));
+#endif
 
 	/* Find the name of the first ion chamber, so that we can find
 	 * the associated MX_BLUICE_TIMER structure.
@@ -394,8 +406,6 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	snprintf( format, sizeof(format),
 		"%%*s %%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
-
-	MX_DEBUG(-2,("%s: format = '%s'", fname, format));
 
 	num_items = sscanf( bluice_server->receive_buffer, format,
 				first_ion_chamber_name );
@@ -598,8 +608,10 @@ stog_report_shutter_state( MX_THREAD *thread,
 	int shutter_status;
 	mx_status_type mx_status;
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name));
+#endif
 
 	/* Skip over the command name. */
 
@@ -702,10 +714,12 @@ stog_set_permission_level( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
+#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_set_permission_level()"; 
 
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -798,7 +812,9 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	long actual_data_length;
 	mx_status_type mx_status;
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -1002,8 +1018,10 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 			bluice_server->receive_buffer, record->name );
 	}
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: DCSS login successful for client %lu.",
 		fname, bluice_dcss_server->client_number));
+#endif
 
 	/* At this point we need to create a thread that monitors
 	 * messages sent by the DCSS server.  From this point on,
