@@ -257,6 +257,7 @@ mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput )
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	mx_status = mxd_bluice_ion_chamber_get_pointers( ainput,
 				&bluice_ion_chamber, &bluice_server,
@@ -265,7 +266,13 @@ mxd_bluice_ion_chamber_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	ainput->raw_value.double_value = foreign_ion_chamber->value;
 

@@ -92,6 +92,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	char null_pad[500];
 	long text_data_length, bytes_sent, null_bytes_to_send;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
 				&bluice_server, &bluice_server_socket, fname );
@@ -127,7 +128,13 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	text_data_length = strlen( text_data ) + 1;
 
-	mx_mutex_lock( bluice_server->socket_send_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->socket_send_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the socket send mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	if ( send_header ) {
 		sprintf( message_header, "%*lu%*lu",
@@ -405,6 +412,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	int num_elements, old_num_elements;
 	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	unsigned long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -443,7 +451,13 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		}
 	}
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	*foreign_device_ptr = NULL;
 
@@ -710,6 +724,7 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 
 	MX_RECORD *bluice_server_record;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	unsigned long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -747,7 +762,13 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 		"is NULL.", bluice_server_record->name );
 	}
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	if ( bluice_dcss_server->is_master ) {
 		*master_flag = TRUE;
@@ -1636,6 +1657,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 #if BLUICE_DEBUG_MOTION
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -1685,17 +1707,25 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 #if BLUICE_DEBUG_MOTION
 	if ( status_ptr == NULL ) {
-		MX_DEBUG(-2,("%s: motor '%s', position = %g",
-			fname, motor_name, motor_position));
+		MX_DEBUG(-2,
+		("%s: motor '%s', move_in_progress = %d, position = %g",
+			fname, motor_name, move_in_progress, motor_position));
 	} else {
-		MX_DEBUG(-2,("%s: motor '%s', position = %g, status = '%s'",
-			fname, motor_name, motor_position, status_ptr));
+		MX_DEBUG(-2,
+	 ("%s: motor '%s', move_in_progress = %d, position = %g, status = '%s'",
+	      fname, motor_name, move_in_progress, motor_position, status_ptr));
 	}
 #endif
 
 	/* Update the values in the motor structures. */
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 						motor_name,
@@ -1722,7 +1752,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	/* Update the motion status. */
 
 	foreign_motor->position = motor_position;
-	foreign_motor->move_in_progress = FALSE;
+	foreign_motor->move_in_progress = move_in_progress;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 

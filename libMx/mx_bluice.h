@@ -135,9 +135,6 @@ typedef struct {
 	long receive_buffer_length;
 	long num_received_bytes;
 
-	int num_records;
-	MX_RECORD *record_array;
-
 	int num_ion_chambers;
 	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
 

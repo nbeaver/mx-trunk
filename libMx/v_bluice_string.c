@@ -299,6 +299,7 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	long *dimension_array;
 	void *value_ptr;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	mx_status = mxv_bluice_string_get_pointers( variable,
 			&bluice_string, &bluice_server, &foreign_string, fname);
@@ -313,7 +314,13 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	strlcpy( value_ptr, foreign_string->string, dimension_array[0] );
 

@@ -234,6 +234,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
 	long i, n, num_ion_chambers;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -252,7 +253,13 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	 * the Blu-Ice controlled ion chambers use this timer.
 	 */
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	num_ion_chambers = 0;
 
@@ -428,6 +435,7 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 	char command[200];
 	long i;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	mx_status = mxd_bluice_timer_get_pointers( timer,
 					&bluice_timer, &bluice_server, fname );
@@ -438,7 +446,13 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 	snprintf( command, sizeof(command),
 		"gtos_read_ion_chambers %g 0", timer->value );
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	for ( i = 0; i < bluice_timer->num_ion_chambers; i++ ) {
 		foreign_ion_chamber =

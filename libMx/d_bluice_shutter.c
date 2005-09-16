@@ -313,6 +313,7 @@ mxd_bluice_shutter_get_relay_status( MX_RELAY *relay )
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	mx_status = mxd_bluice_shutter_get_pointers( relay,
 		&bluice_shutter, &bluice_server, &foreign_shutter, fname );
@@ -320,7 +321,14 @@ mxd_bluice_shutter_get_relay_status( MX_RELAY *relay )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
 
 	relay->relay_status = foreign_shutter->shutter_status;
 

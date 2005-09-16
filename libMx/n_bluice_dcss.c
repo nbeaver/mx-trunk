@@ -16,6 +16,8 @@
 
 #define BLUICE_DCSS_DEBUG		FALSE
 
+#define BLUICE_DCSS_DEBUG_SHUTDOWN	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -212,6 +214,8 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 						bluice_dcss_server );
 			}
 		}
+
+		mx_status = mx_thread_check_for_stop_request( thread );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -223,14 +227,22 @@ stog_become_master( MX_THREAD *thread,
 		MX_BLUICE_SERVER *bluice_server,
 		MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
-#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_become_master()";
 
+	unsigned long mx_status_code;
+
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 #endif
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	bluice_dcss_server->is_master = TRUE;
 
@@ -245,14 +257,22 @@ stog_become_slave( MX_THREAD *thread,
 			MX_BLUICE_SERVER *bluice_server,
 			MX_BLUICE_DCSS_SERVER *bluice_dcss_server )
 {
-#if BLUICE_DCSS_DEBUG
 	static const char fname[] = "stog_become_slave()";
 
+	unsigned long mx_status_code;
+
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
 		fname, bluice_server->receive_buffer, server_record->name ));
 #endif
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	bluice_dcss_server->is_master = FALSE;
 
@@ -394,6 +414,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	long i, num_ion_chambers;
 	double measurement_value;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -420,7 +441,13 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	/* First, get the ion chamber pointer for the first ion chamber. */
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 					first_ion_chamber_name,
@@ -607,6 +634,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 	char *ptr, *token_ptr, *shutter_name;
 	int shutter_status;
 	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -661,7 +689,13 @@ stog_report_shutter_state( MX_THREAD *thread,
 
 	/* Update the value in the shutter structure. */
 
-	mx_mutex_lock( bluice_server->foreign_data_mutex );
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
 
 	mx_status = mx_bluice_get_device_pointer( bluice_server,
 						shutter_name,
@@ -1037,23 +1071,93 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	return mx_status;
 }
 
+#define MX_BLUICE_DCSS_CLOSE_WAIT_TIME	(5.0)		/* in seconds */
+
 MX_EXPORT mx_status_type
 mxn_bluice_dcss_server_close( MX_RECORD *record )
 {
-	MX_BLUICE_SERVER *bluice_server;
-	MX_SOCKET *server_socket;
-	mx_status_type mx_status;
+	static const char fname[] = "mxn_bluice_dcss_server_close()";
 
-	/* FIXME: There is a lot more that has to be done to correctly 
-	 * shut down this driver.  In particular, the thread running
-	 * mxn_bluice_dcss_monitor_thread() should be shut down before
-	 * closing the socket below.  Otherwise, occasionally the
-	 * thread will generate a 'socket closed unexpectedly' error
-	 * when the mx_socket_close() call below pulls the rug out from
-	 * underneath the mxn_bluice_dcss_monitor_thread() function.
-	 */
+	MX_BLUICE_SERVER *bluice_server;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
+	MX_SOCKET *server_socket;
+	long thread_exit_status;
+	mx_status_type mx_status;
+	unsigned long mx_status_code;
 
 	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
+
+	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_SERVER pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	bluice_dcss_server = 
+		(MX_BLUICE_DCSS_SERVER *) record->record_type_struct;
+
+	if ( bluice_dcss_server == (MX_BLUICE_DCSS_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_BLUICE_DCSS_SERVER pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* First, tell the monitor thread to exit. */
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: Stopping DCSS monitor thread.", fname));
+#endif
+
+	mx_status = mx_thread_stop( bluice_dcss_server->dcss_monitor_thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_thread_wait( bluice_dcss_server->dcss_monitor_thread,
+					&thread_exit_status,
+					MX_BLUICE_DCSS_CLOSE_WAIT_TIME );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: DCSS monitor thread stopped with exit status = %ld",
+		fname, thread_exit_status ));
+#endif
+
+	/* Lock the bluice_server mutexes so that other threads cannot
+	 * use the data structures while we are destroying them.  Get
+	 * copies of the pointers to the mutexes so that we can continue
+	 * to hold them while tearing down the bluice_server structure.
+	 */
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: Locking the socket send mutex.", fname));
+#endif
+
+	mx_status_code = mx_mutex_lock( bluice_server->socket_send_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the socket send mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: Locking the foreign data mutex.", fname));
+#endif
+
+	mx_status_code = mx_mutex_lock( bluice_server->foreign_data_mutex );
+
+	if ( mx_status_code != MXE_SUCCESS ) {
+		return mx_error( mx_status_code, fname,
+		"An attempt to lock the foreign data mutex for Blu-Ice "
+		"server '%s' failed.", bluice_server->record->name );
+	}
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: Shutting down the server socket.", fname));
+#endif
 
 	server_socket = bluice_server->socket;
 
@@ -1063,7 +1167,82 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
 	bluice_server->socket = NULL;
+
+	/* FIXME: Successfully destroying all of the interrelated Blu-Ice
+	 * data structures in a thread-safe manner is difficult.  For example,
+	 * the MX_BLUICE_SERVER has a foreign data mutex that could be used
+	 * to prevent access.  But there is a window for a race condition
+	 * between the time another thread gets a pointer to the
+	 * MX_BLUICE_SERVER structure and the time that thread locks the
+	 * foreign data mutex in that structure.  During that window of
+	 * opportunity, it would be possible for MX_BLUICE_SERVER structure
+	 * to be free()-ed by the thread running this close() routine.
+	 * If that happened, then the other thread would core dump when
+	 * it tried to access the mutex through the free()-ed 
+	 * MX_BLUICE_SERVER pointer.
+	 *
+	 * For now, all that is important is that we make sure the monitor
+	 * thread is shut down before destroying the socket so that the
+	 * user does not get an error message from the socket routines.
+	 * This means that a lost connection to the Blu-Ice server currently
+	 * can only be dealt with by exiting the application program and then
+	 * reconnecting.
+	 */
+
+	/* FIXME: Return with the mutexes still locked.  We assume for now
+	 * that the program is shutting down.
+	 */
+
+	return mx_status;
+
+#if 0 /* Disabled for now. */
+
+	/* FIXME: If we did attempt to free all of the data structures,
+	 * it would resemble stuff like the following code.
+	 */
+
+#if BLUICE_DCSS_DEBUG_SHUTDOWN
+	MX_DEBUG(-2,("%s: Destroying ion chamber data structures.", fname));
+#endif
+
+	if ( bluice_server->ion_chamber_array != NULL ) {
+	    for ( i = 0; i < bluice_server->num_ion_chambers; i++ ) {
+		foreign_ion_chamber = bluice_server->ion_chamber_array[i];
+
+		    if ( foreign_ion_chamber != NULL ) {
+
+			/* Reach through to the timer record and delete the
+			 * entry in its array of foreign ion chambers.  This
+			 * is thread-safe since the 'bluice_timer' record is
+			 * expected to lock the Blu-Ice foreign data mutex
+			 * before using these data structures.
+			 */
+
+			mx_timer = foreign_ion_chamber->mx_timer;
+
+			bluice_timer = (MX_BLUICE_TIMER *)
+					mx_timer->record->record_type_struct;
+
+			for ( j = 0; j < bluice_timer->num_ion_chambers; j++ ) {
+			    if ( foreign_ion_chamber ==
+			    	bluice_timer->foreign_ion_chamber_array[j] )
+			    {
+			    	bluice_timer->foreign_ion_chamber_array[j]
+					= NULL;
+
+				break;    /* Exit the for(j) loop. */
+			    }
+			}
+		    }
+		}
+		mx_free( foreign_ion_chamber );
+	    }
+	    mx_free( bluice_server->ion_chamber_array );
+	}
+
+#endif /* Disabled for now. */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1073,12 +1252,21 @@ mxn_bluice_dcss_server_resynchronize( MX_RECORD *record )
 {
 	mx_status_type mx_status;
 
+#if 1
+	static const char fname[] = "mxn_bluice_dcss_server_resynchronize()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Reconnection to Blu-Ice server '%s' is not currently supported.  "
+	"The only way to reconnect is to exit your application program "
+	"and then start your application again.", record->name );
+#else
 	mx_status = mxn_bluice_dcss_server_close( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mxn_bluice_dcss_server_open( record );
+#endif
 
 	return mx_status;
 }
