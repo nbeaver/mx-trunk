@@ -112,6 +112,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXC_MULTICHANNEL_ANALOG_OUTPUT	41
 #define MXC_MULTICHANNEL_DIGITAL_INPUT	42
 #define MXC_MULTICHANNEL_DIGITAL_OUTPUT	43
+#define MXC_PAN_TILT_ZOOM		44
 
 /* --- Scan classes --- */
 
@@ -614,6 +615,14 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_MCAI_NETWORK		200002
 #define MXT_MCAI_QBPM			200003
 #define MXT_MCAI_KEITHLEY2700		200004
+
+/* --- Pan/Tilt/Zoom types --- */
+
+#define MXT_PTZ_SOFTWARE		210001
+#define MXT_PTZ_SONY_VISCA		210002
+#define MXT_PTZ_HITACHI_KP_D20		210003
+#define MXT_PTZ_PANASONIC_KX_DP700	210004
+#define MXT_PTZ_CANON_VC_C4		210005
 
 /* --- Scan types --- */
 

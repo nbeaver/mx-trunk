@@ -90,7 +90,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
 	d_soft_mca.c d_soft_mcs.c d_soft_motor.c \
 	d_soft_sample_changer.c d_soft_sca.c d_soft_scaler.c d_soft_timer.c \
-	d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
+	d_sony_visca_ptz.c d_spec_motor.c d_spec_scaler.c d_spec_timer.c \
 	d_sr570.c d_sr630_ainput.c d_sr630_aoutput.c d_stp100.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
@@ -136,7 +136,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
 	mx_mfault.c mx_modbus.c mx_motor.c \
 	mx_mpermit.c mx_mutex.c mx_net.c mx_net_socket.c \
-	mx_plot.c mx_portio.c mx_process.c mx_pulse_generator.c \
+	mx_plot.c mx_portio.c mx_process.c mx_ptz.c mx_pulse_generator.c \
 	mx_record.c mx_relay.c mx_rs232.c \
 	mx_sample_changer.c mx_sca.c mx_scaler.c \
 	mx_scan.c mx_scan_linear.c mx_scan_list.c \

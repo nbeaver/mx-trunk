@@ -38,6 +38,7 @@
 #include "mx_sample_changer.h"
 #include "mx_mcai.h"
 #include "mx_pulse_generator.h"
+#include "mx_ptz.h"
 #include "mx_variable.h"
 
 MX_EXPORT mx_status_type
@@ -231,6 +232,9 @@ mx_update_record_values( MX_RECORD *record )
 				break;
 			case MXC_MULTICHANNEL_ANALOG_INPUT:
 				status = mx_mcai_read( record, NULL, NULL );
+				break;
+			case MXC_PAN_TILT_ZOOM:
+				status = mx_ptz_status( record, NULL );
 				break;
 			case MXC_TIMER:
 			case MXC_MULTICHANNEL_ANALYZER:

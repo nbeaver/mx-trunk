@@ -68,6 +68,7 @@
 #include "mx_ccd.h"
 #include "mx_sample_changer.h"
 #include "mx_mcai.h"
+#include "mx_ptz.h"
 
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -405,6 +406,8 @@
 #include "d_als_robot_java.h"
 #include "d_sercat_als_robot.h"
 
+#include "d_sony_visca_ptz.h"
+
 #include "s_input.h"
 #include "s_motor.h"
 #include "s_theta_2theta.h"
@@ -606,6 +609,8 @@ MX_DRIVER mx_class_list[] = {
 {"mcdi",           0, MXC_MULTICHANNEL_DIGITAL_INPUT, MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
 {"mcdo",           0, MXC_MULTICHANNEL_DIGITAL_OUTPUT, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
+{"ptz",            0, MXC_PAN_TILT_ZOOM,  MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
 
   /* ==================== Scan classes ==================== */
@@ -3148,6 +3153,13 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_sercat_als_robot_sample_changer_function_list,
 				&mxd_sercat_als_robot_num_record_fields,
 				&mxd_sercat_als_robot_rfield_def_ptr},
+
+{"sony_visca_ptz", MXT_PTZ_SONY_VISCA, MXC_PAN_TILT_ZOOM, MXR_DEVICE,
+				&mxd_sony_visca_ptz_record_function_list,
+				NULL,
+				&mxd_sony_visca_ptz_ptz_function_list,
+				&mxd_sony_visca_ptz_num_record_fields,
+				&mxd_sony_visca_ptz_rfield_def_ptr},
 
 #if HAVE_LABPC
 #  ifdef OS_LINUX   /* The LabPC+ driver is only useable under Linux. */
