@@ -23,13 +23,13 @@
 typedef struct {
 	MX_RECORD *record;
 
-	MX_RECORD *rs232_record;
+	MX_RECORD *visca_record;
 	int camera_number;
 } MX_SONY_VISCA_PTZ;
 
 #define MXD_SONY_VISCA_PTZ_STANDARD_FIELDS \
-  {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SONY_VISCA_PTZ, rs232_record),\
+  {-1, -1, "visca_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SONY_VISCA_PTZ, visca_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "camera_number", MXFT_INT, NULL, 0, {0}, \
@@ -40,11 +40,11 @@ typedef struct {
 
 MX_API mx_status_type mxd_sony_visca_ptz_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_sony_visca_ptz_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz );
-
-MX_API mx_status_type mxd_sony_visca_ptz_status( MX_PAN_TILT_ZOOM *ptz );
+MX_API mx_status_type mxd_sony_visca_ptz_get_status( MX_PAN_TILT_ZOOM *ptz );
+MX_API mx_status_type mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz );
+MX_API mx_status_type mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz );
 
 extern MX_RECORD_FUNCTION_LIST mxd_sony_visca_ptz_record_function_list;
 extern MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_sony_visca_ptz_ptz_function_list;

@@ -53,6 +53,9 @@ typedef struct {
 
 	unsigned long ptz_flags;
 
+	int parameter_type;
+	unsigned long parameter_value;
+
 	unsigned long command;
 	unsigned long status;
 } MX_PAN_TILT_ZOOM;
@@ -69,14 +72,32 @@ typedef struct {
 
 typedef struct {
 	mx_status_type ( *command ) ( MX_PAN_TILT_ZOOM *ptz );
-	mx_status_type ( *status ) ( MX_PAN_TILT_ZOOM *ptz );
+	mx_status_type ( *get_status ) ( MX_PAN_TILT_ZOOM *ptz );
+	mx_status_type ( *get_parameter ) ( MX_PAN_TILT_ZOOM *ptz );
+	mx_status_type ( *set_parameter ) ( MX_PAN_TILT_ZOOM *ptz );
 } MX_PAN_TILT_ZOOM_FUNCTION_LIST;
 
 MX_API mx_status_type mx_ptz_command( MX_RECORD *ptz_record,
 					unsigned long command );
 
-MX_API mx_status_type mx_ptz_status( MX_RECORD *ptz_record,
+MX_API mx_status_type mx_ptz_get_status( MX_RECORD *ptz_record,
 					unsigned long *status );
+
+MX_API mx_status_type mx_ptz_get_parameter( MX_RECORD *ptz_record,
+					int parameter_type,
+					unsigned long *parameter_value );
+
+MX_API mx_status_type mx_ptz_set_parameter( MX_RECORD *ptz_record,
+					int parameter_type,
+					unsigned long parameter_value );
+
+MX_API mx_status_type mx_ptz_default_command_handler( MX_PAN_TILT_ZOOM *ptz );
+
+MX_API mx_status_type mx_ptz_default_get_parameter_handler(
+						MX_PAN_TILT_ZOOM *ptz );
+
+MX_API mx_status_type mx_ptz_default_set_parameter_handler(
+						MX_PAN_TILT_ZOOM *ptz );
 
 #endif /* __MX_PTZ_H__ */
 

@@ -43,7 +43,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	d_epics_aio.c d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_gain_tracking_scaler.c d_generic_relay.c d_ggcs.c \
-	d_gm10_scaler.c d_gm10_timer.c d_hsc1.c \
+	d_gm10_scaler.c d_gm10_timer.c d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
 	d_interval_timer.c d_iseries_aio.c d_iseries_dio.c \
 	d_itc503_control.c d_itc503_motor.c d_itc503_status.c \
@@ -117,8 +117,8 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c i_pmac.c \
 	i_pmc_mcapi.c i_rtems_vme.c i_scipe.c i_sis3100.c i_sis3807.c \
-	i_soft_camac.c i_soft_rs232.c i_spec_command.c i_sr630.c \
-	i_tcp232.c i_tpg262.c i_tty.c \
+	i_soft_camac.c i_soft_rs232.c i_sony_visca.c i_spec_command.c \
+	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
 	i_u500.c i_uglide.c i_umcbi.c i_vme58.c i_vms_terminal.c \
 	i_vp9000.c i_vxworks_rs232.c i_vxworks_vme.c \
 	i_vsc16.c i_vxi_memacc.c i_wago750_serial.c i_win32_com.c \

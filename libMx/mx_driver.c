@@ -180,6 +180,7 @@
 #include "i_sr630.h"
 #include "i_tpg262.h"
 #include "i_cm17a.h"
+#include "i_sony_visca.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -407,6 +408,7 @@
 #include "d_sercat_als_robot.h"
 
 #include "d_sony_visca_ptz.h"
+#include "d_hitachi_kp_d20.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -1087,6 +1089,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_cm17a_num_record_fields,
 				&mxi_cm17a_rfield_def_ptr},
+
+{"sony_visca",     MXI_GEN_SONY_VISCA,    MXI_GENERIC,       MXR_INTERFACE,
+				&mxi_sony_visca_record_function_list,
+				NULL,
+				NULL,
+				&mxi_sony_visca_num_record_fields,
+				&mxi_sony_visca_rfield_def_ptr},
 
 #ifdef OS_LINUX
 
@@ -3160,6 +3169,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_sony_visca_ptz_ptz_function_list,
 				&mxd_sony_visca_ptz_num_record_fields,
 				&mxd_sony_visca_ptz_rfield_def_ptr},
+
+{"hitachi_kp_d20", MXT_PTZ_HITACHI_KP_D20, MXC_PAN_TILT_ZOOM, MXR_DEVICE,
+				&mxd_hitachi_kp_d20_record_function_list,
+				NULL,
+				&mxd_hitachi_kp_d20_ptz_function_list,
+				&mxd_hitachi_kp_d20_num_record_fields,
+				&mxd_hitachi_kp_d20_rfield_def_ptr},
 
 #if HAVE_LABPC
 #  ifdef OS_LINUX   /* The LabPC+ driver is only useable under Linux. */

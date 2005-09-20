@@ -220,6 +220,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXI_GEN_SR630			444
 #define MXI_GEN_TPG262			445
 #define MXI_GEN_CM17A			446
+#define MXI_GEN_SONY_VISCA		447
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -619,10 +620,11 @@ MX_API MX_DRIVER mx_type_list[];
 /* --- Pan/Tilt/Zoom types --- */
 
 #define MXT_PTZ_SOFTWARE		210001
-#define MXT_PTZ_SONY_VISCA		210002
-#define MXT_PTZ_HITACHI_KP_D20		210003
-#define MXT_PTZ_PANASONIC_KX_DP700	210004
-#define MXT_PTZ_CANON_VC_C4		210005
+#define MXT_PTZ_NETWORK			210002
+#define MXT_PTZ_SONY_VISCA		210003
+#define MXT_PTZ_HITACHI_KP_D20		210004
+#define MXT_PTZ_PANASONIC_KX_DP700	210005
+#define MXT_PTZ_CANON_VC_C4		210006
 
 /* --- Scan types --- */
 
