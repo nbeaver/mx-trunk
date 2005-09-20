@@ -31,13 +31,8 @@ MX_RECORD_FUNCTION_LIST mxd_hitachi_kp_d20_record_function_list = {
 MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_hitachi_kp_d20_ptz_function_list = {
 	mxd_hitachi_kp_d20_command,
 	mxd_hitachi_kp_d20_get_status,
-#if 0
 	mxd_hitachi_kp_d20_get_parameter,
 	mxd_hitachi_kp_d20_set_parameter
-#else
-	NULL,
-	NULL
-#endif
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_hitachi_kp_d20_rf_defaults[] = {
