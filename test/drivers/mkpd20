@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -i -F ./mkpd20.dat -s ./skpd20.dat $*
+

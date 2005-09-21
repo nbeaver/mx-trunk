@@ -1,0 +1,2 @@
+kpd20_rs232 interface rs232 tty "" "" 9600 8 N 2 N 0x0 0x0 -1 0x0 /dev/ttyS1
+kpd20       device ptz hitachi_kp_d20 "" "" 0x0 kpd20_rs232
