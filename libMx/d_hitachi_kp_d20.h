@@ -34,6 +34,7 @@ typedef struct {
 
 MX_API mx_status_type mxd_hitachi_kp_d20_create_record_structures(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_hitachi_kp_d20_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz );
 MX_API mx_status_type mxd_hitachi_kp_d20_get_status( MX_PAN_TILT_ZOOM *ptz );

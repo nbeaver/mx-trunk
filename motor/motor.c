@@ -69,6 +69,7 @@ COMMAND command_list[] = {
 	{ motor_mabs_fn,    3, "move"          },     /* alias for 'mabs' */
 	{ motor_mrel_fn,    2, "mrel"          },
 	{ motor_open_fn,    1, "open"          },
+	{ motor_ptz_fn,     3, "ptz"           },
 	{ motor_exit_fn,    1, "quit"          },     /* alias for 'exit' */
 	{ motor_readp_fn,  10, "readparams"    },
 	{ motor_open_fn,    3, "remove"        },     /* alias for 'open' */

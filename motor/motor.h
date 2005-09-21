@@ -127,6 +127,7 @@ extern int motor_measure_fn( int argc, char *argv[] );
 extern int motor_mjog_fn( int argc, char *argv[] );
 extern int motor_modify_fn( int argc, char *argv[] );
 extern int motor_mrel_fn( int argc, char *argv[] );
+extern int motor_ptz_fn( int argc, char *argv[] );
 extern int motor_readp_fn( int argc, char *argv[] );
 extern int motor_resync_fn( int argc, char *argv[] );
 extern int motor_rs232_fn( int argc, char *argv[] );

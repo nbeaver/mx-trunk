@@ -17,7 +17,7 @@ MOTOR_SRCS = command.c mccd.c mcopy.c mcopyfile.c mcount.c \
 	mdelete.c mdialog.c mdisplay.c mexec.c mgpib.c mheader.c mhome.c \
 	minit.c mjog.c mkill.c mload.c mmca.c mmcs.c mmeasure.c mmodify.c \
 	mmove_absolute.c mmove_relative.c motor.c moverwrite.c \
-	mparameter.c mrelay.c mresync.c mrs232.c \
+	mparameter.c mptz.c mrelay.c mresync.c mrs232.c \
 	msample_changer.c msave.c msca.c \
 	mscan.c mscan_common.c \
 	mscan_linear.c mscan_list.c mscan_quick.c mscan_xafs.c \

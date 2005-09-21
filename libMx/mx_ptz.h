@@ -19,6 +19,8 @@
 
 #include "mx_record.h"
 
+#define MXSF_PTZ_IS_BUSY		0x1
+
 /* Flag values for mx_ptz_command(). */
 
 #define MXF_PTZ_DRIVE			0x1000
@@ -39,6 +41,8 @@
 #define MXF_PTZ_ZOOM_OUT		0x2001
 #define MXF_PTZ_ZOOM_IN			0x2002
 #define MXF_PTZ_ZOOM_STOP		0x2003
+
+#define MXF_PTZ_ZOOM_TO			0x2801
 
 #define MXF_PTZ_FOCUS			0x4000
 
@@ -83,6 +87,8 @@ MX_API mx_status_type mx_ptz_command( MX_RECORD *ptz_record,
 MX_API mx_status_type mx_ptz_get_status( MX_RECORD *ptz_record,
 					unsigned long *status );
 
+/* ----- */
+
 MX_API mx_status_type mx_ptz_get_parameter( MX_RECORD *ptz_record,
 					int parameter_type,
 					unsigned long *parameter_value );
@@ -98,6 +104,17 @@ MX_API mx_status_type mx_ptz_default_get_parameter_handler(
 
 MX_API mx_status_type mx_ptz_default_set_parameter_handler(
 						MX_PAN_TILT_ZOOM *ptz );
+
+/* ----- */
+
+MX_API mx_status_type mx_ptz_zoom_in( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_zoom_out( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_zoom_stop( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_zoom_to( MX_RECORD *ptz_record,
+					unsigned long zoom_value );
 
 #endif /* __MX_PTZ_H__ */
 
