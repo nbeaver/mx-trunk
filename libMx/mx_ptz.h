@@ -25,7 +25,7 @@
 
 /* Flag values for mx_ptz_command(). */
 
-#define MXF_PTZ_DRIVE			0x1000
+#define MXF_PTZ_DRIVE_TYPE		0x1000
 
 #define MXF_PTZ_DRIVE_UP		0x1001
 #define MXF_PTZ_DRIVE_DOWN		0x1002
@@ -38,23 +38,27 @@
 #define MXF_PTZ_DRIVE_STOP		0x1009
 #define MXF_PTZ_DRIVE_HOME		0x100a
 
-#define MXF_PTZ_DRIVE_TO		0x1101
+#define MXF_PTZ_DRIVE_VERT_POSITION	0x1101
+#define MXF_PTZ_DRIVE_VERT_DESTINATION	0x1102
+#define MXF_PTZ_DRIVE_HORIZ_POSITION	0x1103
+#define MXF_PTZ_DRIVE_HORIZ_DESTINATION	0x1104
 
 #define MXF_PTZ_DRIVE_OFF		0x1801
 #define MXF_PTZ_DRIVE_ON		0x1802
 
-#define MXF_PTZ_ZOOM			0x2000
+#define MXF_PTZ_ZOOM_TYPE		0x2000
 
 #define MXF_PTZ_ZOOM_OUT		0x2001
 #define MXF_PTZ_ZOOM_IN			0x2002
 #define MXF_PTZ_ZOOM_STOP		0x2003
 
-#define MXF_PTZ_ZOOM_TO			0x2101
+#define MXF_PTZ_ZOOM_POSITION		0x2101
+#define MXF_PTZ_ZOOM_DESTINATION	0x2102
 
 #define MXF_PTZ_ZOOM_OFF		0x2801
 #define MXF_PTZ_ZOOM_ON			0x2802
 
-#define MXF_PTZ_FOCUS			0x4000
+#define MXF_PTZ_FOCUS_TYPE		0x4000
 
 #define MXF_PTZ_FOCUS_MANUAL		0x4001
 #define MXF_PTZ_FOCUS_AUTO		0x4002
@@ -62,7 +66,8 @@
 #define MXF_PTZ_FOCUS_NEAR		0x4004
 #define MXF_PTZ_FOCUS_STOP		0x4005
 
-#define MXF_PTZ_FOCUS_TO		0x4101
+#define MXF_PTZ_FOCUS_POSITION		0x4101
+#define MXF_PTZ_FOCUS_DESTINATION	0x4102
 
 #define MXF_PTZ_FOCUS_OFF		0x4801
 #define MXF_PTZ_FOCUS_ON		0x4802
@@ -77,12 +82,38 @@ typedef struct {
 
 	unsigned long command;
 	unsigned long status;
+
+	unsigned long zoom_position;
+	unsigned long zoom_destination;
+	int zoom_command;
+	int zoom_on;
 } MX_PAN_TILT_ZOOM;
+
+#define MXLV_PTZ_ZOOM_POSITION		1001
+#define MXLV_PTZ_ZOOM_DESTINATION	1002
+#define MXLV_PTZ_ZOOM_COMMAND		1003
+#define MXLV_PTZ_ZOOM_ON		1004
 
 #define MX_PAN_TILT_ZOOM_STANDARD_FIELDS \
   {-1, -1, "ptz_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, ptz_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_position), \
+	{0}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_PTZ_ZOOM_DESTINATION, -1, "zoom_destination", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_ZOOM_COMMAND, -1, "zoom_command", MXFT_INT, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_command), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_INT, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_on), \
+	{0}, NULL, 0}
 
 /*
  * The structure type MX_PAN_TILT_ZOOM_FUNCTION_LIST contains
@@ -128,7 +159,10 @@ MX_API mx_status_type mx_ptz_zoom_out( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_zoom_stop( MX_RECORD *ptz_record );
 
-MX_API mx_status_type mx_ptz_zoom_to( MX_RECORD *ptz_record,
+MX_API mx_status_type mx_ptz_get_zoom( MX_RECORD *ptz_record,
+					unsigned long *zoom_value );
+
+MX_API mx_status_type mx_ptz_set_zoom( MX_RECORD *ptz_record,
 					unsigned long zoom_value );
 
 MX_API mx_status_type mx_ptz_zoom_off( MX_RECORD *ptz_record );

@@ -19,7 +19,7 @@
  * while NETWORK_DEBUG_VERBOSE shows much more information.
  */
 
-#define NETWORK_DEBUG			FALSE
+#define NETWORK_DEBUG			TRUE
 
 #define NETWORK_DEBUG_VERBOSE		FALSE
 
@@ -944,6 +944,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
 			strcpy( message_type_string, "PUT_ARRAY_BY_HANDLE" );
 			break;
+		case MX_NETMSG_GET_NETWORK_HANDLE:
+			strcpy( message_type_string, "GET_NETWORK_HANDLE" );
+			break;
 		case MX_NETMSG_GET_FIELD_TYPE:
 			strcpy( message_type_string, "GET_FIELD_TYPE" );
 			break;
@@ -1750,7 +1753,7 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 
 		default:
 			sprintf( text_buffer,
-				"%s: sending response in data format %d.",
+				"%s: sending response in data format %lu.",
 				fname, data_format );
 			break;
 		}

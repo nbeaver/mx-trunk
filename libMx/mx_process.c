@@ -63,6 +63,7 @@ static MX_PROCESS_FUNCTION_SETUP mx_process_function_setup_array[] = {
 { MXR_DEVICE, MXC_SINGLE_CHANNEL_ANALYZER, mx_setup_sca_process_functions },
 { MXR_DEVICE, MXC_CCD, mx_setup_ccd_process_functions },
 { MXR_DEVICE, MXC_SAMPLE_CHANGER, mx_setup_sample_changer_process_functions},
+{ MXR_DEVICE, MXC_PAN_TILT_ZOOM, mx_setup_ptz_process_functions},
 { MXR_INTERFACE, MXI_RS232, mx_setup_rs232_process_functions },
 { MXR_INTERFACE, MXI_GPIB, mx_setup_gpib_process_functions },
 { MXR_VARIABLE, MXC_ANY, mx_setup_variable_process_functions },

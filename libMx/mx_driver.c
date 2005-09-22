@@ -407,6 +407,8 @@
 #include "d_als_robot_java.h"
 #include "d_sercat_als_robot.h"
 
+#include "d_soft_ptz.h"
+#include "d_network_ptz.h"
 #include "d_sony_visca_ptz.h"
 #include "d_hitachi_kp_d20.h"
 
@@ -3162,6 +3164,20 @@ MX_DRIVER mx_type_list[] = {
 			&mxd_sercat_als_robot_sample_changer_function_list,
 				&mxd_sercat_als_robot_num_record_fields,
 				&mxd_sercat_als_robot_rfield_def_ptr},
+
+{"soft_ptz",       MXT_PTZ_SOFTWARE,  MXC_PAN_TILT_ZOOM, MXR_DEVICE,
+				&mxd_soft_ptz_record_function_list,
+				NULL,
+				&mxd_soft_ptz_ptz_function_list,
+				&mxd_soft_ptz_num_record_fields,
+				&mxd_soft_ptz_rfield_def_ptr},
+
+{"network_ptz",    MXT_PTZ_NETWORK,  MXC_PAN_TILT_ZOOM, MXR_DEVICE,
+				&mxd_network_ptz_record_function_list,
+				NULL,
+				&mxd_network_ptz_ptz_function_list,
+				&mxd_network_ptz_num_record_fields,
+				&mxd_network_ptz_rfield_def_ptr},
 
 {"sony_visca_ptz", MXT_PTZ_SONY_VISCA, MXC_PAN_TILT_ZOOM, MXR_DEVICE,
 				&mxd_sony_visca_ptz_record_function_list,

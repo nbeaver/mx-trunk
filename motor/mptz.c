@@ -62,8 +62,6 @@ motor_wait_for_ptz( MX_RECORD *ptz_record, char *label )
 int
 motor_ptz_fn( int argc, char *argv[] )
 {
-	const char cname[] = "ptz";
-
 	MX_RECORD *ptz_record;
 	MX_PAN_TILT_ZOOM *ptz;
 	unsigned long ulong_value;
@@ -102,8 +100,6 @@ motor_ptz_fn( int argc, char *argv[] )
 
 	if ( strncmp( "zoom", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		MX_DEBUG(-2,("%s: argc = %d", cname, argc));
-
 		if ( argc != 5 ) {
 			fprintf( output, "%s\n", usage );
 			return FAILURE;
@@ -132,7 +128,7 @@ motor_ptz_fn( int argc, char *argv[] )
 		} else {
 			ulong_value = mx_string_to_unsigned_long( argv[4] );
 
-			mx_status = mx_ptz_zoom_to( ptz_record, ulong_value );
+			mx_status = mx_ptz_set_zoom( ptz_record, ulong_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -385,10 +385,46 @@ mx_ptz_zoom_stop( MX_RECORD *ptz_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_zoom_to( MX_RECORD *ptz_record,
+mx_ptz_get_zoom( MX_RECORD *ptz_record,
+		unsigned long *zoom_value )
+{
+	static const char fname[] = "mx_ptz_get_zoom()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_ZOOM_POSITION;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( zoom_value != (unsigned long *) NULL ) {
+		*zoom_value = ptz->zoom_position;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_zoom( MX_RECORD *ptz_record,
 		unsigned long zoom_value )
 {
-	static const char fname[] = "mx_ptz_zoom_stop()";
+	static const char fname[] = "mx_ptz_set_zoom()";
 
 	MX_PAN_TILT_ZOOM *ptz;
 	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
@@ -409,8 +445,8 @@ mx_ptz_zoom_to( MX_RECORD *ptz_record,
 			ptz );
 	}
 
-	ptz->parameter_type = MXF_PTZ_ZOOM_TO;
-	ptz->parameter_value[0] = zoom_value;
+	ptz->parameter_type = MXF_PTZ_ZOOM_DESTINATION;
+	ptz->zoom_destination = zoom_value;
 
 	mx_status = (*set_parameter_fn)( ptz );
 

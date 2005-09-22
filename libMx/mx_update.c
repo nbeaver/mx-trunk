@@ -234,7 +234,7 @@ mx_update_record_values( MX_RECORD *record )
 				status = mx_mcai_read( record, NULL, NULL );
 				break;
 			case MXC_PAN_TILT_ZOOM:
-				status = mx_ptz_get_status( record, NULL );
+				status = mx_ptz_get_zoom( record, NULL );
 				break;
 			case MXC_TIMER:
 			case MXC_MULTICHANNEL_ANALYZER:

@@ -1,0 +1,2 @@
+s1   server network tcpip_server "" "" 0x0 localhost 9827
+ptz1 device ptz network_ptz "" "" 0x0 s1 ptz1

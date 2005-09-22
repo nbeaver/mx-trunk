@@ -484,7 +484,6 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 
 	MX_HITACHI_KP_D20 *hitachi_kp_d20;
 	char command[80];
-	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_get_pointers( ptz,
@@ -497,18 +496,16 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->parameter_type ) {
-	case MXF_PTZ_ZOOM_TO:
-		ulong_value = ptz->parameter_value[0];
-
-		if ( ulong_value >= 256 ) {
+	case MXF_PTZ_ZOOM_DESTINATION:
+		if ( ptz->zoom_destination >= 256 ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The requested zoom value of %lu is outside "
 			"the allowed range (0-255) for Hitachi PTZ '%s'",
-				ulong_value, ptz->record->name );
+				ptz->zoom_destination, ptz->record->name );
 		}
 
 		snprintf( command, sizeof(command), "3800%02lX00",
-				ulong_value );
+				ptz->zoom_destination );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
