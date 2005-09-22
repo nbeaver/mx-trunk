@@ -35,7 +35,7 @@ mx_setup_ptz_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG(2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	record_field_array = record->record_field_array;
 
@@ -74,9 +74,6 @@ mx_ptz_process_function( void *record_ptr,
 	ptz = (MX_PAN_TILT_ZOOM *) (record->record_class_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
-
-	MX_DEBUG(-2,("%s: operation = %d, field = %ld",
-		fname, operation, record_field->label_value));
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
