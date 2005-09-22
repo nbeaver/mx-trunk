@@ -183,7 +183,7 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_status;
 
 #if MXD_NETWORK_PTZ_DEBUG
-	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#lx.",
 		fname, ptz->record->name, ptz->command));
 #endif
 

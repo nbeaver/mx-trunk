@@ -321,8 +321,6 @@ mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
 static mx_status_type
 mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 {
-	static const char fname[] = "mxd_hitachi_kp_d20_cmd()";
-
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_raw_send_cmd(
@@ -347,6 +345,7 @@ mxd_hitachi_kp_d20_read_data( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command,
 		"a response from Hitachi PTZ '%s'.  The buffer size must "
 		"be at least %d bytes long.",
 			(unsigned long) max_response_length,
+			hitachi_kp_d20->record->name,
 			MXD_HITACHI_KP_D20_READ_DATA_LENGTH + 1 );
 	}
 
@@ -400,7 +399,9 @@ mxd_hitachi_kp_d20_read_data( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command,
 	if ( actual_response_length != MXD_HITACHI_KP_D20_READ_DATA_LENGTH ) {
 		mx_warning( "Did not receive the expected number of bytes "
 		"(%d) from Hitachi PTZ '%s'.  We instead received %lu bytes.",
-			MXD_HITACHI_KP_D20_READ_DATA_LENGTH );
+			MXD_HITACHI_KP_D20_READ_DATA_LENGTH,
+			hitachi_kp_d20->record->name,
+			(unsigned long) actual_response_length );
 	}
 
 	/* Null terminate the response so that it can be
