@@ -19,7 +19,7 @@
  * while NETWORK_DEBUG_VERBOSE shows much more information.
  */
 
-#define NETWORK_DEBUG			TRUE
+#define NETWORK_DEBUG			FALSE
 
 #define NETWORK_DEBUG_VERBOSE		FALSE
 

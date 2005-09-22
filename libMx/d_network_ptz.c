@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_PTZ_DEBUG	TRUE
+#define MXD_NETWORK_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -148,7 +148,9 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s'.", fname, record->name));
+#endif
 
 	mx_network_field_init( &(network_ptz->zoom_position_nf),
 		network_ptz->server_record,
