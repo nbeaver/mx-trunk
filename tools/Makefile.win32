@@ -1,5 +1,5 @@
 
-all: xdr.obj getopt.obj mxgnuplt.exe
+all: xdr.obj getopt.obj strlcpy.obj strlcat.obj mxgnuplt.exe
 
 include ../libMx/Makehead.win32
 
@@ -11,6 +11,14 @@ xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
 getopt.obj: generic/src/getopt.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
 		generic/src/getopt.c -Fogetopt.obj
+
+strlcpy.obj: generic/src/strlcpy.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		generic/src/strlcpy.c -Fostrlcpy.obj
+
+strlcat.obj: generic/src/strlcat.c
+	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \
+		generic/src/strlcat.c -Fostrlcat.obj
 
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	cl -nologo -c $(RUN_TIME_LIBRARY_FLAGS) \

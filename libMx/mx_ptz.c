@@ -170,7 +170,7 @@ mx_ptz_get_parameter( MX_RECORD *record,
 	mx_status = (*get_parameter_fn)( ptz );
 
 	if ( parameter_value != NULL ) {
-		*parameter_value = ptz->parameter_value;
+		*parameter_value = ptz->parameter_value[0];
 	}
 
 	return mx_status;
@@ -204,7 +204,7 @@ mx_ptz_set_parameter( MX_RECORD *record,
 	}
 
 	ptz->parameter_type = parameter_type;
-	ptz->parameter_value = parameter_value;
+	ptz->parameter_value[0] = parameter_value;
 
 	mx_status = (*get_parameter_fn)( ptz );
 
@@ -410,9 +410,71 @@ mx_ptz_zoom_to( MX_RECORD *ptz_record,
 	}
 
 	ptz->parameter_type = MXF_PTZ_ZOOM_TO;
-	ptz->parameter_value = zoom_value;
+	ptz->parameter_value[0] = zoom_value;
 
 	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_zoom_off( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_zoom_off()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_ZOOM_OFF;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_zoom_on( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_zoom_off()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_ZOOM_ON;
+
+	mx_status = (*command_fn)( ptz );
 
 	return mx_status;
 }

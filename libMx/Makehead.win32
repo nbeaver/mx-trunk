@@ -53,7 +53,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # for Gnu Make MUST NOT contain any spaces in it.  That is why the example
 # below specified the progra~1\micros~1 directory.
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
@@ -67,12 +67,13 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 # to do something like this.
 
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
+PLATFORM_SDK = c:\\progra~1\\micros~3
 #
-#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#MSDEV_DIR               = $(PLATFORM_SDK)
-#LIBRARIES               = $(WIN32_LIBS)
+RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+MSDEV_DIR               = $(PLATFORM_SDK)
+LIBRARIES               = $(WIN32_LIBS)
 
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
@@ -213,6 +214,10 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 
 #
 #---------------------------------------------------

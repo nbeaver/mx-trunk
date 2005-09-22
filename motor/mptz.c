@@ -71,10 +71,11 @@ motor_ptz_fn( int argc, char *argv[] )
 	mx_status_type mx_status;
 
 	static char usage[] =
-"Usage:  ptz 'ptz_name' pan [ left | right | stop | 'number' ]\n"
-"        ptz 'ptz_name' tilt [ up | down | stop | 'number' ]\n"
-"        ptz 'ptz_name' zoom [ in | out | stop | 'number' ]\n"
-"        ptz 'ptz_name' focus [ manual | auto | far | near | stop | 'number' ]\n"
+"Usage:  ptz 'ptz_name' pan [ left | right | stop | off | on | 'number' ]\n"
+"        ptz 'ptz_name' tilt [ up | down | stop | off | on | 'number' ]\n"
+"        ptz 'ptz_name' zoom [ in | out | stop | off | on | 'number' ]\n"
+"        ptz 'ptz_name' focus [ manual | auto | far | near \n"
+"                                          | stop | off | on | 'number' ]\n"
 	;
 
 	if ( argc < 4 ) {
@@ -120,6 +121,14 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_zoom_stop( ptz_record );
 
+		} else
+		if ( strncmp( "off", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_zoom_off( ptz_record );
+		} else
+		if ( strncmp( "on", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_zoom_on( ptz_record );
 		} else {
 			ulong_value = mx_string_to_unsigned_long( argv[4] );
 

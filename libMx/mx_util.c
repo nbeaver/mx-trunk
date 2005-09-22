@@ -1302,6 +1302,53 @@ mx_free_pointer( void *pointer )
 
 /* --- */
 
+#if defined(OS_WIN32)
+
+/* The Win32 functions _snprintf() and _vsnprintf() do not null terminate
+ * the strings they return if the output was truncated.  This is inconsitent
+ * with the Unix definition of these functions, so we cannot simply define
+ * snprintf() as _snprintf().  Instead, we provide wrapper functions that
+ * make sure that the output string is always terminated.  Thanks to the
+ * authors of http://www.di-mgt.com.au/cprog.html for pointing this out.
+ */
+
+MX_EXPORT int
+snprintf( char *dest, size_t maxlen, const char *format, ... )
+{
+	va_list args;
+	int result;
+
+	va_start( args, format );
+
+	result = _vsnprintf( dest, maxlen-1, format, args );
+
+	if ( result < 0 ) {
+		dest[ maxlen-1 ] = '\0';
+	}
+
+	va_end( args );
+
+	return result;
+}
+
+MX_EXPORT int
+vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
+{
+	int result;
+
+	result = _vsnprintf( dest, maxlen-1, format, args );
+
+	if ( result < 0 ) {
+		dest[ maxlen-1 ] = '\0';
+	}
+
+	return result;
+}
+
+#endif
+
+/* --- */
+
 MX_EXPORT char *
 mx_strappend( char *dest, char *src, size_t buffer_length )
 {

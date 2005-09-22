@@ -106,8 +106,10 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 	static const char fname[] = "mxd_hitachi_kp_d20_cmd()";
 
 	MX_RECORD *rs232_record;
-	unsigned long i, text_length, wait_ms, max_attempts;
-	mx_uint16_type checksum, xor_checksum;
+	unsigned long i, checksum_data_length, wait_ms, max_attempts;
+	mx_uint16_type checksum, xor_8bit_checksum;
+	unsigned char low_nibble, high_nibble;
+	unsigned char low_nibble_ascii, high_nibble_ascii;
 	char *checksum_address;
 	char c;
 	unsigned char local_command[40];
@@ -136,74 +138,49 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 
 	/* Compute the command checksum. */
 
-	text_length = MXD_HITACHI_KP_D20_COMMAND_TEXT_LENGTH;
+	checksum_data_length = MXD_HITACHI_KP_D20_COMMAND_TEXT_LENGTH + 2;
 
 	checksum = 0;
 
-	for ( i = 0; i < text_length; i++ ) {
+	for ( i = 0; i < checksum_data_length; i++ ) {
 		checksum += local_command[i];
 		MX_DEBUG(-2,("%s: checksum = %#x", fname, checksum));
 	}
 
-#if 1
-	xor_checksum = checksum ^ 0xff;
-#else
-	xor_checksum = checksum;
-#endif
+	xor_8bit_checksum = checksum ^ 0xff;
 
-	xor_checksum &= 0xffff;
+	xor_8bit_checksum &= 0xff;
 
-	MX_DEBUG(-2,("%s: xor_checksum = %#x", fname, xor_checksum));
+	MX_DEBUG(-2,("%s: xor_8bit_checksum = %#x", fname, xor_8bit_checksum));
 
 	checksum_address = local_command
 				+ MXD_HITACHI_KP_D20_COMMAND_TEXT_LENGTH + 2;
 
-#if 0
-	checksum_address[0] = xor_checksum & 0xff;
-	checksum_address[1] = ( xor_checksum >> 8 ) & 0xff;
-#elif 0
-	checksum_address[1] = xor_checksum & 0xff;
-	checksum_address[0] = ( xor_checksum >> 8 ) & 0xff;
-#elif 0
-	{
-		unsigned char low_nibble, high_nibble;
-		unsigned char low_nibble_ascii, high_nibble_ascii;
+	low_nibble = xor_8bit_checksum & 0xf;
 
-		low_nibble = xor_checksum & 0xf;
+	high_nibble = (xor_8bit_checksum >> 4) & 0xf;
 
-		high_nibble = (xor_checksum >> 4) & 0xf;
+	MX_DEBUG(-2,("%s: high_nibble = %x, low_nibble = %x",
+			fname, high_nibble, low_nibble));
 
-		MX_DEBUG(-2,("%s: low_nibble = %x, high_nibble = %x",
-			fname, low_nibble, high_nibble));
-
-		if ( low_nibble < 10 ) {
-			low_nibble_ascii = 0x30 + low_nibble;
-		} else {
-			low_nibble_ascii = 0x65 + low_nibble;
-		}
-		if ( high_nibble < 10 ) {
-			high_nibble_ascii = 0x30 + high_nibble;
-		} else {
-			high_nibble_ascii = 0x65 + high_nibble;
-		}
-
-		MX_DEBUG(-2,
-		("%s: low_nibble_ascii = %c, high_nibble_ascii = %c",
-			fname, low_nibble_ascii, high_nibble_ascii));
-
-#  if 0
-		checksum_address[1] = high_nibble_ascii;
-		checksum_address[0] = low_nibble_ascii;
-#  else
-		checksum_address[0] = high_nibble_ascii;
-		checksum_address[1] = low_nibble_ascii;
-#  endif
-
+	if ( low_nibble < 10 ) {
+		low_nibble_ascii = 0x30 + low_nibble;
+	} else {
+		low_nibble_ascii = 0x37 + low_nibble;
 	}
-#else
-	checksum_address[0] = 0;
-	checksum_address[1] = 0;
-#endif
+
+	if ( high_nibble < 10 ) {
+		high_nibble_ascii = 0x30 + high_nibble;
+	} else {
+		high_nibble_ascii = 0x37 + high_nibble;
+	}
+
+	MX_DEBUG(-2,("%s: high_nibble_ascii = %c, low_nibble_ascii = %c",
+			fname, high_nibble_ascii, low_nibble_ascii));
+
+	checksum_address[0] = high_nibble_ascii;
+	checksum_address[1] = low_nibble_ascii;
+	checksum_address[2] = '\0';
 
 #if MXD_HITACHI_KP_D20_DEBUG
 	fprintf( stderr, "%s: Bytes to send = ", fname );
@@ -428,14 +405,25 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 
 	switch( ptz->command ) {
 	case MXF_PTZ_ZOOM_IN:
-		strlcpy( command, "38004000", sizeof(command) );
+		strlcpy( command, "3800FF00", sizeof(command) );
 		break;
 	case MXF_PTZ_ZOOM_OUT:
-		strlcpy( command, "38010000", sizeof(command) );
+		strlcpy( command, "38000000", sizeof(command) );
+		break;
+	case MXF_PTZ_ZOOM_STOP:
+		/* Ignore this command since it is irrelevant to 
+		 * a digital zoom camera which zooms immediately.
+		 */
+		break;
+	case MXF_PTZ_ZOOM_OFF:
+		strlcpy( command, "37010000", sizeof(command) );
+		break;
+	case MXF_PTZ_ZOOM_ON:
+		strlcpy( command, "37000000", sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The command %lu received for Hitachi PTZ '%s' "
+			"The command %#lx received for Hitachi PTZ '%s' "
 			"is not a known command type.",
 				ptz->command, hitachi_kp_d20->record->name );
 		break;
@@ -496,6 +484,7 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 
 	MX_HITACHI_KP_D20 *hitachi_kp_d20;
 	char command[80];
+	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_get_pointers( ptz,
@@ -509,8 +498,17 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_ZOOM_TO:
-		snprintf( command, sizeof(command), "38%02ld0000",
-				ptz->parameter_value );
+		ulong_value = ptz->parameter_value[0];
+
+		if ( ulong_value >= 256 ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested zoom value of %lu is outside "
+			"the allowed range (0-255) for Hitachi PTZ '%s'",
+				ulong_value, ptz->record->name );
+		}
+
+		snprintf( command, sizeof(command), "3800%02lX00",
+				ulong_value );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
