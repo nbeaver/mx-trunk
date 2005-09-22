@@ -478,6 +478,7 @@ mx_ptz_zoom_off( MX_RECORD *ptz_record )
 	}
 
 	ptz->command = MXF_PTZ_ZOOM_OFF;
+	ptz->zoom_on = FALSE;
 
 	mx_status = (*command_fn)( ptz );
 
@@ -509,6 +510,7 @@ mx_ptz_zoom_on( MX_RECORD *ptz_record )
 	}
 
 	ptz->command = MXF_PTZ_ZOOM_ON;
+	ptz->zoom_on = TRUE;
 
 	mx_status = (*command_fn)( ptz );
 

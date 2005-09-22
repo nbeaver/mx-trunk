@@ -100,6 +100,13 @@ mx_ptz_process_function( void *record_ptr,
 		case MXLV_PTZ_ZOOM_COMMAND:
 			mx_status = mx_ptz_command( record, ptz->command );
 			break;
+		case MXLV_PTZ_ZOOM_ON:
+			if ( ptz->zoom_on == FALSE ) {
+				mx_status = mx_ptz_zoom_off( record );
+			} else {
+				mx_status = mx_ptz_zoom_on( record );
+			}
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",

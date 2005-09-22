@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_HITACHI_KP_D20_DEBUG	TRUE
+#define MXD_HITACHI_KP_D20_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -100,8 +100,15 @@ mxd_hitachi_kp_d20_get_pointers( MX_PAN_TILT_ZOOM *ptz,
 #define MXD_HITACHI_KP_D20_COMMAND_LENGTH \
 		( MXD_HITACHI_KP_D20_COMMAND_TEXT_LENGTH + 4 )
 
+#define MXD_HITACHI_KP_D20_READ_DATA_TEXT_LENGTH	6
+
+#define MXD_HITACHI_KP_D20_READ_DATA_LENGTH \
+		( MXD_HITACHI_KP_D20_READ_DATA_TEXT_LENGTH + 4 )
+
 static mx_status_type
-mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
+mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
+					char *prefix,
+					char *command )
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_cmd()";
 
@@ -134,7 +141,7 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 	/* Format the string to be sent to the controller. */
 
 	snprintf( local_command, sizeof(local_command),
-		"%c00FF01%s%c", MX_STX, command, MX_ETX );
+		"%c00FF%s%s%c", MX_STX, prefix, command, MX_ETX );
 
 	/* Compute the command checksum. */
 
@@ -144,14 +151,11 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 
 	for ( i = 0; i < checksum_data_length; i++ ) {
 		checksum += local_command[i];
-		MX_DEBUG(-2,("%s: checksum = %#x", fname, checksum));
 	}
 
 	xor_8bit_checksum = checksum ^ 0xff;
 
 	xor_8bit_checksum &= 0xff;
-
-	MX_DEBUG(-2,("%s: xor_8bit_checksum = %#x", fname, xor_8bit_checksum));
 
 	checksum_address = local_command
 				+ MXD_HITACHI_KP_D20_COMMAND_TEXT_LENGTH + 2;
@@ -159,9 +163,6 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 	low_nibble = xor_8bit_checksum & 0xf;
 
 	high_nibble = (xor_8bit_checksum >> 4) & 0xf;
-
-	MX_DEBUG(-2,("%s: high_nibble = %x, low_nibble = %x",
-			fname, high_nibble, low_nibble));
 
 	if ( low_nibble < 10 ) {
 		low_nibble_ascii = 0x30 + low_nibble;
@@ -174,9 +175,6 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 	} else {
 		high_nibble_ascii = 0x37 + high_nibble;
 	}
-
-	MX_DEBUG(-2,("%s: high_nibble_ascii = %c, low_nibble_ascii = %c",
-			fname, high_nibble_ascii, low_nibble_ascii));
 
 	checksum_address[0] = high_nibble_ascii;
 	checksum_address[1] = low_nibble_ascii;
@@ -192,7 +190,7 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 	fprintf( stderr, "\n" );
 #endif
 
-	wait_ms = 100;
+	wait_ms = 1000;
 	max_attempts = 4;
 
 	/* Attempt to handshake with the Hitachi camera. */
@@ -221,7 +219,9 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 			 * of this for() loop.
 			 */
 
+#if MXD_HITACHI_KP_D20_DEBUG
 			MX_DEBUG(-2,("%s: ACK seen for ENQ.", fname));
+#endif
 
 			break;
 		} else
@@ -243,7 +243,7 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 			 */
 		}
 
-		mx_msleep(1000);
+		mx_msleep( wait_ms );
 	}
 
 	if ( i >= max_attempts ) {
@@ -280,7 +280,9 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 			 * of this for() loop.
 			 */
 
+#if MXD_HITACHI_KP_D20_DEBUG
 			MX_DEBUG(-2,("%s: ACK seen for command.", fname));
+#endif
 
 			break;
 		} else
@@ -302,7 +304,7 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 			 */
 		}
 
-		mx_msleep(1000);
+		mx_msleep( wait_ms );
 	}
 
 	if ( i >= max_attempts ) {
@@ -310,6 +312,126 @@ mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
 		"Timed out waiting for an ACK character from "
 		"Hitachi camera '%s'.", hitachi_kp_d20->record->name );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_hitachi_kp_d20_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command )
+{
+	static const char fname[] = "mxd_hitachi_kp_d20_cmd()";
+
+	mx_status_type mx_status;
+
+	mx_status = mxd_hitachi_kp_d20_raw_send_cmd(
+					hitachi_kp_d20, "01", command );
+
+	return mx_status;
+}
+
+static mx_status_type
+mxd_hitachi_kp_d20_read_data( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command,
+				char *response, size_t max_response_length )
+{
+	static const char fname[] = "mxd_hitachi_kp_d20_read_data()";
+
+	unsigned long i, wait_ms, max_attempts, num_bytes_available;
+	size_t actual_response_length;
+	mx_status_type mx_status;
+
+	if ( max_response_length < (MXD_HITACHI_KP_D20_READ_DATA_LENGTH+1) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The response buffer size (%lu) is too small to receive "
+		"a response from Hitachi PTZ '%s'.  The buffer size must "
+		"be at least %d bytes long.",
+			(unsigned long) max_response_length,
+			MXD_HITACHI_KP_D20_READ_DATA_LENGTH + 1 );
+	}
+
+	/* Send the read data command. */
+
+	mx_status = mxd_hitachi_kp_d20_raw_send_cmd(
+					hitachi_kp_d20, "81", command );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for a response from the camera. */
+
+	wait_ms = 100;
+	max_attempts = 40;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		mx_status = mx_rs232_num_input_bytes_available(
+						hitachi_kp_d20->rs232_record,
+						&num_bytes_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_bytes_available > 0 ) {
+			break;			/* Exit the for() loop. */
+		}
+
+		mx_msleep(wait_ms);
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out waiting for a response from Hitachi camera '%s' "
+		"to the read data command '%s'.",
+			hitachi_kp_d20->record->name,
+			command );
+	}
+
+	/* Now read in the response. */
+
+	mx_status = mx_rs232_read( hitachi_kp_d20->rs232_record,
+					response,
+					MXD_HITACHI_KP_D20_READ_DATA_LENGTH,
+					&actual_response_length,
+					MXD_HITACHI_KP_D20_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( actual_response_length != MXD_HITACHI_KP_D20_READ_DATA_LENGTH ) {
+		mx_warning( "Did not receive the expected number of bytes "
+		"(%d) from Hitachi PTZ '%s'.  We instead received %lu bytes.",
+			MXD_HITACHI_KP_D20_READ_DATA_LENGTH );
+	}
+
+	/* Null terminate the response so that it can be
+	 * more easily displayed.
+	 */
+
+	response[ actual_response_length ] = '\0';
+
+	/* Send back an acknowledgement to the Hitachi PTZ that we have 
+	 * received the response.
+	 */
+
+	/* Send an ACK byte. */
+
+	mx_status = mx_rs232_putchar( hitachi_kp_d20->rs232_record,
+					MX_ACK, MXD_HITACHI_KP_D20_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* There will be no further response from the Hitachi PTZ. */
+
+#if MXD_HITACHI_KP_D20_DEBUG
+	fprintf( stderr, "%s: Bytes read = ", fname );
+
+	for ( i = 0; i < actual_response_length; i++ ) {
+		fprintf( stderr, "%#x ", response[i] );
+	}
+
+	fprintf( stderr, "\n" );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -377,8 +499,6 @@ mxd_hitachi_kp_d20_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	mx_status = mx_rs232_discard_unread_input( hitachi_kp_d20->rs232_record,
 						MXD_HITACHI_KP_D20_DEBUG );
 
@@ -391,7 +511,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 	static const char fname[] = "mxd_hitachi_kp_d20_command()";
 
 	MX_HITACHI_KP_D20 *hitachi_kp_d20;
-	char command[80];
+	char command[40];
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_get_pointers( ptz,
@@ -400,7 +520,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->command ) {
@@ -423,7 +543,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The command %#lx received for Hitachi PTZ '%s' "
+			"The command type %#lx requested for Hitachi PTZ '%s' "
 			"is not a known command type.",
 				ptz->command, hitachi_kp_d20->record->name );
 		break;
@@ -450,7 +570,9 @@ mxd_hitachi_kp_d20_get_status( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_HITACHI_KP_D20_DEBUG
 	MX_DEBUG(-2,("%s: invoked for PTZ '%s'", fname, ptz->record->name));
+#endif
 
 	ptz->status = 0;
 
@@ -463,6 +585,9 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	static const char fname[] = "mxd_hitachi_kp_d20_get_parameter()";
 
 	MX_HITACHI_KP_D20 *hitachi_kp_d20;
+	char command[40];
+	char response[40];
+	char *response_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxd_hitachi_kp_d20_get_pointers( ptz,
@@ -471,10 +596,54 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_HITACHI_KP_D20_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
+#endif
 
-	return mx_status;
+	switch( ptz->parameter_type ) {
+	case MXF_PTZ_ZOOM_POSITION:
+		strlcpy( command, "38000000", sizeof(command) );
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The read data type %#lx requested for Hitachi PTZ '%s' "
+		"is not a known command type.",
+				ptz->command, hitachi_kp_d20->record->name );
+		break;
+	}
+
+	/* Send the read data request. */
+
+	mx_status = mxd_hitachi_kp_d20_read_data( hitachi_kp_d20, command,
+						response, sizeof(response) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The response we are looking for will be in the bytes
+	 * response[3] and response[4].
+	 */
+
+	/* Modify the response to make it easier to parse as
+	 * a hexadecimal number.
+	 */
+
+	response[1] = '0';
+	response[2] = 'x';
+
+	response[5] = '\0';
+
+	response_ptr = &(response[1]);
+
+	ptz->zoom_position = mx_string_to_unsigned_long( response_ptr );
+
+#if MXD_HITACHI_KP_D20_DEBUG
+	MX_DEBUG(-2,("%s: PTZ '%s' zoom position = %lu",
+		fname, ptz->record->name, ptz->zoom_position));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -492,8 +661,10 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_HITACHI_KP_D20_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
+#endif
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_ZOOM_DESTINATION:

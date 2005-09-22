@@ -182,17 +182,22 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
-		fname, ptz->record->name, ptz->parameter_type));
+		fname, ptz->record->name, ptz->command));
+#endif
 
 	switch( ptz->command ) {
 	case MXF_PTZ_ZOOM_IN:
 	case MXF_PTZ_ZOOM_OUT:
 	case MXF_PTZ_ZOOM_STOP:
+		mx_status = mx_put( &(network_ptz->zoom_command_nf),
+					MXFT_ULONG, &(ptz->command) );
+		break;
 	case MXF_PTZ_ZOOM_OFF:
 	case MXF_PTZ_ZOOM_ON:
-		mx_status = mx_put( &(network_ptz->zoom_command_nf),
-					MXFT_INT, &(ptz->command) );
+		mx_status = mx_put( &(network_ptz->zoom_on_nf),
+					MXFT_INT, &(ptz->zoom_on) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -218,7 +223,9 @@ mxd_network_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s: invoked for PTZ '%s'", fname, ptz->record->name));
+#endif
 
 	ptz->status = 0;
 
@@ -238,13 +245,15 @@ mxd_network_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
+#endif
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_status = mx_get( &(network_ptz->zoom_position_nf),
-					MXFT_INT, &(ptz->zoom_position) );
+					MXFT_ULONG, &(ptz->zoom_position) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -270,13 +279,15 @@ mxd_network_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_PTZ_DEBUG
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
+#endif
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_ZOOM_DESTINATION:
 		mx_status = mx_put( &(network_ptz->zoom_destination_nf),
-					MXFT_INT, &(ptz->zoom_destination) );
+					MXFT_ULONG, &(ptz->zoom_destination) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
