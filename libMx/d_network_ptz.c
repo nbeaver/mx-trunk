@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_PTZ_DEBUG	FALSE
+#define MXD_NETWORK_PTZ_DEBUG	TRUE
 
 #include <stdio.h>
 

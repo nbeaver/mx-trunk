@@ -522,7 +522,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
-		fname, ptz->record->name, ptz->parameter_type));
+		fname, ptz->record->name, ptz->command));
 
 	switch( ptz->command ) {
 	case MXF_PTZ_ZOOM_IN:

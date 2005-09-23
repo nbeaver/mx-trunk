@@ -73,6 +73,9 @@ mx_ptz_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	ptz = (MX_PAN_TILT_ZOOM *) (record->record_class_struct);
 
+	MX_DEBUG(-2,("%s: PTZ '%s', operation = %d, label_value = %ld",
+		fname, record->name, operation, record_field->label_value ));
+
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
@@ -95,6 +98,9 @@ mx_ptz_process_function( void *record_ptr,
 						ptz->zoom_destination );
 			break;
 		case MXLV_PTZ_ZOOM_COMMAND:
+			MX_DEBUG(-2,("%s: ptz->command = %#lx",
+				fname, ptz->command));
+
 			mx_status = mx_ptz_command( record, ptz->command );
 			break;
 		case MXLV_PTZ_ZOOM_ON:
