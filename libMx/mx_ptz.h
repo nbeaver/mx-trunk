@@ -85,19 +85,27 @@ typedef struct {
 
 	unsigned long zoom_position;
 	unsigned long zoom_destination;
-	int zoom_command;
-	int zoom_on;
+	unsigned long zoom_on;
 } MX_PAN_TILT_ZOOM;
 
-#define MXLV_PTZ_ZOOM_POSITION		1001
-#define MXLV_PTZ_ZOOM_DESTINATION	1002
-#define MXLV_PTZ_ZOOM_COMMAND		1003
-#define MXLV_PTZ_ZOOM_ON		1004
+#define MXLV_PTZ_COMMAND		1001
+#define MXLV_PTZ_STATUS			1002
+#define MXLV_PTZ_ZOOM_POSITION		1003
+#define MXLV_PTZ_ZOOM_DESTINATION	1004
+#define MXLV_PTZ_ZOOM_ON		1005
 
 #define MX_PAN_TILT_ZOOM_STANDARD_FIELDS \
   {-1, -1, "ptz_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, ptz_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_PTZ_COMMAND, -1, "command", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, command), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_STATUS, -1, "status", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, status), \
+	{0}, NULL, 0}, \
   \
   {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_position), \
@@ -107,11 +115,7 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_destination), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_ZOOM_COMMAND, -1, "zoom_command", MXFT_INT, NULL, 0, {0}, \
-  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_command), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_on), \
 	{0}, NULL, 0}
 

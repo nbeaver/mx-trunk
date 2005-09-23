@@ -23,9 +23,10 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD command_nf;
+	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD zoom_position_nf;
 	MX_NETWORK_FIELD zoom_destination_nf;
-	MX_NETWORK_FIELD zoom_command_nf;
 	MX_NETWORK_FIELD zoom_on_nf;
 } MX_NETWORK_PTZ;
 

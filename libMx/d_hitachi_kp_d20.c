@@ -500,6 +500,10 @@ mxd_hitachi_kp_d20_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_HITACHI_KP_D20_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
+
 	mx_status = mx_rs232_discard_unread_input( hitachi_kp_d20->rs232_record,
 						MXD_HITACHI_KP_D20_DEBUG );
 
@@ -521,15 +525,17 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#lx.",
+#if MXD_HITACHI_KP_D20_DEBUG
+	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#lx.",
 		fname, ptz->record->name, ptz->command));
+#endif
 
 	switch( ptz->command ) {
 	case MXF_PTZ_ZOOM_IN:
-		strlcpy( command, "3800FF00", sizeof(command) );
+		strlcpy( command, "38000000", sizeof(command) );
 		break;
 	case MXF_PTZ_ZOOM_OUT:
-		strlcpy( command, "38000000", sizeof(command) );
+		strlcpy( command, "3800FF00", sizeof(command) );
 		break;
 	case MXF_PTZ_ZOOM_STOP:
 		/* Ignore this command since it is irrelevant to 

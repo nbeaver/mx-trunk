@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_PTZ_DEBUG	TRUE
+#define MXD_NETWORK_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -152,6 +152,14 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for PTZ '%s'.", fname, record->name));
 #endif
 
+	mx_network_field_init( &(network_ptz->command_nf),
+		network_ptz->server_record,
+		"%s.command", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->status_nf),
+		network_ptz->server_record,
+		"%s.status", network_ptz->remote_record_name );
+
 	mx_network_field_init( &(network_ptz->zoom_position_nf),
 		network_ptz->server_record,
 		"%s.zoom_position", network_ptz->remote_record_name );
@@ -159,10 +167,6 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_ptz->zoom_destination_nf),
 		network_ptz->server_record,
 		"%s.zoom_destination", network_ptz->remote_record_name );
-
-	mx_network_field_init( &(network_ptz->zoom_command_nf),
-		network_ptz->server_record,
-		"%s.zoom_command", network_ptz->remote_record_name );
 
 	mx_network_field_init( &(network_ptz->zoom_on_nf),
 		network_ptz->server_record,
@@ -177,7 +181,6 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	static const char fname[] = "mxd_network_ptz_command()";
 
 	MX_NETWORK_PTZ *network_ptz;
-	int int_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );
@@ -194,21 +197,13 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_IN:
 	case MXF_PTZ_ZOOM_OUT:
 	case MXF_PTZ_ZOOM_STOP:
-		int_value = ptz->command;
-
-		MX_DEBUG(-2,("%s: int_value = %#x", fname, int_value));
-
-		mx_status = mx_put( &(network_ptz->zoom_command_nf),
-					MXFT_INT, &int_value );
+		mx_status = mx_put( &(network_ptz->command_nf),
+					MXFT_ULONG, &(ptz->command) );
 		break;
 	case MXF_PTZ_ZOOM_OFF:
 	case MXF_PTZ_ZOOM_ON:
-		int_value = ptz->zoom_on;
-
-		MX_DEBUG(-2,("%s: int_value = %d", fname, int_value));
-
 		mx_status = mx_put( &(network_ptz->zoom_on_nf),
-					MXFT_INT, &(ptz->zoom_on) );
+					MXFT_ULONG, &(ptz->zoom_on) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -238,7 +233,8 @@ mxd_network_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 	MX_DEBUG(-2,("%s: invoked for PTZ '%s'", fname, ptz->record->name));
 #endif
 
-	ptz->status = 0;
+	mx_status = mx_get( &(network_ptz->status_nf),
+					MXFT_ULONG, &(ptz->status) );
 
 	return mx_status;
 }

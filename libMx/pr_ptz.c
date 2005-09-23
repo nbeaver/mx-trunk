@@ -44,9 +44,10 @@ mx_setup_ptz_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_PTZ_COMMAND:
+		case MXLV_PTZ_STATUS:
 		case MXLV_PTZ_ZOOM_POSITION:
 		case MXLV_PTZ_ZOOM_DESTINATION:
-		case MXLV_PTZ_ZOOM_COMMAND:
 		case MXLV_PTZ_ZOOM_ON:
 			record_field->process_function
 					    = mx_ptz_process_function;
@@ -73,7 +74,7 @@ mx_ptz_process_function( void *record_ptr,
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	ptz = (MX_PAN_TILT_ZOOM *) (record->record_class_struct);
 
-	MX_DEBUG(-2,("%s: PTZ '%s', operation = %d, label_value = %ld",
+	MX_DEBUG( 2,("%s: PTZ '%s', operation = %d, label_value = %ld",
 		fname, record->name, operation, record_field->label_value ));
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -81,6 +82,9 @@ mx_ptz_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_PTZ_STATUS:
+			mx_status = mx_ptz_get_status( record, NULL );
+			break;
 		case MXLV_PTZ_ZOOM_POSITION:
 			mx_status = mx_ptz_get_zoom( record, NULL );
 			break;
@@ -93,15 +97,12 @@ mx_ptz_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_PTZ_COMMAND:
+			mx_status = mx_ptz_command( record, ptz->command );
+			break;
 		case MXLV_PTZ_ZOOM_DESTINATION:
 			mx_status = mx_ptz_set_zoom( record,
 						ptz->zoom_destination );
-			break;
-		case MXLV_PTZ_ZOOM_COMMAND:
-			MX_DEBUG(-2,("%s: ptz->command = %#lx",
-				fname, ptz->command));
-
-			mx_status = mx_ptz_command( record, ptz->command );
 			break;
 		case MXLV_PTZ_ZOOM_ON:
 			if ( ptz->zoom_on == FALSE ) {
