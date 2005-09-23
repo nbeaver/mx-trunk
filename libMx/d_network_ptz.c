@@ -177,6 +177,8 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	static const char fname[] = "mxd_network_ptz_command()";
 
 	MX_NETWORK_PTZ *network_ptz;
+	unsigned long ulong_value;
+	int int_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ptz_get_pointers( ptz, &network_ptz, fname );
@@ -193,11 +195,19 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_IN:
 	case MXF_PTZ_ZOOM_OUT:
 	case MXF_PTZ_ZOOM_STOP:
+		ulong_value = ptz->command;
+
+		MX_DEBUG(-2,("%s: ulong_value = %lu", fname, ulong_value));
+
 		mx_status = mx_put( &(network_ptz->zoom_command_nf),
-					MXFT_ULONG, &(ptz->command) );
+					MXFT_ULONG, &ulong_value );
 		break;
 	case MXF_PTZ_ZOOM_OFF:
 	case MXF_PTZ_ZOOM_ON:
+		int_value = ptz->zoom_on;
+
+		MX_DEBUG(-2,("%s: int_value = %d", fname, int_value));
+
 		mx_status = mx_put( &(network_ptz->zoom_on_nf),
 					MXFT_INT, &(ptz->zoom_on) );
 		break;

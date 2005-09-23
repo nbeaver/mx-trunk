@@ -521,7 +521,7 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#lx.",
 		fname, ptz->record->name, ptz->command));
 
 	switch( ptz->command ) {
