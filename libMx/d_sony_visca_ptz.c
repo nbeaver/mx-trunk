@@ -206,17 +206,20 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		mxi_sony_visca_copy( command,
 				"\x01\x06\x04\xff", sizeof( command ) );
 		break;
-	case MXF_PTZ_ZOOM_OUT:
-		mxi_sony_visca_copy( command,
-				"\x01\x04\x07\x03\xff", sizeof( command ) );
-		break;
 	case MXF_PTZ_ZOOM_IN:
 		mxi_sony_visca_copy( command,
 				"\x01\x04\x07\x02\xff", sizeof( command ) );
 		break;
+	case MXF_PTZ_ZOOM_OUT:
+		mxi_sony_visca_copy( command,
+				"\x01\x04\x07\x03\xff", sizeof( command ) );
+		break;
 	case MXF_PTZ_ZOOM_STOP:
 		mxi_sony_visca_copy( command,
 				"\x01\x04\x07\x00\xff", sizeof( command ) );
+		break;
+	case MXF_PTZ_ZOOM_OFF:
+	case MXF_PTZ_ZOOM_ON:
 		break;
 	case MXF_PTZ_FOCUS_MANUAL:
 		mxi_sony_visca_copy( command,
