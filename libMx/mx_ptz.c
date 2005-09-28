@@ -292,6 +292,472 @@ mx_ptz_default_set_parameter_handler( MX_PAN_TILT_ZOOM *ptz )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
+mx_ptz_pan_left( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_pan_left()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_PAN_LEFT;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_pan_right( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_pan_right()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_PAN_RIGHT;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_pan_stop( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_pan_stop()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_PAN_STOP;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_pan( MX_RECORD *ptz_record,
+		long *pan_value )
+{
+	static const char fname[] = "mx_ptz_get_pan()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_PAN_POSITION;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( pan_value != (long *) NULL ) {
+		*pan_value = ptz->pan_position;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_pan( MX_RECORD *ptz_record,
+		long pan_value )
+{
+	static const char fname[] = "mx_ptz_set_pan()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_PAN_DESTINATION;
+	ptz->pan_destination = pan_value;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_pan_speed( MX_RECORD *ptz_record,
+		unsigned long *pan_speed )
+{
+	static const char fname[] = "mx_ptz_get_pan_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_PAN_SPEED;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( pan_speed != (unsigned long *) NULL ) {
+		*pan_speed = ptz->pan_speed;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_pan_speed( MX_RECORD *ptz_record,
+		unsigned long pan_speed )
+{
+	static const char fname[] = "mx_ptz_set_pan_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_PAN_SPEED;
+	ptz->pan_speed = pan_speed;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
+mx_ptz_tilt_up( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_tilt_up()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_TILT_UP;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_tilt_down( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_tilt_down()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_TILT_DOWN;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_tilt_stop( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_tilt_stop()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_TILT_STOP;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_tilt( MX_RECORD *ptz_record,
+		long *tilt_value )
+{
+	static const char fname[] = "mx_ptz_get_tilt()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_TILT_POSITION;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( tilt_value != (long *) NULL ) {
+		*tilt_value = ptz->tilt_position;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_tilt( MX_RECORD *ptz_record,
+		long tilt_value )
+{
+	static const char fname[] = "mx_ptz_set_tilt()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_TILT_DESTINATION;
+	ptz->tilt_destination = tilt_value;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_tilt_speed( MX_RECORD *ptz_record,
+		unsigned long *tilt_speed )
+{
+	static const char fname[] = "mx_ptz_get_tilt_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_TILT_SPEED;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( tilt_speed != (unsigned long *) NULL ) {
+		*tilt_speed = ptz->tilt_speed;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_tilt_speed( MX_RECORD *ptz_record,
+		unsigned long tilt_speed )
+{
+	static const char fname[] = "mx_ptz_set_tilt_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_TILT_SPEED;
+	ptz->tilt_speed = tilt_speed;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
 mx_ptz_zoom_in( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_in()";
@@ -454,6 +920,75 @@ mx_ptz_set_zoom( MX_RECORD *ptz_record,
 }
 
 MX_EXPORT mx_status_type
+mx_ptz_get_zoom_speed( MX_RECORD *ptz_record,
+		unsigned long *zoom_speed )
+{
+	static const char fname[] = "mx_ptz_get_zoom_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_ZOOM_SPEED;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( zoom_speed != (unsigned long *) NULL ) {
+		*zoom_speed = ptz->zoom_speed;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_zoom_speed( MX_RECORD *ptz_record,
+		unsigned long zoom_speed )
+{
+	static const char fname[] = "mx_ptz_set_zoom_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_ZOOM_SPEED;
+	ptz->zoom_speed = zoom_speed;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_ptz_zoom_off( MX_RECORD *ptz_record )
 {
 	static const char fname[] = "mx_ptz_zoom_off()";
@@ -513,6 +1048,301 @@ mx_ptz_zoom_on( MX_RECORD *ptz_record )
 	ptz->zoom_on = TRUE;
 
 	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+/*=======================================================================*/
+
+MX_EXPORT mx_status_type
+mx_ptz_focus_manual( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_focus_manual()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_FOCUS_MANUAL;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_focus_auto( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_focus_auto()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_FOCUS_AUTO;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_focus_far( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_focus_far()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_FOCUS_FAR;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_focus_near( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_focus_near()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_FOCUS_NEAR;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_focus_stop( MX_RECORD *ptz_record )
+{
+	static const char fname[] = "mx_ptz_focus_stop()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *command_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	command_fn = function_list->command;
+
+	if ( command_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"command function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->command = MXF_PTZ_FOCUS_STOP;
+
+	mx_status = (*command_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_focus( MX_RECORD *ptz_record,
+		unsigned long *focus_value )
+{
+	static const char fname[] = "mx_ptz_get_focus()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_FOCUS_POSITION;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( focus_value != (unsigned long *) NULL ) {
+		*focus_value = ptz->focus_position;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_focus( MX_RECORD *ptz_record,
+		unsigned long focus_value )
+{
+	static const char fname[] = "mx_ptz_set_focus()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_FOCUS_DESTINATION;
+	ptz->focus_destination = focus_value;
+
+	mx_status = (*set_parameter_fn)( ptz );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
+		unsigned long *focus_speed )
+{
+	static const char fname[] = "mx_ptz_get_focus_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *get_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = function_list->get_parameter;
+
+	if ( get_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"get_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_FOCUS_SPEED;
+
+	mx_status = (*get_parameter_fn)( ptz );
+
+	if ( focus_speed != (unsigned long *) NULL ) {
+		*focus_speed = ptz->focus_speed;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
+		unsigned long focus_speed )
+{
+	static const char fname[] = "mx_ptz_set_focus_speed()";
+
+	MX_PAN_TILT_ZOOM *ptz;
+	MX_PAN_TILT_ZOOM_FUNCTION_LIST *function_list;
+	mx_status_type ( *set_parameter_fn ) ( MX_PAN_TILT_ZOOM * );
+	mx_status_type mx_status;
+
+	mx_status = mx_ptz_get_pointers( ptz_record,
+					&ptz, &function_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = function_list->set_parameter;
+
+	if ( set_parameter_fn == NULL ){
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"set_parameter function ptr for MX_PAN_TILT_ZOOM ptr 0x%p is NULL.",
+			ptz );
+	}
+
+	ptz->parameter_type = MXF_PTZ_FOCUS_SPEED;
+	ptz->focus_speed = focus_speed;
+
+	mx_status = (*set_parameter_fn)( ptz );
 
 	return mx_status;
 }

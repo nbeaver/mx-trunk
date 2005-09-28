@@ -23,6 +23,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+
+	int num_cameras;
 } MX_SONY_VISCA;
 
 #define MXI_SONY_VISCA_STANDARD_FIELDS \
@@ -40,7 +42,16 @@ extern long mxi_sony_visca_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_sony_visca_rfield_def_ptr;
 
 MX_API mx_status_type
-mxi_sony_visca_copy( char *destination, char *source, size_t max_length );
+mxi_sony_visca_copy( unsigned char *destination,
+			unsigned char *source,
+			size_t max_length );
+
+MX_API mx_status_type
+mxi_sony_visca_value_command( unsigned char *destination,
+				size_t max_destination_length,
+				size_t prefix_length,
+				unsigned char *prefix,
+				unsigned long value );
 
 MX_API mx_status_type
 mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
@@ -50,8 +61,8 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 MX_API mx_status_type
 mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 			int camera_number,
-			char *command,
-			char *response,
+			unsigned char *command,
+			unsigned char *response,
 			size_t max_response_length,
 			size_t *actual_response_length );
 

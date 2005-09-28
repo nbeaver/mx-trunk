@@ -27,21 +27,28 @@
 
 #define MXF_PTZ_DRIVE_TYPE		0x1000
 
-#define MXF_PTZ_DRIVE_UP		0x1001
-#define MXF_PTZ_DRIVE_DOWN		0x1002
-#define MXF_PTZ_DRIVE_LEFT		0x1003
-#define MXF_PTZ_DRIVE_RIGHT		0x1004
+#define MXF_PTZ_PAN_LEFT		0x1001
+#define MXF_PTZ_PAN_RIGHT		0x1002
+#define MXF_PTZ_TILT_UP			0x1003
+#define MXF_PTZ_TILT_DOWN		0x1004
+
 #define MXF_PTZ_DRIVE_UPPER_LEFT	0x1005
 #define MXF_PTZ_DRIVE_UPPER_RIGHT	0x1006
 #define MXF_PTZ_DRIVE_LOWER_LEFT	0x1007
 #define MXF_PTZ_DRIVE_LOWER_RIGHT	0x1008
-#define MXF_PTZ_DRIVE_STOP		0x1009
-#define MXF_PTZ_DRIVE_HOME		0x100a
 
-#define MXF_PTZ_DRIVE_VERT_POSITION	0x1101
-#define MXF_PTZ_DRIVE_VERT_DESTINATION	0x1102
-#define MXF_PTZ_DRIVE_HORIZ_POSITION	0x1103
-#define MXF_PTZ_DRIVE_HORIZ_DESTINATION	0x1104
+#define MXF_PTZ_PAN_STOP		0x1009
+#define MXF_PTZ_TILT_STOP		0x100a
+#define MXF_PTZ_DRIVE_STOP		0x100b
+#define MXF_PTZ_DRIVE_HOME		0x100c
+
+#define MXF_PTZ_PAN_POSITION		0x1101
+#define MXF_PTZ_PAN_DESTINATION		0x1102
+#define MXF_PTZ_TILT_POSITION		0x1103
+#define MXF_PTZ_TILT_DESTINATION	0x1104
+
+#define MXF_PTZ_PAN_SPEED		0x1105
+#define MXF_PTZ_TILT_SPEED		0x1106
 
 #define MXF_PTZ_DRIVE_OFF		0x1801
 #define MXF_PTZ_DRIVE_ON		0x1802
@@ -54,6 +61,8 @@
 
 #define MXF_PTZ_ZOOM_POSITION		0x2101
 #define MXF_PTZ_ZOOM_DESTINATION	0x2102
+
+#define MXF_PTZ_ZOOM_SPEED		0x2103
 
 #define MXF_PTZ_ZOOM_OFF		0x2801
 #define MXF_PTZ_ZOOM_ON			0x2802
@@ -69,6 +78,8 @@
 #define MXF_PTZ_FOCUS_POSITION		0x4101
 #define MXF_PTZ_FOCUS_DESTINATION	0x4102
 
+#define MXF_PTZ_FOCUS_SPEED		0x4103
+
 #define MXF_PTZ_FOCUS_OFF		0x4801
 #define MXF_PTZ_FOCUS_ON		0x4802
 
@@ -83,9 +94,22 @@ typedef struct {
 	unsigned long command;
 	unsigned long status;
 
+	unsigned long pan_position;
+	unsigned long pan_destination;
+	unsigned long pan_speed;
+
+	unsigned long tilt_position;
+	unsigned long tilt_destination;
+	unsigned long tilt_speed;
+
 	unsigned long zoom_position;
 	unsigned long zoom_destination;
+	unsigned long zoom_speed;
 	unsigned long zoom_on;
+
+	unsigned long focus_position;
+	unsigned long focus_destination;
+	unsigned long focus_speed;
 } MX_PAN_TILT_ZOOM;
 
 #define MXLV_PTZ_COMMAND		1001
@@ -157,6 +181,46 @@ MX_API mx_status_type mx_ptz_default_set_parameter_handler(
 
 /* ----- */
 
+MX_API mx_status_type mx_ptz_pan_left( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_pan_right( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_pan_stop( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_get_pan( MX_RECORD *ptz_record,
+					long *pan_value );
+
+MX_API mx_status_type mx_ptz_set_pan( MX_RECORD *ptz_record,
+					long pan_value );
+
+MX_API mx_status_type mx_ptz_get_pan_speed( MX_RECORD *ptz_record,
+					unsigned long *pan_speed );
+
+MX_API mx_status_type mx_ptz_set_pan_speed( MX_RECORD *ptz_record,
+					unsigned long pan_speed );
+
+/* ----- */
+
+MX_API mx_status_type mx_ptz_tilt_up( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_tilt_down( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_tilt_stop( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_get_tilt( MX_RECORD *ptz_record,
+					long *tilt_value );
+
+MX_API mx_status_type mx_ptz_set_tilt( MX_RECORD *ptz_record,
+					long tilt_value );
+
+MX_API mx_status_type mx_ptz_get_tilt_speed( MX_RECORD *ptz_record,
+					unsigned long *tilt_speed );
+
+MX_API mx_status_type mx_ptz_set_tilt_speed( MX_RECORD *ptz_record,
+					unsigned long tilt_speed );
+
+/* ----- */
+
 MX_API mx_status_type mx_ptz_zoom_in( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_zoom_out( MX_RECORD *ptz_record );
@@ -169,9 +233,39 @@ MX_API mx_status_type mx_ptz_get_zoom( MX_RECORD *ptz_record,
 MX_API mx_status_type mx_ptz_set_zoom( MX_RECORD *ptz_record,
 					unsigned long zoom_value );
 
+MX_API mx_status_type mx_ptz_get_zoom_speed( MX_RECORD *ptz_record,
+					unsigned long *zoom_speed );
+
+MX_API mx_status_type mx_ptz_set_zoom_speed( MX_RECORD *ptz_record,
+					unsigned long zoom_speed );
+
 MX_API mx_status_type mx_ptz_zoom_off( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_zoom_on( MX_RECORD *ptz_record );
+
+/* ----- */
+
+MX_API mx_status_type mx_ptz_focus_manual( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_focus_auto( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_focus_far( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_focus_near( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_focus_stop( MX_RECORD *ptz_record );
+
+MX_API mx_status_type mx_ptz_get_focus( MX_RECORD *ptz_record,
+					unsigned long *focus_value );
+
+MX_API mx_status_type mx_ptz_set_focus( MX_RECORD *ptz_record,
+					unsigned long focus_value );
+
+MX_API mx_status_type mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
+					unsigned long *focus_speed );
+
+MX_API mx_status_type mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
+					unsigned long focus_speed );
 
 #endif /* __MX_PTZ_H__ */
 

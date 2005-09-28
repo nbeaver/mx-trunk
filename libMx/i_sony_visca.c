@@ -80,6 +80,8 @@ mxi_sony_visca_open( MX_RECORD *record )
 	static const char fname[] = "mxi_sony_visca_open()";
 
 	MX_SONY_VISCA *sony_visca;
+	unsigned char response[20];
+	size_t num_response_bytes;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -117,10 +119,44 @@ mxi_sony_visca_open( MX_RECORD *record )
 
 	mx_status = mxi_sony_visca_cmd_broadcast( sony_visca,
 						"\x30\x01\xff",
-						NULL, 0, NULL );
+						response, sizeof(response),
+						&num_response_bytes );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( num_response_bytes != 4 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Did not receive the expected 4 byte response for the "
+		"Sony VISCA 'address set' command sent to Sony VISCA "
+		"interface '%s'.  Instead saw %lu bytes.",
+			sony_visca->record->name,
+			(unsigned long) num_response_bytes );
+	}
+
+	if ( ( response[0] != 0x88 ) || ( response[1] != 0x30 ) ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Did not receive the bytes 0x88 and 0x30 at the "
+			"start of the response to the Sony VISCA 'address set' "
+			"command sent to Sony VISCA interface '%s'.  "
+			"Instead saw %#x %#x.", sony_visca->record->name,
+				response[0], response[1] );
+	}
+
+	sony_visca->num_cameras = response[2] - 1;
+
+	if ( sony_visca->num_cameras > 7 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+			"Sony VISCA interface '%s' reported that it has "
+			"%d cameras which is more than the maximum of 7.",
+				sony_visca->record->name,
+				sony_visca->num_cameras );
+	}
+
+#if MXI_SONY_VISCA_DEBUG
+	MX_DEBUG(-2,("%s: Sony VISCA interface '%s', %d cameras detected.",
+		fname, sony_visca->record->name, sony_visca->num_cameras ));
+#endif
 
 	/* Send the interface clear command. */
 
@@ -133,7 +169,10 @@ mxi_sony_visca_open( MX_RECORD *record )
 
 	/* Clear the input buffer in case we get more than one response. */
 
-	mx_status = mx_rs232_discard_unread_input(sony_visca->rs232_record, 0);
+	mx_msleep(100);
+
+	mx_status = mx_rs232_discard_unread_input( sony_visca->rs232_record,
+							MXI_SONY_VISCA_DEBUG );
 
 	return mx_status;
 }
@@ -141,7 +180,9 @@ mxi_sony_visca_open( MX_RECORD *record )
 /* ----- */
 
 MX_EXPORT mx_status_type
-mxi_sony_visca_copy( char *destination, char *source, size_t max_length )
+mxi_sony_visca_copy( unsigned char *destination,
+			unsigned char *source,
+			size_t max_length )
 {
 	static const char fname[] = "mxi_sony_visca_copy()";
 
@@ -161,7 +202,7 @@ mxi_sony_visca_copy( char *destination, char *source, size_t max_length )
 
 		/* Have we found the message terminator 0xff yet? */
 
-		if ( ((unsigned char) destination[i]) == 0xff ) {
+		if ( ( destination[i]) == 0xff ) {
 			break;			/* Exit the for() loop. */
 		}
 	}
@@ -172,6 +213,51 @@ mxi_sony_visca_copy( char *destination, char *source, size_t max_length )
 		"destination buffer of length %lu.",
 			(unsigned long) max_length );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_sony_visca_value_command( unsigned char *destination,
+			size_t max_destination_length,
+			size_t prefix_length,
+			unsigned char *prefix,
+			unsigned long value )
+{
+	static const char fname[] = "mxi_sony_visca_value_command()";
+
+	unsigned char *ptr;
+	size_t i;
+
+	if ( destination == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination pointer passed was NULL." );
+	}
+	if ( prefix == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The prefix pointer passed was NULL." );
+	}
+
+	if ( prefix_length + 6 > max_destination_length ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested command would be %lu bytes long, but the "
+		"supplied destination buffer is only %lu bytes long.",
+			(unsigned long) (prefix_length + 6),
+			(unsigned long) max_destination_length );
+	}
+
+	for ( i = 0; i < prefix_length; i++ ) {
+		destination[i] = prefix[i];
+	}
+
+	ptr = destination + prefix_length;
+
+	ptr[0] = ( value >> 12 ) & 0xf;
+	ptr[1] = ( value >> 8 ) & 0xf;
+	ptr[2] = ( value >> 4 ) & 0xf;
+	ptr[3] = value & 0xf;
+	ptr[4] = 0xff;
+	ptr[5] = 0x0;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -226,7 +312,7 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 			sony_visca->record->name );
 		break;
 	case 0x04:
-		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
+		return mx_error( MXE_INTERRUPTED, fname,
 		"The command '%s' for Sony VISCA interface '%s' was cancelled.",
 			sent_visca_ascii,
 			sony_visca->record->name );
@@ -239,8 +325,8 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 			sony_visca->record->name );
 		break;
 	case 0x41:
-		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
-		"Command '%s' for Sony VISCA interface '%s' is not executable.",
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Command '%s' for Sony VISCA interface '%s' is not valid.",
 			sent_visca_ascii,
 			sony_visca->record->name );
 		break;
@@ -260,8 +346,8 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 MX_EXPORT mx_status_type
 mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 			int camera_number,
-			char *command,
-			char *response,
+			unsigned char *command,
+			unsigned char *response,
 			size_t max_response_length,
 			size_t *actual_response_length )
 {
@@ -270,7 +356,8 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	char local_receive_buffer[80], hex_buffer[10];
 	char sent_visca_ascii[ 5 * MXU_SONY_VISCA_MAX_CMD_LENGTH + 1];
 	char received_visca_ascii[ 5 * MXU_SONY_VISCA_MAX_CMD_LENGTH + 1];
-	unsigned char c, response_type, third_byte;
+	unsigned char c, response_type, first_byte, second_byte, third_byte;
+	char *command_ptr;
 	size_t num_response_bytes, bytes_read;
 	int num_command_body_bytes, more_message_to_read, exit_loop;
 	int encoded_camera_number, received_camera_number;
@@ -281,12 +368,16 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 	num_command_body_bytes = 0;
 
+	command_ptr = command;
+
 	while (1) {
 		num_command_body_bytes++;
 
-		if ( *command == '\xff' ) {
+		if ( *command_ptr == '\xff' ) {
 			break;			/* Exit the while() loop. */
 		}
+
+		command_ptr++;
 	}
 
 	/* Compute the encoded camera number. */
@@ -299,7 +390,8 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 			"%#x ", encoded_camera_number );
 
 	for ( i = 0; i < num_command_body_bytes; i++ ) {
-		snprintf( hex_buffer, sizeof(hex_buffer), "%#x ", command[i] );
+		snprintf( hex_buffer, sizeof(hex_buffer),
+			"%#x ", command[i] );
 
 		strlcat(sent_visca_ascii, hex_buffer, sizeof(sent_visca_ascii));
 	}
@@ -378,110 +470,121 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 				sony_visca->record->name );
 		}
 
-		/* Does the returned camera number match the number
-		 * that we sent?
-		 */
+		first_byte  = local_receive_buffer[0];
+		second_byte = local_receive_buffer[1];
+		third_byte  = local_receive_buffer[2];
 
-		received_camera_number = 
-			( local_receive_buffer[0] & 0xf0 ) >> 8;
+		if ( first_byte != 0x88 ) {
+			/* Does the returned camera number match the number
+			 * that we sent?
+			 */
 
-		if ( (camera_number != 8) 
-		  && (received_camera_number != camera_number) )
-		{
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"The camera number %d in the message received from "
-			"RS-232 port '%s' does not match the expected "
-			"camera number %d.",
-				received_camera_number,
-				sony_visca->record->name,
-				camera_number );
+		received_camera_number = ( first_byte & 0x70 ) >> 4;
+
+			if (received_camera_number != camera_number) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"The camera number %d in the message received "
+				"from RS-232 port '%s' does not match the "
+				"expected camera number %d.",
+					received_camera_number,
+					sony_visca->record->name,
+					camera_number );
+			}
 		}
 
-		/* Figure out what kind of response this is. */
+		/* If this is not the response to a broadcast command,
+		 * then figure out what kind of response this is.
+		 */
 
-		response_type = ( local_receive_buffer[1] & 0xf0 ) >> 8;
-
-		third_byte = local_receive_buffer[2];
-
-		more_message_to_read = TRUE;
-		exit_loop = FALSE;
-
-		switch ( response_type ) {
-		case 4:
-			/* This should be an ACK message.  If so,
-			 * it should be followed by 0xff.
-			 */
-
-			 if ( third_byte != 0xff ) {
-			 	return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"The ACK byte %#x was was followed by "
-				"the byte %#x which should have been "
-				"0xff instead.", local_receive_buffer[1],
-					third_byte );
-			}
-
-			more_message_to_read = FALSE;
+		if ( first_byte == 0x88 ) {
+			more_message_to_read = TRUE;
 			exit_loop = TRUE;
-			break;
-		case 5:
-			/* If the third byte is a 0xff, then this is a 
-			 * command completion message which we will ignore.
-			 * Otherwise, we assume it is an inquiry response
-			 * that we will need to return to the caller.
-			 */
+		} else {
+			response_type = ( second_byte & 0xf0 ) >> 4;
 
-			if ( third_byte == 0xff ) {
-			 	/* This is a command completion message
-				 * which we will skip over.  This means
-				 * that we need to go back to the top
-				 * of the while() loop to look for the
-				 * message we really want.
+			more_message_to_read = TRUE;
+			exit_loop = FALSE;
+
+			switch ( response_type ) {
+			case 4:
+				/* This should be an ACK message.  If so,
+				 * it should be followed by 0xff.
 				 */
 
-				MX_DEBUG(-2,
-				("%s: command completion message seen.",
-					fname ));
+				 if ( third_byte != 0xff ) {
+				 	return mx_error(
+						MXE_INTERFACE_IO_ERROR, fname,
+					"The ACK byte %#x was was followed by "
+					"the byte %#x which should have been "
+					"0xff instead.",
+						local_receive_buffer[1],
+						third_byte );
+				}
 
 				more_message_to_read = FALSE;
-				exit_loop = FALSE;
-			} else {
-				/* This is an inquiry message that we may
-				 * need to return to the caller.
+				exit_loop = TRUE;
+				break;
+			case 5:
+				/* If the third byte is a 0xff, then this is a 
+				 * command completion message which we will
+				 * ignore.  Otherwise, we assume it is an
+				 * inquiry response that we will need to return
+				 * to the caller.
 				 */
 
-				more_message_to_read = TRUE;
-				exit_loop = TRUE;
+				if ( third_byte == 0xff ) {
+				 	/* This is a command completion message
+					 * which we will skip over.  This means
+					 * that we need to go back to the top
+					 * of the while() loop to look for the
+					 * message we really want.
+					 */
+
+					MX_DEBUG(-2,
+					("%s: command completion message seen.",
+						fname ));
+
+					more_message_to_read = FALSE;
+					exit_loop = FALSE;
+				} else {
+					/* This is an inquiry message that we
+					 * may need to return to the caller.
+					 */
+
+					more_message_to_read = TRUE;
+					exit_loop = TRUE;
+				}
+				break;
+			case 6:
+				/* This is an error message. */
+
+				mx_status = mxi_sony_visca_handle_error(
+						sony_visca, third_byte,
+						sent_visca_ascii );
+
+				return mx_status;
+				break;
+			default:
+				(void) mx_rs232_discard_unread_input(
+						sony_visca->rs232_record,
+						MXI_SONY_VISCA_DEBUG );
+
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Unknown response type %d seen in response "
+				"%#x %#x %#x from Sony VISCA "
+				"interface '%s'.",
+					response_type, first_byte,
+					second_byte, third_byte,
+					sony_visca->record->name );
+				break;
 			}
-			break;
-		case 6:
-			/* This is an error message. */
-
-			mx_status = mxi_sony_visca_handle_error( sony_visca,
-						third_byte, sent_visca_ascii );
-
-			return mx_status;
-			break;
-		default:
-			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Unknown response type %d seen from Sony VISCA "
-			"interface '%s'.",
-				response_type, sony_visca->record->name );
-			break;
 		}
 
 		if ( exit_loop ) {
-			/* Delete the camera number by moving each byte 
-			 * one array element to the left.
-			 */
-
-			 local_receive_buffer[0] = local_receive_buffer[1];
-			 local_receive_buffer[1] = local_receive_buffer[2];
-			 local_receive_buffer[2] = 0;
-
 			 snprintf( received_visca_ascii,
 			 	sizeof(received_visca_ascii),
-				"%#x %#x ", local_receive_buffer[0],
-					local_receive_buffer[1] );
+				"%#x %#x %#x ", first_byte,
+				second_byte, third_byte );
 
 			 break;		/* Exit the while loop. */
 		}
@@ -492,9 +595,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	if ( more_message_to_read == FALSE ) {
 		num_response_bytes = 3;
 	} else {
-		*received_visca_ascii = '\0';
-
-		for ( i = 2; i < sizeof(local_receive_buffer); i++ ) {
+		for ( i = 3; i < sizeof(local_receive_buffer); i++ ) {
 			mx_status = mx_rs232_getchar(
 						sony_visca->rs232_record,
 						&c, MXF_232_WAIT );
@@ -504,7 +605,8 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 			local_receive_buffer[i] = c;
 
-			snprintf( hex_buffer, sizeof(hex_buffer), "%#x ", c );
+			snprintf( hex_buffer, sizeof(hex_buffer),
+					"%#x ", (unsigned char) c );
 
 			strlcat( received_visca_ascii, hex_buffer,
 				sizeof( received_visca_ascii ) );

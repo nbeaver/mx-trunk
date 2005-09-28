@@ -566,7 +566,7 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 
 #if MXI_TTY_DEBUG
 	MX_DEBUG(-2, ("%s: num_chars = %d, c = 0x%x, '%c'",
-		fname, num_chars, *c, *c));
+		fname, num_chars, (unsigned char) *c, *c));
 #endif
 
 	/* mxi_tty_getchar() is often used to test whether there is
@@ -593,7 +593,8 @@ mxi_tty_putchar( MX_RS232 *rs232, char c )
 	int num_chars;
 
 #if MXI_TTY_DEBUG
-	MX_DEBUG(-2,("%s invoked.  c = 0x%x, '%c'", fname, c, c));
+	MX_DEBUG(-2,("%s invoked.  c = 0x%x, '%c'",
+		fname, (unsigned char) c, c));
 #endif
 
 	tty = (MX_TTY*) (rs232->record->record_type_struct);
@@ -720,6 +721,28 @@ mxi_tty_read( MX_RS232 *rs232,
 
 #if MXI_TTY_DEBUG
 	MX_DEBUG(-2,("%s: total_bytes_read = %lu", fname, total_bytes_read));
+
+	{
+		int bytes_to_show;
+
+		if ( total_bytes_read <= 10 ) {
+			bytes_to_show = total_bytes_read;
+		} else {
+			bytes_to_show = 10;
+		}
+
+		fprintf(stderr, "%s: Read ", fname);
+
+		for ( i = 0; i < bytes_to_show; i++ ) {
+			fprintf(stderr, "%#02x ", (unsigned char) (buffer[i]) );
+		}
+
+		if ( total_bytes_read <= 10 ) {
+			fprintf(stderr, "\n");
+		} else {
+			fprintf(stderr, "... \n");
+		}
+	}
 #endif
 
 	return mx_status;
@@ -743,6 +766,30 @@ mxi_tty_write( MX_RS232 *rs232,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXI_TTY_DEBUG
+	{
+		int i, bytes_to_show;
+
+		if ( max_bytes_to_write <= 10 ) {
+			bytes_to_show = max_bytes_to_write;
+		} else {
+			bytes_to_show = 10;
+		}
+
+		fprintf(stderr, "%s: Writing ", fname);
+
+		for ( i = 0; i < bytes_to_show; i++ ) {
+			fprintf(stderr, "%#02x ", (unsigned char) (buffer[i]) );
+		}
+
+		if ( max_bytes_to_write <= 10 ) {
+			fprintf(stderr, "\n");
+		} else {
+			fprintf(stderr, "... \n");
+		}
+	}
+#endif
 
 	local_bytes_written = 0;
 
@@ -1139,7 +1186,8 @@ mxi_tty_discard_unread_input( MX_RS232 *rs232 )
 					if ( isprint( (int) c ) ) {
 						fputc( c, stderr );
 					} else {
-						fprintf( stderr, "(0x%x)", c );
+						fprintf( stderr, "(0x%x)",
+							(unsigned char) c );
 					}
 				}
 				fprintf(stderr,"\n\n");

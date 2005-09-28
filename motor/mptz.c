@@ -69,11 +69,11 @@ motor_ptz_fn( int argc, char *argv[] )
 	mx_status_type mx_status;
 
 	static char usage[] =
-"Usage:  ptz 'ptz_name' pan [ left | right | stop | off | on | 'number' ]\n"
-"        ptz 'ptz_name' tilt [ up | down | stop | off | on | 'number' ]\n"
+"Usage:  ptz 'ptz_name' pan [ left | right | stop | 'number' ]\n"
+"        ptz 'ptz_name' tilt [ up | down | stop | 'number' ]\n"
 "        ptz 'ptz_name' zoom [ in | out | stop | off | on | 'number' ]\n"
 "        ptz 'ptz_name' focus [ manual | auto | far | near \n"
-"                                          | stop | off | on | 'number' ]\n"
+"                                          | stop | 'number' ]\n"
 	;
 
 	if ( argc < 4 ) {
@@ -98,6 +98,60 @@ motor_ptz_fn( int argc, char *argv[] )
 
 	status = SUCCESS;
 
+	if ( strncmp( "pan", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 5 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strncmp( "left", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_pan_left( ptz_record );
+		} else
+		if ( strncmp( "right", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_pan_right( ptz_record );
+		} else
+		if ( strncmp( "stop", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_pan_stop( ptz_record );
+		} else {
+			ulong_value = mx_string_to_unsigned_long( argv[4] );
+
+			mx_status = mx_ptz_set_pan( ptz_record, ulong_value );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "tilt", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 5 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strncmp( "up", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_tilt_up( ptz_record );
+		} else
+		if ( strncmp( "down", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_tilt_down( ptz_record );
+		} else
+		if ( strncmp( "stop", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_tilt_stop( ptz_record );
+		} else {
+			ulong_value = mx_string_to_unsigned_long( argv[4] );
+
+			mx_status = mx_ptz_set_tilt( ptz_record, ulong_value );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
 	if ( strncmp( "zoom", argv[3], strlen(argv[3]) ) == 0 ) {
 
 		if ( argc != 5 ) {
@@ -129,6 +183,41 @@ motor_ptz_fn( int argc, char *argv[] )
 			ulong_value = mx_string_to_unsigned_long( argv[4] );
 
 			mx_status = mx_ptz_set_zoom( ptz_record, ulong_value );
+		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "focus", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 5 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strncmp( "manual", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_focus_manual( ptz_record );
+		} else
+		if ( strncmp( "auto", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_focus_auto( ptz_record );
+		} else
+		if ( strncmp( "near", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_focus_near( ptz_record );
+		} else
+		if ( strncmp( "far", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_focus_far( ptz_record );
+		} else
+		if ( strncmp( "stop", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			mx_status = mx_ptz_focus_stop( ptz_record );
+		} else {
+			ulong_value = mx_string_to_unsigned_long( argv[4] );
+
+			mx_status = mx_ptz_set_focus( ptz_record, ulong_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
