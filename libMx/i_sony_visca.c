@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_SONY_VISCA_DEBUG	TRUE
+#define MXI_SONY_VISCA_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -218,13 +218,13 @@ mxi_sony_visca_copy( unsigned char *destination,
 }
 
 MX_EXPORT mx_status_type
-mxi_sony_visca_value_command( unsigned char *destination,
+mxi_sony_visca_value_string( unsigned char *destination,
 			size_t max_destination_length,
 			size_t prefix_length,
 			unsigned char *prefix,
 			unsigned long value )
 {
-	static const char fname[] = "mxi_sony_visca_value_command()";
+	static const char fname[] = "mxi_sony_visca_value_string()";
 
 	unsigned char *ptr;
 	size_t i;

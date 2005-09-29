@@ -1,3 +1,7 @@
 visca_rs232 interface rs232 tty "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 /dev/ttyS0
 visca       interface generic sony_visca "" "" visca_rs232
 ptz1        device ptz sony_visca_ptz "" "" 0x0 visca 1
+pan1        device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 1
+tilt1       device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 2
+zoom1       device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 3
+focus1      device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 4

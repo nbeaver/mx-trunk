@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SONY_VISCA_PTZ_DEBUG	TRUE
+#define MXD_SONY_VISCA_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -27,15 +27,7 @@
 
 MX_RECORD_FUNCTION_LIST mxd_sony_visca_ptz_record_function_list = {
 	NULL,
-	mxd_sony_visca_ptz_create_record_structures,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-#if 0
-	mxd_sony_visca_ptz_open
-#endif
+	mxd_sony_visca_ptz_create_record_structures
 };
 
 MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_sony_visca_ptz_ptz_function_list = {
@@ -217,23 +209,6 @@ mxd_sony_visca_ptz_create_record_structures( MX_RECORD *record )
         return MX_SUCCESSFUL_RESULT;
 }
 
-#if 0
-MX_EXPORT mx_status_type
-mxd_sony_visca_ptz_open( MX_RECORD *record )
-{
-	mx_status_type mx_status;
-
-	/* All we need do here is initialize the pan and tilt speeds to the
-	 * maximum possible value.  For this driver, getting the pan speed
-	 * has the side effect of initializing the tilt speed as well.
-	 */
-
-	mx_status = mx_ptz_get_pan_speed( record, NULL );
-
-	return mx_status;
-}
-#endif
-
 MX_EXPORT mx_status_type
 mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 {
@@ -403,53 +378,54 @@ mxd_sony_visca_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: response[2] = %#x", fname, response[2]));
-	MX_DEBUG(-2,("%s: response[3] = %#x", fname, response[3]));
-
 	pq = response[2];
 	rs = response[3];
 
 	if ( ( pq & 0x30 ) == 0x30 ) {
-		ptz->status |= MXF_PTZ_CONTROLLER_DISABLED;
+		ptz->status |= MXSF_PTZ_CONTROLLER_DISABLED;
 	}
 	if ( ( pq & 0x30 ) == 0x20 ) {
-		ptz->status |= MXF_PTZ_HOME_SEARCH_SUCCEEDED;
+		ptz->status |= MXSF_PTZ_HOME_SEARCH_SUCCEEDED;
 	}
 	if ( ( pq & 0x0c ) == 0x04 ) {
-		ptz->status |= MXF_PTZ_PAN_IS_BUSY;
-		ptz->status |= MXF_PTZ_TILT_IS_BUSY;
+		ptz->status |= MXSF_PTZ_PAN_IS_BUSY;
+		ptz->status |= MXSF_PTZ_TILT_IS_BUSY;
 	}
 	if ( ( pq & 0x0c ) == 0x0c ) {
-		ptz->status |= MXF_PTZ_PAN_DRIVE_FAULT;
-		ptz->status |= MXF_PTZ_TILT_DRIVE_FAULT;
+		ptz->status |= MXSF_PTZ_PAN_DRIVE_FAULT;
+		ptz->status |= MXSF_PTZ_TILT_DRIVE_FAULT;
 	}
 	if ( pq & 0x02 ) {
-		ptz->status |= MXF_PTZ_TILT_DRIVE_FAULT;
+		ptz->status |= MXSF_PTZ_TILT_DRIVE_FAULT;
 	}
 	if ( pq & 0x01 ) {
-		ptz->status |= MXF_PTZ_TILT_FOLLOWING_ERROR;
+		ptz->status |= MXSF_PTZ_TILT_FOLLOWING_ERROR;
 	}
 	if ( rs & 0x20 ) {
-		ptz->status |= MXF_PTZ_PAN_DRIVE_FAULT;
+		ptz->status |= MXSF_PTZ_PAN_DRIVE_FAULT;
 	}
 	if ( rs & 0x10 ) {
-		ptz->status |= MXF_PTZ_PAN_FOLLOWING_ERROR;
+		ptz->status |= MXSF_PTZ_PAN_FOLLOWING_ERROR;
 	}
 	if ( rs & 0x08 ) {
-		ptz->status |= MXF_PTZ_TILT_BOTTOM_LIMIT_HIT;
+		ptz->status |= MXSF_PTZ_TILT_BOTTOM_LIMIT_HIT;
 	}
 	if ( rs & 0x04 ) {
-		ptz->status |= MXF_PTZ_TILT_TOP_LIMIT_HIT;
+		ptz->status |= MXSF_PTZ_TILT_TOP_LIMIT_HIT;
 	}
 	if ( rs & 0x02 ) {
-		ptz->status |= MXF_PTZ_PAN_RIGHT_LIMIT_HIT;
+		ptz->status |= MXSF_PTZ_PAN_RIGHT_LIMIT_HIT;
 	}
 	if ( rs & 0x01 ) {
-		ptz->status |= MXF_PTZ_PAN_LEFT_LIMIT_HIT;
+		ptz->status |= MXSF_PTZ_PAN_LEFT_LIMIT_HIT;
 	}
 
 #if 0
 	/* Get the lens control system status. */
+
+	/* FIXME: The Sony EVI-D100 says that the following command
+	 * is invalid despite the fact that it is listed in the manual.
+	 */
 
 	mx_status = mxi_sony_visca_cmd( sony_visca,
 					sony_visca_ptz->camera_number,
@@ -687,10 +663,17 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			fname, ptz->zoom_destination,
 			ptz->zoom_destination));
 #endif
-		mx_status = mxi_sony_visca_value_command(
+		mx_status = mxi_sony_visca_value_string(
 						command, sizeof(command),
 						3, "\x01\x04\x47",
 						ptz->zoom_destination );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_sony_visca_cmd( sony_visca,
+						sony_visca_ptz->camera_number,
+						command, NULL, 0, NULL );
 		break;
 	case MXF_PTZ_FOCUS_DESTINATION:
 
@@ -699,10 +682,17 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			fname, ptz->focus_destination,
 			ptz->focus_destination));
 #endif
-		mx_status = mxi_sony_visca_value_command(
+		mx_status = mxi_sony_visca_value_string(
 						command, sizeof(command),
 						3, "\x01\x04\x48",
 						ptz->focus_destination );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxi_sony_visca_cmd( sony_visca,
+						sony_visca_ptz->camera_number,
+						command, NULL, 0, NULL );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

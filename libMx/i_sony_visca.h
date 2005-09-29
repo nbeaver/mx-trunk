@@ -47,7 +47,7 @@ mxi_sony_visca_copy( unsigned char *destination,
 			size_t max_destination_length );
 
 MX_API mx_status_type
-mxi_sony_visca_value_command( unsigned char *destination,
+mxi_sony_visca_value_string( unsigned char *destination,
 				size_t max_destination_length,
 				size_t prefix_length,
 				unsigned char *prefix,
