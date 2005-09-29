@@ -160,6 +160,30 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 		network_ptz->server_record,
 		"%s.status", network_ptz->remote_record_name );
 
+	mx_network_field_init( &(network_ptz->pan_position_nf),
+		network_ptz->server_record,
+		"%s.pan_position", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->pan_destination_nf),
+		network_ptz->server_record,
+		"%s.pan_destination", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->pan_speed_nf),
+		network_ptz->server_record,
+		"%s.pan_speed", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->tilt_position_nf),
+		network_ptz->server_record,
+		"%s.tilt_position", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->tilt_destination_nf),
+		network_ptz->server_record,
+		"%s.tilt_destination", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->tilt_speed_nf),
+		network_ptz->server_record,
+		"%s.tilt_speed", network_ptz->remote_record_name );
+
 	mx_network_field_init( &(network_ptz->zoom_position_nf),
 		network_ptz->server_record,
 		"%s.zoom_position", network_ptz->remote_record_name );
@@ -168,9 +192,29 @@ mxd_network_ptz_finish_record_initialization( MX_RECORD *record )
 		network_ptz->server_record,
 		"%s.zoom_destination", network_ptz->remote_record_name );
 
+	mx_network_field_init( &(network_ptz->zoom_speed_nf),
+		network_ptz->server_record,
+		"%s.zoom_speed", network_ptz->remote_record_name );
+
 	mx_network_field_init( &(network_ptz->zoom_on_nf),
 		network_ptz->server_record,
 		"%s.zoom_on", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->focus_position_nf),
+		network_ptz->server_record,
+		"%s.focus_position", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->focus_destination_nf),
+		network_ptz->server_record,
+		"%s.focus_destination", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->focus_speed_nf),
+		network_ptz->server_record,
+		"%s.focus_speed", network_ptz->remote_record_name );
+
+	mx_network_field_init( &(network_ptz->focus_auto_nf),
+		network_ptz->server_record,
+		"%s.focus_auto", network_ptz->remote_record_name );
 
 	return MX_SUCCESSFUL_RESULT;;
 }
@@ -194,9 +238,24 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 #endif
 
 	switch( ptz->command ) {
+	case MXF_PTZ_PAN_LEFT:
+	case MXF_PTZ_PAN_RIGHT:
+	case MXF_PTZ_TILT_UP:
+	case MXF_PTZ_TILT_DOWN:
+	case MXF_PTZ_DRIVE_UPPER_LEFT:
+	case MXF_PTZ_DRIVE_UPPER_RIGHT:
+	case MXF_PTZ_DRIVE_LOWER_LEFT:
+	case MXF_PTZ_DRIVE_LOWER_RIGHT:
+	case MXF_PTZ_PAN_STOP:
+	case MXF_PTZ_TILT_STOP:
+	case MXF_PTZ_DRIVE_STOP:
+	case MXF_PTZ_DRIVE_HOME:
 	case MXF_PTZ_ZOOM_IN:
 	case MXF_PTZ_ZOOM_OUT:
 	case MXF_PTZ_ZOOM_STOP:
+	case MXF_PTZ_FOCUS_FAR:
+	case MXF_PTZ_FOCUS_NEAR:
+	case MXF_PTZ_FOCUS_STOP:
 		mx_status = mx_put( &(network_ptz->command_nf),
 					MXFT_ULONG, &(ptz->command) );
 		break;
@@ -204,6 +263,11 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_ON:
 		mx_status = mx_put( &(network_ptz->zoom_on_nf),
 					MXFT_ULONG, &(ptz->zoom_on) );
+		break;
+	case MXF_PTZ_FOCUS_MANUAL:
+	case MXF_PTZ_FOCUS_AUTO:
+		mx_status = mx_put( &(network_ptz->focus_auto_nf),
+					MXFT_ULONG, &(ptz->focus_auto) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -258,9 +322,37 @@ mxd_network_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 #endif
 
 	switch( ptz->parameter_type ) {
+	case MXF_PTZ_PAN_POSITION:
+		mx_status = mx_get( &(network_ptz->pan_position_nf),
+					MXFT_LONG, &(ptz->pan_position) );
+		break;
+	case MXF_PTZ_TILT_POSITION:
+		mx_status = mx_get( &(network_ptz->tilt_position_nf),
+					MXFT_LONG, &(ptz->tilt_position) );
+		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_status = mx_get( &(network_ptz->zoom_position_nf),
 					MXFT_ULONG, &(ptz->zoom_position) );
+		break;
+	case MXF_PTZ_FOCUS_POSITION:
+		mx_status = mx_get( &(network_ptz->focus_position_nf),
+					MXFT_ULONG, &(ptz->focus_position) );
+		break;
+	case MXF_PTZ_PAN_SPEED:
+		mx_status = mx_get( &(network_ptz->pan_speed_nf),
+					MXFT_ULONG, &(ptz->pan_speed) );
+		break;
+	case MXF_PTZ_TILT_SPEED:
+		mx_status = mx_get( &(network_ptz->tilt_speed_nf),
+					MXFT_ULONG, &(ptz->tilt_speed) );
+		break;
+	case MXF_PTZ_ZOOM_SPEED:
+		mx_status = mx_get( &(network_ptz->zoom_speed_nf),
+					MXFT_ULONG, &(ptz->zoom_speed) );
+		break;
+	case MXF_PTZ_FOCUS_SPEED:
+		mx_status = mx_get( &(network_ptz->focus_speed_nf),
+					MXFT_ULONG, &(ptz->focus_speed) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -292,9 +384,37 @@ mxd_network_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 #endif
 
 	switch( ptz->parameter_type ) {
+	case MXF_PTZ_PAN_DESTINATION:
+		mx_status = mx_put( &(network_ptz->pan_destination_nf),
+					MXFT_ULONG, &(ptz->pan_destination) );
+		break;
+	case MXF_PTZ_TILT_DESTINATION:
+		mx_status = mx_put( &(network_ptz->tilt_destination_nf),
+					MXFT_ULONG, &(ptz->tilt_destination) );
+		break;
 	case MXF_PTZ_ZOOM_DESTINATION:
 		mx_status = mx_put( &(network_ptz->zoom_destination_nf),
 					MXFT_ULONG, &(ptz->zoom_destination) );
+		break;
+	case MXF_PTZ_FOCUS_DESTINATION:
+		mx_status = mx_put( &(network_ptz->focus_destination_nf),
+					MXFT_ULONG, &(ptz->focus_destination) );
+		break;
+	case MXF_PTZ_PAN_SPEED:
+		mx_status = mx_put( &(network_ptz->pan_speed_nf),
+					MXFT_ULONG, &(ptz->pan_speed) );
+		break;
+	case MXF_PTZ_TILT_SPEED:
+		mx_status = mx_put( &(network_ptz->tilt_speed_nf),
+					MXFT_ULONG, &(ptz->tilt_speed) );
+		break;
+	case MXF_PTZ_ZOOM_SPEED:
+		mx_status = mx_put( &(network_ptz->zoom_speed_nf),
+					MXFT_ULONG, &(ptz->zoom_speed) );
+		break;
+	case MXF_PTZ_FOCUS_SPEED:
+		mx_status = mx_put( &(network_ptz->focus_speed_nf),
+					MXFT_ULONG, &(ptz->focus_speed) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

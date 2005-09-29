@@ -46,9 +46,17 @@ mx_setup_ptz_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_PTZ_COMMAND:
 		case MXLV_PTZ_STATUS:
+		case MXLV_PTZ_PAN_POSITION:
+		case MXLV_PTZ_PAN_DESTINATION:
+		case MXLV_PTZ_TILT_POSITION:
+		case MXLV_PTZ_TILT_DESTINATION:
 		case MXLV_PTZ_ZOOM_POSITION:
 		case MXLV_PTZ_ZOOM_DESTINATION:
 		case MXLV_PTZ_ZOOM_ON:
+		case MXLV_PTZ_FOCUS_POSITION:
+		case MXLV_PTZ_FOCUS_DESTINATION:
+		case MXLV_PTZ_FOCUS_AUTO:
+		break;
 			record_field->process_function
 					    = mx_ptz_process_function;
 			break;
@@ -85,8 +93,17 @@ mx_ptz_process_function( void *record_ptr,
 		case MXLV_PTZ_STATUS:
 			mx_status = mx_ptz_get_status( record, NULL );
 			break;
+		case MXLV_PTZ_PAN_POSITION:
+			mx_status = mx_ptz_get_pan( record, NULL );
+			break;
+		case MXLV_PTZ_TILT_POSITION:
+			mx_status = mx_ptz_get_tilt( record, NULL );
+			break;
 		case MXLV_PTZ_ZOOM_POSITION:
 			mx_status = mx_ptz_get_zoom( record, NULL );
+			break;
+		case MXLV_PTZ_FOCUS_POSITION:
+			mx_status = mx_ptz_get_focus( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -100,9 +117,21 @@ mx_ptz_process_function( void *record_ptr,
 		case MXLV_PTZ_COMMAND:
 			mx_status = mx_ptz_command( record, ptz->command );
 			break;
+		case MXLV_PTZ_PAN_DESTINATION:
+			mx_status = mx_ptz_set_pan( record,
+						ptz->pan_destination );
+			break;
+		case MXLV_PTZ_TILT_DESTINATION:
+			mx_status = mx_ptz_set_tilt( record,
+						ptz->tilt_destination );
+			break;
 		case MXLV_PTZ_ZOOM_DESTINATION:
 			mx_status = mx_ptz_set_zoom( record,
 						ptz->zoom_destination );
+			break;
+		case MXLV_PTZ_FOCUS_DESTINATION:
+			mx_status = mx_ptz_set_focus( record,
+						ptz->focus_destination );
 			break;
 		case MXLV_PTZ_ZOOM_ON:
 			if ( ptz->zoom_on == FALSE ) {

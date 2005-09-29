@@ -438,6 +438,7 @@ MX_API MX_DRIVER mx_type_list[];
 #define MXT_MTR_PICOMOTOR		50047
 #define MXT_MTR_MCU2			50048
 #define MXT_MTR_BLUICE			50049
+#define MXT_MTR_PTZ			50050
 
    /* Pseudomotors. */
 

@@ -397,7 +397,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	}
 
 #if MXI_SONY_VISCA_DEBUG
-	MX_DEBUG(-2,("%s: sending %s to Sony Pan/Tilt/Zoom controller '%s'.",
+	MX_DEBUG(-2,("%s: sending %s to Sony PTZ controller '%s'.",
 		fname, sent_visca_ascii, sony_visca->record->name ));
 #endif
 
@@ -631,7 +631,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	}
 
 #if MXI_SONY_VISCA_DEBUG
-	MX_DEBUG(-2,("%s: received %s from Sony Pan/Tilt/Zoom controller '%s'.",
+	MX_DEBUG(-2,("%s: received %s from Sony PTZ controller '%s'.",
 		fname, received_visca_ascii, sony_visca->record->name ));
 #endif
 

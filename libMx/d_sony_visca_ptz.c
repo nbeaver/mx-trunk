@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include "mx_record.h"
+#include "mx_types.h"
 #include "mx_ptz.h"
 #include "i_sony_visca.h"
 #include "d_sony_visca_ptz.h"
@@ -32,7 +33,9 @@ MX_RECORD_FUNCTION_LIST mxd_sony_visca_ptz_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
+#if 0
 	mxd_sony_visca_ptz_open
+#endif
 };
 
 MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_sony_visca_ptz_ptz_function_list = {
@@ -118,6 +121,62 @@ mxd_sony_visca_ptz_get_pointers( MX_PAN_TILT_ZOOM *ptz,
 
 /*---*/
 
+static mx_status_type
+mxd_sony_visca_ptz_pan_tilt_drive_string( MX_RECORD *ptz_record,
+					unsigned char *destination,
+					size_t max_command_length,
+					unsigned char *suffix )
+{
+	static const char fname[] =
+			"mxd_sony_visca_ptz_pan_tilt_drive_string()";
+
+	unsigned long pan_speed, tilt_speed;
+	mx_status_type mx_status;
+
+	if ( ptz_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( destination == (unsigned char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination pointer passed was NULL." );
+	}
+	if ( suffix == (unsigned char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The suffix pointer passed was NULL." );
+	}
+	if ( max_command_length < 9 ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The command buffer of length %lu bytes is shorter "
+		"than the minimum allowed length of 9 bytes.",
+			(unsigned long) max_command_length );
+	}
+
+	mx_status = mx_ptz_get_pan_speed( ptz_record, &pan_speed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_ptz_get_tilt_speed( ptz_record, &tilt_speed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	destination[0] = 0x01;
+	destination[1] = 0x06;
+	destination[2] = 0x01;
+	destination[3] = pan_speed;
+	destination[4] = tilt_speed;
+	destination[5] = suffix[0];
+	destination[6] = suffix[1];
+	destination[7] = 0xff;
+	destination[8] = 0x0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_sony_visca_ptz_create_record_structures( MX_RECORD *record )
 {
@@ -134,9 +193,7 @@ mxd_sony_visca_ptz_create_record_structures( MX_RECORD *record )
         if ( ptz == (MX_PAN_TILT_ZOOM *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
                "Unable to allocate memory for an MX_PAN_TILT_ZOOM structure." );
-        }
-
-        sony_visca_ptz = (MX_SONY_VISCA_PTZ *)
+        } sony_visca_ptz = (MX_SONY_VISCA_PTZ *)
 				malloc( sizeof(MX_SONY_VISCA_PTZ) );
 
         if ( sony_visca_ptz == (MX_SONY_VISCA_PTZ *) NULL ) {
@@ -154,9 +211,13 @@ mxd_sony_visca_ptz_create_record_structures( MX_RECORD *record )
         ptz->record = record;
 	sony_visca_ptz->record = record;
 
+	ptz->pan_speed = 1;
+	ptz->tilt_speed = 1;
+
         return MX_SUCCESSFUL_RESULT;
 }
 
+#if 0
 MX_EXPORT mx_status_type
 mxd_sony_visca_ptz_open( MX_RECORD *record )
 {
@@ -171,6 +232,7 @@ mxd_sony_visca_ptz_open( MX_RECORD *record )
 
 	return mx_status;
 }
+#endif
 
 MX_EXPORT mx_status_type
 mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
@@ -190,40 +252,42 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 
 	switch( ptz->command ) {
 	case MXF_PTZ_PAN_LEFT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x01\x03\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x01\x03" );
 		break;
 	case MXF_PTZ_PAN_RIGHT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x02\x03\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x02\x03" );
 		break;
 	case MXF_PTZ_TILT_UP:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x03\x01\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x03\x01" );
 		break;
 	case MXF_PTZ_TILT_DOWN:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x03\x02\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x03\x02" );
 		break;
 	case MXF_PTZ_DRIVE_UPPER_LEFT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x01\x01\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x01\x01" );
 		break;
 	case MXF_PTZ_DRIVE_UPPER_RIGHT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x02\x01\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x02\x01" );
 		break;
 	case MXF_PTZ_DRIVE_LOWER_LEFT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x01\x02\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x01\x02" );
 		break;
 	case MXF_PTZ_DRIVE_LOWER_RIGHT:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x02\x02\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x02\x02" );
 		break;
+	case MXF_PTZ_PAN_STOP:
+	case MXF_PTZ_TILT_STOP:
 	case MXF_PTZ_DRIVE_STOP:
-		mxi_sony_visca_copy( command,
-				"\x01\x06\x01\x03\x03\xff", sizeof( command ) );
+		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
+				command, sizeof(command), "\x03\x03" );
 		break;
 	case MXF_PTZ_DRIVE_HOME:
 		mxi_sony_visca_copy( command,
@@ -317,6 +381,8 @@ mxd_sony_visca_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 
 	MX_SONY_VISCA_PTZ *sony_visca_ptz;
 	MX_SONY_VISCA *sony_visca;
+	unsigned char response[80];
+	unsigned pq, rs;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sony_visca_ptz_get_pointers( ptz,
@@ -326,6 +392,73 @@ mxd_sony_visca_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 		return mx_status;
 
 	ptz->status = 0;
+
+	/* Get the Pan/Tilt status. */
+
+	mx_status = mxi_sony_visca_cmd( sony_visca,
+					sony_visca_ptz->camera_number,
+					"\x09\x06\x10\xff",
+					response, sizeof(response), NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: response[2] = %#x", fname, response[2]));
+	MX_DEBUG(-2,("%s: response[3] = %#x", fname, response[3]));
+
+	pq = response[2];
+	rs = response[3];
+
+	if ( ( pq & 0x30 ) == 0x30 ) {
+		ptz->status |= MXF_PTZ_CONTROLLER_DISABLED;
+	}
+	if ( ( pq & 0x30 ) == 0x20 ) {
+		ptz->status |= MXF_PTZ_HOME_SEARCH_SUCCEEDED;
+	}
+	if ( ( pq & 0x0c ) == 0x04 ) {
+		ptz->status |= MXF_PTZ_PAN_IS_BUSY;
+		ptz->status |= MXF_PTZ_TILT_IS_BUSY;
+	}
+	if ( ( pq & 0x0c ) == 0x0c ) {
+		ptz->status |= MXF_PTZ_PAN_DRIVE_FAULT;
+		ptz->status |= MXF_PTZ_TILT_DRIVE_FAULT;
+	}
+	if ( pq & 0x02 ) {
+		ptz->status |= MXF_PTZ_TILT_DRIVE_FAULT;
+	}
+	if ( pq & 0x01 ) {
+		ptz->status |= MXF_PTZ_TILT_FOLLOWING_ERROR;
+	}
+	if ( rs & 0x20 ) {
+		ptz->status |= MXF_PTZ_PAN_DRIVE_FAULT;
+	}
+	if ( rs & 0x10 ) {
+		ptz->status |= MXF_PTZ_PAN_FOLLOWING_ERROR;
+	}
+	if ( rs & 0x08 ) {
+		ptz->status |= MXF_PTZ_TILT_BOTTOM_LIMIT_HIT;
+	}
+	if ( rs & 0x04 ) {
+		ptz->status |= MXF_PTZ_TILT_TOP_LIMIT_HIT;
+	}
+	if ( rs & 0x02 ) {
+		ptz->status |= MXF_PTZ_PAN_RIGHT_LIMIT_HIT;
+	}
+	if ( rs & 0x01 ) {
+		ptz->status |= MXF_PTZ_PAN_LEFT_LIMIT_HIT;
+	}
+
+#if 0
+	/* Get the lens control system status. */
+
+	mx_status = mxi_sony_visca_cmd( sony_visca,
+					sony_visca_ptz->camera_number,
+					"\x09\x7e\x7e\x00\xff",
+					response, sizeof(response), NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
 
 	return mx_status;
 }
@@ -397,50 +530,62 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	nibble1 = response[4];
 	nibble0 = response[5];
 
-	MX_DEBUG(-2,
-	("%s: nibble3 = %#lx, nibble2 = %#lx, nibble1 = %#lx, nibble0 = %#lx",
-	 	fname, nibble3, nibble2, nibble1, nibble0));
-
 	inquiry_value = (nibble3 << 12) + (nibble2 << 8)
 				+ (nibble1 << 4) + nibble0;
-
-#if MXD_SONY_VISCA_PTZ_DEBUG
-	MX_DEBUG(-2,("%s: PTZ '%s' inquiry_value = %#lx",
-		fname, ptz->record->name, inquiry_value));
-#endif
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_POSITION:
 	case MXF_PTZ_TILT_POSITION:
-		ptz->pan_position = inquiry_value;
+		ptz->pan_position = (mx_sint16_type) inquiry_value;
 
 		nibble3 = response[6];
 		nibble2 = response[7];
 		nibble1 = response[8];
 		nibble0 = response[9];
 
-		MX_DEBUG(-2,
-("%s: TILT - nibble3 = %#lx, nibble2 = %#lx, nibble1 = %#lx, nibble0 = %#lx",
-	 	fname, nibble3, nibble2, nibble1, nibble0));
-
-		ptz->tilt_position = (nibble3 << 12) + (nibble2 << 8)
+		inquiry_value = (nibble3 << 12) + (nibble2 << 8)
 				+ (nibble1 << 4) + nibble0;
-#if MXD_SONY_VISCA_PTZ_DEBUG
-	MX_DEBUG(-2,("%s: PTZ '%s' tilt = %#lx",
-		fname, ptz->record->name, ptz->tilt_position));
-#endif
 
+		ptz->tilt_position = (mx_sint16_type) inquiry_value;
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,
+	("%s: PTZ '%s' Pan position = %ld (%#lx), Tilt position = %ld (%#lx)",
+			fname, ptz->record->name,
+			ptz->pan_position, ptz->pan_position,
+			ptz->tilt_position, ptz->tilt_position));
+#endif
 		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		ptz->zoom_position = inquiry_value;
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,("%s: PTZ '%s' Zoom position = %ld (%#lx)",
+			fname, ptz->record->name,
+			ptz->zoom_position, ptz->zoom_position));
+#endif
 		break;
 	case MXF_PTZ_FOCUS_POSITION:
 		ptz->focus_position = inquiry_value;
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,("%s: PTZ '%s' Focus position = %ld (%#lx)",
+			fname, ptz->record->name,
+			ptz->focus_position, ptz->focus_position));
+#endif
 		break;
 	case MXF_PTZ_PAN_SPEED:
 	case MXF_PTZ_TILT_SPEED:
 		ptz->pan_speed = response[2];
 		ptz->tilt_speed = response[3];
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,
+	("%s: PTZ '%s' Pan speed = %ld (%#lx), Tilt speed = %ld (%#lx)",
+			fname, ptz->record->name,
+			ptz->pan_speed, ptz->pan_speed,
+			ptz->tilt_speed, ptz->tilt_speed));
+#endif
 		break;
 	}
 
@@ -457,6 +602,7 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	unsigned char command[80];
 	long pan_value, tilt_value;
 	unsigned long pan_speed, tilt_speed;
+	int saved_parameter_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sony_visca_ptz_get_pointers( ptz,
@@ -469,6 +615,8 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
 #endif
+
+	saved_parameter_type = ptz->parameter_type;
 
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_SPEED:
@@ -489,14 +637,24 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( ptz->parameter_type == MXF_PTZ_PAN_DESTINATION ) {
+		if ( saved_parameter_type == MXF_PTZ_PAN_DESTINATION ) {
 			pan_value = ptz->pan_destination;
 
 			mx_status = mx_ptz_get_tilt( ptz->record, &tilt_value );
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+			MX_DEBUG(-2,("%s: Moving pan to %ld (%#lx)",
+				fname, pan_value, pan_value & 0xffff));
+#endif
 		} else {
 			mx_status = mx_ptz_get_pan( ptz->record, &pan_value );
 
 			tilt_value = ptz->tilt_destination;
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+			MX_DEBUG(-2,("%s: Moving tilt to %ld (%#lx)",
+				fname, tilt_value, tilt_value & 0xffff));
+#endif
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -523,29 +681,34 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 						command, NULL, 0, NULL );
 		break;
 	case MXF_PTZ_ZOOM_DESTINATION:
-		if ( ptz->zoom_destination >= 0x400 ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested zoom value of %lu is outside "
-			"the allowed range (0-1023) for Hitachi PTZ '%s'",
-				ptz->zoom_destination, ptz->record->name );
-		}
 
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,("%s: Moving zoom to %ld (%#lx)",
+			fname, ptz->zoom_destination,
+			ptz->zoom_destination));
+#endif
 		mx_status = mxi_sony_visca_value_command(
 						command, sizeof(command),
 						3, "\x01\x04\x47",
 						ptz->zoom_destination );
 		break;
 	case MXF_PTZ_FOCUS_DESTINATION:
+
+#if MXD_SONY_VISCA_PTZ_DEBUG
+		MX_DEBUG(-2,("%s: Moving focus to %ld (%#lx)",
+			fname, ptz->focus_destination,
+			ptz->focus_destination));
+#endif
 		mx_status = mxi_sony_visca_value_command(
 						command, sizeof(command),
 						3, "\x01\x04\x48",
-						ptz->zoom_destination );
+						ptz->focus_destination );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Parameter type %d received for Hitachi PTZ '%s' "
 			"is not a known parameter type.",
-			ptz->parameter_type, sony_visca_ptz->record->name );
+			saved_parameter_type, sony_visca_ptz->record->name );
 		break;
 	}
 

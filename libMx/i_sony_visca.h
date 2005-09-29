@@ -44,7 +44,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_sony_visca_rfield_def_ptr;
 MX_API mx_status_type
 mxi_sony_visca_copy( unsigned char *destination,
 			unsigned char *source,
-			size_t max_length );
+			size_t max_destination_length );
 
 MX_API mx_status_type
 mxi_sony_visca_value_command( unsigned char *destination,

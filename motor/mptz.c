@@ -65,6 +65,7 @@ motor_ptz_fn( int argc, char *argv[] )
 	MX_RECORD *ptz_record;
 	MX_PAN_TILT_ZOOM *ptz;
 	unsigned long ulong_value;
+	long long_value;
 	int status;
 	mx_status_type mx_status;
 
@@ -72,8 +73,8 @@ motor_ptz_fn( int argc, char *argv[] )
 "Usage:  ptz 'ptz_name' pan [ left | right | stop | 'number' ]\n"
 "        ptz 'ptz_name' tilt [ up | down | stop | 'number' ]\n"
 "        ptz 'ptz_name' zoom [ in | out | stop | off | on | 'number' ]\n"
-"        ptz 'ptz_name' focus [ manual | auto | far | near \n"
-"                                          | stop | 'number' ]\n"
+"        ptz 'ptz_name' focus [ manual | auto | far | near | stop | 'number' ]\n"
+"        ptz 'ptz_name' status\n"
 	;
 
 	if ( argc < 4 ) {
@@ -117,9 +118,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_pan_stop( ptz_record );
 		} else {
-			ulong_value = mx_string_to_unsigned_long( argv[4] );
+			long_value = mx_string_to_long( argv[4] );
 
-			mx_status = mx_ptz_set_pan( ptz_record, ulong_value );
+			mx_status = mx_ptz_set_pan( ptz_record, long_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -144,9 +145,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_tilt_stop( ptz_record );
 		} else {
-			ulong_value = mx_string_to_unsigned_long( argv[4] );
+			long_value = mx_string_to_long( argv[4] );
 
-			mx_status = mx_ptz_set_tilt( ptz_record, ulong_value );
+			mx_status = mx_ptz_set_tilt( ptz_record, long_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -222,6 +223,21 @@ motor_ptz_fn( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+	} else
+	if ( strncmp( "status", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc != 4 ) {
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		mx_status = mx_ptz_get_status( ptz_record, &ulong_value );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		fprintf( output, "PTZ '%s' status = %#lx\n",
+			ptz_record->name, ulong_value );
 	} else {
 		/* Unrecognized command. */
 

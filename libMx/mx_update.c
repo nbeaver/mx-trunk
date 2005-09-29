@@ -234,7 +234,22 @@ mx_update_record_values( MX_RECORD *record )
 				status = mx_mcai_read( record, NULL, NULL );
 				break;
 			case MXC_PAN_TILT_ZOOM:
+				status = mx_ptz_get_pan( record, NULL );
+
+				if ( status.code != MXE_SUCCESS ) {
+					break;
+				}
+				status = mx_ptz_get_tilt( record, NULL );
+
+				if ( status.code != MXE_SUCCESS ) {
+					break;
+				}
 				status = mx_ptz_get_zoom( record, NULL );
+
+				if ( status.code != MXE_SUCCESS ) {
+					break;
+				}
+				status = mx_ptz_get_focus( record, NULL );
 				break;
 			case MXC_TIMER:
 			case MXC_MULTICHANNEL_ANALYZER:

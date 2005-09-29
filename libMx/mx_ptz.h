@@ -83,6 +83,36 @@
 #define MXF_PTZ_FOCUS_OFF		0x4801
 #define MXF_PTZ_FOCUS_ON		0x4802
 
+/* Flag values for mx_ptz_get_status(). */
+
+#define MXF_PTZ_PAN_IS_BUSY		0x1
+#define MXF_PTZ_TILT_IS_BUSY		0x2
+#define MXF_PTZ_ZOOM_IS_BUSY		0x4
+#define MXF_PTZ_FOCUS_IS_BUSY		0x8
+
+#define MXF_PTZ_PAN_LEFT_LIMIT_HIT	0x10
+#define MXF_PTZ_PAN_RIGHT_LIMIT_HIT	0x20
+#define MXF_PTZ_TILT_TOP_LIMIT_HIT	0x40
+#define MXF_PTZ_TILT_BOTTOM_LIMIT_HIT	0x80
+
+#define MXF_PTZ_ZOOM_IN_LIMIT_HIT	0x100
+#define MXF_PTZ_ZOOM_OUT_LIMIT_HIT	0x200
+#define MXF_PTZ_FOCUS_NEAR_LIMIT_HIT	0x400
+#define MXF_PTZ_FOCUS_FAR_LIMIT_HIT	0x800
+
+#define MXF_PTZ_PAN_FOLLOWING_ERROR	0x1000
+#define MXF_PTZ_TILT_FOLLOWING_ERROR	0x2000
+#define MXF_PTZ_ZOOM_FOLLOWING_ERROR	0x4000
+#define MXF_PTZ_FOCUS_FOLLOWING_ERROR	0x8000
+
+#define MXF_PTZ_PAN_DRIVE_FAULT		0x10000
+#define MXF_PTZ_TILT_DRIVE_FAULT	0x20000
+#define MXF_PTZ_ZOOM_DRIVE_FAULT	0x40000
+#define MXF_PTZ_FOCUS_DRIVE_FAULT	0x80000
+
+#define MXF_PTZ_HOME_SEARCH_SUCCEEDED	0x40000000
+#define MXF_PTZ_CONTROLLER_DISABLED	0x80000000
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -94,12 +124,12 @@ typedef struct {
 	unsigned long command;
 	unsigned long status;
 
-	unsigned long pan_position;
-	unsigned long pan_destination;
+	long pan_position;
+	long pan_destination;
 	unsigned long pan_speed;
 
-	unsigned long tilt_position;
-	unsigned long tilt_destination;
+	long tilt_position;
+	long tilt_destination;
 	unsigned long tilt_speed;
 
 	unsigned long zoom_position;
@@ -110,13 +140,21 @@ typedef struct {
 	unsigned long focus_position;
 	unsigned long focus_destination;
 	unsigned long focus_speed;
+	unsigned long focus_auto;
 } MX_PAN_TILT_ZOOM;
 
 #define MXLV_PTZ_COMMAND		1001
 #define MXLV_PTZ_STATUS			1002
-#define MXLV_PTZ_ZOOM_POSITION		1003
-#define MXLV_PTZ_ZOOM_DESTINATION	1004
-#define MXLV_PTZ_ZOOM_ON		1005
+#define MXLV_PTZ_PAN_POSITION		1003
+#define MXLV_PTZ_PAN_DESTINATION	1004
+#define MXLV_PTZ_TILT_POSITION		1005
+#define MXLV_PTZ_TILT_DESTINATION	1006
+#define MXLV_PTZ_ZOOM_POSITION		1007
+#define MXLV_PTZ_ZOOM_DESTINATION	1008
+#define MXLV_PTZ_ZOOM_ON		1009
+#define MXLV_PTZ_FOCUS_POSITION		1010
+#define MXLV_PTZ_FOCUS_DESTINATION	1011
+#define MXLV_PTZ_FOCUS_AUTO		1012
 
 #define MX_PAN_TILT_ZOOM_STANDARD_FIELDS \
   {-1, -1, "ptz_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -131,6 +169,22 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, status), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_PTZ_PAN_POSITION, -1, "pan_position", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_position), \
+	{0}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_PTZ_PAN_DESTINATION, -1, "pan_destination", MXFT_LONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_TILT_POSITION, -1, "tilt_position", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_position), \
+	{0}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_PTZ_TILT_DESTINATION, -1, "tilt_destination", MXFT_LONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_destination), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
@@ -141,6 +195,19 @@ typedef struct {
   \
   {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_on), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_FOCUS_POSITION, -1, "focus_position", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_position), \
+	{0}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_PTZ_FOCUS_DESTINATION, -1, "focus_destination", \
+	  					MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_FOCUS_AUTO, -1, "focus_auto", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_auto), \
 	{0}, NULL, 0}
 
 /*

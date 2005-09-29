@@ -25,9 +25,20 @@ typedef struct {
 
 	MX_NETWORK_FIELD command_nf;
 	MX_NETWORK_FIELD status_nf;
+	MX_NETWORK_FIELD pan_position_nf;
+	MX_NETWORK_FIELD pan_destination_nf;
+	MX_NETWORK_FIELD pan_speed_nf;
+	MX_NETWORK_FIELD tilt_position_nf;
+	MX_NETWORK_FIELD tilt_destination_nf;
+	MX_NETWORK_FIELD tilt_speed_nf;
 	MX_NETWORK_FIELD zoom_position_nf;
 	MX_NETWORK_FIELD zoom_destination_nf;
+	MX_NETWORK_FIELD zoom_speed_nf;
 	MX_NETWORK_FIELD zoom_on_nf;
+	MX_NETWORK_FIELD focus_position_nf;
+	MX_NETWORK_FIELD focus_destination_nf;
+	MX_NETWORK_FIELD focus_speed_nf;
+	MX_NETWORK_FIELD focus_auto_nf;
 } MX_NETWORK_PTZ;
 
 #define MXD_NETWORK_PTZ_STANDARD_FIELDS \
