@@ -163,7 +163,20 @@ mxd_pm304_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxd_pm304_finish_record_initialization()";
 
 	MX_MOTOR *motor;
+	MX_PM304 *pm304;
 	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) (record->record_class_struct);
+
+	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
 
@@ -172,19 +185,9 @@ mxd_pm304_finish_record_initialization( MX_RECORD *record )
 
 	/*** Server minimum delay time between commands. ***/
 
-#if 0
-	(void) mx_set_event_interval( record, 0.0 );
-#endif
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_MOTOR pointer for record '%s' is NULL.",
-			record->name );
+	if ( pm304->minimum_event_interval >= 0.0 ) {
+		mx_set_event_interval( record, pm304->minimum_event_interval );
 	}
-
-	motor->acceleration_type = MXF_MTR_ACCEL_RATE;
 
 	return MX_SUCCESSFUL_RESULT;
 }

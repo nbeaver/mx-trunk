@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,6 +27,8 @@ typedef struct {
 
 	int axis_number;
 	int axis_encoder_number;
+
+	double minimum_event_interval;
 } MX_PM304;
 
 #define MX_PM304_POSITION_DISCREPANCY_THRESHOLD		2
@@ -84,6 +86,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pm304_rfield_def_ptr;
   \
   {-1, -1, "axis_encoder_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, axis_encoder_number), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "minimum_event_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, minimum_event_interval), \
+	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #endif /* __D_PM304_H__ */
