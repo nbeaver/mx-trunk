@@ -68,8 +68,8 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
 	d_network_scaler.c d_network_timer.c d_newport.c \
 	d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
-	d_panther.c d_pcmotion32.c d_pcstep.c d_pdi40.c \
-	d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
+	d_panasonic_kx_dp702.c d_panther.c d_pcmotion32.c d_pcstep.c \
+	d_pdi40.c d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
 	d_pdi45_scaler.c d_pdi45_timer.c \
 	d_pfcu.c d_pfcu_filter_summary.c d_pfcu_shutter_timer.c \
 	d_phidget_old_stepper.c \
@@ -114,7 +114,7 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	i_mardtb.c i_micro488ex.c i_mmap_vme.c \
 	i_modbus_serial_rtu.c i_modbus_tcp.c \
 	i_network_gpib.c i_network_rs232.c i_newport.c i_ni488.c i_ortec974.c \
-	i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
+	i_panasonic_kx_dp702.c i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c i_pmac.c \
 	i_pmc_mcapi.c i_rtems_vme.c i_scipe.c i_sis3100.c i_sis3807.c \
 	i_soft_camac.c i_soft_rs232.c i_sony_visca.c i_spec_command.c \

@@ -181,6 +181,7 @@
 #include "i_tpg262.h"
 #include "i_cm17a.h"
 #include "i_sony_visca.h"
+#include "i_panasonic_kx_dp702.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -412,6 +413,7 @@
 #include "d_network_ptz.h"
 #include "d_sony_visca_ptz.h"
 #include "d_hitachi_kp_d20.h"
+#include "d_panasonic_kx_dp702.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -1099,6 +1101,14 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_sony_visca_num_record_fields,
 				&mxi_sony_visca_rfield_def_ptr},
+
+{"panasonic_kx_dp702", \
+	MXI_GEN_PANASONIC_KX_DP702,    MXI_GENERIC,       MXR_INTERFACE,
+				&mxi_panasonic_kx_dp702_record_function_list,
+				NULL,
+				NULL,
+				&mxi_panasonic_kx_dp702_num_record_fields,
+				&mxi_panasonic_kx_dp702_rfield_def_ptr},
 
 #ifdef OS_LINUX
 
@@ -3200,6 +3210,14 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_hitachi_kp_d20_ptz_function_list,
 				&mxd_hitachi_kp_d20_num_record_fields,
 				&mxd_hitachi_kp_d20_rfield_def_ptr},
+
+{"panasonic_kx_dp702_ptz",\
+		MXT_PTZ_PANASONIC_KX_DP702, MXC_PAN_TILT_ZOOM, MXR_DEVICE,
+			      &mxd_panasonic_kx_dp702_ptz_record_function_list,
+				NULL,
+				&mxd_panasonic_kx_dp702_ptz_ptz_function_list,
+				&mxd_panasonic_kx_dp702_ptz_num_record_fields,
+				&mxd_panasonic_kx_dp702_ptz_rfield_def_ptr},
 
 #if HAVE_LABPC
 #  ifdef OS_LINUX   /* The LabPC+ driver is only useable under Linux. */

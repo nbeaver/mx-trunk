@@ -1,0 +1,73 @@
+/*
+ * Name:    i_panasonic_kx_dp702.h
+ *
+ * Purpose: MX header file for Panasonic KX-DP702 PTZ units.
+ *
+ * Author:  William Lavender
+ *
+ *---------------------------------------------------------------------------
+ *
+ * Copyright 2005 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#ifndef __I_PANASONIC_KX_DP702_H__
+#define __I_PANASONIC_KX_DP702_H__
+
+#define MXU_PANASONIC_KX_DP702_MAX_CMD_LENGTH	14
+
+typedef struct {
+	MX_RECORD *record;
+
+	MX_RECORD *rs232_record;
+
+	int num_cameras;
+} MX_PANASONIC_KX_DP702;
+
+#define MXI_PANASONIC_KX_DP702_STANDARD_FIELDS \
+  {-1, -1, "rs232_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PANASONIC_KX_DP702, rs232_record),\
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+
+MX_API mx_status_type mxi_panasonic_kx_dp702_create_record_structures(
+							MX_RECORD *record );
+MX_API mx_status_type mxi_panasonic_kx_dp702_open( MX_RECORD *record );
+
+extern MX_RECORD_FUNCTION_LIST mxi_panasonic_kx_dp702_record_function_list;
+
+extern long mxi_panasonic_kx_dp702_num_record_fields;
+extern MX_RECORD_FIELD_DEFAULTS *mxi_panasonic_kx_dp702_rfield_def_ptr;
+
+MX_API mx_status_type
+mxi_panasonic_kx_dp702_copy( unsigned char *destination,
+			unsigned char *source,
+			size_t max_destination_length );
+
+MX_API mx_status_type
+mxi_panasonic_kx_dp702_value_string( unsigned char *destination,
+				size_t max_destination_length,
+				size_t prefix_length,
+				unsigned char *prefix,
+				unsigned long value );
+
+MX_API mx_status_type
+mxi_panasonic_kx_dp702_handle_error( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
+				int error_type,
+				char *sent_visca_ascii );
+
+MX_API mx_status_type
+mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
+			int camera_number,
+			unsigned char *command,
+			unsigned char *response,
+			size_t max_response_length,
+			size_t *actual_response_length );
+
+#define mxi_panasonic_kx_dp702_cmd_broadcast( s, c, r, m, a ) \
+	mxi_panasonic_kx_dp702_cmd( (s), 8, (c), (r), (m), (a) )
+
+#endif /* __I_PANASONIC_KX_DP702_H__ */
+
