@@ -1,4 +1,7 @@
-kx_dp702_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 164.54.208.75 3001 0x0
+###kx_dp702_rs232 interface rs232 tcp232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 164.54.208.14 3001 0x0
+###
+s1             server network tcpip_server "" "" 0x0 idc10.ser.aps.anl.gov 9727 0x0
+kx_dp702_rs232 interface rs232 network_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 s1 camera_RS232
 kx_dp702       interface generic panasonic_kx_dp702 "" "" kx_dp702_rs232
 ptz1           device ptz panasonic_kx_dp702_ptz "" "" 0x0 kx_dp702 1
 pan1           device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 1

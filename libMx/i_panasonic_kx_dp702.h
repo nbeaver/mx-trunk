@@ -25,6 +25,7 @@ typedef struct {
 	MX_RECORD *rs232_record;
 
 	int num_cameras;
+	int last_camera_number;
 } MX_PANASONIC_KX_DP702;
 
 #define MXI_PANASONIC_KX_DP702_STANDARD_FIELDS \
@@ -42,32 +43,19 @@ extern long mxi_panasonic_kx_dp702_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_panasonic_kx_dp702_rfield_def_ptr;
 
 MX_API mx_status_type
-mxi_panasonic_kx_dp702_copy( unsigned char *destination,
-			unsigned char *source,
-			size_t max_destination_length );
-
-MX_API mx_status_type
-mxi_panasonic_kx_dp702_value_string( unsigned char *destination,
-				size_t max_destination_length,
-				size_t prefix_length,
-				unsigned char *prefix,
-				unsigned long value );
-
-MX_API mx_status_type
-mxi_panasonic_kx_dp702_handle_error( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
-				int error_type,
-				char *sent_visca_ascii );
-
-MX_API mx_status_type
 mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
 			int camera_number,
 			unsigned char *command,
-			unsigned char *response,
-			size_t max_response_length,
-			size_t *actual_response_length );
+			size_t command_length );
 
-#define mxi_panasonic_kx_dp702_cmd_broadcast( s, c, r, m, a ) \
-	mxi_panasonic_kx_dp702_cmd( (s), 8, (c), (r), (m), (a) )
+MX_API mx_status_type
+mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
+			int camera_number,
+			unsigned char *command,
+			size_t command_length,
+			unsigned char *response,
+			size_t response_length,
+			size_t *actual_response_length );
 
 #endif /* __I_PANASONIC_KX_DP702_H__ */
 

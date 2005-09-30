@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -i -F ./mkx_dp702.dat -s ./skx_dp702.dat $*
+

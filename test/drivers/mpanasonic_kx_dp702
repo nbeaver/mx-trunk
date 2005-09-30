@@ -1,5 +1,0 @@
-#! /bin/sh
-
-../../motor/motor.static -i -F ./mpanasonic_kx_dp702.dat \
-			-s ./spanasonic_kx_dp702.dat $*
-
