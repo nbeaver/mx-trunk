@@ -147,14 +147,18 @@ typedef struct {
 #define MXLV_PTZ_STATUS			1002
 #define MXLV_PTZ_PAN_POSITION		1003
 #define MXLV_PTZ_PAN_DESTINATION	1004
-#define MXLV_PTZ_TILT_POSITION		1005
-#define MXLV_PTZ_TILT_DESTINATION	1006
-#define MXLV_PTZ_ZOOM_POSITION		1007
-#define MXLV_PTZ_ZOOM_DESTINATION	1008
-#define MXLV_PTZ_ZOOM_ON		1009
-#define MXLV_PTZ_FOCUS_POSITION		1010
-#define MXLV_PTZ_FOCUS_DESTINATION	1011
-#define MXLV_PTZ_FOCUS_AUTO		1012
+#define MXLV_PTZ_PAN_SPEED		1005
+#define MXLV_PTZ_TILT_POSITION		1006
+#define MXLV_PTZ_TILT_DESTINATION	1007
+#define MXLV_PTZ_TILT_SPEED		1008
+#define MXLV_PTZ_ZOOM_POSITION		1009
+#define MXLV_PTZ_ZOOM_DESTINATION	1010
+#define MXLV_PTZ_ZOOM_SPEED		1011
+#define MXLV_PTZ_ZOOM_ON		1012
+#define MXLV_PTZ_FOCUS_POSITION		1013
+#define MXLV_PTZ_FOCUS_DESTINATION	1014
+#define MXLV_PTZ_FOCUS_SPEED		1015
+#define MXLV_PTZ_FOCUS_AUTO		1016
 
 #define MX_PAN_TILT_ZOOM_STANDARD_FIELDS \
   {-1, -1, "ptz_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -177,6 +181,10 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_destination), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_PTZ_PAN_SPEED, -1, "pan_speed", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_speed), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_PTZ_TILT_POSITION, -1, "tilt_position", MXFT_LONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
@@ -185,12 +193,20 @@ typedef struct {
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_destination), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_PTZ_TILT_SPEED, -1, "tilt_speed", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_speed), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
   {MXLV_PTZ_ZOOM_DESTINATION, -1, "zoom_destination", MXFT_ULONG, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_ZOOM_SPEED, -1, "zoom_speed", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_speed), \
 	{0}, NULL, 0}, \
   \
   {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_ULONG, NULL, 0, {0}, \
@@ -204,6 +220,10 @@ typedef struct {
   {MXLV_PTZ_FOCUS_DESTINATION, -1, "focus_destination", \
 	  					MXFT_ULONG, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_destination), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_PTZ_FOCUS_SPEED, -1, "focus_speed", MXFT_ULONG, NULL, 0, {0},\
+  	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_speed), \
 	{0}, NULL, 0}, \
   \
   {MXLV_PTZ_FOCUS_AUTO, -1, "focus_auto", MXFT_ULONG, NULL, 0, {0},\

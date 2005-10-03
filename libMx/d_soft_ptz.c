@@ -109,8 +109,7 @@ mxd_soft_ptz_create_record_structures( MX_RECORD *record )
                "Unable to allocate memory for an MX_PAN_TILT_ZOOM structure." );
         }
 
-        soft_ptz = (MX_SOFT_PTZ *)
-				malloc( sizeof(MX_SOFT_PTZ) );
+        soft_ptz = (MX_SOFT_PTZ *) malloc( sizeof(MX_SOFT_PTZ) );
 
         if ( soft_ptz == (MX_SOFT_PTZ *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -169,10 +168,28 @@ mxd_soft_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->command ) {
+	case MXF_PTZ_PAN_LEFT:
+		mx_info("PTZ '%s': pan left.", ptz->record->name);
+		break;
+	case MXF_PTZ_PAN_RIGHT:
+		mx_info("PTZ '%s': pan right.", ptz->record->name);
+		break;
+	case MXF_PTZ_PAN_STOP:
+		mx_info("PTZ '%s': pan stop.", ptz->record->name);
+		break;
+	case MXF_PTZ_TILT_UP:
+		mx_info("PTZ '%s': tilt up.", ptz->record->name);
+		break;
+	case MXF_PTZ_TILT_DOWN:
+		mx_info("PTZ '%s': tilt down.", ptz->record->name);
+		break;
+	case MXF_PTZ_TILT_STOP:
+		mx_info("PTZ '%s': tilt stop.", ptz->record->name);
+		break;
 	case MXF_PTZ_ZOOM_IN:
 		mx_info("PTZ '%s': zoom in.", ptz->record->name);
 		break;
@@ -187,6 +204,51 @@ mxd_soft_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		break;
 	case MXF_PTZ_ZOOM_ON:
 		mx_info("PTZ '%s': zoom on", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_MANUAL:
+		mx_info("PTZ '%s': focus manual.", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_AUTO:
+		mx_info("PTZ '%s': focus auto.", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_FAR:
+		mx_info("PTZ '%s': focus far.", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_NEAR:
+		mx_info("PTZ '%s': focus near.", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_STOP:
+		mx_info("PTZ '%s': focus stop.", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_OFF:
+		mx_info("PTZ '%s': focus off", ptz->record->name);
+		break;
+	case MXF_PTZ_FOCUS_ON:
+		mx_info("PTZ '%s': focus on", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_UPPER_LEFT:
+		mx_info("PTZ '%s': drive upper left.", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_UPPER_RIGHT:
+		mx_info("PTZ '%s': drive upper right.", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_LOWER_LEFT:
+		mx_info("PTZ '%s': drive lower left.", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_LOWER_RIGHT:
+		mx_info("PTZ '%s': drive lower right.", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_STOP:
+		mx_info("PTZ '%s': drive stop", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_HOME:
+		mx_info("PTZ '%s': drive home", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_OFF:
+		mx_info("PTZ '%s': drive off", ptz->record->name);
+		break;
+	case MXF_PTZ_DRIVE_ON:
+		mx_info("PTZ '%s': drive on", ptz->record->name);
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -232,15 +294,41 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->parameter_type ) {
+	case MXF_PTZ_PAN_POSITION:
+		mx_info("PTZ '%s': pan is at %ld",
+			ptz->record->name, ptz->pan_position);
+		break;
+	case MXF_PTZ_TILT_POSITION:
+		mx_info("PTZ '%s': tilt is at %ld",
+			ptz->record->name, ptz->tilt_position);
+		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_info("PTZ '%s': zoom is at %lu",
 			ptz->record->name, ptz->zoom_position);
-
-		ptz->zoom_position = ptz->zoom_destination;
+		break;
+	case MXF_PTZ_FOCUS_POSITION:
+		mx_info("PTZ '%s': focus is at %lu",
+			ptz->record->name, ptz->focus_position);
+		break;
+	case MXF_PTZ_PAN_SPEED:
+		mx_info("PTZ '%s': pan speed is %lu",
+			ptz->record->name, ptz->pan_speed);
+		break;
+	case MXF_PTZ_TILT_SPEED:
+		mx_info("PTZ '%s': tilt speed is %lu",
+			ptz->record->name, ptz->tilt_speed);
+		break;
+	case MXF_PTZ_ZOOM_SPEED:
+		mx_info("PTZ '%s': zoom speed is %lu",
+			ptz->record->name, ptz->zoom_speed);
+		break;
+	case MXF_PTZ_FOCUS_SPEED:
+		mx_info("PTZ '%s': focus speed is %lu",
+			ptz->record->name, ptz->focus_speed);
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -266,15 +354,49 @@ mxd_soft_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for PTZ '%s' for command type %#x.",
+	MX_DEBUG( 2,("%s invoked for PTZ '%s' for command type %#x.",
 		fname, ptz->record->name, ptz->parameter_type));
 
 	switch( ptz->parameter_type ) {
+	case MXF_PTZ_PAN_DESTINATION:
+		mx_info("PTZ '%s': move pan to %ld",
+			ptz->record->name, ptz->pan_destination);
+
+		ptz->pan_position = ptz->pan_destination;
+		break;
+	case MXF_PTZ_TILT_DESTINATION:
+		mx_info("PTZ '%s': move tilt to %ld",
+			ptz->record->name, ptz->tilt_destination);
+
+		ptz->tilt_position = ptz->tilt_destination;
+		break;
 	case MXF_PTZ_ZOOM_DESTINATION:
-		mx_info("PTZ '%s': zoom to %lu",
+		mx_info("PTZ '%s': move zoom to %lu",
 			ptz->record->name, ptz->zoom_destination);
 
 		ptz->zoom_position = ptz->zoom_destination;
+		break;
+	case MXF_PTZ_FOCUS_DESTINATION:
+		mx_info("PTZ '%s': move focus to %lu",
+			ptz->record->name, ptz->focus_destination);
+
+		ptz->focus_position = ptz->focus_destination;
+		break;
+	case MXF_PTZ_PAN_SPEED:
+		mx_info("PTZ '%s': set pan speed to %lu",
+			ptz->record->name, ptz->pan_speed);
+		break;
+	case MXF_PTZ_TILT_SPEED:
+		mx_info("PTZ '%s': set tilt speed to %lu",
+			ptz->record->name, ptz->tilt_speed);
+		break;
+	case MXF_PTZ_ZOOM_SPEED:
+		mx_info("PTZ '%s': set zoom speed to %lu",
+			ptz->record->name, ptz->zoom_speed);
+		break;
+	case MXF_PTZ_FOCUS_SPEED:
+		mx_info("PTZ '%s': set focus speed to %lu",
+			ptz->record->name, ptz->focus_speed);
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

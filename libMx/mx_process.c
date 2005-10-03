@@ -237,26 +237,28 @@ mx_process_record_field( MX_RECORD *record,
 
 	process_fn = record_field->process_function;
 
-	if ( process_fn != NULL ) {
-
 #if PROCESS_DEBUG
-		if ( direction == MX_PROCESS_GET ) {
-			MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_GET (%ld)",
-				fname, record->name, record_field->name,
-				record_field->label_value ));
-		} else
-		if ( direction == MX_PROCESS_PUT ) {
-			MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_PUT (%ld)",
-				fname, record->name, record_field->name,
-				record_field->label_value ));
-		} else {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal direction flag (%d) passed.  The only "
-			"allowed values are MX_PROCESS_GET (%d) and "
-			"MX_PROCESS_PUT (%d).", direction,
-				MX_PROCESS_GET, MX_PROCESS_PUT );
-		}
+	if ( direction == MX_PROCESS_GET ) {
+		MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_GET (%ld)",
+			fname, record->name, record_field->name,
+			record_field->label_value ));
+	} else
+	if ( direction == MX_PROCESS_PUT ) {
+		MX_DEBUG(-1,("%s: '%s.%s' MX_PROCESS_PUT (%ld)",
+			fname, record->name, record_field->name,
+			record_field->label_value ));
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal direction flag (%d) passed.  The only "
+		"allowed values are MX_PROCESS_GET (%d) and "
+		"MX_PROCESS_PUT (%d).", direction,
+			MX_PROCESS_GET, MX_PROCESS_PUT );
+	}
+
+	MX_DEBUG(-1,("%s: process_fn = %p", fname, process_fn));
 #endif /* PROCESS_DEBUG */
+
+	if ( process_fn != NULL ) {
 
 		/* Only invoke the process function for non-negative
 		 * values of record_field->label_value.  A field

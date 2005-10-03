@@ -1079,6 +1079,7 @@ mx_ptz_focus_manual( MX_RECORD *ptz_record )
 	}
 
 	ptz->command = MXF_PTZ_FOCUS_MANUAL;
+	ptz->focus_auto = FALSE;
 
 	mx_status = (*command_fn)( ptz );
 
@@ -1110,6 +1111,7 @@ mx_ptz_focus_auto( MX_RECORD *ptz_record )
 	}
 
 	ptz->command = MXF_PTZ_FOCUS_AUTO;
+	ptz->focus_auto = TRUE;
 
 	mx_status = (*command_fn)( ptz );
 

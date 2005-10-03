@@ -35,7 +35,7 @@ mx_setup_ptz_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked for record '%s'.", fname, record->name));
 
 	record_field_array = record->record_field_array;
 
@@ -48,15 +48,18 @@ mx_setup_ptz_process_functions( MX_RECORD *record )
 		case MXLV_PTZ_STATUS:
 		case MXLV_PTZ_PAN_POSITION:
 		case MXLV_PTZ_PAN_DESTINATION:
+		case MXLV_PTZ_PAN_SPEED:
 		case MXLV_PTZ_TILT_POSITION:
 		case MXLV_PTZ_TILT_DESTINATION:
+		case MXLV_PTZ_TILT_SPEED:
 		case MXLV_PTZ_ZOOM_POSITION:
 		case MXLV_PTZ_ZOOM_DESTINATION:
+		case MXLV_PTZ_ZOOM_SPEED:
 		case MXLV_PTZ_ZOOM_ON:
 		case MXLV_PTZ_FOCUS_POSITION:
 		case MXLV_PTZ_FOCUS_DESTINATION:
+		case MXLV_PTZ_FOCUS_SPEED:
 		case MXLV_PTZ_FOCUS_AUTO:
-		break;
 			record_field->process_function
 					    = mx_ptz_process_function;
 			break;
@@ -105,6 +108,18 @@ mx_ptz_process_function( void *record_ptr,
 		case MXLV_PTZ_FOCUS_POSITION:
 			mx_status = mx_ptz_get_focus( record, NULL );
 			break;
+		case MXLV_PTZ_PAN_SPEED:
+			mx_status = mx_ptz_get_pan_speed( record, NULL );
+			break;
+		case MXLV_PTZ_TILT_SPEED:
+			mx_status = mx_ptz_get_tilt_speed( record, NULL );
+			break;
+		case MXLV_PTZ_ZOOM_SPEED:
+			mx_status = mx_ptz_get_zoom_speed( record, NULL );
+			break;
+		case MXLV_PTZ_FOCUS_SPEED:
+			mx_status = mx_ptz_get_focus_speed( record, NULL );
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -133,11 +148,34 @@ mx_ptz_process_function( void *record_ptr,
 			mx_status = mx_ptz_set_focus( record,
 						ptz->focus_destination );
 			break;
+		case MXLV_PTZ_PAN_SPEED:
+			mx_status = mx_ptz_set_pan_speed( record,
+							ptz->pan_speed );
+			break;
+		case MXLV_PTZ_TILT_SPEED:
+			mx_status = mx_ptz_set_tilt_speed( record,
+							ptz->tilt_speed );
+			break;
+		case MXLV_PTZ_ZOOM_SPEED:
+			mx_status = mx_ptz_set_zoom_speed( record,
+							ptz->zoom_speed );
+			break;
+		case MXLV_PTZ_FOCUS_SPEED:
+			mx_status = mx_ptz_set_focus_speed( record,
+							ptz->focus_speed );
+			break;
 		case MXLV_PTZ_ZOOM_ON:
 			if ( ptz->zoom_on == FALSE ) {
 				mx_status = mx_ptz_zoom_off( record );
 			} else {
 				mx_status = mx_ptz_zoom_on( record );
+			}
+			break;
+		case MXLV_PTZ_FOCUS_AUTO:
+			if ( ptz->focus_auto == FALSE ) {
+				mx_status = mx_ptz_focus_manual( record );
+			} else {
+				mx_status = mx_ptz_focus_auto( record );
 			}
 			break;
 		default:

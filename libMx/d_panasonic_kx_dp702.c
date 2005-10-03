@@ -186,14 +186,6 @@ mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_TILT_DOWN:
 		command[0] = 0x55;	command_length = 1;
 		break;
-	case MXF_PTZ_DRIVE_UPPER_LEFT:
-		break;
-	case MXF_PTZ_DRIVE_UPPER_RIGHT:
-		break;
-	case MXF_PTZ_DRIVE_LOWER_LEFT:
-		break;
-	case MXF_PTZ_DRIVE_LOWER_RIGHT:
-		break;
 	case MXF_PTZ_PAN_STOP:
 	case MXF_PTZ_TILT_STOP:
 	case MXF_PTZ_DRIVE_STOP:
@@ -211,10 +203,6 @@ mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_STOP:
 		command[0] = 0x4d;	command_length = 1;
 		break;
-	case MXF_PTZ_ZOOM_OFF:
-		break;
-	case MXF_PTZ_ZOOM_ON:
-		break;
 	case MXF_PTZ_FOCUS_MANUAL:
 		command[0] = 0x08;	command_length = 1;
 		break;
@@ -230,6 +218,12 @@ mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_FOCUS_NEAR:
 		command[0] = 0x5c;	command_length = 1;
 		break;
+	case MXF_PTZ_DRIVE_UPPER_LEFT:
+	case MXF_PTZ_DRIVE_UPPER_RIGHT:
+	case MXF_PTZ_DRIVE_LOWER_LEFT:
+	case MXF_PTZ_DRIVE_LOWER_RIGHT:
+	case MXF_PTZ_ZOOM_OFF:
+	case MXF_PTZ_ZOOM_ON:
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command %lu received for Panasonic PTZ '%s' "

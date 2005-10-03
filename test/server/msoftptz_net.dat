@@ -1,2 +1,6 @@
 s1   server network tcpip_server "" "" 0x0 localhost 9827
 ptz1 device ptz network_ptz "" "" 0x0 s1 ptz1
+pan1 device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 1
+tilt1 device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 2
+zoom1 device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 3
+focus1 device motor ptz_motor "" "" 0 0 -1000000 1000000 0 -1 -1 1 0 steps ptz1 4
