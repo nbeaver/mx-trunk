@@ -178,16 +178,26 @@ mxd_pm304_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_finish_record_initialization( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/*** Server minimum delay time between commands. ***/
+
+#if 1
+	record->event_time_manager = (MX_EVENT_TIME_MANAGER *)
+		malloc( sizeof( MX_EVENT_TIME_MANAGER ) );
+
+	if ( record->event_time_manager == (MX_EVENT_TIME_MANAGER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+"Ran out of memory trying to allocate an MX_EVENT_TIME_MANAGER structure." );
+	}
 
 	if ( pm304->minimum_event_interval >= 0.0 ) {
 		mx_set_event_interval( record, pm304->minimum_event_interval );
 	}
+#endif
+
+	mx_status = mx_motor_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -338,6 +338,14 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	 * on the version of the MCA record in the remote EPICS crate.
 	 */
 
+	if ( epics_mcs->epics_record_version >= 6.0 ) {
+		mx_epics_pvname_init(&(epics_mcs->prtm_pv),
+				"%sPresetReal.VAL", epics_mcs->common_prefix );
+	} else {
+		mx_epics_pvname_init(&(epics_mcs->prtm_pv),
+				"%s1.PRTM", epics_mcs->channel_prefix );
+	}
+
 	if ( epics_mcs->epics_record_version >= 5.0 ) {
 
 		mx_epics_pvname_init(&(epics_mcs->acquiring_pv),
@@ -429,7 +437,11 @@ mxd_epics_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = 0;
+	if ( epics_mcs->epics_record_version >= 5.0 ) {
+		stop = 1;
+	} else {
+		stop = 0;
+	}
 
 	mx_status = mx_caput( &(epics_mcs->stop_pv),
 				MX_CA_LONG, 1, &stop );
@@ -640,9 +652,11 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	const char fname[] = "mxd_epics_mcs_set_parameter()";
 
 	MX_EPICS_MCS *epics_mcs;
+	MX_EPICS_GROUP preset_group;
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
 	long current_num_epics_measurements;
+	float preset_real_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mcs_get_pointers( mcs, &epics_mcs, fname );
@@ -689,17 +703,48 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 				= (long) mcs->current_num_measurements + 1L;
 		}
 
+		/* Put the following two caputs into
+		 * an EPICS synchronous group.
+		 */
+
+		mx_status = mx_epics_start_group( &preset_group );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Turn off preset real time. */
+
+		preset_real_time = 0.0;
+
+		mx_status = mx_group_caput( &preset_group,
+					&(epics_mcs->prtm_pv),
+					MX_CA_FLOAT, 1, &preset_real_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the measurement preset. */
+
 		if ( epics_mcs->epics_record_version >= 5.0 ) {
 
-			mx_status = mx_caput( &(epics_mcs->nuse_pv),
+			mx_status = mx_group_caput( &preset_group,
+				&(epics_mcs->nuse_pv),
 				MX_CA_LONG, 1, &current_num_epics_measurements);
 		} else {
 			preset_live_time = mcs->measurement_time
 				* (double) current_num_epics_measurements;
 
-			mx_status = mx_caput( &(epics_mcs->pltm_pv),
+			mx_status = mx_group_caput( &preset_group,
+					&(epics_mcs->pltm_pv),
 					MX_CA_DOUBLE, 1, &preset_live_time );
 		}
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Send the commands in the EPICS synchronous group. */
+
+		mx_status = mx_epics_end_group( &preset_group );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
