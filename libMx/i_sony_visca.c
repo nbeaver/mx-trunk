@@ -118,9 +118,9 @@ mxi_sony_visca_open( MX_RECORD *record )
 	/* Send the address set command. */
 
 	mx_status = mxi_sony_visca_cmd_broadcast( sony_visca,
-						"\x30\x01\xff",
-						response, sizeof(response),
-						&num_response_bytes );
+					(unsigned char *) "\x30\x01\xff",
+					response, sizeof(response),
+					&num_response_bytes );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -161,8 +161,8 @@ mxi_sony_visca_open( MX_RECORD *record )
 	/* Send the interface clear command. */
 
 	mx_status = mxi_sony_visca_cmd_broadcast( sony_visca,
-						"\x01\x00\x01\xff",
-						NULL, 0, NULL );
+					(unsigned char *) "\x01\x00\x01\xff",
+					NULL, 0, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -278,7 +278,7 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 	 */
 
 	mx_status = mx_rs232_getchar( sony_visca->rs232_record,
-					&c, 0 );
+					(char *) &c, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -368,7 +368,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 	num_command_body_bytes = 0;
 
-	command_ptr = command;
+	command_ptr = (char *) command;
 
 	while (1) {
 		num_command_body_bytes++;
@@ -412,8 +412,8 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	/* Send the command body. */
 
 	mx_status = mx_rs232_write( sony_visca->rs232_record,
-					command, num_command_body_bytes,
-					NULL, 0 );
+				(char *) command, num_command_body_bytes,
+				NULL, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -598,7 +598,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 		for ( i = 3; i < sizeof(local_receive_buffer); i++ ) {
 			mx_status = mx_rs232_getchar(
 						sony_visca->rs232_record,
-						&c, MXF_232_WAIT );
+						(char *) &c, MXF_232_WAIT );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

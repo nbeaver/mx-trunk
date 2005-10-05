@@ -228,77 +228,95 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->command ) {
 	case MXF_PTZ_PAN_LEFT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x01\x03" );
+				command, sizeof(command), 
+				(unsigned char *) "\x01\x03" );
 		break;
 	case MXF_PTZ_PAN_RIGHT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x02\x03" );
+				command, sizeof(command), 
+				(unsigned char *) "\x02\x03" );
 		break;
 	case MXF_PTZ_TILT_UP:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x03\x01" );
+				command, sizeof(command), 
+				(unsigned char *) "\x03\x01" );
 		break;
 	case MXF_PTZ_TILT_DOWN:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x03\x02" );
+				command, sizeof(command), 
+				(unsigned char *) "\x03\x02" );
 		break;
 	case MXF_PTZ_DRIVE_UPPER_LEFT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x01\x01" );
+				command, sizeof(command), 
+				(unsigned char *) "\x01\x01" );
 		break;
 	case MXF_PTZ_DRIVE_UPPER_RIGHT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x02\x01" );
+				command, sizeof(command), 
+				(unsigned char *) "\x02\x01" );
 		break;
 	case MXF_PTZ_DRIVE_LOWER_LEFT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x01\x02" );
+				command, sizeof(command), 
+				(unsigned char *) "\x01\x02" );
 		break;
 	case MXF_PTZ_DRIVE_LOWER_RIGHT:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x02\x02" );
+				command, sizeof(command), 
+				(unsigned char *) "\x02\x02" );
 		break;
 	case MXF_PTZ_PAN_STOP:
 	case MXF_PTZ_TILT_STOP:
 	case MXF_PTZ_DRIVE_STOP:
 		mxd_sony_visca_ptz_pan_tilt_drive_string( ptz->record,
-				command, sizeof(command), "\x03\x03" );
+				command, sizeof(command),
+				(unsigned char *) "\x03\x03" );
 		break;
 	case MXF_PTZ_DRIVE_HOME:
 		mxi_sony_visca_copy( command,
-				"\x01\x06\x04\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x06\x04\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_ZOOM_IN:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x07\x02\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x07\x02\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_ZOOM_OUT:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x07\x03\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x07\x03\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_ZOOM_STOP:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x07\x00\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x07\x00\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_ZOOM_OFF:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x06\x03\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x06\x03\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_ZOOM_ON:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x06\x02\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x06\x02\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_FOCUS_MANUAL:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x38\x03\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x38\x03\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_FOCUS_AUTO:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x38\x02\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x38\x02\xff",
+				sizeof( command ) );
 		break;
 	case MXF_PTZ_FOCUS_STOP:
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x08\x00\xff", sizeof( command ) );
+				(unsigned char *) "\x01\x04\x08\x00\xff",
+				sizeof( command ) );
 		break;
 	
 		/* For the next two cases, we have to switch to manual mode
@@ -316,7 +334,8 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		/* Now send the focus far command. */
 
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x08\x02\xff", sizeof( command ));
+				(unsigned char *) "\x01\x04\x08\x02\xff",
+				sizeof( command ));
 		break;
 
 	case MXF_PTZ_FOCUS_NEAR:
@@ -330,7 +349,8 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		/* Now send the focus far command. */
 
 		mxi_sony_visca_copy( command,
-				"\x01\x04\x08\x03\xff", sizeof( command ));
+				(unsigned char *) "\x01\x04\x08\x03\xff",
+				sizeof( command ));
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -372,7 +392,7 @@ mxd_sony_visca_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 
 	mx_status = mxi_sony_visca_cmd( sony_visca,
 					sony_visca_ptz->camera_number,
-					"\x09\x06\x10\xff",
+					(unsigned char *) "\x09\x06\x10\xff",
 					response, sizeof(response), NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -465,13 +485,16 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_POSITION:
 	case MXF_PTZ_TILT_POSITION:
-		strlcpy( command, "\x09\x06\x12\xff", sizeof(command) );
+		strlcpy( (char *) command, (char *) "\x09\x06\x12\xff",
+				sizeof(command) );
 		break;
 	case MXF_PTZ_ZOOM_POSITION:
-		strlcpy( command, "\x09\x04\x47\xff", sizeof(command) );
+		strlcpy( (char *) command, (char *) "\x09\x04\x47\xff",
+				sizeof(command) );
 		break;
 	case MXF_PTZ_FOCUS_POSITION:
-		strlcpy( command, "\x09\x04\x48\xff", sizeof(command) );
+		strlcpy( (char *) command, (char *) "\x09\x04\x48\xff",
+				sizeof(command) );
 		break;
 	case MXF_PTZ_PAN_SPEED:
 	case MXF_PTZ_TILT_SPEED:
@@ -484,7 +507,8 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		strlcpy( command, "\x09\x06\x11\xff", sizeof(command) );
+		strlcpy( (char *) command, (char *) "\x09\x06\x11\xff",
+				sizeof(command) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -664,9 +688,9 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			ptz->zoom_destination));
 #endif
 		mx_status = mxi_sony_visca_value_string(
-						command, sizeof(command),
-						3, "\x01\x04\x47",
-						ptz->zoom_destination );
+					command, sizeof(command), 3,
+					(unsigned char *) "\x01\x04\x47",
+					ptz->zoom_destination );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -683,9 +707,9 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			ptz->focus_destination));
 #endif
 		mx_status = mxi_sony_visca_value_string(
-						command, sizeof(command),
-						3, "\x01\x04\x48",
-						ptz->focus_destination );
+					command, sizeof(command), 3,
+					(unsigned char *) "\x01\x04\x48",
+					ptz->focus_destination );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

@@ -259,7 +259,7 @@ mxd_panasonic_kx_dp702_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 
 	mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x90", 1,
+						(unsigned char *) "\x90", 1,
 						response, 3, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -321,7 +321,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x94", 1,
+						(unsigned char *) "\x94", 1,
 						response, 8, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -357,7 +357,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_PAN_SPEED:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x51", 1,
+						(unsigned char *) "\x51", 1,
 						response, 4, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -380,7 +380,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_TILT_SPEED:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x52", 1,
+						(unsigned char *) "\x52", 1,
 						response, 4, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -403,7 +403,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_ZOOM_SPEED:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x53", 1,
+						(unsigned char *) "\x53", 1,
 						response, 4, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -426,7 +426,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_FOCUS_SPEED:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x54", 1,
+						(unsigned char *) "\x54", 1,
 						response, 4, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -449,7 +449,7 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_FOCUS_AUTO:
 		mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
-						"\x91", 1,
+						(unsigned char *) "\x91", 1,
 						response, 3, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -542,7 +542,8 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	MX_PANASONIC_KX_DP702 *kx_dp702;
 	unsigned char command[80];
 	int saved_parameter_type;
-	unsigned long pan_value, tilt_value, zoom_value;
+	long pan_value, tilt_value;
+	unsigned long zoom_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_panasonic_kx_dp702_ptz_get_pointers( ptz,

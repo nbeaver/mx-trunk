@@ -163,6 +163,8 @@ mxv_bluice_command_send_variable( MX_VARIABLE *variable )
 	char *command_ptr;
 	mx_status_type mx_status;
 
+	bluice_command = NULL;		/* Suppress annoying GCC 4 warning. */
+
 	mx_status = mxv_bluice_command_get_pointers( variable,
 					&bluice_command, fname );
 

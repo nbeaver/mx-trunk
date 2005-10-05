@@ -121,9 +121,9 @@ mxi_panasonic_kx_dp702_open( MX_RECORD *record )
 	kx_dp702->last_camera_number = 0;
 
 	mx_status = mxi_panasonic_kx_dp702_raw_cmd( kx_dp702, 0,
-						"\xee\x00", 2,
-						response, 2,
-						&num_response_bytes );
+					(unsigned char *) "\xee\x00", 2,
+					response, 2,
+					&num_response_bytes );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -220,6 +220,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	char command_ascii[80], response_ascii[80], hex_buffer[10];
 	unsigned long i, num_bytes_available, wait_ms, max_attempts;
 	unsigned char local_command[5], local_response[5];
+	char *response_ptr;
 	size_t bytes_read;
 	int exit_loop;
 	mx_status_type mx_status;
@@ -248,7 +249,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 		/* Send the switch camera command. */
 
 		mx_status = mx_rs232_write( kx_dp702->rs232_record,
-					local_command, 2, NULL,
+					(char *) local_command, 2, NULL,
 					MXI_PANASONIC_KX_DP702_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -257,7 +258,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 		/* Read back the echoed command. */
 
 		mx_status = mx_rs232_read( kx_dp702->rs232_record,
-					local_response, 2, NULL,
+					(char *) local_response, 2, NULL,
 					MXI_PANASONIC_KX_DP702_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -275,7 +276,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	/* Send the command. */
 
 	mx_status = mx_rs232_write( kx_dp702->rs232_record,
-					command, command_length, NULL,
+					(char *) command, command_length, NULL,
 					MXI_PANASONIC_KX_DP702_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -316,7 +317,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 		 */
 
 		mx_status = mx_rs232_read( kx_dp702->rs232_record,
-				response, 1, &bytes_read,
+				(char *) response, 1, &bytes_read,
 				MXI_PANASONIC_KX_DP702_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -350,8 +351,10 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	/* Read in the rest of the characters. */
 
 	if ( response_length > 1 ) {
+		response_ptr = (char *) &(response[1]);
+
 		mx_status = mx_rs232_read( kx_dp702->rs232_record,
-				&(response[1]), response_length-1, &bytes_read,
+				response_ptr, response_length-1, &bytes_read,
 				MXI_PANASONIC_KX_DP702_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )

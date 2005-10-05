@@ -117,7 +117,7 @@ mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
 	mx_uint16_type checksum, xor_8bit_checksum;
 	unsigned char low_nibble, high_nibble;
 	unsigned char low_nibble_ascii, high_nibble_ascii;
-	char *checksum_address;
+	unsigned char *checksum_address;
 	char c;
 	unsigned char local_command[40];
 	mx_status_type mx_status;
@@ -140,7 +140,7 @@ mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
 
 	/* Format the string to be sent to the controller. */
 
-	snprintf( local_command, sizeof(local_command),
+	snprintf( (char *) local_command, sizeof(local_command),
 		"%c00FF%s%s%c", MX_STX, prefix, command, MX_ETX );
 
 	/* Compute the command checksum. */
@@ -258,7 +258,8 @@ mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
 
 		/* Send the command. */
 
-		mx_status = mx_rs232_write( rs232_record, local_command,
+		mx_status = mx_rs232_write( rs232_record,
+					(char *) local_command,
 					MXD_HITACHI_KP_D20_COMMAND_LENGTH,
 					NULL, MXD_HITACHI_KP_D20_DEBUG );
 						

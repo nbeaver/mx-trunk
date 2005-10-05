@@ -299,6 +299,7 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_ptz_motor_get_position()";
 
 	MX_PTZ_MOTOR *ptz_motor;
+	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
@@ -317,11 +318,15 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 		break;
 	case MXT_PTZ_MOTOR_ZOOM:
 		mx_status = mx_ptz_get_zoom( ptz_motor->ptz_record,
-					&(motor->raw_position.stepper) );
+							&ulong_value );
+
+		motor->raw_position.stepper = ulong_value;
 		break;
 	case MXT_PTZ_MOTOR_FOCUS:
 		mx_status = mx_ptz_get_focus( ptz_motor->ptz_record,
-					&(motor->raw_position.stepper) );
+							&ulong_value );
+
+		motor->raw_position.stepper = ulong_value;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
