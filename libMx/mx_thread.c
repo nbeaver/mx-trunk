@@ -32,7 +32,7 @@ static volatile int mx_threads_are_initialized = FALSE;
 
 #include <windows.h>
 
-#if defined(__BORLANDC__)
+#if defined(__BORLANDC__) || defined(__GNUC__)
 #  include <process.h>
 #endif
 
@@ -162,7 +162,9 @@ mx_win32_thread_get_handle_and_id( MX_THREAD *thread )
 static unsigned __stdcall
 mx_thread_start_function( void *args_ptr )
 {
+#if MX_THREAD_DEBUG
 	static const char fname[] = "mx_thread_start_function()";
+#endif
 
 	MX_WIN32_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
 	MX_THREAD *thread;
@@ -227,8 +229,6 @@ mx_thread_initialize( void )
 	static const char fname[] = "mx_thread_initialize()";
 
 	MX_THREAD *thread;
-	MX_WIN32_THREAD_PRIVATE *thread_private;
-	BOOL status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
@@ -301,7 +301,6 @@ mx_thread_build_data_structures( MX_THREAD **thread )
 	MX_WIN32_THREAD_PRIVATE *thread_private;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
-	mx_status_type mx_status;
 
 
 	if ( thread == (MX_THREAD **) NULL ) {
@@ -681,7 +680,7 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Attempt to check for stop request failed.  "
 			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
+			last_error_code, message_buffer );
 		break;
 	default:
 		last_error_code = GetLastError();
@@ -692,7 +691,7 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unexpected error code from WaitForSingleObject().  "
 			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
+			last_error_code, message_buffer );
 		break;
 	}
 
@@ -799,7 +798,7 @@ mx_thread_wait( MX_THREAD *thread,
 	case WAIT_TIMEOUT:
 		return mx_error( MXE_TIMED_OUT, fname,
 			"Timed out after %g seconds of waiting for thread %p "
-			"to terminate.", max_seconds_to_wait );
+			"to terminate.", max_seconds_to_wait, thread );
 		break;
 	case WAIT_FAILED:
 		last_error_code = GetLastError();
@@ -810,7 +809,7 @@ mx_thread_wait( MX_THREAD *thread,
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Attempt to check for thread termination failed.  "
 			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
+			last_error_code, message_buffer );
 		break;
 	default:
 		last_error_code = GetLastError();
@@ -821,7 +820,7 @@ mx_thread_wait( MX_THREAD *thread,
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unexpected error code from WaitForSingleObject().  "
 			"Win32 error code = %ld, error_message = '%s'",
-			thread, last_error_code, message_buffer );
+			last_error_code, message_buffer );
 		break;
 	}
 
@@ -929,7 +928,7 @@ mx_get_current_thread( MX_THREAD **thread )
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 				"Unexpected error code from TlsGetValue().  "
 				"Win32 error code = %ld, error_message = '%s'",
-				thread, last_error_code, message_buffer );
+				last_error_code, message_buffer );
 		}
 	}
 

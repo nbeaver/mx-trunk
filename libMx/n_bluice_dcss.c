@@ -1250,8 +1250,6 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxn_bluice_dcss_server_resynchronize( MX_RECORD *record )
 {
-	mx_status_type mx_status;
-
 #if 1
 	static const char fname[] = "mxn_bluice_dcss_server_resynchronize()";
 
@@ -1260,6 +1258,8 @@ mxn_bluice_dcss_server_resynchronize( MX_RECORD *record )
 	"The only way to reconnect is to exit your application program "
 	"and then start your application again.", record->name );
 #else
+	mx_status_type mx_status;
+
 	mx_status = mxn_bluice_dcss_server_close( record );
 
 	if ( mx_status.code != MXE_SUCCESS )

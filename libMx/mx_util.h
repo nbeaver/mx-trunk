@@ -21,6 +21,8 @@
 
 #include <time.h>	/* We get 'struct timespec' from here. */
 
+#include <stdarg.h>	/* We get 'va_list' from here. */
+
 /*
  * Macros for declaring shared library or DLL functions.
  *
@@ -310,7 +312,7 @@ MX_API int mx_free_pointer( void *pointer );
 				} \
 			} while (0)
 
-#if defined(OS_WIN32) && ! defined(__BORLANDC__)
+#if defined(OS_WIN32) && defined(_MSC_VER)
 
 /* These provide definitions of snprintf() and vsnprintf() for systems
  * that do not come with them.  On most such systems, snprintf() and

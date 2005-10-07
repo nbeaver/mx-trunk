@@ -1,4 +1,4 @@
-MX_ARCH = win32
+MX_ARCH = win32-mingw
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 
