@@ -17,6 +17,7 @@
 #define BLUICE_COMMAND_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -70,7 +71,7 @@ mxv_bluice_command_get_pointers( MX_VARIABLE *variable,
 	}
 	if ( bluice_command == (MX_BLUICE_COMMAND **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The MX_BLUICE_COMMAND pointer passed by '%s' was NULL.",
+		"The MX_BLUICE_COMMAND pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
 	if ( variable->record == (MX_RECORD *) NULL ) {

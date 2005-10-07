@@ -18,6 +18,7 @@
 #define BLUICE_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_unistd.h"
 

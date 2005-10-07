@@ -17,6 +17,7 @@
 #define BLUICE_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"

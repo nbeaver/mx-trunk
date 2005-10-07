@@ -17,6 +17,7 @@
 #define BLUICE_MASTER_DEBUG		FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_driver.h"

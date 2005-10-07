@@ -443,7 +443,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /*********************** Unix and Posix systems **********************/
 
-#elif defined(OS_UNIX)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN)
 
 /* NOTE:  On some platforms, such as Linux and MacOS X, it is necessary
  * to include support for both System V and Posix semaphores.  The reason
@@ -779,6 +779,16 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+#if defined(OS_CYGWIN)
+
+union semun {
+	int val;
+	struct semid_ds *buf;
+	unsigned short *array;
+};
+
+#endif
 
 static mx_status_type
 mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
@@ -1608,12 +1618,16 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 static mx_status_type
 mx_posix_sem_unlink( MX_SEMAPHORE *semaphore )
 {
+#if ! defined(OS_CYGWIN)
+
 	static const char fname[] = "mx_posix_sem_unlink()";
 
 	int status, saved_errno;
 
+#if MX_SEMAPHORE_DEBUG
 	MX_DEBUG(-2,("%s invoked for semaphore '%s'",
 		fname, semaphore->name));
+#endif
 
 	status = sem_unlink( semaphore->name );
 
@@ -1630,6 +1644,8 @@ mx_posix_sem_unlink( MX_SEMAPHORE *semaphore )
 			break;
 		}
 	}
+
+#endif    /* ! OS_CYGWIN */
 
 	return MX_SUCCESSFUL_RESULT;
 }
