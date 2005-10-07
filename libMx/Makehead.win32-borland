@@ -113,6 +113,9 @@ MAKE		= make
 
 OBJ		= obj
 
+EXEOUT		= -e
+DOTEXE		= .exe
+
 #
 MX_LIB_DIR	= ..\\libMx
 MX_INC_DIR	= $(MX_LIB_DIR)
