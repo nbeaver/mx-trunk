@@ -134,15 +134,18 @@ MX_INCLUDES	= -I$(MX_INC_DIR)
 MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
 
 MX_SONAME	= libMx.so.$(MX_MAJOR_VERSION)
+
 MX_LIBRARY_NAME	= $(MX_SONAME)
 
-MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so libMx.a
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	ld -G -o $(MX_LIBRARY_NAME) $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) -lc
 	ln -f -s $(MX_LIBRARY_NAME) libMx.so
-	ar rcs libMx.a $(MX_LIB_OBJS)
+	ar rcs $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -156,7 +159,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/ucb/install -m 644 mx*.h $(MX_INSTALL_DIR)/include 
 	/usr/ucb/install -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
-	/usr/ucb/install -m 644 libMx.a $(MX_INSTALL_DIR)/lib 
+	/usr/ucb/install -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	-( cd $(MX_INSTALL_DIR)/lib ; rm libMx.so )
 	( cd $(MX_INSTALL_DIR)/lib ; ln -f -s $(MX_LIBRARY_NAME) libMx.so )
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
@@ -179,7 +182,8 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 			-lMx $(LIBRARIES) $(READLINE_LIBRARIES)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
-			../libMx/libMx.a $(LIBRARIES) $(READLINE_LIBRARIES)
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(LIBRARIES) $(READLINE_LIBRARIES)
 
 motor_install:
 	/usr/ucb/install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 

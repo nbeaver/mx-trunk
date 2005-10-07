@@ -126,7 +126,9 @@ MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
 
 MX_LIBRARY_NAME	= libMx.dylib
 
-MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.a
+MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
@@ -135,8 +137,8 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 			-o $(MX_LIBRARY_NAME) \
 			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) \
 			-lcc_dynamic
-	ar rc libMx.a $(MX_LIB_OBJS)
-	ranlib libMx.a
+	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
+	ranlib $(MX_LIBRARY_STATIC_NAME)
 
 #	-read_only_relocs suppress
 
@@ -152,7 +154,7 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/state
 	/usr/bin/install -c -m 644 mx*.h $(MX_INSTALL_DIR)/include 
 	/usr/bin/install -c -m 644 $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
-	/usr/bin/install -c -m 644 libMx.a $(MX_INSTALL_DIR)/lib 
+	/usr/bin/install -c -m 644 $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
 	touch $(MX_INSTALL_DIR)/etc/scan.dat
 	/usr/bin/install -c -m 755 ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin 
@@ -173,7 +175,8 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 			-lMx $(LIBRARIES) $(READLINE_LIBRARIES)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) $(READLINE_LIB_DIRS) \
-			../libMx/libMx.a $(LIBRARIES) $(READLINE_LIBRARIES)
+			../libMx/$(MX_LIBRARY_STATIC_NAME) \
+			$(LIBRARIES) $(READLINE_LIBRARIES)
 
 motor_install:
 	/usr/bin/install -c -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
