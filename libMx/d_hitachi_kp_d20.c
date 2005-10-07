@@ -18,6 +18,7 @@
 #define MXD_HITACHI_KP_D20_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_types.h"

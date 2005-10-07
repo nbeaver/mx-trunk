@@ -17,6 +17,7 @@
 #define MXI_SONY_VISCA_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_rs232.h"
@@ -340,7 +341,13 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 		break;
 	}
 
-	/* We should never get here. */
+	/* Borland C insists that there be a return statement here, while
+	 * other compilers insist that there not be one.
+	 */
+
+#if defined(__BORLANDC__)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type

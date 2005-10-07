@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_MCU2_DEBUG	TRUE
+#define MXD_MCU2_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

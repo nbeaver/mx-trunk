@@ -18,6 +18,7 @@
 #define MXD_SONY_VISCA_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_types.h"

@@ -310,7 +310,7 @@ MX_API int mx_free_pointer( void *pointer );
 				} \
 			} while (0)
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && ! defined(__BORLANDC__)
 
 /* These provide definitions of snprintf() and vsnprintf() for systems
  * that do not come with them.  On most such systems, snprintf() and

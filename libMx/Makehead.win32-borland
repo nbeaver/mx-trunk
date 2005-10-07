@@ -30,7 +30,7 @@ LIBRARIES = $(WIN32_LIBS)
 BCC_DIR	= c:/borland/bcc55
 #BCC_DIR		= c:/progra~1/borland/cbuilder5
 
-WIN32_LIBS	= import32.lib cw32.lib
+WIN32_LIBS	= import32.lib cw32mt.lib
 
 EXTRA_OBJS	= ..\\tools\\getopt.obj
 #
@@ -58,11 +58,15 @@ U500_LIBS     = $(U500_DIR)\\win32bc5.lib
 .c.obj:
 	$(CC) -c $(CFLAGS) $<
 
-BCCFLAGS = -I$(BCC_DIR)/include -w -w! \
+#BCCFLAGS = -I$(BCC_DIR)/include -tWM -w -w! \
+#	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
+
+BCCFLAGS = -tWM -w -w! \
 	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
 
 #CC		= bcc32 -q -I$(BCC_DIR)/include
-CC		= bcc32 -q
+#CC		= bcc32 -q
+CC		= c:/Borland/BCC55/Bin/bcc32 -q
 CFLAGS		= $(BCCFLAGS) $(INCLUDES) \
 			-DOS_WIN32 $(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS)
@@ -103,6 +107,10 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 
 #
 #---------------------------------------------------

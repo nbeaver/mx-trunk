@@ -1266,8 +1266,11 @@ mxn_bluice_dcss_server_resynchronize( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mxn_bluice_dcss_server_open( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 

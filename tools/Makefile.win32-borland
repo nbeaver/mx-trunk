@@ -1,4 +1,4 @@
-all: xdr.obj getopt.obj mxgnuplt.exe
+all: xdr.obj getopt.obj strlcpy.obj strlcat.obj mxgnuplt.exe
 
 include ../libMx/Makehead.win32-borland
 
@@ -8,6 +8,12 @@ xdr.obj: xdr/src/xdr.c xdr/src/xdr.h
 
 getopt.obj: generic/src/getopt.c
 	$(CC) $(CFLAGS) -c generic/src/getopt.c -o getopt.obj
+
+strlcpy.obj: generic/src/strlcpy.c
+	$(CC) $(CFLAGS) -c generic/src/strlcpy.c -o strlcpy.obj
+
+strlcat.obj: generic/src/strlcat.c
+	$(CC) $(CFLAGS) -c generic/src/strlcat.c -o strlcat.obj
 
 mxgnuplt.obj: win32/src/mxgnuplt.c
 	$(CC) $(CFLAGS) -tWM -c win32/src/mxgnuplt.c -o mxgnuplt.obj

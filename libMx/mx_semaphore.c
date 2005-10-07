@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_SEMAPHORE_DEBUG	TRUE
+#define MX_SEMAPHORE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

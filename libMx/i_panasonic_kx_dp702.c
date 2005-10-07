@@ -17,6 +17,7 @@
 #define MXI_PANASONIC_KX_DP702_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_rs232.h"
@@ -203,6 +204,14 @@ mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 			response[0], kx_dp702->record->name );
 		break;
 	}
+
+	/* Borland C insists that there be a return statement here, while
+	 * other compilers insist that there not be one.
+	 */
+
+#if defined(__BORLANDC__)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 

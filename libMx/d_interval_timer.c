@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_INTERVAL_TIMER_DEBUG	TRUE
+#define MXD_INTERVAL_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

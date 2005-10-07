@@ -32,6 +32,10 @@ static volatile int mx_threads_are_initialized = FALSE;
 
 #include <windows.h>
 
+#if defined(__BORLANDC__)
+#  include <process.h>
+#endif
+
 typedef struct {
 	unsigned thread_id;
 	HANDLE thread_handle;

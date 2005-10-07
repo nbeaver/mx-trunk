@@ -14,9 +14,10 @@
  *
  */
 
-#define MXD_SOFT_PTZ_DEBUG	TRUE
+#define MXD_SOFT_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_ptz.h"

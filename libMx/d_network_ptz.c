@@ -17,6 +17,7 @@
 #define MXD_NETWORK_PTZ_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_record.h"
 #include "mx_net.h"
