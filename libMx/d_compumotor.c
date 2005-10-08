@@ -854,6 +854,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_RECORD **motor_array;
+	MX_MOTOR *other_motor;
 	double new_set_position;
 	double other_motor_position;
 	char command[100];
@@ -908,10 +909,16 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 				strcpy( buffer, "0" );
 			} else {
 				mx_status = mx_motor_get_position(
-					motor_array[j], &other_motor_position );
+							motor_array[j], NULL );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
+
+				other_motor = (MX_MOTOR *)
+					motor_array[j]->record_class_struct;
+
+				other_motor_position =
+					other_motor->raw_position.analog;
 
 				sprintf( buffer, "%g", other_motor_position );
 			}
