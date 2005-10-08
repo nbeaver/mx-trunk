@@ -85,6 +85,10 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
+#---
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+
 #
 #---------------------------------------------------
 #
@@ -203,8 +207,18 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MXDRIVERINFO_NAME) \
 		$(MXDRIVERINFO_OBJS) $(LIB_DIRS) -lMx $(LIBRARIES)
 
+MXSERIAL_NAME        = mxserial
+
+$(MXSERIAL_NAME): mxserial.o $(MX_LIBRARY_PATH)
+	$(CC) $(CFLAGS) -o $(MXSERIAL_NAME) mxserial.o \
+				$(LIB_DIRS) -lMx $(LIBRARIES)
+
+mxserial.o: mxserial_fork.c
+	$(CC) $(CFLAGS) -c mxserial_fork.c -o mxserial.o
+
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	cp $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 
 #
 #---------------------------------------------------

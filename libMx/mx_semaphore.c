@@ -471,7 +471,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
 
-#elif defined(OS_IRIX)
+#elif defined(OS_IRIX) || defined(OS_QNX)
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = TRUE;
@@ -505,14 +505,17 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #define SEM_R  0400	/* Read permission  */
 #endif
 
-#if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS)
+#if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) \
+	|| defined(OS_CYGWIN) || defined(OS_QNX)
+
 /* I wonder what possible advantage there is to making this
  * union definition optional?
  */
+
 union semun {
 	int val;
 	struct semid_ds *buf;
-	unsigned short int *array;
+	unsigned short *array;
 	struct seminfo *__buf;
 };
 #endif
@@ -526,6 +529,27 @@ typedef struct {
 	pthread_t creator_thread;
 #endif
 } MX_SYSTEM_V_SEMAPHORE_PRIVATE;
+
+#if defined(OS_QNX)
+
+/* Although they are defined in the header files, semctl(), semget(),
+ * and semop() are not really available in QNX, so we include stubs here.
+ */
+
+int semctl( int semid, int semnum, int cmd, ... )
+{
+	return EINVAL;
+}
+int semop( int semid, struct sembuf *sops, unsigned nsops )
+{
+	return EINVAL;
+}
+int semget( key_t key, int nsems, int semflg )
+{
+	return EINVAL;
+}
+
+#endif /* QNX */
 
 static mx_status_type
 mx_sysv_named_semaphore_exclusive_create_file( MX_SEMAPHORE *semaphore,
@@ -779,16 +803,6 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
-#if defined(OS_CYGWIN)
-
-union semun {
-	int val;
-	struct semid_ds *buf;
-	unsigned short *array;
-};
-
-#endif
 
 static mx_status_type
 mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
