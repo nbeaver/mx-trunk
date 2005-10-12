@@ -309,7 +309,7 @@ mx_epics_initialize( void )
 	 * put callback handler.
 	 */
 
-	mx_status = mx_mutex_create( &mx_epics_mutex, 0 );
+	mx_status = mx_mutex_create( &mx_epics_mutex );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

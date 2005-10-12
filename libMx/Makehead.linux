@@ -14,11 +14,11 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lpthread -lrt -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR)
+#LIBRARIES	= -lpthread -lrt -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lm
 #
 # The following is for use with mx_caserver.
 #

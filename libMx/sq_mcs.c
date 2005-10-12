@@ -2495,8 +2495,8 @@ mxs_mcs_quick_scan_check_for_motor_errors( MX_SCAN *scan )
 	return;
 }
 
-/* Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function since
- * the cleanup_after_scan_end() function will attempt to use the arrays
+/* Do not use FREE_MOTOR_POSITION_ARRAYS in the execute_scan_body() function
+ * since the cleanup_after_scan_end() function will attempt to use the arrays
  * regardless of what error code this routine returns.
  */
 
@@ -2514,6 +2514,12 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	int busy;
 	long i;
 	unsigned long measurement_milliseconds;
+#if 1
+	MX_RECORD *mcs_record;
+	unsigned long wait_ms, max_attempts;
+	long j;
+	int all_busy;
+#endif
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -2592,6 +2598,44 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	mx_msleep( measurement_milliseconds
 				* MXS_SQ_MCS_NUM_PREMOVE_MEASUREMENTS );
+#if 1
+	wait_ms = 10;
+	max_attempts = 100;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		all_busy = TRUE;
+
+		for ( j = 0; j < mcs_quick_scan->num_mcs; j++ ) {
+			mcs_record = mcs_quick_scan->mcs_record_array[j];
+
+			mx_status = mx_mcs_is_busy( mcs_record, &busy );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( busy == FALSE ) {
+				all_busy = FALSE;
+
+				break;		/* Exit the for(j) loop. */
+			}
+		}
+
+		if ( all_busy ) {
+			break;			/* Exit the for(i) loop. */
+		}
+
+		mx_msleep(wait_ms);
+	}
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %g seconds for MCS '%s' used by "
+		"quick scan '%s' to start counting.",
+			0.001 * (double) ( wait_ms * max_attempts ),
+			mcs_quick_scan->mcs_record_array[j]->name,
+			scan->record->name );
+	}
+#endif
 
 	/* Start the motors.
 	 *
