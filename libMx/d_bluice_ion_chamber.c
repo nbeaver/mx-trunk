@@ -204,7 +204,7 @@ mxd_bluice_ion_chamber_open( MX_RECORD *record )
 	MX_ANALOG_INPUT *ainput;
 	MX_BLUICE_ION_CHAMBER *bluice_ion_chamber;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_DEVICE *device_ptr;
+	void *device_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -229,8 +229,8 @@ mxd_bluice_ion_chamber_open( MX_RECORD *record )
 						bluice_server,
 						bluice_ion_chamber->bluice_name,
 	    (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->ion_chamber_array),
-					&(bluice_server->num_ion_chambers),
-						&device_ptr,
+					   &(bluice_server->num_ion_chambers),
+	     (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
 						5.0 );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

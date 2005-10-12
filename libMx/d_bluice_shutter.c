@@ -194,7 +194,7 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	MX_RELAY *relay;
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_DEVICE *device_ptr;
+	void *device_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -218,9 +218,9 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
 						bluice_shutter->bluice_name,
-		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
+		 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
 						&(bluice_server->num_shutters),
-						&device_ptr,
+		  (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
 						5.0 );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

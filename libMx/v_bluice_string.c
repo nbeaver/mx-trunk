@@ -198,7 +198,7 @@ mxv_bluice_string_open( MX_RECORD *record )
 	MX_BLUICE_STRING *bluice_string;
 	MX_RECORD *bluice_server_record;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_DEVICE *device_ptr;
+	void *device_ptr;
 	long num_dimensions, field_type;
 	mx_status_type mx_status;
 
@@ -252,9 +252,9 @@ mxv_bluice_string_open( MX_RECORD *record )
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
 						bluice_string->bluice_name,
-		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
+		 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
 						&(bluice_server->num_strings),
-						&device_ptr,
+		  (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
 						5.0 );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

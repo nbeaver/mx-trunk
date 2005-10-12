@@ -403,7 +403,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	MX_TIMER *timer;
 	MX_BLUICE_TIMER *bluice_timer;
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	void *foreign_device;
 	MX_BLUICE_FOREIGN_ION_CHAMBER *first_ion_chamber;
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
 	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
@@ -453,7 +453,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 					first_ion_chamber_name,
 					bluice_server->ion_chamber_array,
 					bluice_server->num_ion_chambers,
-					&foreign_device );
+	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -629,8 +629,8 @@ stog_report_shutter_state( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_report_shutter_state()"; 
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	void *foreign_device;
 	char *ptr, *token_ptr, *shutter_name;
 	int shutter_status;
 	mx_status_type mx_status;
@@ -701,7 +701,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 						shutter_name,
 						bluice_server->shutter_array,
 						bluice_server->num_shutters,
-						&foreign_device );
+		  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );

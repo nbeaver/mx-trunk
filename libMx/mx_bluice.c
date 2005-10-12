@@ -1026,8 +1026,8 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_ion_chamber()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
+	void *foreign_device;
 	char *ptr, *token_ptr;
 	char *ion_chamber_name, *dhs_server_name, *counter_name, *timer_name;
 	int message_type, channel_number, timer_type;
@@ -1148,11 +1148,11 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					ion_chamber_name,
-	    (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->ion_chamber_array),
+	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->ion_chamber_array),
 					&(bluice_server->num_ion_chambers),
 					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER *),
 					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER),
-					&foreign_device );
+	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1203,8 +1203,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_motor()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	void *foreign_device;
 	char format_string[40];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	int message_type, num_items;
@@ -1248,11 +1248,11 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					name,
-		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
+	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
 					&(bluice_server->num_motors),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
 					sizeof(MX_BLUICE_FOREIGN_MOTOR),
-					&foreign_device );
+	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1396,8 +1396,8 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_shutter()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	void *foreign_device;
 	char *ptr, *token_ptr, *shutter_name, *dhs_server_name;
 	int message_type, shutter_status;
 	mx_status_type mx_status;
@@ -1483,11 +1483,11 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					shutter_name,
-		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
+	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
 					&(bluice_server->num_shutters),
 					sizeof(MX_BLUICE_FOREIGN_SHUTTER *),
 					sizeof(MX_BLUICE_FOREIGN_SHUTTER),
-					&foreign_device );
+	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1522,8 +1522,8 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_string()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_FOREIGN_STRING *foreign_string;
+	void *foreign_device;
 	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_contents;
 	size_t string_length;
 	int message_type;
@@ -1596,11 +1596,11 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					string_name,
-		(MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
+	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
 					&(bluice_server->num_strings),
 					sizeof(MX_BLUICE_FOREIGN_STRING *),
 					sizeof(MX_BLUICE_FOREIGN_STRING),
-					&foreign_device );
+	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1652,7 +1652,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_update_motion_status()";
 
-	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	void *foreign_device;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
@@ -1731,7 +1731,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 						motor_name,
 						bluice_server->motor_array,
 						bluice_server->num_motors,
-						&foreign_device );
+		 (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
