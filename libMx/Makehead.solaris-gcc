@@ -12,11 +12,11 @@
 #
 INCLUDES	= $(MX_INCLUDES)
 
-#LIB_DIRS	= -L$(MX_LIB_DIR)
-#LIBRARIES	= -lm -lnsl -lsocket -lposix4 -lmalloc
+LIB_DIRS	= -L$(MX_LIB_DIR)
+LIBRARIES	= -lm -lnsl -lsocket -lposix4 -lmalloc
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -lsocket -lposix4 -lmalloc
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lnsl -lsocket -lposix4 -lmalloc
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the

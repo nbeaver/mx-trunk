@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *bluice_server_record;
 	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
 
-	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 } MX_BLUICE_SHUTTER;
 
 #define MXD_BLUICE_SHUTTER_STANDARD_FIELDS \

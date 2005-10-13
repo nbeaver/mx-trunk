@@ -46,16 +46,10 @@
 
 /* ----- */
 
-typedef struct {
-	char name[MXU_BLUICE_NAME_LENGTH+1];
-} MX_BLUICE_FOREIGN_DEVICE;
-
 #define MXF_BLUICE_TIMER_UNKNOWN	(-1)
 #define MXF_BLUICE_TIMER_CLOCK		1
 
 typedef struct {
-	char name[MXU_BLUICE_NAME_LENGTH+1];
-	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 	char counter_name[MXU_BLUICE_NAME_LENGTH+1];
 	int channel_number;
 	char timer_name[MXU_BLUICE_NAME_LENGTH+1];
@@ -68,8 +62,6 @@ typedef struct {
 } MX_BLUICE_FOREIGN_ION_CHAMBER;
 
 typedef struct {
-	char name[MXU_BLUICE_NAME_LENGTH+1];
-	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 	char dhs_name[MXU_BLUICE_NAME_LENGTH+1];
 	int is_pseudo;
 	double position;		/* scaled */
@@ -92,21 +84,36 @@ typedef struct {
 } MX_BLUICE_FOREIGN_MOTOR;
 
 typedef struct {
-	char name[MXU_BLUICE_NAME_LENGTH+1];
-	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 	int shutter_status;
 
 	MX_RELAY *mx_relay;
 } MX_BLUICE_FOREIGN_SHUTTER;
 
 typedef struct {
-	char name[MXU_BLUICE_NAME_LENGTH+1];
-	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 	unsigned long string_length;
 	char *string;
 
 	MX_VARIABLE *mx_string_variable;
 } MX_BLUICE_FOREIGN_STRING;
+
+#define MXT_BLUICE_FOREIGN_UNKNOWN	0
+#define MXT_BLUICE_FOREIGN_ION_CHAMBER	1
+#define MXT_BLUICE_FOREIGN_MOTOR	2
+#define MXT_BLUICE_FOREIGN_SHUTTER	3
+#define MXT_BLUICE_FOREIGN_STRING	4
+
+typedef struct {
+	int foreign_type;
+	char name[MXU_BLUICE_NAME_LENGTH+1];
+	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
+
+	union {
+		MX_BLUICE_FOREIGN_ION_CHAMBER ion_chamber;
+		MX_BLUICE_FOREIGN_MOTOR motor;
+		MX_BLUICE_FOREIGN_SHUTTER shutter;
+		MX_BLUICE_FOREIGN_STRING string;
+	} u;
+} MX_BLUICE_FOREIGN_DEVICE;
 
 /* ----- */
 
@@ -136,16 +143,16 @@ typedef struct {
 	long num_received_bytes;
 
 	int num_ion_chambers;
-	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
+	MX_BLUICE_FOREIGN_DEVICE **ion_chamber_array;
 
 	int num_motors;
-	MX_BLUICE_FOREIGN_MOTOR **motor_array;
+	MX_BLUICE_FOREIGN_DEVICE **motor_array;
 
 	int num_shutters;
-	MX_BLUICE_FOREIGN_SHUTTER **shutter_array;
+	MX_BLUICE_FOREIGN_DEVICE **shutter_array;
 
 	int num_strings;
-	MX_BLUICE_FOREIGN_STRING **string_array;
+	MX_BLUICE_FOREIGN_DEVICE **string_array;
 } MX_BLUICE_SERVER;
 
 /* ----- */
@@ -193,6 +200,7 @@ MX_API mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
 			MX_BLUICE_SERVER *bluice_server,
 			char *name,
+			int bluice_foreign_type,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
 			int *num_foreign_devices_ptr,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr,

@@ -64,7 +64,7 @@ static mx_status_type
 mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 			MX_BLUICE_STRING **bluice_string,
 			MX_BLUICE_SERVER **bluice_server,
-			MX_BLUICE_FOREIGN_STRING **foreign_string,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_string,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxv_bluice_string_get_pointers()";
@@ -131,10 +131,10 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 		}
 	}
 
-	if ( foreign_string != (MX_BLUICE_FOREIGN_STRING **) NULL ) {
-		*foreign_string = bluice_string_ptr->foreign_string;
+	if ( foreign_string != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
+		*foreign_string = bluice_string_ptr->foreign_device;
 
-		if ( (*foreign_string) == (MX_BLUICE_FOREIGN_STRING *) NULL ) {
+		if ( (*foreign_string) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
 			"The foreign_string pointer for string '%s' "
 			"has not been initialized.", variable->record->name );
@@ -184,7 +184,7 @@ mxv_bluice_string_create_record_structures( MX_RECORD *record )
 				&mxv_bluice_string_variable_function_list;
 	record->class_specific_function_list = NULL;
 
-	bluice_string->foreign_string = NULL;
+	bluice_string->foreign_device = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -198,7 +198,6 @@ mxv_bluice_string_open( MX_RECORD *record )
 	MX_BLUICE_STRING *bluice_string;
 	MX_RECORD *bluice_server_record;
 	MX_BLUICE_SERVER *bluice_server;
-	void *device_ptr;
 	long num_dimensions, field_type;
 	mx_status_type mx_status;
 
@@ -250,12 +249,14 @@ mxv_bluice_string_open( MX_RECORD *record )
 #endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
-						bluice_server,
-						bluice_string->bluice_name,
-		 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
-						&(bluice_server->num_strings),
-		  (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
-						5.0 );
+					bluice_server,
+					bluice_string->bluice_name,
+					MXT_BLUICE_FOREIGN_STRING,
+					&(bluice_server->string_array),
+					&(bluice_server->num_strings),
+					&(bluice_string->foreign_device),
+					5.0 );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -264,9 +265,7 @@ mxv_bluice_string_open( MX_RECORD *record )
 	("%s: Successfully waited for device pointer initialization.", fname));
 #endif
 
-	bluice_string->foreign_string = (MX_BLUICE_FOREIGN_STRING *) device_ptr;
-
-	bluice_string->foreign_string->mx_string_variable = variable;
+	bluice_string->foreign_device->u.string.mx_string_variable = variable;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -296,7 +295,7 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 
 	MX_BLUICE_STRING *bluice_string;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_STRING *foreign_string;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
 	long *dimension_array;
 	void *value_ptr;
 	mx_status_type mx_status;
@@ -323,7 +322,8 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
-	strlcpy( value_ptr, foreign_string->string, dimension_array[0] );
+	strlcpy( value_ptr, foreign_string->u.string.string,
+					dimension_array[0] );
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 

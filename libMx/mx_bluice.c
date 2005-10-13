@@ -137,7 +137,8 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	}
 
 	if ( send_header ) {
-		sprintf( message_header, "%*lu%*lu",
+		snprintf( message_header, sizeof(message_header),
+			"%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
 			(unsigned long) text_data_length,
 			MX_BLUICE_MSGHDR_BINARY_LENGTH,
@@ -641,7 +642,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 	foreign_device = *foreign_device_ptr;
 
-	mx_strncpy( foreign_device->name, name, MXU_BLUICE_NAME_LENGTH );
+	strlcpy( foreign_device->name, name, MXU_BLUICE_NAME_LENGTH );
 
 	(*foreign_device_array_ptr)[*num_foreign_devices_ptr]
 					= *foreign_device_ptr;
@@ -662,6 +663,7 @@ MX_EXPORT mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
 			MX_BLUICE_SERVER *bluice_server,
 			char *name,
+			int bluice_foreign_type,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
 			int *num_foreign_devices_ptr,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr,
@@ -706,9 +708,18 @@ mx_bluice_wait_for_device_pointer_initialization(
 
 	if ( i >= max_attempts ) {
 		return mx_error( MXE_TIMED_OUT, fname,
-		"Timed out after waiting %g seconds to lock the mutex "
-		"for Blu-Ice server '%s'.", timeout_in_seconds,
-					bluice_server->record->name );
+		"Timed out after waiting %g seconds for Blu-Ice server '%s' "
+		"to initialize Blu-Ice device '%s'.", timeout_in_seconds,
+					bluice_server->record->name, name );
+	}
+
+	if ( bluice_foreign_type != (*foreign_device_ptr)->foreign_type ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The type (%d) of Blu-Ice server device '%s' does not "
+		"match the expected type of %d.  Perhaps you have specified "
+		"an incorrect device name?",
+			(*foreign_device_ptr)->foreign_type,
+			name, bluice_foreign_type );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1026,8 +1037,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_ion_chamber()";
 
-	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
-	void *foreign_device;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	char *ptr, *token_ptr;
 	char *ion_chamber_name, *dhs_server_name, *counter_name, *timer_name;
 	int message_type, channel_number, timer_type;
@@ -1148,32 +1158,30 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					ion_chamber_name,
-	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->ion_chamber_array),
+					&(bluice_server->ion_chamber_array),
 					&(bluice_server->num_ion_chambers),
-					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER *),
-					sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER),
-	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&foreign_ion_chamber );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	foreign_ion_chamber = (MX_BLUICE_FOREIGN_ION_CHAMBER *) foreign_device;
-
-	foreign_ion_chamber->mx_analog_input = NULL;
-	foreign_ion_chamber->mx_timer = NULL;
+	foreign_ion_chamber->u.ion_chamber.mx_analog_input = NULL;
+	foreign_ion_chamber->u.ion_chamber.mx_timer = NULL;
 
 	strlcpy( foreign_ion_chamber->dhs_server_name,
 			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	strlcpy( foreign_ion_chamber->counter_name,
+	strlcpy( foreign_ion_chamber->u.ion_chamber.counter_name,
 			counter_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	foreign_ion_chamber->channel_number = channel_number;
+	foreign_ion_chamber->u.ion_chamber.channel_number = channel_number;
 
-	strlcpy( foreign_ion_chamber->timer_name,
+	strlcpy( foreign_ion_chamber->u.ion_chamber.timer_name,
 			timer_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	foreign_ion_chamber->timer_type = timer_type;
+	foreign_ion_chamber->u.ion_chamber.timer_type = timer_type;
 
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
@@ -1203,8 +1211,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_motor()";
 
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
-	void *foreign_device;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char format_string[40];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	int message_type, num_items;
@@ -1224,7 +1231,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( format_string, "%%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
+	snprintf( format_string, sizeof(format_string),
+			"%%*s %%%ds", MXU_BLUICE_NAME_LENGTH );
 
 	num_items = sscanf( config_string, format_string, name );
 
@@ -1248,11 +1256,11 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					name,
-	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
+					&(bluice_server->motor_array),
 					&(bluice_server->num_motors),
-					sizeof(MX_BLUICE_FOREIGN_MOTOR *),
-					sizeof(MX_BLUICE_FOREIGN_MOTOR),
-	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&foreign_motor );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1265,10 +1273,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		fname, bluice_server->motor_array));
 #endif
 
-	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
-
-	foreign_motor->mx_motor = NULL;
-	foreign_motor->move_in_progress = FALSE;
+	foreign_motor->u.motor.mx_motor = NULL;
+	foreign_motor->u.motor.move_in_progress = FALSE;
 
 	/* Now parse the rest of the configuration string. */
 
@@ -1277,28 +1283,28 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		if ( strncmp( config_string,
 			"stog_configure_real_motor", 25 ) == 0 )
 		{
-			foreign_motor->is_pseudo = FALSE;
+			foreign_motor->u.motor.is_pseudo = FALSE;
 
-			sprintf( format_string,
+			snprintf( format_string, sizeof(format_string),
 "%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%lg %%lg %%lg %%lg %%d %%d %%d %%d %%d",
 				MXU_BLUICE_NAME_LENGTH,
 				MXU_BLUICE_NAME_LENGTH );
 
 			num_items = sscanf( config_string, format_string,
 				foreign_motor->dhs_server_name,
-				foreign_motor->dhs_name,
-				&(foreign_motor->position),
-				&(foreign_motor->upper_limit),
-				&(foreign_motor->lower_limit),
-				&(foreign_motor->scale_factor),
-				&(foreign_motor->speed),
-				&(foreign_motor->acceleration_time),
-				&(foreign_motor->backlash),
-				&(foreign_motor->lower_limit_on),
-				&(foreign_motor->upper_limit_on),
-				&(foreign_motor->motor_lock_on),
-				&(foreign_motor->backlash_on),
-				&(foreign_motor->reverse_on) );
+				foreign_motor->u.motor.dhs_name,
+				&(foreign_motor->u.motor.position),
+				&(foreign_motor->u.motor.upper_limit),
+				&(foreign_motor->u.motor.lower_limit),
+				&(foreign_motor->u.motor.scale_factor),
+				&(foreign_motor->u.motor.speed),
+				&(foreign_motor->u.motor.acceleration_time),
+				&(foreign_motor->u.motor.backlash),
+				&(foreign_motor->u.motor.lower_limit_on),
+				&(foreign_motor->u.motor.upper_limit_on),
+				&(foreign_motor->u.motor.motor_lock_on),
+				&(foreign_motor->u.motor.backlash_on),
+				&(foreign_motor->u.motor.reverse_on) );
 
 			if ( num_items != 14 ) {
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -1309,29 +1315,29 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		if ( strncmp( config_string,
 			"stog_configure_pseudo_motor", 27 ) == 0 )
 		{
-			foreign_motor->is_pseudo = TRUE;
+			foreign_motor->u.motor.is_pseudo = TRUE;
 
-			foreign_motor->scale_factor = 0.0;
-			foreign_motor->speed = 0.0;
-			foreign_motor->acceleration_time = 0.0;
-			foreign_motor->backlash = 0.0;
-			foreign_motor->backlash_on = FALSE;
-			foreign_motor->reverse_on = FALSE;
+			foreign_motor->u.motor.scale_factor = 0.0;
+			foreign_motor->u.motor.speed = 0.0;
+			foreign_motor->u.motor.acceleration_time = 0.0;
+			foreign_motor->u.motor.backlash = 0.0;
+			foreign_motor->u.motor.backlash_on = FALSE;
+			foreign_motor->u.motor.reverse_on = FALSE;
 
-			sprintf( format_string,
+			snprintf( format_string, sizeof(format_string),
 			"%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%d %%d %%d",
 				MXU_BLUICE_NAME_LENGTH,
 				MXU_BLUICE_NAME_LENGTH );
 
 			num_items = sscanf( config_string, format_string,
 				foreign_motor->dhs_server_name,
-				foreign_motor->dhs_name,
-				&(foreign_motor->position),
-				&(foreign_motor->upper_limit),
-				&(foreign_motor->lower_limit),
-				&(foreign_motor->upper_limit_on),
-				&(foreign_motor->lower_limit_on),
-				&(foreign_motor->motor_lock_on) );
+				foreign_motor->u.motor.dhs_name,
+				&(foreign_motor->u.motor.position),
+				&(foreign_motor->u.motor.upper_limit),
+				&(foreign_motor->u.motor.lower_limit),
+				&(foreign_motor->u.motor.upper_limit_on),
+				&(foreign_motor->u.motor.lower_limit_on),
+				&(foreign_motor->u.motor.motor_lock_on) );
 
 			if ( num_items != 8 ) {
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -1396,8 +1402,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_shutter()";
 
-	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
-	void *foreign_device;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	char *ptr, *token_ptr, *shutter_name, *dhs_server_name;
 	int message_type, shutter_status;
 	mx_status_type mx_status;
@@ -1483,23 +1488,21 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					shutter_name,
-	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
+					&(bluice_server->shutter_array),
 					&(bluice_server->num_shutters),
-					sizeof(MX_BLUICE_FOREIGN_SHUTTER *),
-					sizeof(MX_BLUICE_FOREIGN_SHUTTER),
-	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&foreign_shutter );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	foreign_shutter = (MX_BLUICE_FOREIGN_SHUTTER *) foreign_device;
-
-	foreign_shutter->mx_relay = NULL;
+	foreign_shutter->u.shutter.mx_relay = NULL;
 
 	strlcpy( foreign_shutter->dhs_server_name,
 			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
 
-	foreign_shutter->shutter_status = shutter_status;
+	foreign_shutter->u.shutter.shutter_status = shutter_status;
 
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
@@ -1522,8 +1525,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_configure_string()";
 
-	MX_BLUICE_FOREIGN_STRING *foreign_string;
-	void *foreign_device;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
 	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_contents;
 	size_t string_length;
 	int message_type;
@@ -1596,39 +1598,39 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	mx_status = mx_bluice_setup_device_pointer(
 					bluice_server,
 					string_name,
-	 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->string_array),
+					&(bluice_server->string_array),
 					&(bluice_server->num_strings),
-					sizeof(MX_BLUICE_FOREIGN_STRING *),
-					sizeof(MX_BLUICE_FOREIGN_STRING),
-	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+					sizeof(MX_BLUICE_FOREIGN_DEVICE *),
+					sizeof(MX_BLUICE_FOREIGN_DEVICE),
+					&foreign_string );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	foreign_string = (MX_BLUICE_FOREIGN_STRING *) foreign_device;
-
-	foreign_string->mx_string_variable = NULL;
+	foreign_string->u.string.mx_string_variable = NULL;
 
 	strlcpy( foreign_string->dhs_server_name,
 			dhs_server_name, MXU_BLUICE_NAME_LENGTH+1 );
 
 	string_length = strlen( string_contents );
 
-	if ( foreign_string->string == (char *) NULL ) {
-		foreign_string->string = (char *) malloc( string_length );
+	if ( foreign_string->u.string.string == (char *) NULL ) {
+		foreign_string->u.string.string = (char *)
+						malloc( string_length );
 	} else {
-		foreign_string->string = (char *)
-			realloc( foreign_string->string, string_length );
+		foreign_string->u.string.string = (char *)
+		    realloc( foreign_string->u.string.string, string_length );
 	}
 
-	if ( foreign_string->string == (char *) NULL ) {
+	if ( foreign_string->u.string.string == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte string "
 		"for Blu-Ice foreign string '%s'.",
 			(unsigned long) string_length, string_name );
 	}
 
-	strlcpy( foreign_string->string, string_contents, string_length+1 );
+	strlcpy( foreign_string->u.string.string,
+			string_contents, string_length+1 );
 
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
@@ -1652,8 +1654,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 {
 	static const char fname[] = "mx_bluice_update_motion_status()";
 
-	void *foreign_device;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
 	mx_status_type mx_status;
@@ -1731,7 +1732,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 						motor_name,
 						bluice_server->motor_array,
 						bluice_server->num_motors,
-		 (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+						&foreign_motor );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -1739,20 +1740,18 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 		return mx_status;
 	}
 
-	foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) foreign_device;
-
-	if ( foreign_motor == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+	if ( foreign_motor == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The MX_BLUICE_FOREIGN_MOTOR pointer for DCSS motor '%s' "
+		"The MX_BLUICE_FOREIGN_DEVICE pointer for DCSS motor '%s' "
 		"has not been initialized.", motor_name );
 	}
 
 	/* Update the motion status. */
 
-	foreign_motor->position = motor_position;
-	foreign_motor->move_in_progress = move_in_progress;
+	foreign_motor->u.motor.position = motor_position;
+	foreign_motor->u.motor.move_in_progress = move_in_progress;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 

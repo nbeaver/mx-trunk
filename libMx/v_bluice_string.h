@@ -24,7 +24,7 @@ typedef struct {
 	MX_RECORD *bluice_server_record;
 	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
 
-	MX_BLUICE_FOREIGN_STRING *foreign_string;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 } MX_BLUICE_STRING;
 
 #define MXV_BLUICE_STRING_STANDARD_FIELDS \

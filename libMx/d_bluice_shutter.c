@@ -63,7 +63,7 @@ static mx_status_type
 mxd_bluice_shutter_get_pointers( MX_RELAY *relay,
 			MX_BLUICE_SHUTTER **bluice_shutter,
 			MX_BLUICE_SERVER **bluice_server,
-			MX_BLUICE_FOREIGN_SHUTTER **foreign_shutter,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_shutter,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_bluice_shutter_get_pointers()";
@@ -130,12 +130,12 @@ mxd_bluice_shutter_get_pointers( MX_RELAY *relay,
 		}
 	}
 
-	if ( foreign_shutter != (MX_BLUICE_FOREIGN_SHUTTER **) NULL ) {
-		*foreign_shutter = bluice_shutter_ptr->foreign_shutter;
+	if ( foreign_shutter != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
+		*foreign_shutter = bluice_shutter_ptr->foreign_device;
 
-		if ( (*foreign_shutter) == (MX_BLUICE_FOREIGN_SHUTTER *) NULL ) {
+		if ( (*foreign_shutter) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The foreign_shutter pointer for relay '%s' "
+			"The foreign_device pointer for relay '%s' "
 			"has not been initialized.", relay->record->name );
 		}
 	}
@@ -181,7 +181,7 @@ mxd_bluice_shutter_create_record_structures( MX_RECORD *record )
         relay->record = record;
 	bluice_shutter->record = record;
 
-	bluice_shutter->foreign_shutter = NULL;
+	bluice_shutter->foreign_device = NULL;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -194,7 +194,6 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	MX_RELAY *relay;
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_SERVER *bluice_server;
-	void *device_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -216,12 +215,14 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 #endif
 
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
-						bluice_server,
-						bluice_shutter->bluice_name,
-		 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->shutter_array),
-						&(bluice_server->num_shutters),
-		  (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
-						5.0 );
+					bluice_server,
+					bluice_shutter->bluice_name,
+					MXT_BLUICE_FOREIGN_SHUTTER,
+					&(bluice_server->shutter_array),
+					&(bluice_server->num_shutters),
+					&(bluice_shutter->foreign_device),
+					5.0 );
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -230,10 +231,7 @@ mxd_bluice_shutter_open( MX_RECORD *record )
 	("%s: Successfully waited for device pointer initialization.", fname));
 #endif
 
-	bluice_shutter->foreign_shutter =
-			(MX_BLUICE_FOREIGN_SHUTTER *) device_ptr;
-
-	bluice_shutter->foreign_shutter->mx_relay = relay;
+	bluice_shutter->foreign_device->u.shutter.mx_relay = relay;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -245,7 +243,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -259,11 +257,13 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 	case MXN_BLUICE_DCSS_SERVER:
 		switch( relay->relay_command ) {
 		case MXF_OPEN_RELAY:
-			sprintf( command, "gtos_set_shutter_state %s open",
+			snprintf( command, sizeof(command),
+					"gtos_set_shutter_state %s open",
 					bluice_shutter->bluice_name );
 			break;
 		case MXF_CLOSE_RELAY:
-			sprintf( command, "gtos_set_shutter_state %s closed",
+			snprintf( command, sizeof(command),
+					"gtos_set_shutter_state %s closed",
 					bluice_shutter->bluice_name );
 			break;
 		default:
@@ -277,11 +277,13 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 	case MXN_BLUICE_DHS_SERVER:
 		switch( relay->relay_command ) {
 		case MXF_OPEN_RELAY:
-			sprintf( command, "stoh_set_shutter_state %s open",
+			snprintf( command, sizeof(command),
+					"stoh_set_shutter_state %s open",
 					bluice_shutter->bluice_name );
 			break;
 		case MXF_CLOSE_RELAY:
-			sprintf( command, "stoh_set_shutter_state %s closed",
+			snprintf( command, sizeof(command),
+					"stoh_set_shutter_state %s closed",
 					bluice_shutter->bluice_name );
 			break;
 		default:
@@ -311,7 +313,7 @@ mxd_bluice_shutter_get_relay_status( MX_RELAY *relay )
 
 	MX_BLUICE_SHUTTER *bluice_shutter;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	mx_status_type mx_status;
 	long mx_status_code;
 
@@ -330,7 +332,7 @@ mxd_bluice_shutter_get_relay_status( MX_RELAY *relay )
 	}
 
 
-	relay->relay_status = foreign_shutter->shutter_status;
+	relay->relay_status = foreign_shutter->u.shutter.shutter_status;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 

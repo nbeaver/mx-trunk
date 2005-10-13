@@ -182,9 +182,9 @@ mxv_bluice_master_send_variable( MX_VARIABLE *variable )
 #endif
 
 	if ( take_master ) {
-		strcpy( command, "gtos_become_master force" );
+		strlcpy( command, "gtos_become_master force", sizeof(command) );
 	} else {
-		strcpy( command, "gtos_become_slave" );
+		strlcpy( command, "gtos_become_slave", sizeof(command) );
 	}
 
 	mx_status = mx_bluice_send_message(

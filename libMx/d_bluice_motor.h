@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *bluice_server_record;
 	char bluice_name[MXU_BLUICE_NAME_LENGTH+1];
 
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 } MX_BLUICE_MOTOR;
 
 MX_API mx_status_type mxd_bluice_motor_create_record_structures(

@@ -154,8 +154,8 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 			dcss_server_record->name );
 	}
 
-	sprintf( message_type_format, "%%%lds",
-			(unsigned long) sizeof(message_type_name) );
+	snprintf( message_type_format, sizeof(message_type_format),
+			"%%%lds", (unsigned long) sizeof(message_type_name) );
 
 	while (1) {
 		mx_status = mx_bluice_receive_message( dcss_server_record,
@@ -404,10 +404,9 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	MX_TIMER *timer;
 	MX_BLUICE_TIMER *bluice_timer;
-	void *foreign_device;
-	MX_BLUICE_FOREIGN_ION_CHAMBER *first_ion_chamber;
-	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
-	MX_BLUICE_FOREIGN_ION_CHAMBER **ion_chamber_array;
+	MX_BLUICE_FOREIGN_DEVICE *first_ion_chamber;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
+	MX_BLUICE_FOREIGN_DEVICE **ion_chamber_array;
 	char format[80];
 	char first_ion_chamber_name[MXU_BLUICE_NAME_LENGTH+1];
 	char *ptr, *ion_chamber_name, *token_ptr;
@@ -454,7 +453,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 					first_ion_chamber_name,
 					bluice_server->ion_chamber_array,
 					bluice_server->num_ion_chambers,
-	  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+					&first_ion_chamber );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -462,9 +461,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 		return mx_status;
 	}
 
-	first_ion_chamber = (MX_BLUICE_FOREIGN_ION_CHAMBER *) foreign_device;
-
-	if ( first_ion_chamber == (MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL ) {
+	if ( first_ion_chamber == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -474,7 +471,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	/* Get the timer from the first_ion_chamber structure. */
 
-	timer = first_ion_chamber->mx_timer;
+	timer = first_ion_chamber->u.ion_chamber.mx_timer;
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -511,7 +508,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 
 	ion_chamber_array = bluice_timer->foreign_ion_chamber_array;
 
-	if ( ion_chamber_array == (MX_BLUICE_FOREIGN_ION_CHAMBER **) NULL ) {
+	if ( ion_chamber_array == (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
@@ -601,7 +598,8 @@ stog_report_ion_chambers( MX_THREAD *thread,
 				 * the measurement value.
 				 */
 
-				foreign_ion_chamber->value = measurement_value;
+				foreign_ion_chamber->u.ion_chamber.value
+							= measurement_value;
 
 				break;	/* Exit the for() loop. */
 			}
@@ -630,8 +628,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_report_shutter_state()"; 
 
-	MX_BLUICE_FOREIGN_SHUTTER *foreign_shutter;
-	void *foreign_device;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	char *ptr, *token_ptr, *shutter_name;
 	int shutter_status;
 	mx_status_type mx_status;
@@ -702,7 +699,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 						shutter_name,
 						bluice_server->shutter_array,
 						bluice_server->num_shutters,
-		  (MX_BLUICE_FOREIGN_DEVICE **) &foreign_device );
+						&foreign_shutter );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
@@ -710,19 +707,17 @@ stog_report_shutter_state( MX_THREAD *thread,
 		return mx_status;
 	}
 
-	foreign_shutter = (MX_BLUICE_FOREIGN_SHUTTER *) foreign_device;
-
-	if ( foreign_shutter == (MX_BLUICE_FOREIGN_SHUTTER *) NULL ) {
+	if ( foreign_shutter == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The MX_BLUICE_FOREIGN_SHUTTER pointer for DCSS shutter '%s' "
+		"The MX_BLUICE_FOREIGN_DEVICE pointer for DCSS shutter '%s' "
 		"has not been initialized.", shutter_name );
 	}
 
 	/* Update the shutter status. */
 
-	foreign_shutter->shutter_status = shutter_status;
+	foreign_shutter->u.shutter.shutter_status = shutter_status;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
@@ -900,7 +895,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	mx_username( user_name, MXU_USERNAME_LENGTH );
 
 #if 1
-	strcpy( user_name, "tigerw" );
+	strlcpy( user_name, "tigerw", sizeof(user_name) );
 #endif
 
 	mx_status = mx_gethostname( host_name, MXU_HOSTNAME_LENGTH );
@@ -911,11 +906,11 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	display_name = getenv("DISPLAY");
 
 	if ( display_name == NULL ) {
-		sprintf( client_type_response,
+		snprintf( client_type_response, sizeof(client_type_response),
 			"htos_client_is_gui %s %s %s :0",
 			user_name, bluice_dcss_server->session_id, host_name );
 	} else {
-		sprintf( client_type_response,
+		snprintf( client_type_response, sizeof(client_type_response),
 			"htos_client_is_gui %s %s %s %s",
 			user_name, bluice_dcss_server->session_id,
 			host_name, display_name );

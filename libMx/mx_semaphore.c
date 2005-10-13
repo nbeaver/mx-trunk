@@ -83,7 +83,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 		(*semaphore)->name = (char *)
 					malloc( name_length * sizeof(char) );
 
-		mx_strncpy( (*semaphore)->name, name, name_length );
+		strlcpy( (*semaphore)->name, name, name_length );
 	}
 
 	if ( initial_value < 0 ) {
@@ -869,7 +869,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 		(*semaphore)->name = (char *)
 					malloc( name_length * sizeof(char) );
 
-		mx_strncpy( (*semaphore)->name, name, name_length );
+		strlcpy( (*semaphore)->name, name, name_length );
 	}
 
 	/* Get the semaphore key. */
@@ -1744,7 +1744,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 		(*semaphore)->name = (char *)
 					malloc( name_length * sizeof(char) );
 
-		mx_strncpy( (*semaphore)->name, name, name_length );
+		strlcpy( (*semaphore)->name, name, name_length );
 	}
 
 	/* Create the semaphore. */

@@ -27,7 +27,7 @@ typedef struct {
 	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 
 	long num_ion_chambers;
-	MX_BLUICE_FOREIGN_ION_CHAMBER **foreign_ion_chamber_array;
+	MX_BLUICE_FOREIGN_DEVICE **foreign_ion_chamber_array;
 
 	int measurement_in_progress;
 } MX_BLUICE_TIMER;

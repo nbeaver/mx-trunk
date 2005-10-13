@@ -77,7 +77,7 @@ static mx_status_type
 mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
 			MX_BLUICE_MOTOR **bluice_motor,
 			MX_BLUICE_SERVER **bluice_server,
-			MX_BLUICE_FOREIGN_MOTOR **foreign_motor,
+			MX_BLUICE_FOREIGN_DEVICE **foreign_motor,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_bluice_motor_get_pointers()";
@@ -144,12 +144,12 @@ mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
 		}
 	}
 
-	if ( foreign_motor != (MX_BLUICE_FOREIGN_MOTOR **) NULL ) {
-		*foreign_motor = bluice_motor_ptr->foreign_motor;
+	if ( foreign_motor != (MX_BLUICE_FOREIGN_DEVICE **) NULL ) {
+		*foreign_motor = bluice_motor_ptr->foreign_device;
 
-		if ( (*foreign_motor) == (MX_BLUICE_FOREIGN_MOTOR *) NULL ) {
+		if ( (*foreign_motor) == (MX_BLUICE_FOREIGN_DEVICE *) NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The foreign_motor pointer for motor '%s' "
+			"The foreign_device pointer for motor '%s' "
 			"has not been initialized.", motor->record->name );
 		}
 	}
@@ -202,7 +202,7 @@ mxd_bluice_motor_create_record_structures( MX_RECORD *record )
 
 	motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 
-	bluice_motor->foreign_motor = NULL;
+	bluice_motor->foreign_device = NULL;
 
 	motor->status = 0;
 
@@ -332,7 +332,6 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	void *device_ptr;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -360,9 +359,10 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	mx_status = mx_bluice_wait_for_device_pointer_initialization(
 						bluice_server,
 						bluice_motor->bluice_name,
-		 (MX_BLUICE_FOREIGN_DEVICE ***) &(bluice_server->motor_array),
+						MXT_BLUICE_FOREIGN_MOTOR,
+		 				&(bluice_server->motor_array),
 						&(bluice_server->num_motors),
-		  (MX_BLUICE_FOREIGN_DEVICE **) &device_ptr,
+		  				&(bluice_motor->foreign_device),
 						5.0 );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -372,9 +372,7 @@ mxd_bluice_motor_open( MX_RECORD *record )
 	("%s: Successfully waited for device pointer initialization.", fname));
 #endif
 
-	bluice_motor->foreign_motor = (MX_BLUICE_FOREIGN_MOTOR *) device_ptr;
-
-	bluice_motor->foreign_motor->mx_motor = motor;
+	bluice_motor->foreign_device->u.motor.mx_motor = motor;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -388,7 +386,7 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char command[80];
 	mx_status_type mx_status;
 
@@ -400,12 +398,14 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
-		sprintf( command, "gtos_start_motor_move %s %g",
+		snprintf( command, sizeof(command),
+				"gtos_start_motor_move %s %g",
 				bluice_motor->bluice_name,
 				motor->raw_destination.analog );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
-		sprintf( command, "stoh_start_motor_move %s %g",
+		snprintf( command, sizeof(command),
+				"stoh_start_motor_move %s %g",
 				bluice_motor->bluice_name,
 				motor->raw_destination.analog );
 		break;
@@ -416,7 +416,7 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	foreign_motor->move_in_progress = TRUE;
+	foreign_motor->u.motor.move_in_progress = TRUE;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
 					command, NULL, 0, -1, TRUE );
@@ -430,7 +430,7 @@ mxd_bluice_motor_get_position( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	mx_status_type mx_status;
 	long mx_status_code;
 
@@ -448,7 +448,7 @@ mxd_bluice_motor_get_position( MX_MOTOR *motor )
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
-	motor->raw_position.analog = foreign_motor->position;
+	motor->raw_position.analog = foreign_motor->u.motor.position;
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
@@ -462,24 +462,25 @@ mxd_bluice_motor_set_position( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	char command[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
-					&bluice_server, &foreign_motor, fname );
+	mx_status = mxd_bluice_motor_get_pointers( motor,
+				&bluice_motor, &bluice_server, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
-		sprintf( command, "gtos_set_motor_position %s %g",
+		snprintf( command, sizeof(command),
+				"gtos_set_motor_position %s %g",
 				bluice_motor->bluice_name,
 				motor->raw_set_position.analog );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
-		sprintf( command, "stoh_set_motor_position %s %g",
+		snprintf( command, sizeof(command),
+				"stoh_set_motor_position %s %g",
 				bluice_motor->bluice_name,
 				motor->raw_set_position.analog );
 		break;
@@ -513,10 +514,10 @@ mxd_bluice_motor_soft_abort( MX_MOTOR *motor )
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
-		strcpy( command, "gtos_abort_all soft" );
+		strlcpy( command, "gtos_abort_all soft", sizeof(command) );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
-		strcpy( command, "stoh_abort_all soft" );
+		strlcpy( command, "stoh_abort_all soft", sizeof(command) );
 		break;
 	}
 
@@ -548,10 +549,10 @@ mxd_bluice_motor_immediate_abort( MX_MOTOR *motor )
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
-		strcpy( command, "gtos_abort_all hard" );
+		strlcpy( command, "gtos_abort_all hard", sizeof(command) );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
-		strcpy( command, "stoh_abort_all hard" );
+		strlcpy( command, "stoh_abort_all hard", sizeof(command) );
 		break;
 	}
 
@@ -572,7 +573,7 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
@@ -590,11 +591,12 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		motor->raw_speed = 
-			foreign_motor->scale_factor * foreign_motor->speed;
+		motor->raw_speed = foreign_motor->u.motor.scale_factor
+					* foreign_motor->u.motor.speed;
 		break;
 	case MXLV_MTR_ACCELERATION_TIME:
-		motor->acceleration_time = foreign_motor->acceleration_time;
+		motor->acceleration_time = 
+				foreign_motor->u.motor.acceleration_time;
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
@@ -610,7 +612,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char command[200], command_name[40];
 	mx_status_type mx_status;
 
@@ -626,7 +628,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 			motor->parameter_type ),
 		motor->parameter_type));
 
-	if ( foreign_motor->is_pseudo ) {
+	if ( foreign_motor->u.motor.is_pseudo ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Setting motor parameters for Blu-Ice pseudomotor '%s' "
 		"used by record '%s' is not supported.",
@@ -636,8 +638,9 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		foreign_motor->speed = mx_divide_safely( motor->raw_speed,
-						foreign_motor->scale_factor );
+		foreign_motor->u.motor.speed =
+			mx_divide_safely( motor->raw_speed,
+				foreign_motor->u.motor.scale_factor );
 		break;
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
@@ -646,28 +649,31 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 
 	switch( bluice_server->record->mx_type ) {
 	case MXN_BLUICE_DCSS_SERVER:
-		strcpy( command_name, "gtos_configure_device" );
+		strlcpy( command_name, "gtos_configure_device",
+						sizeof(command_name) );
 		break;
 	case MXN_BLUICE_DHS_SERVER:
-		strcpy( command_name, "stoh_configure_device" );
+		strlcpy( command_name, "stoh_configure_device",
+						sizeof(command_name) );
 		break;
 	}
 
-	sprintf( command, "%s %s %g %g %g %g %g %g %g %d %d %d %d %d",
+	snprintf( command, sizeof(command),
+		"%s %s %g %g %g %g %g %g %g %d %d %d %d %d",
 		command_name,
 		foreign_motor->name,
-		foreign_motor->position,
-		foreign_motor->upper_limit,
-		foreign_motor->lower_limit,
-		foreign_motor->scale_factor,
-		foreign_motor->speed,
-		foreign_motor->acceleration_time,
-		foreign_motor->backlash,
-		foreign_motor->lower_limit_on,
-		foreign_motor->upper_limit_on,
-		foreign_motor->motor_lock_on,
-		foreign_motor->backlash_on,
-		foreign_motor->reverse_on );
+		foreign_motor->u.motor.position,
+		foreign_motor->u.motor.upper_limit,
+		foreign_motor->u.motor.lower_limit,
+		foreign_motor->u.motor.scale_factor,
+		foreign_motor->u.motor.speed,
+		foreign_motor->u.motor.acceleration_time,
+		foreign_motor->u.motor.backlash,
+		foreign_motor->u.motor.lower_limit_on,
+		foreign_motor->u.motor.upper_limit_on,
+		foreign_motor->u.motor.motor_lock_on,
+		foreign_motor->u.motor.backlash_on,
+		foreign_motor->u.motor.reverse_on );
 
 	mx_status = mx_bluice_check_for_master( bluice_server );
 
@@ -686,7 +692,7 @@ mxd_bluice_motor_get_status( MX_MOTOR *motor )
 
 	MX_BLUICE_MOTOR *bluice_motor;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	mx_status_type mx_status;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
@@ -695,7 +701,7 @@ mxd_bluice_motor_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( foreign_motor->move_in_progress ) {
+	if ( foreign_motor->u.motor.move_in_progress ) {
 		motor->status |= MXSF_MTR_IS_BUSY;
 	} else {
 		motor->status &= ( ~ MXSF_MTR_IS_BUSY );

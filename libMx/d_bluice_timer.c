@@ -231,8 +231,8 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	MX_TIMER *timer;
 	MX_BLUICE_TIMER *bluice_timer;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_ION_CHAMBER **foreign_ion_chamber_array;
-	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
+	MX_BLUICE_FOREIGN_DEVICE **foreign_ion_chamber_array;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	long i, n, num_ion_chambers;
 	mx_status_type mx_status;
 	long mx_status_code;
@@ -266,8 +266,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 
 	foreign_ion_chamber_array = bluice_server->ion_chamber_array;
 
-	if ( foreign_ion_chamber_array ==
-			(MX_BLUICE_FOREIGN_ION_CHAMBER **) NULL )
+	if ( foreign_ion_chamber_array == (MX_BLUICE_FOREIGN_DEVICE **) NULL )
 	{
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
@@ -279,8 +278,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	for ( i = 0; i < bluice_server->num_ion_chambers; i++ ) {
 		foreign_ion_chamber = foreign_ion_chamber_array[i];
 
-		if ( foreign_ion_chamber ==
-			(MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL )
+		if ( foreign_ion_chamber == (MX_BLUICE_FOREIGN_DEVICE *) NULL )
 		{
 			mx_warning("%s: Skipping NULL ion chamber %ld",
 				fname, i );
@@ -288,7 +286,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 			continue;    /* Go back to the top of the for() loop. */
 		}
 
-		if ( strcmp( foreign_ion_chamber->timer_name,
+		if ( strcmp( foreign_ion_chamber->u.ion_chamber.timer_name,
 				bluice_timer->bluice_name ) == 0 )
 		{
 			if ( strcmp( foreign_ion_chamber->dhs_server_name,
@@ -313,17 +311,17 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	 */
 
 	bluice_timer->foreign_ion_chamber_array =
-	    (MX_BLUICE_FOREIGN_ION_CHAMBER **) malloc(
-		num_ion_chambers * sizeof(MX_BLUICE_FOREIGN_ION_CHAMBER *));
+	    (MX_BLUICE_FOREIGN_DEVICE **) malloc(
+		num_ion_chambers * sizeof(MX_BLUICE_FOREIGN_DEVICE *));
 
 	if ( bluice_timer->foreign_ion_chamber_array ==
-			(MX_BLUICE_FOREIGN_ION_CHAMBER **) NULL ) 
+			(MX_BLUICE_FOREIGN_DEVICE **) NULL ) 
 	{
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Failed to allocate a %ld element array of "
-			"MX_BLUICE_FOREIGN_ION_CHAMBER pointers.",
+			"MX_BLUICE_FOREIGN_DEVICE pointers.",
 				num_ion_chambers );
 	}
 
@@ -351,8 +349,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 
 		foreign_ion_chamber = foreign_ion_chamber_array[i];
 
-		if ( foreign_ion_chamber ==
-			(MX_BLUICE_FOREIGN_ION_CHAMBER *) NULL )
+		if ( foreign_ion_chamber == (MX_BLUICE_FOREIGN_DEVICE *) NULL )
 		{
 			mx_warning("%s: Skipping NULL ion chamber %ld",
 				fname, i );
@@ -360,7 +357,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 			continue;    /* Go back to the top of the for() loop. */
 		}
 
-		if ( strcmp( foreign_ion_chamber->timer_name,
+		if ( strcmp( foreign_ion_chamber->u.ion_chamber.timer_name,
 				bluice_timer->bluice_name ) == 0 )
 		{
 			if ( strcmp( foreign_ion_chamber->dhs_server_name,
@@ -368,7 +365,8 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 			{
 				/* SUCCESS!  Save the necessary pointers. */
 
-				foreign_ion_chamber->mx_timer = timer;
+				foreign_ion_chamber->u.ion_chamber.mx_timer
+									= timer;
 
 				bluice_timer->foreign_ion_chamber_array[n]
 					= foreign_ion_chamber;
@@ -431,7 +429,7 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 
 	MX_BLUICE_TIMER *bluice_timer;
 	MX_BLUICE_SERVER *bluice_server;
-	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
+	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	char chamber_name_string[MXU_BLUICE_NAME_LENGTH+5];
 	char command[200];
 	long i;
