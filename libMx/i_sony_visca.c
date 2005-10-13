@@ -253,10 +253,10 @@ mxi_sony_visca_value_string( unsigned char *destination,
 
 	ptr = destination + prefix_length;
 
-	ptr[0] = ( value >> 12 ) & 0xf;
-	ptr[1] = ( value >> 8 ) & 0xf;
-	ptr[2] = ( value >> 4 ) & 0xf;
-	ptr[3] = value & 0xf;
+	ptr[0] = (unsigned char) (( value >> 12 ) & 0xf);
+	ptr[1] = (unsigned char) (( value >> 8 ) & 0xf);
+	ptr[2] = (unsigned char) (( value >> 4 ) & 0xf);
+	ptr[3] = (unsigned char) (value & 0xf);
 	ptr[4] = 0xff;
 	ptr[5] = 0x0;
 

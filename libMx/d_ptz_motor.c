@@ -321,13 +321,13 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 		mx_status = mx_ptz_get_zoom( ptz_motor->ptz_record,
 							&ulong_value );
 
-		motor->raw_position.stepper = ulong_value;
+		motor->raw_position.stepper = (long) ulong_value;
 		break;
 	case MXT_PTZ_MOTOR_FOCUS:
 		mx_status = mx_ptz_get_focus( ptz_motor->ptz_record,
 							&ulong_value );
 
-		motor->raw_position.stepper = ulong_value;
+		motor->raw_position.stepper = (long) ulong_value;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

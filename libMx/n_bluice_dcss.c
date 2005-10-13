@@ -230,7 +230,7 @@ stog_become_master( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_become_master()";
 
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -260,7 +260,7 @@ stog_become_slave( MX_THREAD *thread,
 {
 	static const char fname[] = "stog_become_slave()";
 
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -415,7 +415,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 	long i, num_ion_chambers;
 	double measurement_value;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -635,7 +635,7 @@ stog_report_shutter_state( MX_THREAD *thread,
 	char *ptr, *token_ptr, *shutter_name;
 	int shutter_status;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",
@@ -1084,7 +1084,7 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 	MX_SOCKET *server_socket;
 	long thread_exit_status;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	bluice_server = (MX_BLUICE_SERVER *) record->record_class_struct;
 

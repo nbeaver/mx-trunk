@@ -432,7 +432,7 @@ mxd_bluice_motor_get_position( MX_MOTOR *motor )
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_MOTOR *foreign_motor;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	mx_status = mxd_bluice_motor_get_pointers( motor, &bluice_motor,
 					&bluice_server, &foreign_motor, fname );

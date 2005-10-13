@@ -235,7 +235,7 @@ mxd_bluice_timer_finish_delayed_initialization( MX_RECORD *record )
 	MX_BLUICE_FOREIGN_ION_CHAMBER *foreign_ion_chamber;
 	long i, n, num_ion_chambers;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -436,7 +436,7 @@ mxd_bluice_timer_start( MX_TIMER *timer )
 	char command[200];
 	long i;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	mx_status = mxd_bluice_timer_get_pointers( timer,
 					&bluice_timer, &bluice_server, fname );

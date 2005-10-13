@@ -563,8 +563,8 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_SPEED:
 		command[0] = 0x41;
-		command[1] = ( ptz->pan_speed >> 8 ) & 0xff;
-		command[2] = ptz->pan_speed & 0xff;
+		command[1] = (unsigned char) (( ptz->pan_speed >> 8 ) & 0xff);
+		command[2] = (unsigned char) (ptz->pan_speed & 0xff);
 
 		mx_status = mxi_panasonic_kx_dp702_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
@@ -572,8 +572,8 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		break;
 	case MXF_PTZ_TILT_SPEED:
 		command[0] = 0x42;
-		command[1] = ( ptz->tilt_speed >> 8 ) & 0xff;
-		command[2] = ptz->tilt_speed & 0xff;
+		command[1] = (unsigned char) (( ptz->tilt_speed >> 8 ) & 0xff);
+		command[2] = (unsigned char) (ptz->tilt_speed & 0xff);
 
 		mx_status = mxi_panasonic_kx_dp702_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
@@ -581,8 +581,8 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		break;
 	case MXF_PTZ_ZOOM_SPEED:
 		command[0] = 0x43;
-		command[1] = ( ptz->zoom_speed >> 8 ) & 0xff;
-		command[2] = ptz->zoom_speed & 0xff;
+		command[1] = (unsigned char) (( ptz->zoom_speed >> 8 ) & 0xff);
+		command[2] = (unsigned char) (ptz->zoom_speed & 0xff);
 
 		mx_status = mxi_panasonic_kx_dp702_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
@@ -590,8 +590,8 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		break;
 	case MXF_PTZ_FOCUS_SPEED:
 		command[0] = 0x44;
-		command[1] = ( ptz->focus_speed >> 8 ) & 0xff;
-		command[2] = ptz->focus_speed & 0xff;
+		command[1] = (unsigned char) (( ptz->focus_speed >> 8 ) & 0xff);
+		command[2] = (unsigned char) (ptz->focus_speed & 0xff);
 
 		mx_status = mxi_panasonic_kx_dp702_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,
@@ -636,12 +636,12 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			zoom_value, zoom_value ));
 #endif
 		command[0] = 0x3e;
-		command[1] = ( pan_value >> 8 ) & 0xff;
-		command[2] = pan_value & 0xff;
-		command[3] = ( tilt_value >> 8 ) & 0xff;
-		command[4] = tilt_value & 0xff;
-		command[5] = ( zoom_value >> 8 ) & 0xff;
-		command[6] = zoom_value & 0xff;
+		command[1] = (unsigned char) (( pan_value >> 8 ) & 0xff);
+		command[2] = (unsigned char) (pan_value & 0xff);
+		command[3] = (unsigned char) (( tilt_value >> 8 ) & 0xff);
+		command[4] = (unsigned char) (tilt_value & 0xff);
+		command[5] = (unsigned char) (( zoom_value >> 8 ) & 0xff);
+		command[6] = (unsigned char) (zoom_value & 0xff);
 
 		mx_status = mxi_panasonic_kx_dp702_cmd( kx_dp702,
 						kx_dp702_ptz->camera_number,

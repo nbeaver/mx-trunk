@@ -92,7 +92,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 	char null_pad[500];
 	long text_data_length, bytes_sent, null_bytes_to_send;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	mx_status = mx_bluice_get_pointers( bluice_server_record,
 				&bluice_server, &bluice_server_socket, fname );
@@ -126,7 +126,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 
 	bytes_sent = 0;
 
-	text_data_length = strlen( text_data ) + 1;
+	text_data_length = (long) (strlen( text_data ) + 1);
 
 	mx_status_code = mx_mutex_lock( bluice_server->socket_send_mutex );
 
@@ -348,7 +348,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 		fname, data_pointer, bluice_server_record->name));
 #endif
 
-	*actual_data_length = actual_bytes_received;
+	*actual_data_length = (long) actual_bytes_received;
 
 	return mx_status;
 }
@@ -412,7 +412,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	int num_elements, old_num_elements;
 	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -724,7 +724,7 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 
 	MX_RECORD *bluice_server_record;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1657,7 +1657,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	char *ptr, *token_ptr, *motor_name, *status_ptr;
 	double motor_position;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 #if BLUICE_DEBUG_MOTION
 	MX_DEBUG(-2,("%s invoked for message '%s' from server '%s'",

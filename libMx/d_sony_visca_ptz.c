@@ -158,8 +158,8 @@ mxd_sony_visca_ptz_pan_tilt_drive_string( MX_RECORD *ptz_record,
 	destination[0] = 0x01;
 	destination[1] = 0x06;
 	destination[2] = 0x01;
-	destination[3] = pan_speed;
-	destination[4] = tilt_speed;
+	destination[3] = (unsigned char) pan_speed;
+	destination[4] = (unsigned char) tilt_speed;
 	destination[5] = suffix[0];
 	destination[6] = suffix[1];
 	destination[7] = 0xff;
@@ -664,16 +664,16 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 		command[0] = 0x01;
 		command[1] = 0x06;
 		command[2] = 0x02;
-		command[3] = ptz->pan_speed;
-		command[4] = ptz->tilt_speed;
-		command[5] = ( pan_value >> 12 ) & 0xf;
-		command[6] = ( pan_value >> 8 ) & 0xf;
-		command[7] = ( pan_value >> 4 ) & 0xf;
-		command[8] = pan_value & 0xf;
-		command[9] = ( tilt_value >> 12 ) & 0xf;
-		command[10] = ( tilt_value >> 8 ) & 0xf;
-		command[11] = ( tilt_value >> 4 ) & 0xf;
-		command[12] = tilt_value & 0xf;
+		command[3] = (unsigned char) ptz->pan_speed;
+		command[4] = (unsigned char) ptz->tilt_speed;
+		command[5] = (unsigned char) (( pan_value >> 12 ) & 0xf);
+		command[6] = (unsigned char) (( pan_value >> 8 ) & 0xf);
+		command[7] = (unsigned char) (( pan_value >> 4 ) & 0xf);
+		command[8] = (unsigned char) (pan_value & 0xf);
+		command[9] = (unsigned char) (( tilt_value >> 12 ) & 0xf);
+		command[10] = (unsigned char) (( tilt_value >> 8 ) & 0xf);
+		command[11] = (unsigned char) (( tilt_value >> 4 ) & 0xf);
+		command[12] = (unsigned char) (tilt_value & 0xf);
 		command[13] = 0xff;
 		command[14] = 0x0;
 

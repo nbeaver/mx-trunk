@@ -300,7 +300,7 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	long *dimension_array;
 	void *value_ptr;
 	mx_status_type mx_status;
-	unsigned long mx_status_code;
+	long mx_status_code;
 
 	mx_status = mxv_bluice_string_get_pointers( variable,
 			&bluice_string, &bluice_server, &foreign_string, fname);

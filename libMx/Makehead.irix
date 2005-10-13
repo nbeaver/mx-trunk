@@ -106,7 +106,7 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 # like XXX_OBJS = $(XXX_SRCS:.c=.$(OBJ)).  It doesn't understand
 # the last $(OBJ).
 
-MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o)
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.o) ../tools/strlcpy.o ../tools/strlcat.o
 MOTOR_OBJS        = $(MOTOR_SRCS:.c=.o)
 SERVER_OBJS       = $(SERVER_SRCS:.c=.o)
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.o)
