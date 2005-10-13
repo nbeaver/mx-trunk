@@ -1595,8 +1595,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		itimer_value.it_interval.tv_sec  = 0;
 		itimer_value.it_interval.tv_usec = 0;
 
-#if 0
-		sa.sa_flags = SA_ONESHOT;  /* Not available on MacOS X. */
+#if defined(OS_DJGPP)
+		sa.sa_flags = 0;
 #else
 		sa.sa_flags = SA_RESETHAND;
 #endif
@@ -1609,7 +1609,9 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	/* Attempt to restart system calls when possible. */
 
+#if ! defined(OS_DJGPP)
 	sa.sa_flags |= SA_RESTART;
+#endif
 
 	/* Set the function to be used by the signal handler. */
 

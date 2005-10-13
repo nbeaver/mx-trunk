@@ -2275,6 +2275,178 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return mx_status;
 }
 
+/********** Use the following stubs when threads are not supported **********/
+
+#elif defined(OS_DJGPP)
+
+/* WARNING: You must _not_ use the following version if there is any
+ * possibility that threads or asynchronous event handlers will be used,
+ * since it is not thread safe in any way.
+ */
+
+MX_EXPORT mx_status_type
+mx_semaphore_create( MX_SEMAPHORE **semaphore,
+			long initial_value,
+			char *name )
+{
+	static const char fname[] = "mx_semaphore_create()";
+
+	unsigned long *semaphore_value_ptr;
+	size_t name_length;
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( initial_value < 0 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Negative initial values are not supported on this platform." );
+	}
+
+	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	*semaphore = (MX_SEMAPHORE *) malloc( sizeof(MX_SEMAPHORE) );
+
+	if ( *semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_SEMAPHORE structure." );
+	}
+
+	semaphore_value_ptr = (unsigned long *) malloc( sizeof(unsigned long) );
+
+	if ( semaphore_value_ptr == (unsigned long *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for a unsigned long pointer." );
+	}
+	
+	(*semaphore)->private = semaphore_value_ptr;
+
+	(*semaphore)->semaphore_type = MXT_SEM_NONE;
+
+	/* Allocate space for a name if one was specified. */
+
+	if ( name == NULL ) {
+		(*semaphore)->name = NULL;
+	} else {
+		name_length = strlen( name );
+
+		name_length++;
+
+		(*semaphore)->name = (char *)
+					malloc( name_length * sizeof(char) );
+
+		strlcpy( (*semaphore)->name, name, name_length );
+	}
+
+	*semaphore_value_ptr = initial_value;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+{
+	static const char fname[] = "mx_semaphore_destroy()";
+
+	unsigned long *semaphore_value_ptr;
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	semaphore_value_ptr = semaphore->private;
+
+	if ( semaphore_value_ptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The semaphore_ptr field for the MX_SEMAPHORE pointer "
+			"passed was NULL.");
+	}
+
+	if ( semaphore->name != NULL ) {
+		mx_free( semaphore->name );
+	}
+
+	mx_free( semaphore_value_ptr );
+
+	mx_free( semaphore );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+{
+	return mx_semaphore_trylock( semaphore );
+}
+
+MX_EXPORT long
+mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+{
+	unsigned long *semaphore_value_ptr;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_value_ptr = semaphore->private;
+
+	if ( semaphore_value_ptr == (unsigned long *) NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	(*semaphore_value_ptr)++;
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+{
+	unsigned long *semaphore_value_ptr;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_value_ptr = semaphore->private;
+
+	if ( semaphore_value_ptr == (unsigned long *) NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	if ( *semaphore_value_ptr == 0 )
+		return MXE_MIGHT_CAUSE_DEADLOCK;
+
+	(*semaphore_value_ptr)--;
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( current_value == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The current_value pointer passed was NULL." );
+	}
+
+	*current_value = (unsigned long)
+				*((unsigned long *) semaphore->private);
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /***************************************************************/
 
 #elif 0

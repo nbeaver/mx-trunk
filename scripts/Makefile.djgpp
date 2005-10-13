@@ -29,7 +29,7 @@ build:
 	$(MAKECMD)
 	cd ..\update
 	$(MAKECMD)
-	cd ..\update_new
+	cd ..\update_old
 	$(MAKECMD)
 	cd ..\util
 	$(MAKECMD)
@@ -45,7 +45,7 @@ clean:
 	$(MAKECMD) mx_clean
 	cd ..\update
 	$(MAKECMD) mx_clean
-	cd ..\update_new
+	cd ..\update_old
 	$(MAKECMD) mx_clean
 	cd ..\util
 	$(MAKECMD) mx_clean
@@ -61,7 +61,7 @@ distclean:
 	$(MAKECMD) mx_distclean
 	cd ..\update
 	$(MAKECMD) mx_distclean
-	cd ..\update_new
+	cd ..\update_old
 	$(MAKECMD) mx_distclean
 	cd ..\util
 	$(MAKECMD) mx_distclean
@@ -75,7 +75,7 @@ depend:
 	$(MAKECMD) mx_depend
 	cd ..\update
 	$(MAKECMD) mx_depend
-	cd ..\update_new
+	cd ..\update_old
 	$(MAKECMD) mx_depend
 	cd ..\util
 	$(MAKECMD) mx_depend
@@ -89,7 +89,7 @@ install:
 	$(MAKECMD) mx_install
 	cd ..\update
 	$(MAKECMD) mx_install
-	cd ..\update_new
+	cd ..\update_old
 	$(MAKECMD) mx_install
 	cd ..\util
 	$(MAKECMD) mx_install

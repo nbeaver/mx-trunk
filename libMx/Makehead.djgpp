@@ -32,7 +32,7 @@
 INCLUDES	= $(MX_INCLUDES)
 #
 LIB_DIRS	= -L$(MX_LIB_DIR) $(WATT32_LIB_DIRS)
-LIBRARIES	= $(WATT32_LIBRARIES) -lm
+LIBRARIES	= $(WATT32_LIBRARIES) -lreadline -lm
 
 EXTRA_LIB_OBJS	= ../tools/xdr.o
 
@@ -95,6 +95,10 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 
 #
 #---------------------------------------------------

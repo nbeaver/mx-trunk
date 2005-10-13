@@ -28,6 +28,7 @@ typedef struct {
 #define MXT_SEM_WIN32	1
 #define MXT_SEM_SYSV	2
 #define MXT_SEM_POSIX	3
+#define MXT_SEM_NONE	4
 
 /* Note: If 'initial_value' is less than zero, then we are attempting
  *       to attach to an existing semaphore, rather than create a new

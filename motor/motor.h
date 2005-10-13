@@ -38,11 +38,11 @@
 #define MX_CMDLINE_FGETS	1
 #define MX_CMDLINE_READLINE	2
 
-#if defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_DJGPP)
+#if defined(OS_RTEMS) || defined(OS_VXWORKS)
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_FGETS
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
 
 #   define MX_CMDLINE_PROCESSOR  MX_CMDLINE_READLINE
 

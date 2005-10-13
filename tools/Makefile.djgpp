@@ -1,9 +1,15 @@
-all: xdr.o
+all: xdr.o strlcpy.o strlcat.o
 
 include ../libMx/Makehead.djgpp
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 	gcc $(CFLAGS) -D__MX_LIBRARY__ -o xdr.o -c xdr/src/xdr.c 
+
+strlcpy.o: generic/src/strlcpy.c
+	gcc -c generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	gcc -c generic/src/strlcat.c
 
 mx_clean:
 	-rm *.o *.exe

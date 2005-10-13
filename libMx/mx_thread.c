@@ -2071,6 +2071,172 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/********** Use the following stubs when threads are not supported **********/
+
+#elif defined(OS_DJGPP)
+
+MX_EXPORT mx_status_type
+mx_thread_initialize( void )
+{
+	static const char fname[] = "mx_thread_initialize()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_build_data_structures( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_thread_build_data_structures()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_free_data_structures( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_free_data_structures()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_create( MX_THREAD **thread,
+		MX_THREAD_FUNCTION *thread_function,
+		void *thread_arguments )
+{
+	static const char fname[] = "mx_thread_create()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT void
+mx_thread_exit( MX_THREAD *thread,
+		long thread_exit_status )
+{
+	static const char fname[] = "mx_thread_exit()";
+
+	(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_kill( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_kill()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_stop( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_stop()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_check_for_stop_request( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_check_for_stop_request()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_set_stop_request_handler( MX_THREAD *thread,
+			MX_THREAD_STOP_REQUEST_HANDLER *stop_request_handler,
+			void *stop_request_arguments )
+{
+	static const char fname[] = "mx_thread_set_stop_request_handler()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_wait( MX_THREAD *thread,
+		long *thread_exit_status,
+		double max_seconds_to_wait )
+{
+	static const char fname[] = "mx_thread_wait()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_thread_save_thread_pointer( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_save_thread_pointer()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_get_current_thread( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_get_current_thread()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT void
+mx_show_thread_info( MX_THREAD *thread, char *message )
+{
+	static const char fname[] = "mx_show_thread_info()";
+
+	(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
+{
+	static const char fname[] = "mx_tls_alloc()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_free()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT void *
+mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_get_value()";
+
+	(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+
+	return NULL;
+}
+
+MX_EXPORT mx_status_type
+mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
+{
+	static const char fname[] = "mx_tls_set_value()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+}
+
 /*-------------------------------------------------------------------------*/
 
 #else

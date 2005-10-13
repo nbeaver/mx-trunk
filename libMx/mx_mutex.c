@@ -578,6 +578,40 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	}
 }
 
+/********** Use the following stubs when threads are not supported **********/
+
+#elif defined(OS_DJGPP)
+
+MX_EXPORT mx_status_type
+mx_mutex_create( MX_MUTEX **mutex )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mutex_destroy( MX_MUTEX *mutex )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_mutex_lock( MX_MUTEX *mutex )
+{
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_unlock( MX_MUTEX *mutex )
+{
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_trylock( MX_MUTEX *mutex )
+{
+	return MXE_SUCCESS;
+}
+
 /*-------------------------------------------------------------------------*/
 
 #elif 0

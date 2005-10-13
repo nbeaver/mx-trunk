@@ -1345,6 +1345,35 @@ vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 	return result;
 }
 
+#elif defined(OS_DJGPP)
+
+/* Some platforms do not provide snprintf() and vsnprintf().  For those
+ * platforms we fall back to sprintf() and vsprintf().  The hope in doing
+ * this is that any buffer overruns will be found on the plaforms that
+ * _do_ support snprintf() and vsnprint().
+ */
+
+MX_EXPORT int
+snprintf( char *dest, size_t maxlen, const char *format, ... )
+{
+	va_list args;
+	int result;
+
+	va_start( args, format );
+
+	result = vsprintf( dest, format, args );
+
+	va_end( args );
+
+	return result;
+}
+
+MX_EXPORT int
+vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
+{
+	return vsprintf( dest, format, args );
+}
+
 #endif
 
 /* --- */

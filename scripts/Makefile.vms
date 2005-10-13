@@ -34,7 +34,7 @@ build:
 	$(MAKE)
 	$(CD) ../update
 	$(MAKE)
-	$(CD) ../update_new
+	$(CD) ../update_old
 	$(MAKE)
 	$(CD) ../util
 	$(MAKE)
@@ -51,7 +51,7 @@ clean:
 	$(MAKE) mx_clean
 	$(CD) ../update
 	$(MAKE) mx_clean
-	$(CD) ../update_new
+	$(CD) ../update_old
 	$(MAKE) mx_clean
 	$(CD) ../util
 	$(MAKE) mx_clean
@@ -68,7 +68,7 @@ distclean:
 	$(MAKE) mx_distclean
 	$(CD) ../update
 	$(MAKE) mx_distclean
-	$(CD) ../update_new
+	$(CD) ../update_old
 	$(MAKE) mx_distclean
 	$(CD) ../util
 	$(MAKE) mx_distclean
@@ -83,7 +83,7 @@ depend:
 	$(MAKE) mx_depend
 	$(CD) ../update
 	$(MAKE) mx_depend
-	$(CD) ../update_new
+	$(CD) ../update_old
 	$(MAKE) mx_depend
 	$(CD) ../util
 	$(MAKE) mx_depend
