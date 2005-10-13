@@ -1,4 +1,5 @@
-s1            server bluice bluice_dcss_server "" "" localhost 14243 3282119982E7C317C64D9574BE00000 0x1
+#s1            server bluice bluice_dcss_server "" "" localhost 14243 3282119982E7C317C64D9574BE00000 0x1
+s1            server bluice bluice_dcss_server "" "" localhost 14243 XYZZY 0x1
 master        variable bluice_variable bluice_master "" "" s1 1 1 0
 command       variable bluice_variable bluice_command "" "" s1 1 80 ""
 energy        device motor bluice_motor "" "" 0 0 -1e38 1e38 0 -1 -1 1 0 eV s1 energy

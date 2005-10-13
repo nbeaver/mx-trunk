@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_STRING_DEBUG		FALSE
+#define BLUICE_STRING_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -322,8 +322,9 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
-	strlcpy( value_ptr, foreign_string->u.string.string,
-					dimension_array[0] );
+	strlcpy( value_ptr,
+		foreign_string->u.string.string_contents,
+		dimension_array[0] );
 
 	mx_mutex_unlock( bluice_server->foreign_data_mutex );
 

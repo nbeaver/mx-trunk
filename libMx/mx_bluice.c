@@ -81,8 +81,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
 			long binary_data_length,
-			long required_data_length,
-			int send_header )
+			long required_data_length )
 {
 	static const char fname[] = "mx_bluice_send_message()";
 
@@ -136,7 +135,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 		"server '%s' failed.", bluice_server->record->name );
 	}
 
-	if ( send_header ) {
+	if ( required_data_length < 0 ) {
 		snprintf( message_header, sizeof(message_header),
 			"%*lu%*lu",
 			MX_BLUICE_MSGHDR_TEXT_LENGTH,
@@ -393,11 +392,6 @@ mx_bluice_get_message_type( char *message_string, int *message_type )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* We do not have polymorphism in C, so the following is a kludge to let us
- * sort of simulate polymorphism.  That way we do not have to have a separate
- * routine for finding each kind of Blu-Ice foreign device.
- */
-
 MX_EXPORT mx_status_type
 mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			char *name,
@@ -413,6 +407,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	int num_elements, old_num_elements;
 	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
+	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
 	long mx_status_code;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -458,6 +453,25 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		return mx_error( mx_status_code, fname,
 		"An attempt to lock the foreign data mutex for Blu-Ice "
 		"server '%s' failed.", bluice_server->record->name );
+	}
+
+	if ( bluice_server->record->mx_type == MXN_BLUICE_DCSS_SERVER ) {
+		bluice_dcss_server = bluice_server->record->record_type_struct;
+
+		if ( bluice_dcss_server == (MX_BLUICE_DCSS_SERVER *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		  "The MX_BLUICE_DCSS_SERVER pointer for record '%s' is NULL.",
+		  		bluice_server->record->name );
+		}
+
+		if ( bluice_dcss_server->is_authenticated == FALSE ) {
+			return mx_error( MXE_PERMISSION_DENIED, fname,
+			"Cannot access Blu-Ice device '%s' since "
+			"we have not successfully authenticated with the "
+			"Blu-Ice server at '%s', port %d.", name,
+				bluice_dcss_server->hostname,
+				bluice_dcss_server->port_number );
+		}
 	}
 
 	*foreign_device_ptr = NULL;
@@ -825,10 +839,10 @@ mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
 	
 	if ( take_master ) {
 		mx_status = mx_bluice_send_message( bluice_server->record,
-			"gtos_become_master force", NULL, 0, -1, TRUE );
+			"gtos_become_master force", NULL, 0, -1 );
 	} else {
 		mx_status = mx_bluice_send_message( bluice_server->record,
-			"gtos_become_slave", NULL, 0, -1, TRUE );
+			"gtos_become_slave", NULL, 0, -1 );
 	}
 
 	return mx_status;
@@ -1167,6 +1181,8 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	foreign_ion_chamber->foreign_type = MXT_BLUICE_FOREIGN_ION_CHAMBER;
+
 	foreign_ion_chamber->u.ion_chamber.mx_analog_input = NULL;
 	foreign_ion_chamber->u.ion_chamber.mx_timer = NULL;
 
@@ -1190,13 +1206,13 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_ion_chamber->dhs_server_name));
 	MX_DEBUG(-2,("%s: Counter name = '%s'",
-				fname, foreign_ion_chamber->counter_name));
+		fname, foreign_ion_chamber->u.ion_chamber.counter_name));
 	MX_DEBUG(-2,("%s: Channel number = %d",
-				fname, foreign_ion_chamber->channel_number));
+		fname, foreign_ion_chamber->u.ion_chamber.channel_number));
 	MX_DEBUG(-2,("%s: Timer name = '%s'",
-				fname, foreign_ion_chamber->timer_name));
+		fname, foreign_ion_chamber->u.ion_chamber.timer_name));
 	MX_DEBUG(-2,("%s: Timer type = %d",
-				fname, foreign_ion_chamber->timer_type));
+		fname, foreign_ion_chamber->u.ion_chamber.timer_type));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
@@ -1212,9 +1228,9 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	static const char fname[] = "mx_bluice_configure_motor()";
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
-	char format_string[40];
+	char format_string[100];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
-	int message_type, num_items;
+	int message_type, num_items, format_length;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1273,6 +1289,8 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		fname, bluice_server->motor_array));
 #endif
 
+	foreign_motor->foreign_type = MXT_BLUICE_FOREIGN_MOTOR;
+
 	foreign_motor->u.motor.mx_motor = NULL;
 	foreign_motor->u.motor.move_in_progress = FALSE;
 
@@ -1285,10 +1303,22 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		{
 			foreign_motor->u.motor.is_pseudo = FALSE;
 
-			snprintf( format_string, sizeof(format_string),
+			format_length = snprintf(
+				format_string, sizeof(format_string),
 "%%*s %%*s %%%ds %%%ds %%lg %%lg %%lg %%lg %%lg %%lg %%lg %%d %%d %%d %%d %%d",
 				MXU_BLUICE_NAME_LENGTH,
 				MXU_BLUICE_NAME_LENGTH );
+
+			if ( format_length >= sizeof(format_string) ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The length needed for the format string for "
+				"stog_configure_real_motor is %d bytes, "
+				"but the format string buffer is only %d "
+				"bytes.  You must recompile this version of "
+				"MX with a longer format string buffer size.",
+					format_length + 1,
+					(int) sizeof(format_string) );
+			}
 
 			num_items = sscanf( config_string, format_string,
 				foreign_motor->dhs_server_name,
@@ -1362,32 +1392,35 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 #if BLUICE_DEBUG_CONFIG
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 	MX_DEBUG(-2,("%s: Foreign motor '%s':", fname, foreign_motor->name));
-	MX_DEBUG(-2,("%s: is pseudo = %d", fname, foreign_motor->is_pseudo));
+	MX_DEBUG(-2,("%s: is pseudo = %d",
+				fname, foreign_motor->u.motor.is_pseudo));
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_motor->dhs_server_name));
 	MX_DEBUG(-2,("%s: DHS name = '%s'",
-				fname, foreign_motor->dhs_name));
-	MX_DEBUG(-2,("%s: position = %g", fname, foreign_motor->position));
+				fname, foreign_motor->u.motor.dhs_name));
+	MX_DEBUG(-2,("%s: position = %g", fname,
+				foreign_motor->u.motor.position));
 	MX_DEBUG(-2,("%s: upper limit = %g",
-				fname, foreign_motor->upper_limit));
+				fname, foreign_motor->u.motor.upper_limit));
 	MX_DEBUG(-2,("%s: lower limit = %g",
-				fname, foreign_motor->lower_limit));
+				fname, foreign_motor->u.motor.lower_limit));
 	MX_DEBUG(-2,("%s: scale factor = %g",
-				fname, foreign_motor->scale_factor));
-	MX_DEBUG(-2,("%s: speed = %g", fname, foreign_motor->speed));
+				fname, foreign_motor->u.motor.scale_factor));
+	MX_DEBUG(-2,("%s: speed = %g", fname, foreign_motor->u.motor.speed));
 	MX_DEBUG(-2,("%s: acceleration time = %g",
-				fname, foreign_motor->acceleration_time));
-	MX_DEBUG(-2,("%s: backlash = %g", fname, foreign_motor->backlash));
+			fname, foreign_motor->u.motor.acceleration_time));
+	MX_DEBUG(-2,("%s: backlash = %g", fname,
+				foreign_motor->u.motor.backlash));
 	MX_DEBUG(-2,("%s: upper limit on = %d",
-				fname, foreign_motor->upper_limit_on));
+				fname, foreign_motor->u.motor.upper_limit_on));
 	MX_DEBUG(-2,("%s: lower limit on = %d",
-				fname, foreign_motor->lower_limit_on));
+				fname, foreign_motor->u.motor.lower_limit_on));
 	MX_DEBUG(-2,("%s: motor lock on = %d",
-				fname, foreign_motor->motor_lock_on));
+				fname, foreign_motor->u.motor.motor_lock_on));
 	MX_DEBUG(-2,("%s: backlash on = %d",
-				fname, foreign_motor->backlash_on));
+				fname, foreign_motor->u.motor.backlash_on));
 	MX_DEBUG(-2,("%s: reverse on = %d",
-				fname, foreign_motor->reverse_on));
+				fname, foreign_motor->u.motor.reverse_on));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
@@ -1497,6 +1530,8 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	foreign_shutter->foreign_type = MXT_BLUICE_FOREIGN_SHUTTER;
+
 	foreign_shutter->u.shutter.mx_relay = NULL;
 
 	strlcpy( foreign_shutter->dhs_server_name,
@@ -1510,7 +1545,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_shutter->dhs_server_name));
 	MX_DEBUG(-2,("%s: Shutter status = %d",
-				fname, foreign_shutter->shutter_status));
+			    fname, foreign_shutter->u.shutter.shutter_status));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 
@@ -1607,6 +1642,8 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	foreign_string->foreign_type = MXT_BLUICE_FOREIGN_STRING;
+
 	foreign_string->u.string.mx_string_variable = NULL;
 
 	strlcpy( foreign_string->dhs_server_name,
@@ -1614,22 +1651,22 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 
 	string_length = strlen( string_contents );
 
-	if ( foreign_string->u.string.string == (char *) NULL ) {
-		foreign_string->u.string.string = (char *)
+	if ( foreign_string->u.string.string_contents == (char *) NULL ) {
+		foreign_string->u.string.string_contents = (char *)
 						malloc( string_length );
 	} else {
-		foreign_string->u.string.string = (char *)
-		    realloc( foreign_string->u.string.string, string_length );
+		foreign_string->u.string.string_contents = (char *)
+	    realloc( foreign_string->u.string.string_contents, string_length );
 	}
 
-	if ( foreign_string->u.string.string == (char *) NULL ) {
+	if ( foreign_string->u.string.string_contents == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte string "
 		"for Blu-Ice foreign string '%s'.",
 			(unsigned long) string_length, string_name );
 	}
 
-	strlcpy( foreign_string->u.string.string,
+	strlcpy( foreign_string->u.string.string_contents,
 			string_contents, string_length+1 );
 
 #if BLUICE_DEBUG_CONFIG
@@ -1638,7 +1675,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	MX_DEBUG(-2,("%s: DHS server = '%s'",
 				fname, foreign_string->dhs_server_name));
 	MX_DEBUG(-2,("%s: String contents = '%s'",
-				fname, foreign_string->string));
+			    fname, foreign_string->u.string.string_contents));
 	MX_DEBUG(-2,("%s: -------------------------------------------", fname));
 #endif
 

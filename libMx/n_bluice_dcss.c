@@ -810,6 +810,7 @@ mxn_bluice_dcss_server_create_record_structures( MX_RECORD *record )
 	bluice_dcss_server->record = record;
 	bluice_dcss_server->dcss_monitor_thread = NULL;
 	bluice_dcss_server->client_number = 0;
+	bluice_dcss_server->is_authenticated = FALSE;
 	bluice_dcss_server->is_master = FALSE;
 
 	mx_status = mx_mutex_create( &(bluice_server->socket_send_mutex) );
@@ -894,7 +895,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 
 	mx_username( user_name, MXU_USERNAME_LENGTH );
 
-#if 1
+#if 0
 	strlcpy( user_name, "tigerw", sizeof(user_name) );
 #endif
 
@@ -981,8 +982,7 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	/* Send back the client type response. */
 
 	mx_status = mx_bluice_send_message( record,
-					client_type_response, NULL, 0,
-					200, FALSE );
+					client_type_response, NULL, 0, 200 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1031,10 +1031,10 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	if ( strncmp( bluice_server->receive_buffer,
 			"stog_login_complete", 19 ) != 0 )
 	{
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Blu-Ice DCSS login was not successful for server '%s'.  "
-		"Response from server = '%s'",
-			record->name, bluice_server->receive_buffer );
+		return mx_error( MXE_PERMISSION_DENIED, fname,
+		"Blu-Ice DCSS login was not successful for user '%s' "
+		"at server '%s'.  Response from server = '%s'",
+		    user_name, record->name, bluice_server->receive_buffer );
 	}
 
 	num_items = sscanf( bluice_server->receive_buffer,
@@ -1047,6 +1047,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 		"from DCSS server '%s'.",
 			bluice_server->receive_buffer, record->name );
 	}
+
+	bluice_dcss_server->is_authenticated = TRUE;
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: DCSS login successful for client %lu.",

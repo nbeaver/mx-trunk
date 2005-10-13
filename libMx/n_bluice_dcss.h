@@ -35,6 +35,7 @@ typedef struct {
 
 	MX_THREAD *dcss_monitor_thread;
 	unsigned long client_number;
+	int is_authenticated;
 	int is_master;
 } MX_BLUICE_DCSS_SERVER;
 

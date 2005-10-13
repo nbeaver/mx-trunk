@@ -301,7 +301,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 
 	return mx_status;
 }

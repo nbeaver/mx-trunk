@@ -91,7 +91,7 @@ typedef struct {
 
 typedef struct {
 	unsigned long string_length;
-	char *string;
+	char *string_contents;
 
 	MX_VARIABLE *mx_string_variable;
 } MX_BLUICE_FOREIGN_STRING;
@@ -162,8 +162,7 @@ mx_bluice_send_message( MX_RECORD *bluice_server_record,
 			char *text_data,
 			char *binary_data,
 			long binary_data_length,
-			long required_data_length,
-			int send_header );
+			long required_data_length );
 
 MX_API mx_status_type
 mx_bluice_receive_message( MX_RECORD *bluice_server_record,

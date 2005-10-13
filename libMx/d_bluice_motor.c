@@ -198,7 +198,7 @@ mxd_bluice_motor_create_record_structures( MX_RECORD *record )
 
 	motor->subclass = MXC_MTR_ANALOG;
 
-	/* The Blu-Ice reports acceleration time in seconds. */
+	/* Blu-Ice reports acceleration time in milliseconds. */
 
 	motor->acceleration_type = MXF_MTR_ACCEL_TIME;
 
@@ -419,7 +419,7 @@ mxd_bluice_motor_move_absolute( MX_MOTOR *motor )
 	foreign_motor->u.motor.move_in_progress = TRUE;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 	return mx_status;
 }
 
@@ -492,7 +492,7 @@ mxd_bluice_motor_set_position( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 	return mx_status;
 }
 
@@ -527,7 +527,7 @@ mxd_bluice_motor_soft_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 	return mx_status;
 }
 
@@ -562,7 +562,7 @@ mxd_bluice_motor_immediate_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 	return mx_status;
 }
 
@@ -595,7 +595,11 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 					* foreign_motor->u.motor.speed;
 		break;
 	case MXLV_MTR_ACCELERATION_TIME:
-		motor->acceleration_time = 
+		/* Blu-Ice uses milliseconds for acceleration time
+		 * while MX uses seconds.
+		 */
+
+		motor->acceleration_time = 0.001 *
 				foreign_motor->u.motor.acceleration_time;
 		break;
 	default:
@@ -681,7 +685,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_bluice_send_message( bluice_server->record,
-					command, NULL, 0, -1, TRUE );
+						command, NULL, 0, -1 );
 	return mx_status;
 }
 

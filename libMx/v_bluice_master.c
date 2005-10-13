@@ -14,7 +14,7 @@
  *
  */
 
-#define BLUICE_MASTER_DEBUG		FALSE
+#define BLUICE_MASTER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -189,7 +189,7 @@ mxv_bluice_master_send_variable( MX_VARIABLE *variable )
 
 	mx_status = mx_bluice_send_message(
 				bluice_master->bluice_server_record,
-				command, NULL, 0, -1, TRUE );
+				command, NULL, 0, -1 );
 
 	return mx_status;
 }
