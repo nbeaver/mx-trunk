@@ -154,7 +154,8 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 			dcss_server_record->name );
 	}
 
-	sprintf( message_type_format, "%%%ds", sizeof(message_type_name) );
+	sprintf( message_type_format, "%%%lds",
+			(unsigned long) sizeof(message_type_name) );
 
 	while (1) {
 		mx_status = mx_bluice_receive_message( dcss_server_record,
