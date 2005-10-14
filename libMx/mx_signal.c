@@ -32,7 +32,7 @@
 #include "mx_thread.h"
 #include "mx_signal.h"
 
-#if defined( _POSIX_REALTIME_SIGNALS )
+#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
 
 #define MX_NUM_SIGNALS	SIGRTMAX
 

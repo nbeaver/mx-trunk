@@ -15,7 +15,6 @@
 #   rtems         - Compile for i386 under RTEMS 4.6pre4
 #   solaris       - Compile for Sun Sparc under Solaris 2.6
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 using GCC
-#   sunos4        - Compile for Sun Sparc under SunOS 4.1.4
 #   vms           - Compile for OpenVMS 7.3.1
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
@@ -39,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = linux
+MX_ARCH = bsd
 
 MX_INSTALL_DIR = /opt/mx
 

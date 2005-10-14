@@ -91,7 +91,7 @@ motor_init( char *motor_savefile_name,
 
 	}
 
-#if defined ( _POSIX_REALTIME_SIGNALS )
+#if defined ( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
 	mx_status = mx_signal_initialize();
 
 	if ( mx_status.code != MXE_SUCCESS ) {

@@ -530,7 +530,7 @@ mxserver_main( int argc, char *argv[] )
 		mxsrv_install_signal_and_exit_handlers(display_stack_traceback);
 	}
 
-#if defined( _POSIX_REALTIME_SIGNALS )
+#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
 	mx_status = mx_signal_initialize();
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -672,7 +672,7 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 #elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
 
-#if !defined(_POSIX_REALTIME_SIGNALS)
+#if (!defined(_POSIX_REALTIME_SIGNALS)) || ( _POSIX_REALTIME_SIGNALS < 0 )
 #error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
 #endif
 

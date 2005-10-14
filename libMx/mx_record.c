@@ -1597,7 +1597,7 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 	signal( SIGPIPE, SIG_IGN );
 #endif
 
-#if defined( _POSIX_REALTIME_SIGNALS )
+#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
 	mx_status = mx_signal_initialize();
 
 	if ( mx_status.code != MXE_SUCCESS )
