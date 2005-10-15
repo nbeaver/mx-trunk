@@ -2,7 +2,7 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
-#   bsd           - Compile for FreeBSD 4.8, NetBSD 1.6, or OpenBSD 3.3
+#   bsd           - Compile for FreeBSD 5.4, NetBSD 2.0.2, or OpenBSD 3.3
 #   cygwin        - Compile for Cygwin 1.5.x
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3
 #   hpux          - Compile for HP 9000/7xx under HP-UX 10.20
@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = bsd
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 
