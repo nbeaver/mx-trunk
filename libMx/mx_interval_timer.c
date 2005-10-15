@@ -523,6 +523,8 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #include <signal.h>
 #include <errno.h>
 
+#include <sys/param.h>	/* Needed for #define __NetBSD_Version__ on NetBSD */
+
 /* Select the notification method for the realtime timers.  The possible
  * values are SIGEV_THREAD or SIGEV_SIGNAL.  Generally SIGEV_THREAD is a
  * better choice since SIGEV_SIGNAL limits the maximum number of timers
@@ -581,8 +583,11 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 
 #if ( MX_SIGEV_TYPE == SIGEV_THREAD )
 
-static void
-mx_interval_timer_thread_handler( union sigval sigev_value )
+#if defined(__NetBSD_Version__)
+static void mx_interval_timer_thread_handler( union sigval *sigev_value_ptr )
+#else
+static void mx_interval_timer_thread_handler( union sigval sigev_value )
+#endif
 {
 	static const char fname[] = "mx_interval_timer_thread_handler()";
 
@@ -590,7 +595,11 @@ mx_interval_timer_thread_handler( union sigval sigev_value )
 	MX_THREAD *thread;
 	mx_status_type mx_status;
 
+#if defined(__NetBSD_Version__)
+	itimer = (MX_INTERVAL_TIMER *) sigev_value_ptr->sival_ptr;
+#else
 	itimer = (MX_INTERVAL_TIMER *) sigev_value.sival_ptr;
+#endif
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,

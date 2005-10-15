@@ -487,6 +487,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 
 #if 1
 
+#include <sys/param.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -505,8 +506,8 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #define SEM_R  0400	/* Read permission  */
 #endif
 
-#if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) \
-	|| defined(OS_CYGWIN) || defined(OS_QNX)
+#if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
+	|| defined(OS_QNX) || defined(__NetBSD_Version__)
 
 /* I wonder what possible advantage there is to making this
  * union definition optional?
@@ -1719,7 +1720,7 @@ mx_posix_semaphore_create( MX_SEMAPHORE **semaphore,
 	/* Is the initial value of the semaphore greater than the 
 	 * maximum allowed value?
 	 */
-#if defined(OS_LINUX) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(__NetBSD_Version__)
 	sem_value_max = SEM_VALUE_MAX;
 #else
 	sem_value_max = sysconf(_SC_SEM_VALUE_MAX);
