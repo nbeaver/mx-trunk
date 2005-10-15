@@ -1253,9 +1253,11 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
 			break;
+#if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
 			break;
+#endif
 		case EINTR:
 			return MXE_INTERRUPTED;
 			break;
@@ -1320,9 +1322,11 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
 			break;
+#if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
 			break;
+#endif
 		case EINTR:
 			return MXE_INTERRUPTED;
 			break;
@@ -1387,9 +1391,11 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
 			break;
+#if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
 			break;
+#endif
 		case EINTR:
 			return MXE_INTERRUPTED;
 			break;

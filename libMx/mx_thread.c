@@ -1173,7 +1173,7 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 /*********************** Posix Pthreads **********************/
 
-#elif defined(_POSIX_THREADS)
+#elif defined(_POSIX_THREADS) || defined(__OpenBSD__)
 
 #include <pthread.h>
 
@@ -1903,7 +1903,11 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 {
 	static const char fname[] = "mx_tls_alloc()";
 
+#if defined(__OpenBSD__)
+	void *pthread_key_ptr;
+#else
 	pthread_key_t *pthread_key_ptr;
+#endif
 	int status;
 
 	if ( key == (MX_THREAD_LOCAL_STORAGE **) NULL ) {
@@ -1919,9 +1923,9 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 		"Unable to allocate an MX_THREAD_LOCAL_STORAGE structure." );
 	}
 
-	pthread_key_ptr = (pthread_key_t *) malloc( sizeof(pthread_key_t) );
+	pthread_key_ptr = malloc( sizeof(pthread_key_t) );
 
-	if ( pthread_key_ptr == (pthread_key_t *) NULL ) {
+	if ( pthread_key_ptr == NULL ) {
 		mx_free( *key );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -2004,7 +2008,7 @@ mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
 				status, strerror(status) );
 			break;
 		}
-		mx_free( pthread_key_ptr );
+		mx_free( key->tls_private );
 	}
 	mx_free( key );
 
