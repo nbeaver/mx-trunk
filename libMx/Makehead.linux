@@ -361,5 +361,5 @@ mxserial.o: mxserial_fork.c
 
 util_install:
 	install -m 755 $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/mxserial
+	install -m 755 $(MXSERIAL_NAME) $(MX_INSTALL_DIR)/bin
 
