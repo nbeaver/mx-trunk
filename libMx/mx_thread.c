@@ -2316,6 +2316,8 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
+	/* FIXME: Not sure what we are supposed to do here. */
+
 	mx_free( thread_private );
 
 	mx_free( thread );
@@ -2613,48 +2615,9 @@ mx_thread_check_for_stop_request( MX_THREAD *thread )
 	"The thread_private field for the MX_THREAD pointer passed was NULL.");
 	}
 
+	/* Not sure that there is a way to do this under VxWorks. */
+
 	stop_requested = FALSE;
-
-#if 0
-	wait_status = WaitForSingleObject(
-				thread_private->stop_event_handle, 0 );
-
-	switch( wait_status ) {
-	case WAIT_ABANDONED:
-		return mx_error( MXE_OBJECT_ABANDONED, fname,
-			"The stop event object for thread %p has been "
-			"abandoned.  This should NEVER happen.", thread );
-		break;
-	case WAIT_OBJECT_0:
-		stop_requested = TRUE;
-		break;
-	case WAIT_TIMEOUT:
-		stop_requested = FALSE;
-		break;
-	case WAIT_FAILED:
-		last_error_code = GetLastError();
-
-		mx_vxworks_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Attempt to check for stop request failed.  "
-			"VxWorks error code = %ld, error_message = '%s'",
-			last_error_code, message_buffer );
-		break;
-	default:
-		last_error_code = GetLastError();
-
-		mx_vxworks_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unexpected error code from WaitForSingleObject().  "
-			"VxWorks error code = %ld, error_message = '%s'",
-			last_error_code, message_buffer );
-		break;
-	}
-#endif
 
 	/* If a stop has been requested, invoke the stop request handler. */
 
@@ -2722,6 +2685,10 @@ mx_thread_wait( MX_THREAD *thread,
 	static const char fname[] = "mx_thread_wait()";
 
 	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	WIND_TCB *task_tcb;
+	STATUS status;
+	unsigned long i, wait_ms, max_attempts;
+	double max_attempts_d;
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
@@ -2733,76 +2700,50 @@ mx_thread_wait( MX_THREAD *thread,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	if ( max_seconds_to_wait < 0.0 ) {
-		milliseconds_to_wait = INFINITE;
-	} else {
-		milliseconds_to_wait = mx_round( 1000.0 * max_seconds_to_wait );
+	wait_ms = 10;
+
+	max_attempts_d = 1.0 + mx_divide_safely( max_seconds_to_wait,
+						(double) wait_ms );
+
+	max_attempts = mx_round( max_attempts_d );
+
+	/* Wait for the task to terminate. */
+
+	for ( i = 0; i < max_attempts; i++ ) {
+		status = taskIdVerify( thread_private->task_id );
+
+		if ( status == ERROR ) {
+			/* The task no longer exists, so exit the for() loop. */
+
+			break;
+		}
 	}
 
-	wait_status = WaitForSingleObject( thread_private->thread_handle,
-					milliseconds_to_wait );
-
-	switch( wait_status ) {
-	case WAIT_ABANDONED:
-		return mx_error( MXE_OBJECT_ABANDONED, fname,
-			"The object for thread %p has been "
-			"abandoned.  This should NEVER happen.", thread );
-		break;
-	case WAIT_OBJECT_0:
-		/* The thread has terminated.  Do not return yet. */
-
-		break;
-	case WAIT_TIMEOUT:
+	if ( i >= max_attempts ) {
 		return mx_error( MXE_TIMED_OUT, fname,
 			"Timed out after %g seconds of waiting for thread %p "
 			"to terminate.", max_seconds_to_wait, thread );
-		break;
-	case WAIT_FAILED:
-		last_error_code = GetLastError();
-
-		mx_vxworks_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Attempt to check for thread termination failed.  "
-			"VxWorks error code = %ld, error_message = '%s'",
-			last_error_code, message_buffer );
-		break;
-	default:
-		last_error_code = GetLastError();
-
-		mx_vxworks_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unexpected error code from WaitForSingleObject().  "
-			"VxWorks error code = %ld, error_message = '%s'",
-			last_error_code, message_buffer );
-		break;
 	}
 
 	/* If requested, get the exit status for this thread. */
 
 	if ( thread_exit_status != NULL ) {
-		status = GetExitCodeThread( thread_private->thread_handle,
-						&dword_exit_status );
+		/* Since the thread has exited, it should be OK to look
+		 * at the task's TCB.
+		 *
+		 * FIXME: Does the task TCB still exist at this point?
+		 */
 
-		if ( status == 0 ) {
-			last_error_code = GetLastError();
+		task_tcb = taskTcb( thread_private->task_id );
 
-			mx_vxworks_error_message( last_error_code,
-				message_buffer, sizeof(message_buffer) );
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-				"Unable to get exit status for thread %p.  "
-				"VxWorks error code = %ld, error_message = '%s'",
-				thread, last_error_code, message_buffer );
+		if ( task_tcb == (WIND_TCB *) NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"VxWorks task id %#x is invalid.",
+				thread_private->task_id );
 		}
 
-		*thread_exit_status = (long) dword_exit_status;
+		*thread_exit_status = (long) task_tcb->exitCode;
 	}
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
