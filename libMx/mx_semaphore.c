@@ -2282,6 +2282,226 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return mx_status;
 }
 
+/************************ VxWorks ***********************/
+
+#elif defined(OS_VXWORKS)
+
+#include "taskLib.h"	/* For 'private/semLibP.h'. */
+#include "semLib.h"
+#include "intLib.h"
+
+MX_EXPORT mx_status_type
+mx_semaphore_create( MX_SEMAPHORE **semaphore,
+			long initial_value,
+			char *name )
+{
+	static const char fname[] = "mx_semaphore_create()";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	if ( name != (char *) NULL ) {
+		mx_warning( "VxWorks semaphores do not have names, "
+			"so the requested name '%s' was ignored.",
+			name );
+	}
+
+	/* Allocate the data structures we need. */
+
+	*semaphore = (MX_SEMAPHORE *) malloc( sizeof(MX_SEMAPHORE) );
+
+	if ( *semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_SEMAPHORE structure." );
+	}
+
+	/* Create the semaphore. */
+
+	(*semaphore)->private = semCCreate( SEM_Q_FIFO, (int) initial_value );
+
+	if ( (*semaphore)->private == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Insufficient memory exists to initialize the semaphore." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+{
+	static const char fname[] = "mx_semaphore_destroy()";
+
+	SEM_ID semaphore_id;
+	STATUS status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	semaphore_id = semaphore->private;
+
+	if ( semaphore_id == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The private field for the MX_SEMAPHORE pointer passed was NULL.");
+	}
+
+	status = semDelete( semaphore_id );
+
+	if ( status == ERROR ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The semaphore passed to semDelete() was invalid." );
+	}
+
+	mx_free( semaphore );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = semaphore->private;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semTake( semaphore_id, WAIT_FOREVER );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_objLib_OBJ_TIMEOUT:
+			return MXE_TIMED_OUT;
+			break;
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_objLib_OBJ_UNAVAILABLE:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = semaphore->private;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semGive( semaphore_id );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_semLib_INVALID_OPERATION:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = semaphore->private;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semTake( semaphore_id, WAIT_FOREVER );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_objLib_OBJ_TIMEOUT:
+			return MXE_NOT_AVAILABLE;
+			break;
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_objLib_OBJ_UNAVAILABLE:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	SEM_ID semaphore_id;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( current_value == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The current_value pointer passed was NULL." );
+	}
+
+	semaphore_id = semaphore->private;
+
+	if ( semaphore_id == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The private field for the MX_SEMAPHORE pointer passed was NULL.");
+	}
+
+	/* Can only get the value from a data structure defined in
+	 * the private include file 'include/semLibP.h'.
+	 */
+
+	*current_value = (unsigned long) semaphore_id->recurse;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /********** Use the following stubs when threads are not supported **********/
 
 #elif defined(OS_DJGPP)

@@ -2075,6 +2075,1004 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*********************** VxWorks **********************/
+
+#elif defined(OS_VXWORKS)
+
+#include "taskLib.h"
+#include "taskVarLib.h"
+#include "intLib.h"
+#include "smObjLib.h"
+
+typedef struct {
+	int task_id;
+} MX_VXWORKS_THREAD_PRIVATE;
+
+typedef struct {
+	MX_THREAD *thread;
+	MX_THREAD_FUNCTION *thread_function;
+	void *thread_arguments;
+} MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE;
+
+static int mx_current_task_variable = 0;
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+static mx_status_type
+mx_thread_get_pointers( MX_THREAD *thread,
+			MX_VXWORKS_THREAD_PRIVATE **thread_private,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_thread_get_pointers()";
+
+	if ( thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+	if ( thread_private == (MX_VXWORKS_THREAD_PRIVATE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_VXWORKS_THREAD_PRIVATE pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	*thread_private = (MX_VXWORKS_THREAD_PRIVATE *) thread->thread_private;
+
+	if ( (*thread_private) == (MX_VXWORKS_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VXWORKS_THREAD_PRIVATE pointer for thread %p is NULL.",
+			thread );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+static int
+mx_thread_start_function( int arg1, int arg2, int arg3, int arg4, int arg5,
+			int arg6, int arg7, int arg8, int arg9, int arg10 )
+{
+#if MX_THREAD_DEBUG
+	static const char fname[] = "mx_thread_start_function()";
+#endif
+
+	MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
+	MX_THREAD *thread;
+	MX_THREAD_FUNCTION *thread_function;
+	void *thread_arguments;
+	mx_status_type mx_status;
+
+	if ( arg1 == 0 ) {
+		return FALSE;
+	}
+
+	/* FIXME: Converting an integer to a pointer?  Oh, the horror! */
+
+	thread_arg_struct = (MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *) arg1;
+	
+	thread = thread_arg_struct->thread;
+	thread_function = thread_arg_struct->thread_function;
+	thread_arguments = thread_arg_struct->thread_arguments;
+
+	mx_free( thread_arg_struct );
+	
+	if ( thread == NULL ) {
+		return FALSE;
+	}
+
+	if ( thread_function == NULL ) {
+		return FALSE;
+	}
+
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
+	 */
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return FALSE;
+
+	/* Invoke MX's thread function. */
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s: thread_function = %p", fname, thread_function));
+#endif
+
+	mx_status = (thread_function)( thread, thread_arguments );
+
+	/* End the thread when the MX thread function terminates. */
+
+	thread->thread_exit_status = mx_status.code;
+
+	exit( (int) mx_status.code );
+
+	/* Should never get here. */
+
+	return FALSE;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_initialize( void )
+{
+	static const char fname[] = "mx_thread_initialize()";
+
+	MX_THREAD *thread;
+	int status, current_task_id;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	/* Create a VxWorks task variable that we will use to store a
+	 * pointer to the current thread for each thread.
+	 */
+
+	current_task_id = taskIdSelf();
+
+	status = taskVarAdd( current_task_id, &mx_current_task_variable );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to create the initial task variable "
+		"for task ID %d.", taskIdSelf() );
+	}
+
+	/* Create and populate an MX_THREAD data structure for the
+	 * program's initial thread.
+	 */
+
+	mx_status = mx_thread_build_data_structures( &thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Record the fact that the initialization has been completed.
+	 * Only one thread will be running at the time that the flag
+	 * is set, so it is not necessary to use a mutex for the
+	 * mx_threads_are_initialized flag.
+	 */
+
+	mx_threads_are_initialized = TRUE;
+
+	/* Save a thread-specific pointer to the MX_THREAD structure that
+	 * can be returned by mx_get_current_thread().
+	 *
+	 * This must happen _after_ the mx_threads_are_initialized flag
+	 * is set to TRUE, since mx_thread_save_thread_pointer() will itself
+	 * recursively invoke mx_thread_initialize() if the flag is still
+	 * set to FALSE.
+	 */
+
+	mx_status = mx_thread_save_thread_pointer( thread );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_build_data_structures( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_thread_build_data_structures()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+
+	if ( thread == (MX_THREAD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	/* Allocate the MX_THREAD structure. */
+
+	*thread = (MX_THREAD *) malloc( sizeof(MX_THREAD) );
+
+	if ( *thread == (MX_THREAD *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_THREAD structure." );
+	}
+
+	(*thread)->stop_request_handler = NULL;
+	(*thread)->stop_request_arguments = NULL;
+
+	/* Allocate the private thread structure. */
+
+	thread_private = (MX_VXWORKS_THREAD_PRIVATE *)
+				malloc( sizeof(MX_VXWORKS_THREAD_PRIVATE) );
+
+	if ( thread_private == (MX_VXWORKS_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for a MX_VXWORKS_THREAD_PRIVATE structure.");
+	}
+	
+	(*thread)->thread_private = thread_private;
+	(*thread)->stop_request_handler = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_free_data_structures( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_free_data_structures()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	mx_free( thread_private );
+
+	mx_free( thread );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_create( MX_THREAD **thread,
+		MX_THREAD_FUNCTION *thread_function,
+		void *thread_arguments )
+{
+	static const char fname[] = "mx_thread_create()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *thread_arg_struct;
+	int priority, stack_size, thread_arg, saved_errno;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( thread == (MX_THREAD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	mx_status = mx_thread_build_data_structures( thread );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	thread_private = (MX_VXWORKS_THREAD_PRIVATE *)
+				(*thread)->thread_private;
+
+	thread_arg_struct = (MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *)
+			malloc( sizeof(MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE) );
+
+	if ( thread_arg_struct == (MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE *) NULL )
+	{
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+"Unable to allocate memory for a MX_VXWORKS_THREAD_ARGUMENTS_PRIVATE struct.");
+	}
+
+	thread_arg_struct->thread = *thread;
+	thread_arg_struct->thread_function = thread_function;
+	thread_arg_struct->thread_arguments = thread_arguments;
+
+	/**** Create the thread. ****/
+	 
+	/* FIXME: What priority should I use? */
+
+	priority = 0;
+	stack_size = 20000;
+
+	/* FIXME: Casting a pointer to an integer gives me bad karma. */
+
+	thread_arg = (int) thread_arg_struct;
+
+	/* FIXME: Is there a chance for a race condition here?  What happens
+	 * if someone tries to start using thread_private->task_id before
+	 * its value has been set?
+	 *
+	 * If we can find out what the pTcb and pStackBase arguments to
+	 * taskInit() should be, then we can use taskInit() and 
+	 * taskActivate() so that we can more safely store the value of
+	 * thread_private->task_id.
+	 */
+
+	thread_private->task_id = taskSpawn( NULL, priority, VX_FP_TASK,
+			stack_size, mx_thread_start_function,
+			thread_arg, 0, 0, 0, 0, 0, 0, 0, 0, 0 );
+
+	if ( thread_private->task_id == ERROR ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case S_intLib_NOT_ISR_CALLABLE:
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+		    "Cannot spawn a task from an interrupt service routine." );
+		    	break;
+		case S_smObjLib_NOT_INITIALIZED:
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The shared memory object library is not initialized.");
+			break;
+		case S_memLib_NOT_ENOUGH_MEMORY:
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to spawn a new task." );
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"S_objLib_OBJ_ID_ERROR seen when trying to "
+				"spawn a new task." );
+			break;
+		case S_memLib_BLOCK_ERROR:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"S_memLib_BLOCK_ERROR seen when trying to "
+				"spawn a new task." );
+			break;
+		default:
+			return mx_error( MXE_UNKNOWN_ERROR, fname,
+				"Unexpected errno value %d returned when "
+				"trying to spawn a new task.", saved_errno );
+			break;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void
+mx_thread_exit( MX_THREAD *thread,
+		long thread_exit_status )
+{
+	static const char fname[] = "mx_thread_exit()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	/* Terminate the thread. */
+
+	exit( (int) thread_exit_status );
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_suspend( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_suspend()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = taskSuspend( thread_private->task_id );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to suspend VxWorks task %#x",
+			thread_private->task_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_resume( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_resume()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = taskResume( thread_private->task_id );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to resume VxWorks task %#x",
+			thread_private->task_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_kill( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_kill()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = taskDeleteForce( thread_private->task_id );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to delete task %#x",
+				thread_private->task_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_stop( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_stop()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int status;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	status = taskDelete( thread_private->task_id );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to delete task %#x",
+				thread_private->task_id );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_check_for_stop_request( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_check_for_stop_request()";
+
+	MX_THREAD_STOP_REQUEST_HANDLER *stop_request_handler;
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	int stop_requested;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	thread_private = (MX_VXWORKS_THREAD_PRIVATE *) thread->thread_private;
+
+	if ( thread_private == (MX_VXWORKS_THREAD_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The thread_private field for the MX_THREAD pointer passed was NULL.");
+	}
+
+	stop_requested = FALSE;
+
+#if 0
+	wait_status = WaitForSingleObject(
+				thread_private->stop_event_handle, 0 );
+
+	switch( wait_status ) {
+	case WAIT_ABANDONED:
+		return mx_error( MXE_OBJECT_ABANDONED, fname,
+			"The stop event object for thread %p has been "
+			"abandoned.  This should NEVER happen.", thread );
+		break;
+	case WAIT_OBJECT_0:
+		stop_requested = TRUE;
+		break;
+	case WAIT_TIMEOUT:
+		stop_requested = FALSE;
+		break;
+	case WAIT_FAILED:
+		last_error_code = GetLastError();
+
+		mx_vxworks_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Attempt to check for stop request failed.  "
+			"VxWorks error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+		break;
+	default:
+		last_error_code = GetLastError();
+
+		mx_vxworks_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error code from WaitForSingleObject().  "
+			"VxWorks error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+		break;
+	}
+#endif
+
+	/* If a stop has been requested, invoke the stop request handler. */
+
+	if ( stop_requested ) {
+		stop_request_handler = (MX_THREAD_STOP_REQUEST_HANDLER *)
+						thread->stop_request_handler;
+
+		if ( stop_request_handler != NULL ) {
+			/* Invoke the handler. */
+
+#if MX_THREAD_DEBUG
+			MX_DEBUG(-2,("%s: Invoking the stop request handler.",
+				fname));
+#endif
+
+			(stop_request_handler)( thread,
+					thread->stop_request_arguments );
+		}
+
+		/* Terminate the thread. */
+
+		(void) mx_thread_exit( thread, 0 );
+
+		mx_warning( "%s: mx_thread_exit() returned to the "
+			"calling routine.  This should not happen.", fname );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_set_stop_request_handler( MX_THREAD *thread,
+			MX_THREAD_STOP_REQUEST_HANDLER *stop_request_handler,
+			void *stop_request_arguments )
+{
+	static const char fname[] = "mx_thread_set_stop_request_handler()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	 thread->stop_request_handler = stop_request_handler;
+	 thread->stop_request_arguments = stop_request_arguments;
+
+	 return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_wait( MX_THREAD *thread,
+		long *thread_exit_status,
+		double max_seconds_to_wait )
+{
+	static const char fname[] = "mx_thread_wait()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+#if MX_THREAD_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 0
+	if ( max_seconds_to_wait < 0.0 ) {
+		milliseconds_to_wait = INFINITE;
+	} else {
+		milliseconds_to_wait = mx_round( 1000.0 * max_seconds_to_wait );
+	}
+
+	wait_status = WaitForSingleObject( thread_private->thread_handle,
+					milliseconds_to_wait );
+
+	switch( wait_status ) {
+	case WAIT_ABANDONED:
+		return mx_error( MXE_OBJECT_ABANDONED, fname,
+			"The object for thread %p has been "
+			"abandoned.  This should NEVER happen.", thread );
+		break;
+	case WAIT_OBJECT_0:
+		/* The thread has terminated.  Do not return yet. */
+
+		break;
+	case WAIT_TIMEOUT:
+		return mx_error( MXE_TIMED_OUT, fname,
+			"Timed out after %g seconds of waiting for thread %p "
+			"to terminate.", max_seconds_to_wait, thread );
+		break;
+	case WAIT_FAILED:
+		last_error_code = GetLastError();
+
+		mx_vxworks_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Attempt to check for thread termination failed.  "
+			"VxWorks error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+		break;
+	default:
+		last_error_code = GetLastError();
+
+		mx_vxworks_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected error code from WaitForSingleObject().  "
+			"VxWorks error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+		break;
+	}
+
+	/* If requested, get the exit status for this thread. */
+
+	if ( thread_exit_status != NULL ) {
+		status = GetExitCodeThread( thread_private->thread_handle,
+						&dword_exit_status );
+
+		if ( status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_vxworks_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to get exit status for thread %p.  "
+				"VxWorks error code = %ld, error_message = '%s'",
+				thread, last_error_code, message_buffer );
+		}
+
+		*thread_exit_status = (long) dword_exit_status;
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_thread_save_thread_pointer( MX_THREAD *thread )
+{
+	static const char fname[] = "mx_thread_save_thread_pointer()";
+
+	int status, thread_int;
+	mx_status_type mx_status;
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Save a thread-specific pointer to the MX_THREAD structure using
+	 * the VxWorks task variable created in mx_thread_initialize().
+	 */
+
+	/* FIXME: Casting a pointer to an integer can't be good. */
+
+	thread_int = (int) thread;	
+
+	status = taskVarSet( taskIdSelf(),
+			&mx_current_task_variable, thread_int );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to save the MX_THREAD pointer failed." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_get_current_thread( MX_THREAD **thread )
+{
+	static const char fname[] = "mx_get_current_thread()";
+
+	int task_variable_value;
+	mx_status_type mx_status;
+
+	if ( mx_threads_are_initialized == FALSE ) {
+		mx_status = mx_thread_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( thread == (MX_THREAD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD pointer passed was NULL." );
+	}
+
+	task_variable_value = taskVarGet( taskIdSelf(),
+					&mx_current_task_variable );
+
+	if ( task_variable_value == ERROR ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"Unable to get a pointer to the current MX_THREAD structure.");
+	}
+
+	/* FIXME: Casting an integer to a pointer is a bad thing. */
+
+	*thread = (MX_THREAD *) task_variable_value;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void
+mx_show_thread_info( MX_THREAD *thread, char *message )
+{
+	static const char fname[] = "mx_show_thread_info()";
+
+	MX_VXWORKS_THREAD_PRIVATE *thread_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_thread_get_pointers( thread, &thread_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return;
+
+	if ( (message != NULL) && (strlen(message) > 0) ) {
+		mx_info( message );
+	}
+
+	mx_info( "  thread pointer             = %p", thread );
+	mx_info( "  thread_private pointer     = %p", thread_private );
+	mx_info( "  VxWorks task id            = %#x",
+						thread_private->task_id );
+	return;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
+{
+	static const char fname[] = "mx_tls_alloc()";
+
+	int *tls_variable_ptr;
+	STATUS status;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	*key = (MX_THREAD_LOCAL_STORAGE *)
+			malloc( sizeof(MX_THREAD_LOCAL_STORAGE) );
+
+	if ( (*key) == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate an MX_THREAD_LOCAL_STORAGE structure." );
+	}
+
+	tls_variable_ptr = (int *) malloc( sizeof(int) );
+
+	if ( tls_variable_ptr == (int *) NULL ) {
+		mx_free( *key );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate a TLS variable object." );
+	}
+
+	status = taskVarAdd( taskIdSelf(), tls_variable_ptr );
+
+	if ( status != OK ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate a task variable for task %d.",
+			taskIdSelf() );
+	}
+
+	(*key)->tls_private = tls_variable_ptr;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_free( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_free()";
+
+	int *tls_variable_ptr;
+	int status;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	tls_variable_ptr = (int *) key->tls_private;
+
+	if ( tls_variable_ptr == (int *) NULL ) {
+		mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			 "The VxWorks variable pointer for "
+			"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+	} else {
+		status = taskVarDelete( taskIdSelf(), tls_variable_ptr );
+
+		if ( status != OK ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The MX_THREAD_LOCAL_STORAGE pointer %p "
+			"does not correspond to a known task variable "
+			"for VxWorks task %#x.", key, taskIdSelf() );
+		}
+		mx_free( tls_variable_ptr );
+	}
+	mx_free( key );
+
+	return mx_status;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT void *
+mx_tls_get_value( MX_THREAD_LOCAL_STORAGE *key )
+{
+	static const char fname[] = "mx_tls_get_value()";
+
+	int *tls_variable_ptr;
+	int result_int;
+	void *result_ptr;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	tls_variable_ptr = (int *) key->tls_private;
+
+	if ( tls_variable_ptr == (int *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The Thread Local Storage index pointer for "
+		"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+
+		return NULL;
+	}
+
+	result_int = taskVarGet( taskIdSelf(), tls_variable_ptr );
+
+	if ( result_int == ERROR ) {
+		(void) mx_error( MXE_NOT_FOUND, fname,
+		"The requested VxWorks task variable for "
+		"Thread Local Storage %p is not found.", key );
+	}
+
+	/* FIXME: All this casting of integers to pointers makes me ill. */
+
+	result_ptr = (void *) result_int;
+
+	return result_ptr;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT mx_status_type
+mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
+{
+	static const char fname[] = "mx_tls_set_value()";
+
+	int *tls_variable_ptr;
+	int value_int;
+	STATUS status;
+
+	if ( key == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
+	}
+
+	tls_variable_ptr = (int *) key->tls_private;
+
+	if ( tls_variable_ptr == (int *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The VxWorks task variable pointer for "
+		"MX_THREAD_LOCAL_STORAGE pointer %p was NULL.", key );
+	}
+
+	/* FIXME: Casting a pointer to an integer is bad news. */
+
+	value_int = (int) value;
+
+	status = taskVarSet( taskIdSelf(), key->tls_private, value_int );
+
+	if ( status != OK ) {
+		(void) mx_error( MXE_NOT_FOUND, fname,
+		"The requested VxWorks task variable for "
+		"Thread Local Storage %p is not found.", key );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /********** Use the following stubs when threads are not supported **********/
 
 #elif defined(OS_DJGPP)

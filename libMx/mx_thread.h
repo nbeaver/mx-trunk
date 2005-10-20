@@ -49,6 +49,10 @@ MX_API mx_status_type mx_thread_create( MX_THREAD **thread,
 
 MX_API void mx_thread_exit( MX_THREAD *thread, long thread_exit_status );
 
+MX_API mx_status_type mx_thread_suspend( MX_THREAD *thread );
+
+MX_API mx_status_type mx_thread_resume( MX_THREAD *thread );
+
 MX_API mx_status_type mx_thread_kill( MX_THREAD *thread );
 
 MX_API mx_status_type mx_thread_stop( MX_THREAD *thread );

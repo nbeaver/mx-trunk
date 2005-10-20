@@ -517,13 +517,15 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /*************************** POSIX realtime timers **************************/
 
-#elif defined(_POSIX_TIMERS) || defined(OS_IRIX)
+#elif defined(_POSIX_TIMERS) || defined(OS_IRIX) || defined(OS_VXWORKS)
 
 #include <time.h>
 #include <signal.h>
 #include <errno.h>
 
+#if defined(OS_BSD)
 #include <sys/param.h>	/* Needed for #define __NetBSD_Version__ on NetBSD */
+#endif
 
 /* Select the notification method for the realtime timers.  The possible
  * values are SIGEV_THREAD or SIGEV_SIGNAL.  Generally SIGEV_THREAD is a
@@ -531,7 +533,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * to the total number of realtime signals for the process.
  */
 
-#if defined(OS_SOLARIS) || defined(OS_IRIX)
+#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_VXWORKS)
 #   define MX_SIGEV_TYPE	SIGEV_SIGNAL
 #else
 #   define MX_SIGEV_TYPE	SIGEV_THREAD
@@ -682,7 +684,11 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 #elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
 
 #if (!defined(_POSIX_REALTIME_SIGNALS)) || ( _POSIX_REALTIME_SIGNALS < 0 )
-#error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
+
+#  if !defined(OS_VXWORKS)
+#    error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
+#  endif
+
 #endif
 
 #include "mx_signal.h"
@@ -741,7 +747,8 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 		}
 	}
 
-#if 1
+#if !defined(OS_VXWORKS)
+
 	/* Unblock the signal for this thread. */
 
 	status = pthread_sigmask( SIG_UNBLOCK, &signal_set, NULL );
@@ -832,7 +839,8 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if 1
+#if !defined(OS_VXWORKS)
+
 			/* Block the signal again. */
 
 			status = pthread_sigmask(SIG_BLOCK, &signal_set, NULL);

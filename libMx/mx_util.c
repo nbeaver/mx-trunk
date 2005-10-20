@@ -592,7 +592,12 @@ mx_standard_signal_error_handler( int signal_number )
 	if ( recursion ) {
 		mx_warning( "We seem to be crashing inside the signal handler, "
 				"so it is best to give up now.  Exiting...");
+
+#if defined(OS_VXWORKS)
+		exit(1);
+#else
 		_exit(1);
+#endif
 	}
 
 	recursion++;
@@ -1345,7 +1350,7 @@ vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 	return result;
 }
 
-#elif defined(OS_DJGPP)
+#elif defined(OS_VXWORKS) || defined(OS_DJGPP)
 
 /* Some platforms do not provide snprintf() and vsnprintf().  For those
  * platforms we fall back to sprintf() and vsprintf().  The hope in doing

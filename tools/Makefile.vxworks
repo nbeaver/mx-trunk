@@ -2,7 +2,7 @@
 # tools/Makefile.vxworks
 #
 
-all: getopt.o
+all: getopt.o strlcpy.o strlcat.o
 
 include ../libMx/Makehead.vxworks
 
@@ -10,6 +10,12 @@ XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
 
 getopt.o:
 	$(XCC) -c generic/src/getopt.c
+
+strlcpy.o: generic/src/strlcpy.c
+	$(XCC) -c generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	$(XCC) -c generic/src/strlcat.c
 
 mx_clean:
 	-rm *.o
