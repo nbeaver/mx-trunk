@@ -6,11 +6,13 @@
 #          for RTEMS.
 #
 
-RTEMS_MAKEFILE_PATH = /opt/rtems/powerpc-rtems/mvme2307
+#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
 
-#RTEMS_MAKEFILE_PATH = /opt/rtems/m68k-rtems/mvme162
+#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
 
-#RTEMS_MAKEFILE_PATH = /opt/rtems/i386-rtems/pc486
+RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/mvme2307
+
+#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/psim
 
 INCLUDES	= $(MX_INCLUDES)
 

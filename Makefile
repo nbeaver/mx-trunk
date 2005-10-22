@@ -12,7 +12,7 @@
 #   linux-icc     - Compile for i386 under Linux 2.4 using Intel C++ 7.1
 #   macosx        - Compile for PPC Macintosh under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
-#   rtems         - Compile for i386 under RTEMS 4.6pre4
+#   rtems         - Compile for i386 under RTEMS 4.6.5
 #   solaris       - Compile for Sun Sparc under Solaris 2.6
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 using GCC
 #   vms           - Compile for OpenVMS 7.3.1
@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = vxworks
+MX_ARCH = rtems
 
 MX_INSTALL_DIR = /opt/mx
 

@@ -265,6 +265,448 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	return MXE_UNKNOWN_ERROR;
 }
 
+/************************ VxWorks ***********************/
+
+#elif defined(OS_VXWORKS)
+
+#include "semLib.h"
+#include "intLib.h"
+
+MX_EXPORT mx_status_type
+mx_mutex_create( MX_MUTEX **mutex )
+{
+	static const char fname[] = "mx_mutex_create()";
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mutex == (MX_MUTEX **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+	}
+
+	/* Allocate the data structures we need. */
+
+	*mutex = (MX_MUTEX *) malloc( sizeof(MX_MUTEX) );
+
+	if ( *mutex == (MX_MUTEX *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_MUTEX structure." );
+	}
+
+	/* Create the mutex. */
+
+	(*mutex)->mutex_ptr = semMCreate(SEM_Q_FIFO);
+
+	if ( (*mutex)->mutex_ptr == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Insufficient memory exists to initialize the mutex." );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mutex_destroy( MX_MUTEX *mutex )
+{
+	static const char fname[] = "mx_mutex_destroy()";
+
+	SEM_ID semaphore_id;
+	STATUS status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mutex == (MX_MUTEX *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+	}
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The mutex_ptr field for the MX_MUTEX pointer passed was NULL.");
+	}
+
+	status = semDelete( semaphore_id );
+
+	if ( status == ERROR ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The mutex passed to semDelete() was invalid." );
+	}
+
+	mx_free( mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_mutex_lock( MX_MUTEX *mutex )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semTake( semaphore_id, WAIT_FOREVER );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_objLib_OBJ_TIMEOUT:
+			return MXE_TIMED_OUT;
+			break;
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_objLib_OBJ_UNAVAILABLE:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_unlock( MX_MUTEX *mutex )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semGive( semaphore_id );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_semLib_INVALID_OPERATION:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_trylock( MX_MUTEX *mutex )
+{
+	SEM_ID semaphore_id;
+	int status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	status = semTake( semaphore_id, NO_WAIT );
+
+	if ( status != OK ) {
+		switch( errno ) {
+		case S_objLib_OBJ_TIMEOUT:
+			return MXE_NOT_AVAILABLE;
+			break;
+		case S_intLib_NOT_ISR_CALLABLE:
+			return MXE_NOT_VALID_FOR_CURRENT_STATE;
+			break;
+		case S_objLib_OBJ_ID_ERROR:
+		case S_objLib_OBJ_UNAVAILABLE:
+		default:
+			return MXE_ILLEGAL_ARGUMENT;
+			break;
+		}
+	}
+
+	return MXE_SUCCESS;
+}
+
+/************************ RTEMS ***********************/
+
+#elif defined(OS_RTEMS)
+
+#include "rtems.h"
+
+MX_EXPORT mx_status_type
+mx_mutex_create( MX_MUTEX **mutex )
+{
+	static const char fname[] = "mx_mutex_create()";
+
+	rtems_id *semaphore_id;
+	rtems_unsigned32 initial_state;
+	rtems_status_code rtems_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mutex == (MX_MUTEX **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+	}
+
+	/* Allocate the data structures we need. */
+
+	*mutex = (MX_MUTEX *) malloc( sizeof(MX_MUTEX) );
+
+	if ( *mutex == (MX_MUTEX *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_MUTEX structure." );
+	}
+
+	semaphore_id = (rtems_id *) malloc( sizeof(rtems_id) );
+
+	if ( semaphore_id == (rtems_id *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an rtems_id structure." );
+	}
+
+	/* Create the mutex using an RTEMS binary semaphore.  Note that
+	 * this must _NOT_ be an RTEMS simple binary semaphore, since the
+	 * simple binary semaphores block on nested access.  MX requires
+	 * mutexes to be recursive.
+	 */
+
+	initial_state = 1;
+
+	rtems_status = rtems_semaphore_create(rtems_build_name('M','X','M','U'),
+	    initial_state,
+	    RTEMS_FIFO | RTEMS_BINARY_SEMAPHORE | RTEMS_NO_INHERIT_PRIORITY \
+	    	| RTEMS_NO_PRIORITY_CEILING | RTEMS_LOCAL, 0, semaphore_id );
+
+	switch( rtems_status ) {
+	case RTEMS_SUCCESSFUL:
+		break;
+	case RTEMS_INVALID_NAME:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The RTEMS name specified for rtems_semaphore_create() "
+			"was invalid." );
+		break;
+	case RTEMS_INVALID_ADDRESS:
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The rtems_id pointer passed to "
+			"rtems_semaphore_create() was NULL." );
+		break;
+	case RTEMS_TOO_MANY:
+		return mx_error( MXE_TRY_AGAIN, fname,
+			"Too many RTEMS semaphores or global objects "
+			"are in use." );
+		break;
+	case RTEMS_NOT_DEFINED:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"One or more of the attributes specified for the call "
+			"to rtems_semaphore_create() were invalid." );
+		break;
+	case RTEMS_INVALID_NUMBER:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Invalid starting count %lu specified for the call "
+			"to rtems_semaphore_create().",
+				(unsigned long) initial_state );
+		break;
+	case RTEMS_MP_NOT_CONFIGURED:
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+			"Multiprocessing has not been configured for this "
+			"copy of RTEMS." );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"An unexpected status code %lu was returned by the "
+			"call to rtems_semaphore_create().",
+				(unsigned long) rtems_status );
+		break;
+	}
+
+	(*mutex)->mutex_ptr = semaphore_id;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_mutex_destroy( MX_MUTEX *mutex )
+{
+	static const char fname[] = "mx_mutex_destroy()";
+
+	rtems_id *semaphore_id;
+	rtems_status_code rtems_status;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mutex == (MX_MUTEX *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+	}
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == (rtems_id *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The mutex_ptr field for the MX_MUTEX pointer passed was NULL.");
+	}
+
+	rtems_status = rtems_semaphore_delete( *semaphore_id );
+
+	switch( rtems_status ) {
+	case RTEMS_SUCCESSFUL:
+		break;
+	case RTEMS_INVALID_ID:
+		return mx_error( MXE_NOT_FOUND, fname,
+			"The semaphore id %#lx supplied to "
+			"rtems_semaphore_delete() was not found.",
+			(unsigned long) (*semaphore_id) );
+		break;
+	case RTEMS_ILLEGAL_ON_REMOTE_OBJECT:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Cannot delete remote semaphore id %#lx.",
+			(unsigned long) (*semaphore_id) );
+		break;
+	case RTEMS_RESOURCE_IN_USE:
+		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"Semaphore id %#lx is currently in use.",
+			(unsigned long) (*semaphore_id) );
+		break;
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"An unexpected status code %lu was returned by the "
+			"call to rtems_semaphore_delete().",
+				(unsigned long) rtems_status );
+		break;
+	}
+
+	mx_free( mutex->mutex_ptr );
+	mx_free( mutex );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_mutex_lock( MX_MUTEX *mutex )
+{
+	rtems_id *semaphore_id;
+	rtems_status_code rtems_status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == (rtems_id *) NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	rtems_status = rtems_semaphore_obtain( *semaphore_id,
+					RTEMS_WAIT, RTEMS_NO_TIMEOUT );
+
+	switch( rtems_status ) {
+	case RTEMS_SUCCESSFUL:
+		break;
+	case RTEMS_UNSATISFIED:
+	case RTEMS_TIMEOUT:
+		return MXE_OPERATING_SYSTEM_ERROR;
+		break;
+	case RTEMS_OBJECT_WAS_DELETED:
+		return MXE_BAD_HANDLE;
+		break;
+	case RTEMS_INVALID_ID:
+		return MXE_NOT_FOUND;
+		break;
+	default:
+		return MXE_UNKNOWN_ERROR;
+		break;
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_unlock( MX_MUTEX *mutex )
+{
+	rtems_id *semaphore_id;
+	rtems_status_code rtems_status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == (rtems_id *) NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	rtems_status = rtems_semaphore_release( *semaphore_id );
+
+	switch( rtems_status ) {
+	case RTEMS_SUCCESSFUL:
+		break;
+	case RTEMS_INVALID_ID:
+		return MXE_NOT_FOUND;
+		break;
+	case RTEMS_NOT_OWNER_OF_RESOURCE:
+		return MXE_PERMISSION_DENIED;
+		break;
+	default:
+		return MXE_UNKNOWN_ERROR;
+		break;
+	}
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_mutex_trylock( MX_MUTEX *mutex )
+{
+	rtems_id *semaphore_id;
+	rtems_status_code rtems_status;
+
+	if ( mutex == (MX_MUTEX *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	semaphore_id = mutex->mutex_ptr;
+
+	if ( semaphore_id == (rtems_id *) NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	rtems_status = rtems_semaphore_obtain( *semaphore_id,
+					RTEMS_NO_WAIT, 0 );
+
+	switch( rtems_status ) {
+	case RTEMS_SUCCESSFUL:
+		break;
+	case RTEMS_UNSATISFIED:
+		return MXE_NOT_AVAILABLE;
+		break;
+	case RTEMS_TIMEOUT:
+		return MXE_OPERATING_SYSTEM_ERROR;
+		break;
+	case RTEMS_OBJECT_WAS_DELETED:
+		return MXE_BAD_HANDLE;
+		break;
+	case RTEMS_INVALID_ID:
+		return MXE_NOT_FOUND;
+		break;
+	default:
+		return MXE_UNKNOWN_ERROR;
+		break;
+	}
+
+	return MXE_SUCCESS;
+}
+
 /************************ Posix Pthreads ***********************/
 
 #elif defined(_POSIX_THREADS) || defined(__OpenBSD__)
@@ -576,182 +1018,6 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 		return MXE_UNKNOWN_ERROR;
 		break;
 	}
-}
-
-/************************ VxWorks ***********************/
-
-#elif defined(OS_VXWORKS)
-
-#include "semLib.h"
-#include "intLib.h"
-
-MX_EXPORT mx_status_type
-mx_mutex_create( MX_MUTEX **mutex )
-{
-	static const char fname[] = "mx_mutex_create()";
-
-	MX_DEBUG(-2,("%s invoked.", fname));
-
-	if ( mutex == (MX_MUTEX **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_MUTEX pointer passed was NULL." );
-	}
-
-	/* Allocate the data structures we need. */
-
-	*mutex = (MX_MUTEX *) malloc( sizeof(MX_MUTEX) );
-
-	if ( *mutex == (MX_MUTEX *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an MX_MUTEX structure." );
-	}
-
-	/* Create the mutex. */
-
-	(*mutex)->mutex_ptr = semMCreate(SEM_Q_FIFO);
-
-	if ( (*mutex)->mutex_ptr == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Insufficient memory exists to initialize the mutex." );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_mutex_destroy( MX_MUTEX *mutex )
-{
-	static const char fname[] = "mx_mutex_destroy()";
-
-	SEM_ID semaphore_id;
-	STATUS status;
-
-	MX_DEBUG(-2,("%s invoked.", fname));
-
-	if ( mutex == (MX_MUTEX *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_MUTEX pointer passed was NULL." );
-	}
-
-	semaphore_id = mutex->mutex_ptr;
-
-	if ( semaphore_id == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "The mutex_ptr field for the MX_MUTEX pointer passed was NULL.");
-	}
-
-	status = semDelete( semaphore_id );
-
-	if ( status == ERROR ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The mutex passed to semDelete() was invalid." );
-	}
-
-	mx_free( mutex );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT long
-mx_mutex_lock( MX_MUTEX *mutex )
-{
-	SEM_ID semaphore_id;
-	int status;
-
-	if ( mutex == (MX_MUTEX *) NULL )
-		return MXE_NULL_ARGUMENT;
-
-	semaphore_id = mutex->mutex_ptr;
-
-	if ( semaphore_id == NULL )
-		return MXE_CORRUPT_DATA_STRUCTURE;
-
-	status = semTake( semaphore_id, WAIT_FOREVER );
-
-	if ( status != OK ) {
-		switch( errno ) {
-		case S_objLib_OBJ_TIMEOUT:
-			return MXE_TIMED_OUT;
-			break;
-		case S_intLib_NOT_ISR_CALLABLE:
-			return MXE_NOT_VALID_FOR_CURRENT_STATE;
-			break;
-		case S_objLib_OBJ_ID_ERROR:
-		case S_objLib_OBJ_UNAVAILABLE:
-		default:
-			return MXE_ILLEGAL_ARGUMENT;
-			break;
-		}
-	}
-
-	return MXE_SUCCESS;
-}
-
-MX_EXPORT long
-mx_mutex_unlock( MX_MUTEX *mutex )
-{
-	SEM_ID semaphore_id;
-	int status;
-
-	if ( mutex == (MX_MUTEX *) NULL )
-		return MXE_NULL_ARGUMENT;
-
-	semaphore_id = mutex->mutex_ptr;
-
-	if ( semaphore_id == NULL )
-		return MXE_CORRUPT_DATA_STRUCTURE;
-
-	status = semGive( semaphore_id );
-
-	if ( status != OK ) {
-		switch( errno ) {
-		case S_intLib_NOT_ISR_CALLABLE:
-			return MXE_NOT_VALID_FOR_CURRENT_STATE;
-			break;
-		case S_objLib_OBJ_ID_ERROR:
-		case S_semLib_INVALID_OPERATION:
-		default:
-			return MXE_ILLEGAL_ARGUMENT;
-			break;
-		}
-	}
-
-	return MXE_SUCCESS;
-}
-
-MX_EXPORT long
-mx_mutex_trylock( MX_MUTEX *mutex )
-{
-	SEM_ID semaphore_id;
-	int status;
-
-	if ( mutex == (MX_MUTEX *) NULL )
-		return MXE_NULL_ARGUMENT;
-
-	semaphore_id = mutex->mutex_ptr;
-
-	if ( semaphore_id == NULL )
-		return MXE_CORRUPT_DATA_STRUCTURE;
-
-	status = semTake( semaphore_id, WAIT_FOREVER );
-
-	if ( status != OK ) {
-		switch( errno ) {
-		case S_objLib_OBJ_TIMEOUT:
-			return MXE_NOT_AVAILABLE;
-			break;
-		case S_intLib_NOT_ISR_CALLABLE:
-			return MXE_NOT_VALID_FOR_CURRENT_STATE;
-			break;
-		case S_objLib_OBJ_ID_ERROR:
-		case S_objLib_OBJ_UNAVAILABLE:
-		default:
-			return MXE_ILLEGAL_ARGUMENT;
-			break;
-		}
-	}
-
-	return MXE_SUCCESS;
 }
 
 /********** Use the following stubs when threads are not supported **********/
