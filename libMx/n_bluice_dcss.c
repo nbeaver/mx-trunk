@@ -41,17 +41,17 @@ MX_RECORD_FUNCTION_LIST mxn_bluice_dcss_server_record_function_list = {
 	mxn_bluice_dcss_server_resynchronize
 };
 
-MX_RECORD_FIELD_DEFAULTS mxn_bluice_dcss_server_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxn_bluice_dcss_server_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXN_BLUICE_DCSS_SERVER_STANDARD_FIELDS
 };
 
 long mxn_bluice_dcss_server_num_record_fields
-		= sizeof( mxn_bluice_dcss_server_record_field_defaults )
-		    / sizeof( mxn_bluice_dcss_server_record_field_defaults[0] );
+		= sizeof( mxn_bluice_dcss_server_rf_defaults )
+		    / sizeof( mxn_bluice_dcss_server_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr
-			= &mxn_bluice_dcss_server_record_field_defaults[0];
+			= &mxn_bluice_dcss_server_rf_defaults[0];
 
 /*-------------------------------------------------------------------------*/
 

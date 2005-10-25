@@ -3213,11 +3213,11 @@ MX_DRIVER mx_type_list[] = {
 
 {"panasonic_kx_dp702_ptz",\
 		MXT_PTZ_PANASONIC_KX_DP702, MXC_PAN_TILT_ZOOM, MXR_DEVICE,
-			      &mxd_panasonic_kx_dp702_ptz_record_function_list,
+				&mxd_panasonic_kx_dp702_record_function_list,
 				NULL,
-				&mxd_panasonic_kx_dp702_ptz_ptz_function_list,
-				&mxd_panasonic_kx_dp702_ptz_num_record_fields,
-				&mxd_panasonic_kx_dp702_ptz_rfield_def_ptr},
+				&mxd_panasonic_kx_dp702_ptz_function_list,
+				&mxd_panasonic_kx_dp702_num_record_fields,
+				&mxd_panasonic_kx_dp702_rfield_def_ptr},
 
 #if HAVE_LABPC
 #  ifdef OS_LINUX   /* The LabPC+ driver is only useable under Linux. */

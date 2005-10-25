@@ -47,7 +47,7 @@ mxd_bluice_ion_chamber_analog_input_function_list = {
 
 /* MX bluice analog_input data structures. */
 
-MX_RECORD_FIELD_DEFAULTS mxd_bluice_ion_chamber_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_bluice_ion_chamber_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
@@ -55,11 +55,11 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_ion_chamber_record_field_defaults[] = {
 };
 
 long mxd_bluice_ion_chamber_num_record_fields
-		= sizeof( mxd_bluice_ion_chamber_record_field_defaults )
-		  / sizeof( mxd_bluice_ion_chamber_record_field_defaults[0] );
+		= sizeof( mxd_bluice_ion_chamber_rf_defaults )
+		  / sizeof( mxd_bluice_ion_chamber_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr
-			= &mxd_bluice_ion_chamber_record_field_defaults[0];
+			= &mxd_bluice_ion_chamber_rf_defaults[0];
 
 /*=======================================================================*/
 

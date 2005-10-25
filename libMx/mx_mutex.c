@@ -265,6 +265,12 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	return MXE_UNKNOWN_ERROR;
 }
 
+/************************ OpenVMS ***********************/
+
+#elif defined(OS_VMS)
+
+	/* FIXME: VMS mutexes not yet implemented. */
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)

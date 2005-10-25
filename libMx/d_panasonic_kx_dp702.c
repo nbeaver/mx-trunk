@@ -25,40 +25,40 @@
 #include "i_panasonic_kx_dp702.h"
 #include "d_panasonic_kx_dp702.h"
 
-MX_RECORD_FUNCTION_LIST mxd_panasonic_kx_dp702_ptz_record_function_list = {
+MX_RECORD_FUNCTION_LIST mxd_panasonic_kx_dp702_record_function_list = {
 	NULL,
-	mxd_panasonic_kx_dp702_ptz_create_record_structures
+	mxd_panasonic_kx_dp702_create_record_structures
 };
 
-MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_panasonic_kx_dp702_ptz_ptz_function_list = {
-	mxd_panasonic_kx_dp702_ptz_command,
-	mxd_panasonic_kx_dp702_ptz_get_status,
-	mxd_panasonic_kx_dp702_ptz_get_parameter,
-	mxd_panasonic_kx_dp702_ptz_set_parameter
+MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_panasonic_kx_dp702_ptz_function_list = {
+	mxd_panasonic_kx_dp702_command,
+	mxd_panasonic_kx_dp702_get_status,
+	mxd_panasonic_kx_dp702_get_parameter,
+	mxd_panasonic_kx_dp702_set_parameter
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_panasonic_kx_dp702_ptz_rf_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_panasonic_kx_dp702_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_PAN_TILT_ZOOM_STANDARD_FIELDS,
 	MXD_PANASONIC_KX_DP702_PTZ_STANDARD_FIELDS
 };
 
-long mxd_panasonic_kx_dp702_ptz_num_record_fields
-	= sizeof( mxd_panasonic_kx_dp702_ptz_rf_defaults )
-		/ sizeof( mxd_panasonic_kx_dp702_ptz_rf_defaults[0] );
+long mxd_panasonic_kx_dp702_num_record_fields
+	= sizeof( mxd_panasonic_kx_dp702_rf_defaults )
+		/ sizeof( mxd_panasonic_kx_dp702_rf_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxd_panasonic_kx_dp702_ptz_rfield_def_ptr
-			= &mxd_panasonic_kx_dp702_ptz_rf_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxd_panasonic_kx_dp702_rfield_def_ptr
+			= &mxd_panasonic_kx_dp702_rf_defaults[0];
 
 /* ===== */
 
 static mx_status_type
-mxd_panasonic_kx_dp702_ptz_get_pointers( MX_PAN_TILT_ZOOM *ptz,
+mxd_panasonic_kx_dp702_get_pointers( MX_PAN_TILT_ZOOM *ptz,
 			MX_PANASONIC_KX_DP702_PTZ **kx_dp702_ptz,
 			MX_PANASONIC_KX_DP702 **kx_dp702,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_panasonic_kx_dp702_ptz_get_pointers()";
+	static const char fname[] = "mxd_panasonic_kx_dp702_get_pointers()";
 
 	MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz_ptr;
 	MX_RECORD *kx_dp702_record;
@@ -114,10 +114,10 @@ mxd_panasonic_kx_dp702_ptz_get_pointers( MX_PAN_TILT_ZOOM *ptz,
 /*---*/
 
 MX_EXPORT mx_status_type
-mxd_panasonic_kx_dp702_ptz_create_record_structures( MX_RECORD *record )
+mxd_panasonic_kx_dp702_create_record_structures( MX_RECORD *record )
 {
         static const char fname[] =
-			"mxd_panasonic_kx_dp702_ptz_create_record_structures()";
+			"mxd_panasonic_kx_dp702_create_record_structures()";
 
         MX_PAN_TILT_ZOOM *ptz;
         MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz;
@@ -144,7 +144,7 @@ mxd_panasonic_kx_dp702_ptz_create_record_structures( MX_RECORD *record )
         record->record_class_struct = ptz;
         record->record_type_struct = kx_dp702_ptz;
         record->class_specific_function_list =
-				&mxd_panasonic_kx_dp702_ptz_ptz_function_list;
+				&mxd_panasonic_kx_dp702_ptz_function_list;
 
         ptz->record = record;
 	kx_dp702_ptz->record = record;
@@ -156,9 +156,9 @@ mxd_panasonic_kx_dp702_ptz_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
+mxd_panasonic_kx_dp702_command( MX_PAN_TILT_ZOOM *ptz )
 {
-	static const char fname[] = "mxd_panasonic_kx_dp702_ptz_command()";
+	static const char fname[] = "mxd_panasonic_kx_dp702_command()";
 
 	MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz;
 	MX_PANASONIC_KX_DP702 *kx_dp702;
@@ -166,7 +166,7 @@ mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	size_t command_length;
 	mx_status_type mx_status;
 
-	mx_status = mxd_panasonic_kx_dp702_ptz_get_pointers( ptz,
+	mx_status = mxd_panasonic_kx_dp702_get_pointers( ptz,
 					&kx_dp702_ptz, &kx_dp702, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -243,16 +243,16 @@ mxd_panasonic_kx_dp702_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 }
 
 MX_EXPORT mx_status_type
-mxd_panasonic_kx_dp702_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
+mxd_panasonic_kx_dp702_get_status( MX_PAN_TILT_ZOOM *ptz )
 {
-	static const char fname[] = "mxd_panasonic_kx_dp702_ptz_get_status()";
+	static const char fname[] = "mxd_panasonic_kx_dp702_get_status()";
 
 	MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz;
 	MX_PANASONIC_KX_DP702 *kx_dp702;
 	unsigned char response[20];
 	mx_status_type mx_status;
 
-	mx_status = mxd_panasonic_kx_dp702_ptz_get_pointers( ptz,
+	mx_status = mxd_panasonic_kx_dp702_get_pointers( ptz,
 					&kx_dp702_ptz, &kx_dp702, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -295,17 +295,17 @@ mxd_panasonic_kx_dp702_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 }
 
 MX_EXPORT mx_status_type
-mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
+mxd_panasonic_kx_dp702_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] =
-		"mxd_panasonic_kx_dp702_ptz_get_parameter()";
+		"mxd_panasonic_kx_dp702_get_parameter()";
 
 	MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz;
 	MX_PANASONIC_KX_DP702 *kx_dp702;
 	unsigned char response[80];
 	mx_status_type mx_status;
 
-	mx_status = mxd_panasonic_kx_dp702_ptz_get_pointers( ptz,
+	mx_status = mxd_panasonic_kx_dp702_get_pointers( ptz,
 					&kx_dp702_ptz, &kx_dp702, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -534,10 +534,10 @@ mxd_panasonic_kx_dp702_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 }
 
 MX_EXPORT mx_status_type
-mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
+mxd_panasonic_kx_dp702_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 {
 	static const char fname[] =
-		"mxd_panasonic_kx_dp702_ptz_set_parameter()";
+		"mxd_panasonic_kx_dp702_set_parameter()";
 
 	MX_PANASONIC_KX_DP702_PTZ *kx_dp702_ptz;
 	MX_PANASONIC_KX_DP702 *kx_dp702;
@@ -547,7 +547,7 @@ mxd_panasonic_kx_dp702_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	unsigned long zoom_value;
 	mx_status_type mx_status;
 
-	mx_status = mxd_panasonic_kx_dp702_ptz_get_pointers( ptz,
+	mx_status = mxd_panasonic_kx_dp702_get_pointers( ptz,
 					&kx_dp702_ptz, &kx_dp702, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )

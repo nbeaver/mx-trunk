@@ -74,11 +74,15 @@ SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.obj)
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
 
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.obj ../tools/strlcat.obj
+
 #
 #---------------------------------------------------
 #
 
-RM		= delete
+RM		= \$ @[-.scripts]vms_delete
 MAKE		= make
 
 OBJ		= obj

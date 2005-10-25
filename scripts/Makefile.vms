@@ -22,7 +22,7 @@ MX_INSTALL_STEM = $(subst ],,$(MX_INSTALL_DIR))
 
 all: build
 
-build:
+build: depend_files
 	define/job mx_arch $(MX_ARCH)
 	$(CD) tools
 	$(MAKE) -f Makefile.$(MX_ARCH)
@@ -39,7 +39,7 @@ build:
 	$(CD) ../util
 	$(MAKE)
 
-clean:
+clean: depend_files
 	define/job mx_arch $(MX_ARCH)
 	$(CD) tools
 	$(MAKE) -f Makefile.$(MX_ARCH) mx_clean
@@ -56,7 +56,7 @@ clean:
 	$(CD) ../util
 	$(MAKE) mx_clean
 
-distclean:
+distclean: depend_files
 	define/job mx_arch $(MX_ARCH)
 	$(CD) tools
 	$(MAKE) -f Makefile.$(MX_ARCH) mx_clean
@@ -73,7 +73,7 @@ distclean:
 	$(CD) ../util
 	$(MAKE) mx_distclean
 
-depend:
+depend: depend_files
 	define/job mx_arch $(MX_ARCH)
 	$(CD) libMx
 	$(MAKE) mx_depend
@@ -88,7 +88,7 @@ depend:
 	$(CD) ../util
 	$(MAKE) mx_depend
 
-install:
+install: depend_files
 	define/job mx_arch $(MX_ARCH)
 	define/job mx_install_dir \"$(MX_INSTALL_STEM)\"
 	$(CD) libMx
@@ -101,4 +101,31 @@ install:
 	$(MAKE) mx_install
 	$(CD) ../util
 	$(MAKE) mx_install
+
+#------------------------------------------------------------------------------
+
+MD = Makefile.depend
+
+TOUCH = \$ @[.scripts]vms_touch.com
+
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) \
+                                        update_old/$(MD) util/$(MD)
+
+libMx/$(MD):
+	$(TOUCH) [.libMx]$(MD)
+
+motor/$(MD):
+	$(TOUCH) [.motor]$(MD)
+
+server/$(MD):
+	$(TOUCH) [.server]$(MD)
+
+update/$(MD):
+	$(TOUCH) [.update]$(MD)
+
+update_old/$(MD):
+	$(TOUCH) [.update_old]$(MD)
+
+util/$(MD):
+	$(TOUCH) [.util]$(MD)
 

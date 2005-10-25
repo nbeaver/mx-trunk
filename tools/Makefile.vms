@@ -1,4 +1,11 @@
-all:
+all: strlcpy.obj strlcat.obj
 
 mx_clean:
+	-\$ @[-.scripts]vms_delete *.obj
+
+strlcpy.obj: generic/src/strlcpy.c
+	cc [.generic.src]strlcpy.c
+
+strlcat.obj: generic/src/strlcat.c
+	cc [.generic.src]strlcat.c
 

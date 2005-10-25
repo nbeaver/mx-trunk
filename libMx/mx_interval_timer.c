@@ -515,6 +515,12 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/********************************** OpenVMS *********************************/
+
+#elif defined(OS_VMS)
+
+	/* FIXME: VMS interval timers not yet implemented. */
+
 /*************************** POSIX realtime timers **************************/
 
 #elif defined(_POSIX_TIMERS) || defined(OS_IRIX) || defined(OS_VXWORKS)

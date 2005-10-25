@@ -441,6 +441,12 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ OpenVMS ***********************/
+
+#elif defined(OS_VMS)
+
+	/* FIXME: VMS semaphores not yet implemented. */
+
 /************************ VxWorks ***********************/
 
 #elif defined(OS_VXWORKS)

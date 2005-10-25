@@ -313,7 +313,7 @@ MX_API int mx_free_pointer( void *pointer );
 			} while (0)
 
 #if ( defined(OS_WIN32) && defined(_MSC_VER) ) || defined(OS_VXWORKS) \
-	|| defined(OS_DJGPP)
+	|| defined(OS_DJGPP) || (defined(OS_VMS) && (__VMS_VER < 70320000 ))
 
 /* These provide definitions of snprintf() and vsnprintf() for systems
  * that do not come with them.  On most such systems, snprintf() and
@@ -332,7 +332,8 @@ MX_API int vsnprintf( char *dest, size_t maxlen, const char *format,
 #endif
 
 #if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_IRIX) \
-	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_DJGPP)
+	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_DJGPP) \
+	|| defined(OS_VMS)
 
 /* These provide definitions of strlcpy() and strlcat() for systems that
  * do not come with them.  For systems that do not come with them, the
