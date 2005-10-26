@@ -1171,12 +1171,6 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*********************** OpenVMS **********************/
-
-#elif defined(OS_VMS)
-
-	/* FIXME: VMS threads not yet implemented. */
-
 /*********************** Posix Pthreads **********************/
 
 #elif defined(_POSIX_THREADS) || defined(__OpenBSD__)

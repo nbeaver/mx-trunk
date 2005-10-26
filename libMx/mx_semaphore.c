@@ -22,6 +22,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_types.h"
 #include "mx_unistd.h"
 #include "mx_thread.h"
 #include "mx_semaphore.h"
@@ -445,7 +446,292 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 #elif defined(OS_VMS)
 
-	/* FIXME: VMS semaphores not yet implemented. */
+#include <starlet.h>
+#include <descrip.h>
+#include <ssdef.h>
+#include <lckdef.h>
+#include <builtins.h>
+
+typedef struct {
+	mx_uint32_type lock_status_block[4];
+	struct dsc$descriptor_s name_descriptor;
+} MX_VMS_SEMAPHORE_PRIVATE;
+
+static volatile mx_uint32_type mx_lock_number = 0;
+
+MX_EXPORT mx_status_type
+mx_semaphore_create( MX_SEMAPHORE **semaphore,
+			long initial_value,
+			char *name )
+{
+	static const char fname[] = "mx_semaphore_create()";
+
+	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
+	char local_name_buffer[80];
+	size_t name_length;
+	unsigned long new_lock_number;
+	int vms_status, condition_value;
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( semaphore == (MX_SEMAPHORE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	if ( initial_value < 0 ) {
+		if ( name == NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Cannot connect to an existing semaphore if the "
+			"semaphore name is NULL." );
+		} else {
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Connecting to an existing semaphore is "
+			"not yet implemented." );
+		}
+	}
+
+	*semaphore = (MX_SEMAPHORE *) malloc( sizeof(MX_SEMAPHORE) );
+
+	if ( *semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_SEMAPHORE structure." );
+	}
+
+	vms_private = (MX_VMS_SEMAPHORE_PRIVATE *)
+				malloc( sizeof(MX_VMS_SEMAPHORE_PRIVATE) );
+
+	if ( vms_private == (MX_VMS_SEMAPHORE_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_VMS_SEMAPHORE_PRIVATE pointer." );
+	}
+	
+	(*semaphore)->private = vms_private;
+
+	(*semaphore)->semaphore_type = MXT_SEM_VMS;
+
+	/* If no name was specified, specify an internal private name. */
+
+	if ( name == NULL ) {
+		/* FIXME: The VAX version of the code is not atomic, so
+		 *        it is unsafe.
+		 */
+#if defined(__VAX)
+		new_lock_number = (mx_lock_number)++;
+#else
+		new_lock_number = __ATOMIC_INCREMENT_LONG( &mx_lock_number );
+#endif
+
+		snprintf( local_name_buffer, sizeof(local_name_buffer),
+		"MX_SEMAPHORE_%lu", new_lock_number );
+
+		name_length = strlen( local_name_buffer );
+	} else {
+		name_length = strlen( name );
+	}
+
+	/* Allocate space for the name and copy the name there. */
+
+	(*semaphore)->name = (char *) malloc( (name_length+1) * sizeof(char) );
+
+	if ( name == NULL ) {
+		strlcpy( (*semaphore)->name, local_name_buffer, name_length );
+	} else {
+		strlcpy( (*semaphore)->name, name, name_length );
+	}
+
+	/* Get ready to create the lock with sys$enqw(). */
+
+	vms_private->name_descriptor.dsc$w_length = name_length;
+	vms_private->name_descriptor.dsc$a_pointer = (*semaphore)->name;
+	vms_private->name_descriptor.dsc$b_class = DSC$K_CLASS_S;
+	vms_private->name_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
+
+	memset( vms_private->lock_status_block, 0, 4 * sizeof(mx_uint32_type) );
+
+	/* Create the lock resource, but do not lock it. */
+
+	vms_status = sys$enqw( 0, LCK$K_NLMODE,
+				vms_private->lock_status_block, 0,
+				&(vms_private->name_descriptor),
+				0, 0, 0, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to create semaphore '%s' failed with a "
+		"VMS error code of %d.", (*semaphore)->name, vms_status );
+	}
+
+	condition_value = (int)((vms_private->lock_status_block[0]) & 0xffff);
+
+	if ( condition_value != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to create semaphore '%s' failed with a "
+		"VMS lock status code of %d.",
+			(*semaphore)->name, condition_value );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
+{
+	static const char fname[] = "mx_semaphore_destroy()";
+
+	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
+	mx_uint32_type lock_id;
+	int vms_status;
+
+#if MX_SEMAPHORE_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+
+	vms_private = semaphore->private;
+
+	if ( vms_private == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The private field for the MX_SEMAPHORE pointer "
+			"passed was NULL.");
+	}
+
+	lock_id = vms_private->lock_status_block[1];
+
+	vms_status = sys$deq( lock_id, vms_private->lock_status_block, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to destroy semaphore '%s' failed with a "
+		"VMS error code of %d.", semaphore->name, vms_status );
+	}
+
+	mx_free( semaphore->name );
+
+	mx_free( semaphore->private );
+
+	mx_free( semaphore );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT long
+mx_semaphore_lock( MX_SEMAPHORE *semaphore )
+{
+	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
+	int vms_status, condition_value;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	vms_private = semaphore->private;
+
+	if ( vms_private == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	vms_status = sys$enqw( 0, LCK$K_EXMODE,
+				vms_private->lock_status_block, 0,
+				&(vms_private->name_descriptor),
+				0, 0, 0, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	condition_value = (int)((vms_private->lock_status_block[0]) & 0xffff);
+
+	if ( condition_value != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_semaphore_unlock( MX_SEMAPHORE *semaphore )
+{
+	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
+	int vms_status, condition_value;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	vms_private = semaphore->private;
+
+	if ( vms_private == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	vms_status = sys$enqw( 0, LCK$K_NLMODE,
+				vms_private->lock_status_block, 0,
+				&(vms_private->name_descriptor),
+				0, 0, 0, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	condition_value = (int)((vms_private->lock_status_block[0]) & 0xffff);
+
+	if ( condition_value != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT long
+mx_semaphore_trylock( MX_SEMAPHORE *semaphore )
+{
+	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
+	int vms_status, condition_value;
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL )
+		return MXE_NULL_ARGUMENT;
+
+	vms_private = semaphore->private;
+
+	if ( vms_private == NULL )
+		return MXE_CORRUPT_DATA_STRUCTURE;
+
+	vms_status = sys$enqw( 0, LCK$K_EXMODE,
+				vms_private->lock_status_block, 0,
+				&(vms_private->name_descriptor),
+				0, 0, 0, 0, 0, 0, 0 );
+
+	if ( vms_status != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	condition_value = (int)((vms_private->lock_status_block[0]) & 0xffff);
+
+	if ( condition_value != SS$_NORMAL )
+		return MXE_OPERATING_SYSTEM_ERROR;
+
+	return MXE_SUCCESS;
+}
+
+MX_EXPORT mx_status_type
+mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
+			unsigned long *current_value )
+{
+	static const char fname[] = "mx_semaphore_get_value()";
+
+	if ( semaphore == (MX_SEMAPHORE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEMAPHORE pointer passed was NULL." );
+	}
+	if ( current_value == (unsigned long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The current_value pointer passed was NULL." );
+	}
+
+	/* I do not know how to do this on VMS. */
+
+	*current_value = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /************************ VxWorks ***********************/
 

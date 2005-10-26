@@ -1350,7 +1350,8 @@ vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 	return result;
 }
 
-#elif defined(OS_VXWORKS) || defined(OS_DJGPP)
+#elif defined(OS_VXWORKS) || defined(OS_DJGPP) \
+	|| (defined(OS_VMS) && (__VMS_VER < 70320000))
 
 /* Some platforms do not provide snprintf() and vsnprintf().  For those
  * platforms we fall back to sprintf() and vsprintf().  The hope in doing

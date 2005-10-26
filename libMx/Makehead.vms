@@ -82,6 +82,7 @@ MX_LIB_OBJS += ../tools/strlcpy.obj ../tools/strlcat.obj
 #---------------------------------------------------
 #
 
+#RM		= delete
 RM		= \$ @[-.scripts]vms_delete
 MAKE		= make
 
@@ -107,7 +108,7 @@ MX_LIBRARY_DELETE = delete $(MX_LIBRARY_NAME);*
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	library/create libMx *.obj
+	library/create libMx *.obj,[-.tools]strlcpy.obj,[-.tools]strlcat.obj
 
 library_install:
 	-create/directory $(MX_INSTALL_DIR).bin]

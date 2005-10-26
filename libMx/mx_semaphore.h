@@ -25,10 +25,11 @@ typedef struct {
 } MX_SEMAPHORE;
 
 #define MXT_SEM_INVALID	0
-#define MXT_SEM_WIN32	1
-#define MXT_SEM_SYSV	2
-#define MXT_SEM_POSIX	3
-#define MXT_SEM_NONE	4
+#define MXT_SEM_NONE	1
+#define MXT_SEM_WIN32	2
+#define MXT_SEM_SYSV	3
+#define MXT_SEM_POSIX	4
+#define MXT_SEM_VMS	5
 
 /* Note: If 'initial_value' is less than zero, then we are attempting
  *       to attach to an existing semaphore, rather than create a new
