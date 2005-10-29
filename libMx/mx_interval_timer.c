@@ -70,7 +70,7 @@
  *
  */
 
-#define MX_INTERVAL_TIMER_DEBUG		FALSE
+#define MX_INTERVAL_TIMER_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -528,7 +528,9 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 typedef struct {
 	mx_uint32_type event_flag;
+	mx_uint32_type timer_period[2];
 	mx_uint32_type finish_time[2];
+	int restart_timer;
 	MX_THREAD *event_flag_thread;
 } MX_VMS_ITIMER_PRIVATE;
 
@@ -568,15 +570,11 @@ mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
 static mx_status_type
 mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 {
-#if 0
-
 	static const char fname[] = "mx_interval_timer_event_flag_thread()";
 
 	MX_INTERVAL_TIMER *itimer;
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	sigset_t signal_set;
-	siginfo_t siginfo;
-	int signal_number, status, saved_errno;
+	int vms_status;
 	mx_status_type mx_status;
 
 #if MX_INTERVAL_TIMER_DEBUG
@@ -587,168 +585,83 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 
 	vms_itimer_private = (MX_VMS_ITIMER_PRIVATE *) itimer->private;
 
-	/* Setup the signal mask that the thread uses. */
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: itimer = %p, vms_itimer_private = %p",
+		fname, itimer, vms_itimer_private));
+#endif
 
-	status = sigemptyset( &signal_set );
+	while (1) {
+		/* Wait for our event flag to be set. */
 
-	if ( status != 0 ) {
-		saved_errno = errno;
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Waiting for event flag %lu",
+		fname, (unsigned long) vms_itimer_private->event_flag ));
+#endif
 
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"A call to sigemptyset() failed with errno = %d, "
-			"error message = '%s'.",
-				saved_errno, strerror(saved_errno) );
-	}
+		vms_status = sys$waitfr( vms_itimer_private->event_flag );
 
-	status = sigaddset( &signal_set, vms_itimer_private->signal_number );
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		if ( saved_errno == EINVAL ) {
+		switch( vms_status ) {
+		case SS$_NORMAL:
+			break;
+		case SS$_ILLEFC:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"sigaddset() says that signal %d is an invalid "
-			"or unsupported signal number.",
-				vms_itimer_private->signal_number );
-		} else {
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to add signal %d to the blocked signal set "
-			"with sigaddset().  Errno = %d, error message = '%s'.",
-				vms_itimer_private->signal_number,
-				saved_errno, strerror(saved_errno) );
-		}
-	}
-
-#if !defined(OS_VXWORKS)
-
-	/* Unblock the signal for this thread. */
-
-	status = pthread_sigmask( SIG_UNBLOCK, &signal_set, NULL );
-
-	if ( status != 0 ) {
-		switch( status ) {
-		case EINVAL:
+			"%d is not a legal event flag number.",
+				vms_itimer_private->event_flag );
+			break;
+		case SS$_UNASEFC:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The first argument to pthread_sigmask() was invalid.");
+			"This process is not associated with the cluster "
+			"containing event flag %d.",
+				vms_itimer_private->event_flag );
 			break;
 		default:
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to unblock signal %d using pthread_sigmask().  "
-			"Errno = %d, error message = '%s'.",
-				vms_itimer_private->signal_number,
-				status, strerror(status) );
+			"The attempt to wait for VMS event flag %d failed with "
+			"a VMS error code of %d.", vms_status );
 			break;
 		}
-	}
-#endif
 
-	/* Wait in an infinite loop for signals to arrive. */
-
-	while (1) {
-
-#if MX_INTERVAL_TIMER_DEBUG
-		MX_DEBUG(-2,("%s: About to invoke sigwaitinfo()", fname));
-#endif
-
-		signal_number = sigwaitinfo( &signal_set, &siginfo );
+		/* If we get here, the event flag has been set, which
+		 * makes it time to invoke the callback function.
+		 */
 
 #if MX_INTERVAL_TIMER_DEBUG
 		MX_DEBUG(-2,
-		("%s: Returned from sigwaitinfo(), signal_number = %d",
-			fname, signal_number));
+		("%s: Event flag %lu for timer is set.  Invoking callback.",
+		    fname, (unsigned long) vms_itimer_private->event_flag ));
 #endif
-
-		if ( signal_number < 0 ) {
-			saved_errno = errno;
-
-			switch( saved_errno ) {
-			case ENOSYS:
-				return mx_error( MXE_NOT_AVAILABLE, fname,
-			"sigwaitinfo() is not available on this platform.  "
-			"This means that MX interval timers will not work on "
-			"this platform." );
-				break;
-			case EINTR:
-				return mx_error( MXE_INTERRUPTED, fname,
-			"sigwaitinfo() was interrupted by an unblocked, caught "
-			"signal for interval timer %p (thread %p).",
-					itimer, thread );
-				break;
-			default:
-				return mx_error(
-					MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unexpected error code returned by sigwaitinfo() for "
-			"interval timer %p (thread %p).  "
-			"Errno = %d, error message = '%s'.",
-					itimer, thread, saved_errno,
-					strerror( saved_errno ) );
-			}
-		}
-
-		/* Invoke the callback function. */
-
-#if MX_INTERVAL_TIMER_DEBUG
-		MX_DEBUG(-2,("%s: Invoking callback function %p",
-			fname, itimer->callback_function));
-#endif
-
 		if ( itimer->callback_function != NULL ) {
 			itimer->callback_function( itimer,
 						itimer->callback_args );
 		}
 
-		/* If this is supposed to be a one-shot timer, then
-		 * make sure that the timer is turned off and then exit.
+		/* See if someone has asked us to terminate ourself. */
+
+		mx_status = mx_thread_check_for_stop_request( thread );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* sys$setimr() is intrinsically a one-shot timer function,
+		 * so if this is supposed to be a periodic timer, we must
+		 * manually restart the timer for the next period.
 		 */
 
-		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
-			(void) mx_interval_timer_stop( itimer, NULL );
-
-			/* Get rid of the MX_THREAD structure for this thread.*/
-
-			mx_status = mx_thread_free_data_structures( thread );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-#if !defined(OS_VXWORKS)
-
-			/* Block the signal again. */
-
-			status = pthread_sigmask(SIG_BLOCK, &signal_set, NULL);
-
-			if ( status != 0 ) {
-				switch( status ) {
-				case EINVAL:
-					return mx_error(
-					    MXE_ILLEGAL_ARGUMENT, fname,
-			"The first argument to pthread_sigmask() was invalid.");
-					break;
-				default:
-					return mx_error(
-					    MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to reblock signal %d using pthread_sigmask().  "
-			"Errno = %d, error message = '%s'.",
-					vms_itimer_private->signal_number,
-						status, strerror(status) );
-					break;
-				}
-			}
-#endif
-
-			/* End the thread by returning to the caller. */
+		if ( itimer->timer_type == MXIT_PERIODIC_TIMER ) {
 
 #if MX_INTERVAL_TIMER_DEBUG
-			MX_DEBUG(-2,("%s exiting.", fname));
+			MX_DEBUG(-2,("%s: Restarting timer for event flag %lu",
+				fname, vms_itimer_private->event_flag ));
 #endif
-	
-			return MX_SUCCESSFUL_RESULT;
+
+			vms_itimer_private->restart_timer = TRUE;
+
+			mx_status = mx_interval_timer_start( itimer, 0.0 );
 		}
 	}
 
 	MX_DEBUG(-2,("%s: Should not get here.", fname));
 	
-#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -756,7 +669,7 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 
 /* Store the value of 2^32 as a floating point number. */
 
-static double vms_32bit_divisor = -1.0;
+static double vms_2_to_the_32nd_power = -1.0;
 
 /*--------------------------------------------------------------------------*/
 
@@ -773,8 +686,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	int vms_status;
 	mx_status_type mx_status;
 
-	if ( vms_32bit_divisor < 0.0 ) {
-		vms_32bit_divisor = pow( 2.0, 32.0 );
+	if ( vms_2_to_the_32nd_power < 0.0 ) {
+		vms_2_to_the_32nd_power = pow( 2.0, 32.0 );
 	}
 
 #if MX_INTERVAL_TIMER_DEBUG
@@ -806,10 +719,6 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
 	}
 
-#if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
-#endif
-
 	vms_itimer_private = (MX_VMS_ITIMER_PRIVATE *)
 				malloc( sizeof(MX_VMS_ITIMER_PRIVATE) );
 
@@ -817,6 +726,11 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Unable to allocate memory for a MX_VMS_ITIMER_PRIVATE structure." );
 	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: *itimer = %p, vms_itimer_private = %p",
+		fname, *itimer, vms_itimer_private));
+#endif
 
 	(*itimer)->timer_type = timer_type;
 	(*itimer)->timer_period = -1.0;
@@ -826,6 +740,10 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	(*itimer)->private = vms_itimer_private;
 
 	/* Allocate an event flag for this timer. */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Calling lib$get_ef", fname));
+#endif
 
 	vms_status = lib$get_ef( &event_flag_number );
 
@@ -845,12 +763,22 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 		break;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: event_flag_number = %lu",
+		fname, event_flag_number));
+#endif
+
 	vms_itimer_private->event_flag = event_flag_number;
 
 	/* We use the convention that the timer is running if the
 	 * event flag is not set.  Therefore, we must now set the
 	 * event flag since the timer is not running yet.
 	 */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Calling sys$setef() for event flag %lu.",
+		fname, event_flag_number));
+#endif
 
 	vms_status = sys$setef( event_flag_number );
 
@@ -965,6 +893,16 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		"The busy pointer passed was NULL." );
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Calling sys$readef() for event flag %lu.",
+		fname, vms_itimer_private->event_flag));
+#endif
+
 	vms_status = sys$readef( vms_itimer_private->event_flag,
 					&event_flag_cluster );
 
@@ -1001,6 +939,10 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		break;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: *busy = %d", fname, *busy));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1014,8 +956,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
 	double timer_period_in_nanoseconds;
-	mx_uint32_type current_time[2], timer_period[2];
-	mx_uint32_type old_low_order, new_low_order;
+	mx_uint32_type current_time[2];
+	mx_uint32_type new_low_order;
 	int vms_status;
 	mx_status_type mx_status;
 
@@ -1025,24 +967,61 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Convert the timer period to VMS 64-bit format.  Please note
-	 * that all VMS computers are little-endian.
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+	MX_DEBUG(-2,("%s: itimer = %p, vms_itimer_private = %p",
+		fname, itimer, vms_itimer_private));
+#endif
+
+	/* If this is a timer restart for a periodic timer, then leave
+	 * the existing timer period alone.  Otherwise, we must compute
+	 * the timer period from the supplied 'timer_period_in_seconds'
+	 * argument.
 	 */
 
-	timer_period_in_nanoseconds = 1.0e9 * timer_period_in_seconds;
+	if ( vms_itimer_private->restart_timer == FALSE ) {
 
-	if ( timer_period_in_nanoseconds < vms_32bit_divisor ) {
-		timer_period[1] = 0;
-		timer_period[0] = mx_round( timer_period_in_nanoseconds );
-	} else {
-		timer_period[1] =
-		  mx_round( timer_period_in_nanoseconds / vms_32bit_divisor );
+		/* Convert the timer period to VMS 64-bit format.  Please note
+		 * that all VMS computers are little-endian.
+		 */
 
-		timer_period[0] =
-	    mx_round( fmod(timer_period_in_nanoseconds, vms_32bit_divisor) );
+#if MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Starting timer for %g seconds.",
+			fname, timer_period_in_seconds));
+#endif
+
+		timer_period_in_nanoseconds = 1.0e9 * timer_period_in_seconds;
+
+		if ( timer_period_in_nanoseconds < vms_2_to_the_32nd_power ) {
+			vms_itimer_private->timer_period[1] = 0;
+			vms_itimer_private->timer_period[0] =
+				mx_round( timer_period_in_nanoseconds );
+		} else {
+			vms_itimer_private->timer_period[1] =
+				mx_round( timer_period_in_nanoseconds
+					/ vms_2_to_the_32nd_power );
+
+			vms_itimer_private->timer_period[0] =
+				mx_round( fmod(timer_period_in_nanoseconds,
+						vms_2_to_the_32nd_power) );
+		}
+
+#if MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: timer_period_in_nanoseconds = %g",
+			fname, timer_period_in_nanoseconds));
+		MX_DEBUG(-2,("%s: timer_period[1] = %lu, timer_period[0] = %lu",
+			fname, vms_itimer_private->timer_period[1],
+			fname, vms_itimer_private->timer_period[0]));
+#endif
 	}
 
 	/* Get the current time. */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Invoking sys$gettim() for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
 
 	vms_status = sys$gettim( current_time );
 
@@ -1061,12 +1040,25 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		break;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: current_time[1] = %lu, current_time[0] = %lu",
+		fname, current_time[1], current_time[0]));
+#endif
+
 	/* Compute the finish time. */
 
-	new_low_order = current_time[0] + timer_period[0];
+	new_low_order = current_time[0] + vms_itimer_private->timer_period[0];
+
+#if 0 && MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: (ct[0] = %lu + tp[0] = %lu) --> new_low_order = %lu",
+		fname, (unsigned long) current_time[0],
+		(unsigned long) vms_itimer_private->timer_period[0],
+		(unsigned_long) new_low_order));
+#endif
 
 	vms_itimer_private->finish_time[0] = new_low_order;
-	vms_itimer_private->finish_time[1] = current_time[1] + timer_period[1];
+	vms_itimer_private->finish_time[1] = current_time[1]
+					+ vms_itimer_private->timer_period[1];
 
 	/* Check for the carry bit. */
 	
@@ -1074,7 +1066,21 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		(vms_itimer_private->finish_time[1])++;
 	}
 
-	/* Start the timer. */
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: finish_time[1] = %lu, finish_time[0] = %lu",
+		fname, vms_itimer_private->finish_time[1],
+		fname, vms_itimer_private->finish_time[0]));
+#endif
+
+	/* Start the timer.
+	 *
+	 * We use the event flag number as the request id.
+	 */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Invoking sys$setimr() for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
 
 	vms_status = sys$setimr( vms_itimer_private->event_flag,
 				vms_itimer_private->finish_time, 0,
@@ -1113,6 +1119,10 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		break;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Timer successfully started.", fname));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1121,12 +1131,10 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 MX_EXPORT mx_status_type
 mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 {
-#if 0
 	static const char fname[] = "mx_interval_timer_stop()";
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	struct itimerspec itimer_value;
-	int status, saved_errno;
+	int vms_status;
 	mx_status_type mx_status;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
@@ -1134,6 +1142,11 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
 
 	/* Read the time left on the timer, if requested, but do not abort
 	 * if the attempt to read the timer value fails.
@@ -1143,45 +1156,32 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 		(void) mx_interval_timer_read( itimer, seconds_left );
 	}
 
-	/* The way we use the timer values depends on whether or not
-	 * we configure the timer as a one-shot timer or a periodic
-	 * timer.
+	/* Stop the timer.
+	 *
+	 * Note that this program uses the event flag number as the
+	 * timer request id.
 	 */
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Invoking sys$cantim() for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
 
-	/* If we set all the timer values to 0, the timer is disabled. */
+	vms_status = sys$cantim( vms_itimer_private->event_flag, 0 );
 
-	itimer_value.it_value.tv_sec  = 0;
-	itimer_value.it_value.tv_nsec = 0;
-	itimer_value.it_interval.tv_sec  = 0;
-	itimer_value.it_interval.tv_nsec = 0;
-
-	status = timer_settime( vms_itimer_private->timer_id,
-					0, &itimer_value, NULL );
-
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		switch( saved_errno ) {
-		case EINVAL:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The specified timer does not exist." );
-			break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"This system does not support Posix realtime timers "
-		"although the compiler said that it does.  "
-		"This should not be able to happen." );
-			break;
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected error writing to a Posix realtime timer.  "
-		"Errno = %d, error message = '%s'",
-				saved_errno, strerror(saved_errno) );
-			break;
-		}
+	switch( vms_status ) {
+	case SS$_NORMAL:
+		break;
+	default:
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to stop the timer failed with VMS error code %d.",
+			vms_status );
+		break;
 	}
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Timer successfully stopped.", fname));
 #endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1191,12 +1191,13 @@ MX_EXPORT mx_status_type
 mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 				double *seconds_till_expiration )
 {
-#if 0
 	static const char fname[] = "mx_interval_timer_read()";
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	struct itimerspec value;
-	int status, saved_errno;
+	mx_uint32_type current_time[2];
+	mx_uint32_type H1, L1, H2, L2;
+	double H_result, L_result, nanoseconds_till_expiration;
+	int vms_status;
 	mx_status_type mx_status;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
@@ -1210,36 +1211,96 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 		"The seconds_till_expiration passed was NULL." );
 	}
 
-	status = timer_gettime( vms_itimer_private->timer_id, &value );
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
 
-	if ( status != 0 ) {
-		saved_errno = errno;
-
-		switch( saved_errno ) {
-		case EINVAL:
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The specified timer does not exist." );
-			break;
-		case ENOSYS:
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"This system does not support Posix realtime timers "
-		"although the compiler said that it does.  "
-		"This should not be able to happen." );
-			break;
-		default:
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Unexpected error reading from a Posix realtime timer.  "
-		"Errno = %d, error message = '%s'",
-				saved_errno, strerror(saved_errno) );
-			break;
-		}
+	if ( vms_2_to_the_32nd_power < 0.0 ) {
+		vms_2_to_the_32nd_power = pow( 2.0, 32.0 );
 	}
 
-	*seconds_till_expiration = (double) value.it_value.tv_sec;
+	/* Get the current time. */
 
-	*seconds_till_expiration += 1.0e-9 * (double) value.it_value.tv_nsec;
-
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Invoking sys$gettim() for event flag %lu",
+		fname, vms_itimer_private->event_flag));
 #endif
+
+	vms_status = sys$gettim( current_time );
+
+	switch( vms_status ) {
+	case SS$_NORMAL:
+		break;
+	case SS$_ACCVIO:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The memory location to receive the time cannot be written "
+		"by the caller." );
+		break;
+	default:
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the current VMS time failed with "
+		"a VMS error code of %d.", vms_status );
+		break;
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: current_time[1] = %lu, current_time[0] = %lu",
+		fname, current_time[1], current_time[0]));
+#endif
+
+	/* Compute the time until expiration by subtracting the
+	 * current time from the finish time.  If the current time,
+	 * is after the finish time, then return 0.
+	 */
+
+	H1 = vms_itimer_private->finish_time[1];
+	L1 = vms_itimer_private->finish_time[0];
+
+	H2 = current_time[1];
+	L2 = current_time[0];
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: H1 = %lu, L1 = %lu",
+		fname, (unsigned long) H1, (unsigned long) L1));
+	MX_DEBUG(-2,("%s: H2 = %lu, L2 = %lu",
+		fname, (unsigned long) H2, (unsigned long) L2));
+#endif
+
+	/* Check for borrow. */
+
+	if ( L1 < L2 ) {
+		H1--;
+	}
+
+	if ( H1 < H2 ) {
+		nanoseconds_till_expiration = 0.0;
+	} else {
+		H_result = H1 - H2;
+
+		L_result = L1 - L2;
+
+#if MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: H_result = %g, L_result = %g",
+			fname, H_result, L_result));
+#endif
+
+		nanoseconds_till_expiration =
+			( vms_2_to_the_32nd_power * H_result ) + L_result;
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,( "%s: nanoseconds_till_expiration = %g",
+		fname, nanoseconds_till_expiration));
+#endif
+
+	*seconds_till_expiration = 1.0e-9 * nanoseconds_till_expiration;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,( "%s: *seconds_till_expiration = %g",
+		fname, *seconds_till_expiration));
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

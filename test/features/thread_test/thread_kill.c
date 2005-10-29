@@ -18,6 +18,8 @@ child_function( MX_THREAD *thread, void *args )
 	}
 
 	/* We should never get here. */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 int
