@@ -578,7 +578,8 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 	mx_status_type mx_status;
 
 #if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked for thread %p, args = %p.",
+		fname, thread, args));
 #endif
 
 	itimer = (MX_INTERVAL_TIMER *) args;
@@ -805,9 +806,14 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 
 	/* Configure the event handler for the timer. */
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,
+  ("%s: About to invoke mx_thread_create() for args = %p", fname, *itimer ));
+#endif
+				
 	mx_status = mx_thread_create( &(vms_itimer_private->event_flag_thread),
 					mx_interval_timer_event_flag_thread,
-					itimer );
+					*itimer );
 	return mx_status;
 }
 
@@ -1011,8 +1017,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		MX_DEBUG(-2,("%s: timer_period_in_nanoseconds = %g",
 			fname, timer_period_in_nanoseconds));
 		MX_DEBUG(-2,("%s: timer_period[1] = %lu, timer_period[0] = %lu",
-			fname, vms_itimer_private->timer_period[1],
-			fname, vms_itimer_private->timer_period[0]));
+		  fname, (unsigned long) vms_itimer_private->timer_period[1],
+		  fname, (unsigned long) vms_itimer_private->timer_period[0]));
 #endif
 	}
 
@@ -1042,18 +1048,19 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: current_time[1] = %lu, current_time[0] = %lu",
-		fname, current_time[1], current_time[0]));
+		fname, (unsigned long) current_time[1],
+		(unsigned long) current_time[0]));
 #endif
 
 	/* Compute the finish time. */
 
 	new_low_order = current_time[0] + vms_itimer_private->timer_period[0];
 
-#if 0 && MX_INTERVAL_TIMER_DEBUG
+#if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: (ct[0] = %lu + tp[0] = %lu) --> new_low_order = %lu",
 		fname, (unsigned long) current_time[0],
 		(unsigned long) vms_itimer_private->timer_period[0],
-		(unsigned_long) new_low_order));
+		(unsigned long) new_low_order));
 #endif
 
 	vms_itimer_private->finish_time[0] = new_low_order;
@@ -1068,8 +1075,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: finish_time[1] = %lu, finish_time[0] = %lu",
-		fname, vms_itimer_private->finish_time[1],
-		fname, vms_itimer_private->finish_time[0]));
+		fname, (unsigned long) vms_itimer_private->finish_time[1],
+		fname, (unsigned long) vms_itimer_private->finish_time[0]));
 #endif
 
 	/* Start the timer.
