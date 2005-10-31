@@ -70,7 +70,7 @@
  *
  */
 
-#define MX_INTERVAL_TIMER_DEBUG		TRUE
+#define MX_INTERVAL_TIMER_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -530,6 +530,7 @@ typedef struct {
 	mx_uint32_type event_flag;
 	mx_uint32_type timer_period[2];
 	mx_uint32_type finish_time[2];
+	int timer_is_busy;
 	int restart_timer;
 	MX_THREAD *event_flag_thread;
 } MX_VMS_ITIMER_PRIVATE;
@@ -622,14 +623,46 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 			break;
 		}
 
+		/* If we get here, the event flag has been set.
+		 * Clear the event flag to prevent the callback
+		 * from being invoked multiple times.
+		 */
+
+#if MX_INTERVAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Event flag %lu for timer has been set.  "
+			"Invoking sys$clref() to clear it.", fname,
+			(unsigned long) vms_itimer_private->event_flag ));
+#endif
+		vms_status = sys$clref( vms_itimer_private->event_flag );
+
+		switch( vms_status ) {
+		case SS$_WASCLR:
+		case SS$_WASSET:
+			break;
+		case SS$_ILLEFC:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"%d is not a legal event flag number.",
+				vms_itimer_private->event_flag );
+			break;
+		case SS$_UNASEFC:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"This process is not associated with the cluster "
+			"containing event flag %d.",
+				vms_itimer_private->event_flag );
+			break;
+		default:
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to wait for VMS event flag %d failed with "
+			"a VMS error code of %d.", vms_status );
+			break;
+		}
+
 		/* If we get here, the event flag has been set, which
 		 * makes it time to invoke the callback function.
 		 */
 
 #if MX_INTERVAL_TIMER_DEBUG
-		MX_DEBUG(-2,
-		("%s: Event flag %lu for timer is set.  Invoking callback.",
-		    fname, (unsigned long) vms_itimer_private->event_flag ));
+		MX_DEBUG(-2,("%s: Invoking interval timer callback.", fname ));
 #endif
 		if ( itimer->callback_function != NULL ) {
 			itimer->callback_function( itimer,
@@ -658,6 +691,9 @@ mx_interval_timer_event_flag_thread( MX_THREAD *thread, void *args )
 			vms_itimer_private->restart_timer = TRUE;
 
 			mx_status = mx_interval_timer_start( itimer, 0.0 );
+		} else {
+			vms_itimer_private->restart_timer = FALSE;
+			vms_itimer_private->timer_is_busy = FALSE;
 		}
 	}
 
@@ -770,39 +806,8 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 #endif
 
 	vms_itimer_private->event_flag = event_flag_number;
-
-	/* We use the convention that the timer is running if the
-	 * event flag is not set.  Therefore, we must now set the
-	 * event flag since the timer is not running yet.
-	 */
-
-#if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: Calling sys$setef() for event flag %lu.",
-		fname, event_flag_number));
-#endif
-
-	vms_status = sys$setef( event_flag_number );
-
-	switch( vms_status ) {
-	case SS$_WASCLR:
-	case SS$_WASSET:
-		break;
-	case SS$_ILLEFC:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"%d is not a legal event flag number.",
-			event_flag_number );
-		break;
-	case SS$_UNASEFC:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"This process is not associated with the cluster "
-		"containing event flag %d.", event_flag_number );
-		break;
-	default:
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to set VMS event flag %d failed with "
-		"a VMS error code of %d.", vms_status );
-		break;
-	}
+	vms_itimer_private->timer_is_busy = FALSE;
+	vms_itimer_private->restart_timer = FALSE;
 
 	/* Configure the event handler for the timer. */
 
@@ -835,6 +840,11 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event flag %lu",
+		fname, vms_itimer_private->event_flag));
+#endif
+
 	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -844,6 +854,17 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to free event flag %lu",
+		fname, vms_itimer_private->event_flag ));
+#endif
+
+#if 0
+	/* FIXME: Invoking lib$free_ef() here causes the program to die
+	 * with an access violation for some reason.  For now, we have
+	 * this section ifdef'ed out.
+	 */
 
 	vms_status = lib$free_ef( vms_itimer_private->event_flag );
 
@@ -868,10 +889,20 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 				vms_status );
 		break;
 	}
+#endif  /* 0 */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Successfully freed event flag %lu",
+		fname, vms_itimer_private->event_flag ));
+#endif
 
 	mx_free( vms_itimer_private );
 
 	mx_free( itimer );
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -904,45 +935,10 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		fname, vms_itimer_private->event_flag));
 #endif
 
-#if MX_INTERVAL_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: Calling sys$readef() for event flag %lu.",
-		fname, vms_itimer_private->event_flag));
-#endif
-
-	vms_status = sys$readef( vms_itimer_private->event_flag,
-					&event_flag_cluster );
-
-	/* If the event flag is set, the timer is not running. */
-
-	switch( vms_status ) {
-	case SS$_WASCLR:
+	if ( vms_itimer_private->timer_is_busy ) {
 		*busy = TRUE;
-		break;
-	case SS$_WASSET:
+	} else {
 		*busy = FALSE;
-		break;
-	case SS$_ACCVIO:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The specified event flag cluster pointer %p cannot be "
-		"written to by the caller.", &event_flag_cluster );
-		break;
-	case SS$_ILLEFC:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"%lu is not a legal event flag number.",
-			vms_itimer_private->event_flag );
-		break;
-	case SS$_UNASEFC:
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"This process is not associated with the cluster containing "
-		"the specified event flag %lu.",
-			vms_itimer_private->event_flag );
-		break;
-	default:
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The attempt to read VMS event flag %lu failed with "
-		"VMS status code %d.", vms_itimer_private->event_flag,
-			vms_status );
-		break;
 	}
 
 #if MX_INTERVAL_TIMER_DEBUG
@@ -972,6 +968,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	vms_itimer_private->timer_is_busy = FALSE;
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for event flag %lu",
@@ -1126,6 +1124,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		break;
 	}
 
+	vms_itimer_private->timer_is_busy = TRUE;
+
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Timer successfully started.", fname));
 #endif
@@ -1184,6 +1184,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 			vms_status );
 		break;
 	}
+
+	vms_itimer_private->timer_is_busy = FALSE;
 
 #if MX_INTERVAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Timer successfully stopped.", fname));

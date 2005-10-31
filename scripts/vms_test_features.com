@@ -24,11 +24,11 @@ $ set default 'itimerdir'
 $ !
 $ write sys$output "Compiling ''itimerdir'itimer_oneshot.c"
 $ compile itimer_oneshot.c
-$ link /exe=itimer_oneshot.exe itimer_oneshot.obj, 'linklibraries'
+$ link /debug /exe=itimer_oneshot.exe itimer_oneshot.obj, 'linklibraries'
 $ !
 $ write sys$output "Compiling ''itimerdir'itimer_periodic.c"
 $ compile itimer_periodic.c
-$ link /exe=itimer_periodic.exe itimer_periodic.obj, 'linklibraries'
+$ link /debug /exe=itimer_periodic.exe itimer_periodic.obj, 'linklibraries'
 $ !
 $ mutexdir = "''featuredir'.mutex_test]"
 $ write sys$output "Build mutex tests in ''mutexdir'"
@@ -36,15 +36,15 @@ $ set default 'mutexdir'
 $ !
 $ write sys$output "Compiling ''mutexdir'mutex_lock.c"
 $ compile mutex_lock.c
-$ link /exe=mutex_lock.exe mutex_lock.obj, 'linklibraries'
+$ link /debug /exe=mutex_lock.exe mutex_lock.obj, 'linklibraries'
 $ !
 $ write sys$output "Compiling ''mutexdir'mutex_trylock.c"
 $ compile mutex_trylock.c
-$ link /exe=mutex_trylock.exe mutex_trylock.obj, 'linklibraries'
+$ link /debug /exe=mutex_trylock.exe mutex_trylock.obj, 'linklibraries'
 $ !
 $ write sys$output "Compiling ''mutexdir'mutex_recursive.c"
 $ compile mutex_recursive.c
-$ link /exe=mutex_recursive.exe mutex_recursive.obj, 'linklibraries'
+$ link /debug /exe=mutex_recursive.exe mutex_recursive.obj, 'linklibraries'
 $ !
 $ semaphoredir = "''featuredir'.semaphore_test]"
 $ write sys$output "Build semaphore tests in ''semaphoredir'"
@@ -52,19 +52,19 @@ $ set default 'semaphoredir'
 $ !
 $ write sys$output "Compiling ''semaphoredir'semaphore_lock.c"
 $ compile semaphore_lock.c
-$ link /exe=semaphore_lock.exe semaphore_lock.obj, 'linklibraries'
+$ link /debug /exe=semaphore_lock.exe semaphore_lock.obj, 'linklibraries'
 $ !
 $ write sys$output "Compiling ''semaphoredir'semaphore_trylock.c"
 $ compile semaphore_trylock.c
-$ link /exe=semaphore_trylock.exe semaphore_trylock.obj, 'linklibraries'
+$ link /debug /exe=semaphore_trylock.exe semaphore_trylock.obj, 'linklibraries'
 $ !
 $ !!!write sys$output "Compiling ''semaphoredir'named_semaphore_server.c"
 $ !!!compile named_semaphore_server.c
-$ !!!link /exe=named_semaphore_server.exe named_semaphore_server.obj, 'linklibraries'
+$ !!!link /debug /exe=named_semaphore_server.exe named_semaphore_server.obj, 'linklibraries'
 $ !
 $ !!!write sys$output "Compiling ''semaphoredir'named_semaphore_client.c"
 $ !!!compile named_semaphore_client.c
-$ !!!link /exe=named_semaphore_client.exe named_semaphore_client.obj, 'linklibraries'
+$ !!!link /debug /exe=named_semaphore_client.exe named_semaphore_client.obj, 'linklibraries'
 $ !
 $ threaddir = "''featuredir'.thread_test]"
 $ write sys$output "Build thread tests in ''threaddir'"
@@ -72,11 +72,11 @@ $ set default 'threaddir'
 $ !
 $ write sys$output "Compiling ''threaddir'thread_stop.c"
 $ compile thread_stop.c
-$ link /exe=thread_stop.exe thread_stop.obj, 'linklibraries'
+$ link /debug /exe=thread_stop.exe thread_stop.obj, 'linklibraries'
 $ !
 $ write sys$output "Compiling ''threaddir'thread_kill.c"
 $ compile thread_kill.c
-$ link /exe=thread_kill.exe thread_kill.obj, 'linklibraries'
+$ link /debug /exe=thread_kill.exe thread_kill.obj, 'linklibraries'
 $ !
 $ finaldir = "''featuredir']"
 $ write sys$output "All programs built.  Moving to the directory ''finaldir'."
