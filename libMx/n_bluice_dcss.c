@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -223,6 +224,335 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 }
 
 static mx_status_type
+mxn_bluice_dcss_server_get_session_id(
+		MX_BLUICE_DCSS_SERVER *bluice_dcss_server,
+		char *user_name,
+		size_t username_length,
+		char *session_id,
+		size_t session_id_length )
+{
+	static const char fname[] = "mxn_bluice_dcss_server_get_session_id()";
+
+	MX_SOCKET *auth_server_socket;
+	FILE *auth_server_fp;
+	unsigned long flags;
+	unsigned long i, j, num_times_to_loop, remainder, buffer24;
+	unsigned char index0, index1, index2, index3;
+	size_t length, plaintext_length;
+	static char crlf[] = "\015\012";
+	static const char base64_table[] =
+	    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
+	char *ptr, *host_name, *port_number_ptr;
+	int port_number, status, saved_errno;
+	mx_status_type mx_status;
+
+	char line[200];
+	char password[40];
+
+	char plaintext[1000];
+	char base64_hash[1500];
+
+	MX_DEBUG(-2,("%s invoked for authentication server '%s'",
+		fname, bluice_dcss_server->authentication_data));
+
+	flags = bluice_dcss_server->bluice_dcss_flags;
+
+	/* FIXME: We need to be able to redirect the username input
+	 * to a GUI window.
+	 */
+
+	/* Get the username. */
+
+	if ( (flags & MXF_BLUICE_DCSS_REQUIRE_USERNAME) == 0 ) {
+		mx_username( user_name, username_length );
+	} else {
+		fprintf(stderr, "Enter Blu-Ice username --> ");
+
+		fgets( user_name, username_length, stdin );
+
+		length = strlen(user_name);
+
+		if ( user_name[length-1] == '\n' ) {
+			user_name[length-1] = '\0';
+		}
+	}
+
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: Blu-Ice username = '%s'", fname, user_name));
+#endif
+
+	/* FIXME: The following is disgusting. */
+
+	/* Get the password. */
+
+	fprintf(stderr, "Enter Blu-Ice password --> ");
+
+	fgets( password, sizeof(password), stdin );
+
+	length = strlen(password);
+
+	if ( password[length-1] == '\n' ) {
+		password[length-1] = '\0';
+	}
+
+#if BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: Blu-Ice password = '%s'", fname, password));
+#endif
+
+	/*--------------------------------------------------------------*/
+
+	/* Construct the plaintext of the username:password string. */
+
+	snprintf( plaintext, sizeof(plaintext), "%s:%s", user_name, password );
+
+#if 0
+	snprintf( plaintext, sizeof(plaintext),
+		"Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure." );
+#endif
+
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: Blu-Ice plaintext = '%s'", fname, plaintext));
+#endif
+
+	/* Null out the hash string. */
+
+	memset( base64_hash, 0, sizeof(base64_hash) );
+
+	/* Construct the base-64 encoded hash from the plaintext.
+	 * See http://en.wikipedia.org/wiki/Base64 for the algorithm.
+	 */
+
+	plaintext_length = strlen( plaintext );
+
+	num_times_to_loop = plaintext_length / 3;
+	remainder         = plaintext_length % 3;
+
+	for ( i = 0, j = 0; i < num_times_to_loop; i++, j++ ) {
+		/* Copy three bytes of the plaintext into a 24-bit buffer. */
+
+		buffer24 = 0;
+
+		buffer24 |= ( plaintext[3*i] << 16 );
+		buffer24 |= ( plaintext[3*i+1] << 8 );
+		buffer24 |= plaintext[3*i+2];
+
+		/* Use the 24-bit buffer as four 6-bit indices into
+		 * the base-64 lookup table.
+		 */
+
+		index0 = ( buffer24 >> 18 ) & 0x3f;
+		index1 = ( buffer24 >> 12 ) & 0x3f;
+		index2 = ( buffer24 >>  6 ) & 0x3f;
+		index3 = buffer24 & 0x3f;
+
+		base64_hash[4*j]   = base64_table[index0];
+		base64_hash[4*j+1] = base64_table[index1];
+		base64_hash[4*j+2] = base64_table[index2];
+		base64_hash[4*j+3] = base64_table[index3];
+	}
+
+	/* Handle any leftover bytes. */
+
+	if ( remainder != 0 ) {
+		buffer24 = 0;
+
+		switch( remainder ) {
+		case 2:
+			buffer24 |= ( plaintext[3*i+1] << 8 );
+
+			/* Fall through to case 1. */
+		case 1:
+			buffer24 |= ( plaintext[3*i] << 16 );
+			break;
+		}
+
+		index0 = ( buffer24 >> 18 ) & 0x3f;
+		index1 = ( buffer24 >> 12 ) & 0x3f;
+		index2 = ( buffer24 >>  6 ) & 0x3f;
+
+		base64_hash[4*j]   = base64_table[index0];
+		base64_hash[4*j+1] = base64_table[index1];
+
+		if ( remainder == 2 ) {
+			base64_hash[4*j+2] = base64_table[index2];
+		} else {
+			base64_hash[4*j+2] = '=';
+		}
+
+		base64_hash[4*j+3] = '=';
+	}
+
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: base64_hash = '%s'", fname, base64_hash));
+#endif
+
+	/*--------------------------------------------------------------*/
+
+	/* Get the host name and port number of the authentication server. */
+
+	strlcpy( authentication_data,
+		bluice_dcss_server->authentication_data,
+		sizeof(authentication_data) );
+
+	ptr = authentication_data;
+
+	host_name = mx_string_split( &ptr, ":" );
+
+	if ( host_name == NULL ) {
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"The host name of the Blu-Ice authentication server "
+		"was not specified in the authentication data string '%s'",
+			bluice_dcss_server->authentication_data );
+	}
+
+	port_number_ptr = mx_string_split( &ptr, ":" );
+
+	if ( port_number_ptr == NULL ) {
+		port_number = 17000;
+	} else {
+		port_number = atoi( port_number_ptr );
+	}
+
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: host name = '%s', port number = %d",
+		fname, host_name, port_number ));
+#endif
+
+	/*--------------------------------------------------------------*/
+
+#if defined(OS_WIN32)
+	/* FIXME: We need to change how mx_socket_getline() is implemented. */
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Line buffered socket I/O is not yet supported correctly by MX "
+	"on Win32, so we cannot talk to the authentication server." );
+#endif
+
+	/* Connect to the authentication server. */
+
+	mx_status = mx_tcp_socket_open_as_client( &auth_server_socket,
+			host_name, port_number, 0,
+			MX_SOCKET_DEFAULT_BUFFER_SIZE );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* FIXME: mx_socket_getline() throws away trailing characters
+	 * after the first set of CR-LF terminators seen.  Temporarily
+	 * we deal with this by converting the socket descriptor to
+	 * a FILE pointer.
+	 */
+
+	auth_server_fp = fdopen( auth_server_socket->socket_fd, "w+" );
+
+	/***** Send the request *****/
+
+	/* Send the first line of text. */
+
+	snprintf( line, sizeof(line),
+ "GET /gateway/servlet/APPLOGIN?userid=%s&passwd=%s&appname=SMBTest HTTP/1.1%s",
+		user_name, base64_hash, crlf );
+
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: Command line 1 = '%s'", fname, line));
+#endif
+
+	status = fputs( line, auth_server_fp );
+
+	if ( status == EOF ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An error occurred while writing the line '%s' to "
+		"Blu-Ice authentication server '%s', port %d.  "
+		"Errno = %d, error message = '%s'",
+			line, host_name, port_number,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Send the second line of text. */
+
+	snprintf( line, sizeof(line), "Host: %s:%d%s",
+		host_name, port_number, crlf );
+
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: Command line 2 = '%s'", fname, line));
+#endif
+
+	status = fputs( line, auth_server_fp );
+
+	if ( status == EOF ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An error occurred while writing the line '%s' to "
+		"Blu-Ice authentication server '%s', port %d.  "
+		"Errno = %d, error message = '%s'",
+			line, host_name, port_number,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Terminate the HTTP message with a blank line. */
+
+	status = fputs( crlf, auth_server_fp );
+
+	if ( status == EOF ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An error occurred while writing a blank terminator line to "
+		"Blu-Ice authentication server '%s', port %d.  "
+		"Errno = %d, error message = '%s'",
+			host_name, port_number,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/*--------------------------------------------------------------*/
+
+	/* Read the response from the authentication server. */
+
+	for ( i = 0; ; i++ ) {
+		fgets( line, sizeof(line), auth_server_fp );
+
+		if ( feof(auth_server_fp) ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"An error occurred while reading line %lu from "
+			"Blu-Ice authentication server '%s', port %d.  "
+			"Errno = %d, error message = '%s'",
+				i, host_name, port_number,
+				saved_errno, strerror(saved_errno) );
+		}
+
+#if 1 || BLUICE_DCSS_DEBUG
+		MX_DEBUG(-2,("%s: Response line %lu = '%s'",
+			fname, i, line));
+#endif
+	}
+
+	/* Close the connection to the authentication server. */
+
+	status = fclose( auth_server_fp );
+
+	if ( status == EOF ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An error occurred while closing the socket for "
+		"Blu-Ice authentication server '%s', port %d.  "
+		"Errno = %d, error message = '%s'",
+			host_name, port_number,
+			saved_errno, strerror(saved_errno) );
+	}
+
+#if 1
+	strlcpy( session_id, base64_hash, session_id_length );
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 stog_become_master( MX_THREAD *thread,
 		MX_RECORD *server_record,
 		MX_BLUICE_SERVER *bluice_server,
@@ -242,8 +572,7 @@ stog_become_master( MX_THREAD *thread,
 	if ( mx_status_code != MXE_SUCCESS ) {
 		return mx_error( mx_status_code, fname,
 		"An attempt to lock the foreign data mutex for Blu-Ice "
-		"server '%s' failed.", bluice_server->record->name );
-	}
+		"server '%s' failed.", bluice_server->record->name ); }
 
 	bluice_dcss_server->is_master = TRUE;
 
@@ -836,10 +1165,12 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
 	char user_name[MXU_USERNAME_LENGTH+1];
 	char host_name[MXU_HOSTNAME_LENGTH+1];
-	char *display_name;
+	char display_name[MXU_HOSTNAME_LENGTH+10];
+	char session_id[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	char client_type_response[CLIENT_TYPE_RESPONSE_LENGTH+1];
-	int i, num_retries, num_bytes_available, num_items;
-	unsigned long wait_ms;
+	char *display_name_ptr;
+	int i, num_retries, num_bytes_available, num_items, need_authentication;
+	unsigned long wait_ms, flags;
 	long actual_data_length;
 	mx_status_type mx_status;
 
@@ -889,33 +1220,79 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	bluice_server->receive_buffer_length
 		= MX_BLUICE_INITIAL_RECEIVE_BUFFER_LENGTH;
 
-	/* Construct a response for the initial 'stoc_send_client_type'
-	 * message.
+	/* Gather information for the response for the initial
+	 * 'stoc_send_client_type' message.
 	 */
-
-	mx_username( user_name, MXU_USERNAME_LENGTH );
-
-#if 0
-	strlcpy( user_name, "tigerw", sizeof(user_name) );
-#endif
 
 	mx_status = mx_gethostname( host_name, MXU_HOSTNAME_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	display_name = getenv("DISPLAY");
+	display_name_ptr = getenv("DISPLAY");
 
-	if ( display_name == NULL ) {
-		snprintf( client_type_response, sizeof(client_type_response),
-			"htos_client_is_gui %s %s %s :0",
-			user_name, bluice_dcss_server->session_id, host_name );
+	if ( display_name_ptr == NULL ) {
+		strlcpy( display_name, ":0", sizeof(display_name) );
 	} else {
-		snprintf( client_type_response, sizeof(client_type_response),
-			"htos_client_is_gui %s %s %s %s",
-			user_name, bluice_dcss_server->session_id,
-			host_name, display_name );
+		strlcpy( display_name, display_name_ptr, sizeof(display_name) );
 	}
+
+	/* Do we need to authenticate the user? */
+
+	flags = bluice_dcss_server->bluice_dcss_flags;
+
+	if ( flags & MXF_BLUICE_DCSS_REQUIRE_USERNAME ) {
+		need_authentication = TRUE;
+	} else
+	if ( flags & MXF_BLUICE_DCSS_REQUIRE_PASSWORD ) {
+		need_authentication = TRUE;
+	} else {
+		need_authentication = FALSE;
+	}
+
+	if ( need_authentication == FALSE ) {
+
+		/* If no authentication is needed, then the
+		 * 'authentication_data' field will be sent
+		 * to DCSS as the session id.
+		 */
+
+		mx_username( user_name, MXU_USERNAME_LENGTH );
+
+		strlcpy( session_id,
+			bluice_dcss_server->authentication_data,
+			sizeof(session_id) );
+	} else {
+		/* If authentication is needed, then the
+		 * 'authentication_data' field must contain
+		 * the hostname and port number of the 
+		 * authentication server using the format
+		 * 
+		 *    hostname:portnumber
+		 */
+
+		 /* Connect to the authentication server to get
+		  * a session ID.
+		  */
+
+		mx_status = mxn_bluice_dcss_server_get_session_id(
+				bluice_dcss_server,
+				user_name,
+				MXU_USERNAME_LENGTH,
+				session_id,
+				sizeof(session_id) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Construct the 'htos_client_is_gui' response from the
+	 * information we have gathered.
+	 */
+
+	snprintf( client_type_response, sizeof(client_type_response),
+		"htos_client_is_gui %s %s %s %s",
+		user_name, session_id, host_name, display_name );
 
 	/* Now we are ready to connect to the DCSS. */
 

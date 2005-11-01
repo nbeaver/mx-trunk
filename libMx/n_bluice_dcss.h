@@ -19,18 +19,22 @@
 
 #include "mx_socket.h"
 
+/* Flag values for the 'bluice_dcss_flags' field. */
+
 #define MXF_BLUICE_DCSS_AUTO_TAKE_MASTER	0x1
+#define MXF_BLUICE_DCSS_REQUIRE_USERNAME	0x2
+#define MXF_BLUICE_DCSS_REQUIRE_PASSWORD	0x4
 
 /* ===== Blu-Ice DCSS server record data structures ===== */
 
-#define MXU_SESSION_ID_LENGTH	100
+#define MXU_AUTHENTICATION_DATA_LENGTH	100
 
 typedef struct {
 	MX_RECORD *record;
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	int port_number;
-	char session_id[MXU_SESSION_ID_LENGTH+1];
+	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	unsigned long bluice_dcss_flags;
 
 	MX_THREAD *dcss_monitor_thread;
@@ -62,8 +66,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "session_id", MXFT_STRING, NULL, 1, {MXU_SESSION_ID_LENGTH}, \
-  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, session_id), \
+  {-1, -1, "authentication_data", MXFT_STRING, \
+  		NULL, 1, {MXU_AUTHENTICATION_DATA_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_BLUICE_DCSS_SERVER, authentication_data), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "bluice_dcss_flags", MXFT_HEX, NULL, 0, {0}, \
