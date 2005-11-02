@@ -18,6 +18,7 @@
 #define __MOTOR_H__
 
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #include "mx_osdef.h"
 #include "mx_driver.h"
