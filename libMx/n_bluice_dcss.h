@@ -27,6 +27,7 @@
 
 /* ===== Blu-Ice DCSS server record data structures ===== */
 
+#define MXU_APPNAME_LENGTH		40
 #define MXU_AUTHENTICATION_DATA_LENGTH	100
 
 typedef struct {
@@ -34,6 +35,7 @@ typedef struct {
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
 	int port_number;
+	char appname[MXU_APPNAME_LENGTH+1];
 	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	unsigned long bluice_dcss_flags;
 
@@ -65,6 +67,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
   {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "appname", MXFT_STRING, NULL, 1, {MXU_APPNAME_LENGTH}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, appname), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "authentication_data", MXFT_STRING, \
   		NULL, 1, {MXU_AUTHENTICATION_DATA_LENGTH}, \

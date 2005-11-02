@@ -244,6 +244,7 @@ mxn_bluice_dcss_server_get_session_id(
 	    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	char *ptr, *host_name, *port_number_ptr;
+	char *prefix, *session_id_ptr;
 	int port_number, status, saved_errno;
 	mx_status_type mx_status;
 
@@ -451,8 +452,8 @@ mxn_bluice_dcss_server_get_session_id(
 	/* Send the first line of text. */
 
 	snprintf( line, sizeof(line),
- "GET /gateway/servlet/APPLOGIN?userid=%s&passwd=%s&appname=SMBTest HTTP/1.1%s",
-		user_name, base64_hash, crlf );
+ "GET /gateway/servlet/APPLOGIN?userid=%s&passwd=%s&AppName=%s HTTP/1.1%s",
+		user_name, base64_hash, bluice_dcss_server->appname, crlf );
 
 #if 1 || BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Command line 1 = '%s'", fname, line));
@@ -512,18 +513,51 @@ mxn_bluice_dcss_server_get_session_id(
 
 	/* Read the response from the authentication server. */
 
+	session_id[0] = '\0';
+
 	for ( i = 0; ; i++ ) {
 		fgets( line, sizeof(line), auth_server_fp );
 
-		if ( feof(auth_server_fp) ) {
-			saved_errno = errno;
+		/* Look for the line that sets a cookie. */
 
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"An error occurred while reading line %lu from "
-			"Blu-Ice authentication server '%s', port %d.  "
-			"Errno = %d, error message = '%s'",
-				i, host_name, port_number,
-				saved_errno, strerror(saved_errno) );
+		if ( strncmp( line, "Set-Cookie:", 11 ) == 0 ) {
+			/* The format of the set coookie line is:
+			 *
+			 * Set-Cookie: SMBSessionID=XYZZY;Path=/gateway
+			 *
+			 * We can extract the session id by copying all
+			 * text between the first '=' and the first ';'
+			 * characters.
+			 */
+
+			 ptr = line;
+
+			 prefix = mx_string_split( &ptr, "=" );
+
+			 if ( prefix == NULL ) {
+			 	return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the '=' character before the "
+				"start of the session ID cookie line '%s'.",
+					line );
+			 }
+
+			 session_id_ptr = mx_string_split( &ptr, ";" );
+
+			 if ( session_id_ptr == NULL ) {
+			 	return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Did not find the ';' character after the "
+				"session ID cookie '%s'", ptr );
+			 }
+
+			 strlcpy(session_id, session_id_ptr, session_id_length);
+		}
+
+		if ( feof(auth_server_fp) ) {
+			/* We have reached the end of the message,
+			 * so break out of the for() loop.
+			 */
+
+			 break;
 		}
 
 #if 1 || BLUICE_DCSS_DEBUG
@@ -537,6 +571,8 @@ mxn_bluice_dcss_server_get_session_id(
 	status = fclose( auth_server_fp );
 
 	if ( status == EOF ) {
+		saved_errno = errno;
+
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"An error occurred while closing the socket for "
 		"Blu-Ice authentication server '%s', port %d.  "
@@ -545,8 +581,8 @@ mxn_bluice_dcss_server_get_session_id(
 			saved_errno, strerror(saved_errno) );
 	}
 
-#if 1
-	strlcpy( session_id, base64_hash, session_id_length );
+#if 1 || BLUICE_DCSS_DEBUG
+	MX_DEBUG(-2,("%s: session id = '%s'", fname, session_id));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
