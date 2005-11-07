@@ -2159,6 +2159,21 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		mcs_record = mcs_quick_scan->mcs_record_array[i];
 
+#if 1		/* Bugfix - Nov. 6, 2005 (WML) - Sending commands to
+		 * EPICS MCS records seems to fail randomly if the
+		 * MCS is already running.
+		 */
+
+		/**** Stop the MCS in case it is running. ****/
+
+		status = mx_mcs_stop( mcs_record );
+
+		if ( status.code != MXE_SUCCESS ) {
+			(void) mx_scan_restore_speeds( scan );
+			return status;
+		}
+#endif
+
 		/**** Put the MCS into preset time mode. ****/
 
 		status = mx_mcs_set_mode( mcs_record, MXM_PRESET_TIME );
