@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,20 +183,36 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 	/* Initialize EPICS PV data structures used by this record. */
 
 	switch( aps_gap->motor_subtype ) {
-	case MXT_APS_GAP:
+	case MXT_APS_GAP_MM:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-				"ID%02d:Gap.VAL", aps_gap->sector_number );
+			"ID%02d:Gap.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-				"ID%02d:GapSet.VAL", aps_gap->sector_number );
+			"ID%02d:GapSet.VAL", aps_gap->sector_number );
 		break;
 
-	case MXT_APS_KEV:
+	case MXT_APS_GAP_KEV:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-				"ID%02d:Energy.VAL", aps_gap->sector_number );
+			"ID%02d:Energy.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-				"ID%02d:EnergySet.VAL", aps_gap->sector_number);
+			"ID%02d:EnergySet.VAL", aps_gap->sector_number);
+		break;
+
+	case MXT_APS_TAPER_MM:
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02d:TaperGap.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02d:TaperGapSet.VAL", aps_gap->sector_number );
+		break;
+
+	case MXT_APS_TAPER_KEV:
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02d:TaperEnergy.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02d:TaperEnergySet.VAL", aps_gap->sector_number);
 		break;
 
 	default:
@@ -259,10 +275,12 @@ mxd_aps_gap_print_structure( FILE *file, MX_RECORD *record )
 	}
 
 	switch( aps_gap->motor_subtype ) {
-	case MXT_APS_GAP:
+	case MXT_APS_GAP_MM:
+	case MXT_APS_TAPER_MM:
 		strcpy( raw_units, "mm" );
 		break;
-	case MXT_APS_KEV:
+	case MXT_APS_GAP_KEV:
+	case MXT_APS_TAPER_KEV:
 		strcpy( raw_units, "keV" );
 		break;
 	default:

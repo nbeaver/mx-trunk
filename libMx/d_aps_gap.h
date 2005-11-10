@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,8 +34,10 @@ typedef struct {
 
 /* The subtypes of the aps_gap motor. */
 
-#define MXT_APS_GAP		1
-#define MXT_APS_KEV		2
+#define MXT_APS_GAP_MM		1
+#define MXT_APS_GAP_KEV		2
+#define MXT_APS_TAPER_MM	3
+#define MXT_APS_TAPER_KEV	4
 
 /* Define all of the interface functions. */
 

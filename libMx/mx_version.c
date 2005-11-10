@@ -20,7 +20,7 @@
 #include "mx_util.h"
 #include "mx_version.h"
 
-#define MX_DATE "November 9, 2005"
+#define MX_DATE "November 10, 2005"
 
 static char buffer[60];
 
@@ -45,7 +45,7 @@ mx_get_update_version( void )
 MX_EXPORT char *
 mx_get_version_date( void )
 {
-	strcpy( buffer, MX_DATE );
+	strlcpy( buffer, MX_DATE, sizeof(buffer) );
 
 	return &buffer[0];
 }
@@ -53,7 +53,7 @@ mx_get_version_date( void )
 MX_EXPORT char *
 mx_get_version_string( void )
 {
-	sprintf( buffer, "%d.%d.%d (%s)",
+	snprintf( buffer, sizeof(buffer), "%d.%d.%d (%s)",
 	    MX_MAJOR_VERSION, MX_MINOR_VERSION, MX_UPDATE_VERSION, MX_DATE );
 
 	return &buffer[0];
