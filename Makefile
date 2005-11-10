@@ -38,11 +38,11 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = linux
+MX_ARCH = win32
 
-MX_INSTALL_DIR = /opt/mx
+#MX_INSTALL_DIR = /opt/mx
 
-#MX_INSTALL_DIR = $(HOME)/mxtest
+MX_INSTALL_DIR = $(HOME)/mxtest
 
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest
 

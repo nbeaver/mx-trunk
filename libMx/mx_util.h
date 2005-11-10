@@ -107,6 +107,20 @@
 
 /*------------------------------------------------------------------------*/
 
+#if defined( OS_WIN32 )
+#  include <stdlib.h>
+#  define MXU_FILENAME_LENGTH		_MAX_PATH
+#else
+#  include <sys/param.h>
+#  if defined( MAXPATHLEN )
+#     define MXU_FILENAME_LENGTH	MAXPATHLEN
+#  else
+#     error Maximum path length not yet defined for this platform.
+#  endif
+#endif
+
+/*------------------------------------------------------------------------*/
+
 /* The following definitions allow for typechecking of printf and scanf
  * style function arguments with GCC.
  */
@@ -133,7 +147,6 @@
 #define MX_WHITESPACE		" \t"
 
 #define MXU_STRING_LENGTH       20
-#define MXU_FILENAME_LENGTH	200
 #define MXU_BUFFER_LENGTH	400
 #define MXU_HOSTNAME_LENGTH	100
 

@@ -198,7 +198,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			0
+#define HAVE_XIA_HANDEL			1
 
 #endif /* _MXCONFIG_H_ */
 

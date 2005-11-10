@@ -889,11 +889,7 @@ motor_help_fn( int argc, char *argv[] )
 int
 motor_expand_pathname( char *filename, int max_filename_length )
 {
-#if ( MAXPATHLEN > (2*MXU_FILENAME_LENGTH+2) )
-	char buffer[ MAXPATHLEN ];
-#else
 	char buffer[ 2 * MXU_FILENAME_LENGTH + 2 ];
-#endif
 	int string_length, filename_length, saved_errno;
 	char *filename_ptr;
 
