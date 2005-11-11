@@ -342,10 +342,10 @@ mxn_bluice_dcss_server_get_session_id(
 		 * the base-64 lookup table.
 		 */
 
-		index0 = ( buffer24 >> 18 ) & 0x3f;
-		index1 = ( buffer24 >> 12 ) & 0x3f;
-		index2 = ( buffer24 >>  6 ) & 0x3f;
-		index3 = buffer24 & 0x3f;
+		index0 = ((unsigned char)( buffer24 >> 18 )) & 0x3f;
+		index1 = ((unsigned char)( buffer24 >> 12 )) & 0x3f;
+		index2 = ((unsigned char)( buffer24 >>  6 )) & 0x3f;
+		index3 = ((unsigned char) buffer24 ) & 0x3f;
 
 		base64_hash[4*j]   = base64_table[index0];
 		base64_hash[4*j+1] = base64_table[index1];
@@ -368,9 +368,9 @@ mxn_bluice_dcss_server_get_session_id(
 			break;
 		}
 
-		index0 = ( buffer24 >> 18 ) & 0x3f;
-		index1 = ( buffer24 >> 12 ) & 0x3f;
-		index2 = ( buffer24 >>  6 ) & 0x3f;
+		index0 = ((unsigned char)( buffer24 >> 18 )) & 0x3f;
+		index1 = ((unsigned char)( buffer24 >> 12 )) & 0x3f;
+		index2 = ((unsigned char)( buffer24 >>  6 )) & 0x3f;
 
 		base64_hash[4*j]   = base64_table[index0];
 		base64_hash[4*j+1] = base64_table[index1];
