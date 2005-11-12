@@ -23,7 +23,7 @@
 #include "mx_hrt_debug.h"
 
 MX_EXPORT void
-MX_HRT_RESULTS( MX_HRT_TIMING x, const char *fname, const char *format, ... )
+MX_HRT_RESULTS( MX_HRT_TIMING x, const char *fname, char *format, ... )
 {
 	va_list args;
 	static char buffer[250];

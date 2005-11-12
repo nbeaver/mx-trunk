@@ -52,7 +52,7 @@ typedef struct {
 MX_API void
 MX_HRT_RESULTS( MX_HRT_TIMING x,
 		const char *fname,
-		const char *format,
+		char *format,
 		... ) MX_PRINTFLIKE( 3, 4 );
 
 #define MX_HRT_TIME_BETWEEN_MEASUREMENTS(meas1, meas2, fname)		\
