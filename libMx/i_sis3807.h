@@ -102,7 +102,24 @@ typedef struct {
   \
   {-1, -1, "enable_factor_8_predivider", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, enable_factor_8_predivider), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "module_id", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, module_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "burst_register_available", MXFT_INT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, burst_register_available), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "pulse_width_available", MXFT_INT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, pulse_width_available), \
+	{0}, NULL, MXFF_READ_ONLY }
+
 
 MX_API mx_status_type mxi_sis3807_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_sis3807_open( MX_RECORD *record );

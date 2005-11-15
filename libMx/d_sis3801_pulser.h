@@ -47,36 +47,53 @@ typedef struct {
 
 #define MXD_SIS3801_PULSER_STANDARD_FIELDS \
   {-1, -1, "vme_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, vme_record), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "address_mode_name", MXFT_STRING, NULL, \
 				1, {MXU_VME_ADDRESS_MODE_LENGTH}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, address_mode_name), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, address_mode_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, crate_number), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "base_address", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, base_address), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, base_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "sis3801_flags", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, sis3801_flags), \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, sis3801_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "control_input_mode", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, control_input_mode), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, control_input_mode), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "module_id", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, module_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_SIS3801_PULSER, maximum_prescale_factor), \
+	{0}, NULL, MXFF_READ_ONLY }
 
-MX_API mx_status_type mxd_sis3801_pulser_create_record_structures( MX_RECORD *record );
+MX_API mx_status_type mxd_sis3801_pulser_create_record_structures(
+							MX_RECORD *record );
 MX_API mx_status_type mxd_sis3801_pulser_open( MX_RECORD *record );
 
-MX_API mx_status_type mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator );
-MX_API mx_status_type mxd_sis3801_pulser_start( MX_PULSE_GENERATOR *pulse_generator );
-MX_API mx_status_type mxd_sis3801_pulser_stop( MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_sis3801_pulser_busy(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_sis3801_pulser_start(
+					MX_PULSE_GENERATOR *pulse_generator );
+MX_API mx_status_type mxd_sis3801_pulser_stop(
+					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_sis3801_pulser_get_parameter(
 					MX_PULSE_GENERATOR *pulse_generator );
 MX_API mx_status_type mxd_sis3801_pulser_set_parameter(

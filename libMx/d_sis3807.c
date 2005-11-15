@@ -40,10 +40,7 @@ MX_RECORD_FUNCTION_LIST mxd_sis3807_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxd_sis3807_open,
-	NULL,
-	NULL,
-	NULL
+	mxd_sis3807_open
 };
 
 MX_PULSE_GENERATOR_FUNCTION_LIST mxd_sis3807_pulse_generator_function_list = {

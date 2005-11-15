@@ -434,6 +434,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 	double total_measurement_time, maximum_measurement_time;
 	double pulse_period, clock_frequency;
 	mx_uint32_type prescale_factor, control_register;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_get_pointers( mcs, &sis3801, fname );
@@ -504,7 +505,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 			if ( pulse_period < 0.0 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
-	"is currently configured for a negative pulse frequency.",
+	"is currently configured for a negative pulse period.",
 				mcs->record->name,
 				mcs->external_channel_advance_record->name );
 			}
@@ -512,7 +513,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 			if ( pulse_period < 1.0e-30 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Cannot start MCS '%s' since its external pulse generator '%s' "
-	"is currently configured for an essentially infinite pulse frequency.",
+	"is currently configured for an essentially zero pulse period.",
 				mcs->record->name,
 				mcs->external_channel_advance_record->name );
 			}
@@ -542,6 +543,25 @@ mxd_sis3801_start( MX_MCS *mcs )
 				mcs->measurement_time,
 				sis3801->record->name, 
 				maximum_measurement_time );
+			}
+
+			/* Is the pulse generator running? */
+
+			mx_status = mx_pulse_generator_is_busy( 
+					mcs->external_channel_advance_record,
+					&busy );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( busy == FALSE ) {
+				/* If not, then start the pulse generator. */
+
+				mx_status = mx_pulse_generator_start(
+					mcs->external_channel_advance_record );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 			}
 			break;
 		default:

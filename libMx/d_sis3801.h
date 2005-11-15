@@ -109,7 +109,27 @@ typedef struct {
   \
   {-1, -1, "control_input_mode", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, control_input_mode), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "module_id", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, module_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "firmware_version", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, firmware_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, maximum_prescale_factor), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "fifo_size_in_kwords", MXFT_INT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, fifo_size_in_kwords), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "counts_available_in_fifo", MXFT_INT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, counts_available_in_fifo), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 MX_API mx_status_type mxd_sis3801_initialize_type( long type );
 MX_API mx_status_type mxd_sis3801_create_record_structures(

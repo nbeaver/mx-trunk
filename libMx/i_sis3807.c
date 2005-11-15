@@ -213,6 +213,7 @@ mxi_sis3807_open( MX_RECORD *record )
 		}
 		break;
 	case 3:
+	case 4:
 		if ( sis3807->num_channels != 1 ) {
 			mx_warning(
 	"SIS3807 module '%s' is using version %lu firmware which only supports "
