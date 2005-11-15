@@ -2159,7 +2159,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		mcs_record = mcs_quick_scan->mcs_record_array[i];
 
-#if 1		/* Bugfix - Nov. 6, 2005 (WML) - Sending commands to
+#if 0		/* Bugfix - Nov. 6, 2005 (WML) - Sending commands to
 		 * EPICS MCS records seems to fail randomly if the
 		 * MCS is already running.
 		 */

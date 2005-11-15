@@ -416,6 +416,13 @@ mxd_epics_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
+	mx_status = mxd_epics_mcs_stop( mcs );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
 	start = 1;
 
 	mx_status = mx_caput_nowait( &(epics_mcs->start_pv),

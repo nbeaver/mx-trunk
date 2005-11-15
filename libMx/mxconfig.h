@@ -80,7 +80,7 @@
  * Thus far, only the Linux version of this driver has been tested.
  */
 
-#define HAVE_SIS3100			0
+#define HAVE_SIS3100			1
  
 /*****************************************************************************
  *

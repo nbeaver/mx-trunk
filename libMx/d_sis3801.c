@@ -521,6 +521,12 @@ mxd_sis3801_start( MX_MCS *mcs )
 
 			prescale_factor = mx_round( clock_frequency
 						* mcs->measurement_time );
+#if MXD_SIS3801_DEBUG
+			MX_DEBUG(-2,
+  ("%s: Using pulse generator, pulse_period = %g, clock = %g, prescale = %lu",
+   				fname, pulse_period, clock_frequency,
+				prescale_factor));
+#endif
 
 			if ( prescale_factor >=
 					sis3801->maximum_prescale_factor )
@@ -544,7 +550,9 @@ mxd_sis3801_start( MX_MCS *mcs )
 		}
 
 #if MXD_SIS3801_DEBUG
-		MX_DEBUG(-2,("%s: Using external channel advance", fname));
+		MX_DEBUG(-2,
+		("%s: Using external channel advance, prescale_factor = %lu",
+		 	fname, prescale_factor));
 #endif
 
 		if ( prescale_factor >= sis3801->maximum_prescale_factor ) {
