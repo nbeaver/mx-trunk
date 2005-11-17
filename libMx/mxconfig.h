@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			0
+#define HAVE_EPICS			1
 
 /*****************************************************************************
  *
@@ -80,7 +80,7 @@
  * Thus far, only the Linux version of this driver has been tested.
  */
 
-#define HAVE_SIS3100			1
+#define HAVE_SIS3100			0
  
 /*****************************************************************************
  *
