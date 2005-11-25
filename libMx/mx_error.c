@@ -14,10 +14,6 @@
  *
  */
 
-#if defined( OS_WIN32 )
-#include <windows.h>
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
@@ -267,7 +263,9 @@ mx_error_default_output_function( char *string )
 	return;
 }
 
-#if defined( OS_WIN32 )
+#if defined( OS_WIN32 ) || defined( OS_CYGWIN )
+
+#include <windows.h>
 
 #ifndef MX_CR
 #define MX_CR  0x0d

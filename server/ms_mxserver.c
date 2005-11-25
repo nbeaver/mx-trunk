@@ -775,6 +775,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 				break;
 			default:
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,

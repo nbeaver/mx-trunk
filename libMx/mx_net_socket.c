@@ -114,6 +114,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",
@@ -201,6 +202,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",
@@ -349,6 +351,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",

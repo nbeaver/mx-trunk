@@ -149,7 +149,7 @@ mx_convert_seconds_to_high_resolution_time( double seconds )
 	return result;
 }
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) || defined(OS_CYGWIN)
 
 /******* Microsoft Win32 *******/
 

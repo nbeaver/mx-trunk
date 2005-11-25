@@ -515,7 +515,7 @@ MX_API mx_status_type mx_successful_result( void );
 
 #define MX_SUCCESSFUL_RESULT	mx_successful_result()
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) || defined(OS_CYGWIN)
 MX_API long mx_win32_error_message( long error_code,
 					char *buffer, size_t buffer_length );
 #endif

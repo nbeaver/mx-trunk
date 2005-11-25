@@ -1062,6 +1062,7 @@ mx_socket_send( MX_SOCKET *mx_socket,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 			case EPIPE:
 				if (mx_socket->socket_flags & MXF_SOCKET_QUIET)
 				{
@@ -1176,6 +1177,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 
 			switch( saved_errno ) {
 			case ECONNRESET:
+			case ECONNABORTED:
 				return mx_error(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 		"Network connection lost.  Errno = %d, error text = '%s'",
