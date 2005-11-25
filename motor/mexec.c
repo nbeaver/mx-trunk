@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,7 +95,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 	int cmd_argc;
 	char **cmd_argv;
 	char buffer[256];
-	int length;
+	int buffer_length, whitespace_length;
 	int status, end_of_file;
 
 	script_file = fopen( script_name, "r" );
@@ -132,16 +132,41 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 		/* Zap any trailing newline in the buffer. */
 
-		length = strlen( buffer );
+		buffer_length = strlen( buffer );
 
-		if ( length > 0 ) {
-			if ( buffer[length - 1] == '\n' ) {
-				buffer[length - 1] = '\0';
+		if ( buffer_length > 0 ) {
+			if ( buffer[buffer_length - 1] == '\n' ) {
+				buffer[buffer_length - 1] = '\0';
+				buffer_length--;
 			}
 		}
 
 		if ( verbose_flag )
 			fprintf( output, "*** %s\n", buffer );
+
+		/* Is this a comment line?
+		 *
+		 * First skip over any leading spaces or tabs.
+		 */
+
+		whitespace_length = strspn( buffer, " \t" );
+
+		if ( whitespace_length < buffer_length ) {
+			/* If the first non-whitespace character is
+			 * a comment character '#', then skip over
+			 * this line.
+			 */
+
+			if ( buffer[whitespace_length] == '#' ) {
+				/* Go back to the top of the while() loop
+				 * to read another line.
+				 */
+
+				continue;	
+			}
+		}
+
+		/* Parse the supplied command line. */
 
 		cmd_argv = cmd_parse_command_line( &cmd_argc, buffer );
 
