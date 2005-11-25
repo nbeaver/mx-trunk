@@ -66,6 +66,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	unsigned long server_flags;
+	double timeout;			/* in seconds */
 
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
@@ -95,7 +96,11 @@ typedef struct {
 #define MX_NETWORK_SERVER_STANDARD_FIELDS \
   {-1, -1, "server_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, server_flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, timeout), \
+	{0}, NULL, 0 }
 
 /* Values for the server_flags field. */
 
@@ -105,6 +110,8 @@ typedef struct {
 #define MXF_NETWORK_SERVER_USE_ASCII_FORMAT	0x100
 #define MXF_NETWORK_SERVER_USE_RAW_FORMAT	0x200
 #define MXF_NETWORK_SERVER_USE_XDR_FORMAT	0x400
+
+#define MXF_NETWORK_SERVER_TEST_NON_BLOCKING	0x10000000
 
 /* Definition of network data formats. */
 

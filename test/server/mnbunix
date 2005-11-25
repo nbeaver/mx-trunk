@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mnbunix.dat -s ./snbunix.dat $*
+

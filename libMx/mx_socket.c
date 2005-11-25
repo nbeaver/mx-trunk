@@ -255,7 +255,6 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	struct sockaddr_in server_address;
 	int saved_errno, status, reuseaddr;
-	int non_blocking;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -362,35 +361,17 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	/* Set the socket to non-blocking mode. */
 
-	non_blocking = TRUE;
+	mx_status = mx_socket_set_non_blocking_mode( *server_socket, TRUE );
 
-#if defined( OS_WIN32 )
-#   if defined(__BORLANDC__) || defined(__GNUC__)
-	status = ioctlsocket( (*server_socket)->socket_fd,
-					FIONBIO, (void *) &non_blocking );
-#   else
-	status = ioctlsocket( (*server_socket)->socket_fd,
-					FIONBIO, &non_blocking );
-#   endif
-#elif defined( OS_DJGPP )
-	status = ioctlsocket( (*server_socket)->socket_fd,
-					FIONBIO, (char *) &non_blocking );
-#elif defined( OS_VXWORKS )
-	status = ioctl( (*server_socket)->socket_fd,
-					FIONBIO, (int) &non_blocking );
-#else
-	status = ioctl( (*server_socket)->socket_fd, FIONBIO, &non_blocking );
-#endif
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	saved_errno = mx_socket_check_error_status(
-			&status, MXF_SOCKCHK_INVALID, &error_string );
-
-	if ( saved_errno != 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Error while trying to set socket to non-blocking mode.  "
-		"Errno = %d.  Error string = '%s'.",
-		saved_errno, error_string );
-	}
+	/* If requested disable the Nagle algorithm.  The Nagle algorithm
+	 * tries to coalesce multiple small socket sends into a bigger
+	 * send in order to increase network I/O efficiency.  However,
+	 * some kinds of operations are incompatible with the Nagle
+	 * algorithm, so we give a way of turning it off.
+	 */
 
 	if ( socket_flags & MXF_SOCKET_DISABLE_NAGLE_ALGORITHM ) {
 
@@ -556,7 +537,6 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 	struct sockaddr_un server_address;
 	void *sockaddr_ptr;
 	int saved_errno, status, reuseaddr;
-	int non_blocking;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -685,21 +665,9 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	/* Set the socket to non-blocking mode. */
 
-	non_blocking = TRUE;
+	mx_status = mx_socket_set_non_blocking_mode( *server_socket, TRUE );
 
-	status = ioctl( (*server_socket)->socket_fd, FIONBIO, &non_blocking );
-
-	saved_errno = mx_socket_check_error_status(
-			&status, MXF_SOCKCHK_INVALID, &error_string );
-
-	if ( saved_errno != 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Error while trying to set socket to non-blocking mode.  "
-		"Errno = %d.  Error string = '%s'.",
-		saved_errno, error_string );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 #endif /**** HAVE_UNIX_DOMAIN_SOCKETS ****/
@@ -711,8 +679,9 @@ mx_socket_close( MX_SOCKET *mx_socket )
 {
 	static char fname[] = "mx_socket_close()";
 
-	int status, non_blocking, saved_errno;
+	int status, saved_errno;
 	char c, *error_string;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -723,33 +692,10 @@ mx_socket_close( MX_SOCKET *mx_socket )
 
 	/* Set the socket to non-blocking mode. */
 
-	non_blocking = TRUE;
+	mx_status = mx_socket_set_non_blocking_mode( mx_socket, TRUE );
 
-#if defined( OS_WIN32 )
-#   if defined(__BORLANDC__) || defined(__GNUC__)
-	status = ioctlsocket( mx_socket->socket_fd,
-					FIONBIO, (void *) &non_blocking );
-#   else
-	status = ioctlsocket( mx_socket->socket_fd, FIONBIO, &non_blocking );
-#   endif
-#elif defined( OS_DJGPP )
-	status = ioctlsocket( mx_socket->socket_fd,
-					FIONBIO, (char *) &non_blocking );
-#elif defined( OS_VXWORKS )
-	status = ioctl( mx_socket->socket_fd, FIONBIO, (int) &non_blocking );
-#else
-	status = ioctl( mx_socket->socket_fd, FIONBIO, &non_blocking );
-#endif
-
-	saved_errno = mx_socket_check_error_status(
-			&status, MXF_SOCKCHK_INVALID, &error_string );
-
-	if ( saved_errno != 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Error while trying to set socket to non-blocking mode.  "
-		"Errno = %d.  Error string = '%s'.",
-		saved_errno, error_string );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* "Half-close" the socket by disallowing any further writes
 	 * from our end.
@@ -843,6 +789,66 @@ mx_socket_close( MX_SOCKET *mx_socket )
 }
 
 MX_EXPORT int
+mx_socket_ioctl( MX_SOCKET *mx_socket,
+		int ioctl_type,
+		void *ioctl_value )
+{
+	int ioctl_status, socket_errno;
+
+#if defined( OS_WIN32 )
+#   if defined(__BORLANDC__) || defined(__GNUC__)
+	ioctl_status = ioctlsocket( mx_socket->socket_fd,
+					ioctl_type, ioctl_value );
+#   else
+	ioctl_status = ioctlsocket( mx_socket->socket_fd,
+					ioctl_type, ioctl_value );
+#   endif
+#elif defined( OS_DJGPP )
+	ioctl_status = ioctlsocket( mx_socket->socket_fd,
+					ioctl_type, (char *) ioctl_value );
+#elif defined( OS_VXWORKS )
+	ioctl_status = ioctl( mx_socket->socket_fd,
+					ioctl_type, (int) ioctl_value );
+#else
+	ioctl_status = ioctl( mx_socket->socket_fd,
+					ioctl_type, ioctl_value );
+#endif
+
+	socket_errno = mx_socket_check_error_status(
+			&ioctl_status, MXF_SOCKCHK_INVALID, NULL );
+
+	return socket_errno;
+}
+
+MX_EXPORT mx_status_type
+mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
+				int non_blocking_flag )
+{
+	static const char fname[] = "mx_socket_set_non_blocking_flag()";
+
+	int socket_errno, non_blocking;
+
+	if ( non_blocking_flag ) {
+		non_blocking = 1;
+	} else {
+		non_blocking = 0;
+	}
+
+	socket_errno = mx_socket_ioctl( mx_socket, FIONBIO, &non_blocking );
+
+	if ( socket_errno != 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Error while trying to set socket %d to non-blocking mode.  "
+		"Errno = %d.  Error string = '%s'.",
+			mx_socket->socket_fd,
+			socket_errno,
+			mx_socket_strerror( socket_errno ) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT int
 mx_socket_is_open( MX_SOCKET *mx_socket )
 {
 	/* Check for simple error cases. */
@@ -892,16 +898,14 @@ mx_socket_check_error_status( void *value_to_check,
 
 	int saved_errno, int_value;
 
-#if 0
-	MX_DEBUG( 2,("%s invoked.", fname));
-#endif
-
 	switch( type_of_check ) {
 	case MXF_SOCKCHK_INVALID:
 		int_value = *( (int *) value_to_check );
 
 		if ( int_value != MX_INVALID_SOCKET_FD ) {
-			*error_string = NULL;
+			if ( error_string != NULL ) {
+				*error_string = NULL;
+			}
 			return 0;
 		}
 		break;
@@ -909,27 +913,37 @@ mx_socket_check_error_status( void *value_to_check,
 		int_value = *( (int *) value_to_check );
 
 		if ( int_value != 0 ) {
-			*error_string = NULL;
+			if ( error_string != NULL ) {
+				*error_string = NULL;
+			}
 			return 0;
 		}
 		break;
 	case MXF_SOCKCHK_NULL:
 		if ( value_to_check != NULL ) {
-			*error_string = NULL;
+			if ( error_string != NULL ) {
+				*error_string = NULL;
+			}
 			return 0;
 		}
 		break;
 	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown type_of_check = %d.", type_of_check );
-		*error_string = NULL;
+
+		if ( error_string != NULL ) {
+			*error_string = NULL;
+		}
+
 		return -1;
 		break;
 	}
 
 	saved_errno = mx_socket_get_last_error();
 
-	*error_string = mx_socket_strerror( saved_errno );
+	if ( error_string != NULL ) {
+		*error_string = mx_socket_strerror( saved_errno );
+	}
 
 	return saved_errno;
 }
@@ -1304,7 +1318,7 @@ mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
 	static const char fname[] =
 		"mx_socket_fionread_num_input_bytes_available()";
 
-	int status, saved_errno;
+	int socket_errno;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1315,21 +1329,15 @@ mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
 		"The num_input_bytes_available pointer passed was NULL." );
 	}
 
-#if defined( OS_WIN32 )
-	status = ioctlsocket( mx_socket->socket_fd, FIONREAD,
-				num_input_bytes_available );
-#else
-	status = ioctl( mx_socket->socket_fd, FIONREAD,
-				num_input_bytes_available );
-#endif
-	if ( status != 0 ) {
-		saved_errno = errno;
+	socket_errno = mx_socket_ioctl( mx_socket, FIONREAD,
+					num_input_bytes_available );
 
+	if ( socket_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"FIONREAD ioctl failed for socket %d.  "
 			"Errno = %d, error message = '%s'",
-			mx_socket->socket_fd, saved_errno,
-			mx_socket_strerror( saved_errno ) );
+			mx_socket->socket_fd, socket_errno,
+			mx_socket_strerror( socket_errno ) );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

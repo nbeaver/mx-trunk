@@ -188,6 +188,13 @@ MX_API mx_status_type mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 MX_API mx_status_type mx_socket_close( MX_SOCKET *mx_socket );
 
+MX_API int mx_socket_ioctl( MX_SOCKET *mx_socket,
+					int ioctl_type,
+					void *ioctl_value );
+
+MX_API mx_status_type mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
+						int non_blocking_flag );
+
 MX_API int  mx_socket_is_open( MX_SOCKET *mx_socket );
 
 MX_API void mx_socket_mark_as_closed( MX_SOCKET *mx_socket );

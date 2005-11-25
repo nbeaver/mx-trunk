@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,19 +27,23 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_types.h"
+#include "mx_hrt.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"
 
 MX_EXPORT mx_status_type
 mx_network_socket_receive_message( MX_SOCKET *mx_socket,
-				unsigned long buffer_length, void *buffer )
+					double timeout,
+					unsigned long buffer_length,
+					void *buffer )
 {
 	const char fname[] = "mx_network_socket_receive_message()";
 
 	mx_uint32_type *header;
 	char *ptr;
-	int saved_errno;
+	int saved_errno, use_timeout, comparison;
+	struct timespec timeout_interval, current_time, timeout_time;
 	long i, bytes_left, bytes_received, initial_recv_length;
 	mx_uint32_type magic_value, header_length, message_length;
 
@@ -71,6 +75,22 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		header[i] = htonl( 0L );
 	}
 
+	/* If requested, compute the timeout time for this message. */
+
+	if ( timeout < 0.0 ) {
+		use_timeout = FALSE;
+	} else {
+		use_timeout = TRUE;
+
+		timeout_interval =
+			mx_convert_seconds_to_high_resolution_time( timeout );
+
+		current_time = mx_high_resolution_time();
+
+		timeout_time = mx_add_high_resolution_times( current_time,
+							timeout_interval );
+	}
+
 	/* Read the first three network longs so that we can figure
 	 * out how long the rest of the message is.
 	 */
@@ -93,16 +113,43 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			saved_errno = mx_socket_get_last_error();
 
 			switch( saved_errno ) {
-#ifdef OS_WIN32
-			case WSAECONNRESET:
-#else
 			case ECONNRESET:
-#endif
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",
 				saved_errno, mx_socket_strerror(saved_errno));
 
+				break;
+			case EAGAIN:
+				if ( use_timeout == FALSE ) {
+					return mx_error_quiet(
+					MXE_NETWORK_IO_ERROR, fname,
+			    "Received EAGAIN when not expecting a timeout." );
+
+				} else {
+					current_time =
+						mx_high_resolution_time();
+
+					comparison =
+					    mx_compare_high_resolution_times(
+					    	current_time, timeout_time );
+
+					if ( comparison < 0 ) {
+
+						/* Have not timed out yet, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					} else {
+						return mx_error_quiet(
+						MXE_TIMED_OUT, fname,
+	"Timed out after waiting %g seconds to read from MX network socket %d.",
+							timeout,
+							mx_socket->socket_fd );
+					}
+				}
 				break;
 			default:
 				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
@@ -153,16 +200,43 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			saved_errno = mx_socket_get_last_error();
 
 			switch( saved_errno ) {
-#ifdef OS_WIN32
-			case WSAECONNRESET:
-#else
 			case ECONNRESET:
-#endif
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",
 				saved_errno, mx_socket_strerror(saved_errno));
 
+				break;
+			case EAGAIN:
+				if ( use_timeout == FALSE ) {
+					return mx_error_quiet(
+					MXE_NETWORK_IO_ERROR, fname,
+			    "Received EAGAIN when not expecting a timeout." );
+
+				} else {
+					current_time =
+						mx_high_resolution_time();
+
+					comparison =
+					    mx_compare_high_resolution_times(
+					    	current_time, timeout_time );
+
+					if ( comparison < 0 ) {
+
+						/* Have not timed out yet, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					} else {
+						return mx_error_quiet(
+						MXE_TIMED_OUT, fname,
+	"Timed out after waiting %g seconds to read from MX network socket %d.",
+							timeout,
+							mx_socket->socket_fd );
+					}
+				}
 				break;
 			default:
 				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
@@ -186,13 +260,16 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 
 MX_EXPORT mx_status_type
-mx_network_socket_send_message( MX_SOCKET *mx_socket, void *buffer )
+mx_network_socket_send_message( MX_SOCKET *mx_socket,
+				double timeout,
+				void *buffer )
 {
 	const char fname[] = "mx_network_socket_send_message()";
 
 	mx_uint32_type *header;
 	char *ptr;
-	int saved_errno;
+	int saved_errno, use_timeout, comparison;
+	struct timespec timeout_interval, current_time, timeout_time;
 	long bytes_left, bytes_sent;
 	mx_uint32_type magic_value, header_length, message_length;
 
@@ -245,6 +322,24 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket, void *buffer )
         }
 #endif   
 
+	/* If requested, compute the timeout time for this message. */
+
+	if ( timeout < 0.0 ) {
+		use_timeout = FALSE;
+	} else {
+		use_timeout = TRUE;
+
+		timeout_interval =
+			mx_convert_seconds_to_high_resolution_time( timeout );
+
+		current_time = mx_high_resolution_time();
+
+		timeout_time = mx_add_high_resolution_times( current_time,
+							timeout_interval );
+	}
+
+	/* Send the message. */
+
 	while( bytes_left > 0 ) {
 		bytes_sent = send( mx_socket->socket_fd, ptr, bytes_left, 0 );
 
@@ -253,15 +348,42 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket, void *buffer )
 			saved_errno = mx_socket_get_last_error();
 
 			switch( saved_errno ) {
-#ifdef OS_WIN32
-			case WSAECONNRESET:
-#else
 			case ECONNRESET:
-#endif
 				return mx_error_quiet(
 					MXE_NETWORK_CONNECTION_LOST, fname,
 			"Connection lost.  Errno = %d, error text = '%s'",
 				saved_errno, mx_socket_strerror(saved_errno));
+				break;
+			case EAGAIN:
+				if ( use_timeout == FALSE ) {
+					return mx_error_quiet(
+					MXE_NETWORK_IO_ERROR, fname,
+			    "Received EAGAIN when not expecting a timeout." );
+
+				} else {
+					current_time =
+						mx_high_resolution_time();
+
+					comparison =
+					    mx_compare_high_resolution_times(
+					    	current_time, timeout_time );
+
+					if ( comparison < 0 ) {
+
+						/* Have not timed out yet, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					} else {
+						return mx_error_quiet(
+						MXE_TIMED_OUT, fname,
+	"Timed out after waiting %g seconds to write to MX network socket %d.",
+							timeout,
+							mx_socket->socket_fd );
+					}
+				}
 				break;
 			default:
 				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
@@ -331,7 +453,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	/* Send back the error message. */
 
-	status = mx_network_socket_send_message( mx_socket, send_buffer );
+	status = mx_network_socket_send_message( mx_socket, 0, send_buffer );
 
 	free(send_buffer);
 

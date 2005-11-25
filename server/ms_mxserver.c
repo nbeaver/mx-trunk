@@ -774,11 +774,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			saved_errno = mx_socket_get_last_error();
 
 			switch( saved_errno ) {
-#ifdef OS_WIN32
-			case WSAECONNRESET:
-#else
 			case ECONNRESET:
-#endif
 				break;
 			default:
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1769,7 +1765,8 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 "#6 before sending reply for '%s.%s'", record->name, record_field->name );
 #endif
 
-	mx_status = mx_network_socket_send_message( mx_socket, send_buffer );
+	mx_status = mx_network_socket_send_message( mx_socket,
+							-1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2115,7 +2112,8 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 	}
 #endif
 
-	mx_status = mx_network_socket_send_message( mx_socket, send_buffer );
+	mx_status = mx_network_socket_send_message( mx_socket,
+							-1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2266,7 +2264,7 @@ mxsrv_handle_get_network_handle( MX_SOCKET_HANDLER *socket_handler,
 	/* Send the record field handle back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, send_buffer );
+			socket_handler->synchronous_socket, -1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2358,7 +2356,8 @@ mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
 
 	/* Send the field type information back to the client. */
 
-	mx_status = mx_network_socket_send_message( mx_socket, send_buffer );
+	mx_status = mx_network_socket_send_message( mx_socket,
+							-1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2532,7 +2531,7 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 	/* Send the success message back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, send_buffer );
+			socket_handler->synchronous_socket, -1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2641,7 +2640,7 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, send_buffer );
+			socket_handler->synchronous_socket, -1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2755,7 +2754,7 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, send_buffer );
+			socket_handler->synchronous_socket, -1.0, send_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",

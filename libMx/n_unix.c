@@ -237,6 +237,21 @@ mxn_unix_server_open( MX_RECORD *record )
 		break;
 	}
 
+	/* Set the socket to non-blocking mode if requested. */
+
+	if ( flags & MXF_NETWORK_SERVER_TEST_NON_BLOCKING ) {
+
+		mx_status = mx_socket_set_non_blocking_mode( server_socket,
+								TRUE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		network_server->timeout = 5.0;
+	} else {
+		network_server->timeout = -1.0;
+	}
+
 	/* Transmit a single null byte to the remote server.  For Unix domain
 	 * sockets, this has the side effect of sending unforgeable user
 	 * credentials to the remote server.
@@ -348,14 +363,16 @@ mxn_unix_server_receive_message(MX_NETWORK_SERVER *network_server,
 	}
 
 	mx_status = mx_network_socket_receive_message( unix_server->socket,
-						buffer_length, buffer );
+							network_server->timeout,
+							buffer_length, buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s from server '%s'",
 			fname, network_server->record->name );
 
 		if ( ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
-		  || ( mx_status.code == MXE_NETWORK_IO_ERROR ) )
+		  || ( mx_status.code == MXE_NETWORK_IO_ERROR )
+		  || ( mx_status.code == MXE_TIMED_OUT ) )
 		{
 			if ( unix_server->socket != NULL ) {
 				(void) mx_network_mark_handles_as_invalid(
@@ -390,15 +407,17 @@ mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server, void *buffer)
 			network_server->record->name );
 	}
 
-	mx_status = mx_network_socket_send_message(
-					unix_server->socket, buffer );
+	mx_status = mx_network_socket_send_message( unix_server->socket,
+							network_server->timeout,
+							buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to server '%s'",
 			fname, network_server->record->name );
 
 		if ( ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
-		  || ( mx_status.code == MXE_NETWORK_IO_ERROR ) )
+		  || ( mx_status.code == MXE_NETWORK_IO_ERROR )
+		  || ( mx_status.code == MXE_TIMED_OUT ) )
 		{
 			if ( unix_server->socket != NULL ) {
 				(void) mx_network_mark_handles_as_invalid(
