@@ -359,7 +359,7 @@ mxserver_main( int argc, char *argv[] )
 			setvbuf( stderr, (char *) NULL, _IONBF, 0 );
 		}
 	}
-#endif
+#endif   /* OS_WIN32 */
 
 	mxsrv_setup_output_functions();
 

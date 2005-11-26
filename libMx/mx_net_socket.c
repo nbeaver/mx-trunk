@@ -42,7 +42,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	mx_uint32_type *header;
 	char *ptr;
-	int saved_errno, use_timeout, comparison;
+	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long i, bytes_left, bytes_received, initial_recv_length;
 	mx_uint32_type magic_value, header_length, message_length;
@@ -78,9 +78,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	/* If requested, compute the timeout time for this message. */
 
 	if ( timeout < 0.0 ) {
-		use_timeout = FALSE;
+		use_non_blocking_mode = FALSE;
 	} else {
-		use_timeout = TRUE;
+		use_non_blocking_mode = TRUE;
 
 		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
@@ -121,10 +121,15 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 				break;
 			case EAGAIN:
-				if ( use_timeout == FALSE ) {
+			case EWOULDBLOCK:
+				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
-			    "Received EAGAIN when not expecting a timeout." );
+				"A call to recv() for MX socket %d returned an "
+				"error code warning that the call would block "
+				"even though we are in blocking mode.  "
+				"This should not happen.",
+						mx_socket->socket_fd );
 
 				} else {
 					current_time = mx_current_clock_tick();
@@ -207,10 +212,15 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 				break;
 			case EAGAIN:
-				if ( use_timeout == FALSE ) {
+			case EWOULDBLOCK:
+				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
-			    "Received EAGAIN when not expecting a timeout." );
+				"A call to recv() for MX socket %d returned an "
+				"error code warning that the call would block "
+				"even though we are in blocking mode.  "
+				"This should not happen.",
+						mx_socket->socket_fd );
 
 				} else {
 					current_time = mx_current_clock_tick();
@@ -265,7 +275,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 	mx_uint32_type *header;
 	char *ptr;
-	int saved_errno, use_timeout, comparison;
+	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long bytes_left, bytes_sent;
 	mx_uint32_type magic_value, header_length, message_length;
@@ -322,9 +332,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	/* If requested, compute the timeout time for this message. */
 
 	if ( timeout < 0.0 ) {
-		use_timeout = FALSE;
+		use_non_blocking_mode = FALSE;
 	} else {
-		use_timeout = TRUE;
+		use_non_blocking_mode = TRUE;
 
 		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
@@ -352,10 +362,15 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				saved_errno, mx_socket_strerror(saved_errno));
 				break;
 			case EAGAIN:
-				if ( use_timeout == FALSE ) {
+			case EWOULDBLOCK:
+				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
-			    "Received EAGAIN when not expecting a timeout." );
+				"A call to send() for MX socket %d returned an "
+				"error code warning that the call would block "
+				"even though we are in blocking mode.  "
+				"This should not happen.",
+						mx_socket->socket_fd );
 
 				} else {
 					current_time = mx_current_clock_tick();
