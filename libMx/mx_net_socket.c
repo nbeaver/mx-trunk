@@ -27,7 +27,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_types.h"
-#include "mx_hrt.h"
+#include "mx_clock.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"
@@ -43,7 +43,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	mx_uint32_type *header;
 	char *ptr;
 	int saved_errno, use_timeout, comparison;
-	struct timespec timeout_interval, current_time, timeout_time;
+	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long i, bytes_left, bytes_received, initial_recv_length;
 	mx_uint32_type magic_value, header_length, message_length;
 
@@ -82,12 +82,11 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	} else {
 		use_timeout = TRUE;
 
-		timeout_interval =
-			mx_convert_seconds_to_high_resolution_time( timeout );
+		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
-		current_time = mx_high_resolution_time();
+		current_time = mx_current_clock_tick();
 
-		timeout_time = mx_add_high_resolution_times( current_time,
+		timeout_time = mx_add_clock_ticks( current_time,
 							timeout_interval );
 	}
 
@@ -128,11 +127,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			    "Received EAGAIN when not expecting a timeout." );
 
 				} else {
-					current_time =
-						mx_high_resolution_time();
+					current_time = mx_current_clock_tick();
 
-					comparison =
-					    mx_compare_high_resolution_times(
+					comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
 					if ( comparison < 0 ) {
@@ -216,11 +213,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			    "Received EAGAIN when not expecting a timeout." );
 
 				} else {
-					current_time =
-						mx_high_resolution_time();
+					current_time = mx_current_clock_tick();
 
-					comparison =
-					    mx_compare_high_resolution_times(
+					comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
 					if ( comparison < 0 ) {
@@ -271,7 +266,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	mx_uint32_type *header;
 	char *ptr;
 	int saved_errno, use_timeout, comparison;
-	struct timespec timeout_interval, current_time, timeout_time;
+	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long bytes_left, bytes_sent;
 	mx_uint32_type magic_value, header_length, message_length;
 
@@ -331,12 +326,11 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	} else {
 		use_timeout = TRUE;
 
-		timeout_interval =
-			mx_convert_seconds_to_high_resolution_time( timeout );
+		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
-		current_time = mx_high_resolution_time();
+		current_time = mx_current_clock_tick();
 
-		timeout_time = mx_add_high_resolution_times( current_time,
+		timeout_time = mx_add_clock_ticks( current_time,
 							timeout_interval );
 	}
 
@@ -364,11 +358,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 			    "Received EAGAIN when not expecting a timeout." );
 
 				} else {
-					current_time =
-						mx_high_resolution_time();
+					current_time = mx_current_clock_tick();
 
-					comparison =
-					    mx_compare_high_resolution_times(
+					comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
 					if ( comparison < 0 ) {

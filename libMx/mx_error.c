@@ -263,7 +263,7 @@ mx_error_default_output_function( char *string )
 	return;
 }
 
-#if defined( OS_WIN32 ) || defined( OS_CYGWIN )
+#if defined( OS_WIN32 )
 
 #include <windows.h>
 
