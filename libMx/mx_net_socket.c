@@ -121,7 +121,10 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 				break;
 			case EAGAIN:
+
+#if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
+#endif
 				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
@@ -212,7 +215,10 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 				break;
 			case EAGAIN:
+
+#if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
+#endif
 				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
@@ -362,7 +368,10 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				saved_errno, mx_socket_strerror(saved_errno));
 				break;
 			case EAGAIN:
+
+#if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
+#endif
 				if ( use_non_blocking_mode == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
