@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_SCAMAC_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,15 +29,9 @@
 #include "i_soft_camac.h"
 
 MX_RECORD_FUNCTION_LIST mxi_scamac_record_function_list = {
-	mxi_scamac_initialize_type,
-	mxi_scamac_create_record_structures,
-	mxi_scamac_finish_record_initialization,
-	mxi_scamac_delete_record,
 	NULL,
-	mxi_scamac_read_parms_from_hardware,
-	mxi_scamac_write_parms_to_hardware,
-	mxi_scamac_open,
-	mxi_scamac_close
+	mxi_scamac_create_record_structures,
+	mxi_scamac_finish_record_initialization
 };
 
 MX_CAMAC_FUNCTION_LIST mxi_scamac_camac_function_list = {
@@ -43,10 +39,6 @@ MX_CAMAC_FUNCTION_LIST mxi_scamac_camac_function_list = {
 	mxi_scamac_controller_command,
 	mxi_scamac_camac
 };
-
-#define TEST_X_DIMENSION	2
-#define TEST_Y_DIMENSION	3
-#define TEST_Z_DIMENSION	4
 
 MX_RECORD_FIELD_DEFAULTS mxi_scamac_record_field_defaults[] = {
   MX_RECORD_STANDARD_FIELDS,
@@ -63,17 +55,9 @@ MX_RECORD_FIELD_DEFAULTS *mxi_scamac_record_field_def_ptr
 #define LOGFILE_NAME_LENGTH 255
 
 MX_EXPORT mx_status_type
-mxi_scamac_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_scamac_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_scamac_create_record_structures()";
+	static const char fname[] = "mxi_scamac_create_record_structures()";
 
 	MX_CAMAC *crate;
 	MX_SCAMAC *scamac;
@@ -84,16 +68,16 @@ mxi_scamac_create_record_structures( MX_RECORD *record )
 
 	if ( crate == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_CAMAC structure." );
+		"Cannot allocate memory for MX_CAMAC structure." );
 	}
 
 	scamac = (MX_SCAMAC *) malloc( sizeof(MX_SCAMAC) );
 
 	if ( scamac == NULL ) {
-		free(crate);
+		mx_free(crate);
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_SCAMAC structure." );
+		"Cannot allocate memory for MX_SCAMAC structure." );
 	}
 
 	/* Now set up the necessary pointers. */
@@ -110,76 +94,29 @@ mxi_scamac_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_scamac_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_scamac_finish_record_initialization()";
+	static const char fname[] = "mxi_scamac_finish_record_initialization()";
 
 	MX_SCAMAC *scamac;
 
-	/* Get pointer to the array through the MX_SCAMAC structure. */
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
 
-	scamac = (MX_SCAMAC *)(record->record_type_struct);
+	scamac = (MX_SCAMAC *) record->record_type_struct;
 
 	if ( scamac == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_SCAMAC structure pointer is NULL." );
+			"MX_SCAMAC pointer for record '%s' is NULL.",
+			record->name );
 	}
 
 	scamac->logfile = fopen( scamac->logfile_name, "w" );
 
 	if ( scamac->logfile == NULL ) {
 		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Can't open CAMAC log file '%s'", scamac->logfile_name );
+		"Cannot open CAMAC log file '%s'", scamac->logfile_name );
 	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scamac_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scamac_read_parms_from_hardware( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxi_scamac_read_parms_from_hardware() called."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scamac_write_parms_to_hardware( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxi_scamac_write_parms_to_hardware() called."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scamac_open( MX_RECORD *record )
-{
-	MX_DEBUG( 2, ("mxi_scamac_open() called."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_scamac_close( MX_RECORD *record )
-{
-	MX_DEBUG( 2, ("mxi_scamac_close() called."));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -202,22 +139,32 @@ MX_EXPORT mx_status_type
 mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
 		int function_code, mx_sint32_type *data, int *Q, int *X)
 {
-	const char fname[] = "mxi_scamac_camac()";
+	static const char fname[] = "mxi_scamac_camac()";
 
 	MX_SCAMAC *scamac;
 
-#ifdef DEBUG
+	if ( crate == (MX_CAMAC *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CAMAC pointer passed was NULL." );
+	}
+	if ( crate->record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer for MX_CAMAC pointer %p is NULL.",
+			crate );
+	}
+
+#if MXI_SCAMAC_DEBUG
 	if ( function_code >= 16 && function_code <= 23 ) {
-		MX_DEBUG(2, ("mxi_scamac_camac(%s, %d, %d, %d, %ld) invoked.",
+		MX_DEBUG(-2, ("mxi_scamac_camac(%s, %d, %d, %d, %ld) invoked.",
 			crate->record->name, slot, subaddress,
 			function_code, *data));
 	} else {
-		MX_DEBUG(2, ("mxi_scamac_camac(%s, %d, %d, %d) invoked.",
+		MX_DEBUG(-2, ("mxi_scamac_camac(%s, %d, %d, %d) invoked.",
 			crate->record->name, slot, subaddress, function_code));
 	}
 #endif
 
-	scamac = (MX_SCAMAC *) (crate->record->record_type_struct);
+	scamac = (MX_SCAMAC *) crate->record->record_type_struct;
 
 	if ( scamac == (MX_SCAMAC *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,

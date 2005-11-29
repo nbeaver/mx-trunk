@@ -110,17 +110,23 @@ MX_INCLUDES	= -I$(MX_INC_DIR)
 
 MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
 
-MX_LIBRARY_NAME	= libMx.so.$(MX_MAJOR_VERSION)
+#### MX_LIBRARY_NAME	= libMx.so.$(MX_MAJOR_VERSION)
 
 MX_LIBRARY_STATIC_NAME = libMx.a
+
+MX_LIBRARY_NAME = $(MX_LIBRARY_STATIC_NAME)
 
 MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	gcc -shared -o $(MX_LIBRARY_NAME) \
-			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
-	ln -sf $(MX_LIBRARY_NAME) libMx.so
+	#
+	# FIXME: For some reason, using the shared library causes a crash
+	#        right now, so we skip building the shared library.
+	#
+	#### gcc -shared -o $(MX_LIBRARY_NAME) \
+	####		$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+	#### ln -sf $(MX_LIBRARY_NAME) libMx.so
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
 
@@ -135,8 +141,8 @@ library_install:
 	-mkdir $(MX_INSTALL_DIR)/sbin
 	-mkdir $(MX_INSTALL_DIR)/state
 	cp mx*.h $(MX_INSTALL_DIR)/include 
-	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
-	ln -sf $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
+	#### cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib 
+	#### ln -sf $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib/libMx.so
 	cp $(MX_LIBRARY_STATIC_NAME) $(MX_INSTALL_DIR)/lib 
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
 	touch $(MX_INSTALL_DIR)/etc/scan.dat
