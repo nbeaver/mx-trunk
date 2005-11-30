@@ -201,8 +201,10 @@ mx_build: $(MX_LIBRARY_NAME)
 mx_clean:
 	-$(RM) *.$(OBJ)
 	-$(RM) *.bak
+	-$(RM) *.dbg
 	-$(RM) *.exe
 	-$(RM) *.ilk
+	-$(RM) *.map
 	-$(RM) *.pdb
 	-$(RM) *.tds
 	-$(RM) core*

@@ -61,7 +61,7 @@ U500_LIBS     = $(U500_DIR)\\win32bc5.lib
 #BCCFLAGS = -I$(BCC_DIR)/include -tWM -w -w! \
 #	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
 
-BCCFLAGS = -tWM -w -w! \
+BCCFLAGS = -v -tWM -w -w! \
 	-w-aus -w-ccc -w-csu -w-nak -w-par -w-rch -w-sig -w-use
 
 #CC		= bcc32 -q -I$(BCC_DIR)/include
@@ -139,7 +139,7 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	ilink32 -D"" -aa -Tpd -x -Gn -Gi \
+	ilink32 -v -D"" -aa -Tpd -Gn -Gi -s -m \
 		c0d32.obj $(MX_LIB_OBJS) ..\\tools\\xdr.obj, \
 		libMx.dll,, $(LIBRARIES)
 
@@ -172,7 +172,8 @@ library_install:
 MOTOR_NAME	= motorbin.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -e$(MOTOR_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+	$(CC) -v -lv -M -e$(MOTOR_NAME) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 motor_install:
@@ -185,7 +186,8 @@ motor_install:
 SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -e$(SERVER_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+	$(CC) -v -lv -M -e$(SERVER_NAME) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 server_install:
@@ -201,7 +203,8 @@ server_install:
 UPDATE_NAME	= mxupdate.exe
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -e$(UPDATE_NAME) $(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+	$(CC) -v -lv -M -e$(UPDATE_NAME) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 update_install:
@@ -215,7 +218,7 @@ update_install:
 MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
-	$(CC) -e$(MXDRIVERINFO_NAME) \
+	$(CC) -v -lv -M -e$(MXDRIVERINFO_NAME) \
 			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 

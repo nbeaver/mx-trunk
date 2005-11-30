@@ -56,6 +56,7 @@ mx_clean:
 	-$(RM) *.bak
 	-$(RM) *.bin
 	-$(RM) *.bt
+	-$(RM) *.dbg
 	-$(RM) *.exe
 	-$(RM) *.ilk
 	-$(RM) *.map
