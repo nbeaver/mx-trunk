@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32-borland
+MX_ARCH = irix-gcc
 
 MX_INSTALL_DIR = /opt/mx
 

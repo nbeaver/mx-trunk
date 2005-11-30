@@ -151,9 +151,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 					} else {
 						return mx_error_quiet(
 						MXE_TIMED_OUT, fname,
-	"Timed out after waiting %g seconds to read from MX network socket %d.",
-							timeout,
-							mx_socket->socket_fd );
+    "Timed out after waiting %g seconds to read from the MX network socket.",
+							timeout );
 					}
 				}
 				break;
@@ -245,9 +244,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 					} else {
 						return mx_error_quiet(
 						MXE_TIMED_OUT, fname,
-	"Timed out after waiting %g seconds to read from MX network socket %d.",
-							timeout,
-							mx_socket->socket_fd );
+    "Timed out after waiting %g seconds to read from the MX network socket.",
+							timeout );
 					}
 				}
 				break;
