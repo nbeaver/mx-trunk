@@ -911,8 +911,6 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
 				bluice_server->record->name );
 		}
 	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ====================================================================== */

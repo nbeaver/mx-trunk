@@ -219,8 +219,6 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 
 		mx_status = mx_thread_check_for_stop_request( thread );
 	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
@@ -1655,7 +1653,6 @@ mxn_bluice_dcss_server_close( MX_RECORD *record )
 
 #endif /* Disabled for now. */
 
-	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1678,10 +1675,7 @@ mxn_bluice_dcss_server_resynchronize( MX_RECORD *record )
 
 	mx_status = mxn_bluice_dcss_server_open( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	return mx_status;
 #endif
-
-	return MX_SUCCESSFUL_RESULT;
 }
 

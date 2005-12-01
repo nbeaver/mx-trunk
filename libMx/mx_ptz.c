@@ -233,8 +233,6 @@ mx_ptz_default_command_handler( MX_PAN_TILT_ZOOM *ptz )
 			ptz->record->name );
 		break;
 	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -259,8 +257,6 @@ mx_ptz_default_get_parameter_handler( MX_PAN_TILT_ZOOM *ptz )
 			ptz->record->name );
 		break;
 	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -285,8 +281,6 @@ mx_ptz_default_set_parameter_handler( MX_PAN_TILT_ZOOM *ptz )
 			ptz->record->name );
 		break;
 	}
-
-	return MX_SUCCESSFUL_RESULT;
 }
 
 /*=======================================================================*/

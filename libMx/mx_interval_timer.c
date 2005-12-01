@@ -1671,10 +1671,6 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 			return MX_SUCCESSFUL_RESULT;
 		}
 	}
-
-	MX_DEBUG(-2,("%s: Should not get here.", fname));
-	
-	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
