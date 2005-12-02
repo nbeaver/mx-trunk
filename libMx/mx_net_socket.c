@@ -15,7 +15,9 @@
  *
  */
 
-#define MX_NET_SOCKET_DEBUG_PERFORMANCE	TRUE
+#define MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE	TRUE
+
+#define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE	FALSE
 
 #include <stdio.h>
 
@@ -34,7 +36,7 @@
 #include "mx_net.h"
 #include "mx_net_socket.h"
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 #include "mx_hrt_debug.h"
 #endif
 
@@ -53,8 +55,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	long i, bytes_left, bytes_received, initial_recv_length;
 	mx_uint32_type magic_value, header_length, message_length;
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
+#endif
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+	MX_HRT_TIMING io_measurement;
 #endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -110,12 +116,24 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	bytes_left = initial_recv_length;
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_START( total_measurement );
 #endif
 
 	while( bytes_left > 0 ) {
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_START( io_measurement );
+#endif
 		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_END( io_measurement );
+
+		MX_HRT_RESULTS( io_measurement, fname,
+		"First 3 longs: bytes_left = %ld, bytes_received = %ld",
+			bytes_left, bytes_received );
+#endif
 
 		switch( bytes_received ) {
 		case 0:
@@ -208,7 +226,19 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		(header_length + message_length - initial_recv_length);
 
 	while( bytes_left > 0 ) {
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_START( io_measurement );
+#endif
 		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_END( io_measurement );
+
+		MX_HRT_RESULTS( io_measurement, fname,
+		"Rest of measurement: bytes_left = %ld, bytes_received = %ld",
+			bytes_left, bytes_received );
+#endif
 
 		switch( bytes_received ) {
 		case 0:
@@ -280,10 +310,10 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		}
 	}
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_END( total_measurement );
 
-	MX_HRT_RESULTS( total_measurement, fname, "total duration" );
+	MX_HRT_RESULTS( total_measurement, fname, "Total duration" );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -304,8 +334,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	long bytes_left, bytes_sent;
 	mx_uint32_type magic_value, header_length, message_length;
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
+#endif
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+	MX_HRT_TIMING io_measurement;
 #endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -372,14 +406,26 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 							timeout_interval );
 	}
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_START( total_measurement );
 #endif
 
 	/* Send the message. */
 
 	while( bytes_left > 0 ) {
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_START( io_measurement );
+#endif
 		bytes_sent = send( mx_socket->socket_fd, ptr, bytes_left, 0 );
+
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		MX_HRT_END( io_measurement );
+
+		MX_HRT_RESULTS( io_measurement, fname,
+			"Sending: bytes_left = %ld, bytes_sent = %ld",
+			bytes_left, bytes_sent );
+#endif
 
 		switch( bytes_sent ) {
 		case MX_SOCKET_ERROR:
@@ -445,10 +491,10 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		}
 	}
 
-#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_END( total_measurement );
 
-	MX_HRT_RESULTS( total_measurement, fname, "total duration" );
+	MX_HRT_RESULTS( total_measurement, fname, "Total duration" );
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
