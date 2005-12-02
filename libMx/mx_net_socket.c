@@ -17,7 +17,7 @@
 
 #define MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE	TRUE
 
-#define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE	FALSE
+#define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE	TRUE
 
 #include <stdio.h>
 
@@ -61,6 +61,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 	MX_HRT_TIMING io_measurement;
+	long n;
 #endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -120,9 +121,13 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	MX_HRT_START( total_measurement );
 #endif
 
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+	n = -1;
+#endif
 	while( bytes_left > 0 ) {
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		n++;
 		MX_HRT_START( io_measurement );
 #endif
 		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
@@ -131,8 +136,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-		"First 3 longs: bytes_left = %ld, bytes_received = %ld",
-			bytes_left, bytes_received );
+	"First 3 longs: bytes_left = %ld, bytes_received = %ld, n = %ld",
+			bytes_left, bytes_received, n );
 #endif
 
 		switch( bytes_received ) {
@@ -225,9 +230,13 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	bytes_left = (long)
 		(header_length + message_length - initial_recv_length);
 
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+	n = -1;
+#endif
 	while( bytes_left > 0 ) {
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		n++;
 		MX_HRT_START( io_measurement );
 #endif
 		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
@@ -236,8 +245,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-		"Rest of measurement: bytes_left = %ld, bytes_received = %ld",
-			bytes_left, bytes_received );
+	"Rest of measurement: bytes_left = %ld, bytes_received = %ld, n = %ld",
+			bytes_left, bytes_received, n );
 #endif
 
 		switch( bytes_received ) {
@@ -340,6 +349,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 	MX_HRT_TIMING io_measurement;
+	long n;
 #endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -412,6 +422,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 	/* Send the message. */
 
+#if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+	n = -1;
+#endif
 	while( bytes_left > 0 ) {
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
@@ -420,11 +433,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		bytes_sent = send( mx_socket->socket_fd, ptr, bytes_left, 0 );
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
+		n++;
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-			"Sending: bytes_left = %ld, bytes_sent = %ld",
-			bytes_left, bytes_sent );
+			"Sending: bytes_left = %ld, bytes_sent = %ld, n = %ld",
+			bytes_left, bytes_sent, n );
 #endif
 
 		switch( bytes_sent ) {
