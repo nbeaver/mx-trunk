@@ -15,6 +15,8 @@
  *
  */
 
+#define MX_NET_SOCKET_DEBUG_PERFORMANCE	TRUE
+
 #include <stdio.h>
 
 #include "mx_osdef.h"
@@ -32,6 +34,10 @@
 #include "mx_net.h"
 #include "mx_net_socket.h"
 
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+#include "mx_hrt_debug.h"
+#endif
+
 MX_EXPORT mx_status_type
 mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 					double timeout,
@@ -46,6 +52,10 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long i, bytes_left, bytes_received, initial_recv_length;
 	mx_uint32_type magic_value, header_length, message_length;
+
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_TIMING total_measurement;
+#endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -99,6 +109,10 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	initial_recv_length = 3 * sizeof( mx_uint32_type );
 
 	bytes_left = initial_recv_length;
+
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_START( total_measurement );
+#endif
 
 	while( bytes_left > 0 ) {
 		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
@@ -266,6 +280,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		}
 	}
 
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( total_measurement, fname, "total duration" );
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -283,6 +303,10 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long bytes_left, bytes_sent;
 	mx_uint32_type magic_value, header_length, message_length;
+
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_TIMING total_measurement;
+#endif
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -347,6 +371,10 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		timeout_time = mx_add_clock_ticks( current_time,
 							timeout_interval );
 	}
+
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_START( total_measurement );
+#endif
 
 	/* Send the message. */
 
@@ -416,6 +444,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 			break;
 		}
 	}
+
+#if MX_NET_SOCKET_DEBUG_PERFORMANCE
+	MX_HRT_END( total_measurement );
+
+	MX_HRT_RESULTS( total_measurement, fname, "total duration" );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
