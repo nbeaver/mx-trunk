@@ -48,9 +48,6 @@
 #  if defined( OS_DJGPP )
       extern int sock_init( void );
       extern int h_errno;
-
-      extern __inline__ unsigned long  __ntohl( unsigned long );
-      extern __inline__ unsigned short __ntohs( unsigned short );
 #  endif
 
 #  include <time.h>

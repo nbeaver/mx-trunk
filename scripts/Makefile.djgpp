@@ -18,7 +18,7 @@ MAKECMD = make MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
 all: build
 
-build:
+build: depend_files
 	cd tools
 	$(MAKECMD) -f Makefile.$(MX_ARCH)
 	cd ..\libMx
@@ -34,7 +34,7 @@ build:
 	cd ..\util
 	$(MAKECMD)
 
-clean:
+clean: depend_files
 	cd tools
 	$(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean
 	cd ..\libMx
@@ -50,7 +50,7 @@ clean:
 	cd ..\util
 	$(MAKECMD) mx_clean
 
-distclean:
+distclean: depend_files
 	cd tools
 	$(MAKECMD) -f Makefile.$(MX_ARCH) mx_clean
 	cd ..\libMx
@@ -66,7 +66,7 @@ distclean:
 	cd ..\util
 	$(MAKECMD) mx_distclean
 
-depend:
+depend: depend_files
 	cd libMx
 	$(MAKECMD) mx_depend
 	cd ..\motor
@@ -80,7 +80,7 @@ depend:
 	cd ..\util
 	$(MAKECMD) mx_depend
 
-install:
+install: depend_files
 	cd libMx
 	$(MAKECMD) mx_install
 	cd ..\motor
@@ -93,4 +93,29 @@ install:
 	$(MAKECMD) mx_install
 	cd ..\util
 	$(MAKECMD) mx_install
+
+#------------------------------------------------------------------------------
+
+MD = Makefile.depend
+
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) \
+					update_old/$(MD) util/$(MD)
+
+libMx/$(MD):
+	touch libMx/$(MD)
+
+motor/$(MD):
+	touch motor/$(MD)
+
+server/$(MD):
+	touch server/$(MD)
+
+update/$(MD):
+	touch update/$(MD)
+
+update_old/$(MD):
+	touch update_old/$(MD)
+
+util/$(MD):
+	touch util/$(MD)
 

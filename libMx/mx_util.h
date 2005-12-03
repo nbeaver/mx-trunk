@@ -107,6 +107,15 @@
 
 /*------------------------------------------------------------------------*/
 
+#if defined( OS_DJGPP )
+   /* This has to appear before we include <sys/param.h> below, which
+    * includes <sys/swap.h>, which requires these prototypes to exist.
+    * They are also used by the mx_socket.h header file.
+    */
+   extern __inline__ unsigned long  __ntohl( unsigned long );
+   extern __inline__ unsigned short __ntohs( unsigned short );
+#endif
+
 #if defined( OS_WIN32 )
 #  include <stdlib.h>
 #  define MXU_FILENAME_LENGTH		_MAX_PATH
