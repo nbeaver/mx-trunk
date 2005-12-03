@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,15 +130,17 @@ mxd_trump_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	long num_record_fields;
-	long maximum_num_scalers_varargs_cookie;
-	long maximum_num_measurements_varargs_cookie;
+	long maximum_num_channels_varargs_cookie;
+	long maximum_num_rois_varargs_cookie;
+	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
 				&num_record_fields,
 				&record_field_defaults,
-				&maximum_num_scalers_varargs_cookie,
-				&maximum_num_measurements_varargs_cookie );
+				&maximum_num_channels_varargs_cookie,
+				&maximum_num_rois_varargs_cookie,
+				&num_soft_rois_varargs_cookie );
 
 	return mx_status;
 }

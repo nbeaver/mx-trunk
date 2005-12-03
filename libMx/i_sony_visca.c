@@ -411,7 +411,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	/* Send the encoded camera number. */
 
 	mx_status = mx_rs232_putchar( sony_visca->rs232_record,
-					encoded_camera_number, 0 );
+					(char) encoded_camera_number, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

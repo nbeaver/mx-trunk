@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -21,11 +21,22 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
+#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
+
 #INCLUDES = $(MX_INCLUDES) $(U500_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(U500_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
+
+#INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
+
+INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PMC_MCAPI_INCLUDES) \
+		$(U500_INCLUDES) $(UMCBI_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PMC_MCAPI_LIBS) \
+		$(U500_LIBS) $(UMCBI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
@@ -37,10 +48,10 @@ LIBRARIES = $(WIN32_LIBS)
 # correctly, but then occasionally fail in mysterious ways.  Thus, it is
 # very important to get this right!
 
-#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -53,8 +64,8 @@ RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 # for Gnu Make MUST NOT contain any spaces in it.  That is why the example
 # below specified the progra~1\micros~1 directory.
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
-#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
@@ -89,9 +100,9 @@ EXTRA_OBJS	= ..\\tools\\getopt.obj
 # Directory containing the EG&G Ortec UMCBI library and include file.
 #
 
-UMCBI_DIR	= c:\\Users\\Lavender\\ortec
-UMCBI_INCLUDES	= -I$(UMCBI_DIR)
-UMCBI_LIBS	= $(UMCBI_DIR)\\Mcbcio32.lib
+UMCBI_DIR	= c:\\Ortec
+UMCBI_INCLUDES	= -I$(UMCBI_DIR)\\lib
+UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 
 #
 # Directory tree containing compiled versions of the XIA Handel libraries
@@ -113,7 +124,7 @@ XIA_HANDEL_LIBS     = $(XIA_HANDEL_LIB_DIR)\\handel.lib \
 #
 # Aerotech Unidex 500 motor controllers
 #
-U500_DIR             = c:\\u500\\mmi
+U500_DIR             = c:\\U500\\mmi
 U500_INCLUDES        = -I$(U500_DIR)\\include
 U500_LIBS            = $(U500_DIR)\\Win50032.lib
 
