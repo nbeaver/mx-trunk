@@ -142,6 +142,69 @@ mxi_xia_xerxes_get_pointers( MX_MCA *mca,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* --- */
+
+/* FIXME: The following function probably should not be using tmpnam(). */
+
+static FILE *
+mxi_xia_xerxes_open_temporary_file( char *returned_temporary_name,
+				size_t maximum_name_length )
+{
+	FILE *temp_file;
+	int temp_fd;
+
+	if ( maximum_name_length < L_tmpnam ) {
+		errno = ENAMETOOLONG;
+
+		return NULL;
+	}
+
+	/* FIXME: There is a potential for a race condition in the following.
+	 *        The filename returned by tmpnam() may be in use by another
+	 *        file by the time we invoke open().  However, this method
+	 *        is somewhat mitigated by the fact that the open() will
+	 *        fail if the file already exists due to the inclusion of
+	 *        the O_EXCL flag in the call.  This method also has the
+	 *        virtue of being fairly portable.
+	 */
+
+	if ( tmpnam( returned_temporary_name ) == NULL ) {
+		errno = EINVAL;
+
+		return NULL;
+	}
+
+#if defined( OS_WIN32 )
+#   if defined( __BORLANDC__ )
+	temp_fd = _open( returned_temporary_name,
+			_O_CREAT | _O_TRUNC | _O_EXCL | _O_RDWR );
+#   else
+	temp_fd = _open( returned_temporary_name,
+			_O_CREAT | _O_TRUNC | _O_EXCL | _O_RDWR,
+			_S_IREAD | _S_IWRITE );
+#   endif
+#elif defined( OS_VXWORKS )
+	temp_fd = -1;	/* FIXME: VxWorks doesn't have S_IREAD or S_IWRITE. */
+#else
+	temp_fd = open( returned_temporary_name,
+			O_CREAT | O_TRUNC | O_EXCL | O_RDWR,
+			S_IREAD | S_IWRITE );
+#endif
+
+	/* If temp_fd is set to -1, an error has occurred during the open.
+	 * The open function will already have set errno to an appropriate
+	 * value.
+	 */
+
+	if ( temp_fd == -1 ) {
+		return NULL;
+	}
+
+	temp_file = fdopen( temp_fd, "w+" );
+
+	return temp_file;
+}
+
 /*==========================*/
 
 MX_EXPORT mx_status_type
@@ -420,8 +483,8 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 	if ( use_temporary_file ) {
 		/* Open a temporary xiasystems.cfg style file. */
 
-		file = mx_open_temporary_file( modules_filename,
-						MXU_FILENAME_LENGTH );
+		file = mxi_xia_xerxes_open_temporary_file( modules_filename,
+							MXU_FILENAME_LENGTH );
 
 		if ( file == NULL ) {
 			saved_errno = errno;

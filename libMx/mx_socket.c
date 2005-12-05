@@ -820,6 +820,10 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 	return socket_errno;
 }
 
+#if defined(OS_SOLARIS)
+#  include <sys/utsname.h>
+#endif
+
 MX_EXPORT mx_status_type
 mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 				int non_blocking_flag )
@@ -827,6 +831,41 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 	static const char fname[] = "mx_socket_set_non_blocking_flag()";
 
 	int socket_errno, non_blocking;
+
+#if defined(OS_SOLARIS)
+	{
+		/* FIXME - FIXME - FIXME  (WML - Dec. 5, 2005)
+		 * For some reason, on Solaris 10, non-blocking socket I/O
+		 * seems to be very slow compared to blocking I/O.  However,
+		 * Solaris 8 does not seem to have this problem.
+		 *
+		 * The socket code is scheduled to be rewritten for MX 2.0,
+		 * so for now we put in a "temporary" patch that disables
+		 * non-blocking I/O for Solaris 9 and above.  I do not
+		 * currently have a copy of Solaris 9 to test with, so
+		 * disabling it on Solaris 9 is just being careful.
+		 */
+
+		int os_major, os_minor, os_update;
+		mx_status_type mx_status;
+
+		mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG( 2,("%s: os_major = %d, os_minor = %d",
+			fname, os_major, os_minor ));
+
+		/* If this is Solaris 9 or newer, return
+		 * without doing anything.
+		 */
+
+		if ( (os_major >= 5) && (os_minor >= 9) ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+#endif
 
 	if ( non_blocking_flag ) {
 		non_blocking = 1;

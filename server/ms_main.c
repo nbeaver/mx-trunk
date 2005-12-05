@@ -294,6 +294,7 @@ mxserver_main( int argc, char *argv[] )
 	char mx_stderr_destination_filename[MXU_FILENAME_LENGTH+1];
 	char server_pathname[MXU_FILENAME_LENGTH+1];
 	char server_hostname[MXU_HOSTNAME_LENGTH+1];
+	char os_version_string[40];
 	char ident_string[80];
 	int i, debug_level, start_debugger, saved_errno;
 	int num_fds, max_fd;
@@ -688,7 +689,9 @@ mxserver_main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
-	/* Print out the hostname and process id for the server. */
+	/* Print out the hostname, operating system, and process id
+	 * for the server.
+	 */
 
 	mx_status = mx_gethostname(server_hostname, sizeof(server_hostname)-1);
 
@@ -697,8 +700,14 @@ mxserver_main( int argc, char *argv[] )
 			"unknown hostname", MXU_HOSTNAME_LENGTH );
 	}
 
-	mx_info("Server running on '%s', process id %lu",
-		server_hostname, mx_process_id() );
+	mx_status = mx_get_os_version_string( os_version_string,
+					sizeof(os_version_string) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
+
+	mx_info("Server '%s' (%s), process id %lu",
+		server_hostname, os_version_string, mx_process_id() );
 
 	/* Read the database description file and add the records therein
 	 * to the record list.

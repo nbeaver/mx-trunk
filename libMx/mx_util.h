@@ -308,13 +308,6 @@ MX_API int mx_match( char *pattern, char *string );
 MX_API int mx_parse_command_line( char *command_line,
 		int *argc, char ***argv, int *envc, char ***envp );
 
-/* mx_open_temporary_file() opens a file with a unique temporary name
- * and then returns a FILE pointer and the temporary name.
- */
-
-MX_API FILE *mx_open_temporary_file( char *returned_temporary_name,
-					size_t maximum_name_length );
-
 /* mx_free_pointer() is a wrapper for free() that attempts to verify
  * that the pointer is valid to be freed before trying to free() it.
  * The function returns TRUE if freeing the memory succeeded and 
@@ -537,6 +530,13 @@ MX_API long mx_win32_error_message( long error_code,
 MX_API mx_status_type mx_copy_file( char *original_filename,
 				char *new_filename,
 				int new_file_mode );
+
+MX_API mx_status_type mx_get_os_version_string( char *version_string,
+					size_t max_version_string_length );
+
+MX_API mx_status_type mx_get_os_version( int *os_major,
+					int *os_minor,
+					int *os_update );
 
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
