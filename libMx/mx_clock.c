@@ -333,16 +333,53 @@ mx_current_clock_tick( void )
 {
 	MX_CLOCK_TICK current_clock_tick;
 
-	unsigned long current_cpu_tick;
+	unsigned long current_cpu_tick, old_low_order;
 
 	current_clock_tick = mx_most_recent_clock_tick_value;
+
+	old_low_order = current_clock_tick.low_order;
 
 	current_cpu_tick = mx_current_cpu_tick();
 
 	/* Check for CPU time rollover. */
 
-	if ( current_cpu_tick < current_clock_tick.low_order )
+#if defined(OS_IRIX) && defined(__GNUC__)
+
+	/* FIXME: As amazing as it seems, the comparison of current_cpu_tick
+	 * with old_low_order _does not_ work correctly under Irix 6.5 using
+	 * GCC 2.8.1.  Yes, I know its an old version of GCC, but I do not
+	 * have control of the machine in question.
+	 * 
+	 * As an example, if the two tick values are _equal_ but greater than
+	 * 2^31 (LONG_MAX), the expression ( current_cpu_tick < old_low_order ) 
+	 * evaluates to _true_.  So is it a compiler bug, an error in my
+	 * understanding, alien mind control rays, or the revenge of Bigfoot?
+	 * You make the call!
+	 *
+	 * So far, the best fix has been to assign the difference to the
+	 * long variable 'tick_delta' and then do the comparison of that
+	 * value with 0.  However, if the magnitude of the difference
+	 * between 'current_cpu_tick' and 'old_low_order' ever gets bigger
+	 * than LONG_MAX then this simple test will give the wrong answer
+	 * since the difference will wrap to a negative value.
+	 */
+
+	{
+		long tick_delta;
+
+		tick_delta = current_cpu_tick - old_low_order;
+
+		if ( tick_delta < 0 ) {
+			current_clock_tick.high_order ++;
+		}
+	}
+#else
+	if ( current_cpu_tick < old_low_order ) {
 		current_clock_tick.high_order ++;
+	}
+#endif
+
+	/* Save the new current clock tick value for the next time. */
 
 	current_clock_tick.low_order = current_cpu_tick;
 
