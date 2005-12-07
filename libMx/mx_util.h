@@ -347,8 +347,8 @@ MX_API int vsnprintf( char *dest, size_t maxlen, const char *format,
 #endif
 
 #if defined(OS_LINUX) || defined(OS_WIN32) || defined(OS_IRIX) \
-	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_DJGPP) \
-	|| defined(OS_VMS)
+	|| defined(OS_QNX) || defined(OS_VXWORKS) || defined(OS_RTEMS) \
+	|| defined(OS_DJGPP) || defined(OS_VMS)
 
 /* These provide definitions of strlcpy() and strlcat() for systems that
  * do not come with them.  For systems that do not come with them, the

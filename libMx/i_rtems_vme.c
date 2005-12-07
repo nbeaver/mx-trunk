@@ -7,18 +7,18 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define MX_RTEMS_VME_DEBUG	FALSE
+
 #include <stdio.h>
 
-#if defined(OS_RTEMS)
-
-#define MX_RTEMS_VME_DEBUG	FALSE
+#if defined(OS_RTEMS) && defined(HAVE_RTEMS_VME)
 
 #include <stdlib.h>
 

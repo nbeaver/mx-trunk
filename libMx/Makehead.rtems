@@ -6,11 +6,13 @@
 #          for RTEMS.
 #
 
+RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/posix
+
 #RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
 
 #RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
 
-RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/mvme2307
+#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/mvme2307
 
 #RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/psim
 
@@ -25,6 +27,19 @@ LIBRARIES	= -lm
 # Generally, you should not have to modify anything after this point.
 #
 
+include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
+include $(RTEMS_CUSTOM)
+include $(PROJECT_ROOT)/make/leaf.cfg
+
+ifeq ($(RTEMS_BSP),mvme162)
+	BSP_FLAGS = -DHAVE_RTEMS_VME
+endif
+ifeq ($(RTEMS_BSP),mvme2307)
+	BSP_FLAGS = -DHAVE_RTEMS_VME
+endif
+
+#------------------------------------------------------------------------
+
 MANAGERS = io event semaphore
 
 ifeq ($(mx_directory_name),"motor")
@@ -37,12 +52,8 @@ else
 	endif
 endif
 
-include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
-include $(RTEMS_CUSTOM)
-include $(PROJECT_ROOT)/make/leaf.cfg
-
-BSP_FLAGS = -DRTEMS_BSP=$(RTEMS_BSP) -DRTEMS_BSP_FAMILY=$(RTEMS_BSP_FAMILY) \
-	-DRTEMS_CPU=$(RTEMS_CPU) -DRTEMS_CPU_MODEL=$(RTEMS_CPU_MODEL)
+##BSP_FLAGS = -DRTEMS_BSP=$(RTEMS_BSP) -DRTEMS_BSP_FAMILY=$(RTEMS_BSP_FAMILY) \
+##	-DRTEMS_CPU=$(RTEMS_CPU) -DRTEMS_CPU_MODEL=$(RTEMS_CPU_MODEL)
 
 CFLAGS_LD += -Wl,--defsym -Wl,HeapSize=0x80000
 
@@ -67,7 +78,9 @@ GCCFLAGS = -Wall -Werror \
 #
 CFLAGS		= -g -O $(GCCFLAGS) -I$(RTEMS_MAKEFILE_PATH)/lib/include \
 				$(INCLUDES) -DOS_RTEMS \
-				$(EXTRA_FLAGS) -DDEBUG
+				$(EXTRA_FLAGS) -DDEBUG \
+				$(BSP_FLAGS)
+
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 
 # Special cases for individual files.
@@ -94,6 +107,10 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 
 #
 #---------------------------------------------------
@@ -160,7 +177,7 @@ $(MOTOR_NAME): mrtems.o $(MOTOR_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
 	$(make-exe)
 
 mrtems.o: mrtems.c
-	$(COMPILE) $(CFLAGS) $(BSP_FLAGS) mrtems.c
+	$(COMPILE) $(CFLAGS) mrtems.c
 
 motor_install:
 	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
@@ -175,7 +192,7 @@ $(SERVER_NAME): ms_rtems.o $(SERVER_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
 	$(make-exe)
 
 ms_rtems.o: ms_rtems.c
-	$(COMPILE) $(CFLAGS) $(BSP_FLAGS) ms_rtems.c
+	$(COMPILE) $(CFLAGS) ms_rtems.c
 
 server_install:
 	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin

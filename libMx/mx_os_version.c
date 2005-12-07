@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 
-#if defined( OS_UNIX )
+#if defined( OS_UNIX ) || defined( OS_RTEMS )
 
 #include <sys/utsname.h>
 

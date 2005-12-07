@@ -1,4 +1,11 @@
-all:
+all:  strlcpy.o strlcat.o
 
 mx_clean:
+	-rm *.o
+
+strlcpy.o: generic/src/strlcpy.c
+	$(CC) -c generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	$(CC) -c generic/src/strlcat.c
 
