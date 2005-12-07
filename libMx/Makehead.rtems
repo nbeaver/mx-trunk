@@ -6,9 +6,7 @@
 #          for RTEMS.
 #
 
-RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/posix
-
-#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
+RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
 
 #RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
 
@@ -31,11 +29,14 @@ include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
+ifeq ($(RTEMS_BSP),pc486)
+	BSP_FLAGS = -DMX_RTEMS_BSP_PC486
+endif
 ifeq ($(RTEMS_BSP),mvme162)
-	BSP_FLAGS = -DHAVE_RTEMS_VME
+	BSP_FLAGS = -DMX_RTEMS_BSP_MVME162  -DHAVE_RTEMS_VME
 endif
 ifeq ($(RTEMS_BSP),mvme2307)
-	BSP_FLAGS = -DHAVE_RTEMS_VME
+	BSP_FLAGS = -DMX_RTEMS_BSP_2307     -DHAVE_RTEMS_VME
 endif
 
 #------------------------------------------------------------------------

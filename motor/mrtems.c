@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,7 +16,7 @@
 
 #if defined( OS_RTEMS )
 
-#include "os_rtems_startup.h"
+#include "os_rtems.h"
 #include "motor.h"
 
 #define NUM_ARGUMENTS	7
@@ -44,7 +44,11 @@ Init( rtems_task_argument ignored )
 
 	rtems_bsdnet_initialize_network();
 
+	fprintf(stderr,"*** Network initialized ***\n");
+
 	rtems_bsdnet_initialize_tftp_filesystem();
+
+	fprintf(stderr,"*** TFTP filesystem initialized ***\n");
 
 	argv = (char **)
 		malloc( NUM_ARGUMENTS * sizeof(char *[MAX_ARGV_LENGTH+1]) );

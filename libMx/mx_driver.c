@@ -1306,7 +1306,7 @@ MX_DRIVER mx_type_list[] = {
 
 #endif /* OS_LINUX */
 
-#if defined(OS_RTEMS)
+#if defined(OS_RTEMS) && defined(HAVE_RTEMS_VME)
 
 {"rtems_vme",      MXI_VME_RTEMS,     MXI_VME,        MXR_INTERFACE,
 				&mxi_rtems_vme_record_function_list,

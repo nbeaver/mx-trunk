@@ -9,7 +9,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,22 @@
 
 #ifndef __OS_RTEMS_CONFIG_H__
 #define __OS_RTEMS_CONFIG_H__
+
+/*========== General definitions ==========*/
+
+#define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 20
+#define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
+
+#define CONFIGURE_EXECUTIVE_RAM_SIZE	(512*1024)
+#define CONFIGURE_MAXIMUM_SEMAPHORES	20
+#define CONFIGURE_MAXIMUM_TASKS		20
+
+#define CONFIGURE_MICROSECONDS_PER_TICK	10000
+
+#define CONFIGURE_INIT_TASK_STACK_SPACE	(10*1024)
+#define CONFIGURE_INIT_TASK_PRIORITY	100
+
+/*========== Network definitions ==========*/
 
 #define MX_RTEMS_IP_ADDRESS	"192.168.137.55"
 #define MX_RTEMS_NETWORK_MASK	"255.255.255.0"
@@ -38,13 +54,17 @@
  * 	NE2000           - BSP_NE2000_NETWORK_DRIVER_...
  * 	WD8003           - BSP_WD8003_NETWORK_DRIVER_...
  *
- * Of these, the Tulip cards are probably the best choice.
+ * For real hardware, the Tulip cards are probably the best choice.
+ * If you want to use the QEMU emulator, you should choose the NE2000
+ * adapter type instead.
  *
  */
 
-#if 0
+#if defined(MX_RTEMS_BSP_PC486)
+
 #  define RTEMS_BSP_NETWORK_DRIVER_NAME    BSP_NE2000_NETWORK_DRIVER_NAME
 #  define RTEMS_BSP_NETWORK_DRIVER_ATTACH  BSP_NE2000_NETWORK_DRIVER_ATTACH
+
 #endif
 
 /* m68k
@@ -59,23 +79,13 @@
 /* powerpc
  *   MVME2307 BSP (tested on an MVME2700 with an MVME761)
  *
- * 	The MVME2307 BSP for some reason does not define a network driver
- *	in its <bsp.h> header file, so this must be done explicitly here.
- *
- *	Also, you _must_ make the ENV command modifications described in the
+ *      No special definitions are necessary for the MVME2307.  However,
+ *	you _must_ make the ENV command modifications described in the
  *	file c/src/lib/lib/libbsp/powerpc/motorola_powerpc/README.MVME2300.
  *	If you do not, the generated RTEMS binaries will crash while
  *	starting up.
  *
  */
-
-#if 1
-   extern int
-   rtems_dec21140_driver_attach( struct rtems_bsdnet_ifconfig *, int );
-
-#  define RTEMS_BSP_NETWORK_DRIVER_NAME    "dc1"
-#  define RTEMS_BSP_NETWORK_DRIVER_ATTACH  rtems_dec21140_driver_attach
-#endif
 
 #endif /* __OS_RTEMS_CONFIG_H__ */
 

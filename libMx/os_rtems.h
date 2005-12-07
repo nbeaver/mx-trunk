@@ -1,21 +1,27 @@
 /*
- * Name:    os_rtems_startup.h
+ * Name:    os_rtems.h
  *
- * Purpose: Standard startup definitions for MX RTEMS programs.
+ * Purpose: Standard definitions for MX RTEMS programs.
  *
  * Author:  William Lavender
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#ifndef __OS_RTEMS_STARTUP_H__
-#define __OS_RTEMS_STARTUP_H__
+#ifndef __OS_RTEMS_H__
+#define __OS_RTEMS_H__
+
+/*==== Include site dependent configuation file ====*/
+
+#include "os_rtems_config.h"
+
+/*==== Generally you should not have to change anything after this point ====*/
 
 #include <bsp.h>
 #include <rtems/tftp.h>
@@ -23,23 +29,13 @@
 #define CONFIGURE_TEST_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_TEST_NEEDS_CLOCK_DRIVER
 #define CONFIGURE_RTEMS_INIT_TASKS_TABLE
-#define CONFIGURE_LIBIO_MAXIMUM_FILE_DESCRIPTORS 20
-#define CONFIGURE_USE_IMFS_AS_BASE_FILESYSTEM
 
-#define CONFIGURE_EXECUTIVE_RAM_SIZE	(512*1024)
-#define CONFIGURE_MAXIMUM_SEMAPHORES	20
-#define CONFIGURE_MAXIMUM_TASKS		20
-
-#define CONFIGURE_MICROSECONDS_PER_TICK	10000
-
-#define CONFIGURE_INIT_TASK_STACK_SPACE	(10*1024)
-#define CONFIGURE_INIT_TASK_PRIORITY	100
 #define CONFIGURE_INIT_TASK_INITIAL_MODES ( RTEMS_PREEMPT | \
 					RTEMS_NO_TIMESLICE | \
 					RTEMS_NO_ASR | \
 					RTEMS_INTERRUPT_LEVEL(0) )
-
 #define CONFIGURE_INIT
+
 rtems_task Init( rtems_task_argument argument );
 
 #include <confdefs.h>
@@ -61,10 +57,6 @@ int pclose( FILE *stream )
 {
 	return 0;
 }
-
-/*==== Include site dependent configuation file ====*/
-
-#include "os_rtems_config.h"
 
 /*=========== Setup network definitions ============*/
 
@@ -124,4 +116,4 @@ struct rtems_bsdnet_config rtems_bsdnet_config = {
 
 };
 
-#endif /* __OS_RTEMS_STARTUP_H__ */
+#endif /* __OS_RTEMS_H__ */
