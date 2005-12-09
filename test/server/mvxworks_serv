@@ -8,5 +8,5 @@ ld < ../../libMx/libMx.o
 
 ld < ../../server/mxserver.o
 
-mxserver("mvxworks_serv.dat","mvme_serv.acl")
+mxserver(9727,"mvxworks_serv.dat","mvme_serv.acl")
 

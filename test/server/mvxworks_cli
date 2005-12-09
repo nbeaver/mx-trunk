@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mvxworks_cli.dat -s ./svxworks_cli.dat $*
+

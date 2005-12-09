@@ -81,6 +81,8 @@
 #include "d_stp100.h"
 #include "d_vme58.h"
 
+#include "d_elapsed_time.h"
+
 #include "d_soft_scaler.h"
 #include "d_vsc16_scaler.h"
 #include "d_vsc16_timer.h"
@@ -304,6 +306,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_vme58_motor_function_list,
 				&mxd_vme58_num_record_fields,
 				&mxd_vme58_rfield_def_ptr},
+
+{"elapsed_time",   MXT_MTR_ELAPSED_TIME, MXC_MOTOR,       MXR_DEVICE,
+				&mxd_elapsed_time_record_function_list,
+				NULL,
+				&mxd_elapsed_time_motor_function_list,
+				&mxd_elapsed_time_num_record_fields,
+				&mxd_elapsed_time_rfield_def_ptr},
 
 {"soft_scaler",    MXT_SCL_SOFTWARE,  MXC_SCALER,         MXR_DEVICE,
 				&mxd_soft_scaler_record_function_list,
