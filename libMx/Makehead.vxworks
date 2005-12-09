@@ -49,6 +49,24 @@ INCLUDES	= $(MX_INCLUDES)
 LIB_DIRS	= -L$(MX_LIB_DIR)
 LIBRARIES	=
 
+# 
+# VxWorks often runs on resource constrained systems, so we define here
+# a list of MX drivers that only includes the actual drivers we need.
+#
+# Note that you must also edit libMx/mx_driver_vxworks.c to match.
+#
+
+MX_DRIVER_VXWORKS_SRCS = i_vxworks_rs232.c i_vxworks_vme.c \
+	i_pdi40.c i_pdi45.c i_vme58.c i_vsc16.c i_iseries.c \
+	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
+	d_pdi45_aio.c d_pdi45_dio.c d_iseries_aio.c d_iseries_dio.c \
+	d_bit.c d_vme_dio.c \
+	d_soft_motor.c d_pdi40.c d_stp100.c d_vme58.c \
+	d_soft_scaler.c d_vsc16_scaler.c d_vsc16_timer.c \
+	d_pdi45_scaler.c d_pdi45_timer.c d_soft_timer.c d_interval_timer.c \
+	d_soft_amplifier.c d_generic_relay.c d_blind_relay.c \
+	d_pdi45_pulser.c v_mathop.c
+
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.
@@ -117,6 +135,10 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 
 #
 #---------------------------------------------------
+#
+
+MX_LIB_SRCS = mx_driver_vxworks.c $(MX_CORE_SRCS) $(MX_DRIVER_VXWORKS_SRCS)
+
 #
 # See libMx/Makehead.irix for why this is here.
 #

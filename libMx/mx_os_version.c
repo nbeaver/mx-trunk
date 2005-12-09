@@ -22,7 +22,97 @@
 
 #include "mx_util.h"
 
-#if defined( OS_UNIX ) || defined( OS_RTEMS )
+static void
+mx_split_version_number_string( char *version_number_string,
+				int *os_major, int *os_minor, int *os_update )
+{
+	char *ptr_major, *ptr_minor, *ptr_update;
+
+	if ( ( version_number_string == NULL ) || ( os_major == NULL )
+		|| ( os_minor == NULL ) || ( os_update == NULL ) )
+	{
+		return;
+	}
+
+	ptr_major = version_number_string;
+
+	/* Split the reported release string at the period characters. */
+
+	ptr_minor = strchr( ptr_major, '.' );
+
+	if ( ptr_minor == NULL ) {
+		*os_major = atoi( ptr_major );
+		*os_minor = 0;
+		*os_update = 0;
+
+		return;
+	}
+
+	*ptr_minor = '\0';	/* Split the string here into two strings. */
+	ptr_minor++;		/* Point 'ptr_minor' to the second string. */
+
+	ptr_update = strchr( ptr_minor, '.' );
+
+	if ( ptr_update == NULL ) {
+		*os_major = atoi( ptr_major );
+		*os_minor = atoi( ptr_minor );
+		*os_update = 0;
+
+		return;
+	}
+
+	*ptr_update = '\0';	/* Split the string here into two strings. */
+	ptr_update++;		/* Point 'ptr_update' to the second string. */
+
+	*os_major = atoi( ptr_major );
+	*os_minor = atoi( ptr_minor );
+	*os_update = 0;
+
+	return;
+}
+
+/*------------------------------------------------------------------------*/
+
+#if defined( OS_VXWORKS )
+
+#include "version.h"
+
+MX_EXPORT mx_status_type
+mx_get_os_version_string( char *version_string,
+			size_t max_version_string_length )
+{
+	static const char fname[] = "mx_get_os_version_string()";
+
+	if ( version_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The version_string pointer passed was NULL." );
+	}
+
+	snprintf( version_string, max_version_string_length,
+		"VxWorks %s", VXWORKS_VERSION );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_os_version( int *os_major, int *os_minor, int *os_update )
+{
+	static const char fname[] = "mx_get_os_version()";
+
+	if ( (os_major == NULL) || (os_minor == NULL) || (os_update == NULL) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"One or more of the arguments passed were NULL." );
+	}
+
+	mx_split_version_number_string( VXWORKS_VERSION,
+				os_major, os_minor, os_update );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+#elif defined( OS_UNIX ) || defined( OS_RTEMS )
 
 #include <sys/utsname.h>
 
@@ -34,6 +124,11 @@ mx_get_os_version_string( char *version_string,
 
 	struct utsname uname_struct;
 	int status, saved_errno;
+
+	if ( version_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The version_string pointer passed was NULL." );
+	}
 
 	status = uname( &uname_struct );
 
@@ -58,7 +153,6 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 
 	struct utsname uname_struct;
 	int status, saved_errno;
-	char *ptr;
 
 	if ( (os_major == NULL) || (os_minor == NULL) || (os_update == NULL) ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -88,26 +182,8 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 			fname, uname_struct.machine));
 #endif
 
-	/* Find the period in the release name.  The part before
-	 * the period is the OS major version, while the part
-	 * after the period is the OS minor version.
-	 */
-
-	ptr = strchr( uname_struct.release, '.' );
-
-	if ( ptr == NULL ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"The SunOS release string '%s' returned by the "
-		"operating system does not have a '.' character "
-		"in it.  How can this happen?", uname_struct.release );
-	}
-
-	*ptr = '\0';	/* Split the string into two strings. */
-	ptr++;		/* Point 'ptr' to the second string. */
-
-	*os_major = atoi( uname_struct.release );
-	*os_minor = atoi( ptr );
-	*os_update = 0;
+	mx_split_version_number_string( uname_struct.release,
+				os_major, os_minor, os_update );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -119,6 +119,11 @@
 #if defined( OS_WIN32 )
 #  include <stdlib.h>
 #  define MXU_FILENAME_LENGTH		_MAX_PATH
+
+#elif defined( OS_VXWORKS )
+#  include <limits.h>
+#  define MXU_FILENAME_LENGTH		PATH_MAX
+
 #else
 #  include <sys/param.h>
 #  if defined( MAXPATHLEN )

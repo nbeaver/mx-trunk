@@ -13,9 +13,6 @@
 # List all of the source code files used to build libMx.
 #
 
-#MX_LIB_SRCS = *.c			# This doesn't expand the wildcard.
-#MX_LIB_SRCS = $(wildcard *.c)		# This works but only for GNU make.
-
 #
 # Unfortunately we must list all the source files explicitly to be portable
 # to "make"s other than GNU make.  Otherwise, the variable MX_LIB_OBJS will
@@ -24,7 +21,45 @@
 # invoked the "make" command.
 #
 
-MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
+MX_CORE_SRCS = mx_amplifier.c \
+	mx_analog_input.c mx_analog_output.c mx_array.c mx_autoscale.c \
+	mx_bit.c mx_bluice.c mx_camac.c mx_ccd.c mx_clock.c mx_coprocess.c \
+	mx_dead_reckoning.c mx_debug.c mx_datafile.c \
+	mx_digital_input.c mx_digital_output.c mx_driver_class.c \
+	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
+	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
+	mx_info.c mx_interval_timer.c mx_log.c mx_list_head.c \
+	mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
+	mx_measurement.c mx_memory_process.c mx_memory_system.c \
+	mx_mfault.c mx_modbus.c mx_motor.c \
+	mx_mpermit.c mx_mutex.c mx_net.c mx_net_socket.c mx_os_version.c \
+	mx_plot.c mx_portio.c mx_process.c mx_ptz.c mx_pulse_generator.c \
+	mx_record.c mx_relay.c mx_rs232.c \
+	mx_sample_changer.c mx_sca.c mx_scaler.c \
+	mx_scan.c mx_scan_linear.c mx_scan_list.c \
+	mx_scan_quick.c mx_scan_xafs.c mx_semaphore.c \
+	mx_signal.c mx_sleep.c mx_socket.c mx_spec.c mx_stack.c mx_syslog.c \
+	mx_table.c mx_test.c mx_thread.c mx_timer.c \
+	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
+	mx_variable.c mx_vepics.c \
+	mx_version.c mx_vinline.c mx_vme.c mx_vnet.c mx_warning.c \
+	fh_autoscale.c fh_simple.c \
+	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
+	key_curses.c key_dos.c key_unix.c key_vms.c key_win32.c \
+	m_count.c m_none.c m_pulse_period.c m_time.c \
+	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
+	ph_aps_topup.c ph_simple.c \
+	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
+	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
+	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
+	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
+	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
+	pr_timer.c pr_variable.c \
+	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
+	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c
+
+MX_DRIVER_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c \
+	d_aframe_detector_motor.c \
 	d_als_dewar_positioner.c d_als_robot_java.c \
 	d_am9513_motor.c d_am9513_scaler.c d_am9513_timer.c d_aps_18id.c \
 	d_aps_adcmod2_ainput.c d_aps_adcmod2_amplifier.c d_aps_gap.c \
@@ -100,8 +135,6 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
 	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c \
-	fh_autoscale.c fh_simple.c \
-	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c i_cm17a.c \
 	i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \
@@ -123,43 +156,12 @@ MX_LIB_SRCS = d_6821.c d_8255.c d_adsc_two_theta.c d_aframe_detector_motor.c \
 	i_vp9000.c i_vxworks_rs232.c i_vxworks_vme.c \
 	i_vsc16.c i_vxi_memacc.c i_wago750_serial.c i_win32_com.c \
 	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
-	key_curses.c key_dos.c key_unix.c key_vms.c key_win32.c \
-	m_count.c m_none.c m_pulse_period.c m_time.c mx_amplifier.c \
-	mx_analog_input.c mx_analog_output.c mx_array.c mx_autoscale.c \
-	mx_bit.c mx_bluice.c mx_camac.c mx_ccd.c mx_clock.c mx_coprocess.c \
-	mx_dead_reckoning.c mx_debug.c mx_datafile.c \
-	mx_digital_input.c mx_digital_output.c mx_driver.c \
-	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
-	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
-	mx_info.c mx_interval_timer.c mx_log.c mx_list_head.c \
-	mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
-	mx_measurement.c mx_memory_process.c mx_memory_system.c \
-	mx_mfault.c mx_modbus.c mx_motor.c \
-	mx_mpermit.c mx_mutex.c mx_net.c mx_net_socket.c mx_os_version.c \
-	mx_plot.c mx_portio.c mx_process.c mx_ptz.c mx_pulse_generator.c \
-	mx_record.c mx_relay.c mx_rs232.c \
-	mx_sample_changer.c mx_sca.c mx_scaler.c \
-	mx_scan.c mx_scan_linear.c mx_scan_list.c \
-	mx_scan_quick.c mx_scan_xafs.c mx_semaphore.c \
-	mx_signal.c mx_sleep.c mx_socket.c mx_spec.c mx_stack.c mx_syslog.c \
-	mx_table.c mx_test.c mx_thread.c mx_timer.c \
-	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
-	mx_variable.c mx_vepics.c \
-	mx_version.c mx_vinline.c mx_vme.c mx_vnet.c mx_warning.c \
 	n_bluice_dcss.c n_spec.c n_tcpip.c n_unix.c \
-	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
-	ph_aps_topup.c ph_simple.c \
-	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
-	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
-	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
-	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
-	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
-	pr_timer.c pr_variable.c \
-	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
-	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c \
 	u_xia_dxp.c v_aps_topup.c \
 	v_bluice_command.c v_bluice_master.c v_bluice_string.c \
 	v_mathop.c v_pmac.c v_position_select.c v_spec.c
+
+MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 
 #
 #--------------------------------------------------------------------------

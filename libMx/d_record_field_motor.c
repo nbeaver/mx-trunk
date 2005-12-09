@@ -931,12 +931,17 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'", fname, motor->record->name));
 
-	/* If there is no immediate_abort handler, do nothing. */
+	/* If there is no immediate_abort handler, invoke the
+	 * soft_abort handler.
+	 */
 
 	handler = record_field_motor->immediate_abort_handler;
 
-	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL )
-		return MX_SUCCESSFUL_RESULT;
+	if ( handler == (MX_RECORD_FIELD_HANDLER *) NULL ) {
+		mx_status = mxd_record_field_motor_soft_abort( motor );
+
+		return mx_status;
+	}
 
 	/* If there is a immediate_abort handler, process the specified
 	 * record field to send the abort command.

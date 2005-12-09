@@ -9,6 +9,9 @@
  *          have no mechanism for preventing a thread that does not use these
  *          functions from manipulating a signal.
  *
+ * Note:    At present, the primary use of these functions is to allocate
+ *          signals to use as the signal generated when a Posix timer expires.
+ *
  *--------------------------------------------------------------------------
  *
  * Copyright 2005 Illinois Institute of Technology
@@ -31,6 +34,20 @@
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_signal.h"
+
+#define MX_SIGNAL_MUTEX_UNLOCK \
+		do {							\
+			int mt_status;					\
+									\
+			mt_status = mx_mutex_unlock( mx_signal_mutex );	\
+									\
+			if ( mt_status != MXE_SUCCESS ) {		\
+				(void) mx_error( mt_status, fname,	\
+				"Unable to unlock mx_signal_mutex." );	\
+			}						\
+		} while(0)
+
+/*--------------------------------------------------------------------------*/
 
 #if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
 
@@ -310,18 +327,6 @@ mx_signals_are_initialized( void )
 	}
 }
 
-#define MX_SIGNAL_MUTEX_UNLOCK \
-		do {							\
-			int mt_status;					\
-									\
-			mt_status = mx_mutex_unlock( mx_signal_mutex );	\
-									\
-			if ( status != MXE_SUCCESS ) {			\
-				(void) mx_error( status, fname,		\
-				"Unable to unlock mx_signal_mutex." );	\
-			}						\
-		} while(0)
-
 MX_EXPORT mx_status_type
 mx_signal_allocate( int requested_signal_number,
 			int *allocated_signal_number )
@@ -440,5 +445,200 @@ mx_signal_free( int signal_number )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* _POSIX_REALTIME_SIGNALS */
+/*--------------------------------------------------------------------------*/
+
+#elif defined( OS_VXWORKS )
+
+/* For this platform, the only signal available is SIGALRM and we can use
+ * sigaction() to see if SIGALRM is already in use.
+ */
+
+static MX_MUTEX *mx_signal_mutex = NULL;
+
+static int mx_sigalrm_in_use = FALSE;
+
+MX_EXPORT mx_status_type
+mx_signal_initialize( void )
+{
+	mx_status_type mx_status;
+
+	/* Create the mutex to manage checking of the sigalrm_in_use flag. */
+
+	mx_status = mx_mutex_create( &mx_signal_mutex );
+
+	return mx_status;
+}
+
+MX_EXPORT int
+mx_signals_are_initialized( void )
+{
+	if ( mx_signal_mutex != NULL ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
+MX_EXPORT mx_status_type
+mx_signal_allocate( int requested_signal_number,
+			int *allocated_signal_number )
+{
+	static const char fname[] = "mx_signal_allocate()";
+
+	struct sigaction old_sa;
+	int sigaction_status, saved_errno;
+	long mutex_status;
+	mx_status_type mx_status;
+
+	if ( mx_signals_are_initialized() == FALSE ) {
+		mx_status = mx_signal_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	switch( requested_signal_number ) {
+	case SIGALRM:
+	case MXF_ANY_REALTIME_SIGNAL:
+		/* SIGALRM is the only signal available. */
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Signal %d cannot be managed by MX on this platform.",
+			requested_signal_number );
+		break;
+	}
+
+	mutex_status = mx_mutex_lock( mx_signal_mutex );
+
+	if ( mutex_status != MXE_SUCCESS ) {
+		return mx_error( mutex_status, fname,
+			"Unable to lock mx_signal_mutex." );
+	}
+
+	if ( mx_sigalrm_in_use ) {
+		MX_SIGNAL_MUTEX_UNLOCK;
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Signal SIGALRM is already in use." );
+	}
+
+	/* Is SIGALRM already in use by something outside of MX? */
+
+	sigaction_status = sigaction( SIGALRM, NULL, &old_sa );
+
+	if ( sigaction_status < 0 ) {
+		saved_errno = errno;
+		MX_SIGNAL_MUTEX_UNLOCK;
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An attempt to invoke sigaction() for signal SIGALRM "
+			"failed with errno = %d, error message = '%s'.",
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	if ( old_sa.sa_handler != SIG_DFL ) {
+		/* SIGALRM is not using the default handler, so we assume
+		 * that it is already being used by something else.
+		 */
+
+		mx_sigalrm_in_use = TRUE;
+		MX_SIGNAL_MUTEX_UNLOCK;
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Signal SIGALRM is already in use." );
+	}
+
+	/* Mark SIGALRM as in use. */
+
+	*allocated_signal_number = SIGALRM;
+
+	mx_sigalrm_in_use = TRUE;
+
+	MX_SIGNAL_MUTEX_UNLOCK;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_signal_free( int signal_number )
+{
+	static const char fname[] = "mx_signal_free()";
+
+	long status;
+
+	if ( mx_signals_are_initialized() == FALSE ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"Attempted to free signal %d when signals had not yet "
+		"been initialized.", signal_number );
+	}
+
+	if ( signal_number != SIGALRM ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Signal %d cannot be managed by MX on this platform.",
+			signal_number );
+	}
+
+	status = mx_mutex_lock( mx_signal_mutex );
+
+	if ( status != MXE_SUCCESS ) {
+		return mx_error( status, fname,
+			"Unable to lock mx_signal_mutex." );
+	}
+
+	if ( mx_sigalrm_in_use == FALSE ) {
+		mx_warning("%s: Freeing signal SIGALRM "
+		"although it was not in use.", fname );
+	}
+
+	mx_sigalrm_in_use = FALSE;
+
+	MX_SIGNAL_MUTEX_UNLOCK;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+#elif 0
+
+/* For this platform, no signals are available, so attempts
+ * to allocate signals fail.
+ */
+
+MX_EXPORT mx_status_type
+mx_signal_initialize( void )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT int
+mx_signals_are_initialized( void )
+{
+	return TRUE;
+}
+
+MX_EXPORT mx_status_type
+mx_signal_allocate( int requested_signal_number,
+			int *allocated_signal_number )
+{
+	static const char fname[] = "mx_signal_allocate()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Signal allocation is not supported on this platform" );
+}
+
+MX_EXPORT mx_status_type
+mx_signal_free( int signal_number )
+{
+	static const char fname[] = "mx_signal_free()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Signal allocation is not supported on this platform" );
+}
+
+/*--------------------------------------------------------------------------*/
+
+#else
+
+#error Signal allocation functions are not yet defined for this platform.
+
+#endif
 

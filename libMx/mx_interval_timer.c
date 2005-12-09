@@ -1481,12 +1481,10 @@ mx_interval_timer_destroy_event_handler( MX_INTERVAL_TIMER *itimer,
 
 #elif ( MX_SIGEV_TYPE == SIGEV_SIGNAL )
 
-#if (!defined(_POSIX_REALTIME_SIGNALS)) || ( _POSIX_REALTIME_SIGNALS < 0 )
-
-#  if !defined(OS_VXWORKS)
-#    error SIGEV_SIGNAL can only be used if Posix realtime signals are available.  If realtime signals are not available, you must use the setitimer-based timer mechanism.
-#  endif
-
+#if defined(OS_VXWORKS)
+#  define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	FALSE
+#else
+#  define MX_POSIX_SIGNAL_BLOCKING_SUPPORTED	TRUE
 #endif
 
 #include "mx_signal.h"
@@ -1545,7 +1543,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 		}
 	}
 
-#if !defined(OS_VXWORKS)
+#if MX_POSIX_SIGNAL_BLOCKING_SUPPORTED
 
 	/* Unblock the signal for this thread. */
 
@@ -1566,7 +1564,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 			break;
 		}
 	}
-#endif
+#endif /* MX_POSIX_SIGNAL_BLOCKING_SUPPORTED */
 
 	/* Wait in an infinite loop for signals to arrive. */
 
@@ -1637,7 +1635,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-#if !defined(OS_VXWORKS)
+#if MX_POSIX_SIGNAL_BLOCKING_SUPPORTED
 
 			/* Block the signal again. */
 
@@ -1660,7 +1658,7 @@ mx_interval_timer_signal_thread( MX_THREAD *thread, void *args )
 					break;
 				}
 			}
-#endif
+#endif /* MX_POSIX_SIGNAL_BLOCKING_SUPPORTED */
 
 			/* End the thread by returning to the caller. */
 

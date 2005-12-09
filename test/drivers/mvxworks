@@ -12,5 +12,5 @@ ld < ../../motor/motor_shell.o
 # The following command _must_ be typed at the VxWorks prompt and not
 # in this script.
 #
-#motor_shell("motortst.dat","scantst.dat")
+#motor_shell("mvxworks.dat","svxworks.dat")
 
