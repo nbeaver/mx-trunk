@@ -79,13 +79,19 @@
 /* powerpc
  *   MVME2307 BSP (tested on an MVME2700 with an MVME761)
  *
- *      No special definitions are necessary for the MVME2307.  However,
- *	you _must_ make the ENV command modifications described in the
+ *      Defining MVME_HAS_DEC21140 tells the compiler that this board has
+ *      a DEC Tulip family ethernet card.
+ *
+ *      Also, you _must_ make the ENV command modifications described in the
  *	file c/src/lib/lib/libbsp/powerpc/motorola_powerpc/README.MVME2300.
  *	If you do not, the generated RTEMS binaries will crash while
  *	starting up.
  *
  */
+
+#if defined(MX_RTEMS_BSP_MVME2307)
+#  define MVME_HAS_DEC21140
+#endif
 
 #endif /* __OS_RTEMS_CONFIG_H__ */
 

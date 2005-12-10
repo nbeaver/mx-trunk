@@ -83,6 +83,9 @@ Init( rtems_task_argument ignored )
 void
 motor_rtems_reboot( void )
 {
+
+#if defined(MX_RTEMS_BSP_PC486) || defined(MX_RTEMS_BSP_MVME2307)
+
 	fprintf(stderr,
 "RTEMS does not have a command line to return to, so we will reboot now.\n");
 	fflush(stderr);
@@ -90,6 +93,15 @@ motor_rtems_reboot( void )
 	mx_msleep(1000);
 
 	rtemsReboot();
+
+#else
+
+	fprintf(stderr, "RTEMS does not have a command line to return to, "
+			"so we will call exit(0) now.\n");
+
+	exit( 0 );
+#endif
+
 }
 
 #endif /* OS_RTEMS */

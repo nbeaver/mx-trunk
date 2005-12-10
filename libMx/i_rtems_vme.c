@@ -157,7 +157,9 @@ mxi_rtems_vme_get_pointers( MX_VME *vme,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#include <bsp/VME.h>
+#if defined(MX_RTEMS_BSP_MVME2307)
+#  include <bsp/VME.h>
+#endif
 
 static mx_status_type
 mxi_rtems_vme_bus_to_local_address( MX_RTEMS_VME *rtems_vme,
@@ -167,7 +169,8 @@ mxi_rtems_vme_bus_to_local_address( MX_RTEMS_VME *rtems_vme,
 {
 	static const char fname[] = "mxi_rtems_vme_bus_to_local_address()";
 
-#if 1
+#if defined(MX_RTEMS_BSP_MVME2307)
+
 	/* PowerPC PCI to VME Universe chip. */
 
 	switch( address_mode ) {
@@ -186,9 +189,41 @@ mxi_rtems_vme_bus_to_local_address( MX_RTEMS_VME *rtems_vme,
 			address_mode, rtems_vme->record->name );
 		break;
 	}
+
+#elif defined(MX_RTEMS_BSP_MVME162)
+
+	switch( address_mode ) {
+	case MXF_VME_A16:
+		*local_address = 
+			(void *) (0xFFFF0000 + ( bus_address & 0xFFFF ));
+		break;
+	case MXF_VME_A24:
+		*local_address =
+			(void *) (0xFF000000 + ( bus_address & 0xFFFFFF ));
+		break;
+	case MXF_VME_A32:
+		*local_address = (void *) bus_address;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unsupported VME address mode A%d requested for record '%s'.",
+			address_mode, rtems_vme->record->name );
+		break;
+	}
+
+#else
+
+#error No mechanism has been provided for translating from VME bus to local addresses.
+
 #endif
 
-#if 0
+/********************************************************************
+ * FIXME: The following is present only as a reminder that I should *
+ * figure out someday why it does not work.  (WML)                  *
+ ********************************************************************/
+
+#if 0   /* Meant for MX_RTEMS_BSP_MVME2307, but it doesn't work. */
+
 	/* PowerPC PCI to VME Universe chip. */
 
 	unsigned long ulong_local_address;
@@ -247,9 +282,12 @@ mxi_rtems_vme_bus_to_local_address( MX_RTEMS_VME *rtems_vme,
 	}
 
 	*local_address = (void *) ulong_local_address;
-#endif
 
-#if 0
+#endif /* End of 'Meant for MX_RTEMS_BSP_MVME2307'. */
+
+/********************************************************************/
+
+#if 1
 	MX_DEBUG(-2,("%s: A%d bus address = %#lx, local address = %p",
 		fname, address_mode, bus_address, *local_address ));
 #endif

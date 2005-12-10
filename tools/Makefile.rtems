@@ -1,11 +1,17 @@
+#
+# tools/Makefile.rtems
+#
+
 all:  strlcpy.o strlcat.o
+
+include ../libMx/Makehead.rtems
 
 mx_clean:
 	-rm *.o
 
 strlcpy.o: generic/src/strlcpy.c
-	$(CC) -c generic/src/strlcpy.c
+	$(CC) $(CFLAGS) -c generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(CC) -c generic/src/strlcat.c
+	$(CC) $(CFLAGS) -c generic/src/strlcat.c
 
