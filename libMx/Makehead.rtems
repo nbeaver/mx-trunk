@@ -20,8 +20,10 @@ LIBRARIES	= -lm
 # 
 # RTEMS often runs on resource constrained systems, so we define here
 # a list of MX drivers that only includes the actual drivers we need.
+# You must also edit libMx/mx_driver_rtems.c to match.
 #
-# Note that you must also edit libMx/mx_driver_rtems.c to match.
+# The following is just an example.  You should customize it to match
+# the configuration you actually need.
 #
 
 MX_DRIVER_RTEMS_SRCS = i_tty.c i_rtems_vme.c \
@@ -36,9 +38,37 @@ MX_DRIVER_RTEMS_SRCS = i_tty.c i_rtems_vme.c \
 	d_pdi45_pulser.c v_mathop.c
 
 #
+# WARNING: I am not currently sure if the following information is correct,
+#          since my MVME162 is currently not booting with RTEMS.
+#
+# MVME162 Note:
+#   The linker command file /opt/rtems-4.6/m68k-rtems/mvme162/lib/linkcmds,
+#   as distributed, comes configured for 1 megabyte of RAM.  This is not
+#   enough to run MX, so you must change the specified amount of RAM to
+#   match the actual board you have.  MX has only been tested with RTEMS
+#   on the 16 megabyte MVME162-532A, which has more than enough memory.
+#
+#   The lines that need to be changed are:
+#
+#       _RamSize = DEFINED(_RamSize) ? _RamSize : 1M;
+#
+#   and
+#
+#       ram : org = 0x000000, l = 1M
+#
+#   where you must replace the 1M with the actual amount of memory you have.
+#   For example, 16M for the MVME162-532A mentioned above.
+#
+#   If you really only have 1 megabyte of RAM in your MVME162, then you
+#   are out of luck and cannot run MX on it.
+#
+
+#
 #========================================================================
 #
-# Generally, you should not have to modify anything after this point.
+# Generally, you should not have to modify anything after this point unless
+# you are adding a new board support package, where you must customize the
+# makefile conditionals that use RTEMS_BSP below.
 #
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
@@ -62,11 +92,13 @@ ifeq ($(RTEMS_BSP),pc486)
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
 endif
+
 ifeq ($(RTEMS_BSP),mvme162)
 	BSP_FLAGS = -DMX_RTEMS_BSP_MVME162  -DHAVE_RTEMS_VME
 
 	MX_LIB_SRCS = mx_driver_rtems.c $(MX_CORE_SRCS) $(MX_DRIVER_RTEMS_SRCS)
 endif
+
 ifeq ($(RTEMS_BSP),mvme2307)
 	BSP_FLAGS = -DMX_RTEMS_BSP_MVME2307 -DHAVE_RTEMS_VME
 
