@@ -6,8 +6,7 @@
 #          for Linux.
 #
 # Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.  You may also have to
-# modify HWTYPE_FLAGS if you are using a non-x86 version of Linux.
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
 INCLUDES	= $(MX_INCLUDES)
@@ -59,19 +58,44 @@ LIBRARIES	= -lpthread -lrt -lm
 #LIBRARIES	= $(NI_VISA_LIBRARIES) $(EPICS_LIBRARIES) \
 #				$(XIA_HANDEL_LIBRARIES) -lpthread -lrt -lm
 
+#--------------------------------------------------------------------------
 #
-# For x86 Linux.
+# If you are compiling for an embedded Linux system, you may need to
+# change the value of MX_LINUX_BSP.  At present, the primary usage of this
+# definition is to select special subsets of MX drivers for small systems
+# that do not have enough memory to load all of the available MX drivers.
+# Unless you are working with embedded systems, you should probably leave
+# this at the default value of 'default'.
 #
-HWTYPE_FLAGS    =
+# If you have never heard of the term BSP (board support packaget), then
+# you should definitely leave this alone.
+#
+
+MX_LINUX_BSP = default
+
+#--------
 
 #
-# For m68k Linux.  
+# MX_LINUX_BSP_MVME162 has been used successfully with a 16 megabyte
+# MVME162-532A VME system controller.
 #
-# See Debian bug report #30825 at http://www.debian.org/Bugs/db/30/30825.html
-# for the explanation.
-#
-#HWTYPE_FLAGS    = -Wno-missing-prototypes
 
+#MX_LINUX_BSP = mvme162
+
+# MX drivers to load for the MVME162.
+
+MX_DRIVER_MVME162_SRCS = i_tty.c i_mmap_vme.c \
+	i_pdi40.c i_pdi45.c i_vme58.c i_vsc16.c i_iseries.c \
+	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
+	d_pdi45_aio.c d_pdi45_dio.c d_iseries_aio.c d_iseries_dio.c \
+	d_bit.c d_vme_dio.c \
+	d_soft_motor.c d_pdi40.c d_stp100.c d_vme58.c d_elapsed_time.c \
+	d_soft_scaler.c d_vsc16_scaler.c d_vsc16_timer.c \
+	d_pdi45_scaler.c d_pdi45_timer.c d_soft_timer.c d_interval_timer.c \
+	d_soft_amplifier.c d_generic_relay.c d_blind_relay.c \
+	d_pdi45_pulser.c v_mathop.c
+
+#--------------------------------------------------------------------------
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
 # following definitions.
@@ -86,6 +110,7 @@ READLINE_LIBRARIES = -ledit
 #READLINE_LIB_DIRS =
 #READLINE_LIBRARIES = -lreadline -lncurses
 
+#--------------------------------------------------------------------------
 #
 # You may also need to modify some of the following definitions, depending
 # on the drivers you plan to use.
@@ -195,7 +220,7 @@ GCCFLAGS = -Wall -Werror \
 #
 CC		= gcc
 CFLAGS		= -g -O2 -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
-				$(EXTRA_FLAGS) $(HWTYPE_FLAGS) -DDEBUG
+				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 
 # Special cases for individual files.
@@ -218,8 +243,17 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 #---------------------------------------------------
 #
 
-MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
+ifeq ($(MX_LINUX_BSP),default)
+	MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
+endif
 
+ifeq ($(MX_LINUX_BSP),mvme162)
+	MX_LIB_SRCS = mx_driver_linux_mvme162.c \
+			$(MX_CORE_SRCS) $(MX_DRIVER_MVME162_SRCS)
+endif
+
+#
+#---------------------------------------------------
 #
 # See libMx/Makehead.irix for why this is here.
 #
