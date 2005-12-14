@@ -402,8 +402,10 @@ mx_see_if_event_must_be_queued( MX_RECORD *record,
 	clock_tick_comparison = mx_compare_clock_ticks( current_clock_tick,
 						      next_allowed_event_time );
 
+#if PROCESS_DEBUG_QUEUEING
 	MX_DEBUG(-2,("%s: clock_tick_comparison = %d",
 		fname, clock_tick_comparison));
+#endif
 
 	if ( clock_tick_comparison >= 0 ) {
 
@@ -574,9 +576,12 @@ mx_process_queued_event( MX_RECORD *record,
 		 */
 
 		if ( record->event_time_manager != NULL ) {
+
+#if PROCESS_DEBUG_QUEUEING
 			MX_DEBUG(-2,
 			("%s: updating next_allowed_event_time for '%s'",
 			 	fname, record->name));
+#endif
 
 			mx_status = mx_update_next_allowed_event_time(
 					queued_event->record,

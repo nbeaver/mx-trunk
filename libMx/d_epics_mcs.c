@@ -418,9 +418,6 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 		mx_status = mx_caget( &(epics_mcs->acquiring_pv),
 				MX_CA_LONG, 1, &acquiring_value );
-
-		MX_DEBUG(-2,("%s: acquiring_value = %ld",
-			fname, acquiring_value));
 	}
 #endif
 
@@ -686,10 +683,10 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	const char fname[] = "mxd_epics_mcs_set_parameter()";
 
 	MX_EPICS_MCS *epics_mcs;
-	MX_EPICS_GROUP preset_group;
+	MX_EPICS_GROUP epics_group;
 	double dwell_time, preset_live_time, dark_current;
 	unsigned long do_not_skip;
-	long current_num_epics_measurements;
+	long stop, current_num_epics_measurements;
 	float preset_real_time;
 	mx_status_type mx_status;
 
@@ -717,11 +714,55 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		dwell_time = mcs->measurement_time;
 
+#if 0
 		mx_status = mx_caput( &(epics_mcs->dwell_pv),
 					MX_CA_DOUBLE, 1, &dwell_time );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+#else
+		/* Put the following two caputs into
+		 * an EPICS synchronous group.
+		 */
+
+		mx_status = mx_epics_start_group( &epics_group );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Send a command to stop the MCS,
+		 * just in case it was counting.
+		 */
+
+		if ( epics_mcs->epics_record_version >= 5.0 ) {
+			stop = 1;
+		} else {
+			stop = 0;
+		}
+
+		mx_status = mx_group_caput( &epics_group,
+					&(epics_mcs->stop_pv),
+					MX_CA_LONG, 1, &stop );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Set the measurement time. */
+
+		mx_status = mx_group_caput( &epics_group,
+					&(epics_mcs->dwell_pv),
+					MX_CA_DOUBLE, 1, &dwell_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Send the commands in the EPICS synchronous group. */
+
+		mx_status = mx_epics_end_group( &epics_group );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+#endif
 		break;
 
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
@@ -741,7 +782,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 		 * an EPICS synchronous group.
 		 */
 
-		mx_status = mx_epics_start_group( &preset_group );
+		mx_status = mx_epics_start_group( &epics_group );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -750,7 +791,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		preset_real_time = 0.0;
 
-		mx_status = mx_group_caput( &preset_group,
+		mx_status = mx_group_caput( &epics_group,
 					&(epics_mcs->prtm_pv),
 					MX_CA_FLOAT, 1, &preset_real_time );
 
@@ -761,14 +802,14 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		if ( epics_mcs->epics_record_version >= 5.0 ) {
 
-			mx_status = mx_group_caput( &preset_group,
+			mx_status = mx_group_caput( &epics_group,
 				&(epics_mcs->nuse_pv),
 				MX_CA_LONG, 1, &current_num_epics_measurements);
 		} else {
 			preset_live_time = mcs->measurement_time
 				* (double) current_num_epics_measurements;
 
-			mx_status = mx_group_caput( &preset_group,
+			mx_status = mx_group_caput( &epics_group,
 					&(epics_mcs->pltm_pv),
 					MX_CA_DOUBLE, 1, &preset_live_time );
 		}
@@ -778,7 +819,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		/* Send the commands in the EPICS synchronous group. */
 
-		mx_status = mx_epics_end_group( &preset_group );
+		mx_status = mx_epics_end_group( &epics_group );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

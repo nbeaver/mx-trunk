@@ -1221,7 +1221,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	if ( queue_a_message ) {
 
-		MX_DEBUG(-2,("%s: *** queueing a message for '%s', '%s' ***",
+		MX_DEBUG( 2,("%s: *** queueing a message for '%s', '%s' ***",
 			fname, record->name, record_field->name));
 
 #if NETWORK_DEBUG_TIMING
@@ -1380,7 +1380,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	}
 
 	if ( update_next_event_time ) {
-		MX_DEBUG(-2,
+		MX_DEBUG( 2,
 		("%s: updating next_allowed_event_time for '%s'",
 		 	fname, record->name));
 

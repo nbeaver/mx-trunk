@@ -489,22 +489,6 @@ mxs_mcs_quick_scan_set_motor_speeds( MX_SCAN *scan,
 
 		motor_record = (scan->motor_record_array)[i];
 
-		status = mx_motor_save_speed( motor_record );
-
-		if ( status.code != MXE_SUCCESS ) {
-
-			/* If saving the speed failed, restore the old speeds
-			 * for the other motors.
-			 */
-
-			for ( j = 0; j < i; j++ ) {
-				(void) mx_motor_restore_speed(
-					(scan->motor_record_array)[i] );
-			}
-
-			return status;
-		}
-
 		/* Change the motor speeds. */
 
 		status = mx_motor_set_speed_between_positions(
@@ -2153,21 +2137,6 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	for ( i = 0; i < mcs_quick_scan->num_mcs; i++ ) {
 
 		mcs_record = mcs_quick_scan->mcs_record_array[i];
-
-#if 0		/* Bugfix - Nov. 6, 2005 (WML) - Sending commands to
-		 * EPICS MCS records seems to fail randomly if the
-		 * MCS is already running.
-		 */
-
-		/**** Stop the MCS in case it is running. ****/
-
-		status = mx_mcs_stop( mcs_record );
-
-		if ( status.code != MXE_SUCCESS ) {
-			(void) mx_scan_restore_speeds( scan );
-			return status;
-		}
-#endif
 
 		/**** Put the MCS into preset time mode. ****/
 

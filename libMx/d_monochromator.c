@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -821,7 +821,7 @@ mxd_monochromator_open( MX_RECORD *record )
 
 	monochromator->move_in_progress = FALSE;
 
-	/* Make sure that the saved motor speeds are initialized. */
+	/* Make sure that the speed change flags are initialized. */
 
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 		list_record = monochromator->list_array[i];
@@ -857,22 +857,6 @@ mxd_monochromator_open( MX_RECORD *record )
 
 		monochromator->speed_changed[i] = FALSE;
 
-		if ( speed_change_permitted ) {
-			for ( j = 0; j < num_records; j++ ) {
-
-			    dependent_record = record_array[j];
-
-			    if ( (dependent_record->mx_superclass == MXR_DEVICE)
-			      && (dependent_record->mx_class == MXC_MOTOR) )
-			    {
-				mx_status = mx_motor_save_speed(
-							dependent_record );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			    }
-			}
-		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

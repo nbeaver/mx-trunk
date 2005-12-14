@@ -2373,13 +2373,13 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 
 		motor->raw_saved_speed = motor->raw_speed;
 
-		MX_DEBUG(-2,("%s (save): motor '%s' raw_saved_speed = %g",
+		MX_DEBUG( 2,("%s (save): motor '%s' raw_saved_speed = %g",
 			fname, motor->record->name, motor->raw_saved_speed));
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
 
-		MX_DEBUG(-2,("%s (restore): motor '%s' raw_saved_speed = %g",
+		MX_DEBUG( 2,("%s (restore #1): motor '%s' raw_saved_speed = %g",
 			fname, motor->record->name, motor->raw_saved_speed));
 
 		old_saved_speed = motor->raw_saved_speed * fabs(motor->scale);
@@ -2401,8 +2401,8 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 
 		current_speed = motor->raw_speed * fabs(motor->scale);
 
-		MX_DEBUG(-2,
-		("%s (restore): motor '%s', old speed = %g, current speed = %g",
+		MX_DEBUG( 2,
+	    ("%s (restore #2): motor '%s', old speed = %g, current speed = %g",
 		 	fname, motor->record->name,
 			old_saved_speed, current_speed ));
 
