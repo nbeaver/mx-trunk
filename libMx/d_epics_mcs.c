@@ -397,6 +397,33 @@ mxd_epics_mcs_open( MX_RECORD *record )
 
 	}
 
+#if 1
+	/* FIXME:
+	 *
+	 * Recent versions of the MCS support in the EPICS MCA record, seem
+	 * to have an issue with timing out occasionally during the initial
+	 * connection to the acquiring PV.  Currently, the typical result
+	 * is that the first quick scan run fails with a timeout.
+	 *
+	 * At present, we attempt to work around this problem by explicitly
+	 * reading the acquiring PV during the open routine to get the
+	 * timeout error out of the way now, rather than during the first
+	 * quick scan.
+	 *
+	 * W. Lavender, Dec. 13, 2005
+	 */
+
+	{
+		long acquiring_value;
+
+		mx_status = mx_caget( &(epics_mcs->acquiring_pv),
+				MX_CA_LONG, 1, &acquiring_value );
+
+		MX_DEBUG(-2,("%s: acquiring_value = %ld",
+			fname, acquiring_value));
+	}
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

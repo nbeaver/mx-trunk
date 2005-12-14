@@ -562,6 +562,15 @@ mx_perform_scan( MX_RECORD *scan_record )
 			"Scan aborted.",  name_buffer, scan->record->name );
 	}
 
+	/*** If this is a quick scan, save the motor speeds ***/
+
+	if ( scan_record->mx_class == MXS_QUICK_SCAN ) {
+		mx_status = mx_scan_save_speeds( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 	/*** Record that the scan has started. ***/
 
 	if ( list_head->log_handler != NULL ) {
@@ -573,7 +582,8 @@ mx_perform_scan( MX_RECORD *scan_record )
 	mx_status = mx_configure_measurement_type( &(scan->measurement) );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_log_scan_end( list_head, scan, mx_status );
+		mx_handle_abnormal_scan_termination(
+				list_head, scan, mx_status );
 		return mx_status;
 	}
 
@@ -673,12 +683,25 @@ mx_perform_scan( MX_RECORD *scan_record )
 			break;
 		}
 
+		/*
+		 * Perform any post scan actions such as reading out MCSs, etc.
+		 */
+
 		mx_status = cleanup_after_scan_end_fn( scan );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_handle_abnormal_scan_termination(
 					list_head, scan, mx_status );
 			return mx_status;
+		}
+
+		/* If this is a quick scan, restore the motor speeds. */
+
+		if ( scan_record->mx_class == MXS_QUICK_SCAN ) {
+			mx_status = mx_scan_restore_speeds( scan );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 
@@ -1781,6 +1804,8 @@ mx_handle_abnormal_scan_termination( MX_LIST_HEAD *list_head,
 				MX_SCAN *scan,
 				mx_status_type mx_status )
 {
+	(void) mx_scan_restore_speeds( scan );
+
 	(void) mx_deconfigure_measurement_type( &(scan->measurement) );
 
 	(void) mx_scan_free_measurement_permit_and_fault_handlers( scan );

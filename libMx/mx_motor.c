@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2175,6 +2175,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	double start_position, end_position;
 	double time_for_move, requested_raw_speed;
 	double raw_speed, raw_base_speed, raw_acceleration;
+	double old_saved_speed, current_speed;
 	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
@@ -2363,27 +2364,63 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		status = mx_motor_get_parameter( motor->record,
-						MXLV_MTR_SPEED );
+		/* Read the motor speed to make sure its value is current. */
+
+		status = mx_motor_get_speed( motor->record, NULL );
 
 		if ( status.code != MXE_SUCCESS )
 			return status;
 
 		motor->raw_saved_speed = motor->raw_speed;
 
-		MX_DEBUG( 2,("%s (save): motor '%s' raw_saved_speed = %g",
+		MX_DEBUG(-2,("%s (save): motor '%s' raw_saved_speed = %g",
 			fname, motor->record->name, motor->raw_saved_speed));
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
 
-		MX_DEBUG( 2,("%s (restore): motor '%s' raw_saved_speed = %g",
+		MX_DEBUG(-2,("%s (restore): motor '%s' raw_saved_speed = %g",
 			fname, motor->record->name, motor->raw_saved_speed));
+
+		old_saved_speed = motor->raw_saved_speed * fabs(motor->scale);
 
 		status = mx_motor_set_raw_speed( motor->record,
 						motor->raw_saved_speed );
 
-		return status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		/* Read the current speed to see if the
+		 * speed restoration succeeded.
+		 */
+
+		status = mx_motor_get_speed( motor->record, NULL );
+
+		if ( status.code != MXE_SUCCESS )
+			return status;
+
+		current_speed = motor->raw_speed * fabs(motor->scale);
+
+		MX_DEBUG(-2,
+		("%s (restore): motor '%s', old speed = %g, current speed = %g",
+		 	fname, motor->record->name,
+			old_saved_speed, current_speed ));
+
+		if ( mx_difference( old_saved_speed, current_speed ) > 0.001 )
+		{
+			/* If the old and the current speeds are different,
+			 * return an error.
+			 */
+
+			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
+			"The attempt to restore the speed of motor '%s' to "
+			"its original value of %g %s/second failed.  "
+			"Instead, the current speed of motor '%s' "
+			"is %g %s/second.",
+			    motor->record->name, old_saved_speed, motor->units,
+			    motor->record->name, current_speed, motor->units );
+		}
+		return MX_SUCCESSFUL_RESULT;
 		break;
 
 	default:

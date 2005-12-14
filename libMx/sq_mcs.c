@@ -629,11 +629,6 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 	 * the speeds before returning from this function.
 	 */
 
-	status = mx_scan_save_speeds( scan );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
 	status = mxs_mcs_quick_scan_set_motor_speeds( scan,
 						quick_scan, mcs_quick_scan );
 

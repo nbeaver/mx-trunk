@@ -845,7 +845,7 @@ motor_help_fn( int argc, char *argv[] )
 	static char help_text[] =
 "A more complete command summary may be found at:\n"
 "\n"
-"    http://www.imca.aps.anl.gov/mx/motor/\n"
+"    http://mx.iit.edu/motor/\n"
 "\n"
 "Single word commands are:\n"
 "    exit                           - Exits the motor program, saving the\n"

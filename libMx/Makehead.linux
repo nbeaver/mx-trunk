@@ -13,11 +13,11 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lpthread -lrt -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR)
+#LIBRARIES	= -lpthread -lrt -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
+LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lm
 #
 # The following is for use with mx_caserver.
 #
@@ -67,8 +67,8 @@ LIBRARIES	= -lpthread -lrt -lm
 # Unless you are working with embedded systems, you should probably leave
 # this at the default value of 'default'.
 #
-# If you have never heard of the term BSP (board support packaget), then
-# you should definitely leave this alone.
+# If you have never heard of the term BSP (board support package), then
+# you should definitely leave this option alone.
 #
 
 MX_LINUX_BSP = default
