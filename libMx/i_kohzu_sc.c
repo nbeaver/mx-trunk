@@ -560,6 +560,10 @@ mxi_kohzu_sc_handle_error( MX_KOHZU_SC *kohzu_sc, char *response_buffer )
 		"Error code %d returned by Kohzu controller '%s'",
 			error_code, kohzu_sc->record->name );
 	}
+
+#if defined(__BORLANDC__)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 MX_EXPORT mx_status_type
