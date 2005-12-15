@@ -66,7 +66,7 @@ mx_split_version_number_string( char *version_number_string,
 
 	*os_major = atoi( ptr_major );
 	*os_minor = atoi( ptr_minor );
-	*os_update = 0;
+	*os_update = atoi( ptr_update );
 
 	return;
 }
@@ -112,7 +112,7 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 
 /*------------------------------------------------------------------------*/
 
-#elif defined( OS_UNIX ) || defined( OS_RTEMS )
+#elif defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_RTEMS )
 
 #include <sys/utsname.h>
 
@@ -139,6 +139,23 @@ mx_get_os_version_string( char *version_string,
 		"uname() failed.  Errno = %d, error message = '%s'",
 			saved_errno, strerror( saved_errno ) );
 	}
+
+#if defined( OS_CYGWIN )
+	{
+		/* Extract the version number from the release string. */
+
+		int os_major, os_minor, os_update;
+
+		mx_split_version_number_string( uname_struct.release,
+				&os_major, &os_minor, &os_update );
+
+		snprintf( version_string, max_version_string_length,
+			"%s %d.%d.%d", uname_struct.sysname,
+			os_major, os_minor, os_update );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
 
 	snprintf( version_string, max_version_string_length,
 		"%s %s", uname_struct.sysname, uname_struct.release );
