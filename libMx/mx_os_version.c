@@ -22,6 +22,8 @@
 
 #include "mx_util.h"
 
+#if !defined( OS_WIN32 )
+
 static void
 mx_split_version_number_string( char *version_number_string,
 				int *os_major, int *os_minor, int *os_update )
@@ -70,6 +72,7 @@ mx_split_version_number_string( char *version_number_string,
 
 	return;
 }
+#endif
 
 /*------------------------------------------------------------------------*/
 

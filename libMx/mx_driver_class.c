@@ -21,28 +21,7 @@
 #include "mx_osdef.h"
 #include "mx_types.h"
 
-#define MX_DEFINE_DRIVER_LISTS
-
 #include "mx_driver.h"
-
-/* -- Define the list of record types. -- */
-
-MX_DRIVER *mx_list_of_types[] = {
-	mx_superclass_list,
-	mx_class_list,
-	mx_type_list,
-	NULL
-};
-
-MX_EXPORT MX_DRIVER **
-mx_get_driver_lists( void )
-{
-	MX_DRIVER **ptr;
-
-	ptr = mx_list_of_types;
-
-	return ptr;
-}
 
 /* -- Define lists that relate types to classes and to function lists. -- */
 
@@ -177,4 +156,28 @@ MX_DRIVER mx_class_list[] = {
 
 {"", 0, 0, 0, NULL, NULL, NULL, NULL, NULL}
 };
+
+
+/* -- mx_type_list is now defined in another file. -- */
+
+extern MX_DRIVER mx_type_list[];
+
+/* -- Define the list of record types. -- */
+
+MX_DRIVER *mx_list_of_types[] = {
+	mx_superclass_list,
+	mx_class_list,
+	mx_type_list,
+	NULL
+};
+
+MX_EXPORT MX_DRIVER **
+mx_get_driver_lists( void )
+{
+	MX_DRIVER **ptr;
+
+	ptr = mx_list_of_types;
+
+	return ptr;
+}
 

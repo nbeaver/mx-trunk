@@ -18,8 +18,6 @@
 
 #include <stdio.h>
 
-#define MX_DEFINE_DRIVER_LISTS
-
 #include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_types.h"
