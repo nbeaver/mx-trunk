@@ -367,27 +367,6 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #endif
 
-/* OBSOLETE: Uses of mx_strncpy() should be replaced by strlcpy().
- *
- * mx_strncpy() is a replacement for strncpy() that ensures that the
- * string is '\0' terminated.
- */
-
-#define mx_strncpy( dest, src, n ) \
-			do { \
-				strncpy( (dest), (src), (n) ); \
-				(dest)[((n)-1)] = '\0'; \
-			} while (0)
-
-/* OBSOLETE: Uses of mx_strappend() should be replaced by strlcat().
- *
- * mx_strappend() appends a string to the end of an already existing
- * string, while making sure that it does not extend the length of
- * the string beyond the supplied buffer length.
- */
-
-MX_API char *mx_strappend( char *dest, char *src, size_t n );
-
 /* == Debugging functions. == */
 
 /* Note that in any call to MX_DEBUG(), _all_ the arguments together 

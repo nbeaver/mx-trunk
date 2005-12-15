@@ -2545,9 +2545,9 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		mx_strncpy( mca_filename,
 			datafile_filename, sizeof(mca_filename) );
 
-		mx_strappend( mca_filename, ".", sizeof(mca_filename) );
+		strlcat( mca_filename, ".", sizeof(mca_filename) );
 
-		mx_strappend( mca_filename,
+		strlcat( mca_filename,
 			number_string, sizeof(mca_filename) );
 	} else {
 		basename_length = extension_ptr - datafile_filename + 1;
@@ -2565,17 +2565,15 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		mx_strncpy( mca_filename,
 			datafile_filename, basename_length );
 
-		mx_strappend( mca_filename, "_", sizeof(mca_filename) );
+		strlcat( mca_filename, "_", sizeof(mca_filename) );
 
 		extension_ptr++;
 
-		mx_strappend( mca_filename,
-			extension_ptr, sizeof(mca_filename) );
+		strlcat( mca_filename, extension_ptr, sizeof(mca_filename) );
 
-		mx_strappend( mca_filename, ".", sizeof(mca_filename) );
+		strlcat( mca_filename, ".", sizeof(mca_filename) );
 
-		mx_strappend( mca_filename,
-			number_string, sizeof(mca_filename) );
+		strlcat( mca_filename, number_string, sizeof(mca_filename) );
 	}
 
 	/* Open the MCA datafile. */
