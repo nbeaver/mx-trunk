@@ -73,7 +73,200 @@ mx_split_version_number_string( char *version_number_string,
 
 /*------------------------------------------------------------------------*/
 
-#if defined( OS_VXWORKS )
+#if defined( OS_WIN32 )
+
+#include <windows.h>
+
+MX_EXPORT mx_status_type
+mx_get_os_version_string( char *version_string,
+			size_t max_version_string_length )
+{
+	static const char fname[] = "mx_get_os_version_string()";
+
+	OSVERSIONINFOEX osvi;
+	BOOL status;
+	int use_extended_struct;
+
+	if ( version_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The version_string pointer passed was NULL." );
+	}
+
+	/* Try using OSVERSIONINFOEX first. */
+
+	memset( &osvi, 0, sizeof(OSVERSIONINFOEX) );
+
+	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
+
+	status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+
+	if ( status != 0 ) {
+		use_extended_struct = TRUE;
+	} else {
+		use_extended_struct = FALSE;
+
+		/* Using OSVERSIONINFOEX failed, so try again
+		 * with OSVERSIONINFO.
+		 */
+
+		memset( &osvi, 0, sizeof(OSVERSIONINFO) );
+
+		osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+
+		status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+
+		if ( status == 0 ) {
+			TCHAR message_buffer[100];
+			DWORD error_code;
+
+			error_code = GetLastError();
+
+			mx_win32_error_message( error_code,
+				message_buffer, sizeof( message_buffer ) );
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to get the Windows version number.  "
+			"Win32 error code = %ld, error message = '%s'.",
+			error_code, message_buffer );
+		}
+	}
+
+#if 0
+	MX_DEBUG(-2,("%s: dwMajorVersion = %lu",
+		fname, (unsigned long) osvi.dwMajorVersion));
+	MX_DEBUG(-2,("%s: dwMinorVersion = %lu",
+		fname, (unsigned long) osvi.dwMinorVersion));
+	MX_DEBUG(-2,("%s: szCSDVersion = '%s'",
+		fname, osvi.szCSDVersion));
+	MX_DEBUG(-2,("%s: wSuiteMask = %#lx",
+		fname, (unsigned long) osvi.wSuiteMask));
+#endif
+
+	/* A twisty little maze of passages, all alike. */
+
+	switch( osvi.dwMajorVersion ) {
+	case 3:
+		strlcpy( version_string, "Windows NT 3.51",
+			max_version_string_length );
+		break;
+	case 4:
+		switch( osvi.dwMinorVersion ) {
+		case 0:
+			strlcpy( version_string, "Windows 95",
+				max_version_string_length );
+			break;
+		case 1:
+		case 3:
+			strlcpy( version_string, "Windows NT 4.0",
+				max_version_string_length );
+			break;
+		case 10:
+			strlcpy( version_string, "Windows 98",
+				max_version_string_length );
+			break;
+		case 90:
+			strlcpy( version_string, "Windows Me",
+				max_version_string_length );
+			break;
+		default:
+			snprintf( version_string, max_version_string_length,
+				"Windows ??? (major = %lu, minor = %lu)",
+				(unsigned long) osvi.dwMajorVersion,
+				(unsigned long) osvi.dwMinorVersion );
+			break;
+		}
+		break;
+	case 5:
+		switch( osvi.dwMinorVersion ) {
+		case 0:
+			strlcpy( version_string, "Windows 2000",
+				max_version_string_length );
+			break;
+		case 1:
+			strlcpy( version_string, "Windows XP",
+				max_version_string_length );
+			break;
+		case 2:
+			strlcpy( version_string, "Windows Server 2003",
+				max_version_string_length );
+			break;
+		default:
+			snprintf( version_string, max_version_string_length,
+				"Windows ??? (major = %lu, minor = %lu)",
+				(unsigned long) osvi.dwMajorVersion,
+				(unsigned long) osvi.dwMinorVersion );
+			break;
+		}
+		break;
+	case 6:
+		switch( osvi.dwMinorVersion ) {
+		case 0:
+			strlcpy( version_string, "Windows Vista",
+				max_version_string_length );
+			break;
+		default:
+			snprintf( version_string, max_version_string_length,
+				"Windows ??? (major = %lu, minor = %lu)",
+				(unsigned long) osvi.dwMajorVersion,
+				(unsigned long) osvi.dwMinorVersion );
+			break;
+		}
+		break;
+	default:
+		snprintf( version_string, max_version_string_length,
+			"Windows ??? (major = %lu, minor = %lu)",
+			(unsigned long) osvi.dwMajorVersion,
+			(unsigned long) osvi.dwMinorVersion );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_os_version( int *os_major, int *os_minor, int *os_update )
+{
+	static const char fname[] = "mx_get_os_version()";
+
+	OSVERSIONINFO osvi;
+	BOOL status;
+
+	if ( (os_major == NULL) || (os_minor == NULL) || (os_update == NULL) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"One or more of the arguments passed were NULL." );
+	}
+
+	memset( &osvi, 0, sizeof(osvi) );
+
+	osvi.dwOSVersionInfoSize = sizeof(osvi);
+
+	status = GetVersionEx( (OSVERSIONINFO *) &osvi );
+
+	if ( status == 0 ) {
+		TCHAR message_buffer[100];
+		DWORD error_code;
+
+		error_code = GetLastError();
+
+		mx_win32_error_message( error_code,
+			message_buffer, sizeof( message_buffer ) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get the Windows version number.  "
+		"Win32 error code = %ld, error message = '%s'.",
+		error_code, message_buffer );
+	}
+
+	*os_major = (int) osvi.dwMajorVersion;
+	*os_minor = (int) osvi.dwMinorVersion;
+	*os_update = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
+#elif defined( OS_VXWORKS )
 
 #include "version.h"
 

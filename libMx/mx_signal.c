@@ -598,7 +598,7 @@ mx_signal_free( int signal_number )
 
 /*--------------------------------------------------------------------------*/
 
-#elif 0
+#elif defined( OS_WIN32 )
 
 /* For this platform, no signals are available, so attempts
  * to allocate signals fail.
