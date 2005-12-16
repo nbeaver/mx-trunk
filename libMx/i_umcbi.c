@@ -245,7 +245,7 @@ mxi_umcbi_open( MX_RECORD *record )
 		detector_array[i].detector_number = i+1;
 		detector_array[i].detector_id = detector_id;
 		detector_array[i].record = NULL;
-		mx_strncpy( detector_array[i].name, name,
+		strlcpy( detector_array[i].name, name,
 				MX_UMCBI_DETECTOR_NAME_LENGTH );
 
 		MX_DEBUG( 2,("%s: Detector %d, detector id = %lu, name = '%s'",

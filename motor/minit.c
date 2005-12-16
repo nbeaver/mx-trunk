@@ -158,8 +158,8 @@ motor_init( char *motor_savefile_name,
 
 	list_head_struct->default_precision = motor_default_precision;
 
-	mx_strncpy( list_head_struct->program_name,
-			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH + 1 );
+	strlcpy( list_head_struct->program_name,
+			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH );
 
 	/* Read 'motor.dat' and add the records therein to the record list. */
 

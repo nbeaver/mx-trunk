@@ -399,7 +399,7 @@ mxd_network_mcs_open( MX_RECORD *record )
 		    if ( current_record_matches ) {
 			mcs->timer_record = current_record;
 
-			mx_strncpy( mcs->timer_name,
+			strlcpy( mcs->timer_name,
 				current_record->name,
 				MXU_RECORD_NAME_LENGTH );
 

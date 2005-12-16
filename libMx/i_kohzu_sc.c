@@ -702,7 +702,7 @@ mxi_kohzu_sc_command( MX_KOHZU_SC *kohzu_sc, char *command,
 
 	if ( response != (char *) NULL ) {
 
-		mx_strncpy( response, response_buffer, max_response_length );
+		strlcpy( response, response_buffer, max_response_length );
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",
@@ -877,7 +877,7 @@ mxi_kohzu_sc_select_token( char *response_buffer,
 		token_length = max_token_length - 1;
 	}
 
-	mx_strncpy( token_buffer, ptr, token_length + 1 );
+	strlcpy( token_buffer, ptr, token_length + 1 );
 
 	MX_DEBUG( 2,("%s: token %u = '%s'",
 		fname, token_number, token_buffer ));

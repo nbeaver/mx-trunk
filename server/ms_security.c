@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -336,8 +336,8 @@ mxsrv_get_client_hostname( char *client_address_string,
 		sprintf( client_hostname, "Address '%s' not found.",
 					client_address_string );
 	} else {
-		mx_strncpy( client_hostname, host_entry->h_name,
-					MXU_ADDRESS_STRING_LENGTH + 1);
+		strlcpy( client_hostname, host_entry->h_name,
+					MXU_ADDRESS_STRING_LENGTH );
 	}
 
 	MX_DEBUG( 2,("%s: client_hostname = '%s'", fname, client_hostname));

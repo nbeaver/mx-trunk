@@ -179,7 +179,7 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 
 	mce->current_num_values = mce->maximum_num_values;
 
-	mx_strncpy( mce->selected_motor_name,
+	strlcpy( mce->selected_motor_name,
 			mcs_encoder->associated_motor_record->name,
 			MXU_RECORD_NAME_LENGTH );
 

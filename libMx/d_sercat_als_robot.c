@@ -1018,7 +1018,7 @@ mxd_sercat_als_robot_select_sample_holder( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_strncpy( changer->current_sample_holder,
+	strlcpy( changer->current_sample_holder,
 			changer->requested_sample_holder,
 			MXU_SAMPLE_HOLDER_NAME_LENGTH );
 
@@ -1040,7 +1040,7 @@ mxd_sercat_als_robot_unselect_sample_holder( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_strncpy( changer->current_sample_holder,
+	strlcpy( changer->current_sample_holder,
 			MX_CHG_NO_SAMPLE_HOLDER,
 			MXU_SAMPLE_HOLDER_NAME_LENGTH );
 

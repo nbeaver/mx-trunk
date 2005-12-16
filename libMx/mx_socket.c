@@ -466,8 +466,8 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 
 	destination_address.sun_family = AF_LOCAL;
 
-	mx_strncpy( destination_address.sun_path, pathname, 
-				sizeof( destination_address.sun_path ) - 1 );
+	strlcpy( destination_address.sun_path, pathname, 
+				sizeof( destination_address.sun_path ) );
 
 	/* Create a socket. */
 
@@ -627,8 +627,8 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 
 	server_address.sun_family = AF_LOCAL;
 
-	mx_strncpy( server_address.sun_path, pathname, 
-				sizeof( server_address.sun_path ) - 1 );
+	strlcpy( server_address.sun_path, pathname, 
+				sizeof( server_address.sun_path ) );
 
 	/* Assignment to a void pointer avoids warning messages like
 	 * 'cast increases required alignment of target type' on Irix.

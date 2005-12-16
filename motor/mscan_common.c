@@ -360,16 +360,16 @@ motor_setup_input_devices(
 				  || (scan_type == MXS_QUI_APS_ID) )
 				{
 				    if ( record->mx_class == MXC_SCALER ) {
-					mx_strncpy( input_name_array[i],
-					    buffer,MXU_RECORD_NAME_LENGTH + 1);
+					strlcpy( input_name_array[i],
+					    buffer,MXU_RECORD_NAME_LENGTH );
 
 					valid_input_device_name = TRUE;
 				    }
 				} else {
 				    switch ( record->mx_superclass ) {
 				    case MXR_VARIABLE:
-					mx_strncpy( input_name_array[i],
-					    buffer,MXU_RECORD_NAME_LENGTH + 1);
+					strlcpy( input_name_array[i],
+					    buffer,MXU_RECORD_NAME_LENGTH );
 
 					valid_input_device_name = TRUE;
 					break;
@@ -385,8 +385,8 @@ motor_setup_input_devices(
 					case MXC_RELAY:
 					case MXC_AMPLIFIER:
 					case MXC_MULTICHANNEL_ANALYZER:
-					    mx_strncpy( input_name_array[i],
-					      buffer,MXU_RECORD_NAME_LENGTH+1);
+					    strlcpy( input_name_array[i],
+					      buffer, MXU_RECORD_NAME_LENGTH );
 
 					    valid_input_device_name = TRUE;
 					    break;
@@ -510,7 +510,7 @@ motor_setup_measurement_parameters(
 
 	switch( scan_measurement_type ) {
 	case MXM_NONE:
-		mx_strncpy( ptr, "\"\" ", remaining_length );
+		strlcpy( ptr, "\"\" ", remaining_length );
 
 		status = SUCCESS;
 		break;
@@ -886,7 +886,7 @@ motor_setup_datafile_and_plot_parameters(
 	if ( old_scan == (MX_SCAN *) NULL ) {
 		strcpy( default_datafile_options, "" );
 	} else {
-		mx_strncpy( default_datafile_options,
+		strlcpy( default_datafile_options,
 			old_scan->datafile.options,
 			MXU_DATAFILE_OPTIONS_LENGTH );
 	}
@@ -950,7 +950,7 @@ motor_setup_datafile_and_plot_parameters(
 	if ( old_scan == (MX_SCAN *) NULL ) {
 		strcpy( default_plot_options, "" );
 	} else {
-		mx_strncpy( default_plot_options,
+		strlcpy( default_plot_options,
 			old_scan->plot.options,
 			MXU_PLOT_OPTIONS_LENGTH );
 	}

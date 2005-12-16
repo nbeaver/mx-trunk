@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -161,7 +161,7 @@ mx_measurement_fault_create_handler(
 			MXU_MEASUREMENT_FAULT_DRIVER_NAME_LENGTH );
 	}
 
-	mx_strncpy( driver_name, handler_description, length + 1 );
+	strlcpy( driver_name, handler_description, length + 1 );
 
 	driver_specific_description = ptr + 1;
 

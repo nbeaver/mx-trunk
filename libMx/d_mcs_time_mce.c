@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -183,7 +183,7 @@ mxd_mcs_time_mce_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-        mx_strncpy( mce->selected_motor_name,
+        strlcpy( mce->selected_motor_name,
                         mcs_time_mce->associated_motor_record->name,
                         MXU_RECORD_NAME_LENGTH );
 

@@ -424,7 +424,7 @@ mxd_record_field_motor_set_handler( MX_RECORD_FIELD_MOTOR *record_field_motor,
 
 	/* Save a temporary copy of the handler name. */
 
-	mx_strncpy( handler_name, handler_name_ptr,
+	strlcpy( handler_name, handler_name_ptr,
 			MXU_RECORD_FIELD_NAME_LENGTH );
 
 	/* If the handler name is of length zero, set the handler pointer

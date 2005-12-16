@@ -492,7 +492,7 @@ mx_epics_pvname_init( MX_EPICS_PV *pv, char *name_format, ... )
 
 	/* Save the process variable name. */
 
-	mx_strncpy( pv->pvname, buffer, MXU_EPICS_PVNAME_LENGTH );
+	strlcpy( pv->pvname, buffer, MXU_EPICS_PVNAME_LENGTH );
 
 	MX_DEBUG( 2,("%s invoked for PV '%s'", fname, pv->pvname));
 

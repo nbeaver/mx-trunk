@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,10 +42,10 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 
 	switch( scan->datafile.type ) {
 	case MXDF_SFF:
-		mx_strncpy(variable_stem, "sff_header", sizeof variable_stem);
+		strlcpy(variable_stem, "sff_header", sizeof (variable_stem));
 		break;
 	case MXDF_XAFS:
-		mx_strncpy(variable_stem, "xafs_header", sizeof variable_stem);
+		strlcpy(variable_stem, "xafs_header", sizeof (variable_stem));
 		break;
 	default:
 		/* All datafile types not mentioned are assumed to not
@@ -84,7 +84,7 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 		if ( status != SUCCESS )
 			return status;
 
-		mx_strncpy( (char *)pointer_to_value,
+		strlcpy( (char *)pointer_to_value,
 				new_value, variable_length - 1 );
 
 		mx_status = mx_send_variable( variable_record );

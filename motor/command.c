@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -324,7 +324,7 @@ cmd_read_next_command_line( char *prompt )
 	unsigned char recall_size;
 	unsigned short return_length, terminator;
 
-	mx_strncpy( local_prompt, prompt, sizeof(local_prompt) - 1 );
+	strlcpy( local_prompt, prompt, sizeof(local_prompt) );
 
 	prompt_desc.dsc$w_length = strlen( local_prompt );
 
@@ -389,7 +389,7 @@ cmd_read_next_command_line( char *prompt )
 	unsigned short return_length;
 	int vms_status;
 
-	mx_strncpy( local_prompt, prompt, sizeof(local_prompt) - 1 );
+	strlcpy( local_prompt, prompt, sizeof(local_prompt) );
 
 	prompt_desc.dsc$w_length = strlen( local_prompt );
 

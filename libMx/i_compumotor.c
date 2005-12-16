@@ -567,7 +567,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 
 		for ( j = 0; j < compumotor_interface->num_axes[i]; j++ ) {
 
-			mx_strappend( command, "1", sizeof(command) );
+			strlcat( command, "1", sizeof(command) );
 		}
 
 		(void) mxi_compumotor_command( compumotor_interface,

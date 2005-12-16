@@ -415,7 +415,7 @@ mxi_pfcu_command( MX_PFCU *pfcu,
 		} else {
 			response_ptr = status_end_ptr + 1;
 
-			mx_strncpy( response, response_ptr,
+			strlcpy( response, response_ptr,
 					response_buffer_length );
 		}
 	}

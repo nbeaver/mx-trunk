@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -281,8 +281,8 @@ mxd_soft_scaler_open( MX_RECORD *record )
 	}
 
 	if ( filename_needs_expansion == FALSE ) {
-		mx_strncpy( datafile_name, soft_scaler->datafile_name,
-						MXU_FILENAME_LENGTH + 1 );
+		strlcpy( datafile_name, soft_scaler->datafile_name,
+						MXU_FILENAME_LENGTH );
 	} else {
 		/* Does the MXDIR environment variable exist? */
 
@@ -292,13 +292,13 @@ mxd_soft_scaler_open( MX_RECORD *record )
 
 			/* If not, just use the unexpanded name. */
 
-			mx_strncpy( datafile_name, soft_scaler->datafile_name,
-						MXU_FILENAME_LENGTH + 1 );
+			strlcpy( datafile_name, soft_scaler->datafile_name,
+						MXU_FILENAME_LENGTH );
 		} else {
 			/* Prepend the MXDIR string to the filename. */
 
-			mx_strncpy( datafile_name, mxdir_ptr,
-						MXU_FILENAME_LENGTH + 1 );
+			strlcpy( datafile_name, mxdir_ptr,
+						MXU_FILENAME_LENGTH );
 
 			remaining_length = sizeof( datafile_name )
 					- strlen( datafile_name ) - 1;

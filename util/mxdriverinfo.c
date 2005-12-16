@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,14 +95,12 @@ main( int argc, char *argv[] ) {
 			items_to_show = MXDI_FIELDS;
 			show_all_fields = TRUE;
 
-			mx_strncpy( item_name, optarg,
-					MXU_DRIVER_NAME_LENGTH );
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case 'c':
 			items_to_show = MXDI_CLASSES;
 
-			mx_strncpy( item_name, optarg,
-					MXU_DRIVER_NAME_LENGTH );
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case 'd':
 			debug = TRUE;
@@ -112,8 +110,7 @@ main( int argc, char *argv[] ) {
 			items_to_show = MXDI_FIELDS;
 			show_all_fields = FALSE;
 
-			mx_strncpy( item_name, optarg,
-					MXU_DRIVER_NAME_LENGTH );
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case 'l':
 			items_to_show = MXDI_DRIVERS;
@@ -124,8 +121,7 @@ main( int argc, char *argv[] ) {
 		case 't':
 			items_to_show = MXDI_TYPES;
 
-			mx_strncpy( item_name, optarg,
-					MXU_DRIVER_NAME_LENGTH );
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case 'v':
 			items_to_show = MXDI_VERSION;

@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -194,10 +194,10 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 		driver = mx_get_driver_by_type( MXT_MTR_CRYOSTREAM600 );
 
 		if ( driver == (MX_DRIVER *) NULL ) {
-			mx_strncpy( driver_name, "unknown",
+			strlcpy( driver_name, "unknown",
 					MXU_DRIVER_NAME_LENGTH );
 		} else {
-			mx_strncpy( driver_name, driver->name,
+			strlcpy( driver_name, driver->name,
 					MXU_DRIVER_NAME_LENGTH );
 		}
 

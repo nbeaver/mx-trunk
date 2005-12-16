@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -549,7 +549,7 @@ mx_plot_do_x_command( MX_PLOT *plot, char *command_arguments )
 		end_ptr = strchr( start_ptr, ',' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( record_name, start_ptr,
+			strlcpy( record_name, start_ptr,
 					MXU_RECORD_NAME_LENGTH );
 		} else {
 			length = end_ptr - start_ptr + 1;
@@ -558,7 +558,7 @@ mx_plot_do_x_command( MX_PLOT *plot, char *command_arguments )
 				length = MXU_RECORD_NAME_LENGTH;
 			}
 
-			mx_strncpy( record_name, start_ptr, length );
+			strlcpy( record_name, start_ptr, length );
 		}
 
 		motor_record = mx_get_record( scan->record, record_name );
@@ -634,7 +634,7 @@ mx_plot_parse_options( MX_PLOT *plot )
 		end_ptr = strchr( start_ptr, ';' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( command_buffer, start_ptr,
+			strlcpy( command_buffer, start_ptr,
 					sizeof(command_buffer) );
 
 			last_command = TRUE;
@@ -645,7 +645,7 @@ mx_plot_parse_options( MX_PLOT *plot )
 				length = sizeof(command_buffer) - 1;
 			}
 
-			mx_strncpy( command_buffer, start_ptr, length );
+			strlcpy( command_buffer, start_ptr, length );
 
 			start_ptr = (++end_ptr);
 		}
@@ -657,7 +657,7 @@ mx_plot_parse_options( MX_PLOT *plot )
 		end_ptr = strchr( command_buffer, '=' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( command_name, command_buffer,
+			strlcpy( command_name, command_buffer,
 					sizeof(command_name) );
 
 			command_arguments = NULL;
@@ -668,7 +668,7 @@ mx_plot_parse_options( MX_PLOT *plot )
 				length = sizeof(command_name) - 1;
 			}
 
-			mx_strncpy( command_name, command_buffer, length );
+			strlcpy( command_name, command_buffer, length );
 
 			command_arguments = (++end_ptr);
 		}

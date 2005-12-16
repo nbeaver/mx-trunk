@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -275,7 +275,7 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 
 #if ( MX_CMDLINE_PROCESSOR != MX_CMDLINE_VMS )
 
-	mx_strncpy( real_prompt, prompt, sizeof(real_prompt) - 1 );
+	strlcpy( real_prompt, prompt, sizeof(real_prompt) );
 
 #else /* MX_CMDLINE_VMS */
 
@@ -430,13 +430,13 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 	{
 		/* Copy in the default string if the user didn't enter one. */
 
-		mx_strncpy( string, default_string, *string_length );
+		strlcpy( string, default_string, *string_length );
 
 		new_string_length = strlen( string ) + 1;
 	} else {
 		/* Otherwise, copy the string the user provided. */
 
-		mx_strncpy( string, local_string, *string_length );
+		strlcpy( string, local_string, *string_length );
 	}
 
 	*string_length = new_string_length;

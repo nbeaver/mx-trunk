@@ -863,7 +863,7 @@ mxd_als_robot_java_command( MX_SAMPLE_CHANGER *changer,
 				control_mode_ptr, als_robot_java->record->name);
 		}
 
-		mx_strncpy( response, return_values_ptr,
+		strlcpy( response, return_values_ptr,
 				response_buffer_length );
 
 		if ( debug_flag ) {

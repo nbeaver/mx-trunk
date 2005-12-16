@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -623,7 +623,7 @@ mxi_pmc_mcapi_command( MX_PMC_MCAPI *pmc_mcapi,
 
 	if ( response != (char *) NULL ) {
 
-		mx_strncpy( response, response_buffer, max_response_length );
+		strlcpy( response, response_buffer, max_response_length );
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",

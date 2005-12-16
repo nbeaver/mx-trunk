@@ -497,7 +497,7 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 	} else {
 		/* Open the specified xiasystems.cfg file. */
 
-		mx_strncpy( modules_filename, xia_xerxes->xiasystems_cfg,
+		strlcpy( modules_filename, xia_xerxes->xiasystems_cfg,
 				MXU_FILENAME_LENGTH );
 
 		file = fopen( modules_filename, "r" );

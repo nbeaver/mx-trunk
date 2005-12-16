@@ -713,7 +713,7 @@ mx_datafile_do_x_command( MX_DATAFILE *datafile, char *command_arguments )
 		end_ptr = strchr( start_ptr, ',' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( record_name, start_ptr,
+			strlcpy( record_name, start_ptr,
 					MXU_RECORD_NAME_LENGTH );
 		} else {
 			length = end_ptr - start_ptr + 1;
@@ -722,7 +722,7 @@ mx_datafile_do_x_command( MX_DATAFILE *datafile, char *command_arguments )
 				length = MXU_RECORD_NAME_LENGTH;
 			}
 
-			mx_strncpy( record_name, start_ptr, length );
+			strlcpy( record_name, start_ptr, length );
 		}
 
 		motor_record = mx_get_record( scan->record, record_name );
@@ -798,7 +798,7 @@ mx_datafile_parse_options( MX_DATAFILE *datafile )
 		end_ptr = strchr( start_ptr, ';' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( command_buffer, start_ptr,
+			strlcpy( command_buffer, start_ptr,
 					sizeof(command_buffer) );
 
 			last_command = TRUE;
@@ -809,7 +809,7 @@ mx_datafile_parse_options( MX_DATAFILE *datafile )
 				length = sizeof(command_buffer) - 1;
 			}
 
-			mx_strncpy( command_buffer, start_ptr, length );
+			strlcpy( command_buffer, start_ptr, length );
 
 			start_ptr = (++end_ptr);
 		}
@@ -821,7 +821,7 @@ mx_datafile_parse_options( MX_DATAFILE *datafile )
 		end_ptr = strchr( command_buffer, '=' );
 
 		if ( end_ptr == NULL ) {
-			mx_strncpy( command_name, command_buffer,
+			strlcpy( command_name, command_buffer,
 					sizeof(command_name) );
 
 			command_arguments = NULL;
@@ -832,7 +832,7 @@ mx_datafile_parse_options( MX_DATAFILE *datafile )
 				length = sizeof(command_name) - 1;
 			}
 
-			mx_strncpy( command_name, command_buffer, length );
+			strlcpy( command_name, command_buffer, length );
 
 			command_arguments = (++end_ptr);
 		}

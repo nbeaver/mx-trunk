@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -126,7 +126,7 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 	message_header.cols = spec_array_data_cols;
 	message_header.len = spec_data_length;
 
-	mx_strncpy( message_header.name, spec_property_name, SV_NAME_LEN );
+	strlcpy( message_header.name, spec_property_name, SV_NAME_LEN );
 
 	/* Send the message header. */
 
@@ -223,7 +223,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 		*spec_data_length = message_header.len;
 	}
 	if ( spec_property_name != NULL ) {
-		mx_strncpy( spec_property_name,
+		strlcpy( spec_property_name,
 				message_header.name, SV_NAME_LEN );
 	}
 

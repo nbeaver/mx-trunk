@@ -274,7 +274,7 @@ mxi_vms_terminal_open( MX_RECORD *record )
 	fprintf(stderr, "\n");
 #endif
 
-	mx_strncpy(device_name, vms_terminal->device_name, MXU_FILENAME_LENGTH);
+	strlcpy(device_name, vms_terminal->device_name, MXU_FILENAME_LENGTH);
 
 	MX_DEBUG( 2,("%s: device_name = '%s'", fname, device_name));
 

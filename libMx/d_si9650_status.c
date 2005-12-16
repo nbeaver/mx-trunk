@@ -189,10 +189,10 @@ mxd_si9650_status_read( MX_ANALOG_INPUT *ainput )
 		driver = mx_get_driver_by_type( MXT_MTR_SI9650 );
 
 		if ( driver == (MX_DRIVER *) NULL ) {
-			mx_strncpy( driver_name, "unknown",
+			strlcpy( driver_name, "unknown",
 					MXU_DRIVER_NAME_LENGTH );
 		} else {
-			mx_strncpy( driver_name, driver->name,
+			strlcpy( driver_name, driver->name,
 					MXU_DRIVER_NAME_LENGTH );
 		}
 

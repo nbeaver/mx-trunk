@@ -444,11 +444,11 @@ mx_username( char *buffer, size_t max_buffer_length )
 	"Error code = %d, error text = '%s'", (unsigned long) uid,
 				saved_errno, strerror( saved_errno ) );
 
-			mx_strncpy( ptr, "unknown", max_buffer_length );
+			strlcpy( ptr, "unknown", max_buffer_length );
 
 			return ptr;
 		}
-		mx_strncpy( ptr, pw->pw_name, max_buffer_length );
+		strlcpy( ptr, pw->pw_name, max_buffer_length );
 	}
 
 /* End of OS_LINUX, OS_SOLARIS, and OS_HPUX section. */
@@ -463,11 +463,11 @@ mx_username( char *buffer, size_t max_buffer_length )
 		pw = getpwuid( getuid() );
 
 		if ( pw == NULL ) {
-			mx_strncpy( ptr, "unknown", max_buffer_length );
+			strlcpy( ptr, "unknown", max_buffer_length );
 
 			return ptr;
 		}
-		mx_strncpy( ptr, pw->pw_name, max_buffer_length );
+		strlcpy( ptr, pw->pw_name, max_buffer_length );
 	}
 #elif defined( OS_WIN32 )
 	{
@@ -510,7 +510,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 				break;
 			}
-			mx_strncpy( ptr, "unknown", max_buffer_length );
+			strlcpy( ptr, "unknown", max_buffer_length );
 		}
 	}
 
@@ -521,9 +521,9 @@ mx_username( char *buffer, size_t max_buffer_length )
 		login_ptr = getlogin();
  
 		if ( login_ptr == NULL ) {
-			mx_strncpy( ptr, "unknown", max_buffer_length );
+			strlcpy( ptr, "unknown", max_buffer_length );
 		} else {
-			mx_strncpy( ptr, login_ptr, max_buffer_length );
+			strlcpy( ptr, login_ptr, max_buffer_length );
 #if defined( OS_VMS )
 			/* Convert the VMS username to lower case. */
 
@@ -544,11 +544,11 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 #elif defined( OS_RTEMS )
 
-	mx_strncpy( ptr, "rtems", max_buffer_length );
+	strlcpy( ptr, "rtems", max_buffer_length );
 
 #elif defined( OS_VXWORKS )
 
-	mx_strncpy( ptr, "vxworks", max_buffer_length );
+	strlcpy( ptr, "vxworks", max_buffer_length );
 
 #else
 
@@ -1323,26 +1323,6 @@ vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 #endif
 
 /* --- */
-
-MX_EXPORT char *
-mx_strappend( char *dest, char *src, size_t buffer_length )
-{
-	size_t string_length, buffer_left;
-
-	string_length = strlen( dest );
-
-	buffer_left = buffer_length - string_length - 1;
-
-	/* Only append characters if there is room left in the buffer
-	 * to add them.
-	 */
-
-	if ( buffer_left > 0 ) {
-		strncat( dest, src, buffer_left );
-	}
-
-	return dest;
-}
 
 MX_EXPORT char *
 mx_ctime_string( void )

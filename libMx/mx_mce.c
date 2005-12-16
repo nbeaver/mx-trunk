@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,7 +381,7 @@ mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_strncpy( mce->selected_motor_name, motor_record->name,
+	strlcpy( mce->selected_motor_name, motor_record->name,
 				MXU_RECORD_NAME_LENGTH );
 
 	connect_mce_to_motor_fn = function_list->connect_mce_to_motor;

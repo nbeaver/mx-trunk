@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -199,7 +199,7 @@ mxd_databox_encoder_finish_record_initialization( MX_RECORD *record )
 
 	mce->current_num_values = mce->maximum_num_values;
 
-        mx_strncpy( mce->selected_motor_name,
+        strlcpy( mce->selected_motor_name,
                         databox_encoder->associated_motor_record->name,
                         MXU_RECORD_NAME_LENGTH );
 

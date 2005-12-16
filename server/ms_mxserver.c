@@ -327,7 +327,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->event_handler = event_handler;
 
 	strcpy( socket_handler->client_address_string, "" );
-	mx_strncpy( socket_handler->program_name, "mxserver",
+	strlcpy( socket_handler->program_name, "mxserver",
 					MXU_PROGRAM_NAME_LENGTH );
 
 	mx_username( socket_handler->username, MXU_USERNAME_LENGTH );
@@ -574,7 +574,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 		client_address_string_ptr =
 			inet_ntoa( tcp_client_address.sin_addr );
 
-		mx_strncpy( new_socket_handler->client_address_string,
+		strlcpy( new_socket_handler->client_address_string,
 			client_address_string_ptr,
 			MXU_ADDRESS_STRING_LENGTH );
 
@@ -610,7 +610,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
 	case MXF_SRV_UNIX_SERVER_TYPE:
-		mx_strncpy( new_socket_handler->client_address_string,
+		strlcpy( new_socket_handler->client_address_string,
 				server_socket_struct->u.unix_domain.pathname,
 				MXU_ADDRESS_STRING_LENGTH );
 
@@ -2425,7 +2425,7 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 		/* The username is only stored if it has not yet been set. */
 
 		if ( strlen( socket_handler->username ) == 0 ) {
-			mx_strncpy( socket_handler->username, ptr, length+1 );
+			strlcpy( socket_handler->username, ptr, length );
 		}
 
 		ptr = ptr2 + 1;
@@ -2452,7 +2452,7 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 		if ( length > MXU_PROGRAM_NAME_LENGTH )
 			length = MXU_PROGRAM_NAME_LENGTH;
 
-		mx_strncpy( socket_handler->program_name, ptr, length+1 );
+		strlcpy( socket_handler->program_name, ptr, length );
 
 		ptr = ptr2 + 1;
 

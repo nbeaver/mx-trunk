@@ -579,7 +579,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			timer_record->name );
 	}
 
-	mx_strncpy( joerger_quick_scan->epics_record_name,
+	strlcpy( joerger_quick_scan->epics_record_name,
 			epics_timer->epics_record_name,
 			sizeof( joerger_quick_scan->epics_record_name ) );
 

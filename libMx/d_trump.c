@@ -697,7 +697,7 @@ mxd_trump_get_parameter( MX_MCA *mca )
 
 		ptr = response + 2;
 
-		mx_strncpy( buffer, ptr, 5 );
+		strlcpy( buffer, ptr, 5 );
 
 		num_items = sscanf( buffer, "%lu", &(mca->roi[0]) );
 
@@ -711,7 +711,7 @@ mxd_trump_get_parameter( MX_MCA *mca )
 
 		ptr += 5;
 
-		mx_strncpy( buffer, ptr, 5 );
+		strlcpy( buffer, ptr, 5 );
 
 		num_items = sscanf( buffer, "%lu", &num_roi_channels );
 

@@ -458,7 +458,7 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 
 			mcs->timer_record = scaler_mcs->timer_record;
 
-			mx_strncpy( mcs->timer_name,
+			strlcpy( mcs->timer_name,
 				mcs->timer_record->name,
 				MXU_RECORD_NAME_LENGTH );
 		} else {

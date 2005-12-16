@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -145,7 +145,7 @@ mx_log_open( MX_RECORD *record_list )
 
 	log_handler->log_type = MXLT_FILE;
 
-	mx_strncpy( log_handler->log_name, log_name, MXU_FILENAME_LENGTH + 1 );
+	strlcpy( log_handler->log_name, log_name, MXU_FILENAME_LENGTH + 1 );
 
 	list_head->log_handler = log_handler;
 
@@ -276,7 +276,7 @@ mx_log_timestamp( MX_LOG *log_handler, char *buffer, size_t max_buffer_length )
 
 	buffer_left = max_buffer_length - length - 1;
 
-	mx_strncpy( ptr, log_handler->list_head->username, buffer_left );
+	strlcpy( ptr, log_handler->list_head->username, buffer_left );
 
 	return buffer;
 }

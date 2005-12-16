@@ -1125,79 +1125,79 @@ mxd_roentec_rcl_handle_error( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 
 	switch( error_code ) {
 	case 0:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"General error or buffer overflow",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 1:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Unknown command",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 2:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Numeric parameter expected",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 4:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Boolean parameter expected",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 5:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Additional parameter expected",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 6:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Unexpected parameter or character",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 7:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Illegal numeric value",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 8:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Unknown subcommand",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 9:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Function not implemented or no hardware support",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 10:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Flash-EPROM programming fault",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 11:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Error clearing Flash-EPROM",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 12:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Flash-EPROM read error",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 13:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Hardware error",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	case 16:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Illegal baud rate",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	default:
-		mx_strncpy( error_message,
+		strlcpy( error_message,
 			"Unrecognized error code",
-			sizeof(error_message) - 1 );
+			sizeof(error_message) );
 		break;
 	}
 
@@ -1327,7 +1327,7 @@ mxd_roentec_rcl_command( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 
 	if ( response != (char *) NULL ) {
 
-		mx_strncpy( response, response_buffer, max_response_length );
+		strlcpy( response, response_buffer, max_response_length );
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",

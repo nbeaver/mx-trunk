@@ -420,7 +420,7 @@ mxserver_main( int argc, char *argv[] )
 			}
 			break;
 		case 'C':
-			mx_strncpy( mx_connection_acl_filename,
+			strlcpy( mx_connection_acl_filename,
 					optarg, MXU_FILENAME_LENGTH );
 			break;
                 case 'd':
@@ -432,17 +432,17 @@ mxserver_main( int argc, char *argv[] )
 		case 'e':
 			redirect_stderr = TRUE;
 			destination_unbuffered = FALSE;
-			mx_strncpy( mx_stderr_destination_filename,
+			strlcpy( mx_stderr_destination_filename,
 					optarg, MXU_FILENAME_LENGTH );
 			break;
 		case 'E':
 			redirect_stderr = TRUE;
 			destination_unbuffered = TRUE;
-			mx_strncpy( mx_stderr_destination_filename,
+			strlcpy( mx_stderr_destination_filename,
 					optarg, MXU_FILENAME_LENGTH );
 			break;
                 case 'f':
-                        mx_strncpy( mx_database_filename,
+                        strlcpy( mx_database_filename,
 					optarg, MXU_FILENAME_LENGTH );
                         break;
 		case 'l':
@@ -477,7 +477,7 @@ mxserver_main( int argc, char *argv[] )
 			break;
 		case 'u':
 #if HAVE_UNIX_DOMAIN_SOCKETS
-			mx_strncpy( server_pathname,
+			strlcpy( server_pathname,
 					optarg, MXU_FILENAME_LENGTH );
 #else
 			fprintf( stderr,
@@ -582,7 +582,7 @@ mxserver_main( int argc, char *argv[] )
 	mxsrv_unix_server_socket_struct.client_event_handler
 		= &mxsrv_event_handler_list[i];
 
-	mx_strncpy( mxsrv_unix_server_socket_struct.u.unix_domain.pathname,
+	strlcpy( mxsrv_unix_server_socket_struct.u.unix_domain.pathname,
 			server_pathname, MXU_FILENAME_LENGTH );
 #endif
 
@@ -658,7 +658,7 @@ mxserver_main( int argc, char *argv[] )
 
 	list_head_struct->is_server = TRUE;
 
-	mx_strncpy( list_head_struct->program_name,
+	strlcpy( list_head_struct->program_name,
 			"mxserver", MXU_PROGRAM_NAME_LENGTH );
 
 	/* Set the default floating point display precision. */
@@ -696,7 +696,7 @@ mxserver_main( int argc, char *argv[] )
 	mx_status = mx_gethostname(server_hostname, sizeof(server_hostname)-1);
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_strncpy( server_hostname,
+		strlcpy( server_hostname,
 			"unknown hostname", MXU_HOSTNAME_LENGTH );
 	}
 

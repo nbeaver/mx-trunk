@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -112,7 +112,8 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 
 	MX_DEBUG( 2,("%s: scan = %p", fname, scan));
 	MX_DEBUG( 2,("%s: scan->record = %p", fname, scan->record));
-	MX_DEBUG( 2,("%s: scan->record->name = '%s'", fname, scan->record->name));
+	MX_DEBUG( 2,
+		("%s: scan->record->name = '%s'", fname, scan->record->name));
 
 	/* Parse the simple permission description string.  The description
 	 * should look like
@@ -126,7 +127,7 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 	 * have when there is scan permission.
 	 */
 
-	mx_strncpy(description_buffer, description, sizeof(description_buffer));
+	strlcpy(description_buffer, description, sizeof(description_buffer));
 
 	permit_record_name = description_buffer;
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -310,7 +310,7 @@ mxi_pdi45_open( MX_RECORD *record )
 		return mx_status;
 
 	for ( i = 0; i < MX_PDI45_NUM_DIGITAL_CHANNELS; i++ ) {
-		mx_strncpy( buffer, response + 31 - 2 * i, 3 );
+		strlcpy( buffer, response + 31 - 2 * i, 3 );
 
 		num_items = sscanf( buffer, "%x", &hex_value );
 
@@ -387,7 +387,7 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 		/* Copy the response to the output variable if desired. */
 
 		if ( response != NULL ) {
-			mx_strncpy( response, read_buffer, response_length );
+			strlcpy( response, read_buffer, response_length );
 		}
 
 		return MX_SUCCESSFUL_RESULT;

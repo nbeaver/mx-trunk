@@ -155,7 +155,7 @@ mxn_spec_server_open( MX_RECORD *record )
 			spec_server->server_id, MXU_HOSTNAME_LENGTH );
 	}
 
-	mx_strncpy( hostname, spec_server->server_id, hostname_length );
+	strlcpy( hostname, spec_server->server_id, hostname_length );
 
 	/*---*/
 

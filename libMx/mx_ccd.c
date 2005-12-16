@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -334,7 +334,7 @@ mx_ccd_writefile( MX_RECORD *ccd_record, char *filename, unsigned long flags )
 
 	ccd->ccd_flags = flags;
 
-	mx_strncpy( ccd->writefile_name, filename, MXU_FILENAME_LENGTH );
+	strlcpy( ccd->writefile_name, filename, MXU_FILENAME_LENGTH );
 
 	mx_status = (*writefile_fn)( ccd );
 
@@ -534,7 +534,7 @@ mx_ccd_read_header_variable( MX_RECORD *ccd_record,
 
 	ccd->parameter_type = MXLV_CCD_HEADER_VARIABLE_NAME;
 
-	mx_strncpy( ccd->header_variable_name, header_variable_name,
+	strlcpy( ccd->header_variable_name, header_variable_name,
 				MXU_CCD_HEADER_NAME_LENGTH );
 
 	mx_status = (*set_parameter_fn)( ccd );
@@ -546,7 +546,7 @@ mx_ccd_read_header_variable( MX_RECORD *ccd_record,
 
 	mx_status = (*get_parameter_fn)( ccd );
 
-	mx_strncpy( header_variable_contents, ccd->header_variable_contents,
+	strlcpy( header_variable_contents, ccd->header_variable_contents,
 				maximum_header_contents_length );
 
 	return mx_status;
@@ -578,7 +578,7 @@ mx_ccd_write_header_variable( MX_RECORD *ccd_record,
 
 	ccd->parameter_type = MXLV_CCD_HEADER_VARIABLE_NAME;
 
-	mx_strncpy( ccd->header_variable_name, header_variable_name,
+	strlcpy( ccd->header_variable_name, header_variable_name,
 				MXU_CCD_HEADER_NAME_LENGTH );
 
 	mx_status = (*set_parameter_fn)( ccd );
@@ -588,7 +588,7 @@ mx_ccd_write_header_variable( MX_RECORD *ccd_record,
 
 	ccd->parameter_type = MXLV_CCD_HEADER_VARIABLE_CONTENTS;
 
-	mx_strncpy( ccd->header_variable_contents, header_variable_contents,
+	strlcpy( ccd->header_variable_contents, header_variable_contents,
 				MXU_BUFFER_LENGTH );
 
 	mx_status = (*set_parameter_fn)( ccd );

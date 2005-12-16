@@ -186,7 +186,7 @@ mxd_mcu2_command( MX_MCU2 *mcu2,
 	if ( response != (char *) NULL ) {
 		response_ptr = &local_response_buffer[2];
 
-		mx_strncpy( response, response_ptr, max_response_length );
+		strlcpy( response, response_ptr, max_response_length );
 	}
 
 	return mx_status;

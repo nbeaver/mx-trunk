@@ -2828,7 +2828,7 @@ mx_set_program_name( MX_RECORD *record, char *program_name )
 		"This should not be able to happen." );
 	}
 
-	mx_strncpy( list_head->program_name, program_name,
+	strlcpy( list_head->program_name, program_name,
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* We also want to send the program name to all the servers this

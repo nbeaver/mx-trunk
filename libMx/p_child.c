@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -138,11 +138,11 @@ mxp_child_open( MX_PLOT *plot )
 
 	child_file_struct->local_parent_copy.type = parent_plot->type;
 
-	mx_strncpy( child_file_struct->local_parent_copy.typename,
+	strlcpy( child_file_struct->local_parent_copy.typename,
 				parent_plot->typename,
 				MXU_PLOT_TYPE_NAME_LENGTH );
 
-	mx_strncpy( child_file_struct->local_parent_copy.options,
+	strlcpy( child_file_struct->local_parent_copy.options,
 				parent_plot->options,
 				MXU_PLOT_OPTIONS_LENGTH );
 

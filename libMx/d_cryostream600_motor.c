@@ -913,7 +913,7 @@ mxd_cryostream600_motor_parse_response(
 		if ( token_length > cryostream600_motor->max_token_length )
 			token_length = cryostream600_motor->max_token_length;
 
-		mx_strncpy( token_array[i], token_ptr, token_length );
+		strlcpy( token_array[i], token_ptr, token_length );
 
 		token_ptr = colon_ptr + 1;
 	}

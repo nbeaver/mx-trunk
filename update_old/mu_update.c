@@ -250,13 +250,13 @@ main( int argc, char *argv[] )
 
 	/* Copy the other command line arguments. */
 
-	mx_strncpy( server_name, argv[i], MXU_HOSTNAME_LENGTH + 1);
+	strlcpy( server_name, argv[i], MXU_HOSTNAME_LENGTH );
 
 	server_port = atoi( argv[i+1] );
 
-	mx_strncpy( update_list_filename, argv[i+2], MXU_FILENAME_LENGTH + 1);
-	mx_strncpy( autosave1_filename, argv[i+3], MXU_FILENAME_LENGTH + 1);
-	mx_strncpy( autosave2_filename, argv[i+4], MXU_FILENAME_LENGTH + 1);
+	strlcpy( update_list_filename, argv[i+2], MXU_FILENAME_LENGTH );
+	strlcpy( autosave1_filename, argv[i+3], MXU_FILENAME_LENGTH );
+	strlcpy( autosave2_filename, argv[i+4], MXU_FILENAME_LENGTH );
 
 	mx_set_debug_level( debug_level );
 
@@ -530,7 +530,7 @@ mxupd_connect_to_mx_server( MX_RECORD **server_record,
 
 	/* Set the MX program name. */
 
-	mx_strncpy( list_head_struct->program_name, "mxupdate",
+	strlcpy( list_head_struct->program_name, "mxupdate",
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* Create a record description for this server. */
@@ -759,11 +759,11 @@ mxupd_add_to_update_list( long update_list_number,
 
 	/* Initialize the items in the update_list_entry structure. */
 
-	mx_strncpy( update_list_entry->record_name,
-				record_name, MXU_RECORD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->record_name,
+				record_name, MXU_RECORD_NAME_LENGTH );
 
-	mx_strncpy( update_list_entry->field_name,
-				field_name, MXU_FIELD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->field_name,
+				field_name, MXU_FIELD_NAME_LENGTH );
 
 	update_list_entry->local_record = local_record;
 
@@ -884,14 +884,14 @@ mxupd_construct_update_list( long num_update_lists,
 
 		*ptr = '\0';
 
-		mx_strncpy( record_name, record_field_name,
-						MXU_RECORD_NAME_LENGTH + 1);
+		strlcpy( record_name, record_field_name,
+						MXU_RECORD_NAME_LENGTH );
 
 		*ptr = '.';
 
 		ptr++;
 
-		mx_strncpy( field_name, ptr, MXU_FIELD_NAME_LENGTH + 1);
+		strlcpy( field_name, ptr, MXU_FIELD_NAME_LENGTH );
 
 		MX_DEBUG( 2,("Line %ld: record_name = '%s', field_name = '%s'",
 			i, record_name, field_name));

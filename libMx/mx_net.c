@@ -546,7 +546,7 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 
 	/* Save the network field name. */
 
-	mx_strncpy( nf->nfname, buffer, MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcpy( nf->nfname, buffer, MXU_RECORD_FIELD_NAME_LENGTH );
 
 	MX_DEBUG( 2,("%s invoked for network field '%s:%s'",
 		fname, server_record->name, nf->nfname));
@@ -974,7 +974,7 @@ mx_get_field_array( MX_RECORD *server_record,
 		header[MX_NETWORK_MESSAGE_TYPE]
 				= htonl( MX_NETMSG_GET_ARRAY_BY_NAME );
 
-		mx_strncpy( message, remote_record_field_name,
+		strlcpy( message, remote_record_field_name,
 				MXU_RECORD_FIELD_NAME_LENGTH );
 
 		message_length = strlen( message ) + 1;
@@ -1569,7 +1569,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	/* Copy the network field name to the outgoing message buffer. */
 
-	mx_strncpy( message, nf->nfname, MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcpy( message, nf->nfname, MXU_RECORD_FIELD_NAME_LENGTH );
 
 	message_length = strlen( message ) + 1;
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
@@ -1744,7 +1744,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
-	mx_strncpy( message, remote_record_field_name,
+	strlcpy( message, remote_record_field_name,
 					MXU_RECORD_FIELD_NAME_LENGTH );
 
 	message_length = strlen( message ) + 1;
@@ -1918,7 +1918,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
-	mx_strncpy( message, username, MXU_USERNAME_LENGTH );
+	strlcpy( message, username, MXU_USERNAME_LENGTH );
 
 	strncat( message, " ", 1 );
 
@@ -2609,21 +2609,21 @@ mx_parse_network_field_id( char *network_field_id,
 	/* Finally, copy the strings to the caller's buffers. */
 
 	if ( server_name_ptr != NULL ) {
-		mx_strncpy( server_name, server_name_ptr, server_name_length );
+		strlcpy( server_name, server_name_ptr, server_name_length );
 	} else {
-		mx_strncpy( server_name, "localhost", max_server_name_length );
+		strlcpy( server_name, "localhost", max_server_name_length );
 	}
 
 	if ( server_arguments_ptr != NULL ) {
-		mx_strncpy( server_arguments, server_arguments_ptr,
+		strlcpy( server_arguments, server_arguments_ptr,
 						server_arguments_length );
 	} else {
-		mx_strncpy( server_arguments, "9727",
+		strlcpy( server_arguments, "9727",
 						max_server_arguments_length );
 	}
 
 	if ( record_name_ptr != NULL ) {
-		mx_strncpy( record_name, record_name_ptr, record_name_length );
+		strlcpy( record_name, record_name_ptr, record_name_length );
 	} else {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Somehow when we got to here, record_name_ptr was NULL.  "
@@ -2631,7 +2631,7 @@ mx_parse_network_field_id( char *network_field_id,
 	}
 
 	if ( field_name_ptr != NULL ) {
-		mx_strncpy( field_name, field_name_ptr, field_name_length );
+		strlcpy( field_name, field_name_ptr, field_name_length );
 	} else {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Somehow when we got to here, field_name_ptr was NULL.  "

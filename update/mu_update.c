@@ -314,16 +314,16 @@ main( int argc, char *argv[] )
 
 	/* Copy the other command line arguments. */
 
-	mx_strncpy( update_list_filename, argv[i], MXU_FILENAME_LENGTH);
+	strlcpy( update_list_filename, argv[i], MXU_FILENAME_LENGTH);
 
-	mx_strncpy( autosave1_filename, argv[i+1], MXU_FILENAME_LENGTH);
+	strlcpy( autosave1_filename, argv[i+1], MXU_FILENAME_LENGTH);
 
 	if ( save_only || restore_only ) {
 		/* Set the second filename to an empty string. */
 
 		strcpy( autosave2_filename, "" );
 	} else {
-		mx_strncpy( autosave2_filename, argv[i+2], MXU_FILENAME_LENGTH);
+		strlcpy( autosave2_filename, argv[i+2], MXU_FILENAME_LENGTH );
 	}
 
 	mx_set_debug_level( debug_level );
@@ -596,7 +596,7 @@ mxupd_create_empty_mx_database( MX_RECORD **record_list,
 
 	/* Set the MX program name. */
 
-	mx_strncpy( list_head_struct->program_name, "mxupdate",
+	strlcpy( list_head_struct->program_name, "mxupdate",
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* Mark the record list as ready to be used. */
@@ -652,12 +652,11 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	MX_DEBUG( 2,("%s: record_name = '%s', field_name = '%s'",
 			fname, record_name, field_name));
 
-	mx_strncpy( record_field_name, record_name,
-			MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcpy( record_field_name, record_name, MXU_RECORD_FIELD_NAME_LENGTH );
 
-	strncat( record_field_name, ".", MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcat( record_field_name, ".", MXU_RECORD_FIELD_NAME_LENGTH );
 
-	strncat( record_field_name, field_name, MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcat( record_field_name, field_name, MXU_RECORD_FIELD_NAME_LENGTH );
 
 	MX_DEBUG( 2,("%s: record_field_name = '%s'", fname, record_field_name));
 
@@ -666,10 +665,10 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	 */
 
 	if ( strlen( server_name ) == 0 ) {
-		mx_strncpy( server_name, "localhost", MXU_HOSTNAME_LENGTH );
+		strlcpy( server_name, "localhost", MXU_HOSTNAME_LENGTH );
 	}
 	if ( strlen( server_arguments ) == 0 ) {
-		mx_strncpy( server_arguments, "9727",
+		strlcpy( server_arguments, "9727",
 				MXU_SERVER_ARGUMENTS_LENGTH );
 	}
 
@@ -1019,7 +1018,7 @@ mxupd_epics_motor_position_write_function( void *list_entry_ptr )
 
 	/* Construct the EPICS motor record name without .RBV on the end. */
 
-	mx_strncpy( epics_motor_record_name, list_entry->record_field_id,
+	strlcpy( epics_motor_record_name, list_entry->record_field_id,
 					MXUPD_FIELD_ID_NAME_LENGTH );
 
 	/* Find the last '.' in the string. */
@@ -1138,20 +1137,20 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 
 	/* Initialize the items in the update_list_entry structure. */
 
-	mx_strncpy( update_list_entry->protocol_id, protocol_id,
+	strlcpy( update_list_entry->protocol_id, protocol_id,
 				MXUPD_PROTOCOL_ID_NAME_LENGTH );
-	mx_strncpy( update_list_entry->record_field_id, record_field_id,
+	strlcpy( update_list_entry->record_field_id, record_field_id,
 				MXUPD_FIELD_ID_NAME_LENGTH );
-	mx_strncpy( update_list_entry->extra_arguments, extra_arguments,
+	strlcpy( update_list_entry->extra_arguments, extra_arguments,
 				MXUPD_FIELD_ID_NAME_LENGTH );
 
 	update_list_entry->update_flags = update_flags;
 
-	mx_strncpy( update_list_entry->read_record_name,
-				read_record_name, MXU_RECORD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->read_record_name,
+				read_record_name, MXU_RECORD_NAME_LENGTH );
 
-	mx_strncpy( update_list_entry->read_field_name,
-				read_field_name, MXU_FIELD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->read_field_name,
+				read_field_name, MXU_FIELD_NAME_LENGTH );
 
 	update_list_entry->read_record = read_record;
 
@@ -1159,11 +1158,11 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 	MX_DEBUG( 2,("%s: read_field_name = '%s'", fname, read_field_name));
 	MX_DEBUG( 2,("%s: read_record = '%s'", fname, read_record->name));
 
-	mx_strncpy( update_list_entry->write_record_name,
-				write_record_name, MXU_RECORD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->write_record_name,
+				write_record_name, MXU_RECORD_NAME_LENGTH );
 
-	mx_strncpy( update_list_entry->write_field_name,
-				write_field_name, MXU_FIELD_NAME_LENGTH + 1);
+	strlcpy( update_list_entry->write_field_name,
+				write_field_name, MXU_FIELD_NAME_LENGTH );
 
 	update_list_entry->write_record = write_record;
 
@@ -1429,9 +1428,9 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 
 			created_write_record = created_read_record;
 
-			mx_strncpy( write_record_name, read_record_name,
+			strlcpy( write_record_name, read_record_name,
 					MXU_RECORD_NAME_LENGTH );
-			mx_strncpy( write_field_name, read_field_name,
+			strlcpy( write_field_name, read_field_name,
 					MXU_FIELD_NAME_LENGTH );
 		} else {
 			i++;

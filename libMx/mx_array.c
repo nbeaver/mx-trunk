@@ -353,9 +353,9 @@ mxp_scalar_element_size( long mx_datatype ) {
 
 	case MXFT_HEX:        element_size = sizeof(unsigned long);       break;
 
-	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH+1;    break;
-	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH+1;    break;
-	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH+1; break;
+	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;      break;
+	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;      break;
+	case MXFT_INTERFACE:  element_size = MXU_INTERFACE_NAME_LENGTH;   break;
 	default:              element_size = 0;                           break;
 	}
 
@@ -478,7 +478,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 			destination_pointer = (char *) destination_buffer;
 
-			mx_strncpy( destination_pointer, mx_record->name,
+			strlcpy( destination_pointer, mx_record->name,
 					MXU_RECORD_NAME_LENGTH );
 			break;
 		case MXFT_RECORDTYPE:
@@ -486,7 +486,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 			destination_pointer = (char *) destination_buffer;
 
-			mx_strncpy( destination_pointer, mx_driver->name,
+			strlcpy( destination_pointer, mx_driver->name,
 					MXU_DRIVER_NAME_LENGTH );
 			break;
 		case MXFT_INTERFACE:
@@ -494,7 +494,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 			destination_pointer = (char *) destination_buffer;
 
-			mx_strncpy( destination_pointer,
+			strlcpy( destination_pointer,
 					mx_interface->address_name,
 					MXU_INTERFACE_ADDRESS_NAME_LENGTH );
 			break;
@@ -538,7 +538,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		}
 
 		if ( mx_datatype == MXFT_STRING ) {
-			mx_strncpy( (char *) destination_buffer,
+			strlcpy( (char *) destination_buffer,
 					array_pointer, bytes_to_copy );
 		} else {
 			memcpy( destination_buffer,
@@ -763,7 +763,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		}
 
 		if ( mx_datatype == MXFT_STRING ) {
-			mx_strncpy( (char *) array_pointer,
+			strlcpy( (char *) array_pointer,
 					source_buffer, bytes_to_copy );
 		} else {
 			memcpy( array_pointer, source_buffer, bytes_to_copy );

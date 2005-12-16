@@ -209,12 +209,9 @@ motor_main( int argc, char *argv[] )
 	unbuffered_io = FALSE;
 	init_hw_flags = FALSE;
 
-	mx_strncpy( motor_savefile,
-			DEFAULT_MOTOR_SAVEFILE, MXU_FILENAME_LENGTH + 1 );
-	mx_strncpy( scan_savefile,
-			DEFAULT_SCAN_SAVEFILE, MXU_FILENAME_LENGTH + 1 );
-	mx_strncpy( global_motorrc,
-			GLOBAL_MOTOR_STARTUP, MXU_FILENAME_LENGTH + 1 );
+	strlcpy( motor_savefile, DEFAULT_MOTOR_SAVEFILE, MXU_FILENAME_LENGTH );
+	strlcpy( scan_savefile,  DEFAULT_SCAN_SAVEFILE,  MXU_FILENAME_LENGTH );
+	strlcpy( global_motorrc, GLOBAL_MOTOR_STARTUP,   MXU_FILENAME_LENGTH );
 
 	allow_motor_database_updates = TRUE;
 	allow_scan_database_updates = TRUE;
@@ -245,18 +242,15 @@ motor_main( int argc, char *argv[] )
 		case 'F':
 			allow_motor_database_updates = FALSE;
 
-			mx_strncpy( motor_savefile,
-					optarg, MXU_FILENAME_LENGTH + 1 );
+			strlcpy( motor_savefile, optarg, MXU_FILENAME_LENGTH );
 			break;
 		case 'f':
 			allow_motor_database_updates = TRUE;
 
-			mx_strncpy( motor_savefile,
-					optarg, MXU_FILENAME_LENGTH + 1 );
+			strlcpy( motor_savefile, optarg, MXU_FILENAME_LENGTH );
 			break;
 		case 'g':
-			mx_strncpy( global_motorrc,
-					optarg, MXU_FILENAME_LENGTH + 1 );
+			strlcpy( global_motorrc, optarg, MXU_FILENAME_LENGTH );
 			break;
 		case 'H':
 			motor_install_signal_handlers = FALSE;
@@ -279,15 +273,15 @@ motor_main( int argc, char *argv[] )
 		case 'S':
 			allow_scan_database_updates = FALSE;
 
-			mx_strncpy( scan_savefile_array[num_scan_savefiles],
-					optarg, MXU_FILENAME_LENGTH + 1 );
+			strlcpy( scan_savefile_array[num_scan_savefiles],
+					optarg, MXU_FILENAME_LENGTH );
 			num_scan_savefiles++;
 			break;
 		case 's':
 			allow_scan_database_updates = TRUE;
 
-			mx_strncpy( scan_savefile_array[num_scan_savefiles],
-					optarg, MXU_FILENAME_LENGTH + 1 );
+			strlcpy( scan_savefile_array[num_scan_savefiles],
+					optarg, MXU_FILENAME_LENGTH );
 			num_scan_savefiles++;
 			break;
 		case 't':
@@ -316,9 +310,9 @@ motor_main( int argc, char *argv[] )
 #endif /* HAVE_GETOPT */
 
 	if ( num_scan_savefiles > 0 ) {
-		mx_strncpy( scan_savefile,
+		strlcpy( scan_savefile,
 			scan_savefile_array[ num_scan_savefiles - 1 ],
-			MXU_FILENAME_LENGTH + 1 );
+			MXU_FILENAME_LENGTH );
 	}
 
 	if ( unbuffered_io ) {
@@ -800,8 +794,8 @@ motor_exit_save_dialog( void )
 
 		response_length = MXU_FILENAME_LENGTH;
 
-		mx_strncpy( default_savefile, scan_savefile,
-						MXU_FILENAME_LENGTH + 1 );
+		strlcpy( default_savefile, scan_savefile,
+						MXU_FILENAME_LENGTH );
 
 		status = motor_get_string( output,
 				"Enter scan savefile name:\n  ",

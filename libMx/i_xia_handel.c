@@ -562,7 +562,7 @@ mxi_xia_handel_redirect_log_output( MX_XIA_HANDEL *xia_handel )
 	int xia_status;
 
 	if ( strlen( xia_handel->log_filename ) > 0 ) {
-		mx_strncpy( log_filename, xia_handel->log_filename,
+		strlcpy( log_filename, xia_handel->log_filename,
 						MXU_FILENAME_LENGTH );
 	} else {
 		mxdir = getenv("MXDIR");

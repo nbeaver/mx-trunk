@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -310,7 +310,7 @@ mx_sample_changer_select_sample_holder( MX_RECORD *record,
 			record->name );
 	}
 
-	mx_strncpy( changer->requested_sample_holder, sample_holder,
+	strlcpy( changer->requested_sample_holder, sample_holder,
 					MXU_SAMPLE_HOLDER_NAME_LENGTH );
 
 	mx_status = (*select_sample_holder_fn)( changer );
@@ -318,7 +318,7 @@ mx_sample_changer_select_sample_holder( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_strncpy( changer->current_sample_holder, sample_holder,
+	strlcpy( changer->current_sample_holder, sample_holder,
 					MXU_SAMPLE_HOLDER_NAME_LENGTH );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -378,7 +378,7 @@ mx_sample_changer_get_sample_holder( MX_RECORD *record,
 		return mx_status;
 
 	if ( sample_holder_name != NULL ) {
-		mx_strncpy( sample_holder_name,
+		strlcpy( sample_holder_name,
 			changer->current_sample_holder,
 			maximum_name_length );
 	}

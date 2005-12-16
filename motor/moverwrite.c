@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -114,7 +114,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 	if ( scan->datafile.type == MXDF_NONE )
 		return SUCCESS;
 
-	mx_strncpy( filename, scan->datafile.filename, MXU_FILENAME_LENGTH + 1);
+	strlcpy( filename, scan->datafile.filename, MXU_FILENAME_LENGTH );
 
 	mx_status = mx_parse_datafile_name( filename, &version_number_ptr,
 				&version_number, &version_number_length );

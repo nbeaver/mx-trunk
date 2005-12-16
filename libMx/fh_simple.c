@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -126,7 +126,7 @@ mxfh_simple_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 
 	/* Split the description into the fault part and the reset part. */
 
-	mx_strncpy(description_buffer, description, sizeof(description_buffer));
+	strlcpy(description_buffer, description, sizeof(description_buffer));
 
 	semicolon_ptr = strchr( description_buffer, ';' );
 

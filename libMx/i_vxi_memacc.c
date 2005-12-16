@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -430,7 +430,7 @@ mxi_vxi_memacc_open( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_strncpy( vxi_memacc->crate_array[0].description,
+	strlcpy( vxi_memacc->crate_array[0].description,
 			instr_desc, VI_FIND_BUFLEN + 1 );
 
 	vxi_memacc->num_crates = (unsigned long) num_matches;
@@ -456,7 +456,7 @@ mxi_vxi_memacc_open( MX_RECORD *record )
 		MX_DEBUG( 2,("%s: resource %lu = '%s'",
 				fname, (unsigned long) i, instr_desc));
 
-		mx_strncpy( vxi_memacc->crate_array[i].description,
+		strlcpy( vxi_memacc->crate_array[i].description,
 			instr_desc, VI_FIND_BUFLEN + 1 );
 	}
 

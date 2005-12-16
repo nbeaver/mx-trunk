@@ -663,7 +663,7 @@ mx_create_record_from_description(
 			"Out of memory allocating first data record.");
 	}
 
-	mx_strncpy( current_record->name, token[0], MXU_RECORD_NAME_LENGTH );
+	strlcpy( current_record->name, token[0], MXU_RECORD_NAME_LENGTH );
 
 	mx_status = mx_insert_before_record( record_list, current_record );
 
@@ -897,7 +897,7 @@ mx_parse_string_field( void *dataptr, char *token,
 	MX_DEBUG( 8,("%s: dataptr = %p, token = '%s'",
 			fname, dataptr, token));
 
-	mx_strncpy( (char *) dataptr, token,
+	strlcpy( (char *) dataptr, token,
 			parse_status->max_string_token_length );
 
 	if ( strlen(token) >= parse_status->max_string_token_length ) {
@@ -3016,7 +3016,7 @@ mx_construct_placeholder_record( MX_RECORD *referencing_record,
 
 	memset( *placeholder_record, 0x0, sizeof(MX_RECORD) );
 
-	mx_strncpy( (*placeholder_record)->name,
+	strlcpy( (*placeholder_record)->name,
 			record_name, MXU_RECORD_NAME_LENGTH );
 
 	(*placeholder_record)->mx_superclass = MXR_PLACEHOLDER;

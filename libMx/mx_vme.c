@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2003 Illinois Institute of Technology
+ * Copyright 2001-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -782,7 +782,7 @@ mx_vme_parse_address_mode( const char *mode_name, unsigned long *address_mode )
 
 	/* Copy the mode name and force it to upper case. */
 
-	mx_strncpy( address_mode_name, mode_name, sizeof(address_mode_name) );
+	strlcpy( address_mode_name, mode_name, sizeof(address_mode_name) );
 
 	length = strlen( address_mode_name );
 
@@ -831,7 +831,7 @@ mx_vme_parse_data_size( const char *size_name, unsigned long *data_size )
 
 	/* Copy the size name and force it to upper case. */
 
-	mx_strncpy( data_size_name, size_name, sizeof(data_size_name) );
+	strlcpy( data_size_name, size_name, sizeof(data_size_name) );
 
 	length = strlen( data_size_name );
 

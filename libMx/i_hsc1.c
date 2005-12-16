@@ -987,7 +987,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 		/* Copy the body of the response if needed. */
 
 		if ( response != NULL ) {
-			mx_strncpy( response, next_field_ptr,
+			strlcpy( response, next_field_ptr,
 					response_buffer_length );
 		}
 	}

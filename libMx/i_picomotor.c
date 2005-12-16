@@ -552,7 +552,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	if ( response != (char *) NULL ) {
 
-		mx_strncpy( response, response_buffer, max_response_length );
+		strlcpy( response, response_buffer, max_response_length );
 
 		if ( command_flags & MXF_PICOMOTOR_DEBUG ) {
 			MX_DEBUG(-2,("%s: received '%s' from '%s'",

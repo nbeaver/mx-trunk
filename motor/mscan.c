@@ -101,8 +101,7 @@ motor_scan_fn( int argc, char *argv[] )
 
 	/* Save a copy of the current datafile name. */
 
-	mx_strncpy( old_filename,
-		scan->datafile.filename, MXU_FILENAME_LENGTH + 1 );
+	strlcpy( old_filename, scan->datafile.filename, MXU_FILENAME_LENGTH );
 
 	/* Invoke the scan function. */
 

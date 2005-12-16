@@ -178,7 +178,7 @@ mxd_mcs_timer_finish_record_initialization( MX_RECORD *record )
 	if ( mcs->timer_record == (MX_RECORD *) NULL ) {
 		mcs->timer_record = record;
 
-		mx_strncpy( mcs->timer_name, record->name,
+		strlcpy( mcs->timer_name, record->name,
 				MXU_RECORD_NAME_LENGTH );
 	}
 

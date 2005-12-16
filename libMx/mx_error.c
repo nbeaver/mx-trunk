@@ -197,7 +197,7 @@ mx_strerror( long error_code, char *buffer, size_t max_buffer_length )
 	i = error_code - 1000;
 
 	if ( i >= 0 && i < num_error_messages ) {
-		mx_strncpy( ptr, error_message_list[i].error_message_text,
+		strlcpy( ptr, error_message_list[i].error_message_text,
 					max_buffer_length );
 	} else {
 		sprintf( ptr, "MXE_(%ld)", error_code );

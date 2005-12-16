@@ -110,7 +110,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	ptr = strchr( scan->datafile_description, ':' );
 
 	if ( ptr == NULL ) {
-		mx_strncpy( scan->datafile.typename,
+		strlcpy( scan->datafile.typename,
 				scan->datafile_description,
 				MXU_DATAFILE_TYPE_NAME_LENGTH );
 
@@ -129,7 +129,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 				scan->datafile_description );
 		}
 
-		mx_strncpy( scan->datafile.typename,
+		strlcpy( scan->datafile.typename,
 				scan->datafile_description,
 				length );
 
@@ -137,7 +137,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 
 		ptr++;
 
-		mx_strncpy( scan->datafile.options,
+		strlcpy( scan->datafile.options,
 				ptr, MXU_DATAFILE_OPTIONS_LENGTH );
 	}
 
@@ -188,7 +188,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 	ptr = strchr( scan->plot_description, ':' );
 
 	if ( ptr == NULL ) {
-		mx_strncpy( scan->plot.typename,
+		strlcpy( scan->plot.typename,
 				scan->plot_description,
 				MXU_PLOT_TYPE_NAME_LENGTH );
 
@@ -207,7 +207,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 				scan->plot_description );
 		}
 
-		mx_strncpy( scan->plot.typename,
+		strlcpy( scan->plot.typename,
 				scan->plot_description,
 				length );
 
@@ -215,7 +215,7 @@ mx_scan_finish_record_initialization( MX_RECORD *record )
 
 		ptr++;
 
-		mx_strncpy( scan->plot.options,
+		strlcpy( scan->plot.options,
 				ptr, MXU_PLOT_OPTIONS_LENGTH );
 	}
 
@@ -305,7 +305,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			record->mx_type );
 	}
 
-	mx_strncpy( scan_type, driver->name, MXU_DRIVER_NAME_LENGTH + 1 );
+	strlcpy( scan_type, driver->name, MXU_DRIVER_NAME_LENGTH + 1 );
 
 	length = strlen(scan_type);
 
@@ -2542,7 +2542,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 		 * append the measurement number.
 		 */
 
-		mx_strncpy( mca_filename,
+		strlcpy( mca_filename,
 			datafile_filename, sizeof(mca_filename) );
 
 		strlcat( mca_filename, ".", sizeof(mca_filename) );
@@ -2562,7 +2562,7 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 				(long) sizeof(mca_filename) );
 		}
 
-		mx_strncpy( mca_filename,
+		strlcpy( mca_filename,
 			datafile_filename, basename_length );
 
 		strlcat( mca_filename, "_", sizeof(mca_filename) );

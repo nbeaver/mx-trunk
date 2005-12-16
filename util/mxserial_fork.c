@@ -374,7 +374,7 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 
 	/* Set the program name. */
 
-	mx_strncpy( list_head_struct->program_name, "mxserial",
+	strlcpy( list_head_struct->program_name, "mxserial",
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* Create a record description for this server. */
@@ -383,8 +383,8 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 		"remote_server server network tcpip_server \"\" \"\" 0x0 %s %d",
 			server_name, server_port );
 
-	mx_status = mx_create_record_from_description( *record_list, description,
-							server_record, 0 );
+	mx_status = mx_create_record_from_description(
+			*record_list, description, server_record, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

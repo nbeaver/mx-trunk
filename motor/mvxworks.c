@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,11 +62,11 @@ void motor_shell( char *device_database_file,
 	argv[5] = argv5;
 
 	if ( strlen( device_database_file ) > 0 ) {
-		mx_strncpy( argv[2], device_database_file, MAX_ARGV_LENGTH );
+		strlcpy( argv[2], device_database_file, MAX_ARGV_LENGTH );
 	}
 
 	if ( strlen( scan_database_file ) > 0 ) {
-		mx_strncpy( argv[4], scan_database_file, MAX_ARGV_LENGTH );
+		strlcpy( argv[4], scan_database_file, MAX_ARGV_LENGTH );
 	}
 
 	motor_main( argc, argv );
