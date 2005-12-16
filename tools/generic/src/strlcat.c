@@ -16,8 +16,17 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* Added MX_EXPORT to the definition of strlcpy() so that it can used on
+ * Win32 by application programs that get it indirectly through libMX.dll.
+ *
+ * W. Lavender - Dec. 15, 2005
+ */
+
+#include <stdio.h>
 #include <sys/types.h>
 #include <string.h>
+
+#include "mx_util.h"
 
 /*
  * Appends src to string dst of size siz (unlike strncat, siz is the
@@ -26,7 +35,8 @@
  * Returns strlen(src) + MIN(siz, strlen(initial dst)).
  * If retval >= siz, truncation occurred.
  */
-size_t
+
+MX_EXPORT size_t
 strlcat(char *dst, const char *src, size_t siz)
 {
 	char *d = dst;

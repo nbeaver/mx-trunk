@@ -16,15 +16,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/* Added MX_EXPORT to the definition of strlcpy() so that it can used on
+ * Win32 by application programs that get it indirectly through libMX.dll.
+ *
+ * W. Lavender - Dec. 15, 2005
+ */
+
+#include <stdio.h>
 #include <sys/types.h>
 #include <string.h>
+
+#include "mx_util.h"
 
 /*
  * Copy src to string dst of size siz.  At most siz-1 characters
  * will be copied.  Always NUL terminates (unless siz == 0).
  * Returns strlen(src); if retval >= siz, truncation occurred.
  */
-size_t
+
+MX_EXPORT size_t
 strlcpy(char *dst, const char *src, size_t siz)
 {
 	char *d = dst;

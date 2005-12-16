@@ -292,7 +292,7 @@ library_install:
 MOTOR_NAME	= motorbin.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	link /debug /nologo /out:motorbin.exe *.obj \
+	link /debug /nologo /out:motorbin.exe $(MOTOR_OBJS) \
 			/nodefaultlib:libc $(EXTRA_OBJS) \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
