@@ -12,10 +12,10 @@ getopt.o:
 	$(XCC) -c generic/src/getopt.c
 
 strlcpy.o: generic/src/strlcpy.c
-	$(XCC) -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcpy.c
+	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(XCC) -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcat.c
+	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcat.c
 
 mx_clean:
 	-rm *.o

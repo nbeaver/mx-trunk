@@ -3,13 +3,13 @@ all: xdr.o strlcpy.o strlcat.o
 include ../libMx/Makehead.djgpp
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
-	gcc -c $(CFLAGS) -D__MX_LIBRARY__ xdr/src/xdr.c 
+	gcc -c -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ xdr/src/xdr.c 
 
 strlcpy.o: generic/src/strlcpy.c
-	gcc -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcpy.c
+	gcc -c -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	gcc -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcat.c
+	gcc -c -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ generic/src/strlcat.c
 
 mx_clean:
 	-rm *.o *.exe

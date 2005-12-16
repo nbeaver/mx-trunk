@@ -22,10 +22,10 @@ mx_clean:
 	( cd unix/src/editline ; make clean )
 
 strlcpy.o: generic/src/strlcpy.c
-	$(CC) -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcpy.c
+	$(CC) -c -I../libMx -DOS_LINUX -D__MX_LIBRARY__ generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(CC) -c $(CFLAGS) -D__MX_LIBRARY__ generic/src/strlcat.c
+	$(CC) -c -I../libMx -DOS_LINUX -D__MX_LIBRARY__ generic/src/strlcat.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
