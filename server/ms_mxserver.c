@@ -545,8 +545,16 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	/* Allocate memory for the message buffer. */
 
+#if defined(__BORLANDC__)
+	MX_DEBUG(-2,("%s: Before buffer malloc().", fname));
+#endif
+
 	new_socket_handler->message_buffer = (MX_NETWORK_MESSAGE_BUFFER *)
 				malloc( sizeof( MX_NETWORK_MESSAGE_BUFFER ) );
+
+#if defined(__BORLANDC__)
+	MX_DEBUG(-2,("%s: After buffer malloc().", fname));
+#endif
 
 	if ( new_socket_handler->message_buffer == NULL ) {
 		mx_free( client_socket );
