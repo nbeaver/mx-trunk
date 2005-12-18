@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -18,8 +18,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
+INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
@@ -48,10 +48,10 @@ LIBRARIES = $(WIN32_LIBS)
 # correctly, but then occasionally fail in mysterious ways.  Thus, it is
 # very important to get this right!
 
-RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -113,9 +113,20 @@ UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 # WARNING: For current versions of Handel you must set the makefile variable
 #          RUN_TIME_LIBRARY_FLAGS to -MTd above.
 #
-#XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0_5_2X_test\\handel
-XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
-XIA_HANDEL_INCLUDES = -I$(XIA_HANDEL_DIR)\\inc -DIS_MX_DRIVER
+XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0.6-1216\\handel
+XIA_HANDEL_MAJOR  = 0
+XIA_HANDEL_MINOR  = 6
+XIA_HANDEL_UPDATE  = -1
+
+#XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
+#XIA_HANDEL_MAJOR  = 0
+#XIA_HANDEL_MINOR  = 5
+#XIA_HANDEL_UPDATE  = 4
+
+XIA_HANDEL_INCLUDES = -I$(XIA_HANDEL_DIR)\\inc -DIS_MX_DRIVER \
+				-DXIA_HANDEL_MAJOR=$(XIA_HANDEL_MAJOR) \
+				-DXIA_HANDEL_MINOR=$(XIA_HANDEL_MINOR) \
+				-DXIA_HANDEL_UPDATE=$(XIA_HANDEL_UPDATE)
 XIA_HANDEL_LIB_DIR  = $(XIA_HANDEL_DIR)\\lib
 XIA_HANDEL_LIBS     = $(XIA_HANDEL_LIB_DIR)\\handel.lib \
 			$(XIA_HANDEL_LIB_DIR)\\xerxes.lib \

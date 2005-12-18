@@ -51,6 +51,18 @@
 #define MXF_XIA_PRESET_OUTPUT_EVENTS	3
 #define MXF_XIA_PRESET_INPUT_COUNTS	4
 
+/* Old versions of Xerxes defined the baseline array using unsigned shorts
+ * while Handel used unsigned longs.  They now both use unsigned longs.
+ */
+
+#if (( XIA_HANDEL_MAJOR == 0 ) && (XIA_HANDEL_MINOR < 6))
+
+#  define XIA_HAVE_OLD_XERXES_BASELINE_ARRAY	TRUE
+#else
+
+#  define XIA_HAVE_OLD_XERXES_BASELINE_ARRAY	FALSE
+#endif
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -65,7 +77,9 @@ typedef struct {
 	unsigned long baseline_length;
 	unsigned long *baseline_array;
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
 	unsigned short *xerxes_baseline_array;
+#endif
 	
 	double gain_change;
 	double gain_calibration;

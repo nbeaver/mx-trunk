@@ -222,7 +222,9 @@ mxd_xia_dxp_create_record_structures( MX_RECORD *record )
 	xia_dxp_mca->get_mx_parameter = NULL;
 	xia_dxp_mca->set_mx_parameter = NULL;
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
 	xia_dxp_mca->xerxes_baseline_array = NULL;
+#endif
 
 	xia_dxp_mca->adc_trace_step_size = 5000.0;	/* in nanoseconds */
 	xia_dxp_mca->adc_trace_length = 0;
@@ -675,6 +677,8 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 			xia_dxp_mca->baseline_length );
 	}
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+
 	/* Allocate memory for the Xerxes-specific baseline array. */
 
 	xia_dxp_mca->xerxes_baseline_array = (unsigned short *)
@@ -685,6 +689,8 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 		"Cannot allocated a Xerxes baseline array of %u unsigned short",
 			xia_dxp_mca->baseline_length );
 	}
+
+#endif
 
 	/* Allocate memory for the parameter array. */
 

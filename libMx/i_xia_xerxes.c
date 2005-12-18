@@ -27,6 +27,8 @@
 #if HAVE_XIA_HANDEL
 
 #include <stdlib.h>
+#include <fcntl.h>
+#include <sys/stat.h>
 #include <errno.h>
 
 #include <xerxes_errors.h>
@@ -1519,11 +1521,21 @@ mxi_xia_xerxes_read_spectrum( MX_MCA *mca,
 	MX_HRT_START( measurement );
 #endif
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
 				xia_dxp_mca->parameter_array,
 				xia_dxp_mca->xerxes_baseline_array,
 				array_ptr );
+#else
+
+	xia_status = dxp_readout_detector_run(
+				&(xia_dxp_mca->detector_channel),
+				xia_dxp_mca->parameter_array,
+				xia_dxp_mca->baseline_array,
+				array_ptr );
+#endif
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1699,11 +1711,21 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 	MX_HRT_START( measurement );
 #endif
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
 				xia_dxp_mca->parameter_array,
 				xia_dxp_mca->xerxes_baseline_array,
 				array_ptr );
+#else
+
+	xia_status = dxp_readout_detector_run(
+				&(xia_dxp_mca->detector_channel),
+				xia_dxp_mca->parameter_array,
+				xia_dxp_mca->baseline_array,
+				array_ptr );
+#endif
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1727,12 +1749,15 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 	array_ptr[ mca->current_num_channels - 1 ] = 0;
 #endif
 
+#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+
 	/* Copy the baseline array to the portable array. */
 
 	for ( i = 0; i < xia_dxp_mca->baseline_length; i++ ) {
 		xia_dxp_mca->baseline_array[i] = 
 			(unsigned long) xia_dxp_mca->xerxes_baseline_array[i];
 	}
+#endif
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: readout from MCA '%s' complete.",
