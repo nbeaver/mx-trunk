@@ -57,10 +57,10 @@
 
 #if (( XIA_HANDEL_MAJOR == 0 ) && (XIA_HANDEL_MINOR < 6))
 
-#  define XIA_HAVE_OLD_XERXES_BASELINE_ARRAY	TRUE
+#  define XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN	TRUE
 #else
 
-#  define XIA_HAVE_OLD_XERXES_BASELINE_ARRAY	FALSE
+#  define XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN	FALSE
 #endif
 
 typedef struct {
@@ -77,7 +77,7 @@ typedef struct {
 	unsigned long baseline_length;
 	unsigned long *baseline_array;
 
-#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+#if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
 	unsigned short *xerxes_baseline_array;
 #endif
 	

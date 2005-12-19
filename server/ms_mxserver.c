@@ -2433,7 +2433,7 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 		/* The username is only stored if it has not yet been set. */
 
 		if ( strlen( socket_handler->username ) == 0 ) {
-			strlcpy( socket_handler->username, ptr, length );
+			strlcpy( socket_handler->username, ptr, length+1 );
 		}
 
 		ptr = ptr2 + 1;
@@ -2460,7 +2460,7 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 		if ( length > MXU_PROGRAM_NAME_LENGTH )
 			length = MXU_PROGRAM_NAME_LENGTH;
 
-		strlcpy( socket_handler->program_name, ptr, length );
+		strlcpy( socket_handler->program_name, ptr, length+1 );
 
 		ptr = ptr2 + 1;
 

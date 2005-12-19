@@ -222,7 +222,7 @@ mxd_xia_dxp_create_record_structures( MX_RECORD *record )
 	xia_dxp_mca->get_mx_parameter = NULL;
 	xia_dxp_mca->set_mx_parameter = NULL;
 
-#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+#if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
 	xia_dxp_mca->xerxes_baseline_array = NULL;
 #endif
 
@@ -677,7 +677,7 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 			xia_dxp_mca->baseline_length );
 	}
 
-#if XIA_HAVE_OLD_XERXES_BASELINE_ARRAY
+#if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
 
 	/* Allocate memory for the Xerxes-specific baseline array. */
 
