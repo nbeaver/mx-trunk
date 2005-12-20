@@ -31,6 +31,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
+#include <xia_version.h>
 #include <xerxes_errors.h>
 #include <xerxes.h>
 

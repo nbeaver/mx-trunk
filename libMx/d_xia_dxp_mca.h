@@ -55,7 +55,7 @@
  * while Handel used unsigned longs.  They now both use unsigned longs.
  */
 
-#if (( XIA_HANDEL_MAJOR == 0 ) && (XIA_HANDEL_MINOR < 6))
+#if ((HANDEL_MAJOR_VERSION == 0) && (HANDEL_MINOR_VERSION < 6))
 
 #  define XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN	TRUE
 #else

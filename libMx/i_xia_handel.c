@@ -33,6 +33,7 @@
 #include <direct.h>
 #endif
 
+#include <xia_version.h>
 #include <handel.h>
 #include <handel_errors.h>
 #include <handel_generic.h>
