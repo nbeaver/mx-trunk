@@ -272,6 +272,8 @@ mx_mca_finish_record_initialization( MX_RECORD *mca_record )
 	mca->new_data_available = TRUE;
 	mca->mca_flags = 0;
 
+	mca->last_measurement_interval = -1.0;
+
 	mca->channel_number = 0;
 	mca->channel_value = 0;
 	mca->roi_number = 0;
@@ -628,6 +630,7 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 	mca->new_data_available = TRUE;
 
 	mca->preset_type = preset_type;
+	mca->last_measurement_interval = preset_value;
 
 	switch( preset_type ) {
 	case MXF_MCA_PRESET_LIVE_TIME:
@@ -682,6 +685,7 @@ mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
 	mca->new_data_available = TRUE;
 
 	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
+	mca->last_measurement_interval = preset_seconds;
 
 	mca->preset_live_time = preset_seconds;
 
@@ -721,6 +725,7 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 	mca->new_data_available = TRUE;
 
 	mca->preset_type = MXF_MCA_PRESET_REAL_TIME;
+	mca->last_measurement_interval = preset_seconds;
 
 	mca->preset_real_time = preset_seconds;
 
@@ -760,6 +765,7 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 	mca->new_data_available = TRUE;
 
 	mca->preset_type = MXF_MCA_PRESET_COUNT;
+	mca->last_measurement_interval = (double) preset_count;
 
 	mca->preset_count = preset_count;
 

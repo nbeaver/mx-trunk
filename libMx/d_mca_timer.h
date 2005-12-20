@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,6 +48,7 @@ MX_API mx_status_type mxd_mca_timer_clear( MX_TIMER *timer );
 MX_API mx_status_type mxd_mca_timer_read( MX_TIMER *timer );
 MX_API mx_status_type mxd_mca_timer_get_mode( MX_TIMER *timer );
 MX_API mx_status_type mxd_mca_timer_set_mode( MX_TIMER *timer );
+MX_API mx_status_type mxd_mca_timer_get_last_measurement_time(MX_TIMER *timer);
 
 extern MX_RECORD_FUNCTION_LIST mxd_mca_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_mca_timer_timer_function_list;

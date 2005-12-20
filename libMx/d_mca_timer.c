@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,9 @@ MX_TIMER_FUNCTION_LIST mxd_mca_timer_timer_function_list = {
 	mxd_mca_timer_clear,
 	mxd_mca_timer_read,
 	mxd_mca_timer_get_mode,
-	mxd_mca_timer_set_mode
+	mxd_mca_timer_set_mode,
+	NULL,
+	mxd_mca_timer_get_last_measurement_time
 };
 
 /* MX mca timer data structures. */
@@ -73,7 +75,7 @@ mxd_mca_timer_get_pointers( MX_TIMER *timer,
 			MX_MCA_TIMER **mca_timer,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_mca_timer_get_pointers()";
+	static const char fname[] = "mxd_mca_timer_get_pointers()";
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -131,7 +133,7 @@ mxd_mca_timer_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_mca_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_timer_create_record_structures()";
+	static const char fname[] = "mxd_mca_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_MCA_TIMER *mca_timer;
@@ -168,7 +170,7 @@ mxd_mca_timer_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_timer_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_timer_finish_record_initialization()";
+	static const char fname[] = "mxd_mca_timer_finish_record_initialization()";
 
 	MX_TIMER *timer;
 	MX_MCA_TIMER *mca_timer;
@@ -253,18 +255,18 @@ mxd_mca_timer_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_is_busy()";
+	static const char fname[] = "mxd_mca_timer_is_busy()";
 
 	MX_MCA_TIMER *mca_timer;
 	int busy;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_is_busy( mca_timer->mca_record, &busy );
+	mx_status = mx_mca_is_busy( mca_timer->mca_record, &busy );
 
 	timer->busy = busy;
 
@@ -274,98 +276,98 @@ mxd_mca_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mca_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_start()";
+	static const char fname[] = "mxd_mca_timer_start()";
 
 	MX_MCA_TIMER *mca_timer;
 	double seconds_to_count;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	seconds_to_count = timer->value;
 
 	mca_timer->preset_time = seconds_to_count;
 
 	if ( mca_timer->use_real_time ) {
-		status = mx_mca_start_for_preset_real_time(
+		mx_status = mx_mca_start_for_preset_real_time(
 			mca_timer->mca_record, seconds_to_count );
 	} else {
-		status = mx_mca_start_for_preset_live_time(
+		mx_status = mx_mca_start_for_preset_live_time(
 			mca_timer->mca_record, seconds_to_count );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_stop()";
+	static const char fname[] = "mxd_mca_timer_stop()";
 
 	MX_MCA_TIMER *mca_timer;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_stop( mca_timer->mca_record );
+	mx_status = mx_mca_stop( mca_timer->mca_record );
 
 	timer->value = 0.0;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_timer_clear( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_clear()";
+	static const char fname[] = "mxd_mca_timer_clear()";
 
 	MX_MCA_TIMER *mca_timer;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_clear( mca_timer->mca_record );
+	mx_status = mx_mca_clear( mca_timer->mca_record );
 
 	timer->value = 0.0;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_read()";
+	static const char fname[] = "mxd_mca_timer_read()";
 
 	MX_MCA_TIMER *mca_timer;
 	double live_time, real_time;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mca_timer->use_real_time ) {
-		status = mx_mca_get_real_time( mca_timer->mca_record,
+		mx_status = mx_mca_get_real_time( mca_timer->mca_record,
 							&real_time );
 
 		timer->value = real_time;
 	} else {
-		status = mx_mca_get_live_time( mca_timer->mca_record,
+		mx_status = mx_mca_get_live_time( mca_timer->mca_record,
 							&live_time );
 
 		timer->value = live_time;
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -379,7 +381,7 @@ mxd_mca_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mca_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mca_timer_set_mode()";
+	static const char fname[] = "mxd_mca_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
 		int mode;
@@ -391,6 +393,39 @@ mxd_mca_timer_set_mode( MX_TIMER *timer )
 		"Timer mode %d is illegal for MCA timer '%s'",
 			mode, timer->record->name );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mca_timer_get_last_measurement_time( MX_TIMER *timer )
+{
+	static const char fname[] = "mxd_mca_timer_get_last_measurement_time()";
+
+	MX_MCA *mca;
+	MX_MCA_TIMER *mca_timer;
+	mx_status_type mx_status;
+
+	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( mca_timer->mca_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The mca_record pointer for MCA timer '%s' is NULL.",
+			timer->record->name );
+	}
+
+	mca = (MX_MCA *) mca_timer->mca_record->record_class_struct;
+
+	if ( mca == (MX_MCA *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MCA pointer for MCA record '%s' is NULL.",
+			mca_timer->mca_record->name );
+	}
+
+	timer->last_measurement_time = mca->last_measurement_interval;
 
 	return MX_SUCCESSFUL_RESULT;
 }

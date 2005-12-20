@@ -63,6 +63,8 @@ typedef struct {
 	double preset_live_time;
 	unsigned long preset_count;
 
+	double last_measurement_interval;
+
 	unsigned long preset_count_region[2];
 
 	long num_soft_rois;
