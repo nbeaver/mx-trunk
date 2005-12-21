@@ -379,6 +379,9 @@ mxd_network_timer_get_last_measurement_time( MX_TIMER *timer )
 
 	timer->last_measurement_time = last_measurement_time;
 
+	MX_DEBUG(-2,("%s: Timer '%s' last_measurement_time = %g",
+		fname, timer->record->name, timer->last_measurement_time));
+
 	return mx_status;
 }
 
