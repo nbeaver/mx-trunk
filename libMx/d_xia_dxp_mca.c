@@ -18,6 +18,8 @@
 
 #define MXD_XIA_DXP_DEBUG		FALSE
 
+#define MXD_XIA_DXP_DEBUG_STATISTICS	TRUE
+
 #define MXD_XIA_DXP_DEBUG_TIMING	FALSE
 
 #define MXD_XIA_VERIFY_PRESETS		FALSE
@@ -100,6 +102,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_dxp_record_field_defaults[] = {
 	MXD_XIA_DXP_HANDEL_STANDARD_FIELDS
 #endif
 };
+
+#if MX_XIA_DXP_DEBUG_STATISTICS
+#   define XIA_DEBUG_STATISTICS(x) \
+	MX_DEBUG(-2,("%s: MCA '%s', new_statistics_available = %d", \
+		fname, (x)->record->name, (x)->new_statistics_available));
+#else
+#   define XIA_DEBUG_STATISTICS(x)
+#endif
 
 long mxd_xia_dxp_num_record_fields
 		= sizeof( mxd_xia_dxp_record_field_defaults )
@@ -300,6 +310,8 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 	xia_dxp_mca = (MX_XIA_DXP_MCA *) record->record_type_struct;
 
 	xia_dxp_mca->new_statistics_available = TRUE;
+
+	XIA_DEBUG_STATISTICS( xia_dxp_mca );
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
@@ -1889,6 +1901,8 @@ mxd_xia_dxp_start( MX_MCA *mca )
 
 	xia_dxp_mca->new_statistics_available = TRUE;
 
+	XIA_DEBUG_STATISTICS( xia_dxp_mca );
+
 	/* Start the MCA. */
 
 	if ( xia_dxp_mca->start_run == NULL ) {
@@ -2242,6 +2256,8 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 		mx_status = mxd_xia_dxp_read_statistics( mca, xia_dxp_mca,
 							MXD_XIA_DXP_DEBUG );
 
+		XIA_DEBUG_STATISTICS( xia_dxp_mca );
+
 		MX_DEBUG( 2,
 		("%s: new_statistics_available = %d, mca->busy = %d",
 			fname, xia_dxp_mca->new_statistics_available,
@@ -2545,6 +2561,8 @@ mxd_xia_dxp_read_statistics( MX_MCA *mca,
 	if ( mca->mca_flags & MXF_MCA_NO_READ_OPTIMIZATION ) {
 		read_statistics = TRUE;
 
+	XIA_DEBUG_STATISTICS( xia_dxp_mca );
+
 	} else if ( xia_dxp_mca->new_statistics_available ) {
 		read_statistics = TRUE;
 
@@ -2552,7 +2570,7 @@ mxd_xia_dxp_read_statistics( MX_MCA *mca,
 		read_statistics = FALSE;
 	}
 
-	MX_DEBUG( 2,("%s: read_statistics = %d", fname, read_statistics));
+	MX_DEBUG(-2,("%s: read_statistics = %d", fname, read_statistics));
 
 	if ( read_statistics ) {
 
@@ -2571,6 +2589,9 @@ mxd_xia_dxp_read_statistics( MX_MCA *mca,
 			xia_dxp_mca->new_statistics_available = FALSE;
 		}
 	}
+
+	XIA_DEBUG_STATISTICS( xia_dxp_mca );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

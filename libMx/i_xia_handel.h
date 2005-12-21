@@ -207,10 +207,14 @@ MX_API mx_status_type mxi_xia_handel_set_mx_parameter( MX_MCA *mca );
 
 /*------*/
 
+MX_API const char *mxi_xia_handel_strerror( int xia_status_code );
+
+#if ( HAVE_XIA_HANDEL && IS_MX_DRIVER )
+
 MX_API mx_status_type mxi_xia_handel_set_data_available_flags(
 					MX_XIA_HANDEL *xia_handel,
 					int flag_value );
 
-MX_API const char *mxi_xia_handel_strerror( int xia_status_code );
+#endif
 
 #endif /* __I_XIA_HANDEL_H__ */

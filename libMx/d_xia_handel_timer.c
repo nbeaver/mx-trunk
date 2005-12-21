@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_XIA_HANDEL_TIMER_DEBUG		FALSE
+#define MXD_XIA_HANDEL_TIMER_DEBUG		TRUE
 
 #define MXD_XIA_HANDEL_TIMER_DEBUG_TIMING	FALSE
 
@@ -67,7 +67,9 @@ MX_TIMER_FUNCTION_LIST mxd_xia_handel_timer_timer_function_list = {
 	mxd_xia_handel_timer_get_mode,
 	mxd_xia_handel_timer_set_mode,
 	NULL,
+#if 0
 	mxd_xia_handel_timer_get_last_measurement_time
+#endif
 };
 
 /* MX XIA Handel timer data structures. */
@@ -466,6 +468,8 @@ mxd_xia_handel_timer_start( MX_TIMER *timer )
 			mxi_xia_handel_strerror( xia_status ) );
 	}
 
+	timer->last_measurement_time = seconds_to_count;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -649,18 +653,20 @@ mxd_xia_handel_timer_get_last_measurement_time( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0
+
 #if MXD_XIA_HANDEL_TIMER_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
 	if ( xia_handel_timer->use_real_time ) {
 		xia_status = xiaGetAcquisitionValues(
-				xia_handel_timer->detector_channel_set,
-				"preset_realtime",
+				xia_handel_timer->first_detector_channel,
+				"preset_runtime",
 				(void *) &seconds_to_count );
 	} else {
 		xia_status = xiaGetAcquisitionValues(
-				xia_handel_timer->detector_channel_set,
+				xia_handel_timer->first_detector_channel,
 				"preset_livetime",
 				(void *) &seconds_to_count );
 	}
@@ -685,6 +691,8 @@ mxd_xia_handel_timer_get_last_measurement_time( MX_TIMER *timer )
 #if MXD_XIA_HANDEL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Timer '%s' last measurement time = %g",
 		fname, timer->record->name, timer->last_measurement_time));
+#endif
+
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
