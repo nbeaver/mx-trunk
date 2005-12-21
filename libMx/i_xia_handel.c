@@ -82,10 +82,6 @@ long mxi_xia_handel_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_xia_handel_rfield_def_ptr
 			= &mxi_xia_handel_record_field_defaults[0];
 
-static mx_status_type mxi_xia_handel_set_data_available_flags(
-					MX_XIA_HANDEL *xia_handel,
-					int flag_value );
-
 static mx_status_type mxi_xia_handel_process_function( void *record_ptr,
 						void *record_field_ptr,
 						int operation );
@@ -273,7 +269,7 @@ mxi_xia_handel_finish_record_initialization( MX_RECORD *record )
  * by this Handel interface.
  */
 
-static mx_status_type
+MX_EXPORT mx_status_type
 mxi_xia_handel_set_data_available_flags( MX_XIA_HANDEL *xia_handel,
 					int flag_value )
 {

@@ -323,6 +323,7 @@
 #include "d_gm10_timer.h"
 #include "d_interval_timer.h"
 #include "d_bluice_timer.h"
+#include "d_xia_handel_timer.h"
 
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
@@ -2595,6 +2596,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_bluice_timer_timer_function_list,
 				&mxd_bluice_timer_num_record_fields,
 				&mxd_bluice_timer_rfield_def_ptr},
+
+{"xia_handel_timer", MXT_TIM_HANDEL,      MXC_TIMER,          MXR_DEVICE,
+				&mxd_xia_handel_timer_record_function_list,
+				NULL,
+				&mxd_xia_handel_timer_timer_function_list,
+				&mxd_xia_handel_timer_num_record_fields,
+				&mxd_xia_handel_timer_rfield_def_ptr},
 
 {"soft_amplifier", MXT_AMP_SOFTWARE,  MXC_AMPLIFIER,      MXR_DEVICE,
 				&mxd_soft_amplifier_record_function_list,

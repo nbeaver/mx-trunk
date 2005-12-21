@@ -508,6 +508,7 @@
 #define MXT_TIM_GM10			80015
 #define MXT_TIM_INTERVAL		80016
 #define MXT_TIM_BLUICE			80017
+#define MXT_TIM_HANDEL			80018
 
 /* --- Amplifier types --- */
 
