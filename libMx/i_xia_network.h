@@ -41,6 +41,8 @@ typedef struct {
 	MX_NETWORK_FIELD *current_num_rois_nf;
 	MX_NETWORK_FIELD *hardware_scas_are_enabled_nf;
 	MX_NETWORK_FIELD *live_time_nf;
+	MX_NETWORK_FIELD *new_data_available_nf;
+	MX_NETWORK_FIELD *new_statistics_available_nf;
 	MX_NETWORK_FIELD *param_value_to_all_channels_nf;
 	MX_NETWORK_FIELD *parameter_name_nf;
 	MX_NETWORK_FIELD *parameter_value_nf;

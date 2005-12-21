@@ -286,7 +286,7 @@ mxi_xia_handel_set_data_available_flags( MX_XIA_HANDEL *xia_handel,
 		"The MX_XIA_HANDEL pointer passed was NULL." );
 	}
 
-	MX_DEBUG(-2,("%s invoked for '%s', flag_value = %d",
+	MX_DEBUG( 2,("%s invoked for '%s', flag_value = %d",
 		fname, xia_handel->record->name, flag_value));
 
 	mca_record_array = xia_handel->mca_record_array;

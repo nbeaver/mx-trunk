@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -378,9 +378,6 @@ mxd_network_timer_get_last_measurement_time( MX_TIMER *timer )
 				MXFT_DOUBLE, &last_measurement_time );
 
 	timer->last_measurement_time = last_measurement_time;
-
-	MX_DEBUG(-2,("%s: Timer '%s' last_measurement_time = %g",
-		fname, timer->record->name, timer->last_measurement_time));
 
 	return mx_status;
 }

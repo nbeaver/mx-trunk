@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2004 Illinois Institute of Technology
+ * Copyright 2000-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -699,6 +699,12 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%d).",
+		fname, mca->record->name,
+		mx_get_field_label_string( mca->record,
+			mca->parameter_type ),
+		mca->parameter_type));
+
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
 		mx_status = mx_get( &(network_mca->current_num_channels_nf),
@@ -868,6 +874,12 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%d).",
+		fname, mca->record->name,
+		mx_get_field_label_string( mca->record,
+			mca->parameter_type ),
+		mca->parameter_type));
 
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 

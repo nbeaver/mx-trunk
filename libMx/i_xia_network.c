@@ -179,11 +179,15 @@ mxi_xia_network_finish_record_initialization( MX_RECORD *record )
 	xia_network->current_num_channels_nf = NULL;
 	xia_network->current_num_rois_nf = NULL;
 	xia_network->hardware_scas_are_enabled_nf = NULL;
+	xia_network->live_time_nf = NULL;
+	xia_network->new_data_available_nf = NULL;
+	xia_network->new_statistics_available_nf = NULL;
 	xia_network->param_value_to_all_channels_nf = NULL;
 	xia_network->parameter_name_nf = NULL;
 	xia_network->parameter_value_nf = NULL;
 	xia_network->preset_clock_tick_nf = NULL;
 	xia_network->preset_type_nf = NULL;
+	xia_network->real_time_nf = NULL;
 	xia_network->roi_nf = NULL;
 	xia_network->roi_array_nf = NULL;
 	xia_network->roi_integral_nf = NULL;
@@ -351,6 +355,10 @@ mxi_xia_network_open( MX_RECORD *record )
 					"hardware_scas_are_enabled_nf" );
 	MXI_XIA_NETWORK_NF_NULL( xia_network->live_time_nf,
 					"live_time_nf" );
+	MXI_XIA_NETWORK_NF_NULL( xia_network->new_data_available_nf,
+					"new_data_available_nf" );
+	MXI_XIA_NETWORK_NF_NULL( xia_network->new_statistics_available_nf,
+					"new_statistics_available_nf" );
 	MXI_XIA_NETWORK_NF_NULL( xia_network->param_value_to_all_channels_nf,
 					"param_value_to_all_channels_nf" );
 	MXI_XIA_NETWORK_NF_NULL( xia_network->parameter_name_nf,
@@ -737,9 +745,30 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 
 	i = xia_dxp_mca->detector_channel;
 
-	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: reading out %ld channels from MCA '%s'.",
-			fname, mca->current_num_channels, mca->record->name));
+	if ( mca->new_data_available == FALSE ) {
+		/* See if the new_data_available flag is set in the server. */
+
+		mx_status = mx_get( &(xia_network->new_data_available_nf[i]),
+					MXFT_INT, &(mca->new_data_available) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( mca->new_data_available ) {
+		if ( debug_flag ) {
+			MX_DEBUG(-2,
+			("%s: reading out %ld channels from MCA '%s'.",
+			  fname, mca->current_num_channels, mca->record->name));
+		}
+	} else {
+		if ( debug_flag ) {
+			MX_DEBUG(-2,
+			("%s: no new spectrum available for MCA '%s'.",
+				fname, mca->record->name));
+		}
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	dimension_array[0] = mca->current_num_channels;
@@ -753,6 +782,8 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 		"%s: readout from MCA '%s' complete.  mx_status = %ld",
 			fname, mca->record->name, mx_status.code));
 	}
+
+	mca->new_data_available = FALSE;
 
 	return mx_status;
 }
@@ -775,6 +806,33 @@ mxi_xia_network_read_statistics( MX_MCA *mca,
 		return mx_status;
 
 	i = xia_dxp_mca->detector_channel;
+
+	if ( xia_dxp_mca->new_statistics_available == FALSE ) {
+
+	    /* See if the new_statistics_available flag is set in the server. */
+
+		mx_status = mx_get(
+			&(xia_network->new_statistics_available_nf[i]),
+			MXFT_INT, &(xia_dxp_mca->new_statistics_available) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	if ( xia_dxp_mca->new_statistics_available ) {
+		if ( debug_flag ) {
+			MX_DEBUG(-2,("%s: reading new statistics for MCA '%s'.",
+				fname, mca->record->name));
+		}
+	} else {
+		if ( debug_flag ) {
+			MX_DEBUG(-2,
+			("%s: no new statistics available for MCA '%s'.",
+			 	fname, mca->record->name));
+		}
+
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	dimension_array[0] = MX_XIA_DXP_NUM_STATISTICS;
 

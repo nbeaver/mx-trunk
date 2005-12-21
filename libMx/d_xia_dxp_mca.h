@@ -344,6 +344,11 @@ typedef struct {
 		offsetof( MX_XIA_DXP_MCA, hardware_scas_are_enabled ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
+  {-1, -1, "new_statistics_available", MXFT_INT, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof( MX_XIA_DXP_MCA, new_statistics_available ), \
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {-1, -1, "preset_clock_tick", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, preset_clock_tick ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \

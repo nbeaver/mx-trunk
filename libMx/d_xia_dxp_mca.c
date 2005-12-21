@@ -18,7 +18,7 @@
 
 #define MXD_XIA_DXP_DEBUG		FALSE
 
-#define MXD_XIA_DXP_DEBUG_STATISTICS	TRUE
+#define MXD_XIA_DXP_DEBUG_STATISTICS	FALSE
 
 #define MXD_XIA_DXP_DEBUG_TIMING	FALSE
 
@@ -315,7 +315,16 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	mx_status = mx_mca_finish_record_initialization( record );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* We do our own determination of when to read new data. */
+
+	if ( xia_dxp_mca->xia_dxp_record->mx_type == MXI_GEN_XIA_NETWORK ) {
+		mca->mca_flags |= MXF_MCA_NO_READ_OPTIMIZATION;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -434,6 +443,12 @@ mxd_xia_dxp_network_open( MX_MCA *mca,
 				"hardware_scas_are_enabled" );
 			MXD_XIA_NETWORK_NF_INIT( i,
 				xia_network->live_time_nf, "live_time" );
+			MXD_XIA_NETWORK_NF_INIT( i,
+				xia_network->new_data_available_nf,
+				"new_data_available" );
+			MXD_XIA_NETWORK_NF_INIT( i,
+				xia_network->new_statistics_available_nf,
+				"new_statistics_available" );
 			MXD_XIA_NETWORK_NF_INIT( i,
 				xia_network->param_value_to_all_channels_nf,
 				"param_value_to_all_channels" );
@@ -2561,8 +2576,6 @@ mxd_xia_dxp_read_statistics( MX_MCA *mca,
 	if ( mca->mca_flags & MXF_MCA_NO_READ_OPTIMIZATION ) {
 		read_statistics = TRUE;
 
-	XIA_DEBUG_STATISTICS( xia_dxp_mca );
-
 	} else if ( xia_dxp_mca->new_statistics_available ) {
 		read_statistics = TRUE;
 
@@ -2570,7 +2583,9 @@ mxd_xia_dxp_read_statistics( MX_MCA *mca,
 		read_statistics = FALSE;
 	}
 
-	MX_DEBUG(-2,("%s: read_statistics = %d", fname, read_statistics));
+	XIA_DEBUG_STATISTICS( xia_dxp_mca );
+
+	MX_DEBUG( 2,("%s: read_statistics = %d", fname, read_statistics));
 
 	if ( read_statistics ) {
 
