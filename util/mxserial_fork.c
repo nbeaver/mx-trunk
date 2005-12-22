@@ -234,10 +234,10 @@ main( int argc, char *argv[] )
 
 #endif /* USE_GETOPT */
 
-	newline_chars[0] = ( newline >> 24 ) & 0xff;
-	newline_chars[1] = ( newline >> 16 ) & 0xff;
-	newline_chars[2] = ( newline >> 8 ) & 0xff;
-	newline_chars[3] = newline & 0xff;
+	newline_chars[0] = (char) (( newline >> 24 ) & 0xff);
+	newline_chars[1] = (char) (( newline >> 16 ) & 0xff);
+	newline_chars[2] = (char) (( newline >> 8 ) & 0xff);
+	newline_chars[3] = (char) (newline & 0xff);
 
 	if ( num_non_option_arguments != 1 ) {
 		error_flag = TRUE;
@@ -330,6 +330,8 @@ main( int argc, char *argv[] )
 	}
 
 	exit(0);
+
+	return 0;
 }
 
 mx_status_type
