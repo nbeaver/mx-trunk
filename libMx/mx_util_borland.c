@@ -48,10 +48,12 @@
 #include <windows.h>
 #include <alloc.h>
 
+#include "mx_util.h"
+
 static HANDLE process_heap = NULL;
 
-void * __export
-calloc( size_t num_items, size_t item_size )
+MX_EXPORT void *
+bc_calloc( size_t num_items, size_t item_size )
 {
 	LPVOID block_ptr;
 	size_t num_bytes;
@@ -67,8 +69,8 @@ calloc( size_t num_items, size_t item_size )
 	return block_ptr;
 }
 
-void __export
-free( void *block_ptr )
+MX_EXPORT void
+bc_free( void *block_ptr )
 {
 	BOOL status;
 
@@ -87,8 +89,8 @@ free( void *block_ptr )
 	return;
 }
 
-void * __export
-malloc( size_t num_bytes )
+MX_EXPORT void *
+bc_malloc( size_t num_bytes )
 {
 	LPVOID block_ptr;
 
@@ -101,8 +103,8 @@ malloc( size_t num_bytes )
 	return block_ptr;
 }
 
-void * __export
-realloc( void *old_block_ptr, size_t new_num_bytes )
+MX_EXPORT void *
+bc_realloc( void *old_block_ptr, size_t new_num_bytes )
 {
 	LPVOID new_block_ptr;
 
@@ -114,56 +116,6 @@ realloc( void *old_block_ptr, size_t new_num_bytes )
 					old_block_ptr, new_num_bytes );
 
 	return new_block_ptr;
-}
-
-int __export
-heapcheck( void )
-{
-	if ( process_heap == NULL ) {
-		process_heap = GetProcessHeap();
-	}
-
-	return _HEAPOK;
-}
-
-int __export
-heapcheckfree( unsigned int fillvalue )
-{
-	if ( process_heap == NULL ) {
-		process_heap = GetProcessHeap();
-	}
-
-	return _HEAPOK;
-}
-
-int __export
-heapchecknode( void *node_ptr )
-{
-	if ( process_heap == NULL ) {
-		process_heap = GetProcessHeap();
-	}
-
-	return _HEAPEMPTY;
-}
-
-int __export
-heapfillfree( unsigned int fillvalue )
-{
-	if ( process_heap == NULL ) {
-		process_heap = GetProcessHeap();
-	}
-
-	return _HEAPOK;
-}
-
-int __export
-heapwalk( struct heapinfo *hi )
-{
-	if ( process_heap == NULL ) {
-		process_heap = GetProcessHeap();
-	}
-
-	return _HEAPEND;
 }
 
 #endif /* defined( OS_WIN32 ) && defined( __BORLANDC__ ) */

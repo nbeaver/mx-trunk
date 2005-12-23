@@ -19,6 +19,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_scan.h"
 #include "mx_plot.h"

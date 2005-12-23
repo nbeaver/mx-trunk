@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_rs232.h"
 #include "i_panasonic_kx_dp702.h"

@@ -21,6 +21,7 @@
 
 #if HAVE_EPICS
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_array.h"

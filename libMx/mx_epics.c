@@ -59,6 +59,7 @@
 
 /*===*/
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_mutex.h"
 #include "mx_epics.h"

@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_types.h"
 #include "mx_ascii.h"

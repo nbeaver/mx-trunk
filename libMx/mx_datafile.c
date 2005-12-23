@@ -21,6 +21,7 @@
 #include <limits.h>
 
 #include "mx_constants.h"
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_scan.h"
 #include "mx_datafile.h"

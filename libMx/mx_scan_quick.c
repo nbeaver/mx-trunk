@@ -18,6 +18,7 @@
 #include <math.h>
 #include <ctype.h>
 
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_constants.h"

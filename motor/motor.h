@@ -21,6 +21,7 @@
 
 #include "mx_osdef.h"
 #include "mx_driver.h"
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_motor.h"
 #include "mx_scan.h"

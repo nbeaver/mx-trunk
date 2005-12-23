@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_vinline.h"

@@ -22,6 +22,7 @@
 #include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_unistd.h"
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_version.h"

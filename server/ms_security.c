@@ -20,6 +20,7 @@
 #include <sys/types.h>
 
 #include "mxconfig.h"
+#include "mx_util.h"
 #include "mx_record.h"
 #include "mx_socket.h"
 #include "mx_array.h"

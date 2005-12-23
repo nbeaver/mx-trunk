@@ -120,6 +120,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
+MX_LIB_OBJS += mx_util_borland.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 
 #
