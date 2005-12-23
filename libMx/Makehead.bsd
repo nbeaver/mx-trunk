@@ -13,7 +13,7 @@
 INCLUDES	= $(MX_INCLUDES)
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -pthread -lm
+LIBRARIES	= -pthread -lpthread -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the

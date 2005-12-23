@@ -2147,7 +2147,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  *
  *          1.  There can only be one setitimer() based timer in a given
  *              process.
- *          2.  They are usually based on SIGALRM signals.  SIGALRM tends
+ *          2.  They are generally based on SIGALRM signals.  SIGALRM tends
  *              to be widely used for a variety of purposes in Unix, so it
  *              can be hard to ensure that two different parts of an MX
  *              based program are not fighting for control of SIGALRM.
