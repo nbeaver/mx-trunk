@@ -448,7 +448,8 @@ mx_signal_free( int signal_number )
 
 /*--------------------------------------------------------------------------*/
 
-#elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_VXWORKS )
+#elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_VXWORKS ) \
+	|| defined( OS_DJGPP )
 
 /* For this platform, the only signal available is SIGALRM and we can use
  * sigaction() to see if SIGALRM is already in use.
