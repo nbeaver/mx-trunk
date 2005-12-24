@@ -1,11 +1,14 @@
+CFLAGS = /debug /noopt /include=[-.libMx] /define=("OS_VMS","DEBUG") \
+  /warnings=(disable=longextern,errors=all)  /error_limit=10
+
 all: strlcpy.obj strlcat.obj
 
 mx_clean:
 	-\$ @[-.scripts]vms_delete *.obj
 
 strlcpy.obj: generic/src/strlcpy.c
-	cc [.generic.src]strlcpy.c
+	cc $(CFLAGS) [.generic.src]strlcpy.c
 
 strlcat.obj: generic/src/strlcat.c
-	cc [.generic.src]strlcat.c
+	cc $(CFLAGS) [.generic.src]strlcat.c
 

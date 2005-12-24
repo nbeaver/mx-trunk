@@ -269,6 +269,97 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 
 /*------------------------------------------------------------------------*/
 
+#elif defined( OS_VMS )
+
+#include <ssdef.h>
+#include <stsdef.h>
+#include <syidef.h>
+#include <descrip.h>
+#include <lib$routines.h>
+
+static void
+mx_get_vms_version_string( char *vms_version_buffer,
+				size_t max_vms_version_buffer_length )
+{
+	static const char fname[] = "mx_get_vms_version_string()";
+
+	long item_code;
+	unsigned long vms_status;
+
+	struct dsc$descriptor_s version_desc;
+
+	version_desc.dsc$b_dtype = DSC$K_DTYPE_T;
+	version_desc.dsc$b_class = DSC$K_CLASS_S;
+	version_desc.dsc$a_pointer = vms_version_buffer;
+	version_desc.dsc$w_length = max_vms_version_buffer_length - 1;
+
+	item_code = SYI$_VERSION;
+
+	vms_status = lib$getsyi( &item_code,
+				0,
+				&version_desc,
+				&version_desc.dsc$w_length,
+				0,
+				0 );
+
+	MX_DEBUG(-2,("%s: vms_status = %lu, vms_version_buffer = '%s'",
+		fname, vms_status, vms_version_buffer));
+
+	return;
+}
+
+MX_EXPORT mx_status_type
+mx_get_os_version_string( char *version_string,
+			size_t max_version_string_length )
+{
+	static const char fname[] = "mx_get_os_version_string()";
+
+	char vms_version_buffer[100];
+
+	if ( version_string == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The version_string pointer passed was NULL." );
+	}
+
+	mx_get_vms_version_string( vms_version_buffer,
+					sizeof(vms_version_buffer) );
+
+	snprintf( version_string, max_version_string_length,
+		"VMS %s", vms_version_buffer );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_os_version( int *os_major, int *os_minor, int *os_update )
+{
+	static const char fname[] = "mx_get_os_version()";
+
+	char vms_version_buffer[100];
+	char *ptr;
+
+	if ( (os_major == NULL) || (os_minor == NULL) || (os_update == NULL) ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"One or more of the arguments passed were NULL." );
+	}
+
+	mx_get_vms_version_string( vms_version_buffer,
+					sizeof(vms_version_buffer) );
+
+	ptr = vms_version_buffer;
+
+	if ( *ptr == 'V' ) {
+		ptr++;
+	}
+
+	mx_split_version_number_string( ptr,
+				os_major, os_minor, os_update );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*------------------------------------------------------------------------*/
+
 #elif defined( OS_VXWORKS )
 
 #include "version.h"

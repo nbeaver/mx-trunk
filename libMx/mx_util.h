@@ -124,6 +124,9 @@
 #  include <limits.h>
 #  define MXU_FILENAME_LENGTH		PATH_MAX
 
+#elif defined( OS_VMS )
+#  define MXU_FILENAME_LENGTH		255	/* According to comp.os.vms */
+
 #else
 #  include <sys/param.h>
 #  if defined( MAXPATHLEN )
