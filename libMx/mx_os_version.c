@@ -302,7 +302,7 @@ mx_get_vms_version_string( char *vms_version_buffer,
 				0,
 				0 );
 
-	MX_DEBUG(-2,("%s: vms_status = %lu, vms_version_buffer = '%s'",
+	MX_DEBUG( 2,("%s: vms_status = %lu, vms_version_buffer = '%s'",
 		fname, vms_status, vms_version_buffer));
 
 	return;
@@ -314,7 +314,10 @@ mx_get_os_version_string( char *version_string,
 {
 	static const char fname[] = "mx_get_os_version_string()";
 
-	char vms_version_buffer[100];
+	char vms_version_buffer[20];
+	char *ptr, *terminator_ptr;
+	size_t version_length;
+	int os_major, os_minor, os_update;
 
 	if ( version_string == (char *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -324,8 +327,31 @@ mx_get_os_version_string( char *version_string,
 	mx_get_vms_version_string( vms_version_buffer,
 					sizeof(vms_version_buffer) );
 
-	snprintf( version_string, max_version_string_length,
-		"VMS %s", vms_version_buffer );
+	ptr = vms_version_buffer;
+
+	if ( *ptr == 'V' ) {
+		ptr++;
+	}
+
+	/* Null terminate the string at the first trailing space character. */
+
+	version_length = strspn( ptr, "0123456789." );
+
+	terminator_ptr = ptr + version_length;
+
+	*terminator_ptr = '\0';
+
+	mx_split_version_number_string( ptr,
+				&os_major, &os_minor, &os_update );
+
+	if ( os_major >= 6 ) {
+
+		snprintf( version_string, max_version_string_length,
+			"OpenVMS %s", ptr );
+	} else {
+		snprintf( version_string, max_version_string_length,
+			"VMS %s", ptr );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -335,7 +361,7 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 {
 	static const char fname[] = "mx_get_os_version()";
 
-	char vms_version_buffer[100];
+	char vms_version_buffer[20];
 	char *ptr;
 
 	if ( (os_major == NULL) || (os_minor == NULL) || (os_update == NULL) ) {
