@@ -28,6 +28,7 @@ static void
 mx_split_version_number_string( char *version_number_string,
 				int *os_major, int *os_minor, int *os_update )
 {
+	char version_buffer[100];
 	char *ptr_major, *ptr_minor, *ptr_update;
 
 	if ( ( version_number_string == NULL ) || ( os_major == NULL )
@@ -36,7 +37,9 @@ mx_split_version_number_string( char *version_number_string,
 		return;
 	}
 
-	ptr_major = version_number_string;
+	strlcpy(version_buffer, version_number_string, sizeof(version_buffer));
+
+	ptr_major = version_buffer;
 
 	/* Split the reported release string at the period characters. */
 
@@ -302,9 +305,6 @@ mx_get_vms_version_string( char *vms_version_buffer,
 				0,
 				0 );
 
-	MX_DEBUG( 2,("%s: vms_status = %lu, vms_version_buffer = '%s'",
-		fname, vms_status, vms_version_buffer));
-
 	return;
 }
 
@@ -316,7 +316,6 @@ mx_get_os_version_string( char *version_string,
 
 	char vms_version_buffer[20];
 	char *ptr, *terminator_ptr;
-	size_t version_length;
 	int os_major, os_minor, os_update;
 
 	if ( version_string == (char *) NULL ) {
@@ -335,9 +334,7 @@ mx_get_os_version_string( char *version_string,
 
 	/* Null terminate the string at the first trailing space character. */
 
-	version_length = strspn( ptr, "0123456789." );
-
-	terminator_ptr = ptr + version_length;
+	terminator_ptr = strchr( ptr, ' ' );
 
 	*terminator_ptr = '\0';
 
