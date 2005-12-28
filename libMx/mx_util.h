@@ -452,15 +452,27 @@ MX_API int  mx_default_user_interrupt_function( void );
 
 MX_API void mx_info( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
-MX_API void mx_info_dialog( char *text_prompt, char *gui_prompt,
+MX_API void mx_info_dialog( char *text_prompt,
+					char *gui_prompt,
 					char *button_label );
+
+MX_API void mx_info_entry_dialog( char *text_prompt,
+					char *gui_prompt,
+					int echo_characters,
+					char *response,
+					size_t max_response_length );
 
 MX_API void mx_set_info_output_function( void (*)( char * ) );
 MX_API void mx_info_default_output_function( char *string );
 
 MX_API void mx_set_info_dialog_function( void (*)( char *, char *, char * ) );
-MX_API void mx_info_default_dialog_function( char *text_prompt,
-					char *gui_prompt, char *button_label );
+MX_API void mx_info_default_dialog_function( char *, char *, char * );
+
+MX_API void mx_set_info_entry_dialog_function(
+			void (*)( char *, char *, int, char *, size_t ) );
+MX_API void mx_info_default_entry_dialog_function(
+					char *, char *, int, char *, size_t );
+
 
 /* === Warning messages. === */
 

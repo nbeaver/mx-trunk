@@ -236,7 +236,7 @@ mxn_bluice_dcss_server_get_session_id(
 	unsigned long flags;
 	unsigned long i, j, num_times_to_loop, remainder, buffer24;
 	unsigned char index0, index1, index2, index3;
-	size_t length, plaintext_length;
+	size_t plaintext_length;
 	static char crlf[] = "\015\012";
 	static const char base64_table[] =
 	    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -252,48 +252,32 @@ mxn_bluice_dcss_server_get_session_id(
 	char plaintext[1000];
 	char base64_hash[1500];
 
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s invoked for authentication server '%s'",
 		fname, bluice_dcss_server->authentication_data));
+#endif
 
 	flags = bluice_dcss_server->bluice_dcss_flags;
-
-	/* FIXME: We need to be able to redirect the username input
-	 * to a GUI window.
-	 */
 
 	/* Get the username. */
 
 	if ( (flags & MXF_BLUICE_DCSS_REQUIRE_USERNAME) == 0 ) {
 		mx_username( user_name, username_length );
 	} else {
-		fprintf(stderr, "Enter Blu-Ice username --> ");
-
-		fgets( user_name, username_length, stdin );
-
-		length = strlen(user_name);
-
-		if ( user_name[length-1] == '\n' ) {
-			user_name[length-1] = '\0';
-		}
+		mx_info_entry_dialog( "Enter Blu-Ice username --> ",
+					"Enter Blu-Ice username:",
+					TRUE, user_name, username_length );
 	}
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Blu-Ice username = '%s'", fname, user_name));
 #endif
 
-	/* FIXME: The following is disgusting. */
-
 	/* Get the password. */
 
-	fprintf(stderr, "Enter Blu-Ice password --> ");
-
-	fgets( password, sizeof(password), stdin );
-
-	length = strlen(password);
-
-	if ( password[length-1] == '\n' ) {
-		password[length-1] = '\0';
-	}
+	mx_info_entry_dialog( "Enter Blu-Ice password --> ",
+				"Enter Blu-Ice password:",
+				FALSE, password, sizeof(password) );
 
 #if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Blu-Ice password = '%s'", fname, password));
@@ -305,12 +289,7 @@ mxn_bluice_dcss_server_get_session_id(
 
 	snprintf( plaintext, sizeof(plaintext), "%s:%s", user_name, password );
 
-#if 0
-	snprintf( plaintext, sizeof(plaintext),
-		"Man is distinguished, not only by his reason, but by this singular passion from other animals, which is a lust of the mind, that by a perseverance of delight in the continued and indefatigable generation of knowledge, exceeds the short vehemence of any carnal pleasure." );
-#endif
-
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Blu-Ice plaintext = '%s'", fname, plaintext));
 #endif
 
@@ -382,7 +361,7 @@ mxn_bluice_dcss_server_get_session_id(
 		base64_hash[4*j+3] = '=';
 	}
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: base64_hash = '%s'", fname, base64_hash));
 #endif
 
@@ -413,7 +392,7 @@ mxn_bluice_dcss_server_get_session_id(
 		port_number = atoi( port_number_ptr );
 	}
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: host name = '%s', port number = %d",
 		fname, host_name, port_number ));
 #endif
@@ -453,7 +432,7 @@ mxn_bluice_dcss_server_get_session_id(
  "GET /gateway/servlet/APPLOGIN?userid=%s&passwd=%s&AppName=%s HTTP/1.1%s",
 		user_name, base64_hash, bluice_dcss_server->appname, crlf );
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Command line 1 = '%s'", fname, line));
 #endif
 
@@ -475,7 +454,7 @@ mxn_bluice_dcss_server_get_session_id(
 	snprintf( line, sizeof(line), "Host: %s:%d%s",
 		host_name, port_number, crlf );
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: Command line 2 = '%s'", fname, line));
 #endif
 
@@ -558,7 +537,7 @@ mxn_bluice_dcss_server_get_session_id(
 			 break;
 		}
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 		MX_DEBUG(-2,("%s: Response line %lu = '%s'",
 			fname, i, line));
 #endif
@@ -579,7 +558,7 @@ mxn_bluice_dcss_server_get_session_id(
 			saved_errno, strerror(saved_errno) );
 	}
 
-#if 1 || BLUICE_DCSS_DEBUG
+#if BLUICE_DCSS_DEBUG
 	MX_DEBUG(-2,("%s: session id = '%s'", fname, session_id));
 #endif
 

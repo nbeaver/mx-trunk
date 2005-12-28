@@ -1,1 +1,1 @@
-testscan                         scan linear_scan motor_scan "" "" 1 1 1  energy 2  i0 i1  0 0 preset_time "1 timer1" sff testscan.004 gnuplot $f[0];$f[1]  6000  100  101
+testscan                         scan linear_scan motor_scan "" "" 1 1 1  energy 2  i0 i1  0 0 preset_time "1 timer1" sff testscan.005 gnuplot $f[0];$f[1]  6000  100  101
