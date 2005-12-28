@@ -28,7 +28,7 @@ MX_CORE_SRCS = mx_amplifier.c \
 	mx_digital_input.c mx_digital_output.c mx_driver_class.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
-	mx_info.c mx_interval_timer.c mx_log.c mx_list_head.c \
+	mx_info.c mx_interval_timer.c mx_key.c mx_log.c mx_list_head.c \
 	mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
 	mx_mfault.c mx_modbus.c mx_motor.c \
@@ -43,18 +43,17 @@ MX_CORE_SRCS = mx_amplifier.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
 	mx_variable.c mx_vepics.c \
 	mx_version.c mx_vinline.c mx_vme.c mx_vnet.c mx_warning.c \
-	fh_autoscale.c fh_simple.c \
-	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
-	key_curses.c key_dos.c key_unix.c key_vms.c key_win32.c \
-	m_count.c m_none.c m_pulse_period.c m_time.c \
-	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
-	ph_aps_topup.c ph_simple.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
 	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
 	pr_relay.c pr_rs232.c pr_sample_changer.c pr_sca.c pr_scaler.c \
 	pr_timer.c pr_variable.c \
+	fh_autoscale.c fh_simple.c \
+	f_child.c f_none.c f_sff.c f_text.c f_xafs.c \
+	m_count.c m_none.c m_pulse_period.c m_time.c \
+	p_child.c p_gnuplot.c p_gnuplot_xafs.c p_none.c \
+	ph_aps_topup.c ph_simple.c \
 	s_input.c s_motor.c s_pseudomotor.c s_slit.c s_theta_2theta.c \
 	sl_file.c sxafs_std.c sq_aps_id.c sq_joerger.c sq_mcs.c
 

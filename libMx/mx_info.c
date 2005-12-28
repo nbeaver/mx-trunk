@@ -152,21 +152,26 @@ mx_info_default_entry_dialog_function( char *text_prompt, char *gui_prompt,
 			int echo_characters,
 			char *response, size_t max_response_length )
 {
-	size_t length;
-
 #if defined(OS_WIN32)
-	fprintf( stdout, "%s", text_prompt );
-	fflush( stdout );
+	fprintf( stdout, "%s", text_prompt );  fflush( stdout );
 #else
 	fprintf( stderr, "%s", text_prompt );
 #endif
 
-	fgets( response, max_response_length, stdin );
+	if ( echo_characters == FALSE ) {
+		mx_key_echo_off();
+	}
 
-	length = strlen(response);
+	mx_key_getline( response, max_response_length );
 
-	if ( response[length-1] == '\n' ) {
-		response[length-1] = '\0';
+	if ( echo_characters == FALSE ) {
+		mx_key_echo_on();
+
+#if defined(OS_WIN32)
+		fprintf( stdout, "\n" ); fflush( stdout );
+#else
+		fprintf( stderr, "\n" );
+#endif
 	}
 
 	return;
