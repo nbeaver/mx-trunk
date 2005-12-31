@@ -18,6 +18,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_ascii.h"
 #include "mx_key.h"
 
 /************************** Microsoft Win32 **************************/
@@ -107,6 +108,91 @@ MX_EXPORT int
 mx_kbhit( void )
 {
 	return kbhit();
+}
+
+/* --- */
+
+static int echo_off = FALSE;
+
+MX_EXPORT void
+mx_key_echo_off( void )
+{
+	echo_off = TRUE;
+}
+
+MX_EXPORT void
+mx_key_echo_on( void )
+{
+	echo_off = FALSE;
+}
+
+MX_EXPORT void
+mx_key_getline( char *buffer, size_t max_buffer_length )
+{
+	long i;
+	int c;
+
+	if ( (buffer == NULL) || (max_buffer_length == 0) ) {
+		return;
+	}
+
+	for ( i = 0; i < max_buffer_length; i++ ) {
+
+		if ( i < 0 ) {
+			/* Just in case we have a programming mistake
+			 * with backspacing.
+			 */
+
+			i = 0;
+		}
+
+		if ( echo_off ) {
+			c = getch();
+		} else {
+			c = getche();
+		}
+
+		if ( ( c == MX_CR )
+		  || ( c == MX_LF ) )
+		{
+			/* We have reached the end of the line, so
+			 * null terminate the buffer and return.
+			 */
+
+			buffer[i] = '\0';
+
+			if ( echo_off ) {
+				fputc( '\n', stdout );
+			} else {
+				if ( c == MX_CR ) {
+					fputc( MX_LF, stdout );
+				} else {
+					fputc( MX_CR, stdout );
+				}
+			}
+			return;
+		} else
+		if ( c == MX_CTRL_H ) {
+			/* Back up one character and try again. */
+
+			i--;
+		} else {
+			buffer[i] = c;
+		}
+	}
+
+	/* Make sure we are null terminated. */
+
+	if ( i >= max_buffer_length ) {
+		buffer[max_buffer_length-1] = '\0';
+	} else
+	if ( i >= 0 ) {
+		buffer[i] = '\0';
+	} else {
+		buffer[0] = '\0';
+	}
+
+	return;
 }
 
 /************************** VMS **************************/
