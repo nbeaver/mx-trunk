@@ -1,36 +1,36 @@
-edgescan2                        scan linear_scan motor_scan "" "" 3 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff edgescan.028 gnuplot log($f[0]/$f[1])  8950  10  11
-xafs_scan                        scan xafs_scan_class xafs_scan "" "" 4 0 0  2  I0 I  0 0 preset_time "0 timer1" xafs xafsscan.015 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
-test2                            scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff testscan.out gnuplot log($f[0]/$f[1])  8950.5  1  101
-myscan                           scan linear_scan motor_scan "" "" 3 1 1  hslit_center 1  I0  0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  -10  1  21
-test1                            scan linear_scan motor_scan "" "" 2 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff testscan.out gnuplot "log( $f[0] / $f[1] )"  8970  1  101
-xafs2                            scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0 preset_time "0 timer1" xafs junk.011 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
-count1                           scan linear_scan motor_scan "" "" 1 1 1  energy 2  timer1 I  0 0 preset_count "100000 I0" sff junk.out gnuplot $f[1]  8965  1  51
-timescan                         scan linear_scan motor_scan "" "" 1 1 1  time 1  time  0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  2  10001
-mylist                           scan list_scan file_list_scan "" "" 1 1 1  theta 2  I0 I  0 0 preset_time "1 timer1" sff mylist.out gnuplot $f[0] mylist.dat
-2thetascan                       scan linear_scan 2theta_scan "" "" 1 1 2  theta 2theta 1  I0  0 0 preset_time "1 timer1" sff 2thetascan.out gnuplot $f[0]  10  1  21
-testfast                         scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I  0 0 preset_time "0 timer1" sff junk.out gnuplot $f[0]/$f[1]  8950  1  101
-timescan2                        scan linear_scan motor_scan "" "" 1 1 1  time 1  time  0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  10  10001
-cuedge3                          scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1  0 0.1 preset_time "1 timer1" sff cuedge3.009 gnuplot log($f[0]/$f[1])  8950  1  101
-cuedge_a                         scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0.1 preset_time "0 timer1" xafs cuedge_a.out gnuxafs log($f[0]/$f[1]) 3 3 0 4  -200 -30 30 80  2.5 0.5 1  1 1 1
-cuedge_b                         scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1  0 0.1 preset_time "0 timer1" xafs cuedge_b.out gnuxafs log($f[0]/$f[1]) 3 3 0 4  -200 -30 30 80  2.5 0.5 1  1 1 1
-cuedge                           scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0.1 preset_time "0 timer1" xafs cuedge.011 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 0.5 1  1 1 1
-cuedge2                          scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1  0 0.1 preset_time "0 timer1" xafs cuedge.005 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 0.5 1  1 1 1
-testmca                          scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1  0 0 preset_time "1 timer1" sff testmca.005 gnuplot log($f[0]/$f[1])  8950.5  1  101
-testmca2                         scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1  0 0 preset_time "1 timer1" sff testmca.004 gnuplot log($f[0]/$f[1])  8950.5  1  101
-cuedge_foo                       scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0.1 preset_time "0 timer1" xafs cuedge.010 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 2.5 3.5  1 1 1
-cuedge2_foo                      scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1  0 0.1 preset_time "0 timer1" xafs cuedge.011 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 2.5 3.5  1 1 1
-slow1k                           scan linear_scan input_scan "" "" 1 1 0  2  Io It  0 0 preset_time "1 timer2" sff junk.out gnuplot $f[0]  0  1  1000
-edgescan                         scan linear_scan motor_scan "" "" 3 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff edgescan.042 gnuplot log($f[0]/$f[1])  8950  1  101
-vslit_scan                       scan linear_scan slit_scan "" "" 1 1 1  vslit_center 3  vslit_center vslit_bottom vslit_top  0 0 preset_time "1 timer1" text junk.out none ""  -10  1  21
-vslit_scan2                      scan linear_scan pseudomotor_scan "" "" 1 1 1  vslit_center 3  vslit_center vslit_bottom vslit_top  0 0 preset_time "1 timer1" text junk.out none ""  -10  1  21
-z_avg_scan2                      scan linear_scan pseudomotor_scan "" "" 1 1 1  z_avg 4  z_avg z1 z2 z3  0 0 preset_time "1 timer1" text junk.out none $f[0]  0  1  21
-mylist_e0                        scan list_scan file_list_scan "" "" 1 1 1  e_minus_e0 2  I0 I  0 0 preset_time "1 timer1" sff mylist.out gnuplot $f[0] mylist_e0.dat
-mcs_scan                         scan quick_scan mcs_qscan "" "" 1 1 1  energy 2  Io It  0 0 preset_time "1 timer2" xafs mcs_scan.042 gnuplot $f[0]  8950  9050 21
-e0scan                           scan linear_scan motor_scan "" "" 1 1 1  e_minus_e0 2  I0 I  0 0 preset_time "1 timer1" sff e0scan.010 none $f[0]  -100  10  31
-fooscan                          scan linear_scan motor_scan "" "" 1 1 1  energy 1  I0  0 0 preset_time "1 timer1" sff:x=energy,theta fooscan.008 gnuplot:x=theta $f[0]  8000  1  101
-xafs_sff2                        scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0 preset_time "0 timer1" sff:x=energy,theta,omega;normalize xafs_sff2.018 gnuplot:x=energy;continuous;normalize $f[0] 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  0.5 0.75 1.5 3
-xafs_sff                         scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0 preset_time "0 timer1" sff:x=energy,theta,omega junk.041 gnuplot:x=energy;continuous log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
-xafs_sff_junk                    scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I  0 0 preset_time "0 timer1" sff junk.041 gnuplot log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
-mylist_var                       scan list_scan file_list_scan "" "" 1 1 1  theta 3  I0 I time  0 0 preset_time "0 timer1" sff mylist_var.out gnuplot $f[0] mylist_var.dat
-test3a                           scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff:x=theta testscan.013 gnuplot:x=energy,theta log($f[0]/$f[1])  8950.5  1  101
-test3                            scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff:x=theta testscan.015 gnuplot:x=theta log($f[0]/$f[1])  8950.5  1  101
+edgescan2                        scan linear_scan motor_scan "" "" 3 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff edgescan.028 gnuplot log($f[0]/$f[1])  8950  10  11
+xafs_scan                        scan xafs_scan_class xafs_scan "" "" 4 0 0  2  I0 I 0x0 0 preset_time "0 timer1" xafs xafsscan.015 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
+test2                            scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff testscan.out gnuplot log($f[0]/$f[1])  8950.5  1  101
+myscan                           scan linear_scan motor_scan "" "" 3 1 1  hslit_center 1  I0 0x0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  -10  1  21
+test1                            scan linear_scan motor_scan "" "" 2 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff testscan.out gnuplot "log( $f[0] / $f[1] )"  8970  1  101
+xafs2                            scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0 preset_time "0 timer1" xafs junk.011 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
+count1                           scan linear_scan motor_scan "" "" 1 1 1  energy 2  timer1 I 0x0 0 preset_count "100000 I0" sff junk.out gnuplot $f[1]  8965  1  51
+timescan                         scan linear_scan motor_scan "" "" 1 1 1  time 1  time 0x0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  2  10001
+mylist                           scan list_scan file_list_scan "" "" 1 1 1  theta 2  I0 I 0x0 0 preset_time "1 timer1" sff mylist.out gnuplot $f[0] mylist.dat
+2thetascan                       scan linear_scan 2theta_scan "" "" 1 1 2  theta 2theta 1  I0 0x0 0 preset_time "1 timer1" sff 2thetascan.out gnuplot $f[0]  10  1  21
+testfast                         scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I 0x0 0 preset_time "0 timer1" sff junk.out gnuplot $f[0]/$f[1]  8950  1  101
+timescan2                        scan linear_scan motor_scan "" "" 1 1 1  time 1  time 0x0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  0  10  10001
+cuedge3                          scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1 0x0 0.1 preset_time "1 timer1" sff cuedge3.009 gnuplot log($f[0]/$f[1])  8950  1  101
+cuedge_a                         scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0.1 preset_time "0 timer1" xafs cuedge_a.out gnuxafs log($f[0]/$f[1]) 3 3 0 4  -200 -30 30 80  2.5 0.5 1  1 1 1
+cuedge_b                         scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1 0x0 0.1 preset_time "0 timer1" xafs cuedge_b.out gnuxafs log($f[0]/$f[1]) 3 3 0 4  -200 -30 30 80  2.5 0.5 1  1 1 1
+cuedge                           scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0.1 preset_time "0 timer1" xafs cuedge.011 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 0.5 1  1 1 1
+cuedge2                          scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1 0x0 0.1 preset_time "0 timer1" xafs cuedge.005 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 0.5 1  1 1 1
+testmca                          scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1 0x0 0 preset_time "1 timer1" sff testmca.005 gnuplot log($f[0]/$f[1])  8950.5  1  101
+testmca2                         scan linear_scan motor_scan "" "" 1 1 1  energy 3  I0 I mca1 0x0 0 preset_time "1 timer1" sff testmca.004 gnuplot log($f[0]/$f[1])  8950.5  1  101
+cuedge_foo                       scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0.1 preset_time "0 timer1" xafs cuedge.010 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 2.5 3.5  1 1 1
+cuedge2_foo                      scan xafs_scan_class xafs_scan "" "" 1 0 0  3  I0 I mca1 0x0 0.1 preset_time "0 timer1" xafs cuedge.011 gnuxafs log($f[0]/$f[1]) 3 3 0 4  -50 -30 30 50  2.5 2.5 3.5  1 1 1
+slow1k                           scan linear_scan input_scan "" "" 1 1 0  2  Io It 0x0 0 preset_time "1 timer2" sff junk.out gnuplot $f[0]  0  1  1000
+edgescan                         scan linear_scan motor_scan "" "" 3 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff edgescan.042 gnuplot log($f[0]/$f[1])  8950  1  101
+vslit_scan                       scan linear_scan slit_scan "" "" 1 1 1  vslit_center 3  vslit_center vslit_bottom vslit_top 0x0 0 preset_time "1 timer1" text junk.out none ""  -10  1  21
+vslit_scan2                      scan linear_scan pseudomotor_scan "" "" 1 1 1  vslit_center 3  vslit_center vslit_bottom vslit_top 0x0 0 preset_time "1 timer1" text junk.out none ""  -10  1  21
+z_avg_scan2                      scan linear_scan pseudomotor_scan "" "" 1 1 1  z_avg 4  z_avg z1 z2 z3 0x0 0 preset_time "1 timer1" text junk.out none $f[0]  0  1  21
+mylist_e0                        scan list_scan file_list_scan "" "" 1 1 1  e_minus_e0 2  I0 I 0x0 0 preset_time "1 timer1" sff mylist.out gnuplot $f[0] mylist_e0.dat
+mcs_scan                         scan quick_scan mcs_qscan "" "" 1 1 1  energy 2  Io It 0x0 0 preset_time "1 timer2" xafs mcs_scan.042 gnuplot $f[0]  8950  9050 21
+e0scan                           scan linear_scan motor_scan "" "" 1 1 1  e_minus_e0 2  I0 I 0x0 0 preset_time "1 timer1" sff e0scan.010 none $f[0]  -100  10  31
+fooscan                          scan linear_scan motor_scan "" "" 1 1 1  energy 1  I0 0x0 0 preset_time "1 timer1" sff:x=energy,theta fooscan.008 gnuplot:x=theta $f[0]  8000  1  101
+xafs_sff2                        scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0 preset_time "0 timer1" sff:x=energy,theta,omega;normalize xafs_sff2.018 gnuplot:x=energy;continuous;normalize $f[0] 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  0.5 0.75 1.5 3
+xafs_sff                         scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0 preset_time "0 timer1" sff:x=energy,theta,omega junk.041 gnuplot:x=energy;continuous log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
+xafs_sff_junk                    scan xafs_scan_class xafs_scan "" "" 1 0 0  2  I0 I 0x0 0 preset_time "0 timer1" sff junk.041 gnuplot log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
+mylist_var                       scan list_scan file_list_scan "" "" 1 1 1  theta 3  I0 I time 0x0 0 preset_time "0 timer1" sff mylist_var.out gnuplot $f[0] mylist_var.dat
+test3                            scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff:x=theta testscan.025 gnuplot:x=theta log($f[0]/$f[1])  8950.5  1  101
+test3a                           scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I 0x0 0 preset_time "1 timer1" sff:x=theta testscan.053 gnuplot:x=theta log($f[0]/$f[1])  8950.5  1  6

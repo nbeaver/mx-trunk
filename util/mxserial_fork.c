@@ -172,6 +172,16 @@ main( int argc, char *argv[] )
 	int c, error_flag;
 #endif
 
+	mx_status = mx_initialize_runtime();
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fprintf( stderr,
+		"%s: Unable to initialize the MX runtime environment.\n",
+			argv[0] );
+
+		exit(1);
+	}
+
 	original_pid = getpid();
 
 #if ! defined( OS_WIN32 )
@@ -276,14 +286,6 @@ main( int argc, char *argv[] )
 	}
 
 	mx_set_debug_level( debug_level );
-
-	/* Initialize the MX time keeping functions. */
-
-	mx_initialize_clock_ticks();
-
-	/* Initialize the subsecond sleep functions (if they need it). */
-
-	mx_msleep(1);
 
 	/* Fork into two separate processes.  The child process writes
 	 * to the server while the parent process reads from the server.

@@ -397,7 +397,7 @@ mx_convert_seconds_to_clock_ticks( double seconds )
 	clock_ticks_as_double = seconds * mx_clock_ticks_per_second();
 
 	clock_tick_value.high_order = (unsigned long)
-			( clock_ticks_as_double / mx_clock_tick_divisor );
+	    mx_divide_safely( clock_ticks_as_double, mx_clock_tick_divisor );
 
 	clock_tick_value.low_order = (clock_t) ( clock_ticks_as_double
 	    - mx_clock_tick_divisor * (double) clock_tick_value.high_order );

@@ -15,8 +15,8 @@
  */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <errno.h>
 #include <time.h>
@@ -45,6 +45,124 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+
+/*-------------------------------------------------------------------------*/
+
+/* mx_initialize_runtime() sets up the parts of the MX runtime environment
+ * that do not depend on the presence of an MX database.
+ */
+
+static int mx_runtime_is_initialized = FALSE;
+
+MX_EXPORT mx_status_type
+mx_initialize_runtime( void )
+{
+	/* Only run the initialization code once. */
+
+	if ( mx_runtime_is_initialized ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_runtime_is_initialized = TRUE;
+
+#if defined( OS_WIN32 )
+	{
+		/* HACK: If a Win32 compiled program is run from
+		 * a Cygwin bash shell under rxvt or a remote ssh
+		 * session, _isatty() returns 0 and Win32 thinks
+		 * that it needs to fully buffer stdout and stderr.
+		 * This interferes with timely updates of the 
+		 * output from the MX server in such cases.  The
+		 * following ugly hack works around this problem.
+		 * 
+		 * Read
+		 *    http://www.khngai.com/emacs/tty.php
+		 * or
+		 *    http://homepages.tesco.net/~J.deBoynePollard/
+		 *		FGA/capture-console-win32.html
+		 * or the thread starting at
+		 *    http://sources.redhat.com/ml/cygwin/2003-03/msg01325.html
+		 *
+		 * for more information about this problem.
+		 */
+
+		int is_a_tty;
+
+#if defined( __BORLANDC__ )
+		is_a_tty = isatty(fileno(stdin));
+#else
+		is_a_tty = _isatty(fileno(stdin));
+#endif
+
+		if ( is_a_tty == 0 ) {
+			setvbuf( stdout, (char *) NULL, _IONBF, 0 );
+			setvbuf( stderr, (char *) NULL, _IONBF, 0 );
+		}
+	}
+#endif   /* OS_WIN32 */
+
+#if defined( OS_WIN32 ) && defined( __BORLANDC__ )
+
+	/* Borland C++ enables floating point exceptions that are not
+	 * enabled by Microsoft's compiler.  Change the floating point
+	 * exception mask to mask off those exceptions.
+	 */
+
+	_control87( MCW_EM, MCW_EM );
+#endif
+
+	/* If we have a child process, like gnuplot, and the process
+	 * dies before we expected, then any attempt to write to the
+	 * pipe connecting us to the child will result in us being
+	 * sent a SIGPIPE signal.  The default response under Unix
+	 * to a SIGPIPE is to terminate the process.  This is
+	 * undesirable for many MX programs, since it does not give 
+	 * MX a chance to recover from the error.  Thus, we arrange to
+	 * ignore any SIGPIPE signals sent our way and depend on
+	 * 'errno' to let us know what really happened during a
+	 * failed write.
+	 */
+
+#if defined( SIGPIPE )
+	signal( SIGPIPE, SIG_IGN );
+#endif
+
+#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
+	mx_status = mx_signal_initialize();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
+	/* Set the MX debugging level to zero. */
+
+	mx_set_debug_level(0);
+
+	/* Initialize the subsecond sleep functions (if they need it). */
+
+	mx_msleep(1);
+
+	/* Initialize the MX time keeping functions. */
+
+	mx_initialize_clock_ticks();
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*-------------------------------------------------------------------------*/
+
+#if defined( OS_WIN32 ) && defined( __BORLANDC__ )
+
+	/* Borland C++ enables floating point exceptions that are not
+	 * enabled by Microsoft's compiler.  Supply a math exception
+	 * handler that ignores these errors.
+	 */
+
+int _matherr( struct _exception *e )
+{
+	return 1;	/* Claim that the error has been handled. */
+}
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -416,7 +534,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 #elif defined( OS_SOLARIS )
 		/* FIXME: This doesn't work for some reason. */
 
-		MX_DEBUG(-2,("%s: before getpwuid_r()", fname));
+		MX_DEBUG( 2,("%s: before getpwuid_r()", fname));
 
 		pw = getpwuid_r( uid, &pw_buffer, scratch_buffer,
 					sizeof(scratch_buffer) );
@@ -427,7 +545,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 			status = 0;
 		}
 
-		MX_DEBUG(-2,("%s: pw = , status = %d",
+		MX_DEBUG( 2,("%s: pw = , status = %d",
 			fname, status));
 #elif defined( OS_HPUX )
 		status = getpwuid_r( uid, &pw_buffer, scratch_buffer,
@@ -977,6 +1095,7 @@ mx_divide_safely( double numerator, double denominator )
 			} else {
 				result = -DBL_MAX;
 			}
+
 #if MX_WARN_ABOUT_DIVISION_BY_ZERO
 			mx_warning(
 				"*** mx_divide_safely(): Division by zero "

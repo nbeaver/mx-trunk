@@ -69,38 +69,11 @@ motor_init( char *motor_savefile_name,
 
 #endif /* ! defined( OS_WIN32 ) */
 
-		/* If we have a child process, like gnuplot, and the process
-		 * dies before we expected, then any attempt to write to the
-		 * pipe connecting us to the child will result in us being
-		 * sent a SIGPIPE signal.  The default response under Unix
-		 * to a SIGPIPE is to terminate the process.  This is 
-		 * undesirable for 'motor', since it does not give 'motor'
-		 * a chance to recover from the error.  Thus, we arrange to
-		 * ignore any SIGPIPE signals sent our way and depend on
-		 * 'errno' to let us know what really happened during a 
-		 * failed write.
-		 */
-
-#ifdef SIGPIPE
-		signal( SIGPIPE, SIG_IGN );
-#endif
-
-		/* Also trap ctrl-C interrupts. */
+		/* Trap ctrl-C interrupts. */
 
 		signal( SIGINT, SIG_IGN );
 
 	}
-
-#if defined ( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
-	mx_status = mx_signal_initialize();
-
-	if ( mx_status.code != MXE_SUCCESS ) {
-		fprintf( output,
-"motor_init: An attempt to initialize the MX signal handling system failed.\n");
-
-		exit(1);
-	}
-#endif
 
 	/* Set some global flags. */
 
@@ -118,14 +91,6 @@ motor_init( char *motor_savefile_name,
 	} else {
 		motor_autosave_on = FALSE;
 	}
-
-	/* Initialize the subsecond sleep functions (if they need it). */
-
-	mx_msleep(1);
-
-	/* Initialize the MX time keeping functions. */
-
-	mx_initialize_clock_ticks();
 
 	/* Initialize MX device drivers. */
 

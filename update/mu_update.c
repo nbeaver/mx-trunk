@@ -192,6 +192,16 @@ main( int argc, char *argv[] )
 	int c, error_flag;
 #endif
 
+	mx_status = mx_initialize_runtime();
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fprintf( stderr,
+		"%s: Unable to initialize the MX runtime environment.\n",
+			argv[0] );
+
+		exit(1);
+	}
+
 	mxupd_quiet_exit = FALSE;
 
 #if ! defined( OS_WIN32 )
@@ -340,10 +350,6 @@ main( int argc, char *argv[] )
 			exit(1);
 	}
 
-	/* Initialize the MX time keeping functions. */
-
-	mx_initialize_clock_ticks();
-
 	current_time = mx_current_clock_tick();
 
 	event_interval = mx_convert_seconds_to_clock_ticks(
@@ -366,10 +372,6 @@ main( int argc, char *argv[] )
 	}
 
 	next_event_time = current_time;
-
-	/* Initialize the subsecond sleep functions (if they need it). */
-
-	mx_msleep(1);
 
 	/* Does the file containing the list of record fields exist and
 	 * is it readable?

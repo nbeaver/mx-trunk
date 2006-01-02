@@ -42,7 +42,6 @@
 #include "mx_hrt.h"
 #include "mx_log.h"
 #include "mx_syslog.h"
-#include "mx_signal.h"
 
 #include "mx_process.h"
 #include "ms_mxserver.h"
@@ -145,16 +144,6 @@ mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 #endif
 #ifdef SIGSEGV
 	signal( SIGSEGV, mx_standard_signal_error_handler );
-#endif
-
-#ifdef SIGPIPE
-	/* We want to handle death of child events by detecting read
-	 * or write errors to the associated pipe rather than being
-	 * sent a SIGPIPE signal.  Thus, we ignore SIGPIPE and depend
-	 * on the value of 'errno' to tell us what happened.
-	 */
-
-	signal( SIGPIPE, SIG_IGN );
 #endif
 
 	return;
@@ -326,41 +315,19 @@ mxserver_main( int argc, char *argv[] )
 	int c, error_flag;
 #endif
 
-#if defined( OS_WIN32 )
-	{
-		/* HACK: If a Win32 compiled program is run from
-		 * a Cygwin bash shell under rxvt or a remote ssh
-		 * session, _isatty() returns 0 and Win32 thinks
-		 * that it needs to fully buffer stdout and stderr.
-		 * This interferes with timely updates of the 
-		 * output from the MX server in such cases.  The
-		 * following ugly hack works around this problem.
-		 * 
-		 * Read
-		 *    http://www.khngai.com/emacs/tty.php
-		 * or
-		 *    http://homepages.tesco.net/~J.deBoynePollard/
-		 *		FGA/capture-console-win32.html
-		 * or the thread starting at
-		 *    http://sources.redhat.com/ml/cygwin/2003-03/msg01325.html
-		 *
-		 * for more information about this problem.
-		 */
+	/* Initialize the parts of the MX runtime environment that do not
+	 * depend on the presence of an MX database.
+	 */
 
-		int is_a_tty;
+	mx_status = mx_initialize_runtime();
 
-#if defined( __BORLANDC__ )
-		is_a_tty = isatty(fileno(stdin));
-#else
-		is_a_tty = _isatty(fileno(stdin));
-#endif
+	if ( mx_status.code != MXE_SUCCESS ) {
+		fprintf( stderr,
+		"%s: Unable to initialize MX runtime environment.\n",
+			argv[0] );
 
-		if ( is_a_tty == 0 ) {
-			setvbuf( stdout, (char *) NULL, _IONBF, 0 );
-			setvbuf( stderr, (char *) NULL, _IONBF, 0 );
-		}
+		exit(1);
 	}
-#endif   /* OS_WIN32 */
 
 	mxsrv_setup_output_functions();
 
@@ -531,13 +498,6 @@ mxserver_main( int argc, char *argv[] )
 		mxsrv_install_signal_and_exit_handlers(display_stack_traceback);
 	}
 
-#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
-	mx_status = mx_signal_initialize();
-
-	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
-#endif
-
 	mx_set_user_interrupt_function( mxsrv_user_interrupt_function );
 
 	mx_set_debug_level( debug_level );
@@ -585,14 +545,6 @@ mxserver_main( int argc, char *argv[] )
 	strlcpy( mxsrv_unix_server_socket_struct.u.unix_domain.pathname,
 			server_pathname, MXU_FILENAME_LENGTH );
 #endif
-
-	/* Initialize the subsecond sleep functions (if they need it). */
-
-	mx_msleep(1);
-
-	/* Initialize the MX time keeping functions. */
-
-	mx_initialize_clock_ticks();
 
 	/* Initialize the list of socket handlers. */
 

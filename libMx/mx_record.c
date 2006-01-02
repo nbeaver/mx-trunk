@@ -1582,40 +1582,14 @@ mx_setup_database( MX_RECORD **record_list, char *filename )
 		"The filename argument passed to this function is NULL." );
 	}
 
-	/* If we have a child process, like gnuplot, and the process
-	 * dies before we expected, then any attempt to write to the
-	 * pipe connecting us to the child will result in us being
-	 * sent a SIGPIPE signal.  The default response under Unix
-	 * to a SIGPIPE is to terminate the process.  This is
-	 * undesirable for many MX programs, since it does not give 
-	 * MX a chance to recover from the error.  Thus, we arrange to
-	 * ignore any SIGPIPE signals sent our way and depend on
-	 * 'errno' to let us know what really happened during a
-	 * failed write.
+	/* Setup the parts of the MX runtime environment that do not
+	 * depend on the presence of an MX database.
 	 */
 
-#if defined( SIGPIPE )
-	signal( SIGPIPE, SIG_IGN );
-#endif
-
-#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
-	mx_status = mx_signal_initialize();
+	mx_status = mx_initialize_runtime();
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-#endif
-
-	/* Set the MX debugging level to zero. */
-
-	mx_set_debug_level(0);
-
-	/* Initialize the subsecond sleep functions (if they need it). */
-
-	mx_msleep(1);
-
-	/* Initialize the MX time keeping functions. */
-
-	mx_initialize_clock_ticks();
 
 	/* Initialize the MX device drivers. */
 

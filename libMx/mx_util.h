@@ -540,6 +540,16 @@ MX_API long mx_win32_error_message( long error_code,
 					char *buffer, size_t buffer_length );
 #endif
 
+/*------------------------------------------------------------------------*/
+
+/* Setup the parts of the MX runtime environment that do not depend
+ * on the presence of an MX database.
+ */
+
+MX_API mx_status_type mx_initialize_runtime( void ); 
+
+/*------------------------------------------------------------------------*/
+
 /* mx_copy_file() copies an old file to a new file where new_file_mode
  * specifies the permissions for the new file using the same bit patterns
  * for the mode as the Posix open() and creat() calls.
