@@ -62,33 +62,61 @@ mx_kbhit( void )
 	return kbhit();
 }
 
-static void
-mx_win32_key_echo( int echo_characters )
-{
-	static const char fname[] = "mx_win32_key_echo()";
+static HANDLE mx_win32_stdin_handle = INVALID_HANDLE_VALUE;
 
-	HANDLE stdin_handle;
-	DWORD console_mode, last_error_code;
-	BOOL console_status;
+static mx_status_type
+mx_win32_get_stdin_handle( void )
+{
+	static const char fname[] = "mx_win32_get_stdin_handle()";
+
+	DWORD last_error_code;
 	char message_buffer[100];
 
-	stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+#if 0
+	mx_win32_stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+#else
+	mx_win32_stdin_handle = CreateFile( "CONIN$",
+					GENERIC_READ | GENERIC_WRITE,
+					FILE_SHARE_READ | FILE_SHARE_WRITE,
+					NULL,
+					OPEN_EXISTING,
+					0,
+					NULL );
+#endif
 
-	if ( stdin_handle == INVALID_HANDLE_VALUE ) {
+	if ( mx_win32_stdin_handle == INVALID_HANDLE_VALUE ) {
 		last_error_code = GetLastError();
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
 
-		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"Unable to get handle for standard input.  "
 		"Win32 error code = %ld, error_message = '%s'",
 			last_error_code, message_buffer );
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
 
-		return;
+static void
+mx_win32_key_echo( int echo_characters )
+{
+	static const char fname[] = "mx_win32_key_echo()";
+
+	DWORD console_mode, last_error_code;
+	BOOL console_status;
+	char message_buffer[100];
+
+	if ( mx_win32_stdin_handle == INVALID_HANDLE_VALUE ) {
+		mx_status_type mx_status;
+
+		mx_status = mx_win32_get_stdin_handle();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return;
 	}
 
-	console_status = GetConsoleMode( stdin_handle, &console_mode );
+	console_status = GetConsoleMode( mx_win32_stdin_handle, &console_mode );
 
 	if ( console_status == 0 ) {
 		last_error_code = GetLastError();
@@ -110,7 +138,7 @@ mx_win32_key_echo( int echo_characters )
 		console_mode &= ~( (DWORD) ENABLE_ECHO_INPUT );
 	}
 
-	console_status = SetConsoleMode( stdin_handle, console_mode );
+	console_status = SetConsoleMode( mx_win32_stdin_handle, console_mode );
 
 	if ( console_status == 0 ) {
 		last_error_code = GetLastError();
