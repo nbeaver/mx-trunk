@@ -691,7 +691,7 @@ motor_exit_fn( int argc, char *argv[] )
 	/* Automatically save the scan database if we are supposed to. */
 
 	if ( motor_autosave_on && motor_has_unsaved_scans ) {
-		sprintf(buffer, "save scan %s", scan_savefile);
+		sprintf(buffer, "save scan \"%s\"", scan_savefile);
 
 		if ( motor_record_list != (MX_RECORD *) NULL ) {
 			status = cmd_execute_command_line( command_list_length, 
@@ -815,7 +815,7 @@ motor_exit_save_dialog( void )
 		break;
 	}
 
-	sprintf( buffer, "save scan %s", scan_savefile );
+	sprintf( buffer, "save scan \"%s\"", scan_savefile );
 
 	status = cmd_execute_command_line( command_list_length,
 						command_list, buffer );

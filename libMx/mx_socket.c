@@ -95,6 +95,19 @@ mx_gethostname( char *name, size_t maximum_length )
 
 	int status, saved_errno;
 
+#if defined( OS_WIN32 )
+	if ( mx_sockets_are_initialized == FALSE ) {
+		mx_status_type mx_status;
+
+		mx_status = mx_socket_initialize();
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_sockets_are_initialized = TRUE;
+	}
+#endif
+
 	status = gethostname( name, maximum_length );
 
 	if ( status != 0 ) {

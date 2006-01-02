@@ -25,6 +25,7 @@
 
 #if defined(OS_WIN32)
 
+#include <windows.h>
 #include <conio.h>
 
 /*
@@ -59,6 +60,107 @@ MX_EXPORT int
 mx_kbhit( void )
 {
 	return kbhit();
+}
+
+static void
+mx_win32_key_echo( int echo_characters )
+{
+	static const char fname[] = "mx_win32_key_echo()";
+
+	HANDLE stdin_handle;
+	DWORD console_mode, last_error_code;
+	BOOL console_status;
+	char message_buffer[100];
+
+	stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+
+	if ( stdin_handle == INVALID_HANDLE_VALUE ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get handle for standard input.  "
+		"Win32 error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+
+		return;
+	}
+
+	console_status = GetConsoleMode( stdin_handle, &console_mode );
+
+	if ( console_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get the current console mode.  "
+		"Win32 error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+
+		return;
+	}
+
+	if ( echo_characters ) {
+		console_mode |= ENABLE_ECHO_INPUT;
+	} else {
+		console_mode &= ~( (DWORD) ENABLE_ECHO_INPUT );
+	}
+
+	console_status = SetConsoleMode( stdin_handle, console_mode );
+
+	if ( console_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to set the current console mode.  "
+		"Win32 error code = %ld, error_message = '%s'",
+			last_error_code, message_buffer );
+
+		return;
+	}
+}
+
+MX_EXPORT void
+mx_key_echo_off( void )
+{
+	mx_win32_key_echo( FALSE );
+}
+
+MX_EXPORT void
+mx_key_echo_on( void )
+{
+	mx_win32_key_echo( TRUE );
+}
+
+MX_EXPORT void
+mx_key_getline( char *buffer, size_t max_buffer_length )
+{
+	size_t length;
+
+	if ( ( buffer == NULL ) || ( max_buffer_length == 0 ) ) {
+		return;
+	}
+
+	fgets( buffer, max_buffer_length, stdin );
+
+	/* Delete any trailing newline. */
+
+	length = strlen( buffer );
+
+	if ( length > 0 ) {
+		if ( buffer[length-1] == '\n' ) {
+			buffer[length-1] = '\0';
+		}
+	}
+
+	return;
 }
 
 /************************** MSDOS **************************/

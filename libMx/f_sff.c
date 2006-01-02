@@ -96,15 +96,14 @@ mxdf_sff_open( MX_DATAFILE *datafile )
 			datafile->filename, strerror( saved_errno ) );
 	}
 
-#if 1
-	if ( setvbuf( sff_file_struct->file, (char *)NULL, _IOLBF, 0) != 0 ) {
+	if (setvbuf(sff_file_struct->file, (char *)NULL, _IOLBF, BUFSIZ) != 0)
+	{
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,
 		"Cannot set line buffering on datafile '%s'.  Reason = '%s'",
 			datafile->filename, strerror( saved_errno ) );
 	}
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

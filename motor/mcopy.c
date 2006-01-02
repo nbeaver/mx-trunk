@@ -144,7 +144,7 @@ motor_copy_fn( int argc, char *argv[] )
 	}
 
 	if ( motor_autosave_on ) {
-		sprintf(buffer, "save scan %s", scan_savefile);
+		sprintf(buffer, "save scan \"%s\"", scan_savefile);
 
 		cmd_execute_command_line( command_list_length,
 						command_list, buffer );

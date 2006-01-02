@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -733,7 +733,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	/* Set the connection to be line buffered. */
 
-	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, 0 );
+	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, BUFSIZ );
 
 	/* Tell plotgnu that we do not have any motor positions for it. */
 
@@ -836,7 +836,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	/* Set the connection to be line buffered. */
 
-	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, 0 );
+	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, BUFSIZ );
 
 	/* Tell plotgnu that we do not have any motor positions for it. */
 

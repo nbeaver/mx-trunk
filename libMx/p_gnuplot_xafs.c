@@ -124,7 +124,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 
 	/*** Set stream buffering to line buffered. ***/
 
-	setvbuf( gnuxafs_data->pipe, (char *)NULL, _IOLBF, 0);
+	setvbuf( gnuxafs_data->pipe, (char *)NULL, _IOLBF, BUFSIZ);
 
 	/* Set parameters for plotgnu. */
 

@@ -874,7 +874,7 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	/* Set the connection to be line buffered. */
 
-	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, 0 );
+	setvbuf( plotgnu_pipe, (char *)NULL, _IOLBF, BUFSIZ );
 
 	/* Tell plotgnu that we do not have any motor positions for it. */
 

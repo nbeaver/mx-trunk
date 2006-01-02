@@ -101,7 +101,7 @@ mxp_gnuplot_open( MX_PLOT *plot )
 
 	/*** Set stream buffering to line buffered. ***/
 
-	setvbuf( gnuplot_data->pipe, (char *)NULL, _IOLBF, 0);
+	setvbuf( gnuplot_data->pipe, (char *)NULL, _IOLBF, BUFSIZ);
 
 	/* Suppose this plot is to be used by a parent scan that has
 	 * multiple child scans such as an XAFS scan which has a separate
