@@ -183,7 +183,8 @@ main( int argc, char *argv[] )
 
 	if ( status.code != MXE_SUCCESS ) {
 		fprintf( stderr,
-		"%s: Unable to initialize the MX runtime environment.\n" );
+		"%s: Unable to initialize the MX runtime environment.\n",
+			argv[0] );
 
 		exit(1);
 	}
