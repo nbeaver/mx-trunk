@@ -38,9 +38,9 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = cygwin
+MX_ARCH = linux
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 
 #MX_INSTALL_DIR = $(HOME)/mxtest
 
@@ -50,7 +50,7 @@ MX_ARCH = cygwin
 
 #MX_INSTALL_DIR = c:/opt/mx
 
-MX_INSTALL_DIR = c:/opt/mx-1.1.1-handel-0.6-beta
+#MX_INSTALL_DIR = c:/opt/mx-1.1.1-handel-0.6-beta
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 

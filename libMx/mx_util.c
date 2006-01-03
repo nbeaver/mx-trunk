@@ -45,6 +45,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_signal.h"
 
 /*-------------------------------------------------------------------------*/
 
@@ -57,6 +58,8 @@ static int mx_runtime_is_initialized = FALSE;
 MX_EXPORT mx_status_type
 mx_initialize_runtime( void )
 {
+	mx_status_type mx_status;
+
 	/* Only run the initialization code once. */
 
 	if ( mx_runtime_is_initialized ) {
@@ -116,7 +119,7 @@ mx_initialize_runtime( void )
 	 * pipe connecting us to the child will result in us being
 	 * sent a SIGPIPE signal.  The default response under Unix
 	 * to a SIGPIPE is to terminate the process.  This is
-	 * undesirable for many MX programs, since it does not give 
+	 * undesirable for most MX programs, since it does not give 
 	 * MX a chance to recover from the error.  Thus, we arrange to
 	 * ignore any SIGPIPE signals sent our way and depend on
 	 * 'errno' to let us know what really happened during a
@@ -146,7 +149,11 @@ mx_initialize_runtime( void )
 
 	mx_initialize_clock_ticks();
 
-	return MX_SUCCESSFUL_RESULT;
+	/* We are done, so return to the caller. */
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	return mx_status;
 }
 
 /*-------------------------------------------------------------------------*/
