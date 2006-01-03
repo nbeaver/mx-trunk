@@ -276,8 +276,10 @@ mxi_u500_open( MX_RECORD *record )
 
 		not_initialized = WAPIAerCheckInitz((SHORT)(board_number - 1));
 
+#if U500_DEBUG
 		MX_DEBUG( 2,("%s: not_initialized = %d",
 				fname, not_initialized));
+#endif
 
 		if ( not_initialized == 0 ) {
 			/* Hardware initialization not needed */
@@ -401,12 +403,14 @@ mxi_u500_open( MX_RECORD *record )
 				record->name );
 		}
 
+#if U500_DEBUG
 		MX_DEBUG(-2,
 		("%s: U500 '%s', Qlib = %hd.%hd, Drv = %hd.%hd, WAPI = %hd.%hd",
 			fname, record->name,
 			u500->qlib_version[0], u500->qlib_version[1],
 			u500->drv_version[0], u500->drv_version[1],
 			u500->wapi_version[0], u500->wapi_version[1] ));
+#endif
 
 		/* Use absolute positioning, motor steps, and steps per sec */
 
@@ -668,7 +672,9 @@ mxi_u500_special_processing_setup( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
+#if U500_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record_field_array = record->record_field_array;
 

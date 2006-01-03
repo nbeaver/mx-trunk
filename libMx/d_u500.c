@@ -402,8 +402,10 @@ mxd_u500_open( MX_RECORD *record )
 		motor->speed = motor->raw_speed * motor->scale;
 	}
 
+#if U500_DEBUG
 	MX_DEBUG(-2,("%s: raw_speed = %g, speed = %g",
 		fname, motor->raw_speed, motor->speed));
+#endif
 
 	/* Get the default acceleration. */
 
@@ -420,8 +422,10 @@ mxd_u500_open( MX_RECORD *record )
 	motor->raw_acceleration_parameters[2] = 0;
 	motor->raw_acceleration_parameters[3] = 0;
 
+#if U500_DEBUG
 	MX_DEBUG(-2,("%s: accleration = %g steps/sec**2",
 		fname, motor->raw_acceleration_parameters[0]));
+#endif
 
 	/* Get the servo loop gains. */
 
@@ -466,6 +470,7 @@ mxd_u500_open( MX_RECORD *record )
 	 * but there does not seem to be a function to do this, so we don't.
 	 */
 
+#if U500_DEBUG
 	MX_DEBUG(-2,("%s: motor '%s' servo loop gains are:",
 			fname, record->name));
 
@@ -475,6 +480,7 @@ mxd_u500_open( MX_RECORD *record )
 			motor->derivative_gain,
 			motor->velocity_feedforward_gain,
 			motor->acceleration_feedforward_gain));
+#endif
 
 	return mx_status;
 }
