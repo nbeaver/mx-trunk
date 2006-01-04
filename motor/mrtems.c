@@ -44,11 +44,7 @@ Init( rtems_task_argument ignored )
 
 	rtems_bsdnet_initialize_network();
 
-	fprintf(stderr,"*** Network initialized ***\n");
-
 	rtems_bsdnet_initialize_tftp_filesystem();
-
-	fprintf(stderr,"*** TFTP filesystem initialized ***\n");
 
 	argv = (char **)
 		malloc( NUM_ARGUMENTS * sizeof(char *[MAX_ARGV_LENGTH+1]) );

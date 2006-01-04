@@ -277,7 +277,7 @@ mx_mutex_create( MX_MUTEX **mutex )
 {
 	static const char fname[] = "mx_mutex_create()";
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( mutex == (MX_MUTEX **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -313,7 +313,7 @@ mx_mutex_destroy( MX_MUTEX *mutex )
 	SEM_ID semaphore_id;
 	STATUS status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( mutex == (MX_MUTEX *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -456,7 +456,7 @@ mx_mutex_create( MX_MUTEX **mutex )
 	rtems_unsigned32 initial_state;
 	rtems_status_code rtems_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( mutex == (MX_MUTEX **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -547,7 +547,7 @@ mx_mutex_destroy( MX_MUTEX *mutex )
 	rtems_id *semaphore_id;
 	rtems_status_code rtems_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( mutex == (MX_MUTEX *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

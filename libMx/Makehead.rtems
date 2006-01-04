@@ -6,9 +6,9 @@
 #          for RTEMS.
 #
 
-#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
+RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/i386-rtems/pc486
 
-RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
+#RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/m68k-rtems/mvme162
 
 #RTEMS_MAKEFILE_PATH = /opt/rtems-4.6/powerpc-rtems/mvme2307
 
