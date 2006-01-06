@@ -1,3 +1,148 @@
+Version 1.1.1 (01/05/06):
+	(WARNING: My additions to the changelog are not yet complete!!!)
+
+	A new build target 'win32-mingw' has been added for building MX
+	with the MinGW compiler on Win32.  This target has been tested
+	using MinGW 4.1.1 and MSYS 1.0.10 on Microsoft Windows.
+
+	The source for the 'mxserial' program, which was previously 
+	distributed separately, has now been folded into the main MX 
+	source code distribution.  The source may now be found in the file
+	'mx/util/mxserial_fork.c'.  The name of the file reflects the fact
+	that it still only works on platforms that fully support the fork()
+	system call.  We expect to add a version for Win32 at some later
+	date, although the Cygwin version _may_ work now (untested).
+
+	MX has added a new device class called PTZ for Pan/Tilt/Zoom camera
+	controllers.  Note that these drivers only move the camera or change
+	its settings such as focus or zoom.  They do not read out the actual
+	picture image.  The following devices have had drivers added for
+	this release of MX:
+
+	    Hitachi KP-D20A/B cameras:
+		hitachi_kp_d20 - MX PTZ driver.  The hardware only allows
+				the zoom to be controlled.
+
+	    Panasonic KX-DP702 cameras:
+		panasonic_kx_dp702 - Interface driver for the controller.
+		panasonic_kx_dp702_ptz - PTZ driver for an individual motion.
+
+	    Sony VISCA cameras (tested with the EVI-D100):
+		sony_visca - Interface driver for the controller.
+		sony_visca_ptz - PTZ driver for an individual motion.
+
+	    MX network PTZ controllers:
+		network_ptz
+
+	    Software emulated PTZ controllers:
+		soft_ptz
+
+	    Motor driver:
+		ptz_motor - Controls the pan, tilt, zoom, or focus of
+				an MX-controlled PTZ as an MX motor.
+				This allows you to do things like step
+				scan the pan, etc.
+
+	For XIA Handel controlled MCAs, starting a run in a single detector
+	channel does not necessarily start the run in all channels.  For 
+	this reason, a new MX timer driver has been added for use only
+	with Handel:
+
+		xia_handel_timer - Uses xiaStartRun() to start the MCA
+				counting in all detector channels.
+
+	MX has added initial support for communicating with the Blu-Ice
+	and Distributed Control System from SSRL described at
+	http://smb.slac.stanford.edu/public/research/developments/blu-ice/
+	This initial version supports running MX as what Blu-Ice calls a
+	"GUI client", although there is nothing on the MX side that requires
+	the use of a GUI.  Additional support for acting as a Device Hardware
+	Server (DHS) will be added in a future release.
+	
+	The Blu-Ice related drivers added to this release include:
+
+	    Servers:
+	    	bluice_dcss_server - Manages the connection to a Blu-Ice
+				DCSS server.
+	    Devices:
+		bluice_ion_chamber - Reads out values from a Blu-Ice ion
+				chamber as an MX analog input device.
+		bluice_motor - Operates a Blu-Ice motor as an MX motor.
+		bluice_shutter - Operates a Blu-Ice shutter as an MX relay.
+		bluice_timer - Acts as an MX timer for Blu-Ice controlled
+				ion chambers.
+	    Variables:
+	    	bluice_command - Sends a raw Blu-Ice command to a remote
+				DCSS.
+		bluice_master - Used to request that the MX client either
+				become a Blu-Ice master or a Blu-Ice slave.
+		bluice_string - Reads the value of a Blu-Ice string.
+
+	FIXME =========== describe synchronization primitives here:
+		semaphore, signal, thread
+
+	Also, the following MX driver has been added:
+
+		interval_timer - An MX timer driver that uses the new
+				interval timer functionality.
+
+	The driver arrays for MX classes and superclasses have been split
+	off into a new file 'mx/libMx/mx_driver_class.c', while the driver
+	arrays for MX types have been left in 'mx/libMx/mx_driver.c'.  The
+	motivation for this change is to make it easier to link in only a
+	subset of the MX drivers on a platform with constrained memory such
+	as a VME crate.  Look at the files 'mx_driver_linux_mvme162.c',
+	'mx_driver_rtems.c' and 'mx_driver_vxworks.c' along with 
+	"Makehead.linux', 'Makehead.rtems', and 'Makehead.vxworks' for
+	examples of how to do this.
+
+	FIXME =========== You might want to describe this in more detail.
+
+	The old keyboard interface files key*.c have been folded together
+	into a new file 'mx/libMx/mx_key.c'.  In addition, the new functions
+	mx_key_echo_off(), mx_key_echo_on(), and mx_key_getline() have been
+	added to provide a way of entering passwords without echoing them
+	to the screen in a platform independent way.  Bear in mind that while
+	the key echo on/off functions will affect all output on _some_ MX
+	platforms, only mx_key_getline() is guaranteed to pay attention to
+	the echo on/off state on _all_ MX platforms.
+
+	A new file 'mx/libMx/mx_os_version.c' has been added to provide a
+	platform independent way of getting the operating system version
+	at run time.  This was done to allow programs to use one binary on
+	multiple versions of an operating system in cases where different
+	things have to be done on different versions.  It also provides a
+	way of displaying the operating system version to the user for
+	documentation purposes.
+
+	We have had a variety of problems with memory allocation functions
+	when using the Borland C++ compiler on Win32 including both memory
+	leaks and also things like programs hanging in malloc().  For this
+	reason, we have written our own Borland-specific replacements for
+	malloc(), free(), calloc() and realloc() which call directly to
+	the underlying Win32 Heap() functions.  The source for this may
+	be found in 'mx/libMx/mx_util_borland.c'.  Some new preprocessor
+	tests in 'mx/libMx/mx_util.h' are used so that calls to malloc, etc.
+	are redirected to the functions bc_malloc(), etc. instead when
+	compiled with Borland C++.  We have not yet had a chance to see 
+	if this makes the memory leak problem go away, but it definitely
+	makes the hanging in malloc() problem go away.
+
+	The 'mx/libMx/os_rtems*.h' header files have been revised to work
+	better with RTEMS 4.6.5.  There are still some outstanding issues,
+	so we have more work to do on this.
+
+	The 'sunos4' and 'linux-kylix' build targets have now been declared
+	obsolete since the original vendors no longer support them and the
+	software no longer works on recent systems.  The files used by these
+	targets have been moved to the 'mx/misc' directory and will be
+	removed in a future release.
+
+	A couple of functions in the file 'mx/libMx/mx_util.c' have been
+	split off into a new file 'mx/libMx/mx_util_cfaqs.c' to reflect
+	the fact that they are covered by a different license since they
+	were derived from the book 'C Programming FAQs'.
+
 Version 1.1.0 (07/13/05):
 	The most important change for this release of MX is to the MX
 	network communication protocol.  Previous releases of MX sent

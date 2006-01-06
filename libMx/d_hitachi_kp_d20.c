@@ -2,7 +2,6 @@
  * Name:    d_hitachi_kp_d20.c
  *
  * Purpose: MX Pan/Tilt/Zoom driver for Hitachi KP-D20A/B cameras.
- *          VISCA protocol for communication.
  *
  * Author:  William Lavender
  *
