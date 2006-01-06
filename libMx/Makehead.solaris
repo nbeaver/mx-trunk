@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Solaris 2.
+#          for Solaris.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -54,8 +54,6 @@ EPICS_LIBRARIES = -lca -lCom
 # Generally, you should not have to modify anything after this point.
 #
 
-#
-# Sun Sparcstation 10 with CC (Sparc Compiler 4.0) under Solaris 2.5
 #
 #    See the file mx/libMx/mx_interval_timer.c for the explanation of
 #    the -D_POSIX_PER_PROCESS_TIMER_SOURCE, which _must_ be present for

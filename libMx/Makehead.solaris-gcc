@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Solaris 2.6 using GCC 2.8.1.
+#          for Solaris using GCC.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -65,8 +65,6 @@ GCCFLAGS = -Wall -Werror \
 -Wnested-externs \
 -Winline
 
-#
-# Sun UltraSparc with GCC 3.2.1 under Solaris 8
 #
 #    See the file mx/libMx/mx_interval_timer.c for the explanation of
 #    the -D_POSIX_PER_PROCESS_TIMER_SOURCE, which _must_ be present for

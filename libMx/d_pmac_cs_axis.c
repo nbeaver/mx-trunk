@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ MX_MOTOR_FUNCTION_LIST mxd_pmac_cs_axis_motor_function_list = {
 	NULL,
 	mxd_pmac_cs_axis_move_absolute,
 	mxd_pmac_cs_axis_get_position,
-	NULL,
+	mxd_pmac_cs_axis_set_position,
 	mxd_pmac_cs_axis_soft_abort,
 	mxd_pmac_cs_axis_immediate_abort,
 	NULL,

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,6 +50,7 @@ MX_API mx_status_type mxd_pmac_cs_axis_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pmac_cs_axis_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_get_position( MX_MOTOR *motor );
+MX_API mx_status_type mxd_pmac_cs_axis_set_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_get_parameter( MX_MOTOR *motor );

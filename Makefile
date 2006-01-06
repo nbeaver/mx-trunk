@@ -13,8 +13,8 @@
 #   macosx        - Compile for PPC Macintosh under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
 #   rtems         - Compile for i386 under RTEMS 4.6.5
-#   solaris       - Compile for Sun Sparc under Solaris 2.6
-#   solaris-gcc   - Compile for Sun Sparc under Solaris 8 using GCC
+#   solaris       - Compile for Sun Sparc under Solaris 10
+#   solaris-gcc   - Compile for Sun Sparc under Solaris 8 or 10 using GCC
 #   vms           - Compile for OpenVMS 7.3.1
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
@@ -49,8 +49,6 @@ MX_INSTALL_DIR = /opt/mx
 #MX_INSTALL_DIR = c:/docume~1/lavender/mxtest_cygwin
 
 #MX_INSTALL_DIR = c:/opt/mx
-
-#MX_INSTALL_DIR = c:/opt/mx-1.1.1-handel-0.6-beta
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH) MX_INSTALL_DIR=$(MX_INSTALL_DIR)
 
