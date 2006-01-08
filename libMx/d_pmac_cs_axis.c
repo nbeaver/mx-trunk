@@ -340,8 +340,8 @@ mxd_pmac_cs_axis_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s=%s", axis->position_variable,
-					axis->destination_variable);
+	snprintf( command, sizeof(command), "%s=%s",
+		axis->position_variable, axis->destination_variable);
 
 	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
 					NULL, 0, PMAC_CS_AXIS_DEBUG );
@@ -390,7 +390,7 @@ mxd_pmac_cs_axis_move_absolute( MX_MOTOR *motor )
 
 	/* Now start the motion program. */
 
-	sprintf( command, "B%dR", axis->move_program_number );
+	snprintf( command, sizeof(command), "B%dR", axis->move_program_number );
 
 	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
 						NULL, 0, PMAC_CS_AXIS_DEBUG );
@@ -401,7 +401,7 @@ mxd_pmac_cs_axis_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_cs_axis_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_cs_axis_get_position_steps()";
+	static const char fname[] = "mxd_pmac_cs_axis_get_position()";
 
 	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
 	MX_PMAC *pmac;
@@ -417,6 +417,30 @@ mxd_pmac_cs_axis_get_position( MX_MOTOR *motor )
 					MXFT_DOUBLE,
 					&(motor->raw_position.analog),
 					PMAC_CS_AXIS_DEBUG );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_cs_axis_set_position( MX_MOTOR *motor )
+{
+	static const char fname[] = "mxd_pmac_cs_axis_set_position()";
+
+	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
+	MX_PMAC *pmac;
+	char command[40];
+	mx_status_type mx_status;
+
+	mx_status = mxd_pmac_cs_axis_get_pointers( motor, &axis, &pmac, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	snprintf( command, sizeof(command), "%c=%g",
+			axis->axis_name, motor->raw_set_position.analog );
+
+	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
+					NULL, 0, PMAC_CS_AXIS_DEBUG );
+
 	return mx_status;
 }
 
@@ -445,8 +469,8 @@ mxd_pmac_cs_axis_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s=%s", axis->position_variable,
-					axis->destination_variable);
+	snprintf( command, sizeof(command), "%s=%s",
+		axis->position_variable, axis->destination_variable);
 
 	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
 					NULL, 0, PMAC_CS_AXIS_DEBUG );
@@ -476,8 +500,8 @@ mxd_pmac_cs_axis_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%s=%s", axis->position_variable,
-					axis->destination_variable);
+	snprintf( command, sizeof(command), "%s=%s",
+		axis->position_variable, axis->destination_variable);
 
 	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
 					NULL, 0, PMAC_CS_AXIS_DEBUG );
@@ -495,7 +519,8 @@ mxd_pmac_cs_axis_get_feedrate_time_unit( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 
 	/* Get the coordinate system time unit in milliseconds. */
 
-	sprintf( variable_name, "I%d55", 50 + axis->coordinate_system );
+	snprintf( variable_name, sizeof(variable_name),
+		"I%d55", 50 + axis->coordinate_system );
 
 	mx_status = mxi_pmac_get_variable( pmac, axis->card_number,
 						variable_name,
@@ -834,7 +859,7 @@ mxd_pmac_cs_axis_simultaneous_start( int num_motor_records,
 
 	/* Tell the PMAC to run the motion program. */
 
-	sprintf( command, "B%dR", move_program_number );
+	snprintf( command, sizeof(command), "B%dR", move_program_number );
 
 	mx_status = mxd_pmac_cs_axis_command( axis, pmac, command,
 						NULL, 0, PMAC_CS_AXIS_DEBUG );
@@ -1098,10 +1123,10 @@ mxd_pmac_cs_axis_command( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	}
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command_buffer, "@%x&%d%s",
+		snprintf( command_buffer, sizeof(command_buffer), "@%x&%d%s",
 			axis->card_number, axis->coordinate_system, command );
 	} else {
-		sprintf( command_buffer, "&%d%s",
+		snprintf( command_buffer, sizeof(command_buffer), "&%d%s",
 				axis->coordinate_system, command );
 	}
 
@@ -1144,10 +1169,10 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	}
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command_buffer, "@%x&%d%s",
+		snprintf( command_buffer, sizeof(command_buffer), "@%x&%d%s",
 		    axis->card_number, axis->coordinate_system, variable_name );
 	} else {
-		sprintf( command_buffer, "&%d%s",
+		snprintf( command_buffer, sizeof(command_buffer), "&%d%s",
 				axis->coordinate_system, variable_name );
 	}
 
@@ -1215,6 +1240,7 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	char *ptr;
 	long *long_ptr;
 	double *double_ptr;
+	size_t buffer_used, buffer_left;
 	mx_status_type mx_status;
 
 	if ( axis == (MX_PMAC_COORDINATE_SYSTEM_AXIS *) NULL ) {
@@ -1231,25 +1257,29 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	}
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command_buffer, "@%x&%d%s=",
+		snprintf( command_buffer, sizeof(command_buffer), "@%x&%d%s=",
 		    axis->card_number, axis->coordinate_system, variable_name );
 	} else {
-		sprintf( command_buffer, "&%d%s=",
+		snprintf( command_buffer, sizeof(command_buffer), "&%d%s=",
 				axis->coordinate_system, variable_name );
 	}
 
-	ptr = command_buffer + strlen( command_buffer );
+	buffer_used = strlen(command_buffer);
+
+	buffer_left = sizeof(command_buffer) - buffer_used;
+
+	ptr = command_buffer + buffer_used;
 
 	switch( variable_type ) {
 	case MXFT_LONG:
 		long_ptr = (long *) variable_ptr;
 
-		sprintf( ptr, "%ld", *long_ptr );
+		snprintf( ptr, buffer_left, "%ld", *long_ptr );
 		break;
 	case MXFT_DOUBLE:
 		double_ptr = (double *) variable_ptr;
 
-		sprintf( ptr, "%f", *double_ptr );
+		snprintf( ptr, buffer_left, "%f", *double_ptr );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
