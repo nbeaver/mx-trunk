@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1055,44 +1055,6 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 }
 
 /*-------------------------------------------------------------------------*/
-
-#elif 0
-
-MX_EXPORT mx_status_type
-mx_mutex_create( MX_MUTEX **mutex )
-{
-	static const char fname[] = "mx_mutex_create()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"MX mutex functions are not supported for this operating system." );
-}
-
-MX_EXPORT mx_status_type
-mx_mutex_destroy( MX_MUTEX *mutex )
-{
-	static const char fname[] = "mx_mutex_destroy()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"MX mutex functions are not supported for this operating system." );
-}
-
-MX_EXPORT long
-mx_mutex_lock( MX_MUTEX *mutex )
-{
-	return MXE_UNSUPPORTED;
-}
-
-MX_EXPORT long
-mx_mutex_unlock( MX_MUTEX *mutex )
-{
-	return MXE_UNSUPPORTED;
-}
-
-MX_EXPORT long
-mx_mutex_trylock( MX_MUTEX *mutex )
-{
-	return MXE_UNSUPPORTED;
-}
 
 #else
 

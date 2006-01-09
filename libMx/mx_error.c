@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -102,7 +102,7 @@ mx_error( long error_code, const char *location, char *format, ... )
 	long i;
 
 	va_start(args, format);
-	vsprintf(buffer1, format, args);
+	vsnprintf(buffer1, sizeof(buffer1), format, args);
 	va_end(args);
 
 	/* Fill in the status structure. */
@@ -112,11 +112,11 @@ mx_error( long error_code, const char *location, char *format, ... )
 
 #if USE_STACK_BASED_MX_ERROR
 
-	strncpy( status_struct.message, buffer1, MXU_ERROR_MESSAGE_LENGTH );
+	strlcpy( status_struct.message, buffer1, MXU_ERROR_MESSAGE_LENGTH );
 
 #else /* not USE_STACK_BASED_MX_ERROR */
 
-	strncpy( mx_error_message_buffer, buffer1, MXU_ERROR_MESSAGE_LENGTH );
+	strlcpy( mx_error_message_buffer, buffer1, MXU_ERROR_MESSAGE_LENGTH );
 
 	status_struct.message = &mx_error_message_buffer[0];
 
@@ -129,12 +129,12 @@ mx_error( long error_code, const char *location, char *format, ... )
 		i = error_code - 1000;
 
 		if ( i >= 0 && i < num_error_messages ) {
-			sprintf( buffer2,
+			snprintf( buffer2, sizeof(buffer2),
 				"%s in %s:\n-> %s",
 				error_message_list[i].error_message_text,
 				location, buffer1 );
 		} else {
-			sprintf( buffer2,
+			snprintf( buffer2, sizeof(buffer2),
 		"Unrecognized error code %ld occurred in '%s':\n-> %s",
 				error_code, location, buffer1 );
 		}
@@ -157,7 +157,7 @@ mx_error_quiet( long error_code, const char *location, char *format, ... )
 	char buffer1[2500];
 
 	va_start(args, format);
-	vsprintf(buffer1, format, args);
+	vsnprintf(buffer1, sizeof(buffer1), format, args);
 	va_end(args);
 
 	/* Fill in the status structure. */
@@ -167,11 +167,11 @@ mx_error_quiet( long error_code, const char *location, char *format, ... )
 
 #if USE_STACK_BASED_MX_ERROR
 
-	strncpy( status_struct.message, buffer1, MXU_ERROR_MESSAGE_LENGTH );
+	strlcpy( status_struct.message, buffer1, MXU_ERROR_MESSAGE_LENGTH );
 
 #else /* not USE_STACK_BASED_MX_ERROR */
 
-	strncpy( mx_error_message_buffer, buffer1, MXU_ERROR_MESSAGE_LENGTH );
+	strlcpy( mx_error_message_buffer, buffer1, MXU_ERROR_MESSAGE_LENGTH );
 
 	status_struct.message = &mx_error_message_buffer[0];
 
@@ -200,7 +200,7 @@ mx_strerror( long error_code, char *buffer, size_t max_buffer_length )
 		strlcpy( ptr, error_message_list[i].error_message_text,
 					max_buffer_length );
 	} else {
-		sprintf( ptr, "MXE_(%ld)", error_code );
+		snprintf( ptr, max_buffer_length, "MXE_(%ld)", error_code );
 	}
 	return ptr;
 }
@@ -233,7 +233,7 @@ mx_successful_result( void )
 
 #if USE_STACK_BASED_MX_ERROR
 
-	strcpy( status.message, "" );
+	strlcpy( status.message, "", MXU_ERROR_MESSAGE_LENGTH );
 
 #else /* not USE_STACK_BASED_MX_ERROR */
 

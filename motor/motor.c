@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -875,11 +875,6 @@ motor_help_fn( int argc, char *argv[] )
 		}
 	}
 }
-
-/* FIXME: The following test with MAXPATHLEN should go away if
- *        we change MXU_FILENAME_LENGTH to be defined in terms of
- *        MAXPATHLEN.
- */
 
 int
 motor_expand_pathname( char *filename, int max_filename_length )

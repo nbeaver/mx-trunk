@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1534,23 +1534,12 @@ mxi_xia_xerxes_read_spectrum( MX_MCA *mca,
 				xia_dxp_mca->xerxes_baseline_array,
 				array_ptr );
 #else
-
-	MX_DEBUG(-2,("%s: xia_dxp_mca->detector_channel = %d",
-		fname, xia_dxp_mca->detector_channel));
-	MX_DEBUG(-2,("%s: xia_dxp_mca->parameter_array = %p",
-		fname, xia_dxp_mca->parameter_array));
-	MX_DEBUG(-2,("%s: xia_dxp_mca->baseline_array = %p",
-		fname, xia_dxp_mca->baseline_array));
-	MX_DEBUG(-2,("%s: array_ptr = %p", fname, array_ptr));
-
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
 				xia_dxp_mca->parameter_array,
 				xia_dxp_mca->baseline_array,
 				array_ptr );
 
-	MX_DEBUG(-2,("%s: dxp_readout_detector_run() returned %d",
-		fname, xia_status));
 #endif
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
