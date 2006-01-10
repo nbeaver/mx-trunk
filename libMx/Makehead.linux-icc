@@ -14,36 +14,36 @@ INCLUDES	= $(MX_INCLUDES)
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lpthread -lm
+LIBRARIES	= -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
-#LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS)
-#LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(SIS3100_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
-#LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
-#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(NI488_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(NI488_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(SIS3100_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(SIS3100_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(SIS3100_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lm
+#LIBRARIES	= $(XIA_HANDEL_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS) $(EPICS_LIB_DIRS) \
-#					$(XIA_HANDEL_LIB_DIRS)
+#				$(XIA_HANDEL_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) $(EPICS_LIBRARIES) \
-#					$(XIA_HANDEL_LIBRARIES) -lpthread -lm
+#				$(XIA_HANDEL_LIBRARIES) -lpthread -lrt -lm
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -126,7 +126,7 @@ EPICS_LIBRARIES = -lca -lCom
 #
 # icc specific flags
 #
-ICCFLAGS = -Wall -Werror -wd111,171,193,279,593,810,869,981,1418
+ICCFLAGS = -Wall -Werror -wd111,171,193,279,593,810,869,981,1418,1419
 
 #
 CC		= icc
@@ -164,6 +164,10 @@ MOTOR_OBJS        = $(MOTOR_SRCS:.c=.$(OBJ))
 SERVER_OBJS       = $(SERVER_SRCS:.c=.$(OBJ))
 UPDATE_OBJS       = $(UPDATE_SRCS:.c=.$(OBJ))
 MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 
 #
 #---------------------------------------------------
