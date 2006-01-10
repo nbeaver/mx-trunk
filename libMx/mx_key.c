@@ -589,8 +589,7 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 
 /* Do we use new-style (termios) or old-style (termio) terminal controls? */
 
-#if defined(OS_IRIX) || defined(OS_HPUX) || defined(OS_SUNOS4) \
-				|| defined(OS_AIX)
+#if defined(OS_HPUX) || defined(OS_SUNOS4) || defined(OS_AIX)
 #   define USE_TERMIOS    0
 #else
 #   define USE_TERMIOS    1

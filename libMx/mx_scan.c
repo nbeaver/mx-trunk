@@ -1804,7 +1804,9 @@ mx_handle_abnormal_scan_termination( MX_LIST_HEAD *list_head,
 				MX_SCAN *scan,
 				mx_status_type mx_status )
 {
-	(void) mx_scan_restore_speeds( scan );
+	if ( scan->record->mx_class == MXS_QUICK_SCAN ) {
+		(void) mx_scan_restore_speeds( scan );
+	}
 
 	(void) mx_deconfigure_measurement_type( &(scan->measurement) );
 
