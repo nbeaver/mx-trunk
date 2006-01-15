@@ -60,7 +60,6 @@ build: depend_files
 	( cd motor ; $(MAKECMD) )
 	( cd server ; $(MAKECMD) )
 	( cd update ; $(MAKECMD) )
-	( cd update_old ; $(MAKECMD) )
 	( cd util ; $(MAKECMD) )
 
 clean: depend_files
@@ -69,7 +68,6 @@ clean: depend_files
 	( cd motor ; $(MAKECMD) mx_clean )
 	( cd server ; $(MAKECMD) mx_clean )
 	( cd update ; $(MAKECMD) mx_clean )
-	( cd update_old ; $(MAKECMD) mx_clean )
 	( cd util ; $(MAKECMD) mx_clean )
 
 distclean: depend_files
@@ -78,7 +76,6 @@ distclean: depend_files
 	( cd motor ; $(MAKECMD) mx_distclean )
 	( cd server ; $(MAKECMD) mx_distclean )
 	( cd update ; $(MAKECMD) mx_distclean )
-	( cd update_old ; $(MAKECMD) mx_distclean )
 	( cd util ; $(MAKECMD) mx_distclean )
 
 depend: depend_files
@@ -86,7 +83,6 @@ depend: depend_files
 	( cd motor ; $(MAKECMD) mx_depend )
 	( cd server ; $(MAKECMD) mx_depend )
 	( cd update ; $(MAKECMD) mx_depend )
-	( cd update_old ; $(MAKECMD) mx_depend )
 	( cd util ; $(MAKECMD) mx_depend )
 
 install: depend_files
@@ -94,15 +90,13 @@ install: depend_files
 	( cd motor ; $(MAKECMD) mx_install )
 	( cd server ; $(MAKECMD) mx_install )
 	( cd update ; $(MAKECMD) mx_install )
-###	( cd update_old ; $(MAKECMD) mx_install )
 	( cd util ; $(MAKECMD) mx_install )
 
 #------------------------------------------------------------------------------
 
 MD = Makefile.depend
 
-depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) \
-					update_old/$(MD) util/$(MD)
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) util/$(MD)
 
 libMx/$(MD):
 	touch libMx/$(MD)
@@ -115,9 +109,6 @@ server/$(MD):
 
 update/$(MD):
 	touch update/$(MD)
-
-update_old/$(MD):
-	touch update_old/$(MD)
 
 util/$(MD):
 	touch util/$(MD)
