@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_ascii.h"
 #include "mx_rs232.h"
 #include "mx_ptz.h"
@@ -115,7 +115,7 @@ mxd_hitachi_kp_d20_raw_send_cmd( MX_HITACHI_KP_D20 *hitachi_kp_d20,
 
 	MX_RECORD *rs232_record;
 	unsigned long i, checksum_data_length, wait_ms, max_attempts;
-	mx_uint16_type checksum, xor_8bit_checksum;
+	uint16_t checksum, xor_8bit_checksum;
 	unsigned char low_nibble, high_nibble;
 	unsigned char low_nibble_ascii, high_nibble_ascii;
 	unsigned char *checksum_address;

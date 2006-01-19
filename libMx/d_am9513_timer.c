@@ -13,7 +13,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@
 #include "mxconfig.h"
 #include "mx_constants.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_timer.h"
@@ -263,7 +263,7 @@ mxd_am9513_timer_open( MX_RECORD *record )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	mx_uint16_type counter_mode_register;
+	uint16_t counter_mode_register;
 	long num_counters, high_order_counter;
 	int n;
 	mx_status_type mx_status;
@@ -415,7 +415,7 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	long num_counters;
-	mx_uint8_type am9513_status;
+	uint8_t am9513_status;
 	int mask;
 	mx_status_type mx_status;
 
@@ -466,13 +466,13 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	mx_uint16_type counter_mode_register;
+	uint16_t counter_mode_register;
 	long num_counters;
 	double seconds;
 	double clock_ticks_double;
 	double ulong_max_double;
 	unsigned long clock_ticks_ulong;
-	mx_uint16_type ticks_to_count_for;
+	uint16_t ticks_to_count_for;
 	int n, frequency_scaler_ratio;
 	mx_status_type mx_status;
 
@@ -537,29 +537,29 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 	if ( clock_ticks_ulong < 65536L ) {
 		frequency_scaler_ratio = 0x0b00;	/* source = F1 */
 
-		ticks_to_count_for = (mx_uint16_type) clock_ticks_ulong;
+		ticks_to_count_for = (uint16_t) clock_ticks_ulong;
 	} else
 	if ( clock_ticks_ulong < 1048576L ) {
 		frequency_scaler_ratio = 0x0c00;	/* source = F2 */
 
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 16L );
 	} else
 	if ( clock_ticks_ulong < 16777216L ) {
 		frequency_scaler_ratio = 0x0d00;	/* source = F3 */
 
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 256L );
 	} else
 	if ( clock_ticks_ulong < 268435456L ) {
 		frequency_scaler_ratio = 0x0e00;	/* source = F4 */
 
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 4096L );
 	} else {
 		frequency_scaler_ratio = 0x0f00;	/* source = F5 */
 
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 65536L );
 	}
 
@@ -627,7 +627,7 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	mx_uint16_type counter_mode_register;
+	uint16_t counter_mode_register;
 	long num_counters;
 	int i, n;
 	double multiplier, result;

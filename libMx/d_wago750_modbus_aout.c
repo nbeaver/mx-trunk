@@ -12,7 +12,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,8 +28,8 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_modbus.h"
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
@@ -147,8 +147,8 @@ mxd_wago750_modbus_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	MX_MODBUS_AOUTPUT *modbus_aoutput;
 	long raw_value;
 	int function_code, num_bits, num_registers;
-	mx_uint8_type mx_uint8_array[4];
-	mx_uint16_type mx_uint16_array[2];
+	uint8_t mx_uint8_array[4];
+	uint16_t mx_uint16_array[2];
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */

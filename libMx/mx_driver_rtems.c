@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mxconfig.h"
 #include "mx_osdef.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 
 #include "mx_driver.h"
 #include "mx_interval_timer.h"

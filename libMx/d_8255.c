@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -413,7 +413,7 @@ mxd_8255_in_open( MX_RECORD *record )
 
 	MX_8255_IN *i8255_in;
 	MX_8255 *i8255;
-	mx_uint8_type port_d_value;
+	uint8_t port_d_value;
 	mx_status_type status;
 
 	status = mxd_8255_in_get_pointers( record, &i8255_in, &i8255, fname );
@@ -471,7 +471,7 @@ mxd_8255_in_read( MX_DIGITAL_INPUT *dinput )
 
 	MX_8255_IN *i8255_in;
 	MX_8255 *i8255;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type status;
 
 	status = mxd_8255_in_get_pointers( dinput->record,
@@ -743,7 +743,7 @@ mxd_8255_out_open( MX_RECORD *record )
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
-	mx_uint8_type port_d_value, mask;
+	uint8_t port_d_value, mask;
 	mx_status_type status;
 
 	status = mxd_8255_out_get_pointers( record, &i8255_out, &i8255, fname );
@@ -802,7 +802,7 @@ mxd_8255_out_read( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type status;
 
 	status = mxd_8255_out_get_pointers( doutput->record,
@@ -828,7 +828,7 @@ mxd_8255_out_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_8255_OUT *i8255_out;
 	MX_8255 *i8255;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type status;
 
 	status = mxd_8255_out_get_pointers( doutput->record,
@@ -837,7 +837,7 @@ mxd_8255_out_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	value = (mx_uint8_type) ( doutput->value & 0xff );
+	value = (uint8_t) ( doutput->value & 0xff );
 
 	status = mxi_8255_write_port( i8255, i8255_out->port_number, value );
 

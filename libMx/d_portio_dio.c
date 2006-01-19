@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_portio.h"
 #include "mx_digital_input.h"
@@ -260,10 +260,10 @@ mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 	const char fname[] = "mxd_portio_din_read()";
 
 	MX_PORTIO_DINPUT *portio_dinput;
-	mx_uint8_type d8_value;
-	mx_uint16_type d16_value;
+	uint8_t d8_value;
+	uint16_t d16_value;
 #if 0
-	mx_uint32_type d32_value;
+	uint32_t d32_value;
 #endif
 	mx_status_type mx_status;
 
@@ -420,10 +420,10 @@ mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	const char fname[] = "mxd_portio_dout_write()";
 
 	MX_PORTIO_DOUTPUT *portio_doutput;
-	mx_uint8_type d8_value;
-	mx_uint16_type d16_value;
+	uint8_t d8_value;
+	uint16_t d16_value;
 #if 0
-	mx_uint32_type d32_value;
+	uint32_t d32_value;
 #endif
 	mx_status_type mx_status;
 
@@ -435,20 +435,20 @@ mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( portio_doutput->data_size ) {
 	case 8:
-		d8_value = (mx_uint8_type) ( doutput->value & 0xff );
+		d8_value = (uint8_t) ( doutput->value & 0xff );
 
 		mx_portio_outp8( portio_doutput->portio_record,
 				portio_doutput->address, d8_value );
 		break;
 	case 16:
-		d16_value = (mx_uint16_type) ( doutput->value & 0xffff );
+		d16_value = (uint16_t) ( doutput->value & 0xffff );
 
 		mx_portio_outp16( portio_doutput->portio_record,
 				portio_doutput->address, d16_value );
 		break;
 #if 0
 	case 32:
-		d32_value = (mx_uint32_type) ( doutput->value & 0xffffffff );
+		d32_value = (uint32_t) ( doutput->value & 0xffffffff );
 
 		mx_portio_outp32( portio_doutput->portio_record,
 				portio_doutput->address, d32_value );

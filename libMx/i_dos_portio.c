@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 
 #include "i_dos_portio.h"
@@ -113,30 +113,30 @@ mxi_dos_portio_dummy_function( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_uint8_type
+MX_EXPORT uint8_t
 mxi_dos_portio_inp8( MX_RECORD *record, unsigned long port_number )
 {
 #ifdef OS_DJGPP
-	return ( mx_uint8_type ) inportb( (unsigned short) port_number );
+	return ( uint8_t ) inportb( (unsigned short) port_number );
 #else
-	return ( mx_uint8_type ) inp( (unsigned short) port_number );
+	return ( uint8_t ) inp( (unsigned short) port_number );
 #endif
 }
 
-MX_EXPORT mx_uint16_type
+MX_EXPORT uint16_t
 mxi_dos_portio_inp16( MX_RECORD *record, unsigned long port_number )
 {
 #ifdef OS_DJGPP
-	return ( mx_uint16_type) inportw( (unsigned short) port_number );
+	return ( uint16_t) inportw( (unsigned short) port_number );
 #else
-	return ( mx_uint16_type ) inpw( (unsigned short) port_number );
+	return ( uint16_t ) inpw( (unsigned short) port_number );
 #endif
 }
 
 MX_EXPORT void
 mxi_dos_portio_outp8( MX_RECORD *record,
 			unsigned long port_number,
-			mx_uint8_type byte_value )
+			uint8_t byte_value )
 {
 #ifdef OS_DJGPP
 	outportb( (unsigned short) port_number, (unsigned char) byte_value );
@@ -148,7 +148,7 @@ mxi_dos_portio_outp8( MX_RECORD *record,
 MX_EXPORT void
 mxi_dos_portio_outp16( MX_RECORD *record,
 			unsigned long port_number,
-			mx_uint16_type word_value )
+			uint16_t word_value )
 {
 #ifdef OS_DJGPP
 	outportw( (unsigned short) port_number, (unsigned short) word_value );

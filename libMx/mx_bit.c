@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,15 +17,15 @@
 #include <stdio.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_bit.h"
 
 MX_EXPORT unsigned long
 mx_native_byteorder( void )
 {
 	union {
-		mx_uint16_type word_value;
-		mx_uint8_type byte_value[2];
+		uint16_t word_value;
+		uint8_t byte_value[2];
 	} u;
 
 	u.word_value = 0x1234;
@@ -69,14 +69,14 @@ mx_native_data_format( void )
 	return format;
 }
 
-MX_EXPORT mx_uint16_type
-mx_16bit_byteswap( mx_uint16_type original_value )
+MX_EXPORT uint16_t
+mx_16bit_byteswap( uint16_t original_value )
 {
-	mx_uint8_type high_byte, low_byte;
-	mx_uint16_type new_value;
+	uint8_t high_byte, low_byte;
+	uint16_t new_value;
 
-	high_byte = (mx_uint8_type) ( ( original_value & 0xff00 ) >> 8 );
-	low_byte = (mx_uint8_type) ( original_value & 0xff );
+	high_byte = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
+	low_byte = (uint8_t) ( original_value & 0xff );
 
 	new_value = high_byte;
 	new_value |= ( low_byte << 8 );
@@ -84,16 +84,16 @@ mx_16bit_byteswap( mx_uint16_type original_value )
 	return new_value;
 }
 
-MX_EXPORT mx_uint32_type
-mx_32bit_byteswap( mx_uint32_type original_value )
+MX_EXPORT uint32_t
+mx_32bit_byteswap( uint32_t original_value )
 {
-	mx_uint8_type byte0, byte1, byte2, byte3;
-	mx_uint32_type new_value;
+	uint8_t byte0, byte1, byte2, byte3;
+	uint32_t new_value;
 
-	byte3 = (mx_uint8_type) ( ( original_value & 0xff000000 ) >> 24 );
-	byte2 = (mx_uint8_type) ( ( original_value & 0xff0000 ) >> 16 );
-	byte1 = (mx_uint8_type) ( ( original_value & 0xff00 ) >> 8 );
-	byte0 = (mx_uint8_type) ( original_value & 0xff );
+	byte3 = (uint8_t) ( ( original_value & 0xff000000 ) >> 24 );
+	byte2 = (uint8_t) ( ( original_value & 0xff0000 ) >> 16 );
+	byte1 = (uint8_t) ( ( original_value & 0xff00 ) >> 8 );
+	byte0 = (uint8_t) ( original_value & 0xff );
 
 	new_value = byte3;
 	new_value |= ( byte2 << 8 );
@@ -103,14 +103,14 @@ mx_32bit_byteswap( mx_uint32_type original_value )
 	return new_value;
 }
 
-MX_EXPORT mx_uint32_type
-mx_32bit_wordswap( mx_uint32_type original_value )
+MX_EXPORT uint32_t
+mx_32bit_wordswap( uint32_t original_value )
 {
-	mx_uint16_type high_word, low_word;
-	mx_uint32_type new_value;
+	uint16_t high_word, low_word;
+	uint32_t new_value;
 
-	high_word = (mx_uint16_type) ( ( original_value & 0xffff0000) >> 16 );
-	low_word = (mx_uint16_type) ( original_value & 0xffff );
+	high_word = (uint16_t) ( ( original_value & 0xffff0000 ) >> 16 );
+	low_word = (uint16_t) ( original_value & 0xffff );
 
 	new_value = high_word;
 	new_value |= ( low_word << 16 );

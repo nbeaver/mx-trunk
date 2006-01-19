@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 
 #include "i_lpt.h"
@@ -228,12 +228,12 @@ mxi_lpt_close( MX_RECORD *record )
 /* === Driver specific functions === */
 
 MX_EXPORT mx_status_type
-mxi_lpt_read_port( MX_LPT *lpt, int port_number, mx_uint8_type *value )
+mxi_lpt_read_port( MX_LPT *lpt, int port_number, uint8_t *value )
 {
 	static const char fname[] = "mxi_lpt_read_port()";
 
 	unsigned long port_address, invert_bits;
-	mx_uint8_type value_read;
+	uint8_t value_read;
 
 	if ( ( port_number < 0 ) || ( port_number > MX_LPT_CONTROL_PORT ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -288,7 +288,7 @@ mxi_lpt_read_port( MX_LPT *lpt, int port_number, mx_uint8_type *value )
 }
 
 MX_EXPORT mx_status_type
-mxi_lpt_write_port( MX_LPT *lpt, int port_number, mx_uint8_type value )
+mxi_lpt_write_port( MX_LPT *lpt, int port_number, uint8_t value )
 {
 	static const char fname[] = "mxi_lpt_write_port()";
 

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,9 +26,9 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 #include "mx_generic.h"
 #include "i_6821.h"
@@ -161,7 +161,7 @@ mxi_6821_open( MX_RECORD *record )
 
 	mx_portio_outp8( mc6821->portio_record,
 			mc6821->base_address + MX_MC6821_PORT_A_DATA,
-			(mx_uint8_type) mc6821->port_a_data_direction );
+			(uint8_t) mc6821->port_a_data_direction );
 
 	/* Select the port A output register. */
 
@@ -177,7 +177,7 @@ mxi_6821_open( MX_RECORD *record )
 
 	mx_portio_outp8( mc6821->portio_record,
 			mc6821->base_address + MX_MC6821_PORT_B_DATA,
-			(mx_uint8_type) mc6821->port_a_data_direction );
+			(uint8_t) mc6821->port_a_data_direction );
 
 	/* Select the port B output register. */
 

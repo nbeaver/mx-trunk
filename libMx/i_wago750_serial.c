@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_key.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
@@ -125,12 +125,12 @@ mxi_wago750_serial_get_pointers( MX_RS232 *rs232,
 
 static mx_status_type
 mxi_wago750_serial_read_status_byte( MX_WAGO750_SERIAL *wago750_serial,
-					mx_uint8_type *status_byte,
-					mx_uint8_type *data_byte_0 )
+					uint8_t *status_byte,
+					uint8_t *data_byte_0 )
 {
 	static const char fname[] = "mxi_wago750_serial_read_status_byte()";
 
-	mx_uint16_type register_value;
+	uint16_t register_value;
 	mx_status_type mx_status;
 
 	switch( wago750_serial->bus_record->mx_class ) {
@@ -165,12 +165,12 @@ mxi_wago750_serial_read_status_byte( MX_WAGO750_SERIAL *wago750_serial,
 
 static mx_status_type
 mxi_wago750_serial_write_control_byte( MX_WAGO750_SERIAL *wago750_serial,
-					mx_uint8_type control_byte,
-					mx_uint8_type data_byte_0 )
+					uint8_t control_byte,
+					uint8_t data_byte_0 )
 {
 	static const char fname[] = "mxi_wago750_serial_write_control_byte()";
 
-	mx_uint16_type register_value;
+	uint16_t register_value;
 	mx_status_type mx_status;
 
 	switch( wago750_serial->bus_record->mx_class ) {
@@ -205,11 +205,11 @@ mxi_wago750_serial_write_control_byte( MX_WAGO750_SERIAL *wago750_serial,
 
 static mx_status_type
 mxi_wago750_serial_read_control_byte( MX_WAGO750_SERIAL *wago750_serial,
-					mx_uint8_type *control_byte )
+					uint8_t *control_byte )
 {
 	static const char fname[] = "mxi_wago750_serial_read_control_byte()";
 
-	mx_uint16_type register_value;
+	uint16_t register_value;
 	mx_status_type mx_status;
 
 	switch( wago750_serial->bus_record->mx_class ) {
@@ -247,7 +247,7 @@ mxi_wago750_serial_read_control_byte( MX_WAGO750_SERIAL *wago750_serial,
 static mx_status_type
 mxi_wago750_serial_read_data_registers( MX_WAGO750_SERIAL *wago750_serial,
 					unsigned long num_registers_to_read,
-					mx_uint16_type *input_register_array )
+					uint16_t *input_register_array )
 {
 	static const char fname[] = "mxi_wago750_serial_read_data_registers()";
 
@@ -289,7 +289,7 @@ mxi_wago750_serial_read_data_registers( MX_WAGO750_SERIAL *wago750_serial,
 static mx_status_type
 mxi_wago750_serial_write_data_registers( MX_WAGO750_SERIAL *wago750_serial,
 					unsigned long num_registers_to_write,
-					mx_uint16_type *output_register_array )
+					uint16_t *output_register_array )
 {
 	static const char fname[] = "mxi_wago750_serial_write_data_registers()";
 
@@ -417,7 +417,7 @@ mxi_wago750_serial_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_WAGO750_SERIAL *wago750_serial;
-	mx_uint8_type status_byte, data_byte_0;
+	uint8_t status_byte, data_byte_0;
 	int initialization_acknowledge_bit;
 	unsigned long i, wait_ms, max_attempts;
 	double real_max_attempts, actual_timeout;
@@ -609,9 +609,9 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_wago750_serial_getchar()";
 
 	MX_WAGO750_SERIAL *wago750_serial;
-	mx_uint16_type input_register_array[3];
-	mx_uint8_type *input_buffer;
-	mx_uint8_type new_control_byte, control_byte, status_byte, data_byte_0;
+	uint16_t input_register_array[3];
+	uint8_t *input_buffer;
+	uint8_t new_control_byte, control_byte, status_byte, data_byte_0;
 	int byte_index, num_bytes_in_buffer;
 	int num_wago_bytes_to_read, real_num_wago_bytes_to_read;
 	int receive_request_bit, new_receive_acknowledge_bit;
@@ -875,9 +875,9 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 	static const char fname[] = "mxi_wago750_serial_write()";
 
 	MX_WAGO750_SERIAL *wago750_serial;
-	mx_uint16_type output_buffer[3];
-	mx_uint8_type status_byte, data_byte_0;
-	mx_uint8_type old_control_byte, new_control_byte;
+	uint16_t output_buffer[3];
+	uint8_t status_byte, data_byte_0;
+	uint8_t old_control_byte, new_control_byte;
 	char *buffer_ptr;
 	unsigned long i, j, num_full_blocks, num_registers_to_write;
 	int write_size, final_write_size, real_write_size;
@@ -1033,47 +1033,47 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 			switch( write_size ) {
 			case 5:
 				output_buffer[2] =
-					( (mx_uint16_type) buffer_ptr[4] ) << 8;
+					( (uint16_t) buffer_ptr[4] ) << 8;
 			case 4:
 				output_buffer[2] |=
-					( (mx_uint16_type) buffer_ptr[3] );
+					( (uint16_t) buffer_ptr[3] );
 			case 3:
 				output_buffer[1] =
-					( (mx_uint16_type) buffer_ptr[2] ) << 8;
+					( (uint16_t) buffer_ptr[2] ) << 8;
 			case 2:
 				output_buffer[1] |=
-					( (mx_uint16_type) buffer_ptr[1] );
+					( (uint16_t) buffer_ptr[1] );
 			case 1:
 				output_buffer[0] =
-					( (mx_uint16_type) buffer_ptr[0] ) << 8;
+					( (uint16_t) buffer_ptr[0] ) << 8;
 			}
 		} else {
 			switch( write_size ) {
 			case 5:
 				output_buffer[2] =
-					( (mx_uint16_type) buffer_ptr[4] );
+					( (uint16_t) buffer_ptr[4] );
 			case 4:
 				output_buffer[2] |=
-					( (mx_uint16_type) buffer_ptr[3] ) << 8;
+					( (uint16_t) buffer_ptr[3] ) << 8;
 			case 3:
 				output_buffer[1] =
-					( (mx_uint16_type) buffer_ptr[2] );
+					( (uint16_t) buffer_ptr[2] );
 			case 2:
 				output_buffer[1] |=
-					( (mx_uint16_type) buffer_ptr[1] ) << 8;
+					( (uint16_t) buffer_ptr[1] ) << 8;
 			case 1:
 				output_buffer[0] =
-					( (mx_uint16_type) buffer_ptr[0] );
+					( (uint16_t) buffer_ptr[0] );
 			}
 		}
 
 		/* Add the control byte to the output buffer. */
 
 		if ( wago750_serial->interleaved_data_addresses ) {
-			output_buffer[0] |= (mx_uint16_type) new_control_byte;
+			output_buffer[0] |= (uint16_t) new_control_byte;
 		} else {
 			output_buffer[0] |=
-				( (mx_uint16_type) new_control_byte ) << 8;
+				( (uint16_t) new_control_byte ) << 8;
 		}
 
 		/* Transmit the output buffer to the Wago serial interface. */
@@ -1149,7 +1149,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 
 		mx_status = mxi_wago750_serial_write_control_byte(
 					wago750_serial, new_control_byte,
-					(mx_uint8_type) buffer_ptr[0] );
+					(uint8_t) buffer_ptr[0] );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1247,7 +1247,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 		"mxi_wago750_serial_num_input_bytes_available()";
 
 	MX_WAGO750_SERIAL *wago750_serial;
-	mx_uint8_type status_byte, control_byte, data_byte_0;
+	uint8_t status_byte, control_byte, data_byte_0;
 	int receive_request, receive_acknowledge;
 	int byte_index, num_bytes_in_buffer, num_bytes_available;
 	mx_status_type mx_status;

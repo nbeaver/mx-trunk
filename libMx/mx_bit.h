@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000, 2003 Illinois Institute of Technology
+ * Copyright 2000, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,10 +29,10 @@ MX_API unsigned long mx_native_float_format( void );
 
 MX_API unsigned long mx_native_data_format( void );
 
-MX_API mx_uint16_type mx_16bit_byteswap( mx_uint16_type original_value );
+MX_API uint16_t mx_16bit_byteswap( uint16_t original_value );
 
-MX_API mx_uint32_type mx_32bit_byteswap( mx_uint32_type original_value );
+MX_API uint32_t mx_32bit_byteswap( uint32_t original_value );
 
-MX_API mx_uint32_type mx_32bit_wordswap( mx_uint32_type original_value );
+MX_API uint32_t mx_32bit_wordswap( uint32_t original_value );
 
 #endif /* __MX_BIT_H__ */

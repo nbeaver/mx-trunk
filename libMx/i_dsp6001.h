@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ MX_API mx_status_type mxi_dsp6001_controller_command( MX_CAMAC *crate,
 								int command );
 MX_API mx_status_type mxi_dsp6001_camac( MX_CAMAC *crate,
 		int slot, int subaddress, int function_code,
-		mx_sint32_type *data, int *Q, int *X );
+		int32_t *data, int *Q, int *X );
 
 /* Define the data structures used by the DSP 6001/6002 interface code. */
 

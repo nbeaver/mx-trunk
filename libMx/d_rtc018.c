@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_timer.h"
@@ -130,7 +130,7 @@ mxd_rtc018_timer_is_busy( MX_TIMER *timer )
 
 	MX_RTC018 *rtc018;
 	mx_status_type mx_status;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	MX_DEBUG(-2, ("mxd_rtc018_timer_is_busy() called."));
@@ -170,7 +170,7 @@ mxd_rtc018_timer_start( MX_TIMER *timer )
 	MX_RTC018 *rtc018;
 	double seconds;
 	double number_of_ticks;
-	mx_sint32_type preset_counter;
+	int32_t preset_counter;
 	int step_down_bit, camac_Q, camac_X;
 	mx_status_type mx_status;
 
@@ -245,7 +245,7 @@ mxd_rtc018_timer_start( MX_TIMER *timer )
 
 	number_of_ticks = seconds / rtc018->seconds_per_tick;
 
-	preset_counter = (mx_sint32_type) ( 0.5 + number_of_ticks );
+	preset_counter = (int32_t) ( 0.5 + number_of_ticks );
 
 	/* Write into the preset counter.  This generates a Preset Out
 	 * pulse that is fed by a Lemo cable into the Start input of 
@@ -283,7 +283,7 @@ mxd_rtc018_set_step_down_bit( MX_TIMER *timer, int step_down_bit )
 	static const char fname[] = "mxd_rtc018_set_step_down_bit()";
 
 	MX_RTC018 *rtc018;
-	mx_sint32_type divisor;
+	int32_t divisor;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -314,9 +314,9 @@ mxd_vme_din_read( MX_DIGITAL_INPUT *dinput )
 	const char fname[] = "mxd_vme_din_read()";
 
 	MX_VME_DINPUT *vme_dinput;
-	mx_uint8_type d8_value;
-	mx_uint16_type d16_value;
-	mx_uint32_type d32_value;
+	uint8_t d8_value;
+	uint16_t d16_value;
+	uint32_t d32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vme_din_get_pointers( dinput, &vme_dinput, fname );
@@ -524,9 +524,9 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	const char fname[] = "mxd_vme_dout_write()";
 
 	MX_VME_DOUTPUT *vme_doutput;
-	mx_uint8_type d8_value;
-	mx_uint16_type d16_value;
-	mx_uint32_type d32_value;
+	uint8_t d8_value;
+	uint16_t d16_value;
+	uint32_t d32_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vme_dout_get_pointers( doutput, &vme_doutput, fname );
@@ -536,7 +536,7 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	switch( vme_doutput->data_size ) {
 	case MXF_VME_D8:
-		d8_value = (mx_uint8_type) ( doutput->value & 0xff );
+		d8_value = (uint8_t) ( doutput->value & 0xff );
 
 		mx_status = mx_vme_out8( vme_doutput->vme_record,
 				vme_doutput->crate_number,
@@ -545,7 +545,7 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 				d8_value );
 		break;
 	case MXF_VME_D16:
-		d16_value = (mx_uint16_type) ( doutput->value & 0xffff );
+		d16_value = (uint16_t) ( doutput->value & 0xffff );
 
 		mx_status = mx_vme_out16( vme_doutput->vme_record,
 				vme_doutput->crate_number,
@@ -554,7 +554,7 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 				d16_value );
 		break;
 	case MXF_VME_D32:
-		d32_value = (mx_uint32_type) ( doutput->value & 0xffffffff );
+		d32_value = (uint32_t) ( doutput->value & 0xffffffff );
 
 		mx_status = mx_vme_out32( vme_doutput->vme_record,
 				vme_doutput->crate_number,

@@ -11,7 +11,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,6 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
 #include "mx_ascii.h"
 #include "mx_rs232.h"
 #include "i_cxtilt02.h"

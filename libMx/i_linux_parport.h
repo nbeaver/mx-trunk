@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,9 +47,9 @@ typedef struct {
 
 	unsigned long parport_flags;
 
-	mx_uint8_type data_port_value;
-	mx_uint8_type status_port_value;
-	mx_uint8_type control_port_value;
+	uint8_t data_port_value;
+	uint8_t status_port_value;
+	uint8_t control_port_value;
 } MX_LINUX_PARPORT;
 
 #define MXI_LINUX_PARPORT_STANDARD_FIELDS \
@@ -82,12 +82,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_linux_parport_rfield_def_ptr;
 MX_API mx_status_type mxi_linux_parport_read_port(
 				MX_LINUX_PARPORT *linux_parport,
 				int port_number,
-				mx_uint8_type *value );
+				uint8_t *value );
 
 MX_API mx_status_type mxi_linux_parport_write_port(
 				MX_LINUX_PARPORT *linux_parport,
 				int port_number,
-				mx_uint8_type value );
+				uint8_t value );
 
 MX_API void mxi_linux_parport_update_outputs( MX_LINUX_PARPORT *linux_parport );
 

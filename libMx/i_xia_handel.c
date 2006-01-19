@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_unistd.h"
 #include "mx_mca.h"
@@ -402,7 +402,7 @@ mxi_xia_handel_load_config( MX_XIA_HANDEL *xia_handel )
 					mca_record->record_type_struct;
 
 				xia_dxp_mca->old_preset_type
-					= (mx_uint32_type) MX_ULONG_MAX;
+					= (uint32_t) MX_ULONG_MAX;
 			}
 		}
 	}
@@ -919,7 +919,7 @@ mxi_xia_handel_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type *value_ptr,
+			uint32_t *value_ptr,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_read_parameter()";
@@ -974,7 +974,7 @@ mxi_xia_handel_read_parameter( MX_MCA *mca,
 			mxi_xia_handel_strerror( xia_status ) );
 	}
 
-	*value_ptr = (mx_uint32_type) short_value;
+	*value_ptr = (uint32_t) short_value;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: value = %lu", fname, *value_ptr));
@@ -986,7 +986,7 @@ mxi_xia_handel_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_write_parameter()";
@@ -1081,7 +1081,7 @@ mxi_xia_handel_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_write_parameter_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_write_parameter_to_all_channels()";
@@ -1382,7 +1382,7 @@ mxi_xia_handel_get_time( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
 {
 	char parameter_name[80];
 	double local_clock_ticks;
-	mx_uint32_type value;
+	uint32_t value;
 	mx_status_type mx_status;
 
 	local_clock_ticks = 0.0;
@@ -1436,11 +1436,11 @@ mxi_xia_handel_get_time( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
 
 static mx_status_type
 mxi_xia_handel_get_32bit_value( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
-				char *name, mx_uint32_type *value,
+				char *name, uint32_t *value,
 				int debug_flag )
 {
 	char parameter_name[80];
-	mx_uint32_type local_value;
+	uint32_t local_value;
 	int i;
 	mx_status_type mx_status;
 

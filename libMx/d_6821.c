@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_portio.h"
 #include "mx_digital_input.h"
@@ -477,7 +477,7 @@ mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_6821_OUT *mc6821_out;
 	MX_6821 *mc6821;
 	unsigned long address;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type mx_status;
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
@@ -504,7 +504,7 @@ mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput )
 		break;
 	}
 
-	value = (mx_uint8_type) ( doutput->value & 0xff );
+	value = (uint8_t) ( doutput->value & 0xff );
 
 	mx_portio_outp8( mc6821->portio_record, address, value );
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_camac.h"
 #include "mx_driver.h"
 
@@ -132,7 +132,7 @@ mx_camac( MX_RECORD *camac_record,
 	int slot,
 	int subaddress,
 	int function_code,
-	mx_sint32_type *data,
+	int32_t *data,
 	int *Q,
 	int *X )
 {
@@ -141,7 +141,7 @@ mx_camac( MX_RECORD *camac_record,
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr )( MX_CAMAC *,
-		int, int, int, mx_sint32_type *, int *, int * );
+		int, int, int, int32_t *, int *, int * );
 	mx_status_type status;
 
 	status = mx_camac_get_pointers( camac_record,
@@ -174,7 +174,7 @@ mx_camac_qwait( MX_RECORD *camac_record,
 	int slot,
 	int subaddress,
 	int function_code,
-	mx_sint32_type *data,
+	int32_t *data,
 	int *X )
 {
 	int Q;

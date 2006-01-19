@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ typedef struct {
 	int use_udelay;
 
 	MX_RECORD *amplifier_array[MX_APS_ADCMOD2_MAX_AMPLIFIERS];
-	mx_uint16_type input_value[MX_APS_ADCMOD2_MAX_INPUTS];
+	uint16_t input_value[MX_APS_ADCMOD2_MAX_INPUTS];
 } MX_APS_ADCMOD2;
 
 #define MXI_APS_ADCMOD2_STANDARD_FIELDS \
@@ -79,22 +79,22 @@ MX_API mx_status_type mxi_aps_adcmod2_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_aps_adcmod2_in16( MX_APS_ADCMOD2 *aps_adcmod2,
 						unsigned long offset,
-						mx_uint16_type *word_value );
+						uint16_t *word_value );
 
 MX_API mx_status_type mxi_aps_adcmod2_out16( MX_APS_ADCMOD2 *aps_adcmod2,
 						unsigned long offset,
-						mx_uint16_type word_value );
+						uint16_t word_value );
 
 MX_API mx_status_type mxi_aps_adcmod2_command( MX_APS_ADCMOD2 *aps_adcmod2,
 						int electrometer_number,
-						mx_uint16_type command,
-						mx_uint16_type value );
+						uint16_t command,
+						uint16_t value );
 
 MX_API mx_status_type mxi_aps_adcmod2_latch_values(MX_APS_ADCMOD2 *aps_adcmod2);
 
 MX_API mx_status_type mxi_aps_adcmod2_read_value( MX_APS_ADCMOD2 *aps_adcmod2,
 						unsigned long ainput_number,
-						mx_uint16_type *word_value );
+						uint16_t *word_value );
 
 extern MX_RECORD_FUNCTION_LIST mxi_aps_adcmod2_record_function_list;
 

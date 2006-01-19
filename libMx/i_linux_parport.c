@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 
 #include "i_linux_parport.h"
 
@@ -347,7 +347,7 @@ mxi_linux_parport_close( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_linux_parport_read_port( MX_LINUX_PARPORT *linux_parport,
-			int port_number, mx_uint8_type *value )
+			int port_number, uint8_t *value )
 {
 	static const char fname[] = "mxi_linux_parport_read_port()";
 
@@ -437,7 +437,7 @@ mxi_linux_parport_read_port( MX_LINUX_PARPORT *linux_parport,
 
 MX_EXPORT mx_status_type
 mxi_linux_parport_write_port( MX_LINUX_PARPORT *linux_parport,
-			int port_number, mx_uint8_type value )
+			int port_number, uint8_t value )
 {
 	static const char fname[] = "mxi_linux_parport_write_port()";
 

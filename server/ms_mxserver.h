@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,8 +51,8 @@ extern MXSRV_MX_SERVER_SOCKET mxsrv_unix_server_socket_struct;
 
 extern int mxserver_main( int argc, char *argv[] );
 
-extern mx_uint32_type mxsrv_get_returning_message_type(
-					mx_uint32_type message_type );
+extern uint32_t mxsrv_get_returning_message_type(
+					uint32_t message_type );
 
 extern mx_status_type mxsrv_initialize_record_processing(
 			MX_RECORD *record_list );
@@ -110,22 +110,22 @@ extern mx_status_type mxsrv_handle_get_field_type(
 			MX_SOCKET *mx_socket,
 			MX_RECORD_FIELD *record_field,
 			void *message,
-			mx_uint32_type message_length );
+			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_set_client_info(
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
-			mx_uint32_type message_length );
+			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_get_option(
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
-			mx_uint32_type message_length );
+			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_set_option(
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
-			mx_uint32_type message_length );
+			uint32_t message_length );
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
 

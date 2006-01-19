@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,8 +20,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_hrt.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 
 #include "i_aps_adcmod2.h"
@@ -223,7 +223,7 @@ mxi_aps_adcmod2_open( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_aps_adcmod2_in16( MX_APS_ADCMOD2 *aps_adcmod2, unsigned long offset,
-				mx_uint16_type *word_value )
+				uint16_t *word_value )
 {
 	static const char fname[] = "mxi_aps_adcmod2_in16()";
 
@@ -251,7 +251,7 @@ mxi_aps_adcmod2_in16( MX_APS_ADCMOD2 *aps_adcmod2, unsigned long offset,
 
 MX_EXPORT mx_status_type
 mxi_aps_adcmod2_out16( MX_APS_ADCMOD2 *aps_adcmod2, unsigned long offset,
-				mx_uint16_type word_value )
+				uint16_t word_value )
 {
 	static const char fname[] = "mxi_aps_adcmod2_out16()";
 
@@ -279,7 +279,7 @@ mxi_aps_adcmod2_out16( MX_APS_ADCMOD2 *aps_adcmod2, unsigned long offset,
 
 MX_EXPORT mx_status_type
 mxi_aps_adcmod2_command( MX_APS_ADCMOD2 *aps_adcmod2, int electrometer_number,
-				mx_uint16_type command, mx_uint16_type value )
+				uint16_t command, uint16_t value )
 {
 	static const char fname[] = "mxi_aps_adcmod2_command()";
 
@@ -341,7 +341,7 @@ mxi_aps_adcmod2_latch_values( MX_APS_ADCMOD2 *aps_adcmod2 )
 	static const char fname[] = "mxi_aps_adcmod2_latch_values()";
 
 	MX_CLOCK_TICK current_time;
-	mx_uint16_type block_read_array[2*MX_APS_ADCMOD2_MAX_INPUTS];
+	uint16_t block_read_array[2*MX_APS_ADCMOD2_MAX_INPUTS];
 	double sum_array[MX_APS_ADCMOD2_MAX_INPUTS];
 	int i, j, k;
 	unsigned long num_measurements, sleep_usec;
@@ -400,7 +400,7 @@ mxi_aps_adcmod2_latch_values( MX_APS_ADCMOD2 *aps_adcmod2 )
 						(double) num_measurements );
 
 		aps_adcmod2->input_value[j] =
-			(mx_uint16_type) mx_round( average_value );
+			(uint16_t) mx_round( average_value );
 	}
 
 	current_time = mx_current_clock_tick();
@@ -415,7 +415,7 @@ mxi_aps_adcmod2_latch_values( MX_APS_ADCMOD2 *aps_adcmod2 )
 MX_EXPORT mx_status_type
 mxi_aps_adcmod2_read_value( MX_APS_ADCMOD2 *aps_adcmod2,
 				unsigned long analog_input_number,
-				mx_uint16_type *word_value )
+				uint16_t *word_value )
 {
 	static const char fname[] = "mxi_aps_adcmod2_read_value()";
 

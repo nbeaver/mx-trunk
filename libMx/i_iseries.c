@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_socket.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
@@ -295,8 +295,8 @@ mxi_iseries_command( MX_ISERIES *iseries,
 	char response_buffer[100];
 	char *response_ptr, *ptr;
 	int put_or_write, current_precision;
-	mx_uint16_type current_reading_configuration, new_reading_configuration;
-	mx_uint16_type register_read_value, register_write_value;
+	uint16_t current_reading_configuration, new_reading_configuration;
+	uint16_t register_read_value, register_write_value;
 	double multiplier, divisor, double_read_value, double_write_value;
 	long mask, long_read_value, long_write_value;
 	int i;
@@ -537,8 +537,7 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					-32768.0 / multiplier, precision );
 			}
 
-			register_write_value =
-				(mx_uint16_type ) long_write_value;
+			register_write_value = (uint16_t) long_write_value;
 
 			/* Now write the value. */
 

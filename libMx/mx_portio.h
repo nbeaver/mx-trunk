@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,16 +18,16 @@
 #define __MX_PORTIO_H__
 
 typedef struct {
-	mx_uint8_type  ( *inp8 ) ( MX_RECORD *record,
+	uint8_t        ( *inp8 ) ( MX_RECORD *record,
 						unsigned long port_number );
-	mx_uint16_type ( *inp16 ) ( MX_RECORD *record,
+	uint16_t       ( *inp16 ) ( MX_RECORD *record,
 						unsigned long port_number );
 	void           ( *outp8 ) ( MX_RECORD *record,
 						unsigned long port_number,
-						mx_uint8_type byte_value );
+						uint8_t byte_value );
 	void           ( *outp16 ) ( MX_RECORD *record,
 						unsigned long port_number,
-						mx_uint16_type word_value );
+						uint16_t word_value );
 	mx_status_type ( *request_region ) ( MX_RECORD *record,
 						unsigned long port_number,
 						unsigned long length );
@@ -36,19 +36,19 @@ typedef struct {
 						unsigned long length );
 } MX_PORTIO_FUNCTION_LIST;
 
-MX_API mx_uint8_type  mx_portio_inp8( MX_RECORD *record,
+MX_API uint8_t        mx_portio_inp8( MX_RECORD *record,
 				unsigned long port_number );
 
-MX_API mx_uint16_type mx_portio_inp16( MX_RECORD *record,
+MX_API uint16_t       mx_portio_inp16( MX_RECORD *record,
 				unsigned long port_number );
 
 MX_API void           mx_portio_outp8( MX_RECORD *record,
 				unsigned long port_number,
-				mx_uint8_type value );
+				uint8_t value );
 
 MX_API void           mx_portio_outp16( MX_RECORD *record,
 				unsigned long port_number,
-				mx_uint16_type value );
+				uint16_t value );
 
 MX_API mx_status_type mx_portio_request_region( MX_RECORD *record,
 				unsigned long port_number,

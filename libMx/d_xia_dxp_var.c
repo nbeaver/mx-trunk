@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"
@@ -109,7 +109,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_DXP_INPUT *xia_dxp_input;
 
-	mx_uint32_type parameter_value;
+	uint32_t parameter_value;
 	unsigned long roi_number, mca_value;
 	double corrected_value;
 	int num_items;

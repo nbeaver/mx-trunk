@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_motor.h"
@@ -391,8 +391,8 @@ mxd_pcstep_write_parms_to_hardware( MX_RECORD *record )
 	MX_PCSTEP *pcstep;
 	double speed, base_speed;
 	double raw_acceleration_parameters[MX_MOTOR_NUM_ACCELERATION_PARAMS];
-	mx_uint32_type steps_and_lines_factor;
-	mx_uint16_type stop_mode_word;
+	uint32_t steps_and_lines_factor;
+	uint16_t stop_mode_word;
 	int n;
 	mx_status_type mx_status;
 
@@ -577,8 +577,8 @@ mxd_pcstep_motor_is_busy( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type long_axis_status;
-	mx_uint16_type axis_status;
+	uint32_t long_axis_status;
+	uint16_t axis_status;
 	int n;
 	mx_status_type mx_status;
 
@@ -597,7 +597,7 @@ mxd_pcstep_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	axis_status = (mx_uint16_type) long_axis_status;
+	axis_status = (uint16_t) long_axis_status;
 
 	motor->busy = FALSE;
 
@@ -630,9 +630,9 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type mode_control_data_word;
-	mx_uint32_type axis_hardware_status;
-	mx_uint32_type limit_switch_status;
+	uint32_t mode_control_data_word;
+	uint32_t axis_hardware_status;
+	uint32_t limit_switch_status;
 	int n;
 	mx_status_type mx_status;
 
@@ -790,7 +790,7 @@ mxd_pcstep_get_position( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type current_position;
+	uint32_t current_position;
 	int n;
 	mx_status_type mx_status;
 
@@ -917,7 +917,7 @@ mxd_pcstep_positive_limit_hit( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type limit_switch_status, limit_bit;
+	uint32_t limit_switch_status, limit_bit;
 	int n;
 	mx_status_type mx_status;
 
@@ -954,7 +954,7 @@ mxd_pcstep_negative_limit_hit( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type limit_switch_status, limit_bit;
+	uint32_t limit_switch_status, limit_bit;
 	int n;
 	mx_status_type mx_status;
 
@@ -991,7 +991,7 @@ mxd_pcstep_find_home_position( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type direction_bits;
+	uint32_t direction_bits;
 	unsigned long bit_mask, home_switch_settings, limit_switch_settings;
 	int n;
 	mx_status_type mx_status;
@@ -1065,7 +1065,7 @@ mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type mode_control_data_word, direction;
+	uint32_t mode_control_data_word, direction;
 	int n;
 	mx_status_type mx_status;
 
@@ -1127,7 +1127,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type returned_value;
+	uint32_t returned_value;
 	int n;
 	mx_status_type mx_status;
 
@@ -1196,7 +1196,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 
 	} else if ( motor->parameter_type == MXLV_MTR_HOME_SEARCH_SUCCEEDED ) {
 
-		mx_uint16_type axis_status;
+		uint16_t axis_status;
 
 		mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_READ_PER_AXIS_HW_STATUS(n),
@@ -1205,7 +1205,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		axis_status = (mx_uint16_type) returned_value;
+		axis_status = (uint16_t) returned_value;
 
 		if ( axis_status & 0x0002 ) {
 			motor->home_search_succeeded = TRUE;
@@ -1229,7 +1229,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
-	mx_uint32_type value_to_send;
+	uint32_t value_to_send;
 	int n;
 	mx_status_type mx_status;
 

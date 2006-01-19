@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_bit.h"
@@ -43,7 +43,7 @@ MX_RECORD_FUNCTION_LIST mxd_roentec_rcl_record_function_list = {
 	mxd_roentec_rcl_initialize_type,
 	mxd_roentec_rcl_create_record_structures,
 	mxd_roentec_rcl_finish_record_initialization,
-	NULL,
+	mxd_roentec_rcl_delete_record,
 	NULL,
 	NULL,
 	NULL,
@@ -158,12 +158,12 @@ mxd_roentec_rcl_get_energy_gain_and_offset( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 MX_EXPORT mx_status_type
 mxd_roentec_rcl_read_32bit_array( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 				size_t num_32bit_values,
-				mx_uint32_type *value_array,
+				uint32_t *value_array,
 				int transfer_flags )
 {
 	static const char fname[] = "mxd_roentec_rcl_read_32bit_array()";
 
-	mx_uint32_type original_value, new_value;
+	uint32_t original_value, new_value;
 	size_t i, num_bytes_to_read, bytes_read;
 	unsigned long byteorder;
 	int debug_flag;
@@ -177,7 +177,7 @@ mxd_roentec_rcl_read_32bit_array( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_ROENTEC_RCL_MCA pointer passed was NULL." );
 	}
-	if ( value_array == (mx_uint32_type *) NULL ) {
+	if ( value_array == (uint32_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The value_array pointer passed was NULL." );
 	}
@@ -343,10 +343,10 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 
 	mca = (MX_MCA *) record->record_class_struct;
 
-	if ( mca == (MX_MCA *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_MCA pointer for record '%s' is NULL.", record->name );
-	}
+	mx_status = mxd_roentec_rcl_get_pointers(mca, &roentec_rcl_mca, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mca->maximum_num_rois > MX_ROENTEC_RCL_MAX_SCAS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -373,6 +373,17 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 			mca->maximum_num_channels );
 	}
 
+#if ( MX_WORDSIZE != 32 )
+	roentec_rcl_mca->channel_32bit_array = ( uint32_t * )
+		malloc( mca->maximum_num_channels * sizeof( uint32_t ) );
+
+	if ( roentec_rcl_mca->channel_32bit_array == NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory allocating an %lu channel 32bit data array.",
+			mca->maximum_num_channels );
+	}
+#endif
+
 	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
 
 	roentec_rcl_mca = (MX_ROENTEC_RCL_MCA *) record->record_type_struct;
@@ -380,6 +391,46 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 	mx_status = mx_mca_finish_record_initialization( record );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_roentec_rcl_delete_record( MX_RECORD *record )
+{
+	MX_MCA *mca;
+	MX_ROENTEC_RCL_MCA *roentec_rcl_mca;
+
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	roentec_rcl_mca = (MX_ROENTEC_RCL_MCA *) record->record_type_struct;
+
+	if ( roentec_rcl_mca != NULL ) {
+
+#if ( MX_WORDSIZE != 32 )
+		mx_free( roentec_rcl_mca->channel_32bit_array );
+#endif
+
+		mx_free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+
+	mca = (MX_MCA *) record->record_class_struct;
+
+	if ( mca != NULL ) {
+
+		if ( mca->channel_array != NULL ) {
+			mx_free( mca->channel_array );
+
+			mca->channel_array = NULL;
+		}
+
+		mx_free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -651,11 +702,27 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	 * data is transferred.
 	 */
 
+#if ( MX_WORDSIZE == 32 )
 	mx_status = mxd_roentec_rcl_read_32bit_array( roentec_rcl_mca,
 				mca->current_num_channels,
-				mca->channel_array,
+				(uint32_t *) mca->channel_array,
 				MXD_ROENTEC_RCL_DEBUG_TIMING );
 
+#else /* MX_WORDSIZE is not 32 bits. */
+
+	mx_status = mxd_roentec_rcl_read_32bit_array( roentec_rcl_mca,
+				mca->current_num_channels,
+				roentec_rcl_mca->channel_32bit_array,
+				MXD_ROENTEC_RCL_DEBUG_TIMING );
+	{
+		int i;
+
+		for ( i = 0; i < MX_ROENTEC_RCL_MAX_BINS; i++ ) {
+			mca->channel_array[i] =
+		    (unsigned long) roentec_rcl_mca->channel_32bit_array[i];
+		}
+	}
+#endif
 	if ( mx_status.code == MXE_END_OF_DATA )
 		return MX_SUCCESSFUL_RESULT;
 
@@ -747,7 +814,7 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 	unsigned long i, ulong_value;
 	unsigned long starting_channel, ending_channel;
 	long summation_width;
-	mx_uint32_type roi_integral;
+	uint32_t roi_integral;
 	double raw_energy_gain, raw_energy_offset;
 	double low_ev, high_ev;
 	double raw_low_channel, raw_high_channel;

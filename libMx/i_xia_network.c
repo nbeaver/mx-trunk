@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_net.h"
 #include "mx_mca.h"
 #include "i_xia_network.h"
@@ -475,7 +475,7 @@ mxi_xia_network_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type *value_ptr,
+			uint32_t *value_ptr,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_parameter()";
@@ -516,10 +516,11 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	*value_ptr = (mx_uint32_type) parameter_value;
+	*value_ptr = (uint32_t) parameter_value;
 
 	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: value = %lu", fname, *value_ptr));
+		MX_DEBUG(-2,("%s: value = %lu",
+			fname, (unsigned long) *value_ptr));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -528,7 +529,7 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_write_parameter()";
@@ -583,7 +584,7 @@ mxi_xia_network_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] =

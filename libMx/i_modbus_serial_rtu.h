@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +26,8 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	unsigned long address;
 
-	mx_uint8_type send_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
-	mx_uint8_type receive_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
+	uint8_t send_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
+	uint8_t receive_buffer[MXU_MODBUS_SERIAL_ADU_LENGTH];
 } MX_MODBUS_SERIAL_RTU;
 
 extern MX_RECORD_FUNCTION_LIST mxi_modbus_serial_rtu_record_function_list;

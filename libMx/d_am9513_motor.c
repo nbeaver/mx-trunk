@@ -21,7 +21,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@
 #include "mxconfig.h"
 #include "mx_constants.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_motor.h"
@@ -383,11 +383,11 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *low_record, *high_record;
 	MX_AM9513 *low_am9513, *high_am9513;
-	mx_uint16_type counter_mode_register;
+	uint16_t counter_mode_register;
 	long num_counters;
 	int m, n, frequency_scaler_ratio;
 	unsigned long clock_ticks_ulong;
-	mx_uint16_type ticks_to_count_for;
+	uint16_t ticks_to_count_for;
 	double seconds_per_step, external_clock_ticks_per_step;
 	double ulong_max_double;
 	mx_status_type mx_status;
@@ -515,25 +515,25 @@ mxd_am9513_motor_open( MX_RECORD *record )
  * pull-up resistor at the other end. (CUS 990628)
 	if ( clock_ticks_ulong < 65536L ) {
 		frequency_scaler_ratio = 0x0b00;		F1 
-		ticks_to_count_for = (mx_uint16_type) clock_ticks_ulong;
+		ticks_to_count_for = (uint16_t) clock_ticks_ulong;
 	} else
 	if ( clock_ticks_ulong < 1048576L ) {
 		frequency_scaler_ratio = 0x0c00;		F2
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 16L );
 	} else
 	if ( clock_ticks_ulong < 16777216L ) {
 		frequency_scaler_ratio = 0x0d00;		F3
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 256L );
 	} else
 	if ( clock_ticks_ulong < 268435456L ) {
 		frequency_scaler_ratio = 0x0e00;		F4
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 4096L );
 	} else {
 		frequency_scaler_ratio = 0x0f00;		F5
-		ticks_to_count_for = (mx_uint16_type)
+		ticks_to_count_for = (uint16_t)
 					( clock_ticks_ulong / 65536L );
 	}
 */
@@ -547,26 +547,26 @@ mxd_am9513_motor_open( MX_RECORD *record )
 
 	if ( clock_ticks_ulong > 524288L ) {
 		frequency_scaler_ratio = 0x0f00;		/* F5 */
-	        ticks_to_count_for = (mx_uint16_type)
+	        ticks_to_count_for = (uint16_t)
 			( clock_ticks_ulong / 65536L );
 	} else 
 	if ( clock_ticks_ulong > 32768L ) {
 		frequency_scaler_ratio = 0x0e00;		/* F4 */
-	        ticks_to_count_for = (mx_uint16_type)
+	        ticks_to_count_for = (uint16_t)
 			( clock_ticks_ulong / 4096L );
 	} else 
 	if ( clock_ticks_ulong > 2048L ) {
 		frequency_scaler_ratio = 0x0d00;		/* F3 */
-	        ticks_to_count_for = (mx_uint16_type)
+	        ticks_to_count_for = (uint16_t)
 			( clock_ticks_ulong / 256L );
 	} else 
 	if ( clock_ticks_ulong > 128L ) {
 		frequency_scaler_ratio = 0x0c00;		/* F2 */
-	        ticks_to_count_for = (mx_uint16_type)
+	        ticks_to_count_for = (uint16_t)
 			( clock_ticks_ulong / 16L );
 	} else {
 		frequency_scaler_ratio = 0x0b00;		/* F1 */
-	        ticks_to_count_for = (mx_uint16_type) clock_ticks_ulong;
+	        ticks_to_count_for = (uint16_t) clock_ticks_ulong;
 	} 
 
 	MX_DEBUG( 2,
@@ -683,7 +683,7 @@ mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	long num_counters;
-	mx_uint8_type am9513_status;
+	uint8_t am9513_status;
 	int mask, busy;
 	mx_status_type mx_status;
 
@@ -761,7 +761,7 @@ static mx_status_type
 mxd_am9513_motor_move_single_step( MX_AM9513_MOTOR *am9513_motor,
 					MX_AM9513 *low_am9513, int m )
 {
-	mx_uint16_type saved_counter_mode_register, saved_load_register;
+	uint16_t saved_counter_mode_register, saved_load_register;
 
 	mx_status_type mx_status;
 
@@ -1061,7 +1061,7 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 	MX_AM9513 *high_am9513;
 	long num_counters;
 	int n;
-	mx_uint16_type hold_register, step_offset;
+	uint16_t hold_register, step_offset;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_motor_get_pointers( motor, &am9513_motor,

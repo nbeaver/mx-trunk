@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,10 +26,10 @@ typedef struct {
 	char house_code;
 	int device_code;
 
-	mx_uint16_type on_command;
-	mx_uint16_type off_command;
-	mx_uint16_type bright_command;
-	mx_uint16_type dim_command;
+	uint16_t on_command;
+	uint16_t off_command;
+	uint16_t bright_command;
+	uint16_t dim_command;
 } MX_CM17A_DOUTPUT;
 
 #define MXD_CM17A_DOUTPUT_STANDARD_FIELDS \

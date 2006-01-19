@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_API mx_status_type mxi_cm17a_reset( MX_CM17A *cm17a, int debug_flag );
 MX_API mx_status_type mxi_cm17a_standby( MX_CM17A *cm17a, int debug_flag );
 
 MX_API mx_status_type mxi_cm17a_command( MX_CM17A *cm17a,
-					mx_uint16_type command,
+					uint16_t command,
 					int debug_flag );
 
 extern MX_RECORD_FUNCTION_LIST mxi_cm17a_record_function_list;

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 #if HAVE_LABPC		/* Is the LabPC+ driver software installed? */
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 
 #include <stdlib.h>
@@ -370,7 +370,7 @@ mxd_labpc_dout_read( MX_DIGITAL_OUTPUT *dout )
 	MX_LABPC_DOUT *labpc_dout;
 	int status, saved_errno;
 	unsigned long value;
-	mx_uint8_type data;
+	uint8_t data;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
 
@@ -381,7 +381,7 @@ mxd_labpc_dout_read( MX_DIGITAL_OUTPUT *dout )
 			"MX_LABPC_DOUT pointer is NULL.");
 	}
 
-	status = read( labpc_dout->file_handle, &data, sizeof(mx_uint8_type) );
+	status = read( labpc_dout->file_handle, &data, sizeof(uint8_t) );
 
 	if ( status == -1 ) {
 		saved_errno = errno;
@@ -409,7 +409,7 @@ mxd_labpc_dout_write( MX_DIGITAL_OUTPUT *dout )
 
 	MX_LABPC_DOUT *labpc_dout;
 	int status, saved_errno;
-	mx_sint8_type data;
+	int8_t data;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
 
@@ -420,11 +420,11 @@ mxd_labpc_dout_write( MX_DIGITAL_OUTPUT *dout )
 			"MX_LABPC_DOUT pointer is NULL.");
 	}
 
-	data = (mx_sint8_type) dout->value;
+	data = (int8_t) dout->value;
 
 	data &= 0xff;		/* Mask off any high order bits. */
 
-	status = write( labpc_dout->file_handle, &data, sizeof(mx_sint8_type));
+	status = write( labpc_dout->file_handle, &data, sizeof(int8_t));
 
 	if ( status == -1 ) {
 		saved_errno = errno;

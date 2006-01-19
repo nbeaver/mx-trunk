@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_ptz.h"
 #include "i_panasonic_kx_dp702.h"
 #include "d_panasonic_kx_dp702.h"
@@ -340,10 +340,10 @@ mxd_panasonic_kx_dp702_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 				response[5], response[6], response[7] );
 		}
 
-		ptz->pan_position = (mx_sint16_type) ( response[3] + 
+		ptz->pan_position = (int16_t) ( response[3] + 
 			( (((unsigned long) response[2]) << 8) & 0xff00 ) );
 
-		ptz->tilt_position = (mx_sint16_type) ( response[5] + 
+		ptz->tilt_position = (int16_t) ( response[5] + 
 			( (((unsigned long) response[4]) << 8) & 0xff00 ) );
 
 		ptz->zoom_position = response[7] + 

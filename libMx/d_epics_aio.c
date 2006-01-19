@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,9 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_epics.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"

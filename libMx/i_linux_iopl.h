@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,19 +27,19 @@ MX_API mx_status_type mxi_linux_iopl_open( MX_RECORD *record );
 
 MX_API mx_status_type mxi_linux_iopl_close( MX_RECORD *record );
 
-MX_API mx_uint8_type mxi_linux_iopl_inp8( MX_RECORD *record,
+MX_API uint8_t mxi_linux_iopl_inp8( MX_RECORD *record,
 					unsigned long port_number );
 
-MX_API mx_uint16_type mxi_linux_iopl_inp16( MX_RECORD *record,
+MX_API uint16_t mxi_linux_iopl_inp16( MX_RECORD *record,
 					unsigned long port_number );
 
 MX_API void mxi_linux_iopl_outp8( MX_RECORD *record,
 					unsigned long port_number,
-					mx_uint8_type byte_value );
+					uint8_t byte_value );
 
 MX_API void mxi_linux_iopl_outp16( MX_RECORD *record,
 					unsigned long port_number,
-					mx_uint16_type word_value );
+					uint16_t word_value );
 
 MX_API mx_status_type mxi_linux_iopl_request_region( MX_RECORD *record,
 					unsigned long port_number,

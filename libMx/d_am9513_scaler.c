@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_scaler.h"
@@ -262,7 +262,7 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	mx_uint16_type counter_mode_register;
+	uint16_t counter_mode_register;
 	int i, m, n;
 	int same_chip, use_external;
 	long num_counters;
@@ -315,10 +315,10 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 	 *    ( output depends on configuration )
 	 */
 
-	counter_mode_register = (mx_uint16_type)
+	counter_mode_register = (uint16_t)
 				( ( am9513_scaler->gating_control ) << 13 );
 
-	counter_mode_register |= (mx_uint16_type)
+	counter_mode_register |= (uint16_t)
 				( ( am9513_scaler->count_source & 0xf ) << 8 );
 
 	counter_mode_register |= 0x0020;	/* Count repetitively */
@@ -575,7 +575,7 @@ mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	long num_counters;
-	mx_uint8_type am9513_status;
+	uint8_t am9513_status;
 	int mask;
 	mx_status_type mx_status;
 
@@ -628,7 +628,7 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 	MX_AM9513 *this_am9513;
 	long num_counters;
 	int i, n;
-	mx_uint16_type hold_register;
+	uint16_t hold_register;
 	unsigned long scaler_value;
 	mx_status_type mx_status;
 

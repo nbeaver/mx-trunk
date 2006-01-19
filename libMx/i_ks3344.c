@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,8 +24,8 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_rs232.h"
 #include "mx_camac.h"
 #include "mx_record.h"
@@ -298,7 +298,7 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_ks3344_getchar()";
 
 	MX_KS3344 *ks3344;
-	mx_sint32_type data, error_status_register, error_bits, temp;
+	int32_t data, error_status_register, error_bits, temp;
 	char error_message[120];
 	int camac_Q, camac_X;
 	long error_code, retries;
@@ -417,7 +417,8 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 
 			    sprintf( error_message,
 				"Port '%s' receive error 0x%lx on char '%c': ",
-				rs232->record->name, error_bits, *c );
+				rs232->record->name,
+				(unsigned long) error_bits, *c );
 
 			    error_code = MXE_INTERFACE_IO_ERROR;
 
@@ -457,7 +458,7 @@ mxi_ks3344_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_ks3344_putchar()";
 
 	MX_KS3344 *ks3344;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 #if MXI_KS3344_DEBUG
@@ -466,7 +467,7 @@ mxi_ks3344_putchar( MX_RS232 *rs232, char c )
 
 	ks3344 = (MX_KS3344*) (rs232->record->record_type_struct);
 
-	data = (mx_sint32_type) c;
+	data = (int32_t) c;
 
 	/* Mask to 8 bits just in case a char isn't 8 bits. */
 
@@ -583,7 +584,7 @@ mxi_ks3344_reset_channel( MX_RS232 *rs232 )
 	static const char fname[] = "mxi_ks3344_reset_channel()";
 
 	MX_KS3344 *ks3344;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	ks3344 = (MX_KS3344 *) (rs232->record->record_type_struct);
@@ -620,7 +621,7 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 
 	MX_RECORD *record;
 	MX_KS3344 *ks3344;
-	mx_sint32_type config_word_1, config_word_2;
+	int32_t config_word_1, config_word_2;
 	int camac_Q, camac_X;
 
 	MX_DEBUG(-2, ("mxi_ks3344_write_parms() invoked."));

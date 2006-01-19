@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,8 +86,8 @@ typedef struct {
 	size_t response_buffer_length;
 	size_t actual_response_length;
 
-	mx_uint8_type *request_pointer;
-	mx_uint8_type *response_pointer;
+	uint8_t *request_pointer;
+	uint8_t *response_pointer;
 } MX_MODBUS;
 
 #define MX_MODBUS_STANDARD_FIELDS \
@@ -114,13 +114,13 @@ MX_API mx_status_type mx_modbus_get_pointers( MX_RECORD *modbus_record,
 
 MX_API mx_status_type mx_modbus_compute_response_length(
 					MX_RECORD *modbus_record,
-					mx_uint8_type *receive_buffer,
+					uint8_t *receive_buffer,
 					size_t *response_length );
 					
 MX_API mx_status_type mx_modbus_command( MX_RECORD *modbus_record,
-					mx_uint8_type *request_buffer,
+					uint8_t *request_buffer,
 					size_t request_length,
-					mx_uint8_type *response_buffer,
+					uint8_t *response_buffer,
 					size_t response_buffer_length,
 					size_t *actual_response_length );
 
@@ -131,22 +131,22 @@ MX_API mx_status_type mx_modbus_command( MX_RECORD *modbus_record,
 MX_API mx_status_type mx_modbus_read_coils( MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_coils,
-					mx_uint8_type *coil_value_array );
+					uint8_t *coil_value_array );
 
 MX_API mx_status_type mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_inputs,
-					mx_uint8_type *input_value_array );
+					uint8_t *input_value_array );
 
 MX_API mx_status_type mx_modbus_read_holding_registers(MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_registers,
-					mx_uint16_type *register_value_array );
+					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_registers,
-					mx_uint16_type *register_value_array );
+					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 					unsigned int output_address,
@@ -154,44 +154,44 @@ MX_API mx_status_type mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 
 MX_API mx_status_type mx_modbus_write_single_register( MX_RECORD *modbus_record,
 					unsigned int register_address,
-					mx_uint16_type register_value );
+					uint16_t register_value );
 
 MX_API mx_status_type mx_modbus_read_exception_status( MX_RECORD *modbus_record,
-					mx_uint8_type *exception_status );
+					uint8_t *exception_status );
 
 MX_API mx_status_type mx_modbus_get_comm_event_counter(MX_RECORD *modbus_record,
-					mx_uint16_type *status_word,
-					mx_uint16_type *event_count );
+					uint16_t *status_word,
+					uint16_t *event_count );
 
 MX_API mx_status_type mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_coils,
-					mx_uint8_type *coil_value_bit_array );
+					uint8_t *coil_value_bit_array );
 
 MX_API mx_status_type mx_modbus_write_multiple_registers(
 					MX_RECORD *modbus_record,
 					unsigned int starting_address,
 					unsigned int num_registers,
-					mx_uint16_type *register_value_array );
+					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_mask_write_register( MX_RECORD *modbus_record,
 					unsigned int register_address,
-					mx_uint16_type and_mask,
-					mx_uint16_type or_mask );
+					uint16_t and_mask,
+					uint16_t or_mask );
 
 MX_API mx_status_type mx_modbus_read_write_multiple_registers(
 					MX_RECORD *modbus_record,
 					unsigned int read_starting_address,
 					unsigned int num_registers_to_read,
-					mx_uint16_type *read_register_array,
+					uint16_t *read_register_array,
 					unsigned int write_starting_address,
 					unsigned int num_registers_to_write,
-					mx_uint16_type *write_register_array );
+					uint16_t *write_register_array );
 
 MX_API mx_status_type mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 					unsigned int fifo_pointer_address,
 					unsigned int max_fifo_values,
-					mx_uint16_type *fifo_value_array,
+					uint16_t *fifo_value_array,
 					unsigned int *num_fifo_values_read );
 
 #endif /* __MX_MODBUS_H__ */

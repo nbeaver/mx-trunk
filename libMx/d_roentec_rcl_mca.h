@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,6 +30,10 @@ typedef struct {
 
 	char command[MXU_ROENTEC_RCL_MAX_COMMAND_LENGTH+1];
 	char response[MXU_ROENTEC_RCL_MAX_COMMAND_LENGTH+1];
+
+#if ( MX_WORDSIZE != 32 )
+	uint32_t *channel_32bit_array;
+#endif
 
 } MX_ROENTEC_RCL_MCA;
 
@@ -62,6 +66,7 @@ MX_API mx_status_type mxd_roentec_rcl_initialize_type( long type );
 MX_API mx_status_type mxd_roentec_rcl_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_roentec_rcl_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_open( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_roentec_rcl_special_processing_setup(
@@ -85,7 +90,7 @@ MX_API mx_status_type mxd_roentec_rcl_command(
 MX_API mx_status_type mxd_roentec_rcl_read_32bit_array(
 					MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 					size_t num_32bit_values,
-					mx_uint32_type *value_array,
+					uint32_t *value_array,
 					int transfer_flags );
 
 extern MX_RECORD_FUNCTION_LIST mxd_roentec_rcl_record_function_list;

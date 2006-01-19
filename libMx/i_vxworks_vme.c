@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,8 +27,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "i_vxworks_vme.h"
 
@@ -82,13 +82,13 @@ MX_RECORD_FIELD_DEFAULTS *mxi_vxworks_vme_rfield_def_ptr
                                      \
 	    switch( vme->data_size ) { \
 	    case MXF_VME_D8:  \
-		value = (unsigned long) *(mx_uint8_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint8_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D16: \
-		value = (unsigned long) *(mx_uint16_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint16_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D32: \
-		value = (unsigned long) *(mx_uint32_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint32_t *) vme->data_pointer; \
 		break; \
 	    } \
 	    MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx", \
@@ -105,13 +105,13 @@ MX_RECORD_FIELD_DEFAULTS *mxi_vxworks_vme_rfield_def_ptr
                                      \
 	    switch( vme->data_size ) { \
 	    case MXF_VME_D8:  \
-		value = (unsigned long) *(mx_uint8_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint8_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D16: \
-		value = (unsigned long) *(mx_uint16_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint16_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D32: \
-		value = (unsigned long) *(mx_uint32_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint32_t *) vme->data_pointer; \
 		break; \
 	    } \
 	MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx (%lu values)", \
@@ -487,9 +487,9 @@ mxi_vxworks_vme_multi_input( MX_VME *vme )
 	unsigned long i;
 	int address_space;
 	char *vme_local_address;
-	mx_uint8_type *uint8_ptr;
-	mx_uint16_type *uint16_ptr;
-	mx_uint32_type *uint32_ptr;
+	uint8_t *uint8_ptr;
+	uint16_t *uint16_ptr;
+	uint32_t *uint32_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_vxworks_vme_get_pointers( vme, &vxworks_vme, fname );
@@ -610,9 +610,9 @@ mxi_vxworks_vme_multi_output( MX_VME *vme )
 	unsigned long i;
 	int address_space;
 	char *vme_local_address;
-	mx_uint8_type *uint8_ptr;
-	mx_uint16_type *uint16_ptr;
-	mx_uint32_type *uint32_ptr;
+	uint8_t *uint8_ptr;
+	uint16_t *uint16_ptr;
+	uint32_t *uint32_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_vxworks_vme_get_pointers( vme, &vxworks_vme, fname );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -30,15 +30,11 @@
 /* Initialize the KS3063 driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_ks3063_in_record_function_list = {
-	mxd_ks3063_in_initialize_type,
+	NULL,
 	mxd_ks3063_in_create_record_structures,
 	mxd_ks3063_in_finish_record_initialization,
-	mxd_ks3063_in_delete_record,
-	mxd_ks3063_in_print_structure,
-	mxd_ks3063_in_read_parms_from_hardware,
-	mxd_ks3063_in_write_parms_to_hardware,
-	mxd_ks3063_in_open,
-	mxd_ks3063_in_close
+	NULL,
+	mxd_ks3063_in_print_structure
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_ks3063_in_digital_input_function_list = {
@@ -61,15 +57,14 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ks3063_in_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_ks3063_out_record_function_list = {
-	mxd_ks3063_out_initialize_type,
+	NULL,
 	mxd_ks3063_out_create_record_structures,
 	mxd_ks3063_out_finish_record_initialization,
-	mxd_ks3063_out_delete_record,
+	NULL,
 	mxd_ks3063_out_print_structure,
-	mxd_ks3063_out_read_parms_from_hardware,
-	mxd_ks3063_out_write_parms_to_hardware,
-	mxd_ks3063_out_open,
-	mxd_ks3063_out_close
+	NULL,
+	NULL,
+	mxd_ks3063_out_open
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_ks3063_out_digital_output_function_list = {
@@ -93,15 +88,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ks3063_out_rfield_def_ptr
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_ks3063_in_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3063_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3063_in_create_record_structures()";
+        static const char fname[] = "mxd_ks3063_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_KS3063_IN *ks3063_in;
@@ -137,7 +126,8 @@ mxd_ks3063_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3063_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3063_in_finish_record_initialization()";
+        static const char fname[] =
+		"mxd_ks3063_in_finish_record_initialization()";
 
         MX_KS3063_IN *ks3063_in;
 
@@ -174,28 +164,9 @@ mxd_ks3063_in_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3063_in_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3063_in_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3063_in_print_structure()";
+	static const char fname[] = "mxd_ks3063_in_print_structure()";
 
 	MX_KS3063_IN *ks3063_in;
 
@@ -223,36 +194,12 @@ mxd_ks3063_in_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3063_in_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_in_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_in_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_in_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3063_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_ks3063_in_read()";
+	static const char fname[] = "mxd_ks3063_in_read()";
 
 	MX_KS3063_IN *ks3063_in;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	ks3063_in = (MX_KS3063_IN *) (dinput->record->record_type_struct);
@@ -278,15 +225,9 @@ mxd_ks3063_in_read( MX_DIGITAL_INPUT *dinput )
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_ks3063_out_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3063_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3063_out_create_record_structures()";
+        static const char fname[] = "mxd_ks3063_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_KS3063_OUT *ks3063_out;
@@ -323,7 +264,8 @@ mxd_ks3063_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3063_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3063_out_finish_record_initialization()";
+        static const char fname[] =
+		"mxd_ks3063_out_finish_record_initialization()";
 
         MX_KS3063_OUT *ks3063_out;
 
@@ -360,28 +302,9 @@ mxd_ks3063_out_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3063_out_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3063_out_print_structure()";
+	static const char fname[] = "mxd_ks3063_out_print_structure()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_KS3063_OUT *ks3063_out;
@@ -418,20 +341,12 @@ mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3063_out_read_parms_from_hardware( MX_RECORD *record )
+mxd_ks3063_out_open( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_out_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_ks3063_out_write_parms_to_hardware()";
+	static const char fname[] = "mxd_ks3063_out_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
-	mx_status_type status;
-
-	MX_DEBUG(2, ("mxd_ks3063_out_write_parms_to_hardware()."));
+	mx_status_type mx_status;
 
 	doutput = (MX_DIGITAL_OUTPUT *) (record->record_class_struct);
 
@@ -440,21 +355,9 @@ mxd_ks3063_out_write_parms_to_hardware( MX_RECORD *record )
 			"MX_DIGITAL_OUTPUT pointer is NULL.");
 	}
 
-	status = mxd_ks3063_out_write( doutput );
+	mx_status = mxd_ks3063_out_write( doutput );
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_out_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3063_out_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -474,10 +377,10 @@ mxd_ks3063_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_ks3063_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_ks3063_out_write()";
+	static const char fname[] = "mxd_ks3063_out_write()";
 
 	MX_KS3063_OUT *ks3063_out;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	ks3063_out = (MX_KS3063_OUT *) (doutput->record->record_type_struct);
@@ -487,7 +390,7 @@ mxd_ks3063_out_write( MX_DIGITAL_OUTPUT *doutput )
 			"MX_KS3063_OUT pointer is NULL.");
 	}
 
-	data = (mx_sint32_type) doutput->value;
+	data = (int32_t) doutput->value;
 
 	mx_camac( (ks3063_out->camac_record), (ks3063_out->slot), 1, 16,
 		&data, &camac_Q, &camac_X );

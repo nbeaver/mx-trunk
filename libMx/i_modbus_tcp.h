@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,10 +35,10 @@ typedef struct {
 	int port_number;
 	unsigned long unit_id;
 
-	mx_uint16_type transaction_id;
+	uint16_t transaction_id;
 
-	mx_uint8_type send_header[MXU_MODBUS_TCP_HEADER_LENGTH];
-	mx_uint8_type receive_header[MXU_MODBUS_TCP_HEADER_LENGTH];
+	uint8_t send_header[MXU_MODBUS_TCP_HEADER_LENGTH];
+	uint8_t receive_header[MXU_MODBUS_TCP_HEADER_LENGTH];
 } MX_MODBUS_TCP;
 
 extern MX_RECORD_FUNCTION_LIST mxi_modbus_tcp_record_function_list;

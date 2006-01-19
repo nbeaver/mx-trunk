@@ -63,7 +63,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,7 +79,7 @@
 #include "mx_osdef.h"
 #include "mx_unistd.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_interval_timer.h"
@@ -527,9 +527,9 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 #include <libdef.h>
 
 typedef struct {
-	mx_uint32_type event_flag;
-	mx_uint32_type timer_period[2];
-	mx_uint32_type finish_time[2];
+	uint32_t event_flag;
+	uint32_t timer_period[2];
+	uint32_t finish_time[2];
 	int timer_is_busy;
 	int restart_timer;
 	MX_THREAD *event_flag_thread;
@@ -719,7 +719,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	static const char fname[] = "mx_interval_timer_create()";
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	mx_uint32_type event_flag_number;
+	uint32_t event_flag_number;
 	int vms_status;
 	mx_status_type mx_status;
 
@@ -915,7 +915,7 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 	static const char fname[] = "mx_interval_timer_is_busy()";
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	mx_uint32_type event_flag_cluster;
+	uint32_t event_flag_cluster;
 	int vms_status;
 	mx_status_type mx_status;
 
@@ -958,8 +958,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
 	double timer_period_in_nanoseconds;
-	mx_uint32_type current_time[2];
-	mx_uint32_type new_low_order;
+	uint32_t current_time[2];
+	uint32_t new_low_order;
 	int vms_status;
 	mx_status_type mx_status;
 
@@ -1203,8 +1203,8 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 	static const char fname[] = "mx_interval_timer_read()";
 
 	MX_VMS_ITIMER_PRIVATE *vms_itimer_private;
-	mx_uint32_type current_time[2];
-	mx_uint32_type H1, L1, H2, L2;
+	uint32_t current_time[2];
+	uint32_t H1, L1, H2, L2;
 	double H_result, L_result, nanoseconds_till_expiration;
 	int vms_status;
 	mx_status_type mx_status;

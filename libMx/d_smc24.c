@@ -18,7 +18,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,7 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_camac.h"
@@ -41,14 +41,14 @@
 /*** The prototypes of several static helper functions are included here. ***/
 
 static mx_status_type smc24_read_status_register(
-	MX_SMC24 *smc24, mx_sint32_type *status_register );
+	MX_SMC24 *smc24, int32_t *status_register );
 
 /* smc24_update_32bit_software_encoder_position() is used to aid in the 
  * update of the 32-bit software counter (if used).
  */
 
 static mx_status_type smc24_update_32bit_software_encoder_position(
-	MX_SMC24 *smc24, mx_sint32_type *software_encoder_position );
+	MX_SMC24 *smc24, int32_t *software_encoder_position );
 
 /* smc24_cw_ccw_pulses_soft_abort() is used to handle a bug in the SMC24
  * hardware that occurs when the SMC24 is put into pause mode.  The bug
@@ -255,7 +255,7 @@ mxd_smc24_motor_is_busy( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_motor_is_busy()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type status_register, not_active;
+	int32_t status_register, not_active;
 	mx_status_type status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -296,7 +296,7 @@ mxd_smc24_move_absolute( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_move_absolute()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type relative_steps;
+	int32_t relative_steps;
 	long new_position;
 	long current_position;
 	int camac_Q, camac_X;
@@ -325,7 +325,7 @@ mxd_smc24_move_absolute( MX_MOTOR *motor )
 		return status;
 	}
 
-	relative_steps = (mx_sint32_type) ( new_position - current_position );
+	relative_steps = (int32_t) ( new_position - current_position );
 
 	/* Send the move relative command. */
 
@@ -468,7 +468,7 @@ mxd_smc24_immediate_abort( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_immediate_abort()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -500,7 +500,7 @@ mxd_smc24_positive_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_positive_limit_hit()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type status_register;
+	int32_t status_register;
 	mx_status_type status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -536,7 +536,7 @@ mxd_smc24_negative_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_negative_limit_hit()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type status_register;
+	int32_t status_register;
 	mx_status_type status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -574,7 +574,7 @@ mxd_smc24_steps_to_go( MX_MOTOR *motor, long *steps_to_go )
 	const char fname[] = "mxd_smc24_steps_to_go()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -617,7 +617,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 	const char fname[] = "mxd_smc24_update_position()";
 
 	MX_SMC24 *smc24;
-	mx_sint32_type software_encoder_position;
+	int32_t software_encoder_position;
 	double position;
 	long motor_steps, encoder_ticks;
 	mx_status_type status;
@@ -639,7 +639,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 			< MX_MOTOR_STEP_FUZZ ) {
 			software_encoder_position = 0;
 		} else {
-			software_encoder_position = (mx_sint32_type)
+			software_encoder_position = (int32_t)
 				( motor->raw_position.stepper
 				  / smc24->motor_steps_per_encoder_tick );
 		}
@@ -680,7 +680,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 }
 
 static mx_status_type
-smc24_read_status_register( MX_SMC24 *smc24, mx_sint32_type *status_register )
+smc24_read_status_register( MX_SMC24 *smc24, int32_t *status_register )
 {
 	const char fname[] = "smc24_read_status_register()";
 
@@ -718,9 +718,10 @@ smc24_read_status_register( MX_SMC24 *smc24, mx_sint32_type *status_register )
 
 static mx_status_type
 smc24_update_32bit_software_encoder_position(
-	MX_SMC24 *smc24, mx_sint32_type *software_encoder_position )
+	MX_SMC24 *smc24, int32_t *software_encoder_position )
 {
-	mx_sint32_type hardware_encoder_position;
+	long hardware_encoder_position;
+	int32_t hardware_encoder_32bit_position;
 	int overflow, underflow;
 	mx_status_type status;
 
@@ -731,11 +732,13 @@ smc24_update_32bit_software_encoder_position(
 		return status;
 	}
 
+	hardware_encoder_32bit_position = (int32_t) hardware_encoder_position;
+
 	/* Force the least significant 16 bits to agree. */
 
 	*software_encoder_position -= ( *software_encoder_position & 0xFFFF );
 
-	*software_encoder_position += hardware_encoder_position;
+	*software_encoder_position += hardware_encoder_32bit_position;
 
 	/* Check for overflow and underflow. */
 
@@ -834,7 +837,7 @@ smc24_normal_soft_abort( MX_MOTOR *motor )
 	MX_SMC24 *smc24;
 	long old_encoder_position, encoder_position;
 	int num_constant_measurements, timeout, naptime;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type status;
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,6 @@ typedef struct {
 MX_API mx_status_type mxd_lpt_in_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_lpt_in_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_lpt_in_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_lpt_in_read( MX_DIGITAL_INPUT *dinput );
 
@@ -75,7 +74,6 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_lpt_in_rfield_def_ptr;
 MX_API mx_status_type mxd_lpt_out_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_lpt_out_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_lpt_out_open( MX_RECORD *record );
 
 MX_API mx_status_type mxd_lpt_out_read( MX_DIGITAL_OUTPUT *doutput );
 MX_API mx_status_type mxd_lpt_out_write( MX_DIGITAL_OUTPUT *doutput );

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_clock.h"
 #include "mx_vme.h"
@@ -239,7 +239,7 @@ mxd_sis3807_busy( MX_PULSE_GENERATOR *pulse_generator )
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
 	MX_CLOCK_TICK current_time;
-	mx_uint32_type status_register;
+	uint32_t status_register;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -342,7 +342,7 @@ mxd_sis3807_send_single_pulse( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
-	mx_uint32_type pulse_register;
+	uint32_t pulse_register;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -398,7 +398,7 @@ mxd_sis3807_start_with_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
-	mx_uint32_type enable_channel_value;
+	uint32_t enable_channel_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -456,7 +456,7 @@ mxd_sis3807_start_without_burst_register( MX_PULSE_GENERATOR *pulse_generator )
 	MX_CLOCK_TICK start_time, finish_time, countdown_ticks;
 	MX_CLOCK_TICK pulse_duration_ticks;
 	double total_countdown_time, pulse_time;
-	mx_uint32_type enable_channel_value;
+	uint32_t enable_channel_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -599,7 +599,7 @@ mxd_sis3807_stop( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
-	mx_uint32_type disable_channel_value;
+	uint32_t disable_channel_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -644,7 +644,7 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
-	mx_uint32_type status_register, mask;
+	uint32_t status_register, mask;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3807_get_pointers( pulse_generator, &sis3807_pulser,
@@ -758,9 +758,9 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	MX_SIS3807_PULSER *sis3807_pulser;
 	MX_SIS3807 *sis3807;
 	double time_quantum, real_preset_value_plus_one;
-	mx_uint32_type preset_value_plus_one, control_register;
-	mx_uint32_type preset_value, preset_register;
-	mx_uint32_type pulse_width_register, num_pulses;
+	uint32_t preset_value_plus_one, control_register;
+	uint32_t preset_value, preset_register;
+	uint32_t pulse_width_register, num_pulses;
 	unsigned long flags;
 	mx_status_type mx_status;
 

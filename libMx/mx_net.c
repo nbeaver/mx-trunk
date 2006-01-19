@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_record.h"
@@ -296,10 +296,11 @@ mx_network_display_message_buffer( void *buffer_ptr )
 {
 	static const char fname[] = "mx_network_display_message_buffer()";
 
-	mx_uint32_type *header;
+	uint32_t *header;
 	unsigned char *buffer, *message;
-	mx_uint32_type magic_number, header_length, message_length;
-	mx_uint32_type message_type, status_code, i;
+	uint32_t magic_number, header_length, message_length;
+	uint32_t message_type, status_code;
+	unsigned long i;
 	unsigned char c;
 
 	if ( buffer_ptr == NULL ) {
@@ -335,40 +336,44 @@ mx_network_display_message_buffer( void *buffer_ptr )
 
 	/* Header length */
 
-	i = MX_NETWORK_HEADER_LENGTH * sizeof( mx_uint32_type );
+	i = MX_NETWORK_HEADER_LENGTH * sizeof( uint32_t );
 
 	mx_info( "Header length:  %12lu   (%2x %2x %2x %2x)",
-		header_length, buffer[i+0], buffer[i+1],
+		(unsigned long) header_length,
+			buffer[i+0], buffer[i+1],
 			buffer[i+2], buffer[i+3] );
 
 	if ( header_length < MX_NETWORK_HEADER_LENGTH_VALUE ) {
 		mx_info( "*** Header length %lu was unexpectedly short. ***",
-			header_length );
+			(unsigned long) header_length );
 		return;
 	}
 
 	/* Message length */
 
-	i = MX_NETWORK_MESSAGE_LENGTH * sizeof( mx_uint32_type );
+	i = MX_NETWORK_MESSAGE_LENGTH * sizeof( uint32_t );
 
 	mx_info( "Message length: %12lu   (%2x %2x %2x %2x)",
-		message_length, buffer[i+0], buffer[i+1],
+		(unsigned long) message_length,
+			buffer[i+0], buffer[i+1],
 			buffer[i+2], buffer[i+3] );
 
 	/* Message type */
 
-	i = MX_NETWORK_MESSAGE_TYPE * sizeof( mx_uint32_type );
+	i = MX_NETWORK_MESSAGE_TYPE * sizeof( uint32_t );
 
 	mx_info( "Message type:   %12lu   (%2x %2x %2x %2x)",
-		message_type, buffer[i+0], buffer[i+1],
+		(unsigned long) message_type,
+			buffer[i+0], buffer[i+1],
 			buffer[i+2], buffer[i+3] );
 
 	/* Status code */
 
-	i = MX_NETWORK_STATUS_CODE * sizeof( mx_uint32_type );
+	i = MX_NETWORK_STATUS_CODE * sizeof( uint32_t );
 
 	mx_info( "Status code:    %12lu   (%2x %2x %2x %2x)",
-		status_code, buffer[i+0], buffer[i+1],
+		(unsigned long) status_code,
+			buffer[i+0], buffer[i+1],
 			buffer[i+2], buffer[i+3] );
 
 	/* Remaining part of header. */
@@ -376,7 +381,7 @@ mx_network_display_message_buffer( void *buffer_ptr )
 	if ( header_length > MX_NETWORK_HEADER_LENGTH_VALUE ) {
 		mx_info( "Remaining header bytes:" );
 
-		for ( i += sizeof( mx_uint32_type ); i < header_length; i++ ) {
+		for ( i += sizeof( uint32_t ); i < header_length; i++ ) {
 			c = buffer[i];
 
 			if ( isprint(c) ) {
@@ -832,7 +837,7 @@ mx_internal_put_array( MX_RECORD *server_record,
 	MXU_HOSTNAME_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 80
 
 static mx_status_type
-mx_get_array_ascii_error_message( mx_uint32_type status_code,
+mx_get_array_ascii_error_message( uint32_t status_code,
 			char *server_name,
 			char *record_field_name,
 			char *error_message )
@@ -847,7 +852,7 @@ mx_get_array_ascii_error_message( mx_uint32_type status_code,
 }
 
 static mx_status_type
-mx_put_array_ascii_error_message( mx_uint32_type status_code,
+mx_put_array_ascii_error_message( uint32_t status_code,
 			char *server_name,
 			char *record_field_name,
 			char *error_message )
@@ -882,11 +887,11 @@ mx_get_field_array( MX_RECORD *server_record,
 	int use_network_handles;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header, *uint32_message;
+	uint32_t *header, *uint32_message;
 	char *buffer;
 	char *message;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
 	mx_status_type mx_status;
 	char token_buffer[500];
 
@@ -988,7 +993,7 @@ mx_get_field_array( MX_RECORD *server_record,
 		uint32_message[0] = htonl( nf->record_handle );
 		uint32_message[1] = htonl( nf->field_handle );
 
-		message_length = 2 * sizeof( mx_uint32_type );
+		message_length = 2 * sizeof( uint32_t );
 	}
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
@@ -1061,7 +1066,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_GET_ARRAY_ASCII_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 	message = buffer + header_length;
@@ -1202,11 +1207,11 @@ mx_put_field_array( MX_RECORD *server_record,
 	int use_network_handles;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header, *uint32_message;
+	uint32_t *header, *uint32_message;
 	char *buffer;
 	char *message, *ptr;
 	unsigned long i, ptr_address, remainder_value, gap_size;
-	mx_uint32_type header_length, message_length, message_type, status_code;
+	uint32_t header_length, message_length, message_type, status_code;
 	size_t buffer_left, num_bytes_copied;
 	mx_status_type mx_status;
 
@@ -1302,13 +1307,13 @@ mx_put_field_array( MX_RECORD *server_record,
 		uint32_message[0] = htonl( nf->record_handle );
 		uint32_message[1] = htonl( nf->field_handle );
 
-		message_length = 2 * sizeof( mx_uint32_type );
+		message_length = 2 * sizeof( uint32_t );
 	}
 
 	ptr = message + message_length;
 
 	MX_DEBUG( 2,("%s: message = %p, ptr = %p, message_length = %lu",
-		fname, message, ptr, message_length));
+		fname, message, ptr, (unsigned long) message_length));
 
 	buffer_left = MX_NETWORK_MAXIMUM_MESSAGE_SIZE
 			- MX_NETWORK_HEADER_LENGTH_VALUE - message_length;
@@ -1484,7 +1489,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
                 return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_PUT_ARRAY_ASCII_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
         }
 
         message = buffer + header_length;
@@ -1514,12 +1519,12 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header;
+	uint32_t *header;
 	char *buffer, *message;
-	mx_uint32_type *message_uint32_array;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
-	mx_uint32_type header_length_in_32bit_words;
+	uint32_t *message_uint32_array;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
+	uint32_t header_length_in_32bit_words;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -1637,7 +1642,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_GET_NETWORK_HANDLE_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 #if 0
@@ -1653,15 +1658,15 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		return mx_error( (long)status_code, fname, message );
 	}
 
-	if ( message_length < (2 * sizeof(mx_uint32_type)) ) {
+	if ( message_length < (2 * sizeof(uint32_t)) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Incomplete message received.  Message length = %ld",
-			message_length );
+			(long) message_length );
 	}
 
 	/***** Get the network handle out of what we were sent. *****/
 
-	header_length_in_32bit_words = header_length / sizeof(mx_uint32_type);
+	header_length_in_32bit_words = header_length / sizeof(uint32_t);
 
 	message_uint32_array = header + header_length_in_32bit_words;
 
@@ -1695,13 +1700,13 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header;
+	uint32_t *header;
 	char *buffer, *message;
-	mx_uint32_type *message_uint32_array;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
-	mx_uint32_type i, expected_message_length;
-	mx_uint32_type header_length_in_32bit_words;
+	uint32_t *message_uint32_array;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
+	uint32_t i, expected_message_length;
+	uint32_t header_length_in_32bit_words;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -1787,7 +1792,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_GET_FIELD_TYPE_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 #if 0
@@ -1803,15 +1808,15 @@ mx_get_field_type( MX_RECORD *server_record,
 		return mx_error( (long)status_code, fname, message );
 	}
 
-	if ( message_length < (2 * sizeof(mx_uint32_type)) ) {
+	if ( message_length < (2 * sizeof(uint32_t)) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Incomplete message received.  Message length = %ld",
-			message_length );
+			(unsigned long) message_length );
 	}
 
 	/***** Get the type information out of what we were sent. *****/
 
-	header_length_in_32bit_words = header_length / sizeof(mx_uint32_type);
+	header_length_in_32bit_words = header_length / sizeof(uint32_t);
 
 	message_uint32_array = header + header_length_in_32bit_words;
 
@@ -1825,7 +1830,7 @@ mx_get_field_type( MX_RECORD *server_record,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Incomplete dimension array received.  %ld dimension values were received, "
 "but %ld dimension values were expected.",
-			message_length - 2, *num_dimensions );
+		(unsigned long) (message_length - 2), *num_dimensions );
 	}
 	if ( *num_dimensions < max_dimensions ) {
 		max_dimensions = *num_dimensions;
@@ -1859,10 +1864,10 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header;
+	uint32_t *header;
 	char *buffer, *message, *ptr;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
 	int connection_is_up;
 	mx_status_type mx_status;
 
@@ -1974,7 +1979,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_SET_CLIENT_INFO_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 #if 0
@@ -2004,11 +2009,11 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header, *uint32_message;
+	uint32_t *header, *uint32_message;
 	char *buffer, *message;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
-	mx_uint32_type header_length_in_32bit_words;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
+	uint32_t header_length_in_32bit_words;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -2053,7 +2058,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	uint32_message[0] = htonl( option_number );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( sizeof(mx_uint32_type) );
+	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( sizeof(uint32_t) );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2110,7 +2115,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_GET_OPTION_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 #if 0
@@ -2126,13 +2131,13 @@ mx_network_get_option( MX_RECORD *server_record,
 		return mx_error( (long)status_code, fname, message );
 	}
 
-	if ( message_length < sizeof(mx_uint32_type) ) {
+	if ( message_length < sizeof(uint32_t) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Incomplete message received.  Message length = %ld",
-			message_length );
+			(unsigned long) message_length );
 	}
 
-	header_length_in_32bit_words = header_length / sizeof(mx_uint32_type);
+	header_length_in_32bit_words = header_length / sizeof(uint32_t);
 
 	uint32_message = header + header_length_in_32bit_words;
 
@@ -2155,10 +2160,10 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
-	mx_uint32_type *header, *uint32_message;
+	uint32_t *header, *uint32_message;
 	char *buffer, *message;
-	mx_uint32_type header_length, message_length;
-	mx_uint32_type message_type, status_code;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -2201,7 +2206,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	uint32_message[0] = htonl( option_number );
 	uint32_message[1] = htonl( option_value );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( 2 * sizeof(mx_uint32_type) );
+	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( 2 * sizeof(uint32_t) );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2258,7 +2263,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_SET_OPTION_RESPONSE.  "
-"Instead it was of type = %#lx", message_type );
+"Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
 #if 0

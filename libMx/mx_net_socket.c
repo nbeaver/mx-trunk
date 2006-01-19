@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +30,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_clock.h"
 #include "mx_socket.h"
 #include "mx_net.h"
@@ -48,12 +48,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 {
 	const char fname[] = "mx_network_socket_receive_message()";
 
-	mx_uint32_type *header;
+	uint32_t *header;
 	char *ptr;
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long i, bytes_left, bytes_received, initial_recv_length;
-	mx_uint32_type magic_value, header_length, message_length;
+	uint32_t magic_value, header_length, message_length;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
@@ -113,7 +113,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	ptr = buffer;
 
-	initial_recv_length = 3 * sizeof( mx_uint32_type );
+	initial_recv_length = 3 * sizeof( uint32_t );
 
 	bytes_left = initial_recv_length;
 
@@ -336,12 +336,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 {
 	const char fname[] = "mx_network_socket_send_message()";
 
-	mx_uint32_type *header;
+	uint32_t *header;
 	char *ptr;
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	long bytes_left, bytes_sent;
-	mx_uint32_type magic_value, header_length, message_length;
+	uint32_t magic_value, header_length, message_length;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
@@ -523,8 +523,8 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	void *malloc_ptr;
 	char *send_buffer, *message;
-	mx_uint32_type *header;
-	mx_uint32_type header_length, message_length;
+	uint32_t *header;
+	uint32_t header_length, message_length;
 	mx_status_type status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -537,7 +537,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	/* The output of malloc() is assigned to a void pointer here
 	 * because assigning it to a char pointer and then casting
-	 * that to an mx_uint32_type pointer below results in a warning
+	 * that to an uint32_t pointer below results in a warning
 	 * message under GCC 2.8.1.
 	 */
 
@@ -550,7 +550,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	send_buffer = (char *) malloc_ptr;
 
-	header = (mx_uint32_type *) malloc_ptr;
+	header = (uint32_t *) malloc_ptr;
 
 	message = send_buffer + header_length;
 

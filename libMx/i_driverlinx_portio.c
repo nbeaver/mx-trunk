@@ -12,7 +12,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,7 +31,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 
 #include "i_driverlinx_portio.h"
@@ -39,15 +39,8 @@
 #include "Dlportio.h"
 
 MX_RECORD_FUNCTION_LIST mxi_driverlinx_portio_record_function_list = {
-	mxi_driverlinx_portio_initialize_type,
-	mxi_driverlinx_portio_create_record_structures,
-	mxi_driverlinx_portio_finish_record_initialization,
-	mxi_driverlinx_portio_delete_record,
 	NULL,
-	mxi_driverlinx_portio_read_parms_from_hardware,
-	mxi_driverlinx_portio_write_parms_to_hardware,
-	mxi_driverlinx_portio_open,
-	mxi_driverlinx_portio_close
+	mxi_driverlinx_portio_create_record_structures
 };
 
 MX_PORTIO_FUNCTION_LIST mxi_driverlinx_portio_portio_function_list = {
@@ -71,12 +64,6 @@ MX_RECORD_FIELD_DEFAULTS *mxi_driverlinx_portio_rfield_def_ptr
 			= &mxi_driverlinx_portio_record_field_defaults[0];
 
 /* ---- */
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_driverlinx_portio_create_record_structures( MX_RECORD *record )
@@ -105,71 +92,22 @@ mxi_driverlinx_portio_create_record_structures( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_driverlinx_portio_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_uint8_type
+MX_EXPORT uint8_t
 mxi_driverlinx_portio_inp8( MX_RECORD *record, unsigned long port_number )
 {
-	mx_uint8_type value;
+	uint8_t value;
 
-	value = (mx_uint8_type) DlPortReadPortUchar((IN ULONG) port_number );
+	value = (uint8_t) DlPortReadPortUchar((IN ULONG) port_number );
 
 	return value;
 }
 
-MX_EXPORT mx_uint16_type
+MX_EXPORT uint16_t
 mxi_driverlinx_portio_inp16( MX_RECORD *record, unsigned long port_number )
 {
-	mx_uint16_type value;
+	uint16_t value;
 
-	value = (mx_uint16_type) DlPortReadPortUshort((IN ULONG) port_number );
+	value = (uint16_t) DlPortReadPortUshort((IN ULONG) port_number );
 
 	return value;
 }
@@ -177,7 +115,7 @@ mxi_driverlinx_portio_inp16( MX_RECORD *record, unsigned long port_number )
 MX_EXPORT void
 mxi_driverlinx_portio_outp8( MX_RECORD *record,
 			unsigned long port_number,
-			mx_uint8_type byte_value )
+			uint8_t byte_value )
 {
 	DlPortWritePortUchar((IN ULONG) port_number, (IN UCHAR) byte_value );
 
@@ -187,7 +125,7 @@ mxi_driverlinx_portio_outp8( MX_RECORD *record,
 MX_EXPORT void
 mxi_driverlinx_portio_outp16( MX_RECORD *record,
 			unsigned long port_number,
-			mx_uint16_type word_value )
+			uint16_t word_value )
 {
 	DlPortWritePortUshort((IN ULONG) port_number, (IN USHORT) word_value );
 

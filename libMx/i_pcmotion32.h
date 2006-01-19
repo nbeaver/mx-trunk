@@ -68,21 +68,11 @@ typedef struct {
 
 /*---*/
 
-MX_API mx_status_type mxi_pcmotion32_initialize_type( long type );
 MX_API mx_status_type mxi_pcmotion32_create_record_structures(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_finish_record_initialization(
-							MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxi_pcmotion32_print_structure( FILE *file,
 							MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_write_parms_to_hardware(
-					MX_RECORD *record );
 MX_API mx_status_type mxi_pcmotion32_open( MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_close( MX_RECORD *record );
-MX_API mx_status_type mxi_pcmotion32_resynchronize( MX_RECORD *record );
 
 /*---*/
 

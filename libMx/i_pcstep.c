@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,9 +28,9 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
 #include "mx_generic.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 #include "mx_bit.h"
 #include "mx_motor.h"
@@ -255,8 +255,8 @@ mxi_pcstep_write_parms_to_hardware( MX_RECORD *record )
 	const char fname[] = "mxi_pcstep_write_parms_to_hardware()";
 
 	MX_PCSTEP *pcstep;
-	mx_uint16_type limit_switch_polarity;
-	mx_uint16_type enable_limit_switches;
+	uint16_t limit_switch_polarity;
+	uint16_t enable_limit_switches;
 	mx_status_type mx_status;
 
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
@@ -266,7 +266,7 @@ mxi_pcstep_write_parms_to_hardware( MX_RECORD *record )
 
 	/* Set the polarity of the limit switches and home switches. */
 
-	limit_switch_polarity = (mx_uint16_type) pcstep->limit_switch_polarity;
+	limit_switch_polarity = (uint16_t) pcstep->limit_switch_polarity;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_SET_LIMIT_SWITCH_POLARITY,
@@ -277,7 +277,7 @@ mxi_pcstep_write_parms_to_hardware( MX_RECORD *record )
 
 	/* Enable the limit switches. */
 
-	enable_limit_switches = (mx_uint16_type) pcstep->enable_limit_switches;
+	enable_limit_switches = (uint16_t) pcstep->enable_limit_switches;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_ENABLE_LIMIT_SWITCH_INPUTS,
@@ -412,7 +412,7 @@ mxi_pcstep_resynchronize( MX_RECORD *record )
 	const char fname[] = "mxi_pcstep_resynchronize()";
 
 	MX_PCSTEP *pcstep;
-	mx_uint32_type long_status_word;
+	uint32_t long_status_word;
 	mx_status_type mx_status;
 
 	mx_status = mxi_pcstep_get_pointers( record, &pcstep, fname );
@@ -454,12 +454,12 @@ mxi_pcstep_resynchronize( MX_RECORD *record )
  * was a documentation bug or not.
  */
 
-MX_EXPORT mx_uint16_type
+MX_EXPORT uint16_t
 mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 {
 	const char fname[] = "mxi_pcstep_get_status_word()";
 
-	mx_uint16_type result;
+	uint16_t result;
 	unsigned long port_address;
 
 	if ( pcstep == NULL ) {
@@ -478,11 +478,11 @@ mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 }
 
 static mx_status_type
-mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, mx_uint16_type transmitted_word )
+mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, uint16_t transmitted_word )
 {
 	const char fname[] = "mxi_pcstep_transmit_word()";
 
-	mx_uint16_type status_word;
+	uint16_t status_word;
 	unsigned long i;
 
 	for ( i = 0; i <= pcstep->retries; i++ ) {
@@ -513,11 +513,11 @@ mxi_pcstep_transmit_word( MX_PCSTEP *pcstep, mx_uint16_type transmitted_word )
 }
 
 static mx_status_type
-mxi_pcstep_receive_word( MX_PCSTEP *pcstep, mx_uint16_type *received_word )
+mxi_pcstep_receive_word( MX_PCSTEP *pcstep, uint16_t *received_word )
 {
 	const char fname[] = "mxi_pcstep_receive_word()";
 
-	mx_uint16_type original_received_word, status_word;
+	uint16_t original_received_word, status_word;
 	unsigned long i;
 
 	for ( i = 0; i <= pcstep->retries; i++ ) {
@@ -550,7 +550,7 @@ mxi_pcstep_reset_errors( MX_PCSTEP *pcstep )
 {
 	const char fname[] = "mxi_pcstep_reset_errors()";
 
-	mx_uint16_type status_word, received_word;
+	uint16_t status_word, received_word;
 	unsigned long i;
 	mx_status_type mx_status;
 
@@ -616,16 +616,16 @@ mxi_pcstep_reset_errors( MX_PCSTEP *pcstep )
 
 MX_EXPORT mx_status_type
 mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
-			mx_uint32_type command_argument,
-			mx_uint32_type *command_response )
+			uint32_t command_argument,
+			uint32_t *command_response )
 {
 	const char fname[] = "mxi_pcstep_command()";
 
-	mx_uint16_type command_word, current_word;
-	mx_uint16_type received_word, return_packet_id;
-	mx_uint16_type status_word, test_var;
-	mx_uint8_type original_command_id, originating_command_id;
-	mx_uint8_type original_axis_id, originating_axis_id;
+	uint16_t command_word, current_word;
+	uint16_t received_word, return_packet_id;
+	uint16_t status_word, test_var;
+	uint8_t original_command_id, originating_command_id;
+	uint8_t original_axis_id, originating_axis_id;
 	unsigned long i;
 	int num_transmitted_words, num_received_words;
 	mx_status_type mx_status, mx_status2, mx_command_execution_status;
@@ -635,7 +635,7 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 			"NULL pcstep pointer passed." );
 	}
 
-	command_word = (mx_uint16_type) command;
+	command_word = (uint16_t) command;
 
 #if MXI_PCSTEP_DEBUG
 	MX_DEBUG(-2,("%s: sending %#6.4x, %#10.8x",
@@ -676,8 +676,7 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 
 	if ( num_transmitted_words == 4 ) {
 
-		current_word = (mx_uint16_type)
-					( (command_argument >> 16) & 0xFFFF );
+		current_word = (uint16_t) ( (command_argument >> 16) & 0xFFFF );
 
 		mx_status = mxi_pcstep_transmit_word( pcstep, current_word );
 
@@ -690,7 +689,7 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 	if ( ( num_transmitted_words == 3 )
 	  || ( num_transmitted_words == 4 ) )
 	{
-		current_word = (mx_uint16_type) ( command_argument & 0xFFFF );
+		current_word = (uint16_t) ( command_argument & 0xFFFF );
 
 		mx_status = mxi_pcstep_transmit_word( pcstep, current_word );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -295,7 +295,7 @@ mxd_linux_parport_in_read( MX_DIGITAL_INPUT *dinput )
 
 	MX_LINUX_PARPORT_IN *linux_parport_in;
 	MX_LINUX_PARPORT *linux_parport;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -427,7 +427,7 @@ mxd_linux_parport_out_read( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_LINUX_PARPORT_OUT *linux_parport_out;
 	MX_LINUX_PARPORT *linux_parport;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linux_parport_out_get_pointers( doutput->record,
@@ -455,7 +455,7 @@ mxd_linux_parport_out_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_LINUX_PARPORT_OUT *linux_parport_out;
 	MX_LINUX_PARPORT *linux_parport;
-	mx_uint8_type value;
+	uint8_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linux_parport_out_get_pointers( doutput->record,
@@ -464,7 +464,7 @@ mxd_linux_parport_out_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = (mx_uint8_type) ( doutput->value & 0xff );
+	value = (uint8_t) ( doutput->value & 0xff );
 
 	mx_status = mxi_linux_parport_write_port( linux_parport,
 					linux_parport_out->port_number,

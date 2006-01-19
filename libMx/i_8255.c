@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,9 +25,9 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_portio.h"
 #include "mx_generic.h"
 #include "i_8255.h"
@@ -277,13 +277,13 @@ mxi_8255_finish_delayed_initialization( MX_RECORD *record )
 /* === Driver specific functions === */
 
 MX_EXPORT mx_status_type
-mxi_8255_read_port( MX_8255 *i8255, int port_number, mx_uint8_type *value )
+mxi_8255_read_port( MX_8255 *i8255, int port_number, uint8_t *value )
 {
 	const char fname[] = "mxi_8255_read_port()";
 
 	unsigned long port_address;
 	int port_to_read;
-	mx_uint8_type value_read;
+	uint8_t value_read;
 
 	port_address = 0;
 
@@ -342,13 +342,13 @@ mxi_8255_read_port( MX_8255 *i8255, int port_number, mx_uint8_type *value )
 }
 
 MX_EXPORT mx_status_type
-mxi_8255_write_port( MX_8255 *i8255, int port_number, mx_uint8_type value )
+mxi_8255_write_port( MX_8255 *i8255, int port_number, uint8_t value )
 {
 	const char fname[] = "mxi_8255_write_port()";
 
 	unsigned long port_address;
 	int port_to_write;
-	mx_uint8_type value_to_write, old_port_c_value;
+	uint8_t value_to_write, old_port_c_value;
 
 	switch( port_number ) {
 	case MX_8255_PORT_A:
@@ -417,7 +417,7 @@ MX_EXPORT void
 mxi_8255_update_outputs( MX_8255 *i8255 )
 {
 	unsigned long port_address;
-	mx_uint8_type port_d_value, mask;
+	uint8_t port_d_value, mask;
 
 	port_d_value = i8255->port_value[ MX_8255_PORT_D ];
 

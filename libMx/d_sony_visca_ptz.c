@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_ptz.h"
 #include "i_sony_visca.h"
 #include "d_sony_visca_ptz.h"
@@ -538,7 +538,7 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_POSITION:
 	case MXF_PTZ_TILT_POSITION:
-		ptz->pan_position = (mx_sint16_type) inquiry_value;
+		ptz->pan_position = (int16_t) inquiry_value;
 
 		nibble3 = response[6];
 		nibble2 = response[7];
@@ -548,7 +548,7 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		inquiry_value = (nibble3 << 12) + (nibble2 << 8)
 				+ (nibble1 << 4) + nibble0;
 
-		ptz->tilt_position = (mx_sint16_type) inquiry_value;
+		ptz->tilt_position = (int16_t) inquiry_value;
 
 #if MXD_SONY_VISCA_PTZ_DEBUG
 		MX_DEBUG(-2,

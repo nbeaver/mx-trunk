@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_modbus.h"
 #include "mx_driver.h"
 
@@ -74,12 +74,12 @@ mx_modbus_get_pointers( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_compute_response_length( MX_RECORD *modbus_record,
-					mx_uint8_type *receive_buffer,
+					uint8_t *receive_buffer,
 					size_t *response_length )
 {
 	static const char fname[] = "mx_modbus_compute_response_length()";
 
-	mx_uint8_type function_code, byte_count;
+	uint8_t function_code, byte_count;
 
 	function_code = receive_buffer[0];
 
@@ -123,9 +123,9 @@ mx_modbus_compute_response_length( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_command( MX_RECORD *modbus_record,
-			mx_uint8_type *request_buffer,
+			uint8_t *request_buffer,
 			size_t request_length,
-			mx_uint8_type *response_buffer,
+			uint8_t *response_buffer,
 			size_t response_buffer_length,
 			size_t *actual_response_length )
 {
@@ -188,12 +188,12 @@ MX_EXPORT mx_status_type
 mx_modbus_read_coils( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_coils,
-			mx_uint8_type *coil_value_array )
+			uint8_t *coil_value_array )
 {
 	static const char fname[] = "mx_modbus_read_coils()";
 
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[1 + MXU_MODBUS_MAX_COILS_READABLE / 8];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[1 + MXU_MODBUS_MAX_COILS_READABLE / 8];
 	size_t actual_response_length, actual_data_bytes;
 	size_t num_coil_bytes, bytes_to_copy;
 	mx_status_type mx_status;
@@ -252,12 +252,12 @@ MX_EXPORT mx_status_type
 mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_inputs,
-			mx_uint8_type *input_value_array )
+			uint8_t *input_value_array )
 {
 	static const char fname[] = "mx_modbus_read_discrete_inputs()";
 
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[1 + MXU_MODBUS_MAX_COILS_READABLE / 8];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[1 + MXU_MODBUS_MAX_COILS_READABLE / 8];
 	size_t actual_response_length, actual_data_bytes;
 	size_t num_input_bytes, bytes_to_copy;
 	mx_status_type mx_status;
@@ -317,12 +317,12 @@ MX_EXPORT mx_status_type
 mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_registers,
-			mx_uint16_type *register_value_array )
+			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_read_holding_registers()";
 
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[ 2*MXU_MODBUS_MAX_REGISTERS_READABLE ];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[ 2*MXU_MODBUS_MAX_REGISTERS_READABLE ];
 	size_t i, j, actual_response_length, actual_register_values;
 	size_t num_register_bytes, values_to_copy;
 	mx_status_type mx_status;
@@ -383,12 +383,12 @@ MX_EXPORT mx_status_type
 mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_registers,
-			mx_uint16_type *register_value_array )
+			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_read_input_registers()";
 
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[ 2*MXU_MODBUS_MAX_REGISTERS_READABLE ];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[ 2*MXU_MODBUS_MAX_REGISTERS_READABLE ];
 	size_t i, j, actual_response_length, actual_register_values;
 	size_t num_register_bytes, values_to_copy;
 	mx_status_type mx_status;
@@ -472,8 +472,8 @@ mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 			unsigned int output_address,
 			unsigned int coil_value )
 {
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[5];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[5];
 	mx_status_type mx_status;
 
 	if ( coil_value != 0 ) {
@@ -498,10 +498,10 @@ mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 MX_EXPORT mx_status_type
 mx_modbus_write_single_register( MX_RECORD *modbus_record,
 			unsigned int output_address,
-			mx_uint16_type register_value )
+			uint16_t register_value )
 {
-	mx_uint8_type request_buffer[5];
-	mx_uint8_type response_buffer[5];
+	uint8_t request_buffer[5];
+	uint8_t response_buffer[5];
 	mx_status_type mx_status;
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
@@ -522,12 +522,12 @@ mx_modbus_write_single_register( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_exception_status( MX_RECORD *modbus_record,
-			mx_uint8_type *exception_status )
+			uint8_t *exception_status )
 {
 	static const char fname[] = "mx_modbus_read_exception_status()";
 
-	mx_uint8_type request_buffer[1];
-	mx_uint8_type response_buffer[2];
+	uint8_t request_buffer[1];
+	uint8_t response_buffer[2];
 	size_t actual_response_length;
 	mx_status_type mx_status;
 
@@ -562,13 +562,13 @@ mx_modbus_read_exception_status( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_get_comm_event_counter( MX_RECORD *modbus_record,
-			mx_uint16_type *status_word,
-			mx_uint16_type *event_count )
+			uint16_t *status_word,
+			uint16_t *event_count )
 {
 	static const char fname[] = "mx_modbus_get_comm_event_counter()";
 
-	mx_uint8_type request_buffer[1];
-	mx_uint8_type response_buffer[5];
+	uint8_t request_buffer[1];
+	uint8_t response_buffer[5];
 	size_t actual_response_length;
 	mx_status_type mx_status;
 
@@ -615,12 +615,12 @@ MX_EXPORT mx_status_type
 mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_coils,
-			mx_uint8_type *coil_value_array )
+			uint8_t *coil_value_array )
 {
 	static const char fname[] = "mx_modbus_write_multiple_coils()";
 
-	mx_uint8_type request_buffer[7 + MXU_MODBUS_MAX_COILS_WRITEABLE / 8];
-	mx_uint8_type response_buffer[5];
+	uint8_t request_buffer[7 + MXU_MODBUS_MAX_COILS_WRITEABLE / 8];
+	uint8_t response_buffer[5];
 	size_t num_coil_bytes;
 	mx_status_type mx_status;
 
@@ -669,12 +669,12 @@ MX_EXPORT mx_status_type
 mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 			unsigned int starting_address,
 			unsigned int num_registers,
-			mx_uint16_type *register_value_array )
+			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_write_multiple_registers()";
 
-	mx_uint8_type request_buffer[6 + 2*MXU_MODBUS_MAX_REGISTERS_WRITEABLE];
-	mx_uint8_type response_buffer[5];
+	uint8_t request_buffer[6 + 2*MXU_MODBUS_MAX_REGISTERS_WRITEABLE];
+	uint8_t response_buffer[5];
 	size_t i, j, num_register_bytes;
 	mx_status_type mx_status;
 
@@ -723,11 +723,11 @@ mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 MX_EXPORT mx_status_type
 mx_modbus_mask_write_register( MX_RECORD *modbus_record,
 			unsigned int register_address,
-			mx_uint16_type and_mask,
-			mx_uint16_type or_mask )
+			uint16_t and_mask,
+			uint16_t or_mask )
 {
-	mx_uint8_type request_buffer[7];
-	mx_uint8_type response_buffer[7];
+	uint8_t request_buffer[7];
+	uint8_t response_buffer[7];
 	mx_status_type mx_status;
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
@@ -753,15 +753,15 @@ MX_EXPORT mx_status_type
 mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 			unsigned int read_starting_address,
 			unsigned int num_registers_to_read,
-			mx_uint16_type *read_register_array,
+			uint16_t *read_register_array,
 			unsigned int write_starting_address,
 			unsigned int num_registers_to_write,
-			mx_uint16_type *write_register_array )
+			uint16_t *write_register_array )
 {
 	static const char fname[] = "mx_modbus_read_write_multiple_registers()";
 
-	mx_uint8_type request_buffer[10+2*MXU_MODBUS_MAX_READ_WRITE_REGISTERS];
-	mx_uint8_type response_buffer[2+2*MXU_MODBUS_MAX_READ_WRITE_REGISTERS];
+	uint8_t request_buffer[10+2*MXU_MODBUS_MAX_READ_WRITE_REGISTERS];
+	uint8_t response_buffer[2+2*MXU_MODBUS_MAX_READ_WRITE_REGISTERS];
 	size_t i, j, num_register_bytes_to_read, num_register_bytes_to_write;
 	size_t actual_response_length;
 	mx_status_type mx_status;
@@ -859,13 +859,13 @@ MX_EXPORT mx_status_type
 mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 			unsigned int fifo_pointer_address,
 			unsigned int max_fifo_values,
-			mx_uint16_type *fifo_value_array,
+			uint16_t *fifo_value_array,
 			unsigned int *num_fifo_values_read )
 {
 	static const char fname[] = "mx_modbus_read_fifo_queue()";
 
-	mx_uint8_type request_buffer[3];
-	mx_uint8_type response_buffer[ 5+MXU_MODBUS_MAX_FIFO_VALUES ];
+	uint8_t request_buffer[3];
+	uint8_t response_buffer[ 5+MXU_MODBUS_MAX_FIFO_VALUES ];
 	size_t i, j, actual_response_length, values_to_copy;
 	mx_status_type mx_status;
 

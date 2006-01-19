@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_unistd.h"
 #include "mx_thread.h"
 #include "mx_semaphore.h"
@@ -453,11 +453,11 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 #include <builtins.h>
 
 typedef struct {
-	mx_uint32_type lock_status_block[4];
+	uint32_t lock_status_block[4];
 	struct dsc$descriptor_s name_descriptor;
 } MX_VMS_SEMAPHORE_PRIVATE;
 
-static volatile mx_uint32_type mx_lock_number = 0;
+static volatile uint32_t mx_lock_number = 0;
 
 MX_EXPORT mx_status_type
 mx_semaphore_create( MX_SEMAPHORE **semaphore,
@@ -549,7 +549,7 @@ mx_semaphore_create( MX_SEMAPHORE **semaphore,
 	vms_private->name_descriptor.dsc$b_class = DSC$K_CLASS_S;
 	vms_private->name_descriptor.dsc$b_dtype = DSC$K_DTYPE_T;
 
-	memset( vms_private->lock_status_block, 0, 4 * sizeof(mx_uint32_type) );
+	memset( vms_private->lock_status_block, 0, 4 * sizeof(uint32_t) );
 
 	/* Create the lock resource, but do not lock it. */
 
@@ -582,7 +582,7 @@ mx_semaphore_destroy( MX_SEMAPHORE *semaphore )
 	static const char fname[] = "mx_semaphore_destroy()";
 
 	MX_VMS_SEMAPHORE_PRIVATE *vms_private;
-	mx_uint32_type lock_id;
+	uint32_t lock_id;
 	int vms_status;
 
 #if MX_SEMAPHORE_DEBUG

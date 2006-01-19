@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_modbus.h"
 #include "mx_digital_input.h"
@@ -200,8 +200,8 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_MODBUS_DINPUT *modbus_dinput;
 	long raw_value;
 	int function_code, num_bits, num_registers;
-	mx_uint8_type mx_uint8_array[4];
-	mx_uint16_type mx_uint16_array[2];
+	uint8_t mx_uint8_array[4];
+	uint16_t mx_uint16_array[2];
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warning. */
@@ -374,8 +374,8 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_MODBUS_DOUTPUT *modbus_doutput;
 	long raw_value;
 	int function_code, num_bits, num_registers;
-	mx_uint8_type mx_uint8_array[4];
-	mx_uint16_type mx_uint16_array[4];
+	uint8_t mx_uint8_array[4];
+	uint16_t mx_uint16_array[4];
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warning. */
@@ -404,41 +404,41 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	case MXF_MOD_WRITE_SINGLE_COIL:
 	case MXF_MOD_WRITE_MULTIPLE_COILS:
 		if ( num_bits <= 8 ) {
-			mx_uint8_array[0] = (mx_uint8_type) (raw_value & 0xff);
+			mx_uint8_array[0] = (uint8_t) (raw_value & 0xff);
 		} else
 		if ( num_bits <= 16 ) {
-			mx_uint8_array[0] = (mx_uint8_type)
+			mx_uint8_array[0] = (uint8_t)
 						(( raw_value >> 8 ) & 0xff);
-			mx_uint8_array[1] = (mx_uint8_type)
+			mx_uint8_array[1] = (uint8_t)
 						(raw_value & 0xff);
 		} else
 		if ( num_bits <= 24 ) {
-			mx_uint8_array[0] = (mx_uint8_type)
+			mx_uint8_array[0] = (uint8_t)
 						(( raw_value >> 16 ) & 0xff);
-			mx_uint8_array[1] = (mx_uint8_type)
+			mx_uint8_array[1] = (uint8_t)
 						(( raw_value >> 8 ) & 0xff);
-			mx_uint8_array[2] = (mx_uint8_type)
+			mx_uint8_array[2] = (uint8_t)
 						(raw_value & 0xff);
 		} else {
-			mx_uint8_array[0] = (mx_uint8_type)
+			mx_uint8_array[0] = (uint8_t)
 						(( raw_value >> 24 ) & 0xff);
-			mx_uint8_array[1] = (mx_uint8_type)
+			mx_uint8_array[1] = (uint8_t)
 						(( raw_value >> 16 ) & 0xff);
-			mx_uint8_array[2] = (mx_uint8_type)
+			mx_uint8_array[2] = (uint8_t)
 						(( raw_value >> 8 ) & 0xff);
-			mx_uint8_array[3] = (mx_uint8_type)
+			mx_uint8_array[3] = (uint8_t)
 						(raw_value & 0xff);
 		}
 		break;
 	case MXF_MOD_WRITE_SINGLE_REGISTER:
 	case MXF_MOD_WRITE_MULTIPLE_REGISTERS:
 		if ( num_bits <= 16 ) {
-			mx_uint16_array[0] = (mx_uint16_type)
+			mx_uint16_array[0] = (uint16_t)
 						(raw_value & 0xffff);
 		} else {
-			mx_uint16_array[0] = (mx_uint16_type)
+			mx_uint16_array[0] = (uint16_t)
 						(( raw_value >> 16 ) & 0xffff);
-			mx_uint16_array[1] = (mx_uint16_type)
+			mx_uint16_array[1] = (uint16_t)
 						(raw_value & 0xffff);
 		}
 		break;

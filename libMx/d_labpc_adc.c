@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 #if HAVE_LABPC		/* Is the LabPC+ driver software installed? */
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 
 #include <stdlib.h>
@@ -369,7 +369,7 @@ mxd_labpc_adc_read( MX_ANALOG_INPUT *adc )
 
 	MX_LABPC_ADC *labpc_adc;
 	int status, saved_errno;
-	mx_sint16_type data;
+	int16_t data;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
 
@@ -397,7 +397,7 @@ mxd_labpc_adc_read( MX_ANALOG_INPUT *adc )
 
 	/* Now read out the voltage. */
 
-	status = read( labpc_adc->file_handle, &data, sizeof(mx_sint16_type) );
+	status = read( labpc_adc->file_handle, &data, sizeof(int16_t) );
 
 	if ( status == -1 ) {
 		saved_errno = errno;

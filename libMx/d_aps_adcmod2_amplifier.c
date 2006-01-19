@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_amplifier.h"
 
 #include "i_aps_adcmod2.h"
@@ -263,7 +263,7 @@ mxd_aps_adcmod2_set_gain( MX_AMPLIFIER *amplifier )
 	MX_APS_ADCMOD2_AMPLIFIER *aps_adcmod2_amplifier;
 	MX_APS_ADCMOD2 *aps_adcmod2;
 	double gain;
-	mx_uint16_type gain_range;
+	uint16_t gain_range;
 	mx_status_type mx_status;
 
 	/* The following magic ADU per picoamp values are from Steve Ross. */
@@ -349,7 +349,7 @@ mxd_aps_adcmod2_set_time_constant( MX_AMPLIFIER *amplifier )
 	MX_APS_ADCMOD2_AMPLIFIER *aps_adcmod2_amplifier;
 	MX_APS_ADCMOD2 *aps_adcmod2;
 	double time_constant;
-	mx_uint16_type conversion_time;
+	uint16_t conversion_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aps_adcmod2_get_pointers( amplifier,
@@ -379,7 +379,7 @@ mxd_aps_adcmod2_set_time_constant( MX_AMPLIFIER *amplifier )
 				amplifier->time_constant );
 	}
 
-	conversion_time = (mx_uint16_type)
+	conversion_time = (uint16_t)
 	      mx_round( ADCMOD2_HEX_FROM_SECONDS( amplifier->time_constant ) );
 
 	/* Send the 'conv' command. */

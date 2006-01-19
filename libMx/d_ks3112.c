@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_camac.h"
 #include "d_ks3112.h"
@@ -28,15 +28,14 @@
 /* Initialize the KS3112 driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_ks3112_record_function_list = {
-	mxd_ks3112_initialize_type,
+	NULL,
 	mxd_ks3112_create_record_structures,
 	mxd_ks3112_finish_record_initialization,
-	mxd_ks3112_delete_record,
+	NULL,
 	mxd_ks3112_print_structure,
-	mxd_ks3112_read_parms_from_hardware,
-	mxd_ks3112_write_parms_to_hardware,
-	mxd_ks3112_open,
-	mxd_ks3112_close
+	NULL,
+	NULL,
+	mxd_ks3112_open
 };
 
 MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_ks3112_analog_output_function_list = {
@@ -61,15 +60,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ks3112_rfield_def_ptr
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
-mxd_ks3112_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3112_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3112_create_record_structures()";
+        static const char fname[] = "mxd_ks3112_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
         MX_KS3112 *ks3112;
@@ -109,7 +102,7 @@ mxd_ks3112_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3112_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_ks3112_finish_record_initialization()";
+        static const char fname[] = "mxd_ks3112_finish_record_initialization()";
 
         MX_KS3112 *ks3112;
 
@@ -146,28 +139,9 @@ mxd_ks3112_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3112_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3112_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3112_print_structure()";
+	static const char fname[] = "mxd_ks3112_print_structure()";
 
 	MX_ANALOG_OUTPUT *dac;
 	MX_KS3112 *ks3112;
@@ -209,22 +183,12 @@ mxd_ks3112_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3112_read_parms_from_hardware( MX_RECORD *record )
+mxd_ks3112_open( MX_RECORD *record )
 {
-	/* The 3112 output register cannot be read from, so there is
-	 * nothing to do here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3112_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_ks3112_write_parms_to_hardware()";
+	static const char fname[] = "mxd_ks3112_open()";
 
 	MX_ANALOG_OUTPUT *dac;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -240,21 +204,9 @@ mxd_ks3112_write_parms_to_hardware( MX_RECORD *record )
 
 	dac->value = dac->offset + dac->scale * dac->raw_value.long_value;
 
-	status = mxd_ks3112_write( dac );
+	mx_status = mxd_ks3112_write( dac );
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3112_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ks3112_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -274,10 +226,10 @@ mxd_ks3112_read( MX_ANALOG_OUTPUT *dac )
 MX_EXPORT mx_status_type
 mxd_ks3112_write( MX_ANALOG_OUTPUT *dac )
 {
-	const char fname[] = "mxd_ks3112_write()";
+	static const char fname[] = "mxd_ks3112_write()";
 
 	MX_KS3112 *ks3112;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	ks3112 = (MX_KS3112 *) (dac->record->record_type_struct);
@@ -287,7 +239,7 @@ mxd_ks3112_write( MX_ANALOG_OUTPUT *dac )
 			"MX_KS3112 pointer is NULL.");
 	}
 
-	data = (mx_sint32_type) dac->raw_value.long_value;
+	data = (int32_t) dac->raw_value.long_value;
 
 	mx_camac( (ks3112->camac_record),
 		(ks3112->slot), (ks3112->subaddress), 16,

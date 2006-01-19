@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_camac.h"
 #include "d_ks3512.h"
@@ -141,7 +141,7 @@ mxd_ks3512_read( MX_ANALOG_INPUT *adc )
 	static const char fname[] = "mxd_ks3512_read()";
 
 	MX_KS3512 *ks3512;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	ks3512 = (MX_KS3512 *) (adc->record->record_type_struct);

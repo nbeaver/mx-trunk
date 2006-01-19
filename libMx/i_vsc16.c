@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "i_vsc16.h"
 
@@ -34,8 +34,7 @@ MX_RECORD_FUNCTION_LIST mxi_vsc16_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_vsc16_open,
-	NULL
+	mxi_vsc16_open
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_vsc16_record_field_defaults[] = {
@@ -117,7 +116,7 @@ mxi_vsc16_open( MX_RECORD *record )
 	MX_VSC16 *vsc16;
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
-	mx_uint16_type manufacturer_id, module_type, serial_number, test_mask;
+	uint16_t manufacturer_id, module_type, serial_number, test_mask;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

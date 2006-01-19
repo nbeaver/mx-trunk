@@ -19,7 +19,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,10 +51,10 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
 #include "mx_ascii.h"
 #include "mx_array.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "i_vme58.h"
 
@@ -584,7 +584,7 @@ mxi_vme58_portio_open( MX_VME58 *vme58 )
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
 	unsigned long i, max_retries, sleep_ms;
-	mx_uint8_type status_register;
+	uint8_t status_register;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for VME58 controller '%s'.",
@@ -688,8 +688,8 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
 
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
-	mx_uint16_type output_get_index, output_put_index;
-	mx_uint16_type i, available_buffer_space;
+	uint16_t output_get_index, output_put_index;
+	uint16_t i, available_buffer_space;
 	size_t command_length;
 	char *ptr;
 	mx_status_type mx_status;
@@ -721,9 +721,9 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
 
 	/* See if there is enough space in the buffer to send the command. */
 
-	available_buffer_space = ((mx_uint16_type) output_get_index)
-				- ((mx_uint16_type) output_put_index)
-				- ((mx_uint16_type) 2);
+	available_buffer_space = ((uint16_t) output_get_index)
+				- ((uint16_t) output_put_index)
+				- ((uint16_t) 2);
 
 	MX_DEBUG( 2,("%s: available_buffer_space = %d",
 		fname, (int) available_buffer_space));
@@ -742,7 +742,7 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
 
 	/* Start sending the command. */
 
-	i = (mx_uint16_type) output_put_index;
+	i = (uint16_t) output_put_index;
 
 	ptr = command;
 
@@ -752,7 +752,7 @@ mxi_vme58_portio_putline( MX_VME58 *vme58, char *command, int debug_flag )
 
 		mx_status = mx_vme_out16( vme_record, crate, MXF_VME_A16,
 					base + MX_VME58_OUTPUT_BUFFER + 2*i,
-					(mx_uint16_type) *ptr );
+					(uint16_t) *ptr );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -826,8 +826,7 @@ mxi_vme58_portio_getline( MX_VME58 *vme58,
 
 	MX_RECORD *vme_record;
 	unsigned long crate, base;
-	mx_uint16_type input_get_index, input_put_index, c16;
-	mx_uint16_type i;
+	uint16_t i, input_get_index, input_put_index, c16;
 	unsigned long r, max_retries, sleep_ms;
 	int n;
 	char c;
@@ -901,7 +900,7 @@ mxi_vme58_portio_getline( MX_VME58 *vme58,
 		MX_DEBUG(-2,("%s: c16 = %c %#x", fname, c16 & 0xff, c16 ));
 #endif
 
-		c = (mx_uint8_type) ( c16 & 0xff );
+		c = (uint8_t) ( c16 & 0xff );
 
 		/* Handle special cases concerning the start and end of
 		 * VME58 response messages.

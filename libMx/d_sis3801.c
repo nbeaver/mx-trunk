@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_clock.h"
 #include "mx_vme.h"
@@ -79,7 +79,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_sis3801_rfield_def_ptr
 #if MXD_SIS3801_DEBUG
 #  define MXD_SIS3801_SHOW_STATUS \
 	do {								\
-		mx_uint32_type my_status_register;			\
+		uint32_t my_status_register;			\
 									\
 		mx_vme_in32( sis3801->vme_record,			\
 			sis3801->crate_number,				\
@@ -199,7 +199,7 @@ mxd_sis3801_open( MX_RECORD *record )
 
 	MX_MCS *mcs;
 	MX_SIS3801 *sis3801;
-	mx_uint32_type module_id_register, control_register, status_register;
+	uint32_t module_id_register, control_register, status_register;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -271,7 +271,7 @@ mxd_sis3801_open( MX_RECORD *record )
 	default:
 		mx_warning( "Power up status register value %#lx is not "
 		"either 0x300 (for 64K FIFO) or 0x100 (for 256K FIFO).",
-			status_register );
+			(unsigned long) status_register );
 
 		sis3801->fifo_size_in_kwords = -1;
 		break;
@@ -433,7 +433,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 	MX_CLOCK_TICK start_time, finish_time, measurement_ticks;
 	double total_measurement_time, maximum_measurement_time;
 	double pulse_period, clock_frequency;
-	mx_uint32_type prescale_factor, control_register;
+	uint32_t prescale_factor, control_register;
 	int busy;
 	mx_status_type mx_status;
 
@@ -579,7 +579,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The external prescale factor %ld for MCS '%s' is too large.  "
 		"The largest allowed external prescale factor is %lu.",
-			prescale_factor, sis3801->record->name,
+			(long) prescale_factor, sis3801->record->name,
 			sis3801->maximum_prescale_factor );
 		}
 	} else {
@@ -855,7 +855,7 @@ mxd_sis3801_read_all( MX_MCS *mcs )
 
 	MX_SIS3801 *sis3801;
 	long i, j, num_measurements;
-	mx_uint32_type fifo_value, status_register;
+	uint32_t fifo_value, status_register;
 	mx_status_type mx_status;
 
 #if MXD_SIS3801_DEBUG_TIMING

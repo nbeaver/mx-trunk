@@ -14,7 +14,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_camac.h"
 #include "mx_portio.h"
 #include "i_dsp6001.h"
@@ -65,9 +65,9 @@ static void
 pr_camac_crate_select( MX_RECORD *portio_record,
 				unsigned long base_address, int crate )
 {
-	mx_uint8_type select_byte;
+	uint8_t select_byte;
 
-	select_byte = ( mx_uint8_type ) ( crate - 1 );
+	select_byte = ( uint8_t ) ( crate - 1 );
 
 	select_byte &= 0x03;            /* Only allow crates 1 - 4. */
 
@@ -140,7 +140,7 @@ mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_status )
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
 	int crate_number;
-	mx_uint8_type status;
+	uint8_t status;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
 
@@ -172,7 +172,7 @@ mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
 	int crate_number;
-	mx_uint8_type command_byte;
+	uint8_t command_byte;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
 
@@ -186,7 +186,7 @@ mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
 				base_address, crate_number );
 	}
 
-	command_byte = ( mx_uint8_type ) ( command & 0xff );
+	command_byte = ( uint8_t ) ( command & 0xff );
 
 	mx_portio_outp8( portio_record, base_address + 6, command_byte );
 
@@ -203,14 +203,14 @@ mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
 
 MX_EXPORT mx_status_type
 mxi_dsp6001_camac( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, mx_sint32_type *data, int *Q, int *X)
+		int function_code, int32_t *data, int *Q, int *X)
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
 	int crate_number, X_temp;
-	mx_uint8_type data_byte;
-	mx_sint32_type data_value;
+	uint8_t data_byte;
+	int32_t data_value;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
 
@@ -227,30 +227,30 @@ mxi_dsp6001_camac( MX_CAMAC *crate, int slot, int subaddress,
 	/* Set NAF codes ( slot, subaddress, function code ) */
 
 	mx_portio_outp8( portio_record,
-			base_address + 3, (mx_uint8_type) subaddress );
+			base_address + 3, (uint8_t) subaddress );
 
 	mx_portio_outp8( portio_record,
-			base_address + 4, (mx_uint8_type) function_code );
+			base_address + 4, (uint8_t) function_code );
 
 	mx_portio_outp8( portio_record,
-			base_address + 5, (mx_uint8_type) slot );
+			base_address + 5, (uint8_t) slot );
 
 	/* Load data to be written, if necessary. */
 
 	if ( function_code >= 16 && function_code <= 23 ) {
 
 		data_value = *data;
-		data_byte = ( mx_uint8_type ) ( data_value & 0xFF );
+		data_byte = ( uint8_t ) ( data_value & 0xFF );
 		mx_portio_outp8( portio_record,
 					base_address + 2, data_byte );
 
 		data_value >>= 8;
-		data_byte = ( mx_uint8_type ) ( data_value & 0xFF );
+		data_byte = ( uint8_t ) ( data_value & 0xFF );
 		mx_portio_outp8( portio_record,
 					base_address + 1, data_byte );
 
 		data_value >>= 8;
-		data_byte = ( mx_uint8_type ) ( data_value & 0xFF );
+		data_byte = ( uint8_t ) ( data_value & 0xFF );
 		mx_portio_outp8( portio_record,
 					base_address + 0, data_byte );
 	}

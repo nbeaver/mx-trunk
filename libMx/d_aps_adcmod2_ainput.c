@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_analog_input.h"
 
 #include "i_aps_adcmod2.h"
@@ -103,7 +103,7 @@ mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 	MX_APS_ADCMOD2 *aps_adcmod2;
 	MX_RECORD *aps_adcmod2_record;
 	unsigned long offset;
-	mx_uint16_type raw_value;
+	uint16_t raw_value;
 	mx_status_type mx_status;
 
 	aps_adcmod2_ainput = (MX_APS_ADCMOD2_AINPUT *)

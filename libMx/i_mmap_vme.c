@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,8 +30,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "i_mmap_vme.h"
 
@@ -89,13 +89,13 @@ MX_RECORD_FIELD_DEFAULTS *mxi_mmap_vme_rfield_def_ptr
                                      \
 	    switch( vme->data_size ) { \
 	    case MXF_VME_D8:  \
-		value = (unsigned long) *(mx_uint8_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint8_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D16: \
-		value = (unsigned long) *(mx_uint16_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint16_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D32: \
-		value = (unsigned long) *(mx_uint32_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint32_t *) vme->data_pointer; \
 		break; \
 	    } \
 	    MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx", \
@@ -112,13 +112,13 @@ MX_RECORD_FIELD_DEFAULTS *mxi_mmap_vme_rfield_def_ptr
                                      \
 	    switch( vme->data_size ) { \
 	    case MXF_VME_D8:  \
-		value = (unsigned long) *(mx_uint8_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint8_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D16: \
-		value = (unsigned long) *(mx_uint16_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint16_t *) vme->data_pointer; \
 		break; \
 	    case MXF_VME_D32: \
-		value = (unsigned long) *(mx_uint32_type *) vme->data_pointer; \
+		value = (unsigned long) *(uint32_t *) vme->data_pointer; \
 		break; \
 	    } \
 	MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx (%lu values)", \
@@ -655,9 +655,9 @@ mxi_mmap_vme_input( MX_VME *vme )
 
 	MX_MMAP_VME *mmap_vme;
 	char *vme_local_address;
-	mx_uint8_type *uint8_input_ptr;
-	mx_uint16_type *uint16_input_ptr;
-	mx_uint32_type *uint32_input_ptr;
+	uint8_t *uint8_input_ptr;
+	uint16_t *uint16_input_ptr;
+	uint32_t *uint32_input_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );
@@ -681,19 +681,19 @@ mxi_mmap_vme_input( MX_VME *vme )
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
-		uint8_input_ptr = (mx_uint8_type *) vme->data_pointer;
+		uint8_input_ptr = (uint8_t *) vme->data_pointer;
 
-		*uint8_input_ptr = *( (mx_uint8_type *) vme_local_address );
+		*uint8_input_ptr = *( (uint8_t *) vme_local_address );
 		break;
 	case MXF_VME_D16:
-		uint16_input_ptr = (mx_uint16_type *) vme->data_pointer;
+		uint16_input_ptr = (uint16_t *) vme->data_pointer;
 
-		*uint16_input_ptr = *( (mx_uint16_type *) vme_local_address );
+		*uint16_input_ptr = *( (uint16_t *) vme_local_address );
 		break;
 	case MXF_VME_D32:
-		uint32_input_ptr = (mx_uint32_type *) vme->data_pointer;
+		uint32_input_ptr = (uint32_t *) vme->data_pointer;
 
-		*uint32_input_ptr = *( (mx_uint32_type *) vme_local_address );
+		*uint32_input_ptr = *( (uint32_t *) vme_local_address );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -713,9 +713,9 @@ mxi_mmap_vme_output( MX_VME *vme )
 
 	MX_MMAP_VME *mmap_vme;
 	char *vme_local_address;
-	mx_uint8_type *uint8_output_ptr;
-	mx_uint16_type *uint16_output_ptr;
-	mx_uint32_type *uint32_output_ptr;
+	uint8_t *uint8_output_ptr;
+	uint16_t *uint16_output_ptr;
+	uint32_t *uint32_output_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );
@@ -739,19 +739,19 @@ mxi_mmap_vme_output( MX_VME *vme )
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
-		uint8_output_ptr = (mx_uint8_type *) vme_local_address;
+		uint8_output_ptr = (uint8_t *) vme_local_address;
 
-		*uint8_output_ptr = *( (mx_uint8_type *) vme->data_pointer );
+		*uint8_output_ptr = *( (uint8_t *) vme->data_pointer );
 		break;
 	case MXF_VME_D16:
-		uint16_output_ptr = (mx_uint16_type *) vme_local_address;
+		uint16_output_ptr = (uint16_t *) vme_local_address;
 
-		*uint16_output_ptr = *( (mx_uint16_type *) vme->data_pointer );
+		*uint16_output_ptr = *( (uint16_t *) vme->data_pointer );
 		break;
 	case MXF_VME_D32:
-		uint32_output_ptr = (mx_uint32_type *) vme_local_address;
+		uint32_output_ptr = (uint32_t *) vme_local_address;
 
-		*uint32_output_ptr = *( (mx_uint32_type *) vme->data_pointer );
+		*uint32_output_ptr = *( (uint32_t *) vme->data_pointer );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -772,9 +772,9 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 	MX_MMAP_VME *mmap_vme;
 	unsigned long i;
 	char *vme_local_address;
-	mx_uint8_type *uint8_ptr;
-	mx_uint16_type *uint16_ptr;
-	mx_uint32_type *uint32_ptr;
+	uint8_t *uint8_ptr;
+	uint16_t *uint16_ptr;
+	uint32_t *uint32_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );
@@ -798,10 +798,10 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
-		uint8_ptr = (mx_uint8_type *) vme->data_pointer;
+		uint8_ptr = (uint8_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint8_ptr = *((mx_uint8_type *) vme_local_address);
+			*uint8_ptr = *((uint8_t *) vme_local_address);
 
 			uint8_ptr++;
 
@@ -812,7 +812,7 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 		uint16_ptr = vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint16_ptr = *((mx_uint16_type *) vme_local_address);
+			*uint16_ptr = *((uint16_t *) vme_local_address);
 
 			uint16_ptr++;
 
@@ -823,7 +823,7 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 		uint32_ptr = vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint32_ptr = *((mx_uint32_type *) vme_local_address);
+			*uint32_ptr = *((uint32_t *) vme_local_address);
 
 			uint32_ptr++;
 
@@ -849,9 +849,9 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 	MX_MMAP_VME *mmap_vme;
 	unsigned long i;
 	char *vme_local_address;
-	mx_uint8_type *uint8_ptr;
-	mx_uint16_type *uint16_ptr;
-	mx_uint32_type *uint32_ptr;
+	uint8_t *uint8_ptr;
+	uint16_t *uint16_ptr;
+	uint32_t *uint32_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mmap_vme_get_pointers( vme, &mmap_vme, fname );
@@ -875,10 +875,10 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
-		uint8_ptr = (mx_uint8_type *) vme->data_pointer;
+		uint8_ptr = (uint8_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((mx_uint8_type *) vme_local_address) = *uint8_ptr;
+			*((uint8_t *) vme_local_address) = *uint8_ptr;
 
 			uint8_ptr++;
 
@@ -886,10 +886,10 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 		}
 		break;
 	case MXF_VME_D16:
-		uint16_ptr = (mx_uint16_type *) vme->data_pointer;
+		uint16_ptr = (uint16_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((mx_uint16_type *) vme_local_address) = *uint16_ptr;
+			*((uint16_t *) vme_local_address) = *uint16_ptr;
 
 			uint16_ptr++;
 
@@ -897,10 +897,10 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 		}
 		break;
 	case MXF_VME_D32:
-		uint32_ptr = (mx_uint32_type *) vme->data_pointer;
+		uint32_ptr = (uint32_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((mx_uint32_type *) vme_local_address) = *uint32_ptr;
+			*((uint32_t *) vme_local_address) = *uint32_ptr;
 
 			uint32_ptr++;
 

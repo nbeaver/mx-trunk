@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 
 #include "i_sis3807.h"
@@ -115,7 +115,7 @@ mxi_sis3807_open( MX_RECORD *record )
 
 	MX_SIS3807 *sis3807;
 	int i;
-	mx_uint32_type module_id_register, control_register, preset_register;
+	uint32_t module_id_register, control_register, preset_register;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sis3807_get_pointers( record, &sis3807, fname );
@@ -366,7 +366,7 @@ mxi_sis3807_close( MX_RECORD *record )
 	static const char fname[] = "mxi_sis3807_close()";
 
 	MX_SIS3807 *sis3807;
-	mx_uint32_type control_register;
+	uint32_t control_register;
 	mx_status_type mx_status;
 
 	mx_status = mxi_sis3807_get_pointers( record, &sis3807, fname );

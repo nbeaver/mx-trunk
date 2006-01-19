@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,14 +121,14 @@ typedef struct {
 	double input_count_rate;
 	double output_count_rate;
 
-	mx_uint32_type num_fast_peaks;
-	mx_uint32_type num_events;
-	mx_uint32_type num_underflows;
-	mx_uint32_type num_overflows;
+	uint32_t num_fast_peaks;
+	uint32_t num_events;
+	uint32_t num_underflows;
+	uint32_t num_overflows;
 
-	mx_uint32_type old_preset_type;
-	mx_uint32_type old_preset_high_order;
-	mx_uint32_type old_preset_low_order;
+	uint32_t old_preset_type;
+	uint32_t old_preset_high_order;
+	uint32_t old_preset_low_order;
 
 	mx_status_type (*is_busy)( MX_MCA *mca,
 					int *busy_flag,
@@ -136,17 +136,17 @@ typedef struct {
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					mx_uint32_type *value_ptr,
+					uint32_t *value_ptr,
 					int debug_flag );
 
 	mx_status_type (*write_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					mx_uint32_type value,
+					uint32_t value,
 					int debug_flag );
 
 	mx_status_type (*write_parameter_to_all_channels)( MX_MCA *mca,
 					char *parameter_name,
-					mx_uint32_type value,
+					uint32_t value,
 					int debug_flag );
 
 	mx_status_type (*start_run)( MX_MCA *mca,

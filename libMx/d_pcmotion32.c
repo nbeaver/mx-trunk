@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,6 @@
 #include <windows.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_motor.h"

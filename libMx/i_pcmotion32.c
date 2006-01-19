@@ -32,7 +32,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
 #include "mx_generic.h"
 
@@ -41,17 +40,14 @@
 #include "pcMotion32.h"
 
 MX_RECORD_FUNCTION_LIST mxi_pcmotion32_record_function_list = {
-	mxi_pcmotion32_initialize_type,
-	mxi_pcmotion32_create_record_structures,
-	mxi_pcmotion32_finish_record_initialization,
-	mxi_pcmotion32_delete_record,
-	mxi_pcmotion32_print_structure,
-	mxi_pcmotion32_read_parms_from_hardware,
-	mxi_pcmotion32_write_parms_to_hardware,
-	mxi_pcmotion32_open,
-	mxi_pcmotion32_close,
 	NULL,
-	mxi_pcmotion32_resynchronize
+	mxi_pcmotion32_create_record_structures,
+	NULL,
+	NULL,
+	mxi_pcmotion32_print_structure,
+	NULL,
+	NULL,
+	mxi_pcmotion32_open
 };
 
 MX_GENERIC_FUNCTION_LIST mxi_pcmotion32_generic_function_list = {
@@ -77,7 +73,7 @@ mxi_pcmotion32_get_pointers( MX_RECORD *record,
 			MX_PCMOTION32 **pcmotion32,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_pcmotion32_get_pointers()";
+	static const char fname[] = "mxi_pcmotion32_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -104,15 +100,9 @@ mxi_pcmotion32_get_pointers( MX_RECORD *record,
 /* ====== */
 
 MX_EXPORT mx_status_type
-mxi_pcmotion32_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_pcmotion32_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcmotion32_create_record_structures()";
+	static const char fname[] = "mxi_pcmotion32_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_PCMOTION32 *pcmotion32;
@@ -152,34 +142,9 @@ mxi_pcmotion32_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_pcmotion32_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pcmotion32_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_pcmotion32_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxi_pcmotion32_print_structure()";
+	static const char fname[] = "mxi_pcmotion32_print_structure()";
 
 	MX_PCMOTION32 *pcmotion32;
 	MX_RECORD *this_record;
@@ -226,15 +191,9 @@ mxi_pcmotion32_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_pcmotion32_read_parms_from_hardware( MX_RECORD *record )
+mxi_pcmotion32_open( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pcmotion32_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxi_pcmotion32_write_parms_to_hardware()";
+	static const char fname[] = "mxi_pcmotion32_open()";
 
 	MX_PCMOTION32 *pcmotion32;
 	BYTE boardID;
@@ -273,34 +232,6 @@ mxi_pcmotion32_write_parms_to_hardware( MX_RECORD *record )
 "Cannot enable/disable the limit switches for motor controller '%s'.  "
 "Reason = '%s'", record->name, mxi_pcmotion32_strerror( status ) );
 	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pcmotion32_open( MX_RECORD *record )
-{
-	return mxi_pcmotion32_resynchronize( record );
-}
-
-MX_EXPORT mx_status_type
-mxi_pcmotion32_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pcmotion32_resynchronize( MX_RECORD *record )
-{
-	const char fname[] = "mxi_pcmotion32_resynchronize()";
-
-	MX_PCMOTION32 *pcmotion32;
-	mx_status_type mx_status;
-
-	mx_status = mxi_pcmotion32_get_pointers( record, &pcmotion32, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
 
 	return MX_SUCCESSFUL_RESULT;
 }

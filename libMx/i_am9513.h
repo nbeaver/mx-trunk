@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,11 +53,11 @@ typedef struct {
 
 	unsigned long master_mode_register;
 
-	mx_uint16_type counter_mode_register[MX_AM9513_NUM_COUNTERS];
-	mx_uint16_type load_register[MX_AM9513_NUM_COUNTERS];
-	mx_uint16_type hold_register[MX_AM9513_NUM_COUNTERS];
+	uint16_t counter_mode_register[MX_AM9513_NUM_COUNTERS];
+	uint16_t load_register[MX_AM9513_NUM_COUNTERS];
+	uint16_t hold_register[MX_AM9513_NUM_COUNTERS];
 
-	mx_uint8_type status_register;
+	uint8_t status_register;
 
 	MX_RECORD *counter_array[MX_AM9513_NUM_COUNTERS];
 } MX_AM9513;
@@ -78,15 +78,15 @@ typedef struct {
 #define MX_AM9513_DATA_REGISTER  0
 #define MX_AM9513_CMD_REGISTER   1
 
-MX_API mx_uint8_type mxi_am9513_inp8( MX_AM9513 *am9513, int port_number );
+MX_API uint8_t mxi_am9513_inp8( MX_AM9513 *am9513, int port_number );
 
-MX_API mx_uint16_type mxi_am9513_inp16( MX_AM9513 *am9513, int port_number );
+MX_API uint16_t mxi_am9513_inp16( MX_AM9513 *am9513, int port_number );
 
 MX_API void mxi_am9513_outp8( MX_AM9513 *am9513, int port_number,
-						mx_uint8_type byte_value );
+						uint8_t byte_value );
 
 MX_API void mxi_am9513_outp16( MX_AM9513 *am9513, int port_number,
-						mx_uint16_type word_value );
+						uint16_t word_value );
 
 /*---*/
 

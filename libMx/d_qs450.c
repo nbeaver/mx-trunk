@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_scaler.h"
@@ -32,15 +32,9 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_qs450_record_function_list = {
-	mxd_qs450_initialize_type,
-	mxd_qs450_create_record_structures,
-	mxd_qs450_finish_record_initialization,
-	mxd_qs450_delete_record,
 	NULL,
-	mxd_qs450_read_parms_from_hardware,
-	mxd_qs450_write_parms_to_hardware,
-	mxd_qs450_open,
-	mxd_qs450_close
+	mxd_qs450_create_record_structures,
+	mxd_qs450_finish_record_initialization
 };
 
 MX_SCALER_FUNCTION_LIST mxd_qs450_scaler_function_list = {
@@ -86,17 +80,9 @@ MX_RECORD_FIELD_DEFAULTS *mxd_ks3610_record_field_def_ptr
 			= &mxd_ks3610_record_field_defaults[0];
 
 MX_EXPORT mx_status_type
-mxd_qs450_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_qs450_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_qs450_create_record_structures()";
+	static const char fname[] = "mxd_qs450_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_QS450 *qs450;
@@ -135,7 +121,7 @@ mxd_qs450_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_qs450_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_qs450_finish_record_initialization()";
+	static const char fname[] = "mxd_qs450_finish_record_initialization()";
 
 	MX_QS450 *qs450;
 	MX_RECORD *camac_record;
@@ -202,67 +188,12 @@ mxd_qs450_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_qs450_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_qs450_read_parms_from_hardware( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxd_qs450_read_parms_from_hardware() called."));
-
-	/* No module state to save, so nothing to read. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_qs450_write_parms_to_hardware( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxd_qs450_write_parms_to_hardware() called."));
-
-	/* No module state to restore. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_qs450_open( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxd_qs450_open() invoked."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_qs450_close( MX_RECORD *record )
-{
-	MX_DEBUG(2, ("mxd_qs450_close() invoked."));
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_qs450_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_qs450_scaler_clear()";
+	static const char fname[] = "mxd_qs450_scaler_clear()";
 
 	MX_QS450 *qs450;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	qs450 = (MX_QS450 *) (scaler->record->record_type_struct);
@@ -288,7 +219,7 @@ mxd_qs450_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_qs450_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_qs450_scaler_overflow_set()";
+	static const char fname[] = "mxd_qs450_scaler_overflow_set()";
 
 	scaler->overflow_set = 0;
 
@@ -299,10 +230,10 @@ mxd_qs450_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_qs450_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_qs450_scaler_read()";
+	static const char fname[] = "mxd_qs450_scaler_read()";
 
 	MX_QS450 *qs450;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 
 	qs450 = (MX_QS450 *) (scaler->record->record_type_struct);
@@ -327,41 +258,6 @@ mxd_qs450_scaler_read( MX_SCALER *scaler )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if 0   /* WML: commented out as obsolete. */
-
-MX_EXPORT mx_status_type
-mxd_qs450_scaler_read_and_clear( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_qs450_scaler_read_and_clear()";
-
-	MX_QS450 *qs450;
-	mx_sint32_type data;
-	int camac_Q, camac_X;
-
-	qs450 = (MX_QS450 *) (scaler->record->record_type_struct);
-
-	if ( qs450 == (MX_QS450 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"QS450 pointer is NULL.");
-	}
-
-	mx_camac( (qs450->camac_record), (qs450->slot), (qs450->subaddress), 2,
-		&data, &camac_Q, &camac_X );
-
-	if ( camac_Q == 0 || camac_X == 0 ) {
-		scaler->raw_value = 0L;
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
-	}
-
-	scaler->raw_value = (long) data;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif
-
 MX_EXPORT mx_status_type
 mxd_qs450_scaler_get_parameter( MX_SCALER *scaler )
 {
@@ -382,7 +278,7 @@ mxd_qs450_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_qs450_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_qs450_scaler_set_parameter()";
+	static const char fname[] = "mxd_qs450_scaler_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

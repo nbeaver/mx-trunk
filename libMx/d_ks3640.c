@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_encoder.h"
 #include "mx_camac.h"
@@ -31,15 +31,14 @@
 /* Initialize the encoder driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list = {
-	mxd_ks3640_initialize_type,
+	NULL,
 	mxd_ks3640_create_record_structures,
 	mxd_ks3640_finish_record_initialization,
-	mxd_ks3640_delete_record,
+	NULL,
 	NULL,
 	mxd_ks3640_read_parms_from_hardware,
 	mxd_ks3640_write_parms_to_hardware,
-	mxd_ks3640_open,
-	mxd_ks3640_close
+	mxd_ks3640_open
 };
 
 MX_ENCODER_FUNCTION_LIST mxd_ks3640_encoder_function_list = {
@@ -69,7 +68,7 @@ mxd_ks3640_get_pointers( MX_ENCODER *encoder,
 			MX_KS3640 **ks3640,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_ks3640_get_pointers()";
+	static const char fname[] = "mxd_ks3640_get_pointers()";
 
 	if ( encoder == (MX_ENCODER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -103,15 +102,9 @@ mxd_ks3640_get_pointers( MX_ENCODER *encoder,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_ks3640_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3640_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3640_create_record_structures()";
+	static const char fname[] = "mxd_ks3640_create_record_structures()";
 
 	MX_ENCODER *encoder;
 	MX_KS3640 *ks3640;
@@ -151,7 +144,7 @@ mxd_ks3640_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3640_finish_record_initialization()";
+	static const char fname[] = "mxd_ks3640_finish_record_initialization()";
 
 	MX_KS3640 *ks3640;
 
@@ -199,28 +192,9 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3640_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3640_read_parms_from_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3640_read_parms_from_hardware()";
+	static const char fname[] = "mxd_ks3640_read_parms_from_hardware()";
 
 	MX_ENCODER *encoder;
 	long current_value;
@@ -252,7 +226,7 @@ mxd_ks3640_read_parms_from_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3640_write_parms_to_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3640_write_parms_to_hardware()";
+	static const char fname[] = "mxd_ks3640_write_parms_to_hardware()";
 
 	MX_ENCODER *encoder;
 	mx_status_type status;
@@ -277,11 +251,11 @@ mxd_ks3640_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ks3640_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ks3640_open()";
+	static const char fname[] = "mxd_ks3640_open()";
 
 	MX_ENCODER *encoder;
 	MX_KS3640 *ks3640;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
@@ -315,19 +289,13 @@ mxd_ks3640_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ks3640_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 {
-	const char fname[] = "mxd_ks3640_get_overflow_status()";
+	static const char fname[] = "mxd_ks3640_get_overflow_status()";
 
 	MX_KS3640 *ks3640;
-	mx_sint32_type data, status_bits;
-	mx_sint32_type underflow_set_temp, overflow_set_temp;
+	int32_t data, status_bits;
+	int32_t underflow_set_temp, overflow_set_temp;
 	int N, A;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
@@ -394,10 +362,10 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 MX_EXPORT mx_status_type
 mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 {
-	const char fname[] = "mxd_ks3640_reset_overflow_status()";
+	static const char fname[] = "mxd_ks3640_reset_overflow_status()";
 
 	MX_KS3640 *ks3640;
-	mx_sint32_type data;
+	int32_t data;
 	int N, A;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
@@ -438,10 +406,10 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 MX_EXPORT mx_status_type
 mxd_ks3640_read( MX_ENCODER *encoder )
 {
-	const char fname[] = "mxd_ks3640_read()";
+	static const char fname[] = "mxd_ks3640_read()";
 
 	MX_KS3640 *ks3640;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
@@ -467,10 +435,10 @@ mxd_ks3640_read( MX_ENCODER *encoder )
 MX_EXPORT mx_status_type
 mxd_ks3640_write( MX_ENCODER *encoder )
 {
-	const char fname[] = "mxd_ks3640_write()";
+	static const char fname[] = "mxd_ks3640_write()";
 
 	MX_KS3640 *ks3640;
-	mx_sint32_type data;
+	int32_t data;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
@@ -479,7 +447,7 @@ mxd_ks3640_write( MX_ENCODER *encoder )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	data = (mx_sint32_type) encoder->value;
+	data = (int32_t) encoder->value;
 
 	mx_camac( ks3640->camac_record,
 		ks3640->slot, ks3640->subaddress, 16,

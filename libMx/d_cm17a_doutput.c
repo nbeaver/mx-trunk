@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_digital_output.h"
@@ -179,10 +179,10 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 	MX_CM17A_DOUTPUT *cm17a_doutput;
 	MX_CM17A *cm17a;
 	int house_index, device_index;
-	mx_uint16_type house_and_device_code;
+	uint16_t house_and_device_code;
 	mx_status_type mx_status;
 
-	static const mx_uint16_type house_code[16] = {
+	static const uint16_t house_code[16] = {
 		0x6000,		/* A */
 		0x7000,		/* B */
 		0x4000,		/* C */
@@ -201,7 +201,7 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 		0x3000,		/* P */
 	};
 
-	static const mx_uint16_type device_code[16] = {
+	static const uint16_t device_code[16] = {
 		0x0000,		/*  1 */
 		0x0010,		/*  2 */
 		0x0008,		/*  3 */
@@ -220,7 +220,7 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 		0x0458,		/* 16 */
 	};
 
-	static const mx_uint16_type command_code[4] = {
+	static const uint16_t command_code[4] = {
 		0x0000,		/* ON         */
 		0x0020,		/* OFF        */
 		0x0088,		/* BRIGHT 005 */
@@ -286,7 +286,7 @@ mxd_cm17a_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 
 	MX_CM17A_DOUTPUT *cm17a_doutput;
 	MX_CM17A *cm17a;
-	mx_uint16_type command;
+	uint16_t command;
 	mx_status_type mx_status;
 
 	mx_status = mxd_cm17a_doutput_get_pointers( doutput,

@@ -39,7 +39,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_mca.h"
 #include "i_xia_xerxes.h"
@@ -860,7 +860,7 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 					mca_record->record_type_struct;
 
 				xia_dxp_mca->old_preset_type
-					= (mx_uint32_type) MX_ULONG_MAX;
+					= (uint32_t) MX_ULONG_MAX;
 
 				mca->new_data_available = TRUE;
 				xia_dxp_mca->new_statistics_available = TRUE;
@@ -1092,7 +1092,7 @@ mxi_xia_xerxes_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type *value_ptr,
+			uint32_t *value_ptr,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_xerxes_read_parameter()";
@@ -1147,7 +1147,7 @@ mxi_xia_xerxes_read_parameter( MX_MCA *mca,
 			mxi_xia_xerxes_strerror( xia_status ) );
 	}
 
-	*value_ptr = (mx_uint32_type) short_value;
+	*value_ptr = (uint32_t) short_value;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: value = %lu", fname, *value_ptr));
@@ -1159,7 +1159,7 @@ mxi_xia_xerxes_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_xerxes_write_parameter()";
@@ -1238,7 +1238,7 @@ mxi_xia_xerxes_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_write_parameter_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			mx_uint32_type value,
+			uint32_t value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_xerxes_write_parameter_to_all_channels()";
@@ -1631,9 +1631,9 @@ mxi_xia_xerxes_read_statistics( MX_MCA *mca,
 			xia_dxp_mca->output_count_rate, nevent ));
 	}
 
-	xia_dxp_mca->num_events = (mx_uint32_type) nevent;
+	xia_dxp_mca->num_events = (uint32_t) nevent;
 
-	xia_dxp_mca->num_fast_peaks = (mx_uint32_type) mx_round(
+	xia_dxp_mca->num_fast_peaks = (uint32_t) mx_round(
 				xia_dxp_mca->input_count_rate * mca->live_time);
 
 	xia_dxp_mca->num_underflows = 0;
@@ -1662,8 +1662,8 @@ mxi_xia_xerxes_read_statistics( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	xia_dxp_mca->num_underflows = (mx_uint32_type) parameter_array[0]
-				+ 65536L * (mx_uint32_type) parameter_array[1];
+	xia_dxp_mca->num_underflows = (uint32_t) parameter_array[0]
+				+ 65536L * (uint32_t) parameter_array[1];
 
 	mx_status = mxi_xia_xerxes_read_dspsymbol_array( xia_dxp_mca,
 					"OVERFLOWS", 2, parameter_array );
@@ -1671,8 +1671,8 @@ mxi_xia_xerxes_read_statistics( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	xia_dxp_mca->num_overflows = (mx_uint32_type) parameter_array[0]
-				+ 65536L * (mx_uint32_type) parameter_array[1];
+	xia_dxp_mca->num_overflows = (uint32_t) parameter_array[0]
+				+ 65536L * (uint32_t) parameter_array[1];
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

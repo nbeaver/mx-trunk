@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_clock.h"
 #include "mx_vme.h"
@@ -159,7 +159,7 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_SIS3801_PULSER *sis3801_pulser;
-	mx_uint32_type module_id_register, control_register;
+	uint32_t module_id_register, control_register;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -508,7 +508,7 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	const char fname[] = "mxd_sis3801_pulser_get_parameter()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
-	mx_uint32_type prescale_factor;
+	uint32_t prescale_factor;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_pulser_get_pointers( pulse_generator,
@@ -586,7 +586,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	double maximum_pulse_period;
-	mx_uint32_type prescale_factor, control_register_value;
+	uint32_t prescale_factor, control_register_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_pulser_get_pointers( pulse_generator,
@@ -666,7 +666,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		prescale_factor -= 1;
 
 		MX_DEBUG( 2,("%s: prescale_factor = %lu",
-					fname, prescale_factor));
+				fname, (unsigned long) prescale_factor));
 
 		mx_status = mx_vme_out32( sis3801_pulser->vme_record,
 				sis3801_pulser->crate_number,

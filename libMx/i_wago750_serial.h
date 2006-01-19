@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ typedef struct {
 
 	unsigned int num_input_bytes_in_buffer;
 	unsigned int next_input_byte_index;
-	mx_uint8_type input_buffer[5];
+	uint8_t input_buffer[5];
 
 	int interleaved_data_addresses;
 	int control_address;

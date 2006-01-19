@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_camac.h"
 #include "mx_record.h"
 #include "mx_driver.h"
@@ -137,7 +137,7 @@ mxi_scamac_controller_command( MX_CAMAC *crate, int command )
 
 MX_EXPORT mx_status_type
 mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, mx_sint32_type *data, int *Q, int *X)
+		int function_code, int32_t *data, int *Q, int *X)
 {
 	static const char fname[] = "mxi_scamac_camac()";
 
@@ -173,14 +173,15 @@ mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
 
 	if ( (scamac->logfile) != NULL ) {
 		if ( function_code >= 16 && function_code <= 23 ) {
-			fprintf((scamac->logfile),
+			fprintf(scamac->logfile,
 				"camac: %s, %d, %d, %d, %ld (0x%lx)\n",
 				crate->record->name, slot, subaddress,
-				function_code, *data, *data);
+				function_code, (unsigned long) *data,
+				(unsigned long) *data);
 
 			fflush(scamac->logfile);
 		} else {
-			fprintf((scamac->logfile),
+			fprintf(scamac->logfile,
 				"camac: %s, %d, %d, %d\n",
 				crate->record->name, slot, subaddress,
 				function_code);

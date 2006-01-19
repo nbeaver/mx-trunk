@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ typedef struct {
 	mx_status_type ( *get_lam_status ) ( MX_CAMAC *crate, int *lam_n );
 	mx_status_type ( *controller_command ) ( MX_CAMAC *crate, int command );
 	mx_status_type ( *camac ) ( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, mx_sint32_type *data, int *Q, int *X );
+		int function_code, int32_t *data, int *Q, int *X );
 } MX_CAMAC_FUNCTION_LIST;
 
 /* ============== Interface function prototypes. ============== */
@@ -83,11 +83,11 @@ MX_API mx_status_type mx_camac_controller_command( MX_RECORD *camac_record,
 
 MX_API mx_status_type mx_camac( MX_RECORD *camac_record,
 				int slot, int subaddress, int function_code,
-				mx_sint32_type *data, int *Q, int *X );
+				int32_t *data, int *Q, int *X );
 
 MX_API void mx_camac_qwait( MX_RECORD *camac_record,
 				int slot, int subaddress, int function_code,
-				mx_sint32_type *data, int *X );
+				int32_t *data, int *X );
 
 extern MX_RECORD_FUNCTION_LIST mx_camac_record_function_list;
 

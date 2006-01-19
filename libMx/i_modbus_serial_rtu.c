@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_rs232.h"
 #include "mx_modbus.h"
 #include "i_modbus_serial_rtu.h"
@@ -104,12 +104,12 @@ mxi_modbus_serial_rtu_get_pointers( MX_MODBUS *modbus,
  */
 
 static void
-mxi_modbus_serial_rtu_compute_crc( mx_uint8_type *message_ptr,
+mxi_modbus_serial_rtu_compute_crc( uint8_t *message_ptr,
 				int data_length,
-				mx_uint8_type *crc_low_byte,
-				mx_uint8_type *crc_high_byte )
+				uint8_t *crc_low_byte,
+				uint8_t *crc_high_byte )
 {
-	static mx_uint8_type crc_high_table[] = {
+	static uint8_t crc_high_table[] = {
 	0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41, 0x01, 0xC0, 
 	0x80, 0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
 	0x00, 0xC1, 0x81, 0x40, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0,
@@ -138,7 +138,7 @@ mxi_modbus_serial_rtu_compute_crc( mx_uint8_type *message_ptr,
 	0x80, 0x41, 0x00, 0xC1, 0x81, 0x40
 	};
 
-	static mx_uint8_type crc_low_table[] = {
+	static uint8_t crc_low_table[] = {
 	0x00, 0xC0, 0xC1, 0x01, 0xC3, 0x03, 0x02, 0xC2, 0xC6, 0x06,
 	0x07, 0xC7, 0x05, 0xC5, 0xC4, 0x04, 0xCC, 0x0C, 0x0D, 0xCD,
 	0x0F, 0xCF, 0xCE, 0x0E, 0x0A, 0xCA, 0xCB, 0x0B, 0xC9, 0x09,
@@ -167,7 +167,7 @@ mxi_modbus_serial_rtu_compute_crc( mx_uint8_type *message_ptr,
 	0x43, 0x83, 0x41, 0x81, 0x80, 0x40
 	};
 
-	mx_uint8_type low_byte, high_byte;
+	uint8_t low_byte, high_byte;
 	int i, n;
 
 	low_byte = 0xff;
@@ -267,8 +267,8 @@ mxi_modbus_serial_rtu_send_request( MX_MODBUS *modbus )
 	static const char fname[] = "mxi_modbus_serial_rtu_send_request()";
 
 	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
-	mx_uint8_type crc_low_byte, crc_high_byte;
-	mx_uint8_type *ptr;
+	uint8_t crc_low_byte, crc_high_byte;
+	uint8_t *ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_serial_rtu_get_pointers( modbus,
@@ -284,7 +284,7 @@ mxi_modbus_serial_rtu_send_request( MX_MODBUS *modbus )
 
 	/* First, set the address field. */
 
-	modbus_serial_rtu->send_buffer[0] = (mx_uint8_type )
+	modbus_serial_rtu->send_buffer[0] = (uint8_t )
 				(( modbus_serial_rtu->address ) & 0xff);
 
 	/* Copy the MODBUS message body. */
@@ -320,8 +320,8 @@ mxi_modbus_serial_rtu_receive_response( MX_MODBUS *modbus )
 
 	MX_MODBUS_SERIAL_RTU *modbus_serial_rtu;
 	size_t response_length, bytes_to_read;
-	mx_uint8_type response_address;
-	mx_uint8_type *message_ptr;
+	uint8_t response_address;
+	uint8_t *message_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_serial_rtu_get_pointers( modbus,

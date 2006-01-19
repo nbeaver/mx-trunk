@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_types.h"
 #include "mx_measurement.h"
+#include "mx_stdint.h"
 #include "mx_vme.h"
 #include "mx_scaler.h"
 #include "i_vsc16.h"
@@ -364,7 +364,7 @@ mxd_vsc16_scaler_read( MX_SCALER *scaler )
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	mx_uint32_type counter_value;
+	uint32_t counter_value;
 	unsigned long read_address;
 	mx_status_type mx_status;
 
@@ -400,7 +400,7 @@ mxd_vsc16_scaler_is_busy( MX_SCALER *scaler )
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	mx_uint16_type control_register;
+	uint16_t control_register;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vsc16_scaler_get_pointers( scaler,
@@ -439,7 +439,7 @@ mxd_vsc16_scaler_start( MX_SCALER *scaler )
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
 	MX_RECORD *vme_record;
-	mx_uint32_type preset;
+	uint32_t preset;
 	unsigned long crate, base, preset_address;
 	int counter_index;
 	mx_status_type mx_status;
@@ -520,7 +520,7 @@ mxd_vsc16_scaler_get_parameter( MX_SCALER *scaler )
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	mx_uint16_type direction_register, mask;
+	uint16_t direction_register, mask;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vsc16_scaler_get_pointers( scaler,
@@ -573,7 +573,7 @@ mxd_vsc16_scaler_set_parameter( MX_SCALER *scaler )
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
 	MX_RECORD *vme_record;
-	mx_uint16_type direction_register, mask;
+	uint16_t direction_register, mask;
 	unsigned long crate, base;
 	int existing_mode;
 	mx_status_type mx_status;
@@ -658,7 +658,7 @@ mxd_vsc16_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	mx_uint16_type direction_register;
+	uint16_t direction_register;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vsc16_scaler_get_pointers( scaler,

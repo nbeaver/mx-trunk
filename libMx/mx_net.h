@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,7 +17,7 @@
 #ifndef __MX_NET_H__
 #define __MX_NET_H__
 
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_handle.h"
 
 /* Used by mx_parse_network_field_id() and mx_find_mx_server_record() below. */
@@ -29,7 +29,7 @@
 #define MX_NETWORK_NUM_HEADER_VALUES	5
 
 #define MX_NETWORK_HEADER_LENGTH_VALUE	\
-	( MX_NETWORK_NUM_HEADER_VALUES * sizeof(mx_uint32_type) )
+	( MX_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
 
 /*
  * Maximum size of an MX network message.  This limit needs to be eliminated,
@@ -47,8 +47,8 @@
  */
 
 typedef union {
-	mx_uint32_type uint32_buffer[MX_NETWORK_HEADER_LENGTH_VALUE];
-	char           char_buffer[MX_NETWORK_MAXIMUM_MESSAGE_SIZE];
+	uint32_t uint32_buffer[MX_NETWORK_HEADER_LENGTH_VALUE];
+	char     char_buffer[MX_NETWORK_MAXIMUM_MESSAGE_SIZE];
 } MX_NETWORK_MESSAGE_BUFFER;
 
 /*

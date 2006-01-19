@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -147,13 +147,13 @@ MX_API mx_status_type mx_e500_simultaneous_start(
 					MX_E500_MODULE *e500_module );
 
 MX_API mx_status_type mx_e500_read_module_id( MX_E500_MODULE *e500_module,
-				mx_uint16_type *id, mx_uint8_type *revision );
+				uint16_t *id, uint8_t *revision );
 #endif
 
 /* -- All the rest of the command only affect individual motors. -- */
 
 MX_API mx_status_type mx_e500_preserve_csr_bitmap( MX_E500 *e500,
-					mx_sint32_type *csr );
+					int32_t *csr );
 
 MX_API mx_status_type mx_e500_accumulator_overflow( MX_E500 *e500,
 					int *overflow);
@@ -188,19 +188,19 @@ MX_API mx_status_type mx_e500_soft_abort( MX_E500 *e500 );
 MX_API mx_status_type mx_e500_go_to_home( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_move_absolute( MX_E500 *e500,
-					mx_sint32_type steps );
+					int32_t steps );
 
 MX_API mx_status_type mx_e500_move_relative( MX_E500 *e500,
-					mx_sint32_type steps );
+					int32_t steps );
 
 MX_API mx_status_type mx_e500_read_absolute_accumulator( MX_E500 *e500,
-					mx_sint32_type *accumulator );
+					int32_t *accumulator );
 
 MX_API mx_status_type mx_e500_read_baserate( MX_E500 *e500,
-					mx_uint16_type *actual_baserate );
+					uint16_t *actual_baserate );
 
 MX_API mx_status_type mx_e500_read_command_status_reg( MX_E500 *e500,
-					mx_sint32_type *csr );
+					int32_t *csr );
 
 MX_API mx_status_type mx_e500_read_correction_limit( MX_E500 *e500 );
 
@@ -212,15 +212,15 @@ MX_API mx_status_type mx_e500_read_lam_status( MX_E500 *e500,
 MX_API mx_status_type mx_e500_read_pulse_parameter_reg( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_read_relative_magnitude( MX_E500 *e500,
-					mx_sint32_type *relative_magnitude );
+					int32_t *relative_magnitude );
 
 MX_API mx_status_type mx_e500_write_absolute_accumulator( MX_E500 *e500,
-					mx_sint32_type accumulator );
+					int32_t accumulator );
 
 MX_API mx_status_type mx_e500_write_baserate( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_write_command_status_reg( MX_E500 *e500,
-					mx_sint32_type csr );
+					int32_t csr );
 
 MX_API mx_status_type mx_e500_write_correction_limit( MX_E500 *e500 );
 
@@ -229,7 +229,7 @@ MX_API mx_status_type mx_e500_write_lam_mask( MX_E500 *e500 );
 MX_API mx_status_type mx_e500_write_pulse_parameter_reg( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_write_relative_magnitude( MX_E500 *e500,
-					mx_sint32_type relative_magnitude );
+					int32_t relative_magnitude );
 
 #endif /* __D_E500_H__ */
 

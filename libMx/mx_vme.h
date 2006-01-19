@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,37 +90,37 @@ MX_API mx_status_type mx_vme_in8( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint8_type *value );
+					uint8_t *value );
 
 MX_API mx_status_type mx_vme_in16( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint16_type *value );
+					uint16_t *value );
 
 MX_API mx_status_type mx_vme_in32( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint32_type *value );
+					uint32_t *value );
 
 MX_API mx_status_type mx_vme_out8( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint8_type value );
+					uint8_t value );
 
 MX_API mx_status_type mx_vme_out16( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint16_type value );
+					uint16_t value );
 
 MX_API mx_status_type mx_vme_out32( MX_RECORD *record,
 					unsigned long crate,
 					unsigned long address_mode,
 					unsigned long address,
-					mx_uint32_type value );
+					uint32_t value );
 
 MX_API mx_status_type mx_vme_multi_in8( MX_RECORD *record,
 					unsigned long crate,
@@ -128,7 +128,7 @@ MX_API mx_status_type mx_vme_multi_in8( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint8_type *value_array );
+					uint8_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_in16( MX_RECORD *record,
 					unsigned long crate,
@@ -136,7 +136,7 @@ MX_API mx_status_type mx_vme_multi_in16( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint16_type *value_array );
+					uint16_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_in32( MX_RECORD *record,
 					unsigned long crate,
@@ -144,7 +144,7 @@ MX_API mx_status_type mx_vme_multi_in32( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint32_type *value_array );
+					uint32_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out8( MX_RECORD *record,
 					unsigned long crate,
@@ -152,7 +152,7 @@ MX_API mx_status_type mx_vme_multi_out8( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint8_type *value_array );
+					uint8_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out16( MX_RECORD *record,
 					unsigned long crate,
@@ -160,7 +160,7 @@ MX_API mx_status_type mx_vme_multi_out16( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint16_type *value_array );
+					uint16_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out32( MX_RECORD *record,
 					unsigned long crate,
@@ -168,7 +168,7 @@ MX_API mx_status_type mx_vme_multi_out32( MX_RECORD *record,
 					unsigned long address_increment,
 					unsigned long address,
 					unsigned long num_values,
-					mx_uint32_type *value_array );
+					uint32_t *value_array );
 
 MX_API mx_status_type mx_vme_get_read_address_increment( MX_RECORD *record,
 					unsigned long crate,

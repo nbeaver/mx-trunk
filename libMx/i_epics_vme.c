@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,8 +29,8 @@
 #include "mx_constants.h"
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
 #include "mx_driver.h"
+#include "mx_stdint.h"
 #include "mx_epics.h"
 #include "mx_vme.h"
 #include "i_epics_vme.h"
@@ -94,7 +94,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_epics_vme_rfield_def_ptr
 		case MXF_VME_D8:  value = (unsigned long) *uint8_ptr;  break; \
 		case MXF_VME_D16: value = (unsigned long) *uint16_ptr; break; \
 		case MXF_VME_D32: value = (unsigned long) \
-			*(mx_uint32_type *)(vme->data_pointer); break; \
+			*(uint32_t *)(vme->data_pointer); break; \
 		} \
 		MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx", \
 			label, \
@@ -112,7 +112,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_epics_vme_rfield_def_ptr
 		case MXF_VME_D8:  value = (unsigned long) *uint8_ptr;  break; \
 		case MXF_VME_D16: value = (unsigned long) *uint16_ptr; break; \
 		case MXF_VME_D32: value = (unsigned long) \
-			*(mx_uint32_type *)(vme->data_pointer); break; \
+			*(uint32_t *)(vme->data_pointer); break; \
 		} \
 	MX_DEBUG(-2,("%s: A%lu, D%lu, addr = %#lx, value = %#lx (%lu values)", \
 			label, \
@@ -145,8 +145,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	long i, epics_address_mode, epics_data_size, epics_num_values;
 	long address_increment, epics_direction, epics_address, proc_value;
 	long *long_data_pointer;
-	mx_uint8_type *uint8_ptr;
-	mx_uint16_type *uint16_ptr;
+	uint8_t *uint8_ptr;
+	uint16_t *uint16_ptr;
 	mx_status_type mx_status;
 
 	uint8_ptr = NULL;
@@ -379,7 +379,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	if ( direction == MXF_EPICS_VME_OUTPUT ) {
 		switch ( vme->data_size ) {
 		case MXF_VME_D8:
-			uint8_ptr = (mx_uint8_type *) vme->data_pointer;
+			uint8_ptr = (uint8_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
 				epics_vme->temp_buffer[i]
@@ -387,7 +387,7 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			}
 			break;
 		case MXF_VME_D16:
-			uint16_ptr = (mx_uint16_type *) vme->data_pointer;
+			uint16_ptr = (uint16_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
 				epics_vme->temp_buffer[i]
@@ -536,18 +536,18 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 	if ( direction == MXF_EPICS_VME_INPUT ) {
 		switch ( vme->data_size ) {
 		case MXF_VME_D8:
-			uint8_ptr = (mx_uint8_type *) vme->data_pointer;
+			uint8_ptr = (uint8_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
-				uint8_ptr[i] = (mx_uint8_type)
+				uint8_ptr[i] = (uint8_t)
 						epics_vme->temp_buffer[i];
 			}
 			break;
 		case MXF_VME_D16:
-			uint16_ptr = (mx_uint16_type *) vme->data_pointer;
+			uint16_ptr = (uint16_t *) vme->data_pointer;
 
 			for ( i = 0; i < vme->num_values; i++ ) {
-				uint16_ptr[i] = (mx_uint16_type)
+				uint16_ptr[i] = (uint16_t)
 						epics_vme->temp_buffer[i];
 
 #if 0

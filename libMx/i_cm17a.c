@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
 #include "mx_record.h"
+#include "mx_stdint.h"
 #include "mx_rs232.h"
 #include "i_cm17a.h"
 
@@ -241,13 +241,13 @@ mxi_cm17a_standby( MX_CM17A *cm17a,
 
 MX_EXPORT mx_status_type
 mxi_cm17a_command( MX_CM17A *cm17a,
-			mx_uint16_type command,
+			uint16_t command,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_cm17a_command()";
 
-	mx_uint8_type command_array[MXI_CM17A_NUM_COMMAND_BYTES];
-	mx_uint8_type bit, mask;
+	uint8_t command_array[MXI_CM17A_NUM_COMMAND_BYTES];
+	uint8_t bit, mask;
 	int i, j;
 	mx_status_type mx_status;
 
@@ -270,8 +270,8 @@ mxi_cm17a_command( MX_CM17A *cm17a,
 
 	/* The command passed to us goes in the middle. */
 
-	command_array[2] = (mx_uint8_type) (( command >> 8 ) & 0xff);
-	command_array[3] = (mx_uint8_type) (command & 0xff);
+	command_array[2] = (uint8_t) (( command >> 8 ) & 0xff);
+	command_array[3] = (uint8_t) (command & 0xff);
 
 	/* Now send the command. */
 

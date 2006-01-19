@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000 Illinois Institute of Technology
+ * Copyright 2000, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -150,13 +150,13 @@ MX_API mx_status_type mxi_pcstep_resynchronize( MX_RECORD *record );
 
 /*---*/
 
-MX_API mx_uint16_type mxi_pcstep_get_status_word( MX_PCSTEP *pcstep );
+MX_API uint16_t mxi_pcstep_get_status_word( MX_PCSTEP *pcstep );
 
 MX_API mx_status_type mxi_pcstep_reset_errors( MX_PCSTEP *pcstep );
 
 MX_API mx_status_type mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
-					mx_uint32_type command_argument,
-					mx_uint32_type *command_response );
+					uint32_t command_argument,
+					uint32_t *command_response );
 
 extern MX_RECORD_FUNCTION_LIST mxi_pcstep_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_pcstep_generic_function_list;

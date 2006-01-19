@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_camac.h"
 #include "i_esone_camac.h"
 
@@ -199,7 +199,7 @@ mxi_esone_camac_controller_command(MX_CAMAC *camac, int command )
 
 MX_EXPORT mx_status_type
 mxi_esone_camac( MX_CAMAC *camac, int slot, int subaddress,
-		int function_code, mx_sint32_type *data, int *Q, int *X)
+		int function_code, int32_t *data, int *Q, int *X)
 {
 	static const char fname[] = "mxi_esone_camac()";
 

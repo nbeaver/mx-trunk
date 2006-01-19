@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -34,13 +34,7 @@
 MX_RECORD_FUNCTION_LIST mxd_lpt_in_record_function_list = {
 	NULL,
 	mxd_lpt_in_create_record_structures,
-	mxd_lpt_in_finish_record_initialization,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_lpt_in_open,
-	NULL
+	mxd_lpt_in_finish_record_initialization
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_lpt_in_digital_input_function_list = {
@@ -65,13 +59,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_lpt_in_rfield_def_ptr
 MX_RECORD_FUNCTION_LIST mxd_lpt_out_record_function_list = {
 	NULL,
 	mxd_lpt_out_create_record_structures,
-	mxd_lpt_out_finish_record_initialization,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_lpt_out_open,
-	NULL
+	mxd_lpt_out_finish_record_initialization
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_lpt_out_digital_output_function_list = {
@@ -179,7 +167,7 @@ mxd_lpt_out_get_pointers( MX_RECORD *record, MX_LPT_OUT **lpt_out,
 MX_EXPORT mx_status_type
 mxd_lpt_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_lpt_in_create_record_structures()";
+        static const char fname[] = "mxd_lpt_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_LPT_IN *lpt_in;
@@ -215,7 +203,7 @@ mxd_lpt_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_lpt_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_lpt_in_finish_record_initialization()";
+        static const char fname[] = "mxd_lpt_in_finish_record_initialization()";
 
         MX_LPT_IN *lpt_in;
 	int i, length;
@@ -277,39 +265,25 @@ mxd_lpt_in_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_lpt_in_open( MX_RECORD *record )
-{
-	const char fname[] = "mxd_lpt_in_open()";
-
-	MX_LPT_IN *lpt_in;
-	MX_LPT *lpt;
-	mx_status_type status;
-
-	status = mxd_lpt_in_get_pointers( record, &lpt_in, &lpt, fname );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mxd_lpt_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_lpt_in_read()";
+	static const char fname[] = "mxd_lpt_in_read()";
 
 	MX_LPT_IN *lpt_in;
 	MX_LPT *lpt;
-	mx_uint8_type value;
-	mx_status_type status;
+	uint8_t value;
+	mx_status_type mx_status;
 
-	status = mxd_lpt_in_get_pointers( dinput->record,
+	mx_status = mxd_lpt_in_get_pointers( dinput->record,
 						&lpt_in, &lpt, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_lpt_read_port( lpt, lpt_in->port_number, &value );
+	mx_status = mxi_lpt_read_port( lpt, lpt_in->port_number, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	dinput->value = (long) value;
 
@@ -321,7 +295,7 @@ mxd_lpt_in_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_lpt_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_lpt_out_create_record_structures()";
+        static const char fname[] = "mxd_lpt_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_LPT_OUT *lpt_out;
@@ -358,7 +332,7 @@ mxd_lpt_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_lpt_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_lpt_out_finish_record_initialization()";
+        static const char fname[] = "mxd_lpt_out_finish_record_initialization()";
 
         MX_LPT_OUT *lpt_out;
 	int i, length;
@@ -420,39 +394,25 @@ mxd_lpt_out_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_lpt_out_open( MX_RECORD *record )
-{
-	const char fname[] = "mxd_lpt_out_open()";
-
-	MX_LPT_OUT *lpt_out;
-	MX_LPT *lpt;
-	mx_status_type status;
-
-	status = mxd_lpt_out_get_pointers( record, &lpt_out, &lpt, fname );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
 mxd_lpt_out_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_lpt_out_read()";
+	static const char fname[] = "mxd_lpt_out_read()";
 
 	MX_LPT_OUT *lpt_out;
 	MX_LPT *lpt;
-	mx_uint8_type value;
-	mx_status_type status;
+	uint8_t value;
+	mx_status_type mx_status;
 
-	status = mxd_lpt_out_get_pointers( doutput->record,
+	mx_status = mxd_lpt_out_get_pointers( doutput->record,
 						&lpt_out, &lpt, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_lpt_read_port( lpt, lpt_out->port_number, &value );
+	mx_status = mxi_lpt_read_port( lpt, lpt_out->port_number, &value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	doutput->value = (long) value;
 
@@ -462,23 +422,23 @@ mxd_lpt_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_lpt_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_lpt_out_write()";
+	static const char fname[] = "mxd_lpt_out_write()";
 
 	MX_LPT_OUT *lpt_out;
 	MX_LPT *lpt;
-	mx_uint8_type value;
-	mx_status_type status;
+	uint8_t value;
+	mx_status_type mx_status;
 
-	status = mxd_lpt_out_get_pointers( doutput->record,
+	mx_status = mxd_lpt_out_get_pointers( doutput->record,
 						&lpt_out, &lpt, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	value = (mx_uint8_type) ( doutput->value & 0xff );
+	value = (uint8_t) ( doutput->value & 0xff );
 
-	status = mxi_lpt_write_port( lpt, lpt_out->port_number, value );
+	mx_status = mxi_lpt_write_port( lpt, lpt_out->port_number, value );
 
-	return status;
+	return mx_status;
 }
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 #if HAVE_LABPC		/* Is the LabPC+ driver software installed? */
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 
 #include <stdlib.h>
@@ -326,7 +326,7 @@ mxd_labpc_din_read( MX_DIGITAL_INPUT *din )
 	MX_LABPC_DIN *labpc_din;
 	int status, saved_errno;
 	long value;
-	mx_uint8_type data;
+	uint8_t data;
 
 	MX_DEBUG(2, ("%s invoked.", fname));
 
@@ -337,7 +337,7 @@ mxd_labpc_din_read( MX_DIGITAL_INPUT *din )
 			"MX_LABPC_DIN pointer is NULL.");
 	}
 
-	status = read( labpc_din->file_handle, &data, sizeof(mx_uint8_type) );
+	status = read( labpc_din->file_handle, &data, sizeof(uint8_t) );
 
 	if ( status == -1 ) {
 		saved_errno = errno;

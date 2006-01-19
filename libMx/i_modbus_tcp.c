@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 #if HAVE_TCPIP
 
 #include "mx_util.h"
-#include "mx_types.h"
+#include "mx_stdint.h"
 #include "mx_socket.h"
 #include "mx_modbus.h"
 #include "i_modbus_tcp.h"
@@ -285,7 +285,7 @@ mxi_modbus_tcp_send_request( MX_MODBUS *modbus )
 	static const char fname[] = "mxi_modbus_tcp_send_request()";
 
 	MX_MODBUS_TCP *modbus_tcp;
-	mx_uint16_type transaction_id, length;
+	uint16_t transaction_id, length;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_tcp_get_pointers( modbus, &modbus_tcp, fname );
@@ -308,13 +308,13 @@ mxi_modbus_tcp_send_request( MX_MODBUS *modbus )
 	modbus_tcp->send_header[MX_MODBUS_TCP_PROTOCOL_ID] = 0;
 	modbus_tcp->send_header[MX_MODBUS_TCP_PROTOCOL_ID+1] = 0;
 
-	length = (mx_uint16_type) modbus->request_length + 1;
+	length = (uint16_t) modbus->request_length + 1;
 
 	modbus_tcp->send_header[MX_MODBUS_TCP_LENGTH] = ( length >> 8 ) & 0xff;
 	modbus_tcp->send_header[MX_MODBUS_TCP_LENGTH+1] = length & 0xff;
 
 	modbus_tcp->send_header[MX_MODBUS_TCP_UNIT_ID]
-			= (mx_uint8_type) modbus_tcp->unit_id;
+			= (uint8_t) modbus_tcp->unit_id;
 
 #if MXI_MODBUS_TCP_DEBUG
 	{
@@ -358,9 +358,9 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	static const char fname[] = "mxi_modbus_tcp_receive_response()";
 
 	MX_MODBUS_TCP *modbus_tcp;
-	mx_uint8_type *receive_header;
-	mx_uint16_type transaction_id, protocol_id, length;
-	mx_uint8_type unit_id;
+	uint8_t *receive_header;
+	uint16_t transaction_id, protocol_id, length;
+	uint8_t unit_id;
 	mx_status_type mx_status;
 
 	mx_status = mxi_modbus_tcp_get_pointers( modbus, &modbus_tcp, fname );
@@ -383,10 +383,10 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	receive_header = modbus_tcp->receive_header;
 
 	transaction_id = 
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_TRANSACTION_ID]) << 8;
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_TRANSACTION_ID]) << 8;
 
 	transaction_id |= 
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_TRANSACTION_ID+1]);
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_TRANSACTION_ID+1]);
 
 	if ( transaction_id != modbus_tcp->transaction_id ) {
 		mx_warning( "Received transaction id %d does not match the "
@@ -396,10 +396,10 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	}
 
 	protocol_id =
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_PROTOCOL_ID]) << 8;
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_PROTOCOL_ID]) << 8;
 
 	protocol_id |=
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_PROTOCOL_ID+1]);
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_PROTOCOL_ID+1]);
 
 	if ( protocol_id != 0 ) {
 		mx_warning( "Received MODBUS protocol id was %d rather than 0 "
@@ -408,10 +408,10 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	}
 
 	length =
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_LENGTH]) << 8;
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_LENGTH]) << 8;
 
 	length |=
-	  ((mx_uint16_type) receive_header[MX_MODBUS_TCP_LENGTH+1]);
+	  ((uint16_t) receive_header[MX_MODBUS_TCP_LENGTH+1]);
 
 	/* Sometimes the Wago 750-841 fieldbus controller sends a bogus
 	 * value for the length field, so we must be prepared to fix the

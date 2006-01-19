@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ typedef struct {
 	MX_RECORD *portio_record;
 	unsigned long base_address;
 
-	mx_uint8_type port_value[MX_8255_NUM_PORTS];
+	uint8_t port_value[MX_8255_NUM_PORTS];
 	MX_RECORD *port_array[MX_8255_MAX_RECORDS];
 
 	int delayed_initialization_in_progress;
@@ -98,10 +98,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_8255_rfield_def_ptr;
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_8255_read_port( MX_8255 *i8255,
-				int port_number, mx_uint8_type *value );
+				int port_number, uint8_t *value );
 
 MX_API mx_status_type mxi_8255_write_port( MX_8255 *i8255,
-				int port_number, mx_uint8_type value );
+				int port_number, uint8_t value );
 
 MX_API void mxi_8255_update_outputs( MX_8255 *i8255 );
 
