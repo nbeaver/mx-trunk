@@ -19,7 +19,21 @@
 #ifndef __MX_STDINT_H__
 #define __MX_STDINT_H__
 
-#define MX_WORDSIZE	32
+/* Determine the native word size first. */
+
+#include <limits.h>
+
+/* WARNING: The test using UINT_MAX is not foolproof.  When porting to
+ * a new platform, you must verify that this check does the right thing.
+ * This should only be an issue if you are on a machine where 'int' 
+ * does _not_ use the native word size.
+ */
+
+#if ( UINT_MAX == 4294967295U )
+#  define MX_WORDSIZE	32
+#else
+#  define MX_WORDSIZE	64
+#endif
 
 /* The non-standard build targets are listed first. */
 
@@ -49,24 +63,50 @@ typedef unsigned long long	uint64_t;
 
 /*---*/
 
-#  if MX_WORDSIZE == 64
-typedef int64_t			intptr_t;
-typedef uint64_t		uintptr_t;
-#  else
-typedef int32_t			intptr_t;
-typedef uint32_t		uintptr_t;
-#  endif
+typedef int64_t			intmax_t;
+typedef uint64_t		uintmax_t;
 
-/*---*/
+/*=======================================================================*/
+
+#elif defined( OS_VXWORKS )
+
+#  include <types/vxTypes.h>
+
+#  if MX_WORDSIZE == 64
+typedef long			int64_t;
+typedef unsigned long		uint64_t;
+#  else
+typedef long long		int64_t;
+typedef unsigned long long	uint64_t;
+#  endif
 
 typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
 
-/* C99 states that these macros should only be defined in C++ if they
- * are specifically requested.
+/*=======================================================================*/
+
+#else
+   /* Most targets should be able to use a vendor provided <stdint.h>. */
+
+#  include <stdint.h>
+
+#endif
+
+/*=======================================================================*/
+
+/* Define limit macros if they have not yet been defined.  We assume that
+ * they are not yet defined if INT32_MIN does not exist.
  */
 
+#if !defined(INT32_MIN)
+
+   /* C99 states that these macros should only be defined in C++ if they
+    * are specifically requested.
+    */
+
 #  if !defined(__cplusplus) || defined(__STDC_LIMIT_MACROS)
+
+      /* WARNING: The following assumes twos complement integer arithmetic. */
 
 #     if MX_WORDSIZE == 64
 #        define __INT64_C(c)	c ## L
@@ -106,14 +146,6 @@ typedef uint64_t		uintmax_t;
 #     define UINTMAX_MAX	UINT64_MAX
 
 #  endif
-
-/*=======================================================================*/
-
-#else
-   /* Most targets should be able to use a vendor provided <stdint.h>. */
-
-#  include <stdint.h>
-
-#endif
+#endif /* !defined INT32_MIN) */
 
 #endif /* __MX_STDINT_H__ */
