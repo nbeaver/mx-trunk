@@ -77,8 +77,8 @@
 #include <math.h>
 
 #include "mx_osdef.h"
-#include "mx_unistd.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_mutex.h"
 #include "mx_thread.h"

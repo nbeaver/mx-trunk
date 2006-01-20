@@ -20,10 +20,8 @@
 #include <string.h>
 #include <fcntl.h>
 
-#include "mx_unistd.h"
-
-#include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_stdint.h"
 #include "mx_rs232.h"

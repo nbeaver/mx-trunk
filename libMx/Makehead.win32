@@ -93,9 +93,6 @@ MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
         $(MSDEV_DIR)\\lib\\advapi32.lib
 
-EXTRA_LIB_OBJS	= ..\\tools\\xdr.obj
-
-EXTRA_OBJS	= ..\\tools\\getopt.obj
 #
 # Directory containing the EG&G Ortec UMCBI library and include file.
 #
@@ -233,6 +230,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 #----
 
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
+MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\getopt.obj
 
 #
 #---------------------------------------------------
@@ -262,7 +260,7 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	link /dll /debug /nologo /out:libMx.dll /nodefaultlib:libc \
-			$(MX_LIB_OBJS) $(EXTRA_LIB_OBJS) $(LIBRARIES)
+			$(MX_LIB_OBJS) $(LIBRARIES)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -285,7 +283,6 @@ library_install:
 	cp ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
 	cp ../plotgnu/*.bat $(MX_INSTALL_DIR)/bin
 	cp ../tools/*.exe $(MX_INSTALL_DIR)/bin
-	cp ../tools/getopt.obj $(MX_INSTALL_DIR)/lib
 
 #
 #---------------------------------------------------
@@ -294,8 +291,7 @@ MOTOR_NAME	= motorbin.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:motorbin.exe $(MOTOR_OBJS) \
-			/nodefaultlib:libc $(EXTRA_OBJS) \
-			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
@@ -308,8 +304,7 @@ SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxserver.exe *.obj \
-			/nodefaultlib:libc $(EXTRA_OBJS) \
-			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
@@ -325,8 +320,7 @@ UPDATE_NAME	= mxupdate.exe
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxupdate.exe *.obj \
-			/nodefaultlib:libc $(EXTRA_OBJS) \
-			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
@@ -340,8 +334,7 @@ MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxdriverinfo.exe *.obj \
-			/nodefaultlib:libc $(EXTRA_OBJS) \
-			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
+			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin

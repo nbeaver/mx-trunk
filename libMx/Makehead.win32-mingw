@@ -71,7 +71,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
-MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o ../tools/xdr.o
 
 #
 #---------------------------------------------------
@@ -104,7 +104,7 @@ MX_LIBRARY_DELETE = $(RM) libMx*
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	gcc -shared -o libMx.dll -Wl,--out-implib,libMx.a \
-		$(MX_LIB_OBJS) ../tools/xdr.o -lwsock32 -lwinmm
+		$(MX_LIB_OBJS) -lwsock32 -lwinmm
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin

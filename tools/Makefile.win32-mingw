@@ -10,6 +10,7 @@ xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 
 getopt.o: generic/src/getopt.c
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		generic/src/getopt.c -o getopt.o
 
 strlcpy.o: generic/src/strlcpy.c

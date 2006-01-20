@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,10 +19,9 @@
 
 #define MX_DEFINE_DRIVER_LISTS
 
-#include "mxconfig.h"
 #include "mx_osdef.h"
-#include "mx_unistd.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_version.h"

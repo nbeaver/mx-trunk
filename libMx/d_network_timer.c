@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,9 +18,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mx_unistd.h"
-
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_net.h"
 #include "mx_measurement.h"

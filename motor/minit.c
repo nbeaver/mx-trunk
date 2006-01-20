@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,8 +17,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
-
-#include "mx_unistd.h"
 
 #include "motor.h"
 #include "mx_log.h"

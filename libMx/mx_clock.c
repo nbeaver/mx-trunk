@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,10 +44,9 @@
 #endif
 #endif
 
-#include "mx_unistd.h"
-
 #include "mx_constants.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_clock.h"
 
 /* The most recent value of the system clock tick value for this process

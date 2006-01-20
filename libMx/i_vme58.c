@@ -36,8 +36,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "mx_unistd.h"
-
 #include "mxconfig.h"
 
 #if HAVE_VME58_ESRF
@@ -50,6 +48,7 @@
 #endif
 
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_ascii.h"

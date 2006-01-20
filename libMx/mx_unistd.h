@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,11 +42,11 @@ extern int access( char *pathname, int mode );
 #  include <getopt.h>
 #else
 #  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS)
-      extern int getopt(int argc, char *argv[], char *optstring);
+      MX_API int getopt(int argc, char *argv[], char *optstring);
 #  endif
 
-   extern char *optarg;
-   extern int optind;
+   MX_API char *optarg;
+   MX_API int optind;
 #endif
 
 #endif /* _MX_UNISTD_H_ */

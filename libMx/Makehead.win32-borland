@@ -32,7 +32,6 @@ BCC_DIR	= c:/borland/bcc55
 
 WIN32_LIBS	= import32.lib cw32mti.lib
 
-EXTRA_OBJS	= ..\\tools\\getopt.obj
 #
 
 #
@@ -102,12 +101,6 @@ MAKEDEPEND_CLEAN = rm Makefile.depend
 MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
 
 #
-# mx_util_borland.obj needs to be the first thing linked into the DLL.
-#
-
-#MX_LIB_OBJS = mx_util_borland.obj
-
-#
 # See libMx/Makehead.irix for why this is here.
 #
 MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.$(OBJ))
@@ -120,6 +113,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 MX_LIB_OBJS += mx_util_borland.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
+MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\getopt.obj
 
 #
 #---------------------------------------------------
@@ -149,8 +143,7 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	ilink32 -v -D"" -aa -Tpd -Gn -Gi -s -m \
-		c0d32.obj $(MX_LIB_OBJS) ..\\tools\\xdr.obj, \
-		libMx.dll,, $(LIBRARIES)
+		c0d32.obj $(MX_LIB_OBJS), libMx.dll,, $(LIBRARIES)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -173,7 +166,6 @@ library_install:
 	cp ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
 	cp ../plotgnu/*.bat $(MX_INSTALL_DIR)/bin
 	cp ../tools/*.exe $(MX_INSTALL_DIR)/bin
-	cp ../tools/getopt.obj $(MX_INSTALL_DIR)/lib
 
 #
 #---------------------------------------------------
@@ -213,7 +205,7 @@ UPDATE_NAME	= mxupdate.exe
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) -v -lv -M -e$(UPDATE_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 update_install:
@@ -228,7 +220,7 @@ MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) -v -lv -M -e$(MXDRIVERINFO_NAME) \
-			$(BCC_DIR)/lib/c0x32.obj *.obj $(EXTRA_OBJS) \
+			$(BCC_DIR)/lib/c0x32.obj *.obj \
 			$(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 util_install:

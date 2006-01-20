@@ -20,8 +20,6 @@
 #include <errno.h>
 #include <math.h>
 
-#include "mx_unistd.h"
-
 #if defined(OS_WIN32)
 #include <windows.h>
 #include <direct.h>

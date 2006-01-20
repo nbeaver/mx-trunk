@@ -32,9 +32,8 @@
 # include <sys/filio.h>
 #endif
 
-#include "mx_unistd.h"
-
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_ascii.h"

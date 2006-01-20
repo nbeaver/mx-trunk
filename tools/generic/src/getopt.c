@@ -32,23 +32,24 @@
 
 /*
  * Added #include <string.h> - William Lavender, June 30, 2004
+ *
+ * Added MX_EXPORT attribute from "mx_util.h" and revised the getopt()
+ *   definition to use prototypes - William Lavender, January 20, 2006
  */
 
 #include <stdio.h>
 #include <string.h>
+
+#include "mx_util.h"
+#include "mx_unistd.h"
 
 char	*optarg;	/* Global argument pointer. */
 int	optind = 0;	/* Global argv index. */
 
 static char	*scan = NULL;	/* Private scan pointer. */
 
-extern char	*strchr();
-
-int
-getopt(argc, argv, optstring)
-int argc;
-char *argv[];
-char *optstring;
+MX_EXPORT int
+getopt( int argc, char *argv[], char *optstring )
 {
 	register char c;
 	register char *place;

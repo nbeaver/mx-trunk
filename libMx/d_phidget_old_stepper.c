@@ -22,9 +22,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "mx_unistd.h"
-
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_clock.h"
 #include "mx_motor.h"

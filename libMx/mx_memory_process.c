@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,9 +20,9 @@
 #include <errno.h>
 #include <limits.h>
 
-#include "mx_unistd.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_memory.h"
 
 MX_EXPORT void

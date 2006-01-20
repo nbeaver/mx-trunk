@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,11 +23,10 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 
-#include "mx_unistd.h"
-
 #include "mxconfig.h"
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_version.h"
 #include "mx_driver.h"
 #include "mx_record.h"
