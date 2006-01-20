@@ -68,7 +68,7 @@ typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
 
-#elif defined( OS_WIN32 ) && ( defined( _MSC_VER ) )
+#elif defined( OS_WIN32 ) && ( defined( _MSC_VER ) || defined( __BORLANDC__ ) )
 
 typedef __int8			int8_t;
 typedef __int16			int16_t;

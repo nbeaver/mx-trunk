@@ -43,10 +43,13 @@ extern int access( char *pathname, int mode );
 #else
 #  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS)
       MX_API int getopt(int argc, char *argv[], char *optstring);
+
+#     if !defined(__MX_LIBRARY__)
+         MX_API char *optarg;
+         MX_API int   optind;
+#     endif
 #  endif
 
-   MX_API char *optarg;
-   MX_API int optind;
 #endif
 
 #endif /* _MX_UNISTD_H_ */

@@ -43,8 +43,8 @@
 #include "mx_util.h"
 #include "mx_unistd.h"
 
-char	*optarg;	/* Global argument pointer. */
-int	optind = 0;	/* Global argv index. */
+MX_EXPORT char *optarg;		/* Global argument pointer. */
+MX_EXPORT int   optind = 0;	/* Global argv index. */
 
 static char	*scan = NULL;	/* Private scan pointer. */
 
