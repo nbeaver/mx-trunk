@@ -68,7 +68,40 @@ typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
 
-#elif defined( OS_WIN32 ) && ( defined( _MSC_VER ) || defined( __BORLANDC__ ) )
+#elif ( defined(OS_DJGPP) && (DJGPP >= 2) && (DJGPP_MINOR < 4) )
+
+/* The following two blocks of conditionals are to avoid conflicting with
+ * equivalent definitions in the sys/wtypes.h include file of Watt32.
+ */
+
+#  if !defined(HAVE_INT16_T)
+typedef short			int16_t;
+#     define HAVE_INT16_T
+#  endif
+
+#  if !defined(HAVE_INT32_T)
+typedef long			int32_t;
+#     define HAVE_INT32_T
+#  endif
+
+/* The rest of the definitions we can do without conflicts. */
+
+typedef char 			int8_t;
+typedef long long		int64_t;
+
+typedef unsigned char		uint8_t;
+typedef unsigned short		uint16_t;
+typedef unsigned long		uint32_t;
+typedef unsigned long long	uint64_t;
+
+/*---*/
+
+typedef int64_t			intmax_t;
+typedef uint64_t		uintmax_t;
+
+/*=======================================================================*/
+
+#elif defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
 
 typedef __int8			int8_t;
 typedef __int16			int16_t;
@@ -85,7 +118,7 @@ typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
 
-#elif defined( OS_VXWORKS )
+#elif defined(OS_VXWORKS)
 
 #  include <types/vxTypes.h>
 

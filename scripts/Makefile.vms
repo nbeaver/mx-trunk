@@ -34,8 +34,6 @@ build: depend_files
 	$(MAKE)
 	$(CD) ../update
 	$(MAKE)
-	$(CD) ../update_old
-	$(MAKE)
 	$(CD) ../util
 	$(MAKE)
 
@@ -50,8 +48,6 @@ clean: depend_files
 	$(CD) ../server
 	$(MAKE) mx_clean
 	$(CD) ../update
-	$(MAKE) mx_clean
-	$(CD) ../update_old
 	$(MAKE) mx_clean
 	$(CD) ../util
 	$(MAKE) mx_clean
@@ -68,8 +64,6 @@ distclean: depend_files
 	$(MAKE) mx_distclean
 	$(CD) ../update
 	$(MAKE) mx_distclean
-	$(CD) ../update_old
-	$(MAKE) mx_distclean
 	$(CD) ../util
 	$(MAKE) mx_distclean
 
@@ -82,8 +76,6 @@ depend: depend_files
 	$(CD) ../server
 	$(MAKE) mx_depend
 	$(CD) ../update
-	$(MAKE) mx_depend
-	$(CD) ../update_old
 	$(MAKE) mx_depend
 	$(CD) ../util
 	$(MAKE) mx_depend
@@ -108,8 +100,7 @@ MD = Makefile.depend
 
 TOUCH = \$ @[.scripts]vms_touch.com
 
-depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) \
-                                        update_old/$(MD) util/$(MD)
+depend_files: libMx/$(MD) motor/$(MD) server/$(MD) update/$(MD) util/$(MD)
 
 libMx/$(MD):
 	$(TOUCH) [.libMx]$(MD)
@@ -122,9 +113,6 @@ server/$(MD):
 
 update/$(MD):
 	$(TOUCH) [.update]$(MD)
-
-update_old/$(MD):
-	$(TOUCH) [.update_old]$(MD)
 
 util/$(MD):
 	$(TOUCH) [.util]$(MD)

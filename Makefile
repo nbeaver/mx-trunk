@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32-mingw
+MX_ARCH = djgpp
 
 MX_INSTALL_DIR = /opt/mx
 
