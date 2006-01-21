@@ -71,7 +71,8 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
-MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o ../tools/xdr.o
+MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/xdr.o ../tools/getopt.o
 
 #
 #---------------------------------------------------
