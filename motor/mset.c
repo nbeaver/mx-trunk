@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@
 int
 motor_set_fn( int argc, char *argv[] )
 {
-	const char cname[] = "set";
+	static const char cname[] = "set";
 
 	MX_RECORD *record;
 
@@ -60,7 +60,7 @@ motor_set_fn( int argc, char *argv[] )
 		( void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
 		MX_RECORD_FIELD_PARSE_STATUS * );
 
-	size_t length2, length3;
+	size_t length2, length3, string_length;
 	int status;
 	int int_value, debug_level, num_items;
 	long long_value;
@@ -493,18 +493,22 @@ motor_set_fn( int argc, char *argv[] )
 
 		/* Concatenate all the rest of the arguments together. */
 
-		strcpy( buffer, "" );
+		strlcpy( buffer, "", sizeof(buffer) );
 
 		for ( i = 4; i < argc; i++ ) {
-			ptr = buffer + strlen( buffer );
+			string_length = strlen( buffer );
+
+			ptr = buffer + string_length;
 
 			separator_found = strpbrk( argv[i],
 						MX_RECORD_FIELD_SEPARATORS );
 
 			if ( separator_found ) {
-				sprintf( ptr, "\"%s\" ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"\"%s\" ", argv[i] );
 			} else {
-				sprintf( ptr, "%s ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"%s ", argv[i] );
 			}
 #if 0
 			fprintf( output, "set field: ptr = '%s'\n", ptr );
@@ -587,7 +591,8 @@ motor_set_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		sprintf( buffer, "set field %s.value ", argv[3] );
+		snprintf( buffer, sizeof(buffer),
+			"set field %s.value ", argv[3] );
 
 		MX_DEBUG( 2,("set variable: argc = %d", argc));
 
@@ -595,15 +600,19 @@ motor_set_fn( int argc, char *argv[] )
 			MX_DEBUG( 2,("set variable: argv[%ld] = '%s'",
 							i, argv[i]));
 
-			ptr = buffer + strlen( buffer );
+			string_length = strlen( buffer );
+
+			ptr = buffer + string_length;
 
 			separator_found = strpbrk( argv[i],
 						MX_RECORD_FIELD_SEPARATORS );
 
 			if ( separator_found ) {
-				sprintf( ptr, "\"%s\" ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"\"%s\" ", argv[i] );
 			} else {
-				sprintf( ptr, "%s ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"%s ", argv[i] );
 			}
 #if 0
 			fprintf( output, "set variable: ptr = '%s'\n", ptr );
@@ -632,7 +641,8 @@ motor_set_fn( int argc, char *argv[] )
 
 	} else if ( strncmp( argv[2], "label", length2 ) == 0 ) {
 
-		sprintf( buffer, "set field %s.label ", argv[3] );
+		snprintf( buffer, sizeof(buffer),
+			"set field %s.label ", argv[3] );
 
 		MX_DEBUG( 2,("set label: argc = %d", argc));
 
@@ -640,15 +650,19 @@ motor_set_fn( int argc, char *argv[] )
 			MX_DEBUG( 2,("set label: argv[%ld] = '%s'",
 							i, argv[i]));
 
-			ptr = buffer + strlen( buffer );
+			string_length = strlen( buffer );
+
+			ptr = buffer + string_length;
 
 			separator_found = strpbrk( argv[i],
 						MX_RECORD_FIELD_SEPARATORS );
 
 			if ( separator_found ) {
-				sprintf( ptr, "\"%s\" ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"\"%s\" ", argv[i] );
 			} else {
-				sprintf( ptr, "%s ", argv[i] );
+				snprintf( ptr, sizeof(buffer) - string_length,
+					"%s ", argv[i] );
 			}
 #if 0
 			fprintf( output, "set label: ptr = '%s'\n", ptr );
@@ -911,7 +925,7 @@ motor_set_fn( int argc, char *argv[] )
 int
 motor_set_amplifier( MX_RECORD *amplifier_record, int argc, char *argv[] )
 {
-	const char cname[] = "set amplifier";
+	static const char cname[] = "set amplifier";
 
 	MX_AMPLIFIER *amplifier;
 	double double_value;

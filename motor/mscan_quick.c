@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,6 @@ motor_setup_quick_scan_parameters(
 	double scale, offset;
 	int i, j, status;
 	int num_items, string_length, valid_clock_name;
-	size_t buffer_left;
 	long scan_class, scan_type;
 	long scan_num_scans;
 	long scan_num_independent_variables;
@@ -229,23 +228,25 @@ motor_setup_quick_scan_parameters(
 
 	/* Add the record type info to the record description. */
 
-	sprintf(record_description_buffer, "%s scan quick_scan ", scan_name);
-
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
+	snprintf(record_description_buffer,
+			record_description_buffer_length,
+			"%s scan quick_scan ", scan_name);
 
 	switch( scan_type ) {
 	case MXS_QUI_MCS:
-		strncat(record_description_buffer,
-				"mcs_qscan \"\" \"\" ",buffer_left);
+		strlcat( record_description_buffer,
+				"mcs_qscan \"\" \"\" ",
+				record_description_buffer_length );
 		break;
 	case MXS_QUI_JOERGER:
-		strncat(record_description_buffer,
-				"joerger_qscan \"\" \"\" ",buffer_left);
+		strlcat( record_description_buffer,
+				"joerger_qscan \"\" \"\" ",
+				record_description_buffer_length );
 		break;
 	case MXS_QUI_APS_ID:
-		strncat(record_description_buffer,
-				"aps_id_qscan \"\" \"\" ",buffer_left);
+		strlcat( record_description_buffer,
+				"aps_id_qscan \"\" \"\" ",
+				record_description_buffer_length );
 		break;
 	default:
 		fprintf( output, "Unknown quick scan type = %ld\n",
@@ -253,11 +254,12 @@ motor_setup_quick_scan_parameters(
 		break;
 	}
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-	sprintf( buffer, "%ld %ld %ld ", scan_num_scans,
+	snprintf( buffer, sizeof(buffer),
+			"%ld %ld %ld ", scan_num_scans,
 			scan_num_independent_variables, scan_num_motors );
-	strncat( record_description_buffer, buffer, buffer_left );
+
+	strlcat( record_description_buffer, buffer,
+			record_description_buffer_length );
 
 	/* Create the arrays needed to contain the scan start, etc. */
 
@@ -454,10 +456,11 @@ motor_setup_quick_scan_parameters(
 		/* Prompt for the scan start position. */
 
 		if ( scan_num_motors == 1 ) {
-			sprintf( prompt, "Enter start position -> " );
+			snprintf( prompt, sizeof(prompt),
+				"Enter start position -> " );
 		} else {
-			sprintf( prompt,
-			"Enter start position for motor '%s' -> ",
+			snprintf( prompt, sizeof(prompt),
+				"Enter start position for motor '%s' -> ",
 				record->name );
 		}
 
@@ -485,10 +488,10 @@ motor_setup_quick_scan_parameters(
 		/* Prompt for the step size. */
 
 		if ( scan_num_motors == 1 ) {
-			sprintf( prompt,
+			snprintf( prompt, sizeof(prompt),
 				"Enter step size -> " );
 		} else {
-			sprintf( prompt,
+			snprintf( prompt, sizeof(prompt),
 			"Enter step size for motor '%s' -> ",
 				record->name );
 		}
@@ -519,10 +522,10 @@ motor_setup_quick_scan_parameters(
 		/* Prompt for the scan end position. */
 
 		if ( scan_num_motors == 1 ) {
-			sprintf( prompt,
+			snprintf( prompt, sizeof(prompt),
 				"Enter end position -> " );
 		} else {
-			sprintf( prompt,
+			snprintf( prompt, sizeof(prompt),
 			"Enter end position for motor '%s' -> ",
 				record->name );
 		}
@@ -583,37 +586,6 @@ motor_setup_quick_scan_parameters(
 			scan_end[i], motor->units,
 			scan_step_size, motor->units,
 			scan_num_measurements[j] );
-
-#if 0		/* This is the old way of doing things. */
-
-		if ( scan_num_motors == 1 ) {
-			sprintf( prompt,
-			"Enter number of measurements -> " );
-		} else {
-			sprintf( prompt,
-	"Enter number of measurements for motor '%s' -> ",
-				record->name );
-		}
-		if ( quick_scan == NULL ) {
-			default_long = 1;
-		} else {
-			if ( j < old_scan->num_motors ) {
-				default_long
-			    = quick_scan->requested_num_measurements;
-			} else {
-				default_long = 1;
-			}
-		}
-		status = motor_get_long( output, prompt,
-			TRUE, default_long,
-			&scan_num_measurements[j],
-			0, 100000000 );
-
-		if ( status != SUCCESS ) {
-			FREE_MOTOR_NAME_ARRAY;
-			return status;
-		}
-#endif
 	}
 	FREE_MOTOR_NAME_ARRAY;
 
@@ -628,14 +600,12 @@ motor_setup_quick_scan_parameters(
 "while the other input devices must be Joerger scalers.\n\n" );
 	}
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	first_input_device_record = NULL;
 
 	if ( input_devices_string != NULL ) {
-		strncat( record_description_buffer,
-			input_devices_string, buffer_left );
+		strlcat( record_description_buffer,
+				input_devices_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_input_devices( old_scan,
 						scan_class, scan_type,
@@ -643,7 +613,9 @@ motor_setup_quick_scan_parameters(
 						&first_input_device_record );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Figure out the name of the clock to be used for this scan. */
@@ -667,7 +639,8 @@ motor_setup_quick_scan_parameters(
 	    case MXS_QUI_MCS:
 	    case MXS_QUI_APS_ID:
 		if ( first_input_device_record == NULL ) {
-			strcpy( default_clock_name, "timer1" );
+			strlcpy( default_clock_name, "timer1",
+						sizeof(default_clock_name) );
 		} else {
 			MX_DEBUG( 2,("%s: first_input_device_record = '%s'",
 				fname, first_input_device_record->name ));
@@ -712,11 +685,13 @@ motor_setup_quick_scan_parameters(
 				return FAILURE;
 			}
 
-			strcpy( default_clock_name, mcs->timer_record->name );
+			strlcpy( default_clock_name, mcs->timer_record->name,
+						sizeof(default_clock_name) );
 		}
 		break;
 	    default:
-		strcpy( default_clock_name, "timer1" );
+		strlcpy( default_clock_name, "timer1",
+					sizeof(default_clock_name) );
 		break;
 	    }
 	}
@@ -728,7 +703,8 @@ motor_setup_quick_scan_parameters(
 
 	while ( valid_clock_name == FALSE ) {
 
-		sprintf(prompt, "Enter timer or pulse generator name -> ");
+		snprintf( prompt, sizeof(prompt),
+			"Enter timer or pulse generator name -> ");
 
 		string_length = sizeof( clock_name ) - 1;
 
@@ -775,10 +751,8 @@ motor_setup_quick_scan_parameters(
 
 	/* The after scan action is currently hardcoded as 0. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
-	strncat( record_description_buffer, "0 ", buffer_left );
+	strlcat( record_description_buffer, "0 ",
+			record_description_buffer_length );
 
 	/* Prompt for the measurement time. */
 
@@ -803,33 +777,33 @@ motor_setup_quick_scan_parameters(
 
 	if ( clock_record->mx_class == MXC_PULSE_GENERATOR ) {
 
-		sprintf( buffer, "0 preset_pulse_period \"%g %s\" ",
+		snprintf( buffer, sizeof(buffer),
+				"0 preset_pulse_period \"%g %s\" ",
 				scan_measurement_time, clock_name );
 	} else {
-		sprintf( buffer, "0 preset_time \"%g %s\" ",
+		snprintf( buffer, sizeof(buffer),
+				"0 preset_time \"%g %s\" ",
 				scan_measurement_time, clock_name );
 	}
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
-	strncat( record_description_buffer, buffer, buffer_left );
+	strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 
 	/* Prompt for the datafile and plot parameters. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( datafile_and_plot_parameters_string != NULL ) {
-		strncat( record_description_buffer,
-			datafile_and_plot_parameters_string, buffer_left );
+		strlcat( record_description_buffer,
+				datafile_and_plot_parameters_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_datafile_and_plot_parameters( old_scan,
 						scan_class, scan_type,
 						buffer, sizeof(buffer) );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Add the scan start, scan end, and num measurements information
@@ -837,59 +811,27 @@ motor_setup_quick_scan_parameters(
 	 */
 
 	for ( j = 0; j < scan_num_independent_variables; j++ ) {
-		string_length = strlen(record_description_buffer);
-		buffer_left = record_description_buffer_length - string_length;
+		snprintf( buffer, sizeof(buffer),
+			" %.*g", default_precision, scan_start[j] );
 
-		sprintf( buffer, " %.*g", default_precision, scan_start[j] );
-
-		if ( strlen(buffer) < buffer_left ) {
-			strcat( record_description_buffer, buffer );
-		} else {
-			fprintf( output,
-			"%s: Ran out of record description buffer space.\n",
-				fname);
-			fprintf( output,
-			"Perhaps %ld motors in the scan is too many to fit.\n",
-				scan_num_motors );
-		}
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	for ( j = 0; j < scan_num_independent_variables; j++ ) {
+		snprintf( buffer, sizeof(buffer),
+			" %.*g", default_precision, scan_end[j] );
 
-		string_length = strlen(record_description_buffer);
-		buffer_left = record_description_buffer_length - string_length;
-
-		sprintf( buffer, " %.*g",
-			default_precision, scan_end[j] );
-
-		if ( strlen(buffer) < buffer_left ) {
-			strcat( record_description_buffer, buffer );
-		} else {
-			fprintf( output,
-			"%s: Ran out of record description buffer space.\n",
-				fname);
-			fprintf( output,
-			"Perhaps %ld motors in the scan is too many to fit.\n",
-				scan_num_motors );
-		}
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	for ( j = 0; j < scan_num_independent_variables; j++ ) {
-		string_length = strlen(record_description_buffer);
-		buffer_left = record_description_buffer_length - string_length;
+		snprintf( buffer, sizeof(buffer),
+			" %ld", scan_num_measurements[j] );
 
-		sprintf( buffer, " %ld", scan_num_measurements[j] );
-
-		if ( strlen(buffer) < buffer_left ) {
-			strcat( record_description_buffer, buffer );
-		} else {
-			fprintf( output,
-			"%s: Ran out of record description buffer space.\n",
-				fname);
-			fprintf( output,
-			"Perhaps %ld motors in the scan is too many to fit.\n",
-				scan_num_motors );
-		}
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Delete the old scan if it exists. */

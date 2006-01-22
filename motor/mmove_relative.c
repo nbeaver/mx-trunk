@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 int
 motor_mrel_fn( int argc, char *argv[] )
 {
-	const char cname[] = "mrel";
+	static const char cname[] = "mrel";
 
 	MX_RECORD *record;
 	int i, relative_steps;
@@ -106,8 +106,8 @@ motor_mrel_fn( int argc, char *argv[] )
 		if ( (mx_status.code == MXE_SUCCESS)
 			  && allow_motor_database_updates )
 		{
-			sprintf(buffer,
-				"save motor %s", motor_savefile);
+			snprintf( buffer, sizeof(buffer),
+				"save motor %s", motor_savefile );
 			cmd_execute_command_line( command_list_length,
 				command_list, buffer );
 		}

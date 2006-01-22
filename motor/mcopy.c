@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ motor_copy_scan_record( MX_RECORD *old_scan_record,
 int
 motor_copy_fn( int argc, char *argv[] )
 {
-	const char cname[] = "copy";
+	static const char cname[] = "copy";
 
 	MX_RECORD *old_scan_record, *new_scan_record;
 	MX_SCAN *old_scan;
@@ -144,7 +144,8 @@ motor_copy_fn( int argc, char *argv[] )
 	}
 
 	if ( motor_autosave_on ) {
-		sprintf(buffer, "save scan \"%s\"", scan_savefile);
+		snprintf( buffer, sizeof(buffer),
+			"save scan \"%s\"", scan_savefile );
 
 		cmd_execute_command_line( command_list_length,
 						command_list, buffer );
@@ -209,7 +210,8 @@ motor_copy_scan_record( MX_RECORD *old_scan_record,
 
 	/* Create the new scan description from the old one. */
 
-	strcpy( new_scan_description, old_scan_description );
+	strlcpy( new_scan_description, old_scan_description,
+			sizeof(new_scan_description) );
 
 	new_scan_name_length = strlen( new_scan_name );
 

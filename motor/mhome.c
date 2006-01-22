@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2004 Illinois Institute of Technology
+ * Copyright 1999-2000, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 int
 motor_home_fn( int argc, char *argv[] )
 {
-	const char cname[] = "home";
+	static const char cname[] = "home";
 
 	MX_RECORD *record;
 	char *endptr;

@@ -441,7 +441,7 @@ motor_main( int argc, char *argv[] )
 
 	name = cmd_program_name();
 
-	sprintf( prompt, "%s> ", name );
+	snprintf( prompt, sizeof(prompt), "%s> ", name );
 
 	while(1) {
 		/* Read a command line. */
@@ -487,7 +487,7 @@ motor_main( int argc, char *argv[] )
 				 * command name first.
 				 */
 
-				strncpy( saved_command_name, cmd_argv[1],
+				strlcpy( saved_command_name, cmd_argv[1],
 					sizeof(saved_command_name) );
 
 				/* Invoke the function. */
@@ -541,7 +541,6 @@ motor_get_startup_filename( void )
 {
 	static char filename_buffer[100];
 	char *ptr;
-	int buffer_length;
 
 #if defined(OS_VXWORKS)
 	/* Real time kernels do not get per-user startup scripts. */
@@ -549,47 +548,30 @@ motor_get_startup_filename( void )
 	return NULL;
 #endif
 
-	buffer_length = sizeof(filename_buffer) - 1;
-
 	filename_buffer[0] = '\0';
-	filename_buffer[buffer_length] = '\0';
 
 #if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
-	{
-		int used_so_far, free_chars_left;
 
-		ptr = getenv("HOME");
-		if ( ptr != NULL ) {
-			strncpy( filename_buffer, ptr, buffer_length );
-		}
-		used_so_far = strlen( filename_buffer );
-		free_chars_left = buffer_length - used_so_far;
+	ptr = getenv("HOME");
 
-		if (used_so_far > 0 && free_chars_left > 0) {
-			strcat( filename_buffer, "/" );
-			used_so_far++;
-			free_chars_left++;
-		}
-
-		strncat( filename_buffer, USER_MOTOR_STARTUP, free_chars_left );
+	if ( ptr != NULL ) {
+		strlcpy( filename_buffer, ptr, sizeof(filename_buffer) );
 	}
+
+	strlcat(filename_buffer, "/", sizeof(filename_buffer));
+
+	strlcat( filename_buffer, USER_MOTOR_STARTUP, sizeof(filename_buffer) );
+
 #elif defined(OS_MSDOS) || defined(OS_WIN32)
 
-	/* The following is probably too simplistic.  We might prefer
-	 * to set this up using an environment variable.  Also, under
-	 * Windows NT, presumably each user should have their own
-	 * startup script.  I'm not prepared, at this time, to deal
-	 * with the possibility of defining the startup file location
-	 * using the Registry.  I need more Win32 programming experience
-	 * before attempting something like that.
-	 */
+	/* FIXME: The following is too simplistic. */
 
-	strncpy( filename_buffer, "c:\\motor.ini", buffer_length );
+	strlcpy( filename_buffer, "c:\\motor.ini", sizeof(filename_buffer) );
 
 #else
 	/* A fallback, if all else fails. */
 
-	strncpy( filename_buffer, "motor.ini", buffer_length );
+	strlcpy( filename_buffer, "motor.ini", sizeof(filename_buffer) );
 
 #endif /* Unix or MSDOS or Win32 or DJGPP */
 
@@ -639,7 +621,8 @@ motor_exit_fn( int argc, char *argv[] )
 	/* Automatically save the motor database if we are supposed to. */
 
 	if ( allow_motor_database_updates ) {
-		sprintf(buffer, "save motor %s", motor_savefile);
+		snprintf( buffer, sizeof(buffer),
+			"save motor %s", motor_savefile );
 
 		status = cmd_execute_command_line( command_list_length,
 						command_list, buffer );
@@ -654,7 +637,8 @@ motor_exit_fn( int argc, char *argv[] )
 	/* Automatically save the scan database if we are supposed to. */
 
 	if ( motor_autosave_on && motor_has_unsaved_scans ) {
-		sprintf(buffer, "save scan \"%s\"", scan_savefile);
+		snprintf( buffer, sizeof(buffer),
+			"save scan \"%s\"", scan_savefile );
 
 		if ( motor_record_list != (MX_RECORD *) NULL ) {
 			status = cmd_execute_command_line( command_list_length, 
@@ -715,7 +699,7 @@ motor_exit_save_dialog( void )
 	char response[20];
 	int response_length, exitloop, status;
 
-	strcpy( default_savefile, "" );
+	strlcpy( default_savefile, "", sizeof(default_savefile) );
 
 	switch ( motor_exit_save_policy ) {
 	case EXIT_NO_PROMPT_NEVER_SAVE:
@@ -778,7 +762,7 @@ motor_exit_save_dialog( void )
 		break;
 	}
 
-	sprintf( buffer, "save scan \"%s\"", scan_savefile );
+	snprintf( buffer, sizeof(buffer), "save scan \"%s\"", scan_savefile );
 
 	status = cmd_execute_command_line( command_list_length,
 						command_list, buffer );
@@ -965,12 +949,12 @@ motor_expand_pathname( char *filename, int max_filename_length )
 
 	if ( buffer[ string_length - 1 ] != '\\' ) {
 
-		strcat( buffer, "\\" );
+		strlcat( buffer, "\\", sizeof(buffer) );
 	}
 #else
 	if ( buffer[ string_length - 1 ] != '/' ) {
 
-		strcat( buffer, "/" );
+		strlcat( buffer, "/", sizeof(buffer) );
 	}
 #endif
 
@@ -986,7 +970,7 @@ motor_expand_pathname( char *filename, int max_filename_length )
 		return FAILURE;
 	}
 
-	strcat( buffer, filename_ptr );
+	strlcat( buffer, filename_ptr, sizeof(buffer) );
 
 	if ( strlen( buffer ) > max_filename_length ) {
 		fprintf( output,
@@ -1008,7 +992,7 @@ motor_expand_pathname( char *filename, int max_filename_length )
 	filename[0] = '\0';
 #endif
 
-	strcat( filename, buffer );
+	strlcat( filename, buffer, max_filename_length );
 
 	return SUCCESS;
 }

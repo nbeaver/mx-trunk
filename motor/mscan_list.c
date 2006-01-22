@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,6 @@ motor_setup_list_scan_parameters(
 	char scan_position_filename[MXU_FILENAME_LENGTH + 1];
 	int i, status;
 	int string_length;
-	size_t buffer_left;
 	long scan_class, scan_type;
 	long scan_num_scans;
 	long scan_num_independent_variables;
@@ -124,15 +123,14 @@ motor_setup_list_scan_parameters(
 
 	/* Add the record type info to the record description. */
 
-	sprintf( record_description_buffer, "%s scan list_scan ", scan_name );
-
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length = string_length;
+	snprintf( record_description_buffer,
+			record_description_buffer_length,
+			"%s scan list_scan ", scan_name );
 
 	switch( scan_type ) {
 	case MXS_LST_FILE:
-		strncat( record_description_buffer, "file_list_scan \"\" \"\" ",
-			buffer_left );
+		strlcat( record_description_buffer, "file_list_scan \"\" \"\" ",
+					record_description_buffer_length );
 		break;
 	default:
 		fprintf( output, "Unknown list scan type = %ld\n",
@@ -140,11 +138,12 @@ motor_setup_list_scan_parameters(
 		break;
 	}
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-	sprintf( buffer, "%ld %ld %ld ", scan_num_scans,
+	snprintf( buffer, sizeof(buffer),
+			"%ld %ld %ld ", scan_num_scans,
 			scan_num_independent_variables, scan_num_motors );
-	strncat( record_description_buffer, buffer, buffer_left );
+
+	strlcat( record_description_buffer, buffer,
+					record_description_buffer_length );
 
 	if ( scan_num_independent_variables <= 0 ) {
 		fprintf( output,
@@ -258,7 +257,7 @@ motor_setup_list_scan_parameters(
 
 	switch( scan_type ) {
 	case MXS_LST_FILE:
-		sprintf( prompt,
+		snprintf( prompt, sizeof(prompt),
 			"Enter name of file containing motor positions -> " );
 
 		string_length = sizeof(scan_position_filename) - 1;
@@ -288,72 +287,67 @@ motor_setup_list_scan_parameters(
 	 * data files and plot types.
 	 */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( input_devices_string != NULL ) {
-		strncat( record_description_buffer,
-			input_devices_string, buffer_left );
+		strlcat( record_description_buffer, input_devices_string,
+					record_description_buffer_length );
 	} else {
 		status = motor_setup_input_devices( old_scan,
 						scan_class, scan_type,
 						buffer, sizeof(buffer), NULL );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+					record_description_buffer_length );
 	}
 
 	/* The after scan action is currently hardcoded as 0. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
-	strncat( record_description_buffer, "0 ", buffer_left );
+	strlcat( record_description_buffer, "0 ",
+					record_description_buffer_length );
 
 	/* Prompt for the measurement parameters. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( measurement_parameters_string != NULL ) {
-		strncat( record_description_buffer,
-			measurement_parameters_string, buffer_left );
+		strlcat( record_description_buffer,
+				measurement_parameters_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_measurement_parameters( old_scan,
 						buffer, sizeof(buffer), FALSE );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Prompt for the datafile and plot parameters. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( datafile_and_plot_parameters_string != NULL ) {
-		strncat( record_description_buffer,
-			datafile_and_plot_parameters_string, buffer_left );
+		strlcat( record_description_buffer,
+				datafile_and_plot_parameters_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_datafile_and_plot_parameters( old_scan,
 						scan_class, scan_type,
 						buffer, sizeof(buffer) );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Now add the source of the position list to the record
 	 * description.
 	 */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	switch( scan_type ) {
 	case MXS_LST_FILE:
-		strncat( record_description_buffer,
-			scan_position_filename, buffer_left );
+		strlcat( record_description_buffer,
+				scan_position_filename,
+				record_description_buffer_length );
 
 		break;
 	default:

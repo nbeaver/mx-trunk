@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ static int motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca );
 int
 motor_mca_fn( int argc, char *argv[] )
 {
-	const char cname[] = "mca";
+	static const char cname[] = "mca";
 
 	MX_RECORD *mca_record;
 	MX_MCA *mca;

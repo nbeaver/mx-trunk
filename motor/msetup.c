@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 int
 motor_setup_fn( int argc, char *argv[] )
 {
-	const char cname[] = "setup";
+	static const char cname[] = "setup";
 
 	MX_RECORD *record;
 	char buffer[MXU_FILENAME_LENGTH + 12];
@@ -181,7 +181,8 @@ motor_setup_fn( int argc, char *argv[] )
 			fprintf( output, "Scan setup aborted.\n");
 		}
 		if ( motor_autosave_on ) {
-			sprintf(buffer, "save scan \"%s\"", scan_savefile);
+			snprintf( buffer, sizeof(buffer),
+				"save scan \"%s\"", scan_savefile );
 
 			cmd_execute_command_line( command_list_length,
 						command_list, buffer );

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,6 @@ int
 motor_system_fn( int argc, char *argv[] )
 {
 	static char system_buffer[255];
-	size_t buffer_left;
 	int i, status;
 
 	if ( argc <= 2 ) {
@@ -34,18 +33,12 @@ motor_system_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
-	strcpy( system_buffer, "" );
+	strlcpy( system_buffer, "", sizeof(system_buffer) );
 
 	for ( i = 2; i < argc; i++ ) {
-		buffer_left
-		    = sizeof(system_buffer) - strlen(system_buffer) - 1;
+		strlcat( system_buffer, argv[i], sizeof(system_buffer) );
 
-		strncat( system_buffer, argv[i], buffer_left );
-
-		buffer_left
-		    = sizeof(system_buffer) - strlen(system_buffer) - 1;
-
-		strncat( system_buffer, " ", buffer_left );
+		strlcat( system_buffer, " ", sizeof(system_buffer) );
 	}
 
 	status = system( system_buffer );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ motor_wait_for_sample_changer( MX_RECORD *changer_record, char *label )
 int
 motor_sample_changer_fn( int argc, char *argv[] )
 {
-	const char cname[] = "sample_changer";
+	static const char cname[] = "sample_changer";
 
 	MX_RECORD *changer_record;
 	MX_SAMPLE_CHANGER *changer;

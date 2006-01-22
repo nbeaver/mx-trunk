@@ -40,9 +40,10 @@ motor_get_int( FILE *file, char *prompt,
 	int count, string_length, buffer_length, whitespace_length;
 
 	if ( have_default ) {
-		sprintf( default_string, "%d", default_value );
+		snprintf( default_string, sizeof(default_string),
+			"%d", default_value );
 	} else {
-		strcpy( default_string, "" );
+		strlcpy( default_string, "", sizeof(default_string) );
 	}
 
 	input_accepted = FALSE;
@@ -99,9 +100,10 @@ motor_get_long( FILE *file, char *prompt,
 	int count, string_length, buffer_length, whitespace_length;
 
 	if ( have_default ) {
-		sprintf( default_string, "%ld", default_value );
+		snprintf( default_string, sizeof(default_string),
+			"%ld", default_value );
 	} else {
-		strcpy( default_string, "" );
+		strlcpy( default_string, "", sizeof(default_string) );
 	}
 
 	input_accepted = FALSE;
@@ -158,9 +160,10 @@ motor_get_double( FILE *file, char *prompt,
 	int count, string_length, buffer_length, whitespace_length;
 
 	if ( have_default ) {
-		sprintf( default_string, "%g", default_value );
+		snprintf( default_string, sizeof(default_string),
+			"%g", default_value );
 	} else {
-		strcpy( default_string, "" );
+		strlcpy( default_string, "", sizeof(default_string) );
 	}
 
 	input_accepted = FALSE;
@@ -323,7 +326,8 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 
 		ptr = real_prompt + real_prompt_length;
 
-		sprintf( ptr, "(CR = '%s') ", default_string );
+		snprintf( ptr, sizeof(real_prompt) - real_prompt_length,
+			"(CR = '%s') ", default_string );
 	}
 
 #if ( MX_CMDLINE_PROCESSOR == MX_CMDLINE_READLINE )
@@ -349,15 +353,14 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 					if ( default_string != NULL &&
 					  strlen(default_string) > 0 ) {
 	
-						strcpy( string, "" );
-						strncat( string, default_string,
-							*string_length );
+						strlcpy( string, default_string,
+							    *string_length );
 					} else {
-						strcpy( string, "" );
+						strlcpy( string, "",
+							    *string_length );
 					}
 				} else {
-					strcpy( string, "" );
-					strncat( string, ptr, *string_length );
+					strlcpy( string, ptr, *string_length );
 				}
 				*string_length = strlen(string);
 				input_accepted = TRUE;
@@ -510,8 +513,7 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 		  && ( default_string != NULL )
 		  && ( strlen(default_string) > 0 ) )
 		{
-			strcpy( string, "" );
-			strncat( string, default_string, *string_length );
+			strlcpy( string, default_string, *string_length );
 			new_string_length = strlen(string);
 		}
 
@@ -533,7 +535,6 @@ motor_get_string_from_list( FILE *file, char *prompt,
 	const char fname[] = "motor_get_string_from_list()";
 
 	char real_prompt[120];
-	size_t buffer_left;
 	int i, status, length, valid_input, output_buffer_length;
 #if 0
 	fprintf( stderr, "prompt = '%s'\n", prompt );
@@ -579,17 +580,15 @@ motor_get_string_from_list( FILE *file, char *prompt,
 		return FAILURE;
 	}
 
-	strcpy( real_prompt, "" );
-
-	if ( prompt != NULL ) {
-		strncat( real_prompt, prompt, sizeof( real_prompt ) - 1 );
+	if ( prompt == NULL ) {
+		strlcpy( real_prompt, "", sizeof(real_prompt) );
+	} else {
+		strlcpy( real_prompt, prompt, sizeof( real_prompt ) );
 	}
 
 	output_buffer_length = *string_length;
 
-	buffer_left = sizeof(real_prompt) - strlen(real_prompt) - 1;
-
-	strncat( real_prompt, "[", buffer_left );
+	strlcat( real_prompt, "[", sizeof(real_prompt) );
 
 #if 0
 	fprintf( stderr, "real_prompt #1 = '%s'\n", real_prompt );
@@ -598,13 +597,8 @@ motor_get_string_from_list( FILE *file, char *prompt,
 #endif
 
 	for ( i = 0; i < num_strings; i++ ) {
-		buffer_left = sizeof(real_prompt) - strlen(real_prompt) - 1;
-
 		if ( i != 0 ) {
-			strncat( real_prompt, ",", buffer_left );
-
-			buffer_left = sizeof(real_prompt)
-						- strlen(real_prompt) - 1;
+			strlcat( real_prompt, ",", sizeof(real_prompt) );
 		}
 
 		if ( string_array[i] == NULL ) {
@@ -613,11 +607,9 @@ motor_get_string_from_list( FILE *file, char *prompt,
 
 			return FAILURE;
 		}
-		strncat( real_prompt, string_array[i], buffer_left );
+		strlcat( real_prompt, string_array[i], sizeof(real_prompt) );
 	}
-	buffer_left = sizeof(real_prompt) - strlen(real_prompt) - 1;
-
-	strncat( real_prompt, "] -> ", buffer_left );
+	strlcat( real_prompt, "] -> ", sizeof(real_prompt) );
 
 #if 0
 	fprintf( stderr, "real_prompt #2 = '%s'\n", real_prompt );
@@ -660,9 +652,8 @@ motor_get_string_from_list( FILE *file, char *prompt,
 	"Invalid response '%s'.  Please try again or hit ctrl-D to abort.\n",
 				selected_string );
 		} else {
-			strcpy( selected_string, "" );
-			strncat( selected_string,
-				string_array[i], output_buffer_length );
+			strlcpy( selected_string, string_array[i],
+					output_buffer_length );
 		}
 	}
 

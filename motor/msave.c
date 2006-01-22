@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,10 +23,10 @@
 int
 motor_save_fn( int argc, char *argv[] )
 {
-	const char cname[] = "save";
+	static const char cname[] = "save";
 
-	const char usage[] = "Usage:  save motor 'motor_file'\n"
-			      " or     save scan  'scan_file'";
+	static const char usage[] = "Usage:  save motor 'motor_file'\n"
+				    " or     save scan  'scan_file'";
 
 	MX_RECORD *record;
 	int superclass_is_a_match;

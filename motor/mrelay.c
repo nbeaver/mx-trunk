@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,10 +36,11 @@ motor_open_fn( int argc, char *argv[] )
 	}
 
 	if ( argc == 2 ) {
-		strcpy(relay_record_name, "shutter");
+		strlcpy( relay_record_name, "shutter",
+				sizeof(relay_record_name) );
 	} else {
-		strcpy(relay_record_name, "");
-		strncat(relay_record_name, argv[2], MXU_RECORD_NAME_LENGTH);
+		strlcpy( relay_record_name, argv[2],
+				sizeof(relay_record_name) );
 	}
 
 	/* Try to find the record with the given name. */
@@ -78,10 +79,11 @@ motor_close_fn( int argc, char *argv[] )
 	}
 
 	if ( argc == 2 ) {
-		strcpy(relay_record_name, "shutter");
+		strlcpy( relay_record_name, "shutter",
+				sizeof(relay_record_name) );
 	} else {
-		strcpy(relay_record_name, "");
-		strncat(relay_record_name, argv[2], MXU_RECORD_NAME_LENGTH);
+		strlcpy( relay_record_name, argv[2],
+				sizeof(relay_record_name) );
 	}
 
 	/* Try to find the record with the given name. */

@@ -38,7 +38,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = djgpp
+MX_ARCH = bsd
 
 MX_INSTALL_DIR = /opt/mx
 

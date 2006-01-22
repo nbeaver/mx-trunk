@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ motor_rs232_readline( MX_RECORD *record )
 int
 motor_rs232_fn( int argc, char *argv[] )
 {
-	const char cname[] = "rs232";
+	static const char cname[] = "rs232";
 
 	MX_RECORD *record;
 	int cmd_type, status;

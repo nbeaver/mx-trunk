@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,8 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 	}
 
 	for ( i = 1; i < 100; i++ ) {
-		sprintf( variable_name, "%s%d", variable_stem, i );
+		snprintf( variable_name, sizeof(variable_name),
+			"%s%d", variable_stem, i );
 
 		variable_record = mx_get_record(
 				motor_record_list, variable_name );
@@ -74,7 +75,7 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		sprintf( prompt, "Header #%d -> ", i );
+		snprintf( prompt, sizeof(prompt), "Header #%d -> ", i );
 
 		header_string_length = sizeof( new_value ) - 1;
 

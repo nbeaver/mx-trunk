@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 int
 motor_count_fn( int argc, char *argv[] )
 {
-	const char cname[] = "count";
+	static const char cname[] = "count";
 
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device;

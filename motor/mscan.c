@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -122,7 +122,8 @@ motor_scan_fn( int argc, char *argv[] )
 		 	old_filename, scan->datafile.filename ));
 
 		if ( motor_autosave_on ) {
-			sprintf( buffer, "save scan \"%s\"", scan_savefile );
+			snprintf( buffer, sizeof(buffer),
+				"save scan \"%s\"", scan_savefile );
 
 			cmd_execute_command_line( command_list_length,
 							command_list, buffer );

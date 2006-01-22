@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,9 +64,11 @@ Init( rtems_task_argument ignored )
 	argv[5] = argv5;
 	argv[6] = argv6;
 
-	sprintf( argv2, "TFTP/%s/motor.dat", MX_RTEMS_SERVER_ADDRESS );
+	snprintf( argv2, sizeof(argv2),
+			"TFTP/%s/motor.dat", MX_RTEMS_SERVER_ADDRESS );
 
-	sprintf( argv4, "/TFTP/%s/scan.dat", MX_RTEMS_SERVER_ADDRESS );
+	snprintf( argv4, sizeof(argv4),
+			"/TFTP/%s/scan.dat", MX_RTEMS_SERVER_ADDRESS );
 
 	motor_main( argc, argv );
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,13 +22,13 @@
 int
 motor_load_fn( int argc, char *argv[] )
 {
-	const char cname[] = "load";
+	static const char cname[] = "load";
 
 	MX_RECORD *old_record, *new_record;
 	static char record_description[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
-	int i, buffer_full;
+	int i;
 	unsigned long flags;
-	long length, string_length, buffer_left;
+	long length;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -104,41 +104,14 @@ motor_load_fn( int argc, char *argv[] )
 
 		/* Create a record description string from the argv array. */
 
-		strcpy( record_description, "" );
-
-		buffer_full = FALSE;
+		strlcpy( record_description, "", sizeof(record_description) );
 
 		for ( i = 3; i < argc; i++ ) {
-			string_length = (long) strlen( record_description );
-			buffer_left = (long) sizeof( record_description ) 
-						- string_length - 1;
+			strlcat( record_description, argv[i],
+						sizeof(record_description) );
 
-			if ( buffer_left <= 0 ) {
-				buffer_full = TRUE;
-				break;
-			}
-
-			strncat( record_description, argv[i], buffer_left );
-
-			string_length = (long) strlen( record_description );
-			buffer_left = (long) sizeof( record_description ) 
-						- string_length - 1;
-
-			if ( buffer_left <= 0 ) {
-				buffer_full = TRUE;
-				break;
-			}
-
-			strncat( record_description, " ", buffer_left );
-		}
-
-		if ( buffer_full ) {
-			fprintf( output,
-"%s: The generated record description is longer than the internal buffer "
-"'record_description' in function motor_load_fn() which is of length %lu.  "
-"Increase the size of this buffer in the source code and recompile.\n",
-		cname, (unsigned long) (sizeof(record_description) - 1) );
-			return FAILURE;
+			strlcat( record_description, " ",
+						sizeof(record_description) );
 		}
 
 		/* Create the new scan record. */

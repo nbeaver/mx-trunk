@@ -438,9 +438,9 @@ cmd_read_next_command_line( char *prompt )
 
 				add_history( ptr );
 
-				strncpy( buffer, ptr, sizeof(buffer) - 1 );
+				strlcpy( buffer, ptr, sizeof(buffer) );
 			} else {
-				strcpy( buffer, "" );
+				strlcpy( buffer, "", sizeof(buffer) );
 			}
 
 			free(ptr);
@@ -497,7 +497,7 @@ cmd_set_program_name( char *name )
 	/* This algorithm should work for MSDOS 3.0 and above (or for Unix).*/
 
 	if ( name == NULL ) {
-		strcpy( argv0, "" );
+		strlcpy( argv0, "", sizeof(argv0) );
 	} else {
 
 #if defined(OS_UNIX) || defined(OS_DJGPP)

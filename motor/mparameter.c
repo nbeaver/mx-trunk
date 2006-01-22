@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 int
 motor_readp_fn( int argc, char *argv[] )
 {
-	const char cname[] = "readparams";
+	static const char cname[] = "readparams";
 
 #if 1
 	fprintf( output, "%s has been deleted.\n", cname );
@@ -54,7 +54,7 @@ motor_readp_fn( int argc, char *argv[] )
 int
 motor_writep_fn( int argc, char *argv[] )
 {
-	const char cname[] = "writeparams";
+	static const char cname[] = "writeparams";
 
 #if 1
 	fprintf( output, "%s has been deleted.\n", cname );

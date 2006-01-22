@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ motor_set_motor_get_step_value( MX_MOTOR *motor,
 				int argc, char *argv[],
 				long *step_value )
 {
-	const char cname[] = "set motor";
+	static const char cname[] = "set motor";
 
 	int count;
 
@@ -59,7 +59,7 @@ motor_set_motor_get_step_value( MX_MOTOR *motor,
 int
 motor_set_motor( MX_RECORD *motor_record, int argc, char *argv[] )
 {
-	const char cname[] = "set motor";
+	static const char cname[] = "set motor";
 
 	MX_MOTOR *motor;
 	char buffer[80];
@@ -392,7 +392,8 @@ motor_set_motor( MX_RECORD *motor_record, int argc, char *argv[] )
 	/* Invoke the save motor function to save the 'motor.dat' file. */
 
 	if ( allow_motor_database_updates ) {
-		sprintf(buffer, "save motor %s", motor_savefile);
+		snprintf( buffer, sizeof(buffer),
+			"save motor %s", motor_savefile );
 
 		save_status = cmd_execute_command_line(
 			command_list_length, command_list, buffer);

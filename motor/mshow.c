@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ motor_showall_fn( int argc, char *argv[] )
 int
 motor_show_fn( int argc, char *argv[] )
 {
-	const char cname[] = "show";
+	static const char cname[] = "show";
 
 	char record_type_phrase[80];
 	char *match_string;
@@ -113,7 +113,7 @@ motor_show_fn( int argc, char *argv[] )
 
 	multiple_records = FALSE;
 	record_type = 0;
-	strcpy( record_type_phrase, "" );
+	strlcpy( record_type_phrase, "", sizeof(record_type_phrase) );
 	match_string = NULL;
 
 	switch( argc ) {
@@ -214,14 +214,14 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strcpy( record_type_phrase, "!!!" );
+		strlcpy(record_type_phrase, "!!!", sizeof(record_type_phrase));
 
 	} else if ( strncmp( "interfaces", argv[2], length ) == 0 ) {
 		record_superclass = MXR_INTERFACE;
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "an interface",
+		strlcpy( record_type_phrase, "an interface",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "devices", argv[2], max(2,length) ) == 0 ) {
@@ -229,7 +229,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a device",
+		strlcpy( record_type_phrase, "a device",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "servers", argv[2], max(2,length) ) == 0 ) {
@@ -237,7 +237,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a server",
+		strlcpy( record_type_phrase, "a server",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "adcs", argv[2], length ) == 0 ) {
@@ -245,7 +245,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANALOG_INPUT;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "an ADC",
+		strlcpy( record_type_phrase, "an ADC",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "amplifiers", argv[2], length ) == 0 ) {
@@ -253,7 +253,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_AMPLIFIER;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "an amplifier",
+		strlcpy( record_type_phrase, "an amplifier",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "dacs", argv[2], max(2,length) ) == 0 ) {
@@ -261,7 +261,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANALOG_OUTPUT;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a DAC",
+		strlcpy( record_type_phrase, "a DAC",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "dinputs", argv[2], max(2,length) ) == 0 ) {
@@ -269,7 +269,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_DIGITAL_INPUT;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a digital input",
+		strlcpy( record_type_phrase, "a digital input",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "doutputs", argv[2], max(2,length) ) == 0 ) {
@@ -277,7 +277,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_DIGITAL_OUTPUT;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a digital output",
+		strlcpy( record_type_phrase, "a digital output",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "mcas", argv[2], length ) == 0 ) {
@@ -285,7 +285,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_MULTICHANNEL_ANALYZER;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "an MCA",
+		strlcpy( record_type_phrase, "an MCA",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "mcses", argv[2], length ) == 0 ) {
@@ -293,7 +293,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_MULTICHANNEL_SCALER;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "an MCS",
+		strlcpy( record_type_phrase, "an MCS",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "motors", argv[2], length ) == 0 ) {
@@ -301,7 +301,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_MOTOR;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a motor",
+		strlcpy( record_type_phrase, "a motor",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "pulsers", argv[2], length ) == 0 ) {
@@ -309,7 +309,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_PULSE_GENERATOR;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a pulse generator",
+		strlcpy( record_type_phrase, "a pulse generator",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "relays", argv[2], length ) == 0 ) {
@@ -317,7 +317,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_RELAY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a relay",
+		strlcpy( record_type_phrase, "a relay",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "scalers", argv[2], max(4,length) ) == 0 ) {
@@ -325,7 +325,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_SCALER;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a scaler",
+		strlcpy( record_type_phrase, "a scaler",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "timers", argv[2], length ) == 0 ) {
@@ -333,7 +333,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_TIMER;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a timer",
+		strlcpy( record_type_phrase, "a timer",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "scans", argv[2], max(4,length) ) == 0 ) {
@@ -341,7 +341,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a scan",
+		strlcpy( record_type_phrase, "a scan",
 					sizeof(record_type_phrase) );
 
 	} else if ( strncmp( "variables", argv[2], max(2,length) ) == 0 ) {
@@ -349,7 +349,7 @@ motor_show_fn( int argc, char *argv[] )
 		record_class = MXC_ANY;
 		record_type = MXT_ANY;
 
-		strncpy( record_type_phrase, "a variable",
+		strlcpy( record_type_phrase, "a variable",
 					sizeof(record_type_phrase) );
 
 	} else {
@@ -978,7 +978,7 @@ motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
 int
 motor_show_field( char *record_field_name )
 {
-	const char cname[] = "show field";
+	static const char cname[] = "show field";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
@@ -1045,7 +1045,7 @@ motor_show_field( char *record_field_name )
 
 	/* Construct the string description of this field. */
 
-	strcpy( token_buffer, "" );
+	strlcpy( token_buffer, "", sizeof(token_buffer) );
 
 	if ( (record_field->num_dimensions == 0)
 	  || ((record_field->datatype == MXFT_STRING)

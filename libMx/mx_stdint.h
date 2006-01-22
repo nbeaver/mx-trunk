@@ -67,7 +67,6 @@ typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
-
 #elif ( defined(OS_DJGPP) && (DJGPP >= 2) && (DJGPP_MINOR < 4) )
 
 /* The following two blocks of conditionals are to avoid conflicting with
@@ -100,7 +99,6 @@ typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
-
 #elif defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
 
 typedef __int8			int8_t;
@@ -117,7 +115,6 @@ typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
-
 #elif defined(OS_VXWORKS)
 
 #  include <types/vxTypes.h>
@@ -134,9 +131,17 @@ typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
+#elif defined(OS_IRIX) || defined(OS_VMS) || defined(__OpenBSD__)
 
+   /* Some build targets do not have <stdint.h>, but have the same
+    * information available in <inttypes.h>.
+    */
+
+#  include <inttypes.h>
+
+/*=======================================================================*/
 #else
-   /* Most targets should be able to use a vendor provided <stdint.h>. */
+   /* Most build targets should be able to use a vendor provided <stdint.h>. */
 
 #  include <stdint.h>
 

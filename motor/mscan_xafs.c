@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,6 @@ motor_setup_xafs_scan_parameters(
 	char region_type_string[5];
 	char *ptr;
 	int status, string_length, num_items;
-	size_t buffer_left;
 	long scan_class, scan_type;
 	long i, j, n;
 	long num_regions, num_boundaries;
@@ -116,7 +115,8 @@ motor_setup_xafs_scan_parameters(
 
 	/* Format the beginning of the record description. */
 
-	sprintf( record_description_buffer,
+	snprintf( record_description_buffer,
+		record_description_buffer_length,
 		"%s scan xafs_scan_class xafs_scan \"\" \"\" %ld 0 0 ",
 		scan_name, scan_num_scans );
 
@@ -128,35 +128,33 @@ motor_setup_xafs_scan_parameters(
 	scan_type = MXS_XAF_STANDARD;
 
 	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
 
 	if ( input_devices_string != NULL ) {
-		strncat( record_description_buffer,
-			input_devices_string, buffer_left );
+		strlcat( record_description_buffer,
+				input_devices_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_input_devices( old_scan,
 						scan_class, scan_type,
 						buffer, sizeof(buffer), NULL );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* The after scan action is currently hardcoded as 0. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
-	strncat( record_description_buffer, "0 ", buffer_left );
+	strlcat( record_description_buffer, "0 ",
+			record_description_buffer_length );
 
 	/* Prompt for the settling time. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( measurement_parameters_string != NULL ) {
-		strncat( record_description_buffer,
-			measurement_parameters_string, buffer_left );
+		strlcat( record_description_buffer,
+				measurement_parameters_string,
+				record_description_buffer_length );
 	} else {
 		if ( old_scan == NULL ) {
 			default_double = 0.0;
@@ -171,23 +169,22 @@ motor_setup_xafs_scan_parameters(
 		if ( status != SUCCESS )
 			return status;
 
-		ptr = record_description_buffer + string_length;
-
-#if 0
-		sprintf( ptr, "%g preset_time \"0 timer1\" ",
-					scan_settling_time );
-#else
-		sprintf( ptr, "%g preset_time ", scan_settling_time );
-
 		string_length = strlen(record_description_buffer);
 
 		ptr = record_description_buffer + string_length;
 
+		snprintf( ptr, record_description_buffer_length - string_length,
+			"%g preset_time ", scan_settling_time );
+
+		string_length = strlen(record_description_buffer);
+
 		if ( old_scan == NULL ) {
-			strcpy( old_timer_name, "timer1" );
+			strlcpy( old_timer_name, "timer1",
+						sizeof(old_timer_name) );
 		} else {
-			sprintf( format_buffer, "%%lg %%%ds",
-						MXU_RECORD_NAME_LENGTH );
+			snprintf( format_buffer, sizeof(format_buffer),
+					"%%lg %%%ds",
+					MXU_RECORD_NAME_LENGTH );
 
 			num_items = sscanf(
 				old_scan->measurement.measurement_arguments,
@@ -233,25 +230,29 @@ motor_setup_xafs_scan_parameters(
 			return FAILURE;
 		}
 
-		sprintf( ptr, "\"0 %s\" ", timer_record->name );
-#endif
+		string_length = strlen(record_description_buffer);
+
+		ptr = record_description_buffer + string_length;
+
+		snprintf( ptr, record_description_buffer_length - string_length,
+			"\"0 %s\" ", timer_record->name );
 	}
 
 	/* Prompt for the datafile and plot parameters. */
 
-	string_length = strlen(record_description_buffer);
-	buffer_left = record_description_buffer_length - string_length;
-
 	if ( datafile_and_plot_parameters_string != NULL ) {
-		strncat( record_description_buffer,
-			datafile_and_plot_parameters_string, buffer_left );
+		strlcat( record_description_buffer,
+				datafile_and_plot_parameters_string,
+				record_description_buffer_length );
 	} else {
 		status = motor_setup_datafile_and_plot_parameters( old_scan,
 					MXS_XAFS_SCAN, MXS_XAF_STANDARD,
 					buffer, sizeof(buffer) );
 		if ( status != SUCCESS )
 			return status;
-		strncat( record_description_buffer, buffer, buffer_left );
+
+		strlcat( record_description_buffer, buffer,
+				record_description_buffer_length );
 	}
 
 	/* Prompt for the number of regions, etc. */
@@ -292,7 +293,8 @@ motor_setup_xafs_scan_parameters(
 	string_length = strlen(record_description_buffer);
 	ptr = record_description_buffer + string_length;
 
-	sprintf( ptr, "%ld %ld %ld %ld ",
+	snprintf( ptr, record_description_buffer_length - string_length,
+		"%ld %ld %ld %ld ",
 	    num_regions, num_energy_regions, num_k_regions, num_boundaries );
 
 	/* Allocate arrays to hold the new region boundaries, step sizes,
@@ -365,20 +367,19 @@ motor_setup_xafs_scan_parameters(
 
 		fprintf( output, "\n" );
 
-		strcpy( region_type_string, "" );
-
 		if ( i < num_energy_regions ) {
-			strncat( region_type_string, "E-E0",
-					sizeof(region_type_string) - 1 );
+			strlcpy( region_type_string, "E-E0",
+					sizeof(region_type_string) );
 		} else {
-			strncat( region_type_string, "k",
-					sizeof(region_type_string) - 1 );
+			strlcpy( region_type_string, "k",
+					sizeof(region_type_string) );
 		}
 
 		/* Region end. */
 
-		sprintf( prompt, "Enter end of region %ld (%s) -> ",
-						i, region_type_string );
+		snprintf( prompt, sizeof(prompt),
+				"Enter end of region %ld (%s) -> ",
+				i, region_type_string );
 
 		if ( old_xafs_scan == NULL ) {
 			default_double = 0.0;
@@ -411,8 +412,9 @@ motor_setup_xafs_scan_parameters(
 
 		/* Region step size */
 
-		sprintf( prompt, "Enter step size for region %ld (%s) -> ",
-						i, region_type_string );
+		snprintf( prompt, sizeof(prompt),
+			"Enter step size for region %ld (%s) -> ",
+			i, region_type_string );
 
 		if ( old_xafs_scan == NULL ) {
 			default_double = 0.0;
@@ -445,7 +447,7 @@ motor_setup_xafs_scan_parameters(
 
 		/* Region measurement time */
 
-		sprintf( prompt,
+		snprintf( prompt, sizeof(prompt),
 			"Enter measurement time for region %ld (sec) -> ", i );
 
 		if ( old_xafs_scan == NULL ) {
@@ -482,19 +484,22 @@ motor_setup_xafs_scan_parameters(
 		string_length = strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
-		sprintf( ptr, "%g ", region_boundary[i] );
+		snprintf( ptr, record_description_buffer_length - string_length,
+			"%g ", region_boundary[i] );
 	}
 	for ( i = 0; i < num_regions; i++ ) {
 		string_length = strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
-		sprintf( ptr, "%g ", region_step_size[i] );
+		snprintf( ptr, record_description_buffer_length - string_length,
+			"%g ", region_step_size[i] );
 	}
 	for ( i = 0; i < num_regions; i++ ) {
 		string_length = strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
-		sprintf( ptr, "%g ", region_measurement_time[i] );
+		snprintf( ptr, record_description_buffer_length - string_length,
+			"%g ", region_measurement_time[i] );
 	}
 
 	/* Delete the old scan if it exists. */

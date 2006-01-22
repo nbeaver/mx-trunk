@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 int
 motor_mjog_fn( int argc, char *argv[] )
 {
-	const char cname[] = "mjog";
+	static const char cname[] = "mjog";
 
 	MX_RECORD *record;
 	MX_MOTOR *motor;
@@ -159,15 +159,17 @@ motor_mjog_fn( int argc, char *argv[] )
 	/* === End of 'mjog' argument parsing. === */
 
 #ifdef OS_UNIX
-	strcpy(left_arrow_label, "-");
-	strcpy(right_arrow_label, "+");
-	strcpy(ctrl_left_arrow_label, "<");
-	strcpy(ctrl_right_arrow_label, ">");
+	strlcpy(left_arrow_label, "-", sizeof(left_arrow_label) );
+	strlcpy(right_arrow_label, "+", sizeof(right_arrow_label) );
+	strlcpy(ctrl_left_arrow_label, "<", sizeof(ctrl_left_arrow_label) );
+	strlcpy(ctrl_right_arrow_label, ">", sizeof(ctrl_right_arrow_label) );
 #else
-	strcpy(left_arrow_label, "<left-arrow>");
-	strcpy(right_arrow_label, "<right-arrow>");
-	strcpy(ctrl_left_arrow_label, "ctrl-<left-arrow>");
-	strcpy(ctrl_right_arrow_label, "ctrl-<right-arrow>");
+	strlcpy(left_arrow_label, "<left-arrow>", sizeof(left_arrow_label) );
+	strlcpy(right_arrow_label, "<right-arrow>", sizeof(right_arrow_label) );
+	strlcpy(ctrl_left_arrow_label, "ctrl-<left-arrow>",
+					sizeof(ctrl_left_arrow_label) );
+	strlcpy(ctrl_right_arrow_label, "ctrl-<right-arrow>",
+					sizeof(ctrl_right_arrow_label) );
 #endif
 
 
@@ -410,7 +412,8 @@ motor_mjog_fn( int argc, char *argv[] )
 	if ( allow_motor_database_updates ) {
 		fprintf( output, "Saving new position to 'motor.dat'\n");
 
-		sprintf(buffer, "save motor %s", motor_savefile);
+		snprintf( buffer, sizeof(buffer),
+			"save motor %s", motor_savefile );
 
 		cmd_execute_command_line( command_list_length,
 						command_list, buffer );

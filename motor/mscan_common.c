@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,6 @@ motor_setup_scan_motor_names(
 	MX_RECORD *record, *current_record, *list_head;
 	static char buffer[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
 	char prompt[100];
-	size_t buffer_left;
 	char *default_string_ptr;
 	char *name;
 	int i, status, string_length, valid_motor_name;
@@ -50,9 +49,11 @@ motor_setup_scan_motor_names(
 	for ( i = 0; i < scan_num_motors ; i++ ) {
 
 		if ( scan_num_motors == 1 ) {
-			sprintf(prompt, "Enter motor name -> ");
+			snprintf( prompt, sizeof(prompt),
+				"Enter motor name -> ");
 		} else {
-			sprintf(prompt, "Enter motor(%d) name -> ", i);
+			snprintf( prompt, sizeof(prompt),
+				"Enter motor(%d) name -> ", i);
 		}
 
 		valid_motor_name = FALSE;
@@ -127,9 +128,7 @@ motor_setup_scan_motor_names(
 					   (record->mx_superclass == MXR_DEVICE)
 					  && (record->mx_class == MXC_MOTOR) )
 					{
-					    strcpy( motor_name_array[i], "" );
-
-					    strncat( motor_name_array[i],
+					    strlcpy( motor_name_array[i],
 					      buffer, MXU_RECORD_NAME_LENGTH);
 
 					    valid_motor_name =TRUE;
@@ -145,16 +144,11 @@ motor_setup_scan_motor_names(
 	}
 
 	for ( i = 0; i < scan_num_motors; i++ ) {
-		string_length = strlen(record_description_buffer);
-		buffer_left = record_description_buffer_length - string_length;
+		strlcat( record_description_buffer, motor_name_array[i],
+					record_description_buffer_length );
 
-		strncat( record_description_buffer,
-				motor_name_array[i], buffer_left );
-
-		string_length = strlen(record_description_buffer);
-		buffer_left = record_description_buffer_length - string_length;
-
-		strncat( record_description_buffer, " ", buffer_left );
+		strlcat( record_description_buffer, " ",
+					record_description_buffer_length );
 	}
 
 	return SUCCESS;
@@ -177,7 +171,6 @@ motor_setup_input_devices(
 	char *name;
 	int i, status;
 	int string_length;
-	size_t buffer_left;
 	int valid_input_device_name;
 	long scan_num_input_devices;
 
@@ -246,9 +239,11 @@ motor_setup_input_devices(
 	for ( i = 0; i < scan_num_input_devices; i++ ) {
 
 		if ( scan_num_input_devices == 1 ) {
-			sprintf(prompt, "Enter input device name -> ");
+			snprintf( prompt, sizeof(prompt),
+					"Enter input device name -> ");
 		} else {
-			sprintf(prompt, "Enter input device(%d) name -> ", i);
+			snprintf( prompt, sizeof(prompt),
+					"Enter input device(%d) name -> ", i);
 		}
 
 		valid_input_device_name = FALSE;
@@ -411,19 +406,15 @@ motor_setup_input_devices(
 
 	/* Now format this part of the record description. */
 
-	sprintf( input_devices_buffer, "%ld ", scan_num_input_devices );
+	snprintf( input_devices_buffer, input_devices_buffer_length,
+			"%ld ", scan_num_input_devices );
 
 	for ( i = 0; i < scan_num_input_devices; i++ ) {
-		string_length = strlen(input_devices_buffer);
-		buffer_left = input_devices_buffer_length - string_length;
+		strlcat( input_devices_buffer, input_name_array[i],
+					input_devices_buffer_length );
 
-		strncat( input_devices_buffer,
-				input_name_array[i], buffer_left );
-
-		string_length = strlen(input_devices_buffer);
-		buffer_left = input_devices_buffer_length - string_length;
-
-		strncat( input_devices_buffer, " ", buffer_left );
+		strlcat( input_devices_buffer, " ",
+					input_devices_buffer_length );
 	}
 
 	if ( input_name_array != NULL ) {
@@ -490,15 +481,18 @@ motor_setup_measurement_parameters(
 
 	switch( scan_measurement_type ) {
 	case MXM_NONE:
-		sprintf( measurement_parameters_buffer, "%g none ",
-						scan_settling_time );
+		snprintf( measurement_parameters_buffer,
+				measurement_parameters_buffer_length,
+				"%g none ", scan_settling_time );
 	case MXM_PRESET_TIME:
-		sprintf( measurement_parameters_buffer, "%g preset_time ",
-						scan_settling_time );
+		snprintf( measurement_parameters_buffer,
+				measurement_parameters_buffer_length,
+				"%g preset_time ", scan_settling_time );
 		break;
 	case MXM_PRESET_COUNT:
-		sprintf( measurement_parameters_buffer, "%g preset_count ",
-						scan_settling_time );
+		snprintf( measurement_parameters_buffer,
+				measurement_parameters_buffer_length,
+				"%g preset_count ", scan_settling_time );
 		break;
 	}
 
@@ -572,8 +566,8 @@ motor_setup_preset_time_measurement(
 			default_double = 0.0;
 			default_string = default_timer_name;
 		} else {
-			sprintf( format_buffer, "%%lg %%%ds",
-						MXU_RECORD_NAME_LENGTH );
+			snprintf( format_buffer, sizeof(format_buffer),
+					"%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
 
 			num_items = sscanf(
 				old_scan->measurement.measurement_arguments,
@@ -635,8 +629,8 @@ motor_setup_preset_time_measurement(
 		return FAILURE;
 	}
 
-	sprintf( parameter_buffer, "\"%g %s\" ",
-			scan_integration_time, timer_record->name );
+	snprintf( parameter_buffer, parameter_buffer_length,
+		"\"%g %s\" ", scan_integration_time, timer_record->name );
 
 	return SUCCESS;
 }
@@ -665,8 +659,8 @@ motor_setup_preset_count_measurement(
 			default_long = 0;
 			default_string = NULL;
 		} else {
-			sprintf( format_buffer, "%%ld %%%ds",
-						MXU_RECORD_NAME_LENGTH );
+			snprintf( format_buffer, sizeof(format_buffer),
+					"%%ld %%%ds", MXU_RECORD_NAME_LENGTH );
 
 			num_items = sscanf(
 				old_scan->measurement.measurement_arguments,
@@ -728,8 +722,8 @@ motor_setup_preset_count_measurement(
 		return FAILURE;
 	}
 
-	sprintf( parameter_buffer, "\"%ld %s\" ",
-			scaler_preset_count, scaler_record->name );
+	snprintf( parameter_buffer, parameter_buffer_length,
+		"\"%ld %s\" ", scaler_preset_count, scaler_record->name );
 
 	return SUCCESS;
 }
@@ -759,6 +753,7 @@ motor_setup_datafile_and_plot_parameters(
 	int status, use_plot_arguments;
 	int i, valid_input, string_length;
 	char *ptr, *default_string_ptr;
+	size_t buffer_used;
 
 	int default_file_type_number;
 
@@ -884,11 +879,11 @@ motor_setup_datafile_and_plot_parameters(
 	/* Get datafile options. */
 
 	if ( old_scan == (MX_SCAN *) NULL ) {
-		strcpy( default_datafile_options, "" );
+		strlcpy( default_datafile_options, "",
+					sizeof(default_datafile_options) );
 	} else {
-		strlcpy( default_datafile_options,
-			old_scan->datafile.options,
-			MXU_DATAFILE_OPTIONS_LENGTH );
+		strlcpy( default_datafile_options, old_scan->datafile.options,
+					sizeof(default_datafile_options) );
 	}
 
 	string_length = MXU_DATAFILE_OPTIONS_LENGTH;
@@ -948,11 +943,11 @@ motor_setup_datafile_and_plot_parameters(
 	/* Get plot options. */
 
 	if ( old_scan == (MX_SCAN *) NULL ) {
-		strcpy( default_plot_options, "" );
+		strlcpy( default_plot_options, "",
+					sizeof(default_plot_options) );
 	} else {
-		strlcpy( default_plot_options,
-			old_scan->plot.options,
-			MXU_PLOT_OPTIONS_LENGTH );
+		strlcpy( default_plot_options, old_scan->plot.options,
+					sizeof(default_plot_options) );
 	}
 
 	string_length = MXU_PLOT_OPTIONS_LENGTH;
@@ -982,8 +977,8 @@ motor_setup_datafile_and_plot_parameters(
 
 #endif
 
-	if (use_plot_arguments == FALSE ) {
-		strcpy( plot_arguments, "" );
+	if ( use_plot_arguments == FALSE ) {
+		strlcpy( plot_arguments, "", sizeof(plot_arguments) );
 	} else {
 		plot_arguments_length = sizeof(plot_arguments)-1;
 
@@ -999,26 +994,33 @@ motor_setup_datafile_and_plot_parameters(
 			&plot_arguments_length, plot_arguments );
 
 		if ( plot_arguments_length == 0 ) {
-			strcpy( plot_arguments, "$f[0]" );
+			strlcpy( plot_arguments, "$f[0]",
+						sizeof(plot_arguments) );
 		}
 	}
 
 	if ( strlen( datafile_options ) > 0 ) {
-		sprintf( datafile_and_plot_buffer, "%s:%s %s ",
+		snprintf( datafile_and_plot_buffer,
+			datafile_and_plot_buffer_length,
+			"%s:%s %s ",
 			datafile_type_name, datafile_options, output_filename );
 	} else {
-		sprintf( datafile_and_plot_buffer, "%s %s ",
-			datafile_type_name, output_filename );
+		snprintf( datafile_and_plot_buffer,
+			datafile_and_plot_buffer_length,
+			"%s %s ", datafile_type_name, output_filename );
 	}
 
-	ptr = datafile_and_plot_buffer + strlen( datafile_and_plot_buffer );
+	buffer_used = strlen( datafile_and_plot_buffer );
+
+	ptr = datafile_and_plot_buffer + buffer_used;
 
 	if ( strlen( plot_options ) > 0 ) {
-		sprintf( ptr, "%s:%s \"%s\" ",
+		snprintf( ptr, datafile_and_plot_buffer_length - buffer_used,
+			"%s:%s \"%s\" ",
 			plot_type_name, plot_options, plot_arguments );
 	} else {
-		sprintf( ptr, "%s \"%s\" ",
-			plot_type_name, plot_arguments );
+		snprintf( ptr, datafile_and_plot_buffer_length - buffer_used,
+			"%s \"%s\" ", plot_type_name, plot_arguments );
 	}
 
 #if 0

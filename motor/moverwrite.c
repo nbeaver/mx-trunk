@@ -98,6 +98,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 	char buffer[20];
 	char filename[ MXU_FILENAME_LENGTH + 1 ];
 	int status, string_length, exit_loop;
+	size_t buffer_left;
 	long version_number, version_number_length;
 	long i, new_version_number, num_existing_files;
 	mx_status_type mx_status;
@@ -220,6 +221,9 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 		} else {
 			/* CASE: Multiple filenames. */
 
+			buffer_left = sizeof(filename)
+			    - (size_t) (version_number_ptr - filename);
+
 			for ( i = 0; i < scan->num_scans; i++ ) {
 
 				new_version_number
@@ -230,7 +234,8 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 				if ( new_version_number < 0 )
 					return FAILURE;
 
-				sprintf( version_number_ptr, "%0*lu",
+				snprintf( version_number_ptr, buffer_left,
+					"%0*lu",
 					(int) version_number_length,
 					new_version_number );
 

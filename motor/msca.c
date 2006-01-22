@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@
 int
 motor_sca_fn( int argc, char *argv[] )
 {
-	const char cname[] = "sca";
+	static const char cname[] = "sca";
 
 	MX_RECORD *sca_record;
 	MX_SCA *sca;

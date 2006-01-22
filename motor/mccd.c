@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ motor_wait_for_ccd( MX_RECORD *ccd_record, char *label )
 int
 motor_ccd_fn( int argc, char *argv[] )
 {
-	const char cname[] = "ccd";
+	static const char cname[] = "ccd";
 
 	MX_RECORD *ccd_record;
 	MX_CCD *ccd;

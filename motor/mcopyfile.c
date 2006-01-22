@@ -111,7 +111,7 @@ motor_make_backup_copy( char *filename )
 	char path_separator;
 	char *last_period_in_filename;
 	char *last_path_separator_in_filename;
-	int length, ptr_diff;
+	int ptr_diff;
 	mx_status_type status;
 
 	if ( filename == NULL ) {
@@ -119,18 +119,13 @@ motor_make_backup_copy( char *filename )
 			"Source filename pointer is NULL.");
 	}
 
-	strncpy( backup_filename, filename,
-		sizeof( backup_filename ) - sizeof(BACKUP_SUFFIX) );
+	strlcpy( backup_filename, filename, sizeof(backup_filename) );
 
 	last_period_in_filename = strrchr( backup_filename, '.' );
 
-	if ( last_period_in_filename == NULL ) {
-		length = strlen( backup_filename );
+	if ( last_period_in_filename != NULL ) {
 
-		strcpy( backup_filename + length, BACKUP_SUFFIX );
-	} else {
-
-#if defined( OS_WIN32) || defined( OS_DOS_EXT_WATCOM)
+#if defined(OS_WIN32) || defined(OS_DOS_EXT_WATCOM)
 		path_separator = '\\';
 #else
 		path_separator = '/';
@@ -139,22 +134,20 @@ motor_make_backup_copy( char *filename )
 			= strrchr( backup_filename, path_separator );
 
 		if ( last_path_separator_in_filename == NULL ) {
-			strcpy( last_period_in_filename, BACKUP_SUFFIX );
+			*last_period_in_filename = '\0';
 		} else {
 			ptr_diff = (int) ( last_period_in_filename
 					- last_path_separator_in_filename );
 
 			if ( ptr_diff > 0 ) {
-				strcpy( last_period_in_filename,
-							BACKUP_SUFFIX );
+				*last_period_in_filename = '\0';
 			} else {
-				length = strlen( backup_filename );
-
-				strcpy( backup_filename + length,
-							BACKUP_SUFFIX );
+				*(last_path_separator_in_filename+1) = '\0';
 			}
 		}
 	}
+
+	strlcat( backup_filename, BACKUP_SUFFIX, sizeof(backup_filename) );
 
 	status = motor_copy_file( filename, backup_filename );
 

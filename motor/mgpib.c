@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ motor_gpib_readline( MX_RECORD *record, int address )
 int
 motor_gpib_fn( int argc, char *argv[] )
 {
-	const char cname[] = "gpib";
+	static const char cname[] = "gpib";
 
 	MX_RECORD *record;
 	int cmd_type, status, address;
