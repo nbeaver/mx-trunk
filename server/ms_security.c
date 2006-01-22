@@ -35,7 +35,7 @@ mx_status_type
 mxsrv_setup_connection_acl( MX_RECORD *record_list,
 				char *connection_acl_filename )
 {
-	const char fname[] = "mxsrv_setup_connection_acl()";
+	static const char fname[] = "mxsrv_setup_connection_acl()";
 
 	MXSRV_CONNECTION_ACL *connection_acl;
 	FILE *connection_acl_file;
@@ -221,7 +221,7 @@ mx_status_type
 mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 		char *client_address_string, int *connection_allowed )
 {
-	const char fname[] = "mxsrv_check_socket_connection_acl_permissions()";
+	static const char fname[] = "mxsrv_check_socket_connection_acl_permissions()";
 
 	MX_LIST_HEAD *list_head;
 	MXSRV_CONNECTION_ACL *connection_acl;
@@ -294,7 +294,7 @@ mx_status_type
 mxsrv_get_client_hostname( char *client_address_string,
 				char *client_hostname )
 {
-	const char fname[] = "mxsrv_get_client_hostname()";
+	static const char fname[] = "mxsrv_get_client_hostname()";
 
 	struct hostent *host_entry;
 

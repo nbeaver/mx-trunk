@@ -323,16 +323,17 @@ main( int argc, char *argv[] )
 
 	/* Copy the other command line arguments. */
 
-	strlcpy( update_list_filename, argv[i], MXU_FILENAME_LENGTH);
+	strlcpy( update_list_filename, argv[i], sizeof(update_list_filename) );
 
-	strlcpy( autosave1_filename, argv[i+1], MXU_FILENAME_LENGTH);
+	strlcpy( autosave1_filename, argv[i+1], sizeof(autosave1_filename) );
 
 	if ( save_only || restore_only ) {
 		/* Set the second filename to an empty string. */
 
-		strcpy( autosave2_filename, "" );
+		strlcpy( autosave2_filename, "", sizeof(autosave2_filename) );
 	} else {
-		strlcpy( autosave2_filename, argv[i+2], MXU_FILENAME_LENGTH );
+		strlcpy( autosave2_filename, argv[i+2],
+					sizeof(autosave2_filename) );
 	}
 
 	mx_set_debug_level( debug_level );
@@ -340,7 +341,8 @@ main( int argc, char *argv[] )
 	if ( install_syslog_handler ) {
 		mx_gethostname( hostname, sizeof(hostname) - 1 );
 
-		sprintf( ident_string, "mxupdate@%s", hostname );
+		snprintf( ident_string, sizeof(ident_string),
+			"mxupdate@%s", hostname );
 
 		mx_status = mx_install_syslog_handler( ident_string,
 					syslog_number, syslog_options );
@@ -621,7 +623,6 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	static const char fname[] = "mxupd_add_mx_variable_to_database()";
 
 	MX_RECORD *server_record;
-	size_t buffer_left;
 	long i, num_elements;
 	long datatype, num_dimensions;
 	long dimension_array[MXU_FIELD_MAX_DIMENSIONS];
@@ -629,6 +630,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	char server_arguments[MXU_SERVER_ARGUMENTS_LENGTH+1];
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char *ptr;
+	size_t string_length;
 	char description[MXU_RECORD_DESCRIPTION_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -653,11 +655,11 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	MX_DEBUG( 2,("%s: record_name = '%s', field_name = '%s'",
 			fname, record_name, field_name));
 
-	strlcpy( record_field_name, record_name, MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcpy( record_field_name, record_name, sizeof(record_field_name) );
 
-	strlcat( record_field_name, ".", MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcat( record_field_name, ".", sizeof(record_field_name) );
 
-	strlcat( record_field_name, field_name, MXU_RECORD_FIELD_NAME_LENGTH );
+	strlcat( record_field_name, field_name, sizeof(record_field_name) );
 
 	MX_DEBUG( 2,("%s: record_field_name = '%s'", fname, record_field_name));
 
@@ -666,11 +668,10 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	 */
 
 	if ( strlen( server_name ) == 0 ) {
-		strlcpy( server_name, "localhost", MXU_HOSTNAME_LENGTH );
+		strlcpy( server_name, "localhost", sizeof(server_name) );
 	}
 	if ( strlen( server_arguments ) == 0 ) {
-		strlcpy( server_arguments, "9727",
-				MXU_SERVER_ARGUMENTS_LENGTH );
+		strlcpy( server_arguments, "9727", sizeof(server_arguments) );
 	}
 
 	/* Find the requested server record in the database, or
@@ -712,43 +713,42 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 
 	/* Create an MX database record of class 'net_variable' */
 
-	sprintf(description, "record%d variable net_variable ", record_number);
-
-	buffer_left = sizeof(description) - strlen(description) - 1;
+	snprintf( description, sizeof(description),
+		"record%d variable net_variable ", record_number );
 
 	switch( datatype ) {
 	case MXFT_STRING:
-		strncat( description, "net_string ", buffer_left );
+		strlcat( description, "net_string ", sizeof(description) );
 		break;
 	case MXFT_CHAR:
-		strncat( description, "net_char ", buffer_left );
+		strlcat( description, "net_char ", sizeof(description) );
 		break;
 	case MXFT_UCHAR:
-		strncat( description, "net_uchar ", buffer_left );
+		strlcat( description, "net_uchar ", sizeof(description) );
 		break;
 	case MXFT_SHORT:
-		strncat( description, "net_short ", buffer_left );
+		strlcat( description, "net_short ", sizeof(description) );
 		break;
 	case MXFT_USHORT:
-		strncat( description, "net_ushort ", buffer_left );
+		strlcat( description, "net_ushort ", sizeof(description) );
 		break;
 	case MXFT_INT:
-		strncat( description, "net_int ", buffer_left );
+		strlcat( description, "net_int ", sizeof(description) );
 		break;
 	case MXFT_UINT:
-		strncat( description, "net_uint ", buffer_left );
+		strlcat( description, "net_uint ", sizeof(description) );
 		break;
 	case MXFT_LONG:
-		strncat( description, "net_long ", buffer_left );
+		strlcat( description, "net_long ", sizeof(description) );
 		break;
 	case MXFT_ULONG:
-		strncat( description, "net_ulong ", buffer_left );
+		strlcat( description, "net_ulong ", sizeof(description) );
 		break;
 	case MXFT_FLOAT:
-		strncat( description, "net_float ", buffer_left );
+		strlcat( description, "net_float ", sizeof(description) );
 		break;
 	case MXFT_DOUBLE:
-		strncat( description, "net_double ", buffer_left );
+		strlcat( description, "net_double ", sizeof(description) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -758,9 +758,12 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 		break;
 	}
 
-	ptr = description + strlen(description);
+	string_length = strlen(description);
 
-	sprintf( ptr, "\"\" \"\" %s %s.%s %ld %ld ",
+	ptr = description + string_length;
+
+	snprintf( ptr, sizeof(description) - string_length,
+			"\"\" \"\" %s %s.%s %ld %ld ",
 			server_record->name, record_name, field_name,
 			num_dimensions, dimension_array[0] );
 
@@ -771,27 +774,24 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	}
 
 	for ( i = 1; i < num_dimensions; i++ ) {
-		ptr = description + strlen(description);
+		string_length = strlen(description);
 
-		sprintf( ptr, "%ld ", dimension_array[i] );
+		ptr = description + string_length;
+
+		snprintf( ptr, sizeof(description) - string_length,
+			"%ld ", dimension_array[i] );
 
 		num_elements *= dimension_array[i];
 	}
 	switch( datatype ) {
 	case MXFT_STRING:
 		for ( i = 0; i < num_elements; i++ ) {
-			buffer_left = sizeof(description)
-					- strlen(description) - 1;
-
-			strncat( description, "\"\" ", buffer_left );
+			strlcat( description, "\"\" ", sizeof(description) );
 		}
 		break;
 	default:
 		for ( i = 0; i < num_elements; i++ ) {
-			buffer_left = sizeof(description)
-					- strlen(description) - 1;
-
-			strncat( description, "0 ", buffer_left );
+			strlcat( description, "0 ", sizeof(description) );
 		}
 		break;
 	}
@@ -852,7 +852,6 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 {
 	static const char fname[] = "mxupd_add_epics_variable_to_database()";
 
-	size_t buffer_left;
 	long i, length;
 	long epics_datatype, epics_array_length;
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
@@ -874,7 +873,8 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 	ptr = strrchr( epics_pv_name, '.' );
 
 	if ( ptr == NULL ) {
-		sprintf( record_name, "%s_VAL", epics_pv_name );
+		snprintf( record_name, max_record_name_length,
+			"%s_VAL", epics_pv_name );
 	} else {
 		length = ptr - epics_pv_name;
 
@@ -886,16 +886,17 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 
 		ptr++;
 
-		sprintf( r_ptr, "_%s", ptr );
+		snprintf( r_ptr, max_record_name_length - length, "_%s", ptr );
 	}
 
 	if ( max_record_name_length >= MXU_RECORD_NAME_LENGTH ) {
 		record_name[MXU_RECORD_NAME_LENGTH - 1] = '\0';
 	}
 
-	strcpy( field_name, "value" );
+	strlcpy( field_name, "value", max_field_name_length );
 
-	sprintf( record_field_name, "%s.%s", record_name, field_name );
+	snprintf( record_field_name, sizeof(record_field_name),
+		"%s.%s", record_name, field_name );
 
 	MX_DEBUG( 2,("%s: record_field_name = '%s'", fname, record_field_name));
 
@@ -913,29 +914,27 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 
 	/* Create an MX database record of class 'epics_variable' */
 
-	sprintf(description,
+	snprintf(description, sizeof(description),
 		"record%d variable epics_variable ", record_number);
-
-	buffer_left = sizeof(description) - strlen(description) - 1;
 
 	switch( epics_datatype ) {
 	case MX_CA_STRING:
-		strncat( description, "epics_string ", buffer_left );
+		strlcat( description, "epics_string ", sizeof(description) );
 		break;
 	case MX_CA_CHAR:
-		strncat( description, "epics_char ", buffer_left );
+		strlcat( description, "epics_char ", sizeof(description) );
 		break;
 	case MX_CA_SHORT:
-		strncat( description, "epics_short ", buffer_left );
+		strlcat( description, "epics_short ", sizeof(description) );
 		break;
 	case MX_CA_LONG:
-		strncat( description, "epics_long ", buffer_left );
+		strlcat( description, "epics_long ", sizeof(description) );
 		break;
 	case MX_CA_FLOAT:
-		strncat( description, "epics_float ", buffer_left );
+		strlcat( description, "epics_float ", sizeof(description) );
 		break;
 	case MX_CA_DOUBLE:
-		strncat( description, "epics_double ", buffer_left );
+		strlcat( description, "epics_double ", sizeof(description) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -945,21 +944,21 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 		break;
 	}
 
-	ptr = description + strlen(description);
+	string_length = strlen(description);
 
-	sprintf( ptr, "\"\" \"\" %s 1 %ld ",
+	ptr = description + string_length;
+
+	snprintf( ptr, sizeof(description) - string_length,
+			"\"\" \"\" %s 1 %ld ",
 			epics_pv_name, epics_array_length );
 
 	switch( epics_datatype ) {
 	case MX_CA_STRING:
-		strncat( description, "\"\" ", buffer_left );
+		strlcat( description, "\"\" ", sizeof(description) );
 		break;
 	default:
 		for ( i = 0; i < epics_array_length; i++ ) {
-			buffer_left = sizeof(description)
-					- strlen(description) - 1;
-
-			strncat( description, "0 ", buffer_left );
+			strlcat( description, "0 ", sizeof(description) );
 		}
 		break;
 	}
@@ -1020,7 +1019,7 @@ mxupd_epics_motor_position_write_function( void *list_entry_ptr )
 	/* Construct the EPICS motor record name without .RBV on the end. */
 
 	strlcpy( epics_motor_record_name, list_entry->record_field_id,
-					MXUPD_FIELD_ID_NAME_LENGTH );
+					sizeof(epics_motor_record_name) );
 
 	/* Find the last '.' in the string. */
 
@@ -1323,7 +1322,8 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 	 *    mx example.com@7890:d_spacing.value 0x0
 	 */
 
-	sprintf( format, "%%%ds %%%ds %%lx %%%ds",
+	snprintf( format, sizeof(format),
+			"%%%ds %%%ds %%lx %%%ds",
 			(int) (sizeof(protocol_id) - 1),
 			(int) (sizeof(record_field_id) - 1),
 			(int) (sizeof(extra_arguments) - 1) );
@@ -1355,7 +1355,7 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 				i, update_list_filename, buffer );
 		}
 		if ( num_items_read == 3 ) {
-			strcpy( extra_arguments, "" );
+			strlcpy( extra_arguments, "", sizeof(extra_arguments) );
 		}
 
 		MX_DEBUG( 2,("protocol_id = '%s', record_field_id = '%s', "
@@ -1461,8 +1461,12 @@ mxupd_construct_update_list( MXUPD_UPDATE_LIST *update_list,
 			if (strcmp( protocol_id, "epics_motor_position" ) == 0)
 			{
 				created_write_record = NULL;
-				strcpy( write_record_name, "" );
-				strcpy( write_field_name, "" );
+
+				strlcpy( write_record_name, "",
+					sizeof(write_record_name) );
+
+				strlcpy( write_field_name, "",
+					sizeof(write_field_name) );
 
 #if HAVE_EPICS
 				write_function =
@@ -1599,7 +1603,8 @@ mxupd_save_fields_to_autosave_file( char *autosave_filename,
 	for ( i = 0; i < update_list->num_entries; i++ ) {
 		update_list_entry = &(update_list->entry_array)[i];
 
-		sprintf( buffer, "%s.%s", update_list_entry->read_record_name,
+		snprintf( buffer, sizeof(buffer),
+				"%s.%s", update_list_entry->read_record_name,
 				update_list_entry->read_field_name );
 
 		MX_DEBUG( 2,("%s: Saving value of '%s.%s'", fname,
@@ -1858,7 +1863,9 @@ mxupd_restore_fields_from_autosave_files(
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	sprintf( autosave_backup_filename, "%s_bak", filename_to_use );
+	snprintf( autosave_backup_filename,
+		sizeof(autosave_backup_filename),
+		"%s_bak", filename_to_use );
 
 	MX_DEBUG(-2,("%s: autosave_backup_filename = '%s'",
 		fname, autosave_backup_filename));
@@ -1930,11 +1937,15 @@ mxupd_restore_fields_from_autosave_files(
 
 		buffer_ptr += strspn( buffer_ptr, SEPARATORS );
 
-		sprintf( update_list_read_field_name, "%s.%s",
+		snprintf( update_list_read_field_name,
+			sizeof(update_list_read_field_name),
+			"%s.%s",
 			update_list_entry->read_record_name,
 			update_list_entry->read_field_name );
 
-		sprintf( update_list_write_field_name, "%s.%s",
+		snprintf( update_list_write_field_name,
+			sizeof(update_list_write_field_name),
+			"%s.%s",
 			update_list_entry->write_record_name,
 			update_list_entry->write_field_name );
 
