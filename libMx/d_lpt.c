@@ -274,6 +274,11 @@ mxd_lpt_in_read( MX_DIGITAL_INPUT *dinput )
 	uint8_t value;
 	mx_status_type mx_status;
 
+	/* Suppress bogus GCC 4 uninitialized variable warnings. */
+
+	lpt = NULL;
+	lpt_in = NULL;
+
 	mx_status = mxd_lpt_in_get_pointers( dinput->record,
 						&lpt_in, &lpt, fname );
 
