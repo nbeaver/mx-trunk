@@ -989,7 +989,16 @@ mx_parse_uchar_field( void *dataptr, char *token,
 
 	int num_items;
 
+#if defined(__INTEL_COMPILER)
+	/* The Intel C compiler thinks that %c used with (unsigned char *)
+	 * is a type mismatch.  It is the only compiler I know of that
+	 * thinks this.
+	 */
+
+	num_items = sscanf( token, "%c", (char *) dataptr );
+#else
 	num_items = sscanf( token, "%c", (unsigned char *) dataptr );
+#endif
 
 	if ( num_items != 1 )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,

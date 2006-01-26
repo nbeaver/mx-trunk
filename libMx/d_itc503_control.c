@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -231,8 +231,8 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 
 	parameter_type = itc503_control->parameter_type;
 
-	if ( islower( (int)parameter_type ) ) {
-		parameter_type = toupper( parameter_type );
+	if ( islower( (int) parameter_type ) ) {
+		parameter_type = toupper( (int) parameter_type );
 	}
 
 	parse_failure = FALSE;
@@ -361,7 +361,7 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 	parameter_type = itc503_control->parameter_type;
 
 	if ( islower( (int)parameter_type ) ) {
-		parameter_type = toupper( parameter_type );
+		parameter_type = toupper( (int) parameter_type );
 	}
 
 	switch( parameter_type ) {

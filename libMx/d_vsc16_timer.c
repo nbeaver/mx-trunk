@@ -76,7 +76,7 @@ mxd_vsc16_timer_get_pointers( MX_TIMER *timer,
 			MX_VSC16 **vsc16,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_vsc16_timer_get_pointers()";
+	static const char fname[] = "mxd_vsc16_timer_get_pointers()";
 
 	MX_RECORD *vsc16_record;
 
@@ -130,7 +130,7 @@ mxd_vsc16_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vsc16_timer_create_record_structures()";
+	static const char fname[] = "mxd_vsc16_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_VSC16_TIMER *vsc16_timer;
@@ -176,7 +176,7 @@ mxd_vsc16_timer_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vsc16_timer_open()";
+	static const char fname[] = "mxd_vsc16_timer_open()";
 
 	MX_TIMER *timer;
 	MX_VSC16_TIMER *vsc16_timer;
@@ -203,7 +203,7 @@ mxd_vsc16_timer_open( MX_RECORD *record )
 
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-        "VSC16 counter number %d for timer '%s' is out of allowed range 1-%ld",
+        "VSC16 counter number %d for timer '%s' is out of allowed range 1-%lu",
                         counter_number, record->name, vsc16->num_counters );
         }
 
@@ -215,7 +215,7 @@ mxd_vsc16_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_is_busy()";
+	static const char fname[] = "mxd_vsc16_timer_is_busy()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -253,7 +253,7 @@ mxd_vsc16_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_start()";
+	static const char fname[] = "mxd_vsc16_timer_start()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -306,7 +306,7 @@ mxd_vsc16_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_stop()";
+	static const char fname[] = "mxd_vsc16_timer_stop()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -337,7 +337,7 @@ mxd_vsc16_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_clear( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_clear()";
+	static const char fname[] = "mxd_vsc16_timer_clear()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -372,7 +372,7 @@ mxd_vsc16_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_read()";
+	static const char fname[] = "mxd_vsc16_timer_read()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -409,7 +409,7 @@ mxd_vsc16_timer_read( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_get_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_get_mode()";
+	static const char fname[] = "mxd_vsc16_timer_get_mode()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -451,7 +451,7 @@ mxd_vsc16_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_vsc16_timer_set_mode()";
+	static const char fname[] = "mxd_vsc16_timer_set_mode()";
 
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
@@ -528,7 +528,7 @@ mxd_vsc16_timer_set_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_vsc16_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_vsc16_timer_set_modes_of_associated_counters()";
 
 	MX_VSC16_TIMER *vsc16_timer;

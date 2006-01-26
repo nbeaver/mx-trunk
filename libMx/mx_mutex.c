@@ -709,7 +709,7 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 /************************ Posix Pthreads ***********************/
 
-#elif defined(_POSIX_THREADS) || defined(__OpenBSD__)
+#elif defined(_POSIX_THREADS) || defined(OS_HPUX) || defined(__OpenBSD__)
 
 #include <pthread.h>
 

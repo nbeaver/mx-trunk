@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,15 +25,8 @@
 #include "d_soft_dinput.h"
 
 MX_RECORD_FUNCTION_LIST mxd_soft_dinput_record_function_list = {
-	mxd_soft_dinput_initialize_type,
-	mxd_soft_dinput_create_record_structures,
-	mxd_soft_dinput_finish_record_initialization,
-	mxd_soft_dinput_delete_record,
 	NULL,
-	mxd_soft_dinput_read_parms_from_hardware,
-	mxd_soft_dinput_write_parms_to_hardware,
-	mxd_soft_dinput_open,
-	mxd_soft_dinput_close
+	mxd_soft_dinput_create_record_structures
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_soft_dinput_digital_input_function_list = {
@@ -55,15 +48,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_dinput_rfield_def_ptr
 /* ===== */
 
 MX_EXPORT mx_status_type
-mxd_soft_dinput_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_dinput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_soft_dinput_create_record_structures()";
+        static const char fname[] =
+		"mxd_soft_dinput_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_SOFT_DINPUT *soft_dinput;
@@ -77,8 +65,7 @@ mxd_soft_dinput_create_record_structures( MX_RECORD *record )
                 "Can't allocate memory for MX_DIGITAL_INPUT structure." );
         }
 
-        soft_dinput = (MX_SOFT_DINPUT *)
-				malloc( sizeof(MX_SOFT_DINPUT) );
+        soft_dinput = (MX_SOFT_DINPUT *) malloc( sizeof(MX_SOFT_DINPUT) );
 
         if ( soft_dinput == (MX_SOFT_DINPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -98,60 +85,11 @@ mxd_soft_dinput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_dinput_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_dinput_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_dinput_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_dinput_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_dinput_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_dinput_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_soft_dinput_read()";
+	static const char fname[] = "mxd_soft_dinput_read()";
 
-	MX_DEBUG( 2,("%s: returning value %#lx (%ld)", fname,
+	MX_DEBUG( 2,("%s: returning value %#lx (%lu)", fname,
 				dinput->value, dinput->value ));
 	return MX_SUCCESSFUL_RESULT;
 }

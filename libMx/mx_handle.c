@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -113,7 +113,7 @@ mx_resize_handle_table( MX_HANDLE_TABLE *handle_table,
 	if ( new_handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Failed at attempt to change the length of handle_struct_array "
-"to %ld elements.", new_array_size );
+"to %lu elements.", new_array_size );
 	}
 
 	for ( i = old_array_size; i < new_array_size; i++ ){

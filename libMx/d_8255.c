@@ -367,7 +367,7 @@ mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	fprintf(file, "  value      = %ld\n", dinput->value);
+	fprintf(file, "  value      = %lu\n", dinput->value);
 	fprintf(file, "  interface  = %s\n", i8255_in->interface_record->name);
 	fprintf(file, "  port       = %s\n", i8255_in->port);
 
@@ -677,7 +677,7 @@ mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	fprintf(file, "  value      = %ld\n", doutput->value);
+	fprintf(file, "  value      = %lu\n", doutput->value);
 	fprintf(file, "  interface  = %s\n", i8255_out->interface_record->name);
 	fprintf(file, "  port       = %s\n", i8255_out->port);
 

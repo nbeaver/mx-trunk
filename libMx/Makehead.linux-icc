@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for Linux using Intel C++ 7.1
+#          for Linux using Intel C++ 7.1 and 9.0
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -126,7 +126,7 @@ EPICS_LIBRARIES = -lca -lCom
 #
 # icc specific flags
 #
-ICCFLAGS = -Wall -Werror -wd111,171,193,279,593,810,869,981,1418,1419
+ICCFLAGS = -Wall -Werror -wd111,171,193,279,593,810,869,981,1418,1419,1469,1684
 
 #
 CC		= icc

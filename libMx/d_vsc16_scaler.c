@@ -76,7 +76,7 @@ mxd_vsc16_scaler_get_pointers( MX_SCALER *scaler,
 			MX_VSC16 **vsc16,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_vsc16_scaler_get_pointers()";
+	static const char fname[] = "mxd_vsc16_scaler_get_pointers()";
 
 	MX_RECORD *vsc16_record;
 
@@ -130,7 +130,7 @@ mxd_vsc16_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vsc16_scaler_create_record_structures()";
+	static const char fname[] = "mxd_vsc16_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_VSC16_SCALER *vsc16_scaler;
@@ -177,7 +177,7 @@ mxd_vsc16_scaler_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_vsc16_scaler_print_structure()";
+	static const char fname[] = "mxd_vsc16_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_VSC16_SCALER *vsc16_scaler;
@@ -233,7 +233,7 @@ mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_vsc16_scaler_open()";
+	static const char fname[] = "mxd_vsc16_scaler_open()";
 
 	MX_SCALER *scaler;
 	MX_VSC16_SCALER *vsc16_scaler;
@@ -260,7 +260,7 @@ mxd_vsc16_scaler_open( MX_RECORD *record )
 
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-        "VSC16 counter number %d for scaler '%s' is out of allowed range 1-%ld",
+        "VSC16 counter number %d for scaler '%s' is out of allowed range 1-%lu",
                         counter_number, record->name, vsc16->num_counters );
         }
 
@@ -274,7 +274,7 @@ mxd_vsc16_scaler_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_clear()";
+	static const char fname[] = "mxd_vsc16_scaler_clear()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -309,7 +309,7 @@ mxd_vsc16_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_overflow_set()";
+	static const char fname[] = "mxd_vsc16_scaler_overflow_set()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -360,7 +360,7 @@ mxd_vsc16_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_read()";
+	static const char fname[] = "mxd_vsc16_scaler_read()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -396,7 +396,7 @@ mxd_vsc16_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_is_busy()";
+	static const char fname[] = "mxd_vsc16_scaler_is_busy()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -434,7 +434,7 @@ mxd_vsc16_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_start()";
+	static const char fname[] = "mxd_vsc16_scaler_start()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -485,7 +485,7 @@ mxd_vsc16_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_stop()";
+	static const char fname[] = "mxd_vsc16_scaler_stop()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -516,7 +516,7 @@ mxd_vsc16_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_get_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_timer_get_parameter()";
+	static const char fname[] = "mxd_vsc16_timer_get_parameter()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -568,7 +568,7 @@ mxd_vsc16_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_vsc16_scaler_set_parameter()";
+	static const char fname[] = "mxd_vsc16_scaler_set_parameter()";
 
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
@@ -653,7 +653,7 @@ mxd_vsc16_scaler_set_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_vsc16_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_vsc16_scaler_set_modes_of_associated_counters()";
 
 	MX_VSC16_SCALER *vsc16_scaler;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -374,7 +374,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
-		"illegal_value of %ld.  The allowed values are (0 - %ld)",
+		"illegal_value of %ld.  The allowed values are (0 - %lu)",
 			offset_index, autoscale->num_monitor_offsets );
 	}
 
@@ -622,7 +622,7 @@ mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
-		"illegal_value of %ld.  The allowed values are (0 - %ld)",
+		"illegal_value of %ld.  The allowed values are (0 - %lu)",
 			offset_index, autoscale->num_monitor_offsets );
 	}
 
@@ -653,7 +653,7 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
-		"illegal_value of %ld.  The allowed values are (0 - %ld)",
+		"illegal_value of %lu.  The allowed values are (0 - %lu)",
 			offset_index, autoscale->num_monitor_offsets );
 	}
 

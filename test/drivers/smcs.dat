@@ -1,4 +1,4 @@
 testquick                        scan quick_scan mcs_qscan "" "" 1 1 1  theta 4  Io It Im Ip  0 0 preset_time "1 timer1" text testquick.011 none $f[0]  12  10 21
-testenergy                       scan quick_scan mcs_qscan "" "" 1 1 1  energy 4  Io It Im Ip  0 0 preset_time "1 timer1" text testenergy.004 none $f[0]  9500  11500 21
+testenergy                       scan quick_scan mcs_qscan "" "" 1 1 1  energy 4  Io It Im Ip  0 0 preset_time "1 timer1" text testenergy.006 none $f[0]  9500  11500 21
 testedge                         scan quick_scan mcs_qscan "" "" 1 1 1  e_minus_e0 4  Io It Im Ip  0 0 preset_time "1 timer1" text:x=energy,theta testedge.038 gnuplot:x=energy $f[0]  -1000  1000 21
 testedge2                        scan quick_scan mcs_qscan "" "" 1 1 1  e_minus_e0 4  Io It Im Ip  0 0 preset_time "1 timer1" text:x=energy,omega testedge2.028 gnuplot:x=energy $f[0]  -1000  1000 21

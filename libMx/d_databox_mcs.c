@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -747,7 +747,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	 * sequence has not already been started, we must start it here.
 	 */
 
-	MX_DEBUG( 2,("%s: mcs->current_num_measurements = %ld",
+	MX_DEBUG( 2,("%s: mcs->current_num_measurements = %lu",
 			fname, mcs->current_num_measurements));
 
 	if ( ( mcs->current_num_measurements == 1L )
@@ -945,7 +945,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		 * real work.
 		 */
 
-		MX_DEBUG( 2,("%s: Databox MCS '%s' measurement_counts = %ld",
+		MX_DEBUG( 2,("%s: Databox MCS '%s' measurement_counts = %lu",
 			fname, mcs->record->name, mcs->measurement_counts));
 		break;
 
@@ -956,7 +956,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		 */
 
 		MX_DEBUG( 2,
-		("%s: Databox MCS '%s' current_num_measurements = %ld",
+		("%s: Databox MCS '%s' current_num_measurements = %lu",
 		    fname, mcs->record->name, mcs->current_num_measurements));
 		break;
 

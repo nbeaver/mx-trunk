@@ -365,9 +365,9 @@ mxd_gm10_timer_is_busy( MX_TIMER *timer )
 
 #if MXD_GM10_TIMER_DEBUG
 
-	MX_DEBUG(-2,("%s: current time = (%lu,%ld), busy = %d",
+	MX_DEBUG(-2,("%s: current time = (%lu,%lu), busy = %d",
 		fname, current_time_in_clock_ticks.high_order,
-		(unsigned long) current_time_in_clock_ticks.low_order,
+		current_time_in_clock_ticks.low_order,
 		timer->busy ));
 #endif
 

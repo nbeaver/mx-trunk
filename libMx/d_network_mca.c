@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,7 +201,7 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel data array.",
+		"Ran out of memory allocating an %ld channel data array.",
 			mca->maximum_num_channels );
 	}
 
@@ -389,7 +389,7 @@ mxd_network_mca_print_structure( FILE *file, MX_RECORD *record )
 					network_mca->server_record->name);
 	fprintf(file, "  remote record         = %s\n",
 					network_mca->remote_record_name);
-	fprintf(file, "  maximum # of channels = %lu\n",
+	fprintf(file, "  maximum # of channels = %ld\n",
 					mca->maximum_num_channels);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -712,8 +712,8 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The MCA '%s' controlled by server '%s' is reported to have %lu channels, "
-"but the record '%s' is only configured to support up to %lu channels.",
+"The MCA '%s' controlled by server '%s' is reported to have %ld channels, "
+"but the record '%s' is only configured to support up to %ld channels.",
 				network_mca->remote_record_name,
 				network_mca->server_record->name,
 				mca->current_num_channels,

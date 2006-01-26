@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -311,7 +311,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 
 	for ( i = 0; i < length; i++ ) {
 		if ( islower( (int) (scan_type[i]) ) ) {
-			scan_type[i] = toupper( scan_type[i] );
+			scan_type[i] = toupper( (int)(scan_type[i]) );
 		}
 	}
 
@@ -2201,12 +2201,12 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		case MXC_DIGITAL_INPUT:
 			digital_input = (MX_DIGITAL_INPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10ld", digital_input->value);
+			sprintf(buffer, "%10lu", digital_input->value);
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			digital_output = (MX_DIGITAL_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10ld", digital_output->value);
+			sprintf(buffer, "%10lu", digital_output->value);
 			break;
 		case MXC_MOTOR:
 			motor = (MX_MOTOR *)

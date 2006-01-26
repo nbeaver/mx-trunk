@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -472,7 +472,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 		if ( bytes_read != 3 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-			"Read only %ld bytes from Sony VISCA interface '%s' "
+			"Read only %lu bytes from Sony VISCA interface '%s' "
 			"rather than the 3 bytes we expected.",
 				(unsigned long) bytes_read,
 				sony_visca->record->name );

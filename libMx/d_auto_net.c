@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -526,7 +526,7 @@ mxd_auto_network_set_offset_index( MX_AUTOSCALE *autoscale )
 	if ( offset_index >= autoscale->num_monitor_offsets ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
-		"illegal_value of %ld.  The allowed values are (0 - %ld)",
+		"illegal_value of %lu.  The allowed values are (0 - %lu)",
 			offset_index, autoscale->num_monitor_offsets - 1L );
 	}
 

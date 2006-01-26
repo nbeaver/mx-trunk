@@ -269,10 +269,10 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move deadband  = %ld steps (%g %s)\n\n",
 	    motor->raw_move_deadband.stepper, move_deadband, motor->units );
 
-	fprintf(file, "  base speed  = %d\n", e500->e500_base_speed);
-	fprintf(file, "  slew speed  = %d\n", e500->e500_slew_speed);
-	fprintf(file, "  accel. time = %d\n", e500->acceleration_time);
-	fprintf(file, "  corr. limit = %d\n", e500->correction_limit);
+	fprintf(file, "  base speed  = %hu\n", e500->e500_base_speed);
+	fprintf(file, "  slew speed  = %u\n", e500->e500_slew_speed);
+	fprintf(file, "  accel. time = %hu\n", e500->acceleration_time);
+	fprintf(file, "  corr. limit = %hu\n", e500->correction_limit);
 	fprintf(file, "  LAM mask    = %d\n", e500->lam_mask);
 
 	return MX_SUCCESSFUL_RESULT;

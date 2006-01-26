@@ -1268,7 +1268,7 @@ mxd_smartmotor_check_port_name( MX_RECORD *record, char *port_name )
 
 	for ( i = 0; i < length; i++ ) {
 		if ( islower( (int)(port_name[i]) ) ) {
-			port_name[i] = toupper( port_name[i] );
+			port_name[i] = toupper( (int)(port_name[i]) );
 		}
 	}
 

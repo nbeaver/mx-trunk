@@ -2,17 +2,18 @@
 # Change the value of the MX_ARCH variable below to match the platform you
 # are compiling the MX system for.  The available platforms are:
 #
-#   bsd           - Compile for FreeBSD 5.4, NetBSD 2.0.2, or OpenBSD 3.3
+#   bsd           - Compile for FreeBSD 5.4, NetBSD 2.x or 3.0, or OpenBSD 3.3
 #   cygwin        - Compile for Cygwin 1.5.x
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3
-#   hpux          - Compile for HP 9000/7xx under HP-UX 10.20
+#   hpux          - Compile for HP 9000/8xx under HP-UX 11v2
 #   irix          - Compile for SGI under Irix 6.3 or 6.5
 #   irix-gcc      - Compile for SGI under Irix 6.5 using GCC
 #   linux         - Compile for i386/m68k/sparc under Linux 2.2, 2.4, or 2.6
-#   linux-icc     - Compile for i386 under Linux 2.4 using Intel C++ 7.1
+#   linux-icc     - Compile for i386 under Linux 2.4 or 2.6
+#                                                 using Intel C++ 7.1 or 9.0
 #   macosx        - Compile for PPC Macintosh under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
-#   rtems         - Compile for i386 under RTEMS 4.6.5
+#   rtems         - Compile for i386/m68k/powerpc under RTEMS 4.6.5
 #   solaris       - Compile for Sun Sparc under Solaris 10
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 or 10 using GCC
 #   vms           - Compile for OpenVMS 7.3.1
@@ -38,7 +39,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = bsd
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 

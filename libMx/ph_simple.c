@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2005 Illinois Institute of Technology
+ * Copyright 2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -294,7 +294,7 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Permit record '%s' is of a device class (%lu) that may not be used as "
+	"Permit record '%s' is of a device class (%ld) that may not be used as "
 	"a permit record.", permit_record->name, permit_record->mx_class );
 			break;
 		}
@@ -390,14 +390,14 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"Permit record '%s' is of a variable field type (%lu) that may not be used as "
+"Permit record '%s' is of a variable field type (%ld) that may not be used as "
 "a permit record.", permit_record->name, field_type );
 			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Permit record '%s' is of a superclass (%lu) that may not be used as "
+	"Permit record '%s' is of a superclass (%ld) that may not be used as "
 	"a permit record.", permit_record->name, permit_record->mx_superclass );
 		break;
 	}

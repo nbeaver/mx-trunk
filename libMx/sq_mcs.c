@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1272,7 +1272,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 		}
 
 #if 1
-		MX_DEBUG( 2,("%s: num_encoder_values = %ld",
+		MX_DEBUG( 2,("%s: num_encoder_values = %lu",
 					fname, num_encoder_values));
 
 		MX_DEBUG( 2,("%s: encoder_value_array is:", fname));

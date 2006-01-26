@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -402,7 +402,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%ld", &time_constant_value );
+		num_items = sscanf( response, "%lu", &time_constant_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,

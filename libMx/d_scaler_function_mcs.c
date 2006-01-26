@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +80,7 @@ mxd_scaler_function_mcs_get_pointers( MX_MCS *mcs,
 			MX_SCALER_FUNCTION **scaler_function,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scaler_function_mcs_get_pointers()";
+	static const char fname[] = "mxd_scaler_function_mcs_get_pointers()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs_ptr;
 
@@ -155,7 +155,7 @@ mxd_scaler_function_mcs_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_scaler_function_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
@@ -238,7 +238,7 @@ mxd_scaler_function_mcs_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_mcs_print_structure()";
+	static const char fname[] = "mxd_scaler_function_mcs_print_structure()";
 
 	MX_MCS *mcs;
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
@@ -263,9 +263,9 @@ mxd_scaler_function_mcs_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  scaler function record    = %s\n",
 			scaler_function_mcs->scaler_function_record->name);
 
-	fprintf(file, "  maximum # scalers         = %lu\n",
+	fprintf(file, "  maximum # scalers         = %ld\n",
 					mcs->maximum_num_scalers);
-	fprintf(file, "  maximum # of measurements = %lu\n",
+	fprintf(file, "  maximum # of measurements = %ld\n",
 					mcs->maximum_num_measurements);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -274,7 +274,7 @@ mxd_scaler_function_mcs_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_mcs_open()";
+	static const char fname[] = "mxd_scaler_function_mcs_open()";
 
 	MX_MCS *mcs;
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
@@ -486,7 +486,7 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_start( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_start()";
+	static const char fname[] = "mxd_scaler_function_mcs_start()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
@@ -514,7 +514,7 @@ mxd_scaler_function_mcs_start( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_stop( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_stop()";
+	static const char fname[] = "mxd_scaler_function_mcs_stop()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
@@ -542,7 +542,7 @@ mxd_scaler_function_mcs_stop( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_clear( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_clear()";
+	static const char fname[] = "mxd_scaler_function_mcs_clear()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
@@ -570,7 +570,7 @@ mxd_scaler_function_mcs_clear( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_busy( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_busy()";
+	static const char fname[] = "mxd_scaler_function_mcs_busy()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
@@ -607,7 +607,7 @@ mxd_scaler_function_mcs_busy( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_read_all( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_read_all()";
+	static const char fname[] = "mxd_scaler_function_mcs_read_all()";
 
 	long i;
 	mx_status_type mx_status;
@@ -633,7 +633,7 @@ mxd_scaler_function_mcs_read_all( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_read_scaler()";
+	static const char fname[] = "mxd_scaler_function_mcs_read_scaler()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_SCALER_FUNCTION *scaler_function;
@@ -758,7 +758,7 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_set_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_scaler_function_mcs_set_parameter()";
+	static const char fname[] = "mxd_scaler_function_mcs_set_parameter()";
 
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_SCALER_FUNCTION *scaler_function;

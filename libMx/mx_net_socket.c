@@ -77,7 +77,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	if ( buffer_length < MX_NETWORK_HEADER_LENGTH_VALUE + 1 ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"TCP/IP receive buffer length (%ld) is too short.  Minimum allowed = %ld",
+"TCP/IP receive buffer length (%lu) is too short.  Minimum allowed = %ld",
 			buffer_length,
 			(long) MX_NETWORK_HEADER_LENGTH_VALUE + 1L );
 	}

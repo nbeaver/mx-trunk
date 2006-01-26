@@ -206,7 +206,7 @@ mx_modbus_read_coils( MX_RECORD *modbus_record,
 	if ( num_coils > MXU_MODBUS_MAX_COILS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of coils (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_coils, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
 	}
@@ -270,7 +270,7 @@ mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 	if ( num_inputs > MXU_MODBUS_MAX_COILS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of inputs (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_inputs, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
 	}
@@ -335,7 +335,7 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of registers (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
 	}
@@ -401,7 +401,7 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of registers (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
 	}
@@ -632,7 +632,7 @@ mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 	if ( num_coils > MXU_MODBUS_MAX_COILS_WRITEABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of coils (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_coils, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_WRITEABLE );
 	}
@@ -686,7 +686,7 @@ mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_WRITEABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of registers (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_REGISTERS_WRITEABLE );
 	}
@@ -778,14 +778,14 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 	if ( num_registers_to_read > MXU_MODBUS_MAX_READ_WRITE_REGISTERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of registers (%u) to read for "
-		"MODBUS record '%s' exceeds the maximum allowed value of %u.",
+		"MODBUS record '%s' exceeds the maximum allowed value of %d.",
 			num_registers_to_read, modbus_record->name,
 			MXU_MODBUS_MAX_READ_WRITE_REGISTERS );
 	}
 	if ( num_registers_to_write > MXU_MODBUS_MAX_READ_WRITE_REGISTERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of registers (%u) to write for "
-		"MODBUS record '%s' exceeds the maximum allowed value of %u.",
+		"MODBUS record '%s' exceeds the maximum allowed value of %d.",
 			num_registers_to_write, modbus_record->name,
 			MXU_MODBUS_MAX_READ_WRITE_REGISTERS );
 	}
@@ -881,7 +881,7 @@ mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 	if ( max_fifo_values > MXU_MODBUS_MAX_FIFO_VALUES ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested number of fifo values (%u) for MODBUS record '%s' "
-		"exceeds the maximum allowed value of %u.",
+		"exceeds the maximum allowed value of %d.",
 			max_fifo_values, modbus_record->name,
 			MXU_MODBUS_MAX_FIFO_VALUES );
 	}

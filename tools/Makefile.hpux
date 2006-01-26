@@ -2,6 +2,10 @@
 # tools/Makefile.hpux
 #
 
+all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
+
+include ../libMx/Makehead.hpux
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -12,9 +16,18 @@ EDITLINE_RANLIB = touch
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all:
-	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
-
 mx_clean:
+	-rm *.o
 	( cd unix/src/editline ; make clean )
+
+strlcpy.o: generic/src/strlcpy.c
+	$(CC) $(CFLAGS) -c -I../libMx -DOS_HPUX -D__MX_LIBRARY__ \
+		generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	$(CC) $(CFLAGS) -c -I../libMx -DOS_HPUX -D__MX_LIBRARY__ \
+		generic/src/strlcat.c
+
+unix/src/editline/libedit.a:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 

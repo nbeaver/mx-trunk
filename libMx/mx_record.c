@@ -2099,7 +2099,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 				new_num_parent_array_elements );
 		}
 
-		MX_DEBUG( 8,("%s: New size of parent record array = %ld",fname,
+		MX_DEBUG( 8,("%s: New size of parent record array = %lu",fname,
 			new_num_parent_array_elements * sizeof(MX_RECORD *)));
 
 		current_record->parent_record_array = parent_record_array;

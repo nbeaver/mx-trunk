@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -509,10 +509,10 @@ mx_process_queued_event( MX_RECORD *record,
 	}
 
 	MX_DEBUG(1,(
-	"%s invoked for record '%s', current_clock_time = (%lu,%ld)",
+	"%s invoked for record '%s', current_clock_time = (%lu,%lu)",
 		fname, record->name,
-		(long) current_clock_tick.high_order,
-		(long) current_clock_tick.low_order ));
+		current_clock_tick.high_order,
+		current_clock_tick.low_order ));
 
 	queued_event = (MX_QUEUED_EVENT *) record->event_queue;
 

@@ -305,7 +305,7 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%ld", &(dinput->value) );
+	num_items = sscanf( response, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -394,7 +394,7 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%ld", &(doutput->value) );
+	num_items = sscanf( response, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -436,7 +436,7 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, ":SOUR%d:STAT%d %ld",
+	sprintf( command, ":SOUR%d:STAT%d %lu",
 			icplus->address, port_number, doutput->value );
 
 	mx_status = mxd_icplus_command( icplus, command,

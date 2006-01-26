@@ -285,7 +285,7 @@ mxd_smartmotor_din_finish_record_initialization( MX_RECORD *record )
 
 	for ( i = 0; i < length; i++ ) {
 		if ( islower( (int)(port_name[i]) ) ) {
-			port_name[i] = toupper( port_name[i] );
+			port_name[i] = toupper( (int)(port_name[i]) );
 		}
 	}
 
@@ -414,7 +414,7 @@ mxd_smartmotor_dout_finish_record_initialization( MX_RECORD *record )
 
 	for ( i = 0; i < length; i++ ) {
 		if ( islower( (int)(port_name[i]) ) ) {
-			port_name[i] = toupper( port_name[i] );
+			port_name[i] = toupper( (int)(port_name[i]) );
 		}
 	}
 

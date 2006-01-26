@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1173,7 +1173,7 @@ mx_tls_set_value( MX_THREAD_LOCAL_STORAGE *key, void *value )
 
 /*********************** Posix Pthreads **********************/
 
-#elif defined(_POSIX_THREADS) || defined(__OpenBSD__)
+#elif defined(_POSIX_THREADS) || defined(OS_HPUX) || defined(__OpenBSD__)
 
 #include <pthread.h>
 

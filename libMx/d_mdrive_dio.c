@@ -405,7 +405,7 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "I%d=%ld",
+	sprintf( command, "I%d=%lu",
 			mdrive_doutput->port_number, doutput->value );
 
 	mx_status = mxd_mdrive_command( mdrive, command,

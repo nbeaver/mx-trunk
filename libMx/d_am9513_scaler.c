@@ -33,10 +33,10 @@ MX_RECORD_FUNCTION_LIST mxd_am9513_scaler_record_function_list = {
 	mxd_am9513_scaler_initialize_type,
 	mxd_am9513_scaler_create_record_structures,
 	mxd_am9513_scaler_finish_record_initialization,
-	mxd_am9513_scaler_delete_record,
 	NULL,
-	mxd_am9513_scaler_read_parms_from_hardware,
-	mxd_am9513_scaler_write_parms_to_hardware,
+	NULL,
+	NULL,
+	NULL,
 	mxd_am9513_scaler_open,
 	mxd_am9513_scaler_close
 };
@@ -46,9 +46,9 @@ MX_SCALER_FUNCTION_LIST mxd_am9513_scaler_scaler_function_list = {
 	mxd_am9513_scaler_overflow_set,
 	mxd_am9513_scaler_read,
 	NULL,
-	mxd_am9513_scaler_is_busy,
-	mxd_am9513_scaler_start,
-	mxd_am9513_scaler_stop,
+	NULL,
+	NULL,
+	NULL,
 	mxd_am9513_scaler_get_parameter,
 	mxd_am9513_scaler_set_parameter
 };
@@ -79,7 +79,7 @@ mxd_am9513_scaler_get_pointers( MX_SCALER *scaler,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_am9513_get_pointers()";
+	static const char fname[] = "mxd_am9513_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -131,14 +131,14 @@ mxd_am9513_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_initialize_type( long type )
 {
-	const char fname[] = "mxd_am9513_scaler_initialize_type()";
+	static const char fname[] = "mxd_am9513_scaler_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
 	long num_record_fields;
 	long num_counters_field_index;
 	long num_counters_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( type );
 
@@ -150,25 +150,25 @@ mxd_am9513_scaler_initialize_type( long type )
 	record_field_defaults = *(driver->record_field_defaults_ptr);
 	num_record_fields = *(driver->num_record_fields);
 
-	status = mx_find_record_field_defaults_index(
+	mx_status = mx_find_record_field_defaults_index(
 			record_field_defaults, num_record_fields,
 			"num_counters", &num_counters_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
 		num_counters_field_index, 0, &num_counters_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults(
+	mx_status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			"am9513_interface_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_counters_varargs_cookie;
 
@@ -178,7 +178,8 @@ mxd_am9513_scaler_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_scaler_create_record_structures()";
+	static const char fname[] =
+		"mxd_am9513_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_AM9513_SCALER *am9513_scaler;
@@ -223,40 +224,9 @@ mxd_am9513_scaler_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_am9513_scaler_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_am9513_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_scaler_open()";
+	static const char fname[] = "mxd_am9513_scaler_open()";
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
@@ -432,7 +402,7 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_am9513_scaler_close()";
+	static const char fname[] = "mxd_am9513_scaler_close()";
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
@@ -468,7 +438,7 @@ mxd_am9513_scaler_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_am9513_scaler_clear()";
+	static const char fname[] = "mxd_am9513_scaler_clear()";
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
@@ -568,7 +538,7 @@ mxd_am9513_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_am9513_scaler_overflow_set()";
+	static const char fname[] = "mxd_am9513_scaler_overflow_set()";
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
@@ -620,7 +590,7 @@ mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_am9513_scaler_read()";
+	static const char fname[] = "mxd_am9513_scaler_read()";
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
@@ -685,36 +655,9 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 
 	scaler->raw_value = (long) scaler_value;
 
-	MX_DEBUG( 2,("%s: scaler->raw_value = %lu", fname, scaler->raw_value));
+	MX_DEBUG( 2,("%s: scaler->raw_value = %ld", fname, scaler->raw_value));
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_scaler_is_busy( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_am9513_scaler_is_busy()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"This function is not currently supported." );
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_scaler_start( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_am9513_scaler_start()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"This function is not currently supported." );
-}
-
-MX_EXPORT mx_status_type
-mxd_am9513_scaler_stop( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_am9513_scaler_stop()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"This function is not currently supported." );
 }
 
 MX_EXPORT mx_status_type
@@ -737,7 +680,7 @@ mxd_am9513_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_am9513_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_am9513_scaler_set_parameter()";
+	static const char fname[] = "mxd_am9513_scaler_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

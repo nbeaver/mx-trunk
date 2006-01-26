@@ -319,7 +319,7 @@ mxi_iseries_command( MX_ISERIES *iseries,
 	}
 
 	if ( islower( (int) command_prefix ) ) {
-		command_prefix = toupper( command_prefix );
+		command_prefix = toupper( (int) command_prefix );
 	}
 
 	if ( (command_prefix == 'P') || (command_prefix == 'W') ) {

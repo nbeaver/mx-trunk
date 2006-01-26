@@ -90,9 +90,9 @@ mx_stack_traceback( void )
 
 #elif defined( OS_HPUX )
 
-/* Reputedly, the undocumented function U_STACK_TRACE() will do the trick
- * on HP/UX.  I have not been able to test this though.  U_STACK_TRACE()
- * is found in libcl and requires adding -lcl to all link commands.
+/* The undocumented function U_STACK_TRACE() does the trick on HP/UX.
+ * U_STACK_TRACE() is found in libcl and requires adding -lcl to all
+ * link commands.
  */
 
 extern void U_STACK_TRACE();

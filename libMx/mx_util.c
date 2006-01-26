@@ -241,8 +241,8 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 	if ( buffer == (char *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an %ld byte file copy buffer.",
-			file_blocksize * sizeof(char) );
+		"Unable to allocate memory for an %lu byte file copy buffer.",
+			(unsigned long) (file_blocksize * sizeof(char)) );
 	}
 
 	/* Open the new file. */
@@ -308,7 +308,7 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 			} else
 			if ( bytes_written == 0 ) {
 				return mx_error( MXE_FILE_IO_ERROR, fname,
-	"An attempt to write %ld bytes to the new file '%s' "
+	"An attempt to write %lu bytes to the new file '%s' "
 	"resulted in 0 bytes being written.  This should not happen, "
 	"but it is not obvious why it happened.  Please report this as a bug.",
 					bytes_to_write,
@@ -319,7 +319,7 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 					MXE_OPERATING_SYSTEM_ERROR, fname,
 	"Somehow the number of bytes written %ld to file '%s' "
 	"is greater than the number "
-	"of bytes (%ld) that we asked to write.  This should not happen, "
+	"of bytes (%lu) that we asked to write.  This should not happen, "
 	"but it is not obvious why it happened.  Please report this as a bug.",
 					bytes_written,
 					new_filename,
@@ -523,7 +523,7 @@ mx_username( char *buffer, size_t max_buffer_length )
 	 * extend getpwuid().
 	 */
 
-#if defined( OS_LINUX ) || defined( OS_HPUX )
+#if defined( OS_LINUX )
 	{
 		char scratch_buffer[ 512 ];
 		struct passwd pw_buffer, *pw;
@@ -554,6 +554,10 @@ mx_username( char *buffer, size_t max_buffer_length )
 		MX_DEBUG( 2,("%s: pw = , status = %d",
 			fname, status));
 #elif defined( OS_HPUX )
+		/* FIXME: At the moment getpwuid_r() core dumps with
+		 * a segmentation fault for some reason.
+		 */
+
 		status = getpwuid_r( uid, &pw_buffer, scratch_buffer,
 					sizeof(scratch_buffer) );
 
@@ -578,7 +582,8 @@ mx_username( char *buffer, size_t max_buffer_length )
 /* End of OS_LINUX, OS_SOLARIS, and OS_HPUX section. */
 
 #elif defined( OS_IRIX ) || defined( OS_SUNOS4 ) || defined( OS_SOLARIS ) \
-   || defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_QNX )
+   || defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_QNX ) \
+   || defined( OS_HPUX )
 	{
 		/* This method is not reentrant. */
 

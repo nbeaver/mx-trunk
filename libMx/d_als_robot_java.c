@@ -248,7 +248,7 @@ mxd_als_robot_java_mount_sample( MX_SAMPLE_CHANGER *changer )
 
 	(als_robot_java->interaction_id)++;
 
-	sprintf( command, "run_op %lu mount %s %lu",
+	sprintf( command, "run_op %lu mount %s %ld",
 		interaction_id, changer->requested_sample_holder,
 				changer->requested_sample_id );
 
@@ -504,7 +504,7 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%s %lu %d",
+	num_items = sscanf( response, "%s %ld %d",
 			changer->current_sample_holder,
 			&(changer->current_sample_id), &value );
 

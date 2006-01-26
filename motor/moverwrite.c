@@ -235,7 +235,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 					return FAILURE;
 
 				snprintf( version_number_ptr, buffer_left,
-					"%0*lu",
+					"%0*ld",
 					(int) version_number_length,
 					new_version_number );
 

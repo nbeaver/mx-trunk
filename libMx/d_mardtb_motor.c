@@ -322,7 +322,7 @@ mxd_mardtb_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "stepper_cmd %d,2,%ld,%lu,%lu",
+	sprintf( command, "stepper_cmd %d,2,%ld,%ld,%ld",
 			mardtb_motor->motor_number,
 			motor->raw_destination.stepper,
 			mx_round( motor->raw_speed

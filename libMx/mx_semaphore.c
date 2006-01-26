@@ -1326,7 +1326,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #endif
 
 #if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
-	|| defined(OS_QNX) || defined(__NetBSD_Version__)
+	|| defined(OS_HPUX) || defined(OS_QNX) || defined(__NetBSD_Version__)
 
 /* I wonder what possible advantage there is to making this
  * union definition optional?
@@ -1672,7 +1672,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 
 	if ( initial_value > SEMVMX ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested initial value (%lu) for the semaphore "
+		"The requested initial value (%ld) for the semaphore "
 		"is larger than the maximum allowed value of %lu.",
 			initial_value, (unsigned long) SEMVMX );
 	}
@@ -1859,7 +1859,7 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 				break;
 			case ERANGE:
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Attempted to set semaphore value (%lu) outside the allowed "
+		"Attempted to set semaphore value (%ld) outside the allowed "
 		"range of 0 to %d.", initial_value, SEMVMX );
 				break;
 			default:
@@ -2383,7 +2383,11 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 		fname, posix_private->p_semaphore));
 #endif
 
+#if defined(OS_HPUX)
+	if ( posix_private->p_semaphore == (sem_t *) (-1) ) {
+#else
 	if ( posix_private->p_semaphore == (sem_t *) SEM_FAILED ) {
+#endif
 		saved_errno = errno;
 
 		switch( saved_errno ) {

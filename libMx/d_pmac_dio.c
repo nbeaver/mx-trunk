@@ -397,7 +397,7 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%ld", &(dinput->value) );
+	num_items = sscanf( response, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -553,7 +553,7 @@ mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%ld", &(doutput->value) );
+	num_items = sscanf( response, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -582,12 +582,12 @@ mxd_pmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s=%ld",
+		sprintf( command, "@%x%s=%lu",
 			pmac_doutput->card_number,
 			pmac_doutput->pmac_variable_name,
 			doutput->value );
 	} else {
-		sprintf( command, "%s=%ld",
+		sprintf( command, "%s=%lu",
 			pmac_doutput->pmac_variable_name,
 			doutput->value );
 	}

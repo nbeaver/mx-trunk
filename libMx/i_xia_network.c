@@ -892,8 +892,8 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The MCA '%s' controlled by server '%s' is reported to have %lu channels, "
-"but the record '%s' is only configured to support up to %lu channels.",
+"The MCA '%s' controlled by server '%s' is reported to have %ld channels, "
+"but the record '%s' is only configured to support up to %ld channels.",
 				xia_dxp_mca->mca_label,
 				xia_network->server_record->name,
 				mca->current_num_channels,

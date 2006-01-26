@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -285,9 +285,9 @@ mxd_network_mcs_print_structure( FILE *file, MX_RECORD *record )
 					network_mcs->server_record->name);
 	fprintf(file, "  remote record             = %s\n",
 					network_mcs->remote_record_name);
-	fprintf(file, "  maximum # of scalers      = %lu\n",
+	fprintf(file, "  maximum # of scalers      = %ld\n",
 					mcs->maximum_num_scalers);
-	fprintf(file, "  maximum # of measurements = %lu\n",
+	fprintf(file, "  maximum # of measurements = %ld\n",
 					mcs->maximum_num_measurements);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -862,7 +862,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		measurement_counts = mcs->measurement_counts;
 
-		MX_DEBUG( 2,("%s: sending %ld to '%s'",
+		MX_DEBUG( 2,("%s: sending %lu to '%s'",
 				fname, measurement_counts,
 				network_mcs->measurement_counts_nf.nfname ));
 

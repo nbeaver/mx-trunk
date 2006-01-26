@@ -51,6 +51,10 @@
 #    error "No Unix TTY handling interface has been defined."
 #endif
 
+#if defined(OS_HPUX)
+#include <sys/modem.h>
+#endif
+
 #if USE_POSIX_TERMIOS
 #include <termios.h>
 

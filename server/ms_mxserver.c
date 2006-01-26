@@ -857,7 +857,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Requested client message length of %lu bytes for socket %d is too long "
-"to fit in the server's buffer of %lu bytes.",
+"to fit in the server's buffer of %ld bytes.",
 			(unsigned long) (header_length + message_length),
 			client_socket->socket_fd,
 			MX_NETWORK_MAXIMUM_MESSAGE_SIZE );
@@ -1663,7 +1663,7 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Unrecognized network data format type %ld was requested.",
+		    "Unrecognized network data format type %lu was requested.",
 		    		data_format );
 			break;
 		}
@@ -2040,7 +2040,7 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 
 		default:
 			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Unrecognized network data format type %ld was requested.",
+		    "Unrecognized network data format type %lu was requested.",
 		    		data_format );
 			break;
 		}

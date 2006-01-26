@@ -282,7 +282,7 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_rois > MX_XIA_DXP_MCA_MAX_SCAS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of ROIs (%lu) for XIA MCA '%s' is greater "
+"The requested maximum number of ROIs (%ld) for XIA MCA '%s' is greater "
 "than the maximum allowed value of %d.",
 			mca->maximum_num_rois, record->name,
 			MX_XIA_DXP_MCA_MAX_SCAS );
@@ -290,7 +290,7 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_channels > MX_XIA_DXP_MCA_MAX_BINS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of channels (%lu) for XIA MCA '%s' is greater "
+"The requested maximum number of channels (%ld) for XIA MCA '%s' is greater "
 "than the maximum allowed value of %d.",
 			mca->maximum_num_channels, record->name,
 			MX_XIA_DXP_MCA_MAX_BINS );
@@ -301,7 +301,7 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel data array.",
+		"Ran out of memory allocating an %ld channel data array.",
 			mca->maximum_num_channels );
 	}
 
@@ -355,7 +355,7 @@ mxd_xia_dxp_print_structure( FILE *file, MX_RECORD *record )
 					xia_dxp_mca->xia_dxp_record->name);
 	fprintf(file, "  mca label             = %s\n",
 					xia_dxp_mca->mca_label);
-	fprintf(file, "  maximum # of bins     = %lu\n",
+	fprintf(file, "  maximum # of bins     = %ld\n",
 					mca->maximum_num_channels);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1151,7 +1151,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 	xia_dxp_record = xia_dxp_mca->xia_dxp_record;
 
-	MX_DEBUG( 2,("%s invoked for interface '%s' type %lu",
+	MX_DEBUG( 2,("%s invoked for interface '%s' type %ld",
 		fname, record->name, xia_dxp_record->mx_type));
 
 	switch( xia_dxp_record->mx_type ) {

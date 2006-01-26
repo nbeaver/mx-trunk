@@ -257,7 +257,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		for ( i = 0; i < num_measurements; i++ ) {
 			for ( j = 0; j < num_scalers; j++ ) {
-				fprintf(savefile, "%10lu  ", mcs_data[j][i]);
+				fprintf(savefile, "%10ld  ", mcs_data[j][i]);
 
 				if ( feof(savefile) || ferror(savefile) ) {
 					fprintf( output,
@@ -315,7 +315,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		for ( i = 0; i < num_measurements; i++ ) {
 
-			fprintf(savefile, "%10lu\n", scaler_data[i]);
+			fprintf(savefile, "%10ld\n", scaler_data[i]);
 
 			if ( feof(savefile) || ferror(savefile) ) {
 				fprintf( output,
@@ -746,7 +746,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	for ( i = 0; i < num_measurements; i++ ) {
 		status = fprintf( plotgnu_pipe,
-					"data %ld %ld\n", i, scaler_data[i] );
+					"data %lu %ld\n", i, scaler_data[i] );
 	}
 
 	status = fprintf( plotgnu_pipe, "set title 'MCS display'\n" );

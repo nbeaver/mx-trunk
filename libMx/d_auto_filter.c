@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ mxd_auto_filter_get_pointers( MX_AUTOSCALE *autoscale,
 			MX_AUTO_FILTER **auto_filter,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_auto_filter_get_pointers()";
+	static const char fname[] = "mxd_auto_filter_get_pointers()";
 
 	if ( autoscale == (MX_AUTOSCALE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -109,7 +109,7 @@ mxd_auto_filter_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_auto_filter_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_auto_filter_create_record_structures()";
+	static const char fname[] = "mxd_auto_filter_create_record_structures()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_FILTER *auto_filter;
@@ -148,7 +148,7 @@ mxd_auto_filter_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_filter_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_auto_filter_finish_record_initialization()";
 
 	MX_AUTOSCALE *autoscale;
@@ -281,7 +281,7 @@ mxd_auto_filter_dummy_function( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_filter_read_monitor( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_read_monitor()";
+	static const char fname[] = "mxd_auto_filter_read_monitor()";
 
 	long scaler_value, offset;
 	double offset_per_second, last_measurement_time;
@@ -335,7 +335,7 @@ mxd_auto_filter_read_monitor( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_get_change_request()";
+	static const char fname[] = "mxd_auto_filter_get_change_request()";
 
 	MX_AUTO_FILTER *auto_filter;
 	unsigned long filter_setting;
@@ -417,7 +417,7 @@ mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_filter_change_control( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_change_control()";
+	static const char fname[] = "mxd_auto_filter_change_control()";
 
 	MX_AUTO_FILTER *auto_filter;
 	unsigned long old_filter_setting, new_filter_setting;
@@ -499,7 +499,7 @@ mxd_auto_filter_get_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_filter_set_offset_index( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_set_offset_index()";
+	static const char fname[] = "mxd_auto_filter_set_offset_index()";
 
 	unsigned long saved_index;
 
@@ -514,7 +514,7 @@ mxd_auto_filter_set_offset_index( MX_AUTOSCALE *autoscale )
 		autoscale->monitor_offset_index = 0L;
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested monitor offset index of %ld is not allowed.  "
+		"The requested monitor offset index of %lu is not allowed.  "
 		"Zero is the only allowed value.",
 			saved_index );
 	}
@@ -525,7 +525,7 @@ mxd_auto_filter_set_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_filter_get_parameter( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_get_parameter()";
+	static const char fname[] = "mxd_auto_filter_get_parameter()";
 
 	MX_AUTO_FILTER *auto_filter;
 	mx_status_type mx_status;
@@ -555,7 +555,7 @@ mxd_auto_filter_get_parameter( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_filter_set_parameter( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_filter_set_parameter()";
+	static const char fname[] = "mxd_auto_filter_set_parameter()";
 
 	MX_AUTO_FILTER *auto_filter;
 	mx_status_type mx_status;

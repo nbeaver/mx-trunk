@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,7 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 
 	for ( i = 0; i < length; i++ ) {
 		if ( isupper( (int) (port_type_name[i]) ) ) {
-			port_type_name[i] = tolower( port_type_name[i] );
+			port_type_name[i] = tolower( (int)(port_type_name[i]) );
 		}
 	}
 

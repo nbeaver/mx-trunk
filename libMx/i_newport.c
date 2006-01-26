@@ -12,7 +12,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -651,13 +651,12 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 			prefix_length = strspn( command, "0123456789" );
 
 			for ( i = 0; i < (prefix_length + 2); i++ ) {
-				if ( response[i] != toupper( command[i] ) ) {
+			    if ( response[i] != toupper( (int)(command[i]) ) ) {
 
-					return mx_error(
-						MXE_INTERFACE_IO_ERROR, fname,
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Command and prefix in response '%s' does not match original command '%s'",
-						response, command );
-				}
+					response, command );
+			    }
 			}
 
 			response_length = strlen( response );

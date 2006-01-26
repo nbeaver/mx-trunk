@@ -177,7 +177,7 @@ main( int argc, char *argv[] ) {
 #endif
 }
 
-int
+static int
 find_driver( MX_DRIVER *driver_list, char *name, MX_DRIVER **driver_found )
 {
 	unsigned long i;
@@ -198,7 +198,7 @@ find_driver( MX_DRIVER *driver_list, char *name, MX_DRIVER **driver_found )
 	return FAILURE;
 }
 
-int
+static int
 show_all_drivers( MX_DRIVER **list_of_types, int debug )
 {
 	const char fname[] = "show_all_drivers()";
@@ -299,7 +299,7 @@ show_all_drivers( MX_DRIVER **list_of_types, int debug )
 	return SUCCESS;
 }
 
-int
+static int
 show_drivers( MX_DRIVER **list_of_types,
 		int items_to_show,
 		char *item_name,
@@ -393,7 +393,7 @@ show_drivers( MX_DRIVER **list_of_types,
 	return SUCCESS;
 }
 
-int
+static int
 show_field_list( MX_DRIVER **list_of_types,
 		char *driver_name,
 		int show_all_fields,
@@ -469,7 +469,7 @@ show_field_list( MX_DRIVER **list_of_types,
 	return SUCCESS;
 }
 
-int
+static int
 show_field( MX_DRIVER *driver,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults,
 		int debug )
@@ -494,7 +494,7 @@ show_field( MX_DRIVER *driver,
 	} else {
 		num_dimensions = field_defaults->num_dimensions;
 
-		printf( "F:%lu ", num_dimensions );
+		printf( "F:%ld ", num_dimensions );
 	}
 
 	/* Display each of the dimensions in turn. */
@@ -508,7 +508,7 @@ show_field( MX_DRIVER *driver,
 						dimension,
 						debug ) );
 		} else {
-			printf( "F:%lu ", dimension );
+			printf( "F:%ld ", dimension );
 		}
 	}
 
@@ -518,7 +518,7 @@ show_field( MX_DRIVER *driver,
 	return SUCCESS;
 }
 
-char *
+static char *
 find_varargs_field_name( MX_DRIVER *driver,
 			long varargs_cookie,
 			int debug )

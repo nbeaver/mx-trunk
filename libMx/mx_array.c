@@ -1119,7 +1119,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			}
 
 			return mx_error( MXE_FUNCTION_FAILED, fname,
-				"XDR scalar data copy of datatype %lu failed.",
+				"XDR scalar data copy of datatype %ld failed.",
 					mx_datatype );
 		}
 	}
@@ -1225,7 +1225,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			}
 
 			return mx_error( MXE_FUNCTION_FAILED, fname,
-			"XDR 1-dimensional data copy of datatype %lu failed.",
+			"XDR 1-dimensional data copy of datatype %ld failed.",
 					mx_datatype );
 		}
 	}

@@ -234,12 +234,12 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		long_value = *((long *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%x%s=%lu",
+			sprintf( command, "@%x%s=%ld",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				long_value );
 		} else {
-			sprintf( command, "%s=%lu",
+			sprintf( command, "%s=%ld",
 				pmac_variable->pmac_variable_name,
 				long_value );
 		}

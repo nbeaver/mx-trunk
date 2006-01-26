@@ -319,7 +319,7 @@ mxd_icplus_ain_open( MX_RECORD *record )
 
 	for ( i = 0; i < strlen( value_name ); i++ ) {
 		if ( islower( (int)(value_name[i]) ) ) {
-			value_name[i] = toupper( value_name[i] );
+			value_name[i] = toupper( (int)(value_name[i]) );
 		}
 	}
 
@@ -476,7 +476,7 @@ mxd_icplus_aout_open( MX_RECORD *record )
 
 	for ( i = 0; i < strlen( value_name ); i++ ) {
 		if ( islower( (int)(value_name[i]) ) ) {
-			value_name[i] = toupper( value_name[i] );
+			value_name[i] = toupper( (int)(value_name[i]) );
 		}
 	}
 

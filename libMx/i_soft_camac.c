@@ -174,7 +174,7 @@ mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
 	if ( (scamac->logfile) != NULL ) {
 		if ( function_code >= 16 && function_code <= 23 ) {
 			fprintf(scamac->logfile,
-				"camac: %s, %d, %d, %d, %ld (0x%lx)\n",
+				"camac: %s, %d, %d, %d, %lu (0x%lx)\n",
 				crate->record->name, slot, subaddress,
 				function_code, (unsigned long) *data,
 				(unsigned long) *data);

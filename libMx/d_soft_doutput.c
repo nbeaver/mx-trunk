@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,15 +25,8 @@
 #include "d_soft_doutput.h"
 
 MX_RECORD_FUNCTION_LIST mxd_soft_doutput_record_function_list = {
-	mxd_soft_doutput_initialize_type,
-	mxd_soft_doutput_create_record_structures,
-	mxd_soft_doutput_finish_record_initialization,
-	mxd_soft_doutput_delete_record,
 	NULL,
-	mxd_soft_doutput_read_parms_from_hardware,
-	mxd_soft_doutput_write_parms_to_hardware,
-	mxd_soft_doutput_open,
-	mxd_soft_doutput_close
+	mxd_soft_doutput_create_record_structures
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST
@@ -55,12 +48,6 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_doutput_rfield_def_ptr
 			= &mxd_soft_doutput_record_field_defaults[0];
 
 /* ===== */
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxd_soft_doutput_create_record_structures( MX_RECORD *record )
@@ -100,55 +87,6 @@ mxd_soft_doutput_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_doutput_finish_record_initialization( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_doutput_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 {
 	return MX_SUCCESSFUL_RESULT;
@@ -159,7 +97,7 @@ mxd_soft_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 {
 	const char fname[] = "mxd_soft_doutput_write()";
 
-	MX_DEBUG( 2,("%s: writing value %#lx (%ld)", fname,
+	MX_DEBUG( 2,("%s: writing value %#lx (%lu)", fname,
 				doutput->value, doutput->value ));
 
 	return MX_SUCCESSFUL_RESULT;

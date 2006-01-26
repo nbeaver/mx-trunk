@@ -350,7 +350,7 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_rois > MX_ROENTEC_RCL_MAX_SCAS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of ROIs (%lu) for Roentec MCA '%s' is greater "
+"The requested maximum number of ROIs (%ld) for Roentec MCA '%s' is greater "
 "than the maximum allowed value of %d.",
 			mca->maximum_num_rois, record->name,
 			MX_ROENTEC_RCL_MAX_SCAS );
@@ -358,7 +358,7 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_channels > MX_ROENTEC_RCL_MAX_BINS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of channels (%lu) for Roentec MCA '%s' is greater "
+"The requested maximum number of channels (%ld) for Roentec MCA '%s' is greater "
 "than the maximum allowed value of %d.",
 			mca->maximum_num_channels, record->name,
 			MX_ROENTEC_RCL_MAX_BINS );
@@ -369,7 +369,7 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel data array.",
+		"Ran out of memory allocating an %ld channel data array.",
 			mca->maximum_num_channels );
 	}
 
@@ -609,17 +609,17 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 		sprintf( command, "$MT 0" );
 		break;
 	case MXF_MCA_PRESET_LIVE_TIME:
-		sprintf( command, "$LT %lu",
+		sprintf( command, "$LT %ld",
 			mx_round( 1000.0 * mca->preset_live_time ) );
 		break;
 	case MXF_MCA_PRESET_REAL_TIME:
-		sprintf( command, "$MT %lu",
+		sprintf( command, "$MT %ld",
 			mx_round( 1000.0 * mca->preset_real_time ) );
 		break;
 	case MXF_MCA_PRESET_COUNT:
 		/* Initialize the window counter. */
 
-		sprintf( command, "$FI %lu 0 %lu",
+		sprintf( command, "$FI %lu 0 %ld",
 			mca->preset_count, mca->current_num_channels );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
@@ -689,7 +689,7 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	 * the command with the one line response '!SS<cr>'.
 	 */
 
-	sprintf( command, "$SS 0,1,1,%lu",
+	sprintf( command, "$SS 0,1,1,%ld",
 			mca->current_num_channels );
 
 	mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
@@ -1270,7 +1270,7 @@ mxd_roentec_rcl_handle_error( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 
 	return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Error detected in response to command '%s' send to "
-		"Roentec MCA '%s'.  Error code = %ld, error message = '%s', "
+		"Roentec MCA '%s'.  Error code = %lu, error message = '%s', "
 		"Raw response = '%s'",
 			command, roentec_rcl_mca->record->name,
 			error_code, error_message, response_buffer );

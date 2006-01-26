@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -589,7 +589,7 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 
 /* Do we use new-style (termios) or old-style (termio) terminal controls? */
 
-#if defined(OS_HPUX) || defined(OS_SUNOS4) || defined(OS_AIX)
+#if defined(OS_SUNOS4) || defined(OS_AIX)
 #   define USE_TERMIOS    0
 #else
 #   define USE_TERMIOS    1

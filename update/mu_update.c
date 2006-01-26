@@ -361,10 +361,10 @@ main( int argc, char *argv[] )
 				mx_get_version_string() );
 
 		mx_info(
-		"%g clock ticks per second, current time = (%ld,%ld)",
+		"%g clock ticks per second, current time = (%lu,%lu)",
 			mx_clock_ticks_per_second(),
 			current_time.high_order,
-			(long) current_time.low_order);
+			current_time.low_order);
 
 		mx_info("Event interval:  %g seconds, (%lu,%lu) clock ticks.",
 			update_interval_in_seconds,
@@ -512,9 +512,9 @@ main( int argc, char *argv[] )
 					next_event_time ) > 0 ) {
 
 			MX_DEBUG( 1,
-	("***** Time to rewrite autosave file.  current_time = (%ld,%ld)",
+	("***** Time to rewrite autosave file.  current_time = (%lu,%lu)",
 				current_time.high_order,
-				(long) current_time.low_order));
+				current_time.low_order));
 
 			mx_status = mxupd_save_fields_to_autosave_file(
 					autosave_filename, &update_list );
@@ -1112,7 +1112,7 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 		new_num_entries = (j + 1 + MXUPD_UPDATE_ARRAY_BLOCK_SIZE);
 
 		MX_DEBUG( 2,
-		("%s: Increasing size of update list to have %ld entries.",
+		("%s: Increasing size of update list to have %lu entries.",
 			fname, new_num_entries));
 
 		new_entry_array_size = new_num_entries
@@ -1124,7 +1124,7 @@ mxupd_add_to_update_list( MXUPD_UPDATE_LIST *update_list,
 		if ( ptr == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory reallocating the entry array "
-			"for the update list to have %ld elements.",
+			"for the update list to have %lu elements.",
 				new_num_entries );
 		}
 
@@ -1915,7 +1915,7 @@ mxupd_restore_fields_from_autosave_files(
 
 			(void) mx_error( MXE_FILE_IO_ERROR, fname,
 	"Only %ld autosave entries were read from autosave file '%s'.  "
-	"%ld entries were expected.",
+	"%lu entries were expected.",
 			i, filename_to_use, update_list->num_entries );
 
 			return MX_SUCCESSFUL_RESULT;

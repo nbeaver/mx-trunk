@@ -318,7 +318,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%ld", &(dinput->value) );
+	num_items = sscanf( ptr, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -424,7 +424,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%ld", &(doutput->value) );
+	num_items = sscanf( ptr, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -467,7 +467,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "OUT %s %d=%ld",
+	sprintf( command, "OUT %s %d=%lu",
 			picomotor_doutput->driver_name,
 			channel_number, doutput->value );
 

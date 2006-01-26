@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,7 +77,7 @@ mxd_soft_mcs_get_pointers( MX_MCS *mcs,
 			MX_SOFT_MCS **soft_mcs,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_soft_mcs_get_pointers()";
+	static const char fname[] = "mxd_soft_mcs_get_pointers()";
 
 	if ( mcs == (MX_MCS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -141,7 +141,7 @@ mxd_soft_mcs_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mcs_create_record_structures()";
+	static const char fname[] = "mxd_soft_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
 	MX_SOFT_MCS *soft_mcs;
@@ -176,7 +176,8 @@ mxd_soft_mcs_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mcs_finish_record_initialization()";
+	static const char fname[] =
+			"mxd_soft_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
 	MX_SOFT_MCS *soft_mcs;
@@ -216,7 +217,7 @@ mxd_soft_mcs_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_start( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_start()";
+	static const char fname[] = "mxd_soft_mcs_start()";
 
 	MX_SOFT_MCS *soft_mcs;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
@@ -244,7 +245,7 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 				total_counting_time_in_clock_ticks );
 
 	MX_DEBUG( 2,
-		("%s: measurement_time = %g seconds, num_measurements = %ld",
+		("%s: measurement_time = %g seconds, num_measurements = %lu",
 		fname, mcs->measurement_time, mcs->current_num_measurements));
 
 	MX_DEBUG( 2,
@@ -267,7 +268,7 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_stop( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_stop()";
+	static const char fname[] = "mxd_soft_mcs_stop()";
 
 	MX_SOFT_MCS *soft_mcs;
 	mx_status_type mx_status;
@@ -287,7 +288,7 @@ mxd_soft_mcs_stop( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_clear( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_clear()";
+	static const char fname[] = "mxd_soft_mcs_clear()";
 
 	MX_SOFT_MCS *soft_mcs;
 	long i, j;
@@ -312,7 +313,7 @@ mxd_soft_mcs_clear( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_busy( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_busy()";
+	static const char fname[] = "mxd_soft_mcs_busy()";
 
 	MX_SOFT_MCS *soft_mcs;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
@@ -358,7 +359,7 @@ mxd_soft_mcs_read_scaler( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_read_measurement()";
+	static const char fname[] = "mxd_soft_mcs_read_measurement()";
 
 	MX_SOFT_MCS *soft_mcs;
 	unsigned long i;
@@ -369,14 +370,14 @@ mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', measurement_index = %lu",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', measurement_index = %ld",
 		fname, mcs->record->name, mcs->measurement_index));
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 		mcs->measurement_data[i]
 			= mcs->data_array[i][ mcs->measurement_index ];
 
-		MX_DEBUG( 2,("%s: mcs->measurement_data[%lu] = %lu",
+		MX_DEBUG( 2,("%s: mcs->measurement_data[%lu] = %ld",
 			fname, i, mcs->measurement_data[i]));
 	}
 
@@ -386,7 +387,7 @@ mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_get_parameter()";
+	static const char fname[] = "mxd_soft_mcs_get_parameter()";
 
 	MX_SOFT_MCS *soft_mcs;
 	mx_status_type mx_status;
@@ -410,7 +411,7 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
-		MX_DEBUG( 2,("%s: MCS number of measurements = %ld",
+		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
 			fname, mcs->current_num_measurements));
 
 	} else {
@@ -424,7 +425,7 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 {
-	const char fname[] = "mxd_soft_mcs_set_parameter()";
+	static const char fname[] = "mxd_soft_mcs_set_parameter()";
 
 	MX_SOFT_MCS *soft_mcs;
 	mx_status_type mx_status;
@@ -454,7 +455,7 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
-		MX_DEBUG( 2,("%s: MCS number of measurements = %ld",
+		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
 			fname, mcs->current_num_measurements));
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {

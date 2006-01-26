@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -479,7 +479,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 			return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
 			"The number of characters in the response from "
 			"controller '%s' exceeded the response buffer "
-			"size of %ld",
+			"size of %lu",
 				picomotor_controller->record->name,
 				(unsigned long) sizeof(response_buffer) );
 		}

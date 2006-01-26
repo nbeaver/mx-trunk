@@ -279,7 +279,7 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 
 		if ( nf != (MX_NETWORK_FIELD *) NULL ) {
 			MX_DEBUG( 2,
-		("%s: Marking handle as invalid, network_field '%s' (%lu,%lu)",
+		("%s: Marking handle as invalid, network_field '%s' (%ld,%ld)",
 				fname, nf->nfname,
 				nf->record_handle, nf->field_handle));
 
@@ -1811,7 +1811,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	if ( message_length < (2 * sizeof(uint32_t)) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Incomplete message received.  Message length = %ld",
-			(unsigned long) message_length );
+			(long) message_length );
 	}
 
 	/***** Get the type information out of what we were sent. *****/
@@ -1830,7 +1830,7 @@ mx_get_field_type( MX_RECORD *server_record,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Incomplete dimension array received.  %ld dimension values were received, "
 "but %ld dimension values were expected.",
-		(unsigned long) (message_length - 2), *num_dimensions );
+			(long) (message_length - 2), *num_dimensions );
 	}
 	if ( *num_dimensions < max_dimensions ) {
 		max_dimensions = *num_dimensions;
@@ -2134,7 +2134,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	if ( message_length < sizeof(uint32_t) ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Incomplete message received.  Message length = %ld",
-			(unsigned long) message_length );
+			(long) message_length );
 	}
 
 	header_length_in_32bit_words = header_length / sizeof(uint32_t);

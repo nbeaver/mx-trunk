@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_soft_scaler_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_soft_scaler_initialize_type( long type )
 {
-        const char fname[] = "mxs_soft_scaler_initialize_type()";
+        static const char fname[] = "mxs_soft_scaler_initialize_type()";
 
         MX_DRIVER *driver;
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
@@ -144,7 +144,8 @@ mxd_soft_scaler_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_soft_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_scaler_create_record_structures()";
+	static const char fname[] =
+			"mxd_soft_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_SOFT_SCALER *soft_scaler;
@@ -181,7 +182,8 @@ mxd_soft_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_scaler_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_scaler_finish_record_initialization()";
+	static const char fname[] =
+			"mxd_soft_scaler_finish_record_initialization()";
 
 	MX_SOFT_SCALER *soft_scaler;
 	mx_status_type mx_status;
@@ -200,7 +202,7 @@ mxd_soft_scaler_finish_record_initialization( MX_RECORD *record )
 
 	if ( soft_scaler->motor_position == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Couldn't allocate %ld doubles for motor position array.",
+		"Couldn't allocate %lu doubles for motor position array.",
 			soft_scaler->num_datapoints );
 	}
 
@@ -209,7 +211,7 @@ mxd_soft_scaler_finish_record_initialization( MX_RECORD *record )
 
 	if ( soft_scaler->scaler_value == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Couldn't allocate %ld doubles for scaler value array.",
+		"Couldn't allocate %lu doubles for scaler value array.",
 			soft_scaler->num_datapoints );
 	}
 
@@ -250,7 +252,7 @@ mxd_soft_scaler_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_scaler_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_scaler_open()";
+	static const char fname[] = "mxd_soft_scaler_open()";
 
 	MX_SOFT_SCALER *soft_scaler;
 	char datafile_name[ MXU_FILENAME_LENGTH + 1 ];
@@ -398,7 +400,7 @@ static mx_status_type
 mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 						double *modifier_value )
 {
-	const char fname[] = "mxd_soft_scaler_compute_intensity_modifier()";
+	static const char fname[] = "mxd_soft_scaler_compute_intensity_modifier()";
 
 	unsigned long dout_value;
 	double gain, filter_attenuation, single_thickness_attenuation;
@@ -467,7 +469,7 @@ mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 MX_EXPORT mx_status_type
 mxd_soft_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_soft_scaler_read()";
+	static const char fname[] = "mxd_soft_scaler_read()";
 
 	MX_SOFT_SCALER *soft_scaler;
 	double position, scaler_value, modifier_value;

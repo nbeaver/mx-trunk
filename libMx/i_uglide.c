@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ mxi_uglide_get_pointers( MX_RECORD *record,
 			MX_UGLIDE **uglide,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_compumotor_get_pointers()";
+	static const char fname[] = "mxi_compumotor_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -102,7 +102,7 @@ mxi_uglide_get_pointers( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mxi_uglide_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_uglide_create_record_structures()";
+	static const char fname[] = "mxi_uglide_create_record_structures()";
 
 	MX_UGLIDE *uglide;
 
@@ -131,7 +131,7 @@ mxi_uglide_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_uglide_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_uglide_finish_record_initialization()";
+	static const char fname[] = "mxi_uglide_finish_record_initialization()";
 
 	MX_UGLIDE *uglide;
 	mx_status_type mx_status;
@@ -164,7 +164,7 @@ mxi_uglide_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_uglide_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_uglide_open()";
+	static const char fname[] = "mxi_uglide_open()";
 
 	MX_UGLIDE *uglide;
 	char command[80];
@@ -428,7 +428,7 @@ mxi_uglide_open( MX_RECORD *record )
 			if ( i >= home_search_max_attempts ) {
 				return mx_error( MXE_TIMED_OUT, fname,
 			"The startup home search for controller '%s' has not "
-			"completed after waiting for %ld milliseconds",
+			"completed after waiting for %lu milliseconds",
 					uglide->record->name,
 					home_search_max_attempts
 						* home_search_sleep_ms );
@@ -469,7 +469,7 @@ mxi_uglide_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 {
-	const char fname[] = "mxi_uglide_command()";
+	static const char fname[] = "mxi_uglide_command()";
 
 	char local_command[80];
 	char response[80];
@@ -625,7 +625,7 @@ mxi_uglide_getline( MX_UGLIDE *uglide,
 		if ( num_input_bytes_available > 0 )
 			break;		/* Exit the while() loop. */
 
-		MX_DEBUG( 2,("%s: i = %ld", fname, i));
+		MX_DEBUG( 2,("%s: i = %lu", fname, i));
 
 		mx_msleep( milliseconds );
 	}
@@ -633,7 +633,7 @@ mxi_uglide_getline( MX_UGLIDE *uglide,
 	if ( i >= max_retries ) {
 		return mx_error( MXE_TIMED_OUT, fname,
 	"No response was received from u-GLIDE controller '%s' "
-	"on RS-232 port '%s' after waiting for %ld milliseconds.",
+	"on RS-232 port '%s' after waiting for %lu milliseconds.",
 				uglide->record->name,
 				uglide->rs232_record->name,
 				max_retries * milliseconds );

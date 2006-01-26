@@ -693,7 +693,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 					1 + real_num_wago_bytes_to_read / 2;
 		}
 
-		MX_WAGO_DEBUG(("%s: num_registers_to_read = %ld",
+		MX_WAGO_DEBUG(("%s: num_registers_to_read = %lu",
 			fname, num_registers_to_read));
 
 		mx_status = mxi_wago750_serial_read_data_registers(
@@ -706,7 +706,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 
 #if 1
 		for ( j = 0; j < num_registers_to_read; j++ ) {
-			MX_WAGO_DEBUG(("%s: input_register_array[%ld] = %#x",
+			MX_WAGO_DEBUG(("%s: input_register_array[%lu] = %#x",
 				fname, j, input_register_array[j]));
 		}
 #endif
@@ -759,7 +759,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 
 #if 1
 		for ( j = 0; j < num_wago_bytes_to_read; j++ ) {
-			MX_WAGO_DEBUG(("%s: input_buffer[%ld] = %#x",
+			MX_WAGO_DEBUG(("%s: input_buffer[%lu] = %#x",
 				fname, j, input_buffer[j]));
 		}
 #endif
@@ -930,7 +930,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 			break;		/* Exit the for(i...) loop. */
 		}
 
-		MX_WAGO_DEBUG(("%s: *** Beginning block %ld ***", fname, i));
+		MX_WAGO_DEBUG(("%s: *** Beginning block %lu ***", fname, i));
 
 		buffer_ptr = buffer + i * wago750_serial->num_data_bytes;
 
@@ -1089,11 +1089,11 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 		}
 
 #if 1
-		MX_WAGO_DEBUG(("%s: num_registers_to_write = %ld",
+		MX_WAGO_DEBUG(("%s: num_registers_to_write = %lu",
 			fname, num_registers_to_write));
 
 		for ( j = 0; j < num_registers_to_write; j++ ) {
-			MX_WAGO_DEBUG(("%s: output_buffer[%ld] = %#x",
+			MX_WAGO_DEBUG(("%s: output_buffer[%lu] = %#x",
 				fname, j, output_buffer[j]));
 		}
 #endif
@@ -1196,7 +1196,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 				rs232->record->name );
 		}
 
-		MX_WAGO_DEBUG(("%s: *** Block %ld has been transmitted ***",
+		MX_WAGO_DEBUG(("%s: *** Block %lu has been transmitted ***",
 			fname, i ));
 	}
 

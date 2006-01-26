@@ -443,7 +443,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	if ( unit_id != modbus_tcp->unit_id ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 	"Received message from MODBUS/TCP interface '%s' has a unit id of %d "
-	"rather than the expected value of %ld.",
+	"rather than the expected value of %lu.",
 			modbus->record->name, unit_id,
 			modbus_tcp->unit_id );
 	}

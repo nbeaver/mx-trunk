@@ -332,7 +332,7 @@ mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 			record->name);
 	fprintf(file, "  Digital output type = KS3063_OUT.\n\n");
 
-	fprintf(file, "  value      = %ld\n", doutput->value);
+	fprintf(file, "  value      = %lu\n", doutput->value);
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_out->camac_record->name);
 	fprintf(file, "  slot       = %d\n", ks3063_out->slot);

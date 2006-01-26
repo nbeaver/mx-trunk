@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -950,7 +950,7 @@ mx_mca_get_roi( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%lu) for MCA '%s'.", roi_number,
+			"of (0-%ld) for MCA '%s'.", roi_number,
 			mca->current_num_rois - 1, mca_record->name );
 	}
 
@@ -1023,14 +1023,14 @@ mx_mca_set_roi( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%lu) for MCA '%s'.", roi_number,
+			"of (0-%ld) for MCA '%s'.", roi_number,
 			mca->current_num_rois - 1, mca_record->name );
 	}
 
 	if ( roi[1] >= mca->current_num_channels ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI upper limit %lu is outside the allowed "
-			"range of (0-%lu) for MCA '%s'.", roi[1],
+			"range of (0-%ld) for MCA '%s'.", roi[1],
 			mca->current_num_channels - 1, mca_record->name );
 	}
 
@@ -1096,7 +1096,7 @@ mx_mca_get_roi_integral( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%lu) for MCA '%s'.", roi_number,
+			"of (0-%ld) for MCA '%s'.", roi_number,
 			mca->current_num_rois - 1, mca_record->name );
 	}
 
@@ -1152,7 +1152,7 @@ mx_mca_get_roi_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", num_rois,
+		"of (0-%ld) for MCA '%s'.", num_rois,
 			mca->maximum_num_rois, mca_record->name );
 	}
 
@@ -1209,7 +1209,7 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", num_rois,
+		"of (0-%ld) for MCA '%s'.", num_rois,
 			mca->maximum_num_rois, mca_record->name );
 	}
 
@@ -1229,7 +1229,7 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 		if ( roi_array[i][1] > mca->current_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI upper limit %lu for ROI %lu is outside "
-			"the allowed range of (0-%lu) for MCA '%s'.",
+			"the allowed range of (0-%ld) for MCA '%s'.",
 				roi_array[i][1], i,
 				mca->current_num_channels - 1,
 				mca->record->name );
@@ -1281,7 +1281,7 @@ mx_mca_get_roi_integral_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", num_rois,
+		"of (0-%ld) for MCA '%s'.", num_rois,
 			mca->maximum_num_rois, mca_record->name );
 	}
 
@@ -1371,7 +1371,7 @@ mx_mca_set_num_channels( MX_RECORD *mca_record,
 	if ( num_channels > mca->maximum_num_channels ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested number of MCA channels, %lu, is greater than "
-		"the maximum allowed number of MCA channels, %lu.",
+		"the maximum allowed number of MCA channels, %ld.",
 			num_channels, mca->maximum_num_channels );
 	}
 
@@ -1591,7 +1591,7 @@ mx_mca_get_soft_roi( MX_RECORD *mca_record,
 	if ( soft_roi_number >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested soft ROI number %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", soft_roi_number,
+		"of (0-%ld) for MCA '%s'.", soft_roi_number,
 			mca->num_soft_rois - 1, mca_record->name );
 	}
 
@@ -1662,7 +1662,7 @@ mx_mca_set_soft_roi( MX_RECORD *mca_record,
 	if ( soft_roi_number >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested soft ROI number %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", soft_roi_number,
+		"of (0-%ld) for MCA '%s'.", soft_roi_number,
 			mca->num_soft_rois - 1, mca_record->name );
 	}
 
@@ -1779,7 +1779,7 @@ mx_mca_get_soft_roi_integral_array( MX_RECORD *mca_record,
 	if ( num_soft_rois >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Requested number of soft ROIs %lu is outside the allowed range "
-	"of (0-%lu) for MCA '%s'.", num_soft_rois,
+	"of (0-%ld) for MCA '%s'.", num_soft_rois,
 			mca->num_soft_rois, mca_record->name );
 	}
 
@@ -2196,7 +2196,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		if ( mca->channel_number >= mca->maximum_num_channels ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"mca->channel_number (%lu) is greater than or equal to "
-		"mca->maximum_num_channels (%lu).  This should not be "
+		"mca->maximum_num_channels (%ld).  This should not be "
 		"able to happen, so if you see this message, please "
 		"report the program bug to Bill Lavender.",
 			mca->channel_number, mca->maximum_num_channels );
@@ -2253,7 +2253,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 			roi_start = mca->maximum_num_channels - 1;
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested ROI start channel %lu is outside the allowed range of (0-%lu) "
+"The requested ROI start channel %lu is outside the allowed range of (0-%ld) "
 "for the MCA '%s'.", roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
@@ -2262,7 +2262,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 			roi_end = mca->maximum_num_channels - 1;
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested ROI end channel %lu is outside the allowed range of (%lu-%lu) "
+"The requested ROI end channel %lu is outside the allowed range of (%lu-%ld) "
 "for the MCA '%s'.", roi_end, roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
@@ -2299,7 +2299,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested soft ROI start channel %lu is outside the allowed range "
-"of (0-%lu) for the MCA '%s'.", soft_roi_start, mca->maximum_num_channels-1,
+"of (0-%ld) for the MCA '%s'.", soft_roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
 		if ( soft_roi_end >= mca->maximum_num_channels ) {
@@ -2308,7 +2308,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested soft ROI end channel %lu is outside the allowed range "
-"of (%lu-%lu) for the MCA '%s'.", soft_roi_end, soft_roi_start,
+"of (%lu-%ld) for the MCA '%s'.", soft_roi_end, soft_roi_start,
 					mca->maximum_num_channels-1,
 					mca->record->name );
 		}
@@ -2344,7 +2344,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 			mca->channel_number = 0;
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested channel number %lu is outside the allowed range of (0-%lu) "
+"The requested channel number %lu is outside the allowed range of (0-%ld) "
 "for the MCA '%s'.", channel_number, mca->maximum_num_channels-1,
 				mca->record->name );
 		}

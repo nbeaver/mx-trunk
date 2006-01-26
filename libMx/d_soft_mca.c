@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,8 +34,8 @@ MX_RECORD_FUNCTION_LIST mxd_soft_mca_record_function_list = {
 	mxd_soft_mca_finish_record_initialization,
 	mxd_soft_mca_delete_record,
 	mxd_soft_mca_print_structure,
-	mxd_soft_mca_read_parms_from_hardware,
-	mxd_soft_mca_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_soft_mca_open,
 	mxd_soft_mca_close
 };
@@ -72,7 +72,7 @@ mxd_soft_mca_get_pointers( MX_MCA *mca,
 			MX_SOFT_MCA **soft_mca,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_soft_mca_get_pointers()";
+	static const char fname[] = "mxd_soft_mca_get_pointers()";
 
 	if ( mca == (MX_MCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -137,7 +137,7 @@ mxd_soft_mca_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_soft_mca_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mca_create_record_structures()";
+	static const char fname[] = "mxd_soft_mca_create_record_structures()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca;
@@ -172,7 +172,7 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mca_finish_record_initialization()";
+	static const char fname[] = "mxd_soft_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca;
@@ -193,7 +193,7 @@ mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 
 	if ( soft_mca->simulated_channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory allocating an %lu channel simulated data array.",
+	"Ran out of memory allocating an %ld channel simulated data array.",
 			mca->maximum_num_channels );
 	}
 
@@ -242,7 +242,7 @@ mxd_soft_mca_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mca_print_structure()";
+	static const char fname[] = "mxd_soft_mca_print_structure()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca;
@@ -271,30 +271,18 @@ mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  MCA type              = SOFT_MCA.\n\n");
 	fprintf(file, "  filename              = '%s'\n",
 					soft_mca->filename);
-	fprintf(file, "  maximum # of channels = %lu\n",
+	fprintf(file, "  maximum # of channels = %ld\n",
 					mca->maximum_num_channels);
-	fprintf(file, "  maximum # of ROIs     = %lu\n",
+	fprintf(file, "  maximum # of ROIs     = %ld\n",
 					mca->maximum_num_rois);
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_mca_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_mca_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_soft_mca_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_mca_open()";
+	static const char fname[] = "mxd_soft_mca_open()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca;
@@ -408,7 +396,7 @@ mxd_soft_mca_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mca_start( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_start()";
+	static const char fname[] = "mxd_soft_mca_start()";
 
 	MX_SOFT_MCA *soft_mca;
 	MX_CLOCK_TICK start_time_in_clock_ticks;
@@ -448,7 +436,7 @@ mxd_soft_mca_start( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_soft_mca_stop( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_stop()";
+	static const char fname[] = "mxd_soft_mca_stop()";
 
 	MX_SOFT_MCA *soft_mca;
 	mx_status_type status;
@@ -470,7 +458,7 @@ mxd_soft_mca_stop( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_soft_mca_read( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_read()";
+	static const char fname[] = "mxd_soft_mca_read()";
 
 	MX_SOFT_MCA *soft_mca;
 	unsigned long i;
@@ -509,7 +497,7 @@ mxd_soft_mca_read( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_soft_mca_clear( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_clear()";
+	static const char fname[] = "mxd_soft_mca_clear()";
 
 	MX_SOFT_MCA *soft_mca;
 	unsigned long i;
@@ -536,7 +524,7 @@ mxd_soft_mca_clear( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_soft_mca_busy( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_busy()";
+	static const char fname[] = "mxd_soft_mca_busy()";
 
 	MX_SOFT_MCA *soft_mca;
 	MX_CLOCK_TICK current_time_in_clock_ticks;
@@ -572,7 +560,7 @@ mxd_soft_mca_busy( MX_MCA *mca )
 MX_EXPORT mx_status_type
 mxd_soft_mca_get_parameter( MX_MCA *mca )
 {
-	const char fname[] = "mxd_soft_mca_get_parameter()";
+	static const char fname[] = "mxd_soft_mca_get_parameter()";
 
 	MX_SOFT_MCA *soft_mca;
 	unsigned long i, j, channel_value, integral;
@@ -644,7 +632,7 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 		if ( mca->channel_number >= mca->maximum_num_channels ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"mca->channel_number (%lu) is greater than or equal to "
-		"mca->maximum_num_channels (%lu).  This should not be "
+		"mca->maximum_num_channels (%ld).  This should not be "
 		"able to happen, so if you see this message, please "
 		"report the program bug to Bill Lavender.",
 			mca->channel_number, mca->maximum_num_channels );

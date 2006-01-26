@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -720,7 +720,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 	if ( module_id == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"module_id address for HSC-1 interface '%s' module %ld is NULL.",
+	"module_id address for HSC-1 interface '%s' module %lu is NULL.",
 			hsc1_interface->record->name, module_number );
 	}
 
