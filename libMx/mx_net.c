@@ -438,17 +438,20 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 
 	switch( *datatype ) {
 	case MXFT_STRING:
-	case MXFT_CHAR:
-	case MXFT_UCHAR:
-	case MXFT_SHORT:
-	case MXFT_USHORT:
-	case MXFT_INT:
-	case MXFT_UINT:
-	case MXFT_LONG:
-	case MXFT_ULONG:
+	case MXFT_INT8:
+	case MXFT_UINT8:
+	case MXFT_INT16:
+	case MXFT_UINT16:
+	case MXFT_INT32:
+	case MXFT_UINT32:
+	case MXFT_INT64:
+	case MXFT_UINT64:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
 	case MXFT_HEX:
+	case MXFT_CHAR:
+	case MXFT_OLD_LONG:
+	case MXFT_OLD_ULONG:
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

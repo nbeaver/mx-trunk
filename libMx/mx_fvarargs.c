@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -94,10 +94,10 @@ mx_convert_varargs_cookie_to_value(
 		"%s: cookie points to field '%s', array_in_field_index = %ld",
 		fname, field->name, array_in_field_index));
 
-	if ( field->datatype != MXFT_LONG ) {
+	if ( field->datatype != MXFT_VARARGS ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Field type %s for length field '%s' is invalid.  "
-		"Only MXFT_LONG is allowed for a varargs length field.",
+		"Only MXFT_VARARGS is allowed for a varargs length field.",
 				mx_get_field_type_string( field->datatype ),
 				field->name );
 	}
@@ -106,8 +106,8 @@ mx_convert_varargs_cookie_to_value(
 	case 0:
 		if ( array_in_field_index != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Array in field index %ld computed from "
-		"varargs cookie %ld is nonzero for a scalar MXFT_LONG field.",
+		"Array in field index %ld computed from varargs "
+		"cookie %ld is nonzero for a scalar MXFT_VARARGS field.",
 				array_in_field_index, varargs_cookie );
 		}
 

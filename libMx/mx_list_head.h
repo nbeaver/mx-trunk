@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,15 +20,15 @@
 #define MXLV_LHD_STATUS		101
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
-  {-1, -1, "list_is_active", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "list_is_active", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, list_is_active), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "fast_mode", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "fast_mode", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, fast_mode), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "allow_fast_mode", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "allow_fast_mode", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, allow_fast_mode), \
 	{0}, NULL, 0}, \
   \
@@ -37,11 +37,11 @@
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, status), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {-1, -1, "mx_version", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "mx_version", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_records", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_records", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \
 	{0}, NULL, 0}
 

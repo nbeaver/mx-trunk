@@ -309,7 +309,7 @@ mx_delete_record( MX_RECORD *record )
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"The record '%s' has %ld child records that depend on it.  The child "
 	"records must be deleted first before this record may be deleted.",
-				record->name, record->num_child_records );
+			record->name, (long) record->num_child_records );
 	}
 
 	/* Get a pointer to the record list head for later use. */
@@ -2727,7 +2727,7 @@ mx_set_fast_mode( MX_RECORD *record, int mode_flag )
 
 	MX_RECORD *list_head_record, *current_record;
 	MX_LIST_HEAD *list_head;
-	int fast_mode_flag;
+	int32_t fast_mode_flag;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2769,7 +2769,7 @@ mx_set_fast_mode( MX_RECORD *record, int mode_flag )
 
 			(void) mx_put_by_name( current_record,
 					"mx_database.fast_mode",
-					MXFT_INT, &fast_mode_flag );
+					MXFT_INT32, &fast_mode_flag );
 		}
 
 		current_record = current_record->next_record;

@@ -2095,32 +2095,43 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 				input_device->name );
 		}
 		switch( field_type ) {
-		case MXFT_SHORT:
-			*returned_value = (double) *((short *) ptr_to_value);
+		case MXFT_INT8:
+			*returned_value = (double) *((int8_t *) ptr_to_value);
 			break;
-		case MXFT_USHORT:
-			*returned_value = (double)
-					*((unsigned short *) ptr_to_value);
+		case MXFT_UINT8:
+			*returned_value = (double) *((uint8_t *) ptr_to_value);
 			break;
-		case MXFT_INT:
-			*returned_value = (double) *((int *) ptr_to_value);
+		case MXFT_INT16:
+			*returned_value = (double) *((int16_t *) ptr_to_value);
 			break;
-		case MXFT_UINT:
-			*returned_value = (double)
-					*((unsigned int *) ptr_to_value);
+		case MXFT_UINT16:
+			*returned_value = (double) *((uint16_t *) ptr_to_value);
 			break;
-		case MXFT_LONG:
-			*returned_value = (double) *((long *) ptr_to_value);
+		case MXFT_INT32:
+			*returned_value = (double) *((int32_t *) ptr_to_value);
 			break;
-		case MXFT_ULONG:
-			*returned_value = (double)
-					*((unsigned long *) ptr_to_value);
+		case MXFT_UINT32:
+			*returned_value = (double) *((uint32_t *) ptr_to_value);
+			break;
+		case MXFT_INT64:
+			*returned_value = (double) *((int64_t *) ptr_to_value);
+			break;
+		case MXFT_UINT64:
+		case MXFT_HEX:
+			*returned_value = (double) *((uint64_t *) ptr_to_value);
 			break;
 		case MXFT_FLOAT:
 			*returned_value = (double) *((float *) ptr_to_value);
 			break;
 		case MXFT_DOUBLE:
 			*returned_value = *((double *) ptr_to_value);
+			break;
+		case MXFT_OLD_LONG:
+			*returned_value = (double) *((long *) ptr_to_value);
+			break;
+		case MXFT_OLD_ULONG:
+			*returned_value = (double)
+					*((unsigned long *) ptr_to_value);
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,

@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,6 +23,7 @@
 
 #include "mx_util.h"
 #include "mx_clock.h"
+#include "mx_stdint.h"
 
 /* ------------------------------------------------------------------ */
 
@@ -129,11 +130,11 @@ typedef struct mx_record_type {
 	void *acl;
 	char acl_description[MXU_ACL_DESCRIPTION_LENGTH+1];
 	signed long handle;
-	int precision;
-	int resynchronize;
-	int report;
-	unsigned long record_flags;
-	unsigned long record_processing_flags;
+	int32_t precision;
+	int32_t resynchronize;
+	int32_t report;
+	uint32_t record_flags;
+	uint32_t record_processing_flags;
 	struct mx_record_type *list_head;
 	struct mx_record_type *previous_record;
 	struct mx_record_type *next_record;
@@ -146,11 +147,11 @@ typedef struct mx_record_type {
 	long                  num_record_fields;
 	MX_RECORD_FIELD       *record_field_array;
 	struct mx_record_type *allocated_by;
-	long                  num_groups;
+	int32_t               num_groups;
 	struct mx_record_type **group_array;
-	long                  num_parent_records;
+	int32_t               num_parent_records;
 	struct mx_record_type **parent_record_array;
-	long                  num_child_records;
+	int32_t               num_child_records;
 	struct mx_record_type **child_record_array;
 	MX_EVENT_TIME_MANAGER *event_time_manager;
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
@@ -165,22 +166,34 @@ typedef struct {
 /* The following is the current list of record field types. */
 
 #define MXFT_STRING		1
-#define MXFT_CHAR		2
-#define MXFT_UCHAR		3
-#define MXFT_SHORT		4
-#define MXFT_USHORT		5
-#define MXFT_INT		6
-#define MXFT_UINT		7
-#define MXFT_LONG		8
-#define MXFT_ULONG		9
+#define MXFT_INT8		2	/* 'char' used as an 8-bit number. */
+#define MXFT_UINT8		3
+#define MXFT_INT16		4
+#define MXFT_UINT16		5
+#define MXFT_INT32		6
+#define MXFT_UINT32		7
+
 #define MXFT_FLOAT		10
 #define MXFT_DOUBLE		11
 
-#define MXFT_HEX		12	/* Stored as an unsigned long. */
+#define MXFT_HEX		12	/* Stored as a uint32_t. */
+#define MXFT_CHAR		13	/* 'char' used as an ASCII character. */
+
+#define MXFT_INT64		14
+#define MXFT_UINT64		15
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
 #define MXFT_INTERFACE		33
+
+#define MXFT_VARARGS		MXFT_INT32
+
+/* The following two are obsolete.
+ * Treat these as aliases for the 32-bit integer types.
+ */
+
+#define MXFT_OLD_LONG		8
+#define MXFT_OLD_ULONG		9
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
@@ -234,15 +247,15 @@ typedef struct {
 	{sizeof(char)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "precision", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "precision", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, precision), \
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE }, \
   \
-  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_REC_REPORT, -1, "report", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_REC_REPORT, -1, "report", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, report), \
 	{0}, NULL, 0}, \
   \
@@ -250,7 +263,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "record_processing_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "record_processing_flags", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_processing_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -258,7 +271,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, allocated_by), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "num_groups", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_groups", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_groups),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -268,7 +281,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_parent_records", MXFT_LONG, NULL, 0, {0},\
+  {-1, -1, "num_parent_records", MXFT_INT32, NULL, 0, {0},\
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_parent_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -278,7 +291,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_child_records", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_child_records", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_child_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \

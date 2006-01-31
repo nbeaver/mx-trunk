@@ -41,31 +41,6 @@
 
 #if 0
 
-/* At present I do not make definitions for the 'least' and 'fast' variants. */
-
-typedef char			int8_t;
-typedef short			int16_t;
-typedef int			int32_t;
-#  if MX_WORDSIZE == 64
-typedef long			int64_t;
-#  else
-typedef long long		int64_t;
-#  endif
-
-typedef unsigned char		uint8_t;
-typedef unsigned short		uint16_t;
-typedef unsigned int		uint32_t;
-#  if MX_WORDSIZE == 64
-typedef unsigned long		uint64_t;
-#  else
-typedef unsigned long long	uint64_t;
-#  endif
-
-/*---*/
-
-typedef int64_t			intmax_t;
-typedef uint64_t		uintmax_t;
-
 /*=======================================================================*/
 #elif ( defined(OS_DJGPP) && (DJGPP >= 2) && (DJGPP_MINOR < 4) )
 

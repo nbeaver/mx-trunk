@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,49 +181,53 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(char ****), sizeof(char *****), \
 	sizeof(char ******), sizeof(char *******) }
 
-#define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
+#define MXA_INT8_SIZEOF \
+	{ sizeof(int8_t), sizeof(int8_t *), \
+	sizeof(int8_t **), sizeof(int8_t ***), \
+	sizeof(int8_t ****), sizeof(int8_t *****), \
+	sizeof(int8_t ******), sizeof(int8_t *******) }
 
-#define MXA_UCHAR_SIZEOF \
-	{ sizeof(unsigned char), sizeof(unsigned char *), \
-	sizeof(unsigned char **), sizeof(unsigned char ***), \
-	sizeof(unsigned char ****), sizeof(unsigned char *****), \
-	sizeof(unsigned char ******), sizeof(unsigned char *******) }
+#define MXA_UINT8_SIZEOF \
+	{ sizeof(uint8_t), sizeof(uint8_t *), \
+	sizeof(uint8_t **), sizeof(uint8_t ***), \
+	sizeof(uint8_t ****), sizeof(uint8_t *****), \
+	sizeof(uint8_t ******), sizeof(uint8_t *******) }
 
-#define MXA_SHORT_SIZEOF \
-	{ sizeof(short), sizeof(short *), \
-	sizeof(short **), sizeof(short ***), \
-	sizeof(short ****), sizeof(short *****), \
-	sizeof(short ******), sizeof(short *******) }
+#define MXA_INT16_SIZEOF \
+	{ sizeof(int16_t), sizeof(int16_t *), \
+	sizeof(int16_t **), sizeof(int16_t ***), \
+	sizeof(int16_t ****), sizeof(int16_t *****), \
+	sizeof(int16_t ******), sizeof(int16_t *******) }
 
-#define MXA_USHORT_SIZEOF \
-	{ sizeof(unsigned short), sizeof(unsigned short *), \
-	sizeof(unsigned short **), sizeof(unsigned short ***), \
-	sizeof(unsigned short ****), sizeof(unsigned short *****), \
-	sizeof(unsigned short ******), sizeof(unsigned short *******) }
+#define MXA_UINT16_SIZEOF \
+	{ sizeof(uint16_t), sizeof(uint16_t *), \
+	sizeof(uint16_t **), sizeof(uint16_t ***), \
+	sizeof(uint16_t ****), sizeof(uint16_t *****), \
+	sizeof(uint16_t ******), sizeof(uint16_t *******) }
 
-#define MXA_INT_SIZEOF \
-	{ sizeof(int), sizeof(int *), \
-	sizeof(int **), sizeof(int ***), \
-	sizeof(int ****), sizeof(int *****), \
-	sizeof(int ******), sizeof(int *******) }
+#define MXA_INT32_SIZEOF \
+	{ sizeof(int32_t), sizeof(int32_t *), \
+	sizeof(int32_t **), sizeof(int32_t ***), \
+	sizeof(int32_t ****), sizeof(int32_t *****), \
+	sizeof(int32_t ******), sizeof(int32_t *******) }
 
-#define MXA_UINT_SIZEOF \
-	{ sizeof(unsigned int), sizeof(unsigned int *), \
-	sizeof(unsigned int **), sizeof(unsigned int ***), \
-	sizeof(unsigned int ****), sizeof(unsigned int *****), \
-	sizeof(unsigned int ******), sizeof(unsigned int *******) }
+#define MXA_UINT32_SIZEOF \
+	{ sizeof(uint32_t), sizeof(uint32_t *), \
+	sizeof(uint32_t **), sizeof(uint32_t ***), \
+	sizeof(uint32_t ****), sizeof(uint32_t *****), \
+	sizeof(uint32_t ******), sizeof(uint32_t *******) }
 
-#define MXA_LONG_SIZEOF \
-	{ sizeof(long), sizeof(long *), \
-	sizeof(long **), sizeof(long ***), \
-	sizeof(long ****), sizeof(long *****), \
-	sizeof(long ******), sizeof(long *******) }
+#define MXA_INT64_SIZEOF \
+	{ sizeof(int64_t), sizeof(int64_t *), \
+	sizeof(int64_t **), sizeof(int64_t ***), \
+	sizeof(int64_t ****), sizeof(int64_t *****), \
+	sizeof(int64_t ******), sizeof(int64_t *******) }
 
-#define MXA_ULONG_SIZEOF \
-	{ sizeof(unsigned long), sizeof(unsigned long *), \
-	sizeof(unsigned long **), sizeof(unsigned long ***), \
-	sizeof(unsigned long ****), sizeof(unsigned long *****), \
-	sizeof(unsigned long ******), sizeof(unsigned long *******) }
+#define MXA_UINT64_SIZEOF \
+	{ sizeof(uint64_t), sizeof(uint64_t *), \
+	sizeof(uint64_t **), sizeof(uint64_t ***), \
+	sizeof(uint64_t ****), sizeof(uint64_t *****), \
+	sizeof(uint64_t ******), sizeof(uint64_t *******) }
 
 #define MXA_FLOAT_SIZEOF \
 	{ sizeof(float), sizeof(float *), \
@@ -236,6 +240,22 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(double **), sizeof(double ***), \
 	sizeof(double ****), sizeof(double *****), \
 	sizeof(double ******), sizeof(double *******) }
+
+#define MXA_HEX_SIZEOF      MXA_UINT32_SIZEOF
+
+#define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
+
+#define MXA_OLD_LONG_SIZEOF \
+	{ sizeof(long), sizeof(long *), \
+	sizeof(long **), sizeof(long ***), \
+	sizeof(long ****), sizeof(long *****), \
+	sizeof(long ******), sizeof(long *******) }
+
+#define MXA_OLD_ULONG_SIZEOF \
+	{ sizeof(unsigned long), sizeof(unsigned long *), \
+	sizeof(unsigned long **), sizeof(unsigned long ***), \
+	sizeof(unsigned long ****), sizeof(unsigned long *****), \
+	sizeof(unsigned long ******), sizeof(unsigned long *******) }
 
 #define MXA_RECORD_SIZEOF \
 	{ sizeof(MX_RECORD *), sizeof(MX_RECORD **), \
