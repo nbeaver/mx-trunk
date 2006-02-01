@@ -72,20 +72,15 @@ MX_API mx_status_type mx_set_1d_array( MX_RECORD *record,
 
 /*---*/
 
-MX_API mx_status_type mx_get_int_variable_by_name(
+MX_API mx_status_type mx_get_int32_variable_by_name(
 					MX_RECORD *record_list,
 					char *record_name,
-					int *int_value );
+					int32_t *int32_value );
 
-MX_API mx_status_type mx_get_long_variable_by_name(
+MX_API mx_status_type mx_get_uint32_variable_by_name(
 					MX_RECORD *record_list,
 					char *record_name,
-					long *long_value );
-
-MX_API mx_status_type mx_get_unsigned_long_variable_by_name(
-					MX_RECORD *record_list,
-					char *record_name,
-					unsigned long *unsigned_long_value );
+					uint32_t *uint32_value );
 
 MX_API mx_status_type mx_get_double_variable_by_name(
 					MX_RECORD *record_list,
@@ -103,26 +98,29 @@ MX_API mx_status_type mx_get_string_variable_by_name(
 MX_API mx_status_type mx_get_char_variable( MX_RECORD *record,
 					char *char_value );
 
-MX_API mx_status_type mx_get_unsigned_char_variable( MX_RECORD *record,
-					unsigned char *unsigned_char_value );
+MX_API mx_status_type mx_get_int8_variable( MX_RECORD *record,
+					int8_t *int8_value );
 
-MX_API mx_status_type mx_get_short_variable( MX_RECORD *record,
-					short *short_value );
+MX_API mx_status_type mx_get_uint8_variable( MX_RECORD *record,
+					uint8_t *uint8_value );
 
-MX_API mx_status_type mx_get_unsigned_short_variable( MX_RECORD *record,
-					unsigned short *unsigned_short_value );
+MX_API mx_status_type mx_get_int16_variable( MX_RECORD *record,
+					int16_t *int16_value );
 
-MX_API mx_status_type mx_get_int_variable( MX_RECORD *record,
-					int *int_value );
+MX_API mx_status_type mx_get_uint16_variable( MX_RECORD *record,
+					uint16_t *uint16_value );
 
-MX_API mx_status_type mx_get_unsigned_int_variable( MX_RECORD *record,
-					unsigned int *unsigned_int_value );
+MX_API mx_status_type mx_get_int32_variable( MX_RECORD *record,
+					int32_t *int32_value );
 
-MX_API mx_status_type mx_get_long_variable( MX_RECORD *record,
-					long *long_value );
+MX_API mx_status_type mx_get_uint32_variable( MX_RECORD *record,
+					uint32_t *uint32_value );
 
-MX_API mx_status_type mx_get_unsigned_long_variable( MX_RECORD *record,
-					unsigned long *unsigned_long_value );
+MX_API mx_status_type mx_get_int64_variable( MX_RECORD *record,
+					int64_t *int64_value );
+
+MX_API mx_status_type mx_get_uint64_variable( MX_RECORD *record,
+					uint64_t *uint64_value );
 
 MX_API mx_status_type mx_get_float_variable( MX_RECORD *record,
 					float *float_value );
@@ -139,26 +137,29 @@ MX_API mx_status_type mx_get_string_variable( MX_RECORD *record,
 MX_API mx_status_type mx_set_char_variable( MX_RECORD *record,
 					char char_value );
 
-MX_API mx_status_type mx_set_unsigned_char_variable( MX_RECORD *record,
-					unsigned char unsigned_char_value );
+MX_API mx_status_type mx_set_int8_variable( MX_RECORD *record,
+					int8_t int8_value );
 
-MX_API mx_status_type mx_set_short_variable( MX_RECORD *record,
-					short short_value );
+MX_API mx_status_type mx_set_uint8_variable( MX_RECORD *record,
+					uint8_t uint8_value );
 
-MX_API mx_status_type mx_set_unsigned_short_variable( MX_RECORD *record,
-					unsigned short unsigned_short_value );
+MX_API mx_status_type mx_set_int16_variable( MX_RECORD *record,
+					int16_t int16_value );
 
-MX_API mx_status_type mx_set_int_variable( MX_RECORD *record,
-					int int_value );
+MX_API mx_status_type mx_set_uint16_variable( MX_RECORD *record,
+					uint16_t uint16_value );
 
-MX_API mx_status_type mx_set_unsigned_int_variable( MX_RECORD *record,
-					unsigned int unsigned_int_value );
+MX_API mx_status_type mx_set_int32_variable( MX_RECORD *record,
+					int32_t int32_value );
 
-MX_API mx_status_type mx_set_long_variable( MX_RECORD *record,
-					long long_value );
+MX_API mx_status_type mx_set_uint32_variable( MX_RECORD *record,
+					uint32_t uint32_value );
 
-MX_API mx_status_type mx_set_unsigned_long_variable( MX_RECORD *record,
-					unsigned long unsigned_long_value );
+MX_API mx_status_type mx_set_int64_variable( MX_RECORD *record,
+					int64_t int64_value );
+
+MX_API mx_status_type mx_set_uint64_variable( MX_RECORD *record,
+					uint64_t uint64_value );
 
 MX_API mx_status_type mx_set_float_variable( MX_RECORD *record,
 					float float_value );

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_driver.h"
 #include "mx_variable.h"
@@ -474,26 +475,29 @@ mx_set_1d_array( MX_RECORD *record,
 		case MXFT_CHAR:
 			value_size = num_elements * sizeof(char);
 			break;
-		case MXFT_UCHAR:
-			value_size = num_elements * sizeof(unsigned char);
+		case MXFT_INT8:
+			value_size = num_elements * sizeof(int8_t);
 			break;
-		case MXFT_SHORT:
-			value_size = num_elements * sizeof(short);
+		case MXFT_UINT8:
+			value_size = num_elements * sizeof(uint8_t);
 			break;
-		case MXFT_USHORT:
-			value_size = num_elements * sizeof(unsigned short);
+		case MXFT_INT16:
+			value_size = num_elements * sizeof(int16_t);
 			break;
-		case MXFT_INT:
-			value_size = num_elements * sizeof(int);
+		case MXFT_UINT16:
+			value_size = num_elements * sizeof(uint16_t);
 			break;
-		case MXFT_UINT:
-			value_size = num_elements * sizeof(unsigned int);
+		case MXFT_INT32:
+			value_size = num_elements * sizeof(int32_t);
 			break;
-		case MXFT_LONG:
-			value_size = num_elements * sizeof(long);
+		case MXFT_UINT32:
+			value_size = num_elements * sizeof(uint32_t);
 			break;
-		case MXFT_ULONG:
-			value_size = num_elements * sizeof(unsigned long);
+		case MXFT_INT64:
+			value_size = num_elements * sizeof(int64_t);
+			break;
+		case MXFT_UINT64:
+			value_size = num_elements * sizeof(uint64_t);
 			break;
 		case MXFT_FLOAT:
 			value_size = num_elements * sizeof(float);
