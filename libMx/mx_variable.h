@@ -22,8 +22,8 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this MX_VARIABLE structure.
 			    */
-	long num_dimensions;
-	long *dimension;
+	mx_length_type num_dimensions;
+	mx_length_type *dimension;
 
 	void *pointer_to_value;
 } MX_VARIABLE;
@@ -38,14 +38,14 @@ MX_API_PRIVATE mx_status_type mx_variable_initialize_type( long record_type );
 MX_API_PRIVATE mx_status_type
 		mx_variable_fixup_varargs_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields );
+		mx_length_type num_record_fields );
 
 MX_API mx_status_type mx_send_variable( MX_RECORD *record );
 MX_API mx_status_type mx_receive_variable( MX_RECORD *record );
 
 MX_API mx_status_type mx_get_variable_parameters( MX_RECORD *record,
-					long *num_dimensions,
-					long **dimension_array,
+					mx_length_type *num_dimensions,
+					mx_length_type **dimension_array,
 					long *field_type,
 					void **pointer_to_value );
 
@@ -57,17 +57,17 @@ MX_API mx_status_type mx_get_variable_pointer( MX_RECORD *record,
 MX_API mx_status_type mx_get_1d_array_by_name( MX_RECORD *record_list,
 					char *record_name,
 					long field_type,
-					long *num_elements,
+					mx_length_type *num_elements,
 					void **pointer_to_value );
 
 MX_API mx_status_type mx_get_1d_array( MX_RECORD *record,
 					long field_type,
-					long *num_elements,
+					mx_length_type *num_elements,
 					void **pointer_to_value );
 
 MX_API mx_status_type mx_set_1d_array( MX_RECORD *record,
 					long field_type,
-					long num_elements,
+					mx_length_type num_elements,
 					void *pointer_to_value );
 
 /*---*/
@@ -269,13 +269,13 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 #define MXLV_VAR_VALUE		1001
 
 #define MX_VARIABLE_STANDARD_FIELDS \
-  {-1, -1, "num_dimensions", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_dimensions", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, num_dimensions), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
 \
-  {-1, -1, "dimension", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "dimension", MXFT_VARARGS, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, dimension), \
-	{sizeof(long)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }
+	{sizeof(mx_length_type)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }
 
 
 /* =========================================== */
@@ -294,53 +294,60 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXA_CHAR_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_UCHAR_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UCHAR, NULL, \
+#define MX_INT8_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT8, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UCHAR_SIZEOF, NULL, \
+	MXA_INT8_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_SHORT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_SHORT, NULL, \
+#define MX_UINT8_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT8, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_SHORT_SIZEOF, NULL, \
+	MXA_UINT8_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_USHORT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_USHORT, NULL, \
+#define MX_INT16_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT16, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_USHORT_SIZEOF, NULL, \
+	MXA_INT16_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_INT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT, NULL, \
+#define MX_UINT16_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT16, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT_SIZEOF, NULL, \
+	MXA_UINT16_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_UINT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT, NULL, \
+#define MX_INT32_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT32, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT_SIZEOF, NULL, \
+	MXA_INT32_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_LONG_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_LONG, NULL, \
+#define MX_UINT32_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT32, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_LONG_SIZEOF, NULL, \
+	MXA_UINT32_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_ULONG_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_ULONG, NULL, \
+#define MX_INT64_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT64, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_ULONG_SIZEOF, NULL, \
+	MXA_INT64_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_UINT64_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT64, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_UINT64_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_FLOAT_VARIABLE_STANDARD_FIELDS \

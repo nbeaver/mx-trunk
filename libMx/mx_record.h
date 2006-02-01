@@ -84,8 +84,8 @@ typedef struct {
 	char name[MXU_FIELD_NAME_LENGTH+1];
 	long datatype;
 	void *typeinfo;
-	long num_dimensions;
-	long dimension[MXU_FIELD_MAX_DIMENSIONS];
+	mx_length_type num_dimensions;
+	mx_length_type dimension[MXU_FIELD_MAX_DIMENSIONS];
 	short structure_id;
 	size_t structure_offset;
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
@@ -99,8 +99,8 @@ typedef struct {
 	char *name;
 	long datatype;
 	void *typeinfo;
-	long num_dimensions;
-	long *dimension;
+	mx_length_type num_dimensions;
+	mx_length_type *dimension;
 	void *data_pointer;
 	size_t *data_element_size;
 	mx_status_type (*process_function) (void *, void *, int);
@@ -133,8 +133,8 @@ typedef struct mx_record_type {
 	int32_t precision;
 	int32_t resynchronize;
 	int32_t report;
-	uint32_t record_flags;
-	uint32_t record_processing_flags;
+	mx_hex_type record_flags;
+	mx_hex_type record_processing_flags;
 	struct mx_record_type *list_head;
 	struct mx_record_type *previous_record;
 	struct mx_record_type *next_record;
@@ -147,11 +147,11 @@ typedef struct mx_record_type {
 	long                  num_record_fields;
 	MX_RECORD_FIELD       *record_field_array;
 	struct mx_record_type *allocated_by;
-	int32_t               num_groups;
+	mx_length_type        num_groups;
 	struct mx_record_type **group_array;
-	int32_t               num_parent_records;
+	mx_length_type        num_parent_records;
 	struct mx_record_type **parent_record_array;
-	int32_t               num_child_records;
+	mx_length_type        num_child_records;
 	struct mx_record_type **child_record_array;
 	MX_EVENT_TIME_MANAGER *event_time_manager;
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
@@ -186,7 +186,9 @@ typedef struct {
 #define MXFT_RECORDTYPE		32
 #define MXFT_INTERFACE		33
 
-#define MXFT_VARARGS		MXFT_INT32
+#define MXFT_LENGTH		MXFT_INT32
+
+#define MXFT_VARARGS		MXFT_LENGTH
 
 /* The following two are obsolete.
  * Treat these as aliases for the 32-bit integer types.
@@ -263,7 +265,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "record_processing_flags", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "record_processing_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_processing_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -271,7 +273,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, allocated_by), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "num_groups", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_groups", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_groups),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -281,7 +283,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_parent_records", MXFT_INT32, NULL, 0, {0},\
+  {-1, -1, "num_parent_records", MXFT_LENGTH, NULL, 0, {0},\
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_parent_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -291,7 +293,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_child_records", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_child_records", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_child_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -381,7 +383,7 @@ typedef struct {
 	int allow_fast_mode;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
-	unsigned long num_records;
+	mx_length_type num_records;
 
 	int is_server;
 	void *connection_acl;
@@ -592,30 +594,32 @@ MX_API_PRIVATE long mx_get_max_string_token_length( MX_RECORD_FIELD *field );
 
 MX_API_PRIVATE mx_status_type mx_convert_varargs_cookie_to_value(
 				MX_RECORD *record,
-				long varargs_cookie,
-				long *returned_value );
+				mx_length_type varargs_cookie,
+				mx_length_type *returned_value );
 
 MX_API_PRIVATE mx_status_type mx_construct_varargs_cookie(
-				long field_index,
-				long array_in_field_index,
-				long *returned_varargs_cookie );
+				mx_length_type field_index,
+				mx_length_type array_in_field_index,
+				mx_length_type *returned_varargs_cookie );
 
 MX_API_PRIVATE mx_status_type mx_replace_varargs_cookies_with_values(
-		MX_RECORD *record, long i, int allow_forward_references );
+				MX_RECORD *record,
+				mx_length_type i,
+				int allow_forward_references );
 
 /* --- */
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
+		mx_length_type num_record_fields,
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found );
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults_index(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
+		mx_length_type num_record_fields,
 		const char *name_of_field_to_find,
-		long *index_of_field_that_was_found );
+		mx_length_type *index_of_field_that_was_found );
 
 MX_API_PRIVATE const char *mx_get_field_label_string( MX_RECORD *record,
 						long label_value );
@@ -649,8 +653,8 @@ MX_API mx_status_type  mx_get_datatype_sizeof_array( long datatype,
 MX_API_PRIVATE mx_status_type  mx_construct_temp_record_field(
 					MX_RECORD_FIELD *temp_record_field,
 					long datatype,
-					long num_dimensions,
-					long *dimension,
+					mx_length_type num_dimensions,
+					mx_length_type *dimension,
 					size_t *data_element_size,
 					void *value_ptr );
 

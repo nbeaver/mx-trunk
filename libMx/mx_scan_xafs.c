@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,15 +50,15 @@ mxs_xafs_scan_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
-	long num_independent_variables_varargs_cookie;
-	long num_motors_varargs_cookie;
-	long num_input_devices_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_independent_variables_varargs_cookie;
+	mx_length_type num_motors_varargs_cookie;
+	mx_length_type num_input_devices_varargs_cookie;
 
-	long num_boundaries_field_index;
-	long num_boundaries_varargs_cookie;
-	long num_regions_field_index;
-	long num_regions_varargs_cookie;
+	mx_length_type num_boundaries_field_index;
+	mx_length_type num_boundaries_varargs_cookie;
+	mx_length_type num_regions_field_index;
+	mx_length_type num_regions_varargs_cookie;
 	mx_status_type status;
 
 	driver = mx_get_driver_by_type( record_type );

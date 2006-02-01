@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,16 +74,16 @@ mx_mce_get_pointers( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_initialize_type( long record_type,
-			long *num_record_fields,
+			mx_length_type *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_values_varargs_cookie )
+			mx_length_type *maximum_num_values_varargs_cookie )
 {
 	static const char fname[] = "mx_mce_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
+	mx_length_type referenced_field_index;
 	mx_status_type mx_status;
 
 	if ( num_record_fields == NULL ) {
@@ -183,7 +183,7 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: field->num_dimensions = %ld",
-			fname, field->num_dimensions));
+			fname, (long) field->num_dimensions));
 
 	field->dimension[0] = mce->num_motors;
 

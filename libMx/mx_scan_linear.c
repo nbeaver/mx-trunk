@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,10 +75,10 @@ mxs_linear_scan_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	long num_record_fields;
-	long num_independent_variables_varargs_cookie;
-	long num_motors_varargs_cookie;
-	long num_input_devices_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_independent_variables_varargs_cookie;
+	mx_length_type num_motors_varargs_cookie;
+	mx_length_type num_input_devices_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -234,12 +234,13 @@ mxs_linear_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxs_linear_scan_finish_record_initialization()";
+	static const char fname[] =
+			"mxs_linear_scan_finish_record_initialization()";
 
 	MX_SCAN *scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
-	long dimension[2];
+	mx_length_type dimension[2];
 	size_t element_size[2];
 	mx_status_type mx_status;
 
@@ -268,7 +269,8 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				dimension[0], dimension[1], scan->record->name);
+				(long) dimension[0], (long) dimension[1],
+				scan->record->name );
 		}
 	}
 
@@ -286,7 +288,8 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				dimension[0], dimension[1], scan->record->name);
+				(long) dimension[0], (long) dimension[1],
+				scan->record->name );
 		}
 	}
 
@@ -323,7 +326,7 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 	MX_LINEAR_SCAN *linear_scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
-	long dimension[2];
+	mx_length_type dimension[2];
 	size_t element_size[2];
 	mx_status_type mx_status;
 

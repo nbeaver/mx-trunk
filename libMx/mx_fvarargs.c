@@ -30,33 +30,33 @@
 MX_EXPORT mx_status_type
 mx_convert_varargs_cookie_to_value(
 		MX_RECORD *record,
-		long varargs_cookie,
-		long *returned_value )
+		mx_length_type varargs_cookie,
+		mx_length_type *returned_value )
 {
-	const char fname[] = "mx_convert_varargs_cookie_to_value()";
+	static const char fname[] = "mx_convert_varargs_cookie_to_value()";
 
 	MX_RECORD_FIELD *record_field_array, *field;
 	long num_record_fields;
-	long field_index, array_in_field_index;
-	long *data_pointer, *long_array;
+	mx_length_type field_index, array_in_field_index;
+	mx_length_type *data_pointer, *length_array;
 	void *array_pointer;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed is NULL." );
 	}
-	if ( returned_value == (long *) NULL ) {
+	if ( returned_value == (mx_length_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"'returned_value' pointer passed is NULL." );
 	}
 
 	MX_DEBUG( 8,("%s: record = '%s', varargs_cookie = %ld",
-		fname, record->name, varargs_cookie));
+		fname, record->name, (long) varargs_cookie));
 
 	if ( varargs_cookie >= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal value %ld.  Varargs field values must be < 0.",
-			varargs_cookie );
+			(long) varargs_cookie );
 	}
 
 	record_field_array = record->record_field_array;
@@ -78,7 +78,8 @@ mx_convert_varargs_cookie_to_value(
 	if ( field_index < 0 || field_index >= num_record_fields ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Field index %ld computed from varargs cookie %ld is out of range (0 - %ld).",
-			field_index, varargs_cookie, num_record_fields );
+			(long) field_index, (long) varargs_cookie,
+			(long) num_record_fields );
 	}
 
 	field = &record_field_array[ field_index ];
@@ -87,12 +88,12 @@ mx_convert_varargs_cookie_to_value(
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"MX_RECORD_FIELD pointer for field index %ld is NULL. "
 			"This should not be able to happen.",
-				field_index );
+				(long) field_index );
 	}
 
 	MX_DEBUG( 8,(
 		"%s: cookie points to field '%s', array_in_field_index = %ld",
-		fname, field->name, array_in_field_index));
+		fname, field->name, (long) array_in_field_index));
 
 	if ( field->datatype != MXFT_VARARGS ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -108,15 +109,15 @@ mx_convert_varargs_cookie_to_value(
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Array in field index %ld computed from varargs "
 		"cookie %ld is nonzero for a scalar MXFT_VARARGS field.",
-				array_in_field_index, varargs_cookie );
+			(long) array_in_field_index, (long) varargs_cookie );
 		}
 
-		data_pointer = (long *)(field->data_pointer);
+		data_pointer = (mx_length_type *)(field->data_pointer);
 
 		*returned_value = *data_pointer;
 
 		MX_DEBUG( 8,("%s: case 0 -> *returned_value = %ld",
-				fname, *returned_value));
+				fname, (long) *returned_value));
 
 		break;
 
@@ -125,26 +126,27 @@ mx_convert_varargs_cookie_to_value(
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"field->dimension[0] = %ld is less than zero.  "
 			"Recursive varargs length are not allowed.",
-				field->dimension[0] );
+				(long) field->dimension[0] );
 		}
 		if ( array_in_field_index < 0
 		  || array_in_field_index >= field->dimension[0] ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Array in field index %ld computed from "
 		"varargs cookie %ld is out of allowed range (0 - %ld)",
-				array_in_field_index, varargs_cookie,
-				field->dimension[0] );
+				(long) array_in_field_index,
+				(long) varargs_cookie,
+				(long) field->dimension[0] );
 		}
 
 		array_pointer = mx_read_void_pointer_from_memory_location(
 					field->data_pointer );
 
-		long_array = (long *) array_pointer;
+		length_array = (mx_length_type *) array_pointer;
 
-		*returned_value = long_array[ array_in_field_index ];
+		*returned_value = length_array[ array_in_field_index ];
 
 		MX_DEBUG( 8,("%s: case 1 -> *returned_value = %ld",
-				fname, *returned_value));
+				fname, (long) *returned_value));
 
 		break;
 
@@ -152,7 +154,7 @@ mx_convert_varargs_cookie_to_value(
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The field '%s' pointed to by varargs cookie %ld is not "
 		"a 0 or 1 dimensional array.",
-			field->name, varargs_cookie );
+			field->name, (long) varargs_cookie );
 		break;
 	}
 
@@ -163,15 +165,15 @@ mx_convert_varargs_cookie_to_value(
 
 MX_EXPORT mx_status_type
 mx_construct_varargs_cookie(
-		long field_index,
-		long array_in_field_index,
-		long *returned_varargs_cookie )
+		mx_length_type field_index,
+		mx_length_type array_in_field_index,
+		mx_length_type *returned_varargs_cookie )
 {
-	const char fname[] = "mx_construct_varargs_cookie()";
+	static const char fname[] = "mx_construct_varargs_cookie()";
 
-	long temp_value;
+	mx_length_type temp_value;
 
-	if ( returned_varargs_cookie == (long *) NULL ) {
+	if ( returned_varargs_cookie == (mx_length_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"'returned_varargs_cookie' pointer passed is NULL." );
 	}
@@ -179,7 +181,7 @@ mx_construct_varargs_cookie(
 	if ( field_index < 0 || field_index >= MXU_VARARGS_COOKIE_MULTIPLIER ){
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"field_index = %ld is out of allowed range (0 - %d).",
-			field_index, MXU_VARARGS_COOKIE_MULTIPLIER );
+			(long) field_index, MXU_VARARGS_COOKIE_MULTIPLIER );
 	}
 
 	if ( array_in_field_index < 0
@@ -187,7 +189,7 @@ mx_construct_varargs_cookie(
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"array_in_field_index = %ld is out of allowed range (0 - %d).",
-			array_in_field_index, MXU_VARARGS_COOKIE_MULTIPLIER );
+		  (long) array_in_field_index, MXU_VARARGS_COOKIE_MULTIPLIER );
 	}
 
 	temp_value = array_in_field_index +
@@ -202,9 +204,9 @@ mx_construct_varargs_cookie(
 
 MX_EXPORT mx_status_type
 mx_replace_varargs_cookies_with_values( MX_RECORD *record,
-		long field_index, int allow_forward_references )
+		mx_length_type field_index, int allow_forward_references )
 {
-	const char fname[] = "mx_replace_varargs_cookies_with_values()";
+	static const char fname[] = "mx_replace_varargs_cookies_with_values()";
 
 	MX_RECORD_FIELD *field_array;
 	MX_RECORD_FIELD *field;
@@ -212,9 +214,9 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	MX_RECORD_FIELD_DEFAULTS *field_defaults_array;
 	MX_RECORD_FIELD_DEFAULTS *field_defaults;
 	long varargs_cookie, referenced_field_index;
-	long old_num_dimensions, new_num_dimensions;
-	long i, *temp_ptr;
-	mx_status_type status;
+	mx_length_type old_num_dimensions, new_num_dimensions;
+	mx_length_type i, *temp_ptr;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -223,7 +225,7 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	if ( field_index < 0 || field_index >= record->num_record_fields ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"'field_index' = %ld is out of allowed range (0 - %ld).",
-			field_index, record->num_record_fields );
+			(long) field_index, record->num_record_fields );
 	}
 
 	field_array = record->record_field_array;
@@ -239,13 +241,13 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"MX_RECORD_FIELD pointer for field %ld in record '%s' is NULL.",
-			field_index, record->name );
+			(long) field_index, record->name );
 	}
 
 	/**** Does 'num_dimensions' have a varargs cookie in it? ****/
 
 	MX_DEBUG( 8,("%s: field = '%s', num_dimensions = %ld",
-			fname, field->name, field->num_dimensions));
+			fname, field->name, (long) field->num_dimensions));
 
 	if ( field->num_dimensions >= 0 ) {
 
@@ -267,25 +269,25 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The varargs cookie %ld points to the same "
 				"field number %ld that we are currently in.",
-				varargs_cookie, field_index );
+				(long) varargs_cookie, (long) field_index );
 		}
 		if ( allow_forward_references == FALSE ) {
 			if ( referenced_field_index > field_index ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"A forward reference by field %ld to field %ld is not allowed here.",
-					field_index,
-					referenced_field_index );
+					(long) field_index,
+					(long) referenced_field_index );
 			}
 		}
 
 		MX_DEBUG( 8,("%s: referenced_field_index = %ld",
-			fname, referenced_field_index ));
+			fname, (long) referenced_field_index ));
 
-		status = mx_convert_varargs_cookie_to_value(
+		mx_status = mx_convert_varargs_cookie_to_value(
 			record, varargs_cookie, &new_num_dimensions );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/*
@@ -324,22 +326,23 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	if ( field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"MX_RECORD_FIELD_DEFAULTS pointer for field index %ld is NULL.",
-				field_index );
+				(long) field_index );
 	}
 
 	temp_ptr = field->dimension;
 
 	if ( field->num_dimensions == 1 ) {
 		MX_DEBUG( 8,("%s: field->dimension[0] = %ld",
-					fname, field->dimension[0]));
+					fname, (long) field->dimension[0]));
 	}
 
-	field->dimension = (long *) malloc(new_num_dimensions * sizeof(long));
+	field->dimension = (mx_length_type *)
+			malloc(new_num_dimensions * sizeof(mx_length_type));
 
-	if ( field->dimension == (long *) NULL ) {
+	if ( field->dimension == (mx_length_type *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory allocating new dimension array.  Array size = %ld items.",
-				new_num_dimensions );
+				(long) new_num_dimensions );
 	}
 
 	if ( new_num_dimensions > old_num_dimensions ) {
@@ -385,23 +388,24 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The varargs cookie %ld points to the same "
 				"field number %ld that we are currently in.",
-					varargs_cookie, field_index );
+					(long) varargs_cookie,
+					(long) field_index );
 			}
 			if ( allow_forward_references == FALSE ) {
 				if ( referenced_field_index > field_index ) {
 					return mx_error(
 						MXE_ILLEGAL_ARGUMENT, fname,
 	"A forward reference by field %ld to field %ld is not allowed here.",
-						field_index,
-						referenced_field_index );
+						(long) field_index,
+						(long) referenced_field_index );
 				}
 			}
-			status = mx_convert_varargs_cookie_to_value(
+			mx_status = mx_convert_varargs_cookie_to_value(
 				record, varargs_cookie,
 				&(field->dimension[i]) );
 	
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 

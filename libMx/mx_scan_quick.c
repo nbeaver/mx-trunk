@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,10 +36,10 @@ mx_quick_scan_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
-	long num_independent_variables_varargs_cookie;
-	long num_motors_varargs_cookie;
-	long num_input_devices_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_independent_variables_varargs_cookie;
+	mx_length_type num_motors_varargs_cookie;
+	mx_length_type num_input_devices_varargs_cookie;
 	mx_status_type status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -241,7 +241,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 	double start_position, end_position;
 	double old_speed, new_speed, measurement_time;
 	double d_spacing;
-	long num_elements;
+	mx_length_type num_elements;
 	void *pointer_to_value;
 	mx_status_type status;
 

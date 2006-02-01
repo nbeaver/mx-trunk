@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ mx_mcs_get_pointers( MX_RECORD *mcs_record,
 			MX_MCS_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_mcs_get_pointers()";
+	static const char fname[] = "mx_mcs_get_pointers()";
 
 	if ( mcs_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -84,18 +84,18 @@ mx_mcs_get_pointers( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_initialize_type( long record_type,
-			long *num_record_fields,
-			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_scalers_varargs_cookie,
-			long *maximum_num_measurements_varargs_cookie )
+		mx_length_type *num_record_fields,
+		MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+		mx_length_type *maximum_num_scalers_varargs_cookie,
+		mx_length_type *maximum_num_measurements_varargs_cookie )
 {
-	const char fname[] = "mx_mcs_initialize_type()";
+	static const char fname[] = "mx_mcs_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
-	mx_status_type status;
+	mx_length_type referenced_field_index;
+	mx_status_type mx_status;
 
 	if ( num_record_fields == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -151,68 +151,68 @@ mx_mcs_initialize_type( long record_type,
 	 * of 'maximum_num_scalers' and 'maximum_num_measurements'.
 	 */
 
-	status = mx_find_record_field_defaults( *record_field_defaults,
+	mx_status = mx_find_record_field_defaults( *record_field_defaults,
 			*num_record_fields, "data_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults_index(
+	mx_status = mx_find_record_field_defaults_index(
 			*record_field_defaults, *num_record_fields,
 			"maximum_num_scalers", &referenced_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie( referenced_field_index, 0,
+	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
 					maximum_num_scalers_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults_index(
+	mx_status = mx_find_record_field_defaults_index(
 			*record_field_defaults, *num_record_fields,
 			"maximum_num_measurements", &referenced_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie( referenced_field_index, 0,
+	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
 				maximum_num_measurements_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 	field->dimension[1] = *maximum_num_measurements_varargs_cookie;
 
 	/* 'timer_data' depends on 'maximum_num_measurements'. */
 
-	status = mx_find_record_field_defaults( *record_field_defaults,
+	mx_status = mx_find_record_field_defaults( *record_field_defaults,
 			*num_record_fields, "timer_data", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_measurements_varargs_cookie;
 
 	/* 'measurement_data' depends on 'maximum_num_scalers'. */
 
-	status = mx_find_record_field_defaults( *record_field_defaults,
+	mx_status = mx_find_record_field_defaults( *record_field_defaults,
 			*num_record_fields, "measurement_data", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 
 	/* 'dark_current_array' depends on 'maximum_num_scalers'. */
 
-	status = mx_find_record_field_defaults( *record_field_defaults,
+	mx_status = mx_find_record_field_defaults( *record_field_defaults,
 			*num_record_fields, "dark_current_array", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = *maximum_num_scalers_varargs_cookie;
 
@@ -222,7 +222,7 @@ mx_mcs_initialize_type( long record_type,
 MX_EXPORT mx_status_type
 mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_finish_record_initialization()";
+	static const char fname[] = "mx_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -231,13 +231,13 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	MX_RECORD_FIELD *timer_data_field;
 	long i;
 	int valid_type;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( mcs->maximum_num_scalers == 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -279,11 +279,11 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	 * of the 'scaler_data' field to be 'maximum_num_measurements' long.
 	 */
 
-	status = mx_find_record_field( mcs_record, "scaler_data",
+	mx_status = mx_find_record_field( mcs_record, "scaler_data",
 					&scaler_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	scaler_data_field->dimension[0] = mcs->maximum_num_measurements;
 
@@ -291,17 +291,17 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 
 	mcs->scaler_data = mcs->data_array[0];
 
-	status = mx_find_record_field( mcs_record, "measurement_data",
+	mx_status = mx_find_record_field( mcs_record, "measurement_data",
 					&measurement_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field( mcs_record, "timer_data",
+	mx_status = mx_find_record_field( mcs_record, "timer_data",
 					&timer_data_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* If the 'external_channel_advance_name' field has a non-zero
 	 * length value then make mcs->external_channel_advance_record
@@ -358,18 +358,18 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 MX_EXPORT mx_status_type
 mx_mcs_start( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_start()";
+	static const char fname[] = "mx_mcs_start()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *start_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	start_fn = function_list->start;
 
@@ -379,26 +379,26 @@ mx_mcs_start( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	status = (*start_fn)( mcs );
+	mx_status = (*start_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_stop( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_stop()";
+	static const char fname[] = "mx_mcs_stop()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *stop_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	stop_fn = function_list->stop;
 
@@ -408,26 +408,26 @@ mx_mcs_stop( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	status = (*stop_fn)( mcs );
+	mx_status = (*stop_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_clear( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_clear()";
+	static const char fname[] = "mx_mcs_clear()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *clear_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	clear_fn = function_list->clear;
 
@@ -437,26 +437,26 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 			mcs_record->name );
 	}
 
-	status = (*clear_fn)( mcs );
+	mx_status = (*clear_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
 {
-	const char fname[] = "mx_mcs_is_busy()";
+	static const char fname[] = "mx_mcs_is_busy()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *busy_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	busy_fn = function_list->busy;
 
@@ -466,13 +466,13 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
 			mcs_record->name );
 	}
 
-	status = (*busy_fn)( mcs );
+	mx_status = (*busy_fn)( mcs );
 
 	if ( busy != NULL ) {
 		*busy = mcs->busy;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -481,18 +481,18 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			long ***mcs_data )
 {
-	const char fname[] = "mx_mcs_read_all()";
+	static const char fname[] = "mx_mcs_read_all()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_all_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_all_fn = function_list->read_all;
 
@@ -502,10 +502,10 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 			mcs_record->name );
 	}
 
-	status = (*read_all_fn)( mcs );
+	mx_status = (*read_all_fn)( mcs );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( num_scalers != NULL ) {
 		*num_scalers = mcs->current_num_scalers;
@@ -526,18 +526,18 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			long **scaler_data )
 {
-	const char fname[] = "mx_mcs_read_scaler()";
+	static const char fname[] = "mx_mcs_read_scaler()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_scaler_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_scaler_fn = function_list->read_scaler;
 
@@ -557,10 +557,10 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 
 	mcs->scaler_index = (long) scaler_index;
 
-	status = (*read_scaler_fn)( mcs );
+	mx_status = (*read_scaler_fn)( mcs );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mcs->scaler_data = (mcs->data_array) [ mcs->scaler_index ];
 
@@ -580,18 +580,18 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 			unsigned long *num_scalers,
 			long **measurement_data )
 {
-	const char fname[] = "mx_mcs_read_measurement()";
+	static const char fname[] = "mx_mcs_read_measurement()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_measurement_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_measurement_fn = function_list->read_measurement;
 
@@ -612,7 +612,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 	mcs->measurement_index = (long) measurement_index;
 
-	status = (*read_measurement_fn)( mcs );
+	mx_status = (*read_measurement_fn)( mcs );
 
 	if ( num_scalers != NULL ) {
 		*num_scalers = mcs->current_num_scalers;
@@ -621,7 +621,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 		*measurement_data = mcs->measurement_data;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -629,19 +629,19 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			double **timer_data )
 {
-	const char fname [] = "mx_mcs_read_timer()";
+	static const char fname [] = "mx_mcs_read_timer()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	unsigned long i;
 	mx_status_type ( *read_timer_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_timer_fn = function_list->read_timer;
 
@@ -650,7 +650,7 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 			(mcs->timer_data)[i] = 0.0;
 		}
 	} else {
-		status = (*read_timer_fn)( mcs );
+		mx_status = (*read_timer_fn)( mcs );
 	}
 
 	if ( num_measurements != NULL ) {
@@ -660,24 +660,24 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 		*timer_data = mcs->timer_data;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
 {
-	const char fname[] = "mx_mcs_get_mode()";
+	static const char fname[] = "mx_mcs_get_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -687,30 +687,30 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
 
 	mcs->parameter_type = MXLV_MCS_MODE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( mode != NULL ) {
 		*mode = mcs->mode;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_mode( MX_RECORD *mcs_record, int mode )
 {
-	const char fname[] = "mx_mcs_set_mode()";
+	static const char fname[] = "mx_mcs_set_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -722,27 +722,27 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, int mode )
 
 	mcs->mode = mode;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 					int *external_channel_advance )
 {
-	const char fname[] = "mx_mcs_get_external_channel_advance()";
+	static const char fname[] = "mx_mcs_get_external_channel_advance()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -752,31 +752,31 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( external_channel_advance != NULL ) {
 		*external_channel_advance = mcs->external_channel_advance;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 					int external_channel_advance )
 {
-	const char fname[] = "mx_mcs_set_external_channel_advance()";
+	static const char fname[] = "mx_mcs_set_external_channel_advance()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -788,27 +788,27 @@ mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 
 	mcs->external_channel_advance = external_channel_advance;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 					unsigned long *external_prescale )
 {
-	const char fname[] = "mx_mcs_get_external_prescale()";
+	static const char fname[] = "mx_mcs_get_external_prescale()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -818,31 +818,31 @@ mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_EXTERNAL_PRESCALE;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( external_prescale != NULL ) {
 		*external_prescale = mcs->external_prescale;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 					unsigned long external_prescale )
 {
-	const char fname[] = "mx_mcs_set_external_prescale()";
+	static const char fname[] = "mx_mcs_set_external_prescale()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -854,26 +854,26 @@ mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 
 	mcs->external_prescale = external_prescale;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 {
-	const char fname[] = "mx_mcs_get_measurement_time()";
+	static const char fname[] = "mx_mcs_get_measurement_time()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -883,30 +883,30 @@ mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 
 	mcs->parameter_type = MXLV_MCS_MEASUREMENT_TIME;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( measurement_time != NULL ) {
 		*measurement_time = mcs->measurement_time;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 {
-	const char fname[] = "mx_mcs_set_measurement_time()";
+	static const char fname[] = "mx_mcs_set_measurement_time()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -918,27 +918,27 @@ mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 
 	mcs->measurement_time = measurement_time;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 					unsigned long *measurement_counts )
 {
-	const char fname[] = "mx_mcs_get_measurement_counts()";
+	static const char fname[] = "mx_mcs_get_measurement_counts()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -948,31 +948,31 @@ mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_MEASUREMENT_COUNTS;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( measurement_counts != NULL ) {
 		*measurement_counts = mcs->measurement_counts;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 					unsigned long measurement_counts )
 {
-	const char fname[] = "mx_mcs_set_measurement_counts()";
+	static const char fname[] = "mx_mcs_set_measurement_counts()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	set_parameter_fn = function_list->set_parameter;
 
@@ -984,27 +984,27 @@ mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 
 	mcs->measurement_counts = measurement_counts;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 					unsigned long *num_measurements )
 {
-	const char fname[] = "mx_mcs_get_num_measurements()";
+	static const char fname[] = "mx_mcs_get_num_measurements()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_parameter_fn = function_list->get_parameter;
 
@@ -1014,31 +1014,31 @@ mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 
 	mcs->parameter_type = MXLV_MCS_CURRENT_NUM_MEASUREMENTS;
 
-	status = (*get_parameter_fn)( mcs );
+	mx_status = (*get_parameter_fn)( mcs );
 
 	if ( num_measurements != NULL ) {
 		*num_measurements = mcs->current_num_measurements;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 					unsigned long num_measurements )
 {
-	const char fname[] = "mx_mcs_set_num_measurements()";
+	static const char fname[] = "mx_mcs_set_num_measurements()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_mcs_get_pointers( mcs_record,
+	mx_status = mx_mcs_get_pointers( mcs_record,
 					&mcs, &function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,("%s: num_measurements = %lu", fname, num_measurements));
 
@@ -1060,9 +1060,9 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 
 	mcs->current_num_measurements = num_measurements;
 
-	status = (*set_parameter_fn)( mcs );
+	mx_status = (*set_parameter_fn)( mcs );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

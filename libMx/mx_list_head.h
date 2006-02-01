@@ -41,7 +41,7 @@
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_records", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "num_records", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \
 	{0}, NULL, 0}
 

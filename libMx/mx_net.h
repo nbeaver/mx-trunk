@@ -65,7 +65,7 @@ struct mx_network_field_type {
 typedef struct {
 	MX_RECORD *record;
 
-	unsigned long server_flags;
+	mx_hex_type server_flags;
 	double timeout;			/* in seconds */
 
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
@@ -74,9 +74,9 @@ typedef struct {
 	int server_supports_network_handles;
 
 	int network_handles_are_valid;
-	unsigned long network_field_array_block_size;
+	mx_length_type network_field_array_block_size;
 
-	unsigned long num_network_fields;
+	mx_length_type num_network_fields;
 	struct mx_network_field_type **network_field_array;
 } MX_NETWORK_SERVER;
 
@@ -228,14 +228,14 @@ MX_API mx_status_type mx_network_field_connect( MX_NETWORK_FIELD *nf );
 
 MX_API mx_status_type mx_get_array( MX_NETWORK_FIELD *nf,
 				long datatype,
-				long num_dimensions,
-				long *dimension,
+				mx_length_type num_dimensions,
+				mx_length_type *dimension,
 				void *value );
 
 MX_API mx_status_type mx_put_array( MX_NETWORK_FIELD *nf,
 				long datatype,
-				long num_dimensions,
-				long *dimension,
+				mx_length_type num_dimensions,
+				mx_length_type *dimension,
 				void *value );
 
 /*---*/
@@ -258,16 +258,16 @@ MX_API mx_status_type mx_internal_get_array( MX_RECORD *server_record,
 			char *remote_record_field_name,
 			MX_NETWORK_FIELD *nf,
 			long datatype, 
-			long num_dimensions,
-			long *dimension,
+			mx_length_type num_dimensions,
+			mx_length_type *dimension,
 			void *value );
 
 MX_API mx_status_type mx_internal_put_array( MX_RECORD *server_record,
 			char *remote_record_field_name,
 			MX_NETWORK_FIELD *nf,
 			long datatype, 
-			long num_dimensions,
-			long *dimension,
+			mx_length_type num_dimensions,
+			mx_length_type *dimension,
 			void *value );
 
 MX_API mx_status_type mx_get_field_array( MX_RECORD *server_record,
@@ -284,10 +284,10 @@ MX_API mx_status_type mx_put_field_array( MX_RECORD *server_record,
 
 MX_API mx_status_type mx_get_field_type( MX_RECORD *server_record,
 			char *remote_record_field_name,
-			long max_dimensions,
+			mx_length_type max_dimensions,
 			long *datatype,
-			long *num_dimensions,
-			long *dimension_array );
+			mx_length_type *num_dimensions,
+			mx_length_type *dimension_array );
 
 MX_API mx_status_type mx_set_client_info( MX_RECORD *server_record,
 			char *username,

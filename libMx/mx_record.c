@@ -410,7 +410,8 @@ mx_delete_record( MX_RECORD *record )
 		list_head_struct->num_records--;
 
 		MX_DEBUG( 8,("%s: deleted record '%s', num_records = %lu",
-			fname, record->name, list_head_struct->num_records));
+			fname, record->name,
+			(long) list_head_struct->num_records));
 	}
 
 	/* Find the type specific 'delete record' function to 
@@ -704,7 +705,7 @@ mx_insert_after_record( MX_RECORD *old_record, MX_RECORD *new_record )
 	list_head->num_records++;
 
 	MX_DEBUG( 8,("%s: inserted record '%s', num_records = %lu",
-		fname, new_record->name, list_head->num_records));
+		fname, new_record->name, (long) list_head->num_records));
 
 	return MX_SUCCESSFUL_RESULT;
 }

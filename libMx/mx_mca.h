@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -323,9 +323,9 @@ MX_API mx_status_type mx_mca_initialize_type(
 			long record_type,
 			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_channels_varargs_cookie,
-			long *maximum_num_rois_varargs_cookie,
-			long *num_soft_rois_varargs_cookie );
+			mx_length_type *maximum_num_channels_varargs_cookie,
+			mx_length_type *maximum_num_rois_varargs_cookie,
+			mx_length_type *num_soft_rois_varargs_cookie );
 
 MX_API_PRIVATE mx_status_type mx_mca_finish_record_initialization(
 						MX_RECORD *mca_record );

@@ -124,6 +124,13 @@ typedef uint64_t		uintmax_t;
 
 /*=======================================================================*/
 
+/* Typedef some special integer data types. */
+
+typedef uint32_t  mx_hex_type;
+typedef int32_t   mx_length_type;
+
+/*=======================================================================*/
+
 /* Define limit macros if they have not yet been defined.  We assume that
  * they are not yet defined if INT32_MIN does not exist.
  */

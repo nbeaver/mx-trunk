@@ -80,16 +80,16 @@ MX_EXPORT mx_status_type
 mx_mca_initialize_type( long record_type,
 			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			long *maximum_num_channels_varargs_cookie,
-			long *maximum_num_rois_varargs_cookie,
-			long *num_soft_rois_varargs_cookie )
+			mx_length_type *maximum_num_channels_varargs_cookie,
+			mx_length_type *maximum_num_rois_varargs_cookie,
+			mx_length_type *num_soft_rois_varargs_cookie )
 {
 	static const char fname[] = "mx_mca_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
+	mx_length_type referenced_field_index;
 	mx_status_type mx_status;
 
 	if ( num_record_fields == NULL ) {

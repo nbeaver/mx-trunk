@@ -1154,8 +1154,9 @@ mx_get_scan_handler_name_array( MX_SCAN *scan, char *list_record_name,
 	static const char fname[] = "mx_get_scan_handler_name_array()";
 
 	MX_RECORD *list_record;
-	long num_dimensions, field_type;
-	long *dimension_array;
+	long field_type;
+	mx_length_type num_dimensions;
+	mx_length_type *dimension_array;
 	void *pointer_to_value;
 	mx_status_type mx_status;
 
@@ -1184,12 +1185,13 @@ mx_get_scan_handler_name_array( MX_SCAN *scan, char *list_record_name,
 	if ( num_dimensions != 2 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "The measurement handler list '%s' is not a 2 dimensional string variable.  "
-"Instead it has %ld dimensions.", list_record_name, num_dimensions );
+"Instead it has %ld dimensions.", list_record_name, (long) num_dimensions );
 	}
 	if ( dimension_array[0] <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The measurement handler list '%s' has an illegal first dimension size of %ld."
-"  This size must be greater than zero.", list_record_name, dimension_array[0]);
+"  This size must be greater than zero.",
+			list_record_name, (long) dimension_array[0]);
 	}
 
 	*num_handlers = dimension_array[0];
@@ -1860,15 +1862,16 @@ mx_scan_get_measurement_time( MX_SCAN *scan )
 MX_EXPORT mx_status_type
 mx_scan_fixup_varargs_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		long num_record_fields,
-		long *num_independent_variables_varargs_cookie,
-		long *num_motors_varargs_cookie,
-		long *num_input_devices_varargs_cookie )
+		mx_length_type num_record_fields,
+		mx_length_type *num_independent_variables_varargs_cookie,
+		mx_length_type *num_motors_varargs_cookie,
+		mx_length_type *num_input_devices_varargs_cookie )
 {
-	static const char fname[] = "mx_scan_fixup_varargs_record_field_defaults()";
+	static const char fname[] =
+		"mx_scan_fixup_varargs_record_field_defaults()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long referenced_field_index;
+	mx_length_type referenced_field_index;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 8,("%s invoked.", fname));
@@ -1891,7 +1894,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_motors varargs cookie = %ld",
-			fname, *num_motors_varargs_cookie));
+			fname, (long) *num_motors_varargs_cookie));
 
 	/*---*/
 
@@ -1946,7 +1949,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_input_devices varargs cookie = %ld",
-			fname, *num_input_devices_varargs_cookie));
+			fname, (long) *num_input_devices_varargs_cookie));
 
 	/*---*/
 
@@ -1979,7 +1982,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_independent_variables varargs_cookie = %ld",
-			fname, *num_independent_variables_varargs_cookie));
+		fname, (long) *num_independent_variables_varargs_cookie));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1997,8 +2000,9 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 {
 	static const char fname[] = "mx_compute_normalized_device_value()";
 
-	long *dimension_array;
-	long long_value, num_dimensions, field_type;
+	mx_length_type num_dimensions;
+	mx_length_type *dimension_array;
+	long long_value, field_type;
 	unsigned long ulong_value;
 	int int_value;
 	double double_value;

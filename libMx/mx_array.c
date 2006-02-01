@@ -44,8 +44,8 @@
 #endif
 
 MX_EXPORT void *
-mx_allocate_array( long num_dimensions,
-		long *dimension_array,
+mx_allocate_array( mx_length_type num_dimensions,
+		mx_length_type *dimension_array,
 		size_t *data_element_size_array )
 {
 	static const char fname[] = "mx_allocate_array()";
@@ -60,12 +60,12 @@ mx_allocate_array( long num_dimensions,
 
 	if ( num_dimensions <= 0 ) {
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of dimensions = %ld", num_dimensions );
+		"Illegal number of dimensions = %ld", (long) num_dimensions );
 
 		return NULL;
 	}
 
-	if ( dimension_array == (long *) NULL ) {
+	if ( dimension_array == (mx_length_type *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
 		"dimension_array pointer passed is NULL." );
 
@@ -79,12 +79,12 @@ mx_allocate_array( long num_dimensions,
 		return NULL;
 	}
 
-	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, num_dimensions));
+	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, (long) num_dimensions));
 
 	for ( i = 0; i < num_dimensions; i++ ) {
 		MX_DEBUG( 8,(
 			"%s:   dimension[%ld] = %ld, element size[%ld] = %ld",
-			fname, i, dimension_array[i],
+			fname, i, (long) dimension_array[i],
 			i, (long) data_element_size_array[i]));
 	}
 
@@ -110,7 +110,7 @@ mx_allocate_array( long num_dimensions,
 	if ( array_pointer == NULL ) {
 		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Ran out of memory trying to allocate %ld elements of size %ld.",
-			dimension_array[0],
+			(long) dimension_array[0],
 			(long) current_dimension_element_size );
 		return NULL;
 	}
@@ -171,8 +171,8 @@ mx_allocate_array( long num_dimensions,
 
 MX_EXPORT mx_status_type
 mx_free_array( void *array_pointer,
-		long num_dimensions,
-		long *dimension_array,
+		mx_length_type num_dimensions,
+		mx_length_type *dimension_array,
 		size_t *data_element_size_array )
 {
 	static const char fname[] = "mx_free_array()";
@@ -190,10 +190,10 @@ mx_free_array( void *array_pointer,
 
 	if ( num_dimensions <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of dimensions = %ld", num_dimensions );
+		"Illegal number of dimensions = %ld", (long) num_dimensions );
 	}
 
-	if ( dimension_array == (long *) NULL ) {
+	if ( dimension_array == (mx_length_type *) NULL ) {
 		mx_error( MXE_NULL_ARGUMENT, fname,
 		"dimension_array pointer passed is NULL." );
 	}
@@ -203,14 +203,14 @@ mx_free_array( void *array_pointer,
 		"data_element_size_array pointer passed is NULL." );
 	}
 
-	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, num_dimensions));
+	MX_DEBUG( 8,("%s: num_dimensions = %ld", fname, (long) num_dimensions));
 
 	MX_DEBUG( 8,("%s: array_pointer = %p", fname, array_pointer));
 
 	for ( i = 0; i < num_dimensions; i++ ) {
 		MX_DEBUG( 8,(
 			"%s:   dimension[%ld] = %ld, element size[%ld] = %ld",
-			fname, i, dimension_array[i],
+			fname, i, (long) dimension_array[i],
 			i, (long) data_element_size_array[i]));
 	}
 
@@ -371,9 +371,12 @@ mxp_scalar_element_size( long mx_datatype ) {
 MX_EXPORT mx_status_type
 mx_copy_array_to_buffer( void *array_pointer,
 		int array_is_dynamically_allocated,
-		long mx_datatype, long num_dimensions,
-		long *dimension_array, size_t *data_element_size_array,
-		void *destination_buffer, size_t destination_buffer_length,
+		long mx_datatype,
+		mx_length_type num_dimensions,
+		mx_length_type *dimension_array,
+		size_t *data_element_size_array,
+		void *destination_buffer,
+		size_t destination_buffer_length,
 		size_t *num_bytes_copied )
 {
 	static const char fname[] = "mx_copy_array_to_buffer()";
@@ -402,7 +405,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 	if ( num_dimensions < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The number of dimensions passed (%ld) is a negative number.",
-			num_dimensions );
+			(long) num_dimensions );
 	}
 
 	/* For datatypes that correspond to structures, we report the name
@@ -598,7 +601,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 			"The %ld-dimensional array of size %ld bytes is "
 			"too large to fit into the destination buffer "
 			"of %ld bytes.",
-				num_dimensions,
+				(long) num_dimensions,
 				(long) array_size,
 				(long) destination_buffer_length );
 	}
@@ -641,8 +644,10 @@ MX_EXPORT mx_status_type
 mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
 		int array_is_dynamically_allocated,
-		long mx_datatype, long num_dimensions,
-		long *dimension_array, size_t *data_element_size_array,
+		long mx_datatype,
+		mx_length_type num_dimensions,
+		mx_length_type *dimension_array,
+		size_t *data_element_size_array,
 		size_t *num_bytes_copied )
 {
 	static const char fname[] = "mx_copy_buffer_to_array()";
@@ -688,7 +693,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	if ( num_dimensions < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The number of dimensions passed (%ld) is a negative number.",
-			num_dimensions );
+			(long) num_dimensions );
 	}
 
 #if 0
@@ -800,7 +805,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 			"The %ld-dimensional of size %ld bytes is larger "
 			"than the source buffer of %ld bytes.",
-				num_dimensions,
+				(long) num_dimensions,
 				(long) array_size,
 				(long) source_buffer_length );
 	}
@@ -890,9 +895,12 @@ mxp_xdr_scalar_element_size( long mx_datatype ) {
 MX_EXPORT mx_status_type
 mx_xdr_data_transfer( int direction, void *array_pointer,
 		int array_is_dynamically_allocated,
-		long mx_datatype, long num_dimensions,
-		long *dimension_array, size_t *data_element_size_array,
-		void *xdr_buffer, size_t xdr_buffer_length,
+		long mx_datatype,
+		mx_length_type num_dimensions,
+		mx_length_type *dimension_array,
+		size_t *data_element_size_array,
+		void *xdr_buffer,
+		size_t xdr_buffer_length,
 		size_t *num_bytes_copied )
 {
 	static const char fname[] = "mx_xdr_data_transfer()";
@@ -957,7 +965,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	if ( num_dimensions < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The number of dimensions passed (%ld) is a negative number.",
-			num_dimensions );
+			(long) num_dimensions );
 	}
 
 	/* For datatypes that correspond to structures, we report the name
@@ -1229,7 +1237,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal MX datatype %ld for %ld-dimensional XDR data transfer.",
-					mx_datatype, num_dimensions );
+					mx_datatype, (long) num_dimensions );
 				break;
 			}
 
@@ -1343,7 +1351,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			mx_warning(
 			"The %ld-dimensional XDR array of size %ld bytes was "
 			"truncated to %ld bytes.",
-				num_dimensions,
+				(long) num_dimensions,
 				(long) xdr_array_size,
 				(long) xdr_buffer_length );
 
@@ -1412,13 +1420,13 @@ MX_EXPORT mx_status_type
 mx_convert_and_copy_array(
 	void *source_array_pointer,
 	long source_datatype,
-	long source_num_dimensions,
-	long *source_dimension_array,
+	mx_length_type source_num_dimensions,
+	mx_length_type *source_dimension_array,
 	size_t *source_data_element_size_array,
 	void *destination_array_pointer,
 	long destination_datatype,
-	long destination_num_dimensions,
-	long *destination_dimension_array,
+	mx_length_type destination_num_dimensions,
+	mx_length_type *destination_dimension_array,
 	size_t *destination_data_element_size_array )
 {
 	static const char fname[] = "mx_convert_and_copy_array()";
@@ -1441,7 +1449,8 @@ mx_convert_and_copy_array(
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Copying from a %ld-dimensional array to a %ld-dimensional "
 		"array is not yet implemented.",
-			source_num_dimensions, destination_num_dimensions );
+			(long) source_num_dimensions,
+			(long) destination_num_dimensions );
 	}
 
 	if ( source_datatype == MXFT_INT32 ) {

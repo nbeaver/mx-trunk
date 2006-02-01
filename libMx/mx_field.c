@@ -244,13 +244,13 @@ mx_find_record_field( MX_RECORD *record, const char *name_of_field_to_find,
 MX_EXPORT mx_status_type
 mx_find_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
-		long num_record_fields,
+		mx_length_type num_record_fields,
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found )
 {
 	static const char fname[] = "mx_find_record_field_defaults()";
 
-	long index_of_field_that_was_found;
+	mx_length_type index_of_field_that_was_found;
 	mx_status_type status;
 
 	if (default_field_that_was_found == (MX_RECORD_FIELD_DEFAULTS **)NULL){
@@ -279,13 +279,13 @@ mx_find_record_field_defaults(
 MX_EXPORT mx_status_type
 mx_find_record_field_defaults_index(
 		MX_RECORD_FIELD_DEFAULTS *record_field_default_array,
-		long num_record_fields,
+		mx_length_type num_record_fields,
 		const char *name_of_field_to_find,
-		long *index_of_field_that_was_found )
+		mx_length_type *index_of_field_that_was_found )
 {
 	static const char fname[] = "mx_find_record_field_defaults_index()";
 
-	long i;
+	mx_length_type i;
 
 	if (record_field_default_array == (MX_RECORD_FIELD_DEFAULTS *) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -296,7 +296,7 @@ mx_find_record_field_defaults_index(
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"Number of record fields = %ld for record_field_default_array = %p "
 	"is less than or equal to zero.",
-			num_record_fields, record_field_default_array );
+			(long) num_record_fields, record_field_default_array );
 	}
 
 	if ( name_of_field_to_find == NULL ) {
@@ -304,7 +304,7 @@ mx_find_record_field_defaults_index(
 				"NULL record field name pointer passed." );
 	}
 
-	if ( index_of_field_that_was_found == (long *) NULL ) {
+	if ( index_of_field_that_was_found == (mx_length_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"Address of location to place the index of "
 			"the MX_RECORD_FIELD_DEFAULTS was NULL." );
@@ -2148,7 +2148,7 @@ mx_parse_record_fields( MX_RECORD *record,
 		/***************************************************/
 
 		MX_DEBUG( 8,("%s: record_field->num_dimensions = %ld",
-			fname, record_field->num_dimensions));
+			fname, (long) record_field->num_dimensions));
 
 		if ( record_field->num_dimensions > 0 ) {
 			if ( record_field->dimension == NULL ) {
@@ -2158,7 +2158,7 @@ mx_parse_record_fields( MX_RECORD *record,
 			} else {
 				MX_DEBUG( 8,
 				("%s: record_field->dimension[0] = %ld",
-					fname, record_field->dimension[0]));
+				fname, (long) record_field->dimension[0]));
 			}
 		}
 
@@ -2176,7 +2176,7 @@ mx_parse_record_fields( MX_RECORD *record,
 
 			MX_DEBUG( 8,(
 	"MXFF_VARARGS: num_dimensions = %ld, record_field->data_pointer = %p",
-				record_field->num_dimensions,
+				(long) record_field->num_dimensions,
 				record_field->data_pointer));
 
 			if ( record_field->num_dimensions < 0 ) {
@@ -2184,7 +2184,7 @@ mx_parse_record_fields( MX_RECORD *record,
 					MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"Record field '%s' has a negative number of dimensions = %ld",
 					record_field->name,
-					record_field->num_dimensions );
+					(long) record_field->num_dimensions );
 			} else if ( record_field->num_dimensions == 0 ) {
 				return mx_error(
 					MXE_UNSUPPORTED, fname,
@@ -2365,7 +2365,7 @@ mx_parse_record_fields( MX_RECORD *record,
 		("Field[%ld] = '%s', field type = %s, %ld dimensional array",
 					i, record_field->name,
 					mx_get_field_type_string(field_type),
-					record_field->num_dimensions));
+					(long) record_field->num_dimensions));
 
 				token_number++;
 
@@ -3140,7 +3140,7 @@ mx_create_description_from_record(
 		("Field[%ld] = '%s', field type = %s, %ld dimensional array",
 					i, record_field->name,
 					mx_get_field_type_string(field_type),
-					record_field->num_dimensions));
+					(long) record_field->num_dimensions));
 
 					token_number++;
 
@@ -3498,8 +3498,8 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 MX_EXPORT mx_status_type
 mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 			long datatype,
-			long num_dimensions,
-			long *dimension,
+			mx_length_type num_dimensions,
+			mx_length_type *dimension,
 			size_t *data_element_size,
 			void *value_ptr )
 {
@@ -3603,7 +3603,7 @@ mx_traverse_field( MX_RECORD *record,
 	dimension_level = field->num_dimensions;
 
 	MX_DEBUG( 4,("%s: field->num_dimensions = %ld",
-			fname, field->num_dimensions));
+			fname, (long) field->num_dimensions));
 
 	if ( dimension_level < 0 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -3706,7 +3706,7 @@ mx_traverse_field_array( MX_RECORD *record,
 	MX_DEBUG( 8,
 	("Record '%s', field '%s', dimension level = %ld, num_dimensions = %ld",
 		record->name, field->name, dimension_level,
-		field->num_dimensions));
+		(long) field->num_dimensions));
 
 	if ( field->flags & MXFF_VARARGS ) {
 		dynamically_allocated = TRUE;
@@ -4075,7 +4075,7 @@ mx_create_description_from_field( MX_RECORD *record,
 
 	  if ( record_field->datatype == MXFT_STRING ) {
 		MX_DEBUG( 2,("%s: MXFT_STRING field, num_dimensions = %ld",
-			fname, record_field->num_dimensions));
+			fname, (long) record_field->num_dimensions));
 
 		if ( record_field->num_dimensions == 1 ) {
 		    MX_DEBUG( 2,("%s: 1-d string = %p",
@@ -4118,11 +4118,11 @@ mx_create_description_from_field( MX_RECORD *record,
 		}
 	  } else if ( record_field->datatype == MXFT_DOUBLE ) {
 		MX_DEBUG( 2,("%s: MXFT_DOUBLE field, num_dimensions = %ld",
-			fname, record_field->num_dimensions));
+			fname, (long) record_field->num_dimensions));
 
 		for ( i = 0; i < record_field->num_dimensions; i++ ) {
 			MX_DEBUG( 2,("%s: dimension[%ld] = %ld",
-				fname, i, record_field->dimension[i]));
+				fname, i, (long) record_field->dimension[i]));
 		}
 
 		if ( record_field->num_dimensions == 1 ) {
@@ -4182,7 +4182,7 @@ mx_create_description_from_field( MX_RECORD *record,
 		    }
 		} else {
 		    MX_DEBUG( 2,("%s: num_dimensions = %ld",
-			fname, record_field->num_dimensions));
+			fname, (long) record_field->num_dimensions));
 		}
 	  } else {
 		MX_DEBUG( 2,("%s: datatype = %ld",

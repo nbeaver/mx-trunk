@@ -137,11 +137,11 @@ MX_API void mx_handle_abnormal_scan_termination( MX_LIST_HEAD *list_head,
 MX_API double mx_scan_get_measurement_time( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_fixup_varargs_record_field_defaults(
-			MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
-			long num_record_field,
-			long *num_independent_variables_varargs_cookie,
-			long *num_motors_varargs_cookie,
-			long *num_input_devices_varargs_cookie );
+		MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
+		mx_length_type num_record_fields,
+		mx_length_type *num_independent_variables_varargs_cookie,
+		mx_length_type *num_motors_varargs_cookie,
+		mx_length_type *num_input_devices_varargs_cookie );
 
 MX_API mx_status_type mx_compute_normalized_device_value(
 				MX_RECORD *input_device,
