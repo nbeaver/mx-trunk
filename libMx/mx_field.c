@@ -110,9 +110,6 @@ mx_get_field_type_string( long field_type )
 	{ MXFT_HEX,		"MXFT_HEX" },
 	{ MXFT_CHAR,		"MXFT_CHAR" },
 
-	{ MXFT_OLD_LONG,	"MXFT_OLD_LONG" },
-	{ MXFT_OLD_ULONG,	"MXFT_OLD_ULONG" },
-
 	{ MXFT_RECORD,		"MXFT_RECORD" },
 	{ MXFT_RECORDTYPE,	"MXFT_RECORDTYPE" },
 	{ MXFT_INTERFACE,	"MXFT_INTERFACE" },
@@ -1399,62 +1396,6 @@ mx_construct_char_field( void *dataptr,
 }
 
 static mx_status_type
-mx_parse_old_long_field( void *dataptr, char *token,
-			MX_RECORD *record, MX_RECORD_FIELD *field,
-			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
-{
-	static const char fname[] = "mx_parse_old_long_field()";
-
-	int num_items;
-
-	num_items = sscanf( token, "%ld", (long *) dataptr );
-
-	if ( num_items != 1 )
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Long not found in token '%s'", token );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_old_long_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	sprintf( token_buffer, "%ld", *((long *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_parse_old_ulong_field( void *dataptr, char *token,
-			MX_RECORD *record, MX_RECORD_FIELD *field,
-			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
-{
-	static const char fname[] = "mx_parse_old_ulong_field()";
-
-	int num_items;
-
-	num_items = sscanf( token, "%lu", (unsigned long *) dataptr );
-
-	if ( num_items != 1 )
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Unsigned long not found in token '%s'", token );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_old_ulong_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	sprintf( token_buffer, "%lu", *((unsigned long *) dataptr) );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
 mx_parse_mx_record_field( void *memory_location, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
@@ -2627,12 +2568,6 @@ mx_get_token_parser( long field_type,
 	case MXFT_CHAR:
 		*token_parser = mx_parse_char_field;
 		break;
-	case MXFT_OLD_LONG:
-		*token_parser = mx_parse_old_long_field;
-		break;
-	case MXFT_OLD_ULONG:
-		*token_parser = mx_parse_old_ulong_field;
-		break;
 	case MXFT_RECORD:
 		*token_parser = mx_parse_mx_record_field;
 		break;
@@ -2710,12 +2645,6 @@ mx_get_token_constructor( long field_type,
 		break;
 	case MXFT_CHAR:
 		*token_constructor = mx_construct_char_field;
-		break;
-	case MXFT_OLD_LONG:
-		*token_constructor = mx_construct_old_long_field;
-		break;
-	case MXFT_OLD_ULONG:
-		*token_constructor = mx_construct_old_ulong_field;
 		break;
 	case MXFT_RECORD:
 		*token_constructor = mx_construct_mx_record_field;
@@ -3436,10 +3365,6 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 							= MXA_HEX_SIZEOF;
 	static size_t char_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_CHAR_SIZEOF;
-	static size_t old_long_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_OLD_LONG_SIZEOF;
-	static size_t old_ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS]
-							= MXA_OLD_ULONG_SIZEOF;
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -3480,12 +3405,6 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		break;
 	case MXFT_CHAR:
 		*sizeof_array = char_sizeof;
-		break;
-	case MXFT_OLD_LONG:
-		*sizeof_array = old_long_sizeof;
-		break;
-	case MXFT_OLD_ULONG:
-		*sizeof_array = old_ulong_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

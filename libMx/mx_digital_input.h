@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
                             * to this device.
                             */
-	unsigned long value;
+	uint32_t value;
 } MX_DIGITAL_INPUT;
 
 #define MXLV_DIN_VALUE	4001
@@ -44,7 +44,7 @@ typedef struct {
 } MX_DIGITAL_INPUT_FUNCTION_LIST;
 
 MX_API mx_status_type mx_digital_input_read( MX_RECORD *record,
-						unsigned long *value );
+						uint32_t *value );
 
 #endif /* __MX_DIGITAL_INPUT_H__ */
 

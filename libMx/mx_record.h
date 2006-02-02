@@ -172,15 +172,13 @@ typedef struct {
 #define MXFT_UINT16		5
 #define MXFT_INT32		6
 #define MXFT_UINT32		7
-
+#define MXFT_INT64		8
+#define MXFT_UINT64		9
 #define MXFT_FLOAT		10
 #define MXFT_DOUBLE		11
 
 #define MXFT_HEX		12	/* Stored as a uint32_t. */
 #define MXFT_CHAR		13	/* 'char' used as an ASCII character. */
-
-#define MXFT_INT64		14
-#define MXFT_UINT64		15
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
@@ -189,13 +187,6 @@ typedef struct {
 #define MXFT_LENGTH		MXFT_INT32
 
 #define MXFT_VARARGS		MXFT_LENGTH
-
-/* The following two are obsolete.
- * Treat these as aliases for the 32-bit integer types.
- */
-
-#define MXFT_OLD_LONG		8
-#define MXFT_OLD_ULONG		9
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify

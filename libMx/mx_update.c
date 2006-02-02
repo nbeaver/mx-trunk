@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ mx_update_record_values( MX_RECORD *record )
 	mx_status_type ( *fptr ) ( MX_RECORD * );
 	int int_value;
 	long long_value;
-	unsigned long ulong_value;
+	uint32_t uint32_value;
 	double double_value;
 	mx_status_type status;
 
@@ -99,11 +99,11 @@ mx_update_record_values( MX_RECORD *record )
 				break;
 			case MXC_DIGITAL_INPUT:
 				status = mx_digital_input_read(
-							record, &ulong_value);
+							record, &uint32_value);
 				break;
 			case MXC_DIGITAL_OUTPUT:
 				status = mx_digital_output_read(
-							record, &ulong_value);
+							record, &uint32_value);
 				break;
 			case MXC_MOTOR:
 				status = mx_motor_get_position(

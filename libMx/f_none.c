@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,8 +74,8 @@ mxdf_none_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 MX_EXPORT mx_status_type
 mxdf_none_add_array_to_datafile( MX_DATAFILE *datafile,
-		long position_type, long num_positions, void *position_array,
-		long data_type, long num_data_points, void *data_array )
+	long position_type, mx_length_type num_positions, void *position_array,
+	long data_type, mx_length_type num_data_points, void *data_array )
 {
 	return MX_SUCCESSFUL_RESULT;
 }

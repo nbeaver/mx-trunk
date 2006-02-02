@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -350,7 +350,7 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 	unsigned long seconds, milliseconds;
 	double double_value;
 	long long_value;
-	unsigned long ulong_value;
+	uint32_t uint32_value;
 	long i;
 	mx_status_type status;
 
@@ -463,14 +463,14 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 				break;
 			case MXC_DIGITAL_INPUT:
 				status = mx_digital_input_read(
-						input_device, &ulong_value );
+						input_device, &uint32_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}
 				break;
 			case MXC_DIGITAL_OUTPUT:
 				status = mx_digital_output_read(
-						input_device, &ulong_value );
+						input_device, &uint32_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}

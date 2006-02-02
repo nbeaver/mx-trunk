@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -270,14 +270,14 @@ mx_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 MX_EXPORT mx_status_type
 mx_add_array_to_plot_buffer( MX_PLOT *plot,
-		long position_type, long num_positions, void *position_array,
-		long data_type, long num_data_points, void *data_array )
+	long position_type, mx_length_type num_positions, void *position_array,
+	long data_type, mx_length_type num_data_points, void *data_array )
 {
 	const char fname[] = "mx_add_array_to_plot_buffer()";
 
 	MX_PLOT_FUNCTION_LIST *flist;
-	mx_status_type ( *fptr ) ( MX_PLOT *, long, long, void *,
-						long, long, void * );
+	mx_status_type ( *fptr ) ( MX_PLOT *, long, mx_length_type, void *,
+						long, mx_length_type, void * );
 	mx_status_type status;
 
 	MX_DEBUG(8,("%s invoked.", fname));
@@ -541,7 +541,7 @@ mx_plot_do_x_command( MX_PLOT *plot, char *command_arguments )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Unable to allocate a %ld element array of MX_RECORD pointers "
 	"for the plot x_motor_array used by scan '%s'.",
-			scan->plot.num_x_motors, scan->record->name );
+			(long) scan->plot.num_x_motors, scan->record->name );
 	}
 
 	start_ptr = command_arguments;

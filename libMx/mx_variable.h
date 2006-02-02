@@ -246,18 +246,6 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 
 #define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
 
-#define MXA_OLD_LONG_SIZEOF \
-	{ sizeof(long), sizeof(long *), \
-	sizeof(long **), sizeof(long ***), \
-	sizeof(long ****), sizeof(long *****), \
-	sizeof(long ******), sizeof(long *******) }
-
-#define MXA_OLD_ULONG_SIZEOF \
-	{ sizeof(unsigned long), sizeof(unsigned long *), \
-	sizeof(unsigned long **), sizeof(unsigned long ***), \
-	sizeof(unsigned long ****), sizeof(unsigned long *****), \
-	sizeof(unsigned long ******), sizeof(unsigned long *******) }
-
 #define MXA_RECORD_SIZEOF \
 	{ sizeof(MX_RECORD *), sizeof(MX_RECORD **), \
 	sizeof(MX_RECORD ***), sizeof(MX_RECORD ****), \

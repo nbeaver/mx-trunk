@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,26 +56,28 @@ extern MX_VARIABLE_FUNCTION_LIST mxv_network_variable_variable_function_list;
 
 extern long mxv_network_string_variable_num_record_fields;
 extern long mxv_network_char_variable_num_record_fields;
-extern long mxv_network_uchar_variable_num_record_fields;
-extern long mxv_network_short_variable_num_record_fields;
-extern long mxv_network_ushort_variable_num_record_fields;
-extern long mxv_network_int_variable_num_record_fields;
-extern long mxv_network_uint_variable_num_record_fields;
-extern long mxv_network_long_variable_num_record_fields;
-extern long mxv_network_ulong_variable_num_record_fields;
+extern long mxv_network_int8_variable_num_record_fields;
+extern long mxv_network_uint8_variable_num_record_fields;
+extern long mxv_network_int16_variable_num_record_fields;
+extern long mxv_network_uint16_variable_num_record_fields;
+extern long mxv_network_int32_variable_num_record_fields;
+extern long mxv_network_uint32_variable_num_record_fields;
+extern long mxv_network_int64_variable_num_record_fields;
+extern long mxv_network_uint64_variable_num_record_fields;
 extern long mxv_network_float_variable_num_record_fields;
 extern long mxv_network_double_variable_num_record_fields;
 extern long mxv_network_record_variable_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_string_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_char_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uchar_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_short_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_ushort_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_long_variable_dptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_network_ulong_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int8_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint8_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int16_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint16_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int32_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint32_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int64_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint64_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_float_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_double_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_record_variable_dptr;

@@ -39,7 +39,7 @@ mxph_simple_get_pointers( MX_MEASUREMENT_PERMIT *permit_handler,
 			MX_SIMPLE_MEASUREMENT_PERMIT **simple_permit_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxph_simple_get_pointers()";
+	static const char fname[] = "mxph_simple_get_pointers()";
 
 	if ( permit_handler == (MX_MEASUREMENT_PERMIT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -72,7 +72,7 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 				void *permit_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxph_simple_create_handler()";
+	static const char fname[] = "mxph_simple_create_handler()";
 
 	MX_MEASUREMENT_PERMIT_DRIVER *permit_driver;
 	MX_MEASUREMENT_PERMIT *permit_handler_ptr;
@@ -207,7 +207,7 @@ mxph_simple_create_handler( MX_MEASUREMENT_PERMIT **permit_handler,
 MX_EXPORT mx_status_type
 mxph_simple_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_simple_destroy_handler()";
+	static const char fname[] = "mxph_simple_destroy_handler()";
 
 	MX_SIMPLE_MEASUREMENT_PERMIT *simple_permit_struct;
 	mx_status_type mx_status;
@@ -238,21 +238,22 @@ mxph_simple_destroy_handler( MX_MEASUREMENT_PERMIT *permit_handler )
 MX_EXPORT mx_status_type
 mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 {
-	const char fname[] = "mxph_simple_check_for_permission()";
+	static const char fname[] = "mxph_simple_check_for_permission()";
 
 	MX_SIMPLE_MEASUREMENT_PERMIT *simple_permit_struct;
 	MX_RECORD *permit_record;
 	long field_type;
-	unsigned long permit_value;
+	uint32_t permit_value;
 
 	char char_value;
-	unsigned char uchar_value;
-	short short_value;
-	unsigned short ushort_value;
-	int int_value;
-	unsigned int uint_value;
-	long long_value;
-	unsigned long ulong_value;
+	int8_t int8_value;
+	uint8_t uint8_value;
+	int16_t int16_value;
+	uint16_t uint16_value;
+	int32_t int32_value;
+	uint32_t uint32_value;
+	int64_t int64_value;
+	uint64_t uint64_value;
 	mx_status_type mx_status;
 
 	mx_status = mxph_simple_get_pointers( permit_handler,
@@ -267,28 +268,28 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	permit_value = simple_permit_struct->permit_value;
 
 	MX_DEBUG( 2,("%s invoked for permit record '%s', permit_value = %lu.",
-			fname, permit_record->name, permit_value));
+		fname, permit_record->name, (unsigned long) permit_value));
 
 	switch( permit_record->mx_superclass ) {
 	case MXR_DEVICE:
 		switch( permit_record->mx_class ) {
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read( permit_record,
-								&ulong_value );
+								&uint32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ulong_value == permit_value ) {
+			if ( uint32_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( permit_record,
-								&int_value );
+								&int32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value == permit_value ) {
+			if ( int32_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
@@ -317,74 +318,84 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_UCHAR:
-			mx_status = mx_get_unsigned_char_variable( permit_record,
-								&uchar_value );
+		case MXFT_INT8:
+			mx_status = mx_get_int8_variable( permit_record,
+								&int8_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( uchar_value == permit_value ) {
+			if ( int8_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_SHORT:
-			mx_status = mx_get_short_variable( permit_record,
-								&short_value );
+		case MXFT_UINT8:
+			mx_status = mx_get_uint8_variable( permit_record,
+								&uint8_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( short_value == permit_value ) {
+			if ( uint8_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_USHORT:
-			mx_status = mx_get_unsigned_short_variable(permit_record,
-								&ushort_value );
+		case MXFT_INT16:
+			mx_status = mx_get_int16_variable( permit_record,
+								&int16_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ushort_value == permit_value ) {
+			if ( int16_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_INT:
-			mx_status = mx_get_int_variable( permit_record,
-								&int_value );
+		case MXFT_UINT16:
+			mx_status = mx_get_uint16_variable(permit_record,
+								&uint16_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value == permit_value ) {
+			if ( uint16_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_UINT:
-			mx_status = mx_get_unsigned_int_variable( permit_record,
-								&uint_value );
+		case MXFT_INT32:
+			mx_status = mx_get_int32_variable( permit_record,
+								&int32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( uint_value == permit_value ) {
+			if ( int32_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_LONG:
-			mx_status = mx_get_long_variable( permit_record,
-								&long_value );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( long_value == permit_value ) {
-				permit_handler->permit_status = TRUE;
-			}
-			break;
-		case MXFT_ULONG:
+		case MXFT_UINT32:
 		case MXFT_HEX:
-			mx_status = mx_get_unsigned_long_variable( permit_record,
-								&ulong_value );
+			mx_status = mx_get_uint32_variable( permit_record,
+								&uint32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ulong_value == permit_value ) {
+			if ( uint32_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_INT64:
+			mx_status = mx_get_int64_variable( permit_record,
+								&int64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int64_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UINT64:
+			mx_status = mx_get_uint64_variable( permit_record,
+								&uint64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint64_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

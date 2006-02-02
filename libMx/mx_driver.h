@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -642,29 +642,31 @@
 /* --- Variable types --- */
 
 #define MXV_INL_STRING			500001
-#define MXV_INL_CHAR			500002
-#define MXV_INL_UCHAR			500003
-#define MXV_INL_SHORT			500004
-#define MXV_INL_USHORT			500005
-#define MXV_INL_INT			500006
-#define MXV_INL_UINT			500007
-#define MXV_INL_LONG			500008
-#define MXV_INL_ULONG			500009
+#define MXV_INL_INT8			500002
+#define MXV_INL_UINT8			500003
+#define MXV_INL_INT16			500004
+#define MXV_INL_UINT16			500005
+#define MXV_INL_INT32			500006
+#define MXV_INL_UINT32			500007
+#define MXV_INL_INT64			500008
+#define MXV_INL_UINT64			500009
 #define MXV_INL_FLOAT			500010
 #define MXV_INL_DOUBLE			500011
+#define MXV_INL_CHAR			500013
 #define MXV_INL_RECORD			500031
 
 #define MXV_NET_STRING			501001
-#define MXV_NET_CHAR			501002
-#define MXV_NET_UCHAR			501003
-#define MXV_NET_SHORT			501004
-#define MXV_NET_USHORT			501005
-#define MXV_NET_INT			501006
-#define MXV_NET_UINT			501007
-#define MXV_NET_LONG			501008
-#define MXV_NET_ULONG			501009
+#define MXV_NET_INT8			501002
+#define MXV_NET_UINT8			501003
+#define MXV_NET_INT16			501004
+#define MXV_NET_UINT16			501005
+#define MXV_NET_INT32			501006
+#define MXV_NET_UINT32			501007
+#define MXV_NET_INT64			501008
+#define MXV_NET_UINT64			501009
 #define MXV_NET_FLOAT			501010
 #define MXV_NET_DOUBLE			501011
+#define MXV_NET_CHAR			501013
 #define MXV_NET_RECORD			501031
 
 #define MXV_EPI_STRING			502001
@@ -683,8 +685,8 @@
 
 #define MXV_CAL_POSITION_SELECT		503601
 
-#define MXV_PMA_LONG			504008
-#define MXV_PMA_ULONG			504009
+#define MXV_PMA_INT32			504006
+#define MXV_PMA_UINT32			504007
 #define MXV_PMA_DOUBLE			504011
 
 #define MXV_SPEC_STRING			505001

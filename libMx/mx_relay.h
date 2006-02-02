@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,8 +30,8 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
                             * to this relay.
                             */
-	int relay_command;
-	int relay_status;
+	int32_t relay_command;
+	int32_t relay_status;
 } MX_RELAY;
 
 #define MXLV_RLY_RELAY_COMMAND	1001
@@ -52,8 +52,8 @@ typedef struct {
 } MX_RELAY_FUNCTION_LIST;
 
 MX_API mx_status_type mx_relay_command( MX_RECORD *relay_record,
-						int relay_command );
+						int32_t relay_command );
 MX_API mx_status_type mx_get_relay_status( MX_RECORD *relay_record,
-						int *relay_status );
+						int32_t *relay_status );
 
 #endif /* __MX_RELAY_H__ */

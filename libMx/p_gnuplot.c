@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_PLOT_FUNCTION_LIST mxp_gnuplot_function_list = {
 MX_EXPORT mx_status_type
 mxp_gnuplot_open( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuplot_open()";
+	static const char fname[] = "mxp_gnuplot_open()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
@@ -128,7 +128,7 @@ mxp_gnuplot_open( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_close( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuplot_close()";
+	static const char fname[] = "mxp_gnuplot_close()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	int status;
@@ -175,7 +175,7 @@ mxp_gnuplot_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuplot_add_measurement_to_plot_buffer()";
+	static const char fname[] = "mxp_gnuplot_add_measurement_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
@@ -322,16 +322,16 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 MX_EXPORT mx_status_type
 mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
-		long position_type, long num_positions, void *position_array,
-		long data_type, long num_data_points, void *data_array )
+	long position_type, mx_length_type num_positions, void *position_array,
+	long data_type, mx_length_type num_data_points, void *data_array )
 {
-	const char fname[] = "mxp_gnuplot_add_array_to_plot_buffer()";
+	static const char fname[] = "mxp_gnuplot_add_array_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
-	long *long_position_array, *long_data_array;
+	int32_t *int32_position_array, *int32_data_array;
 	double *double_position_array, *double_data_array;
-	long i;
+	mx_length_type i;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -363,34 +363,34 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
 
-	long_position_array = long_data_array = NULL;
+	int32_position_array = int32_data_array = NULL;
 	double_position_array = double_data_array = NULL;
 
 	/* Construct data type specific array pointers. */
 
 	switch( position_type ) {
-	case MXFT_LONG:
-		long_position_array = (void *) position_array;
+	case MXFT_INT32:
+		int32_position_array = (void *) position_array;
 		break;
 	case MXFT_DOUBLE:
 		double_position_array = (void *) position_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_LONG or MXFT_DOUBLE position arrays are supported." );
+	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
 		break;
 	}
 	
 	switch( data_type ) {
-	case MXFT_LONG:
-		long_data_array = (void *) data_array;
+	case MXFT_INT32:
+		int32_data_array = (void *) data_array;
 		break;
 	case MXFT_DOUBLE:
 		double_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_LONG or MXFT_DOUBLE data arrays are supported." );
+	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
 		break;
 	}
 	
@@ -411,10 +411,10 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		(gnuplot_data->plotfile_step_count)++;
 	} else {
 		switch( position_type ) {
-		case MXFT_LONG:
+		case MXFT_INT32:
 			for ( i = 0; i < num_positions; i++ ) {
 				status = fprintf( gnuplot_data->pipe,
-					    " %ld", long_position_array[i] );
+				    " %ld", (long) (int32_position_array[i]) );
 
 				CHECK_PLOTGNU_STATUS;
 			}
@@ -422,7 +422,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		case MXFT_DOUBLE:
 			for ( i = 0; i < num_positions; i++ ) {
 				status = fprintf( gnuplot_data->pipe,
-					    " %g", double_position_array[i] );
+				    " %g", double_position_array[i] );
 
 				CHECK_PLOTGNU_STATUS;
 			}
@@ -433,10 +433,10 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	/* Plot the scaler measurements. */
 
 	switch( data_type ) {
-	case MXFT_LONG:
+	case MXFT_INT32:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( gnuplot_data->pipe, " %ld",
-					long_data_array[i] );
+					(long) (int32_data_array[i]) );
 
 			CHECK_PLOTGNU_STATUS;
 		}
@@ -461,7 +461,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 MX_EXPORT mx_status_type
 mxp_gnuplot_display_plot( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuplot_display_plot()";
+	static const char fname[] = "mxp_gnuplot_display_plot()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	int status, saved_errno;
@@ -501,7 +501,7 @@ mxp_gnuplot_display_plot( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	const char fname[] = "mxp_gnuplot_set_x_range()";
+	static const char fname[] = "mxp_gnuplot_set_x_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	MX_SCAN *scan;
@@ -541,7 +541,7 @@ mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 MX_EXPORT mx_status_type
 mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	const char fname[] = "mxp_gnuplot_set_y_range()";
+	static const char fname[] = "mxp_gnuplot_set_y_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	MX_SCAN *scan;
@@ -581,7 +581,7 @@ mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 MX_EXPORT mx_status_type
 mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuplot_start_plot_section()";
+	static const char fname[] = "mxp_gnuplot_start_plot_section()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;

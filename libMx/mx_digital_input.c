@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,9 +24,9 @@
 #include "mx_digital_input.h"
 
 MX_EXPORT mx_status_type
-mx_digital_input_read( MX_RECORD *record, unsigned long *value )
+mx_digital_input_read( MX_RECORD *record, uint32_t *value )
 {
-	const char fname[] = "mx_digital_input_read()";
+	static const char fname[] = "mx_digital_input_read()";
 
 	MX_DIGITAL_INPUT *digital_input;
 	MX_DIGITAL_INPUT_FUNCTION_LIST *function_list;

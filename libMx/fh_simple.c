@@ -40,7 +40,7 @@ mxfh_simple_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 			MX_SIMPLE_MEASUREMENT_FAULT **simple_fault_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxfh_simple_get_pointers()";
+	static const char fname[] = "mxfh_simple_get_pointers()";
 
 	if ( fault_handler == (MX_MEASUREMENT_FAULT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -73,7 +73,7 @@ mxfh_simple_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 				void *fault_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxfh_simple_create_handler()";
+	static const char fname[] = "mxfh_simple_create_handler()";
 
 	MX_MEASUREMENT_FAULT_DRIVER *fault_driver;
 	MX_MEASUREMENT_FAULT *fault_handler_ptr;
@@ -262,7 +262,7 @@ mxfh_simple_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 MX_EXPORT mx_status_type
 mxfh_simple_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_destroy_handler()";
+	static const char fname[] = "mxfh_simple_destroy_handler()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	mx_status_type mx_status;
@@ -293,21 +293,22 @@ mxfh_simple_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_check_for_fault()";
+	static const char fname[] = "mxfh_simple_check_for_fault()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	MX_RECORD *fault_record;
 	long field_type;
-	unsigned long no_fault_value;
+	uint64_t no_fault_value;
 
 	char char_value;
-	unsigned char uchar_value;
-	short short_value;
-	unsigned short ushort_value;
-	int int_value;
-	unsigned int uint_value;
-	long long_value;
-	unsigned long ulong_value;
+	int8_t int8_value;
+	uint8_t uint8_value;
+	int16_t int16_value;
+	uint16_t uint16_value;
+	int32_t int32_value;
+	uint32_t uint32_value;
+	int64_t int64_value;
+	uint64_t uint64_value;
 	mx_status_type mx_status;
 
 	mx_status = mxfh_simple_get_pointers( fault_handler,
@@ -322,28 +323,29 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	no_fault_value = simple_fault_struct->no_fault_value;
 
 	MX_DEBUG( 2,("%s invoked for fault record '%s', no_fault_value = %lu.",
-			fname, fault_record->name, no_fault_value));
+			fname, fault_record->name,
+			(unsigned long) no_fault_value));
 
 	switch( fault_record->mx_superclass ) {
 	case MXR_DEVICE:
 		switch( fault_record->mx_class ) {
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read( fault_record,
-								&ulong_value );
+								&uint32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ulong_value != no_fault_value ) {
+			if ( uint32_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( fault_record,
-								&int_value );
+								&int32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value != no_fault_value ) {
+			if ( int32_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
@@ -372,74 +374,84 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_UCHAR:
-			mx_status = mx_get_unsigned_char_variable( fault_record,
-								&uchar_value );
+		case MXFT_INT8:
+			mx_status = mx_get_int8_variable( fault_record,
+								&int8_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( uchar_value != no_fault_value ) {
+			if ( int8_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_SHORT:
-			mx_status = mx_get_short_variable( fault_record,
-								&short_value );
+		case MXFT_UINT8:
+			mx_status = mx_get_uint8_variable( fault_record,
+								&uint8_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( short_value != no_fault_value ) {
+			if ( uint8_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_USHORT:
-			mx_status = mx_get_unsigned_short_variable(fault_record,
-								&ushort_value );
+		case MXFT_INT16:
+			mx_status = mx_get_int16_variable( fault_record,
+								&int16_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ushort_value != no_fault_value ) {
+			if ( int16_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_INT:
-			mx_status = mx_get_int_variable( fault_record,
-								&int_value );
+		case MXFT_UINT16:
+			mx_status = mx_get_uint16_variable( fault_record,
+								&uint16_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value != no_fault_value ) {
+			if ( uint16_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_UINT:
-			mx_status = mx_get_unsigned_int_variable( fault_record,
-								&uint_value );
+		case MXFT_INT32:
+			mx_status = mx_get_int32_variable( fault_record,
+								&int32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( uint_value != no_fault_value ) {
+			if ( int32_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
-		case MXFT_LONG:
-			mx_status = mx_get_long_variable( fault_record,
-								&long_value );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( long_value != no_fault_value ) {
-				fault_handler->fault_status = TRUE;
-			}
-			break;
-		case MXFT_ULONG:
+		case MXFT_UINT32:
 		case MXFT_HEX:
-			mx_status = mx_get_unsigned_long_variable( fault_record,
-								&ulong_value );
+			mx_status = mx_get_uint32_variable( fault_record,
+								&uint32_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( ulong_value != no_fault_value ) {
+			if ( uint32_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_INT64:
+			mx_status = mx_get_int64_variable( fault_record,
+								&int64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int64_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_UINT64:
+			mx_status = mx_get_uint64_variable( fault_record,
+								&uint64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint64_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
@@ -462,12 +474,12 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_simple_reset()";
+	static const char fname[] = "mxfh_simple_reset()";
 
 	MX_SIMPLE_MEASUREMENT_FAULT *simple_fault_struct;
 	MX_RECORD *reset_record;
 	long field_type;
-	unsigned long reset_value;
+	uint32_t reset_value;
 	mx_status_type mx_status;
 
 	mx_status = mxfh_simple_get_pointers( fault_handler,
@@ -480,7 +492,7 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 	reset_value  = simple_fault_struct->reset_value;
 
 	MX_DEBUG( 2,("%s invoked for reset record '%s', reset_value = %lu.",
-			fname, reset_record->name, reset_value));
+			fname, reset_record->name, (unsigned long)reset_value));
 
 #if 0
 	if ( fault_handler->reset_flags ==
@@ -503,7 +515,7 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 			break;
 		case MXC_RELAY:
 			mx_status = mx_relay_command( reset_record,
-							(int) reset_value );
+							reset_value );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -524,34 +536,38 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 			mx_status = mx_set_char_variable( reset_record,
 						(char) reset_value );
 			break;
-		case MXFT_UCHAR:
-			mx_status = mx_set_unsigned_char_variable( reset_record,
-						(unsigned char) reset_value );
+		case MXFT_INT8:
+			mx_status = mx_set_int8_variable( reset_record,
+						(int8_t) reset_value );
 			break;
-		case MXFT_SHORT:
-			mx_status = mx_set_short_variable( reset_record,
-						(short) reset_value );
+		case MXFT_UINT8:
+			mx_status = mx_set_uint8_variable( reset_record,
+						(uint8_t) reset_value );
 			break;
-		case MXFT_USHORT:
-			mx_status = mx_set_unsigned_short_variable(reset_record,
-						(unsigned short) reset_value );
+		case MXFT_INT16:
+			mx_status = mx_set_int16_variable( reset_record,
+						(int16_t) reset_value );
 			break;
-		case MXFT_INT:
-			mx_status = mx_set_int_variable( reset_record,
-						(int) reset_value );
+		case MXFT_UINT16:
+			mx_status = mx_set_uint16_variable(reset_record,
+						(uint16_t) reset_value );
 			break;
-		case MXFT_UINT:
-			mx_status = mx_set_unsigned_int_variable( reset_record,
-						(unsigned int) reset_value );
+		case MXFT_INT32:
+			mx_status = mx_set_int32_variable( reset_record,
+						(int32_t) reset_value );
 			break;
-		case MXFT_LONG:
-			mx_status = mx_set_long_variable( reset_record,
-						(long) reset_value );
-			break;
-		case MXFT_ULONG:
+		case MXFT_UINT32:
 		case MXFT_HEX:
-			mx_status = mx_set_unsigned_long_variable( reset_record,
-						(unsigned long) reset_value );
+			mx_status = mx_set_uint32_variable( reset_record,
+						(uint32_t) reset_value );
+			break;
+		case MXFT_INT64:
+			mx_status = mx_set_int64_variable( reset_record,
+						(int64_t) reset_value );
+			break;
+		case MXFT_UINT64:
+			mx_status = mx_set_uint64_variable( reset_record,
+						(uint64_t) reset_value );
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

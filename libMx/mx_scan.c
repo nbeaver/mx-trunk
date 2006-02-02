@@ -2003,7 +2003,7 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 	mx_length_type num_dimensions;
 	mx_length_type *dimension_array;
 	long long_value, field_type;
-	unsigned long ulong_value;
+	uint32_t uint32_value;
 	int int_value;
 	double double_value;
 	void *ptr_to_value;
@@ -2026,14 +2026,14 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read( input_device,
-							&ulong_value );
-			*returned_value = (double) ulong_value;
+							&uint32_value );
+			*returned_value = (double) uint32_value;
 			break;
 
 		case MXC_DIGITAL_OUTPUT:
 			mx_status = mx_digital_output_read( input_device,
-							&ulong_value );
-			*returned_value = (double) ulong_value;
+							&uint32_value );
+			*returned_value = (double) uint32_value;
 			break;
 
 		case MXC_MOTOR:
@@ -2130,13 +2130,6 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 		case MXFT_DOUBLE:
 			*returned_value = *((double *) ptr_to_value);
 			break;
-		case MXFT_OLD_LONG:
-			*returned_value = (double) *((long *) ptr_to_value);
-			break;
-		case MXFT_OLD_ULONG:
-			*returned_value = (double)
-					*((unsigned long *) ptr_to_value);
-			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"This operation is only supported for MX variables "
@@ -2216,12 +2209,14 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		case MXC_DIGITAL_INPUT:
 			digital_input = (MX_DIGITAL_INPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu", digital_input->value);
+			sprintf(buffer, "%10lu",
+				(unsigned long) digital_input->value);
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			digital_output = (MX_DIGITAL_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu", digital_output->value);
+			sprintf(buffer, "%10lu",
+				(unsigned long) digital_output->value);
 			break;
 		case MXC_MOTOR:
 			motor = (MX_MOTOR *)

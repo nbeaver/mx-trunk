@@ -450,8 +450,6 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_DOUBLE:
 	case MXFT_HEX:
 	case MXFT_CHAR:
-	case MXFT_OLD_LONG:
-	case MXFT_OLD_ULONG:
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

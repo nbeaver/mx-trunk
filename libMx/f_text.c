@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_DATAFILE_FUNCTION_LIST mxdf_text_datafile_function_list = {
 MX_EXPORT mx_status_type
 mxdf_text_open( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_open()";
+	static const char fname[] = "mxdf_text_open()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	int saved_errno;
@@ -94,7 +94,7 @@ mxdf_text_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_text_close( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_close()";
+	static const char fname[] = "mxdf_text_close()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	int status, saved_errno;
@@ -166,7 +166,7 @@ mxdf_text_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_add_measurement_to_datafile()";
+	static const char fname[] = "mxdf_text_add_measurement_to_datafile()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	MX_RECORD **motor_record_array;
@@ -326,17 +326,17 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 MX_EXPORT mx_status_type
 mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
-		long position_type, long num_positions, void *position_array,
-		long data_type, long num_data_points, void *data_array )
+	long position_type, mx_length_type num_positions, void *position_array,
+	long data_type, mx_length_type num_data_points, void *data_array )
 {
-	const char fname[] = "mxdf_text_add_array_to_datafile()";
+	static const char fname[] = "mxdf_text_add_array_to_datafile()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	MX_SCAN *scan;
 	FILE *output_file;
-	long *long_position_array, *long_data_array;
+	int32_t *int32_position_array, *int32_data_array;
 	double *double_position_array, *double_data_array;
-	long i;
+	mx_length_type i;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -371,14 +371,14 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 			datafile->filename );
 	}
 
-	long_position_array = long_data_array = NULL;
+	int32_position_array = int32_data_array = NULL;
 	double_position_array = double_data_array = NULL;
 
 	/* Construct data type specific array pointers. */
 
 	switch( position_type ) {
-	case MXFT_LONG:
-		long_position_array = (void *) position_array;
+	case MXFT_INT32:
+		int32_position_array = (void *) position_array;
 		break;
 	case MXFT_DOUBLE:
 		double_position_array = (void *) position_array;
@@ -390,25 +390,25 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	}
 	
 	switch( data_type ) {
-	case MXFT_LONG:
-		long_data_array = (void *) data_array;
+	case MXFT_INT32:
+		int32_data_array = (void *) data_array;
 		break;
 	case MXFT_DOUBLE:
 		double_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_LONG or MXFT_DOUBLE data arrays are supported." );
+	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
 		break;
 	}
 	
 	/* Print out the current motor positions (if any). */
 
 	switch( position_type ) {
-	case MXFT_LONG:
+	case MXFT_INT32:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10ld",
-					long_position_array[i] );
+					(long)(int32_position_array[i]) );
 
 			CHECK_FPRINTF_STATUS;
 		}
@@ -427,10 +427,10 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	/* Print out the scaler measurements. */
 
 	switch( data_type ) {
-	case MXFT_LONG:
+	case MXFT_INT32:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( output_file, " %-10ld",
-					long_data_array[i] );
+					(long)(int32_data_array[i]) );
 
 			CHECK_FPRINTF_STATUS;
 		}

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@ typedef struct {
 	MX_RECORD *fault_record;
 	MX_RECORD *reset_record;
 
-	unsigned long no_fault_value;
-	unsigned long reset_value;
+	uint32_t no_fault_value;
+	uint32_t reset_value;
 } MX_SIMPLE_MEASUREMENT_FAULT;
 
 MX_API mx_status_type mxfh_simple_create_handler(
