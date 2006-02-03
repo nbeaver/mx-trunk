@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,7 @@ MX_API mx_status_type mxs_joerger_quick_scan_cleanup_after_scan_end(
 extern MX_RECORD_FUNCTION_LIST mxs_joerger_quick_scan_record_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_joerger_quick_scan_scan_function_list;
 
-extern long mxs_joerger_quick_scan_num_record_fields;
+extern mx_length_type mxs_joerger_quick_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_joerger_quick_scan_def_ptr;
 
 #endif /* __SQ_JOERGER_H__ */

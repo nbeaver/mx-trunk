@@ -68,7 +68,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_ks3063_in_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_ks3063_in_digital_input_function_list;
 
-extern long mxd_ks3063_in_num_record_fields;
+extern mx_length_type mxd_ks3063_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3063_in_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -88,7 +88,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_ks3063_out_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_ks3063_out_digital_output_function_list;
 
-extern long mxd_ks3063_out_num_record_fields;
+extern mx_length_type mxd_ks3063_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3063_out_rfield_def_ptr;
 
 #endif /* __D_KS3063_H__ */

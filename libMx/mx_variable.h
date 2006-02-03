@@ -259,11 +259,12 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 #define MX_VARIABLE_STANDARD_FIELDS \
   {-1, -1, "num_dimensions", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, num_dimensions), \
-	{0}, NULL, MXFF_IN_DESCRIPTION}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
 \
-  {-1, -1, "dimension", MXFT_VARARGS, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "dimension", MXFT_LENGTH, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, dimension), \
-	{sizeof(mx_length_type)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }
+	{sizeof(mx_length_type)}, NULL, \
+		(MXFF_IN_DESCRIPTION | MXFF_VARARGS | MXFF_READ_ONLY) }
 
 
 /* =========================================== */

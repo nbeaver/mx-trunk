@@ -56,7 +56,7 @@ MX_API mx_status_type mxd_ks3640_write( MX_ENCODER *encoder );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list;
 extern MX_ENCODER_FUNCTION_LIST mxd_ks3640_encoder_function_list;
 
-extern long mxd_ks3640_num_record_fields;
+extern mx_length_type mxd_ks3640_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3640_rfield_def_ptr;
 
 #define MXD_KS3640_STANDARD_FIELDS \

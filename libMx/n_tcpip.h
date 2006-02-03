@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,7 @@ extern MX_RECORD_FUNCTION_LIST mxn_tcpip_server_record_function_list;
 extern MX_NETWORK_SERVER_FUNCTION_LIST
 			mxn_tcpip_server_network_server_function_list;
 
-extern long mxn_tcpip_server_num_record_fields;
+extern mx_length_type mxn_tcpip_server_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxn_tcpip_server_rfield_def_ptr;
 
 #define MXN_TCPIP_SERVER_STANDARD_FIELDS \

@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -113,10 +113,10 @@ MX_API mx_status_type mxd_panther_getc_nowait( MX_PANTHER *panther,
 MX_API mx_status_type mxd_panther_putc( MX_PANTHER *panther,
 			char c, int debug_flag );
 
-extern long mxd_panther_hi_num_record_fields;
+extern mx_length_type mxd_panther_hi_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_hi_rfield_def_ptr;
 
-extern long mxd_panther_he_num_record_fields;
+extern mx_length_type mxd_panther_he_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_he_rfield_def_ptr;
 
 #define MXD_PANTHER_HI_STANDARD_FIELDS \

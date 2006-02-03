@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +42,7 @@ MX_API mx_status_type mxi_cxtilt02_open( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_cxtilt02_record_function_list;
 
-extern long mxi_cxtilt02_num_record_fields;
+extern mx_length_type mxi_cxtilt02_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_cxtilt02_rfield_def_ptr;
 
 MX_API mx_status_type mxi_cxtilt02_command( MX_CXTILT02 *cxtilt02,

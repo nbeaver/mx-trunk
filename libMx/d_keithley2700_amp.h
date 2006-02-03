@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_API mx_status_type mxd_keithley2700_amp_set_time_constant(
 extern MX_RECORD_FUNCTION_LIST mxd_keithley2700_amp_record_function_list;
 extern MX_AMPLIFIER_FUNCTION_LIST mxd_keithley2700_amp_amplifier_function_list;
 
-extern long mxd_keithley2700_amp_num_record_fields;
+extern mx_length_type mxd_keithley2700_amp_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2700_amp_rfield_def_ptr;
 
 #define MXD_KEITHLEY2700_AMP_STANDARD_FIELDS \

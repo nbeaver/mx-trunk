@@ -65,7 +65,7 @@ MX_API mx_status_type mxd_pmac_cs_axis_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_cs_axis_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_pmac_cs_axis_motor_function_list;
 
-extern long mxd_pmac_cs_axis_num_record_fields;
+extern mx_length_type mxd_pmac_cs_axis_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_cs_axis_rfield_def_ptr;
 
 #define MXD_PMAC_CS_AXIS_STANDARD_FIELDS \

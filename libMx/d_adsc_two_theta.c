@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_adsc_two_theta_record_field_defaults[] = {
 	MXD_ADSC_TWO_THETA_STANDARD_FIELDS
 };
 
-long mxd_adsc_two_theta_num_record_fields
+mx_length_type mxd_adsc_two_theta_num_record_fields
 		= sizeof( mxd_adsc_two_theta_record_field_defaults )
 			/ sizeof( mxd_adsc_two_theta_record_field_defaults[0] );
 

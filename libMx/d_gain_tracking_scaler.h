@@ -5,7 +5,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_API mx_status_type mxd_gain_tracking_scaler_set_parameter(
 extern MX_RECORD_FUNCTION_LIST mxd_gain_tracking_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_gain_tracking_scaler_scaler_function_list;
 
-extern long mxd_gain_tracking_scaler_num_record_fields;
+extern mx_length_type mxd_gain_tracking_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_gain_tracking_scaler_rfield_def_ptr;
 
 #define MXD_GAIN_TRACKING_SCALER_STANDARD_FIELDS \

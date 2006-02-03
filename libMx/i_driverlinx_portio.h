@@ -52,7 +52,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_driverlinx_portio_record_function_list;
 extern MX_PORTIO_FUNCTION_LIST mxi_driverlinx_portio_portio_function_list;
 
-extern long mxi_driverlinx_portio_num_record_fields;
+extern mx_length_type mxi_driverlinx_portio_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_driverlinx_portio_rfield_def_ptr;
 
 #endif /* __I_DRIVERLINX_PORTIO_H__ */

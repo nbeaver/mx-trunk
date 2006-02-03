@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000 Illinois Institute of Technology
+ * Copyright 1999-2000, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ MX_API mx_status_type mxd_ls330_motor_command(
 			char *command, char *response,
 			int response_buffer_length, int debug_flag );
 
-extern long mxd_ls330_motor_num_record_fields;
+extern mx_length_type mxd_ls330_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ls330_motor_rfield_def_ptr;
 
 #define MXD_LS330_MOTOR_STANDARD_FIELDS \

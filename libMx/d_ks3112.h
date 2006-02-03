@@ -55,7 +55,7 @@ MX_API mx_status_type mxd_ks3112_write( MX_ANALOG_OUTPUT *dac );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3112_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_ks3112_analog_output_function_list;
 
-extern long mxd_ks3112_num_record_fields;
+extern mx_length_type mxd_ks3112_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3112_rfield_def_ptr;
 
 #endif /* __D_KS3112_H__ */

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004 Illinois Institute of Technology
+ * Copyright 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,7 @@ MX_API_PRIVATE mx_status_type mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *ainput );
 extern MX_RECORD_FUNCTION_LIST mxd_xia_dxp_sum_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_xia_dxp_sum_analog_input_function_list;
 
-extern long mxd_xia_dxp_sum_num_record_fields;
+extern mx_length_type mxd_xia_dxp_sum_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_xia_dxp_sum_rfield_def_ptr;
 
 #endif /* _D_XIA_DXP_SUM_H_ */

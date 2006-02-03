@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_API mx_status_type mxd_mca_channel_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_mca_channel_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_mca_channel_scaler_function_list;
 
-extern long mxd_mca_channel_num_record_fields;
+extern mx_length_type mxd_mca_channel_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_channel_rfield_def_ptr;
 
 #define MXD_MCA_CHANNEL_STANDARD_FIELDS \

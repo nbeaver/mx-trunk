@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_linux_parport_in_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 			mxd_linux_parport_in_digital_input_function_list;
 
-extern long mxd_linux_parport_in_num_record_fields;
+extern mx_length_type mxd_linux_parport_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_linux_parport_in_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -88,7 +88,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_linux_parport_out_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 			mxd_linux_parport_out_digital_output_function_list;
 
-extern long mxd_linux_parport_out_num_record_fields;
+extern mx_length_type mxd_linux_parport_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_linux_parport_out_rfield_def_ptr;
 
 #endif /* __D_LINUX_PARPORT_H__ */

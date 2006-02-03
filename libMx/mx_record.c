@@ -617,7 +617,7 @@ mx_delete_placeholder_handler( MX_RECORD *record,
 	"The fixup_record_index (%ld) for record '%s', field '%s' is outside "
 	"the allowed range of 0 to %ld.",
 			fixup_record_index, record->name, record_field->name,
-			(list_head->num_fixup_records) - 1 );
+			list_head->num_fixup_records - 1L );
 	}
 
 	fixup_record_array = list_head->fixup_record_array;
@@ -893,8 +893,9 @@ mx_initialize_drivers( void )
 	MX_RECORD_FUNCTION_LIST *flist_ptr;
 	mx_status_type (*fptr) ( long );
 	mx_status_type mx_status;
-	long *num_record_fields_ptr;
-	long i, j, num_record_fields;
+	long i;
+	mx_length_type j, num_record_fields;
+	mx_length_type *num_record_fields_ptr;
 
 	MX_DEBUG( 6,("%s invoked.", fname));
 
@@ -927,7 +928,7 @@ mx_initialize_drivers( void )
 			{
 				MX_DEBUG( 8,
 		("num_record_fields = %ld, *record_field_defaults_ptr = %p",
-				    *(list_ptr->num_record_fields),
+			     (long) *(list_ptr->num_record_fields),
 				    *(list_ptr->record_field_defaults_ptr)));
 
 				mx_status

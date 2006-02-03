@@ -38,7 +38,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_scamac_record_function_list;
 extern MX_CAMAC_FUNCTION_LIST mxi_scamac_camac_function_list;
 
-extern long mxi_scamac_num_record_fields;
+extern mx_length_type mxi_scamac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_scamac_record_field_def_ptr;
 
 #define MXI_SCAMAC_STANDARD_FIELDS \

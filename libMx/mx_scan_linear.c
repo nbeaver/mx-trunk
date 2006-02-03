@@ -49,8 +49,9 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
+					int32_t, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					mx_hex_type)
 		);
 
 /*=========*/
@@ -106,7 +107,7 @@ mxs_linear_scan_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -467,7 +468,7 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	if ( scan->num_motors == 0 ) {
 		if ( scan->num_independent_variables > 0 ) {
 			fprintf( file, "    %ld measurements\n",
-				linear_scan->num_measurements[j] );
+				(long) (linear_scan->num_measurements[j]) );
 		}
 	} else {
 		for ( i = 0; i < scan->num_motors; i++ ) {
@@ -498,7 +499,7 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 					motor_units,
 					linear_scan->step_size[j],
 					motor_units,
-					linear_scan->num_measurements[j] );
+				(long) (linear_scan->num_measurements[j]) );
 	
 				j++;
 			}
@@ -596,8 +597,9 @@ mxs_linear_scan_execute_scan_body( MX_SCAN *scan )
 					( MX_SCAN *, MX_LINEAR_SCAN * );
 	mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int);
+					int32_t, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					mx_hex_type);
 	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
@@ -660,8 +662,9 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
+					int32_t, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					mx_hex_type)
 		)
 {
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";

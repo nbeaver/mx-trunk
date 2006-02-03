@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_API mx_status_type mxd_am9513_timer_set_mode( MX_TIMER *timer );
 extern MX_RECORD_FUNCTION_LIST mxd_am9513_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_am9513_timer_timer_function_list;
 
-extern long mxd_am9513_timer_num_record_fields;
+extern mx_length_type mxd_am9513_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_am9513_timer_rfield_def_ptr;
 
 #define MXD_AM9513_TIMER_STANDARD_FIELDS \

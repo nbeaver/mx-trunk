@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_file_list_scan_defaults[] = {
 	MX_FILE_LIST_SCAN_STANDARD_FIELDS
 };
 
-long mxs_file_list_scan_num_record_fields
+mx_length_type mxs_file_list_scan_num_record_fields
 			= sizeof( mxs_file_list_scan_defaults )
 			/ sizeof( mxs_file_list_scan_defaults[0] );
 
@@ -102,8 +102,8 @@ mxs_file_list_scan_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "num_independent_variables = %ld is not the same as num_motors = %ld.  "
 "This is not allowed for a list scan.",
-			scan->num_independent_variables,
-			scan->num_motors );
+			(long) scan->num_independent_variables,
+			(long) scan->num_motors );
 	}
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
@@ -225,7 +225,7 @@ mxs_file_list_scan_get_next_measurement_parameters( MX_SCAN *scan,
 	double *motor_position;
 	double double_value;
 	int num_items, saved_errno;
-	long i;
+	mx_length_type i;
 	size_t num_matched, num_not_matched;
 
 	MX_DEBUG( 2,("%s invoked.",fname));
@@ -312,7 +312,7 @@ mxs_file_list_scan_get_next_measurement_parameters( MX_SCAN *scan,
 				return mx_error(
 					MXE_UNEXPECTED_END_OF_DATA, fname,
 		"Only %ld motor positions on line when %ld were expected.",
-				i, scan->num_motors );
+				(long) i, (long) scan->num_motors );
 			}
 		}
 

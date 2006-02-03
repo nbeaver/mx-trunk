@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ MX_API mx_status_type mxd_aps_adcmod2_set_parameter( MX_AMPLIFIER *amplifier );
 extern MX_RECORD_FUNCTION_LIST mxd_aps_adcmod2_record_function_list;
 extern MX_AMPLIFIER_FUNCTION_LIST mxd_aps_adcmod2_amplifier_function_list;
 
-extern long mxd_aps_adcmod2_num_record_fields;
+extern mx_length_type mxd_aps_adcmod2_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_rfield_def_ptr;
 
 #define MXD_APS_ADCMOD2_STANDARD_FIELDS \

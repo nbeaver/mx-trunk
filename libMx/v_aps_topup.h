@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,10 +40,10 @@ MX_API_PRIVATE mx_status_type mxv_aps_topup_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_aps_topup_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_aps_topup_variable_function_list;
 
-extern long mxv_aps_topup_interlock_num_record_fields;
+extern mx_length_type mxv_aps_topup_interlock_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_aps_topup_interlock_field_def_ptr;
 
-extern long mxv_aps_topup_time_to_inject_num_record_fields;
+extern mx_length_type mxv_aps_topup_time_to_inject_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_aps_topup_time_to_inject_field_def_ptr;
 
 #endif /* _V_APS_TOPUP_H_ */

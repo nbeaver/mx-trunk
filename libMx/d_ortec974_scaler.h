@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_API mx_status_type mxd_ortec974_scaler_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_ortec974_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_ortec974_scaler_scaler_function_list;
 
-extern long mxd_ortec974_scaler_num_record_fields;
+extern mx_length_type mxd_ortec974_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_scaler_rfield_def_ptr;
 
 #define MXD_ORTEC974_SCALER_STANDARD_FIELDS \

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ MX_API mx_status_type mxi_pfcu_command( MX_PFCU *pfcu,
 
 extern MX_RECORD_FUNCTION_LIST mxi_pfcu_record_function_list;
 
-extern long mxi_pfcu_num_record_fields;
+extern mx_length_type mxi_pfcu_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pfcu_rfield_def_ptr;
 
 #endif /* __I_PFCU_H__ */

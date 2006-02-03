@@ -144,7 +144,7 @@ typedef struct mx_record_type {
 	void *record_function_list;	/* Ptr to MX_RECORD_FUNCTION_LIST */
 	void *superclass_specific_function_list;
 	void *class_specific_function_list;
-	long                  num_record_fields;
+	mx_length_type        num_record_fields;
 	MX_RECORD_FIELD       *record_field_array;
 	struct mx_record_type *allocated_by;
 	mx_length_type        num_groups;
@@ -185,8 +185,6 @@ typedef struct {
 #define MXFT_INTERFACE		33
 
 #define MXFT_LENGTH		MXFT_INT32
-
-#define MXFT_VARARGS		MXFT_LENGTH
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
@@ -339,7 +337,7 @@ typedef struct {
 	MX_RECORD_FUNCTION_LIST *record_function_list;
 	void *superclass_specific_function_list;
 	void *class_specific_function_list;
-	long *num_record_fields;
+	mx_length_type *num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 } MX_DRIVER;
 
@@ -379,7 +377,7 @@ typedef struct {
 	int is_server;
 	void *connection_acl;
 	int fixup_records_in_use;
-	long num_fixup_records;
+	mx_length_type num_fixup_records;
 	void **fixup_record_array;
 	int plotting_enabled;
 	int default_precision;
@@ -620,7 +618,7 @@ MX_API_PRIVATE const char *mx_get_field_type_string( long field_type );
 MX_API_PRIVATE void *mx_get_field_value_pointer( MX_RECORD_FIELD *field );
 
 MX_API_PRIVATE mx_status_type  mx_setup_typeinfo_for_record_type_fields(
-		long num_record_fields,
+		mx_length_type num_record_fields,
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_for_type,
 		long mx_type, long mx_class, long mx_superclass );
 

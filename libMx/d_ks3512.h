@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_API mx_status_type mxd_ks3512_read( MX_ANALOG_INPUT *adc );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3512_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_ks3512_analog_input_function_list;
 
-extern long mxd_ks3512_num_record_fields;
+extern mx_length_type mxd_ks3512_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3512_rfield_def_ptr;
 
 #endif /* __D_KS3512_H__ */

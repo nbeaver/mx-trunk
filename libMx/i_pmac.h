@@ -131,7 +131,7 @@ MX_API mx_status_type mxi_pmac_special_processing_setup( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_pmac_record_function_list;
 
-extern long mxi_pmac_num_record_fields;
+extern mx_length_type mxi_pmac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pmac_rfield_def_ptr;
 
 /* === Driver specific functions === */

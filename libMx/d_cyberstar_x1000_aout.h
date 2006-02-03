@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_cyberstar_x1000_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 			mxd_cyberstar_x1000_aout_analog_output_function_list;
 
-extern long mxd_cyberstar_x1000_aout_num_record_fields;
+extern mx_length_type mxd_cyberstar_x1000_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_cyberstar_x1000_aout_rfield_def_ptr;
 
 #endif /* __D_CYBERSTAR_X1000_AOUT_H__ */

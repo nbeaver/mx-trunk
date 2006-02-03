@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_API mx_status_type mxi_pdi45_command( MX_PDI45 *pdi45, char *command,
 
 extern MX_RECORD_FUNCTION_LIST mxi_pdi45_record_function_list;
 
-extern long mxi_pdi45_num_record_fields;
+extern mx_length_type mxi_pdi45_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pdi45_rfield_def_ptr;
 
 /**************************************************************************/

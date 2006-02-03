@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -96,7 +96,7 @@ mxd_mdrive_get_error_code( MX_MDRIVE *mdrive,
 				int *mdrive_error_code,
 				const char **mdrive_error_message );
 
-extern long mxd_mdrive_num_record_fields;
+extern mx_length_type mxd_mdrive_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mdrive_rfield_def_ptr;
 
 #define MXD_MDRIVE_STANDARD_FIELDS \

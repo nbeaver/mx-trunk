@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,15 +42,15 @@ MX_API_PRIVATE mx_status_type mxv_spec_receive_variable( MX_VARIABLE *variable);
 extern MX_RECORD_FUNCTION_LIST mxv_spec_property_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_spec_property_variable_function_list;
 
-extern long mxv_spec_long_num_record_fields;
-extern long mxv_spec_ulong_num_record_fields;
-extern long mxv_spec_short_num_record_fields;
-extern long mxv_spec_ushort_num_record_fields;
-extern long mxv_spec_char_num_record_fields;
-extern long mxv_spec_uchar_num_record_fields;
-extern long mxv_spec_float_num_record_fields;
-extern long mxv_spec_double_num_record_fields;
-extern long mxv_spec_string_num_record_fields;
+extern mx_length_type mxv_spec_long_num_record_fields;
+extern mx_length_type mxv_spec_ulong_num_record_fields;
+extern mx_length_type mxv_spec_short_num_record_fields;
+extern mx_length_type mxv_spec_ushort_num_record_fields;
+extern mx_length_type mxv_spec_char_num_record_fields;
+extern mx_length_type mxv_spec_uchar_num_record_fields;
+extern mx_length_type mxv_spec_float_num_record_fields;
+extern mx_length_type mxv_spec_double_num_record_fields;
+extern mx_length_type mxv_spec_string_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_spec_long_rfield_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_spec_ulong_rfield_def_ptr;

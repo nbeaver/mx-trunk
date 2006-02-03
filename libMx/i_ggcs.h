@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_API mx_status_type mxi_ggcs_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_ggcs_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_ggcs_generic_function_list;
 
-extern long mxi_ggcs_num_record_fields;
+extern mx_length_type mxi_ggcs_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_ggcs_rfield_def_ptr;
 
 /* === Driver specific functions === */

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_API mx_status_type mxd_pmac_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_pmac_motor_function_list;
 
-extern long mxd_pmac_num_record_fields;
+extern mx_length_type mxd_pmac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 
 #define MXD_PMAC_STANDARD_FIELDS \

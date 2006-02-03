@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,7 +110,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_sercat_als_robot_record_function_list;
 extern MX_SAMPLE_CHANGER_FUNCTION_LIST
 			mxd_sercat_als_robot_sample_changer_function_list;
 
-extern long mxd_sercat_als_robot_num_record_fields;
+extern mx_length_type mxd_sercat_als_robot_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_sercat_als_robot_rfield_def_ptr;
 
 #endif /* __D_SERCAT_ALS_ROBOT_H__ */

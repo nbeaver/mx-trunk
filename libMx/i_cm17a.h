@@ -48,7 +48,7 @@ MX_API mx_status_type mxi_cm17a_command( MX_CM17A *cm17a,
 
 extern MX_RECORD_FUNCTION_LIST mxi_cm17a_record_function_list;
 
-extern long mxi_cm17a_num_record_fields;
+extern mx_length_type mxi_cm17a_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_cm17a_rfield_def_ptr;
 
 #endif /* __I_CM17A_H__ */

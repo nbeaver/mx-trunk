@@ -66,7 +66,7 @@ mx_quick_scan_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -194,8 +194,8 @@ mx_quick_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 				quick_scan->start_position[j], motor_units,
 				quick_scan->end_position[i], motor_units,
 				step_size, motor_units,
-				quick_scan->requested_num_measurements,
-				quick_scan->actual_num_measurements );
+				(long) quick_scan->requested_num_measurements,
+				(long) quick_scan->actual_num_measurements );
 
 			j++;
 		}
@@ -255,7 +255,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 	if ( motor_index < 0 || motor_index >= scan->num_motors ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The motor index %ld passed is outside the allowed range of (0-%ld).",
-			motor_index, scan->num_motors );
+			motor_index, (long) scan->num_motors );
 	}
 
 	independent_variable_record = (scan->motor_record_array)[motor_index];
@@ -360,7 +360,7 @@ mx_quick_scan_restore_old_motor_speed( MX_QUICK_SCAN *quick_scan,
 	if ( motor_index < 0 || motor_index >= scan->num_motors ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The motor index %ld passed is outside the allowed range of (0-%ld).",
-			motor_index, scan->num_motors );
+			motor_index, (long) scan->num_motors );
 	}
 
 	independent_variable_record = (scan->motor_record_array)[motor_index];

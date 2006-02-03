@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -60,7 +60,7 @@ MX_API mx_status_type mxi_keithley2700_close( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_keithley2700_record_function_list;
 
-extern long mxi_keithley2700_num_record_fields;
+extern mx_length_type mxi_keithley2700_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_keithley2700_rfield_def_ptr;
 
 #define MXI_KEITHLEY2700_STANDARD_FIELDS \

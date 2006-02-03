@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,10 +86,10 @@ extern MX_RECORD_FUNCTION_LIST mxd_icplus_record_function_list;
 
 extern MX_AMPLIFIER_FUNCTION_LIST mxd_icplus_amplifier_function_list;
 
-extern long mxd_icplus_num_record_fields;
+extern mx_length_type mxd_icplus_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_icplus_rfield_def_ptr;
 
-extern long mxd_qbpm_num_record_fields;
+extern mx_length_type mxd_qbpm_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_qbpm_rfield_def_ptr;
 
 #endif /* __D_ICPLUS_H__ */

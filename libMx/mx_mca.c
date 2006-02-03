@@ -134,7 +134,7 @@ mx_mca_initialize_type( long record_type,
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );

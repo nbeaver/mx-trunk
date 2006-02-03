@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_mcs_quick_scan_defaults[] = {
 	MX_QUICK_SCAN_STANDARD_FIELDS
 };
 
-long mxs_mcs_quick_scan_num_record_fields
+mx_length_type mxs_mcs_quick_scan_num_record_fields
 			= sizeof( mxs_mcs_quick_scan_defaults )
 			/ sizeof( mxs_mcs_quick_scan_defaults[0] );
 
@@ -74,7 +74,7 @@ mxs_mcs_quick_scan_free_arrays( MX_SCAN *scan,
 				MX_QUICK_SCAN *quick_scan,
 				MX_MCS_QUICK_SCAN *mcs_quick_scan )
 {
-	long dimension[2];
+	mx_length_type dimension[2];
 	size_t element_size[2];
 	long i;
 
@@ -277,7 +277,7 @@ mxs_mcs_quick_scan_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal number of motors %ld for scan '%s'.  "
 		"The allowed range is (0-%d)",
-			scan->num_motors, record->name,
+			(long) scan->num_motors, record->name,
 			MXS_SQ_MCS_MAX_MOTORS );
 	}
 
@@ -705,7 +705,7 @@ mxs_mcs_quick_scan_compute_scan_parameters(
 		fname, quick_scan->estimated_scan_duration));
 
 	MX_DEBUG( 2,("%s: quick_scan->requested_num_measurements = %ld",
-		fname, quick_scan->requested_num_measurements));
+		fname, (long) quick_scan->requested_num_measurements));
 
 	/* Compute the actual number of measurements required for this scan.
 	 * For this case, we always round up.
@@ -951,7 +951,7 @@ mxs_mcs_quick_scan_use_dead_reckoning(
 			"first_acceleration_measurement (%ld) "
 			"> quick_scan->actual_num_measurements (%ld).",
 			first_acceleration_measurement,
-			quick_scan->actual_num_measurements );
+			(long) quick_scan->actual_num_measurements );
 	}
 
 	for ( i = 0; i < first_acceleration_measurement; i++ ) {
@@ -1015,7 +1015,7 @@ mxs_mcs_quick_scan_use_dead_reckoning(
 			"first_scan_body_measurement (%ld) "
 			"> quick_scan->actual_num_measurements (%ld).",
 			first_scan_body_measurement,
-			quick_scan->actual_num_measurements );
+			(long) quick_scan->actual_num_measurements );
 	}
 
 	/* We need the acceleration distance and the base velocity for
@@ -1073,7 +1073,7 @@ mxs_mcs_quick_scan_use_dead_reckoning(
 	/* Estimate the motor position during the body of the scan. */
 
 	MX_DEBUG( 2,("%s: quick_scan->requested_num_measurements = %ld",
-		fname, quick_scan->requested_num_measurements ));
+		fname, (long) quick_scan->requested_num_measurements ));
 
 	first_post_body_measurement = first_scan_body_measurement
 				+ quick_scan->requested_num_measurements - 1L;
@@ -1481,7 +1481,7 @@ mxs_mcs_quick_scan_compute_motor_positions(
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Ran out of memory attempting to allocate a %ld element array "
 	"of MX_RECORD pointers for the scan_motor_array data structure.",
-			scan->num_motors );
+			(long) scan->num_motors );
 	}
 
 	scan_start_position = (double *)
@@ -1493,7 +1493,7 @@ mxs_mcs_quick_scan_compute_motor_positions(
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Ran out of memory attempting to allocate a %ld element array "
 	"of doubles for the scan_start_position data structure.",
-			scan->num_motors );
+			(long) scan->num_motors );
 	}
 
 	/* Compute the motor positions. */
@@ -1824,7 +1824,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_RECORD **real_motor_array;
 	int motor_is_compatible, this_motor_is_compatible;
 	long i, j;
-	long dimension[2];
+	mx_length_type dimension[2];
 	size_t element_size[2];
 	mx_status_type status;
 
@@ -1905,7 +1905,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( real_motor_array == (MX_RECORD **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Could not allocate a %ld element array of MX_RECORD pointers for "
-	"the real_motor_array data structure.", scan->num_motors );
+	"the real_motor_array data structure.", (long) scan->num_motors );
 	}
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
@@ -2248,7 +2248,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #if 1 /* WML: FIXME - This is a temporary kludge. */
 		{
 			MX_RECORD *kludge_record;
-			int pulse_mode;
+			int32_t pulse_mode;
 
 			kludge_record = mx_get_record(clock_record,
 							"mx_pulse_tweak");
@@ -2256,7 +2256,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			if ( kludge_record == NULL ) {
 				pulse_mode = MXF_PGN_PULSE;
 			} else {
-				status = mx_get_int_variable( kludge_record,
+				status = mx_get_int32_variable( kludge_record,
 								&pulse_mode );
 
 				if ( status.code != MXE_SUCCESS )
@@ -2306,7 +2306,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			status = mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an %ld array "
 			"of motor positions for motor %ld.",
-				quick_scan->actual_num_measurements, i );
+				(long) quick_scan->actual_num_measurements, i );
 
 			(void) mx_scan_restore_speeds( scan );
 			FREE_MOTOR_POSITION_ARRAYS;
@@ -2331,7 +2331,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				dimension[0], dimension[1], scan->record->name);
+				(long) dimension[0], (long) dimension[1],
+				scan->record->name );
 		}
 	}
 
@@ -2349,7 +2350,8 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				dimension[0], dimension[1], scan->record->name);
+				(long) dimension[0], (long) dimension[1],
+				scan->record->name );
 		}
 	}
 
@@ -2361,7 +2363,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( synchronous_motion_mode_record == (MX_RECORD *) NULL ) {
 		quick_scan->use_synchronous_motion_mode = FALSE;
 	} else {
-		status = mx_get_int_variable( synchronous_motion_mode_record,
+		status = mx_get_int32_variable( synchronous_motion_mode_record,
 				&(quick_scan->use_synchronous_motion_mode));
 	}
 
@@ -2833,7 +2835,7 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		FREE_MOTOR_POSITION_ARRAYS;
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Cannot allocate a %ld element array of scaler values.",
-			scan->num_input_devices );
+			(long) scan->num_input_devices );
 	}
 
 	measurement_time = mx_quick_scan_get_measurement_time( quick_scan );
@@ -2963,7 +2965,7 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		mx_status = mx_add_array_to_datafile( &(scan->datafile),
 			MXFT_DOUBLE, num_datafile_motors,
 						motor_datafile_positions,
-			MXFT_LONG, scan->num_input_devices, data_values );
+			MXFT_INT32, scan->num_input_devices, data_values );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 
@@ -2988,7 +2990,7 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 			(void) mx_add_array_to_plot_buffer( &(scan->plot),
 			    MXFT_DOUBLE, num_plot_motors, motor_plot_positions,
-			    MXFT_LONG, scan->num_input_devices, data_values );
+			    MXFT_INT32, scan->num_input_devices, data_values );
 		}
 	}
 

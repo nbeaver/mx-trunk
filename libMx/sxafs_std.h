@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ MX_API mx_status_type mxs_xafs_std_scan_finish_record_initialization(
 MX_API mx_status_type mxs_xafs_std_scan_delete_record(
 						MX_RECORD *record );
 
-extern long mxs_xafs_std_scan_num_record_fields;
+extern mx_length_type mxs_xafs_std_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_xafs_std_scan_def_ptr;
 
 #endif /* __SXAFS_STD_H__ */

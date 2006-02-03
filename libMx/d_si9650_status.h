@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_si9650_status_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_si9650_status_analog_input_function_list;
 
-extern long mxd_si9650_status_num_record_fields;
+extern mx_length_type mxd_si9650_status_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_si9650_status_rfield_def_ptr;
 
 #define MXD_SI9650_STATUS_STANDARD_FIELDS \

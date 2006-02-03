@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ MX_API mx_status_type mxs_file_list_scan_get_next_measurement_parameters(
 
 extern MX_LIST_SCAN_FUNCTION_LIST mxs_file_list_scan_function_list;
 
-extern long mxs_file_list_scan_num_record_fields;
+extern mx_length_type mxs_file_list_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_file_list_scan_def_ptr;
 
 #define MX_FILE_LIST_SCAN_STANDARD_FIELDS \

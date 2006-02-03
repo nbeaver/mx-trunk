@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,7 +36,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_2theta_linear_scan_defaults[] = {
 	MX_LINEAR_SCAN_STANDARD_FIELDS
 };
 
-long mxs_2theta_linear_scan_num_record_fields
+mx_length_type mxs_2theta_linear_scan_num_record_fields
 			= sizeof( mxs_2theta_linear_scan_defaults )
 			/ sizeof( mxs_2theta_linear_scan_defaults[0] );
 
@@ -76,7 +76,7 @@ MX_EXPORT mx_status_type
 mxs_2theta_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_2theta_scan_compute_motor_positions()";
+	static const char fname[] = "mxs_2theta_scan_compute_motor_positions()";
 
 	double *motor_position;
 
@@ -93,7 +93,7 @@ mxs_2theta_scan_compute_motor_positions( MX_SCAN *scan,
 	if ( scan->num_motors != 2 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"Number of motors for 2 theta scan is not 2.  Instead = %ld",
-			scan->num_motors );
+			(long) scan->num_motors );
 	}
 
 	motor_position = scan->motor_position;

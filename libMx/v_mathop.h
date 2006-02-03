@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -100,7 +100,7 @@ MX_API_PRIVATE mx_status_type mxv_mathop_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_mathop_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_mathop_variable_function_list;
 
-extern long mxv_mathop_num_record_fields;
+extern mx_length_type mxv_mathop_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_mathop_rfield_def_ptr;
 
 #endif /* __V_MATHOP_H__ */

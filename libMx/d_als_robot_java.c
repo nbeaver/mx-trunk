@@ -22,7 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_stdint.h"
+#include "mx_inttypes.h"
 #include "mx_rs232.h"
 #include "mx_sample_changer.h"
 
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_als_robot_java_record_field_defaults[] = {
 	MXD_ALS_ROBOT_JAVA_STANDARD_FIELDS
 };
 
-long mxd_als_robot_java_num_record_fields
+mx_length_type mxd_als_robot_java_num_record_fields
 		= sizeof( mxd_als_robot_java_record_field_defaults )
 			/ sizeof( mxd_als_robot_java_record_field_defaults[0] );
 
@@ -250,7 +250,7 @@ mxd_als_robot_java_mount_sample( MX_SAMPLE_CHANGER *changer )
 
 	sprintf( command, "run_op %lu mount %s %ld",
 		interaction_id, changer->requested_sample_holder,
-				changer->requested_sample_id );
+				(long) changer->requested_sample_id );
 
 	mx_status = mxd_als_robot_java_command( changer, als_robot_java,
 				command, NULL, 0, MXD_ALS_ROBOT_JAVA_DEBUG );
@@ -504,7 +504,7 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%s %ld %d",
+	num_items = sscanf( response, "%s %" SCNu32 " %d",
 			changer->current_sample_holder,
 			&(changer->current_sample_id), &value );
 

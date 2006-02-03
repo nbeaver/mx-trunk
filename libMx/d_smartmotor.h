@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -96,7 +96,7 @@ mxd_smartmotor_command( MX_SMARTMOTOR *smartmotor,
 MX_API mx_status_type
 mxd_smartmotor_check_port_name( MX_RECORD *smartmotor_record, char *port_name );
 
-extern long mxd_smartmotor_num_record_fields;
+extern mx_length_type mxd_smartmotor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_smartmotor_rfield_def_ptr;
 
 #define MXD_SMARTMOTOR_STANDARD_FIELDS \

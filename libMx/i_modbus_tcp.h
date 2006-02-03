@@ -44,7 +44,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_modbus_tcp_record_function_list;
 extern MX_MODBUS_FUNCTION_LIST mxi_modbus_tcp_modbus_function_list;
 
-extern long mxi_modbus_tcp_num_record_fields;
+extern mx_length_type mxi_modbus_tcp_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_modbus_tcp_rfield_def_ptr;
 
 #define MXI_MODBUS_TCP_STANDARD_FIELDS \

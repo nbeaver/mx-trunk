@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +68,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_scipe_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_scipe_ain_analog_input_function_list;
 
-extern long mxd_scipe_ain_num_record_fields;
+extern mx_length_type mxd_scipe_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_ain_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -82,7 +82,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_scipe_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_scipe_aout_analog_output_function_list;
 
-extern long mxd_scipe_aout_num_record_fields;
+extern mx_length_type mxd_scipe_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_aout_rfield_def_ptr;
 
 #endif /* __D_SCIPE_AIO_H__ */

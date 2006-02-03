@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -132,7 +132,7 @@ MX_API mx_status_type mxd_remote_marccd_check_for_responses( MX_CCD *ccd,
 extern MX_RECORD_FUNCTION_LIST mxd_remote_marccd_record_function_list;
 extern MX_CCD_FUNCTION_LIST mxd_remote_marccd_ccd_function_list;
 
-extern long mxd_remote_marccd_num_record_fields;
+extern mx_length_type mxd_remote_marccd_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_remote_marccd_rfield_def_ptr;
 
 #endif /* __D_REMOTE_MARCCD_H__ */

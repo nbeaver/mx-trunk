@@ -95,7 +95,7 @@ MX_API mx_status_type mxi_wago750_serial_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_wago750_serial_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_wago750_serial_rs232_function_list;
 
-extern long mxi_wago750_serial_num_record_fields;
+extern mx_length_type mxi_wago750_serial_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_wago750_serial_rfield_def_ptr;
 
 #define MXI_WAGO750_SERIAL_STANDARD_FIELDS \

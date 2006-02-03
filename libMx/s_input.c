@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_input_linear_scan_defaults[] = {
 	MX_LINEAR_SCAN_STANDARD_FIELDS
 };
 
-long mxs_input_linear_scan_num_record_fields
+mx_length_type mxs_input_linear_scan_num_record_fields
 			= sizeof( mxs_input_linear_scan_defaults )
 			/ sizeof( mxs_input_linear_scan_defaults[0] );
 
@@ -71,7 +71,7 @@ MX_EXPORT mx_status_type
 mxs_input_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_input_scan_compute_motor_positions()";
+	static const char fname[] = "mxs_input_scan_compute_motor_positions()";
 
 	if ( scan == (MX_SCAN *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -81,7 +81,7 @@ mxs_input_scan_compute_motor_positions( MX_SCAN *scan,
 	if ( scan->num_motors != 0 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"Number of motors for input device scan is not zero.  Instead = %ld",
-			scan->num_motors );
+			(long) scan->num_motors );
 	}
 
 	/* Nothing to compute for a input device scan. */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_motor_linear_scan_defaults[] = {
 	MX_LINEAR_SCAN_STANDARD_FIELDS
 };
 
-long mxs_motor_linear_scan_num_record_fields
+mx_length_type mxs_motor_linear_scan_num_record_fields
 			= sizeof( mxs_motor_linear_scan_defaults )
 			/ sizeof( mxs_motor_linear_scan_defaults[0] );
 
@@ -79,7 +79,7 @@ MX_EXPORT mx_status_type
 mxs_motor_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	const char fname[] = "mxs_motor_scan_compute_motor_positions()";
+	static const char fname[] = "mxs_motor_scan_compute_motor_positions()";
 
 	double *motor_position;
 	long i;

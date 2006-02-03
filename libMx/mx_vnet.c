@@ -45,7 +45,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_string_variable_defaults[] = {
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_string_variable_num_record_fields
+mx_length_type mxv_network_string_variable_num_record_fields
 			= sizeof( mxv_network_string_variable_defaults )
 			/ sizeof( mxv_network_string_variable_defaults[0] );
 
@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_char_variable_defaults[] = {
 	MX_CHAR_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_char_variable_num_record_fields
+mx_length_type mxv_network_char_variable_num_record_fields
 			= sizeof( mxv_network_char_variable_defaults )
 			/ sizeof( mxv_network_char_variable_defaults[0] );
 
@@ -77,7 +77,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_int8_variable_defaults[] = {
 	MX_INT8_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_int8_variable_num_record_fields
+mx_length_type mxv_network_int8_variable_num_record_fields
 			= sizeof( mxv_network_int8_variable_defaults )
 			/ sizeof( mxv_network_int8_variable_defaults[0] );
 
@@ -93,7 +93,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_uint8_variable_defaults[] = {
 	MX_UINT8_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_uint8_variable_num_record_fields
+mx_length_type mxv_network_uint8_variable_num_record_fields
 			= sizeof( mxv_network_uint8_variable_defaults )
 			/ sizeof( mxv_network_uint8_variable_defaults[0] );
 
@@ -109,7 +109,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_int16_variable_defaults[] = {
 	MX_INT16_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_int16_variable_num_record_fields
+mx_length_type mxv_network_int16_variable_num_record_fields
 			= sizeof( mxv_network_int16_variable_defaults )
 			/ sizeof( mxv_network_int16_variable_defaults[0] );
 
@@ -125,7 +125,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_uint16_variable_defaults[] = {
 	MX_UINT16_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_uint16_variable_num_record_fields
+mx_length_type mxv_network_uint16_variable_num_record_fields
 			= sizeof( mxv_network_uint16_variable_defaults )
 			/ sizeof( mxv_network_uint16_variable_defaults[0] );
 
@@ -141,7 +141,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_int32_variable_defaults[] = {
 	MX_INT32_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_int32_variable_num_record_fields
+mx_length_type mxv_network_int32_variable_num_record_fields
 			= sizeof( mxv_network_int32_variable_defaults )
 			/ sizeof( mxv_network_int32_variable_defaults[0] );
 
@@ -157,7 +157,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_uint32_variable_defaults[] = {
 	MX_UINT32_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_uint32_variable_num_record_fields
+mx_length_type mxv_network_uint32_variable_num_record_fields
 			= sizeof( mxv_network_uint32_variable_defaults )
 			/ sizeof( mxv_network_uint32_variable_defaults[0] );
 
@@ -173,7 +173,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_int64_variable_defaults[] = {
 	MX_INT64_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_int64_variable_num_record_fields
+mx_length_type mxv_network_int64_variable_num_record_fields
 			= sizeof( mxv_network_int64_variable_defaults )
 			/ sizeof( mxv_network_int64_variable_defaults[0] );
 
@@ -189,7 +189,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_uint64_variable_defaults[] = {
 	MX_UINT64_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_uint64_variable_num_record_fields
+mx_length_type mxv_network_uint64_variable_num_record_fields
 			= sizeof( mxv_network_uint64_variable_defaults )
 			/ sizeof( mxv_network_uint64_variable_defaults[0] );
 
@@ -205,7 +205,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_float_variable_defaults[] = {
 	MX_FLOAT_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_float_variable_num_record_fields
+mx_length_type mxv_network_float_variable_num_record_fields
 			= sizeof( mxv_network_float_variable_defaults )
 			/ sizeof( mxv_network_float_variable_defaults[0] );
 
@@ -221,7 +221,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_double_variable_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_double_variable_num_record_fields
+mx_length_type mxv_network_double_variable_num_record_fields
 			= sizeof( mxv_network_double_variable_defaults )
 			/ sizeof( mxv_network_double_variable_defaults[0] );
 
@@ -237,7 +237,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_network_record_variable_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_network_record_variable_num_record_fields
+mx_length_type mxv_network_record_variable_num_record_fields
 			= sizeof( mxv_network_record_variable_defaults )
 			/ sizeof( mxv_network_record_variable_defaults[0] );
 

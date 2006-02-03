@@ -114,7 +114,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_aframe_det_motor_record_field_defaults[] = {
 	MXD_AFRAME_DETECTOR_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_aframe_det_motor_num_record_fields
+mx_length_type mxd_aframe_det_motor_num_record_fields
 		= sizeof( mxd_aframe_det_motor_record_field_defaults )
 			/ sizeof( mxd_aframe_det_motor_record_field_defaults[0] );
 

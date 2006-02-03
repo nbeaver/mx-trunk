@@ -56,7 +56,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_linux_portio_record_function_list;
 extern MX_PORTIO_FUNCTION_LIST mxi_linux_portio_portio_function_list;
 
-extern long mxi_linux_portio_num_record_fields;
+extern mx_length_type mxi_linux_portio_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_linux_portio_rfield_def_ptr;
 
 #define MXI_LINUX_PORTIO_STANDARD_FIELDS \

@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_8255_in_record_field_defaults[] = {
 	MXD_8255_IN_STANDARD_FIELDS
 };
 
-long mxd_8255_in_num_record_fields
+mx_length_type mxd_8255_in_num_record_fields
 		= sizeof( mxd_8255_in_record_field_defaults )
 			/ sizeof( mxd_8255_in_record_field_defaults[0] );
 
@@ -92,7 +92,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_8255_out_record_field_defaults[] = {
 	MXD_8255_OUT_STANDARD_FIELDS
 };
 
-long mxd_8255_out_num_record_fields
+mx_length_type mxd_8255_out_num_record_fields
 		= sizeof( mxd_8255_out_record_field_defaults )
 			/ sizeof( mxd_8255_out_record_field_defaults[0] );
 
@@ -334,7 +334,7 @@ mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_8255_IN *i8255_in;
-	unsigned long value;
+	uint32_t value;
 	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -367,7 +367,7 @@ mxd_8255_in_print_structure( FILE *file, MX_RECORD *record )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	fprintf(file, "  value      = %lu\n", dinput->value);
+	fprintf(file, "  value      = %lu\n", (unsigned long) dinput->value);
 	fprintf(file, "  interface  = %s\n", i8255_in->interface_record->name);
 	fprintf(file, "  port       = %s\n", i8255_in->port);
 
@@ -644,7 +644,7 @@ mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_8255_OUT *i8255_out;
-	unsigned long value;
+	uint32_t value;
 	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -677,7 +677,7 @@ mxd_8255_out_print_structure( FILE *file, MX_RECORD *record )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	fprintf(file, "  value      = %lu\n", doutput->value);
+	fprintf(file, "  value      = %lu\n", (unsigned long) doutput->value);
 	fprintf(file, "  interface  = %s\n", i8255_out->interface_record->name);
 	fprintf(file, "  port       = %s\n", i8255_out->port);
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_API_PRIVATE mx_status_type mxv_position_select_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_position_select_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_position_select_variable_function_list;
 
-extern long mxv_position_select_num_record_fields;
+extern mx_length_type mxv_position_select_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_position_select_rfield_def_ptr;
 
 #endif /* __V_POSITION_SELECT_H__ */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ MX_API mx_status_type mxi_vxi_memacc_set_parameter( MX_VME *vme );
 extern MX_RECORD_FUNCTION_LIST mxi_vxi_memacc_record_function_list;
 extern MX_VME_FUNCTION_LIST mxi_vxi_memacc_vme_function_list;
 
-extern long mxi_vxi_memacc_num_record_fields;
+extern mx_length_type mxi_vxi_memacc_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vxi_memacc_rfield_def_ptr;
 
 #endif /* __I_VXI_MEMACC_H__ */

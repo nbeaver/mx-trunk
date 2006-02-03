@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_icplus_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_icplus_din_digital_input_function_list;
 
-extern long mxd_icplus_din_num_record_fields;
+extern mx_length_type mxd_icplus_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_icplus_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -81,7 +81,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_icplus_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_icplus_dout_digital_output_function_list;
 
-extern long mxd_icplus_dout_num_record_fields;
+extern mx_length_type mxd_icplus_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_icplus_dout_rfield_def_ptr;
 
 #endif /* __D_ICPLUS_DIO_H__ */

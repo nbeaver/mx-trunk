@@ -22,7 +22,7 @@
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, list_is_active), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "fast_mode", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, fast_mode), \
@@ -39,11 +39,11 @@
   \
   {-1, -1, "mx_version", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, mx_version), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {-1, -1, "num_records", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \
-	{0}, NULL, 0}
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
@@ -52,7 +52,7 @@ MX_API_PRIVATE mx_status_type mxr_list_head_print_structure(
 
 extern MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list;
 
-extern long mxr_list_head_num_record_fields;
+extern mx_length_type mxr_list_head_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxr_list_head_rfield_def_ptr;
 
 #endif /* __MX_LIST_HEAD_H__ */

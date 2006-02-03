@@ -318,7 +318,8 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	fprintf( file, "  Scan type             = %s\n\n", scan_type );
 
 	fprintf( file, "  Name                  = %s\n", record->name );
-	fprintf( file, "  Number of scans       = %ld\n", scan->num_scans );
+	fprintf( file, "  Number of scans       = %ld\n",
+						(long) scan->num_scans );
 	fprintf( file, "\n" );
 
 	if ( record->mx_type != MXS_XAF_STANDARD ) {
@@ -326,7 +327,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			fprintf( file, "  1 motor:         " );
 		} else {
 			fprintf( file, "  %ld motors:        ",
-					scan->num_motors );
+					(long) scan->num_motors );
 		}
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			if ( i > 0 ) {
@@ -342,7 +343,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 		fprintf( file, "  1 input device:  " );
 	} else {
 		fprintf( file, "  %ld input devices: ",
-			scan->num_input_devices );
+			(long) scan->num_input_devices );
 	}
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 		if ( i > 0 ) {
@@ -444,7 +445,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 	MX_LIST_HEAD *list_head;
 	MX_CLOCK_TICK start_tick, end_tick;
 	MX_CLOCK_TICK scan_body_start_tick, scan_body_end_tick;
-	long i;
+	int32_t i;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ( "%s invoked.", fname ) );
@@ -595,7 +596,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		if ( scan->num_scans > 1 ) {
 			mx_info( "Starting scan %ld of %ld.",
-					i+1, scan->num_scans );
+				(long) (i+1), (long) scan->num_scans );
 		}
 
 		mx_status = prepare_for_scan_start_fn( scan );
@@ -1526,7 +1527,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	MX_LINEAR_SCAN *linear_scan;
 	double *motor_position;
 	double normalization;
-	long *motor_is_independent_variable;
+	int32_t *motor_is_independent_variable;
 	static char truncation_marker[] = " ... truncated ...";
 	char buffer[2000];
 	char little_buffer[50];
@@ -1562,7 +1563,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 				linear_scan = (MX_LINEAR_SCAN *)
 					(scan->record->record_class_struct);
 				sprintf( little_buffer, " %ld",
-					(linear_scan->step_number)[0] );
+					(long) (linear_scan->step_number[0]) );
 				strncat( buffer, little_buffer, buffer_left );
 			}
 		} else {

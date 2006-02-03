@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_API double mxd_soft_scaler_get_value_from_position(
 extern MX_RECORD_FUNCTION_LIST mxd_soft_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_soft_scaler_scaler_function_list;
 
-extern long mxd_soft_scaler_num_record_fields;
+extern mx_length_type mxd_soft_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_soft_scaler_rfield_def_ptr;
 
 #define MXD_SOFT_SCALER_STANDARD_FIELDS \

@@ -158,7 +158,7 @@ MX_API mx_status_type mxi_am9513_get_status( MX_AM9513 *am9513 );
 extern MX_RECORD_FUNCTION_LIST mxi_am9513_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_am9513_generic_function_list;
 
-extern long mxi_am9513_num_record_fields;
+extern mx_length_type mxi_am9513_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_am9513_rfield_def_ptr;
 
 /* The following structure is used for debugging only. */

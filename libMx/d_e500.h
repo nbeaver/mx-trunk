@@ -63,7 +63,7 @@ typedef struct {
 	int            lam_mask;
 } MX_E500;
 
-extern long mxd_e500_num_record_fields;
+extern mx_length_type mxd_e500_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr;
 
 #define MXD_E500_STANDARD_FIELDS \

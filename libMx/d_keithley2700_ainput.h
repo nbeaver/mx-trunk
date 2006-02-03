@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_keithley2700_ainput_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 		mxd_keithley2700_ainput_analog_input_function_list;
 
-extern long mxd_keithley2700_ainput_num_record_fields;
+extern mx_length_type mxd_keithley2700_ainput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2700_ainput_rfield_def_ptr;
 
 #define MXD_KEITHLEY2700_AINPUT_STANDARD_FIELDS \

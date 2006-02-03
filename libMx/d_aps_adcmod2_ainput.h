@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_aps_adcmod2_ainput_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_aps_adcmod2_ainput_analog_input_function_list;
 
-extern long mxd_aps_adcmod2_ainput_num_record_fields;
+extern mx_length_type mxd_aps_adcmod2_ainput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr;
 
 #define MXD_APS_ADCMOD2_AINPUT_STANDARD_FIELDS \

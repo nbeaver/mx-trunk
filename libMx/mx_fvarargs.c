@@ -95,10 +95,10 @@ mx_convert_varargs_cookie_to_value(
 		"%s: cookie points to field '%s', array_in_field_index = %ld",
 		fname, field->name, (long) array_in_field_index));
 
-	if ( field->datatype != MXFT_VARARGS ) {
+	if ( field->datatype != MXFT_LENGTH ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Field type %s for length field '%s' is invalid.  "
-		"Only MXFT_VARARGS is allowed for a varargs length field.",
+		"Only MXFT_LENGTH is allowed for a varargs length field.",
 				mx_get_field_type_string( field->datatype ),
 				field->name );
 	}
@@ -108,7 +108,7 @@ mx_convert_varargs_cookie_to_value(
 		if ( array_in_field_index != 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Array in field index %ld computed from varargs "
-		"cookie %ld is nonzero for a scalar MXFT_VARARGS field.",
+		"cookie %ld is nonzero for a scalar MXFT_LENGTH field.",
 			(long) array_in_field_index, (long) varargs_cookie );
 		}
 
@@ -225,7 +225,7 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	if ( field_index < 0 || field_index >= record->num_record_fields ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"'field_index' = %ld is out of allowed range (0 - %ld).",
-			(long) field_index, record->num_record_fields );
+			(long) field_index, (long) record->num_record_fields );
 	}
 
 	field_array = record->record_field_array;

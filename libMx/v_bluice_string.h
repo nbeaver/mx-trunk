@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_API_PRIVATE mx_status_type mxv_bluice_string_send_variable(
 MX_API_PRIVATE mx_status_type mxv_bluice_string_receive_variable(
 						MX_VARIABLE *variable );
 
-extern long mxv_bluice_string_num_record_fields;
+extern mx_length_type mxv_bluice_string_num_record_fields;
 extern MX_RECORD_FUNCTION_LIST mxv_bluice_string_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_bluice_string_variable_function_list;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_bluice_string_rfield_def_ptr;

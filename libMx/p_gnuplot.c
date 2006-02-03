@@ -591,7 +591,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 	MX_MOTOR *energy_motor;
 	double motor_position;
 	double *motor_position_array;
-	long *motor_is_independent_variable_array;
+	int32_t *motor_is_independent_variable_array;
 	int status;
 	long i, j, innermost_index, num_independent_variables;
 	mx_status_type mx_status;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002, 2004 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_API mx_status_type mxd_network_relay_get_relay_status( MX_RELAY *relay );
 extern MX_RECORD_FUNCTION_LIST mxd_network_relay_record_function_list;
 extern MX_RELAY_FUNCTION_LIST mxd_network_relay_relay_function_list;
 
-extern long mxd_network_relay_num_record_fields;
+extern mx_length_type mxd_network_relay_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_network_relay_rfield_def_ptr;
 
 #endif /* __D_NETWORK_RELAY_H__ */

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000 Illinois Institute of Technology
+ * Copyright 2000, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_API mx_status_type mxd_pcstep_set_parameter( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_pcstep_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_pcstep_motor_function_list;
 
-extern long mxd_pcstep_num_record_fields;
+extern mx_length_type mxd_pcstep_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pcstep_rfield_def_ptr;
 
 #define MXD_PCSTEP_MOTOR_STANDARD_FIELDS \

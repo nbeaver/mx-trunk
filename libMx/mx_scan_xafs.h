@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,10 +25,10 @@
 typedef struct {
 	MX_SCAN *scan;	/* Pointer to the parent scan superclass structure. */
 
-	long num_regions;
-	long num_energy_regions;
-	long num_k_regions;
-	long num_boundaries;
+	mx_length_type num_regions;
+	mx_length_type num_energy_regions;
+	mx_length_type num_k_regions;
+	mx_length_type num_boundaries;
 
 	double *region_boundary;
 	double *region_step_size;
@@ -55,30 +55,32 @@ extern MX_RECORD_FUNCTION_LIST mxs_xafs_scan_record_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_xafs_scan_scan_function_list;
 
 #define MX_XAFS_SCAN_STANDARD_FIELDS \
-  {-1, -1, "num_regions", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_regions", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, num_regions), \
-	{sizeof(long)}, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "num_energy_regions", MXFT_LONG, NULL, 0, {0}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "num_energy_regions", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, num_energy_regions), \
-	{sizeof(long)}, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "num_k_regions", MXFT_LONG, NULL, 0, {0}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "num_k_regions", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, num_k_regions), \
-	{sizeof(long)}, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "num_boundaries", MXFT_LONG, NULL, 0, {0}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {-1, -1, "num_boundaries", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, num_boundaries), \
-	{sizeof(long)}, NULL, \
-	(MXFF_IN_DESCRIPTION)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+  \
   {-1, -1, "region_boundary", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, region_boundary), \
 	{sizeof(double)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
+  \
   {-1, -1, "region_step_size", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, region_step_size), \
 	{sizeof(double)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
+  \
   {-1, -1, "region_measurement_time", MXFT_DOUBLE, \
 	NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_XAFS_SCAN, region_measurement_time),\

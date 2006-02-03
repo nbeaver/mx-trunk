@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_vms_terminal_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_vms_terminal_rs232_function_list;
 
-extern long mxi_vms_terminal_num_record_fields;
+extern mx_length_type mxi_vms_terminal_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vms_terminal_rfield_def_ptr;
 
 #define MXI_VMS_TERMINAL_STANDARD_FIELDS \

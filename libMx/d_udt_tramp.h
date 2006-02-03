@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ MX_API mx_status_type mxd_udt_tramp_set_gain( MX_AMPLIFIER *amplifier );
 extern MX_RECORD_FUNCTION_LIST mxd_udt_tramp_record_function_list;
 extern MX_AMPLIFIER_FUNCTION_LIST mxd_udt_tramp_amplifier_function_list;
 
-extern long mxd_udt_tramp_num_record_fields;
+extern mx_length_type mxd_udt_tramp_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_udt_tramp_rfield_def_ptr;
 
 #define MXD_UDT_TRAMP_STANDARD_FIELDS \

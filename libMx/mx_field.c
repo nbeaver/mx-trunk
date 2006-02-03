@@ -429,11 +429,12 @@ mx_construct_ptr_to_field_value(
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
-mx_setup_typeinfo_for_record_type_fields( long num_record_fields,
+mx_setup_typeinfo_for_record_type_fields( mx_length_type num_record_fields,
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
 		long mx_type, long mx_class, long mx_superclass )
 {
-	static const char fname[] = "mx_setup_typeinfo_for_record_type_fields()";
+	static const char fname[] =
+			"mx_setup_typeinfo_for_record_type_fields()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
 	MX_DRIVER **driver_list_array;

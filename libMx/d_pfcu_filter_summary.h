@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pfcu_filter_summary_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 		mxd_pfcu_filter_summary_digital_output_function_list;
 
-extern long mxd_pfcu_filter_summary_num_record_fields;
+extern mx_length_type mxd_pfcu_filter_summary_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pfcu_filter_summary_rfield_def_ptr;
 
 #define MXD_PFCU_FILTER_SUMMARY_STANDARD_FIELDS \

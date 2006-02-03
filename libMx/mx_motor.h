@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -97,31 +97,31 @@ typedef struct {
 			    * to this motor.
 			    */
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_destination;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_position;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_backlash_correction;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_negative_limit;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_positive_limit;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_move_deadband;
 
-	union { long stepper;
+	union { int32_t stepper;
 		double analog;
 	} raw_set_position;
 
@@ -131,9 +131,9 @@ typedef struct {
 	double minimum_speed_limit;
 	double maximum_speed_limit;
 
-	int subclass;
+	int32_t subclass;
 
-	unsigned long motor_flags;
+	mx_hex_type motor_flags;
 
 	double scale;
 	double offset;
@@ -157,9 +157,9 @@ typedef struct {
 	double base_speed;
 	double maximum_speed;
 
-	int save_speed;
-	int restore_speed;
-	int synchronous_motion_mode;
+	int32_t save_speed;
+	int32_t restore_speed;
+	int32_t synchronous_motion_mode;
 
 	double raw_saved_speed;
 	int saved_synchronous_motion_mode;
@@ -167,7 +167,7 @@ typedef struct {
 	double speed_choice_parameters[ MX_MOTOR_NUM_SPEED_CHOICE_PARAMS ];
 	double raw_speed_choice_parameters[ MX_MOTOR_NUM_SPEED_CHOICE_PARAMS ];
 
-	int acceleration_type;
+	int32_t acceleration_type;
 
 	double raw_acceleration_parameters[ MX_MOTOR_NUM_ACCELERATION_PARAMS ];
 	double raw_acceleration_distance;
@@ -175,17 +175,17 @@ typedef struct {
 	double acceleration_distance;
 	double acceleration_time;
 
-	int parameter_type;
+	int32_t parameter_type;
 
-	int busy;
-	int soft_abort;
-	int immediate_abort;
-	int negative_limit_hit;
-	int positive_limit_hit;
-	int home_search;
-	int constant_velocity_move;
+	int32_t busy;
+	int32_t soft_abort;
+	int32_t immediate_abort;
+	int32_t negative_limit_hit;
+	int32_t positive_limit_hit;
+	int32_t home_search;
+	int32_t constant_velocity_move;
 
-	unsigned long status;
+	mx_hex_type status;
 	char extended_status[ MXU_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
 	MX_RECORD *real_motor_record;
@@ -199,11 +199,11 @@ typedef struct {
 	double save_start_positions;
 	double raw_saved_start_position;
 
-	int use_start_positions;
+	int32_t use_start_positions;
 
-	int axis_enable;
-	int closed_loop;
-	int fault_reset;
+	int32_t axis_enable;
+	int32_t closed_loop;
+	int32_t fault_reset;
 
 	double proportional_gain;
 	double integral_gain;
@@ -257,32 +257,32 @@ typedef struct {
 #define MXLV_MTR_EXTRA_GAIN				5007
 
 #define MX_STEPPER_MOTOR_STANDARD_FIELDS \
-  {-1, -1, "raw_destination", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_destination", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_destination.stepper), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "raw_position", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_position", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_position.stepper), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "raw_backlash_correction", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_backlash_correction", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, \
 					raw_backlash_correction.stepper), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "raw_negative_limit", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_negative_limit", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_negative_limit.stepper),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "raw_positive_limit", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_positive_limit", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_positive_limit.stepper),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "raw_move_deadband", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_move_deadband", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_move_deadband.stepper),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "raw_set_position", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "raw_set_position", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, raw_set_position.stepper), \
 	{0}, NULL, 0}
 
@@ -333,11 +333,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, maximum_speed_limit),\
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "subclass", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "subclass", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, subclass), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "motor_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "motor_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, motor_flags), \
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE}, \
   \
@@ -406,16 +406,16 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, maximum_speed),\
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_SAVE_SPEED, -1, "save_speed", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_SAVE_SPEED, -1, "save_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, save_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_RESTORE_SPEED, -1, "restore_speed", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_RESTORE_SPEED, -1, "restore_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, restore_speed), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_SYNCHRONOUS_MOTION_MODE, -1, "synchronous_motion_mode", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, synchronous_motion_mode), \
 	{0}, NULL, 0}, \
   \
@@ -430,7 +430,7 @@ typedef struct {
 	{sizeof(double)}, NULL, 0}, \
   \
   {MXLV_MTR_ACCELERATION_TYPE, -1, \
-			"acceleration_type", MXFT_INT, NULL, 0, {0}, \
+			"acceleration_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, acceleration_type), \
 	{0}, NULL, 0}, \
   \
@@ -449,38 +449,38 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, acceleration_distance), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, parameter_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_BUSY, -1, "busy", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, busy), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_SOFT_ABORT, -1, "soft_abort", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_SOFT_ABORT, -1, "soft_abort", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, soft_abort), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, immediate_abort), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_INT, \
+  {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_INT32, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, negative_limit_hit), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_POSITIVE_LIMIT_HIT, -1, "positive_limit_hit", MXFT_INT, \
+  {MXLV_MTR_POSITIVE_LIMIT_HIT, -1, "positive_limit_hit", MXFT_INT32, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, positive_limit_hit), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_HOME_SEARCH, -1, "home_search", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_HOME_SEARCH, -1, "home_search", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, home_search), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_CONSTANT_VELOCITY_MOVE, -1, "constant_velocity_move", \
-					MXFT_INT, NULL, 0, {0}, \
+					MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, constant_velocity_move), \
 	{0}, NULL, 0}, \
   \
@@ -523,21 +523,21 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_USE_START_POSITIONS, -1, "use_start_positions", \
-	  	MXFT_INT, NULL, 0, {0}, \
+	  	MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, use_start_positions), \
 	{0}, NULL, 0}, \
   \
   \
   \
-  {MXLV_MTR_AXIS_ENABLE, -1, "axis_enable", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_AXIS_ENABLE, -1, "axis_enable", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, axis_enable), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_CLOSED_LOOP, -1, "closed_loop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_CLOSED_LOOP, -1, "closed_loop", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, closed_loop), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_FAULT_RESET, -1, "fault_reset", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MTR_FAULT_RESET, -1, "fault_reset", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, fault_reset), \
 	{0}, NULL, 0}, \
   \

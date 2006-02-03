@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_joerger_quick_scan_defaults[] = {
 	MX_QUICK_SCAN_STANDARD_FIELDS
 };
 
-long mxs_joerger_quick_scan_num_record_fields
+mx_length_type mxs_joerger_quick_scan_num_record_fields
 			= sizeof( mxs_joerger_quick_scan_defaults )
 			/ sizeof( mxs_joerger_quick_scan_defaults[0] );
 

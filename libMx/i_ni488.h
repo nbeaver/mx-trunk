@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ MX_API mx_status_type mxi_ni488_serial_poll_disable( MX_GPIB *gpib );
 extern MX_RECORD_FUNCTION_LIST mxi_ni488_record_function_list;
 extern MX_GPIB_FUNCTION_LIST mxi_ni488_gpib_function_list;
 
-extern long mxi_ni488_num_record_fields;
+extern mx_length_type mxi_ni488_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_ni488_rfield_def_ptr;
 
 #define MXI_NI488_STANDARD_FIELDS \

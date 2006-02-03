@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1686,7 +1686,8 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 	}
 
 	sprintf( motor->extended_status, "%.*e %lx",
-		precision, motor->position, motor->status );
+		precision, motor->position,
+		(unsigned long) motor->status );
 
 	/* Return status values to the caller if desired. */
 
@@ -3822,7 +3823,8 @@ mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 	}
 
 	MX_DEBUG( 2,("%s: record '%s', pseudomotor->motor_flags = %lu",
-		fname, pseudomotor_record->name, pseudomotor->motor_flags));
+		fname, pseudomotor_record->name,
+		(unsigned long) pseudomotor->motor_flags));
 
 	if ( (pseudomotor->motor_flags & MXF_MTR_IS_PSEUDOMOTOR) == 0 ) {
 

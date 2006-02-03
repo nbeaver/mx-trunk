@@ -32,7 +32,7 @@ MX_RECORD_FIELD_DEFAULTS mxr_list_head_record_field_defaults[] = {
 	MXR_LIST_HEAD_STANDARD_FIELDS
 };
 
-long mxr_list_head_num_record_fields
+mx_length_type mxr_list_head_num_record_fields
 		= sizeof( mxr_list_head_record_field_defaults )
 			/ sizeof( mxr_list_head_record_field_defaults[0] );
 

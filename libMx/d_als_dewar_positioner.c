@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_als_dewar_positioner_rf_defaults[] = {
 	MXD_ALS_DEWAR_POSITIONER_STANDARD_FIELDS
 };
 
-long mxd_als_dewar_positioner_num_record_fields
+mx_length_type mxd_als_dewar_positioner_num_record_fields
 		= sizeof( mxd_als_dewar_positioner_rf_defaults )
 			/ sizeof( mxd_als_dewar_positioner_rf_defaults[0] );
 
@@ -904,7 +904,8 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 
 	motor->status = total_status;
 
-	MX_DEBUG( 2,("%s: motor->status = %#lx", fname, motor->status));
+	MX_DEBUG( 2,("%s: motor->status = %#lx",
+		fname, (unsigned long) motor->status));
 
 	/* See if it is time to restore the motor speeds. */
 

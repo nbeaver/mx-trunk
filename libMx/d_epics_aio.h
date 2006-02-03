@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_epics_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_epics_ain_analog_input_function_list;
 
-extern long mxd_epics_ain_num_record_fields;
+extern mx_length_type mxd_epics_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_ain_rfield_def_ptr;
 
 /* Second the output functions. */

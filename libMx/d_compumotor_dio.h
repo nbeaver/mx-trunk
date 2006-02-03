@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -109,9 +109,9 @@ MX_API mx_status_type mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
-				mxd_compumotor_din_digital_input_function_list;
+			mxd_compumotor_din_digital_input_function_list;
 
-extern long mxd_compumotor_din_num_record_fields;
+extern mx_length_type mxd_compumotor_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -133,9 +133,9 @@ MX_API mx_status_type mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
-				mxd_compumotor_dout_digital_output_function_list;
+			mxd_compumotor_dout_digital_output_function_list;
 
-extern long mxd_compumotor_dout_num_record_fields;
+extern mx_length_type mxd_compumotor_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_dout_rfield_def_ptr;
 
 #endif /* __D_COMPUMOTOR_DIO_H__ */

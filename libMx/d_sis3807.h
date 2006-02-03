@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_sis3807_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST 
 		mxd_sis3807_pulse_generator_function_list;
 
-extern long mxd_sis3807_num_record_fields;
+extern mx_length_type mxd_sis3807_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_sis3807_rfield_def_ptr;
 
 #endif /* __D_SIS3807_H__ */

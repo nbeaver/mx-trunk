@@ -66,7 +66,7 @@ MX_API mx_status_type mxi_dos_portio_release_region( MX_RECORD *record,
 extern MX_RECORD_FUNCTION_LIST mxi_dos_portio_record_function_list;
 extern MX_PORTIO_FUNCTION_LIST mxi_dos_portio_portio_function_list;
 
-extern long mxi_dos_portio_num_record_fields;
+extern mx_length_type mxi_dos_portio_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_dos_portio_rfield_def_ptr;
 
 #endif /* __I_DOS_PORTIO_H__ */

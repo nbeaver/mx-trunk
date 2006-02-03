@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ MX_API mx_status_type mxd_cyberstar_x1000_command(
 extern MX_RECORD_FUNCTION_LIST mxd_cyberstar_x1000_record_function_list;
 extern MX_SCA_FUNCTION_LIST mxd_cyberstar_x1000_sca_function_list;
 
-extern long mxd_cyberstar_x1000_num_record_fields;
+extern mx_length_type mxd_cyberstar_x1000_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_cyberstar_x1000_rfield_def_ptr;
 
 #define MXD_CYBERSTAR_X1000_STANDARD_FIELDS \

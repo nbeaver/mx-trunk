@@ -138,7 +138,7 @@ MX_API mx_status_type mxi_xia_handel_special_processing_setup(
 
 extern MX_RECORD_FUNCTION_LIST mxi_xia_handel_record_function_list;
 
-extern long mxi_xia_handel_num_record_fields;
+extern mx_length_type mxi_xia_handel_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_xia_handel_rfield_def_ptr;
 
 /* === Driver specific functions === */

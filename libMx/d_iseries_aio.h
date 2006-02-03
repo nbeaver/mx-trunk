@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,7 +91,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_iseries_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_iseries_ain_analog_input_function_list;
 
-extern long mxd_iseries_ain_num_record_fields;
+extern mx_length_type mxd_iseries_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_iseries_ain_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -108,7 +108,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_iseries_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_iseries_aout_analog_output_function_list;
 
-extern long mxd_iseries_aout_num_record_fields;
+extern mx_length_type mxd_iseries_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_iseries_aout_rfield_def_ptr;
 
 #endif /* __D_ISERIES_AIO_H__ */

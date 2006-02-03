@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ MX_API mx_status_type mxi_sis3100_set_parameter( MX_VME *vme );
 extern MX_RECORD_FUNCTION_LIST mxi_sis3100_record_function_list;
 extern MX_VME_FUNCTION_LIST mxi_sis3100_vme_function_list;
 
-extern long mxi_sis3100_num_record_fields;
+extern mx_length_type mxi_sis3100_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_sis3100_rfield_def_ptr;
 
 #define MXI_SIS3100_STANDARD_FIELDS \

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_API mx_status_type mxi_6821_close( MX_RECORD *record );
 extern MX_RECORD_FUNCTION_LIST mxi_6821_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_6821_generic_function_list;
 
-extern long mxi_6821_num_record_fields;
+extern mx_length_type mxi_6821_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_6821_rfield_def_ptr;
 
 #endif /* __I_6821_H__ */

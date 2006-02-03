@@ -85,7 +85,7 @@ mxs_xafs_scan_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -250,16 +250,16 @@ mxs_xafs_scan_finish_record_initialization( MX_RECORD *record )
 "Number of regions does not equal the sum of the number of energy regions "
 "and k regions.  num_regions = %ld, num_energy_regions = %ld, "
 "num_k_regions = %ld",
-			xafs_scan->num_regions,
-			xafs_scan->num_energy_regions,
-			xafs_scan->num_k_regions );
+			(long) xafs_scan->num_regions,
+			(long) xafs_scan->num_energy_regions,
+			(long) xafs_scan->num_k_regions );
 	}
 	if ( xafs_scan->num_boundaries != (1 + xafs_scan->num_regions) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Number of region boundaries does not equal the number of regions plus 1.  "
 "num_boundaries = %ld, num_regions = %ld",
-			xafs_scan->num_boundaries,
-			xafs_scan->num_regions );
+			(long) xafs_scan->num_boundaries,
+			(long) xafs_scan->num_regions );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -352,8 +352,8 @@ mxs_xafs_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	}
 
 	fprintf( file, "  %ld energy regions,  %ld k regions\n\n",
-			xafs_scan->num_energy_regions,
-			xafs_scan->num_k_regions );
+			(long) xafs_scan->num_energy_regions,
+			(long) xafs_scan->num_k_regions );
 
 	/* Display the energy regions. */
 
@@ -512,7 +512,7 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 		string_length = strlen( record_description );
 		ptr = record_description + string_length;
 
-		sprintf( ptr, "%ld ", scan->num_input_devices );
+		sprintf( ptr, "%ld ", (long) scan->num_input_devices );
 
 		for ( j = 0; j < scan->num_input_devices; j++ ) {
 

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_API mx_status_type mxd_mcu2_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_mcu2_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_mcu2_motor_function_list;
 
-extern long mxd_mcu2_num_record_fields;
+extern mx_length_type mxd_mcu2_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mcu2_rfield_def_ptr;
 
 #define MXD_MCU2_STANDARD_FIELDS \

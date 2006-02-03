@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_sr630_aoutput_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 		mxd_sr630_aoutput_analog_output_function_list;
 
-extern long mxd_sr630_aoutput_num_record_fields;
+extern mx_length_type mxd_sr630_aoutput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_sr630_aoutput_rfield_def_ptr;
 
 #define MXD_SR630_AOUTPUT_STANDARD_FIELDS \

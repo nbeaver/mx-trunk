@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ MX_API mx_status_type mxi_vsc16_open( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_vsc16_record_function_list;
 
-extern long mxi_vsc16_num_record_fields;
+extern mx_length_type mxi_vsc16_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vsc16_rfield_def_ptr;
 
 /* === Driver specific functions === */

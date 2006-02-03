@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ MX_API mx_status_type mxd_labpc_adc_read( MX_ANALOG_INPUT *adc );
 
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_labpc_adc_analog_input_function_list;
 
-extern long mxd_labpc_adc_num_record_fields;
+extern mx_length_type mxd_labpc_adc_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_adc_rfield_def_ptr;
 
 /* ============ Analog output channels ============ */
@@ -118,7 +118,7 @@ MX_API mx_status_type mxd_labpc_dac_write( MX_ANALOG_OUTPUT *dac );
 
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_labpc_dac_analog_output_function_list;
 
-extern long mxd_labpc_dac_num_record_fields;
+extern mx_length_type mxd_labpc_dac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_dac_rfield_def_ptr;
 
 /* ============ Digital input channels ============ */
@@ -154,7 +154,7 @@ MX_API mx_status_type mxd_labpc_din_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_DIGITAL_INPUT_FUNCTION_LIST mxd_labpc_din_digital_input_function_list;
 
-extern long mxd_labpc_din_num_record_fields;
+extern mx_length_type mxd_labpc_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_din_rfield_def_ptr;
 
 /* ============ Digital output channels ============ */
@@ -192,7 +192,7 @@ MX_API mx_status_type mxd_labpc_dout_write( MX_DIGITAL_OUTPUT *doutput );
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_labpc_dout_digital_output_function_list;
 
-extern long mxd_labpc_dout_num_record_fields;
+extern mx_length_type mxd_labpc_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_dout_rfield_def_ptr;
 
 #endif /* __D_LABPC_H__ */

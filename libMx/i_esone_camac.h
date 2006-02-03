@@ -46,7 +46,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_esone_camac_record_function_list;
 extern MX_CAMAC_FUNCTION_LIST mxi_esone_camac_camac_function_list;
 
-extern long mxi_esone_camac_num_record_fields;
+extern mx_length_type mxi_esone_camac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_esone_camac_rfield_def_ptr;
 
 #define MXI_ESONE_CAMAC_STANDARD_FIELDS

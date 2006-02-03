@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,33 +54,33 @@ typedef struct {
 	MX_RECORD *record;
 
 	char current_sample_holder[MXU_SAMPLE_HOLDER_NAME_LENGTH + 1];
-	long current_sample_id;
+	uint32_t current_sample_id;
 	int sample_is_mounted;
 
 	char requested_sample_holder[MXU_SAMPLE_HOLDER_NAME_LENGTH + 1];
-	long requested_sample_id;
+	uint32_t requested_sample_id;
 
-	unsigned long control_mode;
-	unsigned long status;
-	unsigned long changer_flags;
+	mx_hex_type control_mode;
+	mx_hex_type status;
+	mx_hex_type changer_flags;
 
 	int parameter_type;
 
-	int initialize;
-	int shutdown;
-	int mount_sample;
-	int unmount_sample;
-	int grab_sample;
-	int ungrab_sample;
-	int select_sample_holder;
-	int unselect_sample_holder;
-	int soft_abort;
-	int immediate_abort;
-	int idle;
-	int reset;
+	int32_t initialize;
+	int32_t shutdown;
+	int32_t mount_sample;
+	int32_t unmount_sample;
+	int32_t grab_sample;
+	int32_t ungrab_sample;
+	int32_t select_sample_holder;
+	int32_t unselect_sample_holder;
+	int32_t soft_abort;
+	int32_t immediate_abort;
+	int32_t idle;
+	int32_t reset;
 
-	int cooldown;
-	int deice;
+	int32_t cooldown;
+	int32_t deice;
 
 } MX_SAMPLE_CHANGER;
 
@@ -109,19 +109,17 @@ typedef struct {
 			offsetof(MX_SAMPLE_CHANGER, current_sample_holder), \
 	{sizeof(char)}, NULL, 0 }, \
   \
-  {-1, -1, "current_sample_id", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "current_sample_id", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, current_sample_id), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, \
-				"requested_sample_holder", MXFT_STRING, \
+  {-1, -1, "requested_sample_holder", MXFT_STRING, \
 	  			NULL, 1, {MXU_SAMPLE_HOLDER_NAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_SAMPLE_CHANGER, requested_sample_holder), \
 	{sizeof(char)}, NULL, 0 }, \
   \
-  {-1, -1, "requested_sample_id", \
-					MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "requested_sample_id", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_SAMPLE_CHANGER, requested_sample_id), \
 	{0}, NULL, 0 }, \
@@ -138,63 +136,63 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, changer_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {MXLV_CHG_INITIALIZE, -1, "initialize", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_INITIALIZE, -1, "initialize", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, initialize), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_SHUTDOWN, -1, "shutdown", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_SHUTDOWN, -1, "shutdown", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, shutdown), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_MOUNT_SAMPLE, -1, "mount_sample", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_MOUNT_SAMPLE, -1, "mount_sample", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, mount_sample), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_UNMOUNT_SAMPLE, -1, "unmount_sample", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_UNMOUNT_SAMPLE, -1, "unmount_sample", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, unmount_sample), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_GRAB_SAMPLE, -1, "grab_sample", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_GRAB_SAMPLE, -1, "grab_sample", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, grab_sample), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_UNGRAB_SAMPLE, -1, "ungrab_sample", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_UNGRAB_SAMPLE, -1, "ungrab_sample", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, ungrab_sample), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_CHG_SELECT_SAMPLE_HOLDER, -1, "select_sample_holder", \
-	  					MXFT_INT, NULL, 0, {0}, \
+	  					MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_SAMPLE_CHANGER, select_sample_holder), \
 	{0}, NULL, 0 }, \
   \
   {MXLV_CHG_UNSELECT_SAMPLE_HOLDER, -1, "unselect_sample_holder", \
-	  					MXFT_INT, NULL, 0, {0}, \
+	  					MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_SAMPLE_CHANGER, unselect_sample_holder), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_SOFT_ABORT, -1, "soft_abort", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_SOFT_ABORT, -1, "soft_abort", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, soft_abort), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, immediate_abort), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_IDLE, -1, "idle", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_IDLE, -1, "idle", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, idle), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_RESET, -1, "reset", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_RESET, -1, "reset", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, reset), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_COOLDOWN, -1, "cooldown", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_COOLDOWN, -1, "cooldown", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, cooldown), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CHG_DEICE, -1, "deice", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CHG_DEICE, -1, "deice", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SAMPLE_CHANGER, deice), \
 	{0}, NULL, 0 }
 

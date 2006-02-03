@@ -91,7 +91,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_apsid_quick_scan_defaults[] = {
 	MX_QUICK_SCAN_STANDARD_FIELDS
 };
 
-long mxs_apsid_quick_scan_num_record_fields
+mx_length_type mxs_apsid_quick_scan_num_record_fields
 			= sizeof( mxs_apsid_quick_scan_defaults )
 			/ sizeof( mxs_apsid_quick_scan_defaults[0] );
 
