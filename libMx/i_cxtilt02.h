@@ -22,10 +22,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int resolution_level;
+	int32_t resolution_level;
 
-	short raw_pitch;
-	short raw_roll;
+	int16_t raw_pitch;
+	int16_t raw_roll;
 } MX_CXTILT02;
 
 #define MXI_CXTILT02_STANDARD_FIELDS \
@@ -33,7 +33,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CXTILT02, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "resolution_level", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "resolution_level", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CXTILT02, resolution_level), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
 

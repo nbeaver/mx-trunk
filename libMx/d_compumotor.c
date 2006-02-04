@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_compumotor_record_field_defaults[] = {
 	MXD_COMPUMOTOR_STANDARD_FIELDS
 };
 
-long mxd_compumotor_num_record_fields
+mx_length_type mxd_compumotor_num_record_fields
 		= sizeof( mxd_compumotor_record_field_defaults )
 			/ sizeof( mxd_compumotor_record_field_defaults[0] );
 
@@ -319,7 +319,8 @@ mxd_compumotor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  controller number = %d\n",
 					compumotor->controller_number);
 	fprintf(file, "  axis number       = %d\n", compumotor->axis_number);
-	fprintf(file, "  flags             = %#lx\n", compumotor->flags);
+	fprintf(file, "  flags             = %#lx\n",
+					(unsigned long) compumotor->flags);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -2002,7 +2003,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int enable_flag )
+				bool enable_flag )
 {
 	static const char fname[] = "mxd_compumotor_enable_continuous_mode()";
 

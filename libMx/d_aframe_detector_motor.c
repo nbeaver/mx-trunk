@@ -56,7 +56,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -841,7 +841,7 @@ mxd_aframe_det_motor_get_real_positions(
 {
 	const char fname[] = "mxd_aframe_det_motor_get_real_positions()";
 
-	int fast_mode;
+	bool fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_fast_mode( aframe_detector_motor->record,

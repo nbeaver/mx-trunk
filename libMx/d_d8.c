@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define D8_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,14 +62,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_d8_motor_record_field_defaults[] = {
 	MXD_D8_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_d8_motor_num_record_fields
+mx_length_type mxd_d8_motor_num_record_fields
 		= sizeof( mxd_d8_motor_record_field_defaults )
 			/ sizeof( mxd_d8_motor_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_d8_motor_rfield_def_ptr
 			= &mxd_d8_motor_record_field_defaults[0];
-
-#define D8_MOTOR_DEBUG	FALSE
 
 /* === */
 

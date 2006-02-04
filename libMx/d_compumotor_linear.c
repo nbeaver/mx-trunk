@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_compumotor_linear_record_field_defaults[] = {
 	MXD_COMPUMOTOR_LINEAR_STANDARD_FIELDS
 };
 
-long mxd_compumotor_linear_num_record_fields
+mx_length_type mxd_compumotor_linear_num_record_fields
 		= sizeof(mxd_compumotor_linear_record_field_defaults)
 		/ sizeof(mxd_compumotor_linear_record_field_defaults[0]);
 
@@ -128,9 +128,9 @@ mxd_compumotor_linear_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
         int i;
-        long num_record_fields;
-	long referenced_field_index;
-        long num_motors_varargs_cookie;
+        mx_length_type num_record_fields;
+	mx_length_type referenced_field_index;
+        mx_length_type num_motors_varargs_cookie;
         mx_status_type status;
 
         driver = mx_get_driver_by_type( type );
@@ -156,7 +156,7 @@ mxd_compumotor_linear_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (long *) NULL ) {
+        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -178,7 +178,7 @@ mxd_compumotor_linear_initialize_type( long type )
                 return status;
 
         MX_DEBUG( 2,("%s: num_records varargs cookie = %ld",
-                        fname, num_motors_varargs_cookie));
+                        fname, (long) num_motors_varargs_cookie));
 
 	for ( i = 0; i < NUM_COMPUMOTOR_LINEAR_FIELDS; i++ ) {
 		status = mx_find_record_field_defaults(
@@ -287,8 +287,8 @@ mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 			num_motors );
 		}
 
-		compumotor_linear_motor->index_to_axis_number = (int *)
-				malloc( num_motors * sizeof(int) );
+		compumotor_linear_motor->index_to_axis_number = (int32_t *)
+				malloc( num_motors * sizeof(int32_t) );
 	
 		if ( compumotor_linear_motor->index_to_axis_number == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -517,7 +517,7 @@ mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 		motor->raw_move_deadband.analog );
 
 	fprintf(file, "  flags                = %#lx\n", 
-			compumotor_linear_motor->flags );
+			(unsigned long) compumotor_linear_motor->flags );
 
 	fprintf(file, "  num motors           = %ld\n", num_motors);
 

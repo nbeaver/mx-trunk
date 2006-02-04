@@ -52,7 +52,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_auto_network_record_field_defaults[] = {
 	MX_AUTO_NETWORK_STANDARD_FIELDS
 };
 
-long mxd_auto_network_num_record_fields
+mx_length_type mxd_auto_network_num_record_fields
 	= sizeof( mxd_auto_network_record_field_defaults )
 	/ sizeof( mxd_auto_network_record_field_defaults[0] );
 
@@ -264,7 +264,7 @@ mxd_auto_network_open( MX_RECORD *record )
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_NETWORK *auto_network;
-	unsigned long num_monitor_offsets;
+	uint32_t num_monitor_offsets;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -285,7 +285,7 @@ mxd_auto_network_open( MX_RECORD *record )
 	/* Find out how big the monitor offset array is in the remote server. */
 
 	mx_status = mx_get( &(auto_network->num_monitor_offsets_nf),
-				MXFT_ULONG, &num_monitor_offsets );
+				MXFT_UINT32, &num_monitor_offsets );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -372,7 +372,7 @@ mxd_auto_network_read_monitor( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_read_monitor()";
 
 	MX_AUTO_NETWORK *auto_network;
-	long scaler_value;
+	int32_t scaler_value;
 	mx_status_type mx_status;
 
 #if 0
@@ -393,7 +393,7 @@ mxd_auto_network_read_monitor( MX_AUTOSCALE *autoscale )
 #endif
 
 	mx_status = mx_get( &(auto_network->monitor_value_nf),
-				MXFT_LONG, &scaler_value );
+				MXFT_INT32, &scaler_value );
 
 #if 0
 	clock_ticks_after = mx_current_clock_tick();
@@ -425,7 +425,7 @@ mxd_auto_network_get_change_request( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_get_change_request()";
 
 	MX_AUTO_NETWORK *auto_network;
-	int get_change_request;
+	int32_t get_change_request;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_network_get_pointers( autoscale,
@@ -435,7 +435,7 @@ mxd_auto_network_get_change_request( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	mx_status = mx_get( &(auto_network->get_change_request_nf),
-				MXFT_INT, &get_change_request );
+				MXFT_INT32, &get_change_request );
 
 	autoscale->get_change_request = get_change_request;
 
@@ -452,7 +452,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_change_control()";
 
 	MX_AUTO_NETWORK *auto_network;
-	int change_control;
+	int32_t change_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_network_get_pointers( autoscale,
@@ -468,7 +468,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 			change_control));
 
 	mx_status = mx_put( &(auto_network->change_control_nf),
-				MXFT_INT, &change_control );
+				MXFT_INT32, &change_control );
 
 	return mx_status;
 }
@@ -479,7 +479,7 @@ mxd_auto_network_get_offset_index( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_get_offset_index()";
 
 	MX_AUTO_NETWORK *auto_network;
-	unsigned long offset_index;
+	uint32_t offset_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_network_get_pointers( autoscale,
@@ -489,7 +489,7 @@ mxd_auto_network_get_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	mx_status = mx_get( &(auto_network->monitor_offset_index_nf),
-				MXFT_ULONG, &offset_index );
+				MXFT_UINT32, &offset_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -498,7 +498,8 @@ mxd_auto_network_get_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The monitor offset value %lu returned by the remote server is larger "
 	"than the maximum value %lu allowed by the client MX database.",
-		offset_index, autoscale->num_monitor_offsets - 1L );
+		(unsigned long) offset_index,
+		autoscale->num_monitor_offsets - 1L );
 	}
 
 	autoscale->monitor_offset_index = offset_index;
@@ -512,7 +513,7 @@ mxd_auto_network_set_offset_index( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_set_offset_index()";
 
 	MX_AUTO_NETWORK *auto_network;
-	unsigned long offset_index;
+	uint32_t offset_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_network_get_pointers( autoscale,
@@ -527,11 +528,12 @@ mxd_auto_network_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
 		"illegal_value of %lu.  The allowed values are (0 - %lu)",
-			offset_index, autoscale->num_monitor_offsets - 1L );
+			(unsigned long) offset_index,
+			autoscale->num_monitor_offsets - 1L );
 	}
 
 	mx_status = mx_put( &(auto_network->monitor_offset_index_nf),
-					MXFT_ULONG, &offset_index );
+					MXFT_UINT32, &offset_index );
 	return mx_status;
 }
 
@@ -541,8 +543,8 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_get_parameter()";
 
 	MX_AUTO_NETWORK *auto_network;
-	long dimension_array[1];
-	int int_value;
+	mx_length_type dimension_array[1];
+	int32_t int32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -562,9 +564,9 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:
 		mx_status = mx_get( &(auto_network->enabled_nf),
-					MXFT_INT, &int_value );
+					MXFT_INT32, &int32_value );
 
-		autoscale->enabled = int_value;
+		autoscale->enabled = int32_value;
 		break;
 
 	case MXLV_AUT_LOW_LIMIT:
@@ -617,8 +619,8 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_set_parameter()";
 
 	MX_AUTO_NETWORK *auto_network;
-	long dimension_array[1];
-	int int_value;
+	mx_length_type dimension_array[1];
+	int32_t int32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -637,10 +639,10 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:
-		int_value = autoscale->enabled;
+		int32_value = autoscale->enabled;
 
 		mx_status = mx_put( &(auto_network->enabled_nf),
-					MXFT_INT, &int_value );
+					MXFT_INT32, &int32_value );
 		break;
 
 	case MXLV_AUT_LOW_LIMIT:

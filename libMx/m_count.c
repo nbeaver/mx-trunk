@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_MEASUREMENT_FUNCTION_LIST mxm_preset_count_function_list = {
 MX_EXPORT mx_status_type
 mxm_preset_count_configure( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_count_configure()";
+	static const char fname[] = "mxm_preset_count_configure()";
 
 	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
 	MX_SCAN *scan;
@@ -50,7 +50,7 @@ mxm_preset_count_configure( MX_MEASUREMENT *measurement )
 	long preset_count;
 	char format_buffer[20];
 	int i, num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,19 +113,19 @@ mxm_preset_count_configure( MX_MEASUREMENT *measurement )
 
 	/* Set the scaler to preset mode. */
 
-	status = mx_scaler_set_mode( scaler_record, MXCM_PRESET_MODE );
+	mx_status = mx_scaler_set_mode( scaler_record, MXCM_PRESET_MODE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Make sure all other devices that can affect the gate signal
 	 * are set to counter mode.
 	 */
 
-	status = mx_scaler_set_modes_of_associated_counters( scaler_record );
+	mx_status = mx_scaler_set_modes_of_associated_counters( scaler_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the rest of the scalers and timers to counter mode. */
 
@@ -137,24 +137,24 @@ mxm_preset_count_configure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
 			if ( input_device_record != scaler_record ) {
 
-				status = mx_scaler_set_mode(input_device_record,
+				mx_status = mx_scaler_set_mode(input_device_record,
 							MXCM_COUNTER_MODE );
 			}
 			break;
 		case MXC_TIMER:
-			status = mx_timer_set_mode( input_device_record,
+			mx_status = mx_timer_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -163,14 +163,14 @@ mxm_preset_count_configure( MX_MEASUREMENT *measurement )
 MX_EXPORT mx_status_type
 mxm_preset_count_deconfigure( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_count_deconfigure()";
+	static const char fname[] = "mxm_preset_count_deconfigure()";
 
 	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
 	MX_SCAN *scan;
 	MX_RECORD *scaler_record;
 	MX_RECORD *input_device_record;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -197,19 +197,19 @@ mxm_preset_count_deconfigure( MX_MEASUREMENT *measurement )
 
 	/* Restore the scaler back to counter mode. */
 
-	status = mx_scaler_set_mode( scaler_record, MXCM_COUNTER_MODE );
+	mx_status = mx_scaler_set_mode( scaler_record, MXCM_COUNTER_MODE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the modes of any associated timers to preset mode and the modes
 	 * of any associated scalers to count mode.
 	 */
 
-	status = mx_scaler_set_modes_of_associated_counters( scaler_record );
+	mx_status = mx_scaler_set_modes_of_associated_counters( scaler_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Restore other timers to preset mode
 	 * and other scalers to counter mode.
@@ -223,25 +223,25 @@ mxm_preset_count_deconfigure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
 			if ( input_device_record != scaler_record ) {
 
-				status = mx_scaler_set_mode(
+				mx_status = mx_scaler_set_mode(
 						input_device_record,
 						MXCM_COUNTER_MODE );
 			}
 			break;
 		case MXC_TIMER:
-			status = mx_timer_set_mode( input_device_record,
+			mx_status = mx_timer_set_mode( input_device_record,
 							MXCM_PRESET_MODE );
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	if ( preset_count_struct != NULL ) {
@@ -284,14 +284,13 @@ mxm_preset_count_postslice_processing( MX_MEASUREMENT *measurement )
 MX_EXPORT mx_status_type
 mxm_preset_count_measure_data( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_count_measure_data()";
+	static const char fname[] = "mxm_preset_count_measure_data()";
 
 	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
 	MX_SCAN *scan;
 	MX_RECORD *scaler_record;
-	long current_counts;
 	int busy, interrupt;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -324,18 +323,18 @@ mxm_preset_count_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Clear the input devices. */
 
-	status = mx_clear_scan_input_devices( scan );
+	mx_status = mx_clear_scan_input_devices( scan );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Start the measurement. */
 
-	status = mx_scaler_start( scaler_record,
+	mx_status = mx_scaler_start( scaler_record,
 					preset_count_struct->preset_count );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Wait for the measurement to be over. */
 
@@ -349,14 +348,14 @@ mxm_preset_count_measure_data( MX_MEASUREMENT *measurement )
 			break;
 
 		case MXF_USER_INT_PAUSE:
-			(void) mx_scaler_stop( scaler_record, &current_counts );
+			(void) mx_scaler_stop( scaler_record, NULL );
 
 			return mx_error( MXE_PAUSE_REQUESTED, fname,
 			"Pause requested by user." );
 
 			break;
 		default:
-			(void) mx_scaler_stop( scaler_record, &current_counts );
+			(void) mx_scaler_stop( scaler_record, NULL );
 
 			return mx_error( MXE_INTERRUPTED, fname,
 			"Measurement was interrupted.");
@@ -364,10 +363,10 @@ mxm_preset_count_measure_data( MX_MEASUREMENT *measurement )
 			break;
 		}
 
-		status = mx_scaler_is_busy( scaler_record, &busy );
+		mx_status = mx_scaler_is_busy( scaler_record, &busy );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_msleep(1);	/* Wait at least 1 millisecond. */
 	}

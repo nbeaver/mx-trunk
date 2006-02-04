@@ -276,7 +276,7 @@
 
 /* --- Analog input subclasses -- */
 
-#define MXT_AIN_LONG			101
+#define MXT_AIN_INT32			101
 #define MXT_AIN_DOUBLE			102
 
 /* --- Analog output types --- */
@@ -306,7 +306,7 @@
 
 /* --- Analog output subclasses -- */
 
-#define MXT_AOU_LONG			201
+#define MXT_AOU_INT32			201
 #define MXT_AOU_DOUBLE			202
 
 /* --- Digital input types --- */

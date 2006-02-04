@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -194,7 +194,7 @@ mx_scaler_overflow_set( MX_RECORD *scaler_record, int *overflow_set )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_read( MX_RECORD *scaler_record, long *value )
+mx_scaler_read( MX_RECORD *scaler_record, int32_t *value )
 {
 	static const char fname[] = "mx_scaler_read()";
 
@@ -202,7 +202,7 @@ mx_scaler_read( MX_RECORD *scaler_record, long *value )
 	MX_RECORD *timer_record;
 	MX_SCALER_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_SCALER * );
-	long offset;
+	int32_t offset;
 	int subtract_dark_current, timer_mode;
 	double last_measurement_time;
 	mx_status_type mx_status;
@@ -308,7 +308,7 @@ mx_scaler_read( MX_RECORD *scaler_record, long *value )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_read_raw( MX_RECORD *scaler_record, long *value )
+mx_scaler_read_raw( MX_RECORD *scaler_record, int32_t *value )
 {
 	static const char fname[] = "mx_scaler_read_raw()";
 
@@ -350,7 +350,7 @@ mx_scaler_read_raw( MX_RECORD *scaler_record, long *value )
 	scaler->value = scaler->raw_value;
 
 	MX_DEBUG( 2,("%s: scaler '%s', value = %ld",
-		fname, scaler->record->name, scaler->value));
+		fname, scaler->record->name, (long) scaler->value));
 
 	if ( value != NULL ) {
 		*value = scaler->value;
@@ -391,7 +391,7 @@ mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_start( MX_RECORD *scaler_record, long preset_count )
+mx_scaler_start( MX_RECORD *scaler_record, int32_t preset_count )
 {
 	static const char fname[] = "mx_scaler_start()";
 
@@ -425,7 +425,7 @@ mx_scaler_start( MX_RECORD *scaler_record, long preset_count )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_stop( MX_RECORD *scaler_record, long *present_value )
+mx_scaler_stop( MX_RECORD *scaler_record, int32_t *present_value )
 {
 	static const char fname[] = "mx_scaler_stop()";
 

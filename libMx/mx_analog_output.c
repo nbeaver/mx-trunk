@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -102,8 +102,8 @@ mx_analog_output_read( MX_RECORD *record, double *value )
 		mx_status = (*read_fn)( analog_output );
 	}
 
-	if ( analog_output->subclass == MXT_AOU_LONG ) {
-		raw_value = (double) analog_output->raw_value.long_value;
+	if ( analog_output->subclass == MXT_AOU_INT32 ) {
+		raw_value = (double) analog_output->raw_value.int32_value;
 	} else {
 		raw_value = analog_output->raw_value.double_value;
 	}
@@ -152,8 +152,8 @@ mx_analog_output_write( MX_RECORD *record, double value )
 
 	raw_value = mx_divide_safely( value - offset, scale );
 
-	if ( analog_output->subclass == MXT_AOU_LONG ) {
-		analog_output->raw_value.long_value = mx_round( raw_value );
+	if ( analog_output->subclass == MXT_AOU_INT32 ) {
+		analog_output->raw_value.int32_value = mx_round( raw_value );
 	} else {
 		analog_output->raw_value.double_value = raw_value;
 	}
@@ -163,18 +163,18 @@ mx_analog_output_write( MX_RECORD *record, double value )
 	return mx_status;
 }
 
-/* mx_analog_output_read_raw_long() is for reading the value 
+/* mx_analog_output_read_raw_int32() is for reading the value 
  * currently being output.
  */
 
 MX_EXPORT mx_status_type
-mx_analog_output_read_raw_long( MX_RECORD *record, long *raw_value )
+mx_analog_output_read_raw_int32( MX_RECORD *record, int32_t *raw_value )
 {
-	static const char fname[] = "mx_analog_output_read_raw_long()";
+	static const char fname[] = "mx_analog_output_read_raw_int32()";
 
 	MX_ANALOG_OUTPUT *analog_output;
 	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
-	long local_raw_value;
+	int32_t local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_OUTPUT * );
 	mx_status_type mx_status;
 
@@ -184,10 +184,10 @@ mx_analog_output_read_raw_long( MX_RECORD *record, long *raw_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( analog_output->subclass != MXT_AOU_LONG ) {
+	if ( analog_output->subclass != MXT_AOU_INT32 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"This function may only be used with analog outputs that send values "
-	"as long integers.  The record '%s' sends values as doubles so "
+	"as 32-bit integers.  The record '%s' sends values as doubles so "
 	"you should use mx_analog_output_read_raw_double() with this record.",
 			record->name );
 	}
@@ -202,7 +202,7 @@ mx_analog_output_read_raw_long( MX_RECORD *record, long *raw_value )
 
 	mx_status = (*read_fn)( analog_output );
 
-	local_raw_value = analog_output->raw_value.long_value;
+	local_raw_value = analog_output->raw_value.int32_value;
 
 	analog_output->value = analog_output->offset + analog_output->scale
 					* (double) local_raw_value;
@@ -215,9 +215,9 @@ mx_analog_output_read_raw_long( MX_RECORD *record, long *raw_value )
 }
 
 MX_EXPORT mx_status_type
-mx_analog_output_write_raw_long( MX_RECORD *record, long raw_value )
+mx_analog_output_write_raw_int32( MX_RECORD *record, int32_t raw_value )
 {
-	static const char fname[] = "mx_analog_output_write_raw_long()";
+	static const char fname[] = "mx_analog_output_write_raw_int32()";
 
 	MX_ANALOG_OUTPUT *analog_output;
 	MX_ANALOG_OUTPUT_FUNCTION_LIST *function_list;
@@ -230,10 +230,10 @@ mx_analog_output_write_raw_long( MX_RECORD *record, long raw_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( analog_output->subclass != MXT_AOU_LONG ) {
+	if ( analog_output->subclass != MXT_AOU_INT32 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"This function may only be used with analog outputs that send values "
-	"as long integers.  The record '%s' sends values as doubles so "
+	"as 32-bit.  The record '%s' sends values as doubles so "
 	"you should use mx_analog_output_read_raw_double() with this record.",
 			record->name );
 	}
@@ -246,7 +246,7 @@ mx_analog_output_write_raw_long( MX_RECORD *record, long raw_value )
 			record->name );
 	}
 
-	analog_output->raw_value.long_value = raw_value;
+	analog_output->raw_value.int32_value = raw_value;
 
 	analog_output->value = analog_output->offset + analog_output->scale
 						* (double) raw_value;
@@ -277,11 +277,11 @@ mx_analog_output_read_raw_double( MX_RECORD *record, double *raw_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( analog_output->subclass != MXT_AOU_LONG ) {
+	if ( analog_output->subclass != MXT_AOU_DOUBLE ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"This function may only be used with analog outputs that send values "
-	"as doubles.  The record '%s' sends values as long integers so "
-	"you should use mx_analog_output_read_raw_long() with this record.",
+	"as doubles.  The record '%s' sends values as 32-bit integers so "
+	"you should use mx_analog_output_read_raw_int32() with this record.",
 			record->name );
 	}
 
@@ -323,11 +323,11 @@ mx_analog_output_write_raw_double( MX_RECORD *record, double raw_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( analog_output->subclass != MXT_AOU_LONG ) {
+	if ( analog_output->subclass != MXT_AOU_DOUBLE ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"This function may only be used with analog outputs that send values "
-	"as doubles.  The record '%s' sends values as long integers so "
-	"you should use mx_analog_output_read_raw_long() with this record.",
+	"as doubles.  The record '%s' sends values as 32-bit integers so "
+	"you should use mx_analog_output_read_raw_int32() with this record.",
 			record->name );
 	}
 

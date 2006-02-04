@@ -30,13 +30,13 @@
 
 typedef struct {
 	MX_RECORD *compumotor_interface_record;
-	int controller_number;
-	int axis_number;
-	long flags;
+	int32_t controller_number;
+	int32_t axis_number;
+	mx_hex_type flags;
 
-	int controller_index;
-	int continuous_mode_enabled;
-	int is_servo;
+	int32_t controller_index;
+	bool continuous_mode_enabled;
+	bool is_servo;
 	double axis_resolution;
 } MX_COMPUMOTOR;
 
@@ -71,7 +71,7 @@ MX_API mx_status_type mxd_compumotor_get_status( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_enable_continuous_mode(
 				MX_COMPUMOTOR *compumotor,
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int enable_flag );
+				bool enable_flag );
 
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_compumotor_motor_function_list;
@@ -85,11 +85,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_rfield_def_ptr;
 		offsetof(MX_COMPUMOTOR, compumotor_interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

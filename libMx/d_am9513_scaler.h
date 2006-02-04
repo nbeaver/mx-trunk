@@ -23,10 +23,10 @@
 /* ===== Am9513 scaler data structure ===== */
 
 typedef struct {
-	long num_counters;
+	mx_length_type num_counters;
 	MX_INTERFACE *am9513_interface_array;
-	long gating_control;
-	long count_source;
+	mx_hex_type gating_control;
+	mx_hex_type count_source;
 } MX_AM9513_SCALER;
 
 /* Define all of the interface functions. */
@@ -59,9 +59,9 @@ extern mx_length_type mxd_am9513_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_am9513_scaler_rfield_def_ptr;
 
 #define MXD_AM9513_SCALER_STANDARD_FIELDS \
-  {-1, -1, "num_counters", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_counters", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AM9513_SCALER, num_counters), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "am9513_interface_array", MXFT_INTERFACE, NULL, \
 	1, {MXU_VARARGS_LENGTH}, MXF_REC_TYPE_STRUCT, \

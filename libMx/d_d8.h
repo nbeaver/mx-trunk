@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *d8_record;
-	int drive_number;
+	int32_t drive_number;
 	double d8_speed;
 } MX_D8_MOTOR;
 
@@ -63,7 +63,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_d8_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_D8_MOTOR, d8_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "drive_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "drive_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_D8_MOTOR, drive_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

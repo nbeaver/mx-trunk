@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -638,7 +638,7 @@ mx_autoscale_create_monitor_offset_array( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate a %lu element array of doubles for "
 "the monitor_offset_array field of record '%s'.",
-			autoscale->num_monitor_offsets,
+			(unsigned long) autoscale->num_monitor_offsets,
 			autoscale->record->name );
 	}
 

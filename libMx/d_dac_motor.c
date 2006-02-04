@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,15 +30,9 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_dac_motor_record_function_list = {
-	mxd_dac_motor_initialize_type,
+	NULL,
 	mxd_dac_motor_create_record_structures,
-	mxd_dac_motor_finish_record_initialization,
-	mxd_dac_motor_delete_record,
-	mxd_dac_motor_print_motor_structure,
-	mxd_dac_motor_read_parms_from_hardware,
-	mxd_dac_motor_write_parms_to_hardware,
-	mxd_dac_motor_open,
-	mxd_dac_motor_close
+	mx_motor_finish_record_initialization
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_dac_motor_motor_function_list = {
@@ -49,8 +43,7 @@ MX_MOTOR_FUNCTION_LIST mxd_dac_motor_motor_function_list = {
 	mxd_dac_motor_soft_abort,
 	mxd_dac_motor_immediate_abort,
 	mxd_dac_motor_positive_limit_hit,
-	mxd_dac_motor_negative_limit_hit,
-	mxd_dac_motor_find_home_position
+	mxd_dac_motor_negative_limit_hit
 };
 
 /* DAC motor data structures. */
@@ -62,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_dac_motor_record_field_defaults[] = {
 	MXD_DAC_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_dac_motor_num_record_fields
+mx_length_type mxd_dac_motor_num_record_fields
 		= sizeof( mxd_dac_motor_record_field_defaults )
 			/ sizeof( mxd_dac_motor_record_field_defaults[0] );
 
@@ -71,18 +64,40 @@ MX_RECORD_FIELD_DEFAULTS *mxd_dac_motor_rfield_def_ptr
 
 /* === */
 
-MX_EXPORT mx_status_type
-mxd_dac_motor_initialize_type( long type )
+static mx_status_type
+mxd_dac_motor_get_pointers( MX_MOTOR *motor,
+			MX_DAC_MOTOR **dac_motor,
+			const char *calling_fname )
 {
-		/* Nothing needed here. */
+	static const char fname[] = "mxd_dac_motor_get_pointers()";
 
-		return MX_SUCCESSFUL_RESULT;
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_MOTOR pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+	if ( dac_motor == (MX_DAC_MOTOR **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DAC_MOTOR pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	*dac_motor = (MX_DAC_MOTOR *) motor->record->record_type_struct;
+
+	if ( *dac_motor == (MX_DAC_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_DAC_MOTOR pointer for record '%s' is NULL.",
+			motor->record->name );
+	}
+	return MX_SUCCESSFUL_RESULT;
 }
+
+/* === */
 
 MX_EXPORT mx_status_type
 mxd_dac_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_dac_motor_create_record_structures()";
+	static const char fname[] = "mxd_dac_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_DAC_MOTOR *dac_motor;
@@ -120,159 +135,6 @@ mxd_dac_motor_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_dac_motor_finish_record_initialization( MX_RECORD *record )
-{
-	mx_status_type status;
-
-	status = mx_motor_finish_record_initialization( record );
-
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_print_motor_structure( FILE *file, MX_RECORD *record )
-{
-	const char fname[] = "mxd_dac_motor_print_motor_structure()";
-
-	MX_MOTOR *motor;
-	MX_DAC_MOTOR *dac_motor;
-	MX_RECORD *dac_record;
-	MX_ANALOG_OUTPUT *dac;
-	double position, move_deadband;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_MOTOR pointer for record '%s' is NULL.", record->name );
-	}
-
-	dac_motor = (MX_DAC_MOTOR *) (record->record_type_struct);
-
-	if ( dac_motor == (MX_DAC_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DAC_MOTOR pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	dac_record = dac_motor->dac_record;
-
-	if ( dac_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"DAC record pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	dac = (MX_ANALOG_OUTPUT *) (dac_record->record_class_struct);
-
-	if ( dac == (MX_ANALOG_OUTPUT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_ANALOG_OUTPUT pointer for record '%s' is NULL.",
-			dac_record->name );
-	}
-
-	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
-	fprintf(file, "  Motor type      = DAC_MOTOR.\n\n");
-
-	fprintf(file, "  name            = %s\n", record->name);
-	fprintf(file, "  dac             = %s\n", dac_record->name);
-
-	status = mx_motor_get_position( record, &position );
-
-	if ( status.code != MXE_SUCCESS ) {
-		return mx_error( MXE_FUNCTION_FAILED, fname,
-			"Unable to read position of motor '%s'",
-			record->name );
-	}
-
-	fprintf(file, "  position        = %g %s  (%g).\n",
-		motor->position, motor->units,
-		motor->raw_position.analog );
-	fprintf(file, "  scale           = %g %s per %s.\n",
-		motor->scale, motor->units, dac->units);
-	fprintf(file, "  offset          = %g %s.\n",
-		motor->offset, motor->units);
-        fprintf(file, "  backlash        = %g %s  (%g %s).\n",
-                motor->backlash_correction, motor->units,
-                motor->raw_backlash_correction.analog, dac->units);
-        fprintf(file, "  negative limit  = %g %s  (%g %s).\n",
-                motor->negative_limit, motor->units,
-                motor->raw_negative_limit.analog, dac->units);
-        fprintf(file, "  positive limit  = %g %s  (%g %s).\n",
-                motor->positive_limit, motor->units,
-                motor->raw_positive_limit.analog, dac->units);
-
-	move_deadband = motor->scale * motor->raw_move_deadband.analog;
-
-	fprintf(file, "  move deadband   = %g %s  (%g %s).\n\n",
-		move_deadband, motor->units,
-		motor->raw_move_deadband.analog, dac->units);
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	/* All saving of parameters is handled by the MX_ANALOG_OUTPUT record
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	/* All setting of parameters is handled by the MX_ANALOG_OUTPUT record
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_open( MX_RECORD *record )
-{
-	/* Nothing to do. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_close( MX_RECORD *record )
-{
-	/* Nothing to do. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_dac_motor_motor_is_busy( MX_MOTOR *motor )
 {
 	/* A DAC motor is never busy. */
@@ -285,74 +147,41 @@ mxd_dac_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_dac_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_dac_motor_move_absolute()";
+	static const char fname[] = "mxd_dac_motor_move_absolute()";
 
 	MX_DAC_MOTOR *dac_motor;
-	MX_RECORD *dac_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_MOTOR pointer passed NULL.");
-	}
+	mx_status = mxd_dac_motor_get_pointers( motor, &dac_motor, fname );
 
-	dac_motor = (MX_DAC_MOTOR *) (motor->record->record_type_struct);
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( dac_motor == (MX_DAC_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DAC_MOTOR pointer for record '%s' is NULL.",
-			motor->record->name );
-	}
-
-	dac_record = dac_motor->dac_record;
-
-	if ( dac_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"DAC record pointer for record '%s' is NULL.",
-			motor->record->name );
-	}
-
-	status = mx_analog_output_write( dac_record,
+	mx_status = mx_analog_output_write( dac_motor->dac_record,
 					motor->raw_destination.analog );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_dac_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_dac_motor_get_position()";
+	static const char fname[] = "mxd_dac_motor_get_position()";
 
 	MX_DAC_MOTOR *dac_motor;
-	MX_RECORD *dac_record;
 	double present_value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_MOTOR pointer passed NULL.");
-	}
+	mx_status = mxd_dac_motor_get_pointers( motor, &dac_motor, fname );
 
-	dac_motor = (MX_DAC_MOTOR *) (motor->record->record_type_struct);
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( dac_motor == (MX_DAC_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_DAC_MOTOR pointer for record '%s' is NULL.",
-			motor->record->name );
-	}
+	mx_status = mx_analog_output_read( dac_motor->dac_record,
+						&present_value );
 
-	dac_record = dac_motor->dac_record;
-
-	if ( dac_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"DAC record pointer for record '%s' is NULL.",
-			motor->record->name );
-	}
-
-	status = mx_analog_output_read( dac_record, &present_value );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->raw_position.analog = present_value;
 
@@ -362,11 +191,11 @@ mxd_dac_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_dac_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_dac_motor_set_position()";
+	static const char fname[] = "mxd_dac_motor_set_position()";
 
 	double negative_limit, positive_limit;
 	double position, old_position, position_delta;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	/* The only plausible interpretation I can think of
 	 * for this function here is to change the motor
@@ -391,10 +220,10 @@ mxd_dac_motor_set_position( MX_MOTOR *motor )
 			position, positive_limit );
 	}
 
-	status = mx_motor_get_position( motor->record, &old_position );
+	mx_status = mx_motor_get_position( motor->record, &old_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	position_delta = position - old_position;
 
@@ -423,12 +252,12 @@ MX_EXPORT mx_status_type
 mxd_dac_motor_positive_limit_hit( MX_MOTOR *motor )
 {
 	double present_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_get_position( motor->record, &present_position );
+	mx_status = mx_motor_get_position( motor->record, &present_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( present_position > motor->raw_positive_limit.analog ) {
 		motor->positive_limit_hit = TRUE;
@@ -443,12 +272,12 @@ MX_EXPORT mx_status_type
 mxd_dac_motor_negative_limit_hit( MX_MOTOR *motor )
 {
 	double present_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_get_position( motor->record, &present_position );
+	mx_status = mx_motor_get_position( motor->record, &present_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( present_position < motor->raw_negative_limit.analog ) {
 		motor->negative_limit_hit = TRUE;
@@ -457,14 +286,5 @@ mxd_dac_motor_negative_limit_hit( MX_MOTOR *motor )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_dac_motor_find_home_position( MX_MOTOR *motor )
-{
-	const char fname[] = "mxd_dac_motor_find_home_position()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-	"'find home position' is not valid for a DAC motor." );
 }
 

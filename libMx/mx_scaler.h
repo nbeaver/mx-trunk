@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,23 +28,23 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 	                    * to this scaler.
 	                    */
-	long value;
-	long raw_value;             /* Without dark current subtraction. */
+	int32_t value;
+	int32_t raw_value;          /* Without dark current subtraction. */
 
 	double dark_current;        /* Expressed in counts per second. */
 
-	unsigned long scaler_flags;
+	mx_hex_type scaler_flags;
 
 	char timer_record_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	MX_RECORD *timer_record;
 
-	int  parameter_type;
+	int32_t  parameter_type;
 
-	int  clear;
-	int  overflow_set;
-	int  busy;
-	int  stop;
-	int  mode;
+	int32_t  clear;
+	int32_t  overflow_set;
+	int32_t  busy;
+	int32_t  stop;
+	int32_t  mode;
 } MX_SCALER;
 
 #define MXLV_SCL_VALUE			6001
@@ -57,11 +57,11 @@ typedef struct {
 #define MXLV_SCL_MODE			6008
 
 #define MX_SCALER_STANDARD_FIELDS \
-  {MXLV_SCL_VALUE, -1, "value", MXFT_LONG, NULL, 0, {0}, \
+  {MXLV_SCL_VALUE, -1, "value", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, value), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_SCL_RAW_VALUE, -1, "raw_value", MXFT_LONG, NULL, 0, {0}, \
+  {MXLV_SCL_RAW_VALUE, -1, "raw_value", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, raw_value), \
 	{0}, NULL, 0 }, \
   \
@@ -77,23 +77,23 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, timer_record_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SCL_CLEAR, -1, "clear", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCL_CLEAR, -1, "clear", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, clear), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_OVERFLOW_SET, -1, "overflow_set", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCL_OVERFLOW_SET, -1, "overflow_set", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, overflow_set), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCL_BUSY, -1, "busy", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, busy), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCL_STOP, -1, "stop", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, stop), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_MODE, -1, "mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCL_MODE, -1, "mode", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, mode), \
 	{0}, NULL, 0 }
 
@@ -128,18 +128,19 @@ MX_API mx_status_type mx_scaler_clear( MX_RECORD *scaler_record );
 MX_API mx_status_type mx_scaler_overflow_set( MX_RECORD *scaler_record,
 							int *overflow_set);
 
-MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record, long *value );
+MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record,
+							int32_t *value );
 
 MX_API mx_status_type mx_scaler_read_raw( MX_RECORD *scaler_record,
-							long *value );
+							int32_t *value );
 
 MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy );
 
 MX_API mx_status_type mx_scaler_start( MX_RECORD *scaler_record,
-						long preset_count );
+						int32_t preset_count );
 
 MX_API mx_status_type mx_scaler_stop( MX_RECORD *scaler_record,
-						long *present_value );
+						int32_t *present_value );
 
 MX_API mx_status_type mx_scaler_get_mode( MX_RECORD *scaler_record, int *mode );
 

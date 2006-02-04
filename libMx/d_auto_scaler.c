@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_autoscale_scaler_record_field_defaults[] = {
 	MXD_AUTOSCALE_SCALER_STANDARD_FIELDS
 };
 
-long mxd_autoscale_scaler_num_record_fields
+mx_length_type mxd_autoscale_scaler_num_record_fields
 		= sizeof( mxd_autoscale_scaler_record_field_defaults )
 		  / sizeof( mxd_autoscale_scaler_record_field_defaults[0] );
 
@@ -414,7 +414,7 @@ mxd_autoscale_scaler_stop( MX_SCALER *scaler )
 	const char fname[] = "mxd_autoscale_scaler_stop()";
 
 	MX_AUTOSCALE *autoscale;
-	long value;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_autoscale_scaler_get_pointers( scaler, NULL,

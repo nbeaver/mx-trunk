@@ -33,7 +33,7 @@ MX_API void mx_write_void_pointer_to_memory_location(
 					void *memory_location, void *ptr );
 
 MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,
@@ -45,7 +45,7 @@ MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 MX_API mx_status_type mx_copy_buffer_to_array(
 		void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,
@@ -57,7 +57,7 @@ MX_API mx_status_type mx_copy_buffer_to_array(
 
 MX_API mx_status_type mx_xdr_data_transfer( int direction,
 		void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,

@@ -349,7 +349,7 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 	MX_SCALER *scaler;
 	unsigned long seconds, milliseconds;
 	double double_value;
-	long long_value;
+	int32_t int32_value;
 	uint32_t uint32_value;
 	long i;
 	mx_status_type status;
@@ -484,14 +484,14 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 				break;
 			case MXC_SCALER:
 				status = mx_scaler_read(
-						input_device, &long_value );
+						input_device, &int32_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}
 				scaler = (MX_SCALER *)
 					(input_device->record_class_struct);
 
-				scaler->value = long_value;
+				scaler->value = int32_value;
 				break;
 			case MXC_TIMER:
 				status = mx_timer_read(

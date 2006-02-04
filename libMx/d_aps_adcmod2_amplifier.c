@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_aps_adcmod2_record_field_defaults[] = {
 	MXD_APS_ADCMOD2_STANDARD_FIELDS
 };
 
-long mxd_aps_adcmod2_num_record_fields
+mx_length_type mxd_aps_adcmod2_num_record_fields
 		= sizeof( mxd_aps_adcmod2_record_field_defaults )
 		  / sizeof( mxd_aps_adcmod2_record_field_defaults[0] );
 

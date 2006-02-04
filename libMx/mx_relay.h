@@ -38,11 +38,11 @@ typedef struct {
 #define MXLV_RLY_RELAY_STATUS	1002
 
 #define MX_RELAY_STANDARD_FIELDS \
-  {MXLV_RLY_RELAY_COMMAND, -1, "relay_command", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_RLY_RELAY_COMMAND, -1, "relay_command", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RELAY, relay_command), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_RLY_RELAY_STATUS, -1, "relay_status", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_RLY_RELAY_STATUS, -1, "relay_status", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RELAY, relay_status), \
 	{0}, NULL, MXFF_IN_SUMMARY}
 

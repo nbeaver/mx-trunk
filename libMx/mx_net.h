@@ -58,8 +58,8 @@ typedef union {
 struct mx_network_field_type {
 	char nfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 	MX_RECORD *server_record;
-	long record_handle;
-	long field_handle;
+	int32_t record_handle;
+	int32_t field_handle;
 };
 
 typedef struct {
@@ -69,11 +69,11 @@ typedef struct {
 	double timeout;			/* in seconds */
 
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
-	unsigned long remote_mx_version;
-	unsigned long data_format;
-	int server_supports_network_handles;
+	uint32_t remote_mx_version;
+	uint32_t data_format;
+	bool server_supports_network_handles;
 
-	int network_handles_are_valid;
+	bool network_handles_are_valid;
 	mx_length_type network_field_array_block_size;
 
 	mx_length_type num_network_fields;

@@ -25,22 +25,22 @@
 
 typedef struct {
 	MX_RECORD *compumotor_interface_record;
-	int controller_number;
-	int brick_number;
-	int first_bit;
-	int num_bits;
+	int32_t controller_number;
+	int32_t brick_number;
+	int32_t first_bit;
+	int32_t num_bits;
 
-	int controller_index;
+	int32_t controller_index;
 } MX_COMPUMOTOR_DINPUT;
 
 typedef struct {
 	MX_RECORD *compumotor_interface_record;
-	int controller_number;
-	int brick_number;
-	int first_bit;
-	int num_bits;
+	int32_t controller_number;
+	int32_t brick_number;
+	int32_t first_bit;
+	int32_t num_bits;
 
-	int controller_index;
+	int32_t controller_index;
 } MX_COMPUMOTOR_DOUTPUT;
 
 #define MXD_COMPUMOTOR_DINPUT_STANDARD_FIELDS \
@@ -49,20 +49,20 @@ typedef struct {
 		offsetof(MX_COMPUMOTOR_DINPUT, compumotor_interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_COMPUMOTOR_DINPUT, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "brick_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "brick_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DINPUT, brick_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "first_bit", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "first_bit", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DINPUT, first_bit), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DINPUT, num_bits), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -72,20 +72,20 @@ typedef struct {
 		offsetof(MX_COMPUMOTOR_DOUTPUT, compumotor_interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_COMPUMOTOR_DOUTPUT, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "brick_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "brick_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DOUTPUT, brick_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "first_bit", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "first_bit", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DOUTPUT, first_bit), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_DOUTPUT, num_bits), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

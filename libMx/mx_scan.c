@@ -2003,9 +2003,9 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 	mx_length_type num_dimensions;
 	mx_length_type *dimension_array;
-	long long_value, field_type;
+	long field_type;
+	int32_t int32_value;
 	uint32_t uint32_value;
-	int int_value;
 	double double_value;
 	void *ptr_to_value;
 	mx_status_type mx_status;
@@ -2044,16 +2044,16 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			break;
 
 		case MXC_SCALER:
-			mx_status = mx_scaler_read( input_device, &long_value );
+			mx_status = mx_scaler_read( input_device, &int32_value);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			if ( measurement_time <= 0.0 ) {
-				*returned_value = (double) long_value;
+				*returned_value = (double) int32_value;
 			} else {
 				*returned_value = mx_divide_safely(
-							(double) long_value,
+							(double) int32_value,
 							measurement_time );
 			}
 			break;
@@ -2066,12 +2066,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( input_device,
-							&int_value );
+							&int32_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			*returned_value = (double) int_value;
+			*returned_value = (double) int32_value;
 			break;
 
 		default:
@@ -2251,7 +2251,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 					mx_divide_safely( (double)scaler->value,
 						measurement_time ) );
 			} else {
-				sprintf( buffer, "%10ld", scaler->value );
+				sprintf( buffer, "%10ld", (long) scaler->value);
 			}
 			break;
 		case MXC_TIMER:

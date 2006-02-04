@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_auto_filter_record_field_defaults[] = {
 	MX_AUTO_FILTER_STANDARD_FIELDS
 };
 
-long mxd_auto_filter_num_record_fields
+mx_length_type mxd_auto_filter_num_record_fields
 	= sizeof( mxd_auto_filter_record_field_defaults )
 	/ sizeof( mxd_auto_filter_record_field_defaults[0] );
 
@@ -283,7 +283,7 @@ mxd_auto_filter_read_monitor( MX_AUTOSCALE *autoscale )
 {
 	static const char fname[] = "mxd_auto_filter_read_monitor()";
 
-	long scaler_value, offset;
+	int32_t scaler_value, offset;
 	double offset_per_second, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -298,7 +298,7 @@ mxd_auto_filter_read_monitor( MX_AUTOSCALE *autoscale )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, scaler_value));
+	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, (long) scaler_value));
 
 	/* For this autoscale driver, there is only one monitor offset. */
 
@@ -321,11 +321,11 @@ mxd_auto_filter_read_monitor( MX_AUTOSCALE *autoscale )
 		offset = 0L;
 	}
 
-	MX_DEBUG( 2,("%s: offset = %ld", fname, offset));
+	MX_DEBUG( 2,("%s: offset = %ld", fname, (long) offset));
 
 	scaler_value -= offset;
 
-	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, scaler_value));
+	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, (long) scaler_value));
 
 	autoscale->monitor_value = scaler_value;
 
@@ -338,8 +338,8 @@ mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_filter_get_change_request()";
 
 	MX_AUTO_FILTER *auto_filter;
-	unsigned long filter_setting;
-	long last_scaler_value;
+	uint32_t filter_setting;
+	int32_t last_scaler_value;
 	double dynamic_low_limit, dynamic_high_limit, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -351,7 +351,8 @@ mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 
 	last_scaler_value = autoscale->monitor_value;
 
-	MX_DEBUG( 2,("%s: last_scaler_value = %ld", fname, last_scaler_value));
+	MX_DEBUG( 2,("%s: last_scaler_value = %ld",
+		fname, (long) last_scaler_value));
 
 	mx_status = mx_digital_output_read( autoscale->control_record,
 						&filter_setting );

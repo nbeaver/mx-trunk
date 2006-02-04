@@ -24,14 +24,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
+	int32_t address;
 
-	double high_voltage;
-	double delay;
-	int    forced_remote_control;
-	int    security_status;
+	double  high_voltage;
+	double  delay;
+	int32_t forced_remote_control;
+	int32_t security_status;
 
-	int    discard_echoed_command_line;
+	bool    discard_echoed_command_line;
 } MX_CYBERSTAR_X1000;
 
 #define MXLV_CYBERSTAR_X1000_HIGH_VOLTAGE		0
@@ -67,7 +67,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_cyberstar_x1000_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CYBERSTAR_X1000, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CYBERSTAR_X1000, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -81,13 +81,13 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_cyberstar_x1000_rfield_def_ptr;
 	{0}, NULL, 0}, \
   \
   {MXLV_CYBERSTAR_X1000_FORCED_REMOTE_CONTROL, -1, \
-	  	"forced_remote_control", MXFT_INT, NULL, 0, {0}, \
+	  	"forced_remote_control", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CYBERSTAR_X1000, \
 						forced_remote_control), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {MXLV_CYBERSTAR_X1000_SECURITY_STATUS, -1, \
-	  	"security_status", MXFT_INT, NULL, 0, {0}, \
+	  	"security_status", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CYBERSTAR_X1000, security_status), \
 	{0}, NULL, 0}
 

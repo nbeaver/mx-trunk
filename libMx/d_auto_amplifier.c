@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_auto_amplifier_record_field_defaults[] = {
 	MX_AUTO_AMPLIFIER_STANDARD_FIELDS
 };
 
-long mxd_auto_amplifier_num_record_fields
+mx_length_type mxd_auto_amplifier_num_record_fields
 	= sizeof( mxd_auto_amplifier_record_field_defaults )
 	/ sizeof( mxd_auto_amplifier_record_field_defaults[0] );
 
@@ -336,7 +336,8 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 	const char fname[] = "mxd_auto_amplifier_read_monitor()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
-	long scaler_value, offset, offset_index;
+	long offset_index;
+	int32_t scaler_value, offset;
 	double offset_per_second, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -352,7 +353,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, scaler_value));
+	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, (long) scaler_value));
 	MX_DEBUG( 2,("%s: present_amplifier_gain = %g",
 			fname, auto_amplifier->present_amplifier_gain));
 
@@ -375,7 +376,8 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
 		"illegal_value of %ld.  The allowed values are (0 - %lu)",
-			offset_index, autoscale->num_monitor_offsets );
+			offset_index,
+			(unsigned long) autoscale->num_monitor_offsets );
 	}
 
 	offset_per_second = autoscale->monitor_offset_array[offset_index];
@@ -394,11 +396,11 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 		offset = 0L;
 	}
 
-	MX_DEBUG( 2,("%s: offset = %ld", fname, offset));
+	MX_DEBUG( 2,("%s: offset = %ld", fname, (long) offset));
 
 	scaler_value -= offset;
 
-	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, scaler_value));
+	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, (long) scaler_value));
 
 	autoscale->monitor_value = scaler_value;
 
@@ -623,7 +625,8 @@ mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
 		"illegal_value of %ld.  The allowed values are (0 - %lu)",
-			offset_index, autoscale->num_monitor_offsets );
+			offset_index,
+			(unsigned long) autoscale->num_monitor_offsets );
 	}
 
 	autoscale->monitor_offset_index = offset_index;
@@ -654,7 +657,8 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
 		"illegal_value of %lu.  The allowed values are (0 - %lu)",
-			offset_index, autoscale->num_monitor_offsets );
+			offset_index,
+			(unsigned long) autoscale->num_monitor_offsets );
 	}
 
 	gain = auto_amplifier->gain_range[0] * pow(10.0, (double) offset_index);

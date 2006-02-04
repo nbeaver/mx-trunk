@@ -55,8 +55,8 @@ typedef struct {
 	MX_RECORD **x_motor_array;
 	double **x_position_array;
 
-	int continuous_plot;
-	int normalize_data;
+	bool continuous_plot;
+	bool normalize_data;
 
 	void *plot_type_struct;
 	void *plot_function_list;
@@ -114,9 +114,9 @@ MX_API mx_status_type mx_plot_set_y_range( MX_PLOT *plot,
 
 MX_API mx_status_type mx_plot_start_plot_section( MX_PLOT *plot );
 
-MX_API int mx_plotting_is_enabled( MX_RECORD *record );
+MX_API bool mx_plotting_is_enabled( MX_RECORD *record );
 
-MX_API void mx_set_plot_enable( MX_RECORD *record, int enable );
+MX_API void mx_set_plot_enable( MX_RECORD *record, bool enable );
 
 MX_API MX_PLOT_TYPE_ENTRY *mx_plot_get_type_list( void );
 

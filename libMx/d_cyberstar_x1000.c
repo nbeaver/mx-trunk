@@ -60,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_cyberstar_x1000_record_field_defaults[] = {
 	MXD_CYBERSTAR_X1000_STANDARD_FIELDS
 };
 
-long mxd_cyberstar_x1000_num_record_fields
+mx_length_type mxd_cyberstar_x1000_num_record_fields
 		= sizeof( mxd_cyberstar_x1000_record_field_defaults )
 		  / sizeof( mxd_cyberstar_x1000_record_field_defaults[0] );
 

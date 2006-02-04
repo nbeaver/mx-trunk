@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_cm17a_doutput_record_field_defaults[] = {
 	MXD_CM17A_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_cm17a_doutput_num_record_fields
+mx_length_type mxd_cm17a_doutput_num_record_fields
 		= sizeof( mxd_cm17a_doutput_record_field_defaults )
 			/ sizeof( mxd_cm17a_doutput_record_field_defaults[0]);
 
@@ -311,7 +311,7 @@ mxd_cm17a_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal value %lu for CM17A digital output '%s'.  The allowed "
 		"values are 0 (off), 1 (on), 2 (bright), and 3 (dim).",
-			doutput->value, doutput->record->name );
+			(unsigned long) doutput->value, doutput->record->name );
 		break;
 	}
 

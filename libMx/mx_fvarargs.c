@@ -204,7 +204,7 @@ mx_construct_varargs_cookie(
 
 MX_EXPORT mx_status_type
 mx_replace_varargs_cookies_with_values( MX_RECORD *record,
-		mx_length_type field_index, int allow_forward_references )
+		mx_length_type field_index, bool allow_forward_references )
 {
 	static const char fname[] = "mx_replace_varargs_cookies_with_values()";
 

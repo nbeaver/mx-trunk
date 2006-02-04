@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_clock.h"
 #include "mx_stdint.h"
+#include "mx_stdbool.h"
 
 /* ------------------------------------------------------------------ */
 
@@ -131,8 +132,8 @@ typedef struct mx_record_type {
 	char acl_description[MXU_ACL_DESCRIPTION_LENGTH+1];
 	signed long handle;
 	int32_t precision;
-	int32_t resynchronize;
-	int32_t report;
+	bool resynchronize;
+	bool report;
 	mx_hex_type record_flags;
 	mx_hex_type record_processing_flags;
 	struct mx_record_type *list_head;
@@ -185,6 +186,7 @@ typedef struct {
 #define MXFT_INTERFACE		33
 
 #define MXFT_LENGTH		MXFT_INT32
+#define MXFT_BOOL		MXFT_INT32
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
@@ -356,8 +358,8 @@ typedef struct {
 } MX_INTERFACE;
 
 typedef struct {
-	int add_dependency;
-	int dependency_is_to_parent;
+	bool add_dependency;
+	bool dependency_is_to_parent;
 } MX_RECORD_ARRAY_DEPENDENCY_STRUCT;
 
 /* MX_LIST_HEAD is a place to put information about the record list
@@ -367,23 +369,23 @@ typedef struct {
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
-	int list_is_active;
-	int fast_mode;
-	int allow_fast_mode;
+	bool list_is_active;
+	bool fast_mode;
+	bool allow_fast_mode;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
 	mx_length_type num_records;
 
-	int is_server;
+	bool is_server;
 	void *connection_acl;
-	int fixup_records_in_use;
+	bool fixup_records_in_use;
 	mx_length_type num_fixup_records;
 	void **fixup_record_array;
-	int plotting_enabled;
-	int default_precision;
-	int default_data_format;
+	bool plotting_enabled;
+	int32_t default_precision;
+	int32_t default_data_format;
 	void *log_handler;
-	long server_protocols_active;
+	int32_t server_protocols_active;
 	void *handle_table;
 	void *application_ptr;
 	char username[ MXU_USERNAME_LENGTH + 1 ];
@@ -405,7 +407,7 @@ typedef struct {
 #define MXF_INITHW_TRACE_OPENS		0x1
 #define MXF_INITHW_ABORT_ON_FAULT	0x2
 
-MX_API int mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
+MX_API bool mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
 					long mx_class, long mx_type );
 
 MX_API MX_DRIVER *mx_get_driver_by_name( char *name );
@@ -439,7 +441,7 @@ MX_API MX_RECORD      *mx_initialize_record_list( void );
 MX_API mx_status_type  mx_initialize_drivers( void );
 
 MX_API mx_status_type  mx_initialize_hardware( MX_RECORD *record_list,
-							int trace_flag );
+						mx_hex_type inithw_flags );
 
 MX_API mx_status_type  mx_shutdown_hardware( MX_RECORD *record_list );
 
@@ -594,7 +596,7 @@ MX_API_PRIVATE mx_status_type mx_construct_varargs_cookie(
 MX_API_PRIVATE mx_status_type mx_replace_varargs_cookies_with_values(
 				MX_RECORD *record,
 				mx_length_type i,
-				int allow_forward_references );
+				bool allow_forward_references );
 
 /* --- */
 
@@ -702,19 +704,19 @@ MX_API_PRIVATE mx_status_type  mx_record_array_dependency_handler(
 
 MX_API_PRIVATE mx_status_type  mx_add_parent_dependency(
 					MX_RECORD *current_record,
-					int add_child_pointer_in_parent,
+					bool add_child_pointer_in_parent,
 					MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_delete_parent_dependency(
 					MX_RECORD *current_record,
-					int delete_child_pointer_in_parent,
+					bool delete_child_pointer_in_parent,
 					MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_add_child_dependency(
 					MX_RECORD *current_record,
-					int add_parent_pointer_in_child,
+					bool add_parent_pointer_in_child,
 					MX_RECORD *child_record );
 MX_API_PRIVATE mx_status_type  mx_delete_child_dependency(
 					MX_RECORD *current_record,
-					int delete_parent_pointer_in_child,
+					bool delete_parent_pointer_in_child,
 					MX_RECORD *child_record );
 
 /* --- */
@@ -733,9 +735,9 @@ MX_API mx_status_type  mx_set_program_name( MX_RECORD *record_list,
 						char *program_name );
 
 MX_API mx_status_type  mx_get_fast_mode( MX_RECORD *record_list,
-						int *mode_flag );
+						bool *mode_flag );
 
 MX_API mx_status_type  mx_set_fast_mode( MX_RECORD *record_list,
-						int mode_flag );
+						bool mode_flag );
 
 #endif /* __MX_RECORD_H__ */

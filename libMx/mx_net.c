@@ -24,6 +24,7 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_stdbool.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_record.h"
@@ -281,7 +282,8 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 			MX_DEBUG( 2,
 		("%s: Marking handle as invalid, network_field '%s' (%ld,%ld)",
 				fname, nf->nfname,
-				nf->record_handle, nf->field_handle));
+				(long) nf->record_handle,
+				(long) nf->field_handle));
 
 			nf->record_handle = MX_ILLEGAL_HANDLE;
 			nf->field_handle = MX_ILLEGAL_HANDLE;
@@ -1183,7 +1185,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
-			server->data_format );
+			(unsigned long) server->data_format );
 		break;
 	}
 
@@ -1426,7 +1428,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
-			server->data_format );
+			(unsigned long) server->data_format );
 		break;
 	}
 
@@ -1544,7 +1546,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	if ( nf->server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The server_record pointer for network field (%ld,%ld) '%s' is NULL.",
-			nf->record_handle, nf->field_handle, nf->nfname );
+			(long) nf->record_handle, (long) nf->field_handle,
+			nf->nfname );
 	}
 
 	server = (MX_NETWORK_SERVER *) nf->server_record->record_class_struct;

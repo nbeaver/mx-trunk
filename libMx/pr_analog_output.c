@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -95,10 +95,10 @@ mx_analog_output_process_function( void *record_ptr,
 			break;
 		case MXLV_AOU_RAW_VALUE:
 			switch( analog_output->subclass ) {
-			case MXT_AOU_LONG:
-				status = mx_analog_output_write_raw_long(
+			case MXT_AOU_INT32:
+				status = mx_analog_output_write_raw_int32(
 					record,
-					analog_output->raw_value.long_value );
+					analog_output->raw_value.int32_value );
 				break;
 			case MXT_AOU_DOUBLE:
 				status = mx_analog_output_write_raw_double(

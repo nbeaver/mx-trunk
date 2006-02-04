@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_am9513_scaler_record_field_defaults[] = {
 	MXD_AM9513_SCALER_STANDARD_FIELDS
 };
 
-long mxd_am9513_scaler_num_record_fields
+mx_length_type mxd_am9513_scaler_num_record_fields
 		= sizeof( mxd_am9513_scaler_record_field_defaults )
 		  / sizeof( mxd_am9513_scaler_record_field_defaults[0] );
 
@@ -75,7 +75,7 @@ static MX_AM9513 *debug_am9513_ptr = &mxi_am9513_debug_struct;
 static mx_status_type
 mxd_am9513_scaler_get_pointers( MX_SCALER *scaler,
 				MX_AM9513_SCALER **am9513_scaler,
-				long *num_counters,
+				mx_length_type *num_counters,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
@@ -93,7 +93,7 @@ mxd_am9513_scaler_get_pointers( MX_SCALER *scaler,
 			calling_fname );
 	}
 
-	if ( num_counters == (long *) NULL ) {
+	if ( num_counters == (mx_length_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_counters pointer passed by '%s' was NULL.",
 			calling_fname );
@@ -135,9 +135,9 @@ mxd_am9513_scaler_initialize_type( long type )
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
-	long num_counters_field_index;
-	long num_counters_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_counters_field_index;
+	mx_length_type num_counters_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( type );
@@ -235,7 +235,7 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 	uint16_t counter_mode_register;
 	int i, m, n;
 	int same_chip, use_external;
-	long num_counters;
+	mx_length_type num_counters;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -255,7 +255,7 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 	if ( num_counters <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The number of counters (%ld) in record '%s' should be greater than zero.",
-			num_counters, record->name );
+			(long) num_counters, record->name );
 	}
 
 	mx_status = mxi_am9513_grab_counters( record, num_counters,
@@ -406,7 +406,7 @@ mxd_am9513_scaler_close( MX_RECORD *record )
 
 	MX_AM9513_SCALER *am9513_scaler;
 	MX_INTERFACE *am9513_interface_array;
-	long num_counters;
+	mx_length_type num_counters;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -426,7 +426,7 @@ mxd_am9513_scaler_close( MX_RECORD *record )
 	if ( num_counters <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The number of counters (%ld) in record '%s' should be greater than zero.",
-			num_counters, record->name );
+			(long) num_counters, record->name );
 	}
 
 	mx_status = mxi_am9513_release_counters( record, num_counters,
@@ -444,8 +444,8 @@ mxd_am9513_scaler_clear( MX_SCALER *scaler )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	long num_counters;
-	int i, n;
+	int n;
+	mx_length_type i, num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_scaler_get_pointers( scaler, &am9513_scaler,
@@ -544,9 +544,8 @@ mxd_am9513_scaler_overflow_set( MX_SCALER *scaler )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	long num_counters;
-	uint8_t am9513_status;
-	int mask;
+	uint8_t am9513_status, mask;
+	mx_length_type num_counters;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -596,10 +595,10 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	long num_counters;
-	int i, n;
+	int n;
 	uint16_t hold_register;
-	unsigned long scaler_value;
+	uint32_t scaler_value;
+	mx_length_type i, num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_scaler_get_pointers( scaler, &am9513_scaler,
@@ -655,7 +654,8 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 
 	scaler->raw_value = (long) scaler_value;
 
-	MX_DEBUG( 2,("%s: scaler->raw_value = %ld", fname, scaler->raw_value));
+	MX_DEBUG( 2,("%s: scaler->raw_value = %ld",
+			fname, (long) scaler->raw_value));
 
 	return MX_SUCCESSFUL_RESULT;
 }

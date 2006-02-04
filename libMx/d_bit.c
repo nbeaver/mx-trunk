@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bit_in_record_field_defaults[] = {
 	MXD_BIT_IN_STANDARD_FIELDS
 };
 
-long mxd_bit_in_num_record_fields
+mx_length_type mxd_bit_in_num_record_fields
 		= sizeof( mxd_bit_in_record_field_defaults )
 			/ sizeof( mxd_bit_in_record_field_defaults[0] );
 
@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bit_out_record_field_defaults[] = {
 	MXD_BIT_OUT_STANDARD_FIELDS
 };
 
-long mxd_bit_out_num_record_fields
+mx_length_type mxd_bit_out_num_record_fields
 		= sizeof( mxd_bit_out_record_field_defaults )
 			/ sizeof( mxd_bit_out_record_field_defaults[0] );
 
@@ -96,7 +96,7 @@ mxd_bit_in_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_bit_in_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_in_create_record_structures()";
+        static const char fname[] = "mxd_bit_in_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_BIT_IN *bit_in;
@@ -132,7 +132,7 @@ mxd_bit_in_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_in_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_in_finish_record_initialization()";
+        static const char fname[] = "mxd_bit_in_finish_record_initialization()";
 
         MX_BIT_IN *bit_in;
 	int i;
@@ -221,7 +221,7 @@ mxd_bit_in_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_in_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_bit_in_close()";
+	static const char fname[] = "mxd_bit_in_close()";
 
 	MX_DIGITAL_INPUT *dinput;
 	mx_status_type mx_status;
@@ -247,10 +247,10 @@ mxd_bit_in_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_in_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_bit_in_read()";
+	static const char fname[] = "mxd_bit_in_read()";
 
 	MX_BIT_IN *bit_in;
-	unsigned long input_record_value;
+	uint32_t input_record_value;
 	mx_status_type mx_status;
 
 	bit_in = (MX_BIT_IN *) dinput->record->record_type_struct;
@@ -289,7 +289,7 @@ mxd_bit_out_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_bit_out_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_out_create_record_structures()";
+        static const char fname[] = "mxd_bit_out_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_BIT_OUT *bit_out;
@@ -326,7 +326,7 @@ mxd_bit_out_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[] = "mxd_bit_out_finish_record_initialization()";
+        static const char fname[] = "mxd_bit_out_finish_record_initialization()";
 
         MX_BIT_OUT *bit_out;
 	int i;
@@ -440,7 +440,7 @@ mxd_bit_out_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_bit_out_open()";
+	static const char fname[] = "mxd_bit_out_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	mx_status_type mx_status;
@@ -466,7 +466,7 @@ mxd_bit_out_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_bit_out_close()";
+	static const char fname[] = "mxd_bit_out_close()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	mx_status_type mx_status;
@@ -492,10 +492,10 @@ mxd_bit_out_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_bit_out_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_bit_out_read()";
+	static const char fname[] = "mxd_bit_out_read()";
 
 	MX_BIT_OUT *bit_out;
-	unsigned long input_record_value;
+	uint32_t input_record_value;
 	mx_status_type mx_status;
 
 	bit_out = (MX_BIT_OUT *) doutput->record->record_type_struct;
@@ -526,10 +526,10 @@ mxd_bit_out_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_bit_out_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_bit_out_write()";
+	static const char fname[] = "mxd_bit_out_write()";
 
 	MX_BIT_OUT *bit_out;
-	unsigned long old_value, new_value, requested_value, shifted_value;
+	uint32_t old_value, new_value, requested_value, shifted_value;
 	mx_status_type mx_status;
 
 	bit_out = (MX_BIT_OUT *) doutput->record->record_type_struct;

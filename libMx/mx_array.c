@@ -367,7 +367,7 @@ mxp_scalar_element_size( long mx_datatype ) {
 
 MX_EXPORT mx_status_type
 mx_copy_array_to_buffer( void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,
@@ -638,7 +638,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 MX_EXPORT mx_status_type
 mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,
@@ -885,7 +885,7 @@ mxp_xdr_scalar_element_size( long mx_datatype ) {
 
 MX_EXPORT mx_status_type
 mx_xdr_data_transfer( int direction, void *array_pointer,
-		int array_is_dynamically_allocated,
+		bool array_is_dynamically_allocated,
 		long mx_datatype,
 		mx_length_type num_dimensions,
 		mx_length_type *dimension_array,

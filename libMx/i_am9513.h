@@ -44,14 +44,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *portio_record;
-	unsigned long base_address;
+	uint32_t base_address;
 
-	/* The master mode register is stored as an 'unsigned long' so that
-	 * the MXFT_HEX field type may be used.  The actual data it contains
+	/* The master mode register is stored as an 'uint32_t' so that the
+	 * MXFT_HEX field type may be used.  The actual data it contains
 	 * is actually a 16 bit unsigned integer.
 	 */
 
-	unsigned long master_mode_register;
+	uint32_t master_mode_register;
 
 	uint16_t counter_mode_register[MX_AM9513_NUM_COUNTERS];
 	uint16_t load_register[MX_AM9513_NUM_COUNTERS];

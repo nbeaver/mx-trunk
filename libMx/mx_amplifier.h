@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ typedef struct {
 	double offset;
 	double time_constant;
 
-	int parameter_type;
+	int32_t parameter_type;
 
 	double gain_range[2];
 } MX_AMPLIFIER;
@@ -53,7 +53,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AMPLIFIER, time_constant), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AMPLIFIER, parameter_type), \
 	{0}, NULL, 0}, \
   \

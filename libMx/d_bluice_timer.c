@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_timer_record_field_defaults[] = {
 	MXD_BLUICE_TIMER_STANDARD_FIELDS
 };
 
-long mxd_bluice_timer_num_record_fields
+mx_length_type mxd_bluice_timer_num_record_fields
 		= sizeof( mxd_bluice_timer_record_field_defaults )
 		  / sizeof( mxd_bluice_timer_record_field_defaults[0] );
 

@@ -22,6 +22,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -53,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_compumotor_din_record_field_defaults[] = {
 	MXD_COMPUMOTOR_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_compumotor_din_num_record_fields
+mx_length_type mxd_compumotor_din_num_record_fields
 		= sizeof( mxd_compumotor_din_record_field_defaults )
 			/ sizeof( mxd_compumotor_din_record_field_defaults[0] );
 
@@ -86,7 +87,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_compumotor_dout_record_field_defaults[] = {
 	MXD_COMPUMOTOR_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_compumotor_dout_num_record_fields
+mx_length_type mxd_compumotor_dout_num_record_fields
 		= sizeof( mxd_compumotor_dout_record_field_defaults )
 			/ sizeof( mxd_compumotor_dout_record_field_defaults[0] );
 
@@ -395,7 +396,7 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[80];
 	char response[200];
 	int i, j, num_items;
-	unsigned long controller_type;
+	mx_hex_type controller_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_din_get_pointers(dinput, &compumotor_dinput,
@@ -438,7 +439,7 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 		return mx_status;
 
 	if ( compumotor_dinput->num_bits == 1 ) {
-		num_items = sscanf( response, "%lu", &(dinput->value) );
+		num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -617,7 +618,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char command[80];
 	char response[200];
 	int i, j, num_items;
-	unsigned long controller_type;
+	mx_hex_type controller_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_dout_get_pointers(doutput,
@@ -661,7 +662,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( compumotor_doutput->num_bits == 1 ) {
-		num_items = sscanf( response, "%lu", &(doutput->value) );
+		num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,

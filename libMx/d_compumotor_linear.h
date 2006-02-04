@@ -23,9 +23,9 @@
 /* ===== MX Compumotor linear interpolation motor data structures ===== */
 
 typedef struct {
-	long flags;
+	mx_hex_type flags;
 
-	long num_motors;
+	mx_length_type num_motors;
 	MX_RECORD **motor_record_array;
 	double *real_motor_scale;
 	double *real_motor_offset;
@@ -33,12 +33,12 @@ typedef struct {
 
 	double *motor_position_array;
 
-	int *index_to_axis_number;
-	int axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
+	int32_t *index_to_axis_number;
+	int32_t axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
 
 	MX_RECORD *compumotor_interface_record;
-	int controller_index;
-	int num_axes;
+	int32_t controller_index;
+	int32_t num_axes;
 } MX_COMPUMOTOR_LINEAR_MOTOR;
 
 /* Values for the flags variable. */
@@ -82,9 +82,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_linear_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_LINEAR_MOTOR, flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_motors", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_motors", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_LINEAR_MOTOR, num_motors), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "motor_record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \

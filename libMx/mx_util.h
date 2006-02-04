@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,8 @@
 #include <time.h>	/* We get 'struct timespec' from here. */
 
 #include <stdarg.h>	/* We get 'va_list' from here. */
+
+#include "mx_stdbool.h" /* We get TRUE and FALSE from here. */
 
 /*
  * Macros for declaring shared library or DLL functions.
@@ -174,11 +176,6 @@
 #endif
 
 /*------------------------------------------------------------------------*/
-
-#ifndef TRUE
-#define TRUE	1
-#define FALSE	0
-#endif
 
 #define MX_WHITESPACE		" \t"
 
