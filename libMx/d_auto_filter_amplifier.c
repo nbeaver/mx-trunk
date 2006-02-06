@@ -447,7 +447,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	MX_AUTO_FILTER_AMP *auto_filter_amp;
 	MX_RECORD *amplifier_autoscale_record;
 	MX_AUTOSCALE *amplifier_autoscale;
-	int i, busy;
+	int i;
+	bool busy;
 	unsigned long old_filter_setting, new_filter_setting;
 	long last_amplifier_scaler_value;
 	double dynamic_low_limit, dynamic_high_limit;

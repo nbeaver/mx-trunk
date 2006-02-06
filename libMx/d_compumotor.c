@@ -1772,10 +1772,10 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_compumotor_simultaneous_start( int num_motor_records,
+mxd_compumotor_simultaneous_start( mx_length_type num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
-				int flags )
+				mx_hex_type flags )
 {
 	static const char fname[] = "mxd_compumotor_simultaneous_start()";
 
@@ -1784,7 +1784,8 @@ mxd_compumotor_simultaneous_start( int num_motor_records,
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_COMPUMOTOR_INTERFACE *current_compumotor_interface;
 	MX_COMPUMOTOR *current_compumotor;
-	int i, controller_index, controller_number, current_controller_number;
+	mx_length_type i, controller_index, controller_number;
+	mx_length_type current_controller_number;
 
 	mx_status_type mx_status;
 

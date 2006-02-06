@@ -82,7 +82,7 @@ mxd_compumotor_linear_get_pointers( MX_MOTOR *motor,
 			MX_COMPUMOTOR_LINEAR_MOTOR **compumotor_linear_motor,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_compumotor_linear_get_pointers()";
+	static const char fname[] = "mxd_compumotor_linear_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,7 +113,7 @@ mxd_compumotor_linear_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_initialize_type( long type )
 {
-        const char fname[] = "mxs_compumotor_linear_initialize_type()";
+        static const char fname[] = "mxs_compumotor_linear_initialize_type()";
 
         const char field_name[NUM_COMPUMOTOR_LINEAR_FIELDS]
 					[MXU_FIELD_NAME_LENGTH+1]
@@ -131,7 +131,7 @@ mxd_compumotor_linear_initialize_type( long type )
         mx_length_type num_record_fields;
 	mx_length_type referenced_field_index;
         mx_length_type num_motors_varargs_cookie;
-        mx_status_type status;
+        mx_status_type mx_status;
 
         driver = mx_get_driver_by_type( type );
 
@@ -164,29 +164,29 @@ mxd_compumotor_linear_initialize_type( long type )
 
 	num_record_fields = *(driver->num_record_fields);
 
-        status = mx_find_record_field_defaults_index(
+	mx_status = mx_find_record_field_defaults_index(
                         record_field_defaults, num_record_fields,
                         "num_motors", &referenced_field_index );
 
-        if ( status.code != MXE_SUCCESS )
-                return status;
+        if ( mx_status.code != MXE_SUCCESS )
+                return mx_status;
 
-        status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
                         referenced_field_index, 0, &num_motors_varargs_cookie);
 
-        if ( status.code != MXE_SUCCESS )
-                return status;
+        if ( mx_status.code != MXE_SUCCESS )
+                return mx_status;
 
         MX_DEBUG( 2,("%s: num_records varargs cookie = %ld",
                         fname, (long) num_motors_varargs_cookie));
 
 	for ( i = 0; i < NUM_COMPUMOTOR_LINEAR_FIELDS; i++ ) {
-		status = mx_find_record_field_defaults(
+		mx_status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			field_name[i], &field );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		field->dimension[0] = num_motors_varargs_cookie;
 	}
@@ -197,7 +197,7 @@ mxd_compumotor_linear_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_linear_create_record_structures()";
+	static const char fname[] = "mxd_compumotor_linear_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear;
@@ -240,7 +240,7 @@ mxd_compumotor_linear_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_compumotor_linear_finish_record_initialization()";
 
 	MX_RECORD **motor_record_array;
@@ -253,20 +253,20 @@ mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	long i, num_motors, axis_number;
 	int controller_index;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -452,15 +452,15 @@ mxd_compumotor_linear_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_linear_print_motor_structure()";
+	static const char fname[] = "mxd_compumotor_linear_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD **motor_record_array;
 	double *real_motor_scale, *real_motor_offset, *motor_move_fraction;
-	long i, num_motors;
+	mx_length_type i, num_motors;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -469,11 +469,11 @@ mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors          = compumotor_linear_motor->num_motors;
 	motor_record_array  = compumotor_linear_motor->motor_record_array;
@@ -486,9 +486,9 @@ mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name                 = %s\n", record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -519,7 +519,7 @@ mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  flags                = %#lx\n", 
 			(unsigned long) compumotor_linear_motor->flags );
 
-	fprintf(file, "  num motors           = %ld\n", num_motors);
+	fprintf(file, "  num motors           = %ld\n", (long) num_motors);
 
 	fprintf(file, "  motor record array   = (");
 
@@ -621,20 +621,20 @@ mxd_compumotor_linear_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_motor_is_busy()";
+	static const char fname[] = "mxd_compumotor_linear_motor_is_busy()";
 
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
-	long i, num_motors;
-	int busy;
-	mx_status_type status;
+	mx_length_type i, num_motors;
+	bool busy;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -643,10 +643,10 @@ mxd_compumotor_linear_motor_is_busy( MX_MOTOR *motor )
 	
 		child_motor_record = motor_record_array[i];
 
-		status = mx_motor_is_busy( child_motor_record, &busy );
+		mx_status = mx_motor_is_busy( child_motor_record, &busy );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* If the child motor is busy, we are done. */
 
@@ -665,7 +665,7 @@ mxd_compumotor_linear_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_move_absolute()";
+	static const char fname[] = "mxd_compumotor_linear_move_absolute()";
 
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD **motor_record_array;
@@ -678,15 +678,15 @@ mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 	double pseudomotor_difference, motor_position_difference;
 	double numerator, denominator;
 	double old_motor_position_array;
-	long i, num_motors;
+	mx_length_type i, num_motors;
 	int simultaneous_start;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -715,11 +715,11 @@ mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		status = mx_motor_get_position( child_motor_record,
+		mx_status = mx_motor_get_position( child_motor_record,
 						&motor_position_array[i] );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		old_pseudomotor_position
 			+= ( motor_position_array[i] * real_motor_scale[i]
@@ -743,7 +743,7 @@ mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 
 		MX_DEBUG( 2,
 	("%s: real_motor_scale[%ld] = %g, motor_move_fraction[%ld] = %g",
-		fname, i, real_motor_scale[i], i, motor_move_fraction[i]));
+    fname, (long) i, real_motor_scale[i], (long) i, motor_move_fraction[i]));
 
 		MX_DEBUG( 2,("%s: numerator = %g, denominator = %g",
 			fname, numerator, denominator));
@@ -766,7 +766,7 @@ mxd_compumotor_linear_move_absolute( MX_MOTOR *motor )
 			fname, motor_position_difference));
 		MX_DEBUG( 2,
 ("%s: Old motor position array[%ld] = %g, New motor position array[%ld] = %g",
-fname, i, old_motor_position_array, i, motor_position_array[i]));
+fname, (long) i, old_motor_position_array, (long) i, motor_position_array[i]));
 	}
 
 	/* Get the MX_COMPUMOTOR_INTERFACE structure so that we can send
@@ -802,18 +802,18 @@ fname, i, old_motor_position_array, i, motor_position_array[i]));
 		simultaneous_start = FALSE;
 	}
 
-	status = mxi_compumotor_multiaxis_move( compumotor_interface,
+	mx_status = mxi_compumotor_multiaxis_move( compumotor_interface,
 			compumotor_linear_motor->controller_index,
 			num_motors, motor_record_array, motor_position_array,
 			simultaneous_start );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_get_position()";
+	static const char fname[] = "mxd_compumotor_linear_get_position()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
@@ -829,13 +829,13 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	double pseudomotor_child_scale, pseudomotor_child_offset;
 	char command[80], response[80];
 	char *ptr;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -855,11 +855,11 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	sprintf( command, "%d_!TPE",
 			compumotor_interface->controller_number[n] );
 
-	status = mxi_compumotor_command( compumotor_interface, command,
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			response, sizeof(response), COMPUMOTOR_LINEAR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	pseudomotor_position = 0.0;
 
@@ -920,7 +920,7 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_set_position()";
+	static const char fname[] = "mxd_compumotor_linear_set_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 "'set position' is not valid for a Compumotor linear interpolation motor." );
@@ -929,10 +929,10 @@ mxd_compumotor_linear_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_soft_abort()";
+	static const char fname[] = "mxd_compumotor_linear_soft_abort()";
 
 	MX_RECORD **motor_record_array;
-	long i, num_motors;
+	mx_length_type i, num_motors;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
@@ -940,13 +940,13 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 	char *ptr;
 	size_t length, buffer_left;
 	int n, will_be_stopped;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -989,29 +989,29 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 
 	/* Stop the motion. */
 
-	status = mxi_compumotor_command( compumotor_interface, command,
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			NULL, 0, COMPUMOTOR_LINEAR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_immediate_abort()";
+	static const char fname[] = "mxd_compumotor_linear_immediate_abort()";
 
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	int n;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	compumotor_interface_record
 		= compumotor_linear_motor->compumotor_interface_record;
@@ -1027,29 +1027,29 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 
 	sprintf(command, "%d_!K", compumotor_interface->controller_number[n]);
 
-	status = mxi_compumotor_command( compumotor_interface, command,
+	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, COMPUMOTOR_LINEAR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_positive_limit_hit()";
+	static const char fname[] = "mxd_compumotor_linear_positive_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
-	long i, num_motors;
-	int limit_hit;
-	mx_status_type status;
+	mx_length_type i, num_motors;
+	bool limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -1059,11 +1059,11 @@ mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		status = mx_motor_positive_limit_hit(
+		mx_status = mx_motor_positive_limit_hit(
 				child_motor_record, &limit_hit );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( limit_hit == TRUE ) {
 			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -1082,20 +1082,20 @@ mxd_compumotor_linear_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_negative_limit_hit()";
+	static const char fname[] = "mxd_compumotor_linear_negative_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
-	long i, num_motors;
-	int limit_hit;
-	mx_status_type status;
+	mx_length_type i, num_motors;
+	bool limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_compumotor_linear_get_pointers( motor,
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
 					&compumotor_linear_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_motors = compumotor_linear_motor->num_motors;
 	motor_record_array = compumotor_linear_motor->motor_record_array;
@@ -1105,11 +1105,11 @@ mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		status = mx_motor_negative_limit_hit(
+		mx_status = mx_motor_negative_limit_hit(
 				child_motor_record, &limit_hit );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( limit_hit == TRUE ) {
 			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -1128,7 +1128,7 @@ mxd_compumotor_linear_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_compumotor_linear_find_home_position()";
+	static const char fname[] = "mxd_compumotor_linear_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 "Finding home for a Compumotor linear interpolation motor is _not_ allowed.  "

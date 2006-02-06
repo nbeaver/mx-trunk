@@ -23,16 +23,13 @@
 
 /* Define all of the MX interface functions. */
 
-MX_API mx_status_type mxd_e500_initialize_type( long type );
 MX_API mx_status_type mxd_e500_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_finish_record_initialization(MX_RECORD *record);
-MX_API mx_status_type mxd_e500_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_e500_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxd_e500_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_open( MX_RECORD *record );
 MX_API mx_status_type mxd_e500_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_e500_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e500_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e500_get_position( MX_MOTOR *motor );
@@ -53,14 +50,14 @@ extern MX_MOTOR_FUNCTION_LIST mxd_e500_motor_function_list;
 /* ===== E500 motor data structures ===== */
 
 typedef struct {
-	MX_RECORD      *camac_record;
-	int            slot;
-	int            subaddress;
-	unsigned short e500_base_speed;
-	unsigned int   e500_slew_speed;
-	unsigned short acceleration_time;
-	unsigned short correction_limit;
-	int            lam_mask;
+	MX_RECORD *camac_record;
+	int32_t   slot;
+	int32_t   subaddress;
+	uint16_t  e500_base_speed;
+	uint32_t  e500_slew_speed;
+	uint16_t  acceleration_time;
+	uint16_t  correction_limit;
+	bool      lam_mask;
 } MX_E500;
 
 extern mx_length_type mxd_e500_num_record_fields;
@@ -71,41 +68,33 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "e500_base_speed", MXFT_USHORT, NULL, 0, {0}, \
+  {-1, -1, "e500_base_speed", MXFT_UINT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, e500_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "e500_slew_speed", MXFT_UINT, NULL, 0, {0}, \
+  {-1, -1, "e500_slew_speed", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, e500_slew_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "acceleration_time", MXFT_USHORT, NULL, 0, {0}, \
+  {-1, -1, "acceleration_time", MXFT_UINT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, acceleration_time), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "correction_limit", MXFT_USHORT, NULL, 0, {0}, \
+  {-1, -1, "correction_limit", MXFT_UINT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, correction_limit), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "lam_mask", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "lam_mask", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, lam_mask), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
-
-/*
- * typedef struct {
- *	MX_CAMAC *crate;
- *	int slot;
- *	MX_E500 motor[MX_MOTORS_PER_E500];
- * } MX_E500_MODULE;
- */
 
 /* ===== E500 C preprocessor definitions ===== */
 
@@ -156,30 +145,30 @@ MX_API mx_status_type mx_e500_preserve_csr_bitmap( MX_E500 *e500,
 					int32_t *csr );
 
 MX_API mx_status_type mx_e500_accumulator_overflow( MX_E500 *e500,
-					int *overflow);
+					bool *overflow);
 
 MX_API mx_status_type mx_e500_accumulator_overflow_reset( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_accumulator_underflow( MX_E500 *e500,
-					int *underflow );
+					bool *underflow );
 
 MX_API mx_status_type mx_e500_accumulator_underflow_reset( MX_E500 *e500 );
 
-MX_API mx_status_type mx_e500_ccw_limit( MX_E500 *e500, int *limit_hit );
+MX_API mx_status_type mx_e500_ccw_limit( MX_E500 *e500, bool *limit_hit );
 
-MX_API mx_status_type mx_e500_cw_limit( MX_E500 *e500, int *limit_hit );
+MX_API mx_status_type mx_e500_cw_limit( MX_E500 *e500, bool *limit_hit );
 
 MX_API mx_status_type mx_e500_build_file( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_correction_failure( MX_E500 *e500,
-					int *correction_failure );
+					bool *correction_failure );
 
 MX_API mx_status_type mx_e500_illegal_instruction( MX_E500 *e500,
-						int *illegal_instruction );
+						bool *illegal_instruction );
 
 MX_API mx_status_type mx_e500_immediate_abort( MX_E500 *e500 );
 
-MX_API mx_status_type mx_e500_motor_busy( MX_E500 *e500, int *busy );
+MX_API mx_status_type mx_e500_motor_busy( MX_E500 *e500, bool *busy );
 
 MX_API mx_status_type mx_e500_motor_start( MX_E500 *e500 );
 
@@ -207,7 +196,7 @@ MX_API mx_status_type mx_e500_read_correction_limit( MX_E500 *e500 );
 MX_API mx_status_type mx_e500_read_lam_mask( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_read_lam_status( MX_E500 *e500,
-					int *lam_status );
+					bool *lam_status );
 
 MX_API mx_status_type mx_e500_read_pulse_parameter_reg( MX_E500 *e500 );
 

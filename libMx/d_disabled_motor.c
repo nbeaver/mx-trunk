@@ -10,7 +10,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,17 +30,9 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_disabled_motor_record_function_list = {
-	mxd_disabled_motor_initialize_type,
-	mxd_disabled_motor_create_record_structures,
-	mxd_disabled_motor_finish_record_initialization,
-	mxd_disabled_motor_delete_record,
-	mxd_disabled_motor_print_motor_structure,
-	mxd_disabled_motor_read_parms_from_hardware,
-	mxd_disabled_motor_write_parms_to_hardware,
-	mxd_disabled_motor_open,
-	mxd_disabled_motor_close,
 	NULL,
-	mxd_disabled_motor_resynchronize
+	mxd_disabled_motor_create_record_structures,
+	mxd_disabled_motor_finish_record_initialization
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_disabled_motor_motor_function_list = {
@@ -48,14 +40,14 @@ MX_MOTOR_FUNCTION_LIST mxd_disabled_motor_motor_function_list = {
 	mxd_disabled_motor_move_absolute,
 	mxd_disabled_motor_get_position,
 	mxd_disabled_motor_set_position,
-	mxd_disabled_motor_disabled_abort,
+	mxd_disabled_motor_soft_abort,
 	mxd_disabled_motor_immediate_abort,
-	mxd_disabled_motor_positive_limit_hit,
-	mxd_disabled_motor_negative_limit_hit,
-	mxd_disabled_motor_find_home_position,
-	mxd_disabled_motor_constant_velocity_move,
-	mxd_disabled_motor_get_parameter,
-	mxd_disabled_motor_set_parameter
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	mx_motor_default_get_parameter_handler,
+	mx_motor_default_set_parameter_handler
 };
 
 /* Disabled motor data structures. */
@@ -66,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_disabled_motor_record_field_defaults[] = {
 	MX_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_disabled_motor_num_record_fields
+mx_length_type mxd_disabled_motor_num_record_fields
 		= sizeof( mxd_disabled_motor_record_field_defaults )
 			/ sizeof( mxd_disabled_motor_record_field_defaults[0] );
 
@@ -76,15 +68,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_disabled_motor_rfield_def_ptr
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_disabled_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_disabled_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_disabled_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_DISABLED_MOTOR *disabled_motor;
@@ -125,15 +112,16 @@ mxd_disabled_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_disabled_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_disabled_motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_disabled_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -169,124 +157,6 @@ mxd_disabled_motor_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_print_motor_structure( FILE *file, MX_RECORD *record )
-{
-	const char fname[] = "mxd_disabled_motor_print_motor_structure()";
-
-	MX_MOTOR *motor;
-	double position, move_deadband;
-	mx_status_type status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed is NULL.");
-	}
-
-	motor = (MX_MOTOR *) (record->record_class_struct);
-
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-		"MX_MOTOR pointer for record '%s' is NULL.", record->name);
-	}
-
-	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
-	fprintf(file, "  Motor type     = DISABLED_MOTOR.\n\n");
-
-	fprintf(file, "  name           = %s\n", record->name);
-
-	status = mx_motor_get_position( record, &position );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	fprintf(file, "  position       = %.*g %s (%ld steps)\n",
-		record->precision,
-		motor->position, motor->units,
-		motor->raw_position.stepper );
-
-	fprintf(file, "  scale          = %.*g %s per step.\n",
-		record->precision,
-		motor->scale, motor->units );
-
-	fprintf(file, "  offset         = %.*g %s.\n",
-		record->precision,
-		motor->offset, motor->units );
-
-	fprintf(file, "  backlash       = %.*g %s (%ld steps)\n",
-		record->precision,
-		motor->backlash_correction, motor->units,
-		motor->raw_backlash_correction.stepper );
-
-	fprintf(file, "  negative_limit = %.*g %s (%ld steps)\n",
-		record->precision,
-		motor->negative_limit, motor->units,
-		motor->raw_negative_limit.stepper );
-
-	fprintf(file, "  positive_limit = %.*g %s (%ld steps)\n",
-		record->precision,
-		motor->positive_limit, motor->units,
-		motor->raw_positive_limit.stepper );
-
-	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
-
-	fprintf(file, "  move deadband  = %.*g %s (%ld steps)\n\n",
-		record->precision,
-		move_deadband, motor->units,
-		motor->raw_move_deadband.stepper );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_resynchronize( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_disabled_motor_motor_is_busy( MX_MOTOR *motor )
 {
 	motor->busy = FALSE;
@@ -305,8 +175,6 @@ mxd_disabled_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_disabled_motor_get_position( MX_MOTOR *motor )
 {
-	/* Nothing needed here. */
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -319,7 +187,7 @@ mxd_disabled_motor_set_position( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_disabled_motor_disabled_abort( MX_MOTOR *motor )
+mxd_disabled_motor_soft_abort( MX_MOTOR *motor )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -328,45 +196,5 @@ MX_EXPORT mx_status_type
 mxd_disabled_motor_immediate_abort( MX_MOTOR *motor )
 {
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_positive_limit_hit( MX_MOTOR *motor )
-{
-	motor->positive_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_negative_limit_hit( MX_MOTOR *motor )
-{
-	motor->negative_limit_hit = FALSE;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_find_home_position( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_constant_velocity_move( MX_MOTOR *motor )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_get_parameter( MX_MOTOR *motor )
-{
-	return mx_motor_default_get_parameter_handler( motor );
-}
-
-MX_EXPORT mx_status_type
-mxd_disabled_motor_set_parameter( MX_MOTOR *motor )
-{
-	return mx_motor_default_set_parameter_handler( motor );
 }
 

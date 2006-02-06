@@ -455,7 +455,7 @@ MX_API void mx_info_dialog( char *text_prompt,
 
 MX_API void mx_info_entry_dialog( char *text_prompt,
 					char *gui_prompt,
-					int echo_characters,
+					bool echo_characters,
 					char *response,
 					size_t max_response_length );
 
@@ -466,9 +466,9 @@ MX_API void mx_set_info_dialog_function( void (*)( char *, char *, char * ) );
 MX_API void mx_info_default_dialog_function( char *, char *, char * );
 
 MX_API void mx_set_info_entry_dialog_function(
-			void (*)( char *, char *, int, char *, size_t ) );
+			void (*)( char *, char *, bool, char *, size_t ) );
 MX_API void mx_info_default_entry_dialog_function(
-					char *, char *, int, char *, size_t );
+					char *, char *, bool, char *, size_t );
 
 
 /* === Warning messages. === */

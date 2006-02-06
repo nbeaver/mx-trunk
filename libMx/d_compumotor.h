@@ -62,10 +62,11 @@ MX_API mx_status_type mxd_compumotor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_compumotor_simultaneous_start( int num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						int flags );
+MX_API mx_status_type mxd_compumotor_simultaneous_start(
+					mx_length_type num_motor_records,
+					MX_RECORD **motor_record_array,
+					double *position_array,
+					mx_hex_type flags );
 MX_API mx_status_type mxd_compumotor_get_status( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_compumotor_enable_continuous_mode(

@@ -192,7 +192,7 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 
 MX_EXPORT mx_status_type
 mx_mce_get_overflow_status( MX_RECORD *mce_record,
-		int *underflow_set, int *overflow_set )
+		bool *underflow_set, bool *overflow_set )
 {
 	static const char fname[] = "mx_mce_get_overflow_status()";
 
@@ -252,7 +252,7 @@ mx_mce_reset_overflow_status( MX_RECORD *mce_record )
 
 MX_EXPORT mx_status_type
 mx_mce_read( MX_RECORD *mce_record,
-		unsigned long *num_values,
+		mx_length_type *num_values,
 		double **value_array )
 {
 	static const char fname[] = "mx_mce_read()";
@@ -290,7 +290,7 @@ mx_mce_read( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_get_current_num_values( MX_RECORD *mce_record,
-		unsigned long *num_values )
+		mx_length_type *num_values )
 {
 	static const char fname[] = "mx_mce_get_current_num_values()";
 

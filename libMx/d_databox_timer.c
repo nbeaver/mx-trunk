@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DATABOX_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,26 +34,19 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_timer_record_function_list = {
-	mxd_databox_timer_initialize_type,
-	mxd_databox_timer_create_record_structures,
-	mxd_databox_timer_finish_record_initialization,
-	mxd_databox_timer_delete_record,
 	NULL,
-	mxd_databox_timer_read_parms_from_hardware,
-	mxd_databox_timer_write_parms_to_hardware,
-	mxd_databox_timer_open,
-	mxd_databox_timer_close
+	mxd_databox_timer_create_record_structures,
+	mx_timer_finish_record_initialization
 };
 
 MX_TIMER_FUNCTION_LIST mxd_databox_timer_timer_function_list = {
 	mxd_databox_timer_is_busy,
 	mxd_databox_timer_start,
 	mxd_databox_timer_stop,
-	mxd_databox_timer_clear,
+	NULL,
 	mxd_databox_timer_read,
 	mxd_databox_timer_get_mode,
-	mxd_databox_timer_set_mode,
-	mxd_databox_timer_set_modes_of_associated_counters
+	mxd_databox_timer_set_mode
 };
 
 /* DATABOX timer data structures. */
@@ -62,14 +57,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_databox_timer_record_field_defaults[] = {
 	MXD_DATABOX_TIMER_STANDARD_FIELDS
 };
 
-long mxd_databox_timer_num_record_fields
+mx_length_type mxd_databox_timer_num_record_fields
 		= sizeof( mxd_databox_timer_record_field_defaults )
 		  / sizeof( mxd_databox_timer_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_timer_rfield_def_ptr
 			= &mxd_databox_timer_record_field_defaults[0];
-
-#define DATABOX_TIMER_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -79,7 +72,7 @@ mxd_databox_timer_get_pointers( MX_TIMER *timer,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_databox_timer_get_pointers()";
+	static const char fname[] = "mxd_databox_timer_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -130,15 +123,10 @@ mxd_databox_timer_get_pointers( MX_TIMER *timer,
 /*-----------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mxd_databox_timer_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_timer_create_record_structures()";
+	static const char fname[] =
+		"mxd_databox_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_DATABOX_TIMER *databox_timer;
@@ -175,58 +163,9 @@ mxd_databox_timer_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_databox_timer_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_timer_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_is_busy()";
+	static const char fname[] = "mxd_databox_timer_is_busy()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -302,7 +241,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_start()";
+	static const char fname[] = "mxd_databox_timer_start()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -425,7 +364,7 @@ mxd_databox_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_stop()";
+	static const char fname[] = "mxd_databox_timer_stop()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Stopping Databox timer '%s' is not supported.",
@@ -433,15 +372,9 @@ mxd_databox_timer_stop( MX_TIMER *timer )
 }
 
 MX_EXPORT mx_status_type
-mxd_databox_timer_clear( MX_TIMER *timer )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_databox_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_read()";
+	static const char fname[] = "mxd_databox_timer_read()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -545,7 +478,7 @@ mxd_databox_timer_read( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_get_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_get_mode()";
+	static const char fname[] = "mxd_databox_timer_get_mode()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -582,7 +515,7 @@ mxd_databox_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_set_mode()";
+	static const char fname[] = "mxd_databox_timer_set_mode()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -612,15 +545,5 @@ mxd_databox_timer_set_mode( MX_TIMER *timer )
 	mx_status = mxi_databox_set_limit_mode( databox, limit_mode );
 
 	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_databox_timer_set_modes_of_associated_counters( MX_TIMER *timer )
-{
-	/* The Databox supports only one counter and one timer, so this
-	 * function is unnecessary.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
 }
 

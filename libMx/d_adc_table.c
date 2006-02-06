@@ -79,7 +79,7 @@ mxd_adc_table_get_pointers( MX_TABLE *table,
 			MX_ADC_TABLE **adc_table,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_adc_table_get_pointers()";
+	static const char fname[] = "mxd_adc_table_get_pointers()";
 
 	if ( table == (MX_TABLE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -120,7 +120,7 @@ mxd_adc_table_construct_table_subset( MX_TABLE *table,
 				int *num_motors,
 				MX_RECORD **subset_array )
 {
-	const char fname[] = "mxd_adc_table_construct_table_subset()";
+	static const char fname[] = "mxd_adc_table_construct_table_subset()";
 
 	MX_RECORD **motor_record_array;
 
@@ -181,7 +181,7 @@ static double
 mxd_adc_table_compute_y_position( MX_ADC_TABLE *adc_table,
 				double y1_position, double y2_position )
 {
-	const char fname[] = "mxd_adc_table_compute_y_position()";
+	static const char fname[] = "mxd_adc_table_compute_y_position()";
 
 	double c1, c2, y_position;
 
@@ -211,7 +211,7 @@ mxd_adc_table_compute_z_position( MX_ADC_TABLE *adc_table,
 				double z1_position, double z2_position,
 				double z3_position )
 {
-	const char fname[] = "mxd_adc_table_compute_z_position()";
+	static const char fname[] = "mxd_adc_table_compute_z_position()";
 
 	double c1, c2, c3, c_denom, m1m3_ratio, m2m3_ratio, z_position;
 
@@ -247,7 +247,7 @@ mxd_adc_table_compute_roll_angle( MX_ADC_TABLE *adc_table,
 				double z2_position,
 				double z3_position )
 {
-	const char fname[] = "mxd_adc_table_compute_roll_angle()";
+	static const char fname[] = "mxd_adc_table_compute_roll_angle()";
 
 	double c21, z12, roll_angle;
 
@@ -277,7 +277,7 @@ mxd_adc_table_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_adc_table_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_adc_table_create_record_structures()";
+	static const char fname[] = "mxd_adc_table_create_record_structures()";
 
 	MX_TABLE *table;
 	MX_ADC_TABLE *adc_table;
@@ -313,7 +313,7 @@ mxd_adc_table_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adc_table_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_adc_table_finish_record_initialization()";
+	static const char fname[] = "mxd_adc_table_finish_record_initialization()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *motor_record;
@@ -400,13 +400,13 @@ mxd_adc_table_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adc_table_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_adc_table_resynchronize()";
+	static const char fname[] = "mxd_adc_table_resynchronize()";
 
 	MX_TABLE *table;
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *motor_record;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	table = (MX_TABLE *) record->record_class_struct;
 
@@ -416,19 +416,19 @@ mxd_adc_table_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	for ( i = 0; i < MX_ADC_TABLE_NUM_MOTORS; i++ ) {
 
 		motor_record = adc_table->motor_record_array[i];
 
-		status = mx_resynchronize_record( motor_record );
+		mx_status = mx_resynchronize_record( motor_record );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -437,27 +437,28 @@ mxd_adc_table_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adc_table_is_busy( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_is_busy()";
+	static const char fname[] = "mxd_adc_table_is_busy()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, busy, num_motors;
-	mx_status_type status;
+	bool busy;
+	mx_length_type i, num_motors;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		table->busy = FALSE;
 
-		return status;
+		return mx_status;
 	}
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 					&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	table->busy = FALSE;
 
@@ -465,10 +466,10 @@ mxd_adc_table_is_busy( MX_TABLE *table )
 
 		motor_record = subset_array[i];
 
-		status = mx_motor_is_busy( motor_record, &busy );
+		mx_status = mx_motor_is_busy( motor_record, &busy );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( busy ) {
 			table->busy = TRUE;
@@ -483,7 +484,7 @@ mxd_adc_table_is_busy( MX_TABLE *table )
 MX_EXPORT mx_status_type
 mxd_adc_table_move_absolute( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_move_absolute()";
+	static const char fname[] = "mxd_adc_table_move_absolute()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
@@ -504,18 +505,18 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	double test_z_position;
 	double new_destination;
 	double destination_array[ MX_ADC_TABLE_NUM_MOTORS ];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 						&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	marray = adc_table->motor_record_array;
 
@@ -540,17 +541,17 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	case MXF_TAB_YAW:
 		num_motors = 2;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
 							&y1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
 							&y2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG( 1,("%s: y1_position = %g", fname, y1_position));
 		MX_DEBUG( 1,("%s: y2_position = %g", fname, y2_position));
@@ -610,23 +611,23 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	case MXF_TAB_PITCH:
 		num_motors = 3;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
 							&z1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
 							&z2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
 							&z3_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG( 1,("%s: z1_position = %g", fname, z1_position));
 		MX_DEBUG( 1,("%s: z2_position = %g", fname, z2_position));
@@ -710,35 +711,35 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	case MXF_TAB_ROLL:
 		num_motors = 5;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
 							&z1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
 							&z2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
 							&z3_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
 							&y1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
 							&y2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG( 1,("%s: z1_position = %g", fname, z1_position));
 		MX_DEBUG( 1,("%s: z2_position = %g", fname, z2_position));
@@ -898,27 +899,27 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 
 	/* Start the move. */
 		
-	status = mx_motor_array_move_absolute( num_motors, subset_array,
+	mx_status = mx_motor_array_move_absolute( num_motors, subset_array,
 					destination_array, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adc_table_get_position( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_get_position()";
+	static const char fname[] = "mxd_adc_table_get_position()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD **marray;
 	double x1_position, y1_position, y2_position;
 	double z1_position, z2_position, z3_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	table->position = 0;
 
@@ -926,90 +927,90 @@ mxd_adc_table_get_position( MX_TABLE *table )
 
 	switch( table->axis_id ) {
 	case MXF_TAB_X:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_X1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_X1 ],
 							&x1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = x1_position;
 		break;
 
 	case MXF_TAB_Y:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
 							&y1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
 							&y2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = mxd_adc_table_compute_y_position( adc_table,
 						y1_position, y2_position );
 		break;
 
 	case MXF_TAB_Z:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
 							&z1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
 							&z2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
 							&z3_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = mxd_adc_table_compute_z_position( adc_table,
 				z1_position, z2_position, z3_position );
 		break;
 
 	case MXF_TAB_ROLL:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
 							&z1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
 							&z2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z3 ],
 							&z3_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = mxd_adc_table_compute_roll_angle( adc_table,
 				z1_position, z2_position, z3_position );
 		break;
 
 	case MXF_TAB_PITCH:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z1 ],
 							&z1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Z2 ],
 							&z2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = mx_divide_safely( z1_position - z2_position,
 						adc_table->m1 + adc_table->m2);
@@ -1017,17 +1018,17 @@ mxd_adc_table_get_position( MX_TABLE *table )
 		break;
 
 	case MXF_TAB_YAW:
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y1 ],
 							&y1_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
+		mx_status = mx_motor_get_position( marray[ MXF_ADC_TABLE_Y2 ],
 							&y2_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		table->position = mx_divide_safely( y1_position - y2_position,
 						adc_table->m1 + adc_table->m2);
@@ -1041,22 +1042,22 @@ mxd_adc_table_get_position( MX_TABLE *table )
 		break;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adc_table_set_position( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_set_position()";
+	static const char fname[] = "mxd_adc_table_set_position()";
 
 	MX_ADC_TABLE *adc_table;
 	double new_set_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	new_set_position = table->set_position;
 
@@ -1073,98 +1074,99 @@ mxd_adc_table_set_position( MX_TABLE *table )
 MX_EXPORT mx_status_type
 mxd_adc_table_soft_abort( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_soft_abort()";
+	static const char fname[] = "mxd_adc_table_soft_abort()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
 	int i, num_motors;
-	mx_status_type status, status_to_return;
+	mx_status_type mx_status, mx_status_to_return;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 					&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status_to_return = MX_SUCCESSFUL_RESULT;
+	mx_status_to_return = MX_SUCCESSFUL_RESULT;
 
 	for ( i = 0; i < num_motors; i++ ) {
 
 		motor_record = subset_array[i];
 
-		status = mx_motor_soft_abort( motor_record );
+		mx_status = mx_motor_soft_abort( motor_record );
 
-		if ( status.code != MXE_SUCCESS )
-			status_to_return = status;
+		if ( mx_status.code != MXE_SUCCESS )
+			mx_status_to_return = mx_status;
 	}
 
-	return status_to_return;
+	return mx_status_to_return;
 }
 
 MX_EXPORT mx_status_type
 mxd_adc_table_immediate_abort( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_immediate_abort()";
+	static const char fname[] = "mxd_adc_table_immediate_abort()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
 	int i, num_motors;
-	mx_status_type status, status_to_return;
+	mx_status_type mx_status, mx_status_to_return;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 					&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status_to_return = MX_SUCCESSFUL_RESULT;
+	mx_status_to_return = MX_SUCCESSFUL_RESULT;
 
 	for ( i = 0; i < num_motors; i++ ) {
 
 		motor_record = subset_array[i];
 
-		status = mx_motor_immediate_abort( motor_record );
+		mx_status = mx_motor_immediate_abort( motor_record );
 
-		if ( status.code != MXE_SUCCESS )
-			status_to_return = status;
+		if ( mx_status.code != MXE_SUCCESS )
+			mx_status_to_return = mx_status;
 	}
 
-	return status_to_return;
+	return mx_status_to_return;
 }
 
 MX_EXPORT mx_status_type
 mxd_adc_table_positive_limit_hit( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_positive_limit_hit()";
+	static const char fname[] = "mxd_adc_table_positive_limit_hit()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, limit_hit, num_motors;
-	mx_status_type status;
+	bool limit_hit;
+	mx_length_type i, num_motors;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 					&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	table->positive_limit_hit = FALSE;
 
@@ -1172,10 +1174,11 @@ mxd_adc_table_positive_limit_hit( MX_TABLE *table )
 
 		motor_record = subset_array[i];
 
-		status = mx_motor_positive_limit_hit(motor_record, &limit_hit);
+		mx_status = mx_motor_positive_limit_hit(
+						motor_record, &limit_hit );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( limit_hit ) {
 			table->positive_limit_hit = TRUE;
@@ -1190,24 +1193,25 @@ mxd_adc_table_positive_limit_hit( MX_TABLE *table )
 MX_EXPORT mx_status_type
 mxd_adc_table_negative_limit_hit( MX_TABLE *table )
 {
-	const char fname[] = "mxd_adc_table_negative_limit_hit()";
+	static const char fname[] = "mxd_adc_table_negative_limit_hit()";
 
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, limit_hit, num_motors;
-	mx_status_type status;
+	bool limit_hit;
+	mx_length_type i, num_motors;
+	mx_status_type mx_status;
 
-	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
+	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_adc_table_construct_table_subset( table, adc_table,
+	mx_status = mxd_adc_table_construct_table_subset( table, adc_table,
 					&num_motors, subset_array );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	table->negative_limit_hit = FALSE;
 
@@ -1215,10 +1219,11 @@ mxd_adc_table_negative_limit_hit( MX_TABLE *table )
 
 		motor_record = subset_array[i];
 
-		status = mx_motor_negative_limit_hit(motor_record, &limit_hit);
+		mx_status = mx_motor_negative_limit_hit(
+						motor_record, &limit_hit );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( limit_hit ) {
 			table->negative_limit_hit = TRUE;

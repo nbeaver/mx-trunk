@@ -157,12 +157,12 @@ typedef struct {
 	double base_speed;
 	double maximum_speed;
 
-	int32_t save_speed;
-	int32_t restore_speed;
-	int32_t synchronous_motion_mode;
+	bool save_speed;
+	bool restore_speed;
+	bool synchronous_motion_mode;
 
 	double raw_saved_speed;
-	int saved_synchronous_motion_mode;
+	bool saved_synchronous_motion_mode;
 
 	double speed_choice_parameters[ MX_MOTOR_NUM_SPEED_CHOICE_PARAMS ];
 	double raw_speed_choice_parameters[ MX_MOTOR_NUM_SPEED_CHOICE_PARAMS ];
@@ -177,11 +177,11 @@ typedef struct {
 
 	int32_t parameter_type;
 
-	int32_t busy;
-	int32_t soft_abort;
-	int32_t immediate_abort;
-	int32_t negative_limit_hit;
-	int32_t positive_limit_hit;
+	bool busy;
+	bool soft_abort;
+	bool immediate_abort;
+	bool negative_limit_hit;
+	bool positive_limit_hit;
 	int32_t home_search;
 	int32_t constant_velocity_move;
 
@@ -199,11 +199,11 @@ typedef struct {
 	double save_start_positions;
 	double raw_saved_start_position;
 
-	int32_t use_start_positions;
+	bool use_start_positions;
 
-	int32_t axis_enable;
-	int32_t closed_loop;
-	int32_t fault_reset;
+	bool axis_enable;
+	bool closed_loop;
+	bool fault_reset;
 
 	double proportional_gain;
 	double integral_gain;
@@ -406,16 +406,16 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, maximum_speed),\
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_SAVE_SPEED, -1, "save_speed", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_SAVE_SPEED, -1, "save_speed", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, save_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_RESTORE_SPEED, -1, "restore_speed", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_RESTORE_SPEED, -1, "restore_speed", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, restore_speed), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_SYNCHRONOUS_MOTION_MODE, -1, "synchronous_motion_mode", \
-						MXFT_INT32, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, synchronous_motion_mode), \
 	{0}, NULL, 0}, \
   \
@@ -453,24 +453,24 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, parameter_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_BUSY, -1, "busy", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, busy), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_SOFT_ABORT, -1, "soft_abort", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_SOFT_ABORT, -1, "soft_abort", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, soft_abort), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_IMMEDIATE_ABORT, -1, "immediate_abort", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, immediate_abort), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_INT32, \
+  {MXLV_MTR_NEGATIVE_LIMIT_HIT, -1, "negative_limit_hit", MXFT_BOOL, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, negative_limit_hit), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_POSITIVE_LIMIT_HIT, -1, "positive_limit_hit", MXFT_INT32, \
+  {MXLV_MTR_POSITIVE_LIMIT_HIT, -1, "positive_limit_hit", MXFT_BOOL, \
 	NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, positive_limit_hit), \
 	{0}, NULL, 0}, \
@@ -523,21 +523,21 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_USE_START_POSITIONS, -1, "use_start_positions", \
-	  	MXFT_INT32, NULL, 0, {0}, \
+	  	MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, use_start_positions), \
 	{0}, NULL, 0}, \
   \
   \
   \
-  {MXLV_MTR_AXIS_ENABLE, -1, "axis_enable", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_AXIS_ENABLE, -1, "axis_enable", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, axis_enable), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_CLOSED_LOOP, -1, "closed_loop", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_CLOSED_LOOP, -1, "closed_loop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, closed_loop), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MTR_FAULT_RESET, -1, "fault_reset", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MTR_FAULT_RESET, -1, "fault_reset", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, fault_reset), \
 	{0}, NULL, 0}, \
   \
@@ -597,15 +597,16 @@ typedef struct {
 	mx_status_type ( *constant_velocity_move )( MX_MOTOR *motor );
 	mx_status_type ( *get_parameter )( MX_MOTOR *motor );
 	mx_status_type ( *set_parameter )( MX_MOTOR *motor );
-	mx_status_type ( *simultaneous_start )( int num_motor_records,
+	mx_status_type ( *simultaneous_start )(mx_length_type num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
-						int flags );
+						mx_hex_type flags );
 	mx_status_type ( *get_status )( MX_MOTOR *motor );
 	mx_status_type ( *get_extended_status )( MX_MOTOR *motor );
 } MX_MOTOR_FUNCTION_LIST;
 
-typedef mx_status_type (*MX_MOTOR_MOVE_REPORT_FUNCTION)(int, int, MX_RECORD **);
+typedef mx_status_type (*MX_MOTOR_MOVE_REPORT_FUNCTION)(
+				mx_hex_type, mx_length_type, MX_RECORD **);
 
 /* ============== Public functions and symbols . ================= */
 
@@ -616,7 +617,7 @@ MX_API_PRIVATE mx_status_type mx_motor_get_pointers( MX_RECORD *motor_record,
 		MX_MOTOR **motor, MX_MOTOR_FUNCTION_LIST **function_list_ptr,
 		const char *calling_fname );
 
-MX_API mx_status_type mx_motor_is_busy( MX_RECORD *motor_record, int *busy );
+MX_API mx_status_type mx_motor_is_busy( MX_RECORD *motor_record, bool *busy );
 
 MX_API mx_status_type mx_motor_soft_abort( MX_RECORD *motor_record );
 
@@ -647,36 +648,36 @@ MX_API mx_status_type mx_motor_move_relative_with_report(
 			MX_RECORD *motor_record,
 			double relative_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			mx_hex_type flags);
 
 MX_API mx_status_type mx_motor_move_absolute_with_report(
 			MX_RECORD *motor_record,
 			double position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			mx_hex_type flags);
 
 MX_API mx_status_type mx_motor_array_move_absolute_with_report(
-			int num_motor_records,
+			mx_length_type num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags );
+			mx_hex_type flags );
 
 MX_API mx_status_type mx_motor_array_internal_move_with_report(
-			int num_motor_records,
+			mx_length_type num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags );
+			mx_hex_type flags );
 
 MX_API mx_status_type mx_wait_for_motor_stop(
 			MX_RECORD *motor_record,
-			int flags );
+			mx_hex_type flags );
 
 MX_API mx_status_type mx_wait_for_motor_array_stop(
-			int num_motor_records,
+			mx_length_type num_motor_records,
 			MX_RECORD **motor_record_array,
-			int flags );
+			mx_hex_type flags );
 
 MX_API mx_status_type mx_motor_internal_move_absolute( MX_RECORD *motor_record,
 							double destination );
@@ -687,10 +688,10 @@ MX_API mx_status_type mx_motor_set_position( MX_RECORD *motor_record,
 							double position );
 
 MX_API mx_status_type mx_motor_positive_limit_hit(
-				MX_RECORD *motor_record, int *limit_hit );
+				MX_RECORD *motor_record, bool *limit_hit );
 
 MX_API mx_status_type mx_motor_negative_limit_hit(
-				MX_RECORD *motor_record, int *limit_hit );
+				MX_RECORD *motor_record, bool *limit_hit );
 
 MX_API mx_status_type mx_motor_find_home_position(
 				MX_RECORD *motor_record, int direction );
@@ -701,11 +702,11 @@ MX_API mx_status_type mx_motor_constant_velocity_move(
 				MX_RECORD *motor_record, int direction );
 
 MX_API mx_status_type mx_motor_get_status( MX_RECORD *motor_record,
-						unsigned long *motor_status );
+						mx_hex_type *motor_status );
 
 MX_API mx_status_type mx_motor_get_extended_status( MX_RECORD *motor_record,
 						double *motor_position,
-						unsigned long *motor_status );
+						mx_hex_type *motor_status );
 
 MX_API mx_status_type mx_motor_get_traditional_status( MX_MOTOR *motor );
 
@@ -754,11 +755,11 @@ MX_API mx_status_type mx_motor_restore_speed( MX_RECORD *motor_record );
 
 MX_API mx_status_type mx_motor_get_synchronous_motion_mode(
 					MX_RECORD *motor_record,
-					int *mode );
+					bool *mode );
 
 MX_API mx_status_type mx_motor_set_synchronous_motion_mode(
 					MX_RECORD *motor_record,
-					int mode );
+					bool mode );
 
 MX_API mx_status_type mx_motor_set_speed_between_positions(
 					MX_RECORD *motor_record,
@@ -799,7 +800,7 @@ MX_API mx_status_type mx_motor_set_gain( MX_RECORD *motor_record,
 
 MX_API mx_status_type mx_motor_home_search_succeeded(
 				MX_RECORD *motor_record,
-				int *home_search_succeeded );
+				bool *home_search_succeeded );
 
 MX_API mx_status_type mx_motor_compute_extended_scan_range(
 				MX_RECORD *motor_record,
@@ -812,13 +813,13 @@ MX_API mx_status_type mx_motor_compute_pseudomotor_position_from_real_position(
 				MX_RECORD *motor_record,
 				double real_position,
 				double *pseudomotor_position,
-				int recursion_flag );
+				bool recursion_flag );
 
 MX_API mx_status_type mx_motor_compute_real_position_from_pseudomotor_position(
 				MX_RECORD *motor_record,
 				double pseudomotor_position,
 				double *real_position,
-				int recursion_flag );
+				bool recursion_flag );
 
 MX_API mx_status_type mx_motor_get_real_motor_record(
 				MX_RECORD *pseudomotor_record,
@@ -827,11 +828,11 @@ MX_API mx_status_type mx_motor_get_real_motor_record(
 MX_API mx_status_type mx_alternate_motor_can_use_this_motors_mce(
 				MX_RECORD *motor_record,
 				MX_RECORD *alternate_motor_record,
-				int *motor_is_compatible );
+				bool *motor_is_compatible );
 
 MX_API mx_status_type mx_is_motor_position_between_software_limits(
 			MX_RECORD *motor_record, double position,
-			int *result_flag, int generate_error_message );
+			bool *result_flag, bool generate_error_message );
 
 MX_API mx_status_type mx_motor_save_start_positions(
 			MX_RECORD *motor_record, double start_position );
@@ -842,28 +843,28 @@ MX_API mx_status_type mx_motor_use_start_positions( MX_RECORD *motor_record );
 
 MX_API mx_status_type mx_motor_move_relative_steps_with_report(
 			MX_RECORD *motor_record,
-			long motor_steps,
+			int32_t motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			mx_hex_type flags);
 
 MX_API mx_status_type mx_motor_move_absolute_steps_with_report(
 			MX_RECORD *motor_record,
-			long motor_steps,
+			int32_t motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			mx_hex_type flags);
 
 MX_API mx_status_type mx_motor_get_position_steps(
-				MX_RECORD *motor_record, long *motor_steps );
+			MX_RECORD *motor_record, int32_t *motor_steps );
 MX_API mx_status_type mx_motor_set_position_steps(
-				MX_RECORD *motor_record, long motor_steps );
+			MX_RECORD *motor_record, int32_t motor_steps );
 
 MX_API mx_status_type mx_motor_steps_to_go(
-				MX_RECORD *motor_record, long *steps_to_go );
+			MX_RECORD *motor_record, int32_t *steps_to_go );
 
 MX_API mx_status_type
 		mx_is_stepper_motor_position_between_software_limits(
-			MX_RECORD *motor_record, long step_position,
-			int *result_flag, int generate_error_message );
+			MX_RECORD *motor_record, int32_t step_position,
+			bool *result_flag, bool generate_error_message );
 
 /* === Move analog functions. (MXC_MTR_ANALOG) === */
 
@@ -871,17 +872,17 @@ MX_API mx_status_type mx_motor_move_absolute_analog_with_report(
 			MX_RECORD *motor_record,
 			double motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			mx_hex_type flags);
 
 MX_API mx_status_type mx_motor_get_position_analog(
-				MX_RECORD *motor_record, double *position );
+			MX_RECORD *motor_record, double *position );
 MX_API mx_status_type mx_motor_set_position_analog(
-				MX_RECORD *motor_record, double position );
+			MX_RECORD *motor_record, double position );
 
 MX_API mx_status_type
 		mx_is_analog_motor_position_between_software_limits(
 			MX_RECORD *motor_record, double analog_position,
-			int *result_flag, int generate_error_message );
+			bool *result_flag, bool generate_error_message );
 
 /* === */
 

@@ -267,7 +267,7 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 	if ( mcs->scaler_record_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld element array of "
-		"MCS scaler record pointers.", mcs->maximum_num_scalers );
+		"MCS scaler record pointers.", (long) mcs->maximum_num_scalers);
 	}
 
 	for ( i = 0; i < mcs->maximum_num_scalers; i++ ) {
@@ -443,7 +443,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
+mx_mcs_is_busy( MX_RECORD *mcs_record, bool *busy )
 {
 	static const char fname[] = "mx_mcs_is_busy()";
 
@@ -477,9 +477,9 @@ mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
 
 MX_EXPORT mx_status_type
 mx_mcs_read_all( MX_RECORD *mcs_record,
-			unsigned long *num_scalers,
-			unsigned long *num_measurements,
-			long ***mcs_data )
+			mx_length_type *num_scalers,
+			mx_length_type *num_measurements,
+			int32_t ***mcs_data )
 {
 	static const char fname[] = "mx_mcs_read_all()";
 
@@ -522,9 +522,9 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_read_scaler( MX_RECORD *mcs_record,
-			unsigned long scaler_index,
-			unsigned long *num_measurements,
-			long **scaler_data )
+			mx_length_type scaler_index,
+			mx_length_type *num_measurements,
+			int32_t **scaler_data )
 {
 	static const char fname[] = "mx_mcs_read_scaler()";
 
@@ -548,14 +548,14 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 			mcs_record->name );
 	}
 
-	if ( ((long) scaler_index) >= mcs->maximum_num_scalers ) {
+	if ( scaler_index >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Scaler index %lu for MCS record '%s' is outside the allowed range of 0-%ld.",
-			scaler_index, mcs_record->name,
+			(long) scaler_index, mcs_record->name,
 			mcs->maximum_num_scalers - 1L );
 	}
 
-	mcs->scaler_index = (long) scaler_index;
+	mcs->scaler_index = scaler_index;
 
 	mx_status = (*read_scaler_fn)( mcs );
 
@@ -576,9 +576,9 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_read_measurement( MX_RECORD *mcs_record,
-			unsigned long measurement_index,
-			unsigned long *num_scalers,
-			long **measurement_data )
+			mx_length_type measurement_index,
+			mx_length_type *num_scalers,
+			int32_t **measurement_data )
 {
 	static const char fname[] = "mx_mcs_read_measurement()";
 
@@ -602,15 +602,16 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 			mcs_record->name );
 	}
 
-	if ( ((long) measurement_index) >= mcs->maximum_num_measurements ) {
+	if ( measurement_index >= mcs->maximum_num_measurements ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Measurement index %lu for MCS record '%s' is outside "
 		"the allowed range of 0-%ld.",
-			measurement_index, mcs_record->name,
+			(unsigned long) measurement_index,
+			mcs_record->name,
 			mcs->maximum_num_measurements - 1L );
 	}
 
-	mcs->measurement_index = (long) measurement_index;
+	mcs->measurement_index = measurement_index;
 
 	mx_status = (*read_measurement_fn)( mcs );
 
@@ -626,14 +627,14 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_read_timer( MX_RECORD *mcs_record,
-			unsigned long *num_measurements,
+			mx_length_type *num_measurements,
 			double **timer_data )
 {
 	static const char fname [] = "mx_mcs_read_timer()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
-	unsigned long i;
+	mx_length_type i;
 	mx_status_type ( *read_timer_fn ) ( MX_MCS * );
 	mx_status_type mx_status;
 
@@ -664,7 +665,7 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
+mx_mcs_get_mode( MX_RECORD *mcs_record, int32_t *mode )
 {
 	static const char fname[] = "mx_mcs_get_mode()";
 
@@ -697,7 +698,7 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_set_mode( MX_RECORD *mcs_record, int mode )
+mx_mcs_set_mode( MX_RECORD *mcs_record, int32_t mode )
 {
 	static const char fname[] = "mx_mcs_set_mode()";
 
@@ -729,7 +730,7 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, int mode )
 
 MX_EXPORT mx_status_type
 mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
-					int *external_channel_advance )
+					bool *external_channel_advance )
 {
 	static const char fname[] = "mx_mcs_get_external_channel_advance()";
 
@@ -763,7 +764,7 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
-					int external_channel_advance )
+					bool external_channel_advance )
 {
 	static const char fname[] = "mx_mcs_set_external_channel_advance()";
 
@@ -795,7 +796,7 @@ mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
-					unsigned long *external_prescale )
+					uint32_t *external_prescale )
 {
 	static const char fname[] = "mx_mcs_get_external_prescale()";
 
@@ -829,7 +830,7 @@ mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
-					unsigned long external_prescale )
+					uint32_t external_prescale )
 {
 	static const char fname[] = "mx_mcs_set_external_prescale()";
 
@@ -925,7 +926,7 @@ mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 
 MX_EXPORT mx_status_type
 mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
-					unsigned long *measurement_counts )
+					uint32_t *measurement_counts )
 {
 	static const char fname[] = "mx_mcs_get_measurement_counts()";
 
@@ -959,7 +960,7 @@ mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
-					unsigned long measurement_counts )
+					uint32_t measurement_counts )
 {
 	static const char fname[] = "mx_mcs_set_measurement_counts()";
 
@@ -991,7 +992,7 @@ mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
-					unsigned long *num_measurements )
+				mx_length_type *num_measurements )
 {
 	static const char fname[] = "mx_mcs_get_num_measurements()";
 
@@ -1025,7 +1026,7 @@ mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
-					unsigned long num_measurements )
+				mx_length_type num_measurements )
 {
 	static const char fname[] = "mx_mcs_set_num_measurements()";
 
@@ -1040,14 +1041,16 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: num_measurements = %lu", fname, num_measurements));
+	MX_DEBUG( 2,("%s: num_measurements = %lu",
+		fname, (unsigned long) num_measurements));
 
 	if ( num_measurements > mcs->maximum_num_measurements ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Requested number of measurements (%lu) for MCS '%s' exceeds "
-	"the maximum number of measurements (%ld) allowed for this MCS.",
-			num_measurements, mcs_record->name,
-			mcs->maximum_num_measurements );
+	"the maximum number of measurements (%lu) allowed for this MCS.",
+			(unsigned long) num_measurements,
+			mcs_record->name,
+			(unsigned long) mcs->maximum_num_measurements );
 	}
 
 	set_parameter_fn = function_list->set_parameter;
@@ -1067,7 +1070,7 @@ mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
-				unsigned long num_scalers,
+				mx_length_type num_scalers,
 				double *dark_current_array )
 {
 	static const char fname[] = "mx_mcs_get_dark_current_array()";
@@ -1075,7 +1078,7 @@ mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_parameter_fn ) ( MX_MCS * );
-	unsigned long i;
+	mx_length_type i;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -1088,8 +1091,9 @@ mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The requested number of scalers %lu for MCS '%s' exceeds the "
 	"current number of scalers %lu.",
-			num_scalers, mcs_record->name,
-			mcs->current_num_scalers );
+			(unsigned long) num_scalers,
+			mcs_record->name,
+			(unsigned long) mcs->current_num_scalers );
 	}
 
 	get_parameter_fn = function_list->get_parameter;
@@ -1116,7 +1120,7 @@ mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,
-				unsigned long num_scalers,
+				mx_length_type num_scalers,
 				double *dark_current_array )
 {
 	static const char fname[] = "mx_mcs_set_dark_current_array()";
@@ -1124,7 +1128,7 @@ mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
 	mx_status_type ( *set_parameter_fn ) ( MX_MCS * );
-	unsigned long i;
+	mx_length_type i;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_get_pointers( mcs_record,
@@ -1142,8 +1146,9 @@ mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"The requested number of scalers %lu for MCS '%s' exceeds the "
 	"current number of scalers %lu.",
-			num_scalers, mcs_record->name,
-			mcs->current_num_scalers );
+			(unsigned long) num_scalers,
+			mcs_record->name,
+			(unsigned long) mcs->current_num_scalers );
 	}
 
 	set_parameter_fn = function_list->set_parameter;
@@ -1165,7 +1170,7 @@ mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_get_dark_current( MX_RECORD *mcs_record,
-				unsigned long scaler_index,
+				mx_length_type scaler_index,
 				double *dark_current )
 {
 	static const char fname[] = "mx_mcs_get_dark_current()";
@@ -1185,8 +1190,9 @@ mx_mcs_get_dark_current( MX_RECORD *mcs_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested scaler index %lu for MCS '%s' is outside "
 		"the allowed range of 0-%lu",
-			scaler_index, mcs_record->name,
-			mcs->current_num_scalers - 1 );
+			(unsigned long) scaler_index,
+			mcs_record->name,
+			mcs->current_num_scalers - 1L );
 	}
 
 	get_parameter_fn = function_list->get_parameter;
@@ -1205,7 +1211,7 @@ mx_mcs_get_dark_current( MX_RECORD *mcs_record,
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: MCS '%s' index %lu, dark_current = %g",
-		fname, mcs_record->name, scaler_index,
+		fname, mcs_record->name, (unsigned long) scaler_index,
 		mcs->dark_current_array[ scaler_index ]));
 
 	if ( dark_current != NULL ) {
@@ -1217,7 +1223,7 @@ mx_mcs_get_dark_current( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_dark_current( MX_RECORD *mcs_record,
-				unsigned long scaler_index,
+				mx_length_type scaler_index,
 				double dark_current )
 {
 	static const char fname[] = "mx_mcs_set_dark_current()";
@@ -1239,8 +1245,9 @@ mx_mcs_set_dark_current( MX_RECORD *mcs_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested scaler index %lu for MCS '%s' is outside "
 		"the allowed range of 0-%lu",
-			scaler_index, mcs_record->name,
-			mcs->current_num_scalers - 1 );
+			(unsigned long) scaler_index,
+			mcs_record->name,
+			mcs->current_num_scalers - 1L );
 	}
 
 	set_parameter_fn = function_list->set_parameter;
@@ -1258,7 +1265,7 @@ mx_mcs_set_dark_current( MX_RECORD *mcs_record,
 	mx_status = (*set_parameter_fn)( mcs );
 
 	MX_DEBUG( 2,("%s: MCS '%s' index %lu, dark_current = %g",
-		fname, mcs_record->name, scaler_index,
+		fname, mcs_record->name, (unsigned long) scaler_index,
 		mcs->dark_current_array[ scaler_index ]));
 
 	return mx_status;

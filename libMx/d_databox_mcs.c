@@ -15,6 +15,8 @@
  *
  */
 
+#define DATABOX_MCS_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,14 +65,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_databox_mcs_record_field_defaults[] = {
 	MXD_DATABOX_MCS_STANDARD_FIELDS
 };
 
-long mxd_databox_mcs_num_record_fields
+mx_length_type mxd_databox_mcs_num_record_fields
 		= sizeof( mxd_databox_mcs_record_field_defaults )
 			/ sizeof( mxd_databox_mcs_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_mcs_rfield_def_ptr
 			= &mxd_databox_mcs_record_field_defaults[0];
-
-#define DATABOX_MCS_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -141,9 +141,9 @@ mxd_databox_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields;
-	long maximum_num_scalers_varargs_cookie;
-	long maximum_num_measurements_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_scalers_varargs_cookie;
+	mx_length_type maximum_num_measurements_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_initialize_type( record_type,
@@ -610,7 +610,7 @@ mxd_databox_mcs_handle_busy_response( MX_MCS *mcs,
 	("%s: measurement_number = %ld, position = %g, scaler_value = %ld",
 				fname, measurement_number,
 					databox_mcs->motor_position_data[i],
-					mcs->data_array[0][i]));
+					(long)(mcs->data_array[0][i]) ));
 		} else {
 			mcs->timer_data[i] = timer_value;
 
@@ -748,7 +748,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	 */
 
 	MX_DEBUG( 2,("%s: mcs->current_num_measurements = %lu",
-			fname, mcs->current_num_measurements));
+			fname, (unsigned long) mcs->current_num_measurements));
 
 	if ( ( mcs->current_num_measurements == 1L )
 	  && ( databox->last_start_action != MX_DATABOX_COUNTER_START_ACTION ))
@@ -946,7 +946,8 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		 */
 
 		MX_DEBUG( 2,("%s: Databox MCS '%s' measurement_counts = %lu",
-			fname, mcs->record->name, mcs->measurement_counts));
+			fname, mcs->record->name,
+			(unsigned long) mcs->measurement_counts));
 		break;
 
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
@@ -957,7 +958,8 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 
 		MX_DEBUG( 2,
 		("%s: Databox MCS '%s' current_num_measurements = %lu",
-		    fname, mcs->record->name, mcs->current_num_measurements));
+			fname, mcs->record->name,
+			(unsigned long) mcs->current_num_measurements));
 		break;
 
 	case MXLV_MCS_MODE:

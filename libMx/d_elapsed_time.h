@@ -26,20 +26,13 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_elapsed_time_initialize_type( long type );
 MX_API mx_status_type mxd_elapsed_time_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_elapsed_time_finish_record_initialization(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_elapsed_time_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_elapsed_time_print_motor_structure(
 					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_elapsed_time_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_elapsed_time_write_parms_to_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_elapsed_time_open( MX_RECORD *record );
-MX_API mx_status_type mxd_elapsed_time_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_elapsed_time_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_get_position( MX_MOTOR *motor );
@@ -48,7 +41,6 @@ MX_API mx_status_type mxd_elapsed_time_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_elapsed_time_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_elapsed_time_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_elapsed_time_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list;

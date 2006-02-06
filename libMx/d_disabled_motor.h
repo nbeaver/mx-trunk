@@ -25,34 +25,17 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_disabled_motor_initialize_type( long type );
 MX_API mx_status_type mxd_disabled_motor_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_disabled_motor_finish_record_initialization(
 					MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_print_motor_structure(
-					FILE *file, MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_write_parms_to_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_open( MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_close( MX_RECORD *record );
-MX_API mx_status_type mxd_disabled_motor_resynchronize( MX_RECORD *record );
+
 MX_API mx_status_type mxd_disabled_motor_motor_is_busy( MX_MOTOR *motor );
 MX_API mx_status_type mxd_disabled_motor_move_absolute( MX_MOTOR *motor );
 MX_API mx_status_type mxd_disabled_motor_get_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_disabled_motor_set_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_disabled_abort( MX_MOTOR *motor );
+MX_API mx_status_type mxd_disabled_motor_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_disabled_motor_immediate_abort( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_positive_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_negative_limit_hit( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_find_home_position( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_constant_velocity_move(
-							MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_get_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_disabled_motor_set_parameter( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_disabled_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_disabled_motor_motor_function_list;

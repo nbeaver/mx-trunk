@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_energy_motor_record_field_defaults[] = {
 	MXD_ENERGY_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_energy_motor_num_record_fields
+mx_length_type mxd_energy_motor_num_record_fields
 		= sizeof( mxd_energy_motor_record_field_defaults )
 			/ sizeof( mxd_energy_motor_record_field_defaults[0] );
 
@@ -339,7 +339,7 @@ mxd_energy_motor_get_d_spacing( MX_MOTOR *motor,
 				MX_ENERGY_MOTOR *energy_motor,
 				double *d_spacing )
 {
-	int fast_mode;
+	bool fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_fast_mode( motor->record, &fast_mode );
@@ -811,7 +811,7 @@ mxd_energy_motor_get_status( MX_MOTOR *motor )
 
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
-	unsigned long motor_status;
+	mx_hex_type motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
@@ -854,7 +854,7 @@ mxd_energy_motor_get_extended_status( MX_MOTOR *motor )
 
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
-	unsigned long motor_status;
+	mx_hex_type motor_status;
 	double theta;
 	mx_status_type mx_status;
 

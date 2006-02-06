@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -108,7 +108,7 @@ mx_timer_finish_record_initialization( MX_RECORD *timer_record )
 }
 
 MX_EXPORT mx_status_type
-mx_timer_is_busy( MX_RECORD *timer_record, int *busy )
+mx_timer_is_busy( MX_RECORD *timer_record, bool *busy )
 {
 	static const char fname[] = "mx_timer_is_busy()";
 
@@ -133,7 +133,9 @@ mx_timer_is_busy( MX_RECORD *timer_record, int *busy )
 
 	mx_status = (*timer_is_busy_fn)( timer );
 
-	*busy = timer->busy;
+	if ( busy != (bool *) NULL ) {
+		*busy = timer->busy;
+	}
 
 	return mx_status;
 }
@@ -220,7 +222,9 @@ mx_timer_stop( MX_RECORD *timer_record, double *seconds_left )
 
 	mx_status = (*timer_stop)( timer );
 
-	*seconds_left = timer->value;
+	if ( seconds_left != (double *) NULL ) {
+		*seconds_left = timer->value;
+	}
 
 	return mx_status;
 }
@@ -276,7 +280,9 @@ mx_timer_read( MX_RECORD *timer_record, double *seconds )
 		timer->value = 0.0;
 	}
 
-	*seconds = timer->value;
+	if ( seconds != (double *) NULL ) {
+		*seconds = timer->value;
+	}
 
 	return mx_status;
 }
@@ -303,7 +309,9 @@ mx_timer_get_mode( MX_RECORD *timer_record, int *mode )
 		mx_status = (*timer_get_mode)( timer );
 	}
 
-	*mode = timer->mode;
+	if ( mode != (int *) NULL ) {
+		*mode = timer->mode;
+	}
 
 	return mx_status;
 }

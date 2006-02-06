@@ -851,8 +851,8 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_als_dewar_positioner_get_status()";
 
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
-	unsigned long dewar_rot_status, dewar_x_status, total_status;
-	unsigned long home_search_succeeded;
+	mx_hex_type dewar_rot_status, dewar_x_status, total_status;
+	mx_hex_type home_search_succeeded;
 	mx_status_type mx_status;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
@@ -876,7 +876,8 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: dewar_rot_status = %#lx, dewar_x_status = %#lx",
-		fname, dewar_rot_status, dewar_x_status));
+		fname, (unsigned long) dewar_rot_status,
+		(unsigned long) dewar_x_status));
 
 	/* For the most part, just or-ing together the individual status
 	 * words does the right thing.

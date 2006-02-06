@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,7 +107,8 @@ MX_API_PRIVATE mx_status_type mx_pulse_generator_get_pointers(
 
 MX_API mx_status_type mx_pulse_generator_initialize( MX_RECORD *record );
 
-MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record, int *busy);
+MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record,
+							bool *busy );
 
 MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 

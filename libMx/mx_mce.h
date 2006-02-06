@@ -21,20 +21,19 @@
 
 typedef struct {
 	MX_RECORD *record;
-	long encoder_type;
-	int overflow_set;
-	int underflow_set;
-	int motor_can_use_this_mce;
+	int32_t encoder_type;
+	bool overflow_set;
+	bool underflow_set;
 
-	long maximum_num_values;
+	mx_length_type maximum_num_values;
 
-	long current_num_values;
+	mx_length_type current_num_values;
 	double *value_array;
 
 	double scale;
 	double offset;
 
-	int num_motors;
+	mx_length_type num_motors;
 	MX_RECORD **motor_record_array;
 
 	char selected_motor_name[ MXU_RECORD_NAME_LENGTH + 1 ];
@@ -47,24 +46,24 @@ typedef struct {
 #define MXLV_MCE_SELECTED_MOTOR_NAME	1005
 
 #define MX_MCE_STANDARD_FIELDS \
-  {-1, -1, "encoder_type", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "encoder_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, encoder_type), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "overflow_set", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "overflow_set", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, overflow_set), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "underflow_set", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "underflow_set", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, underflow_set), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "maximum_num_values", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "maximum_num_values", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, maximum_num_values), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {MXLV_MCE_CURRENT_NUM_VALUES, -1, "current_num_values", \
-				MXFT_LONG, NULL, 0, {0}, \
+				MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, current_num_values), \
 	{0}, NULL, 0}, \
   \
@@ -81,9 +80,9 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, offset), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_MCE_NUM_MOTORS, -1, "num_motors", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCE_NUM_MOTORS, -1, "num_motors", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, num_motors), \
-	{0}, NULL, 0}, \
+	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_MCE_MOTOR_RECORD_ARRAY, -1, "motor_record_array", \
 	  			MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
@@ -133,18 +132,19 @@ MX_API mx_status_type mx_mce_initialize_type(
 MX_API mx_status_type mx_mce_fixup_motor_record_array_field( MX_MCE *mce );
 
 MX_API mx_status_type mx_mce_get_overflow_status( MX_RECORD *mce_record,
-				int *underflow_set, int *overflow_set );
+				bool *underflow_set, bool *overflow_set );
 
 MX_API mx_status_type mx_mce_reset_overflow_status( MX_RECORD *mce_record );
 
 MX_API mx_status_type mx_mce_read( MX_RECORD *mce_record,
-			unsigned long *num_values, double **value_array );
+			mx_length_type *num_values, double **value_array );
 
 MX_API mx_status_type mx_mce_get_current_num_values( MX_RECORD *mce_record,
-						unsigned long *num_values );
+						mx_length_type *num_values );
 
 MX_API mx_status_type mx_mce_get_motor_record_array( MX_RECORD *mce_record,
-			int *num_motors, MX_RECORD ***motor_record_array );
+			mx_length_type *num_motors,
+			MX_RECORD ***motor_record_array );
 
 MX_API mx_status_type mx_mce_connect_mce_to_motor( MX_RECORD *mce_record,
 						MX_RECORD *motor_record );

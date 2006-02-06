@@ -202,7 +202,7 @@ mx_motor_get_pointers( MX_RECORD *motor_record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_motor_is_busy( MX_RECORD *motor_record, int *busy )
+mx_motor_is_busy( MX_RECORD *motor_record, bool *busy )
 {
 	static const char fname[] = "mx_motor_is_busy()";
 
@@ -377,7 +377,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_relative_with_report(MX_RECORD *motor_record,
 			double relative_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			mx_hex_type flags)
 {
 	double current_position, new_position;
 	mx_status_type status;
@@ -399,13 +399,13 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 			double destination,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			mx_hex_type flags)
 {
 	static const char fname[] = "mx_motor_move_absolute_with_report()";
 
 	MX_MOTOR *motor;
 	double raw_destination;
-	long raw_motor_steps;
+	int32_t raw_motor_steps;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -449,14 +449,16 @@ mx_motor_array_move_absolute_with_report( int num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags )
+			mx_hex_type flags )
 {
 	static const char fname[] =
 			"mx_motor_array_move_absolute_with_report()";
 
 	MX_MOTOR *motor;
-	int i, modified_flags, result_flag;
-	int do_backlash, individual_backlash_needed;
+	mx_length_type i;
+	mx_hex_type modified_flags;
+	bool result_flag;
+	bool do_backlash, individual_backlash_needed;
 	double backlash, backlash_position;
 	double present_position, relative_motion;
 	mx_status_type status;
@@ -580,7 +582,7 @@ mx_motor_array_internal_move_with_report( int num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags )
+			mx_hex_type flags )
 {
 	static const char fname[]
 		= "mx_motor_array_internal_move_with_report()";
@@ -588,7 +590,8 @@ mx_motor_array_internal_move_with_report( int num_motors,
 	MX_RECORD *first_motor_record;
 	MX_MOTOR_FUNCTION_LIST *flist;
 	mx_status_type (*simultaneous_start_fn)(
-					int, MX_RECORD **, double *, int );
+					mx_length_type, MX_RECORD **,
+					double *, mx_hex_type );
 	mx_status_type status;
 	int move_report_flag, modified_flags;
 	int wait_flag;
@@ -700,15 +703,15 @@ mx_motor_array_internal_move_with_report( int num_motors,
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
+mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 {
 	static const char fname[] = "mx_wait_for_motor_stop()";
 
 	int interrupt;
-	unsigned long motor_status, busy, limit_hit;
-	unsigned long limit_bitmask, error_bitmask;
-	unsigned long ignore_keyboard, ignore_limit_switches;
-	unsigned long ignore_pause;
+	mx_hex_type motor_status, busy, limit_hit;
+	mx_hex_type limit_bitmask, error_bitmask;
+	mx_hex_type ignore_keyboard, ignore_limit_switches;
+	mx_hex_type ignore_pause;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor_record->name ));
@@ -769,7 +772,8 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 			return mx_error( MXE_INTERRUPTED, fname,
 				"Move aborted for motor '%s' due to errors.  "
 				"MX motor status = %#lx", 
-					motor_record->name, motor_status );
+					motor_record->name,
+					(unsigned long) motor_status );
 		}
 
 		/* Has the motor stopped? */
@@ -834,17 +838,18 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_array_stop( int num_motor_records,
+mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 			MX_RECORD **motor_record_array,
-			int flags )
+			mx_hex_type flags )
 {
 	static const char fname[] = "mx_wait_for_motor_array_stop()";
 
-	int i, j, interrupt;
-	int motor_is_moving, any_error_occurred;
-	unsigned long motor_status, limit_bitmask, error_bitmask;
-	unsigned long ignore_keyboard, ignore_limit_switches;
-	unsigned long ignore_pause;
+	int interrupt;
+	mx_length_type i, j;
+	bool motor_is_moving, any_error_occurred;
+	mx_hex_type motor_status, limit_bitmask, error_bitmask;
+	mx_hex_type ignore_keyboard, ignore_limit_switches;
+	mx_hex_type ignore_pause;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -901,7 +906,7 @@ mx_wait_for_motor_array_stop( int num_motor_records,
 				mx_warning( "Error occurred for motor '%s'.  "
 					"MX motor status = %#lx",
 					motor_record_array[i]->name,
-					motor_status );
+					(unsigned long) motor_status );
 
 				any_error_occurred = TRUE;
 			}
@@ -1165,7 +1170,7 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_positive_limit_hit( MX_RECORD *motor_record, int *limit_hit )
+mx_motor_positive_limit_hit( MX_RECORD *motor_record, bool *limit_hit )
 {
 	static const char fname[] = "mx_motor_positive_limit_hit()";
 
@@ -1242,7 +1247,7 @@ mx_motor_positive_limit_hit( MX_RECORD *motor_record, int *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_negative_limit_hit( MX_RECORD *motor_record, int *limit_hit )
+mx_motor_negative_limit_hit( MX_RECORD *motor_record, bool *limit_hit )
 {
 	static const char fname[] = "mx_motor_negative_limit_hit()";
 
@@ -1516,7 +1521,7 @@ mx_motor_set_traditional_status( MX_MOTOR *motor )
 		
 MX_EXPORT mx_status_type
 mx_motor_get_status( MX_RECORD *motor_record,
-			unsigned long *motor_status )
+			mx_hex_type *motor_status )
 {
 	static const char fname[] = "mx_motor_get_status()";
 
@@ -1582,7 +1587,7 @@ mx_motor_get_status( MX_RECORD *motor_record,
 MX_EXPORT mx_status_type
 mx_motor_get_extended_status( MX_RECORD *motor_record,
 			double *motor_position,
-			unsigned long *motor_status )
+			mx_hex_type *motor_status )
 {
 	static const char fname[] = "mx_motor_get_extended_status()";
 
@@ -2872,7 +2877,7 @@ mx_motor_restore_speed( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
-					int *synchronous_motion_mode )
+					bool *synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_get_synchronous_motion_mode()";
 
@@ -2908,7 +2913,7 @@ mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_set_synchronous_motion_mode( MX_RECORD *motor_record,
-					int synchronous_motion_mode )
+					bool synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_set_synchronous_motion_mode()";
 
@@ -3396,7 +3401,7 @@ mx_motor_set_gain( MX_RECORD *motor_record, int gain_type, double gain )
 
 MX_EXPORT mx_status_type
 mx_motor_home_search_succeeded( MX_RECORD *motor_record,
-				int *home_search_succeeded )
+				bool *home_search_succeeded )
 {
 	static const char fname[] = "mx_motor_is_at_home_switch()";
 
@@ -3526,7 +3531,7 @@ mx_motor_compute_pseudomotor_position_from_real_position(
 					MX_RECORD *motor_record,
 					double real_position,
 					double *pseudomotor_position,
-					int recursion_flag )
+					bool recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_pseudomotor_position_from_real_position()";
@@ -3655,7 +3660,7 @@ mx_motor_compute_real_position_from_pseudomotor_position(
 					MX_RECORD *motor_record,
 					double pseudomotor_position,
 					double *real_position,
-					int recursion_flag )
+					bool recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_real_position_from_pseudomotor_position()";
@@ -3863,7 +3868,7 @@ mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 MX_EXPORT mx_status_type
 mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 					MX_RECORD *alternate_motor_record,
-					int *motor_is_compatible )
+					bool *motor_is_compatible )
 {
 	static const char fname[] =
 		"mx_alternate_motor_can_use_this_motors_mce()";
@@ -3871,7 +3876,7 @@ mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 	MX_RECORD *real_motor_record, *alternate_real_motor_record;
 	mx_status_type mx_status;
 
-	if ( motor_is_compatible == (int *) NULL ) {
+	if ( motor_is_compatible == (bool *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The motor_is_compatible pointer passed is NULL." );
 	}
@@ -3995,11 +4000,11 @@ mx_motor_use_start_positions( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_move_relative_steps_with_report(MX_RECORD *motor_record,
-			long relative_steps,
+			int32_t relative_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			mx_hex_type flags)
 {
-	long current_position, new_position;
+	int32_t current_position, new_position;
 	mx_status_type status;
 
 	status = mx_motor_get_position_steps(motor_record, &current_position);
@@ -4017,9 +4022,9 @@ mx_motor_move_relative_steps_with_report(MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
-			long motor_steps,
+			int32_t motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			mx_hex_type flags)
 {
 	static const char fname[]
 			= "mx_motor_move_absolute_steps_with_report()";
@@ -4027,11 +4032,12 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_MOTOR * );
-	long positive_limit, negative_limit;
-	long position, backlash;
-	long relative_motion, backlash_position;
+	int32_t positive_limit, negative_limit;
+	int32_t position, backlash;
+	int32_t relative_motion, backlash_position;
 	double dummy_position;
-	int mask, do_backlash;
+	bool do_backlash;
+	mx_hex_type mask;
 	mx_status_type status, move_report_status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4105,8 +4111,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	"Backlash correction for '%s' to %ld steps would exceed positive limit "
 	"at %ld steps.",
 				motor_record->name,
-				backlash_position,
-				positive_limit);
+				(long) backlash_position,
+				(long) positive_limit);
 		}
 
 		if ( backlash_position < negative_limit ) {
@@ -4114,8 +4120,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	"Backlash correction for '%s' to %ld steps would exceed negative limit "
 	"at %ld steps.",
 				motor_record->name,
-				backlash_position,
-				negative_limit);
+				(long) backlash_position,
+				(long) negative_limit);
 		}
 
 		/* Do not do the backlash correction if we were only asked
@@ -4192,16 +4198,16 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Error: move of '%s' to %ld steps would exceed positive limit at %ld steps.",
 			motor_record->name,
-			motor_steps,
-			positive_limit );
+			(long) motor_steps,
+			(long) positive_limit );
 	}
 
 	if ( motor_steps < negative_limit ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Error: move of '%s' to %ld steps would exceed negative limit at %ld steps.",
 			motor_record->name,
-			motor_steps,
-			negative_limit );
+			(long) motor_steps,
+			(long) negative_limit );
 	}
 
 	/* Return now if we are only checking limits. */
@@ -4246,7 +4252,7 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_get_position_steps( MX_RECORD *motor_record, long *motor_steps )
+mx_motor_get_position_steps( MX_RECORD *motor_record, int32_t *motor_steps )
 {
 	static const char fname[] = "mx_motor_get_position_steps()";
 
@@ -4299,7 +4305,7 @@ mx_motor_get_position_steps( MX_RECORD *motor_record, long *motor_steps )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_set_position_steps( MX_RECORD *motor_record, long motor_steps )
+mx_motor_set_position_steps( MX_RECORD *motor_record, int32_t motor_steps )
 {
 	static const char fname[] = "mx_motor_set_position_steps()";
 
@@ -4342,12 +4348,12 @@ mx_motor_set_position_steps( MX_RECORD *motor_record, long motor_steps )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_steps_to_go( MX_RECORD *motor_record, long *steps_to_go )
+mx_motor_steps_to_go( MX_RECORD *motor_record, int32_t *steps_to_go )
 {
 	static const char fname[] = "mx_motor_steps_to_go()";
 
 	MX_MOTOR *motor;
-	long step_position, step_destination;
+	int32_t step_position, step_destination;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4380,7 +4386,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			double motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			mx_hex_type flags)
 {
 	static const char fname[]
 		= "mx_motor_move_absolute_analog_with_report()";
@@ -4392,7 +4398,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	double present_position, backlash;
 	double relative_motion, backlash_position;
 	double test_var, dummy_position;
-	int mask, do_backlash;
+	bool do_backlash;
+	mx_hex_type mask;
 	char units[80];
 	mx_status_type status, move_report_status;
 
@@ -4759,14 +4766,14 @@ mx_motor_set_position_analog( MX_RECORD *motor_record,
 MX_EXPORT mx_status_type
 mx_is_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_position,
-	int *result_flag, int generate_error_message )
+	bool *result_flag, bool generate_error_message )
 {
 	static const char fname[] =
 		"mx_is_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
 	double scale, offset, unscaled_proposed_position;
-	long proposed_step_position;
+	int32_t proposed_step_position;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4815,7 +4822,7 @@ mx_is_motor_position_between_software_limits(
 MX_EXPORT mx_status_type
 mx_is_analog_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_analog_position,
-	int *result_flag, int generate_error_message )
+	bool *result_flag, bool generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_analog_motor_position_between_software_limits()";
@@ -4838,7 +4845,7 @@ mx_is_analog_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (int *) NULL ) {
+	if ( result_flag == (bool *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}
@@ -4913,15 +4920,15 @@ mx_is_analog_motor_position_between_software_limits(
 
 MX_EXPORT mx_status_type
 mx_is_stepper_motor_position_between_software_limits(
-	MX_RECORD *motor_record, long proposed_step_position,
-	int *result_flag, int generate_error_message )
+	MX_RECORD *motor_record, int32_t proposed_step_position,
+	bool *result_flag, bool generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_stepper_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
 	char message_buffer[120];
-	long positive_limit, negative_limit;
+	int32_t positive_limit, negative_limit;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4936,7 +4943,7 @@ mx_is_stepper_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (int *) NULL ) {
+	if ( result_flag == (bool *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}
@@ -4954,8 +4961,8 @@ mx_is_stepper_motor_position_between_software_limits(
 			sprintf( message_buffer,
 	"Move of '%s' to %ld steps would exceed positive limit at %ld steps.",
 				motor_record->name,
-				proposed_step_position,
-				positive_limit );
+				(long) proposed_step_position,
+				(long) positive_limit );
 		}
 	}
 	if ( proposed_step_position < negative_limit ) {
@@ -4965,8 +4972,8 @@ mx_is_stepper_motor_position_between_software_limits(
 			sprintf( message_buffer,
 	"Move of '%s' to %ld steps would exceed negative limit at %ld steps.",
 				motor_record->name,
-				proposed_step_position,
-				negative_limit );
+				(long) proposed_step_position,
+				(long) negative_limit );
 		}
 	}
 

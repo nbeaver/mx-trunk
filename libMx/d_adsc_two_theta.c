@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -80,7 +80,7 @@ mxd_adsc_two_theta_get_pointers( MX_MOTOR *motor,
 			MX_RECORD **height_motor_record,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_pointers()";
+	static const char fname[] = "mxd_adsc_two_theta_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -126,7 +126,8 @@ mxd_adsc_two_theta_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_adsc_two_theta_create_record_structures()";
+	static const char fname[] =
+		"mxd_adsc_two_theta_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_ADSC_TWO_THETA *adsc_two_theta;
@@ -167,18 +168,18 @@ mxd_adsc_two_theta_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_adsc_two_theta_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -206,14 +207,15 @@ mxd_adsc_two_theta_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_adsc_two_theta_print_motor_structure()";
+	static const char fname[] =
+			"mxd_adsc_two_theta_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_RECORD *height_motor_record;
 	MX_MOTOR *height_motor;
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -222,11 +224,11 @@ mxd_adsc_two_theta_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
         height_motor = (MX_MOTOR *) height_motor_record->record_class_struct;
 
@@ -243,9 +245,9 @@ mxd_adsc_two_theta_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  height motor record    = %s\n",
 					height_motor_record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -340,18 +342,18 @@ h_to_theta( double h )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_move_absolute()";
+	static const char fname[] = "mxd_adsc_two_theta_move_absolute()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
 	double two_theta, height;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The unscaled adsc_two_theta position is in mm. */
 
@@ -359,31 +361,31 @@ mxd_adsc_two_theta_move_absolute( MX_MOTOR *motor )
 
 	height = theta_to_h( two_theta );
 
-	status = mx_motor_move_absolute( height_motor_record, height, 0 );
+	mx_status = mx_motor_move_absolute( height_motor_record, height, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_position()";
+	static const char fname[] = "mxd_adsc_two_theta_get_position()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
 	double two_theta, height;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_position( height_motor_record, &height );
+	mx_status = mx_motor_get_position( height_motor_record, &height );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	two_theta = h_to_theta( height );
 
@@ -395,88 +397,88 @@ mxd_adsc_two_theta_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_set_position()";
+	static const char fname[] = "mxd_adsc_two_theta_set_position()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
 	double two_theta, height;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	two_theta = motor->raw_set_position.analog;
 
 	height = theta_to_h( two_theta );
 
-	status = mx_motor_set_position( height_motor_record, height );
+	mx_status = mx_motor_set_position( height_motor_record, height );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_soft_abort()";
+	static const char fname[] = "mxd_adsc_two_theta_soft_abort()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_soft_abort( height_motor_record );
+	mx_status = mx_motor_soft_abort( height_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_immediate_abort()";
+	static const char fname[] = "mxd_adsc_two_theta_immediate_abort()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_immediate_abort( height_motor_record );
+	mx_status = mx_motor_immediate_abort( height_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_adsc_two_theta_get_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_adsc_two_theta_get_status()";
+	static const char fname[] = "mxd_adsc_two_theta_get_status()";
 
 	MX_ADSC_TWO_THETA *adsc_two_theta;
 	MX_RECORD *height_motor_record;
-	unsigned long motor_status;
-	mx_status_type status;
+	mx_hex_type motor_status;
+	mx_status_type mx_status;
 
-	status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
+	mx_status = mxd_adsc_two_theta_get_pointers( motor, &adsc_two_theta,
 					&height_motor_record,fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_status( height_motor_record, &motor_status );
+	mx_status = mx_motor_get_status( height_motor_record, &motor_status );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->status = motor_status;
 

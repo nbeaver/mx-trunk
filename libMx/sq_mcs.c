@@ -1198,7 +1198,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 	MX_RECORD *real_motor_record;
 	MX_MOTOR *real_motor;
 	long i;
-	unsigned long num_encoder_values;
+	mx_length_type num_encoder_values;
 	double *encoder_value_array;
 	double scaled_encoder_value, start_of_bin_value;
 	double real_motor_real_start_position;
@@ -1273,7 +1273,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 
 #if 1
 		MX_DEBUG( 2,("%s: num_encoder_values = %lu",
-					fname, num_encoder_values));
+				fname, (unsigned long) num_encoder_values));
 
 		MX_DEBUG( 2,("%s: encoder_value_array is:", fname));
 
@@ -1338,7 +1338,7 @@ mxs_mcs_quick_scan_use_encoder_values(
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal MCE encoder type %ld.  This is a program bug.",
-				mce->encoder_type );
+				(long) mce->encoder_type );
 			break;
 		}
 
@@ -1822,7 +1822,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	double measurement_time;
 	MX_RECORD **real_motor_array;
-	int motor_is_compatible, this_motor_is_compatible;
+	bool motor_is_compatible, this_motor_is_compatible;
 	long i, j;
 	mx_length_type dimension[2];
 	size_t element_size[2];
@@ -2432,7 +2432,8 @@ mxs_mcs_quick_scan_check_for_motor_errors( MX_SCAN *scan )
 #endif
 
 	MX_RECORD *motor_record;
-	unsigned long i, motor_status;
+	mx_length_type i;
+	mx_hex_type motor_status;
 	mx_status_type mx_status;
 
 	for ( i = 0; i < scan->num_motors; i++ ) {
@@ -2446,7 +2447,8 @@ mxs_mcs_quick_scan_check_for_motor_errors( MX_SCAN *scan )
 		    mx_warning(
 			"An error occurred for motor '%s' during scan '%s'.\n"
 			"--> MX motor status = %#lx",
-			motor_record->name, scan->record->name, motor_status );
+			motor_record->name, scan->record->name,
+			(unsigned long) motor_status );
 		}
 		if ( motor_status & MXSF_MTR_POSITIVE_LIMIT_HIT ) {
 		    mx_warning( "Motor '%s' positive limit hit.",
@@ -2493,14 +2495,14 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
-	int busy;
+	bool busy;
 	long i;
 	unsigned long measurement_milliseconds;
 #if 1
 	MX_RECORD *mcs_record;
 	unsigned long wait_ms, max_attempts;
 	long j;
-	int all_busy;
+	bool all_busy;
 #endif
 	mx_status_type mx_status;
 
@@ -2726,14 +2728,14 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	MX_MCS_SCALER *mcs_scaler;
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
-	long **data_array;
+	int32_t **data_array;
 	double motor_datafile_positions[ MXS_SQ_MCS_MAX_MOTORS ];
 	double motor_plot_positions[ MXS_SQ_MCS_MAX_MOTORS ];
 	double measurement_time;
-	long *data_values;
-	long i, j, scaler_index;
-	long num_datafile_motors, num_plot_motors;
-	unsigned long mask;
+	int32_t *data_values;
+	mx_length_type i, j, scaler_index;
+	mx_length_type num_datafile_motors, num_plot_motors;
+	mx_hex_type mask;
 	char output_buffer[250], value_buffer[30];
 	size_t string_length, buffer_left;
 	mx_status_type mx_status;
@@ -2803,14 +2805,15 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG( 2,("%s: scaler[%ld] '%s' values are:",
-						fname, scaler_index,
+		MX_DEBUG( 2,("%s: scaler[%lu] '%s' values are:",
+						fname,
+						(unsigned long) scaler_index,
 						input_device_record->name ));
 
 		if ( mx_get_debug_level() >= 2 ) {
 			for ( j = 0; j < mcs->current_num_measurements; j++ ) {
-				fprintf(stderr,"%ld ",
-					(mcs->data_array)[ scaler_index ][j]);
+			    fprintf(stderr,"%ld ",
+				(long)( (mcs->data_array)[ scaler_index ][j] ));
 			}
 			fprintf(stderr,"\n");
 		}
@@ -2828,8 +2831,8 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 	 * one measurement.
 	 */
 
-	data_values = (long *)
-			malloc( scan->num_input_devices * sizeof(long) );
+	data_values = (int32_t *)
+			malloc( scan->num_input_devices * sizeof(int32_t) );
 
 	if ( data_values == NULL ) {
 		FREE_MOTOR_POSITION_ARRAYS;
@@ -2952,15 +2955,16 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			buffer_left
 			    = sizeof( output_buffer ) - string_length - 1;
 
-			sprintf( value_buffer, " %ld", data_values[j] );
+			sprintf( value_buffer, " %ld",
+					(long)( data_values[j] ));
 
 			strncat( output_buffer, value_buffer, buffer_left );
 		}
 
 		mx_info( output_buffer );
 
-		MX_DEBUG( 8,("%s: Copying measurement %ld to data file.",
-				fname, i));
+		MX_DEBUG( 8,("%s: Copying measurement %lu to data file.",
+				fname, (unsigned long) i));
 
 		mx_status = mx_add_array_to_datafile( &(scan->datafile),
 			MXFT_DOUBLE, num_datafile_motors,
@@ -2980,8 +2984,8 @@ mxs_mcs_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 		if ( mx_plotting_is_enabled( scan->record ) ) {
 			MX_DEBUG( 8,(
-			    "%s: Adding measurement %ld to plot buffer.",
-				fname, i));
+			    "%s: Adding measurement %lu to plot buffer.",
+				fname, (unsigned long) i));
 
 			/* Failing to update the plot correctly is not
 			 * a reason to abort since that would interrupt

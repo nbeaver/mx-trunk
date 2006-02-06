@@ -40,10 +40,10 @@ typedef struct {
 
 	int32_t  parameter_type;
 
-	int32_t  clear;
-	int32_t  overflow_set;
-	int32_t  busy;
-	int32_t  stop;
+	bool  clear;
+	bool  overflow_set;
+	bool  busy;
+	bool  stop;
 	int32_t  mode;
 } MX_SCALER;
 
@@ -77,19 +77,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, timer_record_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SCL_CLEAR, -1, "clear", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCL_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, clear), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_OVERFLOW_SET, -1, "overflow_set", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCL_OVERFLOW_SET, -1, "overflow_set", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, overflow_set), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_BUSY, -1, "busy", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCL_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, busy), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_SCL_STOP, -1, "stop", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCL_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCALER, stop), \
 	{0}, NULL, 0 }, \
   \
@@ -126,7 +126,7 @@ MX_API_PRIVATE mx_status_type mx_scaler_finish_record_initialization(
 MX_API mx_status_type mx_scaler_clear( MX_RECORD *scaler_record );
 
 MX_API mx_status_type mx_scaler_overflow_set( MX_RECORD *scaler_record,
-							int *overflow_set);
+							bool *overflow_set);
 
 MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record,
 							int32_t *value );
@@ -134,7 +134,7 @@ MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record,
 MX_API mx_status_type mx_scaler_read_raw( MX_RECORD *scaler_record,
 							int32_t *value );
 
-MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy );
+MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record, bool *busy );
 
 MX_API mx_status_type mx_scaler_start( MX_RECORD *scaler_record,
 						int32_t preset_count );
