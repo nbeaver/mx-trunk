@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_lpt_in_record_field_defaults[] = {
 	MXD_LPT_IN_STANDARD_FIELDS
 };
 
-long mxd_lpt_in_num_record_fields
+mx_length_type mxd_lpt_in_num_record_fields
 		= sizeof( mxd_lpt_in_record_field_defaults )
 			/ sizeof( mxd_lpt_in_record_field_defaults[0] );
 
@@ -73,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_lpt_out_record_field_defaults[] = {
 	MXD_LPT_OUT_STANDARD_FIELDS
 };
 
-long mxd_lpt_out_num_record_fields
+mx_length_type mxd_lpt_out_num_record_fields
 		= sizeof( mxd_lpt_out_record_field_defaults )
 			/ sizeof( mxd_lpt_out_record_field_defaults[0] );
 

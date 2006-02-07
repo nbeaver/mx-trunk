@@ -28,21 +28,21 @@
 #define MXF_GRELAY_SUPPRESS_ILLEGAL_STATUS_MESSAGE	0x1000
 
 typedef struct {
-	unsigned long grelay_flags;
+	mx_hex_type grelay_flags;
 
-	unsigned long settling_time;	/* in milliseconds */
+	uint32_t settling_time;	/* in milliseconds */
 
 	MX_RECORD *input_record;   /* You read the relay status from here. */
-	int input_bit_offset;
-	int num_input_bits;
-	unsigned long closed_input_value;
-	unsigned long open_input_value;
+	int32_t input_bit_offset;
+	int32_t num_input_bits;
+	mx_hex_type closed_input_value;
+	mx_hex_type open_input_value;
 
 	MX_RECORD *output_record;  /* You send relay commands to here. */
-	int output_bit_offset;
-	int num_output_bits;
-	unsigned long close_output_value;
-	unsigned long open_output_value;
+	int32_t output_bit_offset;
+	int32_t num_output_bits;
+	mx_hex_type close_output_value;
+	mx_hex_type open_output_value;
 } MX_GENERIC_RELAY;
 
 #define MXD_GENERIC_RELAY_STANDARD_FIELDS \
@@ -50,7 +50,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, grelay_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "settling_time", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "settling_time", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, settling_time), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -58,11 +58,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, input_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, input_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, num_input_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -78,11 +78,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, output_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, output_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, num_output_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -96,34 +96,15 @@ typedef struct {
 
 /* Define all of the device functions. */
 
-MX_API mx_status_type mxd_generic_relay_initialize_type( long type );
-
 MX_API mx_status_type mxd_generic_relay_create_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxd_generic_relay_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_generic_relay_delete_record( MX_RECORD *record );
+MX_API mx_status_type mxd_generic_relay_relay_command( MX_RELAY *relay );
 
-MX_API mx_status_type mxd_generic_relay_print_structure( FILE *file,
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_read_parms_from_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_write_parms_to_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_open( MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_close( MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_relay_command(
-							MX_RELAY *relay );
-
-MX_API mx_status_type mxd_generic_relay_get_relay_status(
-							MX_RELAY *relay );
+MX_API mx_status_type mxd_generic_relay_get_relay_status( MX_RELAY *relay );
 
 extern MX_RECORD_FUNCTION_LIST mxd_generic_relay_record_function_list;
 extern MX_RELAY_FUNCTION_LIST mxd_generic_relay_relay_function_list;

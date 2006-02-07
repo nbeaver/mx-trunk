@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,13 +22,13 @@
 typedef struct {
 	MX_RECORD *record;
 	int encoder_type;
-	int overflow_set;
-	int underflow_set;
-	long value;
+	bool overflow_set;
+	bool underflow_set;
+	int32_t value;
 } MX_ENCODER;
 
 #define MX_ENCODER_STANDARD_FIELDS \
-  {-1, -1, "value", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "value", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ENCODER, value), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -55,9 +55,12 @@ MX_API mx_status_type mx_encoder_get_pointers( MX_RECORD *record,
 					const char *calling_fname );
 
 MX_API mx_status_type mx_encoder_get_overflow_status( MX_RECORD *record,
-				int *underflow_set, int *overflow_set );
+				bool *underflow_set, bool *overflow_set );
+
 MX_API mx_status_type mx_encoder_reset_overflow_status( MX_RECORD *record );
-MX_API mx_status_type mx_encoder_read( MX_RECORD *record, long *value );
-MX_API mx_status_type mx_encoder_write( MX_RECORD *record, long value );
+
+MX_API mx_status_type mx_encoder_read( MX_RECORD *record, int32_t *value );
+
+MX_API mx_status_type mx_encoder_write( MX_RECORD *record, int32_t value );
 
 #endif /* __MX_ENCODER_H__ */

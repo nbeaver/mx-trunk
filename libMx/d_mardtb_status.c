@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,12 +41,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_mardtb_status_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_mardtb_status_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_MARDTB_STATUS_STANDARD_FIELDS
 };
 
-long mxd_mardtb_status_num_record_fields
+mx_length_type mxd_mardtb_status_num_record_fields
 		= sizeof( mxd_mardtb_status_record_field_defaults )
 			/ sizeof( mxd_mardtb_status_record_field_defaults[0] );
 
@@ -90,9 +90,9 @@ mxd_mardtb_status_create_record_structures( MX_RECORD *record )
 
         analog_input->record = record;
 
-	/* Raw analog input values are stored as longs. */
+	/* Raw analog input values are stored as 32-bit integers. */
 
-	analog_input->subclass = MXT_AIN_LONG;
+	analog_input->subclass = MXT_AIN_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -140,7 +140,7 @@ mxd_mardtb_status_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ainput->raw_value.long_value = (long) raw_value;
+	ainput->raw_value.int32_value = (int32_t) raw_value;
 
 	return mx_status;
 }

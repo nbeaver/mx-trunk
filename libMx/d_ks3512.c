@@ -39,12 +39,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_ks3512_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_ks3512_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_KS3512_STANDARD_FIELDS
 };
 
-long mxd_ks3512_num_record_fields
+mx_length_type mxd_ks3512_num_record_fields
 		= sizeof( mxd_ks3512_record_field_defaults )
 			/ sizeof( mxd_ks3512_record_field_defaults[0] );
 
@@ -86,9 +86,9 @@ mxd_ks3512_create_record_structures( MX_RECORD *record )
 
         analog_input->record = record;
 
-	/* Raw analog input values are stored as longs. */
+	/* Raw analog input values are stored as 32-bit integers. */
 
-	analog_input->subclass = MXT_AIN_LONG;
+	analog_input->subclass = MXT_AIN_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -141,8 +141,7 @@ mxd_ks3512_read( MX_ANALOG_INPUT *adc )
 	static const char fname[] = "mxd_ks3512_read()";
 
 	MX_KS3512 *ks3512;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 
 	ks3512 = (MX_KS3512 *) (adc->record->record_type_struct);
 
@@ -155,7 +154,7 @@ mxd_ks3512_read( MX_ANALOG_INPUT *adc )
 		(ks3512->slot), (ks3512->subaddress), 0,
 		&data, &camac_Q, &camac_X );
 
-	adc->raw_value.long_value = (long) data;
+	adc->raw_value.int32_value = data;
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

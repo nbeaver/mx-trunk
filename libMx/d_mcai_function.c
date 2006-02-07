@@ -44,7 +44,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcai_function_record_field_defaults[] = {
 	MXD_MCAI_FUNCTION_STANDARD_FIELDS
 };
 
-long mxd_mcai_function_num_record_fields
+mx_length_type mxd_mcai_function_num_record_fields
 		= sizeof( mxd_mcai_function_record_field_defaults )
 			/ sizeof( mxd_mcai_function_record_field_defaults[0] );
 
@@ -95,9 +95,9 @@ mxd_mcai_function_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
-        long num_record_fields;
-	long referenced_field_index;
-        long num_channels_varargs_cookie;
+        mx_length_type num_record_fields;
+	mx_length_type referenced_field_index;
+        mx_length_type num_channels_varargs_cookie;
         mx_status_type mx_status;
 
         driver = mx_get_driver_by_type( type );
@@ -123,7 +123,7 @@ mxd_mcai_function_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (long *) NULL ) {
+        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -145,7 +145,7 @@ mxd_mcai_function_initialize_type( long type )
                 return mx_status;
 
         MX_DEBUG( 2,("%s: num_channels varargs cookie = %ld",
-                        fname, num_channels_varargs_cookie));
+                        fname, (long) num_channels_varargs_cookie));
 
 	mx_status = mx_find_record_field_defaults(
 		record_field_defaults, num_record_fields,

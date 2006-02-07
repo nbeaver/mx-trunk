@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2400_amp_record_field_defaults[] = {
 	MXD_KEITHLEY2400_AMP_STANDARD_FIELDS
 };
 
-long mxd_keithley2400_amp_num_record_fields
+mx_length_type mxd_keithley2400_amp_num_record_fields
 		= sizeof( mxd_keithley2400_amp_record_field_defaults )
 		    / sizeof( mxd_keithley2400_amp_record_field_defaults[0] );
 

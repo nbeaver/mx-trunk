@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_gm10_scaler_record_field_defaults[] = {
 	MXD_GM10_SCALER_STANDARD_FIELDS
 };
 
-long mxd_gm10_scaler_num_record_fields
+mx_length_type mxd_gm10_scaler_num_record_fields
 		= sizeof( mxd_gm10_scaler_record_field_defaults )
 		  / sizeof( mxd_gm10_scaler_record_field_defaults[0] );
 
@@ -149,7 +149,7 @@ mxd_gm10_scaler_read( MX_SCALER *scaler )
 
 #if MXD_GM10_SCALER_DEBUG
 	MX_DEBUG(-2,("%s: Scaler '%s' value = %ld",
-		fname, scaler->record->name, scaler->value));
+		fname, scaler->record->name, (long) scaler->value));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

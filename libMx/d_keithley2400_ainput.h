@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int measurement_type;
+	int32_t measurement_type;
 } MX_KEITHLEY2400_AINPUT;
 
 MX_API mx_status_type mxd_keithley2400_ainput_create_record_structures(
@@ -43,7 +43,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2400_ainput_rfield_def_ptr;
 		offsetof(MX_KEITHLEY2400_AINPUT, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "measurement_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "measurement_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2400_AINPUT,measurement_type),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

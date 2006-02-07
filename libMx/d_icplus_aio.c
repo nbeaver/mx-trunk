@@ -55,12 +55,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_icplus_ain_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_icplus_ain_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_ICPLUS_AINPUT_STANDARD_FIELDS
 };
 
-long mxd_icplus_ain_num_record_fields
+mx_length_type mxd_icplus_ain_num_record_fields
 		= sizeof( mxd_icplus_ain_record_field_defaults )
 			/ sizeof( mxd_icplus_ain_record_field_defaults[0] );
 
@@ -87,12 +87,12 @@ MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_icplus_aout_analog_output_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_icplus_aout_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_LONG_ANALOG_OUTPUT_STANDARD_FIELDS,
+	MX_INT32_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MXD_ICPLUS_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_icplus_aout_num_record_fields
+mx_length_type mxd_icplus_aout_num_record_fields
 		= sizeof( mxd_icplus_aout_record_field_defaults )
 			/ sizeof( mxd_icplus_aout_record_field_defaults[0] );
 

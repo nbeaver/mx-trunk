@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley428_record_field_defaults[] = {
 	MXD_KEITHLEY428_STANDARD_FIELDS
 };
 
-long mxd_keithley428_num_record_fields
+mx_length_type mxd_keithley428_num_record_fields
 		= sizeof( mxd_keithley428_record_field_defaults )
 		  / sizeof( mxd_keithley428_record_field_defaults[0] );
 
@@ -375,7 +375,8 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 	MX_KEITHLEY428 *keithley428;
 	MX_INTERFACE *interface;
 	char buffer[50];
-	int num_items, gain_setting, fast_mode;
+	int num_items, gain_setting;
+	bool fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,
@@ -499,7 +500,8 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char response[50];
 	double current_suppress_value;
-	int num_items, fast_mode;
+	int num_items;
+	bool fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,
@@ -611,7 +613,8 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 	MX_KEITHLEY428 *keithley428;
 	MX_INTERFACE *interface;
 	char buffer[50];
-	int num_items, filter_enabled, rise_time_setting, fast_mode;
+	int num_items, filter_enabled, rise_time_setting;
+	bool fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,

@@ -19,7 +19,7 @@
 #define __D_MCA_ALT_TIME_H__
 
 typedef struct {
-	int time_type;
+	int32_t time_type;
 	double timer_scale;
 } MX_MCA_ALT_TIME;
 
@@ -41,7 +41,7 @@ extern mx_length_type mxd_mca_alt_time_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_alt_time_rfield_def_ptr;
 
 #define MXD_MCA_ALT_TIME_STANDARD_FIELDS \
-  {-1, -1, "time_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "time_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_ALT_TIME, time_type),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

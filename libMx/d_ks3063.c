@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ks3063_in_record_field_defaults[] = {
 	MXD_KS3063_IN_STANDARD_FIELDS
 };
 
-long mxd_ks3063_in_num_record_fields
+mx_length_type mxd_ks3063_in_num_record_fields
 		= sizeof( mxd_ks3063_in_record_field_defaults )
 			/ sizeof( mxd_ks3063_in_record_field_defaults[0] );
 
@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ks3063_out_record_field_defaults[] = {
 	MXD_KS3063_OUT_STANDARD_FIELDS
 };
 
-long mxd_ks3063_out_num_record_fields
+mx_length_type mxd_ks3063_out_num_record_fields
 		= sizeof( mxd_ks3063_out_record_field_defaults )
 			/ sizeof( mxd_ks3063_out_record_field_defaults[0] );
 
@@ -332,7 +332,7 @@ mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 			record->name);
 	fprintf(file, "  Digital output type = KS3063_OUT.\n\n");
 
-	fprintf(file, "  value      = %lu\n", doutput->value);
+	fprintf(file, "  value      = %lu\n", (unsigned long) doutput->value);
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_out->camac_record->name);
 	fprintf(file, "  slot       = %d\n", ks3063_out->slot);

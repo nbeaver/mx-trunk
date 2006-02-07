@@ -45,15 +45,11 @@
 MX_EXPORT mx_status_type
 mx_update_record_values( MX_RECORD *record )
 {
-	const char fname[] = "mx_update_record_values()";
+	static const char fname[] = "mx_update_record_values()";
 
 	MX_RECORD_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_RECORD * );
-	int int_value;
-	long long_value;
-	uint32_t uint32_value;
-	double double_value;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -76,7 +72,7 @@ mx_update_record_values( MX_RECORD *record )
 	if ( fptr != NULL ) {
 		/* It does, so let's invoke it. */
 
-		status = ( *fptr )( record );
+		mx_status = ( *fptr )( record );
 
 	} else {
 		/* Otherwise, we use a generic response. */
@@ -90,167 +86,163 @@ mx_update_record_values( MX_RECORD *record )
 		case MXR_DEVICE:
 			switch( record->mx_class ) {
 			case MXC_ANALOG_INPUT:
-				status = mx_analog_input_read(
-							record, &double_value);
+				mx_status = mx_analog_input_read(record, NULL);
 				break;
 			case MXC_ANALOG_OUTPUT:
-				status = mx_analog_output_read(
-							record, &double_value);
+				mx_status = mx_analog_output_read(record, NULL);
 				break;
 			case MXC_DIGITAL_INPUT:
-				status = mx_digital_input_read(
-							record, &uint32_value);
+				mx_status = mx_digital_input_read(record, NULL);
 				break;
 			case MXC_DIGITAL_OUTPUT:
-				status = mx_digital_output_read(
-							record, &uint32_value);
+				mx_status = mx_digital_output_read(
+								record, NULL );
 				break;
 			case MXC_MOTOR:
-				status = mx_motor_get_position(
-							record, &double_value);
+				mx_status = mx_motor_get_position(record, NULL);
 				break;
 			case MXC_ENCODER:
-				status = mx_encoder_read(record, &long_value);
+				mx_status = mx_encoder_read( record, NULL );
 				break;
 			case MXC_SCALER:
-				status = mx_scaler_read( record, NULL );
+				mx_status = mx_scaler_read( record, NULL );
 
-				if ( status.code != MXE_SUCCESS )
-					return status;
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
 
-				status = mx_scaler_get_dark_current(
+				mx_status = mx_scaler_get_dark_current(
 								record, NULL );
 				break;
 			case MXC_RELAY:
-				status = mx_get_relay_status(
-							record, &int_value);
+				mx_status = mx_get_relay_status( record, NULL );
 				break;
 			case MXC_AMPLIFIER:
-				status = mx_amplifier_get_gain(
-							record, &double_value);
+				mx_status = mx_amplifier_get_gain(record, NULL);
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 
-				status = mx_amplifier_get_offset(
-							record, &double_value);
+				mx_status = mx_amplifier_get_offset(
+								record, NULL);
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 
-				status = mx_amplifier_get_time_constant(
-							record, &double_value);
+				mx_status = mx_amplifier_get_time_constant(
+								record, NULL );
 
 				break;
 			case MXC_AUTOSCALE:
-				status = mx_autoscale_get_limits( record,
+				mx_status = mx_autoscale_get_limits( record,
 						NULL, NULL, NULL, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 
-				status = mx_autoscale_get_offset_index( record,
-								NULL );
+				mx_status = mx_autoscale_get_offset_index(
+								record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 
-				status = mx_autoscale_get_offset_array( record,
-								NULL, NULL );
+				mx_status = mx_autoscale_get_offset_array(
+							record, NULL, NULL );
 				break;
 			case MXC_SINGLE_CHANNEL_ANALYZER:
-				status = mx_sca_get_lower_level( record, NULL );
+				mx_status = mx_sca_get_lower_level(
+								record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_sca_get_upper_level( record, NULL );
+				mx_status = mx_sca_get_upper_level(
+								record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_sca_get_gain( record, NULL );
+				mx_status = mx_sca_get_gain( record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_sca_get_time_constant(record, NULL);
+				mx_status = mx_sca_get_time_constant(record, NULL);
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_sca_get_mode( record, NULL );
+				mx_status = mx_sca_get_mode( record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 				break;
 			case MXC_PULSE_GENERATOR:
-				status = mx_pulse_generator_get_pulse_period(
+				mx_status = mx_pulse_generator_get_pulse_period(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_pulse_generator_get_pulse_width(
+				mx_status = mx_pulse_generator_get_pulse_width(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_pulse_generator_get_num_pulses(
+				mx_status = mx_pulse_generator_get_num_pulses(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_pulse_generator_get_pulse_delay(
+				mx_status = mx_pulse_generator_get_pulse_delay(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_pulse_generator_get_mode(
+				mx_status = mx_pulse_generator_get_mode(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_pulse_generator_is_busy(
+				mx_status = mx_pulse_generator_is_busy(
 							record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
 				break;
 			case MXC_SAMPLE_CHANGER:
-				status = mx_sample_changer_get_status(
+				mx_status = mx_sample_changer_get_status(
 							record, NULL);
 				break;
 			case MXC_MULTICHANNEL_ANALOG_INPUT:
-				status = mx_mcai_read( record, NULL, NULL );
+				mx_status = mx_mcai_read( record, NULL, NULL );
 				break;
 			case MXC_PAN_TILT_ZOOM:
-				status = mx_ptz_get_pan( record, NULL );
+				mx_status = mx_ptz_get_pan( record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_ptz_get_tilt( record, NULL );
+				mx_status = mx_ptz_get_tilt( record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_ptz_get_zoom( record, NULL );
+				mx_status = mx_ptz_get_zoom( record, NULL );
 
-				if ( status.code != MXE_SUCCESS ) {
+				if ( mx_status.code != MXE_SUCCESS ) {
 					break;
 				}
-				status = mx_ptz_get_focus( record, NULL );
+				mx_status = mx_ptz_get_focus( record, NULL );
 				break;
 			case MXC_TIMER:
 			case MXC_MULTICHANNEL_ANALYZER:
@@ -258,7 +250,7 @@ mx_update_record_values( MX_RECORD *record )
 			case MXC_MULTICHANNEL_SCALER:
 			case MXC_TABLE:
 			case MXC_CCD:
-				status = MX_SUCCESSFUL_RESULT;
+				mx_status = MX_SUCCESSFUL_RESULT;
 				break;
 			default:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -269,16 +261,16 @@ mx_update_record_values( MX_RECORD *record )
 			break;
 
 		case MXR_VARIABLE:
-			status = mx_receive_variable( record );
+			mx_status = mx_receive_variable( record );
 			break;
 
 		default:
 			/* Do nothing. */
 
-			status = MX_SUCCESSFUL_RESULT;
+			mx_status = MX_SUCCESSFUL_RESULT;
 			break;
 		}
 	}
-	return status;
+	return mx_status;
 }
 

@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *mcai_record;
-	long num_channels;
+	int32_t num_channels;
 	double *real_scale;
 	double *real_offset;
 } MX_MCAI_FUNCTION;
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCAI_FUNCTION, mcai_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_channels", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_channels", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCAI_FUNCTION, num_channels), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

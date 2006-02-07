@@ -25,12 +25,12 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int slot;
+	int32_t slot;
 } MX_KS3063_IN;
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int slot;
+	int32_t slot;
 } MX_KS3063_OUT;
 
 #define MXD_KS3063_IN_STANDARD_FIELDS \
@@ -38,7 +38,7 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_KS3063_IN, camac_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_KS3063_IN, slot), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -47,7 +47,7 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_KS3063_OUT, camac_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_KS3063_OUT, slot), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

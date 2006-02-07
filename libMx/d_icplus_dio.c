@@ -23,6 +23,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_amplifier.h"
 #include "mx_digital_input.h"
@@ -47,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_icplus_din_record_field_defaults[] = {
 	MXD_ICPLUS_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_icplus_din_num_record_fields
+mx_length_type mxd_icplus_din_num_record_fields
 		= sizeof( mxd_icplus_din_record_field_defaults )
 			/ sizeof( mxd_icplus_din_record_field_defaults[0] );
 
@@ -72,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_icplus_dout_record_field_defaults[] = {
 	MXD_ICPLUS_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_icplus_dout_num_record_fields
+mx_length_type mxd_icplus_dout_num_record_fields
 		= sizeof( mxd_icplus_dout_record_field_defaults )
 			/ sizeof( mxd_icplus_dout_record_field_defaults[0] );
 
@@ -305,7 +306,7 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &(dinput->value) );
+	num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -394,7 +395,7 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &(doutput->value) );
+	num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -437,7 +438,8 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	}
 
 	sprintf( command, ":SOUR%d:STAT%d %lu",
-			icplus->address, port_number, doutput->value );
+			icplus->address, port_number,
+			(unsigned long) doutput->value );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					NULL, 0, MXD_ICPLUS_DIO_DEBUG );

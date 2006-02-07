@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 			MX_ENCODER_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_encoder_get_pointers()";
+	static const char fname[] = "mx_encoder_get_pointers()";
 
 	if ( encoder_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -74,20 +74,20 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 
 MX_EXPORT mx_status_type
 mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
-		int *underflow_set, int *overflow_set )
+		bool *underflow_set, bool *overflow_set )
 {
-	const char fname[] = "mx_encoder_get_overflow_status()";
+	static const char fname[] = "mx_encoder_get_overflow_status()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
 	mx_status_type ( *get_overflow_status_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
 					&function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	get_overflow_status_fn = function_list->get_overflow_status;
 
@@ -97,29 +97,29 @@ mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
 			encoder);
 	}
 
-	status = (*get_overflow_status_fn)( encoder );
+	mx_status = (*get_overflow_status_fn)( encoder );
 
 	*overflow_set = encoder->overflow_set;
 	*underflow_set = encoder->underflow_set;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_encoder_reset_overflow_status( MX_RECORD *encoder_record )
 {
-	const char fname[] = "mx_encoder_reset_overflow_status()";
+	static const char fname[] = "mx_encoder_reset_overflow_status()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
 	mx_status_type ( *reset_overflow_status_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
 					&function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	reset_overflow_status_fn = function_list->reset_overflow_status;
 
@@ -129,26 +129,26 @@ mx_encoder_reset_overflow_status( MX_RECORD *encoder_record )
 			encoder);
 	}
 
-	status = (*reset_overflow_status_fn)( encoder );
+	mx_status = (*reset_overflow_status_fn)( encoder );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_encoder_read( MX_RECORD *encoder_record, long *value )
+mx_encoder_read( MX_RECORD *encoder_record, int32_t *value )
 {
-	const char fname[] = "mx_encoder_read()";
+	static const char fname[] = "mx_encoder_read()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
 					&function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_fn = function_list->read;
 
@@ -158,28 +158,30 @@ mx_encoder_read( MX_RECORD *encoder_record, long *value )
 			encoder);
 	}
 
-	status = (*read_fn)( encoder );
+	mx_status = (*read_fn)( encoder );
 
-	*value = encoder->value;
+	if ( value != (int32_t *) NULL ) {
+		*value = encoder->value;
+	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_encoder_write( MX_RECORD *encoder_record, long value )
+mx_encoder_write( MX_RECORD *encoder_record, int32_t value )
 {
-	const char fname[] = "mx_encoder_write()";
+	static const char fname[] = "mx_encoder_write()";
 
 	MX_ENCODER *encoder;
 	MX_ENCODER_FUNCTION_LIST *function_list;
 	mx_status_type ( *write_fn ) ( MX_ENCODER * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_encoder_get_pointers( encoder_record, &encoder,
+	mx_status = mx_encoder_get_pointers( encoder_record, &encoder,
 					&function_list, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( encoder->encoder_type == MXT_ENC_ABSOLUTE_ENCODER ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -196,8 +198,8 @@ mx_encoder_write( MX_RECORD *encoder_record, long value )
 
 	encoder->value = value;
 
-	status = (*write_fn)( encoder );
+	mx_status = (*write_fn)( encoder );
 
-	return status;
+	return mx_status;
 }
 

@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_MCA_VALUE_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -41,14 +43,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_value_record_field_defaults[] = {
 	MX_MCA_VALUE_STANDARD_FIELDS,
 };
 
-long mxd_mca_value_num_record_fields
+mx_length_type mxd_mca_value_num_record_fields
 	= sizeof( mxd_mca_value_record_field_defaults )
 	/ sizeof( mxd_mca_value_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_mca_value_rfield_def_ptr
 		= &mxd_mca_value_record_field_defaults[0];
-
-#define MXD_MCA_VALUE_DEBUG	FALSE
 
 /* === */
 

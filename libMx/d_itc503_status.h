@@ -22,7 +22,7 @@
 
 typedef struct {
 	MX_RECORD *itc503_record;
-	int parameter_type;
+	int32_t parameter_type;
 } MX_ITC503_STATUS;
 
 /* The value of 'parameter_type' is used to construct an ITC503 'R' command.
@@ -65,7 +65,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_status_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, itc503_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_INT32, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_STATUS, parameter_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

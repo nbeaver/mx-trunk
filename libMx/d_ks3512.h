@@ -23,8 +23,8 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int slot;
-	int subaddress;
+	int32_t slot;
+	int32_t subaddress;
 } MX_KS3512;
 
 #define MXD_KS3512_STANDARD_FIELDS \
@@ -32,11 +32,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

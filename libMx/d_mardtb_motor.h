@@ -24,9 +24,9 @@
 
 typedef struct {
 	MX_RECORD *mardtb_record;
-	int motor_number;
-	unsigned long default_speed;
-	unsigned long default_acceleration;
+	int32_t motor_number;
+	uint32_t default_speed;
+	uint32_t default_acceleration;
 
 	MX_DEAD_RECKONING dead_reckoning;
 } MX_MARDTB_MOTOR;
@@ -54,15 +54,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, mardtb_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "default_speed", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, default_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

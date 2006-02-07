@@ -23,7 +23,7 @@ typedef struct {
 
 	MX_RECORD *iseries_record;
 	char command[ MXU_ISERIES_COMMAND_LENGTH+1 ];
-	int num_command_bytes;
+	int32_t num_command_bytes;
 
 	char command_prefix;
 	unsigned long command_index;
@@ -34,7 +34,7 @@ typedef struct {
 
 	MX_RECORD *iseries_record;
 	char command[ MXU_ISERIES_COMMAND_LENGTH+1 ];
-	int num_command_bytes;
+	int32_t num_command_bytes;
 
 	char command_prefix;
 	unsigned long command_index;
@@ -49,7 +49,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_DINPUT, command), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_command_bytes", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_command_bytes", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_DINPUT, num_command_bytes), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -62,7 +62,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_DOUTPUT, command), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_command_bytes", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_command_bytes", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_DOUTPUT, num_command_bytes), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

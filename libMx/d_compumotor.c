@@ -1964,13 +1964,13 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	/* Bit 17: Positive-direction Software Limit Hit */
 
 	if ( response[20] == '1' ) {
-		motor->status |= MXSF_MTR_POSITIVE_LIMIT_HIT;
+		motor->status |= MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT;
 	}
 
 	/* Bit 18: Negative-direction Software Limit Hit */
 
 	if ( response[21] == '1' ) {
-		motor->status |= MXSF_MTR_NEGATIVE_LIMIT_HIT;
+		motor->status |= MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
 	}
 
 	/* Bits 19 to 22: (ignored) */

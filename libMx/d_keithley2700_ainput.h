@@ -22,7 +22,7 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int system_channel;
+	int32_t system_channel;
 
 	int slot;
 	int channel;
@@ -48,7 +48,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2700_ainput_rfield_def_ptr;
 		offsetof(MX_KEITHLEY2700_AINPUT, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "system_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "system_channel", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2700_AINPUT, system_channel),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_icplus_record_field_defaults[] = {
 	MXD_ICPLUS_STANDARD_FIELDS
 };
 
-long mxd_icplus_num_record_fields
+mx_length_type mxd_icplus_num_record_fields
 		= sizeof( mxd_icplus_record_field_defaults )
 			/ sizeof( mxd_icplus_record_field_defaults[0] );
 
@@ -70,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_qbpm_record_field_defaults[] = {
 	MXD_QBPM_STANDARD_FIELDS
 };
 
-long mxd_qbpm_num_record_fields
+mx_length_type mxd_qbpm_num_record_fields
 		= sizeof( mxd_qbpm_record_field_defaults )
 			/ sizeof( mxd_qbpm_record_field_defaults[0] );
 

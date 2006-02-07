@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2400_aoutput_rf_defaults[] = {
 	MXD_KEITHLEY2400_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_keithley2400_aoutput_num_record_fields
+mx_length_type mxd_keithley2400_aoutput_num_record_fields
 		= sizeof( mxd_keithley2400_aoutput_rf_defaults )
 		  / sizeof( mxd_keithley2400_aoutput_rf_defaults[0] );
 

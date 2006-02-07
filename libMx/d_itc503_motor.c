@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_itc503_motor_recfield_defaults[] = {
 	MXD_ITC503_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_itc503_motor_num_record_fields
+mx_length_type mxd_itc503_motor_num_record_fields
 		= sizeof( mxd_itc503_motor_recfield_defaults )
 		/ sizeof( mxd_itc503_motor_recfield_defaults[0] );
 

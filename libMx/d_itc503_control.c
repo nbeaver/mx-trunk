@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_itc503_control_field_default[] = {
 	MXD_ITC503_CONTROL_STANDARD_FIELDS
 };
 
-long mxd_itc503_control_num_record_fields
+mx_length_type mxd_itc503_control_num_record_fields
 		= sizeof( mxd_itc503_control_field_default )
 		/ sizeof( mxd_itc503_control_field_default[0] );
 

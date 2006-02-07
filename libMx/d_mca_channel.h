@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *mca_record;
-	unsigned long channel_number;
+	uint32_t channel_number;
 } MX_MCA_CHANNEL;
 
 MX_API mx_status_type mxd_mca_channel_initialize_type( long type );
@@ -55,7 +55,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_channel_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_CHANNEL, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_UINT32, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_CHANNEL, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

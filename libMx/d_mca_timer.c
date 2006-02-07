@@ -60,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_timer_record_field_defaults[] = {
 	MXD_MCA_TIMER_STANDARD_FIELDS
 };
 
-long mxd_mca_timer_num_record_fields
+mx_length_type mxd_mca_timer_num_record_fields
 		= sizeof( mxd_mca_timer_record_field_defaults )
 		  / sizeof( mxd_mca_timer_record_field_defaults[0] );
 

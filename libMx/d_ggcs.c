@@ -15,6 +15,8 @@
  *
  */
 
+#define GGCS_MOTOR_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -60,14 +62,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_ggcs_motor_record_field_defaults[] = {
 	MXD_GGCS_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_ggcs_motor_num_record_fields
+mx_length_type mxd_ggcs_motor_num_record_fields
 		= sizeof( mxd_ggcs_motor_record_field_defaults )
 			/ sizeof( mxd_ggcs_motor_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_ggcs_motor_rfield_def_ptr
 			= &mxd_ggcs_motor_record_field_defaults[0];
-
-#define GGCS_MOTOR_DEBUG	TRUE
 
 /* === */
 

@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_hitachi_kp_d20_rf_defaults[] = {
 	MXD_HITACHI_KP_D20_STANDARD_FIELDS
 };
 
-long mxd_hitachi_kp_d20_num_record_fields
+mx_length_type mxd_hitachi_kp_d20_num_record_fields
 	= sizeof( mxd_hitachi_kp_d20_rf_defaults )
 		/ sizeof( mxd_hitachi_kp_d20_rf_defaults[0] );
 
@@ -554,7 +554,8 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command type %#lx requested for Hitachi PTZ '%s' "
 			"is not a known command type.",
-				ptz->command, hitachi_kp_d20->record->name );
+				(unsigned long) ptz->command,
+				hitachi_kp_d20->record->name );
 		break;
 	}
 
@@ -618,7 +619,8 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The read data type %#lx requested for Hitachi PTZ '%s' "
 		"is not a known command type.",
-				ptz->command, hitachi_kp_d20->record->name );
+				(unsigned long) ptz->command,
+				hitachi_kp_d20->record->name );
 		break;
 	}
 
@@ -681,11 +683,12 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The requested zoom value of %lu is outside "
 			"the allowed range (0-255) for Hitachi PTZ '%s'",
-				ptz->zoom_destination, ptz->record->name );
+				(unsigned long) ptz->zoom_destination,
+				ptz->record->name );
 		}
 
 		snprintf( command, sizeof(command), "3800%02lX00",
-				ptz->zoom_destination );
+				(unsigned long) ptz->zoom_destination );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

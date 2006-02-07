@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_AMPLIFIER_FUNCTION_LIST mxd_keithley2700_amp_amplifier_function_list = {
 	mx_amplifier_default_set_parameter_handler
 };
 
-/* Keithley 428 amplifier data structures. */
+/* Keithley 2700 amplifier data structures. */
 
 MX_RECORD_FIELD_DEFAULTS mxd_keithley2700_amp_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2700_amp_rf_defaults[] = {
 	MXD_KEITHLEY2700_AMP_STANDARD_FIELDS
 };
 
-long mxd_keithley2700_amp_num_record_fields
+mx_length_type mxd_keithley2700_amp_num_record_fields
 		= sizeof( mxd_keithley2700_amp_rf_defaults )
 		  / sizeof( mxd_keithley2700_amp_rf_defaults[0] );
 
@@ -294,7 +294,8 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char command[80];
 	char response[80];
-	int num_items, fast_mode;
+	bool fast_mode;
+	int num_items;
 	int slot, channel, channel_type;
 	mx_status_type mx_status;
 

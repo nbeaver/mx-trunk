@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -116,31 +116,31 @@
 typedef struct {
 	MX_RECORD *record;
 
-	unsigned long ptz_flags;
+	mx_hex_type ptz_flags;
 
 	int parameter_type;
-	unsigned long parameter_value[MXU_PTZ_MAX_PARAMETERS];
+	uint32_t parameter_value[MXU_PTZ_MAX_PARAMETERS];
 
-	unsigned long command;
-	unsigned long status;
+	uint32_t command;
+	uint32_t status;
 
-	long pan_position;
-	long pan_destination;
-	unsigned long pan_speed;
+	int32_t pan_position;
+	int32_t pan_destination;
+	uint32_t pan_speed;
 
-	long tilt_position;
-	long tilt_destination;
-	unsigned long tilt_speed;
+	int32_t tilt_position;
+	int32_t tilt_destination;
+	uint32_t tilt_speed;
 
-	unsigned long zoom_position;
-	unsigned long zoom_destination;
-	unsigned long zoom_speed;
-	unsigned long zoom_on;
+	uint32_t zoom_position;
+	uint32_t zoom_destination;
+	uint32_t zoom_speed;
+	uint32_t zoom_on;
 
-	unsigned long focus_position;
-	unsigned long focus_destination;
-	unsigned long focus_speed;
-	unsigned long focus_auto;
+	uint32_t focus_position;
+	uint32_t focus_destination;
+	uint32_t focus_speed;
+	uint32_t focus_auto;
 } MX_PAN_TILT_ZOOM;
 
 #define MXLV_PTZ_COMMAND		1001
@@ -165,68 +165,68 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, ptz_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_PTZ_COMMAND, -1, "command", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PTZ_COMMAND, -1, "command", MXFT_UINT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, command), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_STATUS, -1, "status", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PTZ_STATUS, -1, "status", MXFT_UINT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, status), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_PAN_POSITION, -1, "pan_position", MXFT_LONG, NULL, 0, {0}, \
+  {MXLV_PTZ_PAN_POSITION, -1, "pan_position", MXFT_INT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
-  {MXLV_PTZ_PAN_DESTINATION, -1, "pan_destination", MXFT_LONG, NULL, 0, {0},\
+  {MXLV_PTZ_PAN_DESTINATION, -1, "pan_destination", MXFT_INT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_destination), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_PAN_SPEED, -1, "pan_speed", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_PAN_SPEED, -1, "pan_speed", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, pan_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_TILT_POSITION, -1, "tilt_position", MXFT_LONG, NULL, 0, {0}, \
+  {MXLV_PTZ_TILT_POSITION, -1, "tilt_position", MXFT_INT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
-  {MXLV_PTZ_TILT_DESTINATION, -1, "tilt_destination", MXFT_LONG, NULL, 0, {0},\
+  {MXLV_PTZ_TILT_DESTINATION, -1, "tilt_destination", MXFT_INT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_destination), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_TILT_SPEED, -1, "tilt_speed", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_TILT_SPEED, -1, "tilt_speed", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, tilt_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PTZ_ZOOM_POSITION, -1, "zoom_position", MXFT_UINT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
-  {MXLV_PTZ_ZOOM_DESTINATION, -1, "zoom_destination", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_ZOOM_DESTINATION, -1, "zoom_destination", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_destination), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_ZOOM_SPEED, -1, "zoom_speed", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_ZOOM_SPEED, -1, "zoom_speed", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PTZ_ZOOM_ON, -1, "zoom_on", MXFT_UINT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, zoom_on), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_FOCUS_POSITION, -1, "focus_position", MXFT_ULONG, NULL, 0, {0}, \
+  {MXLV_PTZ_FOCUS_POSITION, -1, "focus_position", MXFT_UINT32, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_position), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
   {MXLV_PTZ_FOCUS_DESTINATION, -1, "focus_destination", \
-	  					MXFT_ULONG, NULL, 0, {0},\
+	  					MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_destination), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_FOCUS_SPEED, -1, "focus_speed", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_FOCUS_SPEED, -1, "focus_speed", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_speed), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PTZ_FOCUS_AUTO, -1, "focus_auto", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PTZ_FOCUS_AUTO, -1, "focus_auto", MXFT_UINT32, NULL, 0, {0},\
   	MXF_REC_CLASS_STRUCT, offsetof(MX_PAN_TILT_ZOOM, focus_auto), \
 	{0}, NULL, 0}
 
@@ -243,20 +243,20 @@ typedef struct {
 } MX_PAN_TILT_ZOOM_FUNCTION_LIST;
 
 MX_API mx_status_type mx_ptz_command( MX_RECORD *ptz_record,
-					unsigned long command );
+					uint32_t command );
 
 MX_API mx_status_type mx_ptz_get_status( MX_RECORD *ptz_record,
-					unsigned long *status );
+					uint32_t *status );
 
 /* ----- */
 
 MX_API mx_status_type mx_ptz_get_parameter( MX_RECORD *ptz_record,
 					int parameter_type,
-					unsigned long *parameter_value );
+					uint32_t *parameter_value );
 
 MX_API mx_status_type mx_ptz_set_parameter( MX_RECORD *ptz_record,
 					int parameter_type,
-					unsigned long parameter_value );
+					uint32_t parameter_value );
 
 MX_API mx_status_type mx_ptz_default_command_handler( MX_PAN_TILT_ZOOM *ptz );
 
@@ -275,16 +275,16 @@ MX_API mx_status_type mx_ptz_pan_right( MX_RECORD *ptz_record );
 MX_API mx_status_type mx_ptz_pan_stop( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_get_pan( MX_RECORD *ptz_record,
-					long *pan_value );
+					int32_t *pan_value );
 
 MX_API mx_status_type mx_ptz_set_pan( MX_RECORD *ptz_record,
-					long pan_value );
+					int32_t pan_value );
 
 MX_API mx_status_type mx_ptz_get_pan_speed( MX_RECORD *ptz_record,
-					unsigned long *pan_speed );
+					uint32_t *pan_speed );
 
 MX_API mx_status_type mx_ptz_set_pan_speed( MX_RECORD *ptz_record,
-					unsigned long pan_speed );
+					uint32_t pan_speed );
 
 /* ----- */
 
@@ -295,16 +295,16 @@ MX_API mx_status_type mx_ptz_tilt_down( MX_RECORD *ptz_record );
 MX_API mx_status_type mx_ptz_tilt_stop( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_get_tilt( MX_RECORD *ptz_record,
-					long *tilt_value );
+					int32_t *tilt_value );
 
 MX_API mx_status_type mx_ptz_set_tilt( MX_RECORD *ptz_record,
-					long tilt_value );
+					int32_t tilt_value );
 
 MX_API mx_status_type mx_ptz_get_tilt_speed( MX_RECORD *ptz_record,
-					unsigned long *tilt_speed );
+					uint32_t *tilt_speed );
 
 MX_API mx_status_type mx_ptz_set_tilt_speed( MX_RECORD *ptz_record,
-					unsigned long tilt_speed );
+					uint32_t tilt_speed );
 
 /* ----- */
 
@@ -315,16 +315,16 @@ MX_API mx_status_type mx_ptz_zoom_out( MX_RECORD *ptz_record );
 MX_API mx_status_type mx_ptz_zoom_stop( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_get_zoom( MX_RECORD *ptz_record,
-					unsigned long *zoom_value );
+					uint32_t *zoom_value );
 
 MX_API mx_status_type mx_ptz_set_zoom( MX_RECORD *ptz_record,
-					unsigned long zoom_value );
+					uint32_t zoom_value );
 
 MX_API mx_status_type mx_ptz_get_zoom_speed( MX_RECORD *ptz_record,
-					unsigned long *zoom_speed );
+					uint32_t *zoom_speed );
 
 MX_API mx_status_type mx_ptz_set_zoom_speed( MX_RECORD *ptz_record,
-					unsigned long zoom_speed );
+					uint32_t zoom_speed );
 
 MX_API mx_status_type mx_ptz_zoom_off( MX_RECORD *ptz_record );
 
@@ -343,16 +343,16 @@ MX_API mx_status_type mx_ptz_focus_near( MX_RECORD *ptz_record );
 MX_API mx_status_type mx_ptz_focus_stop( MX_RECORD *ptz_record );
 
 MX_API mx_status_type mx_ptz_get_focus( MX_RECORD *ptz_record,
-					unsigned long *focus_value );
+					uint32_t *focus_value );
 
 MX_API mx_status_type mx_ptz_set_focus( MX_RECORD *ptz_record,
-					unsigned long focus_value );
+					uint32_t focus_value );
 
 MX_API mx_status_type mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
-					unsigned long *focus_speed );
+					uint32_t *focus_speed );
 
 MX_API mx_status_type mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
-					unsigned long focus_speed );
+					uint32_t focus_speed );
 
 #endif /* __MX_PTZ_H__ */
 

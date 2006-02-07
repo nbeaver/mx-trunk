@@ -31,7 +31,7 @@
 
 typedef struct {
 	MX_RECORD *mca_record;
-	int value_type;
+	int32_t value_type;
 	char value_name[ MXU_MCA_VALUE_NAME_LENGTH + 1 ];
 	char value_parameters[ MXU_MCA_VALUE_PARAMETER_LENGTH + 1 ];
 } MX_MCA_VALUE;
@@ -41,7 +41,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_VALUE, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "value_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "value_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_VALUE, value_type), \
 	{0}, NULL, 0 }, \
   \

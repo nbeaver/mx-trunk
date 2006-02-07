@@ -25,7 +25,7 @@
 
 typedef struct {
 	MX_RECORD *hsc1_interface_record;
-	unsigned long module_number;
+	uint32_t module_number;
 	char motor_name;
 } MX_HSC1_MOTOR;
 
@@ -66,7 +66,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_hsc1_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HSC1_MOTOR, hsc1_interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "module_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "module_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HSC1_MOTOR, module_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

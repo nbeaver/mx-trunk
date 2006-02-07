@@ -25,8 +25,8 @@
 
 typedef struct {
 	MX_RECORD *kohzu_sc_record;
-	int axis_number;
-	long kohzu_sc_flags;
+	int32_t axis_number;
+	mx_hex_type kohzu_sc_flags;
 } MX_KOHZU_SC_MOTOR;
 
 MX_API mx_status_type mxd_kohzu_sc_create_record_structures(
@@ -46,10 +46,11 @@ MX_API mx_status_type mxd_kohzu_sc_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_kohzu_sc_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_kohzu_sc_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_kohzu_sc_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_kohzu_sc_simultaneous_start( int num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						int flags );
+MX_API mx_status_type mxd_kohzu_sc_simultaneous_start(
+					mx_length_type num_motor_records,
+					MX_RECORD **motor_record_array,
+					double *position_array,
+					mx_hex_type flags );
 MX_API mx_status_type mxd_kohzu_sc_get_status( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_kohzu_sc_enable_continuous_mode(
@@ -69,7 +70,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_kohzu_sc_rfield_def_ptr;
 		offsetof(MX_KOHZU_SC_MOTOR, kohzu_sc_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KOHZU_SC_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

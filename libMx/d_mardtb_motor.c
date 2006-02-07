@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mardtb_motor_record_field_defaults[] = {
 	MXD_MARDTB_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_mardtb_motor_num_record_fields
+mx_length_type mxd_mardtb_motor_num_record_fields
 		= sizeof( mxd_mardtb_motor_record_field_defaults )
 			/ sizeof( mxd_mardtb_motor_record_field_defaults[0] );
 
@@ -324,7 +324,7 @@ mxd_mardtb_motor_move_absolute( MX_MOTOR *motor )
 
 	sprintf( command, "stepper_cmd %d,2,%ld,%ld,%ld",
 			mardtb_motor->motor_number,
-			motor->raw_destination.stepper,
+			(long) motor->raw_destination.stepper,
 			mx_round( motor->raw_speed
 					* MX_MARDTB_MOTOR_FUDGE_FACTOR ),
 			mx_round( motor->raw_acceleration_parameters[0] ) );

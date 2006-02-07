@@ -21,7 +21,7 @@
 /* ==== GM-10 timer data structure ==== */
 
 typedef struct {
-	long num_scalers;
+	mx_length_type num_scalers;
 	MX_RECORD **scaler_record_array;
 
 	MX_CLOCK_TICK finish_time_in_clock_ticks;
@@ -46,9 +46,9 @@ extern mx_length_type mxd_gm10_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_gm10_timer_rfield_def_ptr;
 
 #define MXD_GM10_TIMER_STANDARD_FIELDS \
-  {-1, -1, "num_scalers", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_scalers", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GM10_TIMER, num_scalers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "scaler_record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GM10_TIMER, scaler_record_array), \

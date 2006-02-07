@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ks3640_record_field_defaults[] = {
 	MXD_KS3640_STANDARD_FIELDS
 };
 
-long mxd_ks3640_num_record_fields
+mx_length_type mxd_ks3640_num_record_fields
 		= sizeof( mxd_ks3640_record_field_defaults )
 			/ sizeof( mxd_ks3640_record_field_defaults[0] );
 
@@ -197,7 +197,7 @@ mxd_ks3640_read_parms_from_hardware( MX_RECORD *record )
 	static const char fname[] = "mxd_ks3640_read_parms_from_hardware()";
 
 	MX_ENCODER *encoder;
-	long current_value;
+	int32_t current_value;
 	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {

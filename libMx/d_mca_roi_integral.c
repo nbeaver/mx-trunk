@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_roi_integral_record_field_defaults[] = {
 	MXD_MCA_ROI_INTEGRAL_STANDARD_FIELDS
 };
 
-long mxd_mca_roi_integral_num_record_fields
+mx_length_type mxd_mca_roi_integral_num_record_fields
 		= sizeof( mxd_mca_roi_integral_record_field_defaults )
 		  / sizeof( mxd_mca_roi_integral_record_field_defaults[0] );
 
