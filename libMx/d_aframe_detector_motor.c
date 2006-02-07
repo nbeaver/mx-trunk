@@ -412,7 +412,7 @@ mxd_aframe_det_motor_is_busy( MX_MOTOR *motor )
 	const char fname[] = "mxd_aframe_det_motor_is_busy()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	bool busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -703,7 +703,7 @@ mxd_aframe_det_motor_positive_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_aframe_det_motor_positive_limit_hit()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	bool positive_limit_hit;
+	mx_bool_type positive_limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -765,7 +765,7 @@ mxd_aframe_det_motor_negative_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_aframe_det_motor_negative_limit_hit()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	bool negative_limit_hit;
+	mx_bool_type negative_limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -841,7 +841,7 @@ mxd_aframe_det_motor_get_real_positions(
 {
 	const char fname[] = "mxd_aframe_det_motor_get_real_positions()";
 
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_fast_mode( aframe_detector_motor->record,

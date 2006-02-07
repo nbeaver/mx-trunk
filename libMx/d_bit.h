@@ -19,7 +19,7 @@
 #define __D_BIT_H__
 
 typedef struct {
-	bool invert;
+	mx_bool_type invert;
 
 	MX_RECORD *input_record;
 	int32_t input_bit_offset;
@@ -29,7 +29,7 @@ typedef struct {
 } MX_BIT_IN;
 
 typedef struct {
-	bool invert;
+	mx_bool_type invert;
 
 	MX_RECORD *input_record;
 	int32_t input_bit_offset;

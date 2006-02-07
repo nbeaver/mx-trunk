@@ -35,8 +35,8 @@ typedef struct {
 	mx_hex_type flags;
 
 	int32_t controller_index;
-	bool continuous_mode_enabled;
-	bool is_servo;
+	mx_bool_type continuous_mode_enabled;
+	mx_bool_type is_servo;
 	double axis_resolution;
 } MX_COMPUMOTOR;
 
@@ -72,7 +72,7 @@ MX_API mx_status_type mxd_compumotor_get_status( MX_MOTOR *motor );
 MX_API mx_status_type mxd_compumotor_enable_continuous_mode(
 				MX_COMPUMOTOR *compumotor,
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				bool enable_flag );
+				mx_bool_type enable_flag );
 
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_compumotor_motor_function_list;

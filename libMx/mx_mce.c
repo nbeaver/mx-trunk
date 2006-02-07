@@ -192,7 +192,8 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 
 MX_EXPORT mx_status_type
 mx_mce_get_overflow_status( MX_RECORD *mce_record,
-		bool *underflow_set, bool *overflow_set )
+				mx_bool_type *underflow_set,
+				mx_bool_type *overflow_set )
 {
 	static const char fname[] = "mx_mce_get_overflow_status()";
 

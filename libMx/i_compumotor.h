@@ -150,6 +150,6 @@ MX_API mx_status_type mxi_compumotor_multiaxis_move(
 	mx_length_type num_motors,
 	MX_RECORD **motor_record_array,
 	double *motor_position_array,
-	bool simultaneous_start );
+	mx_bool_type simultaneous_start );
 
 #endif /* __I_COMPUMOTOR_H__ */

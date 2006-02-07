@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *autoscale_record;
-	unsigned long autoscale_flags;
+	mx_hex_type autoscale_flags;
 	double factor;
 } MX_AUTOSCALE_SCALER;
 

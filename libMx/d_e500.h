@@ -57,7 +57,7 @@ typedef struct {
 	uint32_t  e500_slew_speed;
 	uint16_t  acceleration_time;
 	uint16_t  correction_limit;
-	bool      lam_mask;
+	mx_bool_type lam_mask;
 } MX_E500;
 
 extern mx_length_type mxd_e500_num_record_fields;
@@ -145,30 +145,30 @@ MX_API mx_status_type mx_e500_preserve_csr_bitmap( MX_E500 *e500,
 					int32_t *csr );
 
 MX_API mx_status_type mx_e500_accumulator_overflow( MX_E500 *e500,
-					bool *overflow);
+					mx_bool_type *overflow);
 
 MX_API mx_status_type mx_e500_accumulator_overflow_reset( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_accumulator_underflow( MX_E500 *e500,
-					bool *underflow );
+					mx_bool_type *underflow );
 
 MX_API mx_status_type mx_e500_accumulator_underflow_reset( MX_E500 *e500 );
 
-MX_API mx_status_type mx_e500_ccw_limit( MX_E500 *e500, bool *limit_hit );
+MX_API mx_status_type mx_e500_ccw_limit( MX_E500 *e500, mx_bool_type *limit_hit );
 
-MX_API mx_status_type mx_e500_cw_limit( MX_E500 *e500, bool *limit_hit );
+MX_API mx_status_type mx_e500_cw_limit( MX_E500 *e500, mx_bool_type *limit_hit );
 
 MX_API mx_status_type mx_e500_build_file( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_correction_failure( MX_E500 *e500,
-					bool *correction_failure );
+					mx_bool_type *correction_failure );
 
 MX_API mx_status_type mx_e500_illegal_instruction( MX_E500 *e500,
-						bool *illegal_instruction );
+						mx_bool_type *illegal_instruction );
 
 MX_API mx_status_type mx_e500_immediate_abort( MX_E500 *e500 );
 
-MX_API mx_status_type mx_e500_motor_busy( MX_E500 *e500, bool *busy );
+MX_API mx_status_type mx_e500_motor_busy( MX_E500 *e500, mx_bool_type *busy );
 
 MX_API mx_status_type mx_e500_motor_start( MX_E500 *e500 );
 
@@ -196,7 +196,7 @@ MX_API mx_status_type mx_e500_read_correction_limit( MX_E500 *e500 );
 MX_API mx_status_type mx_e500_read_lam_mask( MX_E500 *e500 );
 
 MX_API mx_status_type mx_e500_read_lam_status( MX_E500 *e500,
-					bool *lam_status );
+					mx_bool_type *lam_status );
 
 MX_API mx_status_type mx_e500_read_pulse_parameter_reg( MX_E500 *e500 );
 

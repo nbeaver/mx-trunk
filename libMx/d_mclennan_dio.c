@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_din_record_field_defaults[] = {
 	MXD_MCLENNAN_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_mclennan_din_num_record_fields
+mx_length_type mxd_mclennan_din_num_record_fields
 		= sizeof( mxd_mclennan_din_record_field_defaults )
 			/ sizeof( mxd_mclennan_din_record_field_defaults[0] );
 
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_dout_record_field_defaults[] = {
 	MXD_MCLENNAN_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_mclennan_dout_num_record_fields
+mx_length_type mxd_mclennan_dout_num_record_fields
 		= sizeof( mxd_mclennan_dout_record_field_defaults )
 			/ sizeof( mxd_mclennan_dout_record_field_defaults[0] );
 

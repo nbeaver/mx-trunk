@@ -744,7 +744,7 @@ mxd_linear_function_motor_is_busy( MX_MOTOR *motor )
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	long i, num_motors;
-	bool busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
@@ -1162,7 +1162,7 @@ mxd_linear_function_positive_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *child_motor_record;
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
 	long i, num_motors;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linear_function_get_pointers( motor,
@@ -1210,7 +1210,7 @@ mxd_linear_function_negative_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *child_motor_record;
 	MX_LINEAR_FUNCTION_MOTOR *linear_function_motor;
 	long i, num_motors;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_linear_function_get_pointers( motor,

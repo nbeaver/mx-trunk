@@ -312,7 +312,7 @@ mxd_auto_network_open( MX_RECORD *record )
 
 #if 0
 	{
-		unsigned long i;
+		mx_length_type i;
 		for ( i = 0; i < autoscale->num_monitor_offsets; i++ ) {
 			MX_DEBUG( 2,
 			  ("%s: autoscale->monitor_offset_array[%lu] = %g",

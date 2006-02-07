@@ -270,7 +270,7 @@ mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	MX_SCAN *scan;
 	MX_RECORD *pulse_generator_record;
-	bool busy;
+	mx_bool_type busy;
 	int interrupt;
 	mx_status_type status;
 

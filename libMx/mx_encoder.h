@@ -22,8 +22,8 @@
 typedef struct {
 	MX_RECORD *record;
 	int encoder_type;
-	bool overflow_set;
-	bool underflow_set;
+	mx_bool_type overflow_set;
+	mx_bool_type underflow_set;
 	int32_t value;
 } MX_ENCODER;
 
@@ -55,7 +55,8 @@ MX_API mx_status_type mx_encoder_get_pointers( MX_RECORD *record,
 					const char *calling_fname );
 
 MX_API mx_status_type mx_encoder_get_overflow_status( MX_RECORD *record,
-				bool *underflow_set, bool *overflow_set );
+						mx_bool_type *underflow_set,
+						mx_bool_type *overflow_set );
 
 MX_API mx_status_type mx_encoder_reset_overflow_status( MX_RECORD *record );
 

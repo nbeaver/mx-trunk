@@ -288,7 +288,7 @@ mxd_autoscale_scaler_overflow_set( MX_SCALER *scaler )
 	static const char fname[] = "mxd_autoscale_scaler_overflow_set()";
 
 	MX_AUTOSCALE *autoscale;
-	bool overflow_set;
+	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
 	mx_status = mxd_autoscale_scaler_get_pointers( scaler, NULL,
@@ -372,7 +372,7 @@ mxd_autoscale_scaler_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_autoscale_scaler_is_busy()";
 
 	MX_AUTOSCALE *autoscale;
-	bool busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_autoscale_scaler_get_pointers( scaler, NULL,

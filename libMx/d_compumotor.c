@@ -2004,7 +2004,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				bool enable_flag )
+				mx_bool_type enable_flag )
 {
 	static const char fname[] = "mxd_compumotor_enable_continuous_mode()";
 

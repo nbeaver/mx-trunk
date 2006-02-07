@@ -24,7 +24,6 @@
 #include "mx_osdef.h"
 #include "mx_util.h"
 #include "mx_stdint.h"
-#include "mx_stdbool.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_record.h"

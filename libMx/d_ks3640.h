@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *camac_record;
 	int32_t slot;
 	int32_t subaddress;
-	bool use_32bit_mod;
+	mx_bool_type use_32bit_mod;
 } MX_KS3640;
 
 /* The 32 bit modification flagged by 'use_32bit_mod' is a field modification

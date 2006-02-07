@@ -684,7 +684,7 @@ mxd_delta_motor_get_fixed_position_value(
 
 	MX_RECORD *fixed_position_record;
 	void *pointer_to_value;
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	if ( delta_motor == (MX_DELTA_MOTOR *) NULL ) {

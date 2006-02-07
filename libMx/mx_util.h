@@ -23,7 +23,12 @@
 
 #include <stdarg.h>	/* We get 'va_list' from here. */
 
-#include "mx_stdbool.h" /* We get TRUE and FALSE from here. */
+#include "mx_stdint.h"
+
+#ifndef TRUE
+#define TRUE	1
+#define FALSE	0
+#endif
 
 /*
  * Macros for declaring shared library or DLL functions.
@@ -455,7 +460,7 @@ MX_API void mx_info_dialog( char *text_prompt,
 
 MX_API void mx_info_entry_dialog( char *text_prompt,
 					char *gui_prompt,
-					bool echo_characters,
+					mx_bool_type echo_characters,
 					char *response,
 					size_t max_response_length );
 
@@ -466,9 +471,9 @@ MX_API void mx_set_info_dialog_function( void (*)( char *, char *, char * ) );
 MX_API void mx_info_default_dialog_function( char *, char *, char * );
 
 MX_API void mx_set_info_entry_dialog_function(
-			void (*)( char *, char *, bool, char *, size_t ) );
+		void (*)( char *, char *, mx_bool_type, char *, size_t ) );
 MX_API void mx_info_default_entry_dialog_function(
-					char *, char *, bool, char *, size_t );
+			char *, char *, mx_bool_type, char *, size_t );
 
 
 /* === Warning messages. === */

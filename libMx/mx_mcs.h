@@ -34,16 +34,16 @@ typedef struct {
 	MX_RECORD *external_channel_advance_record;
 	char external_channel_advance_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	bool external_channel_advance;
+	mx_bool_type external_channel_advance;
 	uint32_t external_prescale;
 
 	MX_RECORD *timer_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	bool start;
-	bool stop;
-	bool clear;
-	bool busy;
+	mx_bool_type start;
+	mx_bool_type stop;
+	mx_bool_type clear;
+	mx_bool_type busy;
 	int32_t mode;
 	int32_t parameter_type;
 
@@ -242,7 +242,8 @@ MX_API mx_status_type mx_mcs_finish_record_initialization(
 MX_API mx_status_type mx_mcs_start( MX_RECORD *mcs_record );
 MX_API mx_status_type mx_mcs_stop( MX_RECORD *mcs_record );
 MX_API mx_status_type mx_mcs_clear( MX_RECORD *mcs_record );
-MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record, bool *busy );
+MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record,
+					mx_bool_type *busy );
 
 MX_API mx_status_type mx_mcs_read_all( MX_RECORD *mcs_record,
 					mx_length_type *num_scalers,
@@ -268,11 +269,11 @@ MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, int32_t mode );
 
 MX_API mx_status_type mx_mcs_get_external_channel_advance(
 					MX_RECORD *mcs_record,
-					bool *external_channel_advance );
+					mx_bool_type *external_channel_advance);
 
 MX_API mx_status_type mx_mcs_set_external_channel_advance(
 					MX_RECORD *mcs_record,
-					bool external_channel_advance );
+					mx_bool_type external_channel_advance);
 
 MX_API mx_status_type mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 					uint32_t *external_prescale );

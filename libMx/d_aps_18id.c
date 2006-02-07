@@ -378,7 +378,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *gap_energy_motor_record;
-	bool busy;
+	mx_bool_type busy;
 	int32_t gap_linked;
 	mx_status_type mx_status;
 
@@ -534,7 +534,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	int32_t bpm_top_value, bpm_bottom_value;
 	double ruler;
 	mx_status_type mx_status;
-	bool busy;
+	mx_bool_type busy;
 	
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1407,7 +1407,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *piezo_right_motor_record;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -1571,7 +1571,7 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *piezo_right_motor_record;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {

@@ -442,7 +442,7 @@ mxd_adc_table_is_busy( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	bool busy;
+	mx_bool_type busy;
 	mx_length_type i, num_motors;
 	mx_status_type mx_status;
 
@@ -1153,7 +1153,7 @@ mxd_adc_table_positive_limit_hit( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_length_type i, num_motors;
 	mx_status_type mx_status;
 
@@ -1198,7 +1198,7 @@ mxd_adc_table_negative_limit_hit( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_length_type i, num_motors;
 	mx_status_type mx_status;
 

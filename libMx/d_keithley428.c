@@ -376,7 +376,7 @@ mxd_keithley428_get_gain( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char buffer[50];
 	int num_items, gain_setting;
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,
@@ -501,7 +501,7 @@ mxd_keithley428_get_offset( MX_AMPLIFIER *amplifier )
 	char response[50];
 	double current_suppress_value;
 	int num_items;
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,
@@ -614,7 +614,7 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char buffer[50];
 	int num_items, filter_enabled, rise_time_setting;
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley428_get_pointers( amplifier,

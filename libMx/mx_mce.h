@@ -22,8 +22,8 @@
 typedef struct {
 	MX_RECORD *record;
 	int32_t encoder_type;
-	bool overflow_set;
-	bool underflow_set;
+	mx_bool_type overflow_set;
+	mx_bool_type underflow_set;
 
 	mx_length_type maximum_num_values;
 
@@ -132,7 +132,8 @@ MX_API mx_status_type mx_mce_initialize_type(
 MX_API mx_status_type mx_mce_fixup_motor_record_array_field( MX_MCE *mce );
 
 MX_API mx_status_type mx_mce_get_overflow_status( MX_RECORD *mce_record,
-				bool *underflow_set, bool *overflow_set );
+					mx_bool_type *underflow_set,
+					mx_bool_type *overflow_set );
 
 MX_API mx_status_type mx_mce_reset_overflow_status( MX_RECORD *mce_record );
 

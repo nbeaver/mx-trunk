@@ -289,7 +289,7 @@ mxm_preset_time_measure_data( MX_MEASUREMENT *measurement )
 	MX_SCAN *scan;
 	MX_RECORD *timer_record;
 	double remaining_time;
-	bool busy;
+	mx_bool_type busy;
 	int interrupt;
 	mx_status_type status;
 

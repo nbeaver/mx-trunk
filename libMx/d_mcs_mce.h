@@ -26,8 +26,8 @@ typedef struct {
 	MX_RECORD *associated_motor_record;
 
 	MX_RECORD *mcs_record;
-	unsigned long down_channel;
-	unsigned long up_channel;
+	uint32_t down_channel;
+	uint32_t up_channel;
 } MX_MCS_ENCODER;
 
 #define MXD_MCS_ENCODER_STANDARD_FIELDS \
@@ -40,11 +40,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_ENCODER, mcs_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "down_channel", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "down_channel", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_ENCODER, down_channel), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "up_channel", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "up_channel", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_ENCODER, up_channel), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

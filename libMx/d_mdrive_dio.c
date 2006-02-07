@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mdrive_din_record_field_defaults[] = {
 	MXD_MDRIVE_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_mdrive_din_num_record_fields
+mx_length_type mxd_mdrive_din_num_record_fields
 		= sizeof( mxd_mdrive_din_record_field_defaults )
 			/ sizeof( mxd_mdrive_din_record_field_defaults[0] );
 
@@ -72,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mdrive_dout_record_field_defaults[] = {
 	MXD_MDRIVE_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_mdrive_dout_num_record_fields
+mx_length_type mxd_mdrive_dout_num_record_fields
 		= sizeof( mxd_mdrive_dout_record_field_defaults )
 			/ sizeof( mxd_mdrive_dout_record_field_defaults[0] );
 
@@ -406,7 +406,8 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	}
 
 	sprintf( command, "I%d=%lu",
-			mdrive_doutput->port_number, doutput->value );
+			mdrive_doutput->port_number,
+			(unsigned long) doutput->value );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 					NULL, 0, MXD_MDRIVE_DIO_DEBUG );

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcs_encoder_record_field_defaults[] = {
 	MXD_MCS_ENCODER_STANDARD_FIELDS
 };
 
-long mxd_mcs_encoder_num_record_fields
+mx_length_type mxd_mcs_encoder_num_record_fields
 		= sizeof( mxd_mcs_encoder_record_field_defaults )
 		  / sizeof( mxd_mcs_encoder_record_field_defaults[0] );
 
@@ -65,7 +65,7 @@ mxd_mcs_encoder_get_pointers( MX_MCE *mce,
 			MX_MCS **mcs,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_mcs_encoder_get_pointers()";
+	static const char fname[] = "mxd_mcs_encoder_get_pointers()";
 
 	if ( mce == (MX_MCE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -108,9 +108,9 @@ mxd_mcs_encoder_get_pointers( MX_MCE *mce,
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_initialize_type( long record_type )
 {
-	long num_record_fields;
+	mx_length_type num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long maximum_num_values_varargs_cookie;
+	mx_length_type maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_initialize_type( record_type,
@@ -124,7 +124,7 @@ mxd_mcs_encoder_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_encoder_create_record_structures()";
+	static const char fname[] = "mxd_mcs_encoder_create_record_structures()";
 
 	MX_MCE *mce;
 	MX_MCS_ENCODER *mcs_encoder;
@@ -160,7 +160,7 @@ mxd_mcs_encoder_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_encoder_finish_record_initialization()";
+	static const char fname[] = "mxd_mcs_encoder_finish_record_initialization()";
 
 	MX_MCE *mce;
 	MX_MCS_ENCODER *mcs_encoder;
@@ -199,7 +199,8 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 	if ( mcs_encoder->up_channel >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The up channel %lu for MCS encoder '%s' is outside the allowed range 0-%ld "
-"for MCS '%s'.", mcs_encoder->up_channel, record->name,
+"for MCS '%s'.", (unsigned long) mcs_encoder->up_channel,
+		record->name,
 		mcs->maximum_num_scalers - 1L,
 		mcs_encoder->mcs_record->name );
 	}
@@ -207,7 +208,8 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 	if ( mcs_encoder->down_channel >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The down channel %lu for MCS encoder '%s' is outside the allowed range 0-%ld "
-"for MCS '%s'.", mcs_encoder->down_channel, record->name,
+"for MCS '%s'.", (unsigned long) mcs_encoder->down_channel,
+		record->name,
 		mcs->maximum_num_scalers - 1L,
 		mcs_encoder->mcs_record->name );
 	}
@@ -218,15 +220,15 @@ mxd_mcs_encoder_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_read( MX_MCE *mce )
 {
-	const char fname[] = "mxd_mcs_encoder_read()";
+	static const char fname[] = "mxd_mcs_encoder_read()";
 
 	MX_MCS_ENCODER *mcs_encoder;
 	MX_MCS *mcs;
 	MX_MOTOR *associated_motor;
 	double motor_scale, raw_encoder_value, scaled_encoder_value;
-	long i;
-	long up_channel, down_channel;
-	long *up_value_array, *down_value_array;
+	mx_length_type i;
+	int32_t up_channel, down_channel;
+	int32_t *up_value_array, *down_value_array;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_encoder_get_pointers( mce,
@@ -289,8 +291,9 @@ mxd_mcs_encoder_read( MX_MCE *mce )
 	"This can only be fixed by modifying MX records '%s' and '%s' in "
 	"your MX database configuration file.",
 			mcs->record->name, (long) mcs->current_num_measurements,
-			mce->record->name, mce->maximum_num_values,
-			mce->maximum_num_values,
+			mce->record->name,
+			(long) mce->maximum_num_values,
+			(long) mce->maximum_num_values,
 			mcs->record->name, mce->record->name );
 	}
 
@@ -311,7 +314,7 @@ mxd_mcs_encoder_read( MX_MCE *mce )
 MX_EXPORT mx_status_type
 mxd_mcs_encoder_get_current_num_values( MX_MCE *mce )
 {
-	const char fname[] = "mxd_mcs_encoder_get_current_num_values()";
+	static const char fname[] = "mxd_mcs_encoder_get_current_num_values()";
 
 	MX_MCS_ENCODER *mcs_encoder;
 	MX_MCS *mcs;
@@ -325,10 +328,10 @@ mxd_mcs_encoder_get_current_num_values( MX_MCE *mce )
 
 	MX_DEBUG( 2,("%s invoked for MCE '%s'", fname, mce->record->name));
 
-	mce->current_num_values = (long) mcs->current_num_measurements;
+	mce->current_num_values = mcs->current_num_measurements;
 
 	MX_DEBUG( 2,("%s: mce->current_num_values = %ld",
-		fname, mce->current_num_values));
+		fname, (long) mce->current_num_values));
 
 	return MX_SUCCESSFUL_RESULT;
 }

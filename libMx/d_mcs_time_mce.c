@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcs_time_mce_record_field_defaults[] = {
 	MXD_MCS_TIME_MCE_STANDARD_FIELDS
 };
 
-long mxd_mcs_time_mce_num_record_fields
+mx_length_type mxd_mcs_time_mce_num_record_fields
 		= sizeof( mxd_mcs_time_mce_record_field_defaults )
 		  / sizeof( mxd_mcs_time_mce_record_field_defaults[0] );
 
@@ -107,9 +107,9 @@ mxd_mcs_time_mce_get_pointers( MX_MCE *mce,
 MX_EXPORT mx_status_type
 mxd_mcs_time_mce_initialize_type( long record_type )
 {
-	long num_record_fields;
+	mx_length_type num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long maximum_num_values_varargs_cookie;
+	mx_length_type maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_initialize_type( record_type,
@@ -227,8 +227,9 @@ mxd_mcs_time_mce_read( MX_MCE *mce )
 	"This can only be fixed by modifying MX records '%s' and '%s' in "
 	"your MX database configuration file.",
 			mcs->record->name, (long) mcs->current_num_measurements,
-			mce->record->name, mce->maximum_num_values,
-			mce->maximum_num_values,
+			mce->record->name,
+			(long) mce->maximum_num_values,
+			(long) mce->maximum_num_values,
 			mcs->record->name, mce->record->name );
 	}
 
@@ -258,10 +259,10 @@ mxd_mcs_time_mce_get_current_num_values( MX_MCE *mce )
 
 	MX_DEBUG(-2,("%s invoked for MCE '%s'", fname, mce->record->name));
 
-	mce->current_num_values = (long) mcs->current_num_measurements;
+	mce->current_num_values = mcs->current_num_measurements;
 
 	MX_DEBUG(-2,("%s: mce->current_num_values = %ld",
-		fname, mce->current_num_values));
+		fname, (long) mce->current_num_values));
 
 	return MX_SUCCESSFUL_RESULT;
 }

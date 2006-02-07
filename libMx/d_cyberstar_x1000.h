@@ -31,7 +31,7 @@ typedef struct {
 	int32_t forced_remote_control;
 	int32_t security_status;
 
-	bool    discard_echoed_command_line;
+	mx_bool_type discard_echoed_command_line;
 } MX_CYBERSTAR_X1000;
 
 #define MXLV_CYBERSTAR_X1000_HIGH_VOLTAGE		0

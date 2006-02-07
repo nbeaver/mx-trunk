@@ -40,10 +40,10 @@ typedef struct {
 
 	int32_t  parameter_type;
 
-	bool  clear;
-	bool  overflow_set;
-	bool  busy;
-	bool  stop;
+	mx_bool_type  clear;
+	mx_bool_type  overflow_set;
+	mx_bool_type  busy;
+	mx_bool_type  stop;
 	int32_t  mode;
 } MX_SCALER;
 
@@ -126,15 +126,16 @@ MX_API_PRIVATE mx_status_type mx_scaler_finish_record_initialization(
 MX_API mx_status_type mx_scaler_clear( MX_RECORD *scaler_record );
 
 MX_API mx_status_type mx_scaler_overflow_set( MX_RECORD *scaler_record,
-							bool *overflow_set);
+						mx_bool_type *overflow_set);
 
 MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record,
-							int32_t *value );
+						int32_t *value );
 
 MX_API mx_status_type mx_scaler_read_raw( MX_RECORD *scaler_record,
-							int32_t *value );
+						int32_t *value );
 
-MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record, bool *busy );
+MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record,
+						mx_bool_type *busy );
 
 MX_API mx_status_type mx_scaler_start( MX_RECORD *scaler_record,
 						int32_t preset_count );

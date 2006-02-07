@@ -19,10 +19,10 @@
 #define _D_AUTO_FILTER_AMPLIFIER_H_
 
 typedef struct {
-	unsigned long present_filter_setting;
+	uint32_t present_filter_setting;
 
-	unsigned long minimum_filter_setting;
-	unsigned long maximum_filter_setting;
+	uint32_t minimum_filter_setting;
+	uint32_t maximum_filter_setting;
 
 	MX_RECORD *amplifier_autoscale_record;
 } MX_AUTO_FILTER_AMP;

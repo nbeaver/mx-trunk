@@ -289,7 +289,7 @@ mxm_preset_count_measure_data( MX_MEASUREMENT *measurement )
 	MX_MEASUREMENT_PRESET_COUNT *preset_count_struct;
 	MX_SCAN *scan;
 	MX_RECORD *scaler_record;
-	bool busy;
+	mx_bool_type busy;
 	int interrupt;
 	mx_status_type mx_status;
 

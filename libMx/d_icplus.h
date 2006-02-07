@@ -32,7 +32,7 @@ typedef struct {
 	uint32_t qbpm_flags;
 
 	int32_t range;
-	bool discard_echoed_command_line;
+	mx_bool_type discard_echoed_command_line;
 } MX_ICPLUS;
 
 #define MXD_ICPLUS_STANDARD_FIELDS \

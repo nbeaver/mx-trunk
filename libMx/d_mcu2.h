@@ -26,8 +26,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int axis_address;
-	unsigned long mcu2_flags;
+	int32_t axis_address;
+	mx_hex_type mcu2_flags;
 } MX_MCU2;
 
 MX_API mx_status_type mxd_mcu2_create_record_structures(
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mcu2_rfield_def_ptr;
 		offsetof(MX_MCU2, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_address", MXFT_INT, NULL, 0, {0},\
+  {-1, -1, "axis_address", MXFT_INT32, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCU2, axis_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

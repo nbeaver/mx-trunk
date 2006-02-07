@@ -18,10 +18,10 @@
 #define _D_AUTO_FILTER_H_
 
 typedef struct {
-	unsigned long present_filter_setting;
+	uint32_t present_filter_setting;
 
-	unsigned long minimum_filter_setting;
-	unsigned long maximum_filter_setting;
+	uint32_t minimum_filter_setting;
+	uint32_t maximum_filter_setting;
 } MX_AUTO_FILTER;
 
 #define MX_AUTO_FILTER_STANDARD_FIELDS \

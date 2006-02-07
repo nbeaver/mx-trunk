@@ -71,9 +71,9 @@ typedef struct {
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t remote_mx_version;
 	uint32_t data_format;
-	bool server_supports_network_handles;
+	mx_bool_type server_supports_network_handles;
 
-	bool network_handles_are_valid;
+	mx_bool_type network_handles_are_valid;
 	mx_length_type network_field_array_block_size;
 
 	mx_length_type num_network_fields;

@@ -67,7 +67,7 @@ mxd_auto_amplifier_get_pointers( MX_AUTOSCALE *autoscale,
 			MX_AUTO_AMPLIFIER **auto_amplifier,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_auto_amplifier_get_pointers()";
+	static const char fname[] = "mxd_auto_amplifier_get_pointers()";
 
 	if ( autoscale == (MX_AUTOSCALE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -110,7 +110,7 @@ mxd_auto_amplifier_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_auto_amplifier_create_record_structures()";
+	static const char fname[] = "mxd_auto_amplifier_create_record_structures()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_AMPLIFIER *auto_amplifier;
@@ -150,7 +150,7 @@ mxd_auto_amplifier_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_auto_amplifier_finish_record_initialization()";
 
 	MX_AUTOSCALE *autoscale;
@@ -256,7 +256,7 @@ mxd_auto_amplifier_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_auto_amplifier_open()";
+	static const char fname[] = "mxd_auto_amplifier_open()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_AMPLIFIER *auto_amplifier;
@@ -333,7 +333,7 @@ mxd_auto_amplifier_dummy_function( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_read_monitor()";
+	static const char fname[] = "mxd_auto_amplifier_read_monitor()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	long offset_index;
@@ -410,7 +410,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_get_change_request()";
+	static const char fname[] = "mxd_auto_amplifier_get_change_request()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
@@ -525,7 +525,7 @@ mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_change_control()";
+	static const char fname[] = "mxd_auto_amplifier_change_control()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double old_gain, new_gain;
@@ -596,7 +596,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_get_offset_index()";
+	static const char fname[] = "mxd_auto_amplifier_get_offset_index()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
@@ -637,11 +637,11 @@ mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_set_offset_index()";
+	static const char fname[] = "mxd_auto_amplifier_set_offset_index()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
-	unsigned long offset_index;
+	uint32_t offset_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_amplifier_get_pointers( autoscale,
@@ -657,7 +657,7 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
 		"illegal_value of %lu.  The allowed values are (0 - %lu)",
-			offset_index,
+			(unsigned long) offset_index,
 			(unsigned long) autoscale->num_monitor_offsets );
 	}
 
@@ -676,7 +676,7 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_get_parameter()";
+	static const char fname[] = "mxd_auto_amplifier_get_parameter()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	mx_status_type mx_status;
@@ -706,7 +706,7 @@ mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_set_parameter( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mxd_auto_amplifier_set_parameter()";
+	static const char fname[] = "mxd_auto_amplifier_set_parameter()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	mx_status_type mx_status;

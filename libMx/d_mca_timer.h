@@ -24,7 +24,7 @@
 typedef struct {
 	MX_RECORD *mca_record;
 	double preset_time;
-	bool use_real_time;
+	mx_bool_type use_real_time;
 } MX_MCA_TIMER;
 
 /* Define all of the interface functions. */

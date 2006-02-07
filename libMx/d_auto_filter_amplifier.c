@@ -448,8 +448,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	MX_RECORD *amplifier_autoscale_record;
 	MX_AUTOSCALE *amplifier_autoscale;
 	int i;
-	bool busy;
-	unsigned long old_filter_setting, new_filter_setting;
+	mx_bool_type busy;
+	uint32_t old_filter_setting, new_filter_setting;
 	long last_amplifier_scaler_value;
 	double dynamic_low_limit, dynamic_high_limit;
 	double old_gain, new_gain;
@@ -525,7 +525,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 
 	MX_DEBUG( 2,("%s: Changing filter '%s' from %#lx to %#lx.",
 		fname, autoscale->control_record->name,
-		old_filter_setting, new_filter_setting));
+		(unsigned long) old_filter_setting,
+		(unsigned long) new_filter_setting));
 
 	mx_status = mx_digital_output_write( autoscale->control_record,
 						new_filter_setting );
@@ -714,7 +715,7 @@ mxd_auto_filter_amp_set_offset_index( MX_AUTOSCALE *autoscale )
 {
 	static const char fname[] = "mxd_auto_filter_amp_set_offset_index()";
 
-	unsigned long saved_index;
+	uint32_t saved_index;
 
 	/* The offset index for the autoscale filter driver is only
 	 * allowed to be zero.
@@ -729,7 +730,7 @@ mxd_auto_filter_amp_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The requested monitor offset index of %lu is not allowed.  "
 		"Zero is the only allowed value.",
-			saved_index );
+			(unsigned long) saved_index );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

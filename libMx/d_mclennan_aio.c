@@ -22,6 +22,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_analog_input.h"
@@ -48,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_ain_record_field_defaults[] = {
 	MXD_MCLENNAN_AINPUT_STANDARD_FIELDS
 };
 
-long mxd_mclennan_ain_num_record_fields
+mx_length_type mxd_mclennan_ain_num_record_fields
 		= sizeof( mxd_mclennan_ain_record_field_defaults )
 			/ sizeof( mxd_mclennan_ain_record_field_defaults[0] );
 
@@ -74,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_aout_record_field_defaults[] = {
 	MXD_MCLENNAN_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_mclennan_aout_num_record_fields
+mx_length_type mxd_mclennan_aout_num_record_fields
 		= sizeof( mxd_mclennan_aout_record_field_defaults )
 			/ sizeof( mxd_mclennan_aout_record_field_defaults[0] );
 
@@ -261,9 +262,9 @@ mxd_mclennan_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	mclennan_ainput->record = record;
 
-	/* Raw analog input values are stored as longs. */
+	/* Raw analog input values are stored as 32-bit integers. */
 
-	analog_input->subclass = MXT_AIN_LONG;
+	analog_input->subclass = MXT_AIN_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -319,7 +320,8 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%ld", &(ainput->raw_value.long_value));
+	num_items = sscanf(response, "%" SCNd32,
+				&(ainput->raw_value.int32_value));
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -347,8 +349,7 @@ mxd_mclennan_aout_create_record_structures( MX_RECORD *record )
 
         /* Allocate memory for the necessary structures. */
 
-        analog_output = (MX_ANALOG_OUTPUT *)
-					malloc(sizeof(MX_ANALOG_OUTPUT));
+        analog_output = (MX_ANALOG_OUTPUT *) malloc(sizeof(MX_ANALOG_OUTPUT));
 
         if ( analog_output == (MX_ANALOG_OUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -373,9 +374,9 @@ mxd_mclennan_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	mclennan_aoutput->record = record;
 
-	/* Raw analog output values are stored as long. */
+	/* Raw analog output values are stored as 32-bit integers. */
 
-	analog_output->subclass = MXT_AOU_LONG;
+	analog_output->subclass = MXT_AOU_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -429,7 +430,7 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	}
 
 	sprintf( command, "AO%d/%ld", port_number,
-				aoutput->raw_value.long_value );
+				(long) aoutput->raw_value.int32_value );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 					NULL, 0, MXD_MCLENNAN_AIO_DEBUG );

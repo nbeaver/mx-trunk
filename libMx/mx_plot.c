@@ -453,12 +453,12 @@ mx_plot_start_plot_section( MX_PLOT *plot )
 	return status;
 }
 
-MX_EXPORT bool
+MX_EXPORT mx_bool_type
 mx_plotting_is_enabled( MX_RECORD *record )
 {
 	MX_RECORD *list_head_record;
 	MX_LIST_HEAD *list_head_struct;
-	bool enabled;
+	mx_bool_type enabled;
 
 	if ( record == (MX_RECORD *) NULL )
 		return FALSE;
@@ -474,7 +474,7 @@ mx_plotting_is_enabled( MX_RECORD *record )
 }
 
 MX_EXPORT void
-mx_set_plot_enable( MX_RECORD *record, bool enabled )
+mx_set_plot_enable( MX_RECORD *record, mx_bool_type enabled )
 {
 	MX_RECORD *list_head_record;
 	MX_LIST_HEAD *list_head_struct;

@@ -126,6 +126,7 @@ typedef uint64_t		uintmax_t;
 
 /* Typedef some special integer data types. */
 
+typedef int32_t   mx_bool_type;
 typedef uint32_t  mx_hex_type;
 typedef int32_t   mx_length_type;
 

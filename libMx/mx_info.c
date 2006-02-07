@@ -29,8 +29,8 @@ static void (*mx_info_dialog_function)( char *, char *, char * )
 					= mx_info_default_dialog_function;
 
 static void (*mx_info_entry_dialog_function)( char *,
-						char *, bool, char *, size_t )
-					= mx_info_default_entry_dialog_function;
+					char *, mx_bool_type, char *, size_t )
+				= mx_info_default_entry_dialog_function;
 
 MX_EXPORT void
 mx_info( char *format, ... )
@@ -124,7 +124,7 @@ mx_info_default_dialog_function( char *text_prompt, char *gui_prompt,
 
 MX_EXPORT void
 mx_info_entry_dialog( char *text_prompt, char *gui_prompt,
-			bool echo_characters,
+			mx_bool_type echo_characters,
 			char *response, size_t max_response_length )
 {
 	if ( mx_info_entry_dialog_function != NULL ) {
@@ -136,7 +136,7 @@ mx_info_entry_dialog( char *text_prompt, char *gui_prompt,
 
 MX_EXPORT void
 mx_set_info_entry_dialog_function( void (*entry_dialog_function)(char *,
-						char *, bool, char *, size_t ) )
+					char *, mx_bool_type, char *, size_t ) )
 {
 	if ( entry_dialog_function == NULL ) {
 		mx_info_entry_dialog_function
@@ -149,7 +149,7 @@ mx_set_info_entry_dialog_function( void (*entry_dialog_function)(char *,
 
 MX_EXPORT void
 mx_info_default_entry_dialog_function( char *text_prompt, char *gui_prompt,
-			bool echo_characters,
+			mx_bool_type echo_characters,
 			char *response, size_t max_response_length )
 {
 #if defined(OS_WIN32)

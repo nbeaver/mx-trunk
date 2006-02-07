@@ -294,7 +294,7 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char command[80];
 	char response[80];
-	bool fast_mode;
+	mx_bool_type fast_mode;
 	int num_items;
 	int slot, channel, channel_type;
 	mx_status_type mx_status;

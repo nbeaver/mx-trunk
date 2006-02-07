@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *mcs_record;
-	int scaler_number;
+	int32_t scaler_number;
 } MX_MCS_SCALER;
 
 #define MXD_MCS_SCALER_STANDARD_FIELDS \
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_SCALER, mcs_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "scaler_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "scaler_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_SCALER, scaler_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

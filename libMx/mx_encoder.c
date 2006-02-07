@@ -74,7 +74,8 @@ mx_encoder_get_pointers( MX_RECORD *encoder_record,
 
 MX_EXPORT mx_status_type
 mx_encoder_get_overflow_status( MX_RECORD *encoder_record,
-		bool *underflow_set, bool *overflow_set )
+				mx_bool_type *underflow_set,
+				mx_bool_type *overflow_set )
 {
 	static const char fname[] = "mx_encoder_get_overflow_status()";
 

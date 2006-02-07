@@ -202,7 +202,7 @@ mx_motor_get_pointers( MX_RECORD *motor_record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_motor_is_busy( MX_RECORD *motor_record, bool *busy )
+mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_motor_is_busy()";
 
@@ -457,8 +457,8 @@ mx_motor_array_move_absolute_with_report( int num_motors,
 	MX_MOTOR *motor;
 	mx_length_type i;
 	mx_hex_type modified_flags;
-	bool result_flag;
-	bool do_backlash, individual_backlash_needed;
+	mx_bool_type result_flag;
+	mx_bool_type do_backlash, individual_backlash_needed;
 	double backlash, backlash_position;
 	double present_position, relative_motion;
 	mx_status_type status;
@@ -846,7 +846,7 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 
 	int interrupt;
 	mx_length_type i, j;
-	bool motor_is_moving, any_error_occurred;
+	mx_bool_type motor_is_moving, any_error_occurred;
 	mx_hex_type motor_status, limit_bitmask, error_bitmask;
 	mx_hex_type ignore_keyboard, ignore_limit_switches;
 	mx_hex_type ignore_pause;
@@ -1170,7 +1170,7 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_positive_limit_hit( MX_RECORD *motor_record, bool *limit_hit )
+mx_motor_positive_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 {
 	static const char fname[] = "mx_motor_positive_limit_hit()";
 
@@ -1247,7 +1247,7 @@ mx_motor_positive_limit_hit( MX_RECORD *motor_record, bool *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_negative_limit_hit( MX_RECORD *motor_record, bool *limit_hit )
+mx_motor_negative_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 {
 	static const char fname[] = "mx_motor_negative_limit_hit()";
 
@@ -2877,7 +2877,7 @@ mx_motor_restore_speed( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
-					bool *synchronous_motion_mode )
+					mx_bool_type *synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_get_synchronous_motion_mode()";
 
@@ -2913,7 +2913,7 @@ mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_set_synchronous_motion_mode( MX_RECORD *motor_record,
-					bool synchronous_motion_mode )
+					mx_bool_type synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_set_synchronous_motion_mode()";
 
@@ -3401,7 +3401,7 @@ mx_motor_set_gain( MX_RECORD *motor_record, int gain_type, double gain )
 
 MX_EXPORT mx_status_type
 mx_motor_home_search_succeeded( MX_RECORD *motor_record,
-				bool *home_search_succeeded )
+				mx_bool_type *home_search_succeeded )
 {
 	static const char fname[] = "mx_motor_is_at_home_switch()";
 
@@ -3531,7 +3531,7 @@ mx_motor_compute_pseudomotor_position_from_real_position(
 					MX_RECORD *motor_record,
 					double real_position,
 					double *pseudomotor_position,
-					bool recursion_flag )
+					mx_bool_type recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_pseudomotor_position_from_real_position()";
@@ -3660,7 +3660,7 @@ mx_motor_compute_real_position_from_pseudomotor_position(
 					MX_RECORD *motor_record,
 					double pseudomotor_position,
 					double *real_position,
-					bool recursion_flag )
+					mx_bool_type recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_real_position_from_pseudomotor_position()";
@@ -3868,7 +3868,7 @@ mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 MX_EXPORT mx_status_type
 mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 					MX_RECORD *alternate_motor_record,
-					bool *motor_is_compatible )
+					mx_bool_type *motor_is_compatible )
 {
 	static const char fname[] =
 		"mx_alternate_motor_can_use_this_motors_mce()";
@@ -3876,7 +3876,7 @@ mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 	MX_RECORD *real_motor_record, *alternate_real_motor_record;
 	mx_status_type mx_status;
 
-	if ( motor_is_compatible == (bool *) NULL ) {
+	if ( motor_is_compatible == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The motor_is_compatible pointer passed is NULL." );
 	}
@@ -4036,7 +4036,7 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	int32_t position, backlash;
 	int32_t relative_motion, backlash_position;
 	double dummy_position;
-	bool do_backlash;
+	mx_bool_type do_backlash;
 	mx_hex_type mask;
 	mx_status_type status, move_report_status;
 
@@ -4398,7 +4398,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	double present_position, backlash;
 	double relative_motion, backlash_position;
 	double test_var, dummy_position;
-	bool do_backlash;
+	mx_bool_type do_backlash;
 	mx_hex_type mask;
 	char units[80];
 	mx_status_type status, move_report_status;
@@ -4766,7 +4766,7 @@ mx_motor_set_position_analog( MX_RECORD *motor_record,
 MX_EXPORT mx_status_type
 mx_is_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_position,
-	bool *result_flag, bool generate_error_message )
+	mx_bool_type *result_flag, mx_bool_type generate_error_message )
 {
 	static const char fname[] =
 		"mx_is_motor_position_between_software_limits()";
@@ -4822,7 +4822,7 @@ mx_is_motor_position_between_software_limits(
 MX_EXPORT mx_status_type
 mx_is_analog_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_analog_position,
-	bool *result_flag, bool generate_error_message )
+	mx_bool_type *result_flag, mx_bool_type generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_analog_motor_position_between_software_limits()";
@@ -4845,7 +4845,7 @@ mx_is_analog_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (bool *) NULL ) {
+	if ( result_flag == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}
@@ -4921,7 +4921,7 @@ mx_is_analog_motor_position_between_software_limits(
 MX_EXPORT mx_status_type
 mx_is_stepper_motor_position_between_software_limits(
 	MX_RECORD *motor_record, int32_t proposed_step_position,
-	bool *result_flag, bool generate_error_message )
+	mx_bool_type *result_flag, mx_bool_type generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_stepper_motor_position_between_software_limits()";
@@ -4943,7 +4943,7 @@ mx_is_stepper_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (bool *) NULL ) {
+	if ( result_flag == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}

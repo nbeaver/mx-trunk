@@ -263,7 +263,7 @@ mxd_e500_open( MX_RECORD *record )
 	MX_E500 *e500;
 	mx_status_type mx_status;
 	int32_t accumulator;
-	bool busy;
+	mx_bool_type busy;
 
 	MX_DEBUG(2, ("mxd_e500_write_parms_to_hardware() called."));
 
@@ -337,7 +337,7 @@ mxd_e500_close( MX_RECORD *record )
 	mx_status_type mx_status;
 	int32_t accumulator;
 	uint16_t actual_baserate;
-	bool busy;
+	mx_bool_type busy;
 
 	MX_DEBUG( 2,("%s called.", fname));
 
@@ -407,7 +407,7 @@ mxd_e500_motor_is_busy( MX_MOTOR *motor )
 	static const char fname[] = "mxd_e500_motor_is_busy()";
 
 	MX_E500 *e500;
-	bool busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	e500 = (MX_E500 *) (motor->record->record_type_struct);
@@ -543,7 +543,7 @@ mxd_e500_positive_limit_hit( MX_MOTOR *motor )
 	static const char fname[] = "mxd_e500_positive_limit_hit()";
 
 	MX_E500 *e500;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	e500 = (MX_E500 *) (motor->record->record_type_struct);
@@ -566,7 +566,7 @@ mxd_e500_negative_limit_hit( MX_MOTOR *motor )
 	static const char fname[] = "mxd_e500_negative_limit_hit()";
 
 	MX_E500 *e500;
-	bool limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	e500 = (MX_E500 *) (motor->record->record_type_struct);
@@ -641,7 +641,7 @@ mx_e500_preserve_csr_bitmap( MX_E500 *e500, int32_t *csr )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_accumulator_overflow( MX_E500 *e500, bool *overflow )
+mx_e500_accumulator_overflow( MX_E500 *e500, mx_bool_type *overflow )
 {
 	mx_status_type mx_status;
 	int32_t csr, overflow_temp;
@@ -685,7 +685,7 @@ mx_e500_accumulator_overflow_reset( MX_E500 *e500 )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_accumulator_underflow( MX_E500 *e500, bool *underflow )
+mx_e500_accumulator_underflow( MX_E500 *e500, mx_bool_type *underflow )
 {
 	mx_status_type mx_status;
 	int32_t csr, underflow_temp;
@@ -729,7 +729,7 @@ mx_e500_accumulator_underflow_reset( MX_E500 *e500 )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_ccw_limit( MX_E500 *e500, bool *limit_hit )
+mx_e500_ccw_limit( MX_E500 *e500, mx_bool_type *limit_hit )
 {
 	mx_status_type mx_status;
 	int32_t csr, ccw_limit;
@@ -751,7 +751,7 @@ mx_e500_ccw_limit( MX_E500 *e500, bool *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_cw_limit( MX_E500 *e500, bool *limit_hit )
+mx_e500_cw_limit( MX_E500 *e500, mx_bool_type *limit_hit )
 {
 	mx_status_type mx_status;
 	int32_t csr, cw_limit;
@@ -795,7 +795,7 @@ mx_e500_build_file( MX_E500 *e500 )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_correction_failure( MX_E500 *e500, bool *correction_failure )
+mx_e500_correction_failure( MX_E500 *e500, mx_bool_type *correction_failure )
 {
 	mx_status_type mx_status;
 	int32_t csr, correction_failure_temp;
@@ -817,7 +817,7 @@ mx_e500_correction_failure( MX_E500 *e500, bool *correction_failure )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_illegal_instruction( MX_E500 *e500, bool *illegal_instruction )
+mx_e500_illegal_instruction( MX_E500 *e500, mx_bool_type *illegal_instruction )
 {
 	mx_status_type mx_status;
 	int32_t csr, illegal_instruction_temp;
@@ -861,7 +861,7 @@ mx_e500_immediate_abort( MX_E500 *e500 )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_motor_busy( MX_E500 *e500, bool *motor_busy )
+mx_e500_motor_busy( MX_E500 *e500, mx_bool_type *motor_busy )
 {
 	mx_status_type mx_status;
 	int32_t csr;
@@ -1178,7 +1178,7 @@ mx_e500_read_lam_mask( MX_E500 *e500 )
 }
 
 MX_EXPORT mx_status_type
-mx_e500_read_lam_status( MX_E500 *e500, bool *lam_status )
+mx_e500_read_lam_status( MX_E500 *e500, mx_bool_type *lam_status )
 {
 	mx_status_type mx_status;
 	int32_t csr, lam_status_temp, motor;
@@ -1472,7 +1472,7 @@ MX_EXPORT mx_status_type
 mx_e500_write_lam_mask( MX_E500 *e500 )
 {
 	mx_status_type mx_status;
-	bool mask;
+	mx_bool_type mask;
 	int32_t csr;
 
 	mask = e500->lam_mask;

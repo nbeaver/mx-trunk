@@ -1822,7 +1822,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	double measurement_time;
 	MX_RECORD **real_motor_array;
-	bool motor_is_compatible, this_motor_is_compatible;
+	mx_bool_type motor_is_compatible, this_motor_is_compatible;
 	long i, j;
 	mx_length_type dimension[2];
 	size_t element_size[2];
@@ -2495,14 +2495,14 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
-	bool busy;
+	mx_bool_type busy;
 	long i;
 	unsigned long measurement_milliseconds;
 #if 1
 	MX_RECORD *mcs_record;
 	unsigned long wait_ms, max_attempts;
 	long j;
-	bool all_busy;
+	mx_bool_type all_busy;
 #endif
 	mx_status_type mx_status;
 

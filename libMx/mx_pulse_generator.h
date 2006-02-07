@@ -108,7 +108,7 @@ MX_API_PRIVATE mx_status_type mx_pulse_generator_get_pointers(
 MX_API mx_status_type mx_pulse_generator_initialize( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record,
-							bool *busy );
+							mx_bool_type *busy );
 
 MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 

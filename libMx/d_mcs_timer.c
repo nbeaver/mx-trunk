@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcs_timer_record_field_defaults[] = {
 	MXD_MCS_TIMER_STANDARD_FIELDS
 };
 
-long mxd_mcs_timer_num_record_fields
+mx_length_type mxd_mcs_timer_num_record_fields
 		= sizeof( mxd_mcs_timer_record_field_defaults )
 		  / sizeof( mxd_mcs_timer_record_field_defaults[0] );
 
@@ -67,7 +67,7 @@ mxd_mcs_timer_get_pointers( MX_TIMER *timer,
 			MX_MCS_TIMER **mcs_timer,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_mcs_timer_get_pointers()";
+	static const char fname[] = "mxd_mcs_timer_get_pointers()";
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -97,7 +97,7 @@ mxd_mcs_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_mcs_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_timer_create_record_structures()";
+	static const char fname[] = "mxd_mcs_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_MCS_TIMER *mcs_timer;
@@ -133,7 +133,7 @@ mxd_mcs_timer_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mcs_timer_finish_record_initialization()";
+	static const char fname[] = "mxd_mcs_timer_finish_record_initialization()";
 
 	MX_RECORD *mcs_record;
 	MX_TIMER *timer;
@@ -188,10 +188,10 @@ mxd_mcs_timer_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_is_busy()";
+	static const char fname[] = "mxd_mcs_timer_is_busy()";
 
 	MX_MCS_TIMER *mcs_timer;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );
@@ -214,7 +214,7 @@ mxd_mcs_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_start()";
+	static const char fname[] = "mxd_mcs_timer_start()";
 
 	MX_MCS_TIMER *mcs_timer;
 	double seconds;
@@ -255,7 +255,7 @@ mxd_mcs_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_stop()";
+	static const char fname[] = "mxd_mcs_timer_stop()";
 
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
@@ -282,7 +282,7 @@ mxd_mcs_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_clear( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_clear()";
+	static const char fname[] = "mxd_mcs_timer_clear()";
 
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
@@ -305,7 +305,7 @@ mxd_mcs_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_read()";
+	static const char fname[] = "mxd_mcs_timer_read()";
 
 	MX_MCS_TIMER *mcs_timer;
 	MX_MCS *mcs;
@@ -352,7 +352,7 @@ mxd_mcs_timer_read( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_get_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_get_mode()";
+	static const char fname[] = "mxd_mcs_timer_get_mode()";
 
 	MX_MCS_TIMER *mcs_timer;
 	int mode;
@@ -373,7 +373,7 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_set_mode()";
+	static const char fname[] = "mxd_mcs_timer_set_mode()";
 
 	MX_MCS_TIMER *mcs_timer;
 	mx_status_type mx_status;
@@ -401,7 +401,7 @@ mxd_mcs_timer_set_modes_of_associated_counters( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_mcs_timer_get_last_measurement_time( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_mcs_timer_get_last_measurement_time()";
+	static const char fname[] = "mxd_mcs_timer_get_last_measurement_time()";
 
 	MX_MCS_TIMER *mcs_timer;
 	double last_measurement_time;
