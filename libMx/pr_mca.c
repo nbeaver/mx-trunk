@@ -83,9 +83,7 @@ mx_mca_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_MCA *mca;
-	unsigned long ulong_value;
-	double double_value;
-	int preset_type, busy;
+	int preset_type;
 	double preset_value;
 	mx_status_type status;
 
@@ -99,7 +97,7 @@ mx_mca_process_function( void *record_ptr,
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_MCA_BUSY:
-			status = mx_mca_is_busy( record, &busy );
+			status = mx_mca_is_busy( record, NULL );
 			break;
 		case MXLV_MCA_PRESET_TYPE:
 			status = mx_mca_get_preset_type( record, NULL );
@@ -108,8 +106,7 @@ mx_mca_process_function( void *record_ptr,
 			status = mx_mca_read( record, NULL, NULL );
 			break;
 		case MXLV_MCA_CURRENT_NUM_CHANNELS:
-			status = mx_mca_get_num_channels(
-						record, &ulong_value );
+			status = mx_mca_get_num_channels( record, NULL );
 			break;
 		case MXLV_MCA_ROI_ARRAY:
 			status = mx_mca_get_roi_array( record,
@@ -128,14 +125,13 @@ mx_mca_process_function( void *record_ptr,
 			break;
 		case MXLV_MCA_CHANNEL_VALUE:
 			status = mx_mca_get_channel( record,
-						mca->channel_number,
-						&ulong_value );
+						mca->channel_number, NULL );
 			break;
 		case MXLV_MCA_REAL_TIME:
-			status = mx_mca_get_real_time( record, &double_value );
+			status = mx_mca_get_real_time( record, NULL );
 			break;
 		case MXLV_MCA_LIVE_TIME:
-			status = mx_mca_get_live_time( record, &double_value );
+			status = mx_mca_get_live_time( record, NULL );
 			break;
 		case MXLV_MCA_SOFT_ROI:
 			status = mx_mca_get_soft_roi(record,
@@ -143,11 +139,7 @@ mx_mca_process_function( void *record_ptr,
 			break;
 		case MXLV_MCA_SOFT_ROI_INTEGRAL:
 			status = mx_mca_get_soft_roi_integral( record,
-					mca->soft_roi_number, &ulong_value );
-
-			MX_DEBUG(-2,
-				("%s: MXLV_MCA_SOFT_ROI_INTEGRAL value = %lu",
-				 fname, ulong_value));
+					mca->soft_roi_number, NULL );
 			break;
 		case MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY:
 			status = mx_mca_get_soft_roi_integral_array( record,

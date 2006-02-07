@@ -24,7 +24,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *controller_record;
-	int motor_number;
+	int32_t motor_number;
 
 	double default_speed;
 	double default_base_speed;
@@ -59,7 +59,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_phidget_old_stepper_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PHIDGET_OLD_STEPPER, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PHIDGET_OLD_STEPPER, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

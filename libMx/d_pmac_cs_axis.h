@@ -26,10 +26,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmac_record;
-	int card_number;
-	int coordinate_system;
+	int32_t card_number;
+	int32_t coordinate_system;
 	char axis_name;
-	int move_program_number;
+	int32_t move_program_number;
 	char position_variable[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 	char destination_variable[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 	char feedrate_variable[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
@@ -56,10 +56,10 @@ MX_API mx_status_type mxd_pmac_cs_axis_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_cs_axis_simultaneous_start(
-						int num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						int flags );
+					mx_length_type num_motor_records,
+					MX_RECORD **motor_record_array,
+					double *position_array,
+					mx_hex_type flags );
 MX_API mx_status_type mxd_pmac_cs_axis_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_cs_axis_record_function_list;
@@ -74,12 +74,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_cs_axis_rfield_def_ptr;
 		offsetof(MX_PMAC_COORDINATE_SYSTEM_AXIS, pmac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PMAC_COORDINATE_SYSTEM_AXIS, card_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "coordinate_system", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "coordinate_system", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PMAC_COORDINATE_SYSTEM_AXIS, coordinate_system), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
@@ -89,7 +89,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_cs_axis_rfield_def_ptr;
 		offsetof(MX_PMAC_COORDINATE_SYSTEM_AXIS, axis_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "move_program_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "move_program_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PMAC_COORDINATE_SYSTEM_AXIS, move_program_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \

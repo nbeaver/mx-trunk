@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_modbus_din_record_field_defaults[] = {
 	MXD_MODBUS_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_modbus_din_num_record_fields
+mx_length_type mxd_modbus_din_num_record_fields
 		= sizeof( mxd_modbus_din_record_field_defaults )
 			/ sizeof( mxd_modbus_din_record_field_defaults[0] );
 
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_modbus_dout_record_field_defaults[] = {
 	MXD_MODBUS_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_modbus_dout_num_record_fields
+mx_length_type mxd_modbus_dout_num_record_fields
 		= sizeof( mxd_modbus_dout_record_field_defaults )
 			/ sizeof( mxd_modbus_dout_record_field_defaults[0]);
 

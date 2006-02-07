@@ -26,16 +26,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
-	unsigned long pdi45_dinput_flags;
+	int32_t line_number;
+	mx_hex_type pdi45_dinput_flags;
 } MX_PDI45_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
-	unsigned long pdi45_doutput_flags;
+	int32_t line_number;
+	mx_hex_type pdi45_doutput_flags;
 } MX_PDI45_DOUTPUT;
 
 #define MXD_PDI45_DINPUT_STANDARD_FIELDS \
@@ -43,7 +43,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -56,7 +56,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

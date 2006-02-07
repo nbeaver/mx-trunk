@@ -24,15 +24,15 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int axis_id;
+	int32_t axis_id;
 
-	unsigned long default_speed;
-	unsigned long default_base_speed;
-	unsigned long default_acceleration;
-	unsigned long default_acceleration_factor;
+	uint32_t default_speed;
+	uint32_t default_base_speed;
+	uint32_t default_acceleration;
+	uint32_t default_acceleration_factor;
 
-	unsigned short lines_per_revolution;
-	unsigned short steps_per_revolution;
+	uint16_t lines_per_revolution;
+	uint16_t steps_per_revolution;
 } MX_PCSTEP_MOTOR;
 
 MX_API mx_status_type mxd_pcstep_initialize_type( long type );
@@ -75,32 +75,32 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pcstep_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, axis_id), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_speed", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_base_speed", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_base_speed", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, default_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, default_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration_factor", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration_factor", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, \
 					default_acceleration_factor), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "lines_per_revolution", MXFT_USHORT, NULL, 0, {0}, \
+  {-1, -1, "lines_per_revolution", MXFT_UINT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, lines_per_revolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "steps_per_revolution", MXFT_USHORT, NULL, 0, {0}, \
+  {-1, -1, "steps_per_revolution", MXFT_UINT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, steps_per_revolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

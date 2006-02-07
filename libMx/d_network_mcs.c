@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_mcs_record_field_defaults[] = {
 	MXD_NETWORK_MCS_STANDARD_FIELDS
 };
 
-long mxd_network_mcs_num_record_fields
+mx_length_type mxd_network_mcs_num_record_fields
 		= sizeof( mxd_network_mcs_record_field_defaults )
 			/ sizeof( mxd_network_mcs_record_field_defaults[0] );
 
@@ -114,9 +114,9 @@ MX_EXPORT mx_status_type
 mxd_network_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
-	long maximum_num_scalers_varargs_cookie;
-	long maximum_num_measurements_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_scalers_varargs_cookie;
+	mx_length_type maximum_num_measurements_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_initialize_type( record_type,
@@ -131,7 +131,8 @@ mxd_network_mcs_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_network_mcs_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_network_mcs_create_record_structures()";
+	static const char fname[] =
+		"mxd_network_mcs_create_record_structures()";
 
 	MX_MCS *mcs;
 	MX_NETWORK_MCS *network_mcs;
@@ -285,10 +286,10 @@ mxd_network_mcs_print_structure( FILE *file, MX_RECORD *record )
 					network_mcs->server_record->name);
 	fprintf(file, "  remote record             = %s\n",
 					network_mcs->remote_record_name);
-	fprintf(file, "  maximum # of scalers      = %ld\n",
-					mcs->maximum_num_scalers);
-	fprintf(file, "  maximum # of measurements = %ld\n",
-					mcs->maximum_num_measurements);
+	fprintf(file, "  maximum # of scalers      = %lu\n",
+				(unsigned long) mcs->maximum_num_scalers);
+	fprintf(file, "  maximum # of measurements = %lu\n",
+				(unsigned long) mcs->maximum_num_measurements);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -304,8 +305,8 @@ mxd_network_mcs_open( MX_RECORD *record )
 	MX_MCS_TIMER *mcs_timer;
 	MX_RECORD *current_record, *list_head_record;
 	char timer_record_name[ MXU_RECORD_NAME_LENGTH + 1 ];
-	long dimension[1];
-	int current_record_matches, is_a_timer;
+	mx_length_type dimension[1];
+	mx_bool_type current_record_matches, is_a_timer;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -429,7 +430,7 @@ mxd_network_mcs_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_start()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long start;
+	mx_bool_type start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -437,9 +438,9 @@ mxd_network_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start = 1;
+	start = TRUE;
 
-	mx_status = mx_put( &(network_mcs->start_nf), MXFT_LONG, &start );
+	mx_status = mx_put( &(network_mcs->start_nf), MXFT_BOOL, &start );
 
 	return mx_status;
 }
@@ -450,7 +451,7 @@ mxd_network_mcs_stop( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_stop()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long stop;
+	mx_bool_type stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -458,9 +459,9 @@ mxd_network_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_mcs->stop_nf), MXFT_LONG, &stop );
+	mx_status = mx_put( &(network_mcs->stop_nf), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -471,7 +472,7 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_clear()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long clear;
+	mx_bool_type clear;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -479,9 +480,9 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	clear = 1;
+	clear = TRUE;
 
-	mx_status = mx_put( &(network_mcs->clear_nf), MXFT_LONG, &clear );
+	mx_status = mx_put( &(network_mcs->clear_nf), MXFT_BOOL, &clear );
 
 	return mx_status;
 }
@@ -492,7 +493,7 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_busy()";
 
 	MX_NETWORK_MCS *network_mcs;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -500,7 +501,7 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_mcs->busy_nf), MXFT_INT, &busy );
+	mx_status = mx_get( &(network_mcs->busy_nf), MXFT_BOOL, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -519,7 +520,7 @@ mxd_network_mcs_read_all( MX_MCS *mcs )
 {
 	static const char fname[] = "mxd_network_mcs_read_all()";
 
-	long i;
+	mx_length_type i;
 	mx_status_type mx_status;
 
 	if ( mcs == NULL ) {
@@ -546,8 +547,8 @@ mxd_network_mcs_read_scaler( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_read_scaler()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long dimension_array[1];
-	long *data_ptr;
+	mx_length_type dimension_array[1];
+	int32_t *data_ptr;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -556,7 +557,7 @@ mxd_network_mcs_read_scaler( MX_MCS *mcs )
 		return mx_status;
 
 	mx_status = mx_put( &(network_mcs->scaler_index_nf),
-				MXFT_LONG, &(mcs->scaler_index) );
+				MXFT_LENGTH, &(mcs->scaler_index) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -585,17 +586,15 @@ mxd_network_mcs_read_scaler( MX_MCS *mcs )
 			 * of the values that the remote server sent.
 			 */
 
-			dimension_array[0] = (long)
-					mcs->maximum_num_measurements;
+			dimension_array[0] = mcs->maximum_num_measurements;
 		} else {
-			dimension_array[0] = (long)
-					mcs->current_num_measurements;
+			dimension_array[0] = mcs->current_num_measurements;
 		}
 	}
 #endif
 
 	mx_status = mx_get_array( &(network_mcs->scaler_data_nf),
-				MXFT_LONG, 1, dimension_array, data_ptr );
+				MXFT_INT32, 1, dimension_array, data_ptr );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -623,7 +622,7 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_read_measurement()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long dimension_array[1];
+	mx_length_type dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -632,7 +631,7 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 		return mx_status;
 
 	mx_status = mx_put( &(network_mcs->measurement_index_nf),
-				MXFT_LONG, &(mcs->measurement_index) );
+				MXFT_LENGTH, &(mcs->measurement_index) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -643,7 +642,7 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 	dimension_array[0] = (long) mcs->current_num_scalers;
 
 	mx_status = mx_get_array( &(network_mcs->measurement_data_nf),
-					MXFT_LONG, 1, dimension_array,
+					MXFT_INT32, 1, dimension_array,
 					mcs->measurement_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -654,10 +653,11 @@ mxd_network_mcs_read_measurement( MX_MCS *mcs )
 
 #if 0
 	{
-		long i;
+		mx_length_type i;
 
 		for ( i = 0; i < mcs->current_num_scalers; i++ ) {
-			fprintf(stderr,"%ld ", mcs->measurement_data[i]);
+			fprintf( stderr,"%lu ",
+				(unsigned long) mcs->measurement_data[i] );
 		}
 		fprintf(stderr,"\n");
 	}
@@ -672,7 +672,7 @@ mxd_network_mcs_read_timer( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_read_timer()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long dimension_array[1];
+	mx_length_type dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -697,7 +697,7 @@ mxd_network_mcs_read_timer( MX_MCS *mcs )
 
 #if 0
 	{
-		long i;
+		mx_length_type i;
 
 		for ( i = 0; i < mcs->current_num_measurements; i++ ) {
 			fprintf(stderr,"%g ", mcs->timer_data[i]);
@@ -715,10 +715,10 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_get_parameter()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long mode;
-	int external_channel_advance;
-	unsigned long external_prescale;
-	unsigned long num_measurements, measurement_counts;
+	mx_bool_type external_channel_advance;
+	int32_t mode;
+	uint32_t external_prescale, measurement_counts;
+	mx_length_type num_measurements;
 	double measurement_time, dark_current;
 	mx_status_type mx_status;
 
@@ -732,21 +732,22 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
-		mx_status = mx_get( &(network_mcs->mode_nf), MXFT_LONG, &mode );
+		mx_status = mx_get( &(network_mcs->mode_nf),
+					MXFT_INT32, &mode );
 
 		mcs->mode = mode;
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
 
 		mx_status = mx_get( &(network_mcs->external_channel_advance_nf),
-					MXFT_INT, &external_channel_advance );
+					MXFT_BOOL, &external_channel_advance );
 
 		mcs->external_channel_advance = external_channel_advance;
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_PRESCALE ) {
 
 		mx_status = mx_get( &(network_mcs->external_prescale_nf),
-					MXFT_ULONG, &external_prescale );
+					MXFT_UINT32, &external_prescale );
 
 		mcs->external_prescale = external_prescale;
 
@@ -760,21 +761,21 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_COUNTS ) {
 
 		mx_status = mx_get( &(network_mcs->measurement_counts_nf),
-					MXFT_ULONG, &measurement_counts );
+					MXFT_UINT32, &measurement_counts );
 
 		mcs->measurement_counts = measurement_counts;
 
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
 		mx_status = mx_get( &(network_mcs->current_num_measurements_nf),
-					MXFT_ULONG, &num_measurements );
+					MXFT_UINT32, &num_measurements );
 
 		mcs->current_num_measurements = num_measurements;
 
 	} else if ( mcs->parameter_type == MXLV_MCS_DARK_CURRENT ) {
 
 		mx_status = mx_put( &(network_mcs->scaler_index_nf),
-					MXFT_LONG, &(mcs->scaler_index) );
+					MXFT_LENGTH, &(mcs->scaler_index) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -784,8 +785,8 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 
 		mcs->dark_current_array[ mcs->scaler_index ] = dark_current;
 
-		MX_DEBUG( 2,("%s: mcs->dark_current_array[%ld] = %g",
-			fname, mcs->scaler_index,
+		MX_DEBUG( 2,("%s: mcs->dark_current_array[%lu] = %g",
+			fname, (unsigned long) mcs->scaler_index,
 			mcs->dark_current_array[mcs->scaler_index]));
 
 	} else {
@@ -804,10 +805,10 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_set_parameter()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long mode;
-	int external_channel_advance;
-	unsigned long external_prescale;
-	unsigned long num_measurements, measurement_counts;
+	mx_bool_type external_channel_advance;
+	int32_t mode;
+	uint32_t external_prescale, measurement_counts;
+	mx_length_type num_measurements;
 	double measurement_time, dark_current;
 	mx_status_type mx_status;
 
@@ -823,7 +824,8 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 		mode = mcs->mode;
 
-		mx_status = mx_put( &(network_mcs->mode_nf), MXFT_LONG, &mode );
+		mx_status = mx_put( &(network_mcs->mode_nf),
+					MXFT_INT32, &mode );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
 
@@ -834,18 +836,18 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 			network_mcs->external_channel_advance_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),
-					MXFT_INT, &external_channel_advance );
+					MXFT_BOOL, &external_channel_advance );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_PRESCALE ) {
 
 		external_prescale = mcs->external_prescale;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-				fname, external_prescale,
+				fname, (unsigned long) external_prescale,
 				network_mcs->external_prescale_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->external_prescale_nf),
-					MXFT_ULONG, &external_prescale );
+					MXFT_UINT32, &external_prescale );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
 
@@ -863,35 +865,35 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 		measurement_counts = mcs->measurement_counts;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-				fname, measurement_counts,
+				fname, (unsigned long) measurement_counts,
 				network_mcs->measurement_counts_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->measurement_counts_nf),
-					MXFT_ULONG, &measurement_counts );
+					MXFT_UINT32, &measurement_counts );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
 		num_measurements = mcs->current_num_measurements;
 
 		MX_DEBUG( 2,("%s: sending %lu to '%s'",
-			fname, num_measurements,
+			fname, (unsigned long) num_measurements,
 			network_mcs->current_num_measurements_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->current_num_measurements_nf),
-					MXFT_ULONG, &num_measurements );
+					MXFT_LENGTH, &num_measurements );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_DARK_CURRENT ) {
 
 		mx_status = mx_put( &(network_mcs->scaler_index_nf),
-					MXFT_LONG, &(mcs->scaler_index) );
+					MXFT_LENGTH, &(mcs->scaler_index) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		dark_current = mcs->dark_current_array[ mcs->scaler_index ];
 
-		MX_DEBUG( 2,("%s: mcs->dark_current_array[%ld] = %g",
-			fname, mcs->scaler_index,
+		MX_DEBUG( 2,("%s: mcs->dark_current_array[%lu] = %g",
+			fname, (unsigned long) mcs->scaler_index,
 			mcs->dark_current_array[mcs->scaler_index]));
 
 		mx_status = mx_put( &(network_mcs->dark_current_nf),

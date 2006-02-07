@@ -57,7 +57,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 				MX_MCA_VALUE **mca_value,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_mca_value_get_pointers()";
+	static const char fname[] = "mxd_mca_value_get_pointers()";
 
 	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -98,7 +98,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 MX_EXPORT mx_status_type
 mxd_mca_value_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_value_create_record_structures()";
+	static const char fname[] = "mxd_mca_value_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -142,7 +142,7 @@ mxd_mca_value_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_value_finish_record_initialization()";
+	static const char fname[] = "mxd_mca_value_finish_record_initialization()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -201,12 +201,13 @@ mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 {
-	const char fname[] = "mxd_mca_value_read()";
+	static const char fname[] = "mxd_mca_value_read()";
 
 	MX_MCA_VALUE *mca_value;
 
-	unsigned long roi_number, soft_roi_number;
-	unsigned long roi_integral, soft_roi_integral;
+	mx_length_type roi_number, soft_roi_number;
+	uint32_t roi_integral, soft_roi_integral;
+	unsigned long ulong_value;
 	double corrected_integral, real_time, live_time, multiplier;
 	double input_count_rate, output_count_rate;
 	int num_items;
@@ -229,7 +230,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &roi_number );
+					"%lu", &ulong_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -238,6 +239,8 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
+
+		roi_number = ulong_value;
 
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
 						roi_number, &roi_integral );
@@ -247,7 +250,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_SOFT_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &soft_roi_number );
+					"%lu", &ulong_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -256,6 +259,8 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
+
+		soft_roi_number = ulong_value;
 
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
 					soft_roi_number, &soft_roi_integral );
@@ -286,7 +291,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &roi_number );
+					"%lu", &ulong_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -295,6 +300,8 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
+
+		roi_number = ulong_value;
 
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
 						roi_number, &roi_integral );
@@ -324,7 +331,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &soft_roi_number );
+					"%lu", &ulong_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -333,6 +340,8 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
+
+		soft_roi_number = ulong_value;
 
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
 					soft_roi_number, &soft_roi_integral );

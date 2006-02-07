@@ -73,12 +73,7 @@ MX_API mx_status_type mxd_network_mca_finish_record_initialization(
 MX_API mx_status_type mxd_network_mca_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_print_structure( FILE *file,
 							MX_RECORD *record );
-MX_API mx_status_type mxd_network_mca_read_parms_from_hardware(
-							MX_RECORD *record );
-MX_API mx_status_type mxd_network_mca_write_parms_to_hardware(
-							MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_open( MX_RECORD *record );
-MX_API mx_status_type mxd_network_mca_close( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_mca_start( MX_MCA *mca );

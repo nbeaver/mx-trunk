@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_mce_record_field_defaults[] = {
 	MXD_NETWORK_MCE_STANDARD_FIELDS
 };
 
-long mxd_network_mce_num_record_fields
+mx_length_type mxd_network_mce_num_record_fields
 		= sizeof( mxd_network_mce_record_field_defaults )
 		  / sizeof( mxd_network_mce_record_field_defaults[0] );
 
@@ -97,9 +97,9 @@ mxd_network_mce_get_pointers( MX_MCE *mce,
 MX_EXPORT mx_status_type
 mxd_network_mce_initialize_type( long record_type )
 {
-	long num_record_fields;
+	mx_length_type num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long maximum_num_values_varargs_cookie;
+	mx_length_type maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_initialize_type( record_type,
@@ -246,8 +246,8 @@ mxd_network_mce_read( MX_MCE *mce )
 	MX_NETWORK_MCE *network_mce;
 	MX_MOTOR *selected_motor;
 	double motor_scale, scaled_encoder_value;
-	long dimension_array[1];
-	long i, num_values;
+	mx_length_type dimension_array[1];
+	mx_length_type i, num_values;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
@@ -280,7 +280,7 @@ mxd_network_mce_read( MX_MCE *mce )
 	/* First get the current number of encoder values. */
 
 	mx_status = mx_get( &(network_mce->current_num_values_nf),
-					MXFT_LONG, &num_values );
+					MXFT_LENGTH, &num_values );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -343,7 +343,7 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 	static const char fname[] = "mxd_network_mce_get_current_num_values()";
 
 	MX_NETWORK_MCE *network_mce;
-	long num_values;
+	mx_length_type num_values;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
@@ -355,15 +355,16 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 			fname, mce->record->name));
 
 	mx_status = mx_get( &(network_mce->current_num_values_nf),
-					MXFT_LONG, &num_values );
+					MXFT_LENGTH, &num_values );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: num_values = %ld", fname, num_values));
+	MX_DEBUG( 2,("%s: num_values = %ld", fname,
+			(unsigned long) num_values));
 
-	MX_DEBUG( 2,("%s: mce->maximum_num_values = %ld",
-				fname, mce->maximum_num_values));
+	MX_DEBUG( 2,("%s: mce->maximum_num_values = %lu", fname,
+			(unsigned long) mce->maximum_num_values));
 
 	if ( num_values > mce->maximum_num_values ) {
 		mce->current_num_values = mce->maximum_num_values;
@@ -371,8 +372,8 @@ mxd_network_mce_get_current_num_values( MX_MCE *mce )
 		mce->current_num_values = num_values;
 	}
 
-	MX_DEBUG( 2,("%s: mce->current_num_values = %ld",
-			fname, mce->current_num_values ));
+	MX_DEBUG( 2,("%s: mce->current_num_values = %lu", fname,
+			(unsigned long) mce->current_num_values ));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -383,9 +384,10 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	static const char fname[] = "mxd_network_mce_get_motor_record_array()";
 
 	MX_NETWORK_MCE *network_mce;
-	int i, num_remote_motors, is_network_motor, name_matches;
+	mx_bool_type is_network_motor, name_matches;
+	mx_length_type i, num_remote_motors;
 	char **motor_name_array;
-	long dimension_array[2];
+	mx_length_type dimension_array[2];
 	size_t size_array[2];
 	MX_RECORD *list_head_record, *current_record;
 	MX_NETWORK_MOTOR *network_motor;
@@ -435,7 +437,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	/* Find out how many remote motors are supported by this MCE. */
 
 	mx_status = mx_get( &(network_mce->num_motors_nf),
-				MXFT_INT, &num_remote_motors );
+				MXFT_LENGTH, &num_remote_motors );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -469,9 +471,10 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		mx_free( mce->motor_record_array );
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate a %ld element "
-			"array of %ld character strings for record '%s'.",
-				dimension_array[0], dimension_array[1],
+			"Ran out of memory trying to allocate a %lu element "
+			"array of %lu character strings for record '%s'.",
+				(unsigned long) dimension_array[0],
+				(unsigned long) dimension_array[1],
 				mce->record->name );
 	}
 
@@ -577,8 +580,8 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 
 	MX_NETWORK_MCE *network_mce;
 	MX_NETWORK_MOTOR *network_motor;
-	long dimension_array[1];
-	int is_network_motor;
+	mx_bool_type is_network_motor;
+	mx_length_type dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mce_get_pointers( mce, &network_mce, fname );
@@ -633,7 +636,7 @@ mxd_network_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	if ( mce->encoder_type == MXT_MCE_UNKNOWN_ENCODER_TYPE ) {
 
 		mx_status = mx_get( &(network_mce->encoder_type_nf),
-				MXFT_LONG, &(mce->encoder_type) );
+				MXFT_INT32, &(mce->encoder_type) );
 	}
 
 	return mx_status;

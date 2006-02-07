@@ -24,9 +24,9 @@
 
 typedef struct {
 	MX_RECORD *newport_record;
-	int axis_number;
+	int32_t axis_number;
 
-	int hardware_limits_active_high;
+	mx_bool_type hardware_limits_active_high;
 } MX_NEWPORT_MOTOR;
 
 MX_API mx_status_type mxd_newport_create_record_structures( MX_RECORD *record );
@@ -67,8 +67,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_esp_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_MOTOR, newport_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
 #endif /* __D_NEWPORT_H__ */
+

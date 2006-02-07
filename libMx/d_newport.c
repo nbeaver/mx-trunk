@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mm3000_record_field_defaults[] = {
 	MXD_NEWPORT_STANDARD_FIELDS
 };
 
-long mxd_mm3000_num_record_fields
+mx_length_type mxd_mm3000_num_record_fields
 		= sizeof( mxd_mm3000_record_field_defaults )
 			/ sizeof( mxd_mm3000_record_field_defaults[0] );
 
@@ -84,7 +84,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mm4000_record_field_defaults[] = {
 	MXD_NEWPORT_STANDARD_FIELDS
 };
 
-long mxd_mm4000_num_record_fields
+mx_length_type mxd_mm4000_num_record_fields
 		= sizeof( mxd_mm4000_record_field_defaults )
 			/ sizeof( mxd_mm4000_record_field_defaults[0] );
 
@@ -100,7 +100,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_esp_record_field_defaults[] = {
 	MXD_NEWPORT_STANDARD_FIELDS
 };
 
-long mxd_esp_num_record_fields
+mx_length_type mxd_esp_num_record_fields
 		= sizeof( mxd_esp_record_field_defaults )
 			/ sizeof( mxd_esp_record_field_defaults[0] );
 
@@ -332,7 +332,7 @@ mxd_newport_print_structure( FILE *file, MX_RECORD *record )
 	if ( record->mx_type == MXT_MTR_MM3000 ) {
 		fprintf(file, "  position       = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			motor->raw_position.stepper );
+			(long) motor->raw_position.stepper );
 		fprintf(file, "  scale          = %g %s per step.\n",
 			motor->scale, motor->units);
 		fprintf(file, "  offset         = %g %s.\n",
@@ -340,22 +340,22 @@ mxd_newport_print_structure( FILE *file, MX_RECORD *record )
 	
 		fprintf(file, "  backlash       = %g %s  (%ld steps)\n",
 			motor->backlash_correction, motor->units,
-			motor->raw_backlash_correction.stepper);
+			(long) motor->raw_backlash_correction.stepper);
 	
 		fprintf(file, "  negative limit = %g %s  (%ld steps)\n",
 			motor->negative_limit, motor->units,
-			motor->raw_negative_limit.stepper);
+			(long) motor->raw_negative_limit.stepper);
 
 		fprintf(file, "  positive limit = %g %s  (%ld steps)\n",
 			motor->positive_limit, motor->units,
-			motor->raw_positive_limit.stepper);
+			(long) motor->raw_positive_limit.stepper);
 
 		move_deadband = motor->scale *
 				(double) motor->raw_move_deadband.stepper;
 
 		fprintf(file, "  move deadband  = %g %s  (%ld steps)\n\n",
 			move_deadband, motor->units,
-			motor->raw_move_deadband.stepper );
+			(long) motor->raw_move_deadband.stepper );
 
 	} else {	/* ESP and MM4000 */
 	

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_scaler_record_field_defaults[] = {
 	MXD_NETWORK_SCALER_STANDARD_FIELDS
 };
 
-long mxd_network_scaler_num_record_fields
+mx_length_type mxd_network_scaler_num_record_fields
 		= sizeof( mxd_network_scaler_record_field_defaults )
 		  / sizeof( mxd_network_scaler_record_field_defaults[0] );
 
@@ -201,7 +201,7 @@ mxd_network_scaler_clear( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_clear()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	long value;
+	mx_bool_type clear;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -210,9 +210,9 @@ mxd_network_scaler_clear( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = 1;
+	clear = TRUE;
 
-	mx_status = mx_put( &(network_scaler->clear_nf), MXFT_INT, &value );
+	mx_status = mx_put( &(network_scaler->clear_nf), MXFT_BOOL, &clear );
 
 	scaler->raw_value = 0L;
 
@@ -225,7 +225,7 @@ mxd_network_scaler_overflow_set( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_overflow_set()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	int overflow_set;
+	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -235,7 +235,7 @@ mxd_network_scaler_overflow_set( MX_SCALER *scaler )
 		return mx_status;
 
 	mx_status = mx_get( &(network_scaler->overflow_set_nf),
-				MXFT_INT, &overflow_set );
+				MXFT_BOOL, &overflow_set );
 
 	scaler->overflow_set = overflow_set;
 
@@ -248,7 +248,7 @@ mxd_network_scaler_read( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_read()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	long value;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -257,7 +257,7 @@ mxd_network_scaler_read( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_scaler->value_nf), MXFT_LONG, &value );
+	mx_status = mx_get( &(network_scaler->value_nf), MXFT_INT32, &value );
 
 	scaler->raw_value = value;
 
@@ -270,7 +270,7 @@ mxd_network_scaler_read_raw( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_read_raw()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	long raw_value;
+	int32_t raw_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -280,7 +280,7 @@ mxd_network_scaler_read_raw( MX_SCALER *scaler )
 		return mx_status;
 
 	mx_status = mx_get( &(network_scaler->raw_value_nf),
-				MXFT_LONG, &raw_value );
+				MXFT_INT32, &raw_value );
 
 	scaler->raw_value = raw_value;
 
@@ -293,7 +293,7 @@ mxd_network_scaler_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_is_busy()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -302,7 +302,7 @@ mxd_network_scaler_is_busy( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_scaler->busy_nf), MXFT_INT, &busy );
+	mx_status = mx_get( &(network_scaler->busy_nf), MXFT_BOOL, &busy );
 
 	scaler->busy = busy;
 
@@ -315,7 +315,7 @@ mxd_network_scaler_start( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_start()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	long value;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -326,7 +326,7 @@ mxd_network_scaler_start( MX_SCALER *scaler )
 
 	value = scaler->raw_value;
 
-	mx_status = mx_put( &(network_scaler->value_nf), MXFT_LONG, &value );
+	mx_status = mx_put( &(network_scaler->value_nf), MXFT_INT32, &value );
 
 	return mx_status;
 }
@@ -337,8 +337,8 @@ mxd_network_scaler_stop( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_stop()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	int stop;
-	long value;
+	mx_bool_type stop;
+	int32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_scaler_get_pointers(
@@ -347,14 +347,14 @@ mxd_network_scaler_stop( MX_SCALER *scaler )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_scaler->stop_nf), MXFT_INT, &stop );
+	mx_status = mx_put( &(network_scaler->stop_nf), MXFT_BOOL, &stop );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_scaler->value_nf), MXFT_LONG, &value );
+	mx_status = mx_get( &(network_scaler->value_nf), MXFT_INT32, &value );
 
 	scaler->raw_value = value;
 
@@ -367,7 +367,7 @@ mxd_network_scaler_get_parameter( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_get_parameter()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	int mode;
+	int32_t mode;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -380,7 +380,7 @@ mxd_network_scaler_get_parameter( MX_SCALER *scaler )
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:
 		mx_status = mx_get( &(network_scaler->mode_nf),
-					MXFT_INT, &mode );
+					MXFT_INT32, &mode );
 		scaler->mode = mode;
 		break;
 	case MXLV_SCL_DARK_CURRENT:
@@ -413,7 +413,7 @@ mxd_network_scaler_set_parameter( MX_SCALER *scaler )
 	static const char fname[] = "mxd_network_scaler_set_parameter()";
 
 	MX_NETWORK_SCALER *network_scaler;
-	int mode;
+	int32_t mode;
 	double dark_current;
 	mx_status_type mx_status;
 
@@ -428,7 +428,7 @@ mxd_network_scaler_set_parameter( MX_SCALER *scaler )
 		mode = scaler->mode;
 
 		mx_status = mx_put( &(network_scaler->mode_nf),
-					MXFT_INT, &mode );
+					MXFT_INT32, &mode );
 		break;
 	case MXLV_SCL_DARK_CURRENT:
 		/* If the database is configured such that the server

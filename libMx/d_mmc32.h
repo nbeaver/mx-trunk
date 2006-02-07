@@ -24,11 +24,11 @@
 
 typedef struct {
 	MX_INTERFACE gpib_interface;
-	int motor_number;	/* From 0 to 32 */
+	int32_t motor_number;		/* From 0 to 32 */
 	double multiplication_factor;
-	int start_velocity;
-	int peak_velocity;
-	int acceleration_steps;
+	int32_t start_velocity;
+	int32_t peak_velocity;
+	int32_t acceleration_steps;
 } MX_MMC32;
 
 /* Define all of the interface functions. */
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, gpib_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -69,15 +69,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, multiplication_factor), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "start_velocity", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "start_velocity", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, start_velocity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "peak_velocity", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "peak_velocity", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, peak_velocity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "acceleration_steps", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "acceleration_steps", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, acceleration_steps), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi40motor_record_field_defaults[] = {
 	MXD_PDI40_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_pdi40motor_num_record_fields
+mx_length_type mxd_pdi40motor_num_record_fields
 		= sizeof( mxd_pdi40motor_record_field_defaults )
 			/ sizeof( mxd_pdi40motor_record_field_defaults[0] );
 
@@ -83,7 +83,7 @@ mxd_pdi40motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi40motor_create_record_structures()";
+	static const char fname[] = "mxd_pdi40motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40motor;
@@ -123,17 +123,17 @@ mxd_pdi40motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi40motor_finish_record_initialization()";
+	static const char fname[] = "mxd_pdi40motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40motor;
 	MX_PDI40 *pdi40;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -156,7 +156,7 @@ mxd_pdi40motor_finish_record_initialization( MX_RECORD *record )
 				"Illegal PDI40 stepper name '%c'",
 				pdi40motor->stepper_name );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -185,7 +185,7 @@ mxd_pdi40motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi40motor_read_parms_from_hardware()";
+	static const char fname[] = "mxd_pdi40motor_read_parms_from_hardware()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40_motor;
@@ -194,7 +194,7 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 	char stepper_mode_string[40];
 	int i, num_items, stepper_speed, stepper_stop_delay;
 	char c;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -227,10 +227,10 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 
 	/* Send the command to the PDI40. */
 
-	status = mxi_pdi40_putline( pdi40, "S?", FALSE );
+	mx_status = mxi_pdi40_putline( pdi40, "S?", FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Read out the response.  It should be:
 	 *  1.  A blank line.
@@ -242,10 +242,10 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 	 *  7.  The character '>'.
 	 */
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -253,7 +253,7 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 			buffer );
 	}
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
 	if ( strcmp( buffer, "OK" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -263,10 +263,10 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 
 	/* Get the stepper mode. */
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( buffer, "%s", stepper_mode_string );
 
@@ -291,10 +291,10 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 
 	/* Get the stepper speed and stop delay. */
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( buffer,
 		"   Speed (steps/s) = %d   Stop delay = %d",
@@ -314,17 +314,17 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 	 */
 
 	for ( i = 0; i < 4; i++ ) {
-		status = mxi_pdi40_getline( pdi40,
+		mx_status = mxi_pdi40_getline( pdi40,
 				buffer, sizeof buffer, FALSE );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
-	status = mxi_pdi40_getc( pdi40, &c, FALSE );
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( c != MX_PDI40_END_OF_RESPONSE ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -338,14 +338,14 @@ mxd_pdi40motor_read_parms_from_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi40motor_write_parms_to_hardware()";
+	static const char fname[] = "mxd_pdi40motor_write_parms_to_hardware()";
 
 	MX_MOTOR *motor;
 	MX_PDI40_MOTOR *pdi40_motor;
 	MX_PDI40 *pdi40;
 	char buffer[80];
 	char c;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -395,19 +395,19 @@ mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 
 	MX_DEBUG(2, ("SE buffer = '%s'", buffer) );
 
-	status = mxi_pdi40_putline( pdi40, buffer, FALSE );
+	mx_status = mxi_pdi40_putline( pdi40, buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Read out the response. It should be a blank line, "OK",
 	 * a blank line, and then '>'.
 	 */
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -415,10 +415,10 @@ mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 			buffer );
 	}
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "OK" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -426,10 +426,10 @@ mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 			buffer );
 	}
 
-	status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, buffer, sizeof buffer, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( buffer, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -437,10 +437,10 @@ mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 			buffer );
 	}
 
-	status = mxi_pdi40_getc( pdi40, &c, FALSE );
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( c != MX_PDI40_END_OF_RESPONSE ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -472,12 +472,12 @@ mxd_pdi40motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pdi40motor_motor_is_busy()";
+	static const char fname[] = "mxd_pdi40motor_motor_is_busy()";
 
 	MX_PDI40 *pdi40;
 	MX_PDI40_MOTOR *pdi40_motor;
 	int a_motor_is_busy;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -505,10 +505,10 @@ mxd_pdi40motor_motor_is_busy( MX_MOTOR *motor )
 	 * to it until the other motor stops moving.
 	 */
 
-	status = mxi_pdi40_is_any_motor_busy( pdi40, &a_motor_is_busy );
+	mx_status = mxi_pdi40_is_any_motor_busy( pdi40, &a_motor_is_busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( a_motor_is_busy == FALSE ) {
 		motor->busy = FALSE;
@@ -522,13 +522,13 @@ mxd_pdi40motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pdi40motor_move_absolute()";
+	static const char fname[] = "mxd_pdi40motor_move_absolute()";
 
 	MX_PDI40 *pdi40;
 	MX_PDI40_MOTOR *pdi40_motor;
 	char command[20];
-	long motor_steps, current_position, relative_steps;
-	mx_status_type status;
+	int32_t motor_steps, current_position, relative_steps;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -553,10 +553,11 @@ mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 
 	/* Get where the motor is now and compute a relative move. */
 
-	status = mx_motor_get_position_steps(motor->record, &current_position);
+	mx_status = mx_motor_get_position_steps( motor->record,
+						&current_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	relative_steps = motor_steps - current_position;
 
@@ -565,14 +566,14 @@ mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 	if ( relative_steps >= 0 ) {
 		sprintf( command, "S%cR%ld",
 			pdi40_motor->stepper_name,
-			relative_steps );
+			(long) relative_steps );
 	} else {
 		sprintf( command, "S%cL%ld",
 			pdi40_motor->stepper_name,
-			- relative_steps );
+			(long) (- relative_steps) );
 	}
 
-	status = mxi_pdi40_putline( pdi40, command, FALSE );
+	mx_status = mxi_pdi40_putline( pdi40, command, FALSE );
 
 	/* No other commands (besides abort move) may be sent to the PDI40
 	 * until the currently moving motor finishes its motion, so we
@@ -582,7 +583,7 @@ mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 	pdi40->currently_moving_stepper = pdi40_motor->stepper_name;
 	pdi40->current_move_distance = relative_steps;
 
-	return status;
+	return mx_status;
 }
 
 /* The motor positions are maintained entirely in software. */
@@ -612,7 +613,7 @@ mxd_pdi40motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pdi40motor_immediate_abort()";
+	static const char fname[] = "mxd_pdi40motor_immediate_abort()";
 
 	MX_PDI40 *pdi40;
 	MX_PDI40_MOTOR *pdi40_motor;
@@ -621,7 +622,7 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 	char c;
 	int busy, num_items;
 	long steps_to_go;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -644,10 +645,10 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 
 	/* Is the motor currently moving? */
 
-	status = mx_motor_is_busy( motor->record, &busy );
+	mx_status = mx_motor_is_busy( motor->record, &busy );
 
-	if ( status.code != MXE_SUCCESS ) {
-		return status;
+	if ( mx_status.code != MXE_SUCCESS ) {
+		return mx_status;
 	}
 
 	/* Don't need to do anything if the motor is not moving. */
@@ -658,17 +659,17 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 
 	/* Otherwise, we have to send the soft stop command. */
 
-	status = mxi_pdi40_putline( pdi40, "S", FALSE );
+	mx_status = mxi_pdi40_putline( pdi40, "S", FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The first line returned is blank. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -677,10 +678,10 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 
 	/* Read the number of steps to go that were left. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld steps to go", &steps_to_go );
 
@@ -734,10 +735,10 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 
 	/* Finish the handshaking with the PDI40 and return. */
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline(pdi40, response, sizeof response, FALSE);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "OK" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -745,20 +746,20 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 			response );
 	}
 
-	status = mxi_pdi40_getline( pdi40, response, sizeof response, FALSE );
+	mx_status = mxi_pdi40_getline(pdi40, response, sizeof response, FALSE);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "" ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Did not see blank line after the 'OK' message." );
 	}
 
-	status = mxi_pdi40_getc( pdi40, &c, FALSE );
+	mx_status = mxi_pdi40_getc( pdi40, &c, FALSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( c != MX_PDI40_END_OF_RESPONSE ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -766,7 +767,7 @@ mxd_pdi40motor_immediate_abort( MX_MOTOR *motor )
 			c );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

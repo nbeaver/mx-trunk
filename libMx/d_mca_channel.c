@@ -75,7 +75,7 @@ mxd_mca_channel_get_pointers( MX_SCALER *scaler,
 			MX_MCA_CHANNEL **mca_channel,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_mca_channel_get_pointers()";
+	static const char fname[] = "mxd_mca_channel_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -131,7 +131,7 @@ mxd_mca_channel_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_mca_channel_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_channel_create_record_structures()";
+	static const char fname[] = "mxd_mca_channel_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_MCA_CHANNEL *mca_channel;
@@ -167,7 +167,7 @@ mxd_mca_channel_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_channel_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_mca_channel_finish_record_initialization()";
+	static const char fname[] = "mxd_mca_channel_finish_record_initialization()";
 
 	MX_MCA_CHANNEL *mca_channel;
 	MX_RECORD *mca_record;
@@ -254,90 +254,90 @@ mxd_mca_channel_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_channel_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_clear()";
+	static const char fname[] = "mxd_mca_channel_clear()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_clear( mca_channel->mca_record );
+	mx_status = mx_mca_clear( mca_channel->mca_record );
 
 	scaler->raw_value = 0L;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_overflow_set()";
+	static const char fname[] = "mxd_mca_channel_overflow_set()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* WML: I haven't decided how to do this yet. */
 
 	scaler->overflow_set = FALSE;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_read()";
+	static const char fname[] = "mxd_mca_channel_read()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	unsigned long value;
-	mx_status_type status;
+	uint32_t value;
+	mx_status_type mx_status;
 
-	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_get_channel( mca_channel->mca_record,
+	mx_status = mx_mca_get_channel( mca_channel->mca_record,
 					mca_channel->channel_number, &value );
 
-	scaler->raw_value = (long) value;
+	scaler->raw_value = (int32_t) value;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_is_busy()";
+	static const char fname[] = "mxd_mca_channel_is_busy()";
 
 	MX_MCA_CHANNEL *mca_channel;
 	int busy;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_is_busy( mca_channel->mca_record, &busy );
+	mx_status = mx_mca_is_busy( mca_channel->mca_record, &busy );
 
 	scaler->busy = busy;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_start()";
+	static const char fname[] = "mxd_mca_channel_start()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function requires support by the MCA record class that "
@@ -347,21 +347,21 @@ mxd_mca_channel_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_mca_channel_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_stop()";
+	static const char fname[] = "mxd_mca_channel_stop()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_mca_stop( mca_channel->mca_record );
+	mx_status = mx_mca_stop( mca_channel->mca_record );
 
 	scaler->raw_value = 0;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -384,7 +384,7 @@ mxd_mca_channel_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_mca_channel_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_mca_channel_set_parameter()";
+	static const char fname[] = "mxd_mca_channel_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

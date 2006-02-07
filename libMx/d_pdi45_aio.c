@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_ain_record_field_defaults[] = {
 	MXD_PDI45_AINPUT_STANDARD_FIELDS
 };
 
-long mxd_pdi45_ain_num_record_fields
+mx_length_type mxd_pdi45_ain_num_record_fields
 		= sizeof( mxd_pdi45_ain_record_field_defaults )
 			/ sizeof( mxd_pdi45_ain_record_field_defaults[0] );
 
@@ -72,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_aout_record_field_defaults[] = {
 	MXD_PDI45_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_pdi45_aout_num_record_fields
+mx_length_type mxd_pdi45_aout_num_record_fields
 		= sizeof( mxd_pdi45_aout_record_field_defaults )
 			/ sizeof( mxd_pdi45_aout_record_field_defaults[0] );
 

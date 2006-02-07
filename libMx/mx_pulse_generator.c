@@ -444,7 +444,7 @@ mx_pulse_generator_set_pulse_width( MX_RECORD *pulse_generator_record,
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_get_num_pulses( MX_RECORD *pulse_generator_record,
-					unsigned long *num_pulses )
+					uint32_t *num_pulses )
 {
 	static const char fname[] = "mx_pulse_generator_get_num_pulses()";
 
@@ -482,7 +482,7 @@ mx_pulse_generator_get_num_pulses( MX_RECORD *pulse_generator_record,
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_set_num_pulses( MX_RECORD *pulse_generator_record,
-					unsigned long num_pulses )
+					uint32_t num_pulses )
 {
 	static const char fname[] = "mx_pulse_generator_set_num_pulses()";
 

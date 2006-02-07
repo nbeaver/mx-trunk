@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_mce_record_field_defaults[] = {
 	MXD_PMAC_MCE_STANDARD_FIELDS
 };
 
-long mxd_pmac_mce_num_record_fields
+mx_length_type mxd_pmac_mce_num_record_fields
 		= sizeof( mxd_pmac_mce_record_field_defaults )
 		  / sizeof( mxd_pmac_mce_record_field_defaults[0] );
 
@@ -117,9 +117,9 @@ mxd_pmac_mce_get_pointers( MX_MCE *mce,
 MX_EXPORT mx_status_type
 mxd_pmac_mce_initialize_type( long record_type )
 {
-	long num_record_fields;
+	mx_length_type num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long maximum_num_values_varargs_cookie;
+	mx_length_type maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_initialize_type( record_type,
@@ -217,7 +217,8 @@ mxd_pmac_mce_finish_record_initialization( MX_RECORD *record )
 	if ( pmac_mce->up_channel >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The up channel %lu for MCS encoder '%s' is outside the allowed range 0-%ld "
-"for MCS '%s'.", pmac_mce->up_channel, record->name,
+"for MCS '%s'.", (unsigned long) pmac_mce->up_channel,
+		record->name,
 		mcs->maximum_num_scalers - 1L,
 		pmac_mce->mcs_record->name );
 	}
@@ -225,7 +226,8 @@ mxd_pmac_mce_finish_record_initialization( MX_RECORD *record )
 	if ( pmac_mce->down_channel >= mcs->maximum_num_scalers ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The down channel %lu for MCS encoder '%s' is outside the allowed range 0-%ld "
-"for MCS '%s'.", pmac_mce->down_channel, record->name,
+"for MCS '%s'.", (unsigned long) pmac_mce->down_channel,
+		record->name,
 		mcs->maximum_num_scalers - 1L,
 		pmac_mce->mcs_record->name );
 	}
@@ -354,8 +356,8 @@ mxd_pmac_mce_read( MX_MCE *mce )
 	MX_MOTOR *selected_motor;
 	double motor_scale, raw_encoder_value, scaled_encoder_value;
 	long i;
-	long up_channel, down_channel;
-	long *up_value_array, *down_value_array;
+	uint32_t up_channel, down_channel;
+	uint32_t *up_value_array, *down_value_array;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_mce_get_pointers( mce,
@@ -411,16 +413,19 @@ mxd_pmac_mce_read( MX_MCE *mce )
 
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"\007*** MX database configuration error ***\007\n"
-	"MCS record '%s' currently contains %ld measurements, "
-	"but MCE record '%s' is only configured for a maximum of %ld "
+	"MCS record '%s' currently contains %lu measurements, "
+	"but MCE record '%s' is only configured for a maximum of %lu "
 	"motor positions.  This means that the recorded motor positions "
-	"for all measurements after measurement %ld will be INCORRECT!!!  "
+	"for all measurements after measurement %lu will be INCORRECT!!!  "
 	"This can only be fixed by modifying MX records '%s' and '%s' in "
 	"your MX database configuration file.",
-			mcs->record->name, (long) mcs->current_num_measurements,
-			mce->record->name, mce->maximum_num_values,
-			mce->maximum_num_values,
-			mcs->record->name, mce->record->name );
+			mcs->record->name,
+			(unsigned long) mcs->current_num_measurements,
+			mce->record->name,
+			(unsigned long) mce->maximum_num_values,
+			(unsigned long) mce->maximum_num_values,
+			mcs->record->name,
+			mce->record->name );
 	}
 
 	for ( i = 0; i < mce->current_num_values; i++ ) {
@@ -456,8 +461,8 @@ mxd_pmac_mce_get_current_num_values( MX_MCE *mce )
 
 	mce->current_num_values = (long) mcs->current_num_measurements;
 
-	MX_DEBUG( 2,("%s: mce->current_num_values = %ld",
-		fname, mce->current_num_values));
+	MX_DEBUG( 2,("%s: mce->current_num_values = %lu",
+		fname, (unsigned long) mce->current_num_values));
 
 	return MX_SUCCESSFUL_RESULT;
 }

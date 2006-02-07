@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
+	int32_t line_number;
 } MX_PDI45_PULSER;
 
 #define MXD_PDI45_PULSER_STANDARD_FIELDS \
@@ -30,7 +30,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_PULSER, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_PULSER, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

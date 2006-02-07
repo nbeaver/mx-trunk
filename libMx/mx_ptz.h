@@ -122,7 +122,7 @@ typedef struct {
 	uint32_t parameter_value[MXU_PTZ_MAX_PARAMETERS];
 
 	uint32_t command;
-	uint32_t status;
+	mx_hex_type status;
 
 	int32_t pan_position;
 	int32_t pan_destination;

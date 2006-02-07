@@ -9,12 +9,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MMC32_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,14 +69,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_mmc32_record_field_defaults[] = {
 	MXD_MMC32_STANDARD_FIELDS
 };
 
-long mxd_mmc32_num_record_fields
+mx_length_type mxd_mmc32_num_record_fields
 		= sizeof( mxd_mmc32_record_field_defaults )
 			/ sizeof( mxd_mmc32_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr
 			= &mxd_mmc32_record_field_defaults[0];
-
-#define MMC32_DEBUG	TRUE
 
 /* ========== Private functions for the use of the driver =========== */
 
@@ -269,7 +269,7 @@ mxd_mmc32_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  position            = %g %s  (%ld steps)\n",
 		motor->position, motor->units,
-		motor->raw_position.stepper );
+		(long) motor->raw_position.stepper );
 	fprintf(file, "  scale               = %g %s per step.\n",
 		motor->scale, motor->units );
 	fprintf(file, "  offset              = %g %s.\n",
@@ -277,21 +277,21 @@ mxd_mmc32_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  backlash            = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		motor->raw_backlash_correction.stepper);
+		(long) motor->raw_backlash_correction.stepper);
 
 	fprintf(file, "  negative limit      = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		motor->raw_negative_limit.stepper);
+		(long) motor->raw_negative_limit.stepper);
 
 	fprintf(file, "  positive limit      = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		motor->raw_positive_limit.stepper);
+		(long) motor->raw_positive_limit.stepper);
 
 	move_deadband = motor->scale * motor->raw_move_deadband.analog;
 
 	fprintf(file, "  move deadband       = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		motor->raw_move_deadband.stepper );
+		(long) motor->raw_move_deadband.stepper );
 
 	return MX_SUCCESSFUL_RESULT;
 }

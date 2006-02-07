@@ -27,7 +27,7 @@ typedef struct {
 
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int channel_number;
+	int32_t channel_number;
 } MX_PICOMOTOR_AINPUT;
 
 #define MXD_PICOMOTOR_AINPUT_STANDARD_FIELDS \
@@ -41,7 +41,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_AINPUT, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_AINPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

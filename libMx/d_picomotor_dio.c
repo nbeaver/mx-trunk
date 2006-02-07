@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_digital_input.h"
@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_din_record_field_defaults[] = {
 	MXD_PICOMOTOR_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_picomotor_din_num_record_fields
+mx_length_type mxd_picomotor_din_num_record_fields
 		= sizeof( mxd_picomotor_din_record_field_defaults )
 			/ sizeof( mxd_picomotor_din_record_field_defaults[0] );
 
@@ -72,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_dout_record_field_defaults[] = {
 	MXD_PICOMOTOR_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_picomotor_dout_num_record_fields
+mx_length_type mxd_picomotor_dout_num_record_fields
 		= sizeof( mxd_picomotor_dout_record_field_defaults )
 			/ sizeof( mxd_picomotor_dout_record_field_defaults[0] );
 
@@ -318,7 +318,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%lu", &(dinput->value) );
+	num_items = sscanf( ptr, "%" SCNu32, &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -424,7 +424,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%lu", &(doutput->value) );
+	num_items = sscanf( ptr, "%" SCNu32, &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -469,7 +469,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	sprintf( command, "OUT %s %d=%lu",
 			picomotor_doutput->driver_name,
-			channel_number, doutput->value );
+			channel_number, (unsigned long) doutput->value );
 
 	mx_status = mxi_picomotor_command( picomotor_controller, command,
 					NULL, 0, MXD_PICOMOTOR_DIO_DEBUG );

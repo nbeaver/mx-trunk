@@ -24,18 +24,18 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *modbus_record;
-	unsigned long modbus_address;
-	int num_bits;
-	unsigned long modbus_function_code;
+	mx_hex_type modbus_address;
+	int32_t num_bits;
+	mx_hex_type modbus_function_code;
 } MX_MODBUS_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *modbus_record;
-	unsigned long modbus_address;
-	int num_bits;
-	unsigned long modbus_function_code;
+	mx_hex_type modbus_address;
+	int32_t num_bits;
+	mx_hex_type modbus_function_code;
 } MX_MODBUS_DOUTPUT;
 
 #define MXD_MODBUS_DINPUT_STANDARD_FIELDS \
@@ -48,7 +48,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DINPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DINPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -66,7 +66,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DOUTPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DOUTPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

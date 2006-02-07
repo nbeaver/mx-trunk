@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *ortec974_record;
-	int channel_number;
+	int32_t channel_number;
 } MX_ORTEC974_SCALER;
 
 /* Define all of the interface functions. */
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_scaler_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ORTEC974_SCALER, ortec974_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ORTEC974_SCALER, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

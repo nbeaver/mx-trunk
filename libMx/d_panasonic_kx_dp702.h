@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *kx_dp702_record;
-	int camera_number;
+	int32_t camera_number;
 } MX_PANASONIC_KX_DP702_PTZ;
 
 #define MXD_PANASONIC_KX_DP702_PTZ_STANDARD_FIELDS \
@@ -32,7 +32,7 @@ typedef struct {
 			offsetof(MX_PANASONIC_KX_DP702_PTZ, kx_dp702_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "camera_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "camera_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT,offsetof(MX_PANASONIC_KX_DP702_PTZ, camera_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

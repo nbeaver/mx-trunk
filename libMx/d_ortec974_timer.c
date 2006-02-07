@@ -15,6 +15,8 @@
  *
  */
 
+#define ORTEC974_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -59,14 +61,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_ortec974_timer_record_field_defaults[] = {
 	MXD_ORTEC974_TIMER_STANDARD_FIELDS
 };
 
-long mxd_ortec974_timer_num_record_fields
+mx_length_type mxd_ortec974_timer_num_record_fields
 		= sizeof( mxd_ortec974_timer_record_field_defaults )
 		  / sizeof( mxd_ortec974_timer_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_timer_rfield_def_ptr
 			= &mxd_ortec974_timer_record_field_defaults[0];
-
-#define ORTEC974_DEBUG	FALSE
 
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_initialize_type( long type )

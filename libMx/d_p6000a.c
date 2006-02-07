@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_p6000a_rf_defaults[] = {
 	MXD_P6000A_STANDARD_FIELDS
 };
 
-long mxd_p6000a_num_record_fields
+mx_length_type mxd_p6000a_num_record_fields
 		= sizeof( mxd_p6000a_rf_defaults )
 		  / sizeof( mxd_p6000a_rf_defaults[0] );
 

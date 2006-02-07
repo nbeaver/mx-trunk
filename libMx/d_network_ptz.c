@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_ptz_rf_defaults[] = {
 	MXD_NETWORK_PTZ_STANDARD_FIELDS
 };
 
-long mxd_network_ptz_num_record_fields
+mx_length_type mxd_network_ptz_num_record_fields
 	= sizeof( mxd_network_ptz_rf_defaults )
 		/ sizeof( mxd_network_ptz_rf_defaults[0] );
 
@@ -259,23 +259,24 @@ mxd_network_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 	case MXF_PTZ_FOCUS_NEAR:
 	case MXF_PTZ_FOCUS_STOP:
 		mx_status = mx_put( &(network_ptz->command_nf),
-					MXFT_ULONG, &(ptz->command) );
+					MXFT_UINT32, &(ptz->command) );
 		break;
 	case MXF_PTZ_ZOOM_OFF:
 	case MXF_PTZ_ZOOM_ON:
 		mx_status = mx_put( &(network_ptz->zoom_on_nf),
-					MXFT_ULONG, &(ptz->zoom_on) );
+					MXFT_UINT32, &(ptz->zoom_on) );
 		break;
 	case MXF_PTZ_FOCUS_MANUAL:
 	case MXF_PTZ_FOCUS_AUTO:
 		mx_status = mx_put( &(network_ptz->focus_auto_nf),
-					MXFT_ULONG, &(ptz->focus_auto) );
+					MXFT_UINT32, &(ptz->focus_auto) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command %#lx received for soft PTZ '%s' "
 			"is not a known command type.",
-				ptz->command, network_ptz->record->name );
+				(unsigned long) ptz->command,
+				network_ptz->record->name );
 		break;
 	}
 
@@ -300,7 +301,7 @@ mxd_network_ptz_get_status( MX_PAN_TILT_ZOOM *ptz )
 #endif
 
 	mx_status = mx_get( &(network_ptz->status_nf),
-					MXFT_ULONG, &(ptz->status) );
+					MXFT_HEX, &(ptz->status) );
 
 	return mx_status;
 }
@@ -326,35 +327,35 @@ mxd_network_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_POSITION:
 		mx_status = mx_get( &(network_ptz->pan_position_nf),
-					MXFT_LONG, &(ptz->pan_position) );
+					MXFT_INT32, &(ptz->pan_position) );
 		break;
 	case MXF_PTZ_TILT_POSITION:
 		mx_status = mx_get( &(network_ptz->tilt_position_nf),
-					MXFT_LONG, &(ptz->tilt_position) );
+					MXFT_INT32, &(ptz->tilt_position) );
 		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_status = mx_get( &(network_ptz->zoom_position_nf),
-					MXFT_ULONG, &(ptz->zoom_position) );
+					MXFT_UINT32, &(ptz->zoom_position) );
 		break;
 	case MXF_PTZ_FOCUS_POSITION:
 		mx_status = mx_get( &(network_ptz->focus_position_nf),
-					MXFT_ULONG, &(ptz->focus_position) );
+					MXFT_UINT32, &(ptz->focus_position) );
 		break;
 	case MXF_PTZ_PAN_SPEED:
 		mx_status = mx_get( &(network_ptz->pan_speed_nf),
-					MXFT_ULONG, &(ptz->pan_speed) );
+					MXFT_UINT32, &(ptz->pan_speed) );
 		break;
 	case MXF_PTZ_TILT_SPEED:
 		mx_status = mx_get( &(network_ptz->tilt_speed_nf),
-					MXFT_ULONG, &(ptz->tilt_speed) );
+					MXFT_UINT32, &(ptz->tilt_speed) );
 		break;
 	case MXF_PTZ_ZOOM_SPEED:
 		mx_status = mx_get( &(network_ptz->zoom_speed_nf),
-					MXFT_ULONG, &(ptz->zoom_speed) );
+					MXFT_UINT32, &(ptz->zoom_speed) );
 		break;
 	case MXF_PTZ_FOCUS_SPEED:
 		mx_status = mx_get( &(network_ptz->focus_speed_nf),
-					MXFT_ULONG, &(ptz->focus_speed) );
+					MXFT_UINT32, &(ptz->focus_speed) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -388,35 +389,35 @@ mxd_network_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_DESTINATION:
 		mx_status = mx_put( &(network_ptz->pan_destination_nf),
-					MXFT_ULONG, &(ptz->pan_destination) );
+					MXFT_INT32, &(ptz->pan_destination) );
 		break;
 	case MXF_PTZ_TILT_DESTINATION:
 		mx_status = mx_put( &(network_ptz->tilt_destination_nf),
-					MXFT_ULONG, &(ptz->tilt_destination) );
+					MXFT_INT32, &(ptz->tilt_destination) );
 		break;
 	case MXF_PTZ_ZOOM_DESTINATION:
 		mx_status = mx_put( &(network_ptz->zoom_destination_nf),
-					MXFT_ULONG, &(ptz->zoom_destination) );
+					MXFT_UINT32, &(ptz->zoom_destination) );
 		break;
 	case MXF_PTZ_FOCUS_DESTINATION:
 		mx_status = mx_put( &(network_ptz->focus_destination_nf),
-					MXFT_ULONG, &(ptz->focus_destination) );
+					MXFT_UINT32, &(ptz->focus_destination) );
 		break;
 	case MXF_PTZ_PAN_SPEED:
 		mx_status = mx_put( &(network_ptz->pan_speed_nf),
-					MXFT_ULONG, &(ptz->pan_speed) );
+					MXFT_UINT32, &(ptz->pan_speed) );
 		break;
 	case MXF_PTZ_TILT_SPEED:
 		mx_status = mx_put( &(network_ptz->tilt_speed_nf),
-					MXFT_ULONG, &(ptz->tilt_speed) );
+					MXFT_UINT32, &(ptz->tilt_speed) );
 		break;
 	case MXF_PTZ_ZOOM_SPEED:
 		mx_status = mx_put( &(network_ptz->zoom_speed_nf),
-					MXFT_ULONG, &(ptz->zoom_speed) );
+					MXFT_UINT32, &(ptz->zoom_speed) );
 		break;
 	case MXF_PTZ_FOCUS_SPEED:
 		mx_status = mx_put( &(network_ptz->focus_speed_nf),
-					MXFT_ULONG, &(ptz->focus_speed) );
+					MXFT_UINT32, &(ptz->focus_speed) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

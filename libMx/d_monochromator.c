@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_monochromator_record_field_defaults[] = {
 	MXD_MONOCHROMATOR_STANDARD_FIELDS
 };
 
-long mxd_monochromator_num_record_fields
+mx_length_type mxd_monochromator_num_record_fields
 		= sizeof( mxd_monochromator_record_field_defaults )
 			/ sizeof( mxd_monochromator_record_field_defaults[0] );
 
@@ -484,9 +484,9 @@ mxd_monochromator_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	long num_record_fields;
-	long num_dependencies_field_index;
-	long num_dependencies_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_dependencies_field_index;
+	mx_length_type num_dependencies_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -514,7 +514,7 @@ mxd_monochromator_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -1619,7 +1619,7 @@ mxd_monochromator_get_status( MX_MOTOR *motor )
 	MX_RECORD **record_array;
 	MX_RECORD *record;
 	int i, j, num_records, enabled, dependency_type;
-	unsigned long motor_status;
+	mx_hex_type motor_status;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1874,7 +1874,7 @@ mxd_mono_get_energy_pointers( MX_MONOCHROMATOR *monochromator,
 	MX_RECORD **record_array;
 	double *parameter_array;
 	int num_records, num_parameters;
-	long num_elements;
+	mx_length_type num_elements;
 	void *pointer_to_value;
 	mx_status_type mx_status;
 
@@ -2240,7 +2240,8 @@ mxd_monochromator_move_insertion_device_energy(
 	MX_RECORD *id_motor_record;
 	double *parameter_array;
 	int num_parameters, num_records;
-	long num_elements, gap_harmonic;
+	mx_length_type num_elements;
+	long gap_harmonic;
 	double gap_offset, d_spacing, denominator, mono_energy, id_energy;
 	void *pointer_to_value;
 	int enabled;
@@ -2347,7 +2348,8 @@ mxd_monochromator_get_double_crystal_parameters(
 
 	MX_RECORD **record_array;
 	int num_records;
-	long i, num_variable_elements;
+	mx_length_type num_variable_elements;
+	long i;
 	void *pointer_to_value;
 	double *variable_array;
 	mx_status_type mx_status;
@@ -2418,7 +2420,7 @@ mxd_monochromator_get_double_crystal_parameters(
 			monochromator->record->name,
 			record_array[1]->name,
 			num_parameters,
-			num_variable_elements );
+			(long) num_variable_elements );
 	}
 
 	if ( tuning_parameters != (double *) NULL ) {
@@ -2755,7 +2757,7 @@ mxd_monochromator_move_diffractometer_theta(
 	double numerator, sin_theta, diffractometer_theta;
 	void *pointer_to_value;
 	int enabled, num_parameters, num_records;
-	long num_elements;
+	mx_length_type num_elements;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2892,7 +2894,7 @@ mxd_monochromator_move_e_polynomial(
 	MX_RECORD *energy_polynomial_record;
 	double *parameter_array;
 	int i, num_parameters, num_records;
-	long num_elements;
+	mx_length_type num_elements;
 	double d_spacing, denominator, mono_energy, energy_polynomial;
 	void *pointer_to_value;
 	int enabled;
@@ -3009,9 +3011,10 @@ mxd_monochromator_move_option_selector(
 	double **option_range_array;
 	double lower_limit, upper_limit;
 	int enabled, num_records, exit_loop;
-	int old_selection, new_selection;
-	long num_dimensions, field_type, num_ranges;
-	long *dimension_array;
+	long field_type, num_ranges;
+	int32_t old_selection, new_selection;
+	mx_length_type num_dimensions;
+	mx_length_type *dimension_array;
 	mx_status_type mx_status;
 
 	if ( flags & MXF_MTR_ONLY_CHECK_LIMITS ) {
@@ -3048,7 +3051,7 @@ mxd_monochromator_move_option_selector(
 
 	/* Get the current value of the option selector. */
 
-	mx_status = mx_get_int_variable( option_selector_record,
+	mx_status = mx_get_int32_variable( option_selector_record,
 					&old_selection );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3135,7 +3138,7 @@ mxd_monochromator_move_option_selector(
 
 	if ( new_selection != old_selection ) {
 
-		mx_status = mx_set_int_variable( option_selector_record,
+		mx_status = mx_set_int32_variable( option_selector_record,
 					new_selection );
 
 		if ( mx_status.code != MXE_SUCCESS )

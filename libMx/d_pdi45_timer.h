@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
+	int32_t line_number;
 
 	int gated_counters_io_field;
 } MX_PDI45_TIMER;
@@ -54,7 +54,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_TIMER, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_TIMER, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

@@ -22,8 +22,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pfcu_record;
-	int module_number;
-	int filter_number;
+	int32_t module_number;
+	int32_t filter_number;
 } MX_PFCU_RELAY;
 
 #define MXD_PFCU_FILTER_STANDARD_FIELDS \
@@ -31,11 +31,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_RELAY, pfcu_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "module_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "module_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_RELAY, module_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "filter_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "filter_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_RELAY, filter_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -44,7 +44,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_RELAY, pfcu_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "module_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "module_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_RELAY, module_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

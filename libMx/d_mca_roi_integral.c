@@ -242,7 +242,7 @@ mxd_mca_roi_integral_read( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mca_roi_integral_read()";
 
 	MX_MCA_ROI_INTEGRAL *mca_roi_integral;
-	unsigned long value;
+	uint32_t value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_roi_integral_get_pointers(
@@ -255,7 +255,7 @@ mxd_mca_roi_integral_read( MX_SCALER *scaler )
 					mca_roi_integral->roi_number,
 					&value );
 
-	scaler->raw_value = (long) value;
+	scaler->raw_value = (int32_t) value;
 
 	return mx_status;
 }

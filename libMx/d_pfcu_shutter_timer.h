@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pfcu_record;
-	int module_number;
+	int32_t module_number;
 } MX_PFCU_SHUTTER_TIMER;
 
 /* Define all of the interface functions. */
@@ -56,7 +56,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pfcu_shutter_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_SHUTTER_TIMER, pfcu_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "module_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "module_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_SHUTTER_TIMER, module_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

@@ -177,7 +177,7 @@ mx_ccd_stop( MX_RECORD *ccd_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_get_status( MX_RECORD *ccd_record, unsigned long *status )
+mx_ccd_get_status( MX_RECORD *ccd_record, mx_hex_type *status )
 {
 	static const char fname[] = "mx_ccd_get_status()";
 
@@ -214,7 +214,7 @@ mx_ccd_get_status( MX_RECORD *ccd_record, unsigned long *status )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_readout( MX_RECORD *ccd_record, unsigned long flags )
+mx_ccd_readout( MX_RECORD *ccd_record, mx_hex_type flags )
 {
 	static const char fname[] = "mx_ccd_readout()";
 
@@ -246,7 +246,7 @@ mx_ccd_readout( MX_RECORD *ccd_record, unsigned long flags )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_dezinger( MX_RECORD *ccd_record, unsigned long flags )
+mx_ccd_dezinger( MX_RECORD *ccd_record, mx_hex_type flags )
 {
 	static const char fname[] = "mx_ccd_dezinger()";
 
@@ -308,7 +308,7 @@ mx_ccd_correct( MX_RECORD *ccd_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_writefile( MX_RECORD *ccd_record, char *filename, unsigned long flags )
+mx_ccd_writefile( MX_RECORD *ccd_record, char *filename, mx_hex_type flags )
 {
 	static const char fname[] = "mx_ccd_writefile()";
 

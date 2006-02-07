@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_amplifier_record_field_defaults[] = {
 	MXD_NETWORK_AMPLIFIER_STANDARD_FIELDS
 };
 
-long mxd_network_amplifier_num_record_fields
+mx_length_type mxd_network_amplifier_num_record_fields
 		= sizeof( mxd_network_amplifier_record_field_defaults )
 		  / sizeof( mxd_network_amplifier_record_field_defaults[0] );
 
@@ -198,7 +198,7 @@ mxd_network_amplifier_resynchronize( MX_RECORD *record )
 
 	MX_AMPLIFIER *amplifier;
 	MX_NETWORK_AMPLIFIER *network_amplifier;
-	int resynchronize;
+	int32_t resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -217,7 +217,7 @@ mxd_network_amplifier_resynchronize( MX_RECORD *record )
 	resynchronize = 1;
 
 	mx_status = mx_put( &(network_amplifier->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_INT32, &resynchronize );
 
 	return mx_status;
 }
@@ -366,7 +366,7 @@ mxd_network_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 	static const char fname[] = "mxd_network_amplifier_get_parameter()";
 
 	MX_NETWORK_AMPLIFIER *network_amplifier;
-	long dimension_array[1];
+	mx_length_type dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_amplifier_get_pointers(

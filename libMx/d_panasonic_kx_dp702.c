@@ -44,7 +44,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_panasonic_kx_dp702_rf_defaults[] = {
 	MXD_PANASONIC_KX_DP702_PTZ_STANDARD_FIELDS
 };
 
-long mxd_panasonic_kx_dp702_num_record_fields
+mx_length_type mxd_panasonic_kx_dp702_num_record_fields
 	= sizeof( mxd_panasonic_kx_dp702_rf_defaults )
 		/ sizeof( mxd_panasonic_kx_dp702_rf_defaults[0] );
 
@@ -230,7 +230,8 @@ mxd_panasonic_kx_dp702_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command %lu received for Panasonic PTZ '%s' "
 			"is not a known command type.",
-				ptz->command, kx_dp702_ptz->record->name );
+				(unsigned long) ptz->command,
+				kx_dp702_ptz->record->name );
 		break;
 	}
 
@@ -477,7 +478,8 @@ mxd_panasonic_kx_dp702_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The parameter type %#lx requested for Panasonic PTZ '%s' "
 		"is not a known command type.",
-			ptz->command, kx_dp702_ptz->record->name );
+			(unsigned long) ptz->command,
+			kx_dp702_ptz->record->name );
 		break;
 	}
 
@@ -544,8 +546,8 @@ mxd_panasonic_kx_dp702_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	MX_PANASONIC_KX_DP702 *kx_dp702;
 	unsigned char command[80];
 	int saved_parameter_type;
-	long pan_value, tilt_value;
-	unsigned long zoom_value;
+	int32_t pan_value, tilt_value;
+	uint32_t zoom_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_panasonic_kx_dp702_get_pointers( ptz,

@@ -27,16 +27,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *portio_record;
-	unsigned long address;
-	unsigned long data_size;
+	mx_hex_type address;
+	uint32_t data_size;
 } MX_PORTIO_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *portio_record;
-	unsigned long address;
-	unsigned long data_size;
+	mx_hex_type address;
+	uint32_t data_size;
 } MX_PORTIO_DOUTPUT;
 
 #define MXD_PORTIO_DINPUT_STANDARD_FIELDS \
@@ -48,7 +48,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DINPUT, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "data_size", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "data_size", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DINPUT, data_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -61,7 +61,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DOUTPUT, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "data_size", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "data_size", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DOUTPUT, data_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

@@ -25,8 +25,8 @@
 typedef struct {
 	MX_RECORD *rs232_record;
 
-	int axis_number;
-	int axis_encoder_number;
+	int32_t axis_number;
+	int32_t axis_encoder_number;
 
 	double minimum_event_interval;
 } MX_PM304;
@@ -80,11 +80,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pm304_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_encoder_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_encoder_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, axis_encoder_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

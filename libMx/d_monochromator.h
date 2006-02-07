@@ -27,11 +27,11 @@
 
 typedef struct {
 	MX_RECORD *record;
-	long num_dependencies;
+	int32_t num_dependencies;
 	MX_RECORD **list_array;
-	int *speed_change_permitted;
-	int *speed_changed;
-	int move_in_progress;
+	int32_t *speed_change_permitted;
+	int32_t *speed_changed;
+	int32_t move_in_progress;
 	double move_time;
 } MX_MONOCHROMATOR;
 
@@ -95,7 +95,7 @@ extern mx_length_type mxd_monochromator_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_monochromator_rfield_def_ptr;
 
 #define MXD_MONOCHROMATOR_STANDARD_FIELDS \
-  {-1, -1, "num_dependencies", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_dependencies", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONOCHROMATOR, num_dependencies), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
@@ -103,12 +103,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_monochromator_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONOCHROMATOR, list_array), \
 	{sizeof(MX_RECORD *)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
   \
-  {-1, -1, "speed_change_permitted", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "speed_change_permitted", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH},\
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_MONOCHROMATOR, speed_change_permitted),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1, "speed_changed", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "speed_changed", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONOCHROMATOR, speed_changed),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}
 

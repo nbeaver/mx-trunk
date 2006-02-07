@@ -208,7 +208,7 @@ mx_sample_changer_unmount_sample( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_grab_sample( MX_RECORD *record, long sample_id )
+mx_sample_changer_grab_sample( MX_RECORD *record, int32_t sample_id )
 {
 	static const char fname[] = "mx_sample_changer_grab_sample()";
 
@@ -387,7 +387,7 @@ mx_sample_changer_get_sample_holder( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_get_sample_id( MX_RECORD *record, long *sample_id )
+mx_sample_changer_get_sample_id( MX_RECORD *record, int32_t *sample_id )
 {
 	static const char fname[] = "mx_sample_changer_get_sample_id()";
 
@@ -401,7 +401,7 @@ mx_sample_changer_get_sample_id( MX_RECORD *record, long *sample_id )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( sample_id != (long *) NULL ) {
+	if ( sample_id != (int32_t *) NULL ) {
 		*sample_id = changer->current_sample_id;
 	}
 
@@ -409,7 +409,7 @@ mx_sample_changer_get_sample_id( MX_RECORD *record, long *sample_id )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_set_sample_id( MX_RECORD *record, long sample_id )
+mx_sample_changer_set_sample_id( MX_RECORD *record, int32_t sample_id )
 {
 	static const char fname[] = "mx_sample_changer_get_sample_id()";
 
@@ -549,7 +549,7 @@ mx_sample_changer_reset( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_get_status( MX_RECORD *record, unsigned long *changer_status )
+mx_sample_changer_get_status( MX_RECORD *record, mx_hex_type *changer_status )
 {
 	static const char fname[] = "mx_sample_changer_get_status()";
 
@@ -578,7 +578,7 @@ mx_sample_changer_get_status( MX_RECORD *record, unsigned long *changer_status )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( changer_status != (unsigned long *) NULL ) {
+	if ( changer_status != (mx_hex_type *) NULL ) {
 		*changer_status = changer->status;
 	}
 
@@ -591,7 +591,7 @@ mx_sample_changer_is_busy( MX_RECORD *record, int *busy )
 	static const char fname[] = "mx_sample_changer_is_busy()";
 
 	MX_SAMPLE_CHANGER *changer;
-	unsigned long changer_status;
+	mx_hex_type changer_status;
 	mx_status_type mx_status;
 
 	if ( busy == (int *) NULL ) {
