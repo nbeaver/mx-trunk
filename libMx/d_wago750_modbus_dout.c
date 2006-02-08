@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_wago750_modbus_dout_rf_defaults[] = {
 	MXD_MODBUS_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_wago750_modbus_dout_num_record_fields
+mx_length_type mxd_wago750_modbus_dout_num_record_fields
 	= sizeof( mxd_wago750_modbus_dout_rf_defaults )
 		/ sizeof( mxd_wago750_modbus_dout_rf_defaults[0]);
 
@@ -142,7 +142,7 @@ mxd_wago750_modbus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_wago750_modbus_dout_read()";
 
 	MX_MODBUS_DOUTPUT *modbus_doutput;
-	long raw_value;
+	uint32_t raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[4];
@@ -211,30 +211,30 @@ mxd_wago750_modbus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	case MXF_MOD_WRITE_SINGLE_COIL:
 	case MXF_MOD_WRITE_MULTIPLE_COILS:
 		if ( num_bits <= 8 ) {
-			raw_value = (long) mx_uint8_array[0];
+			raw_value = (uint32_t) mx_uint8_array[0];
 		} else
 		if ( num_bits <= 16 ) {
-			raw_value = ( (long) mx_uint8_array[0] ) << 8;
-			raw_value |= (long) mx_uint8_array[1];
+			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 8;
+			raw_value |= (uint32_t) mx_uint8_array[1];
 		} else
 		if ( num_bits <= 24 ) {
-			raw_value = ( (long) mx_uint8_array[0] ) << 16;
-			raw_value |= ( (long) mx_uint8_array[1] ) << 8;
-			raw_value |= (long) mx_uint8_array[2];
+			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 16;
+			raw_value |= ( (uint32_t) mx_uint8_array[1] ) << 8;
+			raw_value |= (uint32_t) mx_uint8_array[2];
 		} else {
-			raw_value = ( (long) mx_uint8_array[0] ) << 24;
-			raw_value |= ( (long) mx_uint8_array[1] ) << 16;
-			raw_value |= ( (long) mx_uint8_array[2] ) << 8;
-			raw_value |= (long) mx_uint8_array[3];
+			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 24;
+			raw_value |= ( (uint32_t) mx_uint8_array[1] ) << 16;
+			raw_value |= ( (uint32_t) mx_uint8_array[2] ) << 8;
+			raw_value |= (uint32_t) mx_uint8_array[3];
 		}
 		break;
 	case MXF_MOD_WRITE_SINGLE_REGISTER:
 	case MXF_MOD_WRITE_MULTIPLE_REGISTERS:
 		if ( num_bits <= 16 ) {
-			raw_value = (long) mx_uint16_array[0];
+			raw_value = (uint32_t) mx_uint16_array[0];
 		} else {
-			raw_value = ( (long) mx_uint16_array[0] ) << 16;
-			raw_value |= (long) mx_uint16_array[1];
+			raw_value = ( (uint32_t) mx_uint16_array[0] ) << 16;
+			raw_value |= (uint32_t) mx_uint16_array[1];
 		}
 		break;
 	}

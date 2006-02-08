@@ -23,7 +23,7 @@
 /* ==== MX timer fanout data structure ==== */
 
 typedef struct {
-	long num_timers;
+	mx_length_type num_timers;
 	MX_RECORD **timer_record_array;
 } MX_TIMER_FANOUT;
 
@@ -52,7 +52,7 @@ extern mx_length_type mxd_timer_fanout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_timer_fanout_rfield_def_ptr;
 
 #define MXD_TIMER_FANOUT_STANDARD_FIELDS \
-  {-1, -1, "num_timers", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_timers", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TIMER_FANOUT, num_timers), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

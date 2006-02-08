@@ -22,16 +22,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
-	int location;
+	int32_t address;
+	int32_t location;
 } MX_TRACKER_AINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
-	int location;
+	int32_t address;
+	int32_t location;
 } MX_TRACKER_AOUTPUT;
 
 #define MXD_TRACKER_AINPUT_STANDARD_FIELDS \
@@ -39,11 +39,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AINPUT, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AINPUT, address), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "location", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "location", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AINPUT, location), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -52,11 +52,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AOUTPUT, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AOUTPUT, address), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "location", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "location", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_AOUTPUT, location), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

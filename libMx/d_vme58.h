@@ -30,12 +30,12 @@
 
 typedef struct {
 	MX_RECORD *vme58_record;
-	int axis_number;
-	long flags;
+	int32_t axis_number;
+	mx_hex_type flags;
 
-	long default_speed;
-	long default_base_speed;
-	long default_acceleration;
+	int32_t default_speed;
+	int32_t default_base_speed;
+	int32_t default_acceleration;
 } MX_VME58_MOTOR;
 
 MX_API mx_status_type mxd_vme58_create_record_structures( MX_RECORD *record );
@@ -76,7 +76,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vme58_rfield_def_ptr;
 		offsetof(MX_VME58_MOTOR, vme58_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -84,16 +84,17 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vme58_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "default_speed", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "default_base_speed", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "default_base_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, default_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "default_acceleration", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, default_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }
 
 #endif /* __D_VME58_H__ */
+

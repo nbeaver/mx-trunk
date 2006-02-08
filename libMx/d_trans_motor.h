@@ -23,9 +23,9 @@
 /* ===== MX translation motor data structures ===== */
 
 typedef struct {
-	long translation_flags;
+	mx_hex_type translation_flags;
 
-	long num_motors;
+	mx_length_type num_motors;
 	MX_RECORD **motor_record_array;
 	double *position_array;
 
@@ -77,7 +77,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_trans_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRANSLATION_MOTOR, translation_flags),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_motors", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_motors", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRANSLATION_MOTOR, num_motors), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

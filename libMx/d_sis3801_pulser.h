@@ -30,7 +30,7 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long address_mode;
+	uint32_t address_mode;
 
 	uint32_t crate_number;
 	mx_hex_type base_address;

@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_theta_2theta_rfield_defaults[] = {
 	MXD_THETA_2THETA_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_theta_2theta_motor_num_record_fields
+mx_length_type mxd_theta_2theta_motor_num_record_fields
 		= sizeof( mxd_theta_2theta_rfield_defaults )
 			/ sizeof( mxd_theta_2theta_rfield_defaults[0] );
 

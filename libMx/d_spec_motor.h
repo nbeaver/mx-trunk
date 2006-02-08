@@ -52,10 +52,11 @@ MX_API mx_status_type mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_spec_motor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_spec_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_spec_motor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_spec_motor_simultaneous_start( int num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						int flags );
+MX_API mx_status_type mxd_spec_motor_simultaneous_start(
+					mx_length_type num_motor_records,
+					MX_RECORD **motor_record_array,
+					double *position_array,
+					mx_hex_type flags );
 
 MX_API mx_status_type mxd_spec_motor_get_pointers( MX_MOTOR *motor,
 				MX_SPEC_MOTOR **spec_motor,

@@ -21,8 +21,8 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_record.h"
-#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_dxp_input_record_field_defaults[] = {
 	MX_XIA_DXP_INPUT_STANDARD_FIELDS,
 };
 
-long mxd_xia_dxp_input_num_record_fields
+mx_length_type mxd_xia_dxp_input_num_record_fields
 	= sizeof( mxd_xia_dxp_input_record_field_defaults )
 	/ sizeof( mxd_xia_dxp_input_record_field_defaults[0] );
 
@@ -110,7 +110,8 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 	MX_XIA_DXP_INPUT *xia_dxp_input;
 
 	uint32_t parameter_value;
-	unsigned long roi_number, mca_value;
+	mx_length_type roi_number;
+	uint32_t mca_value;
 	double corrected_value;
 	int num_items;
 	mx_status_type mx_status;
@@ -189,7 +190,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &roi_number );
+					"%" SCNu32, &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -208,7 +209,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_RATE_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &roi_number );
+					"%" SCNu32, &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -230,7 +231,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_LIVETIME_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &roi_number );
+					"%" SCNu32, &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

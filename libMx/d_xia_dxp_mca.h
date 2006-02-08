@@ -71,14 +71,14 @@ typedef struct {
 
 	double statistics[ MX_XIA_DXP_NUM_STATISTICS ];
 	char parameter_name[ MXU_XIA_DXP_PARAMETER_NAME_LENGTH + 1 ];
-	unsigned long parameter_value;
-	unsigned long param_value_to_all_channels;
+	uint32_t parameter_value;
+	uint32_t param_value_to_all_channels;
 
-	unsigned long baseline_length;
-	unsigned long *baseline_array;
+	mx_length_type baseline_length;
+	uint32_t *baseline_array;
 
 #if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
-	unsigned short *xerxes_baseline_array;
+	uint16_t *xerxes_baseline_array;
 #endif
 	
 	double gain_change;
@@ -87,29 +87,29 @@ typedef struct {
 		[ MXU_XIA_DXP_ACQUISITION_VALUE_NAME_LENGTH + 1 ];
 	double acquisition_value;
 	double adc_trace_step_size;		/* in nanoseconds */
-	unsigned long adc_trace_length;
-	unsigned long *adc_trace_array;
+	mx_length_type adc_trace_length;
+	uint32_t *adc_trace_array;
 
-	unsigned long baseline_history_length;
-	unsigned long *baseline_history_array;
+	mx_length_type baseline_history_length;
+	uint32_t *baseline_history_array;
 
-	int sca_has_been_initialized[ MX_XIA_DXP_MCA_MAX_SCAS ];
+	mx_bool_type sca_has_been_initialized[ MX_XIA_DXP_MCA_MAX_SCAS ];
 
-	int mca_record_array_index;
+	int32_t mca_record_array_index;
 
-	int detector_channel;
+	int32_t detector_channel;
 
-	int dxp_module;
+	int32_t dxp_module;
 
-	int crate;
-	int slot;
-	int dxp_channel;
+	int32_t crate;
+	int32_t slot;
+	int32_t dxp_channel;
 
-	int firmware_code_variant;
-	int firmware_code_revision;
-	int hardware_scas_are_enabled;
+	int32_t firmware_code_variant;
+	int32_t firmware_code_revision;
+	mx_bool_type hardware_scas_are_enabled;
 
-	int new_statistics_available;
+	mx_bool_type new_statistics_available;
 
 	/* Clock tick intervals in seconds. */
 
@@ -131,57 +131,57 @@ typedef struct {
 	uint32_t old_preset_low_order;
 
 	mx_status_type (*is_busy)( MX_MCA *mca,
-					int *busy_flag,
-					int debug_flag);
+					mx_bool_type *busy_flag,
+					mx_bool_type debug_flag);
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
 					char *parameter_name,
 					uint32_t *value_ptr,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*write_parameter)( MX_MCA *mca,
 					char *parameter_name,
 					uint32_t value,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*write_parameter_to_all_channels)( MX_MCA *mca,
 					char *parameter_name,
 					uint32_t value,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*start_run)( MX_MCA *mca,
-					int clear_flag,
-					int debug_flag );
+					mx_bool_type clear_flag,
+					mx_bool_type debug_flag );
 
 	mx_status_type (*stop_run)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*read_spectrum)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*read_statistics)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*get_baseline_array)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*set_gain_change)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*set_gain_calibration)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*get_acquisition_value)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*set_acquisition_value)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*get_adc_trace_array)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*get_baseline_history_array)( MX_MCA *mca,
-					int debug_flag );
+					mx_bool_type debug_flag );
 
 	mx_status_type (*get_mx_parameter)( MX_MCA *mca );
 
@@ -189,17 +189,17 @@ typedef struct {
 
 #if HAVE_XIA_HANDEL
 
-	unsigned short num_parameters;
-	unsigned short *parameter_array;
+	mx_length_type num_parameters;
+	uint16_t *parameter_array;
 
-	int use_mca_channel_array;
+	mx_bool_type use_mca_channel_array;
 
-	unsigned int num_spectrum_bins;
-	unsigned long *spectrum_array;
+	mx_length_type num_spectrum_bins;
+	uint32_t *spectrum_array;
 
 	char *detector_alias;
 	char *module_alias;
-	int module_channel;
+	int32_t module_channel;
 
 	char *module_type;
 
@@ -244,24 +244,24 @@ typedef struct {
 	{sizeof(char)}, NULL, 0}, \
   \
   {MXLV_XIA_DXP_PARAMETER_VALUE, -1, "parameter_value", \
-			MXFT_ULONG, NULL, 0, {0}, \
+			MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, parameter_value ), \
 	{0}, NULL, 0}, \
   \
   {MXLV_XIA_DXP_PARAM_VALUE_TO_ALL_CHANNELS, -1, \
 			"param_value_to_all_channels", \
-			MXFT_ULONG, NULL, 0, {0}, \
+			MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, \
 			param_value_to_all_channels ), \
 	{0}, NULL, 0}, \
   \
   {MXLV_XIA_DXP_BASELINE_LENGTH, -1, "baseline_length", \
-			MXFT_ULONG, NULL, 0, {0}, \
+			MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, baseline_length ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_XIA_DXP_BASELINE_ARRAY, -1, "baseline_array", \
-			MXFT_ULONG, NULL, 1, {0}, \
+			MXFT_UINT32, NULL, 1, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, baseline_array ), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
   \
@@ -294,57 +294,57 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_XIA_DXP_ADC_TRACE_LENGTH, -1, "adc_trace_length", \
-			MXFT_ULONG, NULL, 0, {0}, \
+			MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, adc_trace_length ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_XIA_DXP_ADC_TRACE_ARRAY, -1, "adc_trace_array", \
-			MXFT_ULONG, NULL, 1, {0}, \
+			MXFT_UINT32, NULL, 1, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, adc_trace_array ), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
   \
   {MXLV_XIA_DXP_BASELINE_HISTORY_LENGTH, -1, "baseline_history_length", \
-			MXFT_ULONG, NULL, 0, {0}, \
+			MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof( MX_XIA_DXP_MCA, baseline_history_length ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_XIA_DXP_BASELINE_HISTORY_ARRAY, -1, "baseline_history_array", \
-			MXFT_ULONG, NULL, 1, {0}, \
+			MXFT_UINT32, NULL, 1, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof( MX_XIA_DXP_MCA, baseline_history_array ), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1, "detector_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "detector_channel", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, detector_channel ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "crate", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "crate", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, crate ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, slot ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "dxp_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "dxp_channel", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, dxp_channel ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "firmware_code_variant", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "firmware_code_variant", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_MCA, firmware_code_variant), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "firmware_code_revision", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "firmware_code_revision", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_MCA, firmware_code_revision), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "hardware_scas_are_enabled", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "hardware_scas_are_enabled", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_DXP_MCA, hardware_scas_are_enabled ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "new_statistics_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "new_statistics_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_DXP_MCA, new_statistics_available ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
@@ -397,42 +397,42 @@ MX_API mx_status_type mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca );
 MX_API mx_status_type mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca );
 
 MX_API mx_status_type mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
-					unsigned long *num_mcas,
+					mx_length_type *num_mcas,
 					MX_RECORD ***mca_record_array );
 
 MX_API mx_status_type mxd_xia_dxp_get_rate_corrected_roi_integral(
 					MX_MCA *mca,
-					unsigned long roi_number,
+					mx_length_type roi_number,
 					double *corrected_roi_value );
 
 MX_API mx_status_type mxd_xia_dxp_get_livetime_corrected_roi_integral(
 					MX_MCA *mca,
-					unsigned long roi_number,
+					mx_length_type roi_number,
 					double *corrected_roi_value );
 
 MX_API mx_status_type mxd_xia_dxp_read_statistics( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 MX_API mx_status_type mxd_xia_dxp_set_gain_change( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 MX_API mx_status_type mxd_xia_dxp_set_gain_calibration( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 MX_API mx_status_type mxd_xia_dxp_get_acquisition_value( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 MX_API mx_status_type mxd_xia_dxp_set_acquisition_value( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 MX_API mx_status_type mxd_xia_dxp_get_adc_trace( MX_MCA *mca,
 						MX_XIA_DXP_MCA *xia_dxp_mca,
-						int debug_flag );
+						mx_bool_type debug_flag );
 
 extern MX_RECORD_FUNCTION_LIST mxd_xia_dxp_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_xia_dxp_mca_function_list;

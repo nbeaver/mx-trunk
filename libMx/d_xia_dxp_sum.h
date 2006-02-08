@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *xia_dxp_record;
-	unsigned long roi_number;
+	mx_length_type roi_number;
 	MX_RECORD *mca_enable_record;
 } MX_XIA_DXP_SUM;
 
@@ -28,7 +28,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_SUM, xia_dxp_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "roi_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "roi_number", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_SUM, roi_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

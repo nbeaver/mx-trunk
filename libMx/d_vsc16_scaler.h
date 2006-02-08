@@ -20,7 +20,7 @@
 
 typedef struct {
 	MX_RECORD *vsc16_record;
-	int counter_number;
+	int32_t counter_number;
 } MX_VSC16_SCALER;
 
 #define MXD_VSC16_SCALER_STANDARD_FIELDS \
@@ -28,7 +28,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16_SCALER, vsc16_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "counter_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "counter_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16_SCALER, counter_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

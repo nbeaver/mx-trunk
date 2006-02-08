@@ -45,7 +45,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sony_visca_ptz_rf_defaults[] = {
 	MXD_SONY_VISCA_PTZ_STANDARD_FIELDS
 };
 
-long mxd_sony_visca_ptz_num_record_fields
+mx_length_type mxd_sony_visca_ptz_num_record_fields
 	= sizeof( mxd_sony_visca_ptz_rf_defaults )
 		/ sizeof( mxd_sony_visca_ptz_rf_defaults[0] );
 
@@ -124,7 +124,7 @@ mxd_sony_visca_ptz_pan_tilt_drive_string( MX_RECORD *ptz_record,
 	static const char fname[] =
 			"mxd_sony_visca_ptz_pan_tilt_drive_string()";
 
-	unsigned long pan_speed, tilt_speed;
+	uint32_t pan_speed, tilt_speed;
 	mx_status_type mx_status;
 
 	if ( ptz_record == (MX_RECORD *) NULL ) {
@@ -358,7 +358,8 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command %lu received for Sony PTZ '%s' "
 			"is not a known command type.",
-				ptz->command, sony_visca_ptz->record->name );
+				(unsigned long) ptz->command,
+				sony_visca_ptz->record->name );
 		break;
 	}
 
@@ -516,7 +517,8 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The read data type %#lx requested for Hitachi PTZ '%s' "
 		"is not a known command type.",
-				ptz->command, sony_visca_ptz->record->name );
+			(unsigned long) ptz->command,
+			sony_visca_ptz->record->name );
 		break;
 	}
 
@@ -602,8 +604,8 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	MX_SONY_VISCA_PTZ *sony_visca_ptz;
 	MX_SONY_VISCA *sony_visca;
 	unsigned char command[80];
-	long pan_value, tilt_value;
-	unsigned long pan_speed, tilt_speed;
+	int32_t pan_value, tilt_value;
+	uint32_t pan_speed, tilt_speed;
 	int saved_parameter_type;
 	mx_status_type mx_status;
 

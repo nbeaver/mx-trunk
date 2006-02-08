@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_sample_changer_rf_defaults[] = {
 	MXD_SOFT_SAMPLE_CHANGER_STANDARD_FIELDS
 };
 
-long mxd_soft_sample_changer_num_record_fields
+mx_length_type mxd_soft_sample_changer_num_record_fields
 		= sizeof( mxd_soft_sample_changer_rf_defaults )
 		/ sizeof( mxd_soft_sample_changer_rf_defaults[0] );
 

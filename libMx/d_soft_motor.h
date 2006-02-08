@@ -47,10 +47,11 @@ MX_API mx_status_type mxd_soft_motor_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_soft_motor_simultaneous_start( int num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						int flags );
+MX_API mx_status_type mxd_soft_motor_simultaneous_start(
+					mx_length_type num_motor_records,
+					MX_RECORD **motor_record_array,
+					double *position_array,
+					mx_hex_type flags );
 
 extern MX_RECORD_FUNCTION_LIST mxd_soft_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list;

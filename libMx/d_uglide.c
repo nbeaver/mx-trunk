@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_uglide_record_field_defaults[] = {
 	MXD_UGLIDE_STANDARD_FIELDS
 };
 
-long mxd_uglide_num_record_fields
+mx_length_type mxd_uglide_num_record_fields
 		= sizeof( mxd_uglide_record_field_defaults )
 			/ sizeof( mxd_uglide_record_field_defaults[0] );
 
@@ -86,7 +86,7 @@ mxd_uglide_get_pointers( MX_MOTOR *motor,
 			MX_UGLIDE **uglide,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_uglide_get_pointers()";
+	static const char fname[] = "mxd_uglide_get_pointers()";
 
 	MX_UGLIDE_MOTOR *uglide_motor_ptr;
 	MX_RECORD *uglide_record;
@@ -139,7 +139,7 @@ mxd_uglide_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_uglide_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_create_record_structures()";
+	static const char fname[] = "mxd_uglide_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -184,7 +184,7 @@ mxd_uglide_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_finish_record_initialization()";
+	static const char fname[] = "mxd_uglide_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -243,7 +243,7 @@ mxd_uglide_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_print_structure()";
+	static const char fname[] = "mxd_uglide_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_UGLIDE_MOTOR *uglide_motor;
@@ -283,7 +283,7 @@ mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			motor->raw_position.stepper );
+			(long) motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -291,21 +291,21 @@ mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		motor->raw_backlash_correction.stepper );
+		(long) motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		motor->raw_negative_limit.stepper );
+		(long) motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		motor->raw_positive_limit.stepper );
+		(long) motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n",
 		move_deadband, motor->units,
-		motor->raw_move_deadband.stepper );
+		(long) motor->raw_move_deadband.stepper );
 
 	mx_status = mx_motor_get_speed( record, &speed );
 
@@ -324,7 +324,7 @@ mxd_uglide_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_uglide_resynchronize()";
+	static const char fname[] = "mxd_uglide_resynchronize()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	mx_status_type mx_status;
@@ -352,7 +352,7 @@ mxd_uglide_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_uglide_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_move_absolute()";
+	static const char fname[] = "mxd_uglide_move_absolute()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -383,7 +383,7 @@ mxd_uglide_move_absolute( MX_MOTOR *motor )
 	}
 
 	sprintf( command, "%c %ld",
-			command_name, motor->raw_destination.stepper );
+			command_name, (long) motor->raw_destination.stepper );
 
 	mx_status = mxi_uglide_command( uglide, command, UGLIDE_DEBUG );
 
@@ -412,7 +412,7 @@ mxd_uglide_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_set_position()";
+	static const char fname[] = "mxd_uglide_set_position()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -463,7 +463,7 @@ mxd_uglide_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_soft_abort()";
+	static const char fname[] = "mxd_uglide_soft_abort()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -517,7 +517,7 @@ mxd_uglide_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_find_home_position()";
+	static const char fname[] = "mxd_uglide_find_home_position()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;
@@ -553,7 +553,7 @@ mxd_uglide_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_uglide_get_extended_status( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_uglide_get_extended_status()";
+	static const char fname[] = "mxd_uglide_get_extended_status()";
 
 	MX_UGLIDE_MOTOR *uglide_motor;
 	MX_UGLIDE *uglide;

@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define SR570_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -63,14 +65,12 @@ MX_RECORD_FIELD_DEFAULTS mxd_sr570_record_field_defaults[] = {
 	MXD_SR570_STANDARD_FIELDS
 };
 
-long mxd_sr570_num_record_fields
+mx_length_type mxd_sr570_num_record_fields
 		= sizeof( mxd_sr570_record_field_defaults )
 		  / sizeof( mxd_sr570_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr
 			= &mxd_sr570_record_field_defaults[0];
-
-#define SR570_DEBUG	FALSE
 
 /* Private functions for the use of the driver. */
 

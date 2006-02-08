@@ -70,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vme58_record_field_defaults[] = {
 	MXD_VME58_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_vme58_num_record_fields
+mx_length_type mxd_vme58_num_record_fields
 		= sizeof( mxd_vme58_record_field_defaults )
 			/ sizeof( mxd_vme58_record_field_defaults[0] );
 
@@ -306,7 +306,8 @@ mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  controller        = %s\n", vme58->record->name);
 	fprintf(file, "  axis number       = %d\n", vme58_motor->axis_number);
-	fprintf(file, "  flags             = %#lx\n", vme58_motor->flags);
+	fprintf(file, "  flags             = %#lx\n",
+			(unsigned long) vme58_motor->flags);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -318,7 +319,7 @@ mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld counts)\n",
 			motor->position, motor->units,
-			motor->raw_position.stepper );
+			(long) motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per count.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -326,30 +327,30 @@ mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld counts)\n",
 		motor->backlash_correction, motor->units,
-		motor->raw_backlash_correction.stepper );
+		(long) motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld counts)\n",
 		motor->negative_limit, motor->units,
-		motor->raw_negative_limit.stepper );
+		(long) motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld counts)\n",
 		motor->positive_limit, motor->units,
-		motor->raw_positive_limit.stepper );
+		(long) motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld counts)\n",
 		move_deadband, motor->units,
-		motor->raw_move_deadband.stepper );
+		(long) motor->raw_move_deadband.stepper );
 
 	fprintf(file, "  default speed     = %ld counts/second\n",
-		vme58_motor->default_speed );
+		(long) vme58_motor->default_speed );
 
 	fprintf(file, "  default base speed= %ld counts/second\n",
-		vme58_motor->default_base_speed );
+		(long) vme58_motor->default_base_speed );
 
 	fprintf(file, "  default acceleration = %ld counts/second**2\n\n",
-		vme58_motor->default_base_speed );
+		(long) vme58_motor->default_base_speed );
 
 	return MX_SUCCESSFUL_RESULT;
 }

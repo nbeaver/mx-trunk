@@ -52,7 +52,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vme_din_record_field_defaults[] = {
 	MXD_VME_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_vme_din_num_record_fields
+mx_length_type mxd_vme_din_num_record_fields
 		= sizeof( mxd_vme_din_record_field_defaults )
 			/ sizeof( mxd_vme_din_record_field_defaults[0] );
 
@@ -84,7 +84,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vme_dout_record_field_defaults[] = {
 	MXD_VME_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_vme_dout_num_record_fields
+mx_length_type mxd_vme_dout_num_record_fields
 		= sizeof( mxd_vme_dout_record_field_defaults )
 			/ sizeof( mxd_vme_dout_record_field_defaults[0] );
 
@@ -365,7 +365,8 @@ mxd_vme_din_read( MX_DIGITAL_INPUT *dinput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal data size %lu for VME digital input record '%s'.  "
 		"The allowed values are 8, 16, and 32.",
-			vme_dinput->data_size, dinput->record->name );
+			(unsigned long) vme_dinput->data_size,
+			dinput->record->name );
 		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -566,7 +567,8 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal data size %lu for VME digital output record '%s'.  "
 		"The allowed values are 8, 16, and 32.",
-			vme_doutput->data_size, doutput->record->name );
+			(unsigned long) vme_doutput->data_size,
+			doutput->record->name );
 		break;
 	}
 	return mx_status;

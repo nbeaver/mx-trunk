@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_ptz_rf_defaults[] = {
 	MXD_SOFT_PTZ_STANDARD_FIELDS
 };
 
-long mxd_soft_ptz_num_record_fields
+mx_length_type mxd_soft_ptz_num_record_fields
 	= sizeof( mxd_soft_ptz_rf_defaults )
 		/ sizeof( mxd_soft_ptz_rf_defaults[0] );
 
@@ -256,7 +256,8 @@ mxd_soft_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The command %#lx received for soft PTZ '%s' "
 			"is not a known command type.",
-				ptz->command, soft_ptz->record->name );
+				(unsigned long) ptz->command,
+				soft_ptz->record->name );
 		break;
 	}
 
@@ -302,35 +303,35 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_POSITION:
 		mx_info("PTZ '%s': pan is at %ld",
-			ptz->record->name, ptz->pan_position);
+			ptz->record->name, (long) ptz->pan_position);
 		break;
 	case MXF_PTZ_TILT_POSITION:
 		mx_info("PTZ '%s': tilt is at %ld",
-			ptz->record->name, ptz->tilt_position);
+			ptz->record->name, (long) ptz->tilt_position);
 		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		mx_info("PTZ '%s': zoom is at %lu",
-			ptz->record->name, ptz->zoom_position);
+			ptz->record->name, (unsigned long) ptz->zoom_position);
 		break;
 	case MXF_PTZ_FOCUS_POSITION:
 		mx_info("PTZ '%s': focus is at %lu",
-			ptz->record->name, ptz->focus_position);
+			ptz->record->name, (unsigned long) ptz->focus_position);
 		break;
 	case MXF_PTZ_PAN_SPEED:
 		mx_info("PTZ '%s': pan speed is %lu",
-			ptz->record->name, ptz->pan_speed);
+			ptz->record->name, (unsigned long) ptz->pan_speed);
 		break;
 	case MXF_PTZ_TILT_SPEED:
 		mx_info("PTZ '%s': tilt speed is %lu",
-			ptz->record->name, ptz->tilt_speed);
+			ptz->record->name, (unsigned long) ptz->tilt_speed);
 		break;
 	case MXF_PTZ_ZOOM_SPEED:
 		mx_info("PTZ '%s': zoom speed is %lu",
-			ptz->record->name, ptz->zoom_speed);
+			ptz->record->name, (unsigned long) ptz->zoom_speed);
 		break;
 	case MXF_PTZ_FOCUS_SPEED:
 		mx_info("PTZ '%s': focus speed is %lu",
-			ptz->record->name, ptz->focus_speed);
+			ptz->record->name, (unsigned long) ptz->focus_speed);
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -362,43 +363,45 @@ mxd_soft_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 	switch( ptz->parameter_type ) {
 	case MXF_PTZ_PAN_DESTINATION:
 		mx_info("PTZ '%s': move pan to %ld",
-			ptz->record->name, ptz->pan_destination);
+			ptz->record->name, (long) ptz->pan_destination);
 
 		ptz->pan_position = ptz->pan_destination;
 		break;
 	case MXF_PTZ_TILT_DESTINATION:
 		mx_info("PTZ '%s': move tilt to %ld",
-			ptz->record->name, ptz->tilt_destination);
+			ptz->record->name, (long) ptz->tilt_destination);
 
 		ptz->tilt_position = ptz->tilt_destination;
 		break;
 	case MXF_PTZ_ZOOM_DESTINATION:
 		mx_info("PTZ '%s': move zoom to %lu",
-			ptz->record->name, ptz->zoom_destination);
+			ptz->record->name,
+			(unsigned long) ptz->zoom_destination);
 
 		ptz->zoom_position = ptz->zoom_destination;
 		break;
 	case MXF_PTZ_FOCUS_DESTINATION:
 		mx_info("PTZ '%s': move focus to %lu",
-			ptz->record->name, ptz->focus_destination);
+			ptz->record->name,
+			(unsigned long) ptz->focus_destination);
 
 		ptz->focus_position = ptz->focus_destination;
 		break;
 	case MXF_PTZ_PAN_SPEED:
 		mx_info("PTZ '%s': set pan speed to %lu",
-			ptz->record->name, ptz->pan_speed);
+			ptz->record->name, (unsigned long) ptz->pan_speed);
 		break;
 	case MXF_PTZ_TILT_SPEED:
 		mx_info("PTZ '%s': set tilt speed to %lu",
-			ptz->record->name, ptz->tilt_speed);
+			ptz->record->name, (unsigned long) ptz->tilt_speed);
 		break;
 	case MXF_PTZ_ZOOM_SPEED:
 		mx_info("PTZ '%s': set zoom speed to %lu",
-			ptz->record->name, ptz->zoom_speed);
+			ptz->record->name, (unsigned long) ptz->zoom_speed);
 		break;
 	case MXF_PTZ_FOCUS_SPEED:
 		mx_info("PTZ '%s': set focus speed to %lu",
-			ptz->record->name, ptz->focus_speed);
+			ptz->record->name, (unsigned long) ptz->focus_speed);
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

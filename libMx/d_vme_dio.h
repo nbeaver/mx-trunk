@@ -28,11 +28,11 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long address_mode;
-	unsigned long crate_number;
-	unsigned long address;
+	uint32_t address_mode;
+	uint32_t crate_number;
+	mx_hex_type address;
 	char data_size_name[ MXU_VME_DATA_SIZE_LENGTH + 1 ];
-	unsigned long data_size;
+	uint32_t data_size;
 } MX_VME_DINPUT;
 
 typedef struct {
@@ -40,11 +40,11 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long address_mode;
-	unsigned long crate_number;
-	unsigned long address;
+	uint32_t address_mode;
+	uint32_t crate_number;
+	mx_hex_type address;
 	char data_size_name[ MXU_VME_DATA_SIZE_LENGTH + 1 ];
-	unsigned long data_size;
+	uint32_t data_size;
 } MX_VME_DOUTPUT;
 
 #define MXD_VME_DINPUT_STANDARD_FIELDS \
@@ -57,7 +57,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME_DINPUT, address_mode_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME_DINPUT, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -80,7 +80,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME_DOUTPUT, address_mode_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME_DOUTPUT, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

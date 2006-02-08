@@ -25,19 +25,19 @@
 
 typedef struct {
 	MX_RECORD *interface_record;
-	int controller_number;
-	int motor_number;
-	long vp9000_speed;
-	long vp9000_acceleration;
-	unsigned long vp9000_flags;
+	int32_t controller_number;
+	int32_t motor_number;
+	int32_t vp9000_speed;
+	int32_t vp9000_acceleration;
+	mx_hex_type vp9000_flags;
 
-	int motor_is_moving;
-	long last_move_direction;
+	mx_bool_type motor_is_moving;
+	int32_t last_move_direction;
 
-	int positive_limit_latch;
-	int negative_limit_latch;
+	mx_bool_type positive_limit_latch;
+	mx_bool_type negative_limit_latch;
 
-	long last_start_position;
+	int32_t last_start_position;
 	time_t last_start_time;
 } MX_VP9000_MOTOR;
 
@@ -72,19 +72,19 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vp9000_rfield_def_ptr;
 		offsetof(MX_VP9000_MOTOR, interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "vp9000_speed", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "vp9000_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, vp9000_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "vp9000_acceleration", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "vp9000_acceleration", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, vp9000_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

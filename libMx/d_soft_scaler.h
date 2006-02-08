@@ -19,9 +19,9 @@
 
 typedef struct {
 	MX_RECORD *motor_record;
-	unsigned long num_datapoints;
+	mx_length_type num_datapoints;
 	char datafile_name[ MXU_FILENAME_LENGTH + 1 ];
-	long num_intensity_modifiers;
+	mx_length_type num_intensity_modifiers;
 	MX_RECORD **intensity_modifier_array;
 
 	double *motor_position;
@@ -63,18 +63,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_soft_scaler_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SOFT_SCALER, motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_datapoints", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_datapoints", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SOFT_SCALER, num_datapoints), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "datafile_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SOFT_SCALER, datafile_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_intensity_modifiers", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_intensity_modifiers", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_SOFT_SCALER, num_intensity_modifiers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
   {-1, -1, "intensity_modifier_array", MXFT_RECORD, \
 					NULL, 1, {MXU_VARARGS_LENGTH}, \

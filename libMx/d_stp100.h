@@ -41,11 +41,11 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int board_number;
+	int32_t board_number;
 
-	int positive_limit_switch_pin;
-	int negative_limit_switch_pin;
-	int home_switch_pin;
+	int32_t positive_limit_switch_pin;
+	int32_t negative_limit_switch_pin;
+	int32_t home_switch_pin;
 
 	double default_speed;
 	double default_base_speed;
@@ -95,21 +95,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_stp100_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "board_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "board_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "positive_limit_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "positive_limit_switch_pin", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_STP100_MOTOR, positive_limit_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "negative_limit_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "negative_limit_switch_pin", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_STP100_MOTOR, negative_limit_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "home_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "home_switch_pin", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, home_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

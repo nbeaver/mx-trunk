@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vsc16_timer_record_field_defaults[] = {
 	MXD_VSC16_TIMER_STANDARD_FIELDS
 };
 
-long mxd_vsc16_timer_num_record_fields
+mx_length_type mxd_vsc16_timer_num_record_fields
 		= sizeof( mxd_vsc16_timer_record_field_defaults )
 		  / sizeof( mxd_vsc16_timer_record_field_defaults[0] );
 

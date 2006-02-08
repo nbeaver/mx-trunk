@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *table_record;
-	int axis_id;
+	int32_t axis_id;
 } MX_TABLE_MOTOR;
 
 /* Define all of the interface functions. */
@@ -65,7 +65,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_table_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TABLE_MOTOR, table_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TABLE_MOTOR, axis_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

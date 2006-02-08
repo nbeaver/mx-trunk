@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_udt_tramp_record_field_defaults[] = {
 	MXD_UDT_TRAMP_STANDARD_FIELDS
 };
 
-long mxd_udt_tramp_num_record_fields
+mx_length_type mxd_udt_tramp_num_record_fields
 		= sizeof( mxd_udt_tramp_record_field_defaults )
 		  / sizeof( mxd_udt_tramp_record_field_defaults[0] );
 
@@ -179,7 +179,7 @@ mxd_udt_tramp_get_gain( MX_AMPLIFIER *amplifier )
 	static const char fname[] = "mxd_udt_tramp_get_gain()";
 
 	MX_UDT_TRAMP *udt_tramp;
-	unsigned long doutput_value;
+	uint32_t doutput_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_udt_tramp_get_pointers( amplifier, &udt_tramp, fname );

@@ -302,21 +302,21 @@ mxd_modbus_ain_read( MX_ANALOG_INPUT *ainput )
 		}
 #endif
 		if ( num_bits <= 8 ) {
-			raw_value = (long) mx_uint8_array[0];
+			raw_value = (int32_t) mx_uint8_array[0];
 		} else
 		if ( num_bits <= 16 ) {
-			raw_value = ( (long) mx_uint8_array[0] ) << 8;
-			raw_value |= (long) mx_uint8_array[1];
+			raw_value = ( (int32_t) mx_uint8_array[0] ) << 8;
+			raw_value |= (int32_t) mx_uint8_array[1];
 		} else
 		if ( num_bits <= 24 ) {
-			raw_value = ( (long) mx_uint8_array[0] ) << 16;
-			raw_value |= ( (long) mx_uint8_array[1] ) << 8;
-			raw_value |= (long) mx_uint8_array[2];
+			raw_value = ( (int32_t) mx_uint8_array[0] ) << 16;
+			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 8;
+			raw_value |= (int32_t) mx_uint8_array[2];
 		} else {
-			raw_value = ( (long) mx_uint8_array[0] ) << 24;
-			raw_value |= ( (long) mx_uint8_array[1] ) << 16;
-			raw_value |= ( (long) mx_uint8_array[2] ) << 8;
-			raw_value |= (long) mx_uint8_array[3];
+			raw_value = ( (int32_t) mx_uint8_array[0] ) << 24;
+			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 16;
+			raw_value |= ( (int32_t) mx_uint8_array[2] ) << 8;
+			raw_value |= (int32_t) mx_uint8_array[3];
 		}
 		break;
 	case MXF_MOD_READ_HOLDING_REGISTERS:
@@ -333,10 +333,10 @@ mxd_modbus_ain_read( MX_ANALOG_INPUT *ainput )
 		}
 #endif
 		if ( num_bits <= 16 ) {
-			raw_value = (long) mx_uint16_array[0];
+			raw_value = (int32_t) mx_uint16_array[0];
 		} else {
-			raw_value = ( (long) mx_uint16_array[0] ) << 16;
-			raw_value |= (long) mx_uint16_array[1];
+			raw_value = ( (int32_t) mx_uint16_array[0] ) << 16;
+			raw_value |= (int32_t) mx_uint16_array[1];
 		}
 		break;
 	}

@@ -36,7 +36,7 @@ mx_vme_get_pointers( MX_RECORD *record,
 			MX_VME_FUNCTION_LIST **function_list,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_vme_get_pointers()";
+	static const char fname[] = "mx_vme_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -73,7 +73,7 @@ mx_vme_get_pointers( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_vme_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mx_vme_finish_record_initialization()";
+	static const char fname[] = "mx_vme_finish_record_initialization()";
 
 	MX_VME *vme;
 	mx_status_type mx_status;
@@ -98,12 +98,12 @@ mx_vme_finish_record_initialization( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mx_vme_in8( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint8_t *value )
 {
-	const char fname[] = "mx_vme_in8()";
+	static const char fname[] = "mx_vme_in8()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -139,12 +139,12 @@ mx_vme_in8( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_in16( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint16_t *value )
 {
-	const char fname[] = "mx_vme_in16()";
+	static const char fname[] = "mx_vme_in16()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -180,12 +180,12 @@ mx_vme_in16( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_in32( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint32_t *value )
 {
-	const char fname[] = "mx_vme_in32()";
+	static const char fname[] = "mx_vme_in32()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -221,12 +221,12 @@ mx_vme_in32( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_out8( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint8_t value )
 {
-	const char fname[] = "mx_vme_out8()";
+	static const char fname[] = "mx_vme_out8()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -265,12 +265,12 @@ mx_vme_out8( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_out16( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint16_t value )
 {
-	const char fname[] = "mx_vme_out16()";
+	static const char fname[] = "mx_vme_out16()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -309,12 +309,12 @@ mx_vme_out16( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_out32( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address,
+		uint32_t crate,
+		uint32_t address_mode,
+		mx_hex_type address,
 		uint32_t value )
 {
-	const char fname[] = "mx_vme_out32()";
+	static const char fname[] = "mx_vme_out32()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -353,14 +353,14 @@ mx_vme_out32( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_in8( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint8_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_in8()";
+	static const char fname[] = "mx_vme_multi_in8()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -397,14 +397,14 @@ mx_vme_multi_in8( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_in16( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint16_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_in16()";
+	static const char fname[] = "mx_vme_multi_in16()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -441,14 +441,14 @@ mx_vme_multi_in16( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_in32( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint32_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_in32()";
+	static const char fname[] = "mx_vme_multi_in32()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -485,14 +485,14 @@ mx_vme_multi_in32( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_out8( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint8_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_out8()";
+	static const char fname[] = "mx_vme_multi_out8()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -529,14 +529,14 @@ mx_vme_multi_out8( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_out16( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint16_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_out16()";
+	static const char fname[] = "mx_vme_multi_out16()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -573,14 +573,14 @@ mx_vme_multi_out16( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_multi_out32( MX_RECORD *record,
-		unsigned long crate,
-		unsigned long address_mode,
-		unsigned long address_increment,
-		unsigned long address,
-		unsigned long num_values,
+		uint32_t crate,
+		uint32_t address_mode,
+		uint32_t address_increment,
+		mx_hex_type address,
+		uint32_t num_values,
 		uint32_t *value_array )
 {
-	const char fname[] = "mx_vme_multi_out32()";
+	static const char fname[] = "mx_vme_multi_out32()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -617,10 +617,10 @@ mx_vme_multi_out32( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_get_read_address_increment( MX_RECORD *record,
-				unsigned long crate,
-				unsigned long *address_increment )
+				uint32_t crate,
+				uint32_t *address_increment )
 {
-	const char fname[] = "mx_vme_get_read_address_increment()";
+	static const char fname[] = "mx_vme_get_read_address_increment()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -640,6 +640,7 @@ mx_vme_get_read_address_increment( MX_RECORD *record,
 			record->name );
 	}
 
+	vme->crate = crate;
 	vme->parameter_type = MXLV_VME_READ_ADDRESS_INCREMENT;
 
 	mx_status = ( *fptr ) ( vme );
@@ -655,10 +656,10 @@ mx_vme_get_read_address_increment( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_set_read_address_increment( MX_RECORD *record,
-				unsigned long crate,
-				unsigned long address_increment )
+				uint32_t crate,
+				uint32_t address_increment )
 {
-	const char fname[] = "mx_vme_set_read_address_increment()";
+	static const char fname[] = "mx_vme_set_read_address_increment()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -678,6 +679,7 @@ mx_vme_set_read_address_increment( MX_RECORD *record,
 			record->name );
 	}
 
+	vme->crate = crate;
 	vme->parameter_type = MXLV_VME_READ_ADDRESS_INCREMENT;
 
 	vme->read_address_increment = address_increment;
@@ -691,10 +693,10 @@ mx_vme_set_read_address_increment( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_get_write_address_increment( MX_RECORD *record,
-				unsigned long crate,
-				unsigned long *address_increment )
+				uint32_t crate,
+				uint32_t *address_increment )
 {
-	const char fname[] = "mx_vme_get_write_address_increment()";
+	static const char fname[] = "mx_vme_get_write_address_increment()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -714,6 +716,7 @@ mx_vme_get_write_address_increment( MX_RECORD *record,
 			record->name );
 	}
 
+	vme->crate = crate;
 	vme->parameter_type = MXLV_VME_WRITE_ADDRESS_INCREMENT;
 
 	mx_status = ( *fptr ) ( vme );
@@ -729,10 +732,10 @@ mx_vme_get_write_address_increment( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_vme_set_write_address_increment( MX_RECORD *record,
-				unsigned long crate,
-				unsigned long address_increment )
+				uint32_t crate,
+				uint32_t address_increment )
 {
-	const char fname[] = "mx_vme_set_write_address_increment()";
+	static const char fname[] = "mx_vme_set_write_address_increment()";
 
 	MX_VME *vme;
 	MX_VME_FUNCTION_LIST *flist;
@@ -752,6 +755,7 @@ mx_vme_set_write_address_increment( MX_RECORD *record,
 			record->name );
 	}
 
+	vme->crate = crate;
 	vme->parameter_type = MXLV_VME_WRITE_ADDRESS_INCREMENT;
 
 	vme->write_address_increment = address_increment;
@@ -764,9 +768,9 @@ mx_vme_set_write_address_increment( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_vme_parse_address_mode( const char *mode_name, unsigned long *address_mode )
+mx_vme_parse_address_mode( const char *mode_name, uint32_t *address_mode )
 {
-	const char fname[] = "mx_vme_parse_address_mode()";
+	static const char fname[] = "mx_vme_parse_address_mode()";
 
 	char address_mode_name[8];
 	int c, i, length;
@@ -813,9 +817,9 @@ mx_vme_parse_address_mode( const char *mode_name, unsigned long *address_mode )
 }
 
 MX_EXPORT mx_status_type
-mx_vme_parse_data_size( const char *size_name, unsigned long *data_size )
+mx_vme_parse_data_size( const char *size_name, uint32_t *data_size )
 {
-	const char fname[] = "mx_vme_parse_data_size()";
+	static const char fname[] = "mx_vme_parse_data_size()";
 
 	char data_size_name[8];
 	int c, i, length;

@@ -69,6 +69,12 @@ mx_native_data_format( void )
 	return format;
 }
 
+MX_EXPORT unsigned long
+mx_native_program_model( void )
+{
+	return MX_PROGRAM_MODEL;
+}
+
 MX_EXPORT uint16_t
 mx_16bit_byteswap( uint16_t original_value )
 {

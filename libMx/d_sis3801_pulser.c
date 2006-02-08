@@ -190,7 +190,7 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: sis3801_pulser->address_mode = %lu",
-			fname, sis3801_pulser->address_mode));
+			fname, (unsigned long) sis3801_pulser->address_mode));
 
 	/* Reset the SIS3801. */
 

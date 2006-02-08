@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -50,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_spec_timer_record_field_defaults[] = {
 	MXD_SPEC_TIMER_STANDARD_FIELDS
 };
 
-long mxd_spec_timer_num_record_fields
+mx_length_type mxd_spec_timer_num_record_fields
 		= sizeof( mxd_spec_timer_record_field_defaults )
 		  / sizeof( mxd_spec_timer_record_field_defaults[0] );
 
@@ -183,7 +184,7 @@ mxd_spec_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_spec_timer_is_busy()";
 
 	MX_SPEC_TIMER *spec_timer;
-	int busy;
+	double seconds_to_count;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_timer_get_pointers( timer, &spec_timer, fname );
@@ -193,20 +194,20 @@ mxd_spec_timer_is_busy( MX_TIMER *timer )
 
 	mx_status = mx_spec_get_number( spec_timer->spec_server_record,
 					"scaler/.all./count",
-					MXFT_INT, &busy );
+					MXFT_DOUBLE, &seconds_to_count );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( busy ) {
+	if ( fabs(seconds_to_count) >= 1.0e-9 ) {
 		timer->busy = TRUE;
 	} else {
 		timer->busy = FALSE;
 	}
 
 #if MXD_SPEC_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: 'scaler/.all./count' = %d, timer->busy = %d",
-		fname, busy, timer->busy ));
+	MX_DEBUG(-2,("%s: 'scaler/.all./count' = %g, timer->busy = %d",
+		fname, seconds_to_count, timer->busy ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -245,7 +246,7 @@ mxd_spec_timer_stop( MX_TIMER *timer )
 	static const char fname[] = "mxd_spec_timer_stop()";
 
 	MX_SPEC_TIMER *spec_timer;
-	int stop;
+	double seconds_to_count;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_timer_get_pointers( timer, &spec_timer, fname );
@@ -255,15 +256,15 @@ mxd_spec_timer_stop( MX_TIMER *timer )
 
 	timer->value = 0;
 
-	stop = 0;
+	seconds_to_count = 0;
 
 #if MXD_SPEC_TIMER_DEBUG
-	MX_DEBUG(-2,("%s: 'scaler/.all./count' = %d", fname, stop));
+	MX_DEBUG(-2,("%s: 'scaler/.all./count' = %g", fname, seconds_to_count));
 #endif
 
 	mx_status = mx_spec_put_number( spec_timer->spec_server_record,
 					"scaler/.all./count",
-					MXFT_INT, &stop );
+					MXFT_DOUBLE, &seconds_to_count );
 	return mx_status;
 }
 

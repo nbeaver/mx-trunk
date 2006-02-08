@@ -17,17 +17,23 @@
 #ifndef __MX_BIT_H__
 #define __MX_BIT_H__
 
-#define MX_DATAFMT_BIG_ENDIAN			0x1
-#define MX_DATAFMT_LITTLE_ENDIAN		0x2
+#define MX_DATAFMT_BIG_ENDIAN		0x1
+#define MX_DATAFMT_LITTLE_ENDIAN	0x2
 
-#define MX_DATAFMT_IEEE_FLOAT			0x100
-#define MX_DATAFMT_VAX_FLOAT			0x200
+#define MX_DATAFMT_IEEE_FLOAT		0x100
+#define MX_DATAFMT_VAX_FLOAT		0x200
+
+#include "mx_program_model.h"
+
+/*---*/
 
 MX_API unsigned long mx_native_byteorder( void );
 
 MX_API unsigned long mx_native_float_format( void );
 
 MX_API unsigned long mx_native_data_format( void );
+
+MX_API unsigned long mx_native_program_model( void );
 
 MX_API uint16_t mx_16bit_byteswap( uint16_t original_value );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
 #include "mx_analog_input.h"
@@ -49,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_tracker_din_record_field_defaults[] = {
 	MXD_TRACKER_DINPUT_STANDARD_FIELDS
 };
 
-long mxd_tracker_din_num_record_fields
+mx_length_type mxd_tracker_din_num_record_fields
 		= sizeof( mxd_tracker_din_record_field_defaults )
 			/ sizeof( mxd_tracker_din_record_field_defaults[0] );
 
@@ -75,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_tracker_dout_record_field_defaults[] = {
 	MXD_TRACKER_DOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_tracker_dout_num_record_fields
+mx_length_type mxd_tracker_dout_num_record_fields
 		= sizeof( mxd_tracker_dout_record_field_defaults )
 			/ sizeof( mxd_tracker_dout_record_field_defaults[0] );
 
@@ -243,7 +244,7 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &(dinput->value) );
+	num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -354,7 +355,7 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &(doutput->value) );
+	num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -383,7 +384,7 @@ mxd_tracker_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	sprintf( command, ";%03d SA %d %lu", tracker_doutput->address,
 					tracker_doutput->location,
-					doutput->value );
+					(unsigned long) doutput->value );
 
 	mx_status = mxd_tracker_command( doutput->record,
 					tracker_doutput->rs232_record,
