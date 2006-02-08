@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scaler_function_record_field_defaults[] = {
 	MXD_SCALER_FUNCTION_STANDARD_FIELDS
 };
 
-long mxd_scaler_function_num_record_fields
+mx_length_type mxd_scaler_function_num_record_fields
 		= sizeof(mxd_scaler_function_record_field_defaults)
 			/ sizeof(mxd_scaler_function_record_field_defaults[0]);
 
@@ -70,7 +70,7 @@ mxd_scaler_function_get_pointers( MX_SCALER *scaler,
 			MX_SCALER_FUNCTION **scaler_function,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scaler_function_get_pointers()";
+	static const char fname[] = "mxd_scaler_function_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -101,9 +101,9 @@ mxd_scaler_function_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_scaler_function_initialize_type( long type )
 {
-        const char fname[] = "mxs_scaler_function_initialize_type()";
+        static const char fname[] = "mxs_scaler_function_initialize_type()";
 
-        const char field_name[NUM_SCALER_FUNCTION_FIELDS]
+        static const char field_name[NUM_SCALER_FUNCTION_FIELDS]
 					[MXU_FIELD_NAME_LENGTH+1]
             = {
                 "record_array",
@@ -115,9 +115,9 @@ mxd_scaler_function_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
         int i;
-        long num_record_fields;
-	long referenced_field_index;
-        long num_records_varargs_cookie;
+        mx_length_type num_record_fields;
+	mx_length_type referenced_field_index;
+        mx_length_type num_records_varargs_cookie;
         mx_status_type mx_status;
 
         driver = mx_get_driver_by_type( type );
@@ -143,7 +143,7 @@ mxd_scaler_function_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (long *) NULL ) {
+        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -165,7 +165,7 @@ mxd_scaler_function_initialize_type( long type )
                 return mx_status;
 
         MX_DEBUG( 2,("%s: num_records varargs cookie = %ld",
-                        fname, num_records_varargs_cookie));
+                        fname, (long) num_records_varargs_cookie));
 
 	for ( i = 0; i < NUM_SCALER_FUNCTION_FIELDS; i++ ) {
 		mx_status = mx_find_record_field_defaults(
@@ -184,7 +184,7 @@ mxd_scaler_function_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_scaler_function_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_create_record_structures()";
+	static const char fname[] = "mxd_scaler_function_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_SCALER_FUNCTION *scaler_function;
@@ -222,7 +222,7 @@ mxd_scaler_function_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_scaler_function_finish_record_initialization()";
 
 	MX_RECORD **record_array;
@@ -304,9 +304,9 @@ mxd_scaler_function_finish_record_initialization( MX_RECORD *record )
 				return mx_error( MXE_TYPE_MISMATCH, fname,
 			"Double precision variables used by this record type "
 			"must be either 0 or 1 dimensions.  The record '%s' is "
-			"a %ld dimensional variable.",
-					child_record->name,
-					record_field->num_dimensions );
+			"a %lu dimensional variable.",
+				child_record->name,
+				(unsigned long) record_field->num_dimensions );
 			}
 
 			num_variables++;
@@ -510,13 +510,14 @@ mxd_scaler_function_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_print_scaler_structure()";
+	static const char fname[] = "mxd_scaler_function_print_scaler_structure()";
 
 	MX_SCALER *scaler;
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **record_array;
 	double *real_scale, *real_offset;
-	long i, num_records, current_value;
+	int32_t current_value;
+	mx_length_type i, num_records;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -548,12 +549,16 @@ mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 			record->name );
 	}
 
-	fprintf(file, "  present value         = %ld.\n", current_value );
-	fprintf(file, "  dark current          = %g counts per second.\n",
-						scaler->dark_current);
-	fprintf(file, "  scaler flags          = %#lx.\n",scaler->scaler_flags);
+	fprintf(file, "  present value         = %ld\n",
+					(long) current_value );
 
-	fprintf(file, "  num records           = %ld\n", num_records);
+	fprintf(file, "  dark current          = %g counts per second.\n",
+					scaler->dark_current);
+
+	fprintf(file, "  scaler flags          = %#lx.\n",
+					(unsigned long) scaler->scaler_flags);
+
+	fprintf(file, "  num records           = %ld\n", (long) num_records);
 
 	fprintf(file, "  record array          = (");
 
@@ -606,7 +611,7 @@ mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_clear()";
+	static const char fname[] = "mxd_scaler_function_clear()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
@@ -644,7 +649,7 @@ mxd_scaler_function_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_overflow_set()";
+	static const char fname[] = "mxd_scaler_function_overflow_set()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
@@ -690,19 +695,20 @@ mxd_scaler_function_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_read()";
+	static const char fname[] = "mxd_scaler_function_read()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD *child_record;
-	long i, long_value;
+	mx_length_type i;
+	int32_t int32_value;
 	double sum, scaled_value, double_value;
 
-	long num_scalers;
+	mx_length_type num_scalers;
 	MX_RECORD **scaler_record_array;
 	double *real_scaler_scale;
 	double *real_scaler_offset;
 
-	long num_variables;
+	mx_length_type num_variables;
 	MX_RECORD **variable_record_array;
 	double *real_variable_scale;
 	double *real_variable_offset;
@@ -728,13 +734,13 @@ mxd_scaler_function_read( MX_SCALER *scaler )
 	
 		child_record = scaler_record_array[i];
 
-		mx_status = mx_scaler_read( child_record, &long_value );
+		mx_status = mx_scaler_read( child_record, &int32_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		scaled_value = real_scaler_offset[i] + real_scaler_scale[i]
-							* (double) long_value;
+							* (double) int32_value;
 
 		sum += scaled_value;
 
@@ -776,7 +782,7 @@ mxd_scaler_function_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_is_busy()";
+	static const char fname[] = "mxd_scaler_function_is_busy()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
@@ -838,7 +844,7 @@ mxd_scaler_function_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_set_parameter()";
+	static const char fname[] = "mxd_scaler_function_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

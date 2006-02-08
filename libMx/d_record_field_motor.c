@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_record_field_motor_rf_defaults[] = {
 	MXD_RECORD_FIELD_MOTOR_STANDARD_FIELDS
 };
 
-long mxd_record_field_motor_num_record_fields
+mx_length_type mxd_record_field_motor_num_record_fields
 		= sizeof( mxd_record_field_motor_rf_defaults )
 		/ sizeof( mxd_record_field_motor_rf_defaults[0] );
 
@@ -98,7 +98,7 @@ mxd_record_field_motor_get_pointers( MX_MOTOR *motor,
 }
 
 static mx_status_type
-mxd_record_field_motor_get_int( MX_RECORD_FIELD *field, int *int_value )
+mxd_record_field_motor_get_int32( MX_RECORD_FIELD *field, int32_t *int32_value )
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
@@ -110,21 +110,21 @@ mxd_record_field_motor_get_int( MX_RECORD_FIELD *field, int *int_value )
 						field->num_dimensions,
 						field->dimension,
 						field->data_element_size,
-						int_value,
-						MXFT_INT, 0, NULL, NULL );
+						int32_value,
+						MXFT_INT32, 0, NULL, NULL );
 	return mx_status;
 }
 
 static mx_status_type
-mxd_record_field_motor_set_int( MX_RECORD_FIELD *field, int int_value )
+mxd_record_field_motor_set_int32( MX_RECORD_FIELD *field, int32_t int32_value )
 {
 	void *field_value_ptr;
 	mx_status_type mx_status;
 
 	field_value_ptr = mx_get_field_value_pointer( field );
 
-	mx_status = mx_convert_and_copy_array( &int_value,
-						MXFT_INT, 0, NULL, NULL,
+	mx_status = mx_convert_and_copy_array( &int32_value,
+						MXFT_INT32, 0, NULL, NULL,
 						field_value_ptr,
 						field->datatype,
 						field->num_dimensions,
@@ -172,7 +172,7 @@ mxd_record_field_motor_set_double( MX_RECORD_FIELD *field, double double_value )
 static mx_status_type
 mxd_record_field_motor_get_disable_flag(
 				MX_RECORD_FIELD_MOTOR *record_field_motor,
-				int *disable_flag )
+				int32_t *disable_flag )
 {
 	static const char fname[] =
 		"mxd_record_field_motor_get_disable_flag()";
@@ -203,7 +203,7 @@ mxd_record_field_motor_get_disable_flag(
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_int( handler->record_field,
+	mx_status = mxd_record_field_motor_get_int32( handler->record_field,
 						disable_flag );
 	return mx_status;
 }
@@ -212,7 +212,7 @@ mxd_record_field_motor_get_disable_flag(
 static mx_status_type
 mxd_record_field_motor_set_disable_flag(
 				MX_RECORD_FIELD_MOTOR *record_field_motor,
-				int disable_flag )
+				int32_t disable_flag )
 {
 	static const char fname[] =
 		"mxd_record_field_motor_set_disable_flag()";
@@ -246,14 +246,14 @@ mxd_record_field_motor_set_disable_flag(
 static mx_status_type
 mxd_record_field_motor_get_command_in_progress_flag(
 				MX_RECORD_FIELD_MOTOR *record_field_motor,
-				int *command_in_progress_flag )
+				int32_t *command_in_progress_flag )
 {
 	static const char fname[] =
 		"mxd_record_field_motor_get_command_in_progress_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
 	unsigned long record_field_motor_flags;
-	int disable_flag;
+	int32_t disable_flag;
 	mx_status_type mx_status;
 
 	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
@@ -292,7 +292,7 @@ mxd_record_field_motor_get_command_in_progress_flag(
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mxd_record_field_motor_get_int(
+		mx_status = mxd_record_field_motor_get_int32(
 						handler->record_field,
 						command_in_progress_flag );
 
@@ -328,13 +328,13 @@ mxd_record_field_motor_get_command_in_progress_flag(
 static mx_status_type
 mxd_record_field_motor_set_command_in_progress_flag(
 				MX_RECORD_FIELD_MOTOR *record_field_motor,
-				int command_in_progress_flag )
+				int32_t command_in_progress_flag )
 {
 	static const char fname[] =
 		"mxd_record_field_motor_set_command_in_progress_flag()";
 
 	MX_RECORD_FIELD_HANDLER *handler;
-	int disable_flag;
+	int32_t disable_flag;
 	mx_status_type mx_status;
 
 	if ( record_field_motor == (MX_RECORD_FIELD_MOTOR *) NULL ) {
@@ -371,7 +371,7 @@ mxd_record_field_motor_set_command_in_progress_flag(
 
 	/* Send the command_in_progress flag. */
 
-	mx_status = mxd_record_field_motor_set_int( handler->record_field,
+	mx_status = mxd_record_field_motor_set_int32( handler->record_field,
 						command_in_progress_flag );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -675,7 +675,7 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 
 	MX_RECORD_FIELD_MOTOR *record_field_motor;
 	MX_RECORD_FIELD_HANDLER *handler;
-	int command_in_progress, busy_field_value;
+	int32_t command_in_progress, busy_field_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_record_field_motor_get_pointers( motor,
@@ -724,7 +724,7 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_int( handler->record_field,
+	mx_status = mxd_record_field_motor_get_int32( handler->record_field,
 							&busy_field_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -902,7 +902,7 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 	 * record field to send the abort command.
 	 */
 
-	mx_status = mxd_record_field_motor_set_int( handler->record_field,
+	mx_status = mxd_record_field_motor_set_int32( handler->record_field,
 						motor->soft_abort );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -947,7 +947,7 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 	 * record field to send the abort command.
 	 */
 
-	mx_status = mxd_record_field_motor_set_int( handler->record_field,
+	mx_status = mxd_record_field_motor_set_int32( handler->record_field,
 						motor->immediate_abort );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -999,7 +999,7 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_int( handler->record_field,
+	mx_status = mxd_record_field_motor_get_int32( handler->record_field,
 						&(motor->positive_limit_hit) );
 
 	return mx_status;
@@ -1045,7 +1045,7 @@ mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxd_record_field_motor_get_int( handler->record_field,
+	mx_status = mxd_record_field_motor_get_int32( handler->record_field,
 						&(motor->negative_limit_hit) );
 
 	return mx_status;

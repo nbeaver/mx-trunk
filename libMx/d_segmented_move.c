@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_segmented_move_record_field_defaults[] = {
 	MXD_SEGMENTED_MOVE_STANDARD_FIELDS
 };
 
-long mxd_segmented_move_num_record_fields
+mx_length_type mxd_segmented_move_num_record_fields
 		= sizeof( mxd_segmented_move_record_field_defaults )
 			/ sizeof( mxd_segmented_move_record_field_defaults[0] );
 

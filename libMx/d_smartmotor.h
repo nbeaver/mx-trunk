@@ -46,18 +46,18 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int motor_address;
-	unsigned long smartmotor_flags;
+	int32_t motor_address;
+	mx_hex_type smartmotor_flags;
 
 	double velocity_scale_factor;
 	double acceleration_scale_factor;
 
-	int sample_rate;
+	int32_t sample_rate;
 	char firmware_version[ MXU_SMARTMOTOR_FIRMWARE_VERSION_LENGTH+1 ];
 
-	int home_search_succeeded;
-	int historical_left_limit;
-	int historical_right_limit;
+	mx_bool_type home_search_succeeded;
+	mx_bool_type historical_left_limit;
+	mx_bool_type historical_right_limit;
 } MX_SMARTMOTOR;
 
 /* Define all of the interface functions. */
@@ -104,7 +104,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_smartmotor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SMARTMOTOR, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_address", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SMARTMOTOR, motor_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -112,7 +112,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_smartmotor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SMARTMOTOR, smartmotor_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "sample_rate", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "sample_rate", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SMARTMOTOR, sample_rate), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \

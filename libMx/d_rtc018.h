@@ -24,7 +24,8 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int slot;
+	int32_t slot;
+
 	int saved_step_down_bit;
 	double seconds_per_tick;
 } MX_RTC018;
@@ -56,7 +57,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_rtc018_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RTC018, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RTC018, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

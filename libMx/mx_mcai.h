@@ -24,15 +24,15 @@
 typedef struct {
 	MX_RECORD *record;
 
-	long maximum_num_channels;
-	long current_num_channels;
+	mx_length_type maximum_num_channels;
+	mx_length_type current_num_channels;
 
 	double *channel_array;
 
 	double scale;
 	double offset;
 	char units[MXU_UNITS_NAME_LENGTH+1];
-	unsigned long mcai_flags;
+	mx_hex_type mcai_flags;
 } MX_MCAI;
 
 #define MXLV_MCAI_CHANNEL_ARRAY		10001
@@ -41,13 +41,13 @@ typedef struct {
 
 #define MX_MCAI_STANDARD_FIELDS \
   {MXLV_MCAI_MAXIMUM_NUM_CHANNELS, -1, "maximum_num_channels", \
-	  		MXFT_LONG, NULL, 0, {0}, \
+	  		MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_MCAI, maximum_num_channels), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY),}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY),}, \
   \
   {MXLV_MCAI_CURRENT_NUM_CHANNELS, -1, "current_num_channels", \
-	  		MXFT_LONG, NULL, 0, {0}, \
+	  		MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCAI, current_num_channels), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY),}, \
   \

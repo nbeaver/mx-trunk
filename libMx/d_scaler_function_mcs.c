@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scaler_function_mcs_rf_defaults[] = {
 	MXD_SCALER_FUNCTION_MCS_STANDARD_FIELDS
 };
 
-long mxd_scaler_function_mcs_num_record_fields
+mx_length_type mxd_scaler_function_mcs_num_record_fields
 		= sizeof( mxd_scaler_function_mcs_rf_defaults )
 		/ sizeof( mxd_scaler_function_mcs_rf_defaults[0] );
 
@@ -138,9 +138,9 @@ MX_EXPORT mx_status_type
 mxd_scaler_function_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
-	long maximum_num_scalers_varargs_cookie;
-	long maximum_num_measurements_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_scalers_varargs_cookie;
+	mx_length_type maximum_num_measurements_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_initialize_type( record_type,
@@ -263,10 +263,10 @@ mxd_scaler_function_mcs_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  scaler function record    = %s\n",
 			scaler_function_mcs->scaler_function_record->name);
 
-	fprintf(file, "  maximum # scalers         = %ld\n",
-					mcs->maximum_num_scalers);
-	fprintf(file, "  maximum # of measurements = %ld\n",
-					mcs->maximum_num_measurements);
+	fprintf(file, "  maximum # scalers         = %lu\n",
+				(unsigned long) mcs->maximum_num_scalers);
+	fprintf(file, "  maximum # of measurements = %lu\n",
+				(unsigned long) mcs->maximum_num_measurements);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -640,16 +640,17 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 	MX_RECORD *child_record;
 	MX_RECORD *scaler_mcs_record;
 	MX_MCS *scaler_mcs;
-	long i, j, long_value;
-	long *data_ptr;
+	long i, j;
+	int32_t int32_value;
+	int32_t *data_ptr;
 	int scaler_index;
 
-	long num_scalers;
+	mx_length_type num_scalers;
 	MX_RECORD **scaler_record_array;
 	double *real_scaler_scale;
 	double *real_scaler_offset;
 
-	long num_variables;
+	mx_length_type num_variables;
 	MX_RECORD **variable_record_array;
 	double *real_variable_scale;
 	double *real_variable_offset;
@@ -731,10 +732,10 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 			scaler_index =
 				scaler_function_mcs->scaler_index_array[i];
 
-			long_value = scaler_mcs->data_array[ scaler_index ][j];
+			int32_value = scaler_mcs->data_array[ scaler_index ][j];
 
 			scaled_value = real_scaler_offset[i] +
-			    real_scaler_scale[i] * (double) long_value;
+			    real_scaler_scale[i] * (double) int32_value;
 
 			sum += scaled_value;
 		}
@@ -746,7 +747,7 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 	{
 		fprintf(stderr,"%s: MCS '%s' -> ", fname, mcs->record->name);
 		for ( i = 0; i < mcs->current_num_measurements; i++ ) {
-			fprintf(stderr,"%ld ", data_ptr[i]);
+			fprintf(stderr,"%ld ", (long) data_ptr[i]);
 		}
 		fprintf(stderr,"\n");
 	}

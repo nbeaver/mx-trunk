@@ -50,7 +50,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	unsigned long crate;
-	unsigned long address;
+	mx_hex_type   address;
 	unsigned long address_mode;
 	unsigned long data_size;
 
@@ -62,7 +62,7 @@ typedef struct {
 
 	int parameter_type;
 
-	unsigned long vme_flags;
+	mx_hex_type vme_flags;
 } MX_VME;
 
 #define MXLV_VME_READ_ADDRESS_INCREMENT		1001

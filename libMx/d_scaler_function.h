@@ -24,26 +24,26 @@
 
 typedef struct {
 	MX_RECORD *record;
-	unsigned long scaler_function_flags;
+	mx_hex_type scaler_function_flags;
 
 	char master_scaler_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	MX_RECORD *master_scaler_record;
 
-	long num_records;
+	mx_length_type num_records;
 	MX_RECORD **record_array;
 	double *real_scale;
 	double *real_offset;
 
 	/* Scaler arrays */
 
-	long num_scalers;
+	mx_length_type num_scalers;
 	MX_RECORD **scaler_record_array;
 	double *real_scaler_scale;
 	double *real_scaler_offset;
 
 	/* Variable arrays */
 
-	long num_variables;
+	mx_length_type num_variables;
 	MX_RECORD **variable_record_array;
 	double *real_variable_scale;
 	double *real_variable_offset;
@@ -89,9 +89,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_scaler_function_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCALER_FUNCTION, master_scaler_name),\
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_records", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_records", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCALER_FUNCTION, num_records), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
   \
   {-1, -1, "record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCALER_FUNCTION, record_array),\

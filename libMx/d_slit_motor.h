@@ -23,9 +23,9 @@
 /* ===== MX slit motor data structures ===== */
 
 typedef struct {
-	long slit_flags;
+	mx_hex_type slit_flags;
 
-	long slit_type;
+	int32_t slit_type;
 
 	MX_RECORD *negative_motor_record;
 	MX_RECORD *positive_motor_record;
@@ -89,7 +89,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_slit_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SLIT_MOTOR, slit_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "slit_type", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "slit_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SLIT_MOTOR, slit_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

@@ -492,7 +492,7 @@ mxs_slit_scan_motor_record_array_move_special(
 			default:
 				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
 					fname, "Unknown slit type %ld.",
-					slit_motor->slit_type );
+					(long) slit_motor->slit_type );
 				break;
 			}
 

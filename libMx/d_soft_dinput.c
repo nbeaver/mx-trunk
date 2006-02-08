@@ -38,7 +38,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_dinput_record_field_defaults[] = {
 	MX_DIGITAL_INPUT_STANDARD_FIELDS
 };
 
-long mxd_soft_dinput_num_record_fields
+mx_length_type mxd_soft_dinput_num_record_fields
 		= sizeof( mxd_soft_dinput_record_field_defaults )
 			/ sizeof( mxd_soft_dinput_record_field_defaults[0] );
 
@@ -90,7 +90,9 @@ mxd_soft_dinput_read( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_soft_dinput_read()";
 
 	MX_DEBUG( 2,("%s: returning value %#lx (%lu)", fname,
-				dinput->value, dinput->value ));
+				(unsigned long) dinput->value,
+				(unsigned long) dinput->value ));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

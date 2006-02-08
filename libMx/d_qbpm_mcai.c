@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_qbpm_mcai_record_field_defaults[] = {
 	MXD_QBPM_MCAI_STANDARD_FIELDS
 };
 
-long mxd_qbpm_mcai_num_record_fields
+mx_length_type mxd_qbpm_mcai_num_record_fields
 		= sizeof( mxd_qbpm_mcai_record_field_defaults )
 			/ sizeof( mxd_qbpm_mcai_record_field_defaults[0] );
 
@@ -132,8 +132,8 @@ MX_EXPORT mx_status_type
 mxd_qbpm_mcai_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
-	long maximum_num_channels_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_channels_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcai_initialize_type( record_type,

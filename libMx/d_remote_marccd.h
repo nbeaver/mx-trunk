@@ -73,7 +73,7 @@ typedef struct {
 	MX_SOCKET *marccd_socket;
 
 	char marccd_host[ MXU_HOSTNAME_LENGTH + 1 ];
-	int marccd_port;
+	int32_t marccd_port;
 
 	/* The command that currently should be executing. */
 
@@ -101,7 +101,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_REMOTE_MARCCD, marccd_host), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "marccd_port", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "marccd_port", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_REMOTE_MARCCD, marccd_port), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -123,11 +123,11 @@ MX_API mx_status_type mxd_remote_marccd_set_parameter( MX_CCD *ccd );
 MX_API mx_status_type mxd_remote_marccd_command( MX_CCD *ccd,
 						MX_REMOTE_MARCCD *remote_marccd,
 						char *command,
-						unsigned long flags );
+						mx_hex_type flags );
 
 MX_API mx_status_type mxd_remote_marccd_check_for_responses( MX_CCD *ccd,
 						MX_REMOTE_MARCCD *remote_marccd,
-						unsigned long flags );
+						mx_hex_type flags );
 
 extern MX_RECORD_FUNCTION_LIST mxd_remote_marccd_record_function_list;
 extern MX_CCD_FUNCTION_LIST mxd_remote_marccd_ccd_function_list;

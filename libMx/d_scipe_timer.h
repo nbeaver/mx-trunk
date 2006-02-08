@@ -45,27 +45,15 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxd_scipe_timer_initialize_type( long type );
 MX_API mx_status_type mxd_scipe_timer_create_record_structures(
 						MX_RECORD *record );
-MX_API mx_status_type mxd_scipe_timer_finish_record_initialization(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_scipe_timer_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxd_scipe_timer_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_scipe_timer_write_parms_to_hardware(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_scipe_timer_open( MX_RECORD *record );
-MX_API mx_status_type mxd_scipe_timer_close( MX_RECORD *record );
+
 MX_API mx_status_type mxd_scipe_timer_is_busy( MX_TIMER *timer );
 MX_API mx_status_type mxd_scipe_timer_start( MX_TIMER *timer );
 MX_API mx_status_type mxd_scipe_timer_stop( MX_TIMER *timer );
 MX_API mx_status_type mxd_scipe_timer_clear( MX_TIMER *timer );
 MX_API mx_status_type mxd_scipe_timer_read( MX_TIMER *timer );
-MX_API mx_status_type mxd_scipe_timer_get_mode( MX_TIMER *timer );
-MX_API mx_status_type mxd_scipe_timer_set_mode( MX_TIMER *timer );
-MX_API mx_status_type mxd_scipe_timer_set_modes_of_associated_counters(
-						MX_TIMER *timer );
 
 extern MX_RECORD_FUNCTION_LIST mxd_scipe_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_scipe_timer_timer_function_list;

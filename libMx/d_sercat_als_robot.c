@@ -60,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sercat_als_robot_record_field_defaults[] = {
 	MXD_SERCAT_ALS_ROBOT_STANDARD_FIELDS
 };
 
-long mxd_sercat_als_robot_num_record_fields
+mx_length_type mxd_sercat_als_robot_num_record_fields
 		= sizeof( mxd_sercat_als_robot_record_field_defaults )
 		/ sizeof( mxd_sercat_als_robot_record_field_defaults[0] );
 
@@ -503,7 +503,7 @@ mxd_sercat_als_robot_initialize( MX_SAMPLE_CHANGER *changer )
 
 	MX_SERCAT_ALS_ROBOT *sercat_als_robot;
 	MX_RECORD *x_motor_record;
-	unsigned long dewar_positioner_status;
+	mx_hex_type dewar_positioner_status;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -583,7 +583,7 @@ mxd_sercat_als_robot_initialize( MX_SAMPLE_CHANGER *changer )
 		"The motor status for dewar positioner '%s' is %#lx",
 			changer->record->name,
 			sercat_als_robot->dewar_positioner_record->name,
-			dewar_positioner_status );
+			(unsigned long) dewar_positioner_status );
 	}
 
 	/* If the home search succeeded, define the current positions of
@@ -685,7 +685,7 @@ mxd_sercat_als_robot_mount_sample( MX_SAMPLE_CHANGER *changer )
 		return mx_error( MXE_CLIENT_REQUEST_DENIED, fname,
 		"Sample changer '%s' already has sample %ld from puck %s "
 		"mounted on the goniostat.", changer->record->name,
-			changer->current_sample_id,
+			(long) changer->current_sample_id,
 			changer->current_sample_holder );
 	}
 
@@ -834,7 +834,7 @@ mxd_sercat_als_robot_grab_sample( MX_SAMPLE_CHANGER *changer )
 		return mx_error( MXE_CLIENT_REQUEST_DENIED, fname,
 		"Sample changer '%s' already has grabbed sample %ld "
 		"from puck %s.", changer->record->name,
-				changer->current_sample_id,
+				(long) changer->current_sample_id,
 				changer->current_sample_holder );
 	}
 	if ( strcmp( changer->current_sample_holder,

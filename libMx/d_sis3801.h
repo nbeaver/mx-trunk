@@ -67,20 +67,21 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long crate_number;
 	unsigned long address_mode;
-	unsigned long base_address;
 
-	unsigned long sis3801_flags;
-	unsigned long control_input_mode;
+	uint32_t crate_number;
+	mx_hex_type base_address;
 
-	unsigned long module_id;
-	unsigned long firmware_version;
+	mx_hex_type sis3801_flags;
+	mx_hex_type control_input_mode;
 
-	unsigned long maximum_prescale_factor;
+	mx_hex_type module_id;
+	mx_hex_type firmware_version;
 
-	int fifo_size_in_kwords;		/* A word is 16 bits long */
-	int counts_available_in_fifo;
+	uint32_t maximum_prescale_factor;
+
+	int32_t fifo_size_in_kwords;		/* A word is 16 bits long */
+	int32_t counts_available_in_fifo;
 
 	MX_CLOCK_TICK finish_time;
 } MX_SIS3801;
@@ -95,7 +96,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, address_mode_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -119,15 +120,15 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "maximum_prescale_factor", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, maximum_prescale_factor), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "fifo_size_in_kwords", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "fifo_size_in_kwords", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, fifo_size_in_kwords), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "counts_available_in_fifo", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "counts_available_in_fifo", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, counts_available_in_fifo), \
 	{0}, NULL, MXFF_READ_ONLY }
 

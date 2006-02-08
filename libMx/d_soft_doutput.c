@@ -40,7 +40,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_doutput_record_field_defaults[] = {
 	MX_DIGITAL_OUTPUT_STANDARD_FIELDS
 };
 
-long mxd_soft_doutput_num_record_fields
+mx_length_type mxd_soft_doutput_num_record_fields
 		= sizeof( mxd_soft_doutput_record_field_defaults )
 			/ sizeof( mxd_soft_doutput_record_field_defaults[0] );
 
@@ -98,7 +98,8 @@ mxd_soft_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	const char fname[] = "mxd_soft_doutput_write()";
 
 	MX_DEBUG( 2,("%s: writing value %#lx (%lu)", fname,
-				doutput->value, doutput->value ));
+				(unsigned long) doutput->value,
+				(unsigned long) doutput->value ));
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -70,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_roentec_rcl_record_field_defaults[] = {
 	MXD_ROENTEC_RCL_STANDARD_FIELDS,
 };
 
-long mxd_roentec_rcl_num_record_fields
+mx_length_type mxd_roentec_rcl_num_record_fields
 		= sizeof( mxd_roentec_rcl_record_field_defaults )
 		  / sizeof( mxd_roentec_rcl_record_field_defaults[0] );
 
@@ -270,10 +270,10 @@ MX_EXPORT mx_status_type
 mxd_roentec_rcl_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
-	long maximum_num_channels_varargs_cookie;
-	long maximum_num_rois_varargs_cookie;
-	long num_soft_rois_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_channels_varargs_cookie;
+	mx_length_type maximum_num_rois_varargs_cookie;
+	mx_length_type num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
@@ -350,39 +350,30 @@ mxd_roentec_rcl_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_rois > MX_ROENTEC_RCL_MAX_SCAS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of ROIs (%ld) for Roentec MCA '%s' is greater "
+"The requested maximum number of ROIs (%lu) for Roentec MCA '%s' is greater "
 "than the maximum allowed value of %d.",
-			mca->maximum_num_rois, record->name,
+			(unsigned long) mca->maximum_num_rois,
+			record->name,
 			MX_ROENTEC_RCL_MAX_SCAS );
 	}
 
 	if ( mca->maximum_num_channels > MX_ROENTEC_RCL_MAX_BINS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of channels (%ld) for Roentec MCA '%s' is greater "
+"The requested maximum number of channels (%lu) for Roentec MCA '%s' is greater "
 "than the maximum allowed value of %d.",
-			mca->maximum_num_channels, record->name,
+			(unsigned long) mca->maximum_num_channels,
+			record->name,
 			MX_ROENTEC_RCL_MAX_BINS );
 	}
 
-	mca->channel_array = ( unsigned long * )
-		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );
+	mca->channel_array = (uint32_t *)
+		malloc( mca->maximum_num_channels * sizeof(uint32_t) );
 
-	if ( mca->channel_array == NULL ) {
+	if ( mca->channel_array == (uint32_t *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %ld channel data array.",
-			mca->maximum_num_channels );
+		"Ran out of memory allocating an %lu channel data array.",
+			(unsigned long) mca->maximum_num_channels );
 	}
-
-#if ( MX_WORDSIZE != 32 )
-	roentec_rcl_mca->channel_32bit_array = ( uint32_t * )
-		malloc( mca->maximum_num_channels * sizeof( uint32_t ) );
-
-	if ( roentec_rcl_mca->channel_32bit_array == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel 32bit data array.",
-			mca->maximum_num_channels );
-	}
-#endif
 
 	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
 
@@ -406,11 +397,6 @@ mxd_roentec_rcl_delete_record( MX_RECORD *record )
 	roentec_rcl_mca = (MX_ROENTEC_RCL_MCA *) record->record_type_struct;
 
 	if ( roentec_rcl_mca != NULL ) {
-
-#if ( MX_WORDSIZE != 32 )
-		mx_free( roentec_rcl_mca->channel_32bit_array );
-#endif
-
 		mx_free( record->record_type_struct );
 
 		record->record_type_struct = NULL;
@@ -620,7 +606,8 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 		/* Initialize the window counter. */
 
 		sprintf( command, "$FI %lu 0 %ld",
-			mca->preset_count, mca->current_num_channels );
+			(unsigned long) mca->preset_count,
+			(unsigned long) mca->current_num_channels );
 
 		mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
 				command, NULL, 0, MXD_ROENTEC_RCL_DEBUG );
@@ -689,8 +676,8 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	 * the command with the one line response '!SS<cr>'.
 	 */
 
-	sprintf( command, "$SS 0,1,1,%ld",
-			mca->current_num_channels );
+	sprintf( command, "$SS 0,1,1,%lu",
+			(unsigned long) mca->current_num_channels );
 
 	mx_status = mxd_roentec_rcl_command( roentec_rcl_mca,
 				command, NULL, 0, MXD_ROENTEC_RCL_DEBUG );
@@ -702,27 +689,11 @@ mxd_roentec_rcl_read( MX_MCA *mca )
 	 * data is transferred.
 	 */
 
-#if ( MX_WORDSIZE == 32 )
 	mx_status = mxd_roentec_rcl_read_32bit_array( roentec_rcl_mca,
 				mca->current_num_channels,
-				(uint32_t *) mca->channel_array,
+				mca->channel_array,
 				MXD_ROENTEC_RCL_DEBUG_TIMING );
 
-#else /* MX_WORDSIZE is not 32 bits. */
-
-	mx_status = mxd_roentec_rcl_read_32bit_array( roentec_rcl_mca,
-				mca->current_num_channels,
-				roentec_rcl_mca->channel_32bit_array,
-				MXD_ROENTEC_RCL_DEBUG_TIMING );
-	{
-		int i;
-
-		for ( i = 0; i < MX_ROENTEC_RCL_MAX_BINS; i++ ) {
-			mca->channel_array[i] =
-		    (unsigned long) roentec_rcl_mca->channel_32bit_array[i];
-		}
-	}
-#endif
 	if ( mx_status.code == MXE_END_OF_DATA )
 		return MX_SUCCESSFUL_RESULT;
 

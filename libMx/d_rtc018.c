@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_rtc018_record_field_defaults[] = {
 	MXD_RTC018_STANDARD_FIELDS
 };
 
-long mxd_rtc018_num_record_fields
+mx_length_type mxd_rtc018_num_record_fields
 		= sizeof( mxd_rtc018_record_field_defaults )
 		  / sizeof( mxd_rtc018_record_field_defaults[0] );
 
@@ -235,7 +235,7 @@ mxd_rtc018_timer_start( MX_TIMER *timer )
 	}
 
 	if ( step_down_bit != rtc018->saved_step_down_bit ) {
-		mx_status = mxd_rtc018_set_step_down_bit( timer, step_down_bit );
+		mx_status = mxd_rtc018_set_step_down_bit( timer, step_down_bit);
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

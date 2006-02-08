@@ -30,17 +30,18 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long crate_number;
 	unsigned long address_mode;
-	unsigned long base_address;
 
-	unsigned long sis3801_flags;
-	unsigned long control_input_mode;
+	uint32_t crate_number;
+	mx_hex_type base_address;
 
-	unsigned long module_id;
-	unsigned long firmware_version;
+	mx_hex_type sis3801_flags;
+	mx_hex_type control_input_mode;
 
-	unsigned long maximum_prescale_factor;
+	mx_hex_type module_id;
+	mx_hex_type firmware_version;
+
+	uint32_t maximum_prescale_factor;
 
 	MX_CLOCK_TICK finish_time;
 } MX_SIS3801_PULSER;
@@ -55,7 +56,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, address_mode_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -79,7 +80,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "maximum_prescale_factor", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SIS3801_PULSER, maximum_prescale_factor), \
 	{0}, NULL, MXFF_READ_ONLY }

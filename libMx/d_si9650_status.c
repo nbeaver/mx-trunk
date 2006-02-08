@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_si9650_status_rf_default[] = {
 	MXD_SI9650_STATUS_STANDARD_FIELDS
 };
 
-long mxd_si9650_status_num_record_fields
+mx_length_type mxd_si9650_status_num_record_fields
 		= sizeof( mxd_si9650_status_rf_default )
 		/ sizeof( mxd_si9650_status_rf_default[0] );
 

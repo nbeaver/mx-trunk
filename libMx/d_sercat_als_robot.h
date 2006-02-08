@@ -27,8 +27,8 @@ typedef struct {
 	MX_RECORD *small_slide_record;
 	MX_RECORD *gripper_record;
 
-	unsigned long cooldown_delay_ms;	/* in milliseconds */
-	unsigned long relay_delay_ms;		/* in milliseconds */
+	uint32_t cooldown_delay_ms;	/* in milliseconds */
+	uint32_t relay_delay_ms;	/* in milliseconds */
 } MX_SERCAT_ALS_ROBOT;
 
 #define MXD_SERCAT_ALS_ROBOT_STANDARD_FIELDS \
@@ -61,11 +61,11 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_SERCAT_ALS_ROBOT, gripper_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "cooldown_delay_ms", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "cooldown_delay_ms", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SERCAT_ALS_ROBOT, cooldown_delay_ms), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "relay_delay_ms", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "relay_delay_ms", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SERCAT_ALS_ROBOT, relay_delay_ms), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

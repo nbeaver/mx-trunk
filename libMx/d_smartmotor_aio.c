@@ -22,8 +22,8 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_analog_input.h"
@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_ain_record_field_defaults[] = {
 	MXD_SMARTMOTOR_AINPUT_STANDARD_FIELDS
 };
 
-long mxd_smartmotor_ain_num_record_fields
+mx_length_type mxd_smartmotor_ain_num_record_fields
 		= sizeof( mxd_smartmotor_ain_record_field_defaults )
 			/ sizeof( mxd_smartmotor_ain_record_field_defaults[0] );
 
@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_aout_record_field_defaults[] = {
 	MXD_SMARTMOTOR_AOUTPUT_STANDARD_FIELDS
 };
 
-long mxd_smartmotor_aout_num_record_fields
+mx_length_type mxd_smartmotor_aout_num_record_fields
 		= sizeof( mxd_smartmotor_aout_record_field_defaults )
 			/ sizeof( mxd_smartmotor_aout_record_field_defaults[0]);
 
@@ -265,9 +265,9 @@ mxd_smartmotor_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	smartmotor_ainput->record = record;
 
-	/* Raw analog input values are stored as longs. */
+	/* Raw analog input values are stored as 32-bit integers. */
 
-	analog_input->subclass = MXT_AIN_LONG;
+	analog_input->subclass = MXT_AIN_INT32;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -348,7 +348,8 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%ld", &(ainput->raw_value.long_value));
+	num_items = sscanf(response, "%" SCNd32,
+		&(ainput->raw_value.int32_value));
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -402,9 +403,9 @@ mxd_smartmotor_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	smartmotor_aoutput->record = record;
 
-	/* Raw analog output values are stored as longs. */
+	/* Raw analog output values are stored as 32-bit integers. */
 
-	analog_output->subclass = MXT_AOU_LONG;
+	analog_output->subclass = MXT_AOU_INT32;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -489,7 +490,8 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%ld", &(aoutput->raw_value.long_value));
+	num_items = sscanf(response, "%" SCNd32,
+			&(aoutput->raw_value.int32_value));
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,

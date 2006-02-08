@@ -66,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_remote_marccd_record_field_defaults[] = {
 	MXD_REMOTE_MARCCD_STANDARD_FIELDS
 };
 
-long mxd_remote_marccd_num_record_fields
+mx_length_type mxd_remote_marccd_num_record_fields
 		= sizeof( mxd_remote_marccd_record_field_defaults )
 			/ sizeof( mxd_remote_marccd_record_field_defaults[0] );
 
@@ -499,7 +499,7 @@ mxd_remote_marccd_readout( MX_CCD *ccd )
 	MX_REMOTE_MARCCD *remote_marccd;
 	char command[40];
 	int flag;
-	unsigned long cmd_flags;
+	mx_hex_type cmd_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_remote_marccd_get_pointers(ccd, &remote_marccd, fname);
@@ -508,7 +508,7 @@ mxd_remote_marccd_readout( MX_CCD *ccd )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for record '%s'.  ccd->ccd_flags = %#lx",
-			fname, ccd->record->name, ccd->ccd_flags));
+		fname, ccd->record->name, (unsigned long) ccd->ccd_flags));
 
 #if 0
 	if ( ( ccd->ccd_flags & MXF_CCD_TO_RAW_DATA_FRAME ) == 0 ) {
@@ -752,7 +752,7 @@ MX_EXPORT mx_status_type
 mxd_remote_marccd_command( MX_CCD *ccd,
 				MX_REMOTE_MARCCD *remote_marccd,
 				char *command,
-				unsigned long flags )
+				mx_hex_type flags )
 {
 	static const char fname[] = "mxd_remote_marccd_command()";
 
@@ -1070,7 +1070,7 @@ mxd_remote_marccd_handle_state_value( MX_CCD *ccd,
 static mx_status_type
 mxd_remote_marccd_handle_response( MX_CCD *ccd,
 					MX_REMOTE_MARCCD *remote_marccd,
-					unsigned long flags )
+					mx_hex_type flags )
 {
 	static const char fname[] = "mxd_remote_marccd_handle_response()";
 
@@ -1252,7 +1252,7 @@ mxd_remote_marccd_input_is_available( MX_REMOTE_MARCCD *remote_marccd )
 MX_EXPORT mx_status_type
 mxd_remote_marccd_check_for_responses( MX_CCD *ccd,
 					MX_REMOTE_MARCCD *remote_marccd,
-					unsigned long flags )
+					mx_hex_type flags )
 {
 	static const char fname[] = "mxd_remote_marccd_check_for_responses()";
 
