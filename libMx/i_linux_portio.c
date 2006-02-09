@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_linux_portio_record_field_defaults[] = {
 	MXI_LINUX_PORTIO_STANDARD_FIELDS
 };
 
-long mxi_linux_portio_num_record_fields
+mx_length_type mxi_linux_portio_num_record_fields
 		= sizeof( mxi_linux_portio_record_field_defaults )
 			/ sizeof( mxi_linux_portio_record_field_defaults[0] );
 

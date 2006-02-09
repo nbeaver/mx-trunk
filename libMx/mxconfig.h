@@ -115,7 +115,7 @@
  * Available at the MX web site as portio-2.0.tar.gz
  */
 
-#define HAVE_LINUX_PORTIO		0
+#define HAVE_LINUX_PORTIO		1
 
 /*****************************************************************************
  *
