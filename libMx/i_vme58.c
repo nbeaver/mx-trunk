@@ -79,7 +79,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vme58_record_field_defaults[] = {
 	MXI_VME58_PORTIO_STANDARD_FIELDS
 };
 
-long mxi_vme58_num_record_fields
+mx_length_type mxi_vme58_num_record_fields
 		= sizeof( mxi_vme58_record_field_defaults )
 			/ sizeof( mxi_vme58_record_field_defaults[0] );
 

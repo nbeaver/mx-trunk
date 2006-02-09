@@ -26,17 +26,17 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *vme_record;
-	unsigned long crate_number;
-	unsigned long base_address;
+	uint32_t crate_number;
+	mx_hex_type base_address;
 	double averaged_value_update_frequency;			/* in Hz */
 	double raw_value_read_frequency;			/* in Hz */
-	unsigned long num_raw_measurements_to_average;
+	uint32_t num_raw_measurements_to_average;
 
 	MX_CLOCK_TICK ticks_between_averaged_measurements;
 	MX_CLOCK_TICK next_measurement_time;
 
 	unsigned long microseconds_between_raw_measurements;
-	int use_udelay;
+	mx_bool_type use_udelay;
 
 	MX_RECORD *amplifier_array[MX_APS_ADCMOD2_MAX_AMPLIFIERS];
 	uint16_t input_value[MX_APS_ADCMOD2_MAX_INPUTS];
@@ -47,7 +47,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_ADCMOD2, vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_ADCMOD2, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -65,7 +65,7 @@ typedef struct {
 		offsetof(MX_APS_ADCMOD2, raw_value_read_frequency), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_raw_measurements_to_average", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_raw_measurements_to_average", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_APS_ADCMOD2, num_raw_measurements_to_average), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}

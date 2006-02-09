@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,14 +23,14 @@
 #define MAX_MOTORS	10
 
 mx_status_type
-motor_move_report_function( int flags,
-				int num_motors,
-				MX_RECORD **motor_record )
+motor_move_report_function( mx_hex_type flags,
+			mx_length_type num_motors,
+			MX_RECORD **motor_record )
 {
-	const char fname[] = "motor_move_report_function()";
+	static const char fname[] = "motor_move_report_function()";
 
 	MX_MOTOR *motor;
-	unsigned long *motor_status;
+	mx_hex_type *motor_status;
 	double current_position;
 	int i, motors_busy, abort_motors;
 	int exit_loop, return_code;
@@ -53,10 +53,10 @@ motor_move_report_function( int flags,
 		"Invoked with an invalid number of motors = %d", num_motors );
 	}
 
-	motor_status = (unsigned long *) malloc(
-				num_motors * sizeof(unsigned long) );
+	motor_status = (mx_hex_type *) malloc(
+				num_motors * sizeof(mx_hex_type) );
 
-	if ( motor_status == (unsigned long *) NULL ) {
+	if ( motor_status == (mx_hex_type *) NULL ) {
 		motor_bypass_limit_switch = FALSE;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_bluice_string_field_defaults[] = {
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_bluice_string_num_record_fields
+mx_length_type mxv_bluice_string_num_record_fields
 	= sizeof( mxv_bluice_string_field_defaults )
 	/ sizeof( mxv_bluice_string_field_defaults[0] );
 
@@ -198,7 +198,8 @@ mxv_bluice_string_open( MX_RECORD *record )
 	MX_BLUICE_STRING *bluice_string;
 	MX_RECORD *bluice_server_record;
 	MX_BLUICE_SERVER *bluice_server;
-	long num_dimensions, field_type;
+	long field_type;
+	mx_length_type num_dimensions;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -239,8 +240,8 @@ mxv_bluice_string_open( MX_RECORD *record )
 	if ( num_dimensions != 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Blu-Ice string record '%s' should be a 1-dimensional string.  "
-		"Instead, it is a %ld-dimensional array.",
-			record->name, num_dimensions );
+		"Instead, it is a %lu-dimensional array.",
+			record->name, (unsigned long) num_dimensions );
 	}
 
 #if BLUICE_STRING_DEBUG
@@ -296,7 +297,7 @@ mxv_bluice_string_receive_variable( MX_VARIABLE *variable )
 	MX_BLUICE_STRING *bluice_string;
 	MX_BLUICE_SERVER *bluice_server;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
-	long *dimension_array;
+	mx_length_type *dimension_array;
 	void *value_ptr;
 	mx_status_type mx_status;
 	long mx_status_code;

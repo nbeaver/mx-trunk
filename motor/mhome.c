@@ -28,7 +28,7 @@ motor_home_fn( int argc, char *argv[] )
 	char *endptr;
 	int direction, busy, home_search_succeeded, limit_hit;
 	double position;
-	unsigned long motor_status;
+	mx_hex_type motor_status;
 	mx_status_type mx_status;
 
 	static char usage[] =

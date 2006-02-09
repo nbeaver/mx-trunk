@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -563,7 +563,8 @@ motor_measure_device_offsets( long num_devices,
 	MX_RECORD *record;
 	MX_ANALOG_INPUT *ainput;
 	double value, seconds_left;
-	long i, n, long_value;
+	int32_t int32_value;
+	long i, n;
 	int busy;
 	mx_status_type mx_status;
 
@@ -656,9 +657,9 @@ motor_measure_device_offsets( long num_devices,
 
 			if ( record->mx_class == MXC_SCALER ) {
 				mx_status = mx_scaler_read_raw( record,
-								&long_value );
+								&int32_value );
 
-				value = (double) long_value;
+				value = (double) int32_value;
 			} else {
 				ainput = (MX_ANALOG_INPUT *)
 						record->record_class_struct;
@@ -667,10 +668,10 @@ motor_measure_device_offsets( long num_devices,
 				    mx_status = mx_analog_input_read_raw_double(
 							record, &value );
 				} else {
-				    mx_status = mx_analog_input_read_raw_long(
-							record, &long_value );
+				    mx_status = mx_analog_input_read_raw_int32(
+							record, &int32_value );
 
-				    value = (double) long_value;
+				    value = (double) int32_value;
 				}
 
 				value = ainput->offset + ainput->scale * value;

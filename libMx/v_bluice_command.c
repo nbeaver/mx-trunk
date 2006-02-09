@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_bluice_command_field_defaults[] = {
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_bluice_command_num_record_fields
+mx_length_type mxv_bluice_command_num_record_fields
 	= sizeof( mxv_bluice_command_field_defaults )
 	/ sizeof( mxv_bluice_command_field_defaults[0] );
 

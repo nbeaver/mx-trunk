@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,13 +26,13 @@
 #include "i_pdi40.h"
 
 MX_RECORD_FUNCTION_LIST mxi_pdi40_record_function_list = {
-	mxi_pdi40_initialize_type,
+	NULL,
 	mxi_pdi40_create_record_structures,
 	mxi_pdi40_finish_record_initialization,
-	mxi_pdi40_delete_record,
 	NULL,
-	mxi_pdi40_read_parms_from_hardware,
-	mxi_pdi40_write_parms_to_hardware,
+	NULL,
+	NULL,
+	NULL,
 	mxi_pdi40_open,
 	mxi_pdi40_close
 };
@@ -52,20 +52,12 @@ MX_RECORD_FIELD_DEFAULTS mxi_pdi40_record_field_defaults[] = {
 	MXI_PDI40_STANDARD_FIELDS
 };
 
-long mxi_pdi40_num_record_fields
+mx_length_type mxi_pdi40_num_record_fields
 		= sizeof( mxi_pdi40_record_field_defaults )
 			/ sizeof( mxi_pdi40_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_pdi40_rfield_def_ptr
 			= &mxi_pdi40_record_field_defaults[0];
-
-MX_EXPORT mx_status_type
-mxi_pdi40_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_pdi40_create_record_structures( MX_RECORD *record )
@@ -118,37 +110,6 @@ mxi_pdi40_finish_record_initialization( MX_RECORD *record )
 	pdi40->currently_moving_stepper = '\0';
 	pdi40->current_move_distance = 0;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pdi40_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pdi40_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_pdi40_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

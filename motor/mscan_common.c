@@ -177,7 +177,7 @@ motor_setup_input_devices(
 	long default_long;
 
 	char **input_name_array;
-	long input_name_dimension_array[2];
+	mx_length_type input_name_dimension_array[2];
 	
 	static size_t name_element_size_array[2] = {
 		sizeof(char), sizeof(char *) };

@@ -517,7 +517,8 @@ mxd_xia_dxp_network_open( MX_MCA *mca,
 		"XIA network record '%s'.  This MCA would be record %lu "
 		"of the MCA record array, but that array only has room "
 		"for %lu records.", mca->record->name,
-			xia_dxp_record->name, i+1, xia_network->num_mcas );
+			xia_dxp_record->name, i+1,
+			(unsigned long) xia_network->num_mcas );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

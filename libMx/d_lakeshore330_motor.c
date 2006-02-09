@@ -379,7 +379,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		if ( (rs232->speed != 300) && (rs232->speed != 1200) ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires a port speed of either 300 "
-"or 1200 baud.  Instead saw %ld.", record->name, rs232->speed );
+"or 1200 baud.  Instead saw %ld.", record->name, (long) rs232->speed );
 		}
 		if ( rs232->word_size != 7 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -409,7 +409,8 @@ mxd_ls330_motor_open( MX_RECORD *record )
 "to be a carriage return-line feed sequence.  "
 "Instead saw read terminator %#lx and write terminator %#lx.",
 			record->name,
-			rs232->read_terminators, rs232->write_terminators);
+			(unsigned long) rs232->read_terminators,
+			(unsigned long) rs232->write_terminators);
 		}
 	}
 

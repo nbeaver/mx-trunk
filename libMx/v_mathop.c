@@ -14,6 +14,8 @@
  *
  */
 
+#define MXV_MATHOP_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -60,14 +62,12 @@ MX_RECORD_FIELD_DEFAULTS mxv_mathop_record_field_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_mathop_num_record_fields
+mx_length_type mxv_mathop_num_record_fields
 	= sizeof( mxv_mathop_record_field_defaults )
 	/ sizeof( mxv_mathop_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxv_mathop_rfield_def_ptr
 		= &mxv_mathop_record_field_defaults[0];
-
-#define MXV_MATHOP_DEBUG	FALSE
 
 /********************************************************************/
 
@@ -142,8 +142,8 @@ mxv_mathop_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	long num_record_fields, referenced_field_index;
-	long num_items_varargs_cookie;
+	mx_length_type num_record_fields, referenced_field_index;
+	mx_length_type num_items_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_variable_initialize_type( record_type );
@@ -175,7 +175,7 @@ mxv_mathop_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (long *) NULL ) {
+	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -422,10 +422,10 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 	const char fname[] = "mxv_mathop_get_value()";
 
 	void *pointer_to_value;
-	long num_dimensions, field_type;
-	unsigned long ulong_value;
-	long long_value;
-	int int_value;
+	long field_type;
+	mx_length_type num_dimensions;
+	uint32_t uint32_value;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -453,28 +453,28 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			break;
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read( record,
-							&ulong_value );
+							&uint32_value );
 
-			*value = (double) ulong_value;
+			*value = (double) uint32_value;
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			mx_status = mx_digital_output_read( record,
-							&ulong_value );
+							&uint32_value );
 
-			*value = (double) ulong_value;
+			*value = (double) uint32_value;
 			break;
 		case MXC_MOTOR:
 			mx_status = mx_motor_get_position( record, value );
 			break;
 		case MXC_ENCODER:
-			mx_status = mx_encoder_read( record, &long_value );
+			mx_status = mx_encoder_read( record, &int32_value );
 
-			*value = (double) long_value;
+			*value = (double) int32_value;
 			break;
 		case MXC_SCALER:
-			mx_status = mx_scaler_read( record, &long_value );
+			mx_status = mx_scaler_read( record, &int32_value );
 
-			*value = (double) long_value;
+			*value = (double) int32_value;
 			break;
 		case MXC_TIMER:
 			mx_status = mx_timer_read( record, value );
@@ -483,7 +483,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			mx_status = mx_amplifier_get_gain( record, value );
 			break;
 		case MXC_RELAY:
-			mx_status = mx_get_relay_status( record, &int_value );
+			mx_status = mx_get_relay_status( record, &int32_value );
 			break;
 		default:
 			return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -509,7 +509,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"%ld dimensional variable '%s' may not be used by a "
 			"mathop variable record.  Only 1-dimensional variables "
-			"are supported.", num_dimensions, record->name );
+			"are supported.", (long) num_dimensions, record->name );
 		}
 
 		/* Receive the current value of the variable. */
@@ -528,27 +528,30 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		case MXFT_CHAR:
 			*value = (double) *(char *) pointer_to_value;
 			break;
-		case MXFT_UCHAR:
-			*value = (double) *(unsigned char *) pointer_to_value;
+		case MXFT_INT8:
+			*value = (double) *(int8_t *) pointer_to_value;
 			break;
-		case MXFT_SHORT:
-			*value = (double) *(short *) pointer_to_value;
+		case MXFT_UINT8:
+			*value = (double) *(uint8_t *) pointer_to_value;
 			break;
-		case MXFT_USHORT:
-			*value = (double) *(unsigned short *) pointer_to_value;
+		case MXFT_INT16:
+			*value = (double) *(int16_t *) pointer_to_value;
 			break;
-		case MXFT_INT:
-			*value = (double) *(int *) pointer_to_value;
+		case MXFT_UINT16:
+			*value = (double) *(uint16_t *) pointer_to_value;
 			break;
-		case MXFT_UINT:
-			*value = (double) *(unsigned int *) pointer_to_value;
+		case MXFT_INT32:
+			*value = (double) *(int32_t *) pointer_to_value;
 			break;
-		case MXFT_LONG:
-			*value = (double) *(long *) pointer_to_value;
-			break;
-		case MXFT_ULONG:
+		case MXFT_UINT32:
 		case MXFT_HEX:
-			*value = (double) *(unsigned long *) pointer_to_value;
+			*value = (double) *(uint32_t *) pointer_to_value;
+			break;
+		case MXFT_INT64:
+			*value = (double) *(int64_t *) pointer_to_value;
+			break;
+		case MXFT_UINT64:
+			*value = (double) *(uint64_t *) pointer_to_value;
 			break;
 		case MXFT_FLOAT:
 			*value = (double) *(float *) pointer_to_value;
@@ -582,15 +585,17 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 	const char fname[] = "mxv_mathop_put_value()";
 
 	void *pointer_to_value;
-	long num_dimensions, field_type;
+	long field_type;
+	mx_length_type num_dimensions;
 	char *char_ptr;
-	unsigned char *uchar_ptr;
-	short *short_ptr;
-	unsigned short *ushort_ptr;
-	int *int_ptr;
-	unsigned int *uint_ptr;
-	long *long_ptr;
-	unsigned long *ulong_ptr;
+	int8_t *int8_ptr;
+	uint8_t *uint8_ptr;
+	int16_t *int16_ptr;
+	uint16_t *uint16_ptr;
+	int32_t *int32_ptr;
+	uint32_t *uint32_ptr;
+	int64_t *int64_ptr;
+	uint64_t *uint64_ptr;
 	float *float_ptr;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -677,7 +682,7 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"%ld dimensional variable '%s' may not be used by a "
 			"mathop variable record.  Only 1-dimensional variables "
-			"are supported.", num_dimensions, record->name );
+			"are supported.", (long) num_dimensions, record->name );
 		}
 
 		/* Assign the new value to the first element of the
@@ -691,40 +696,45 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 
 			*char_ptr = (char) mx_round( new_value );
 			break;
-		case MXFT_UCHAR:
-			uchar_ptr = (unsigned char *) pointer_to_value;
+		case MXFT_INT8:
+			int8_ptr = (int8_t *) pointer_to_value;
 
-			*uchar_ptr = (unsigned char) mx_round( new_value );
+			*int8_ptr = (int8_t) mx_round( new_value );
 			break;
-		case MXFT_SHORT:
-			short_ptr = (short *) pointer_to_value;
+		case MXFT_UINT8:
+			uint8_ptr = (uint8_t *) pointer_to_value;
 
-			*short_ptr = (short) mx_round( new_value );
+			*uint8_ptr = (uint8_t) mx_round( new_value );
 			break;
-		case MXFT_USHORT:
-			ushort_ptr = (unsigned short *) pointer_to_value;
+		case MXFT_INT16:
+			int16_ptr = (int16_t *) pointer_to_value;
 
-			*ushort_ptr = (unsigned short) mx_round( new_value );
+			*int16_ptr = (int16_t) mx_round( new_value );
 			break;
-		case MXFT_INT:
-			int_ptr = (int *) pointer_to_value;
+		case MXFT_UINT16:
+			uint16_ptr = (uint16_t *) pointer_to_value;
 
-			*int_ptr = (int) mx_round( new_value );
+			*uint16_ptr = (uint16_t) mx_round( new_value );
 			break;
-		case MXFT_UINT:
-			uint_ptr = (unsigned int *) pointer_to_value;
+		case MXFT_INT32:
+			int32_ptr = (int32_t *) pointer_to_value;
 
-			*uint_ptr = (unsigned int) mx_round( new_value );
+			*int32_ptr = (int32_t) mx_round( new_value );
 			break;
-		case MXFT_LONG:
-			long_ptr = (long *) pointer_to_value;
+		case MXFT_UINT32:
+			uint32_ptr = (uint32_t *) pointer_to_value;
 
-			*long_ptr = mx_round( new_value );
+			*uint32_ptr = (uint32_t) mx_round( new_value );
 			break;
-		case MXFT_ULONG:
-			ulong_ptr = (unsigned long *) pointer_to_value;
+		case MXFT_INT64:
+			int64_ptr = (int64_t *) pointer_to_value;
 
-			*ulong_ptr = (unsigned long) mx_round( new_value );
+			*int64_ptr = (int64_t) mx_round( new_value );
+			break;
+		case MXFT_UINT64:
+			uint64_ptr = (uint64_t *) pointer_to_value;
+
+			*uint64_ptr = (uint64_t) mx_round( new_value );
 			break;
 		case MXFT_FLOAT:
 			float_ptr = (float *) pointer_to_value;
@@ -1049,7 +1059,7 @@ mxv_mathop_change_value( MX_VARIABLE *variable, double new_value )
 	"but the corresponding item '%s' is an unmodifiable constant.  "
 	"You must specify an item_to_change that is a record name.",
 			variable_record->name,
-			mathop_variable->item_to_change,
+			(long) mathop_variable->item_to_change,
 			mathop_variable->item_array[i] );
 	}
 

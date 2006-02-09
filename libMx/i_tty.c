@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,7 +157,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_tty_record_field_defaults[] = {
 	MXI_TTY_STANDARD_FIELDS
 };
 
-long mxi_tty_num_record_fields
+mx_length_type mxi_tty_num_record_fields
 		= sizeof( mxi_tty_record_field_defaults )
 			/ sizeof( mxi_tty_record_field_defaults[0] );
 
@@ -1603,7 +1603,7 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
     "Unsupported RS-232 port speed %ld requested for record '%s', tty '%s'.",
-			rs232->speed, rs232->record->name, tty->filename );
+		    (long) rs232->speed, rs232->record->name, tty->filename );
 		break;
 	}
 
@@ -1616,7 +1616,7 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Error setting output speed %ld for record '%s', tty '%s'.  "
-		"Errno = %d, error message = '%s'.", rs232->speed,
+		"Errno = %d, error message = '%s'.", (long) rs232->speed,
 			rs232->record->name, tty->filename,
 			saved_errno, strerror( saved_errno ) );
 	}
@@ -1630,7 +1630,7 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Error setting input speed %ld for record '%s', tty '%s'.  "
-		"Errno = %d, error message = '%s'.", rs232->speed,
+		"Errno = %d, error message = '%s'.", (long) rs232->speed,
 			rs232->record->name, tty->filename,
 			saved_errno, strerror( saved_errno ) );
 	}

@@ -43,5 +43,5 @@ dout1          device digital_output ks3063_out "" "" 0 camac1 3
 #
 ain2           variable inline double "" "" 1 1 137
 aout2          variable inline double "" "" 1 1 0
-din2           variable inline int    "" "" 1 1 238
-dout2          variable inline int    "" "" 1 1 0
+din2           variable inline int32  "" "" 1 1 238
+dout2          variable inline int32  "" "" 1 1 0

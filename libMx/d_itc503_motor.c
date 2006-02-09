@@ -594,7 +594,8 @@ mxd_itc503_motor_wait_for_rs232_response( MX_RECORD *rs232_record,
 		= "mxd_itc503_motor_wait_for_rs232)response()";
 
 	int i, max_retries;
-	unsigned long wait_ms, num_input_bytes_available;
+	unsigned long wait_ms;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	max_retries = 50;

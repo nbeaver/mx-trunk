@@ -61,7 +61,7 @@ MX_API mx_status_type mxi_ggcs_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 
 MX_API mx_status_type mxi_ggcs_num_input_bytes_available( MX_GENERIC *generic,
-				unsigned long *num_input_bytes_available );
+				uint32_t *num_input_bytes_available );
 
 MX_API mx_status_type mxi_ggcs_discard_unread_input(
 				MX_GENERIC *generic, int debug_flag );

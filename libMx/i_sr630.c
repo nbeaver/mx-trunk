@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_sr630_record_field_defaults[] = {
 	MXI_SR630_STANDARD_FIELDS
 };
 
-long mxi_sr630_num_record_fields
+mx_length_type mxi_sr630_num_record_fields
 		= sizeof( mxi_sr630_record_field_defaults )
 		  / sizeof( mxi_sr630_record_field_defaults[0] );
 

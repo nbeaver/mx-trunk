@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_cxtilt02_record_field_defaults[] = {
 	MXI_CXTILT02_STANDARD_FIELDS
 };
 
-long mxi_cxtilt02_num_record_fields
+mx_length_type mxi_cxtilt02_num_record_fields
 		= sizeof( mxi_cxtilt02_record_field_defaults )
 			/ sizeof( mxi_cxtilt02_record_field_defaults[0] );
 

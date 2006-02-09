@@ -27,7 +27,7 @@
 static mx_status_type
 motor_wait_for_sample_changer( MX_RECORD *changer_record, char *label )
 {
-	unsigned long busy, changer_status;
+	mx_hex_type busy, changer_status;
 	mx_status_type mx_status;
 
 	busy = 1;

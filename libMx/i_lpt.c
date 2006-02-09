@@ -15,6 +15,8 @@
  *
  */
 
+#define MXI_LPT_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,14 +46,12 @@ MX_RECORD_FIELD_DEFAULTS mxi_lpt_record_field_defaults[] = {
 	MXI_LPT_STANDARD_FIELDS
 };
 
-long mxi_lpt_num_record_fields
+mx_length_type mxi_lpt_num_record_fields
 		= sizeof( mxi_lpt_record_field_defaults )
 			/ sizeof( mxi_lpt_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_lpt_rfield_def_ptr
 			= &mxi_lpt_record_field_defaults[0];
-
-#define MXI_LPT_DEBUG		FALSE
 
 static mx_status_type
 mxi_lpt_get_pointers( MX_RECORD *record,

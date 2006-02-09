@@ -544,7 +544,8 @@ mxd_si9650_motor_command( MX_SI9650_MOTOR *si9650_motor,
 
 	MX_INTERFACE *controller_interface;
 	int i, max_retries;
-	unsigned long wait_ms, num_input_bytes_available;
+	unsigned long wait_ms;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	if ( si9650_motor == (MX_SI9650_MOTOR *) NULL ) {

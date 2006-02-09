@@ -36,8 +36,8 @@ motor_count_fn( int argc, char *argv[] )
 	MX_RECORD_FIELD *value_field;
 	int i, j, num_input_devices, entries_to_skip, busy;
 	double counting_time, remaining_time, double_value;
-	unsigned long ulong_value;
-	long long_value;
+	uint32_t uint32_value;
+	int32_t int32_value;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -269,16 +269,18 @@ motor_count_fn( int argc, char *argv[] )
 			break;
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read(
-						input_device, &ulong_value );
+						input_device, &uint32_value );
 			if ( mx_status.code == MXE_SUCCESS ) {
-				fprintf( output, "%lu ", ulong_value );
+				fprintf( output, "%lu ",
+					(unsigned long) uint32_value );
 			}
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			mx_status = mx_digital_output_read(
-						input_device, &ulong_value );
+						input_device, &uint32_value );
 			if ( mx_status.code == MXE_SUCCESS ) {
-				fprintf( output, "%lu ", ulong_value );
+				fprintf( output, "%lu ",
+					(unsigned long) uint32_value );
 			}
 			break;
 		case MXC_MOTOR:
@@ -291,9 +293,9 @@ motor_count_fn( int argc, char *argv[] )
 			}
 			break;
 		case MXC_SCALER:
-			mx_status = mx_scaler_read( input_device, &long_value );
+			mx_status = mx_scaler_read( input_device, &int32_value);
 			if ( mx_status.code == MXE_SUCCESS ) {
-				fprintf( output, "%ld ", long_value );
+				fprintf( output, "%ld ", (long) int32_value );
 			}
 			break;
 		case MXC_AMPLIFIER:

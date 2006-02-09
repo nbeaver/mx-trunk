@@ -32,12 +32,12 @@ typedef struct {
 	MX_RECORD *rs232_record;
 
 	/* Parameters shared by all three stepping motor ports. */
-	char stepper_mode;
-	int  stepper_speed;
-	int  stepper_stop_delay;
+	char    stepper_mode;
+	int32_t stepper_speed;
+	int32_t stepper_stop_delay;
 
-	char currently_moving_stepper;
-	long current_move_distance;
+	char    currently_moving_stepper;
+	int32_t current_move_distance;
 
 	/* The following is an array of three MX_MOTOR pointers.  There is
 	 * one for each of the three stepping motors 'A', 'B', and 'C'.
@@ -55,11 +55,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stepper_speed", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stepper_speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_speed), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stepper_stop_delay", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stepper_stop_delay", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_stop_delay), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -75,13 +75,9 @@ typedef struct {
 #define MX_PDI40_END_OF_LINE		'\015'
 #define MX_PDI40_END_OF_RESPONSE	'>'
 
-MX_API mx_status_type mxi_pdi40_initialize_type( long type );
 MX_API mx_status_type mxi_pdi40_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_pdi40_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxi_pdi40_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxi_pdi40_open( MX_RECORD *record );
 MX_API mx_status_type mxi_pdi40_close( MX_RECORD *record );
 

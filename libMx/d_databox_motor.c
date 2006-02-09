@@ -372,7 +372,7 @@ mxd_databox_motor_motor_is_busy( MX_MOTOR *motor )
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_databox_motor_get_pointers( motor,

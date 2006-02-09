@@ -42,7 +42,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_cm17a_record_field_defaults[] = {
 	MXI_CM17A_STANDARD_FIELDS
 };
 
-long mxi_cm17a_num_record_fields
+mx_length_type mxi_cm17a_num_record_fields
 		= sizeof( mxi_cm17a_record_field_defaults )
 			/ sizeof( mxi_cm17a_record_field_defaults[0] );
 

@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_am9513_record_field_defaults[] = {
 	MXI_AM9513_STANDARD_FIELDS
 };
 
-long mxi_am9513_num_record_fields
+mx_length_type mxi_am9513_num_record_fields
 		= sizeof( mxi_am9513_record_field_defaults )
 			/ sizeof( mxi_am9513_record_field_defaults[0] );
 
@@ -349,10 +349,10 @@ mxi_am9513_print_structure( FILE *file, MX_RECORD *record )
 						am9513->portio_record->name);
 
 	fprintf(file, "  base address               = %#lx\n",
-						am9513->base_address);
+				(unsigned long) am9513->base_address);
 
 	fprintf(file, "  master mode register       = %#lx\n",
-						am9513->master_mode_register);
+				(unsigned long) am9513->master_mode_register);
 
 	fprintf(file, "  counters in use            = (");
 
@@ -665,7 +665,8 @@ mxi_am9513_dump( MX_AM9513 *am9513, int do_inquire )
 	}
 
 	sprintf( buffer, "Master mode reg = %04lx\n",
-					am9513->master_mode_register );
+				(unsigned long) am9513->master_mode_register );
+
 	strcat( returned_buffer, buffer );
 
 	for ( i = 0; i < 5; i++ ) {

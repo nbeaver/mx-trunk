@@ -257,7 +257,7 @@ mxd_e662_open( MX_RECORD *record )
 	if ( rs232->speed != 9600 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The E-662 controller '%s' requires a port speed of 9600 baud.  "
-"Instead saw %ld.", record->name, rs232->speed );
+"Instead saw %ld.", record->name, (long) rs232->speed );
 	}
 	if ( rs232->word_size != 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -289,7 +289,8 @@ mxd_e662_open( MX_RECORD *record )
 "to be a line feed character.  "
 "Instead saw read terminator %#lx and write terminator %#lx.",
 			record->name,
-			rs232->read_terminators, rs232->write_terminators);
+			(unsigned long) rs232->read_terminators,
+			(unsigned long) rs232->write_terminators);
 	}
 
 	mx_status = mxd_e662_resynchronize( record );

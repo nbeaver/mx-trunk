@@ -32,7 +32,7 @@
 static mx_status_type
 motor_wait_for_ccd( MX_RECORD *ccd_record, char *label )
 {
-	unsigned long busy, ccd_status;
+	mx_hex_type busy, ccd_status;
 	mx_status_type mx_status;
 
 	busy = 1;
@@ -75,7 +75,7 @@ motor_ccd_fn( int argc, char *argv[] )
 	double counting_time;
 	int status, x_size, y_size, destination;
 	size_t length;
-	unsigned long ccd_status;
+	mx_hex_type ccd_status;
 	mx_status_type mx_status;
 
 	static char usage[]
@@ -468,7 +468,7 @@ motor_ccd_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output, "CCD '%s' status = %#lx\n",
-				ccd_record->name, ccd_status );
+				ccd_record->name, (unsigned long) ccd_status );
 		} else
 		if ( strncmp( "frame_size", argv[4], strlen(argv[4]) ) == 0 ) {
 

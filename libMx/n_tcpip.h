@@ -23,7 +23,7 @@
 
 typedef struct {
 	char hostname[ MXU_HOSTNAME_LENGTH + 1 ];
-	int port;
+	int32_t port;
 
 	MX_SOCKET *socket;
 	int first_attempt;
@@ -68,7 +68,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_tcpip_server_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCPIP_SERVER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCPIP_SERVER, port), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

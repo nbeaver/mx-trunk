@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_dsp6001_record_field_defaults[] = {
 	MXI_DSP6001_STANDARD_FIELDS
 };
 
-long mxi_dsp6001_num_record_fields
+mx_length_type mxi_dsp6001_num_record_fields
 	= sizeof( mxi_dsp6001_record_field_defaults )
 	/ sizeof( mxi_dsp6001_record_field_defaults[0] );
 
@@ -81,7 +81,7 @@ pr_camac_crate_select( MX_RECORD *portio_record,
 MX_EXPORT mx_status_type
 mxi_dsp6001_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_dsp6001_create_record_structures()";
+	static const char fname[] = "mxi_dsp6001_create_record_structures()";
 
 	MX_CAMAC *crate;
 	MX_DSP6001 *dsp6001;
@@ -118,7 +118,8 @@ mxi_dsp6001_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_dsp6001_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxi_dsp6001_finish_record_initialization()";
+	static const char fname[] =
+		"mxi_dsp6001_finish_record_initialization()";
 
 	MX_CAMAC *crate;
 
@@ -126,8 +127,8 @@ mxi_dsp6001_finish_record_initialization( MX_RECORD *record )
 
 	if ( crate->crate_number < 1 || crate->crate_number > 4 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Crate number %ld is out of the allowed range of 1-4.",
-			crate->crate_number);
+		"Crate number %lu is out of the allowed range of 1-4.",
+			(unsigned long) crate->crate_number);
 	}
 
 	return MX_SUCCESSFUL_RESULT;

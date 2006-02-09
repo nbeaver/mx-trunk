@@ -129,7 +129,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 
 		fprintf( output,
 			"Scan '%s' has an illegal number of scans (%ld).\n",
-			scan->record->name, scan->num_scans );
+			scan->record->name, (long) scan->num_scans );
 
 		return FAILURE;
 
@@ -166,7 +166,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 				filename );
 			fprintf( output,
 "a version number.  Since this scan is to be run %ld times in a row,\n",
-				scan->num_scans );
+				(long) scan->num_scans );
 			fprintf( output,
 "this means that the output of later passes will overwrite the output\n"
 "from earlier passes.\n" );

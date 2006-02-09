@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_modbus_tcp_record_field_defaults[] = {
 	MXI_MODBUS_TCP_STANDARD_FIELDS
 };
 
-long mxi_modbus_tcp_num_record_fields
+mx_length_type mxi_modbus_tcp_num_record_fields
 	= sizeof( mxi_modbus_tcp_record_field_defaults )
 	/ sizeof( mxi_modbus_tcp_record_field_defaults[0] );
 
@@ -178,7 +178,7 @@ mxi_modbus_tcp_open( MX_RECORD *record )
 	"MODBUS interface record '%s' is using illegal MODBUS/TCP "
 	"unit identifier %#02lx.  The allowed values are from 0x0 to 0xff.  "
 	"If you do not know what value to use for this, try using 0xff.",
-			record->name, modbus_tcp->unit_id );
+			record->name, (unsigned long) modbus_tcp->unit_id );
 	}
 
 	/* If the MODBUS/TCP socket is currently open, close it. */
@@ -445,7 +445,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 	"Received message from MODBUS/TCP interface '%s' has a unit id of %d "
 	"rather than the expected value of %lu.",
 			modbus->record->name, unit_id,
-			modbus_tcp->unit_id );
+			(unsigned long) modbus_tcp->unit_id );
 	}
 
 	/* Now that we have processed the header, receive the body of

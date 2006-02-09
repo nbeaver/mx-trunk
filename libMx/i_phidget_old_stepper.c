@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_phidget_old_stepper_rf_defaults[] = {
 	MXI_PHIDGET_OLD_STEPPER_STANDARD_FIELDS
 };
 
-long mxi_phidget_old_stepper_num_record_fields
+mx_length_type mxi_phidget_old_stepper_num_record_fields
 		= sizeof( mxi_phidget_old_stepper_rf_defaults )
 		/ sizeof( mxi_phidget_old_stepper_rf_defaults[0] );
 

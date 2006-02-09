@@ -1,3 +1,9 @@
+Version 1.2.0 (02/08/06):
+	Changed the 'compumotor' driver to use '%f' formats rather than
+	'%g' formats in generating commands sent to the 6K controller.
+	Apparently the Compumotor controller cannot cope with exponential
+	notation.
+
 Version 1.1.1 (01/11/06):
 	A new build target 'win32-mingw' has been added for building MX
 	with the MinGW compiler on Win32.  This target has been tested

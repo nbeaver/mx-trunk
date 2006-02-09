@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -96,17 +96,17 @@
 typedef struct {
 	MX_RECORD *record;
 
-	long speed;
-	int word_size;
+	int32_t speed;
+	int32_t word_size;
 	char parity;
-	int stop_bits;
+	int32_t stop_bits;
 	char flow_control;
-	unsigned long read_terminators;
-	unsigned long write_terminators;
+	mx_hex_type read_terminators;
+	mx_hex_type write_terminators;
 	double timeout;
-	unsigned long rs232_flags;
+	mx_hex_type rs232_flags;
 
-	unsigned long transfer_flags;
+	mx_hex_type transfer_flags;
 
 	/* We should not use the unadorned names getchar, putchar, read,
 	 * and write below since these are the names of functions in the
@@ -114,21 +114,21 @@ typedef struct {
 	 * if you try to use the names of run-time library functions here.
 	 */
 
-	int getchar_value;
-	int putchar_value;
+	char getchar_value;
+	char putchar_value;
 
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 
-	int discard_unread_input;
-	int discard_unwritten_output;
+	mx_bool_type discard_unread_input;
+	mx_bool_type discard_unwritten_output;
 
-	int num_read_terminator_chars;
-	int num_write_terminator_chars;
+	int32_t num_read_terminator_chars;
+	int32_t num_write_terminator_chars;
 	char read_terminator_array[MX_RS232_MAX_TERMINATORS+1];
 	char write_terminator_array[MX_RS232_MAX_TERMINATORS+1];
 
-	unsigned long signal_state;
-	unsigned long old_signal_state;
+	mx_hex_type signal_state;
+	mx_hex_type old_signal_state;
 } MX_RS232;
 
 #define MXLV_232_GETCHAR			101
@@ -143,11 +143,11 @@ typedef struct {
 #define MXLV_232_SIGNAL_STATE			110
 
 #define MX_RS232_STANDARD_FIELDS \
-  {-1, -1, "speed", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "speed", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, speed), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "word_size", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "word_size", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, word_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -155,7 +155,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, parity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stop_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stop_bits", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, stop_bits), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -179,26 +179,26 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, rs232_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
-  {MXLV_232_GETCHAR, -1, "getchar", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_232_GETCHAR, -1, "getchar", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, getchar_value), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_232_PUTCHAR, -1, "putchar", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_232_PUTCHAR, -1, "putchar", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, putchar_value), \
 	{0}, NULL, 0}, \
   \
   {MXLV_232_NUM_INPUT_BYTES_AVAILABLE, -1, "num_input_bytes_available", \
-						MXFT_ULONG, NULL, 0, {0}, \
+						MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, num_input_bytes_available), \
 	{0}, NULL, 0}, \
   \
   {MXLV_232_DISCARD_UNREAD_INPUT, -1, "discard_unread_input", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, discard_unread_input), \
 	{0}, NULL, 0}, \
   \
   {MXLV_232_DISCARD_UNWRITTEN_OUTPUT, -1, "discard_unwritten_output", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, discard_unwritten_output), \
 	{0}, NULL, 0}, \
   \
@@ -251,74 +251,74 @@ MX_API mx_status_type mx_rs232_get_pointers( MX_RECORD *rs232_record,
 
 MX_API mx_status_type mx_rs232_getchar( MX_RECORD *rs232_record,
 					char *c,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_putchar( MX_RECORD *rs232_record,
 					char c,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_getchar_with_timeout( MX_RECORD *rs232_record,
 					char *c,
-					unsigned long transfer_flags,
+					mx_hex_type transfer_flags,
 					double timeout_in_seconds );
 
 MX_API mx_status_type mx_rs232_read( MX_RECORD *rs232_record,
 					char *buffer,
 					size_t max_bytes_to_read,
 					size_t *bytes_read,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_write( MX_RECORD *rs232_record,
 					char *buffer,
 					size_t bytes_to_write,
 					size_t *bytes_written,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_getline( MX_RECORD *rs232_record,
 					char *buffer, 
 					size_t max_bytes_to_read,
 					size_t *bytes_read,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_putline( MX_RECORD *rs232_record,
 					char *buffer,
 					size_t *bytes_written,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_num_input_bytes_available(
 					MX_RECORD *rs232_record,
-				    unsigned long *num_input_bytes_available );
+					uint32_t *num_input_bytes_available );
 
 MX_API mx_status_type mx_rs232_discard_unread_input(
 					MX_RECORD *rs232_record,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_discard_unwritten_output(
 					MX_RECORD *rs232_record,
-					unsigned long transfer_flags );
+					mx_hex_type transfer_flags );
 
 MX_API mx_status_type mx_rs232_get_signal_state( MX_RECORD *rs232_record,
-					unsigned long *signal_state );
+					mx_hex_type *signal_state );
 
 MX_API mx_status_type mx_rs232_set_signal_state( MX_RECORD *rs232_record,
-					unsigned long signal_state );
+					mx_hex_type signal_state );
 
 MX_API mx_status_type mx_rs232_print_signal_state( MX_RECORD *rs232_record );
 
 MX_API mx_status_type mx_rs232_get_signal_bit( MX_RECORD *rs232_record,
-					int bit_type, int *bit_value );
+					int32_t bit_type, int32_t *bit_value );
 
 MX_API mx_status_type mx_rs232_set_signal_bit( MX_RECORD *rs232_record,
-					int bit_type, int bit_value );
+					int32_t bit_type, int32_t bit_value );
 
 MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
-					long speed,
-					int word_size,
+					int32_t speed,
+					int32_t word_size,
 					char parity,
-					int stop_bits,
+					int32_t stop_bits,
 					char flow_control,
-					unsigned long read_terminators,
-					unsigned long write_terminators );
+					mx_hex_type read_terminators,
+					mx_hex_type write_terminators );
 
 #endif /* __MX_RS232_H__ */
 

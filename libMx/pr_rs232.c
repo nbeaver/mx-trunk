@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,8 +69,6 @@ mx_rs232_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_RS232 *rs232;
-	unsigned long ulong_value;
-	char char_value;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -91,15 +89,12 @@ mx_rs232_process_function( void *record_ptr,
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_232_GETCHAR:
-			mx_status = mx_rs232_getchar( record, &char_value, 0 );
-
-			rs232->getchar_value = (int) char_value;
+			mx_status = mx_rs232_getchar( record,
+					&(rs232->getchar_value), 0 );
 			break;
 		case MXLV_232_NUM_INPUT_BYTES_AVAILABLE:
-			mx_status = mx_rs232_num_input_bytes_available( record,
-								&ulong_value );
-
-			rs232->num_input_bytes_available = ulong_value;
+			mx_status = mx_rs232_num_input_bytes_available(
+							record, NULL );
 			break;
 		case MXLV_232_SIGNAL_STATE:
 			mx_status = mx_rs232_get_signal_state( record, NULL );
@@ -114,9 +109,8 @@ mx_rs232_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_232_PUTCHAR:
-			char_value = (char) rs232->putchar_value;
-
-			mx_status = mx_rs232_putchar( record, char_value, 0 );
+			mx_status = mx_rs232_putchar( record,
+						rs232->putchar_value, 0 );
 			break;
 		case MXLV_232_DISCARD_UNREAD_INPUT:
 			mx_status = mx_rs232_discard_unread_input( record, 0 );

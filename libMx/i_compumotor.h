@@ -138,7 +138,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_compumotor_rfield_def_ptr;
 MX_API mx_status_type mxi_compumotor_command(
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	char *command, char *response, size_t response_buffer_length,
-	int debug_flag );
+	mx_bool_type debug_flag );
 
 MX_API mx_status_type mxi_compumotor_get_controller_index(
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface,

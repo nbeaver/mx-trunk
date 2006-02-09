@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,6 +55,16 @@
 
 typedef struct {
 	MX_RECORD *record;
+
+	MX_RECORD *port_record;
+
+	char port_type_name[MX_PMAC_PORT_TYPE_LENGTH+1];
+	char port_args[MX_PMAC_PORT_ARGS_LENGTH+1];
+	int32_t num_cards;
+
+	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
+	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
+
 	int pmac_type;
 	int port_type;
 
@@ -64,17 +74,6 @@ typedef struct {
 	int minor_version;
 
 	int i6_variable;  /* affects error reporting */
-
-	/* Parameters shared by all motor axes. */
-
-	MX_RECORD *port_record;
-
-	char port_type_name[MX_PMAC_PORT_TYPE_LENGTH+1];
-	char port_args[MX_PMAC_PORT_ARGS_LENGTH+1];
-	int num_cards;
-
-	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
-	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
 
 #if HAVE_EPICS
 	MX_EPICS_PV strcmd_pv;
@@ -96,7 +95,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, port_args), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_cards", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_cards", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, num_cards), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

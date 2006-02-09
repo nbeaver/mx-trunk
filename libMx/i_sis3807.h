@@ -59,19 +59,19 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	unsigned long crate_number;
-	unsigned long address_mode;
-	unsigned long base_address;
+	uint32_t crate_number;
+	uint32_t address_mode;
+	mx_hex_type base_address;
 
-	int num_channels;
-	unsigned long output_invert_register;
-	int enable_factor_8_predivider;
+	int32_t num_channels;
+	mx_hex_type output_invert_register;
+	mx_bool_type enable_factor_8_predivider;
 
-	unsigned long module_id;
-	unsigned long firmware_version;
+	mx_hex_type module_id;
+	mx_hex_type firmware_version;
 
-	int burst_register_available;
-	int pulse_width_available;
+	mx_bool_type burst_register_available;
+	mx_bool_type pulse_width_available;
 } MX_SIS3807;
 
 #define MXI_SIS3807_STANDARD_FIELDS \
@@ -84,7 +84,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, address_mode_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -92,7 +92,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, base_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_channels", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_channels", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, num_channels), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -100,7 +100,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, output_invert_register), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "enable_factor_8_predivider", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "enable_factor_8_predivider", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, enable_factor_8_predivider), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -112,11 +112,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "burst_register_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "burst_register_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, burst_register_available), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "pulse_width_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "pulse_width_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, pulse_width_available), \
 	{0}, NULL, MXFF_READ_ONLY }
 

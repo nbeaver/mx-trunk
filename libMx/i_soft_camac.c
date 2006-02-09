@@ -46,7 +46,8 @@ MX_RECORD_FIELD_DEFAULTS mxi_scamac_record_field_defaults[] = {
   MXI_SCAMAC_STANDARD_FIELDS
 };
 
-long mxi_scamac_num_record_fields = sizeof( mxi_scamac_record_field_defaults )
+mx_length_type mxi_scamac_num_record_fields
+				= sizeof( mxi_scamac_record_field_defaults )
 				/ sizeof( mxi_scamac_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_scamac_record_field_def_ptr

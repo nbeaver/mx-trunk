@@ -81,7 +81,7 @@ MX_API mx_status_type mxi_scipe_read( MX_GENERIC *generic,
 MX_API mx_status_type mxi_scipe_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 MX_API mx_status_type mxi_scipe_num_input_bytes_available( MX_GENERIC *generic,
-				unsigned long *num_input_bytes_available );
+				uint32_t *num_input_bytes_available );
 MX_API mx_status_type mxi_scipe_discard_unread_input(
 				MX_GENERIC *generic, int debug_flag );
 MX_API mx_status_type mxi_scipe_discard_unwritten_output(
@@ -97,7 +97,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_scipe_rfield_def_ptr;
 
 MX_API mx_status_type mxi_scipe_command(
 	MX_SCIPE_SERVER *scipe_server, char *command,
-	char *response, int response_buffer_length,
+	char *response, size_t response_buffer_length,
 	int *response_code, char **result_ptr,
 	int debug_flag );
 

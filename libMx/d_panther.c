@@ -397,7 +397,7 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 	int encoder_resolution, deadband_size;
 	int hunt_velocity, hunt_resolution_factor;
 	int stall_factor, stall_sample_rate, max_stall_retries;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	char step_resolution_mode_string[20];
 	char *stall_string_ptr;
 	char *ptr;
@@ -763,7 +763,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	int num_items;
 	int update_encoder_resolution;
 	int old_encoder_resolution, limit_polarity;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));

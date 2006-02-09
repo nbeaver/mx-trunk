@@ -44,7 +44,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_mardtb_record_field_defaults[] = {
 	MXI_MARDTB_STANDARD_FIELDS
 };
 
-long mxi_mardtb_num_record_fields
+mx_length_type mxi_mardtb_num_record_fields
 		= sizeof( mxi_mardtb_record_field_defaults )
 			/ sizeof( mxi_mardtb_record_field_defaults[0] );
 
@@ -469,7 +469,7 @@ mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
 {
 	static const char fname[] = "mxi_mardtb_check_for_move_in_progress()";
 
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	if ( mardtb == (MX_MARDTB *) NULL ) {
@@ -504,7 +504,7 @@ mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: num_input_bytes_available = %lu",
-		fname, num_input_bytes_available));
+		fname, (unsigned long) num_input_bytes_available));
 
 	if ( num_input_bytes_available > 0 ) {
 		MX_DEBUG( 2,("%s: The move by motor '%s' is complete.",

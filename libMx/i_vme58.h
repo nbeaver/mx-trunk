@@ -61,8 +61,8 @@ typedef struct {
 
 typedef struct {
 	MX_RECORD *vme_record;
-	unsigned long crate_number;
-	unsigned long base_address;
+	uint32_t crate_number;
+	mx_hex_type base_address;
 } MX_VME58_PORTIO;
 
 typedef struct {
@@ -73,8 +73,8 @@ typedef struct {
 		MX_VME58_ESRF esrf;
 	} u;
 
-	int controller_type;
-	int num_axes;
+	int32_t controller_type;
+	int32_t num_axes;
 
 	MX_RECORD *motor_array[MX_MAX_VME58_AXES];
 
@@ -86,11 +86,11 @@ typedef struct {
 } MX_VME58;
 
 #define MXI_VME58_COMMON_STANDARD_FIELDS \
-  {-1, -1, "controller_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, controller_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_axes", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_axes", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, num_axes), \
 	{0}, NULL, 0}
 
@@ -104,7 +104,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

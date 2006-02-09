@@ -46,14 +46,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *vme_record;
-	unsigned long crate_number;
-	unsigned long base_address;
+	uint32_t crate_number;
+	mx_hex_type base_address;
 
-	unsigned long num_counters;
+	mx_length_type num_counters;
 	MX_RECORD *counter_record[MX_MAX_VSC16_CHANNELS];
 
-	unsigned char module_type;
-	unsigned char serial_number;
+	uint8_t module_type;
+	uint8_t serial_number;
 } MX_VSC16;
 
 #define MXI_VSC16_STANDARD_FIELDS \
@@ -61,7 +61,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16, vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

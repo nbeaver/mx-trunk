@@ -43,8 +43,8 @@
 
 typedef struct {
 	MX_RECORD *record;
-	long branch_number;
-	long crate_number;
+	int32_t branch_number;
+	int32_t crate_number;
 } MX_CAMAC;
 
 /* MX_CAMAC_STANDARD_FIELDS are the record_fields that should be present
@@ -53,10 +53,10 @@ typedef struct {
  */
 
 #define MX_CAMAC_STANDARD_FIELDS \
-  {-1, -1, "branch_number", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "branch_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CAMAC, branch_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "crate_number", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CAMAC, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -69,25 +69,28 @@ typedef struct {
 typedef struct {
 	mx_status_type ( *get_lam_status ) ( MX_CAMAC *crate, int *lam_n );
 	mx_status_type ( *controller_command ) ( MX_CAMAC *crate, int command );
-	mx_status_type ( *camac ) ( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, int32_t *data, int *Q, int *X );
+	mx_status_type ( *camac ) ( MX_CAMAC *crate,
+				int32_t slot, int32_t subaddress,
+				int32_t function_code, int32_t *data,
+				int32_t *Q, int32_t *X );
 } MX_CAMAC_FUNCTION_LIST;
 
 /* ============== Interface function prototypes. ============== */
 
 MX_API mx_status_type mx_camac_get_lam_status( MX_RECORD *camac_record,
-						int *lam_status );
+						int32_t *lam_status );
 
 MX_API mx_status_type mx_camac_controller_command( MX_RECORD *camac_record,
-						int command );
+						int32_t command );
 
 MX_API mx_status_type mx_camac( MX_RECORD *camac_record,
-				int slot, int subaddress, int function_code,
-				int32_t *data, int *Q, int *X );
+				int32_t slot, int subaddress,
+				int32_t function_code, int32_t *data,
+				int32_t *Q, int32_t *X );
 
 MX_API void mx_camac_qwait( MX_RECORD *camac_record,
-				int slot, int subaddress, int function_code,
-				int32_t *data, int *X );
+				int32_t slot, int subaddress, int function_code,
+				int32_t *data, int32_t *X );
 
 extern MX_RECORD_FUNCTION_LIST mx_camac_record_function_list;
 

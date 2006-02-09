@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxn_bluice_dcss_server_rf_defaults[] = {
 	MXN_BLUICE_DCSS_SERVER_STANDARD_FIELDS
 };
 
-long mxn_bluice_dcss_server_num_record_fields
+mx_length_type mxn_bluice_dcss_server_num_record_fields
 		= sizeof( mxn_bluice_dcss_server_rf_defaults )
 		    / sizeof( mxn_bluice_dcss_server_rf_defaults[0] );
 

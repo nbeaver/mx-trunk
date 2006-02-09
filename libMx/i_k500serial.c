@@ -14,6 +14,8 @@
  *
  */
 
+#define K500SERIAL_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,14 +64,12 @@ MX_RECORD_FIELD_DEFAULTS mxi_k500serial_record_field_defaults[] = {
 	MXI_K500SERIAL_STANDARD_FIELDS
 };
 
-long mxi_k500serial_num_record_fields
+mx_length_type mxi_k500serial_num_record_fields
 		= sizeof( mxi_k500serial_record_field_defaults )
 			/ sizeof( mxi_k500serial_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_k500serial_rfield_def_ptr
 			= &mxi_k500serial_record_field_defaults[0];
-
-#define K500SERIAL_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -380,7 +380,7 @@ mxi_k500serial_open( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The RS-232 line termination characters '%lx' are not compatible with "
-"a Keithley 500-SERIAL interface.", rs232->read_terminators );
+"a Keithley 500-SERIAL interface.", (unsigned long) rs232->read_terminators );
 		break;
 	}
 
@@ -417,8 +417,9 @@ mxi_k500serial_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"The GPIB EOS terminator '%lx' is not compatible with "
-"a Keithley 500-SERIAL interface.", gpib->default_read_terminator );
+			"The GPIB EOS terminator '%lx' is not compatible with "
+			"a Keithley 500-SERIAL interface.",
+				(unsigned long) gpib->default_read_terminator );
 		break;
 	}
 
@@ -472,24 +473,24 @@ mxi_k500serial_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_k500serial_open_device( MX_GPIB *gpib, int address )
+mxi_k500serial_open_device( MX_GPIB *gpib, int32_t address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_close_device( MX_GPIB *gpib, int address )
+mxi_k500serial_close_device( MX_GPIB *gpib, int32_t address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_k500serial_read( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_k500serial_read()";
 
@@ -521,11 +522,11 @@ mxi_k500serial_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_k500serial_write( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_k500serial_write()";
 
@@ -610,7 +611,7 @@ mxi_k500serial_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_k500serial_selective_device_clear( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_k500serial_selective_device_clear()";
 
@@ -655,7 +656,7 @@ mxi_k500serial_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_remote_enable( MX_GPIB *gpib, int address )
+mxi_k500serial_remote_enable( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_k500serial_remote_enable()";
 
@@ -679,7 +680,7 @@ mxi_k500serial_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_go_to_local( MX_GPIB *gpib, int address )
+mxi_k500serial_go_to_local( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_k500serial_go_to_local()";
 
@@ -703,7 +704,7 @@ mxi_k500serial_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_trigger( MX_GPIB *gpib, int address )
+mxi_k500serial_trigger( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_k500serial_trigger_device()";
 
@@ -744,8 +745,8 @@ mxi_k500serial_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_serial_poll( MX_GPIB *gpib, int address,
-				unsigned char *serial_poll_byte)
+mxi_k500serial_serial_poll( MX_GPIB *gpib, int32_t address,
+				uint8_t *serial_poll_byte)
 {
 	static const char fname[] = "mxi_k500serial_serial_poll()";
 

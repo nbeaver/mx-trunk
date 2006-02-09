@@ -15,6 +15,8 @@
  *
  */
 
+#define MXI_8255_DEBUG		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,14 +54,12 @@ MX_RECORD_FIELD_DEFAULTS mxi_8255_record_field_defaults[] = {
 	MXI_8255_STANDARD_FIELDS
 };
 
-long mxi_8255_num_record_fields
+mx_length_type mxi_8255_num_record_fields
 		= sizeof( mxi_8255_record_field_defaults )
 			/ sizeof( mxi_8255_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_8255_rfield_def_ptr
 			= &mxi_8255_record_field_defaults[0];
-
-#define MXI_8255_DEBUG		FALSE
 
 static mx_status_type
 mxi_8255_get_pointers( MX_RECORD *record,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ mxsrv_setup_connection_acl( MX_RECORD *record_list,
 	MXSRV_CONNECTION_ACL *connection_acl;
 	FILE *connection_acl_file;
 	MX_LIST_HEAD *list_head;
-	long dimension_array[2];
+	mx_length_type dimension_array[2];
 	size_t data_element_size_array[2];
 	size_t result, length;
 	long i, num_addresses;

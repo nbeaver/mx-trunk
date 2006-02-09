@@ -58,7 +58,7 @@ typedef struct {
 	long num_active_detector_channels;
 	int *active_detector_channel_array;
 
-	unsigned long num_mcas;
+	mx_length_type num_mcas;
 	MX_RECORD **mca_record_array;
 
 	unsigned long num_detectors;
@@ -114,9 +114,9 @@ typedef struct {
 		offsetof( MX_XIA_HANDEL, active_detector_channel_array ), \
 	{sizeof(int)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }, \
   \
-  {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_mcas", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_mcas ), \
-	{0}, NULL, 0 }, \
+	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "num_detectors", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_detectors ), \

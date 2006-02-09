@@ -723,7 +723,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	MX_DATABOX *databox;
 	int i;
 	char c;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_databox_mcs_get_pointers( mcs,

@@ -59,36 +59,36 @@ MX_API mx_status_type mxi_network_gpib_close( MX_RECORD *record );
 MX_API mx_status_type mxi_network_gpib_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxi_network_gpib_open_device( MX_GPIB *gpib,
-							int address );
+							int32_t address );
 MX_API mx_status_type mxi_network_gpib_close_device( MX_GPIB *gpib,
-							int address );
+							int32_t address );
 MX_API mx_status_type mxi_network_gpib_read( MX_GPIB *gpib,
-						int address,
+						int32_t address,
 						char *buffer,
 						size_t max_bytes_to_read,
 						size_t *bytes_read,
-						int flags );
+						mx_hex_type flags );
 MX_API mx_status_type mxi_network_gpib_write( MX_GPIB *gpib,
-						int address,
+						int32_t address,
 						char *buffer,
 						size_t bytes_to_write,
 						size_t *bytes_written,
-						int flags );
+						mx_hex_type flags );
 MX_API mx_status_type mxi_network_gpib_interface_clear( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_device_clear( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_selective_device_clear( MX_GPIB *gpib,
-								int address );
+							int32_t address );
 MX_API mx_status_type mxi_network_gpib_local_lockout( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_remote_enable( MX_GPIB *gpib,
-								int address );
+							int32_t address );
 MX_API mx_status_type mxi_network_gpib_go_to_local( MX_GPIB *gpib,
-								int address );
-MX_API mx_status_type mxi_network_gpib_trigger( MX_GPIB *gpib, int address );
+							int32_t address );
+MX_API mx_status_type mxi_network_gpib_trigger( MX_GPIB *gpib, int32_t address);
 MX_API mx_status_type mxi_network_gpib_wait_for_service_request( MX_GPIB *gpib,
 							double timeout );
 MX_API mx_status_type mxi_network_gpib_serial_poll( MX_GPIB *gpib,
-					int address,
-					unsigned char *serial_poll_byte );
+					int32_t address,
+					uint8_t *serial_poll_byte );
 MX_API mx_status_type mxi_network_gpib_serial_poll_disable( MX_GPIB *gpib );
 
 extern MX_RECORD_FUNCTION_LIST mxi_network_gpib_record_function_list;

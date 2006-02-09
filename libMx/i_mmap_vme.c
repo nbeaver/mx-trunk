@@ -72,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_mmap_vme_record_field_defaults[] = {
 	MXI_MMAP_VME_STANDARD_FIELDS
 };
 
-long mxi_mmap_vme_num_record_fields
+mx_length_type mxi_mmap_vme_num_record_fields
 		= sizeof( mxi_mmap_vme_record_field_defaults )
 			/ sizeof( mxi_mmap_vme_record_field_defaults[0]);
 
@@ -697,7 +697,8 @@ mxi_mmap_vme_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.", vme->data_size );
+			"Unsupported VME data size %lu.",
+			(unsigned long) vme->data_size );
 		break;
 	}
 
@@ -755,7 +756,8 @@ mxi_mmap_vme_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.", vme->data_size );
+			"Unsupported VME data size %lu.",
+			(unsigned long) vme->data_size );
 		break;
 	}
 
@@ -832,7 +834,8 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.", vme->data_size );
+			"Unsupported VME data size %lu.",
+			(unsigned long) vme->data_size );
 		break;
 	}
 
@@ -909,7 +912,8 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.", vme->data_size );
+			"Unsupported VME data size %lu.",
+			(unsigned long) vme->data_size );
 		break;
 	}
 

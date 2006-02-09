@@ -48,9 +48,9 @@
 #define MXF_MATHOP_WRITE_ONLY_REDEFINES_VALUE	0x2
 
 typedef struct {
-	long num_items;
-	long item_to_change;
-	unsigned long mathop_flags;
+	int32_t num_items;
+	int32_t item_to_change;
+	mx_hex_type mathop_flags;
 	char operation_name[ MXU_MATHOP_NAME_LENGTH + 1 ];
 	char **item_array;
 
@@ -58,15 +58,15 @@ typedef struct {
 	MX_RECORD **record_array;
 	double *value_array;
 
-	int has_been_initialized;
+	mx_bool_type has_been_initialized;
 } MX_MATHOP_VARIABLE;
 
 #define MX_MATHOP_VARIABLE_STANDARD_FIELDS \
-  {-1, -1, "num_items", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_items", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MATHOP_VARIABLE, num_items), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "item_to_change", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "item_to_change", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MATHOP_VARIABLE, item_to_change), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \

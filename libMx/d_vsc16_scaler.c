@@ -262,7 +262,8 @@ mxd_vsc16_scaler_open( MX_RECORD *record )
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
         "VSC16 counter number %d for scaler '%s' is out of allowed range 1-%lu",
-                        counter_number, record->name, vsc16->num_counters );
+                        counter_number, record->name,
+			(unsigned long) vsc16->num_counters );
         }
 
 	vsc16->counter_record[ counter_number - 1 ] = record;

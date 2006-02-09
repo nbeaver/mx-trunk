@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "mx_inttypes.h"
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
 #include "mx_digital_input.h"
@@ -701,26 +702,29 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 	case MXFT_CHAR:
 		fprintf( output, "'%c'", *((char *) data_ptr) );
 		break;
-	case MXFT_UCHAR:
-		fprintf( output, "'%c'", *((unsigned char *) data_ptr) );
+	case MXFT_INT8:
+		fprintf( output, "%" PRId8, *((int8_t *) data_ptr) );
 		break;
-	case MXFT_SHORT:
-		fprintf( output, "%hd", *((short *) data_ptr) );
+	case MXFT_UINT8:
+		fprintf( output, "%" PRIu8, *((uint8_t *) data_ptr) );
 		break;
-	case MXFT_USHORT:
-		fprintf( output, "%hu", *((unsigned short *) data_ptr) );
+	case MXFT_INT16:
+		fprintf( output, "%" PRId16, *((int16_t *) data_ptr) );
 		break;
-	case MXFT_INT:
-		fprintf( output, "%d", *((int *) data_ptr) );
+	case MXFT_UINT16:
+		fprintf( output, "%" PRIu16, *((uint16_t *) data_ptr) );
 		break;
-	case MXFT_UINT:
-		fprintf( output, "%u", *((unsigned int *) data_ptr) );
+	case MXFT_INT32:
+		fprintf( output, "%" PRId32, *((int32_t *) data_ptr) );
 		break;
-	case MXFT_LONG:
-		fprintf( output, "%ld", *((long *) data_ptr) );
+	case MXFT_UINT32:
+		fprintf( output, "%" PRIu32, *((uint32_t *) data_ptr) );
 		break;
-	case MXFT_ULONG:
-		fprintf( output, "%lu", *((unsigned long *) data_ptr) );
+	case MXFT_INT64:
+		fprintf( output, "%" PRId64, *((int64_t *) data_ptr) );
+		break;
+	case MXFT_UINT64:
+		fprintf( output, "%" PRIu64, *((uint64_t *) data_ptr) );
 		break;
 	case MXFT_FLOAT:
 		fprintf( output, "%.*g", record->precision,
@@ -798,7 +802,7 @@ motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
 {
 	long num_dimensions, num_elements;
 	long i_elements, j_elements;
-	long *dimension;
+	mx_length_type *dimension;
 	size_t *data_element_size;
 	long field_type;
 	char *data_ptr, *ptr, *ptr_i, *ptr_j;
@@ -863,7 +867,7 @@ motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
 				if ( i != 0 ) {
 					fprintf( output, "," );
 				}
-				fprintf( output, "%ld", dimension[i] );
+				fprintf( output, "%ld", (long) dimension[i] );
 			}
 			fprintf( output, ")" );
 		}
@@ -966,7 +970,7 @@ motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
 				if ( i != 0 ) {
 					fprintf( output, "," );
 				}
-				fprintf( output, "%ld", dimension[i] );
+				fprintf( output, "%ld", (long) dimension[i] );
 			}
 			fprintf( output, ")" );
 		}

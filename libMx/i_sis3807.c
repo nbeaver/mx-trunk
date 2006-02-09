@@ -45,7 +45,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_sis3807_record_field_defaults[] = {
 	MXI_SIS3807_STANDARD_FIELDS
 };
 
-long mxi_sis3807_num_record_fields
+mx_length_type mxi_sis3807_num_record_fields
 		= sizeof( mxi_sis3807_record_field_defaults )
 			/ sizeof( mxi_sis3807_record_field_defaults[0] );
 
@@ -191,7 +191,7 @@ mxi_sis3807_open( MX_RECORD *record )
 	"SIS3807 module '%s' is using version %lu firmware which only supports "
 	"4 channel operation.  Changing num_channels from %d to 4.",
 			sis3807->record->name,
-			sis3807->firmware_version,
+			(unsigned long) sis3807->firmware_version,
 			sis3807->num_channels );
 
 			sis3807->num_channels = 4;
@@ -206,7 +206,7 @@ mxi_sis3807_open( MX_RECORD *record )
 	"4 channel or 2 channel operation.  "
 	"Changing num_channels from %d to 4.",
 			sis3807->record->name,
-			sis3807->firmware_version,
+			(unsigned long) sis3807->firmware_version,
 			sis3807->num_channels );
 
 			sis3807->num_channels = 4;
@@ -219,7 +219,7 @@ mxi_sis3807_open( MX_RECORD *record )
 	"SIS3807 module '%s' is using version %lu firmware which only supports "
 	"1 channel operation.  Changing num_channels from %d to 1.",
 			sis3807->record->name,
-			sis3807->firmware_version,
+			(unsigned long) sis3807->firmware_version,
 			sis3807->num_channels );
 
 			sis3807->num_channels = 1;
@@ -232,11 +232,11 @@ mxi_sis3807_open( MX_RECORD *record )
 	default:
 		if ( sis3807->num_channels != 1 ) {
 			mx_warning(
-	"SIS3807 module '%s' is using unrecognized firmware version %lu.  "
+	"SIS3807 module '%s' is using unrecognized firmware version %lx.  "
 	"Since we do not know how many channels this firmware supports, "
 	"we will play it safe and change num_channels from %d to 1.",
 			sis3807->record->name,
-			sis3807->firmware_version,
+			(unsigned long) sis3807->firmware_version,
 			sis3807->num_channels );
 
 			sis3807->num_channels = 1;

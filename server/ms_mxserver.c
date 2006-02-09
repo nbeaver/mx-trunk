@@ -1154,7 +1154,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			"(%ld,%ld) is greater than or equal to the "
 			"number of record fields %ld for record '%s'.",
 				field_handle, record_handle, field_handle,
-				record->num_record_fields, record->name );
+				(long) record->num_record_fields, record->name);
 
 			break;	/* Exit the switch() statement. */
 		}
@@ -2295,9 +2295,9 @@ mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
 	MX_DEBUG(1,("%s for '%s', message_length = %ld",
 			fname, message_ptr, (long) message_length));
 	MX_DEBUG(1,("%s: field->datatype = %ld, field->num_dimensions = %ld",
-			fname, field->datatype, field->num_dimensions));
+			fname, field->datatype, (long) field->num_dimensions));
 	MX_DEBUG(1,("%s: field->dimension[0] = %ld",
-			fname, field->dimension[0]));
+			fname, (long) field->dimension[0]));
 
 	/* Allocate a buffer to construct the message to be sent
 	 * back to the client.

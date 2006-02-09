@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxn_unix_server_record_field_defaults[] = {
 	MXN_UNIX_SERVER_STANDARD_FIELDS
 };
 
-long mxn_unix_server_num_record_fields
+mx_length_type mxn_unix_server_num_record_fields
 		= sizeof( mxn_unix_server_record_field_defaults )
 			/ sizeof( mxn_unix_server_record_field_defaults[0] );
 
@@ -171,7 +171,8 @@ mxn_unix_server_open( MX_RECORD *record )
 	MX_NETWORK_SERVER *network_server;
 	MX_UNIX_SERVER *unix_server;
 	MX_SOCKET *server_socket;
-	unsigned long version, flags, requested_data_format;
+	uint32_t version;
+	mx_hex_type flags, requested_data_format;
 	char null_byte;
 	mx_status_type mx_status;
 
@@ -291,7 +292,7 @@ mxn_unix_server_open( MX_RECORD *record )
 	network_server->remote_mx_version = 0UL;
 
 	mx_status = mx_get_by_name( record, "mx_database.mx_version",
-					MXFT_ULONG, &version );
+					MXFT_UINT32, &version );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

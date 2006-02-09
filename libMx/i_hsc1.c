@@ -15,6 +15,8 @@
  *
  */
 
+#define MXI_HSC1_INTERFACE_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,10 +34,10 @@ MX_RECORD_FUNCTION_LIST mxi_hsc1_record_function_list = {
 	mxi_hsc1_initialize_type,
 	mxi_hsc1_create_record_structures,
 	mxi_hsc1_finish_record_initialization,
-	mxi_hsc1_delete_record,
 	NULL,
-	mxi_hsc1_read_parms_from_hardware,
-	mxi_hsc1_write_parms_to_hardware,
+	NULL,
+	NULL,
+	NULL,
 	mxi_hsc1_open,
 	mxi_hsc1_close,
 	mxi_hsc1_resynchronize,
@@ -56,14 +58,12 @@ MX_RECORD_FIELD_DEFAULTS mxi_hsc1_record_field_defaults[] = {
 	MXI_HSC1_INTERFACE_STANDARD_FIELDS
 };
 
-long mxi_hsc1_num_record_fields
+mx_length_type mxi_hsc1_num_record_fields
 		= sizeof( mxi_hsc1_record_field_defaults )
 			/ sizeof( mxi_hsc1_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_hsc1_rfield_def_ptr
 			= &mxi_hsc1_record_field_defaults[0];
-
-#define MXI_HSC1_INTERFACE_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -106,9 +106,9 @@ mxi_hsc1_initialize_type( long type )
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
-	long num_modules_field_index;
-	long num_modules_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type num_modules_field_index;
+	mx_length_type num_modules_varargs_cookie;
 	mx_status_type status;
 
 	driver = mx_get_driver_by_type( type );
@@ -208,16 +208,16 @@ mxi_hsc1_finish_record_initialization( MX_RECORD *record )
 	if ( hsc1_interface->num_modules <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The number of HSC-1 modules specified (%ld) is <= 0.",
-			hsc1_interface->num_modules );
+			(long) hsc1_interface->num_modules );
 	}
 
-	hsc1_interface->module_is_busy
-		  = (int *) malloc(hsc1_interface->num_modules * sizeof(int));
+	hsc1_interface->module_is_busy = (mx_bool_type *)
+		malloc( hsc1_interface->num_modules * sizeof(mx_bool_type) );
 
 	if ( hsc1_interface->module_is_busy == (int *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Ran out of memory trying to allocate %ld 'module_is_busy' flags.",
-				hsc1_interface->num_modules );
+				(long) hsc1_interface->num_modules );
 	}
 
 	/* Mark all the HSC-1 modules as not busy. */
@@ -226,37 +226,6 @@ mxi_hsc1_finish_record_initialization( MX_RECORD *record )
 		hsc1_interface->module_is_busy[i] = FALSE;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_hsc1_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_hsc1_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_hsc1_write_parms_to_hardware( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -299,7 +268,7 @@ mxi_hsc1_open( MX_RECORD *record )
 	if ( rs232->speed != 9600 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The HSC-1 controller requires a port speed of 9600 baud.  Instead saw %ld.",
-			rs232->speed );
+			(long) rs232->speed );
 	}
 	if ( rs232->word_size != 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -325,13 +294,13 @@ mxi_hsc1_open( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The HSC-1 controller requires the RS-232 read terminators "
 		"to be a CR LF sequence ( 0x0d0a ).  Instead saw %#lx.",
-			rs232->read_terminators );
+			(unsigned long) rs232->read_terminators );
 	}
 	if ( rs232->write_terminators != 0xd ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The HSC-1 controller requires the RS-232 write terminator "
 		"to be a CR character ( 0x0d ).  Instead saw %#lx.",
-			rs232->write_terminators );
+			(unsigned long) rs232->write_terminators );
 	}
 
 	status = mxi_hsc1_resynchronize( record );
@@ -514,7 +483,7 @@ mxi_hsc1_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mxi_hsc1_num_input_bytes_available( MX_GENERIC *generic,
-				unsigned long *num_input_bytes_available )
+				uint32_t *num_input_bytes_available )
 {
 	static const char fname[] = "mxi_hsc1_num_input_bytes_available()";
 
@@ -666,11 +635,11 @@ mxi_hsc1_handle_error_code( const char *calling_fname,
 
 MX_EXPORT mx_status_type
 mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
-		unsigned long module_number,
+		uint32_t module_number,
 		char *command,
 		char *response,
-		int response_buffer_length,
-		int debug_flag )
+		size_t response_buffer_length,
+		mx_hex_type debug_flag )
 {
 	static const char fname[] = "mxi_hsc1_command()";
 
@@ -682,7 +651,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	long other_module_number;
 	int i, max_attempts;
 	int module_is_busy, ignore_busy_status;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type status;
 
 	static unsigned long command_number = 0L;
@@ -705,9 +674,10 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Module number %lu for HSC-1 interface '%s' is outside "
-		"the allowed range of 0 to %ld", module_number,
+		"the allowed range of 0 to %ld",
+			(unsigned long) module_number,
 			hsc1_interface->record->name,
-			(hsc1_interface->num_modules - 1) );
+			hsc1_interface->num_modules - 1L );
 	}
 
 	if ( hsc1_interface->module_id == NULL ) {
@@ -721,7 +691,8 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	if ( module_id == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"module_id address for HSC-1 interface '%s' module %lu is NULL.",
-			hsc1_interface->record->name, module_number );
+			hsc1_interface->record->name,
+			(unsigned long) module_number );
 	}
 
 	module_id_length = strlen(module_id);

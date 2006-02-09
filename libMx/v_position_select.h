@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *motor_record;
-	long num_positions;
+	int32_t num_positions;
 	double *position_array;
 } MX_POSITION_SELECT;
 
@@ -28,7 +28,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POSITION_SELECT, motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "num_positions", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_positions", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POSITION_SELECT, num_positions), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

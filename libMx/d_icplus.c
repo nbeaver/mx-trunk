@@ -166,7 +166,8 @@ mxd_icplus_open( MX_RECORD *record )
 	char command[40];
 	char response[80];
 	int timed_out;
-	unsigned long i, max_attempts, wait_ms, num_input_bytes_available;
+	unsigned long i, max_attempts, wait_ms;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_icplus_get_pointers( record,
@@ -643,7 +644,8 @@ mxd_icplus_command( MX_ICPLUS *icplus,
 
 	char c;
 	int i, max_attempts;
-	unsigned long sleep_ms, num_input_bytes_available;
+	unsigned long sleep_ms;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status, mx_status2;
 
 	if ( icplus == (MX_ICPLUS *) NULL ) {

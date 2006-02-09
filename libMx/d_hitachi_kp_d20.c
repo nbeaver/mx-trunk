@@ -337,7 +337,8 @@ mxd_hitachi_kp_d20_read_data( MX_HITACHI_KP_D20 *hitachi_kp_d20, char *command,
 {
 	static const char fname[] = "mxd_hitachi_kp_d20_read_data()";
 
-	unsigned long i, wait_ms, max_attempts, num_bytes_available;
+	unsigned long i, wait_ms, max_attempts;
+	uint32_t num_bytes_available;
 	size_t actual_response_length;
 	mx_status_type mx_status;
 

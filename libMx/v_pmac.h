@@ -21,7 +21,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmac_record;
-	int card_number;
+	int32_t card_number;
 	char pmac_variable_name[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 } MX_PMAC_VARIABLE;
 
@@ -30,7 +30,7 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_VARIABLE, pmac_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_VARIABLE, card_number), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@ int
 motor_stop_fn( int argc, char *argv[] )
 {
 	MX_RECORD *record;
-	long long_value;
+	int32_t int32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -59,7 +59,7 @@ motor_stop_fn( int argc, char *argv[] )
 		mx_status = mx_motor_soft_abort( record );
 		break;
 	case MXC_SCALER:
-		mx_status = mx_scaler_stop( record, &long_value );
+		mx_status = mx_scaler_stop( record, &int32_value );
 		break;
 	case MXC_TIMER:
 		mx_status = mx_timer_stop( record, &double_value );

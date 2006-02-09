@@ -10,12 +10,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_SOFT_RS232_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,10 +26,6 @@
 #include "mx_record.h"
 #include "mx_rs232.h"
 #include "i_soft_rs232.h"
-
-/* Do we show chars using MX_DEBUG() in the getchar and putchar functions? */
-
-#define MXI_SOFT_RS232_DEBUG			FALSE
 
 MX_RECORD_FUNCTION_LIST mxi_soft_rs232_record_function_list = {
 	NULL,
@@ -57,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_soft_rs232_record_field_defaults[] = {
 	MX_RS232_STANDARD_FIELDS
 };
 
-long mxi_soft_rs232_num_record_fields
+mx_length_type mxi_soft_rs232_num_record_fields
 		= sizeof( mxi_soft_rs232_record_field_defaults )
 			/ sizeof( mxi_soft_rs232_record_field_defaults[0] );
 

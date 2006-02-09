@@ -57,7 +57,7 @@ motor_setup_list_scan_parameters(
 	int *motor_is_independent_variable;
 
 	char **motor_name_array;
-	long motor_name_dimension_array[2];
+	mx_length_type motor_name_dimension_array[2];
 
 	static size_t name_element_size_array[2] = {
 		sizeof(char), sizeof(char *) };

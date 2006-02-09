@@ -162,7 +162,7 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 
 	MX_SCA *sca;
 	MX_CYBERSTAR_X1000 *cyberstar_x1000;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	sca = (MX_SCA *) (record->record_class_struct);
@@ -805,7 +805,8 @@ mxd_cyberstar_x1000_command( MX_CYBERSTAR_X1000 *cyberstar_x1000,
 
 	char c;
 	int i, max_attempts;
-	unsigned long sleep_ms, num_input_bytes_available;
+	unsigned long sleep_ms;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status, mx_status2;
 
 	if ( cyberstar_x1000 == (MX_CYBERSTAR_X1000 *) NULL ) {

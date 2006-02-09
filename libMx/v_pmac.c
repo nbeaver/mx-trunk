@@ -22,6 +22,7 @@
 #include <float.h>
 
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_variable.h"
@@ -41,35 +42,35 @@ MX_VARIABLE_FUNCTION_LIST mxv_pmac_variable_function_list = {
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_pmac_long_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_pmac_int32_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_PMAC_VARIABLE_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_LONG_VARIABLE_STANDARD_FIELDS
+	MX_INT32_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_pmac_long_num_record_fields
-	= sizeof( mxv_pmac_long_field_defaults )
-	/ sizeof( mxv_pmac_long_field_defaults[0] );
+mx_length_type mxv_pmac_int32_num_record_fields
+	= sizeof( mxv_pmac_int32_field_defaults )
+	/ sizeof( mxv_pmac_int32_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_pmac_long_rfield_def_ptr
-		= &mxv_pmac_long_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_pmac_int32_rfield_def_ptr
+		= &mxv_pmac_int32_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_pmac_ulong_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_pmac_uint32_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_PMAC_VARIABLE_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_ULONG_VARIABLE_STANDARD_FIELDS
+	MX_UINT32_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_pmac_ulong_num_record_fields
-	= sizeof( mxv_pmac_ulong_field_defaults )
-	/ sizeof( mxv_pmac_ulong_field_defaults[0] );
+mx_length_type mxv_pmac_uint32_num_record_fields
+	= sizeof( mxv_pmac_uint32_field_defaults )
+	/ sizeof( mxv_pmac_uint32_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_pmac_ulong_rfield_def_ptr
-		= &mxv_pmac_ulong_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_pmac_uint32_rfield_def_ptr
+		= &mxv_pmac_uint32_field_defaults[0];
 
 /*---*/
 
@@ -80,7 +81,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_pmac_double_field_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_pmac_double_num_record_fields
+mx_length_type mxv_pmac_double_num_record_fields
 	= sizeof( mxv_pmac_double_field_defaults )
 	/ sizeof( mxv_pmac_double_field_defaults[0] );
 
@@ -213,8 +214,8 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 	MX_PMAC *pmac;
 	char command[80];
 	void *value_ptr;
-	long long_value;
-	unsigned long ulong_value;
+	int32_t int32_value;
+	uint32_t uint32_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -230,32 +231,32 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		return mx_status;
 
 	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
-		long_value = *((long *) value_ptr);
+	case MXV_PMA_INT32:
+		int32_value = *((int32_t *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
 			sprintf( command, "@%x%s=%ld",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
-				long_value );
+				(long) int32_value );
 		} else {
 			sprintf( command, "%s=%ld",
 				pmac_variable->pmac_variable_name,
-				long_value );
+				(long) int32_value );
 		}
 		break;
-	case MXV_PMA_ULONG:
-		ulong_value = *((unsigned long *) value_ptr);
+	case MXV_PMA_UINT32:
+		uint32_value = *((uint32_t *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
 			sprintf( command, "@%x%s=%lu",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
-				ulong_value );
+				(unsigned long) uint32_value );
 		} else {
 			sprintf( command, "%s=%lu",
 				pmac_variable->pmac_variable_name,
-				ulong_value );
+				(unsigned long) uint32_value );
 		}
 		break;
 	case MXV_PMA_DOUBLE:
@@ -289,10 +290,10 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 	char command[80];
 	char response[80];
 	void *value_ptr;
-	long *long_ptr;
-	long long_value;
-	unsigned long *ulong_ptr;
-	unsigned long ulong_value;
+	int32_t *int32_ptr;
+	int32_t int32_value;
+	uint32_t *uint32_ptr;
+	uint32_t uint32_value;
 	double *double_ptr;
 	double double_value;
 	int num_items;
@@ -325,11 +326,11 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 	num_items = 0;
 
 	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
-		num_items = sscanf( response, "%ld", &long_value );
+	case MXV_PMA_INT32:
+		num_items = sscanf( response, "%" SCNd32, &int32_value );
 		break;
-	case MXV_PMA_ULONG:
-		num_items = sscanf( response, "%lu", &ulong_value );
+	case MXV_PMA_UINT32:
+		num_items = sscanf( response, "%" SCNu32, &uint32_value );
 		break;
 	case MXV_PMA_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -343,15 +344,15 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 	}
 
 	switch( variable->record->mx_type ) {
-	case MXV_PMA_LONG:
-		long_ptr = (long *) value_ptr;
+	case MXV_PMA_INT32:
+		int32_ptr = (int32_t *) value_ptr;
 
-		*long_ptr = long_value;
+		*int32_ptr = int32_value;
 		break;
-	case MXV_PMA_ULONG:
-		ulong_ptr = (unsigned long *) value_ptr;
+	case MXV_PMA_UINT32:
+		uint32_ptr = (uint32_t *) value_ptr;
 
-		*ulong_ptr = ulong_value;
+		*uint32_ptr = uint32_value;
 		break;
 	case MXV_PMA_DOUBLE:
 		double_ptr = (double *) value_ptr;

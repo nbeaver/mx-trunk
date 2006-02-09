@@ -2291,7 +2291,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 MX_EXPORT mx_status_type
 mx_network_request_data_format( MX_RECORD *server_record,
-				unsigned long requested_format )
+				mx_hex_type requested_format )
 {
 	static const char fname[] = "mx_network_request_data_format()";
 

@@ -36,7 +36,7 @@ static int
 motor_rs232_readline( MX_RECORD *record )
 {
 	static char receive_buffer[2000];
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	/* See if there are any characters available to read. */

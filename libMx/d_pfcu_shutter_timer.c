@@ -192,7 +192,7 @@ mxd_pfcu_shutter_timer_is_busy( MX_TIMER *timer )
 
 	MX_PFCU_SHUTTER_TIMER *pfcu_shutter_timer;
 	MX_PFCU *pfcu;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pfcu_shutter_timer_get_pointers( timer,

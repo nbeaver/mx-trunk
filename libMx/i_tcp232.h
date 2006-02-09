@@ -61,8 +61,8 @@ typedef struct {
 
 	MX_SOCKET *socket;
 	char hostname[MXU_HOSTNAME_LENGTH + 1];
-	int port_number;
-	unsigned long tcp232_flags;
+	int32_t port_number;
+	mx_hex_type tcp232_flags;
 } MX_TCP232;
 
 extern MX_RECORD_FUNCTION_LIST mxi_tcp232_record_function_list;
@@ -76,7 +76,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

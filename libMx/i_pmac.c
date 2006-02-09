@@ -27,6 +27,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
+#include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
@@ -61,7 +62,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_pmac_record_field_defaults[] = {
 	MXI_PMAC_STANDARD_FIELDS
 };
 
-long mxi_pmac_num_record_fields
+mx_length_type mxi_pmac_num_record_fields
 		= sizeof( mxi_pmac_record_field_defaults )
 			/ sizeof( mxi_pmac_record_field_defaults[0] );
 
@@ -336,7 +337,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pmac_special_processing_setup( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pmac_special_processing_setup()";
+	static const char fname[] = "mxi_pmac_special_processing_setup()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -657,14 +658,14 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 			void *variable_ptr,
 			int debug_flag )
 {
-	const char fname[] = "mxi_pmac_get_variable()";
+	static const char fname[] = "mxi_pmac_get_variable()";
 
 	char command_buffer[100];
 	char response[100];
 	char *command_ptr;
 	int num_items;
-	long long_value;
-	long *long_ptr;
+	int32_t int32_value;
+	int32_t *int32_ptr;
 	double double_value;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -693,8 +694,8 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 		return mx_status;
 
 	switch( variable_type ) {
-	case MXFT_LONG:
-		num_items = sscanf( response, "%ld", &long_value );
+	case MXFT_INT32:
+		num_items = sscanf( response, "%" SCNd32, &int32_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -704,9 +705,9 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 				pmac->record->name, card_number,
 				command_buffer, response );
 		}
-		long_ptr = (long *) variable_ptr;
+		int32_ptr = (int32_t *) variable_ptr;
 
-		*long_ptr = long_value;
+		*int32_ptr = int32_value;
 		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -743,12 +744,12 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 			void *variable_ptr,
 			int debug_flag )
 {
-	const char fname[] = "mxi_pmac_set_variable()";
+	static const char fname[] = "mxi_pmac_set_variable()";
 
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
-	long *long_ptr;
+	int32_t *int32_ptr;
 	double *double_ptr;
 	mx_status_type mx_status;
 
@@ -770,10 +771,10 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 	ptr = command_buffer + strlen( command_buffer );
 
 	switch( variable_type ) {
-	case MXFT_LONG:
-		long_ptr = (long *) variable_ptr;
+	case MXFT_INT32:
+		int32_ptr = (int32_t *) variable_ptr;
 
-		sprintf( ptr, "%ld", *long_ptr );
+		sprintf( ptr, "%" PRId32, *int32_ptr );
 		break;
 	case MXFT_DOUBLE:
 		double_ptr = (double *) variable_ptr;
@@ -1079,7 +1080,7 @@ static mx_status_type
 mxi_pmac_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	const char fname[] = "mxi_pmac_process_function()";
+	static const char fname[] = "mxi_pmac_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

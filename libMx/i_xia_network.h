@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
-	unsigned long num_mcas;
+	mx_length_type num_mcas;
 	MX_RECORD **mca_record_array;
 
 	MX_NETWORK_FIELD num_mcas_nf;

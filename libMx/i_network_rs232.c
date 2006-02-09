@@ -10,12 +10,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2005 Illinois Institute of Technology
+ * Copyright 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_NETWORK_RS232_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,10 +27,6 @@
 #include "mx_rs232.h"
 #include "mx_net.h"
 #include "i_network_rs232.h"
-
-/* Do we show chars using MX_DEBUG() in the getchar and putchar functions? */
-
-#define MXI_NETWORK_RS232_DEBUG				FALSE
 
 MX_RECORD_FUNCTION_LIST mxi_network_rs232_record_function_list = {
 	NULL,
@@ -62,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_network_rs232_record_field_defaults[] = {
 	MXI_NETWORK_RS232_STANDARD_FIELDS
 };
 
-long mxi_network_rs232_num_record_fields
+mx_length_type mxi_network_rs232_num_record_fields
 		= sizeof( mxi_network_rs232_record_field_defaults )
 			/ sizeof( mxi_network_rs232_record_field_defaults[0] );
 
@@ -240,8 +238,9 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_NETWORK_RS232 *network_rs232;
-	long datatype, num_dimensions;
-	long dimension_array[1];
+	long datatype;
+	mx_length_type num_dimensions;
+	mx_length_type dimension_array[1];
 	char rfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
 	mx_status_type mx_status;
 
@@ -427,7 +426,7 @@ mxi_network_rs232_resynchronize( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_NETWORK_RS232 *network_rs232;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -443,10 +442,10 @@ mxi_network_rs232_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	resynchronize = 1;
+	resynchronize = TRUE;
 
 	mx_status = mx_put( &(network_rs232->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
@@ -461,7 +460,6 @@ mxi_network_rs232_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_network_rs232_getchar()";
 
 	MX_NETWORK_RS232 *network_rs232;
-	int getchar_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_rs232_get_pointers( rs232,
@@ -476,12 +474,10 @@ mxi_network_rs232_getchar( MX_RS232 *rs232, char *c )
 	}
 
 	mx_status = mx_get( &(network_rs232->getchar_nf),
-				MXFT_INT, &getchar_value );
+				MXFT_CHAR, c );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	*c = (char) getchar_value;
 
 #if MXI_NETWORK_RS232_DEBUG
 	MX_DEBUG(-2, ("%s: received 0x%x, '%c'", fname, *c, *c));
@@ -496,7 +492,6 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_network_rs232_putchar()";
 
 	MX_NETWORK_RS232 *network_rs232;
-	int putchar_value;
 	mx_status_type mx_status;
 
 #if MXI_NETWORK_RS232_DEBUG
@@ -509,10 +504,8 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	putchar_value = (int) c;
-
 	mx_status = mx_put( &(network_rs232->putchar_nf),
-				MXFT_INT, &putchar_value );
+				MXFT_CHAR, &c );
 
 	return mx_status;
 }
@@ -533,7 +526,7 @@ mxi_network_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 		return mx_status;
 
 	mx_status = mx_get( &(network_rs232->num_input_bytes_available_nf),
-			MXFT_ULONG, &(rs232->num_input_bytes_available) );
+			MXFT_UINT32, &(rs232->num_input_bytes_available) );
 
 	return mx_status;
 }
@@ -544,7 +537,7 @@ mxi_network_rs232_discard_unread_input( MX_RS232 *rs232 )
 	static const char fname[] = "mxi_network_rs232_discard_unread_input()";
 
 	MX_NETWORK_RS232 *network_rs232;
-	int discard_unread_input;
+	mx_bool_type discard_unread_input;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_rs232_get_pointers( rs232,
@@ -553,10 +546,10 @@ mxi_network_rs232_discard_unread_input( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	discard_unread_input = 1;
+	discard_unread_input = TRUE;
 
 	mx_status = mx_put( &(network_rs232->discard_unread_input_nf),
-				MXFT_INT, &discard_unread_input );
+				MXFT_BOOL, &discard_unread_input );
 
 	return mx_status;
 }
@@ -568,7 +561,7 @@ mxi_network_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 		"mxi_network_rs232_discard_unwritten_output()";
 
 	MX_NETWORK_RS232 *network_rs232;
-	int discard_unwritten_output;
+	mx_bool_type discard_unwritten_output;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_rs232_get_pointers( rs232,
@@ -577,10 +570,10 @@ mxi_network_rs232_discard_unwritten_output( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	discard_unwritten_output = 1;
+	discard_unwritten_output = TRUE;
 
 	mx_status = mx_put( &(network_rs232->discard_unwritten_output_nf),
-				MXFT_INT, &discard_unwritten_output );
+				MXFT_BOOL, &discard_unwritten_output );
 
 	return mx_status;
 }

@@ -699,7 +699,7 @@ mxd_cryostream600_motor_wait_for_response( MX_RECORD *rs232_record,
 		= "mxd_cryostream600_motor_wait_for_response()";
 
 	int i, max_retries;
-	unsigned long num_input_bytes_available;
+	uint32_t num_input_bytes_available;
 	unsigned long wait_ms;
 	mx_status_type mx_status;
 

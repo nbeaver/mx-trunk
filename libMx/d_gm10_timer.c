@@ -240,7 +240,7 @@ mxd_gm10_timer_get_new_counts( MX_RECORD *timer_record,
 	MX_SCALER *scaler;
 	MX_GM10_SCALER *gm10_scaler;
 	char read_buffer[MXD_GM10_TIMER_BLOCK_SIZE];
-	unsigned long num_bytes_available;
+	uint32_t num_bytes_available;
 	unsigned long i, num_blocks, remainder;
 	mx_status_type mx_status;
 
@@ -290,7 +290,8 @@ mxd_gm10_timer_get_new_counts( MX_RECORD *timer_record,
 
 #if MXD_GM10_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: scaler '%s', new counts = %lu",
-		fname, scaler_record->name, num_bytes_available));
+		fname, scaler_record->name,
+		(unsigned long) num_bytes_available));
 #endif
 
 	/* Discard the bytes available on the serial port. */

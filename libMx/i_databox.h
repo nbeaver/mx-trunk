@@ -54,8 +54,9 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+	int32_t use_external_time_base;
 	double maximum_stepping_rate;
-	int use_external_time_base;
+
 	int command_mode;
 	int limit_mode;
 	char moving_motor;
@@ -71,7 +72,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "use_external_time_base", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_external_time_base", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX, use_external_time_base), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -84,18 +85,11 @@ typedef struct {
 #define MX_LF	'\012'
 #endif
 
-MX_API mx_status_type mxi_databox_initialize_type( long type );
 MX_API mx_status_type mxi_databox_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_databox_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_databox_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_databox_read_parms_from_hardware(
-					MX_RECORD *record );
-MX_API mx_status_type mxi_databox_write_parms_to_hardware(
-					MX_RECORD *record );
 MX_API mx_status_type mxi_databox_open( MX_RECORD *record );
-MX_API mx_status_type mxi_databox_close( MX_RECORD *record );
 MX_API mx_status_type mxi_databox_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_databox_record_function_list;
