@@ -861,6 +861,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char *ptr, *r_ptr;
 	char description[MXU_RECORD_DESCRIPTION_LENGTH+1];
+	size_t string_length;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for epics_pv_name = '%s'",

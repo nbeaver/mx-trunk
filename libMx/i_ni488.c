@@ -48,8 +48,8 @@
 #include <fcntl.h>
 
 #include "mx_util.h"
-#include "mx_gpib.h"
 #include "mx_record.h"
+#include "mx_gpib.h"
 #include "i_ni488.h"
 
 /* Include the National Instruments driver include file. */
@@ -104,7 +104,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_ni488_record_field_defaults[] = {
 	MXI_NI488_STANDARD_FIELDS
 };
 
-long mxi_ni488_num_record_fields
+mx_length_type mxi_ni488_num_record_fields
 		= sizeof( mxi_ni488_record_field_defaults )
 			/ sizeof( mxi_ni488_record_field_defaults[0] );
 
@@ -361,7 +361,7 @@ mxi_ni488_open( MX_RECORD *record )
 
 static mx_status_type
 mxi_ni488_compute_eos_value( MX_GPIB *gpib,
-				int address,
+				int32_t address,
 				unsigned long *eos_value )
 {
 	static const char fname[] = "mxi_ni488_compute_eos_value()";
@@ -524,7 +524,7 @@ mxi_ni488_compute_time_duration_code( double io_timeout )
 static mx_status_type
 mxi_ni488_get_device_descriptor( MX_GPIB *gpib,
 				MX_NI488 *ni488,
-				int address,
+				int32_t address,
 				int *device_descriptor )
 {
 	int dev;
@@ -551,7 +551,7 @@ mxi_ni488_get_device_descriptor( MX_GPIB *gpib,
 /* ========== Device specific functions ========== */
 
 MX_EXPORT mx_status_type
-mxi_ni488_open_device( MX_GPIB *gpib, int address )
+mxi_ni488_open_device( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_open_device()";
 
@@ -653,7 +653,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 
 
 MX_EXPORT mx_status_type
-mxi_ni488_close_device( MX_GPIB *gpib, int address )
+mxi_ni488_close_device( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_close_device()";
 
@@ -757,11 +757,11 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 MX_EXPORT mx_status_type
 mxi_ni488_read( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_ni488_read()";
 
@@ -828,11 +828,11 @@ mxi_ni488_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_ni488_write( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_ni488_write()";
 
@@ -1050,7 +1050,7 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_ni488_selective_device_clear( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_selective_device_clear()";
 
@@ -1120,7 +1120,7 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_remote_enable( MX_GPIB *gpib, int address )
+mxi_ni488_remote_enable( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_remote_enable()";
 
@@ -1152,7 +1152,7 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_go_to_local( MX_GPIB *gpib, int address )
+mxi_ni488_go_to_local( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_go_to_local()";
 
@@ -1189,7 +1189,7 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_trigger( MX_GPIB *gpib, int address )
+mxi_ni488_trigger( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_ni488_trigger()";
 
@@ -1264,8 +1264,8 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_serial_poll( MX_GPIB *gpib, int address,
-				unsigned char *serial_poll_byte)
+mxi_ni488_serial_poll( MX_GPIB *gpib, int32_t address,
+				uint8_t *serial_poll_byte)
 {
 	static const char fname[] = "mxi_ni488_serial_poll()";
 

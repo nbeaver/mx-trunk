@@ -708,16 +708,21 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 	static const char fname[] = "mx_wait_for_motor_stop()";
 
 	int interrupt;
-	mx_hex_type motor_status, busy, limit_hit;
-	mx_hex_type limit_bitmask, error_bitmask;
+	mx_hex_type motor_status, busy;
+	mx_hex_type error_bitmask;
+	mx_hex_type hardware_limit_bitmask, software_limit_bitmask;
+	mx_hex_type hardware_limit_hit, software_limit_hit;
 	mx_hex_type ignore_keyboard, ignore_limit_switches;
 	mx_hex_type ignore_pause;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor_record->name ));
 
-	limit_bitmask =
+	hardware_limit_bitmask =
 		MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT;
+
+	software_limit_bitmask =
+	    MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT | MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
 
 	error_bitmask = MXSF_MTR_ERROR_BITMASK;
 
@@ -741,13 +746,25 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 
 			/* Has the motor hit a limit? */
 
-			limit_hit = motor_status & limit_bitmask;
+			hardware_limit_hit =
+				motor_status & hardware_limit_bitmask;
 
-			if ( limit_hit ) {
+			if ( hardware_limit_hit ) {
 				(void) mx_motor_soft_abort( motor_record );
 
 				return mx_error( MXE_INTERRUPTED, fname,
-			    "Limit switch hit.  Move aborted for motor '%s'.",
+			    "Hardware limit hit.  Move aborted for motor '%s'.",
+					motor_record->name );
+			}
+
+			software_limit_hit =
+				motor_status & software_limit_bitmask;
+
+			if ( software_limit_hit ) {
+				(void) mx_motor_soft_abort( motor_record );
+
+				return mx_error( MXE_INTERRUPTED, fname,
+			    "Software limit hit.  Move aborted for motor '%s'.",
 					motor_record->name );
 			}
 		}
@@ -847,7 +864,8 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 	int interrupt;
 	mx_length_type i, j;
 	mx_bool_type motor_is_moving, any_error_occurred;
-	mx_hex_type motor_status, limit_bitmask, error_bitmask;
+	mx_hex_type motor_status, error_bitmask;
+	mx_hex_type hardware_limit_bitmask, software_limit_bitmask;
 	mx_hex_type ignore_keyboard, ignore_limit_switches;
 	mx_hex_type ignore_pause;
 	mx_status_type mx_status;
@@ -860,13 +878,17 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 
 	ignore_pause = flags & MXF_MTR_IGNORE_PAUSE;
 
-	limit_bitmask = 
+	hardware_limit_bitmask = 
 		MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT;
+
+	software_limit_bitmask = 
+	    MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT | MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
 
 	error_bitmask = MXSF_MTR_ERROR_BITMASK;
 
 	if ( ignore_limit_switches ) {
-		error_bitmask &= ( ~ limit_bitmask );
+		error_bitmask &=
+			( ~ (hardware_limit_bitmask | software_limit_bitmask) );
 	}
 	if ( flags & MXF_MTR_IGNORE_ERRORS ) {
 		error_bitmask = 0;
@@ -897,8 +919,14 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 				motor_is_moving = TRUE;
 
 			if ( ignore_limit_switches == FALSE ) {
-				if ( motor_status & limit_bitmask ) {
-					mx_warning( "Limit hit for motor '%s'.",
+				if ( motor_status & hardware_limit_bitmask ) {
+					mx_warning(
+					"Hardware limit hit for motor '%s'.",
+						motor_record_array[i]->name );
+				}
+				if ( motor_status & software_limit_bitmask ) {
+					mx_warning(
+					"Software limit hit for motor '%s'.",
 						motor_record_array[i]->name );
 				}
 			}

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -247,7 +247,7 @@ mxs_joerger_quick_scan_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal num_motors value %ld for scan '%s'.  "
 		"The allowed range is (0-%d)",
-			scan->num_motors, record->name,
+			(long) scan->num_motors, record->name,
 			MXS_JQ_MAX_MOTORS );
 	}
 
@@ -257,7 +257,7 @@ mxs_joerger_quick_scan_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal num_input_devices value %ld for scan '%s'.  "
 		"The allowed range is (0-%d)",
-			scan->num_input_devices, record->name,
+			(long) scan->num_input_devices, record->name,
 			MXS_JQ_MAX_JOERGER_SCALERS );
 	}
 
@@ -424,7 +424,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_EPICS_SCALER *epics_scaler;
 	MX_EPICS_TIMER *epics_timer;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
-	int joerger_quick_scan_enabled;
+	int32_t joerger_quick_scan_enabled;
 	long i, j, timer_preset, allowed_device;
 	double scan_duration_seconds, scan_duration_ticks;
 	double epics_update_rate, measurement_time_per_point;
@@ -446,7 +446,8 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			"There must always be at least one input device for "
 			"a Joerger quick scan, namely, the timer channel.  "
 			"The scan '%s' has %ld input devices.",
-				scan->record->name, scan->num_input_devices );
+				scan->record->name,
+				(long) scan->num_input_devices );
 	}
 
 	/* Are Joerger quick scans permitted for this beamline? */
@@ -457,7 +458,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( joerger_quick_scan_enable_record == (MX_RECORD *) NULL ) {
 		joerger_quick_scan_enabled = FALSE;
 	} else {
-		mx_status = mx_get_int_variable(
+		mx_status = mx_get_int32_variable(
 				joerger_quick_scan_enable_record,
 				&joerger_quick_scan_enabled );
 	}
@@ -636,7 +637,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an %ld array "
 			"of motor positions for motor %ld.",
-				quick_scan->actual_num_measurements, i );
+				(long) quick_scan->actual_num_measurements, i );
 		}
 
 		switch( scan->motor_record_array[i]->mx_type ) {
@@ -674,7 +675,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an %ld array "
 			"of data values for scaler %ld.",
-				quick_scan->actual_num_measurements, i );
+				(long) quick_scan->actual_num_measurements, i );
 		}
 
 		if ( scan->input_device_array[i] == timer_record ) {
@@ -699,8 +700,9 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( synchronous_motion_mode_record == (MX_RECORD *) NULL ) {
 		quick_scan->use_synchronous_motion_mode = FALSE;
 	} else {
-		mx_status = mx_get_int_variable( synchronous_motion_mode_record,
-				&(quick_scan->use_synchronous_motion_mode));
+		mx_status = mx_get_int32_variable(
+				synchronous_motion_mode_record,
+				&(quick_scan->use_synchronous_motion_mode) );
 	}
 
 	/* Initialize the datafile and plotting support. */
@@ -1296,21 +1298,12 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 		/* Subtract dark currents. */
 
-#if 0  /* WML: Dark current subtraction has been moved to the scaler driver. */
-
-		for ( j = 1; j < scan->num_input_devices; j++ ) {
-			data_values[j] -= mx_round( dark_current[j]
-							* measurement_time );
-		}
-
-#endif /* WML */
-
 		MX_DEBUG( 2,("%s: Copying measurement %ld to data file.",
 				fname, i));
 
 		mx_status = mx_add_array_to_datafile( &(scan->datafile),
 			MXFT_DOUBLE, scan->num_motors, motor_positions,
-			MXFT_LONG, scan->num_input_devices, data_values );
+			MXFT_INT32, scan->num_input_devices, data_values );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 
@@ -1334,7 +1327,7 @@ mxs_joerger_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 			(void) mx_add_array_to_plot_buffer( &(scan->plot),
 			    MXFT_DOUBLE, scan->num_motors, motor_positions,
-			    MXFT_LONG, scan->num_input_devices, data_values );
+			    MXFT_INT32, scan->num_input_devices, data_values );
 		}
 	}
 

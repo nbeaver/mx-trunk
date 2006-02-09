@@ -89,7 +89,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_epics_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_epics_aout_analog_output_function_list;
 
-extern long mxd_epics_aout_num_record_fields;
+extern mx_length_type mxd_epics_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_aout_rfield_def_ptr;
 
 #endif /* __D_EPICS_AIO_H__ */

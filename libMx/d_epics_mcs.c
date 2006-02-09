@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_epics_mcs_record_field_defaults[] = {
 	MXD_EPICS_MCS_STANDARD_FIELDS
 };
 
-long mxd_epics_mcs_num_record_fields
+mx_length_type mxd_epics_mcs_num_record_fields
 		= sizeof( mxd_epics_mcs_record_field_defaults )
 			/ sizeof( mxd_epics_mcs_record_field_defaults[0] );
 
@@ -119,9 +119,9 @@ MX_EXPORT mx_status_type
 mxd_epics_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	long num_record_fields;
-	long maximum_num_scalers_varargs_cookie;
-	long maximum_num_measurements_varargs_cookie;
+	mx_length_type num_record_fields;
+	mx_length_type maximum_num_scalers_varargs_cookie;
+	mx_length_type maximum_num_measurements_varargs_cookie;
 	mx_status_type status;
 
 	status = mx_mcs_initialize_type( record_type,
@@ -311,7 +311,7 @@ mxd_epics_mcs_open( MX_RECORD *record )
 "MX MCS record '%s' is configured for a maximum number of measurements (%ld) "
 "that is too large for the EPICS MCS '%s'.  The maximum allowed number of "
 "measurements for the MX record is %ld.",
-			record->name, mcs->maximum_num_measurements,
+			record->name, (long) mcs->maximum_num_measurements,
 			epics_mcs->channel_prefix, allowed_maximum );
 	}
 
@@ -324,9 +324,9 @@ mxd_epics_mcs_open( MX_RECORD *record )
 	if ( do_not_skip == 0 ) {
 
 		epics_mcs->scaler_value_buffer
-				= (long *) malloc( nmax * sizeof(long) );
+				= (int32_t *) malloc( nmax * sizeof(int32_t) );
 
-		if ( epics_mcs->scaler_value_buffer == (long *) NULL ) {
+		if ( epics_mcs->scaler_value_buffer == (int32_t *) NULL ) {
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate a %ld element scaler value buffer.",
@@ -559,7 +559,7 @@ mxd_epics_mcs_read_scaler( MX_MCS *mcs )
 	MX_EPICS_MCS *epics_mcs;
 	unsigned long do_not_skip, num_measurements_from_epics;
 	long read_cmd;
-	long *data_ptr, *source_ptr, *destination_ptr;
+	int32_t *data_ptr, *source_ptr, *destination_ptr;
 	size_t num_bytes_to_copy;
 	mx_status_type mx_status;
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_epics_gpib_record_field_defaults[] = {
 	MXI_EPICS_GPIB_STANDARD_FIELDS
 };
 
-long mxi_epics_gpib_num_record_fields
+mx_length_type mxi_epics_gpib_num_record_fields
 		= sizeof( mxi_epics_gpib_record_field_defaults )
 			/ sizeof( mxi_epics_gpib_record_field_defaults[0] );
 
@@ -77,7 +77,7 @@ MX_RECORD_FIELD_DEFAULTS *mxi_epics_gpib_rfield_def_ptr
 
 static mx_status_type
 mxi_epics_gpib_set_address( MX_EPICS_GPIB *epics_gpib,
-				MX_GPIB *gpib, int address );
+				MX_GPIB *gpib, int32_t address );
 static mx_status_type
 mxi_epics_gpib_set_transaction_mode( MX_EPICS_GPIB *epics_gpib,
 					MX_GPIB *gpib,
@@ -91,7 +91,7 @@ mxi_epics_gpib_universal_command( MX_EPICS_GPIB *epics_gpib,
 static mx_status_type
 mxi_epics_gpib_addressed_command( MX_EPICS_GPIB *epics_gpib,
 					MX_GPIB *gpib,
-					int address,
+					int32_t address,
 					long command );
 
 /* ==== Private function for the driver's use only. ==== */
@@ -356,7 +356,7 @@ mxi_epics_gpib_open( MX_RECORD *record )
 		"The read terminator %#lx is not allowed.  "
 		"Only one character read terminators are allowed for "
 		"the EPICS GPIB record.",
-			gpib->default_read_terminator );
+			(unsigned long) gpib->default_read_terminator );
 	}
 
 	epics_gpib->current_eos_char = (long) (gpib->default_read_terminator);
@@ -402,24 +402,24 @@ mxi_epics_gpib_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_open_device( MX_GPIB *gpib, int address )
+mxi_epics_gpib_open_device( MX_GPIB *gpib, int32_t address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_close_device( MX_GPIB *gpib, int address )
+mxi_epics_gpib_close_device( MX_GPIB *gpib, int32_t address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_epics_gpib_read( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_epics_gpib_read()";
 
@@ -543,11 +543,11 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_epics_gpib_write( MX_GPIB *gpib,
-		int address,
+		int32_t address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		mx_hex_type flags )
 {
 	static const char fname[] = "mxi_epics_gpib_write()";
 
@@ -675,7 +675,7 @@ mxi_epics_gpib_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_epics_gpib_selective_device_clear( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_epics_gpib_selective_device_clear()";
 
@@ -713,7 +713,7 @@ mxi_epics_gpib_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_remote_enable( MX_GPIB *gpib, int address )
+mxi_epics_gpib_remote_enable( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_epics_gpib_remote_enable()";
 
@@ -722,7 +722,7 @@ mxi_epics_gpib_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_go_to_local( MX_GPIB *gpib, int address )
+mxi_epics_gpib_go_to_local( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_epics_gpib_go_to_local()";
 
@@ -741,7 +741,7 @@ mxi_epics_gpib_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_trigger( MX_GPIB *gpib, int address )
+mxi_epics_gpib_trigger( MX_GPIB *gpib, int32_t address )
 {
 	static const char fname[] = "mxi_epics_gpib_trigger_device()";
 
@@ -771,7 +771,7 @@ mxi_epics_gpib_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_serial_poll( MX_GPIB *gpib, int address,
+mxi_epics_gpib_serial_poll( MX_GPIB *gpib, int32_t address,
 				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_epics_gpib_serial_poll()";
@@ -828,7 +828,7 @@ mxi_epics_gpib_serial_poll_disable( MX_GPIB *gpib )
 
 static mx_status_type
 mxi_epics_gpib_set_address( MX_EPICS_GPIB *epics_gpib,
-				MX_GPIB *gpib, int address )
+				MX_GPIB *gpib, int32_t address )
 {
 	long long_address;
 	mx_status_type mx_status;
@@ -869,7 +869,7 @@ mxi_epics_gpib_universal_command( MX_EPICS_GPIB *epics_gpib,
 static mx_status_type
 mxi_epics_gpib_addressed_command( MX_EPICS_GPIB *epics_gpib,
 					MX_GPIB *gpib,
-					int address,
+					int32_t address,
 					long command )
 {
 	mx_status_type mx_status;

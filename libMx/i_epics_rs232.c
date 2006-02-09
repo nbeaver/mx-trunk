@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_epics_rs232_record_field_defaults[] = {
 	MXI_EPICS_RS232_STANDARD_FIELDS
 };
 
-long mxi_epics_rs232_num_record_fields
+mx_length_type mxi_epics_rs232_num_record_fields
 		= sizeof( mxi_epics_rs232_record_field_defaults )
 			/ sizeof( mxi_epics_rs232_record_field_defaults[0] );
 
@@ -412,8 +412,8 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	case 300:   speed = MXF_EPICS_RS232_BPS_300;	break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported EPICS RS-232 speed = %ld for port '%s'.", 
-		rs232->speed, record->name);
+			"Unsupported EPICS RS-232 speed = %ld for port '%s'.", 
+			(long) rs232->speed, record->name);
 
 		break;
 	}

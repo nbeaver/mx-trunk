@@ -133,14 +133,30 @@ motor_move_report_function( mx_hex_type flags,
 
 			if ( motor_status[i] & MXSF_MTR_POSITIVE_LIMIT_HIT ) {
 				fprintf( output,
-				"Positive limit hit for motor '%s'.\n",
+				"Positive hardware limit hit for motor '%s'.\n",
 					motor_record[i]->name );
 
 				abort_motors = TRUE;
 			}
 			if ( motor_status[i] & MXSF_MTR_NEGATIVE_LIMIT_HIT ) {
 				fprintf( output,
-				"Negative limit hit for motor '%s'.\n",
+				"Negative hardware limit hit for motor '%s'.\n",
+					motor_record[i]->name );
+
+				abort_motors = TRUE;
+			}
+			if ( motor_status[i] & MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT)
+			{
+				fprintf( output,
+				"Positive software limit hit for motor '%s'.\n",
+					motor_record[i]->name );
+
+				abort_motors = TRUE;
+			}
+			if ( motor_status[i] & MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT)
+			{
+				fprintf( output,
+				"Negative software limit hit for motor '%s'.\n",
 					motor_record[i]->name );
 
 				abort_motors = TRUE;

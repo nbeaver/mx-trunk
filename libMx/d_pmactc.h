@@ -35,7 +35,7 @@ typedef struct {
 	char abort_record_name[MXU_EPICS_PVNAME_LENGTH+1];
 	char speed_record_name_prefix[MXU_EPICS_PVNAME_LENGTH+1];
 	char pmac_name[MXU_EPICS_PVNAME_LENGTH+1];
-	int motor_number;
+	int32_t motor_number;
 	double speed_scale;
 	double start_delay;
 	double end_delay;
@@ -132,7 +132,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_bio_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, pmac_name), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_TC_MOTOR, motor_number), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

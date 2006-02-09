@@ -25,10 +25,10 @@
 typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char common_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	unsigned long epics_mcs_flags;
+	mx_hex_type epics_mcs_flags;
 
 	double epics_record_version;
-	long *scaler_value_buffer;
+	int32_t *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV dwell_pv;

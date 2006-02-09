@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_epics_string_variable_defaults[] = {
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_string_variable_num_record_fields
+mx_length_type mxv_epics_string_variable_num_record_fields
 			= sizeof( mxv_epics_string_variable_defaults )
 			/ sizeof( mxv_epics_string_variable_defaults[0] );
 
@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_epics_char_variable_defaults[] = {
 	MX_CHAR_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_char_variable_num_record_fields
+mx_length_type mxv_epics_char_variable_num_record_fields
 			= sizeof( mxv_epics_char_variable_defaults )
 			/ sizeof( mxv_epics_char_variable_defaults[0] );
 
@@ -72,30 +72,14 @@ MX_RECORD_FIELD_DEFAULTS *mxv_epics_char_variable_def_ptr
 
 /* ==== */
 
-MX_RECORD_FIELD_DEFAULTS mxv_epics_uchar_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_EPICS_VARIABLE_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UCHAR_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_epics_uchar_variable_num_record_fields
-			= sizeof( mxv_epics_uchar_variable_defaults )
-			/ sizeof( mxv_epics_uchar_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_epics_uchar_variable_def_ptr
-			= &mxv_epics_uchar_variable_defaults[0];
-
-/* ==== */
-
 MX_RECORD_FIELD_DEFAULTS mxv_epics_short_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_EPICS_VARIABLE_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_SHORT_VARIABLE_STANDARD_FIELDS
+	MX_INT16_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_short_variable_num_record_fields
+mx_length_type mxv_epics_short_variable_num_record_fields
 			= sizeof( mxv_epics_short_variable_defaults )
 			/ sizeof( mxv_epics_short_variable_defaults[0] );
 
@@ -104,83 +88,19 @@ MX_RECORD_FIELD_DEFAULTS *mxv_epics_short_variable_def_ptr
 
 /* ==== */
 
-MX_RECORD_FIELD_DEFAULTS mxv_epics_ushort_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_EPICS_VARIABLE_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_USHORT_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_epics_ushort_variable_num_record_fields
-			= sizeof( mxv_epics_ushort_variable_defaults )
-			/ sizeof( mxv_epics_ushort_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_epics_ushort_variable_def_ptr
-			= &mxv_epics_ushort_variable_defaults[0];
-
-/* ==== */
-
-MX_RECORD_FIELD_DEFAULTS mxv_epics_int_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_EPICS_VARIABLE_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_epics_int_variable_num_record_fields
-			= sizeof( mxv_epics_int_variable_defaults )
-			/ sizeof( mxv_epics_int_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_epics_int_variable_def_ptr
-			= &mxv_epics_int_variable_defaults[0];
-
-/* ==== */
-
-MX_RECORD_FIELD_DEFAULTS mxv_epics_uint_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_EPICS_VARIABLE_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UINT_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_epics_uint_variable_num_record_fields
-			= sizeof( mxv_epics_uint_variable_defaults )
-			/ sizeof( mxv_epics_uint_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_epics_uint_variable_def_ptr
-			= &mxv_epics_uint_variable_defaults[0];
-
-/* ==== */
-
 MX_RECORD_FIELD_DEFAULTS mxv_epics_long_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_EPICS_VARIABLE_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_LONG_VARIABLE_STANDARD_FIELDS
+	MX_INT32_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_long_variable_num_record_fields
+mx_length_type mxv_epics_long_variable_num_record_fields
 			= sizeof( mxv_epics_long_variable_defaults )
 			/ sizeof( mxv_epics_long_variable_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxv_epics_long_variable_def_ptr
 			= &mxv_epics_long_variable_defaults[0];
-
-/* ==== */
-
-MX_RECORD_FIELD_DEFAULTS mxv_epics_ulong_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_EPICS_VARIABLE_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_ULONG_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_epics_ulong_variable_num_record_fields
-			= sizeof( mxv_epics_ulong_variable_defaults )
-			/ sizeof( mxv_epics_ulong_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_epics_ulong_variable_def_ptr
-			= &mxv_epics_ulong_variable_defaults[0];
 
 /* ==== */
 
@@ -191,7 +111,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_epics_float_variable_defaults[] = {
 	MX_FLOAT_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_float_variable_num_record_fields
+mx_length_type mxv_epics_float_variable_num_record_fields
 			= sizeof( mxv_epics_float_variable_defaults )
 			/ sizeof( mxv_epics_float_variable_defaults[0] );
 
@@ -207,7 +127,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_epics_double_variable_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_epics_double_variable_num_record_fields
+mx_length_type mxv_epics_double_variable_num_record_fields
 			= sizeof( mxv_epics_double_variable_defaults )
 			/ sizeof( mxv_epics_double_variable_defaults[0] );
 
@@ -290,7 +210,7 @@ mxv_epics_variable_finish_record_initialization( MX_RECORD *record )
 "EPICS variables may only be associated with 1-dimensional MX variables.  "
 "The field '%s.value' has %ld variables.",
 			record->name,
-			value_field->num_dimensions );
+			(long) value_field->num_dimensions );
 	}
 
 	/* Store the EPICS type associated with this MX field's datatype. */

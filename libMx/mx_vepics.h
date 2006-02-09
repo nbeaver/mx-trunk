@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,8 +19,8 @@
 
 typedef struct {
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
-	long epics_type;
-	int num_elements;
+	int32_t epics_type;
+	int32_t num_elements;
 
 	MX_EPICS_PV pv;
 } MX_EPICS_VARIABLE;
@@ -30,11 +30,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, pvname), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "epics_type", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "epics_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, epics_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_elements", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_elements", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, num_elements), \
 	{0}, NULL, 0}
 
@@ -57,27 +57,17 @@ extern MX_VARIABLE_FUNCTION_LIST mxv_epics_variable_variable_function_list;
  * of fields.
  */
 
-extern long mxv_epics_string_variable_num_record_fields;
-extern long mxv_epics_char_variable_num_record_fields;
-extern long mxv_epics_uchar_variable_num_record_fields;
-extern long mxv_epics_short_variable_num_record_fields;
-extern long mxv_epics_ushort_variable_num_record_fields;
-extern long mxv_epics_int_variable_num_record_fields;
-extern long mxv_epics_uint_variable_num_record_fields;
-extern long mxv_epics_long_variable_num_record_fields;
-extern long mxv_epics_ulong_variable_num_record_fields;
-extern long mxv_epics_float_variable_num_record_fields;
-extern long mxv_epics_double_variable_num_record_fields;
+extern mx_length_type mxv_epics_string_variable_num_record_fields;
+extern mx_length_type mxv_epics_char_variable_num_record_fields;
+extern mx_length_type mxv_epics_short_variable_num_record_fields;
+extern mx_length_type mxv_epics_long_variable_num_record_fields;
+extern mx_length_type mxv_epics_float_variable_num_record_fields;
+extern mx_length_type mxv_epics_double_variable_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_string_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_char_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_uchar_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_short_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_ushort_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_int_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_uint_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_long_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_ulong_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_float_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_epics_double_variable_def_ptr;
 

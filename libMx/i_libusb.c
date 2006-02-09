@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_libusb_record_field_defaults[] = {
 	MXI_LIBUSB_STANDARD_FIELDS
 };
 
-long mxi_libusb_num_record_fields
+mx_length_type mxi_libusb_num_record_fields
 	= sizeof( mxi_libusb_record_field_defaults )
 	/ sizeof( mxi_libusb_record_field_defaults[0] );
 

@@ -32,7 +32,7 @@ typedef struct {
 	MX_EPICS_PV tp_pv;
 	MX_EPICS_PV vers_pv;
 
-	long num_epics_counters;
+	int num_epics_counters;
 	MX_EPICS_PV *gate_control_pv_array;
 } MX_EPICS_TIMER;
 

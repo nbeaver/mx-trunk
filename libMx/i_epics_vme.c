@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_epics_vme_record_field_defaults[] = {
 	MXI_EPICS_VME_STANDARD_FIELDS
 };
 
-long mxi_epics_vme_num_record_fields
+mx_length_type mxi_epics_vme_num_record_fields
 		= sizeof( mxi_epics_vme_record_field_defaults )
 			/ sizeof( mxi_epics_vme_record_field_defaults[0]);
 
@@ -160,7 +160,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Attempt to transfer %lu data values via EPICS VME record '%s' failed."
 	"  EPICS record '%s' only allows up to %ld values to be transferred.",
-			vme->num_values, vme->record->name,
+			(unsigned long) vme->num_values,
+			vme->record->name,
 			epics_vme->epics_record_name,
 			epics_vme->max_epics_values );
 	}
@@ -189,7 +190,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal VME address mode A%lu for EPICS VME record '%s'.  "
 		"The allowed values are A16, A24, and A32.",
-				vme->address_mode, vme->record->name );
+				(unsigned long) vme->address_mode,
+				vme->record->name );
 			break;
 		}
 					
@@ -229,7 +231,8 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal VME data size D%lu for EPICS VME record '%s'.  "
 		"The allowed values are D8, D16, and D32.",
-				vme->data_size, vme->record->name );
+				(unsigned long) vme->data_size,
+				vme->record->name );
 			break;
 		}
 					
@@ -510,8 +513,10 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 					MXE_INTERFACE_IO_ERROR, fname,
 		"Error reading array element %ld (D%lu) from address A%#lx %lu "
 		"for EPICS VME record '%s'.  vxMemProbe status = %#x",
-					i, vme->data_size,
-					vme->address_mode, vme->address,
+					i,
+					(unsigned long) vme->data_size,
+					(unsigned long) vme->address_mode,
+					(unsigned long) vme->address,
 					epics_vme->record->name,
 					epics_vme->status_array[i] );
 			} else {
@@ -519,8 +524,10 @@ mxi_epics_vme_transfer_data( MX_VME *vme,
 					MXE_INTERFACE_IO_ERROR, fname,
 		"Error writing array element %ld (D%lu) to address A%#lx %lu "
 		"for EPICS VME record '%s'.  vmMemProbe status = %#x",
-					i, vme->data_size,
-					vme->address_mode, vme->address,
+					i,
+					(unsigned long) vme->data_size,
+					(unsigned long) vme->address_mode,
+					(unsigned long) vme->address,
 					epics_vme->record->name,
 					epics_vme->status_array[i] );
 			}

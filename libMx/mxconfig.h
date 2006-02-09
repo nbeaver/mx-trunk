@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			0
+#define HAVE_EPICS			1
 
 /*****************************************************************************
  *
@@ -44,7 +44,7 @@
  * http://www.ni.com/linux/
  */
 
-#define HAVE_NI488			0
+#define HAVE_NI488			1
 
 /*****************************************************************************
  *
@@ -71,7 +71,7 @@
  * NI-VISA, so I don't know if it works on other operating systems.
  */
 
-#define HAVE_NI_VISA			0
+#define HAVE_NI_VISA			1
 
 /*****************************************************************************
  *
@@ -80,7 +80,7 @@
  * Thus far, only the Linux version of this driver has been tested.
  */
 
-#define HAVE_SIS3100			0
+#define HAVE_SIS3100			1
  
 /*****************************************************************************
  *
@@ -102,7 +102,7 @@
  * for the Win32 version, at http://libusb-win32.sourceforge.net/.
  */
 
-#define HAVE_LIBUSB			0
+#define HAVE_LIBUSB			1
  
 /*****************************************************************************
  *
@@ -142,7 +142,7 @@
  * ftp://ftp.esrf.fr/pub/cs/ess/linux/drivers/oms/oms-2.0.tgz
  */
 
-#define HAVE_JORWAY_CAMAC		0
+#define HAVE_VME58_ESRF			0
 
 /*****************************************************************************
  *
@@ -151,7 +151,7 @@
  *
  */
 
-#define HAVE_VME58_ESRF			0
+#define HAVE_JORWAY_CAMAC		1
 
 /*****************************************************************************
  *

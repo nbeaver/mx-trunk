@@ -100,7 +100,9 @@ motor_setup_quick_scan_parameters(
 	static size_t name_element_size_array[2] = {
 		sizeof(char), sizeof(char *) };
 
-	int default_precision, joerger_quick_scan_enabled;
+	int32_t joerger_quick_scan_enabled;
+
+	int default_precision;
 	long default_long;
 	double default_double;
 
@@ -129,7 +131,7 @@ motor_setup_quick_scan_parameters(
 					MX_JOERGER_QUICK_SCAN_ENABLE_RECORD );
 
 		if ( joerger_quick_scan_enable_record != (MX_RECORD *) NULL ) {
-			mx_status = mx_get_int_variable(
+			mx_status = mx_get_int32_variable(
 					joerger_quick_scan_enable_record,
 					&joerger_quick_scan_enabled );
 		}
