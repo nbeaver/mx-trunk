@@ -25,22 +25,7 @@
 #include "mx_array.h"
 
 #if HAVE_XDR
-#  if defined(OS_WIN32) || defined(OS_DJGPP)
-#     include "../tools/xdr/src/xdr.h"
-
-#  elif defined(OS_VMS)
-#     include <tcpip$rpcxdr.h>
-
-#  else
-#     if defined(__BORLANDC__)
-         typedef long long int		int64_t;
-         typedef unsigned long long int	uint64_t;
-#     endif
-
-#     include <limits.h>
-#     include <rpc/types.h>
-#     include <rpc/xdr.h>
-#  endif
+#  include "mx_xdr.h"
 #endif
 
 MX_EXPORT void *

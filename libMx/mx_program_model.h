@@ -37,6 +37,8 @@
 #define MX_PROGRAM_MODEL_LP64   0x40  /* int=32, long=64, ptr=64 */
 #define MX_PROGRAM_MODEL_ILP64  0x41  /* int=64, long=64, ptr=64 */
 
+#define MX_PROGRAM_MODEL_UNKNOWN  0x80000000
+
 /*---*/
 
 /* Determine the native programming model. */

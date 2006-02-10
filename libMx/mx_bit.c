@@ -72,7 +72,61 @@ mx_native_data_format( void )
 MX_EXPORT unsigned long
 mx_native_program_model( void )
 {
-	return MX_PROGRAM_MODEL;
+	unsigned long program_model;
+
+	if ( sizeof(int) == 2 ) {
+		if (( sizeof(long) == 4 ) && ( sizeof(void *) == 4 )) {
+			/* Example: Win16 (ick!) */
+
+			program_model = MX_PROGRAM_MODEL_LP32;
+		} else {
+			program_model = MX_PROGRAM_MODEL_UNKNOWN;
+		}
+	} else
+	if ( sizeof(int) == 4 ) {
+		if ( sizeof(long) == 4 ) {
+			if ( sizeof(void *) == 4 ) {
+				/* Example: Most 32-bit Linux/Unix and Win32 */
+
+				program_model = MX_PROGRAM_MODEL_ILP32;
+			} else
+			if ( sizeof(void *) == 8 ) {
+#if defined(OS_WIN32)
+				/* Example: Win64 */
+
+				program_model = MX_PROGRAM_MODEL_LLP64;
+#else
+				program_model = MX_PROGRAM_MODEL_UNKNOWN;
+#endif
+			} else {
+				program_model = MX_PROGRAM_MODEL_UNKNOWN;
+			}
+		} else
+		if ( sizeof(long) == 8 ) {
+			if ( sizeof(void *) == 8 ) {
+				/* Example: Most 64-bit Linux/Unix */
+
+				program_model = MX_PROGRAM_MODEL_LP64;
+			} else {
+				program_model = MX_PROGRAM_MODEL_UNKNOWN;
+			}
+		} else {
+			program_model = MX_PROGRAM_MODEL_UNKNOWN;
+		}
+	} else
+	if ( sizeof(int) == 8 ) {
+		if (( sizeof(long) == 8 ) && ( sizeof(void *) == 8 )) {
+			/* Example: 64-bit Crays */
+
+			program_model = MX_PROGRAM_MODEL_ILP64;
+		} else {
+			program_model = MX_PROGRAM_MODEL_UNKNOWN;
+		}
+	} else {
+		program_model = MX_PROGRAM_MODEL_UNKNOWN;
+	}
+
+	return program_model;
 }
 
 MX_EXPORT uint16_t

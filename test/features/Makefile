@@ -7,10 +7,12 @@ all:
 	( cd mutex_test ; $(MAKECMD) )
 	( cd semaphore_test ; $(MAKECMD) )
 	( cd thread_test ; $(MAKECMD) )
+	( cd types ; $(MAKECMD) )
 
 clean:
 	( cd itimer_test ; $(MAKECMD) clean )
 	( cd mutex_test ; $(MAKECMD) clean )
 	( cd semaphore_test ; $(MAKECMD) clean )
 	( cd thread_test ; $(MAKECMD) clean )
+	( cd types ; $(MAKECMD) clean )
 
