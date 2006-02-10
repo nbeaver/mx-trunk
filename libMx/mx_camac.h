@@ -67,8 +67,10 @@ typedef struct {
  */
 
 typedef struct {
-	mx_status_type ( *get_lam_status ) ( MX_CAMAC *crate, int *lam_n );
-	mx_status_type ( *controller_command ) ( MX_CAMAC *crate, int command );
+	mx_status_type ( *get_lam_status ) ( MX_CAMAC *crate,
+						int32_t *lam_n );
+	mx_status_type ( *controller_command ) ( MX_CAMAC *crate,
+						int32_t command );
 	mx_status_type ( *camac ) ( MX_CAMAC *crate,
 				int32_t slot, int32_t subaddress,
 				int32_t function_code, int32_t *data,

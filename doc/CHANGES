@@ -75,6 +75,15 @@ Version 1.2.0 (02/09/06):
 	the C99 <inttypes.h> file if present, and defines the necessary PRI
 	and SCN macros itself if not.
 
+	Due to the new 64-bit support, versions of Microsoft Visual C++
+	older than Visual C++ 6.0 are no longer supported.  If the version
+	you have _is_ version 6, you will need to install Service Pack 5
+	and then the Visual C++ 6.0 Processor Pack in order to be able to
+	compile MX.  If you do not do this, compilation of MX will fail at
+	some point with the following error:
+
+error C2520: conversion from unsigned __int64 to double not implemented, use signed __int64
+
 	The MX motor record now distinguishes between hardware and software
 	limits in its error reporting.
 

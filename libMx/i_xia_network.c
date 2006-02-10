@@ -440,8 +440,8 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_xia_network_is_busy( MX_MCA *mca,
-			int *busy_flag,
-			int debug_flag )
+			mx_bool_type *busy_flag,
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_is_busy()";
 
@@ -477,7 +477,7 @@ MX_EXPORT mx_status_type
 mxi_xia_network_read_parameter( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t *value_ptr,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_parameter()";
 
@@ -532,7 +532,7 @@ MX_EXPORT mx_status_type
 mxi_xia_network_write_parameter( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t value,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_write_parameter()";
 
@@ -588,7 +588,7 @@ MX_EXPORT mx_status_type
 mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t value,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] =
 			"mxi_xia_network_write_param_to_all_channels()";
@@ -643,8 +643,8 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_start_run( MX_MCA *mca,
-			int clear_flag,
-			int debug_flag )
+			mx_bool_type clear_flag,
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_start_run()";
 
@@ -703,7 +703,7 @@ mxi_xia_network_start_run( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_stop_run( MX_MCA *mca,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_stop_run()";
 
@@ -734,7 +734,7 @@ mxi_xia_network_stop_run( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_read_spectrum( MX_MCA *mca,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_spectrum()";
 
@@ -798,7 +798,7 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_read_statistics( MX_MCA *mca,
-			int debug_flag )
+			mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_statistics()";
 

@@ -1,5 +1,5 @@
 /*
- * Name:    d_pmc_mcapi_motor.h
+ * Name:    d_pmc_mcapi.h
  *
  * Purpose: Header file for MX drivers for Precision MicroControl
  *          MCAPI controlled motors.
@@ -15,12 +15,12 @@
  *
  */
 
-#ifndef __D_PMC_MCAPI_MOTOR_H__
-#define __D_PMC_MCAPI_MOTOR_H__
+#ifndef __D_PMC_MCAPI_H__
+#define __D_PMC_MCAPI_H__
 
 typedef struct {
 	MX_RECORD *pmc_mcapi_record;
-	unsigned short axis_number;
+	uint16_t axis_number;
 } MX_PMC_MCAPI_MOTOR;
 
 MX_API mx_status_type mxd_pmc_mcapi_create_record_structures(
@@ -59,8 +59,8 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmc_mcapi_rfield_def_ptr;
 		offsetof(MX_PMC_MCAPI_MOTOR, pmc_mcapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_USHORT, NULL, 0, {0},\
+  {-1, -1, "axis_number", MXFT_UINT16, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
-#endif /* __D_PMC_MCAPI_MOTOR_H__ */
+#endif /* __D_PMC_MCAPI_H__ */

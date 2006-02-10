@@ -27,14 +27,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmc_mcapi_record;
-	long channel_number;
+	int32_t channel_number;
 } MX_PMC_MCAPI_AINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmc_mcapi_record;
-	long channel_number;
+	int32_t channel_number;
 } MX_PMC_MCAPI_AOUTPUT;
 
 #define MXD_PMC_MCAPI_AINPUT_STANDARD_FIELDS \
@@ -42,7 +42,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_AINPUT, pmc_mcapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_AINPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -51,7 +51,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_AOUTPUT, pmc_mcapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_AOUTPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

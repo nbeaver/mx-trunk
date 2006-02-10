@@ -75,7 +75,7 @@ MX_API mx_status_type mxi_umcbi_read( MX_GENERIC *generic,
 MX_API mx_status_type mxi_umcbi_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 MX_API mx_status_type mxi_umcbi_num_input_bytes_available( MX_GENERIC *generic,
-				unsigned long *num_input_bytes_available );
+				uint32_t *num_input_bytes_available );
 MX_API mx_status_type mxi_umcbi_discard_unread_input(
 					MX_GENERIC *generic, int debug_flag);
 MX_API mx_status_type mxi_umcbi_discard_unwritten_output(

@@ -78,7 +78,7 @@ mx_camac_get_lam_status( MX_RECORD *camac_record, int32_t *lam_n )
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int * );
+	mx_status_type ( *fptr ) ( MX_CAMAC *, int32_t * );
 	mx_status_type mx_status;
 
 	mx_status = mx_camac_get_pointers( camac_record,
@@ -106,7 +106,7 @@ mx_camac_controller_command( MX_RECORD *camac_record, int32_t command )
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int );
+	mx_status_type ( *fptr ) ( MX_CAMAC *, int32_t );
 	mx_status_type mx_status;
 
 	mx_status = mx_camac_get_pointers( camac_record,

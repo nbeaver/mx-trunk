@@ -29,9 +29,10 @@ MX_API mx_status_type mxi_dsp6001_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_dsp6001_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_n);
+MX_API mx_status_type mxi_dsp6001_get_lam_status( MX_CAMAC *crate,
+							int32_t *lam_n);
 MX_API mx_status_type mxi_dsp6001_controller_command( MX_CAMAC *crate,
-								int command );
+							int32_t command );
 MX_API mx_status_type mxi_dsp6001_camac( MX_CAMAC *crate,
 		int32_t slot, int32_t subaddress, int32_t function_code,
 		int32_t *data, int32_t *Q, int32_t *X );

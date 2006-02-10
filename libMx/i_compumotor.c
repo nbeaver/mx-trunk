@@ -926,8 +926,8 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 MX_EXPORT mx_status_type
 mxi_compumotor_get_controller_index(
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int controller_number,
-				int *controller_index )
+				int32_t controller_number,
+				int32_t *controller_index )
 {
 	static const char fname[] = "mxi_compumotor_get_controller_index()";
 

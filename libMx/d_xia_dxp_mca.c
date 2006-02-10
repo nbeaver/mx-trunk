@@ -2573,7 +2573,7 @@ mxd_xia_dxp_get_livetime_corrected_roi_integral( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxd_xia_dxp_read_statistics( MX_MCA *mca,
 				MX_XIA_DXP_MCA *xia_dxp_mca,
-				int debug_flag )
+				mx_bool_type debug_flag )
 {
 	static const char fname[] = "mxd_xia_dxp_read_statistics()";
 

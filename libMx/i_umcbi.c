@@ -379,7 +379,7 @@ mxi_umcbi_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mxi_umcbi_num_input_bytes_available( MX_GENERIC *generic,
-				unsigned long *input_available )
+				uint32_t *input_available )
 {
 	static const char fname[] = "mxi_umcbi_num_input_bytes_available()";
 

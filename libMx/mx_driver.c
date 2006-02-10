@@ -126,6 +126,7 @@
 
 #include "i_soft_camac.h"
 #include "i_dsp6001.h"
+#include "i_esone_camac.h"
 
 #include "i_linux_portio.h"
 #include "i_linux_iopl.h"
@@ -668,6 +669,17 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_dsp6001_camac_function_list,
 				&mxi_dsp6001_num_record_fields,
 				&mxi_dsp6001_rfield_def_ptr},
+
+#if HAVE_JORWAY_CAMAC
+
+{"esone_camac",    MXI_CAM_ESONE,     MXI_CAMAC,          MXR_INTERFACE,
+				&mxi_esone_camac_record_function_list,
+				NULL,
+				&mxi_esone_camac_camac_function_list,
+				&mxi_esone_camac_num_record_fields,
+				&mxi_esone_camac_rfield_def_ptr},
+
+#endif /* HAVE_JORWAY_CAMAC */
 
   /* === */
 

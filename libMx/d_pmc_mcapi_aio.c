@@ -250,9 +250,9 @@ mxd_pmc_mcapi_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	pmc_mcapi_ainput->record = record;
 
-	/* Raw analog input values are stored as longs. */
+	/* Raw analog input values are stored as 32-bit integers. */
 
-	analog_input->subclass = MXT_AIN_LONG;
+	analog_input->subclass = MXT_AIN_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -290,7 +290,7 @@ mxd_pmc_mcapi_ain_read( MX_ANALOG_INPUT *ainput )
 			error_buffer );
 	}
 
-	ainput->raw_value.long_value = value;
+	ainput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -333,9 +333,9 @@ mxd_pmc_mcapi_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	pmc_mcapi_aoutput->record = record;
 
-	/* Raw analog output values are stored as longs. */
+	/* Raw analog output values are stored as 32-bit integers. */
 
-	analog_output->subclass = MXT_AOU_LONG;
+	analog_output->subclass = MXT_AOU_INT32;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -373,7 +373,7 @@ mxd_pmc_mcapi_aout_read( MX_ANALOG_OUTPUT *aoutput )
 			error_buffer );
 	}
 
-	aoutput->raw_value.long_value = value;
+	aoutput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -396,7 +396,7 @@ mxd_pmc_mcapi_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = aoutput->raw_value.long_value;
+	value = aoutput->raw_value.int32_value;
 
 	mcapi_status = MCSetAnalogEx( pmc_mcapi->controller_handle,
 					pmc_mcapi_aoutput->channel_number,

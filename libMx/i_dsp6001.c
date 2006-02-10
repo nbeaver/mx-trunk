@@ -4,9 +4,6 @@
  * Purpose: MX driver for the DSP Technology Model 6001/6002
  *          CAMAC crate controller for PC compatible machines.
  *
- *          This driver currently only works under Watcom C/386 under
- *          the Rational Systems DOS extender.
- *
  *          At present, there is no support for block mode CAMAC operations
  *          in this set of functions.
  *
@@ -135,7 +132,7 @@ mxi_dsp6001_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_status )
+mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int32_t *lam_status )
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
@@ -167,7 +164,7 @@ mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_status )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
+mxi_dsp6001_controller_command(MX_CAMAC *crate, int32_t command )
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
@@ -203,8 +200,8 @@ mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_camac( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, int32_t *data, int *Q, int *X)
+mxi_dsp6001_camac( MX_CAMAC *crate, int32_t slot, int32_t subaddress,
+		int32_t function_code, int32_t *data, int32_t *Q, int32_t *X)
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;

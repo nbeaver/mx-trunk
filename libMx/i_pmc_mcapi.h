@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *record;
-	short controller_id;
+	int16_t controller_id;
 	char savefile_name[MXU_FILENAME_LENGTH+1];
 	char startup_file_name[MXU_FILENAME_LENGTH+1];
 
@@ -46,7 +46,7 @@ typedef struct {
 #define MXLV_PMC_MCAPI_DOWNLOAD_FILE		7010
 
 #define MXI_PMC_MCAPI_STANDARD_FIELDS \
-  {-1, -1, "controller_id", MXFT_SHORT, NULL, 0, {0}, \
+  {-1, -1, "controller_id", MXFT_INT16, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, controller_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

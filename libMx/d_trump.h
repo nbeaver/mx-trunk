@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *umcbi_record;
-	int detector_number;
+	int32_t detector_number;
 	MX_UMCBI_DETECTOR *detector;
 } MX_TRUMP_MCA;
 
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, umcbi_record ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "detector_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "detector_number", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, detector_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -40,11 +40,8 @@ MX_API mx_status_type mxd_trump_initialize_type( long type );
 MX_API mx_status_type mxd_trump_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxd_trump_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_print_structure( FILE *file,
 							MX_RECORD *record );
-MX_API mx_status_type mxd_trump_read_parms_from_hardware( MX_RECORD *record );
-MX_API mx_status_type mxd_trump_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_open( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_close( MX_RECORD *record );
 

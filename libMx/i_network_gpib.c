@@ -830,7 +830,7 @@ mxi_network_gpib_wait_for_service_request( MX_GPIB *gpib, double timeout )
 MX_EXPORT mx_status_type
 mxi_network_gpib_serial_poll( MX_GPIB *gpib,
 				int32_t address,
-				unsigned char *serial_poll_byte )
+				uint8_t *serial_poll_byte )
 {
 	static const char fname[] = "mxi_network_gpib_serial_poll()";
 
