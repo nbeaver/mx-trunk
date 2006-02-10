@@ -594,7 +594,7 @@ mx_sample_changer_is_busy( MX_RECORD *record, mx_bool_type *busy )
 	mx_hex_type changer_status;
 	mx_status_type mx_status;
 
-	if ( busy == (int *) NULL ) {
+	if ( busy == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The 'busy' pointer passed was NULL." );
 	}

@@ -2207,14 +2207,16 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			double_value = analog_input->value;
 
-			sprintf(buffer, "%-10.*g", input_device->precision,
-					double_value );
+			sprintf(buffer, "%-10.*g",
+				(int) input_device->precision,
+				double_value );
 			break;
 		case MXC_ANALOG_OUTPUT:
 			analog_output = (MX_ANALOG_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%-10.*g", input_device->precision,
-					analog_output->value);
+			sprintf(buffer, "%-10.*g",
+				(int) input_device->precision,
+				analog_output->value);
 			break;
 		case MXC_DIGITAL_INPUT:
 			digital_input = (MX_DIGITAL_INPUT *)
@@ -2242,13 +2244,13 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 			default:
 				return mx_error(MXE_NOT_YET_IMPLEMENTED, fname,
 				"Motor subclass %d not yet implemented.",
-					motor->subclass );
+					(int) motor->subclass );
 				break;
 			}
 			position = motor->offset + motor->scale * raw_position;
 
-			sprintf(buffer, "%-10.*g", input_device->precision,
-					position);
+			sprintf(buffer, "%-10.*g",
+				(int) input_device->precision, position);
 			break;
 		case MXC_SCALER:
 			scaler = (MX_SCALER *)
@@ -2256,7 +2258,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			if ( measurement_time > 0.0 ) {
 				sprintf( buffer, "%-10.*g",
-					input_device->precision,
+					(int) input_device->precision,
 					mx_divide_safely( (double)scaler->value,
 						measurement_time ) );
 			} else {
@@ -2271,7 +2273,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		case MXC_RELAY:
 			relay = (MX_RELAY *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10d", relay->relay_status);
+			sprintf(buffer, "%10d", (int) relay->relay_status);
 			break;
 		case MXC_AMPLIFIER:
 			amplifier = (MX_AMPLIFIER *)

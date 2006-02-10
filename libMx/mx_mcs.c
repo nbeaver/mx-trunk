@@ -1295,7 +1295,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 "Parameter type '%s' (%d) is not supported by the MX driver for MCS '%s'.",
 			mx_get_field_label_string( mcs->record,
 						mcs->parameter_type ),
-			mcs->parameter_type,
+			(int) mcs->parameter_type,
 			mcs->record->name );
 		break;
 	}
@@ -1327,7 +1327,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 "Parameter type '%s' (%d) is not supported by the MX driver for MCS '%s'.",
 			mx_get_field_label_string( mcs->record,
 						mcs->parameter_type ),
-			mcs->parameter_type,
+			(int) mcs->parameter_type,
 			mcs->record->name );
 		break;
 	}

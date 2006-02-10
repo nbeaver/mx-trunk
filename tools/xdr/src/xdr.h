@@ -16,7 +16,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,17 @@
 #endif
 
 #if defined(OS_WIN32)
-typedef __int64 		quad_t;
-typedef unsigned __int64	u_quad_t;
+   typedef __int64 			quad_t;
+   typedef unsigned __int64		u_quad_t;
+
+#elif defined(OS_DJGPP)
+   typedef long long			quad_t;
+
+#  if !defined(HAVE_U_QUAD_T)	/* Avoid a collision with Watt-32. */
+#     define HAVE_U_QUAD_T
+      typedef unsigned long long	u_quad_t;
+#  endif
+
 #else
 #error quad_t and u_quad_t not yet defined.
 #endif

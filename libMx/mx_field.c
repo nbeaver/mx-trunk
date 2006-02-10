@@ -1138,7 +1138,7 @@ mx_construct_int32_field( void *dataptr,
 
 	int32_value = *((int32_t *) dataptr);
 
-	sprintf( token_buffer, "%d", int32_value );
+	sprintf( token_buffer, "%d", (int) int32_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1176,7 +1176,7 @@ mx_construct_uint32_field( void *dataptr,
 
 	uint32_value = *((uint32_t *) dataptr);
 
-	sprintf( token_buffer, "%u", uint32_value );
+	sprintf( token_buffer, "%u", (unsigned int) uint32_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }

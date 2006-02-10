@@ -196,7 +196,7 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_NETWORK_PULSER *network_pulser;
 	double pulse_period, pulse_width, pulse_delay;
-	mx_length_type num_pulses;
+	uint32_t num_pulses;
 	int32_t pulse_mode;
 	mx_bool_type busy;
 	mx_status_type mx_status;

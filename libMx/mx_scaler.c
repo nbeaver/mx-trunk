@@ -641,7 +641,7 @@ mx_scaler_default_get_parameter_handler( MX_SCALER *scaler )
 "Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
-			scaler->parameter_type,
+			(int) scaler->parameter_type,
 			scaler->record->name );
 		break;
 	}
@@ -668,7 +668,7 @@ mx_scaler_default_set_parameter_handler( MX_SCALER *scaler )
 "Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
-			scaler->parameter_type,
+			(int) scaler->parameter_type,
 			scaler->record->name );
 		break;
 	}

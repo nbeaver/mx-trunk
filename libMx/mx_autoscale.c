@@ -263,7 +263,7 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_LOW_LIMIT:
@@ -278,7 +278,7 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 "Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
-			autoscale->parameter_type,
+			(int) autoscale->parameter_type,
 			autoscale->record->name );
 		break;
 	}
@@ -296,7 +296,7 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 
 	switch( autoscale->parameter_type ) {
@@ -312,7 +312,7 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 "Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
-			autoscale->parameter_type,
+			(int) autoscale->parameter_type,
 			autoscale->record->name );
 		break;
 	}

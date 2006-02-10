@@ -437,7 +437,7 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown motor subclass %d.", motor->subclass );
+			"Unknown motor subclass %d.", (int) motor->subclass );
 		break;
 	}
 
@@ -464,7 +464,7 @@ mx_motor_array_move_absolute_with_report(
 	double present_position, relative_motion;
 	mx_status_type status;
 
-	MX_DEBUG( 2,("%s: *** flags = %#x ***", fname, flags));
+	MX_DEBUG( 2,("%s: *** flags = %#lx ***", fname, (unsigned long) flags));
 
 	/* See if any of the requested moves will exceed a software limit. */
 
@@ -538,7 +538,7 @@ mx_motor_array_move_absolute_with_report(
 			}
 		}
 
-		MX_DEBUG( 2,("%s: do_backlash = %d", fname, do_backlash));
+		MX_DEBUG( 2,("%s: do_backlash = %d", fname, (int) do_backlash));
 
 		/* Do the backlash correction. */
 
@@ -600,8 +600,8 @@ mx_motor_array_internal_move_with_report(
 	int i, j;
 
 	MX_DEBUG( 2,
-		("%s invoked.  flags = %#x, move_report_fn = %p",
-		fname, flags, move_report_fn));
+		("%s invoked.  flags = %#lx, move_report_fn = %p",
+		fname, (unsigned long) flags, move_report_fn));
 
 	move_report_flag = flags & MXF_MTR_SHOW_MOVE;
 
@@ -1077,7 +1077,7 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized motor subclass %d for motor '%s'.",
-			motor->subclass, motor_record->name );
+			(int) motor->subclass, motor_record->name );
 	}
 
 	status = ( *fptr ) ( motor );
@@ -1134,7 +1134,7 @@ mx_motor_get_position( MX_RECORD *motor_record, double *position )
 		raw_position = 0.0;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized motor subclass %d for motor '%s'.",
-			motor->subclass, motor_record->name );
+			(int) motor->subclass, motor_record->name );
 	}
 
 	/* Update position. */
@@ -1959,7 +1959,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -2055,7 +2055,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						motor->acceleration_type );
+						(int) motor->acceleration_type);
 			break;
 		}
 
@@ -2145,7 +2145,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration distance for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						motor->acceleration_type );
+						(int) motor->acceleration_type);
 			break;
 		}
 		break;
@@ -2195,7 +2195,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 "Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 		break;
 	}
@@ -2217,7 +2217,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 
 	switch( motor->parameter_type ) {
@@ -2309,7 +2309,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot set the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						motor->acceleration_type );
+						(int) motor->acceleration_type);
 			break;
 		}
 
@@ -2464,7 +2464,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 "Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 		break;
 	}
@@ -3585,7 +3585,7 @@ mx_motor_compute_pseudomotor_position_from_real_position(
 
 	MX_DEBUG( 2,
 	("%s(%d): motor '%s', real_position = %g, recursion_flag = %d",
-	fname, level, motor_record->name, real_position, recursion_flag ));
+	fname, level, motor_record->name, real_position, (int) recursion_flag));
 
 	fptr = fl_ptr->get_parameter;
 
@@ -3715,7 +3715,7 @@ mx_motor_compute_real_position_from_pseudomotor_position(
 	MX_DEBUG( 2,
 	("%s(%d): motor '%s', pseudomotor_position = %g, recursion_flag = %d",
 		fname, level, motor_record->name, pseudomotor_position,
-		recursion_flag ));
+		(int) recursion_flag ));
 
 	fptr = fl_ptr->get_parameter;
 
@@ -4521,9 +4521,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Backlash correction for '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 				motor->record->name,
-				motor->record->precision,
+				(int) motor->record->precision,
 				backlash_position, units,
-				motor->record->precision,
+				(int) motor->record->precision,
 				positive_limit, units );
 		}
 
@@ -4541,9 +4541,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Backlash correction for '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 				motor->record->name,
-				motor->record->precision,
+				(int) motor->record->precision,
 				backlash_position, units,
-				motor->record->precision,
+				(int) motor->record->precision,
 				negative_limit, units );
 		}
 
@@ -4630,9 +4630,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Error: move of '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 			motor->record->name,
-			motor->record->precision,
+			(int) motor->record->precision,
 			motor_position, units,
-			motor->record->precision,
+			(int) motor->record->precision,
 			positive_limit, units );
 	}
 
@@ -4649,9 +4649,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Error: move of '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 			motor->record->name,
-			motor->record->precision,
+			(int) motor->record->precision,
 			motor_position, units,
-			motor->record->precision,
+			(int) motor->record->precision,
 			negative_limit, units );
 	}
 
@@ -4843,7 +4843,7 @@ mx_is_motor_position_between_software_limits(
 	    break;
 	default:
 	    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Unrecognized motor subclass = %d", motor->subclass );
+		"Unrecognized motor subclass = %d", (int) motor->subclass );
 	    break;
 	}
 	return status;
@@ -4911,9 +4911,9 @@ mx_is_analog_motor_position_between_software_limits(
 			sprintf( message_buffer,
 		"Move of '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 				motor_record->name,
-				motor_record->precision,
+				(int) motor_record->precision,
 				proposed_analog_position, units,
-				motor_record->precision,
+				(int) motor_record->precision,
 				positive_limit, units );
 		}
 	}
@@ -4934,9 +4934,9 @@ mx_is_analog_motor_position_between_software_limits(
 			sprintf( message_buffer,
 		"Move of '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 				motor_record->name,
-				motor_record->precision,
+				(int) motor_record->precision,
 				proposed_analog_position, units,
-				motor_record->precision,
+				(int) motor_record->precision,
 				negative_limit, units );
 		}
 	}

@@ -288,7 +288,7 @@ mx_gpib_close_device( MX_RECORD *gpib_record, int32_t address )
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Attempted to close GPIB address %d on interface '%s' "
 		"when it was already closed.",
-			address, gpib_record->name );
+			(int) address, gpib_record->name );
 	} else {
 
 		fptr = fl_ptr->close_device;

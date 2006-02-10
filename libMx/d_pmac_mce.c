@@ -357,7 +357,7 @@ mxd_pmac_mce_read( MX_MCE *mce )
 	double motor_scale, raw_encoder_value, scaled_encoder_value;
 	long i;
 	uint32_t up_channel, down_channel;
-	uint32_t *up_value_array, *down_value_array;
+	int32_t *up_value_array, *down_value_array;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_mce_get_pointers( mce,

@@ -66,7 +66,8 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Invalid serial port word size = %d", rs232->word_size );
+			"Invalid serial port word size = %d",
+			(int) rs232->word_size );
 
 		rs232->word_size = -1;
 
@@ -113,7 +114,8 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Invalid serial port stop bits = %d", rs232->stop_bits );
+			"Invalid serial port stop bits = %d",
+			(int) rs232->stop_bits );
 
 		rs232->stop_bits = -1;
 
@@ -207,7 +209,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 	rs232->read_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
 	MX_DEBUG( 2,("%s: rs232->num_read_terminator_chars = %d",
-			fname, rs232->num_read_terminator_chars));
+			fname, (int) rs232->num_read_terminator_chars));
 
 #if 0
 	MX_DEBUG(-2,("%s: read terminators = 0x%08lx",
@@ -241,7 +243,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 	rs232->write_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
 	MX_DEBUG( 2,("%s: rs232->num_write_terminator_chars = %d",
-			fname, rs232->num_write_terminator_chars));
+			fname, (int) rs232->num_write_terminator_chars));
 
 #if 0
 	MX_DEBUG(-2,("%s: write terminators = 0x%08lx",
@@ -1182,7 +1184,7 @@ mx_rs232_get_signal_bit( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( bit_value == (int *) NULL ) {
+	if ( bit_value == (int32_t *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The bit_value pointer passed was NULL." );
 	}
@@ -1262,7 +1264,8 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The word size for RS-232 port '%s' is currently %d, but should be %d.",
-				record->name, rs232->word_size, word_size );
+				record->name, (int) rs232->word_size,
+				(int) word_size );
 		}
 	}
 	if ( parity != (char) MXF_232_DONT_CARE ) {
@@ -1278,7 +1281,8 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The stop bits for RS-232 port '%s' are currently %d, but should be %d.",
-				record->name, rs232->stop_bits, stop_bits );
+				record->name, (int) rs232->stop_bits,
+				(int) stop_bits );
 		}
 	}
 	if ( flow_control != (char) MXF_232_DONT_CARE ) {

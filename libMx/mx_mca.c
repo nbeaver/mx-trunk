@@ -431,7 +431,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (before read) mca->new_data_available = %d, mca->busy = %d",
-		fname, mca->new_data_available, mca->busy));
+		fname, (int) mca->new_data_available, (int) mca->busy));
 
 	if ( read_new_data ) {
 
@@ -447,7 +447,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (after read) mca->new_data_available = %d, mca->busy = %d",
-		fname, mca->new_data_available, mca->busy));
+		fname, (int) mca->new_data_available, (int) mca->busy));
 
 	if ( num_channels != NULL ) {
 		*num_channels = mca->current_num_channels;
@@ -646,7 +646,7 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal preset type %d for MCA '%s'.",
-			preset_type, mca_record->name );
+			(int) preset_type, mca_record->name );
 		break;
 	}
 
@@ -1604,7 +1604,7 @@ mx_mca_get_counts( MX_RECORD *mca_record, uint32_t *counts )
 MX_EXPORT mx_status_type
 mx_mca_get_soft_roi( MX_RECORD *mca_record,
 			mx_length_type soft_roi_number,
-			uint32_t *soft_roi )
+			mx_length_type *soft_roi )
 {
 	static const char fname[] = "mx_mca_get_soft_roi()";
 
@@ -1678,7 +1678,7 @@ mx_mca_get_soft_roi( MX_RECORD *mca_record,
 MX_EXPORT mx_status_type
 mx_mca_set_soft_roi( MX_RECORD *mca_record,
 			mx_length_type soft_roi_number,
-			uint32_t *soft_roi )
+			mx_length_type *soft_roi )
 {
 	static const char fname[] = "mx_mca_set_soft_roi()";
 
@@ -2137,7 +2137,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
-		mca->parameter_type));
+		(int) mca->parameter_type));
 
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
@@ -2263,7 +2263,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mca->parameter_type );
+			(int) mca->parameter_type );
 		break;
 	}
 
@@ -2280,7 +2280,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
-		mca->parameter_type));
+		(int) mca->parameter_type));
 
 	i = mca->roi_number;
 
@@ -2410,7 +2410,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mca->parameter_type );
+			(int) mca->parameter_type );
 		break;
 	}
 

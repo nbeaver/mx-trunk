@@ -374,7 +374,7 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 				    } else {
 					return mx_error_quiet(
 						MXE_NOT_READY, fname,
-	"Read attempt from port '%s' exceeded maximum retry count = %ld",
+	"Read attempt from port '%s' exceeded maximum retry count = %d",
 						rs232->record->name,
 						fossil->max_read_retries );
 				    }
@@ -629,7 +629,7 @@ msdos_fossil_write_parms( MX_RS232 *rs232 )
 	case 50:
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported RS-232 speed = %ld for FOSSIL port '%s'.", 
+		"Unsupported RS-232 speed = %d for FOSSIL port '%s'.", 
 		rs232->speed, record_name);
 
 		break;

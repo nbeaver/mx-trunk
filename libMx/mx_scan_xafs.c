@@ -600,18 +600,18 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 #else
 		sprintf( ptr,
     "0 %.*g preset_time \"%.*g %s\" child:%s %s child:%s \"%s\" %.*g %.*g %ld",
-			scan->record->precision,
+			(int) scan->record->precision,
 			scan->settling_time,
-			scan->record->precision,
+			(int) scan->record->precision,
 			xafs_scan->region_measurement_time[i],
 			timer_name,
 			scan->datafile.options,
 			scan->record->name,
 			scan->plot.options,
 			scan->record->name,
-			scan->record->precision,
+			(int) scan->record->precision,
 			start_position,
-			scan->record->precision,
+			(int) scan->record->precision,
 			step_size,
 			num_steps );
 #endif

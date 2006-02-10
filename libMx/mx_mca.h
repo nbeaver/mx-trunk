@@ -406,10 +406,10 @@ MX_API mx_status_type mx_mca_get_counts( MX_RECORD *mca_record,
 
 MX_API mx_status_type mx_mca_get_soft_roi( MX_RECORD *mca_record,
 					mx_length_type soft_roi_number,
-					uint32_t *soft_roi );
+					mx_length_type *soft_roi );
 MX_API mx_status_type mx_mca_set_soft_roi( MX_RECORD *mca_record,
 					mx_length_type soft_roi_number,
-					uint32_t *soft_roi );
+					mx_length_type *soft_roi );
 MX_API mx_status_type mx_mca_get_soft_roi_integral( MX_RECORD *mca_record,
 					mx_length_type soft_roi_number,
 					uint32_t *soft_roi_integral );

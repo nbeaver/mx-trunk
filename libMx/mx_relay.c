@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,7 @@ mx_get_relay_status( MX_RECORD *record, int32_t *relay_status )
 
 	mx_status = ( *fptr ) ( relay );
 
-	if ( relay_status != (int *) NULL ) {
+	if ( relay_status != (int32_t *) NULL ) {
 		*relay_status = relay->relay_status;
 	}
 

@@ -606,7 +606,7 @@ mx_pulse_generator_default_get_parameter_handler(
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-			pulse_generator->parameter_type,
+			(int) pulse_generator->parameter_type,
 			pulse_generator->record->name );
 		break;
 	}
@@ -636,7 +636,7 @@ mx_pulse_generator_default_set_parameter_handler(
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-			pulse_generator->parameter_type,
+			(int) pulse_generator->parameter_type,
 			pulse_generator->record->name );
 		break;
 	}
