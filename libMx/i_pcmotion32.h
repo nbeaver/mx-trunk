@@ -45,10 +45,10 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int board_id;
+	int32_t board_id;
 
-	unsigned long limit_switch_polarity;
-	unsigned long enable_limit_switches;
+	mx_hex_type limit_switch_polarity;
+	mx_hex_type enable_limit_switches;
 
 	MX_RECORD *motor_array[MX_PCMOTION32_NUM_MOTORS];
 } MX_PCMOTION32;
@@ -85,3 +85,4 @@ extern mx_length_type mxi_pcmotion32_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pcmotion32_rfield_def_ptr;
 
 #endif /* __I_PCMOTION32_H__ */
+

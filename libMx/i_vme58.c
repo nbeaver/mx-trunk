@@ -109,7 +109,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vme58_esrf_record_field_defaults[] = {
 	MXI_VME58_ESRF_STANDARD_FIELDS
 };
 
-long mxi_vme58_esrf_num_record_fields
+mx_length_type mxi_vme58_esrf_num_record_fields
 		= sizeof( mxi_vme58_esrf_record_field_defaults )
 			/ sizeof( mxi_vme58_esrf_record_field_defaults[0] );
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1168,7 +1168,8 @@ mx_rs232_print_signal_state( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
+mx_rs232_get_signal_bit( MX_RECORD *record,
+			int32_t bit_type, int32_t *bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 
@@ -1201,7 +1202,8 @@ mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_set_signal_bit( MX_RECORD *record, int bit_type, int bit_value )
+mx_rs232_set_signal_bit( MX_RECORD *record,
+			int32_t bit_type, int32_t bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 

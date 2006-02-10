@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vxworks_rs232_record_field_defaults[] = {
 	MXI_VXWORKS_RS232_STANDARD_FIELDS
 };
 
-long mxi_vxworks_rs232_num_record_fields
+mx_length_type mxi_vxworks_rs232_num_record_fields
 		= sizeof( mxi_vxworks_rs232_record_field_defaults )
 			/ sizeof( mxi_vxworks_rs232_record_field_defaults[0] );
 

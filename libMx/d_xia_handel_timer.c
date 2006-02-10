@@ -79,7 +79,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_handel_timer_record_field_defaults[] = {
 	MXD_XIA_HANDEL_TIMER_STANDARD_FIELDS
 };
 
-long mxd_xia_handel_timer_num_record_fields
+mx_length_type mxd_xia_handel_timer_num_record_fields
 		= sizeof( mxd_xia_handel_timer_record_field_defaults )
 		  / sizeof( mxd_xia_handel_timer_record_field_defaults[0] );
 

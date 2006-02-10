@@ -28,6 +28,42 @@
 #if 0
 
 /*=======================================================================*/
+
+#elif defined(OS_WIN32) && defined(_MSC_VER)
+
+#define PRId8	"hd"
+#define PRIu8	"hu"
+#define PRIx8	"hx"
+
+#define SCNd8	"!unsupported"
+#define SCNu8	"!unsupported"
+#define SCNx8	"!unsupported"
+
+#define PRId16	"hd"
+#define PRIu16	"hu"
+#define PRIx16	"hx"
+
+#define SCNd16	"hd"
+#define SCNu16	"hu"
+#define SCNx16	"hx"
+
+#define PRId32	"d"
+#define PRIu32	"u"
+#define PRIx32	"x"
+
+#define SCNd32	"d"
+#define SCNu32	"u"
+#define SCNx32	"x"
+
+#define PRId64	"I64d"
+#define PRIu64  "I64u"
+#define PRIx64  "I64x"
+
+#define SCNd64	"I64d"
+#define SCNu64	"I64u"
+#define SCNx64	"I64x"
+
+/*=======================================================================*/
 #else
    /* Most build targets should be able to use a vendor provided <inttypes.h>.*/
 

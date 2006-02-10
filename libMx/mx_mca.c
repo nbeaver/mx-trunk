@@ -491,7 +491,7 @@ mx_mca_clear( MX_RECORD *mca_record )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_is_busy( MX_RECORD *mca_record, int *busy )
+mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_mca_is_busy()";
 
@@ -526,7 +526,8 @@ mx_mca_is_busy( MX_RECORD *mca_record, int *busy )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_is_new_data_available( MX_RECORD *mca_record, int *new_data_available )
+mx_mca_is_new_data_available( MX_RECORD *mca_record,
+				mx_bool_type *new_data_available )
 {
 	static const char fname[] = "mx_mca_is_new_data_available()";
 
@@ -600,7 +601,7 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 
 MX_EXPORT mx_status_type
 mx_mca_start_with_preset( MX_RECORD *mca_record,
-				int preset_type,
+				int32_t preset_type,
 				double preset_value )
 {
 	static const char fname[] = "mx_mca_start_with_preset()";
@@ -775,7 +776,7 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mca_get_preset_type( MX_RECORD *mca_record, int *preset_type )
+mx_mca_get_preset_type( MX_RECORD *mca_record, int32_t *preset_type )
 {
 	static const char fname[] = "mx_mca_get_preset_type()";
 
@@ -812,7 +813,7 @@ mx_mca_get_preset_type( MX_RECORD *mca_record, int *preset_type )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_set_preset_type( MX_RECORD *mca_record, int preset_type )
+mx_mca_set_preset_type( MX_RECORD *mca_record, int32_t preset_type )
 {
 	static const char fname[] = "mx_mca_set_preset_type()";
 

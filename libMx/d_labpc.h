@@ -28,12 +28,12 @@
 typedef struct {
 	int file_handle;
 	char filename[MXU_FILENAME_LENGTH + 1];
-	int channel;
-	int gain;
-	int use_unipolar_input;
-	int use_dma;
-	int trigger_type;
-	int use_differential_input;
+	int32_t channel;
+	int32_t gain;
+	mx_bool_type use_unipolar_input;
+	mx_bool_type use_dma;
+	int32_t trigger_type;
+	mx_bool_type use_differential_input;
 } MX_LABPC_ADC;
 
 #define MXD_LABPC_ADC_STANDARD_FIELDS \
@@ -41,27 +41,27 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, channel), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "gain", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "gain", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, gain), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_unipolar_input", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_unipolar_input", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_unipolar_input), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_dma", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_dma", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_dma), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "trigger_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "trigger_type", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, trigger_type), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_differential_input", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_differential_input", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_differential_input), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -84,7 +84,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_adc_rfield_def_ptr;
 typedef struct {
 	int file_handle;
 	char filename[MXU_FILENAME_LENGTH + 1];
-	int use_unipolar_output;
+	mx_bool_type use_unipolar_output;
 } MX_LABPC_DAC;
 
 #define MXD_LABPC_DAC_STANDARD_FIELDS \
@@ -92,7 +92,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_DAC, filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "use_unipolar_output", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_unipolar_output", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_DAC, use_unipolar_output), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

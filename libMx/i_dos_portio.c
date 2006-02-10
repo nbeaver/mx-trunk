@@ -79,7 +79,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_dos_portio_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS
 };
 
-long mxi_dos_portio_num_record_fields
+mx_length_type mxi_dos_portio_num_record_fields
 		= sizeof( mxi_dos_portio_record_field_defaults )
 			/ sizeof( mxi_dos_portio_record_field_defaults[0] );
 

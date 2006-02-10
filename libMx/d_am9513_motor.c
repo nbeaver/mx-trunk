@@ -150,7 +150,7 @@ mxd_am9513_motor_initialize_type( long type )
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	long num_record_fields;
+	mx_length_type num_record_fields;
 	mx_length_type num_counters_field_index;
 	mx_length_type num_counters_varargs_cookie;
 	mx_status_type mx_status;

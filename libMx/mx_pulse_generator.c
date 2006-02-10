@@ -232,7 +232,7 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int *mode )
+mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int32_t *mode )
 {
 	static const char fname[] = "mx_pulse_generator_get_mode()";
 
@@ -269,7 +269,7 @@ mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, int mode )
+mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, int32_t mode )
 {
 	static const char fname[] = "mx_pulse_generator_set_mode()";
 

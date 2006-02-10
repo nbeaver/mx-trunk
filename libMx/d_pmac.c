@@ -1367,7 +1367,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 
@@ -1437,7 +1437,7 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 

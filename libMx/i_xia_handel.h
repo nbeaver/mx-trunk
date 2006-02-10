@@ -55,14 +55,14 @@ typedef struct {
 
 	char save_filename[ MXU_FILENAME_LENGTH + 1 ];
 
-	long num_active_detector_channels;
-	int *active_detector_channel_array;
+	mx_length_type num_active_detector_channels;
+	int32_t *active_detector_channel_array;
 
 	mx_length_type num_mcas;
 	MX_RECORD **mca_record_array;
 
-	unsigned long num_detectors;
-	unsigned long num_modules;
+	uint32_t num_detectors;
+	uint32_t num_modules;
 } MX_XIA_HANDEL;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */
@@ -103,12 +103,12 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, save_filename), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {-1, -1, "num_active_detector_channels", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "num_active_detector_channels", MXFT_LENGTH, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_XIA_HANDEL, num_active_detector_channels ), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "active_detector_channel_array", MXFT_INT, \
+  {-1, -1, "active_detector_channel_array", MXFT_INT32, \
 					NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_HANDEL, active_detector_channel_array ), \
@@ -118,11 +118,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_mcas ), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "num_detectors", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_detectors", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_detectors ), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "num_modules", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "num_modules", MXFT_UINT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_modules ), \
 	{0}, NULL, 0 }
 

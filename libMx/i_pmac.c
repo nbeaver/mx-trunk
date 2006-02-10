@@ -727,7 +727,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 
@@ -783,7 +783,7 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 

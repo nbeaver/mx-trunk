@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_driverlinx_portio_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS
 };
 
-long mxi_driverlinx_portio_num_record_fields
+mx_length_type mxi_driverlinx_portio_num_record_fields
 		= sizeof( mxi_driverlinx_portio_record_field_defaults )
 		    / sizeof( mxi_driverlinx_portio_record_field_defaults[0] );
 

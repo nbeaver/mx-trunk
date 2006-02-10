@@ -84,14 +84,16 @@ MX_API mx_status_type mx_camac_controller_command( MX_RECORD *camac_record,
 						int32_t command );
 
 MX_API mx_status_type mx_camac( MX_RECORD *camac_record,
-				int32_t slot, int subaddress,
+				int32_t slot, int32_t subaddress,
 				int32_t function_code, int32_t *data,
 				int32_t *Q, int32_t *X );
 
 MX_API void mx_camac_qwait( MX_RECORD *camac_record,
-				int32_t slot, int subaddress, int function_code,
-				int32_t *data, int32_t *X );
+				int32_t slot, int32_t subaddress,
+				int32_t function_code, int32_t *data,
+				int32_t *X );
 
 extern MX_RECORD_FUNCTION_LIST mx_camac_record_function_list;
 
 #endif /* __MX_CAMAC_H__ */
+

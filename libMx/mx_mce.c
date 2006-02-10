@@ -324,7 +324,7 @@ mx_mce_get_current_num_values( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_get_motor_record_array( MX_RECORD *mce_record,
-				int *num_motors,
+				mx_length_type *num_motors,
 				MX_RECORD ***motor_record_array )
 {
 	static const char fname[] = "mx_mce_get_motor_record_array()";

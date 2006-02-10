@@ -284,7 +284,7 @@ typedef struct {
 
 	mx_status_type ( *serial_poll ) ( MX_GPIB *gpib,
 					int32_t address,
-					unsigned char *serial_poll_byte );
+					uint8_t *serial_poll_byte );
 
 	mx_status_type ( *serial_poll_disable ) ( MX_GPIB *gpib );
 } MX_GPIB_FUNCTION_LIST;

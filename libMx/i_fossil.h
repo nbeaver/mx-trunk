@@ -45,7 +45,7 @@ MX_API mx_status_type mxi_fossil_discard_unwritten_output( MX_RS232 *rs232 );
 
 typedef struct {
 	int port_number;
-	long max_read_retries;
+	int32_t max_read_retries;
 	char filename[MXU_FILENAME_LENGTH + 1];
 } MX_FOSSIL;
 
@@ -60,7 +60,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_fossil_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FOSSIL, filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "max_read_retries", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "max_read_retries", MXFT_INT32, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_FOSSIL, max_read_retries), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

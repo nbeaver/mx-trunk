@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vxworks_vme_record_field_defaults[] = {
 	MXI_VXWORKS_VME_STANDARD_FIELDS
 };
 
-long mxi_vxworks_vme_num_record_fields
+mx_length_type mxi_vxworks_vme_num_record_fields
 		= sizeof( mxi_vxworks_vme_record_field_defaults )
 			/ sizeof( mxi_vxworks_vme_record_field_defaults[0]);
 

@@ -2116,13 +2116,22 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			*returned_value = (double) *((int32_t *) ptr_to_value);
 			break;
 		case MXFT_UINT32:
+		case MXFT_HEX:
 			*returned_value = (double) *((uint32_t *) ptr_to_value);
 			break;
 		case MXFT_INT64:
 			*returned_value = (double) *((int64_t *) ptr_to_value);
 			break;
 		case MXFT_UINT64:
-		case MXFT_HEX:
+
+			/* Note: If you are using Visual C++ 6 and the
+			 * following line blows up with 'error C2520',
+			 * upgrade your copy of Visual C++ 6 to 
+			 * Service Pack 5.  After doing that, install
+			 * the Visual C++ 6.0 Processor Pack and then
+			 * the following line will compile correctly.
+			 */
+
 			*returned_value = (double) *((uint64_t *) ptr_to_value);
 			break;
 		case MXFT_FLOAT:

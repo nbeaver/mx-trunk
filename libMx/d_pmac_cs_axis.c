@@ -1217,7 +1217,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 
@@ -1284,7 +1284,7 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
+		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
 		break;
 	}
 

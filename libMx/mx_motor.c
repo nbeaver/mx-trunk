@@ -445,7 +445,8 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_move_absolute_with_report( int num_motors,
+mx_motor_array_move_absolute_with_report(
+			mx_length_type num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
@@ -578,7 +579,8 @@ mx_motor_array_move_absolute_with_report( int num_motors,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_internal_move_with_report( int num_motors,
+mx_motor_array_internal_move_with_report(
+			mx_length_type num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,

@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vms_terminal_record_field_defaults[] = {
 	MXI_VMS_TERMINAL_STANDARD_FIELDS
 };
 
-long mxi_vms_terminal_num_record_fields
+mx_length_type mxi_vms_terminal_num_record_fields
 		= sizeof( mxi_vms_terminal_record_field_defaults )
 			/ sizeof( mxi_vms_terminal_record_field_defaults[0] );
 

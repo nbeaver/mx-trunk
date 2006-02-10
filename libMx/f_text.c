@@ -385,7 +385,7 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_LONG or MXFT_DOUBLE position arrays are supported." );
+	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
 		break;
 	}
 	

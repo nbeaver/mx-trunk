@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -44,7 +44,7 @@
  * http://www.ni.com/linux/
  */
 
-#define HAVE_NI488			1
+#define HAVE_NI488			0
 
 /*****************************************************************************
  *
@@ -71,7 +71,7 @@
  * NI-VISA, so I don't know if it works on other operating systems.
  */
 
-#define HAVE_NI_VISA			1
+#define HAVE_NI_VISA			0
 
 /*****************************************************************************
  *
@@ -80,7 +80,7 @@
  * Thus far, only the Linux version of this driver has been tested.
  */
 
-#define HAVE_SIS3100			1
+#define HAVE_SIS3100			0
  
 /*****************************************************************************
  *
@@ -102,7 +102,7 @@
  * for the Win32 version, at http://libusb-win32.sourceforge.net/.
  */
 
-#define HAVE_LIBUSB			1
+#define HAVE_LIBUSB			0
  
 /*****************************************************************************
  *
@@ -115,7 +115,7 @@
  * Available at the MX web site as portio-2.0.tar.gz
  */
 
-#define HAVE_LINUX_PORTIO		1
+#define HAVE_LINUX_PORTIO		0
 
 /*****************************************************************************
  *
@@ -127,7 +127,7 @@
  * just use the 'dos_portio' driver.
  */
 
-#define HAVE_DRIVERLINX_PORTIO		0
+#define HAVE_DRIVERLINX_PORTIO		1
 
 /*****************************************************************************
  *
@@ -151,7 +151,7 @@
  *
  */
 
-#define HAVE_JORWAY_CAMAC		1
+#define HAVE_JORWAY_CAMAC		0
 
 /*****************************************************************************
  *
@@ -169,7 +169,7 @@
  * Win32 driver for the Aerotech Unidex 500 series of motor controllers.
  */
 
-#define HAVE_U500			0
+#define HAVE_U500			1
 
 /*****************************************************************************
  *
@@ -177,7 +177,7 @@
  * for their series of motor controllers.
  */
 
-#define HAVE_PMC_MCAPI			0
+#define HAVE_PMC_MCAPI			1
 
 /*****************************************************************************
  *
@@ -187,7 +187,7 @@
  * interface software.
  */
 
-#define HAVE_ORTEC_UMCBI		0
+#define HAVE_ORTEC_UMCBI		1
 
 /*****************************************************************************
  *

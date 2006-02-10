@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_labpc_din_record_field_defaults[] = {
 	MXD_LABPC_DIN_STANDARD_FIELDS
 };
 
-long mxd_labpc_din_num_record_fields
+mx_length_type mxd_labpc_din_num_record_fields
 		= sizeof( mxd_labpc_din_record_field_defaults )
 			/ sizeof( mxd_labpc_din_record_field_defaults[0] );
 

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_com_record_field_defaults[] = {
 	MXI_COM_STANDARD_FIELDS
 };
 
-long mxi_com_num_record_fields
+mx_length_type mxi_com_num_record_fields
 		= sizeof( mxi_com_record_field_defaults )
 			/ sizeof( mxi_com_record_field_defaults[0] );
 
