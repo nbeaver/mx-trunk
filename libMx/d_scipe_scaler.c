@@ -19,7 +19,6 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_scaler.h"
@@ -327,6 +326,7 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 	char response[80];
 	char *result_ptr;
 	int num_items, scipe_response_code;
+	long raw_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_scipe_scaler_get_pointers( scaler,
@@ -356,7 +356,7 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 
 	/* Parse the result string to get the scaler value. */
 
-	num_items = sscanf( result_ptr, "%" SCNd32, &(scaler->raw_value) );
+	num_items = sscanf( result_ptr, "%ld", &raw_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -364,6 +364,8 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 	"as a scaler value.  Response = '%s'",
 			command, scaler->record->name, response );
 	}
+
+	scaler->raw_value = raw_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

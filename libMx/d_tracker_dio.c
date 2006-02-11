@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_rs232.h"
 #include "mx_analog_input.h"
@@ -224,6 +223,7 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_TRACKER_DINPUT *tracker_dinput;
 	char command[80], response[80];
 	int num_items;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tracker_din_get_pointers( dinput,
@@ -244,7 +244,7 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
+	num_items = sscanf( response, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -252,6 +252,8 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 		"to command '%s' for digital input '%s'.  Response = '%s'",
 			command, dinput->record->name, response );
 	}
+
+	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -335,6 +337,7 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	MX_TRACKER_DOUTPUT *tracker_doutput;
 	char command[80], response[80];
 	int num_items;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tracker_dout_get_pointers( doutput,
@@ -355,7 +358,7 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
+	num_items = sscanf( response, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -363,6 +366,8 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		"to command '%s' for digital output '%s'.  Response = '%s'",
 			command, doutput->record->name, response );
 	}
+
+	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

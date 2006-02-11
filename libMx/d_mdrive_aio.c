@@ -23,7 +23,6 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_analog_input.h"
@@ -180,6 +179,7 @@ mxd_mdrive_ain_read( MX_ANALOG_INPUT *ainput )
 	MX_MDRIVE *mdrive;
 	char response[80];
 	int num_items;
+	long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -200,8 +200,7 @@ mxd_mdrive_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%" SCNd32,
-			&(ainput->raw_value.int32_value));
+	num_items = sscanf( response, "%ld", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -212,6 +211,8 @@ mxd_mdrive_ain_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name,
 			response );
 	}
+
+	ainput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

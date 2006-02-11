@@ -97,6 +97,13 @@
 #else
    /* Most build targets should be able to use a vendor provided <inttypes.h>.*/
 
+#  if defined(OS_MACOSX)
+     /* MacOS X needs this defined to get correct 8-bit and 64-bit macros */
+#     ifndef __STDC_LIBRARY_SUPPORTED__
+#        define __STDC_LIBRARY_SUPPORTED__
+#     endif
+#  endif
+
 #  include <inttypes.h>
 
 #endif

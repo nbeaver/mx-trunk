@@ -22,7 +22,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_inttypes.h"
 #include "mx_rs232.h"
 #include "mx_sample_changer.h"
 
@@ -479,6 +478,7 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	char command[100];
 	char response[100];
 	int num_items, value;
+	unsigned long current_sample_id;
 	unsigned long interaction_id;
 	mx_status_type mx_status;
 
@@ -504,15 +504,17 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%s %" SCNu32 " %d",
+	num_items = sscanf( response, "%s %lu %d",
 			changer->current_sample_holder,
-			&(changer->current_sample_id), &value );
+			&current_sample_id, &value );
 
 	if ( num_items != 3 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Did not the expected response to a 'dev_status' command.  "
 		"num_items = %d, response = '%s'", num_items, response );
 	}
+
+	changer->current_sample_id = current_sample_id;
 
 	if ( strcmp( changer->current_sample_holder, "0" ) == 0 ) {
 		changer->current_sample_holder[0] = '\0';

@@ -21,7 +21,6 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "i_picomotor.h"
 #include "d_picomotor.h"
@@ -536,7 +535,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
-	int32_t motor_steps;
+	long motor_steps;
 	int num_items;
 	char *ptr;
 	mx_status_type mx_status;
@@ -571,7 +570,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%" SCNd32, &motor_steps );
+	num_items = sscanf( ptr, "%ld", &motor_steps );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -592,8 +591,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 		("%s: picomotor->position_at_start_of_last_move = %ld",
 		 	fname, picomotor->position_at_start_of_last_move));
 
-		MX_DEBUG( 2,("%s: motor_steps = %ld",
-			fname, (long) motor_steps));
+		MX_DEBUG( 2,("%s: motor_steps = %ld", fname, motor_steps));
 
 		motor->raw_position.stepper =
 		    picomotor->position_at_start_of_last_move + motor_steps;

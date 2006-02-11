@@ -23,7 +23,6 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_amplifier.h"
 #include "mx_digital_input.h"
@@ -276,6 +275,7 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[40];
 	char response[80];
 	int port_number, num_items;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -306,7 +306,7 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
+	num_items = sscanf( response, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -315,6 +315,8 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 			"Response = '%s'.", dinput->record->name,
 				command, response );
 	}
+
+	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -370,6 +372,7 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char command[40];
 	char response[80];
 	int port_number, num_items;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_icplus_dout_get_pointers( doutput,
@@ -395,7 +398,7 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
+	num_items = sscanf( response, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -404,6 +407,8 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			"Response = '%s'.", doutput->record->name,
 				command, response );
 	}
+
+	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -22,7 +22,6 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_digital_input.h"
@@ -274,6 +273,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char response[80];
 	char *ptr;
 	int num_items, channel_number;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	/* Supppress bogus GCC 4 uninitialized variable warnings. */
@@ -318,7 +318,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%" SCNu32, &(dinput->value) );
+	num_items = sscanf( ptr, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -328,6 +328,8 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name, command,
 			picomotor_controller->record->name, response );
 	}
+
+	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -385,6 +387,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char response[80];
 	char *ptr;
 	int num_items, channel_number;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_dout_get_pointers( doutput,
@@ -424,7 +427,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%" SCNu32, &(doutput->value) );
+	num_items = sscanf( ptr, "%lu", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -434,6 +437,8 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name, command,
 			picomotor_controller->record->name, response );
 	}
+
+	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

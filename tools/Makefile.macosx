@@ -2,6 +2,10 @@
 # tools/Makefile.macosx
 #
 
+all:  xdr_hyper.o unix/src/editline/libedit.a
+
+include ../libMx/Makehead.macosx
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -12,7 +16,11 @@ EDITLINE_RANLIB = ranlib
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all:
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr_hyper.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_MACOSX \
+		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
+
+unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 mx_clean:

@@ -23,7 +23,6 @@
 #include <ctype.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "mx_analog_input.h"
@@ -317,6 +316,7 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 	char response[80];
 	char *port_name;
 	int num_items;
+	long raw_value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -348,8 +348,7 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%" SCNd32,
-		&(ainput->raw_value.int32_value));
+	num_items = sscanf( response, "%ld", &raw_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -361,6 +360,8 @@ mxd_smartmotor_ain_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name,
 			response );
 	}
+
+	ainput->raw_value.int32_value = raw_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -458,7 +459,6 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	char command[80];
 	char response[80];
 	char *port_name;
-	int num_items;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -475,35 +475,19 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	port_name = smartmotor_aoutput->port_name;
 
 	if ( port_name[0] == 'U' ) {
-		sprintf( command, "z=%sA Rz", port_name );
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"SmartMotor pin '%s' cannot be used as an analog output.",
+			port_name );
 
-	} else if ( strcmp( port_name, "TEMP" ) == 0 ) {
-		sprintf( command, "z=TEMP Rz" );
 	} else {
-		sprintf( command, "RAIN%s", port_name );
+		sprintf( command, "AOUT%s,%ld",
+			port_name, (long) aoutput->raw_value.int32_value );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,
 					response, sizeof( response ),
 					MXD_SMARTMOTOR_AIO_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	num_items = sscanf(response, "%" SCNd32,
-			&(aoutput->raw_value.int32_value));
-
-	if ( num_items != 1 ) {
-		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-		"Could not find a numerical value in the response to a '%s' "
-		"command to SmartMotor controller '%s' for "
-		"analog output record '%s'.  Response = '%s'",
-			command,
-			smartmotor->record->name,
-			aoutput->record->name,
-			response );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 

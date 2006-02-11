@@ -22,7 +22,6 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
 #include "mx_digital_output.h"
@@ -100,7 +99,7 @@ mxd_compumotor_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_COMPUMOTOR_INTERFACE **compumotor_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_compumotor_din_get_pointers()";
+	static const char fname[] = "mxd_compumotor_din_get_pointers()";
 
 	MX_RECORD *compumotor_interface_record;
 
@@ -174,7 +173,7 @@ mxd_compumotor_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_COMPUMOTOR_INTERFACE **compumotor_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_compumotor_dout_get_pointers()";
+	static const char fname[] = "mxd_compumotor_dout_get_pointers()";
 
 	MX_RECORD *compumotor_interface_record;
 
@@ -253,7 +252,7 @@ mxd_compumotor_din_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_compumotor_din_create_record_structures()";
+        static const char fname[] = "mxd_compumotor_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_COMPUMOTOR_DINPUT *compumotor_dinput;
@@ -327,7 +326,7 @@ mxd_compumotor_din_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_din_open()";
+	static const char fname[] = "mxd_compumotor_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_COMPUMOTOR_DINPUT *compumotor_dinput;
@@ -364,7 +363,7 @@ mxd_compumotor_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_din_close()";
+	static const char fname[] = "mxd_compumotor_din_close()";
 
 	MX_DIGITAL_INPUT *dinput;
 	mx_status_type mx_status;
@@ -389,13 +388,14 @@ mxd_compumotor_din_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_compumotor_din_read()";
+	static const char fname[] = "mxd_compumotor_din_read()";
 
 	MX_COMPUMOTOR_DINPUT *compumotor_dinput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[200];
 	int i, j, num_items;
+	unsigned long value;
 	mx_hex_type controller_type;
 	mx_status_type mx_status;
 
@@ -439,7 +439,7 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 		return mx_status;
 
 	if ( compumotor_dinput->num_bits == 1 ) {
-		num_items = sscanf( response, "%" SCNu32, &(dinput->value) );
+		num_items = sscanf( response, "%lu", &value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -447,6 +447,8 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 		"Compumotor digital input record '%s'.",
 				response, dinput->record->name );
 		}
+
+		dinput->value = value;
 	} else {
 
 		dinput->value = 0;
@@ -492,7 +494,7 @@ mxd_compumotor_dout_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_compumotor_dout_create_record_structures()";
+        static const char fname[] = "mxd_compumotor_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
@@ -567,7 +569,7 @@ mxd_compumotor_dout_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_dout_open()";
+	static const char fname[] = "mxd_compumotor_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
@@ -611,13 +613,14 @@ mxd_compumotor_dout_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_compumotor_dout_read()";
+	static const char fname[] = "mxd_compumotor_dout_read()";
 
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[200];
 	int i, j, num_items;
+	unsigned long value;
 	mx_hex_type controller_type;
 	mx_status_type mx_status;
 
@@ -662,7 +665,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( compumotor_doutput->num_bits == 1 ) {
-		num_items = sscanf( response, "%" SCNu32, &(doutput->value) );
+		num_items = sscanf( response, "%lu", &value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -670,6 +673,8 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		"Compumotor digital output record '%s'.",
 				response, doutput->record->name );
 		}
+
+		doutput->value = value;
 	} else {
 
 		doutput->value = 0;
@@ -707,7 +712,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_compumotor_dout_write()";
+	static const char fname[] = "mxd_compumotor_dout_write()";
 
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;

@@ -36,7 +36,6 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
@@ -1150,7 +1149,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	char command_buffer[100];
 	char response[100];
 	int num_items;
-	int32_t int32_value;
+	long long_value;
 	int32_t *int32_ptr;
 	double double_value;
 	double *double_ptr;
@@ -1185,7 +1184,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 
 	switch( variable_type ) {
 	case MXFT_INT32:
-		num_items = sscanf( response, "%" SCNd32, &int32_value );
+		num_items = sscanf( response, "%ld", &long_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -1197,7 +1196,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 		}
 		int32_ptr = (int32_t *) variable_ptr;
 
-		*int32_ptr = int32_value;
+		*int32_ptr = long_value;
 		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );

@@ -1,4 +1,4 @@
-Version 1.2.0 (02/09/06):
+Version 1.2.0 (02/10/06):
 	The primary change for this release has been modifications to MX
 	to make it able to run on 64-bit operating systems.  For this to
 	work, 32-bit and 64-bit MX servers must speak the same protocol.
@@ -90,6 +90,9 @@ error C2520: conversion from unsigned __int64 to double not implemented, use sig
 	Changed the 'compumotor' driver to use '%f' formats rather than
 	'%g' formats in generating commands sent to the 6K controller.
 	The Compumotor controller cannot cope with exponential notation.
+
+	The 'smartmotor_aout' driver was mistakenly _reading_ from the output
+	pin rather than writing to it.  This has been fixed.
 
 Version 1.1.1 (01/11/06):
 	A new build target 'win32-mingw' has been added for building MX

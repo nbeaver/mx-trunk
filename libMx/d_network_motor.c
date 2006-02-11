@@ -20,7 +20,6 @@
 #include <math.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
 #include "d_network_motor.h"
@@ -1333,6 +1332,7 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 	MX_NETWORK_SERVER *network_server;
 	MX_NETWORK_MOTOR *network_motor;
 	int num_items;
+	unsigned long motor_status;
 	mx_length_type dimension[1];
 	uint32_t remote_mx_version;
 	mx_status_type mx_status;
@@ -1390,9 +1390,9 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( motor->extended_status, "%lg %" SCNx32,
+		num_items = sscanf( motor->extended_status, "%lg %lx",
 				&(motor->raw_position.analog),
-				&(motor->status ) );
+				&motor_status );
 
 		if ( num_items != 2 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1402,6 +1402,8 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 				network_motor->server_record->name,
 				"extended_status", motor->extended_status );
 		}
+
+		motor->status = motor_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

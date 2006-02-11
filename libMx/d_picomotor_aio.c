@@ -21,7 +21,6 @@
 #include <string.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"
 #include "i_picomotor.h"
@@ -167,6 +166,7 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	char command[80];
 	char response[80];
 	int num_items;
+	long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -191,8 +191,7 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%" SCNd32,
-			&(ainput->raw_value.int32_value));
+	num_items = sscanf(response, "%ld", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -203,6 +202,8 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name,
 			response );
 	}
+
+	ainput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

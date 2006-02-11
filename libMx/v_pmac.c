@@ -22,7 +22,6 @@
 #include <float.h>
 
 #include "mx_util.h"
-#include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_variable.h"
@@ -291,9 +290,9 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 	char response[80];
 	void *value_ptr;
 	int32_t *int32_ptr;
-	int32_t int32_value;
 	uint32_t *uint32_ptr;
-	uint32_t uint32_value;
+	long long_value;
+	unsigned long ulong_value;
 	double *double_ptr;
 	double double_value;
 	int num_items;
@@ -327,10 +326,10 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 
 	switch( variable->record->mx_type ) {
 	case MXV_PMA_INT32:
-		num_items = sscanf( response, "%" SCNd32, &int32_value );
+		num_items = sscanf( response, "%ld", &long_value );
 		break;
 	case MXV_PMA_UINT32:
-		num_items = sscanf( response, "%" SCNu32, &uint32_value );
+		num_items = sscanf( response, "%lu", &ulong_value );
 		break;
 	case MXV_PMA_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -347,12 +346,12 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 	case MXV_PMA_INT32:
 		int32_ptr = (int32_t *) value_ptr;
 
-		*int32_ptr = int32_value;
+		*int32_ptr = long_value;
 		break;
 	case MXV_PMA_UINT32:
 		uint32_ptr = (uint32_t *) value_ptr;
 
-		*uint32_ptr = uint32_value;
+		*uint32_ptr = ulong_value;
 		break;
 	case MXV_PMA_DOUBLE:
 		double_ptr = (double *) value_ptr;
