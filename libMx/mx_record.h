@@ -165,19 +165,26 @@ typedef struct {
 /* The following is the current list of record field types. */
 
 #define MXFT_STRING		1
-#define MXFT_INT8		2	/* 'char' used as an 8-bit number. */
-#define MXFT_UINT8		3
+#define MXFT_CHAR		2	/* 'char' used as an ASCII character. */
+#define MXFT_UCHAR		3	/* Unsigned ASCII character. */
+
 #define MXFT_INT16		4
 #define MXFT_UINT16		5
 #define MXFT_INT32		6
 #define MXFT_UINT32		7
-#define MXFT_INT64		8
-#define MXFT_UINT64		9
+
+	/* 8 and 9 are reserved for obsolete field types. */
+
 #define MXFT_FLOAT		10
 #define MXFT_DOUBLE		11
 
 #define MXFT_HEX		12	/* Stored as a uint32_t. */
-#define MXFT_CHAR		13	/* 'char' used as an ASCII character. */
+
+#define MXFT_INT8		13	/* 'char' used as an 8-bit number. */
+#define MXFT_UINT8		14	/* Unsigned 8-bit number. */
+
+#define MXFT_INT64		15
+#define MXFT_UINT64		16
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32

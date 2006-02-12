@@ -56,6 +56,7 @@ extern MX_VARIABLE_FUNCTION_LIST mxv_network_variable_variable_function_list;
 
 extern mx_length_type mxv_network_string_variable_num_record_fields;
 extern mx_length_type mxv_network_char_variable_num_record_fields;
+extern mx_length_type mxv_network_uchar_variable_num_record_fields;
 extern mx_length_type mxv_network_int8_variable_num_record_fields;
 extern mx_length_type mxv_network_uint8_variable_num_record_fields;
 extern mx_length_type mxv_network_int16_variable_num_record_fields;
@@ -70,6 +71,7 @@ extern mx_length_type mxv_network_record_variable_num_record_fields;
 
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_string_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_char_variable_dptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uchar_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int8_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_uint8_variable_dptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_network_int16_variable_dptr;

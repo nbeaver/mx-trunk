@@ -724,6 +724,9 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	case MXFT_CHAR:
 		strlcat( description, "net_char ", sizeof(description) );
 		break;
+	case MXFT_UCHAR:
+		strlcat( description, "net_uchar ", sizeof(description) );
+		break;
 	case MXFT_INT8:
 		strlcat( description, "net_int8 ", sizeof(description) );
 		break;

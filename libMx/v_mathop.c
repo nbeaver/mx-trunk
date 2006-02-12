@@ -528,6 +528,9 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		case MXFT_CHAR:
 			*value = (double) *(char *) pointer_to_value;
 			break;
+		case MXFT_UCHAR:
+			*value = (double) *(unsigned char *) pointer_to_value;
+			break;
 		case MXFT_INT8:
 			*value = (double) *(int8_t *) pointer_to_value;
 			break;
@@ -588,6 +591,7 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 	long field_type;
 	mx_length_type num_dimensions;
 	char *char_ptr;
+	unsigned char *uchar_ptr;
 	int8_t *int8_ptr;
 	uint8_t *uint8_ptr;
 	int16_t *int16_ptr;
@@ -695,6 +699,11 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			char_ptr = (char *) pointer_to_value;
 
 			*char_ptr = (char) mx_round( new_value );
+			break;
+		case MXFT_UCHAR:
+			uchar_ptr = (unsigned char *) pointer_to_value;
+
+			*uchar_ptr = (unsigned char) mx_round( new_value );
 			break;
 		case MXFT_INT8:
 			int8_ptr = (int8_t *) pointer_to_value;

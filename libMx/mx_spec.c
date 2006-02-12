@@ -762,6 +762,9 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	case MXFT_CHAR:
 		strlcpy( format, "%c", sizeof(format) );
 		break;
+	case MXFT_UCHAR:
+		strlcpy( format, "%c", sizeof(format) );
+		break;
 	case MXFT_INT8:
 		strlcpy( format, "%" SCNd8, sizeof(format) );
 		break;
@@ -831,6 +834,10 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 	case MXFT_CHAR:
 		snprintf( buffer, sizeof(buffer),
 				"%c", *((char *) value));
+		break;
+	case MXFT_UCHAR:
+		snprintf( buffer, sizeof(buffer),
+				"%c", *((unsigned char *) value));
 		break;
 	case MXFT_INT8:
 		snprintf( buffer, sizeof(buffer),

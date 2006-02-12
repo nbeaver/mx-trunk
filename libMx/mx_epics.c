@@ -2469,6 +2469,7 @@ mx_epics_convert_mx_type_to_epics_type( long mx_type,
 		*epics_type = DBR_STRING;
 		break;
 	case MXFT_CHAR:
+	case MXFT_UCHAR:
 	case MXFT_INT8:
 	case MXFT_UINT8:
 		*epics_type = DBR_CHAR;

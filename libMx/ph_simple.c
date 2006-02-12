@@ -246,6 +246,7 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	uint32_t permit_value;
 
 	char char_value;
+	unsigned char uchar_value;
 	int8_t int8_value;
 	uint8_t uint8_value;
 	int16_t int16_value;
@@ -315,6 +316,16 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				return mx_status;
 
 			if ( char_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UCHAR:
+			mx_status = mx_get_uchar_variable( permit_record,
+								&uchar_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uchar_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

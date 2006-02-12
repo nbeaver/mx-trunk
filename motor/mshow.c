@@ -702,6 +702,9 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 	case MXFT_CHAR:
 		fprintf( output, "'%c'", *((char *) data_ptr) );
 		break;
+	case MXFT_UCHAR:
+		fprintf( output, "'%c'", *((unsigned char *) data_ptr) );
+		break;
 	case MXFT_INT8:
 		fprintf( output, "%" PRId8, *((int8_t *) data_ptr) );
 		break;

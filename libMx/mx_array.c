@@ -339,6 +339,7 @@ mxp_scalar_element_size( long mx_datatype ) {
 
 	case MXFT_HEX:        element_size = sizeof(uint32_t);          break;
 	case MXFT_CHAR:       element_size = sizeof(char);              break;
+	case MXFT_UCHAR:      element_size = sizeof(unsigned char);     break;
 
 	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;    break;
 	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;    break;
@@ -459,6 +460,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_DOUBLE:
 		case MXFT_HEX:
 		case MXFT_CHAR:
+		case MXFT_UCHAR:
 			memcpy( destination_buffer,
 					array_pointer, bytes_to_copy );
 			break;
@@ -722,6 +724,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_DOUBLE:
 		case MXFT_HEX:
 		case MXFT_CHAR:
+		case MXFT_UCHAR:
 			memcpy( array_pointer, source_buffer, bytes_to_copy );
 			break;
 
@@ -841,6 +844,7 @@ mxp_xdr_scalar_element_size( long mx_datatype ) {
 	case MXFT_UINT32:
 	case MXFT_HEX:
 	case MXFT_CHAR:
+	case MXFT_UCHAR:
 	case MXFT_FLOAT:
 		element_size = 4;
 		break;
@@ -1068,6 +1072,9 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		case MXFT_CHAR:
 			xdr_status = xdr_char( &xdrs, array_pointer );
 			break;
+		case MXFT_UCHAR:
+			xdr_status = xdr_u_char( &xdrs, array_pointer );
+			break;
 
 		case MXFT_RECORD:
 			mx_record = (MX_RECORD *) array_pointer;
@@ -1200,6 +1207,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			case MXFT_DOUBLE:    XDR_DO_ARRAY(xdr_double);   break;
 			case MXFT_HEX:       XDR_DO_ARRAY(xdr_uint32_t); break;
 			case MXFT_CHAR:      XDR_DO_ARRAY(xdr_char);     break;
+			case MXFT_UCHAR:     XDR_DO_ARRAY(xdr_u_char);   break;
 			default:
 				xdr_destroy( &xdrs );
 

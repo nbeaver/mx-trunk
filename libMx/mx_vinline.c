@@ -66,6 +66,21 @@ MX_RECORD_FIELD_DEFAULTS *mxv_inline_char_variable_def_ptr
 
 /* ==== */
 
+MX_RECORD_FIELD_DEFAULTS mxv_inline_uchar_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_UCHAR_VARIABLE_STANDARD_FIELDS
+};
+
+mx_length_type mxv_inline_uchar_variable_num_record_fields
+			= sizeof( mxv_inline_uchar_variable_defaults )
+			/ sizeof( mxv_inline_uchar_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_uchar_variable_def_ptr
+			= &mxv_inline_uchar_variable_defaults[0];
+
+/* ==== */
+
 MX_RECORD_FIELD_DEFAULTS mxv_inline_int8_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,

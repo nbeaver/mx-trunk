@@ -98,6 +98,9 @@ MX_API mx_status_type mx_get_string_variable_by_name(
 MX_API mx_status_type mx_get_char_variable( MX_RECORD *record,
 					char *char_value );
 
+MX_API mx_status_type mx_get_uchar_variable( MX_RECORD *record,
+					unsigned char *uchar_value );
+
 MX_API mx_status_type mx_get_int8_variable( MX_RECORD *record,
 					int8_t *int8_value );
 
@@ -136,6 +139,9 @@ MX_API mx_status_type mx_get_string_variable( MX_RECORD *record,
 
 MX_API mx_status_type mx_set_char_variable( MX_RECORD *record,
 					char char_value );
+
+MX_API mx_status_type mx_set_uchar_variable( MX_RECORD *record,
+					unsigned char uchar_value );
 
 MX_API mx_status_type mx_set_int8_variable( MX_RECORD *record,
 					int8_t int8_value );
@@ -246,6 +252,12 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 
 #define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
 
+#define MXA_UCHAR_SIZEOF \
+	{ sizeof(unsigned char), sizeof(unsigned char *), \
+	sizeof(unsigned char **), sizeof(unsigned char ***), \
+	sizeof(unsigned char ****), sizeof(unsigned char *****), \
+	sizeof(unsigned char ******), sizeof(unsigned char *******) }
+
 #define MXA_RECORD_SIZEOF \
 	{ sizeof(MX_RECORD *), sizeof(MX_RECORD **), \
 	sizeof(MX_RECORD ***), sizeof(MX_RECORD ****), \
@@ -281,6 +293,13 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
 	MXA_CHAR_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_UCHAR_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UCHAR, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_UCHAR_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_INT8_VARIABLE_STANDARD_FIELDS \

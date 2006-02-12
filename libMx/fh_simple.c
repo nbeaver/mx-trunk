@@ -301,6 +301,7 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	uint64_t no_fault_value;
 
 	char char_value;
+	unsigned char uchar_value;
 	int8_t int8_value;
 	uint8_t uint8_value;
 	int16_t int16_value;
@@ -371,6 +372,16 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 				return mx_status;
 
 			if ( char_value != no_fault_value ) {
+				fault_handler->fault_status = TRUE;
+			}
+			break;
+		case MXFT_UCHAR:
+			mx_status = mx_get_uchar_variable( fault_record,
+								&uchar_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uchar_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;
@@ -535,6 +546,10 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 		case MXFT_CHAR:
 			mx_status = mx_set_char_variable( reset_record,
 						(char) reset_value );
+			break;
+		case MXFT_UCHAR:
+			mx_status = mx_set_uchar_variable( reset_record,
+						(unsigned char) reset_value );
 			break;
 		case MXFT_INT8:
 			mx_status = mx_set_int8_variable( reset_record,

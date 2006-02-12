@@ -478,6 +478,9 @@ mx_set_1d_array( MX_RECORD *record,
 		case MXFT_CHAR:
 			value_size = num_elements * sizeof(char);
 			break;
+		case MXFT_UCHAR:
+			value_size = num_elements * sizeof(unsigned char);
+			break;
 		case MXFT_INT8:
 			value_size = num_elements * sizeof(int8_t);
 			break;
@@ -664,6 +667,32 @@ mx_get_char_variable( MX_RECORD *record,
 		return mx_status;
 
 	*char_value = *( (char *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_uchar_variable( MX_RECORD *record,
+			unsigned char *uchar_value )
+{
+	static const char fname[] = "mx_get_uchar_variable()";
+
+	mx_length_type num_elements;
+	void *pointer_to_value;
+	mx_status_type mx_status;
+
+	if ( uchar_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"uchar_value pointer passed was NULL." );
+	}
+
+	mx_status = mx_get_1d_array( record, MXFT_UCHAR,
+					&num_elements, &pointer_to_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	*uchar_value = *( (unsigned char *) pointer_to_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -966,6 +995,12 @@ MX_EXPORT mx_status_type
 mx_set_char_variable( MX_RECORD *record, char char_value )
 {
 	return mx_set_1d_array( record, MXFT_CHAR, 1L, &char_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_uchar_variable( MX_RECORD *record, unsigned char uchar_value )
+{
+	return mx_set_1d_array( record, MXFT_UCHAR, 1L, &uchar_value );
 }
 
 MX_EXPORT mx_status_type
