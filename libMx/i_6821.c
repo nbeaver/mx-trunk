@@ -175,7 +175,7 @@ mxi_6821_open( MX_RECORD *record )
 
 	mx_portio_outp8( mc6821->portio_record,
 			mc6821->base_address + MX_MC6821_PORT_B_DATA,
-			(uint8_t) mc6821->port_a_data_direction );
+			(uint8_t) mc6821->port_b_data_direction );
 
 	/* Select the port B output register. */
 

@@ -179,7 +179,7 @@ static mx_status_type
 mxi_mmap_vme_bus_to_local_address( MX_MMAP_VME *mmap_vme,
 					int address_mode,
 					unsigned long bus_address,
-					char **local_address )
+					void **local_address )
 {
 	static const char fname[] = "mxi_mmap_vme_bus_to_local_address()";
 
@@ -188,6 +188,7 @@ mxi_mmap_vme_bus_to_local_address( MX_MMAP_VME *mmap_vme,
 	size_t page_size;
 	off_t page_start_offset;
 	void **page_table;
+	char *char_local_address;
 
 	switch( address_mode ) {
 	case MXF_VME_A16:
@@ -285,8 +286,10 @@ mxi_mmap_vme_bus_to_local_address( MX_MMAP_VME *mmap_vme,
 #endif
 	}
 
-	*local_address = ( char * ) ( page_table[ page_number ] )
+	char_local_address = ( char * ) ( page_table[ page_number ] )
 							+ address_offset;
+
+	*local_address = char_local_address;
 
 #if 0
 	MX_DEBUG(-2,("%s: A%d bus address = %#lx, local address = %p",
@@ -654,7 +657,7 @@ mxi_mmap_vme_input( MX_VME *vme )
 	static const char fname[] = "mxi_mmap_vme_input()";
 
 	MX_MMAP_VME *mmap_vme;
-	char *vme_local_address;
+	void *vme_local_address;
 	uint8_t *uint8_input_ptr;
 	uint16_t *uint16_input_ptr;
 	uint32_t *uint32_input_ptr;
@@ -713,7 +716,7 @@ mxi_mmap_vme_output( MX_VME *vme )
 	static const char fname[] = "mxi_mmap_vme_output()";
 
 	MX_MMAP_VME *mmap_vme;
-	char *vme_local_address;
+	void *vme_local_address;
 	uint8_t *uint8_output_ptr;
 	uint16_t *uint16_output_ptr;
 	uint32_t *uint32_output_ptr;
@@ -773,7 +776,15 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 
 	MX_MMAP_VME *mmap_vme;
 	unsigned long i;
-	char *vme_local_address;
+
+	/* We need the void pointer so that it can be cast to other
+	 * pointer types without alignment errors on Alphas and we
+	 * need the char pointer to be able to do address arithmetic.
+	 */
+
+	char *char_vme_local_address;
+	void *void_vme_local_address;
+
 	uint8_t *uint8_ptr;
 	uint16_t *uint16_ptr;
 	uint32_t *uint32_ptr;
@@ -793,43 +804,49 @@ mxi_mmap_vme_multi_input( MX_VME *vme )
 	mx_status = mxi_mmap_vme_bus_to_local_address( mmap_vme,
 						vme->address_mode,
 						vme->address,
-						&vme_local_address );
+						&void_vme_local_address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	char_vme_local_address = void_vme_local_address;
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
 		uint8_ptr = (uint8_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint8_ptr = *((uint8_t *) vme_local_address);
+			*uint8_ptr = *((uint8_t *) char_vme_local_address);
 
 			uint8_ptr++;
 
-			vme_local_address += vme->read_address_increment;
+			char_vme_local_address += vme->read_address_increment;
 		}
 		break;
 	case MXF_VME_D16:
 		uint16_ptr = vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint16_ptr = *((uint16_t *) vme_local_address);
+			void_vme_local_address = char_vme_local_address;
+
+			*uint16_ptr = *((uint16_t *) void_vme_local_address);
 
 			uint16_ptr++;
 
-			vme_local_address += vme->read_address_increment;
+			char_vme_local_address += vme->read_address_increment;
 		}
 		break;
 	case MXF_VME_D32:
 		uint32_ptr = vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*uint32_ptr = *((uint32_t *) vme_local_address);
+			void_vme_local_address = char_vme_local_address;
+
+			*uint32_ptr = *((uint32_t *) void_vme_local_address);
 
 			uint32_ptr++;
 
-			vme_local_address += vme->read_address_increment;
+			char_vme_local_address += vme->read_address_increment;
 		}
 		break;
 	default:
@@ -851,7 +868,15 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 
 	MX_MMAP_VME *mmap_vme;
 	unsigned long i;
-	char *vme_local_address;
+
+	/* We need the void pointer so that it can be cast to other
+	 * pointer types without alignment errors on Alphas and we
+	 * need the char pointer to be able to do address arithmetic.
+	 */
+
+	char *char_vme_local_address;
+	void *void_vme_local_address;
+
 	uint8_t *uint8_ptr;
 	uint16_t *uint16_ptr;
 	uint32_t *uint32_ptr;
@@ -871,43 +896,49 @@ mxi_mmap_vme_multi_output( MX_VME *vme )
 	mx_status = mxi_mmap_vme_bus_to_local_address( mmap_vme,
 						vme->address_mode,
 						vme->address,
-						&vme_local_address );
+						&void_vme_local_address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	char_vme_local_address = void_vme_local_address;
 
 	switch( vme->data_size ) {
 	case MXF_VME_D8:
 		uint8_ptr = (uint8_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((uint8_t *) vme_local_address) = *uint8_ptr;
+			*((uint8_t *) char_vme_local_address) = *uint8_ptr;
 
 			uint8_ptr++;
 
-			vme_local_address += vme->write_address_increment;
+			char_vme_local_address += vme->write_address_increment;
 		}
 		break;
 	case MXF_VME_D16:
 		uint16_ptr = (uint16_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((uint16_t *) vme_local_address) = *uint16_ptr;
+			void_vme_local_address = char_vme_local_address;
+
+			*((uint16_t *) void_vme_local_address) = *uint16_ptr;
 
 			uint16_ptr++;
 
-			vme_local_address += vme->write_address_increment;
+			char_vme_local_address += vme->write_address_increment;
 		}
 		break;
 	case MXF_VME_D32:
 		uint32_ptr = (uint32_t *) vme->data_pointer;
 
 		for ( i = 0; i < vme->num_values; i++ ) {
-			*((uint32_t *) vme_local_address) = *uint32_ptr;
+			void_vme_local_address = char_vme_local_address;
+
+			*((uint32_t *) void_vme_local_address) = *uint32_ptr;
 
 			uint32_ptr++;
 
-			vme_local_address += vme->write_address_increment;
+			char_vme_local_address += vme->write_address_increment;
 		}
 		break;
 	default:
