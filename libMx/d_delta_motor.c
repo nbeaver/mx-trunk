@@ -742,7 +742,6 @@ mxd_delta_motor_get_fixed_position_value(
 				fixed_position_record->mx_type,
 				fixed_position_record->name,
 				delta_motor->record->name );
-			break;
 		}
 		break;
 	case MXR_DEVICE:
@@ -762,7 +761,6 @@ mxd_delta_motor_get_fixed_position_value(
 				fixed_position_record->mx_class,
 				fixed_position_record->name,
 				delta_motor->record->name );
-			break;
 		}
 		break;
 	default:
@@ -772,7 +770,6 @@ mxd_delta_motor_get_fixed_position_value(
 			fixed_position_record->mx_superclass,
 			fixed_position_record->name,
 			delta_motor->record->name );
-		break;
 	}
 
 	delta_motor->saved_fixed_position_value = *fixed_position_value;

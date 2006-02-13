@@ -238,10 +238,12 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_NETWORK_RS232 *network_rs232;
+#if 0
 	long datatype;
 	mx_length_type num_dimensions;
 	mx_length_type dimension_array[1];
 	char rfname[ MXU_RECORD_FIELD_NAME_LENGTH + 1 ];
+#endif
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -269,9 +271,6 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 #if 0
 	if ( ( rs232->rs232_flags & MXF_232_UNBUFFERED_IO ) == 0 ) {
-#else
-	if ( 0 ) {
-#endif
 
 		/* Set up for buffered network I/O */
 
@@ -381,6 +380,7 @@ mxi_network_rs232_open( MX_RECORD *record )
 		}
 
 	}
+#endif
 
 #if 0	/* FIXME: This is turned off since it requires extra network I/O */
 

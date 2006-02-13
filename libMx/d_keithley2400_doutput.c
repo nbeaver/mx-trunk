@@ -229,7 +229,6 @@ mxd_keithley2400_doutput_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Record '%s' is not an RS-232 or GPIB record.",
 			interface->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

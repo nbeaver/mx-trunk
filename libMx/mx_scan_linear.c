@@ -836,14 +836,12 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 						   scan->motor_record_array[j]);
 					}
 					return mx_status;
-					break;
 				case MXE_PAUSE_REQUESTED:
 					/* Ignore additional pause requests. */
 
 					break;
 				default:
 					return mx_status;
-					break;
 				}
 
 			} while (1);	/** End of pause/abort retry loop. **/

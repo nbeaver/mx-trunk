@@ -734,7 +734,6 @@ mxd_sis3807_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_get_parameter_handler(
 							pulse_generator );
-		break;
 	}
 
 #if MXD_SIS3807_DEBUG
@@ -842,7 +841,6 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		"Only pulse mode (1) and square wave mode (2) are supported.",
 				pulse_generator->mode,
 				pulse_generator->record->name );
-			break;
 		}
 		/* Reprogram the waveform mode. */
 
@@ -1021,7 +1019,6 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_set_parameter_handler(
 							pulse_generator );
-		break;
 	}
 
 #if MXD_SIS3807_DEBUG

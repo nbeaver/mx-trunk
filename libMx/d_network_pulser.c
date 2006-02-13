@@ -392,7 +392,6 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_get_parameter_handler(
 							pulse_generator );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -449,7 +448,6 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_set_parameter_handler(
 							pulse_generator );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 

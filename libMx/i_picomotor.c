@@ -182,7 +182,6 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_rs232_discard_unread_input(
@@ -328,7 +327,6 @@ mxi_picomotor_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;
@@ -534,7 +532,6 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		case '?':
 			return mxi_picomotor_handle_errors(picomotor_controller,
 					response_buffer, response_status );
-			break;
 		default:
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
 			"The last character transmitted by the Picomotor "
@@ -542,7 +539,6 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 			"Instead, it sent the character %#x '%c'.",
 				picomotor_controller->record->name,
 				response_status, response_status );
-			break;
 		}
 	}
 

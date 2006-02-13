@@ -767,11 +767,11 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	fprintf( output, "\nHit any key to close the plot.\n" );
 
-	while (1) {
+	for (;;) {
 		if ( mx_kbhit() ) {
 			(void) mx_getch();
 
-			break;		/* Exit the while loop */
+			break;		/* Exit the for(;;) loop */
 		}
 		mx_msleep(500);
 	}
@@ -883,11 +883,11 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	fprintf( output, "\nHit any key to close the plot.\n" );
 
-	while (1) {
+	for (;;) {
 		if ( mx_kbhit() ) {
 			(void) mx_getch();
 
-			break;		/* Exit the while loop */
+			break;		/* Exit the for(;;) loop */
 		}
 		mx_msleep(500);
 	}

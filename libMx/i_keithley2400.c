@@ -171,7 +171,6 @@ mxi_keithley2400_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"'%s' used by record '%s' is not an RS-232 or GPIB record.",
 			port_record->name, record->name );
-		break;
 	}
 
 
@@ -230,7 +229,6 @@ mxi_keithley2400_open( MX_RECORD *record )
 		"Interface '%s' for Keithley 2400 record '%s' "
 		"is not an RS-232 or GPIB record.",
 			interface->record->name, record->name );
-		break;
 	}
 
 	/**** Find out what kind of controller this is. ****/
@@ -402,7 +400,6 @@ mxi_keithley2400_set_measurement_type( MX_KEITHLEY2400 *keithley2400,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported measurement type %d for record '%s'",
 			measurement_type, keithley2400->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley_command( keithley2400->record,
@@ -487,7 +484,6 @@ mxi_keithley2400_set_source_type( MX_KEITHLEY2400 *keithley2400,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported source type %d for record '%s'",
 			source_type, keithley2400->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley_command( keithley2400->record,

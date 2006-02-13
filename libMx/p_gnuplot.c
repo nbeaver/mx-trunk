@@ -378,7 +378,6 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
-		break;
 	}
 	
 	switch( data_type ) {
@@ -391,7 +390,6 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
-		break;
 	}
 	
 	/* ---- Write the arrays out to plotgnu. ---- */

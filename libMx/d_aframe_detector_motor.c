@@ -949,7 +949,6 @@ mxd_aframe_det_motor_compute_pseudomotor_position(
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Pseudomotor type %d is not recognized.",
 			aframe_detector_motor->pseudomotor_type );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: pseudomotor_position = %g",

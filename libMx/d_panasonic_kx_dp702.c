@@ -232,7 +232,6 @@ mxd_panasonic_kx_dp702_command( MX_PAN_TILT_ZOOM *ptz )
 			"is not a known command type.",
 				(unsigned long) ptz->command,
 				kx_dp702_ptz->record->name );
-		break;
 	}
 
 	/* Send the command. */
@@ -480,7 +479,6 @@ mxd_panasonic_kx_dp702_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		"is not a known command type.",
 			(unsigned long) ptz->command,
 			kx_dp702_ptz->record->name );
-		break;
 	}
 
 #if 0
@@ -663,7 +661,6 @@ mxd_panasonic_kx_dp702_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			"Parameter type %d received for Panasonic PTZ '%s' "
 			"is not a known parameter type.",
 			ptz->parameter_type, kx_dp702_ptz->record->name );
-		break;
 	}
 
 	return mx_status;

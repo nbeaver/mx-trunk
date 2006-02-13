@@ -299,7 +299,6 @@ mxi_8255_read_port( MX_8255 *i8255, int port_number, uint8_t *value )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal port number %d.", port_number );
-		break;
 	}
 
 	/* Read the value from the 8255 chip. */
@@ -362,7 +361,6 @@ mxi_8255_write_port( MX_8255 *i8255, int port_number, uint8_t value )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal port number %d.", port_number );
-		break;
 	}
 
 	port_address = i8255->base_address + port_to_write;

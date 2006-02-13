@@ -564,7 +564,6 @@ mxd_network_mca_start( MX_MCA *mca )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unsupported preset type %d for MCA '%s'.",
 			mca->preset_type, mca->record->name );
-		break;
 	}
 
 	/* Tell the counting to start. */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -518,7 +518,6 @@ mx_sca_default_get_parameter_handler( MX_SCA *sca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			sca->parameter_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -552,7 +551,6 @@ mx_sca_default_set_parameter_handler( MX_SCA *sca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			sca->parameter_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

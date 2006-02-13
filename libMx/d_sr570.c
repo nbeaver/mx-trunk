@@ -320,7 +320,6 @@ mxd_sr570_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_rs232_discard_unwritten_output( sr570->rs232_record,
@@ -332,7 +331,6 @@ mxd_sr570_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	/* Reset the SR570 so that it is in a known state. */
@@ -744,7 +742,6 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 
 	default:
 		return mx_amplifier_default_get_parameter_handler( amplifier );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1180,7 +1177,6 @@ mxd_sr570_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;

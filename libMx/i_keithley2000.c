@@ -169,7 +169,6 @@ mxi_keithley2000_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"'%s' used by record '%s' is not an RS-232 or GPIB record.",
 			port_record->name, record->name );
-		break;
 	}
 
 
@@ -228,7 +227,6 @@ mxi_keithley2000_open( MX_RECORD *record )
 		"Interface '%s' for Keithley 2000 record '%s' "
 		"is not an RS-232 or GPIB record.",
 			interface->record->name, record->name );
-		break;
 	}
 
 	/**** Find out what kind of controller this is. ****/

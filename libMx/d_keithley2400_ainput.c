@@ -230,7 +230,6 @@ mxd_keithley2400_ainput_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Record '%s' is not an RS-232 or GPIB record.",
 			interface->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley2400_set_measurement_type( keithley2400,

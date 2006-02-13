@@ -300,22 +300,7 @@ mx_initialize_clock_ticks( void )
 	mx_most_recent_clock_tick_value.high_order = 0L;
 	mx_most_recent_clock_tick_value.low_order  = mx_current_cpu_tick();
 
-	if ( sizeof(clock_t) == sizeof(long) ) {
-
-		mx_clock_tick_divisor = 1.0 + (double) MX_ULONG_MAX;
-
-	} else if ( sizeof(clock_t) == sizeof(int) ) {
-
-		mx_clock_tick_divisor = 1.0 + (double) UINT_MAX;
-
-	} else {
-		fprintf( stderr,
-			"FATAL ERROR: Can't set mx_clock_tick_divisor "
-			"in mx_initialize_clock_ticks().  Aborting...\n" );
-
-		exit(1);
-	}
-	return;
+	mx_clock_tick_divisor = 1.0 + (double) MX_ULONG_MAX;
 }
 
 /* mx_current_clock_tick() must be invoked from time to time in order to

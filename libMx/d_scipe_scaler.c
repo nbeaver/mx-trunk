@@ -413,7 +413,6 @@ mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 			mxi_scipe_get_mx_status( scipe_response_code ), fname,
 	"Unexpected response to '%s' command for scaler '%s'.  Response = '%s'",
 				command, scaler->record->name, response );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -321,7 +321,6 @@ mxi_scipe_resynchronize( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return status;
-		break;
 	}
 
 	status = mx_rs232_discard_unread_input( scipe_server->rs232_record,
@@ -333,7 +332,6 @@ mxi_scipe_resynchronize( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return status;
-		break;
 	}
 
 	/* Verify that the SCIPE server is there by asking for its
@@ -352,10 +350,8 @@ mxi_scipe_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Cannot communicate with the SCIPE server at port '%s'.  "
 "Is it running?", scipe_server->rs232_record->name );
-			break;
 	default:
 		return status;
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: response_code = %d, result_ptr = '%s'",

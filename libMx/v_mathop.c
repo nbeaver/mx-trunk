@@ -489,7 +489,6 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Device '%s' may not be used by a mathop variable record.",
 				record->name );
-			break;
 		}
 		break;
 
@@ -567,7 +566,6 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			"Variable '%s' is of a type that is not supported "
 			"by mathop variable records.",
 				record->name );
-			break;
 		}
 		break;
 
@@ -576,7 +574,6 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		"Record '%s' may not be used by a mathop variable record.  "
 		"Only device and variable records may be used.",
 			record->name );
-		break;
 	}
 
 	return mx_status;
@@ -621,7 +618,6 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			"Cannot write value %g to analog input '%s'.  "
 			"Analog inputs are read only.",
 				new_value, record->name );
-			break;
 		case MXC_ANALOG_OUTPUT:
 			mx_status = mx_analog_output_write( record, new_value );
 			break;
@@ -630,7 +626,6 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			"Cannot write value %g to digital input '%s'.  "
 			"Digital inputs are read only.",
 				new_value, record->name );
-			break;
 		case MXC_DIGITAL_OUTPUT:
 			mx_status = mx_digital_output_write( record,
 							mx_round( new_value ) );
@@ -666,7 +661,6 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Device '%s' may not be used by a mathop variable record.",
 				record->name );
-			break;
 		}
 		break;
 
@@ -760,7 +754,6 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			"Variable '%s' is of a type that is not supported "
 			"by mathop variable records",
 				record->name );
-			break;
 		}
 
 		/* Send the current value of the variable. */
@@ -773,7 +766,6 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 		"Record '%s' may not be used by a variable record.  "
 		"Only device and variable records may be used.",
 			record->name );
-		break;
 	}
 
 	return mx_status;
@@ -981,7 +973,6 @@ mxv_mathop_compute_value( MX_VARIABLE *variable, double *value )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Mathop operation type %d is unsupported.",
 			mathop_variable->operation_type );
-		break;
 	    }
 	}
 
@@ -1291,7 +1282,6 @@ mxv_mathop_change_value( MX_VARIABLE *variable, double new_value )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Mathop operation type %d is unsupported.",
 			mathop_variable->operation_type );
-		break;
 	    }
 	}
 

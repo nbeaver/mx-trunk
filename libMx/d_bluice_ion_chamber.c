@@ -118,7 +118,6 @@ mxd_bluice_ion_chamber_get_pointers( MX_ANALOG_INPUT *analog_input,
 		"of type '%s'.",
 			bluice_server_record->name,
 			mx_get_driver_name( bluice_server_record ) );
-		break;
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {

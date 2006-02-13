@@ -354,7 +354,6 @@ mxi_vp9000_open( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );
@@ -484,7 +483,6 @@ mxi_vp9000_close( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );

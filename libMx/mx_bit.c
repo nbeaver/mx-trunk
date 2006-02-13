@@ -69,6 +69,25 @@ mx_native_data_format( void )
 	return format;
 }
 
+#if defined(OS_HPUX)
+	/* HP/UX generates warnings for each of the comparisons of sizeof()
+	 * with a number below such as 'sizeof(int) == 4'.  Therefore, we
+	 * put in special case code just for HP/UX.
+	 */
+
+MX_EXPORT unsigned long
+mx_native_program_model( void )
+{
+#if defined(__LP64__)
+	return MX_PROGRAM_MODEL_LP64;
+#else
+	return MX_PROGRAM_MODEL_ILP32;
+#endif
+}
+
+#else
+	/* For everone else. */
+
 MX_EXPORT unsigned long
 mx_native_program_model( void )
 {
@@ -128,6 +147,8 @@ mx_native_program_model( void )
 
 	return program_model;
 }
+
+#endif
 
 MX_EXPORT uint16_t
 mx_16bit_byteswap( uint16_t original_value )

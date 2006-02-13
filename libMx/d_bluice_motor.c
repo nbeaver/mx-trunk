@@ -128,7 +128,6 @@ mxd_bluice_motor_get_pointers( MX_MOTOR *motor,
 		"of type '%s'.",
 			bluice_server_record->name,
 			mx_get_driver_name( bluice_server_record ) );
-		break;
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
@@ -604,7 +603,6 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -648,7 +646,6 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	switch( bluice_server->record->mx_type ) {

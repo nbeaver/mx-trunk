@@ -440,7 +440,6 @@ mxd_auto_filter_change_control( MX_AUTOSCALE *autoscale )
 		MX_DEBUG( 2,("%s: No change requested.", fname));
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 
 	case MXF_AUTO_INCREASE_INTENSITY:
 		if ( old_filter_setting <= auto_filter->minimum_filter_setting )
@@ -469,7 +468,6 @@ mxd_auto_filter_change_control( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal value %d for change_control.",
 			autoscale->change_control );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: Changing filter '%s' from %#lx to %#lx.",

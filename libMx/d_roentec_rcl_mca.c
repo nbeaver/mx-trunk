@@ -245,7 +245,6 @@ mxd_roentec_rcl_read_32bit_array( MX_ROENTEC_RCL_MCA *roentec_rcl_mca,
 		"MX byte order %lu is not currently supported.  "
 		"You should never see this message.",
 			mx_native_byteorder() );
-		break;
 	}
 
 #if MXD_ROENTEC_RCL_DEBUG_TIMING
@@ -626,7 +625,6 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Preset type %d is not supported for record '%s'",
 			mca->preset_type, mca->record->name );
-		break;
 	}
 
 	/* Send the command to the MCA. */
@@ -764,7 +762,6 @@ mxd_roentec_rcl_busy( MX_MCA *mca )
 		"Unrecognizable pause status character '%c' seen in "
 		"the response '%s' to command '$FP' for MCA '%s'.",
 			pause_status, response, mca->record->name );
-		break;
 	}
 
 #if MXD_ROENTEC_RCL_DEBUG
@@ -1450,7 +1447,6 @@ mxd_roentec_rcl_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;

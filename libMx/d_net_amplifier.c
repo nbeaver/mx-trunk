@@ -394,7 +394,6 @@ mxd_network_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 
 	default:
 		return mx_amplifier_default_get_parameter_handler( amplifier );
-		break;
 	}
 
 	return mx_status;

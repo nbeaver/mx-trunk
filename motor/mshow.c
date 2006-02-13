@@ -137,7 +137,6 @@ motor_show_fn( int argc, char *argv[] )
 			cname );
 		fprintf(output, "%s\n", usage);
 		return FAILURE;
-		break;
 	}
 
 	length = strlen(argv[2]);

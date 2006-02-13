@@ -391,7 +391,6 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 		}
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 
 	case 'N':
 		mx_status = mxi_pdi45_get_error_code( read_buffer,
@@ -406,71 +405,59 @@ mxi_pdi45_command( MX_PDI45 *pdi45,
 			"Error 0x00: Power up clear expected for "
 			"PDI45 controller '%s'.",
 				pdi45->record->name );
-			break;
 		case 0x01:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Error 0x01: Unrecognized command '%s' sent to "
 			"PDI45 controller '%s'.",
 				command, pdi45->record->name );
-			break;
 		case 0x02:
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Error 0x02: received command checksum "
 			"does not match the calculated checksum for "
 			"command '%s' sent to PDI45 controller '%s'.",
 				command, pdi45->record->name );
-			break;
 		case 0x03:
 			return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
 			"Error 0x03: Input buffer overflow for "
 			"PDI45 controller '%s'.",
 				pdi45->record->name );
-			break;
 		case 0x04:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Error 0x04: Non-printable characters were sent to "
 			"PDI45 controller '%s'.",
 				pdi45->record->name );
-			break;
 		case 0x05:
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Error 0x05: Not enough characters received "
 			"by PDI45 controller '%s'.",
 				pdi45->record->name );
-			break;
 		case 0x06:
 			return mx_error( MXE_TIMED_OUT, fname,
 			"Error 0x06: Communication time-out error for "
 			"PDI45 controller '%s'.",
 				pdi45->record->name );
-			break;
 		case 0x07:
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Error 0x07: The data value in command '%s' sent to "
 			"PDI45 controller '%s' is outside the allowed range.",
 				command, pdi45->record->name );
-			break;
 		case 0x10:
 			return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR,fname,
 			"Error 0x10: Improper interface connection for "
 			"current PDI45 firmware for controller '%s'.",
 				pdi45->record->name );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Error #02x: Unrecognized error code received "
 			"from PDI45 controller '%s' for command '%s'.",
 				pdi45->record->name, command );
-			break;
 		}
 
-		break;
 
 	default:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected response to command '%s'.  Response = '%s'.",
 			write_buffer, read_buffer );
-		break;
 	}
 #if defined(__BORLANDC__)
 	return MX_SUCCESSFUL_RESULT;

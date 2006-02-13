@@ -397,7 +397,6 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
-		break;
 	}
 	
 	switch( data_type ) {
@@ -410,7 +409,6 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
-		break;
 	}
 	
 	/* Print out the current motor positions (if any). */
@@ -529,7 +527,6 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown header type %d", header_type );
-		break;
 	}
 
 	/* See if the header format record exists.  If it does not exist,
@@ -597,7 +594,6 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 		status = FAILURE;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown header type %d", header_type );
-		break;
 	}
 	CHECK_FPRINTF_STATUS;
 

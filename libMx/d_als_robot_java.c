@@ -578,7 +578,6 @@ mxd_als_robot_java_set_parameter( MX_SAMPLE_CHANGER *changer )
 	default:
 		return mx_sample_changer_default_set_parameter_handler(
 								changer );
-		break;
 	}
 	MX_DEBUG(-2,("%s complete.", fname));
 

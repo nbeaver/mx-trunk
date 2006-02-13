@@ -15,6 +15,8 @@
  *
  */
 
+#define MXI_KS3344_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,10 +30,6 @@
 #include "mx_camac.h"
 #include "mx_record.h"
 #include "i_ks3344.h"
-
-/* Do we show chars using MX_DEBUG() in the getchar and putchar functions? */
-
-#define MXI_KS3344_DEBUG	FALSE
 
 /* Define private functions to handle CAMAC KS3344 ports. */
 
@@ -307,7 +305,7 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 
 	/* Loop until we see a character or abort for some reason. */
 
-	while ( 1 ) {
+	for (;;) {
 
 		/* Try to read a character. */
 
@@ -660,8 +658,6 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 flow control = %d for KS3344 '%s'.", 
 		rs232->flow_control, record->name);
-
-		break;
 	}
 
 	/* Write configuration word #1. */
@@ -701,8 +697,6 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 speed = %ld for KS3344 '%s'.", 
 		(long) rs232->speed, record->name);
-
-		break;
 	}
 
 	/* Set the word size. */
@@ -716,8 +710,6 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 word size = %d for KS3344 '%s'.", 
 		rs232->word_size, record->name);
-
-		break;
 	}
 
 	/* Set the parity. */
@@ -731,20 +723,16 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "KS3344 = '%s'.  Mark parity is not supported for CAMAC KS3344 interfaces.",
 			record->name);
-		break;
 
 	case MXF_232_SPACE_PARITY:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "KS3344 = '%s'.  Space parity is not supported for CAMAC KS3344 interfaces.",
 			record->name);
-		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 parity = '%c' for KS3344 '%s'.", 
 		rs232->parity, record->name);
-
-		break;
 	}
 
 	/* Set the stop bits. */
@@ -757,8 +745,6 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 stop bits = %d for KS3344 '%s'.", 
 		rs232->stop_bits, record->name);
-
-		break;
 	}
 
 	/* Write configuration word #2. */

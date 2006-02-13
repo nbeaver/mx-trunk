@@ -272,7 +272,6 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 			MXF_MOD_READ_DISCRETE_INPUTS,
 			MXF_MOD_READ_HOLDING_REGISTERS,
 			MXF_MOD_READ_INPUT_REGISTERS );
-		break;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -451,7 +450,6 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 			MXF_MOD_WRITE_MULTIPLE_COILS,
 			MXF_MOD_WRITE_SINGLE_REGISTER,
 			MXF_MOD_WRITE_MULTIPLE_REGISTERS );
-		break;
 	}
 
 	switch( function_code ) {

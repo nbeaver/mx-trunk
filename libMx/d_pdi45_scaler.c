@@ -69,7 +69,7 @@ mxd_pdi45_scaler_get_pointers( MX_SCALER *scaler,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_scaler_get_pointers()";
+	static const char fname[] = "mxd_pdi45_scaler_get_pointers()";
 
 	MX_PDI45_SCALER *pdi45_scaler_ptr;
 	MX_RECORD *pdi45_record;
@@ -126,7 +126,7 @@ mxd_pdi45_scaler_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_pdi45_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi45_scaler_create_record_structures()";
+	static const char fname[] = "mxd_pdi45_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_PDI45_SCALER *pdi45_scaler;
@@ -181,7 +181,7 @@ mxd_pdi45_scaler_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_pdi45_scaler_clear()";
+	static const char fname[] = "mxd_pdi45_scaler_clear()";
 
 	MX_PDI45_SCALER *pdi45_scaler;
 	MX_PDI45 *pdi45;
@@ -214,7 +214,7 @@ mxd_pdi45_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_pdi45_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_pdi45_scaler_read()";
+	static const char fname[] = "mxd_pdi45_scaler_read()";
 
 	MX_PDI45_SCALER *pdi45_scaler;
 	MX_PDI45 *pdi45;
@@ -264,7 +264,6 @@ mxd_pdi45_scaler_get_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_get_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -273,7 +272,7 @@ mxd_pdi45_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_pdi45_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_pdi45_scaler_set_parameter()";
+	static const char fname[] = "mxd_pdi45_scaler_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:
@@ -287,7 +286,6 @@ mxd_pdi45_scaler_set_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_set_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

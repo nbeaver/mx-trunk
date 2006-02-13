@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -125,7 +125,6 @@ mx_amplifier_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return status;

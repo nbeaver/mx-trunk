@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,6 @@ motor_kill_fn( int argc, char *argv[] )
 				mx_get_driver_name( record ) );
 
 		return FAILURE;
-		break;
 	}
 
 	if ( mx_status.code == MXE_SUCCESS ) {

@@ -712,7 +712,6 @@ mx_add_callback( long callback_type, MX_RECORD_FIELD *record_field,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The server callback type %ld is unrecognized.",
 			callback_type );
-		break;
 	}
 
 	/* We will be malloc'ing a new MX_CALLBACK structure in a moment,
@@ -792,7 +791,6 @@ mx_delete_callback( long callback_type, MX_RECORD_FIELD *record_field,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The server callback type %ld is unrecognized.",
 			callback_type );
-		break;
 	}
 
 	current_callback = NULL;
@@ -901,7 +899,6 @@ mx_find_callback( long callback_type, MX_RECORD_FIELD *record_field,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The server callback type %ld is unrecognized.",
 			callback_type );
-		break;
 	}
 
 	while ( current_callback != NULL ) {
@@ -966,7 +963,6 @@ mx_invoke_callback_list( long callback_type, MX_RECORD_FIELD *record_field )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The server callback type %ld is unrecognized.",
 			callback_type );
-		break;
 	}
 
 	/* Invoke all the callbacks.  Do not abort if some of the

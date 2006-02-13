@@ -98,7 +98,6 @@ mx_digital_input_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return status;

@@ -300,7 +300,6 @@ mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 		"The allowed values are 8, 16, and 32.",
 			(unsigned long) portio_dinput->data_size,
 			dinput->record->name );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -461,7 +460,6 @@ mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	"The allowed values are 8, 16, and 32.",
 			(unsigned long) portio_doutput->data_size,
 			doutput->record->name );
-		break;
 	}
 	return mx_status;
 }

@@ -787,7 +787,6 @@ mxd_tangent_arm_get_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
-		break;
 
 	case MXLV_MTR_SPEED:
 		/* Compute the instantaneous angular speed from the
@@ -935,7 +934,6 @@ mxd_tangent_arm_set_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
-		break;
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		status =
@@ -1143,7 +1141,6 @@ mxd_tangent_arm_get_angle_offset_value(
 				angle_offset_record->name,
 				mx_get_driver_name( angle_offset_record ),
 				tangent_arm->motor->record->name );
-			break;
 		}
 		break;
 	default:
@@ -1154,7 +1151,6 @@ mxd_tangent_arm_get_angle_offset_value(
 			angle_offset_record->name,
 			mx_get_driver_name( angle_offset_record ),
 			tangent_arm->motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1211,7 +1207,6 @@ mxd_tangent_arm_set_angle_offset_value(
 				angle_offset_record->name,
 				mx_get_driver_name( angle_offset_record ),
 				tangent_arm->motor->record->name );
-			break;
 		}
 		break;
 	default:
@@ -1222,7 +1217,6 @@ mxd_tangent_arm_set_angle_offset_value(
 			angle_offset_record->name,
 			mx_get_driver_name( angle_offset_record ),
 			tangent_arm->motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

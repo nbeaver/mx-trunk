@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -465,7 +465,7 @@ mxser_receive_characters_from_the_server( MX_RECORD *port_record,
 
 	sleep_us = mx_round( 1000000.0 * sleep_seconds );
 
-	while (1) {
+	for (;;) {
 		num_bytes_available = 0;
 
 		while ( num_bytes_available == 0 ) {
@@ -487,6 +487,10 @@ mxser_receive_characters_from_the_server( MX_RECORD *port_record,
 
 		fflush( to_user );
 	}
+
+#if defined(OS_HPUX)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 #define MXSERIAL_BUFFER_SIZE	1000
@@ -503,7 +507,7 @@ mxser_send_characters_to_the_server( MX_RECORD *port_record,
 	mx_status_type mx_status;
 
 	if ( file != NULL ) {
-		while (1) {
+		for (;;) {
 			bytes_read = fread( buffer,
 					1, MXSERIAL_BUFFER_SIZE, file );
 
@@ -526,7 +530,7 @@ mxser_send_characters_to_the_server( MX_RECORD *port_record,
 		}
 	}
 
-	while (1) {
+	for (;;) {
 		if ( mx_kbhit() ) {
 			c = mx_getch();
 
@@ -553,5 +557,9 @@ mxser_send_characters_to_the_server( MX_RECORD *port_record,
 		}
 		mx_msleep(1);
 	}
+
+#if defined(OS_HPUX)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 

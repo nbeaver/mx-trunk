@@ -234,7 +234,6 @@ mxd_uglide_finish_record_initialization( MX_RECORD *record )
 		"The allowed axis names are 'X' and 'Y'.",
 			uglide_motor->axis_name,
 			record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -36,7 +36,7 @@ mx_amplifier_get_pointers( MX_RECORD *amplifier_record,
 			MX_AMPLIFIER_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_amplifier_get_pointers()";
+	static const char fname[] = "mx_amplifier_get_pointers()";
 
 	if ( amplifier_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -80,7 +80,7 @@ mx_amplifier_get_pointers( MX_RECORD *amplifier_record,
 MX_EXPORT mx_status_type
 mx_amplifier_get_gain( MX_RECORD *amplifier_record, double *gain )
 {
-	const char fname[] = "mx_amplifier_get_gain()";
+	static const char fname[] = "mx_amplifier_get_gain()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -109,7 +109,7 @@ mx_amplifier_get_gain( MX_RECORD *amplifier_record, double *gain )
 MX_EXPORT mx_status_type
 mx_amplifier_set_gain( MX_RECORD *amplifier_record, double gain )
 {
-	const char fname[] = "mx_amplifier_set_gain()";
+	static const char fname[] = "mx_amplifier_set_gain()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -136,7 +136,7 @@ mx_amplifier_set_gain( MX_RECORD *amplifier_record, double gain )
 MX_EXPORT mx_status_type
 mx_amplifier_get_offset( MX_RECORD *amplifier_record, double *offset )
 {
-	const char fname[] = "mx_amplifier_get_offset()";
+	static const char fname[] = "mx_amplifier_get_offset()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -165,7 +165,7 @@ mx_amplifier_get_offset( MX_RECORD *amplifier_record, double *offset )
 MX_EXPORT mx_status_type
 mx_amplifier_set_offset( MX_RECORD *amplifier_record, double offset )
 {
-	const char fname[] = "mx_amplifier_set_offset()";
+	static const char fname[] = "mx_amplifier_set_offset()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -193,7 +193,7 @@ MX_EXPORT mx_status_type
 mx_amplifier_get_time_constant( MX_RECORD *amplifier_record,
 						double *time_constant )
 {
-	const char fname[] = "mx_amplifier_get_time_constant()";
+	static const char fname[] = "mx_amplifier_get_time_constant()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -223,7 +223,7 @@ MX_EXPORT mx_status_type
 mx_amplifier_set_time_constant( MX_RECORD *amplifier_record,
 						double time_constant )
 {
-	const char fname[] = "mx_amplifier_set_time_constant()";
+	static const char fname[] = "mx_amplifier_set_time_constant()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *function_list;
@@ -316,7 +316,8 @@ mx_amplifier_set_parameter( MX_RECORD *amplifier_record, int parameter_type )
 MX_EXPORT mx_status_type
 mx_amplifier_default_get_parameter_handler( MX_AMPLIFIER *amplifier )
 {
-	const char fname[] = "mx_amplifier_default_get_parameter_handler()";
+	static const char fname[] =
+		"mx_amplifier_default_get_parameter_handler()";
 
 	switch( amplifier->parameter_type ) {
 	case MXLV_AMP_GAIN_RANGE:
@@ -333,7 +334,6 @@ mx_amplifier_default_get_parameter_handler( MX_AMPLIFIER *amplifier )
 						amplifier->parameter_type ),
 			(int) amplifier->parameter_type,
 			amplifier->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -342,7 +342,8 @@ mx_amplifier_default_get_parameter_handler( MX_AMPLIFIER *amplifier )
 MX_EXPORT mx_status_type
 mx_amplifier_default_set_parameter_handler( MX_AMPLIFIER *amplifier )
 {
-	const char fname[] = "mx_amplifier_default_set_parameter_handler()";
+	static const char fname[] =
+		"mx_amplifier_default_set_parameter_handler()";
 
 	mx_status_type mx_status;
 
@@ -368,7 +369,7 @@ MX_EXPORT mx_status_type
 mx_amplifier_get_gain_range( MX_RECORD *amplifier_record,
 				double *gain_range_array )
 {
-	const char fname[] = "mx_amplifier_get_gain_range()";
+	static const char fname[] = "mx_amplifier_get_gain_range()";
 
 	MX_AMPLIFIER *amplifier;
 	MX_AMPLIFIER_FUNCTION_LIST *fl_ptr;

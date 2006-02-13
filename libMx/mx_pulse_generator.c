@@ -608,7 +608,6 @@ mx_pulse_generator_default_get_parameter_handler(
 					pulse_generator->parameter_type ),
 			(int) pulse_generator->parameter_type,
 			pulse_generator->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -638,7 +637,6 @@ mx_pulse_generator_default_set_parameter_handler(
 					pulse_generator->parameter_type ),
 			(int) pulse_generator->parameter_type,
 			pulse_generator->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

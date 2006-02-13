@@ -206,7 +206,6 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The relay command %d is unrecognized.",
 			relay->relay_command );
-		break;
 	}
 
 	if ( generic_relay->grelay_flags & MXF_GRELAY_INVERT_OUTPUT ) {
@@ -286,7 +285,6 @@ mxd_generic_relay_get_relay_status( MX_RELAY *relay )
 		"digital input or output record.",
 			generic_relay->input_record->name,
 			relay->record->name );
-		break;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )

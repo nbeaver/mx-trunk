@@ -382,7 +382,6 @@ mxd_itc503_motor_open( MX_RECORD *record )
 "Interface record '%s' is of unsupported type '%s'.",
 			record->name, interface_record->name,
 			mx_get_driver_name( interface_record ) );
-		break;
 	}
 
 	/* Ask for the version number of the controller. */

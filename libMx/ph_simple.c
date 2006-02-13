@@ -298,7 +298,6 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Permit record '%s' is of a device class (%ld) that may not be used as "
 	"a permit record.", permit_record->name, permit_record->mx_class );
-			break;
 		}
 		break;
 	case MXR_VARIABLE:
@@ -414,14 +413,12 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Permit record '%s' is of a variable field type (%ld) that may not be used as "
 "a permit record.", permit_record->name, field_type );
-			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Permit record '%s' is of a superclass (%ld) that may not be used as "
 	"a permit record.", permit_record->name, permit_record->mx_superclass );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

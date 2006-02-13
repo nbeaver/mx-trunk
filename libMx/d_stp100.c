@@ -207,7 +207,6 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal positive limit switch pin number %d.",
 			stp100_motor->positive_limit_switch_pin );
-		break;
 	}
 	switch( stp100_motor->negative_limit_switch_pin ) {
 	case 3:
@@ -233,7 +232,6 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal positive limit switch pin number %d.",
 			stp100_motor->positive_limit_switch_pin );
-		break;
 	}
 
 	return status;
@@ -437,10 +435,8 @@ mxd_stp100_motor_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_NOT_READY, fname,
 "No response from the Pontech controller for '%s'.  Is it turned on?",
 			record->name );
-		break;
 	default:
 		return status;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1002,7 +998,6 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1045,7 +1040,6 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 						NULL, 0, STP100_MOTOR_DEBUG );
 
 		return status;
-		break;
 
 	case MXLV_MTR_BASE_SPEED:
 		/* Get the slew speed step delay. */
@@ -1086,7 +1080,6 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 						NULL, 0, STP100_MOTOR_DEBUG );
 
 		return status;
-		break;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
 		/* The smallest possible total step delay is 6 according
@@ -1155,11 +1148,9 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 						NULL, 0, STP100_MOTOR_DEBUG );
 
 		return status;
-		break;
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

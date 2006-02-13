@@ -342,10 +342,8 @@ mxi_vme58_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 	"Attempt to communicate with the VME58 controller '%s' failed.",
 			record->name );
-		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	/* Start with some conservative defaults. */
@@ -435,7 +433,7 @@ mxi_vme58_command( MX_VME58 *vme58, char *command,
 	}
 
 #if MXI_VME58_COMMAND_DELAY
-	while (1) {
+	for (;;) {
 		MX_CLOCK_TICK current_tick;
 		int comparison;
 
@@ -445,7 +443,7 @@ mxi_vme58_command( MX_VME58 *vme58, char *command,
 				vme58->next_command_must_be_after_this_tick );
 
 		if ( comparison >= 0 )
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for(;;) loop. */
 	}
 #endif
 

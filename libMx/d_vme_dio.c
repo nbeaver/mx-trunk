@@ -367,7 +367,6 @@ mxd_vme_din_read( MX_DIGITAL_INPUT *dinput )
 		"The allowed values are 8, 16, and 32.",
 			(unsigned long) vme_dinput->data_size,
 			dinput->record->name );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -569,7 +568,6 @@ mxd_vme_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		"The allowed values are 8, 16, and 32.",
 			(unsigned long) vme_doutput->data_size,
 			doutput->record->name );
-		break;
 	}
 	return mx_status;
 }

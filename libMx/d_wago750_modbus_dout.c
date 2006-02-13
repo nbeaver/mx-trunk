@@ -199,7 +199,6 @@ mxd_wago750_modbus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			MXF_MOD_WRITE_MULTIPLE_COILS,
 			MXF_MOD_WRITE_SINGLE_REGISTER,
 			MXF_MOD_WRITE_MULTIPLE_REGISTERS );
-		break;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )

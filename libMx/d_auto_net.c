@@ -608,7 +608,6 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 
 	default:
 		return mx_autoscale_default_get_parameter_handler( autoscale );
-		break;
 	}
 	return mx_status;
 }
@@ -684,7 +683,6 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 
 	default:
 		return mx_autoscale_default_set_parameter_handler( autoscale );
-		break;
 	}
 
 	return mx_status;

@@ -1479,7 +1479,6 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 						motor->parameter_type ),
 			motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1596,7 +1595,6 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 						motor->parameter_type ),
 			motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING

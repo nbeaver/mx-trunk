@@ -1187,7 +1187,6 @@ mxd_xia_dxp_open( MX_RECORD *record )
 		"XIA Handel support is not compiled into this copy of MX.  "
 		"You will need to recompile MX including Handel support "
 		"to fix this." );
-		break;
 #endif
 
 	default:
@@ -1652,7 +1651,6 @@ mxd_xia_dxp_close( MX_RECORD *record )
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
 #endif
-		break;
 
 	case MXI_GEN_XIA_XERXES:
 
@@ -1679,7 +1677,6 @@ mxd_xia_dxp_close( MX_RECORD *record )
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
 #endif
-		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -1688,7 +1685,6 @@ mxd_xia_dxp_close( MX_RECORD *record )
 			mca->record->name,
 			xia_dxp_record->name,
 			xia_dxp_record->name );
-		break;
 	}
 
 	for ( i = 0; i < num_mcas; i++ ) {
@@ -1750,7 +1746,6 @@ mxd_xia_dxp_start( MX_MCA *mca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Preset type %d is not supported for record '%s'",
 			mca->preset_type, mca->record->name );
-		break;
 	}
 
 #if MXD_XIA_DXP_DEBUG
@@ -2288,7 +2283,6 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 		break;
 	default:
 		return mx_mca_default_get_parameter_handler( mca );
-		break;
 	}
 
 	return mx_status;
@@ -2384,7 +2378,6 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 		break;
 	default:
 		return mx_mca_default_set_parameter_handler( mca );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2468,7 +2461,6 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 		"xia_dxp_record '%s' is not a "
 		"XIA MDS record or a XIA Xerxes record.",
 			xia_dxp_record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2879,7 +2871,6 @@ mxd_xia_dxp_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;

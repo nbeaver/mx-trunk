@@ -589,7 +589,6 @@ mxd_spec_motor_find_home_position( MX_MOTOR *motor )
 		"The legal values are -1, 1 for home search, "
 		"-2, 2 for limit search, 0 for ***FIXME***",
 			motor->home_search, motor->record->name );
-		break;
 	}
 
 	sprintf( property_name, "motor/%s/search",
@@ -699,7 +698,6 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 #if MXD_SPEC_MOTOR_DEBUG
@@ -798,7 +796,6 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 #if MXD_SPEC_MOTOR_DEBUG

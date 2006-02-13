@@ -636,7 +636,6 @@ mxd_vsc16_scaler_set_parameter( MX_SCALER *scaler )
 		"Unsupported preset mode %d requested for VSC16 scaler '%s'.  "
 		"Only preset mode and counter mode are supported.",
 				scaler->mode, scaler->record->name );
-			break;
 		}
 
 		mx_status = mx_vme_out16( vme_record, crate, MXF_VME_A32,

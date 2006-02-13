@@ -118,7 +118,6 @@ motor_setup_list_scan_parameters(
 			fname, scan_type );
 
 		return FAILURE;
-		break;
 	}
 
 	/* Add the record type info to the record description. */
@@ -190,7 +189,6 @@ motor_setup_list_scan_parameters(
 			fprintf( output, "%s: Unrecognized scan type %ld.\n",
 				fname, scan_type );
 			return FAILURE;
-			break;
 		}
 	} else {
 		motor_record_array = old_scan->motor_record_array;
@@ -211,7 +209,6 @@ motor_setup_list_scan_parameters(
 			fprintf( output, "%s: Unrecognized scan type %ld.\n",
 				fname, scan_type );
 			return FAILURE;
-			break;
 		}
 	}
 
@@ -280,7 +277,6 @@ motor_setup_list_scan_parameters(
 			fname, scan_type );
 
 		return FAILURE;
-		break;
 	}
 
 	/* Prompt for the common scan parameters such as input devices,
@@ -355,7 +351,6 @@ motor_setup_list_scan_parameters(
 			fname, scan_type );
 
 		return FAILURE;
-		break;
 	}
 
 	/* Delete the old scan if it exists. */

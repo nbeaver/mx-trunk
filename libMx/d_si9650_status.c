@@ -231,7 +231,6 @@ mxd_si9650_status_read( MX_ANALOG_INPUT *ainput )
 "The allowed values are in the range (1-2).",
 			si9650_status->parameter_type,
 			ainput->record->name );
-		break;
 	}
 
 	mx_status = mxd_si9650_motor_command( si9650_motor, command,

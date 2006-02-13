@@ -912,11 +912,11 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	fprintf( output, "\nHit any key to close the plot.\n" );
 
-	while (1) {
+	for (;;) {
 		if ( mx_kbhit() ) {
 			(void) mx_getch();
 
-			break;		/* Exit the while loop */
+			break;		/* Exit the for(;;) loop */
 		}
 		mx_msleep(500);
 	}

@@ -313,7 +313,6 @@ mxi_ortec974_open( MX_RECORD *record )
 "  Only RS-232 and GPIB interfaces are supported for this module.",
 			interface_record->name, record->name,
 			ortec974->module_interface.record->mx_class );
-		break;
 	}
 
 	/* Just in case the timer is running, tell it to stop. */

@@ -274,7 +274,6 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal Ortec 974 timer mode %d",
 			ortec974_timer->timer_mode );
-		break;
 	}
 
 	mx_msleep( nap_milliseconds );
@@ -441,7 +440,6 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal timer mode %d requested.", timer_mode );
-			break;
 		}
 
 		status = mxi_ortec974_command( ortec974, command,

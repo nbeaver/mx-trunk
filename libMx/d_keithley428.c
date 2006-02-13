@@ -281,7 +281,6 @@ mxd_keithley428_open( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal ASCII terminator %#lx specified for Keithley '%s'",
 			read_terminator, record->name );
-		break;
 	}
 
 	mx_status = mxd_keithley428_command( interface, command,
@@ -700,7 +699,6 @@ mxd_keithley428_get_time_constant( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"Illegal rise time setting %d found in machine status word '%s'",
 			rise_time_setting, buffer );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -792,7 +790,6 @@ mxd_keithley428_set_time_constant( MX_AMPLIFIER *amplifier )
 			break;
 		default:
 			return mx_status;
-			break;
 		}
 	}
 

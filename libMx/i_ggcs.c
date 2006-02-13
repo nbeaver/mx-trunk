@@ -210,7 +210,6 @@ mxi_ggcs_open( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return status;
-		break;
 	}
 
 	/* Verify that the GGCS controller is active by querying it for
@@ -237,10 +236,8 @@ mxi_ggcs_open( MX_RECORD *record )
 		return mx_error( MXE_NOT_READY, fname,
 		"No response from the GGCS controller '%s'.  Is it turned on?",
 			record->name );
-		break;
 	default:
 		return status;
-		break;
 	}
 
 	/* Check to see if the response string matches what we expect. */
@@ -295,7 +292,6 @@ mxi_ggcs_close( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return status;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

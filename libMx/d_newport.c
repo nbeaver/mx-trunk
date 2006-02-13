@@ -804,7 +804,6 @@ mxd_newport_immediate_abort( MX_MOTOR *motor )
 	"Motor '%s' is not a Newport MM3000, MM4000, or ESP controlled motor.  "
 	"Actual motor type = %ld.", motor->record->name,
 				motor->record->mx_type );
-		break;
 	}
 
 	mx_status = mxi_newport_command( newport, command,
@@ -928,7 +927,6 @@ mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 	"Motor '%s' is not a Newport MM3000, MM4000, or ESP controlled motor.  "
 	"Actual motor type = %ld.", motor->record->name,
 				motor->record->mx_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1049,7 +1047,6 @@ mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 	"Motor '%s' is not a Newport MM3000, MM4000, or ESP controlled motor.  "
 	"Actual motor type = %ld.", motor->record->name,
 				motor->record->mx_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1117,14 +1114,12 @@ mxd_newport_constant_velocity_move( MX_MOTOR *motor )
 	case MXT_MTR_MM4000:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Constant velocity moves are not supported by the MM4000 or MM4005." );
-		break;
 
 	default:
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"Motor '%s' is not a Newport MM3000, MM4000, or ESP controlled motor.  "
 	"Actual motor type = %ld.", motor->record->name,
 				motor->record->mx_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1439,7 +1434,6 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

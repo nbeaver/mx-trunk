@@ -619,7 +619,6 @@ mxi_hsc1_handle_error_code( const char *calling_fname,
 		break;
 	case 9:
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	case 10:
 		mx_error_code = MXE_DEVICE_ACTION_FAILED;
 		break;
@@ -843,7 +842,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	max_attempts = 10;
 	sleep_ms = 1;
 
-	while ( 1 ) {
+	for (;;) {
 
 		for ( i=0; i < max_attempts; i++ ) {
 			if ( i > 0 ) {
@@ -896,7 +895,7 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 		if (strncmp( buffer_ptr, module_id, module_id_length ) == 0) {
 
-			/* If the module IDs match, exit the while loop. */
+			/* If the module IDs match, exit the for() loop. */
 
 			break;
 		}

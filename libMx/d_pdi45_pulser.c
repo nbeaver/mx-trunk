@@ -67,7 +67,7 @@ mxd_pdi45_pulser_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_pulser_get_pointers()";
+	static const char fname[] = "mxd_pdi45_pulser_get_pointers()";
 
 	MX_RECORD *pdi45_pulser_record, *pdi45_record;
 	MX_PDI45_PULSER *local_pdi45_pulser;
@@ -125,7 +125,7 @@ mxd_pdi45_pulser_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi45_pulser_create_record_structures()";
+	static const char fname[] = "mxd_pdi45_pulser_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PDI45_PULSER *pdi45_pulser;
@@ -163,7 +163,7 @@ mxd_pdi45_pulser_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi45_pulser_open()";
+	static const char fname[] = "mxd_pdi45_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_PDI45_PULSER *pdi45_pulser;
@@ -197,7 +197,7 @@ mxd_pdi45_pulser_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_pdi45_pulser_is_busy()";
+	static const char fname[] = "mxd_pdi45_pulser_is_busy()";
 
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
@@ -243,7 +243,7 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_pdi45_pulser_start()";
+	static const char fname[] = "mxd_pdi45_pulser_start()";
 
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
@@ -268,7 +268,7 @@ mxd_pdi45_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_pdi45_pulser_stop()";
+	static const char fname[] = "mxd_pdi45_pulser_stop()";
 
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
@@ -293,7 +293,7 @@ mxd_pdi45_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_pdi45_pulser_get_parameter()";
+	static const char fname[] = "mxd_pdi45_pulser_get_parameter()";
 
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
@@ -340,7 +340,6 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_get_parameter_handler(
 							pulse_generator );
-		break;
 	}
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -350,7 +349,7 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_pdi45_pulser_set_parameter()";
+	static const char fname[] = "mxd_pdi45_pulser_set_parameter()";
 
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
@@ -404,7 +403,6 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	default:
 		return mx_pulse_generator_default_set_parameter_handler(
 							pulse_generator );
-		break;
 	}
 	MX_DEBUG(-2,("%s complete.", fname));
 

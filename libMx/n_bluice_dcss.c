@@ -158,7 +158,7 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 	snprintf( message_type_format, sizeof(message_type_format),
 			"%%%lus", (unsigned long) sizeof(message_type_name) );
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_bluice_receive_message( dcss_server_record,
 					NULL, 0, &actual_data_length, -1 );
 
@@ -189,7 +189,7 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 			if ( strcmp( message_type_name, 
 				dcss_handler_list[i].message_name ) == 0 )
 			{
-				break;		/* Exit the for() loop. */
+				break;		/* Exit the for(i) loop. */
 			}
 		}
 
@@ -219,6 +219,11 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 
 		mx_status = mx_thread_check_for_stop_request( thread );
 	}
+
+#if defined(OS_HPUX)
+	return MX_SUCCESSFUL_RESULT;
+#endif
+
 }
 
 static mx_status_type
@@ -891,7 +896,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 		"from Blu-Ice server '%s'.", bluice_server->record->name );
 	}
 
-	while (1) {
+	for (;;) {
 		/* The next string should be an ion chamber name. */
 
 		ion_chamber_name = mx_string_split( &ptr, " " );
@@ -899,7 +904,7 @@ stog_report_ion_chambers( MX_THREAD *thread,
 		if ( ion_chamber_name == NULL ) {
 
 			/* We have found the end of the list of ion chambers,
-			 * so break out of the while() loop.
+			 * so break out of the for(;;) loop.
 			 */
 
 			break;

@@ -1106,7 +1106,6 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 	return mx_status;
@@ -1262,7 +1261,6 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 	return mx_status;

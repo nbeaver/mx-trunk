@@ -768,7 +768,6 @@ mxd_icplus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal argument type %d for record '%s'.",
 			icplus_aoutput->argument_type, aoutput->record->name );
-		break;
 	}
 
 	mx_status = mxd_icplus_command( icplus, command,

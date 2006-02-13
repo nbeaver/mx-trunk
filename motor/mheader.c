@@ -52,7 +52,6 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 		 * need any pre-scan changes.
 		 */
 		return SUCCESS;
-		break;
 	}
 
 	for ( i = 1; i < 100; i++ ) {

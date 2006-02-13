@@ -728,7 +728,6 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 	return status;
@@ -805,7 +804,6 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			motor->parameter_type );
-		break;
 	}
 
 	return status;

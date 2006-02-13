@@ -857,7 +857,6 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal axis_id %d was specified.", table->axis_id );
-		break;
 	}
 
 	/* Check to see if any of the new destinations would exceed
@@ -1039,7 +1038,6 @@ mxd_adc_table_get_position( MX_TABLE *table )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal axis_id %d was specified.", table->axis_id );
-		break;
 	}
 
 	return mx_status;

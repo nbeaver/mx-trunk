@@ -80,7 +80,7 @@ motor_home_fn( int argc, char *argv[] )
 
 	fprintf(output,"*** Home search in progress ***\n");
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_motor_get_extended_status( record,
 						&position, &motor_status );
 
@@ -94,14 +94,14 @@ motor_home_fn( int argc, char *argv[] )
 
 			(void) mx_motor_soft_abort( record );
 
-			break;		/* Exit the while loop. */
+			break;		/* Exit the for(;;) loop. */
 		}
 
 		busy = (int) (motor_status & MXSF_MTR_IS_BUSY);
 
 		if ( busy == FALSE ) {
 
-			/* The motor has stopped, so exit the while loop. */
+			/* The motor has stopped, so exit the for(;;) loop. */
 
 			break;
 		}

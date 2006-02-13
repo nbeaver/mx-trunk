@@ -392,10 +392,8 @@ mxi_compumotor_open( MX_RECORD *record )
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Cannot set addresses for Compumotor interface '%s' on RS-232 port '%s'.  "
 "Is it turned on?", record->name, compumotor_interface->rs232_record->name );
-			break;
 		default:
 			return mx_status;
-			break;
 		}
 	}
 
@@ -477,7 +475,6 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 		break;		/* Continue on. */
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_rs232_discard_unread_input(
@@ -679,7 +676,6 @@ mxi_compumotor_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;
@@ -787,12 +783,6 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-
-		if ( 0 ) {
-			MX_DEBUG(-2,
-			("%s: discarded echoed command string '%s'",
-				fname, echoed_command_string));
-		}
 	}
 
 	/* Get the response, if one is expected. */

@@ -760,7 +760,6 @@ mxd_mdrive_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -814,7 +813,6 @@ mxd_mdrive_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 	return mx_status;
 }

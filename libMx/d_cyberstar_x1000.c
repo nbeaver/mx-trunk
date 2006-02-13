@@ -191,7 +191,6 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_rs232_discard_unwritten_output(
@@ -204,7 +203,6 @@ mxd_cyberstar_x1000_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	mx_status = mx_sca_set_parameter( record,
@@ -505,7 +503,6 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 
 	default:
 		return mx_sca_default_get_parameter_handler( sca );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -686,7 +683,6 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	default:
 		return mx_sca_default_get_parameter_handler( sca );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -786,7 +782,6 @@ mxd_cyberstar_x1000_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;

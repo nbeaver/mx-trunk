@@ -193,7 +193,6 @@ mxd_pfcu_relay_command( MX_RELAY *relay )
 			"for this function.",
 			mx_get_driver_name( relay->record ),
 			relay->record->name );
-		break;
 	}
 
 	mx_status = mxi_pfcu_command( pfcu, pfcu_relay->module_number,
@@ -242,21 +241,18 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"PFCU filter '%s' has detected an open circuit.",
 				relay->record->name );
-			break;
 		case '3':
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 			"PFCU filter '%s' has detected a short circuit.",
 				relay->record->name );
-			break;
 		default:
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
     "PFCU filter '%s' has reported an illegal status '%c' in response '%s'.",
 				relay->record->name, response[i], response );
-			break;
 		}
 		break;
 
@@ -274,14 +270,12 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "PFCU shutter '%s' has detected an open circuit for position 3.",
 				relay->record->name );
-			break;
 		case '3':
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "PFCU shutter '%s' has detected a short circuit for position 3.",
 				relay->record->name );
-			break;
 		default:
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
@@ -289,7 +283,6 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			"PFCU filter '%s' has reported an illegal status '%c' "
 			"for position 3 in response '%s'.",
 				relay->record->name, response[2], response );
-			break;
 		}
 
 		/* See if position 4 has a legal status. */
@@ -305,14 +298,12 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "PFCU shutter '%s' has detected an open circuit for position 4.",
 				relay->record->name );
-			break;
 		case '3':
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	    "PFCU shutter '%s' has detected a short circuit for position 4.",
 				relay->record->name );
-			break;
 		default:
 			relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
@@ -320,7 +311,6 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			"PFCU filter '%s' has reported an illegal status '%c' "
 			"for position 4 in response '%s'.",
 				relay->record->name, response[3], response );
-			break;
 		}
 
 		/* If we get here, then both position 3 and position 4 have
@@ -340,7 +330,6 @@ mxd_pfcu_get_relay_status( MX_RELAY *relay )
 			"for this function.",
 			mx_get_driver_name( relay->record ),
 			relay->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

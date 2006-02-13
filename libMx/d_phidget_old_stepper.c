@@ -467,7 +467,6 @@ mxd_phidget_old_stepper_get_extended_status( MX_MOTOR *motor )
 		"Illegal motor number %d specified for motor '%s'",
 			phidget_old_stepper->motor_number,
 			motor->record->name );
-		break;
 	}
 
 	/* Read from the controller twice in a row.  If the reported position

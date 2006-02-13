@@ -686,7 +686,6 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 				counter_mode_register,
 				this_record->name, n,
 				timer->record->name );
-			break;
 		}
 
 		result = multiplier * (double) this_am9513->hold_register[n];

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -232,7 +232,6 @@ mxd_keithley2400_aoutput_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Record '%s' is not an RS-232 or GPIB record.",
 			interface->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -299,7 +298,6 @@ mxd_keithley2400_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 			keithley2400_aoutput->source_type,
 			keithley2400->record->name,
 			aoutput->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley_command( aoutput->record, interface, command,

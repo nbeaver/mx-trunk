@@ -106,6 +106,23 @@
 
 #  include <inttypes.h>
 
+   /* Some build targets do not define all of the macros. */
+
+#  if defined(OS_HPUX) && !defined(SCNd8)
+
+#     define SCNd8	"hhd"
+#     define SCNu8	"hhu"
+#     define SCNx8	"hhx"
+
+#     define PRId64	"lld"
+#     define PRIu64	"llu"
+#     define PRIx64	"llx"
+
+#     define SCNd64	"lld"
+#     define SCNu64	"llu"
+#     define SCNx64	"llx"
+#  endif
+
 #endif
 
 #endif /* __MX_INTTYPES_H__ */

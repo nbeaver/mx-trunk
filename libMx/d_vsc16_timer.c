@@ -516,7 +516,6 @@ mxd_vsc16_timer_set_mode( MX_TIMER *timer )
 	"Unsupported preset mode %d requested for VSC16 timer '%s'.  "
 	"Only preset mode and counter mode are supported.",
 			timer->mode, timer->record->name );
-		break;
 	}
 
 	mx_status = mx_vme_out16( vme_record, crate, MXF_VME_A32,

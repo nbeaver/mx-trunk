@@ -1060,7 +1060,6 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 "Allowed values are 0=ignore, 1=open for scan, 2=open for datapoint",
 				MX_SCAN_SHUTTER_POLICY_RECORD_NAME,
 				scan->shutter_policy );
-			break;
 		}
 
 		/* Find the shutter record. */
@@ -2080,7 +2079,6 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 				"for the MX '%s' driver used by record '%s'.",
 					mx_get_driver_name( input_device ),
 					input_device->name );
-			break;
 		}
 		break;
 
@@ -2146,7 +2144,6 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			"that return numerical values.  Variable record '%s' "
 			"does not meet these requirements.",
 				input_device->name );
-			break;
 		}
 		break;
 
@@ -2156,7 +2153,6 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			"device and variable records.  Record '%s' is "
 			"not a device record or a variable record.",
 				input_device->name );
-		break;
 	}
 
 	return mx_status;
@@ -2245,7 +2241,6 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 				return mx_error(MXE_NOT_YET_IMPLEMENTED, fname,
 				"Motor subclass %d not yet implemented.",
 					(int) motor->subclass );
-				break;
 			}
 			position = motor->offset + motor->scale * raw_position;
 
@@ -2290,7 +2285,6 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Record class %ld not yet implemented.",
 				input_device->mx_class );
-			break;
 		}
 		break;
 	case MXR_VARIABLE:
@@ -2331,7 +2325,6 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"Record superclass %ld not yet implemented.",
 				input_device->mx_superclass );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

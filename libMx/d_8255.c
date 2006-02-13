@@ -296,13 +296,11 @@ mxd_8255_in_finish_record_initialization( MX_RECORD *record )
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized half port name '%s'", i8255_in->port);
-			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%s'", i8255_in->port);
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -450,7 +448,6 @@ mxd_8255_in_open( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal 8255 port number %d", i8255_in->port_number );
-		break;
 	}
 
 	status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );
@@ -606,13 +603,11 @@ mxd_8255_out_finish_record_initialization( MX_RECORD *record )
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized half port name '%s'", i8255_out->port);
-			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%s'", i8255_out->port);
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -781,7 +776,6 @@ mxd_8255_out_open( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal 8255 port number %d", i8255_out->port_number );
-		break;
 	}
 
 	status = mxi_8255_write_port( i8255, MX_8255_PORT_D, port_d_value );

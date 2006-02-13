@@ -170,7 +170,6 @@ motor_rs232_fn( int argc, char *argv[] )
 		/* Putline is done at this point. */
 
 		return SUCCESS;
-		break;
 
 	case RS232_GETLINE_CMD:
 
@@ -188,7 +187,7 @@ motor_rs232_fn( int argc, char *argv[] )
 
 		mx_msleep(500);
 
-		while ( 1 ) {
+		for (;;) {
 			if ( mx_user_requested_interrupt() ) {
 				fprintf( output,
 "Warning: The output from the 'rs232' command was interrupted before all\n"
@@ -200,7 +199,7 @@ motor_rs232_fn( int argc, char *argv[] )
 			status = motor_rs232_readline( record );
 
 			if ( status == FAILURE )
-				break;		/* Exit the while() loop. */
+				break;		/* Exit the for(;;) loop. */
 
 			mx_msleep(10);
 		}

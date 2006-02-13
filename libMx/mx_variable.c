@@ -515,7 +515,6 @@ mx_set_1d_array( MX_RECORD *record,
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"This function is unsupported for the field type %ld.",
 				requested_field_type );
-			break;
 		}
 
 		memmove( pointer_to_value,

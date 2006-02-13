@@ -11,7 +11,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -107,7 +107,6 @@ mx_install_syslog_handler( char *ident_string,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal syslog log number %d.  The allowed values are from 0 to 7.",
 			log_number );
-		break;
 	}
 
 #ifdef LOG_PERROR

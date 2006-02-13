@@ -191,19 +191,16 @@ mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	case 0xb1:		/* ACK response. */
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	case 0xb4:		/* NAK response. */
 
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"Error in command sent to Panasonic PTZ '%s'.",
 			kx_dp702->record->name );
-		break;
 	default:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Unrecognized first character %#x in response "
 			"to command sent to Panasonic PTZ '%s'.",
 			response[0], kx_dp702->record->name );
-		break;
 	}
 
 	/* Borland C insists that there be a return statement here, while
@@ -298,7 +295,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	wait_ms = 100;
 	max_attempts = 50;
 
-	while (1) {
+	for (;;) {
 		for ( i = 0; i < max_attempts; i++ ) {
 			mx_status = mx_rs232_num_input_bytes_available(
 					kx_dp702->rs232_record,
@@ -308,7 +305,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 				return mx_status;
 
 			if ( num_bytes_available != 0 ) {
-				break;		/* Exit the for() loop. */
+				break;		/* Exit the for(i,) loop. */
 			}
 
 			mx_msleep( wait_ms );
@@ -355,7 +352,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 		}
 
 		if ( exit_loop ) {
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for(;;) loop. */
 		}
 	}
 

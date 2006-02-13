@@ -270,7 +270,6 @@ mxi_iseries_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Bus record '%s' is not an RS-232 or a MODBUS record.",
 			iseries->bus_record->name );
-		break;
 	}
 
 	iseries->software_version = software_version;

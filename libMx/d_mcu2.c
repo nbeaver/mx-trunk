@@ -711,7 +711,6 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -815,7 +814,6 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;
@@ -885,7 +883,6 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 			"Illegal negative limit status byte '%c' seen for "
 			"MCU-2 '%s'.  The expected values are '-' or '0'.",
 				ptr[0], motor->record->name );
-		break;
 	}
 
 	/* Byte 1: Home switch status */
@@ -902,7 +899,6 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 			"Illegal home switch status byte '%c' seen for "
 			"MCU-2 '%s'.  The expected values are 'H' or '0'.",
 				ptr[1], motor->record->name );
-		break;
 	}
 
 	/* Byte 2: Positive limit status */
@@ -919,7 +915,6 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 			"Illegal positive limit status byte '%c' seen for "
 			"MCU-2 '%s'.  The expected values are '+' or '0'.",
 				ptr[2], motor->record->name );
-		break;
 	}
 
 	/* Byte 3: Controller status */
@@ -937,7 +932,6 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 			"Illegal controller status byte '%c' seen for MCU-2 "
 			"'%s'.  The expected values are '0', 'A', or 'M'.",
 				ptr[0], motor->record->name );
-		break;
 	}
 
 	/* Byte 4: Motion status */
@@ -954,7 +948,6 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 			"Illegal motion status byte '%c' seen for MCU-2 "
 			"'%s'.  The expected values are '0', 'R', or 'S'.",
 				ptr[0], motor->record->name );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: MX status word = %#lx",

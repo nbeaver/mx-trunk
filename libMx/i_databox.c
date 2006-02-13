@@ -747,14 +747,12 @@ mxi_databox_set_command_mode( MX_DATABOX *databox,
 	"mxi_databox_get_command_mode() could not determine which mode the "
 	"Databox '%s' is in, so we do not know what to do.",
 			databox->record->name );
-		break;
 
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 	"mxi_databox_get_command_mode() returned an unexpected mode %d.  "
 	"This should not be able to happen and is probably a "
 		"sign of a bug in the program.", old_mode );
-		break;
 	}
 
 	/* Now switch to the mode that we want to be in. */
@@ -800,7 +798,6 @@ mxi_databox_set_command_mode( MX_DATABOX *databox,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Requested Databox mode %d is illegal.", new_mode );
-		break;
 	}
 
 	databox->command_mode = new_mode;
@@ -942,7 +939,6 @@ mxi_databox_set_limit_mode( MX_DATABOX *databox, int limit_mode )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Limit mode %d for Databox '%s' is unsupported.",
 			limit_mode, databox->record->name );
-		break;
 	}
 
 	mx_status = mxi_databox_command( databox, command,
@@ -992,12 +988,10 @@ mxi_databox_get_record_from_motor_name( MX_DATABOX *databox,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The motor name passed for Databox '%s' was a null character.",
 			databox->record->name );
-		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The motor name '%c' (%#x) passed for Databox '%s' is an illegal motor name.",
 			motor_name, motor_name, databox->record->name );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1173,7 +1167,6 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal Databox limit mode %d.  This is a programming bug.",
 			databox->limit_mode );
-		break;
 	}
 
 	sprintf( command, "C%ld\r", count_value );

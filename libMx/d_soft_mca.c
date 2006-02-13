@@ -657,7 +657,6 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 
 	default:
 		return mx_mca_default_get_parameter_handler( mca );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

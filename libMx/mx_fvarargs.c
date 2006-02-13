@@ -155,7 +155,6 @@ mx_convert_varargs_cookie_to_value(
 		"The field '%s' pointed to by varargs cookie %ld is not "
 		"a 0 or 1 dimensional array.",
 			field->name, (long) varargs_cookie );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

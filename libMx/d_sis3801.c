@@ -1070,7 +1070,6 @@ mxd_sis3801_get_parameter( MX_MCS *mcs )
 		break;
 	default:
 		return mx_mcs_default_get_parameter_handler( mcs );
-		break;
 	}
 
 #if MXD_SIS3801_DEBUG
@@ -1110,7 +1109,6 @@ mxd_sis3801_set_parameter( MX_MCS *mcs )
 		break;
 	default:
 		return mx_mcs_default_set_parameter_handler( mcs );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 

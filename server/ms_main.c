@@ -807,7 +807,7 @@ mxserver_main( int argc, char *argv[] )
 
 	mx_info("mxserver: Ready to accept client connections.");
 
-	while (1) {
+	for (;;) {
 
 #if MS_MAIN_DEBUG_MEMORY_LEAK
 		mxsrv_display_meminfo( FALSE );
@@ -999,5 +999,9 @@ mxserver_main( int argc, char *argv[] )
 
 		} while ( current_record != mx_record_list );
 	}
+
+#if defined(OS_HPUX)
+	return 0;
+#endif
 }
 

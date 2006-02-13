@@ -239,7 +239,6 @@ mxd_keithley2700_ainput_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Record '%s' is not an RS-232 or GPIB record.",
 			interface->record->name );
-		break;
 	}
 
 	keithley2700_ainput->slot =

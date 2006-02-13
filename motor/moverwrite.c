@@ -44,14 +44,12 @@ motor_test_datafile_name( char *datafile_name )
 			/* The file does not exist, so we return success. */
 
 			return MOVERWRITE_FILE_DOES_NOT_EXIST;
-			break;
 		default:
 			fprintf( output,
 "scan: Unexpected error with filename '%s'.  Errno = %d, error text = '%s'\n",
 				datafile_name, saved_errno,
 				strerror( saved_errno ) );
 			return MOVERWRITE_UNEXPECTED_ERROR;
-			break;
 		}
 	}
 
@@ -70,7 +68,6 @@ motor_test_datafile_name( char *datafile_name )
 			fprintf( output,
 		"      and is write protected.  Aborting the scan.\n" );
 			return MOVERWRITE_READONLY_FILE_EXISTS;
-			break;
 		default:
 			fprintf( output,
 "scan: Unexpected write permission error with filename '%s'.  "
@@ -78,7 +75,6 @@ motor_test_datafile_name( char *datafile_name )
 			datafile_name, saved_errno,
 			strerror( saved_errno ) );
 			return MOVERWRITE_UNEXPECTED_ERROR;
-			break;
 		}
 	}
 
@@ -142,7 +138,6 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 		switch( status ) {
 		case MOVERWRITE_READONLY_FILE_EXISTS:
 			return FAILURE;
-			break;
 		case MOVERWRITE_FILE_EXISTS:
 			num_existing_files++;
 			break;
@@ -150,7 +145,6 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 			break;
 		default:
 			return FAILURE;
-			break;
 		}
 	} else {
 		/* CASE: Multiple scans */
@@ -208,7 +202,6 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 			switch( status ) {
 			case MOVERWRITE_READONLY_FILE_EXISTS:
 				return FAILURE;
-				break;
 			case MOVERWRITE_FILE_EXISTS:
 				num_existing_files++;
 				break;
@@ -216,7 +209,6 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 				break;
 			default:
 				return FAILURE;
-				break;
 			}
 		} else {
 			/* CASE: Multiple filenames. */
@@ -265,7 +257,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 
 	fprintf( output, "\a" );
 
-	while( 1 ) {
+	for (;;) {
 
 		string_length = sizeof(buffer) - 1;
 
@@ -311,5 +303,9 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 			}
 		}
 	}
+
+#if defined(OS_HPUX)
+	return SUCCESS;
+#endif
 }
 

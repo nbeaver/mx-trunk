@@ -354,7 +354,6 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Fault record '%s' is of a device class (%ld) that may not be used as "
 	"a fault record.", fault_record->name, fault_record->mx_class );
-			break;
 		}
 		break;
 	case MXR_VARIABLE:
@@ -470,14 +469,12 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Fault record '%s' is of a variable field type (%ld) that may not be used as "
 "a fault record.", fault_record->name, field_type );
-			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Fault record '%s' is of a superclass (%ld) that may not be used as "
 	"a fault record.", fault_record->name, fault_record->mx_superclass );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -532,7 +529,6 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Reset record '%s' is of a device class (%ld) that may not be used as "
 	"a reset record.", reset_record->name, reset_record->mx_class );
-			break;
 		}
 		break;
 	case MXR_VARIABLE:
@@ -588,14 +584,12 @@ mxfh_simple_reset( MX_MEASUREMENT_FAULT *fault_handler )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Reset record '%s' is of a variable field type (%ld) that may not be used as "
 "a reset record.", reset_record->name, field_type );
-			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Reset record '%s' is of a superclass (%ld) that may not be used as "
 	"a reset record.", reset_record->name, reset_record->mx_superclass );
-		break;
 	}
 
 	return mx_status;

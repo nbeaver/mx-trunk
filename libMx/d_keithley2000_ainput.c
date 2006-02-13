@@ -231,7 +231,6 @@ mxd_keithley2000_ainput_open( MX_RECORD *record )
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Record '%s' is not an RS-232 or GPIB record.",
 			interface->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -328,7 +327,6 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 			"Unsupported measurement type %d for record '%s'",
 				keithley2000_ainput->measurement_type,
 				ainput->record->name );
-			break;
 		}
 
 		mx_status = mxi_keithley_command(

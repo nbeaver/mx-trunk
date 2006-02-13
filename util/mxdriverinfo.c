@@ -172,7 +172,8 @@ main( int argc, char *argv[] ) {
 
 	exit(0);
 
-#if defined(OS_IRIX) || defined(OS_VXWORKS) || defined(__BORLANDC__)
+#if defined(OS_IRIX) || defined(OS_HPUX) \
+		|| defined(OS_VXWORKS) || defined(__BORLANDC__)
 	return 0;   /* These think a non-void main() should return a value. */
 #endif
 }

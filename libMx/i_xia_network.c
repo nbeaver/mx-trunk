@@ -686,7 +686,6 @@ mxi_xia_network_start_run( MX_MCA *mca,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown preset type %d for MCA '%s'",
 			mca->preset_type, mca->record->name );
-		break;
 	}
 
 	mx_status = mxi_xia_network_set_data_available_flags(
@@ -1038,7 +1037,6 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 	default:
 		return mx_mca_default_get_parameter_handler( mca );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1138,7 +1136,6 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 
 	default:
 		return mx_mca_default_set_parameter_handler( mca );
-		break;
 	}
 
 	return mx_status;

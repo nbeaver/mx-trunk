@@ -288,7 +288,6 @@ mxd_ptz_motor_move_absolute( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
-		break;
 	}
 
 	return mx_status;
@@ -333,7 +332,6 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
-		break;
 	}
 
 	return mx_status;
@@ -369,7 +367,6 @@ mxd_ptz_motor_soft_abort( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
-		break;
 	}
 
 	return mx_status;
@@ -436,14 +433,12 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 				ptz_motor->ptz_motor_type, motor->record->name);
-			break;
 		}
 
 		motor->raw_speed = (double) raw_speed;
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -493,12 +488,10 @@ mxd_ptz_motor_set_parameter( MX_MOTOR *motor )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 				ptz_motor->ptz_motor_type, motor->record->name);
-			break;
 		}
 		break;
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;
@@ -602,7 +595,6 @@ mxd_ptz_motor_get_status( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

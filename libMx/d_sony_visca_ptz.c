@@ -360,7 +360,6 @@ mxd_sony_visca_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 			"is not a known command type.",
 				(unsigned long) ptz->command,
 				sony_visca_ptz->record->name );
-		break;
 	}
 
 	/* Send the command. */
@@ -519,7 +518,6 @@ mxd_sony_visca_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		"is not a known command type.",
 			(unsigned long) ptz->command,
 			sony_visca_ptz->record->name );
-		break;
 	}
 
 	mx_status = mxi_sony_visca_cmd( sony_visca,
@@ -727,7 +725,6 @@ mxd_sony_visca_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			"Parameter type %d received for Hitachi PTZ '%s' "
 			"is not a known parameter type.",
 			saved_parameter_type, sony_visca_ptz->record->name );
-		break;
 	}
 
 	return mx_status;

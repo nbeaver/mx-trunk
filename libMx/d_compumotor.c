@@ -1470,7 +1470,6 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1597,7 +1596,6 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			 */
 
 			return MX_SUCCESSFUL_RESULT;
-			break;
 		}
 		break;
 
@@ -1606,7 +1604,6 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		motor->raw_maximum_speed = 1600000;  /* steps per second */
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
@@ -1765,7 +1762,6 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;

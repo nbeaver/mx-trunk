@@ -153,7 +153,7 @@ motor_scan_pause_request_handler( MX_SCAN *scan )
 	fprintf( output, "\n*** The scan '%s' is paused. ***\n\n",
 			scan->record->name );
 
-	while (1) {
+	for (;;) {
 		fprintf( output,
 		"Your choices are: (C)ontinue scan\n"
 		"                  (S)top motors at end of current step\n"
@@ -194,5 +194,9 @@ motor_scan_pause_request_handler( MX_SCAN *scan )
 			break;
 		}
 	}
+
+#if defined(OS_HPUX)
+	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 

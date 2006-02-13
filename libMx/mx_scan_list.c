@@ -575,7 +575,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 	mx_info("Moving to start position.");
 
-	while(1) {
+	for(;;) {
 		/* Get the next set of motor positions. */
 
 		mx_status =
@@ -583,7 +583,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 		if ( mx_status.code == MXE_END_OF_DATA ) {
 			/* We have reached the end of the position list
-			 * so we can exit the while(1) loop.
+			 * so we can exit the for() loop.
 			 */
 			break;
 
@@ -679,7 +679,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 						   scan->motor_record_array[j]);
 				}
 				return mx_status;
-				break;
+
 			case MXE_PAUSE_REQUESTED:
 				/* Ignore additional pause requests. */
 
@@ -687,7 +687,6 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 			default:
 				CLOSE_POSITION_LIST;
 				return mx_status;
-				break;
 			}
 
 		} while (1);	/** End of pause/abort retry loop. **/

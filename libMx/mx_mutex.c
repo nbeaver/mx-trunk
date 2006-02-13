@@ -772,13 +772,11 @@ mx_mutex_create( MX_MUTEX **mutex )
 	case ENOMEM:
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for a pthread_mutexattr_t object." );
-		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Unexpected Pthreads error code %d returned "
 			"by pthread_mutexattr_init().  Error message = '%s'.",
 				status, strerror( status ) );
-		break;
 	}
 	
 	status = pthread_mutexattr_settype( &p_mutex_attr,
@@ -791,14 +789,12 @@ mx_mutex_create( MX_MUTEX **mutex )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"One or more of the arguments to pthread_mutexattr_settype() "
 		"were invalid." );
-		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Unexpected Pthreads error code %d returned "
 			"by pthread_mutexattr_settype().  "
 			"Error message = '%s'.",
 				status, strerror( status ) );
-		break;
 	}
 
 	/* Create the mutex. */
@@ -817,14 +813,12 @@ mx_mutex_create( MX_MUTEX **mutex )
 	case EINVAL:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	    "The argument given to pthread_mutexattr_destroy() was invalid." );
-		break;
 	default:
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"Unexpected Pthreads error code %d returned "
 			"by pthread_mutexattr_destroy().  "
 			"Error message = '%s'.",
 				status, strerror( status ) );
-		break;
 	}
 	
 	/* Now check the status from pthread_mutex_init(). */
@@ -832,35 +826,28 @@ mx_mutex_create( MX_MUTEX **mutex )
 	switch( init_status ) {
 	case 0:
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	case EAGAIN:
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The system lacked the necessary resources (other than memory) "
 		"to initialize the mutex." );
-		break;
 	case ENOMEM:
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Insufficient memory exists to initialize the mutex." );
-		break;
 	case EPERM:
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	   "The caller does not have the privilege to perform the operation.");
-		break;
 	case EBUSY:
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The pthreads library has detected an attempt to re-initialize "
 		"an already initialized, but not yet destroyed, mutex." );
-		break;
 	case EINVAL:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The attribute passed to pthread_mutex_init() was invalid." );
-		break;
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected Pthreads error code %d returned.  "
 		"Error message = '%s'.",
 			init_status, strerror( init_status ) );
-		break;
 	}
 }
 
@@ -895,17 +882,14 @@ mx_mutex_destroy( MX_MUTEX *mutex )
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The pthreads library has detected an attempt to destroy "
 		"a mutex that is locked or referenced by another thread." );
-		break;
 	case EINVAL:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The mutex passed to pthread_mutex_destroy() was invalid." );
-		break;
 	default:
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected Pthreads error code %d returned.  "
 		"Error message = '%s'.",
 			status, strerror( status ) );
-		break;
 	}
 
 	mx_free( p_mutex_ptr );
@@ -934,19 +918,14 @@ mx_mutex_lock( MX_MUTEX *mutex )
 	switch( status ) {
 	case 0:
 		return MXE_SUCCESS;
-		break;
 	case EINVAL:
 		return MXE_ILLEGAL_ARGUMENT;
-		break;
 	case EAGAIN:
 		return MXE_WOULD_EXCEED_LIMIT;
-		break;
 	case EDEADLK:
 		return MXE_NOT_VALID_FOR_CURRENT_STATE;
-		break;
 	default:
 		return MXE_UNKNOWN_ERROR;
-		break;
 	}
 }
 
@@ -969,19 +948,14 @@ mx_mutex_unlock( MX_MUTEX *mutex )
 	switch( status ) {
 	case 0:
 		return MXE_SUCCESS;
-		break;
 	case EINVAL:
 		return MXE_ILLEGAL_ARGUMENT;
-		break;
 	case EAGAIN:
 		return MXE_WOULD_EXCEED_LIMIT;
-		break;
 	case EPERM:
 		return MXE_PERMISSION_DENIED;
-		break;
 	default:
 		return MXE_UNKNOWN_ERROR;
-		break;
 	}
 }
 
@@ -1004,19 +978,14 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 	switch( status ) {
 	case 0:
 		return MXE_SUCCESS;
-		break;
 	case EINVAL:
 		return MXE_ILLEGAL_ARGUMENT;
-		break;
 	case EBUSY:
 		return MXE_NOT_AVAILABLE;
-		break;
 	case EAGAIN:
 		return MXE_WOULD_EXCEED_LIMIT;
-		break;
 	default:
 		return MXE_UNKNOWN_ERROR;
-		break;
 	}
 }
 

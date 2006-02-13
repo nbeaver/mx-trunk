@@ -457,7 +457,6 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Data type %ld passed to '%s' is not a legal network datatype.",
 			*datatype, calling_fname );
-		break;
 	}
 
 	*num_dimensions = local_field->num_dimensions;
@@ -1186,7 +1185,6 @@ mx_get_field_array( MX_RECORD *server_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
 			(unsigned long) server->data_format );
-		break;
 	}
 
 	return mx_status;
@@ -1429,7 +1427,6 @@ mx_put_field_array( MX_RECORD *server_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
 			(unsigned long) server->data_format );
-		break;
 	}
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
@@ -2376,10 +2373,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		/* Cannot do any further negotiation, so we just return now. */
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	MX_DEBUG( 2,
@@ -2414,7 +2409,6 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		server->data_format = requested_format;
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	case MXE_NOT_YET_IMPLEMENTED:
 		/* The server does not implement 'set option'. */
 
@@ -2424,7 +2418,6 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		server->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	}
 
 	/* Selecting a binary data format failed, so try ASCII format. */
@@ -2830,7 +2823,6 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 		"was unsuccessful since the requested driver type "
 		"is not MXN_NET_TCPIP or MXN_NET_UNIX.  "
 		"This should never happen.", server_type );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: description = '%s'",

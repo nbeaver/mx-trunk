@@ -324,7 +324,6 @@ mxd_itc503_control_read( MX_ANALOG_OUTPUT *aoutput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Unsupported ITC503 control parameter type '%c' for record '%s'.",
 			itc503_control->parameter_type, aoutput->record->name );
-		break;
 	}
 
 	if ( parse_failure ) {
@@ -455,7 +454,6 @@ mxd_itc503_control_write( MX_ANALOG_OUTPUT *aoutput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Unsupported ITC503 control parameter type '%c' for record '%s'.",
 			itc503_control->parameter_type, aoutput->record->name );
-		break;
 	}
 	return mx_status;
 }

@@ -231,7 +231,6 @@ mx_ptz_default_command_handler( MX_PAN_TILT_ZOOM *ptz )
 						ptz->parameter_type ),
 			ptz->parameter_type,
 			ptz->record->name );
-		break;
 	}
 
 #if defined(__BORLANDC__)
@@ -259,7 +258,6 @@ mx_ptz_default_get_parameter_handler( MX_PAN_TILT_ZOOM *ptz )
 						ptz->parameter_type ),
 			ptz->parameter_type,
 			ptz->record->name );
-		break;
 	}
 
 #if defined(__BORLANDC__)
@@ -287,7 +285,6 @@ mx_ptz_default_set_parameter_handler( MX_PAN_TILT_ZOOM *ptz )
 						ptz->parameter_type ),
 			ptz->parameter_type,
 			ptz->record->name );
-		break;
 	}
 
 #if defined(__BORLANDC__)

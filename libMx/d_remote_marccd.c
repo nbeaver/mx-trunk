@@ -681,7 +681,6 @@ mxd_remote_marccd_get_parameter( MX_CCD *ccd )
 		break;
 	default:
 		return mx_ccd_default_get_parameter_handler( ccd );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -739,7 +738,6 @@ mxd_remote_marccd_set_parameter( MX_CCD *ccd )
 		break;
 	default:
 		return mx_ccd_default_set_parameter_handler( ccd );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -1018,7 +1016,6 @@ mxd_remote_marccd_handle_state_value( MX_CCD *ccd,
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 "An error occurred while trying to correct a frame for MarCCD device '%s'.",
 				ccd->record->name );
-			break;
 		default:
 			MX_REMOTE_MARCCD_UNHANDLED_COMMAND_MESSAGE;
 			break;
@@ -1053,7 +1050,6 @@ mxd_remote_marccd_handle_state_value( MX_CCD *ccd,
 			return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 "An error occurred while trying to write a frame for MarCCD device '%s'.",
 				ccd->record->name );
-			break;
 		default:
 			MX_REMOTE_MARCCD_UNHANDLED_COMMAND_MESSAGE;
 			break;

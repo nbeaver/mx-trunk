@@ -28,7 +28,7 @@ mx_autoscale_get_pointers( MX_RECORD *autoscale_record,
 			MX_AUTOSCALE_FUNCTION_LIST **function_list,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_autoscale_get_pointers()";
+	static const char fname[] = "mx_autoscale_get_pointers()";
 
 	if ( autoscale_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -75,7 +75,7 @@ mx_autoscale_get_pointers( MX_RECORD *autoscale_record,
 MX_EXPORT mx_status_type
 mx_autoscale_read_monitor( MX_RECORD *autoscale_record, long *monitor_value )
 {
-	const char fname[] = "mx_autoscale_read_monitor()";
+	static const char fname[] = "mx_autoscale_read_monitor()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -110,7 +110,7 @@ MX_EXPORT mx_status_type
 mx_autoscale_get_change_request( MX_RECORD *autoscale_record,
 				int *change_request )
 {
-	const char fname[] = "mx_autoscale_get_change_request()";
+	static const char fname[] = "mx_autoscale_get_change_request()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -147,7 +147,7 @@ mx_autoscale_get_change_request( MX_RECORD *autoscale_record,
 MX_EXPORT mx_status_type
 mx_autoscale_change_control( MX_RECORD *autoscale_record, int change_control )
 {
-	const char fname[] = "mx_autoscale_change_control()";
+	static const char fname[] = "mx_autoscale_change_control()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -180,7 +180,7 @@ MX_EXPORT mx_status_type
 mx_autoscale_get_offset_index( MX_RECORD *autoscale_record,
 				unsigned long *monitor_offset_index )
 {
-	const char fname[] = "mx_autoscale_get_offset_index()";
+	static const char fname[] = "mx_autoscale_get_offset_index()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -215,7 +215,7 @@ MX_EXPORT mx_status_type
 mx_autoscale_set_offset_index( MX_RECORD *autoscale_record,
 				unsigned long monitor_offset_index )
 {
-	const char fname[] = "mx_autoscale_set_offset_index()";
+	static const char fname[] = "mx_autoscale_set_offset_index()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -257,7 +257,8 @@ mx_autoscale_set_offset_index( MX_RECORD *autoscale_record,
 MX_EXPORT mx_status_type
 mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mx_autoscale_default_get_parameter_handler()";
+	static const char fname[] =
+		"mx_autoscale_default_get_parameter_handler()";
 
 	MX_DEBUG( 2,("%s invoked for autoscale '%s', parameter type '%s' (%d).",
 		fname, autoscale->record->name,
@@ -280,7 +281,6 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 						autoscale->parameter_type ),
 			(int) autoscale->parameter_type,
 			autoscale->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -289,7 +289,8 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mx_autoscale_default_set_parameter_handler()";
+	static const char fname[] =
+		"mx_autoscale_default_set_parameter_handler()";
 
 	MX_DEBUG( 2,(
 	"%s invoked for autoscale '%s', parameter type '%s' (%d).",
@@ -314,7 +315,6 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 						autoscale->parameter_type ),
 			(int) autoscale->parameter_type,
 			autoscale->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -327,7 +327,7 @@ mx_autoscale_get_offset_array( MX_RECORD *autoscale_record,
 				unsigned long *num_monitor_offsets,
 				double **monitor_offset_array )
 {
-	const char fname[] = "mx_autoscale_get_offset_array()";
+	static const char fname[] = "mx_autoscale_get_offset_array()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -369,7 +369,7 @@ mx_autoscale_set_offset_array( MX_RECORD *autoscale_record,
 				unsigned long num_monitor_offsets,
 				double *monitor_offset_array )
 {
-	const char fname[] = "mx_autoscale_set_offset_array()";
+	static const char fname[] = "mx_autoscale_set_offset_array()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -412,7 +412,7 @@ mx_autoscale_get_limits( MX_RECORD *autoscale_record,
 			double *low_limit, double *high_limit,
 			double *low_deadband, double *high_deadband )
 {
-	const char fname[] = "mx_autoscale_get_limits()";
+	static const char fname[] = "mx_autoscale_get_limits()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -485,7 +485,7 @@ mx_autoscale_set_limits( MX_RECORD *autoscale_record,
 			double low_limit, double high_limit,
 			double low_deadband, double high_deadband )
 {
-	const char fname[] = "mx_autoscale_set_limits()";
+	static const char fname[] = "mx_autoscale_set_limits()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -550,7 +550,7 @@ mx_autoscale_compute_dynamic_limits( MX_RECORD *autoscale_record,
 				double *dynamic_low_limit,
 				double *dynamic_high_limit )
 {
-	const char fname[] = "mx_autoscale_compute_dynamic_limits()";
+	static const char fname[] = "mx_autoscale_compute_dynamic_limits()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_FUNCTION_LIST *function_list;
@@ -606,7 +606,8 @@ mx_autoscale_compute_dynamic_limits( MX_RECORD *autoscale_record,
 MX_EXPORT mx_status_type
 mx_autoscale_create_monitor_offset_array( MX_AUTOSCALE *autoscale )
 {
-	const char fname[] = "mx_autoscale_create_monitor_offset_array()";
+	static const char fname[] =
+		"mx_autoscale_create_monitor_offset_array()";
 
 	MX_RECORD_FIELD *field;
 	unsigned long i;

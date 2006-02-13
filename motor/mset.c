@@ -239,7 +239,6 @@ motor_set_fn( int argc, char *argv[] )
 						record->name);
 
 					return FAILURE;
-					break;
 				}
 				break;
 			default:
@@ -248,7 +247,6 @@ motor_set_fn( int argc, char *argv[] )
 					record->name);
 
 				return FAILURE;
-				break;
 			}
 
 			mx_status = mx_autoscale_set_limits( autoscale_record,

@@ -1372,16 +1372,15 @@ mx_thread_initialize( void )
 		case EAGAIN:
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 	"Not enough resources available to create a new thread specific key." );
-			break;
+
 		case ENOMEM:
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Unable to allocate memory for a new thread specific key." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"pthread_key_create() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1548,17 +1547,16 @@ mx_thread_create( MX_THREAD **thread,
 			return mx_error( MXE_TRY_AGAIN, fname,
 				"At the moment, there are not enough system "
 				"resources to create a thread." );
-			break;
+
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The thread attributes passed to "
 				"pthread_create() were invalid." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"pthread_create() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1632,12 +1630,11 @@ mx_thread_kill( MX_THREAD *thread )
 		case ESRCH:
 			return mx_error( MXE_NOT_FOUND, fname,
 				"The requested thread was not found." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"pthread_cancel() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1671,12 +1668,11 @@ mx_thread_stop( MX_THREAD *thread )
 		case ESRCH:
 			return mx_error( MXE_NOT_FOUND, fname,
 				"The requested thread was not found." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"pthread_cancel() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1758,21 +1754,20 @@ mx_thread_wait( MX_THREAD *thread,
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The requested thread is not joinable." );
-			break;
+
 		case ESRCH:
 			return mx_error( MXE_NOT_FOUND, fname,
 				"The requested thread was not found." );
-			break;
+
 		case EDEADLK:
 			return mx_error( MXE_MIGHT_CAUSE_DEADLOCK, fname,
 				"Waiting for the requested thread might "
 				"cause a deadlock." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 			"pthread_join() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1817,16 +1812,15 @@ mx_thread_save_thread_pointer( MX_THREAD *thread )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Insufficient memory is available to associate "
 			"the MX_THREAD pointer with the current thread key." );
-			break;
+
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Invalid Pthread key specified for pthread_setspecific()." );
-			break;
+
 		default:
 			return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"pthread_setspecific() returned an unknown error code %d.",
 				status );
-			break;
 		}
 	}
 
@@ -1946,17 +1940,16 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 		"lacked the necessary resources to create the key or the "
 		"PTHREAD_KEYS_MAX limit on the total number of keys per "
 		"process has been exceeded." );
-			break;
+
 		case ENOMEM:
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Insufficient memory available to create a new Pthread key." );
-			break;
+
 		default:
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unexpected error returned by pthread_key_create().  "
 			"Status = %d, error message = '%s'.",
 				status, strerror(status) );
-			break;
 		}
 	}
 

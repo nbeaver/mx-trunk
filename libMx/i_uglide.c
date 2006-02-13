@@ -198,7 +198,7 @@ mxi_uglide_open( MX_RECORD *record )
 
 	uglide->last_response_code = '\0';
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_rs232_num_input_bytes_available(
 			uglide->rs232_record, &num_input_bytes_available );
 
@@ -209,7 +209,7 @@ mxi_uglide_open( MX_RECORD *record )
 			fname, (unsigned long) num_input_bytes_available ));
 
 		if ( num_input_bytes_available == 0 )
-			break;			/* Exit the while() loop. */
+			break;			/* Exit the for(;;) loop. */
 
 		mx_status = mxi_uglide_getline( uglide,
 						response, sizeof(response),
@@ -221,7 +221,7 @@ mxi_uglide_open( MX_RECORD *record )
 		/* Discard any lines that do not begin with a '#' character. */
 
 		if ( response[0] != '#' ) {
-			/* Go back to the top of the while() loop. */
+			/* Go back to the top of the for(;;) loop. */
 
 			continue;
 		}
@@ -489,7 +489,7 @@ mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 
 	first_pass = TRUE;
 
-	while (1) {
+	for (;;) {
 
 		/* See if the controller has sent any new information. */
 
@@ -514,7 +514,7 @@ mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 			}
 
 			/* No more responses are available to handle,
-			 * so exit the while() loop.
+			 * so exit the for(;;) loop.
 			 */
 
 			break;
@@ -625,7 +625,7 @@ mxi_uglide_getline( MX_UGLIDE *uglide,
 			return mx_status;
 
 		if ( num_input_bytes_available > 0 )
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for() loop. */
 
 		MX_DEBUG( 2,("%s: i = %lu", fname, i));
 
@@ -685,7 +685,6 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 		return mx_error_quiet( MXE_TRY_AGAIN, fname,
 			"A move just completed.  "
 			"There should be more response lines available." );
-		break;
 
 	case MXF_UGLIDE_WARNING_MESSAGE:
 		mx_warning(
@@ -694,7 +693,6 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 
 		return mx_error_quiet( MXE_TRY_AGAIN, fname,
 			"Most recent message was a warning.  Try again." );
-		break;
 
 	case MXF_UGLIDE_OK:
 		MX_DEBUG( 2,("%s: Received '%s' response.", fname, response));
@@ -746,7 +744,6 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 	"Unrecognize response type seen in response '%s' to command '%s'.",
 			response, command );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

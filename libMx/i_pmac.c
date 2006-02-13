@@ -525,7 +525,6 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	"The PMAC interface '%s' reported an error for the command '%s'.  "
 	"There is no information available about the reason.",
 			pmac->record->name, command );
-		break;
 	case 3:
 		receive_response++;	/* Skip over the <CR> character. */
 	case 1:
@@ -574,7 +573,6 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	"PMAC error message = '%s'",
 			pmac->record->name, command,
 			pmac->i6_variable, receive_response );
-		break;
 	}
 
 	if ( error_code < 0 ) {
@@ -727,7 +725,6 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -783,7 +780,6 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
-		break;
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,
@@ -1131,7 +1127,6 @@ mxi_pmac_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;

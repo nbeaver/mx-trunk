@@ -375,7 +375,6 @@ mxd_mca_channel_get_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_get_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -400,7 +399,6 @@ mxd_mca_channel_set_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_set_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

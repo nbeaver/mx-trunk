@@ -353,7 +353,6 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The MRCAT XAFS datafile type cannot be used with a scan from scan class = %ld",
 			scan->record->mx_class );
-		break;
 	}
 
 	status = fprintf( output_file, "NUM_REGIONS= %ld\n", num_regions);
@@ -1007,7 +1006,6 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
-		break;
 	}
 
 	/* MXFT_DOUBLE data arrays are not supported since the inputs
@@ -1021,7 +1019,6 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 data arrays are supported." );
-		break;
 	}
 	
 	/* Print out the current motor positions (if any). */

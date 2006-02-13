@@ -865,7 +865,6 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	default:
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"Unknown step resolution type = '%c'", c );
-		break;
 	}
 
 	mx_status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );

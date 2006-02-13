@@ -48,7 +48,6 @@ mx_update_record_values( MX_RECORD *record )
 	static const char fname[] = "mx_update_record_values()";
 
 	MX_RECORD_FUNCTION_LIST *flist;
-	mx_status_type ( *fptr ) ( MX_RECORD * );
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -76,10 +75,6 @@ mx_update_record_values( MX_RECORD *record )
 
 	} else {
 		/* Otherwise, we use a generic response. */
-#else
-	fptr = NULL;
-
-	if ( 1 ) {
 #endif
 
 		switch ( record->mx_superclass ) {
@@ -256,7 +251,6 @@ mx_update_record_values( MX_RECORD *record )
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "%s does not yet have a generic response defined for device record class %ld",
 					fname, record->mx_class );
-				break;
 			}
 			break;
 
@@ -270,7 +264,9 @@ mx_update_record_values( MX_RECORD *record )
 			mx_status = MX_SUCCESSFUL_RESULT;
 			break;
 		}
+#if 0
 	}
+#endif
 	return mx_status;
 }
 

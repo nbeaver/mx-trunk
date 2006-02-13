@@ -1055,7 +1055,6 @@ mxd_scipe_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 		break;
 	default:
 		return mx_amplifier_default_get_parameter_handler( amplifier );
-		break;
 	}
 
 	/* Send the SCIPE command. */
@@ -1396,7 +1395,6 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier );
 
 		return mx_status;
-		break;
 	}
 
 	/* Send the SCIPE command. */

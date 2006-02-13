@@ -226,8 +226,6 @@ mxn_unix_server_open( MX_RECORD *record )
 "You can try to fix this by restarting the MX server.",
 			unix_server->pathname );
 
-		break;
-
 	default:
 		unix_server->socket = NULL;
 
@@ -235,7 +233,6 @@ mxn_unix_server_open( MX_RECORD *record )
 "An unexpected error occurred while trying to connect to the MX server "
 "at socket '%s' on the local computer.", unix_server->pathname);
 
-		break;
 	}
 
 	/* Set the socket to non-blocking mode if requested. */

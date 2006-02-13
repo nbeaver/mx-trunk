@@ -212,7 +212,6 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 	case MXT_KEITHLEY2400_AMP_OUTPUT:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Getting the output gain is not yet implemented." );
-		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -220,7 +219,6 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 		"Only 1 for input and 2 for output are supported.",
 			keithley2400_amp->io_type,
 			amplifier->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley_command( keithley2400->record,interface,
@@ -310,7 +308,6 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 	case MXT_KEITHLEY2400_AMP_OUTPUT:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Setting the output gain is not yet implemented." );
-		break;
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -318,7 +315,6 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 		"Only 1 for input and 2 for output are supported.",
 			keithley2400_amp->io_type,
 			amplifier->record->name );
-		break;
 	}
 
 	mx_status = mxi_keithley_command( keithley2400->record,interface,

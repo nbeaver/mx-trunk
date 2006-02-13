@@ -643,7 +643,6 @@ mx_scaler_default_get_parameter_handler( MX_SCALER *scaler )
 						scaler->parameter_type ),
 			(int) scaler->parameter_type,
 			scaler->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -670,7 +669,6 @@ mx_scaler_default_set_parameter_handler( MX_SCALER *scaler )
 						scaler->parameter_type ),
 			(int) scaler->parameter_type,
 			scaler->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

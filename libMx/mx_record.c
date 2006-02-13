@@ -576,7 +576,6 @@ mx_delete_placeholder_handler( MX_RECORD *record,
 		"Illegal field datatype %ld for record '%s', field '%s'",
 			record_field->datatype, record->name,
 			record_field->name );
-		break;
 	}
 
 	if ( placeholder_record == (MX_RECORD *) NULL ) {
@@ -1042,7 +1041,7 @@ mx_read_database_file( MX_RECORD *record_list_head,
 
 	line_number = 1;
 
-	while ( 1 ) {
+	for (;;) {
 		MX_DEBUG( 2, ("line %d: '%s'", line_number, buffer));
 
 		/* Zap any trailing newline. */
@@ -1148,7 +1147,7 @@ mx_read_database_file( MX_RECORD *record_list_head,
 
 		if ( feof(file) ) {
 			MX_DEBUG( 2, ("End of save file reached!"));
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for() loop. */
 		}
 
 		line_number++;
@@ -1965,7 +1964,6 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "This function only supports MXFT_RECORD and MXFT_INTERFACE record_fields.  "
 "The field type we were passed = %ld", field->datatype );
-		break;
 	}
 
 	MX_DEBUG( 8,("%s: dependent_record = '%s'",

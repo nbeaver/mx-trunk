@@ -423,10 +423,8 @@ mxi_newport_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_NOT_READY, fname,
 		"No response from Newport controller '%s'.  Is it turned on?",
 			record->name );
-		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	/* Verify that we got the identification message that we expected. */
@@ -445,7 +443,6 @@ mxi_newport_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Attempted to resynchronize a record that is not a Newport motor controller.  "
 "Instead, it is of type %ld.", record->mx_type );
-		break;
 	}
 
 	length = strlen( banner );
@@ -731,7 +728,6 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "Controller %s is not a Newport MM3000, MM4000, or ESP series controller.  "
 "Device type = %ld.", newport->record->name, newport->record->mx_type );
-		break;
 	}
 
 	if ( command_status.code != MXE_SUCCESS ) {

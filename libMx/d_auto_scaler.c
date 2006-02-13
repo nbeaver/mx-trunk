@@ -359,7 +359,6 @@ mxd_autoscale_scaler_read( MX_SCALER *scaler )
 	"Normalization of autoscaled scaler readings is currently "
 	"supported only for amplifier control records, but record '%s' is "
 	"not an amplifier record.", autoscale->control_record->name );
-			break;
 		}
 				
 	}

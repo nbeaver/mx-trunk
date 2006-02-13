@@ -737,7 +737,6 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1367,7 +1366,6 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1437,7 +1435,6 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
-		break;
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,

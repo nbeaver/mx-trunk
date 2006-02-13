@@ -226,8 +226,6 @@ mxn_tcpip_server_open( MX_RECORD *record )
 "You can try to fix this by restarting the MX server.",
 			tcpip_server->port, tcpip_server->hostname );
 
-		break;
-
 	default:
 		tcpip_server->socket = NULL;
 
@@ -235,7 +233,6 @@ mxn_tcpip_server_open( MX_RECORD *record )
 "An unexpected error occurred while trying to connect to the MX server "
 "at port %d on the computer '%s'.", tcpip_server->port, tcpip_server->hostname);
 
-		break;
 	}
 
 	/* Set the socket to non-blocking mode if requested. */

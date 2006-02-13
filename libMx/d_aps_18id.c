@@ -1894,7 +1894,6 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 						motor->parameter_type),
 			motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1961,7 +1960,6 @@ mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 						motor->parameter_type),
 			motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 	return mx_status;

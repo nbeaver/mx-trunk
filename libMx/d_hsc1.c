@@ -471,7 +471,6 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Unrecognized HSC-1 motor name '%c'",
 			hsc1_motor->motor_name );
-		break;
 	}
 
 	status = mxi_hsc1_command( hsc1_interface, hsc1_motor->module_number,
@@ -564,7 +563,6 @@ mxd_hsc1_get_position( MX_MOTOR *motor )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Unrecognized HSC-1 motor name '%c'",
 			hsc1_motor->motor_name );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -283,10 +283,8 @@ mxd_mardtb_motor_resynchronize( MX_RECORD *record )
 		return mx_error( MXE_NOT_READY, fname,
 "No response from the Mar goniostat controller for '%s'.  Is it turned on?",
 			record->name );
-		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

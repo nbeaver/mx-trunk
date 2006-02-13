@@ -938,7 +938,6 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 			"unsupported since the pseudomotor '%s' depends on "
 			"multiple motors and there is no unique answer.",
 				motor->record->name );
-		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -946,7 +945,6 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 			"unsupported since the pseudomotor '%s' depends on "
 			"multiple motors and there is no unique answer.",
 				motor->record->name );
-		break;
 
 	case MXLV_MTR_ACCELERATION_DISTANCE:
 		max_value = 0.0;
@@ -988,7 +986,6 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 
 	case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
 		motor->compute_pseudomotor_position[1]
@@ -1002,7 +999,6 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;
@@ -1204,7 +1200,6 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;

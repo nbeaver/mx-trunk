@@ -301,13 +301,12 @@ mx_signal_initialize( void )
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The first argument to pthread_sigmask() was invalid.");
-			break;
+
 		default:
 			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 			"Unable to block signals using pthread_sigmask().  "
 			"Errno = %d, error message = '%s'.",
 				status, strerror(status) );
-			break;
 		}
 	}
 

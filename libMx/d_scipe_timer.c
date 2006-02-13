@@ -260,7 +260,6 @@ mxd_scipe_timer_is_busy( MX_TIMER *timer )
 			mxi_scipe_get_mx_status( scipe_response_code ), fname,
 	"Unexpected response to '%s' command for timer '%s'.  Response = '%s'",
 				command, timer->record->name, response );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

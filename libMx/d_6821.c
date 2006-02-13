@@ -256,7 +256,6 @@ mxd_6821_in_finish_record_initialization( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%c'", mc6821_in->port);
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -298,7 +297,6 @@ mxd_6821_in_read( MX_DIGITAL_INPUT *dinput )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%c'", mc6821_in->port);
-		break;
 	}
 
 	dinput->value = (long) mx_portio_inp8( mc6821->portio_record, address );
@@ -397,7 +395,6 @@ mxd_6821_out_finish_record_initialization( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%c'", mc6821_out->port);
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -460,7 +457,6 @@ mxd_6821_out_read( MX_DIGITAL_OUTPUT *doutput )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%c'", mc6821_out->port);
-		break;
 	}
 
 	doutput->value = (long) mx_portio_inp8(
@@ -501,7 +497,6 @@ mxd_6821_out_write( MX_DIGITAL_OUTPUT *doutput )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized port name '%c'", mc6821_out->port);
-		break;
 	}
 
 	value = (uint8_t) ( doutput->value & 0xff );

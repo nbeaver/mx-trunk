@@ -979,12 +979,10 @@ mxs_mcs_quick_scan_use_dead_reckoning(
 		"Preset count measurements are not currently supported "
 		"for MCS quick scan '%s'.",
 			scan->record->name );
-		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
-		break;
 	}
 
 	/* Compute the number of measurements during the acceleration. */
@@ -1339,7 +1337,6 @@ mxs_mcs_quick_scan_use_encoder_values(
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal MCE encoder type %ld.  This is a program bug.",
 				(long) mce->encoder_type );
-			break;
 		}
 
 		/* Fill in the rest of the array (if any) with 0. */
@@ -1883,12 +1880,10 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 		"Preset count measurements are not currently supported "
 		"for MCS quick scan '%s'.",
 			scan->record->name );
-		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
-		break;
 	}
 
 	/* Connect the real motor(s) to their multichannel encoders.
@@ -2554,12 +2549,10 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 		"Preset count measurements are not currently supported "
 		"for MCS quick scan '%s'.",
 			scan->record->name );
-		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Measurement type '%ld' for MCS quick scan '%s' is unsupported.",
 			scan->measurement.type, scan->record->name );
-		break;
 	}
 
 	/* Wait several measurement times before starting the motors.

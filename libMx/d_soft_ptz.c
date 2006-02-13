@@ -258,7 +258,6 @@ mxd_soft_ptz_command( MX_PAN_TILT_ZOOM *ptz )
 			"is not a known command type.",
 				(unsigned long) ptz->command,
 				soft_ptz->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;;
@@ -338,7 +337,6 @@ mxd_soft_ptz_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 			"Parameter type %d received for soft PTZ '%s' "
 			"is not a known parameter type.",
 			ptz->parameter_type, soft_ptz->record->name );
-		break;
 	}
 
 	return mx_status;
@@ -408,7 +406,6 @@ mxd_soft_ptz_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			"Parameter type %d received for soft PTZ '%s' "
 			"is not a known parameter type.",
 			ptz->parameter_type, soft_ptz->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

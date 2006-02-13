@@ -115,7 +115,6 @@ mxv_bluice_string_get_pointers( MX_VARIABLE *variable,
 		"of type '%s'.",
 			bluice_server_record->name,
 			mx_get_driver_name( bluice_server_record ) );
-		break;
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {

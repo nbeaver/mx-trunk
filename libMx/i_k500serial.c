@@ -381,7 +381,6 @@ mxi_k500serial_open( MX_RECORD *record )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The RS-232 line termination characters '%lx' are not compatible with "
 "a Keithley 500-SERIAL interface.", (unsigned long) rs232->read_terminators );
-		break;
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
@@ -420,7 +419,6 @@ mxi_k500serial_open( MX_RECORD *record )
 			"The GPIB EOS terminator '%lx' is not compatible with "
 			"a Keithley 500-SERIAL interface.",
 				(unsigned long) gpib->default_read_terminator );
-		break;
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
@@ -441,7 +439,6 @@ mxi_k500serial_open( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal GPIB EOI mode %d", gpib->default_eoi_mode );
-		break;
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,

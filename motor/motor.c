@@ -443,7 +443,7 @@ motor_main( int argc, char *argv[] )
 
 	snprintf( prompt, sizeof(prompt), "%s> ", name );
 
-	while(1) {
+	for (;;) {
 		/* Read a command line. */
 
 		command_line = cmd_read_next_command_line( prompt );
@@ -704,7 +704,6 @@ motor_exit_save_dialog( void )
 	switch ( motor_exit_save_policy ) {
 	case EXIT_NO_PROMPT_NEVER_SAVE:
 		return SUCCESS;
-		break;
 
 	case EXIT_NO_PROMPT_ALWAYS_SAVE:
 		break;
@@ -831,7 +830,7 @@ motor_help_fn( int argc, char *argv[] )
 
 	ptr = help_text;
 
-	while (1) {
+	for (;;) {
 		for ( num_lines = 0; num_lines < 23; num_lines++ ) {
 			while ( (c = (int) *ptr) != '\n' ) {
 				if ( c == '\0' ) {

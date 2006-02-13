@@ -314,7 +314,6 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 "The allowed values are in the range (1-7).",
 			cryostream600_status->parameter_type,
 			ainput->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

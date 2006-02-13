@@ -727,7 +727,6 @@ mx_socket_close( MX_SOCKET *mx_socket )
 		/* Return now since there is nothing further we can do. */
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 	default:
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Error while executing shutdown( mx_socket, 1 ).  "
@@ -782,7 +781,6 @@ mx_socket_close( MX_SOCKET *mx_socket )
 			"Error while executing shutdown( mx_socket, 2 ).  "
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, error_string );
-		break;
 	}
 
 #if defined( OS_WIN32 ) || defined( OS_DJGPP )
@@ -987,7 +985,6 @@ mx_socket_check_error_status( void *value_to_check,
 		}
 
 		return -1;
-		break;
 	}
 
 	saved_errno = mx_socket_get_last_error();
@@ -1056,28 +1053,27 @@ mx_socket_get_inet_address( char *hostname, unsigned long *inet_address )
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 					"The host name '%s' was not found.",
 					hostname );
-				break;
+
 			case NO_ADDRESS:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The requested domain name '%s' is valid, but does not have an IP address.",
 					hostname );
-				break;
+
 			case NO_RECOVERY:
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 				"The domain name '%s' does not exist.",
 					hostname );
-				break;
+
 			case TRY_AGAIN:
 				return mx_error( MXE_TRY_AGAIN, fname,
 		"The domain name '%s' does not currently seem to exist, "
 		"but this is likely to be a temporary condition, "
 		"so try again later.", hostname );
-				break;
+
 			default:
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 "An unrecognized error code %d was returned by the call gethostbyname('%s')",
 					error_value, hostname );
-				break;
 			}
 		}
 	}

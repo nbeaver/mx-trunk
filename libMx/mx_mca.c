@@ -647,7 +647,6 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal preset type %d for MCA '%s'.",
 			(int) preset_type, mca_record->name );
-		break;
 	}
 
 	mx_status = (*start_fn)( mca );
@@ -2264,7 +2263,6 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			(int) mca->parameter_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2411,7 +2409,6 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			(int) mca->parameter_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -1760,7 +1760,6 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Interval timer type %d is unsupported.", timer_type );
-		break;
 	}
 
 	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
@@ -1812,23 +1811,19 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 		case EAGAIN:
 			return mx_error( MXE_TRY_AGAIN, fname,
 	"The system is unable to create a Posix timer at this time." );
-			break;
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"One or more of the arguments to timer_create() were invalid.");
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"This system does not support Posix realtime timers "
 		"although the compiler said that it does.  "
 		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected error creating a Posix realtime timer.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
-			break;
 		}
 	}
 }
@@ -1912,19 +1907,16 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The specified timer does not exist." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"This system does not support Posix realtime timers "
 		"although the compiler said that it does.  "
 		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected error reading from a Posix realtime timer.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
-			break;
 		}
 	}
 
@@ -1995,19 +1987,16 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The specified timer does not exist." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"This system does not support Posix realtime timers "
 		"although the compiler said that it does.  "
 		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected error writing to a Posix realtime timer.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
-			break;
 		}
 	}
 
@@ -2062,19 +2051,16 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The specified timer does not exist." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"This system does not support Posix realtime timers "
 		"although the compiler said that it does.  "
 		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected error writing to a Posix realtime timer.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
-			break;
 		}
 	}
 
@@ -2114,19 +2100,16 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The specified timer does not exist." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"This system does not support Posix realtime timers "
 		"although the compiler said that it does.  "
 		"This should not be able to happen." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected error reading from a Posix realtime timer.  "
 		"Errno = %d, error message = '%s'",
 				saved_errno, strerror(saved_errno) );
-			break;
 		}
 	}
 

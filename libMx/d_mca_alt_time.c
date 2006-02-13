@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -246,7 +246,6 @@ mxd_mca_alt_time_read( MX_SCALER *scaler )
 		"The allowed values are 0, 1, and 2.",
 			mca_alt_time->time_type,
 			scaler->record->name );
-		break;
 	}
 
 	scaler->raw_value

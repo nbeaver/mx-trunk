@@ -263,7 +263,7 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 	new_file_size = 0;
 
-	while( 1 ) {
+	for (;;) {
 		bytes_read = read( existing_fd, buffer, file_blocksize );
 
 		if ( bytes_read < 0 ) {
@@ -406,10 +406,8 @@ mx_process_exists( unsigned long process_id )
 		switch( saved_errno ) {
 		case ESRCH:
 			return FALSE;
-			break;
 		case EPERM:
 			return TRUE;
-			break;
 		default:
 			(void) mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected errno value %d from kill(%lu,0).  Error = '%s'",
@@ -451,12 +449,12 @@ mx_kill_process( unsigned long process_id )
 		case ESRCH:
 			return mx_error_quiet( MXE_NOT_FOUND, fname,
 				"Process %lu does not exist.", process_id);
-			break;
+
 		case EPERM:
 			return mx_error_quiet( MXE_PERMISSION_DENIED, fname,
 				"Cannot send the signal to process %lu.",
 					process_id );
-			break;
+
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected errno value %d from kill(%lu,0).  Error = '%s'",

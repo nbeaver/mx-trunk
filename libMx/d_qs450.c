@@ -181,7 +181,6 @@ mxd_qs450_finish_record_initialization( MX_RECORD *record )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Scaler type %ld is not MXT_SCL_QS450 or MXT_SCL_KS3610.",
 			record->mx_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -269,7 +268,6 @@ mxd_qs450_scaler_get_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_get_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -291,7 +289,6 @@ mxd_qs450_scaler_set_parameter( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_scaler_default_set_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -476,7 +476,6 @@ mxd_network_ccd_get_parameter( MX_CCD *ccd )
 		break;
 	default:
 		return mx_ccd_default_get_parameter_handler( ccd );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -533,7 +532,6 @@ mxd_network_ccd_set_parameter( MX_CCD *ccd )
 		break;
 	default:
 		return mx_ccd_default_set_parameter_handler( ccd );
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 

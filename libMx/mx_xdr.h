@@ -29,7 +29,7 @@
        typedef unsigned long long int	uint64_t;
 #   endif
 
-#   if defined(OS_MACOSX)
+#   if defined(OS_MACOSX) || defined(OS_HPUX)
 #      define xdr_int8_t	xdr_char
 #      define xdr_uint8_t	xdr_u_char
 #      define xdr_int16_t	xdr_short

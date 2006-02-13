@@ -75,7 +75,9 @@ static mx_status_type mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 );
 
 static mx_status_type mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 );
 
+#if MXI_TTY_DEBUG
 static mx_status_type mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 );
+#endif
 
 #endif /* USE_POSIX_TERMIOS */
 
@@ -690,29 +692,24 @@ mxi_tty_read( MX_RS232 *rs232,
 				return mx_error(MXE_TRY_AGAIN, fname,
 				"No input was available for RS-232 port '%s'.",
 					rs232->record->name );
-				break;
 			case EBADF:
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				  "RS-232 port '%s' is not open for reading.",
 					rs232->record->name );
-				break;
 			case EINTR:
 				return mx_error( MXE_INTERRUPTED, fname,
 				"The read of RS-232 port '%s' was interrupted "
 				"by a signal before any data was read.",
 					rs232->record->name );
-				break;
 			case EIO:
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				"Unexpected I/O error for RS-232 port '%s'.",
 					rs232->record->name );
-				break;
 			default:
 				return mx_error( MXE_UNKNOWN_ERROR, fname,
 		"Unexpected errno value returned for RS-232 port '%s'.  "
 		"errno = %d, error message = '%s'.", rs232->record->name,
 					saved_errno, strerror( saved_errno ) );
-				break;
 			}
 		}
 
@@ -1385,12 +1382,12 @@ mxi_tty_posix_termios_write_settings( MX_RS232 *rs232 )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( MXI_TTY_DEBUG != FALSE ) {
-		mx_status = mxi_tty_posix_termios_print_settings( rs232 );
+#if MXI_TTY_DEBUG
+	mx_status = mxi_tty_posix_termios_print_settings( rs232 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
 
 	MX_DEBUG( 2,("%s complete for tty '%s'.", fname, rs232->record->name));
 
@@ -1604,7 +1601,6 @@ mxi_tty_posix_termios_set_speed( MX_RS232 *rs232 )
 		return mx_error( MXE_UNSUPPORTED, fname,
     "Unsupported RS-232 port speed %ld requested for record '%s', tty '%s'.",
 		    (long) rs232->speed, rs232->record->name, tty->filename );
-		break;
 	}
 
 	/* Set the output speed. */
@@ -1693,7 +1689,6 @@ mxi_tty_posix_termios_set_word_size( MX_RS232 *rs232 )
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Unsupported RS-232 word size %d requested for RS-232 record '%s', tty '%s'.",
 			rs232->word_size, rs232->record->name, tty->filename );
-		break;
 	}
 
 	attr.c_cflag &= ~CSIZE;
@@ -1841,7 +1836,6 @@ mxi_tty_posix_termios_set_parity( MX_RS232 *rs232 )
 		return mx_error( MXE_UNSUPPORTED, fname,
     "Unsupported parity type '%c' requested for RS-232 record '%s', tty '%s'.",
 			rs232->parity, rs232->record->name, tty->filename );
-		break;
 	}
 
 	/* Apply the changed settings. */
@@ -1904,7 +1898,6 @@ mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 )
 		"Unsupported number of stop bits (%d) requested "
 		"for RS-232 record '%s', tty '%s'.",
 			rs232->stop_bits, rs232->record->name, tty->filename );
-		break;
 	}
 
 	/* Apply the changed settings. */
@@ -1979,7 +1972,6 @@ mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 )
 		"Unsupported flow control type '%c' requested "
 		"for RS-232 record '%s', tty '%s'.",
 		    rs232->flow_control, rs232->record->name, tty->filename );
-		break;
 	}
 
 	/**** Hardware flow control settings. ****/
@@ -2027,6 +2019,8 @@ mxi_tty_posix_termios_set_flow_control( MX_RS232 *rs232 )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if MXI_TTY_DEBUG
+
 static mx_status_type
 mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 )
 {
@@ -2069,6 +2063,8 @@ mxi_tty_posix_termios_print_settings( MX_RS232 *rs232 )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* MXI_TTY_DEBUG */
 
 #endif /* USE_POSIX_TERMIOS */
 

@@ -396,7 +396,6 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 	"The value type '%s' (%d) for MCA value record '%s' is unsupported.",
 			mca_value->value_name, mca_value->value_type,
 			analog_input->record->name );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: value_type = %d, raw_value = %g",

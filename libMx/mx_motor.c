@@ -438,7 +438,6 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown motor subclass %d.", (int) motor->subclass );
-		break;
 	}
 
 	return status;
@@ -738,7 +737,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 		error_bitmask = 0;
 	}
 
-	while (1) {
+	for(;;) {
 		mx_status = mx_motor_get_status( motor_record, &motor_status );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -899,7 +898,7 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 	motor_is_moving = TRUE;
 	any_error_occurred = FALSE;
 
-	while (1) {
+	for(;;) {
 		motor_is_moving = FALSE;
 
 		for ( i = 0; i < num_motor_records; i++ ) {
@@ -977,7 +976,6 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 					return mx_error(
 						MXE_INTERRUPTED, fname,
 						"Motor moves aborted.");
-					break;
 
 				case MXF_USER_INT_PAUSE:
 					if ( ignore_pause == FALSE ) {
@@ -993,7 +991,6 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 						MXE_FUNCTION_FAILED, fname,
 				    "An error occurred while attempting to "
 				    "check for a user requested interrupt." );
-					break;
 
 				default:
 					return mx_error(
@@ -1002,7 +999,6 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 				    "Unexpected value %d returned "
 				    "by mx_user_requested_interrupt()",
 						interrupt );
-					break;
 				}
 			}
 		}
@@ -1017,7 +1013,7 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 		}
 
 		if ( motor_is_moving == FALSE )
-			break;			/* Exit the while loop. */
+			break;			/* Exit the for loop. */
 
 		mx_msleep(10);
 	}
@@ -1782,7 +1778,6 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported speed type %ld was passed for motor '%s'",
 			speed_type, motor->record->name );
-		break;
 	}
 
 	/* Check for negative and zero speeds. */
@@ -1872,7 +1867,6 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported speed type %ld was passed for motor '%s'",
 			speed_type, motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2056,7 +2050,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	"Cannot compute the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
 						(int) motor->acceleration_type);
-			break;
 		}
 
 		MX_DEBUG( 2,("%s: motor->acceleration_time = %g",
@@ -2146,7 +2139,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	"Cannot compute the acceleration distance for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
 						(int) motor->acceleration_type);
-			break;
 		}
 		break;
 
@@ -2197,7 +2189,6 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 						motor->parameter_type ),
 			(int) motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2310,7 +2301,6 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	"Cannot set the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
 						(int) motor->acceleration_type);
-			break;
 		}
 
 		status = mx_motor_set_raw_acceleration_parameters(
@@ -2397,7 +2387,6 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 						requested_raw_speed );
 
 		return status;
-		break;
 
 	case MXLV_MTR_SAVE_SPEED:
 		/* Read the motor speed to make sure its value is current. */
@@ -2457,7 +2446,6 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 			    motor->record->name, current_speed, motor->units );
 		}
 		return MX_SUCCESSFUL_RESULT;
-		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -2466,7 +2454,6 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 						motor->parameter_type ),
 			(int) motor->parameter_type,
 			motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3294,7 +3281,6 @@ mx_motor_send_control_command( MX_RECORD *motor_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported command type %d requested for motor '%s'.",
 			command_type, motor_record->name );
-		break;
 	}
 
 	motor->parameter_type = command_type;
@@ -3362,7 +3348,6 @@ mx_motor_get_gain( MX_RECORD *motor_record, int gain_type, double *gain )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unsupported gain type %d requested for motor '%s'.",
 				gain_type, motor_record->name );
-			break;
 		}
 	}
 
@@ -3419,7 +3404,6 @@ mx_motor_set_gain( MX_RECORD *motor_record, int gain_type, double gain )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported gain type %d requested for motor '%s'.",
 			gain_type, motor_record->name );
-		break;
 	}
 
 	motor->parameter_type = gain_type;
@@ -4844,7 +4828,6 @@ mx_is_motor_position_between_software_limits(
 	default:
 	    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"Unrecognized motor subclass = %d", (int) motor->subclass );
-	    break;
 	}
 	return status;
 }

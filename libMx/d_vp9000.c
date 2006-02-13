@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -190,17 +190,14 @@ mxd_vp9000_check_encoder_registration( MX_MOTOR *motor,
 		    "The motor '%s' did not reach the requested position.  "
 		    "This probably means that it stalled.",
 				motor->record->name );
-		break;
 	case '>':
 		return mx_error(MXE_DEVICE_ACTION_FAILED,fname,
 			"The motor '%s' overshot the requested position.",
 			motor->record->name );
-		break;
 	default:
 		return mx_error(MXE_INTERFACE_IO_ERROR, fname,
 			"Got unexpected response '%s' to '%%' command.",
 			response );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -583,7 +580,6 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 	"Unexpected character 0x%x '%c' received on VP9000 interface '%s'",
 						c, c, vp9000->record->name );
-				break;
 			    }
 
 			    /* Check to see if the motor and encoder counts

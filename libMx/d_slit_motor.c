@@ -405,7 +405,6 @@ mxd_slit_motor_move_absolute( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown slit motor type %ld for slit motor '%s'",
 			(long) slit_motor->slit_type, motor->record->name );
-		break;
 	}
 
 	/* Now perform the move. */
@@ -489,7 +488,6 @@ mxd_slit_motor_get_position( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown slit motor type %ld for slit motor '%s'",
 			(long) slit_motor->slit_type, motor->record->name );
-		break;
 	}
 
 	motor->raw_position.analog = slit_position;
@@ -658,7 +656,6 @@ mxd_slit_motor_set_parameter( MX_MOTOR *motor )
 			    "Unknown slit motor type %ld for slit motor '%s'",
 				(long) slit_motor->slit_type,
 				motor->record->name );
-			break;
 		}
 
 		slit_motor->saved_positive_motor_start_position
@@ -684,7 +681,6 @@ mxd_slit_motor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;
@@ -820,7 +816,6 @@ mxd_slit_motor_get_status( MX_MOTOR *motor )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal slit type %ld for slit motor '%s'",
 			(long) slit_motor->slit_type, motor->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

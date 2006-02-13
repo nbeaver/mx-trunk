@@ -378,7 +378,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 
 	scaler->busy = TRUE;
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_rs232_getchar( databox->rs232_record,
 						&c, MXF_232_NOWAIT );
 
@@ -387,7 +387,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 			 * is still counting.
 			 */
 
-			break;	/* Exit the while() loop. */
+			break;	/* Exit the for() loop. */
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -406,7 +406,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 			  ("%s: assigned %d to databox->last_start_action",
 				fname, databox->last_start_action));
 
-			break;	/* Exit the while() loop. */
+			break;	/* Exit the for() loop. */
 		}
 	}
 
@@ -583,14 +583,12 @@ mxd_databox_scaler_get_parameter( MX_SCALER *scaler )
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected mode %d returned by mxi_databox_get_limit_mode().",
 				databox->limit_mode );
-			break;
 		}
 		break;
 	case MXLV_SCL_DARK_CURRENT:
 		break;
 	default:
 		return mx_scaler_default_get_parameter_handler( scaler );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -625,7 +623,6 @@ mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Scaler mode %d is not supported by the driver for scaler '%s'.",
 				scaler->mode, scaler->record->name );
-			break;
 		}
 
 		mx_status = mxi_databox_set_limit_mode( databox, limit_mode );

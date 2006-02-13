@@ -312,7 +312,6 @@ mxd_cm17a_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 		"Illegal value %lu for CM17A digital output '%s'.  The allowed "
 		"values are 0 (off), 1 (on), 2 (bright), and 3 (dim).",
 			(unsigned long) doutput->value, doutput->record->name );
-		break;
 	}
 
 #if MXD_CM17A_DOUTPUT_DEBUG

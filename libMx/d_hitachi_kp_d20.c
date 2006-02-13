@@ -557,7 +557,6 @@ mxd_hitachi_kp_d20_command( MX_PAN_TILT_ZOOM *ptz )
 			"is not a known command type.",
 				(unsigned long) ptz->command,
 				hitachi_kp_d20->record->name );
-		break;
 	}
 
 	/* Send the command. */
@@ -622,7 +621,6 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 		"is not a known command type.",
 				(unsigned long) ptz->command,
 				hitachi_kp_d20->record->name );
-		break;
 	}
 
 	/* Send the read data request. */
@@ -696,7 +694,6 @@ mxd_hitachi_kp_d20_set_parameter( MX_PAN_TILT_ZOOM *ptz )
 			"Parameter type %d received for Hitachi PTZ '%s' "
 			"is not a known parameter type.",
 			ptz->parameter_type, hitachi_kp_d20->record->name );
-		break;
 	}
 
 	/* Send the command. */

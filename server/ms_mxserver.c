@@ -485,7 +485,6 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The server_socket_struct passed says that is of illegal type %d.",
 			socket_type );
-		break;
 	}
 
 	/* Allocate memory for the client MX_SOCKET structure. */
@@ -1025,7 +1024,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
 
 		return mx_status;
-		break;
 	}
 
 	/* If this message type requires it, we parse the beginning of the
@@ -1477,7 +1475,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Illegal client message type %ld",
 			(long) message_type );
-		break;
 	}
 
 #if NETWORK_DEBUG_VERBOSE
@@ -1665,7 +1662,6 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		    "Unrecognized network data format type %lu was requested.",
 		    		data_format );
-			break;
 		}
 	}
 

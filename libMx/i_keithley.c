@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,6 @@ mxi_keithley_getline( MX_RECORD *keithley_record,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Interface record '%s' is not an RS-232 or GPIB record.",
 			port_interface->record->name );
-		break;
 	}
 
 	return mx_status;
@@ -105,7 +104,6 @@ mxi_keithley_putline( MX_RECORD *keithley_record,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"Interface record '%s' is not an RS-232 or GPIB record.",
 			port_interface->record->name );
-		break;
 	}
 
 	return mx_status;

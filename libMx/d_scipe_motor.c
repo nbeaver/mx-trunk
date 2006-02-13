@@ -499,7 +499,6 @@ mxd_scipe_motor_get_status( MX_MOTOR *motor )
 			scipe_server->record->name,
 			motor->record->name,
 			response );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

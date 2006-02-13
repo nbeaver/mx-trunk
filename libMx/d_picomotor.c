@@ -954,7 +954,6 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1043,7 +1042,6 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 		motor->raw_maximum_speed = 4095500;  /* steps per second */
 
 		return MX_SUCCESSFUL_RESULT;
-		break;
 
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
@@ -1079,7 +1077,6 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return mx_status;

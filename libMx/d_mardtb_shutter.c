@@ -178,7 +178,6 @@ mxd_mardtb_shutter_relay_command( MX_RELAY *relay )
 		"Illegal relay command value %d for MarDTB shutter '%s'.  "
 		"The allowed values are 0 and 1",
 			relay->relay_command, relay->record->name );
-		break;
 	}
 
 	mx_status = mxi_mardtb_command( mardtb, command,
@@ -239,7 +238,6 @@ mxd_mardtb_shutter_get_relay_status( MX_RELAY *relay )
 		"two legal values of 0x40 and 0x82 for MarDTB shutter '%s'.  "
 		"The original MarDTB parameter 97 value was %#lx.",
 			shutter_byte, relay->record->name, parameter_value );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

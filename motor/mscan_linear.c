@@ -175,7 +175,6 @@ motor_setup_linear_scan_parameters(
 			fname, scan_type );
 
 		return FAILURE;
-		break;
 	}
 
 	/* Add the record type info to the record description. */

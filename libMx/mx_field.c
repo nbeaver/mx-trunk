@@ -380,7 +380,6 @@ mx_construct_ptr_to_field_data(
 		"Record field '%s' has an unrecognized structure id type %d.",
 			record_field_defaults->name,
 			record_field_defaults->structure_id );
-		break;
 	}
 
 	/* *field_data_ptr contains the address of the given
@@ -2353,10 +2352,8 @@ mx_parse_record_fields( MX_RECORD *record,
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
 			"Invalid token found in record '%s' at field '%s'.",
 					record->name, record_field->name );
-				break;
 			default:
 				return status;
-				break;
 			}
 		}
 	}
@@ -2615,7 +2612,6 @@ mx_get_token_parser( long field_type,
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname, 
 			"Unrecognized field type %ld.", field_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2696,7 +2692,6 @@ mx_get_token_constructor( long field_type,
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized field type %ld.", field_type );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3450,7 +3445,6 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported datatype argument %ld.", datatype );
-		break;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

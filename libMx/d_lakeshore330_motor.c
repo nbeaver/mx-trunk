@@ -793,7 +793,6 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *respo
 			"Uncorrectable non-volatile RAM error for Lakeshore "
 			"controller '%s'.",
 					ls330_motor->record->name );
-				break;
 			case 2:
 				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
 			"An error occurred while attempting to read the "
@@ -801,32 +800,27 @@ mxd_ls330_motor_command( MX_LS330_MOTOR *ls330_motor, char *command, char *respo
 			"'%s'.  Try initializing the memory by pressing both "
 			"the Escape and Units keys for 20 seconds.",
 					ls330_motor->record->name );
-				break;
 			case 27:
 				return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
 			"No signal or wrong polarity signal for channel A of "
 			"Lakeshore controller '%s'.",
 					ls330_motor->record->name );
-				break;
 			case 28:
 				return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
 			"No signal or wrong polarity signal for channel B of "
 			"Lakeshore controller '%s'.",
 					ls330_motor->record->name );
-				break;
 			case 30:
 				return mx_error(MXE_DEVICE_ACTION_FAILED, fname,
 			"The measured heater output for Lakeshore controller "
 			"'%s' does not match the predicted output.  Perhaps "
 			"there is a short in the heater wiring?",
 					ls330_motor->record->name );
-				break;
 			default:
 				return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"Command '%s' for Lakeshore controller '%s' returned error code %d.",
 					command, ls330_motor->record->name,
 					error_code );
-				break;
 			}
 		}
 	}

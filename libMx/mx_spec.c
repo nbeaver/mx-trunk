@@ -420,7 +420,6 @@ mx_spec_get_array( MX_RECORD *spec_server_record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Spec server '%s' currently cannot send data using the SV_DOUBLE datatype.",
 			spec_server_record->name );
-		break;
 	case SV_STRING:
 		if ( num_dimensions != 1 ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -437,7 +436,6 @@ mx_spec_get_array( MX_RECORD *spec_server_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
     "A Spec client cannot transmit an SV_ERROR message to Spec server '%s'.",
 			spec_server_record->name );
-		break;
 	case SV_ASSOC:
 	case SV_ARR_DOUBLE:
 	case SV_ARR_FLOAT:
@@ -463,7 +461,6 @@ mx_spec_get_array( MX_RECORD *spec_server_record,
 	"Unrecognized Spec datatype %ld for Spec server '%s', property '%s'.",
 			spec_datatype, spec_server_record->name,
 			property_name );
-		break;
 	}
 
 	/* Multiply the data length by the size in bytes of an individual
@@ -547,7 +544,6 @@ mx_spec_put_array( MX_RECORD *spec_server_record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Spec server '%s' currently cannot receive data using the SV_DOUBLE datatype.",
 			spec_server_record->name );
-		break;
 	case SV_STRING:
 		if ( num_dimensions != 1 ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -564,7 +560,6 @@ mx_spec_put_array( MX_RECORD *spec_server_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
     "A Spec client cannot transmit an SV_ERROR message to Spec server '%s'.",
 			spec_server_record->name );
-		break;
 	case SV_ASSOC:
 	case SV_ARR_DOUBLE:
 	case SV_ARR_FLOAT:
@@ -590,7 +585,6 @@ mx_spec_put_array( MX_RECORD *spec_server_record,
 	"Unrecognized Spec datatype %ld for Spec server '%s', property '%s'.",
 			spec_datatype, spec_server_record->name,
 			property_name );
-		break;
 	}
 
 	/* Multiply the data length by the size in bytes of an individual
@@ -802,7 +796,6 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Unsupported MX datatype %ld passed for property '%s' of Spec server '%s'.",
 			mx_datatype, property_name, spec_server_record->name );
-		break;
 	}
 
 	num_items = sscanf( string_buffer, format, value );
@@ -887,7 +880,6 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Unsupported MX datatype %ld passed for property '%s' of Spec server '%s'.",
 			mx_datatype, property_name, spec_server_record->name );
-		break;
 	}
 
 	mx_status = mx_spec_put_string( spec_server_record,

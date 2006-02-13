@@ -336,10 +336,8 @@ mxd_pm304_open( MX_RECORD *record )
 		return mx_error( MXE_NOT_READY, fname,
 "No response from the McLennan controller for '%s'.  Is it turned on?",
 			record->name );
-		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	/* Does the position from the database agree with the position
@@ -927,7 +925,6 @@ mxd_pm304_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -980,7 +977,6 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 	return mx_status;
 }

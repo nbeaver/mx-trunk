@@ -107,14 +107,12 @@ mx_log_open( MX_RECORD *record_list )
 		"The MX logfile '%s' does not yet exist.  You must create "
 		"an empty file with the name '%s' before logging can begin.",
 				log_name, log_name );
-			break;
 		default:
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 				"Cannot write to the MX logfile '%s'.  "
 				"Error code = %d, error text = '%s'.",
 				log_name, saved_errno,
 				strerror( saved_errno ) );
-			break;
 		}
 	}
 

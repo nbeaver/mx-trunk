@@ -77,7 +77,7 @@ mxd_d8_motor_get_pointers( MX_MOTOR *motor,
 				MX_D8 **d8,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_d8_motor_get_pointers()";
+	static const char fname[] = "mxd_d8_motor_get_pointers()";
 
 	MX_RECORD *d8_record;
 
@@ -139,7 +139,7 @@ mxd_d8_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_d8_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_d8_motor_create_record_structures()";
+	static const char fname[] = "mxd_d8_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_D8_MOTOR *d8_motor;
@@ -179,11 +179,11 @@ mxd_d8_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_finish_record_initialization( MX_RECORD *record )
 {
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -208,14 +208,14 @@ mxd_d8_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_d8_motor_print_structure()";
+	static const char fname[] = "mxd_d8_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_RECORD *d8_record;
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -260,9 +260,9 @@ mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  port name         = %s\n", d8_record->name);
 	fprintf(file, "  drive number      = %d\n", d8_motor->drive_number);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -300,14 +300,14 @@ mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_read_parms_from_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_d8_motor_read_parms_from_hardware()";
+	static const char fname[] = "mxd_d8_motor_read_parms_from_hardware()";
 
 	MX_MOTOR *motor;
 	MX_D8_MOTOR *d8_motor;
 	MX_RECORD *d8_record;
 	MX_D8 *d8;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -353,10 +353,10 @@ mxd_d8_motor_read_parms_from_hardware( MX_RECORD *record )
 	 * updating the position value in the MX_MOTOR structure.
 	 */
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* At present, the position is the only parameter we read out.
 	 * We rely on the non-volatile memory of the controller
@@ -369,7 +369,7 @@ mxd_d8_motor_read_parms_from_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_write_parms_to_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_d8_motor_write_parms_to_hardware()";
+	static const char fname[] = "mxd_d8_motor_write_parms_to_hardware()";
 
 	MX_MOTOR *motor;
 	MX_D8_MOTOR *d8_motor;
@@ -418,11 +418,11 @@ mxd_d8_motor_write_parms_to_hardware( MX_RECORD *record )
 
 #if 0	/* For now, this is disabled. */
 
-	status = mxd_d8_motor_set_position_steps(
+	mx_status = mxd_d8_motor_set_position_steps(
 			motor, motor->raw_motor_steps );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* At present, the position is the only parameter we set here.
 	 * We rely on the non-volatile memory of the controller
@@ -436,14 +436,14 @@ mxd_d8_motor_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_d8_motor_open()";
+	static const char fname[] = "mxd_d8_motor_open()";
 
 	MX_MOTOR *motor;
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	char command[20];
 	char response[80];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -458,11 +458,11 @@ mxd_d8_motor_open( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* See if the drive is initialized already by sending it a
 	 * get position command.
@@ -470,11 +470,11 @@ mxd_d8_motor_open( MX_RECORD *record )
 
 	sprintf( command, "AV%d", d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( strcmp( response, "AV0.--" ) == 0 ) {
 
@@ -483,11 +483,11 @@ mxd_d8_motor_open( MX_RECORD *record )
 
 		sprintf( command, "AV%d,0.00", d8_motor->drive_number );
 
-		status = mxi_d8_command( d8, command,
+		mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -506,7 +506,7 @@ mxd_d8_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_motor_is_busy()";
+	static const char fname[] = "mxd_d8_motor_motor_is_busy()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
@@ -514,21 +514,21 @@ mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
 	char response[80];
 	int num_items;
 	unsigned long drive_status;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "ST%lu", &drive_status );
 
@@ -549,18 +549,18 @@ mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_d8_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_move_absolute()";
+	static const char fname[] = "mxd_d8_motor_move_absolute()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	char command[20];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send the move command. */
 
@@ -568,15 +568,15 @@ mxd_d8_motor_move_absolute( MX_MOTOR *motor )
 					motor->raw_destination.analog,
 					d8_motor->d8_speed );
 
-	status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
+	mx_status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_d8_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_get_position()";
+	static const char fname[] = "mxd_d8_motor_get_position()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
@@ -584,21 +584,21 @@ mxd_d8_motor_get_position( MX_MOTOR *motor )
 	char response[80];
 	double raw_position;
 	int num_tokens;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "AV%d", d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_tokens = sscanf( response, "AV%lg", &raw_position );
 
@@ -616,105 +616,94 @@ mxd_d8_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_d8_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_set_position()";
+	static const char fname[] = "mxd_d8_motor_set_position()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	char command[40];
 	char response[80];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "AV%d,%g", d8_motor->drive_number,
 					motor->raw_set_position.analog );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-#if 1
-#if 0
-	if ( fabs( motor->raw_set_position.analog ) < 1.0e-6 ) {
-#else
-	if (1) {
-#endif
-		sprintf( command, "ZI%d,0", d8_motor->drive_number );
+	sprintf( command, "ZI%d,0", d8_motor->drive_number );
 
-		status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		sprintf( command, "IN%d", d8_motor->drive_number );
+	sprintf( command, "IN%d", d8_motor->drive_number );
 
-		status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
-	}
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_d8_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_soft_abort()";
+	static const char fname[] = "mxd_d8_motor_soft_abort()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	char command[40];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "HT%d", d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
+	mx_status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_d8_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_immediate_abort()";
+	static const char fname[] = "mxd_d8_motor_immediate_abort()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Abort all drives, measurements, and macros. */
 
-	status = mxi_d8_command( d8, "HT", NULL, 0, D8_MOTOR_DEBUG );
+	mx_status = mxi_d8_command( d8, "HT", NULL, 0, D8_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_d8_motor_positive_limit_hit()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
@@ -722,21 +711,21 @@ mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
 	char response[80];
 	int num_items;
 	unsigned long drive_status;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "ST%lu", &drive_status );
 
@@ -757,7 +746,7 @@ mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_d8_motor_negative_limit_hit()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
@@ -765,21 +754,21 @@ mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 	char response[80];
 	int num_items;
 	unsigned long drive_status;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "ST%lu", &drive_status );
 
@@ -800,18 +789,18 @@ mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_d8_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_d8_motor_find_home_position()";
+	static const char fname[] = "mxd_d8_motor_find_home_position()";
 
 	MX_D8 *d8;
 	MX_D8_MOTOR *d8_motor;
 	char command[20];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_d8_motor_get_pointers( motor,
+	mx_status = mxd_d8_motor_get_pointers( motor,
 			&d8_motor, &d8, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( motor->home_search >= 0 ) {
 		sprintf( command, "FR%d,U", d8_motor->drive_number );
@@ -819,9 +808,9 @@ mxd_d8_motor_find_home_position( MX_MOTOR *motor )
 		sprintf( command, "FR%d,D", d8_motor->drive_number );
 	}
 
-	status = mxi_d8_command( d8, command,
+	mx_status = mxi_d8_command( d8, command,
 					NULL, 0, D8_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 

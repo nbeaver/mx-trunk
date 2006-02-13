@@ -386,7 +386,6 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
-		break;
 	}
 	
 	switch( data_type ) {
@@ -399,7 +398,6 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
-		break;
 	}
 	
 	/* Print out the current motor positions (if any). */

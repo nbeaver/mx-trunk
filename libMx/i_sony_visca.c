@@ -301,38 +301,32 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 		"than the maximum length of 14 bytes.",
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	case 0x02:
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"The message '%s' sent to Sony VISCA interface '%s' had "
 		"a syntax error in it.",
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	case 0x03:
 		return mx_error( MXE_TRY_AGAIN, fname,
 		"The command buffer for Sony VISCA interface '%s' is full.",
 			sony_visca->record->name );
-		break;
 	case 0x04:
 		return mx_error( MXE_INTERRUPTED, fname,
 		"The command '%s' for Sony VISCA interface '%s' was cancelled.",
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	case 0x05:
 		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
 		"No socket for command '%s' (to be canceled) for "
 		"Sony VISCA interface '%s'.",
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	case 0x41:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Command '%s' for Sony VISCA interface '%s' is not valid.",
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	default:
 		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
 		"An unrecognized error code %#x was received "
@@ -340,7 +334,6 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 			error_type,
 			sent_visca_ascii,
 			sony_visca->record->name );
-		break;
 	}
 
 	/* Borland C insists that there be a return statement here, while
@@ -380,11 +373,11 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 	command_ptr = (char *) command;
 
-	while (1) {
+	for (;;) {
 		num_command_body_bytes++;
 
 		if ( *command_ptr == '\xff' ) {
-			break;			/* Exit the while() loop. */
+			break;			/* Exit the for(;;) loop. */
 		}
 
 		command_ptr++;
@@ -432,7 +425,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	 * decide what to do with the message.
 	 */
 
-	while (1) {
+	for (;;) {
 
 		/* Wait for the first character in the response. */
 
@@ -448,7 +441,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 				return mx_status;
 
 			if ( num_bytes_available != 0 ) {
-				break;		/* Exit the for() loop. */
+				break;		/* Exit the for(i) loop. */
 			}
 
 			mx_msleep( wait_ms );
@@ -546,7 +539,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 				 	/* This is a command completion message
 					 * which we will skip over.  This means
 					 * that we need to go back to the top
-					 * of the while() loop to look for the
+					 * of the for(;;) loop to look for the
 					 * message we really want.
 					 */
 
@@ -573,7 +566,6 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 						sent_visca_ascii );
 
 				return mx_status;
-				break;
 			default:
 				(void) mx_rs232_discard_unread_input(
 						sony_visca->rs232_record,
@@ -586,7 +578,6 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 					response_type, first_byte,
 					second_byte, third_byte,
 					sony_visca->record->name );
-				break;
 			}
 		}
 
@@ -596,7 +587,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 				"%#x %#x %#x ", first_byte,
 				second_byte, third_byte );
 
-			 break;		/* Exit the while loop. */
+			 break;		/* Exit the for(;;) loop. */
 		}
 	}
 

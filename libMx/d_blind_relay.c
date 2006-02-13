@@ -256,7 +256,6 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The relay command %d is unrecognized.",
 			relay->relay_command );
-		break;
 	}
 
 	new_value = new_value | shifted_value;

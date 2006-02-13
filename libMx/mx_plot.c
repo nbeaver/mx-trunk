@@ -522,11 +522,11 @@ mx_plot_do_x_command( MX_PLOT *plot, char *command_arguments )
 
 	start_ptr = command_arguments;
 
-	while (1) {
+	for(;;) {
 		end_ptr = strchr( start_ptr, ',' );
 
 		if ( end_ptr == NULL ) {
-			break;			/* Exit the while loop. */
+			break;			/* Exit the for loop. */
 		}
 
 		(scan->plot.num_x_motors)++;

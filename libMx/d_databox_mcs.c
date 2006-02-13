@@ -384,7 +384,6 @@ mxd_databox_mcs_start_sequence( MX_RECORD *mcs_record,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal Databox limit mode %d.  This is a programming bug.",
 			databox->limit_mode );
-		break;
 	}
 
 	/* Get the current position of the X axis. */
@@ -765,7 +764,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 
 	/* Read as many characters as we can from the scan in progress. */
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_rs232_num_input_bytes_available(
 						databox->rs232_record,
 						&num_input_bytes_available );
@@ -777,7 +776,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 		}
 
 		if ( num_input_bytes_available == 0 )
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for() loop. */
 
 		mx_status = mxi_databox_getchar(databox, &c, DATABOX_MCS_DEBUG);
 
@@ -794,7 +793,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 				databox_mcs->buffer_status
 					= MXF_DATABOX_MCS_BUFFER_COMPLETE;
 
-				break;	/* Exit the while() loop. */
+				break;	/* Exit the for() loop. */
 			} else {
 				databox_mcs->buffer_status
 					= MXF_DATABOX_MCS_BUFFER_IS_FILLING;
@@ -976,18 +975,15 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		"Illegal MCS mode %d selected.  Only preset time and "
 		"preset count modes are allowed for a Databox MCS.",
 				mcs->mode );
-			break;
 		}
 
 		return mxi_databox_set_limit_mode( databox, limit_mode );
-		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
 			mcs->parameter_type );
 
-		break;
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 

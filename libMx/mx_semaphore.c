@@ -1401,20 +1401,19 @@ mx_sysv_named_semaphore_exclusive_create_file( MX_SEMAPHORE *semaphore,
 			return mx_error( MXE_ALREADY_EXISTS, fname,
 			"Semaphore file '%s' already exists.",
 				semaphore->name );
-			break;
+
 		case EACCES:
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The filesystem permissions do not allow us to "
 			"write to semaphore file '%s'.",
 				semaphore->name );
-			break;
+
 		default:
 			return mx_error( MXE_FILE_IO_ERROR, fname,
 			"An attempt to create semaphore file '%s' failed.  "
 			"Errno = %d, error message = '%s'.",
 				semaphore->name, saved_errno,
 				strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -1616,7 +1615,6 @@ mx_sysv_named_semaphore_create_new_file( MX_SEMAPHORE *semaphore,
 		break;
 	default:
 		return mx_status;
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1850,24 +1848,23 @@ mx_sysv_semaphore_create( MX_SEMAPHORE **semaphore,
 			"exist or semaphore number 0 was not found.",
 				(unsigned long) system_v_private->semaphore_key,
 				(*semaphore)->name );
-				break;
+
 			case EPERM:
 			case EACCES:
 				return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The current process lacks the appropriated privilege "
 			"to access the semaphore in the requested manner." );
-				break;
+
 			case ERANGE:
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Attempted to set semaphore value (%ld) outside the allowed "
 		"range of 0 to %d.", initial_value, SEMVMX );
-				break;
+
 			default:
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected semctl() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-				break;
 			}
 		}
 
@@ -1987,23 +1984,22 @@ mx_sysv_semaphore_destroy( MX_SEMAPHORE *semaphore )
 			"exist or semaphore number 0 was not found.",
 				(unsigned long) system_v_private->semaphore_key,
 				semaphore->name );
-				break;
+
 			case EPERM:
 				return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The current process lacks the appropriated privilege "
 			"to access the semaphore." );
-				break;
+
 			case EACCES:
 				return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The operation and the mode of the semaphore set "
 			"do not match." );
-			    	break;
+
 			default:
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected semctl() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-				break;
 			}
 		}
 
@@ -2056,36 +2052,26 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 		switch( saved_errno ) {
 		case 0:
 			return MXE_SUCCESS;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case EACCES:
 			return MXE_TYPE_MISMATCH;
-			break;
 		case EAGAIN:
 			return MXE_MIGHT_CAUSE_DEADLOCK;
-			break;
 		case E2BIG:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 #if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
-			break;
 #endif
 		case EINTR:
 			return MXE_INTERRUPTED;
-			break;
 		case ENOSPC:
 			return MXE_OUT_OF_MEMORY;
-			break;
 		case ERANGE:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 				"Unexpected error code returned by semop().  "
@@ -2093,7 +2079,6 @@ mx_sysv_semaphore_lock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2125,36 +2110,26 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 		switch( saved_errno ) {
 		case 0:
 			return MXE_SUCCESS;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case EACCES:
 			return MXE_TYPE_MISMATCH;
-			break;
 		case EAGAIN:
 			return MXE_MIGHT_CAUSE_DEADLOCK;
-			break;
 		case E2BIG:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 #if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
-			break;
 #endif
 		case EINTR:
 			return MXE_INTERRUPTED;
-			break;
 		case ENOSPC:
 			return MXE_OUT_OF_MEMORY;
-			break;
 		case ERANGE:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 				"Unexpected error code returned by semop().  "
@@ -2162,7 +2137,6 @@ mx_sysv_semaphore_unlock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2194,36 +2168,26 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 		switch( saved_errno ) {
 		case 0:
 			return MXE_SUCCESS;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case EACCES:
 			return MXE_TYPE_MISMATCH;
-			break;
 		case EAGAIN:
 			return MXE_NOT_AVAILABLE;
-			break;
 		case E2BIG:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		case EFBIG:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 #if defined(EIDRM)
 		case EIDRM:
 			return MXE_NOT_FOUND;
-			break;
 #endif
 		case EINTR:
 			return MXE_INTERRUPTED;
-			break;
 		case ENOSPC:
 			return MXE_OUT_OF_MEMORY;
-			break;
 		case ERANGE:
 			return MXE_WOULD_EXCEED_LIMIT;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 				"Unexpected error code returned by semop().  "
@@ -2231,7 +2195,6 @@ mx_sysv_semaphore_trylock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2269,7 +2232,6 @@ mx_sysv_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			"Unexpected semctl() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -2334,26 +2296,21 @@ mx_posix_sem_init( MX_SEMAPHORE *semaphore,
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The requested initial value %u exceeds the maximum "
 		"allowed value.", value );
-			break;
 		case ENOSPC:
 			return mx_error( MXE_NOT_AVAILABLE, fname,
     "A resource required to create the semaphore is not available.");
-		    	break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Posix semaphores are not supported on this platform." );
-			break;
 		case EPERM:
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 		"The current process lacks the appropriated privilege "
 		"to create the semaphore." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unexpected sem_init() error code %d returned.  "
 		"Error message = '%s'.",
 			saved_errno, strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -2395,18 +2352,15 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 				"Could not connect to semaphore '%s'.",
 					semaphore->name );
-			break;
 		case EEXIST:
 			return mx_error_quiet( MXE_ALREADY_EXISTS, fname,
 				"Semaphore '%s' already exists, but you "
 				"requested exclusive access.",
 					semaphore->name );
-			break;
 		case EINTR:
 			return mx_error( MXE_INTERRUPTED, fname,
 			    "sem_open() for semaphore '%s' was interrupted.",
 			    		semaphore->name );
-			break;
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Either sem_open() is not supported for "
@@ -2414,45 +2368,37 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 				"value %u was larger than the maximum "
 				"allowed value.",
 					semaphore->name, value );
-			break;
 		case EMFILE:
 			return mx_error( MXE_NOT_AVAILABLE, fname,
 				"Ran out of semaphore or file descriptors "
 				"for this process." );
-			break;
 		case ENAMETOOLONG:
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"Semaphore name '%s' is longer than the "
 				"maximum allowed length for this system.",
 					semaphore->name );
-			break;
 		case ENFILE:
 			return mx_error( MXE_NOT_AVAILABLE, fname,
 				"Too many semaphores are currently open "
 				"on this computer." );
-			break;
 		case ENOENT:
 			return mx_error( MXE_NOT_FOUND, fname,
 				"Semaphore '%s' was not found and the call "
 				"to sem_open() did not specify O_CREAT.",
 					semaphore->name );
-			break;
 		case ENOSPC:
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 				"There is insufficient space for the creation "
 				"of the new named semaphore." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"The function sem_open() is not supported "
 				"on this platform." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected sem_open() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -2485,7 +2431,6 @@ mx_posix_sem_unlink( MX_SEMAPHORE *semaphore )
 			"Errno = %d, error message = '%s'",
 				semaphore->name, saved_errno,
 				strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -2692,22 +2637,18 @@ mx_posix_semaphore_destroy( MX_SEMAPHORE *semaphore )
 				"Detected an attempt to destroy a semaphore "
 				"that is locked or referenced by "
 				"another thread." );
-			break;
 		case EINVAL:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The semaphore passed was not "
 				"a valid semaphore." );
-			break;
 		case ENOSYS:
 			return mx_error( MXE_UNSUPPORTED, fname,
 		"Posix semaphores are not supported on this platform." );
-			break;
 		default:
 			return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unexpected error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-			break;
 		}
 	}
 
@@ -2764,19 +2705,14 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 		switch( saved_errno ) {
 		case 0:
 			return MXE_SUCCESS;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case EINTR:
 			return MXE_INTERRUPTED;
-			break;
 		case ENOSYS:
 			return MXE_UNSUPPORTED;
-			break;
 		case EDEADLK:
 			return MXE_MIGHT_CAUSE_DEADLOCK;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 			    "Unexpected error code returned by sem_wait().  "
@@ -2784,7 +2720,6 @@ mx_posix_semaphore_lock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2811,13 +2746,10 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 		switch( saved_errno ) {
 		case 0:
 			return MXE_SUCCESS;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case ENOSYS:
 			return MXE_UNSUPPORTED;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 			    "Unexpected error code returned by sem_post().  "
@@ -2825,7 +2757,6 @@ mx_posix_semaphore_unlock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2856,19 +2787,14 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 #endif
 		case EAGAIN:
 			return MXE_NOT_AVAILABLE;
-			break;
 		case EINVAL:
 			return MXE_ILLEGAL_ARGUMENT;
-			break;
 		case EINTR:
 			return MXE_INTERRUPTED;
-			break;
 		case ENOSYS:
 			return MXE_UNSUPPORTED;
-			break;
 		case EDEADLK:
 			return MXE_MIGHT_CAUSE_DEADLOCK;
-			break;
 		default:
 			(void) mx_error( MXE_UNKNOWN_ERROR, fname,
 			    "Unexpected error code returned by sem_trywait().  "
@@ -2876,7 +2802,6 @@ mx_posix_semaphore_trylock( MX_SEMAPHORE *semaphore )
 				saved_errno, strerror( saved_errno ) );
 
 			return MXE_UNKNOWN_ERROR;
-			break;
 		}
 	}
 	return MXE_SUCCESS;
@@ -2927,7 +2852,6 @@ mx_posix_semaphore_get_value( MX_SEMAPHORE *semaphore,
 			"Unexpected sem_getvalue() error code %d returned.  "
 			"Error message = '%s'.",
 				saved_errno, strerror( saved_errno ) );
-			break;
 		}
 	}
 #endif

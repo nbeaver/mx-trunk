@@ -115,7 +115,6 @@ mx_modbus_compute_response_length( MX_RECORD *modbus_record,
 		"Unsupported MODBUS function code %#x seen in receive buffer "
 		"for MODBUS serial RTU interface '%s'.",
 			function_code, modbus_record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

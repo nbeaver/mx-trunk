@@ -78,7 +78,6 @@ motor_stop_fn( int argc, char *argv[] )
 				mx_get_driver_name( record ) );
 
 		return FAILURE;
-		break;
 	}
 
 	if ( mx_status.code == MXE_SUCCESS ) {

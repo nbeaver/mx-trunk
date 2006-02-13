@@ -115,7 +115,6 @@ mxd_bluice_shutter_get_pointers( MX_RELAY *relay,
 		"of type '%s'.",
 			bluice_server_record->name,
 			mx_get_driver_name( bluice_server_record ) );
-		break;
 	}
 
 	if ( bluice_server != (MX_BLUICE_SERVER **) NULL ) {
@@ -272,7 +271,6 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
 				relay->relay_command, relay->record->name );
-			break;
 		}
 		break;
 	case MXN_BLUICE_DHS_SERVER:
@@ -292,7 +290,6 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
 				relay->relay_command, relay->record->name );
-			break;
 		}
 	}
 

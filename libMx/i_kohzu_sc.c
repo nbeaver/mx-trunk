@@ -189,7 +189,6 @@ mxi_kohzu_sc_open( MX_RECORD *record )
 				(long) rs232->speed,
 				port_interface->record->name,
 				record->name );
-			break;
 		}
 
 		if ( ( rs232->read_terminators != 0x0d0a )
@@ -219,7 +218,6 @@ mxi_kohzu_sc_open( MX_RECORD *record )
 		"Only RS-232 and GPIB interfaces are supported.",
 			port_interface->record->name, record->name,
 			mx_get_driver_name( port_interface->record ) );
-		break;
 	}
 
 	/* Initialize motor_array. */
@@ -267,7 +265,6 @@ mxi_kohzu_sc_resynchronize( MX_RECORD *record )
 			break;		/* Continue on. */
 		default:
 			return mx_status;
-			break;
 		}
 
 		mx_status = mx_rs232_discard_unread_input(
@@ -437,7 +434,6 @@ mxi_kohzu_sc_process_function( void *record_ptr,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown operation code = %d", operation );
-		break;
 	}
 
 	return mx_status;
@@ -522,39 +518,32 @@ mxi_kohzu_sc_handle_error( MX_KOHZU_SC *kohzu_sc, char *response_buffer )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"The first byte in the command sent to Kohzu controller '%s' "
 		"was not an STX character.", kohzu_sc->record->name );
-		break;
 	case 2:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"'Total number of commands is short'"
 		" error for Kohzu controller '%s'", kohzu_sc->record->name );
-		break;
 	case 3:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"No CR character was found in the command sent to "
 		"Kohzu controller '%s'", kohzu_sc->record->name );
-		break;
 	case 4:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Illegal characters were found in the command sent to "
 		"Kohzu controller '%s'", kohzu_sc->record->name );
-		break;
 	case 5:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Illegal command error for "
 		"Kohzu controller '%s'", kohzu_sc->record->name );
-		break;
 	case 10:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Kohzu controller '%s' is currently in manual mode, "
 		"so it cannot accept any commands from the RS-232 port.",
 			kohzu_sc->record->name );
-		break;
 	case 100:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"The total number of paramters for the command sent "
 		"to Kohzu controller '%s' is incorrect.",
 			kohzu_sc->record->name );
-		break;
 	default:
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Error code %d returned by Kohzu controller '%s'",
@@ -686,14 +675,12 @@ mxi_kohzu_sc_command( MX_KOHZU_SC *kohzu_sc, char *command,
 		break;
 	case 'E':
 		return mxi_kohzu_sc_handle_error( kohzu_sc, response_buffer );
-		break;
 	default:
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
 		"The first character '%c' of response '%s' to command '%s' "
 		"by Kohzu SC-x00 controller '%s' is not 'C', 'W', or 'E'.",
 			response_status, response_buffer, command,
 			kohzu_sc->record->name );
-		break;
 	}
 
 	/* If the caller wanted a response, extract it from the

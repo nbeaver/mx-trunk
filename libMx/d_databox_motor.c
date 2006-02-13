@@ -243,7 +243,6 @@ mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 		"The only allowed names are 'X', 'Y', and 'Z'.",
 			databox_motor->axis_name,
 			record->name );
-		break;
 	}
 
 	if ( databox->motor_record_array == NULL ) {
@@ -540,7 +539,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 	 * characters until we see the 'S' character.
 	 */
 
-	while (1) {
+	for (;;) {
 		mx_status = mxi_databox_getchar( databox,
 						&c, DATABOX_MOTOR_DEBUG );
 
@@ -783,7 +782,6 @@ mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -817,7 +815,6 @@ mxd_databox_motor_set_parameter( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

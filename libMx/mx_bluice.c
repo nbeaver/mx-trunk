@@ -1384,7 +1384,6 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 		"Unexpected message type in Blu-Ice "
 		"message '%s' from DCSS '%s'.", config_string,
 			bluice_server->record->name );
-		break;
 	}
 
 #if BLUICE_DEBUG_CONFIG

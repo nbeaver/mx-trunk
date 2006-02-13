@@ -650,7 +650,6 @@ mxd_wavelength_motor_get_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
-		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(
@@ -767,7 +766,6 @@ mxd_wavelength_motor_set_parameter( MX_MOTOR *motor )
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type );
-		break;
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		mx_status =

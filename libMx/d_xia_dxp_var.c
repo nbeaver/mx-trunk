@@ -348,7 +348,6 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The value type %d for XIA DXP variable '%s' is unsupported.",
 			xia_dxp_input->value_type, analog_input->record->name );
-		break;
 	}
 
 	MX_DEBUG( 2,("%s: value_type = %d, raw_value = %g",

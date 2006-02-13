@@ -193,7 +193,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 
 	timer->busy = TRUE;
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_rs232_getchar( databox->rs232_record,
 						&c, MXF_232_NOWAIT );
 
@@ -506,7 +506,6 @@ mxd_databox_timer_get_mode( MX_TIMER *timer )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 	"Unexpected mode %d returned by mxi_databox_get_limit_mode().",
 			databox->limit_mode );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -539,7 +538,6 @@ mxd_databox_timer_set_mode( MX_TIMER *timer )
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Timer mode %d is not supported by the driver for timer '%s'.",
 			timer->mode, timer->record->name );
-		break;
 	}
 
 	mx_status = mxi_databox_set_limit_mode( databox, limit_mode );

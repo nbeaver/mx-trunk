@@ -141,7 +141,6 @@ motor_gpib_fn( int argc, char *argv[] )
 		/* Putline is done at this point. */
 
 		return SUCCESS;
-		break;
 
 	case GPIB_GETLINE_CMD:
 

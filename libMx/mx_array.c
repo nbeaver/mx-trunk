@@ -449,7 +449,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_STRING:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"MX does not support 0-dimensional strings." );
-			break;
 		case MXFT_INT8:
 		case MXFT_UINT8:
 		case MXFT_INT16:
@@ -495,7 +494,6 @@ mx_copy_array_to_buffer( void *array_pointer,
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Array copy for data type %ld is not supported.",
 				mx_datatype );
-			break;
 		}
 
 		if ( num_bytes_copied != NULL ) {
@@ -657,15 +655,12 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	case MXFT_RECORD:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an MXFT_RECORD field is not allowed." );
-		break;
 	case MXFT_RECORDTYPE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an MXFT_RECORDTYPE field is not allowed." );
-		break;
 	case MXFT_INTERFACE:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Writing to an MXFT_INTERFACE field is not allowed." );
-		break;
 	}
 
 	if ( num_bytes_copied != NULL ) {
@@ -713,7 +708,6 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_STRING:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"MX does not support 0-dimensional strings." );
-			break;
 		case MXFT_INT8:
 		case MXFT_UINT8:
 		case MXFT_INT16:
@@ -732,7 +726,6 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Array copy for data type %ld is not supported.",
 				mx_datatype );
-			break;
 		}
 
 		if ( num_bytes_copied != NULL ) {
@@ -1037,7 +1030,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"MX does not support 0-dimensional strings." );
-			break;
 		case MXFT_INT8:
 			xdr_status = xdr_int8_t( &xdrs, array_pointer );
 			break;
@@ -1107,7 +1099,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Array copy for data type %ld is not supported.",
 				mx_datatype );
-			break;
 		}
 
 		xdr_destroy( &xdrs );
@@ -1214,7 +1205,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal MX datatype %ld for %ld-dimensional XDR data transfer.",
 					mx_datatype, (long) num_dimensions );
-				break;
 			}
 
 		}

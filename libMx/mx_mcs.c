@@ -1297,7 +1297,6 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 						mcs->parameter_type ),
 			(int) mcs->parameter_type,
 			mcs->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1329,7 +1328,6 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 						mcs->parameter_type ),
 			(int) mcs->parameter_type,
 			mcs->record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
