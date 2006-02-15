@@ -29,7 +29,7 @@
        typedef unsigned long long int	uint64_t;
 #   endif
 
-#   if defined(OS_MACOSX) || defined(OS_HPUX)
+#   if defined(OS_MACOSX) || defined(OS_HPUX) || defined(OS_QNX)
 #      define xdr_int8_t	xdr_char
 #      define xdr_uint8_t	xdr_u_char
 #      define xdr_int16_t	xdr_short
@@ -44,7 +44,7 @@
 #   include <rpc/types.h>
 #   include <rpc/xdr.h>
 
-#   if defined(OS_MACOSX)
+#   if defined(OS_MACOSX) || defined(OS_QNX)
 #      include "../tools/xdr/src/xdr_hyper.h"
 #   endif
 #endif

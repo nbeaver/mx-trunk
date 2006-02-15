@@ -19,8 +19,13 @@
 #ifndef __XDR_HYPER_H__
 #define __XDR_HYPER_H__
 
-#define xdr_hyper	mx_xdr_hyper
-#define xdr_u_hyper	mx_xdr_u_hyper
+#define xdr_hyper		mx_xdr_hyper
+#define xdr_u_hyper		mx_xdr_u_hyper
+
+#if defined(OS_QNX)
+typedef long long		quad_t;
+typedef unsigned long long	u_quad_t;
+#endif
 
 MX_API bool_t mx_xdr_hyper( XDR *xdrs, quad_t *quad_ptr );
 
