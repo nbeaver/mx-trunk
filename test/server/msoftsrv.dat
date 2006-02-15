@@ -45,3 +45,6 @@ ain2           variable inline double "" "" 1 1 137
 aout2          variable inline double "" "" 1 1 0
 din2           variable inline int32  "" "" 1 1 238
 dout2          variable inline int32  "" "" 1 1 0
+#
+64bit          variable inline int64  "" "" 1 1 70100020003
+64u            variable inline uint64 "" "" 1 1 15040005000600070008
