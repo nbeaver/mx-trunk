@@ -853,7 +853,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	databox_mcs->buffer_index = 0;
 	databox_mcs->buffer_status = MXF_DATABOX_MCS_BUFFER_IS_FILLING;
 
-	MX_DEBUG( 2,("%s complete. busy = %d", fname, mcs->busy));
+	MX_DEBUG( 2,("%s complete. busy = %d", fname, (int) mcs->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -925,7 +925,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
-		mcs->parameter_type));
+		(int) mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -974,7 +974,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %d selected.  Only preset time and "
 		"preset count modes are allowed for a Databox MCS.",
-				mcs->mode );
+				(int) mcs->mode );
 		}
 
 		return mxi_databox_set_limit_mode( databox, limit_mode );
@@ -982,7 +982,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mcs->parameter_type );
+			(int) mcs->parameter_type );
 
 	}
 	MX_DEBUG( 2,("%s complete.", fname));

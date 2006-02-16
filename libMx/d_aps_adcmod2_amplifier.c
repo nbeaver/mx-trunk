@@ -411,7 +411,7 @@ mxd_aps_adcmod2_get_parameter( MX_AMPLIFIER *amplifier )
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
-		amplifier->parameter_type));
+		(int) amplifier->parameter_type));
 
 	switch( amplifier->parameter_type ) {
 	default:
@@ -443,7 +443,7 @@ mxd_aps_adcmod2_set_parameter( MX_AMPLIFIER *amplifier )
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
-		amplifier->parameter_type));
+		(int) amplifier->parameter_type));
 
 	switch( amplifier->parameter_type ) {
 	default:

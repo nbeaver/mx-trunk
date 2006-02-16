@@ -270,7 +270,8 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
-				relay->relay_command, relay->record->name );
+				(int) relay->relay_command,
+				relay->record->name );
 		}
 		break;
 	case MXN_BLUICE_DHS_SERVER:
@@ -289,7 +290,8 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
-				relay->relay_command, relay->record->name );
+				(int) relay->relay_command,
+				relay->record->name );
 		}
 	}
 

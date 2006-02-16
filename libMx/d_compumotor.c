@@ -231,7 +231,8 @@ mxd_compumotor_finish_record_initialization( MX_RECORD *record )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	MX_COMPUMOTOR *compumotor;
 	MX_RECORD **motor_array;
-	int i, j, num_axes, controller_index;
+	int i, j, num_axes;
+	int32_t controller_index;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
@@ -250,7 +251,7 @@ mxd_compumotor_finish_record_initialization( MX_RECORD *record )
 	/* Find the array index for this controller number. */
 
 	mx_status = mxi_compumotor_get_controller_index( compumotor_interface,
-					compumotor->controller_number,
+					(int) compumotor->controller_number,
 					&controller_index );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -267,7 +268,7 @@ mxd_compumotor_finish_record_initialization( MX_RECORD *record )
 	}
 
 	i = compumotor->controller_index;
-	j = compumotor->axis_number - 1;
+	j = (int) compumotor->axis_number - 1;
 
 	num_axes = compumotor_interface->num_axes[i];
 
@@ -314,11 +315,16 @@ mxd_compumotor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type        = COMPUMOTOR motor.\n\n");
 
 	fprintf(file, "  name              = %s\n", record->name);
+
 	fprintf(file, "  port name         = %s\n",
 					compumotor_interface->record->name);
+
 	fprintf(file, "  controller number = %d\n",
-					compumotor->controller_number);
-	fprintf(file, "  axis number       = %d\n", compumotor->axis_number);
+					(int) compumotor->controller_number);
+
+	fprintf(file, "  axis number       = %d\n",
+					(int) compumotor->axis_number);
+
 	fprintf(file, "  flags             = %#lx\n",
 					(unsigned long) compumotor->flags);
 
@@ -394,11 +400,11 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		break;
 
 	case MXT_COMPUMOTOR_6K:
-		j = compumotor->axis_number - 1;
+		j = (int) compumotor->axis_number - 1;
 
 		num_axes = (int) (compumotor_interface->num_axes)[i];
 
-		sprintf( command, "%d_!AXSDEF", compumotor->controller_number );
+		sprintf( command, "%d_!AXSDEF", (int) compumotor->controller_number );
 
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof response, COMPUMOTOR_DEBUG );
@@ -466,8 +472,8 @@ mxd_compumotor_servo_initialization(
 	int num_items;
 	mx_status_type mx_status;
 
-	sprintf( command, "%d_!%dERES", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dERES", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof response, COMPUMOTOR_DEBUG );
@@ -497,8 +503,8 @@ mxd_compumotor_stepper_initialization(
 	int num_items;
 	mx_status_type mx_status;
 
-	sprintf( command, "%d_!%dDRES", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dDRES", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof response, COMPUMOTOR_DEBUG );
@@ -544,8 +550,8 @@ mxd_compumotor_open( MX_RECORD *record )
 	 * this motor.
 	 */
 
-	sprintf( command, "%d_!%dMA1", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dMA1", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			NULL, 0, COMPUMOTOR_DEBUG );
@@ -559,11 +565,11 @@ mxd_compumotor_open( MX_RECORD *record )
 
 	if ( compumotor->flags & MXF_COMPUMOTOR_DISABLE_HARDWARE_LIMITS ) {
 
-		sprintf( command, "%d_!%dLH0", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dLH0", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 	} else {
-		sprintf( command, "%d_!%dLH3", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dLH3", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
@@ -702,8 +708,8 @@ mxd_compumotor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%d_!%dTAS", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dTAS", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			response, sizeof response, COMPUMOTOR_DEBUG );
@@ -766,8 +772,8 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 	} else {
 		destination = motor->raw_destination.analog;
 	}
-	sprintf( command, "%d_!%dD%f", compumotor->controller_number,
-			compumotor->axis_number, destination );
+	sprintf( command, "%d_!%dD%f", (int) compumotor->controller_number,
+			(int) compumotor->axis_number, destination );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, COMPUMOTOR_DEBUG );
@@ -777,14 +783,14 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 
 	/* Construct the move command. */
 
-	sprintf( command, "%d_!GO", compumotor->controller_number );
+	sprintf( command, "%d_!GO", (int) compumotor->controller_number );
 
 	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
 
 		length = strlen( command );
 		command_buffer_left = sizeof( command ) - length - 1;
 
-		if ( (i+1) == compumotor->axis_number ) {
+		if ( (i+1) == (int) compumotor->axis_number ) {
 			strncat( command, "1", command_buffer_left );
 		} else {
 			strncat( command, "X", command_buffer_left );
@@ -822,12 +828,12 @@ mxd_compumotor_get_position( MX_MOTOR *motor )
 	if ( compumotor->flags & MXF_COMPUMOTOR_USE_ENCODER_POSITION ) {
 
 		sprintf( command, "%d_!%dTPE",
-			compumotor->controller_number,
-			compumotor->axis_number );
+			(int) compumotor->controller_number,
+			(int) compumotor->axis_number );
 	} else {
 		sprintf( command, "%d_!%dTPM",
-			compumotor->controller_number,
-			compumotor->axis_number );
+			(int) compumotor->controller_number,
+			(int) compumotor->axis_number );
 	}
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
@@ -894,7 +900,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 
 	/* Construct a PSET command. */
 
-	sprintf( command, "%d_!PSET", compumotor->controller_number );
+	sprintf( command, "%d_!PSET", (int) compumotor->controller_number );
 
 	for ( j = 0; j < num_axes; j++ ) {
 
@@ -903,7 +909,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 			command_buffer_left = sizeof(buffer) - length - 1;
 			strncat( command, ",", command_buffer_left );
 		}
-		if ( j+1 == compumotor->axis_number ) {
+		if ( j+1 == (int) compumotor->axis_number ) {
 			sprintf( buffer, "%f", new_set_position );
 		} else {
 			if ( motor_array[j] == (MX_RECORD *) NULL ) {
@@ -957,13 +963,13 @@ mxd_compumotor_soft_abort( MX_MOTOR *motor )
 
 	/* Construct a stop command that only stops this axis. */
 
-	sprintf( command, "%d_!S", compumotor->controller_number );
+	sprintf( command, "%d_!S", (int) compumotor->controller_number );
 
 	length = strlen( command );
 
 	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
 
-		if ( (i+1) == compumotor->axis_number ) {
+		if ( (i+1) == (int) compumotor->axis_number ) {
 			command[ length + i ] = '1';
 		} else {
 			command[ length + i ] = '0';
@@ -1000,7 +1006,7 @@ mxd_compumotor_immediate_abort( MX_MOTOR *motor )
 	 * this controller.
 	 */
 
-	sprintf( command, "%d_!K", compumotor->controller_number );
+	sprintf( command, "%d_!K", (int) compumotor->controller_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, COMPUMOTOR_DEBUG );
@@ -1026,8 +1032,8 @@ mxd_compumotor_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%d_!%dTAS", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dTAS", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			response, sizeof response, COMPUMOTOR_DEBUG );
@@ -1076,8 +1082,8 @@ mxd_compumotor_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%d_!%dTAS", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dTAS", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
@@ -1128,13 +1134,13 @@ mxd_compumotor_find_home_position( MX_MOTOR *motor )
 
 	/* Construct the home search command. */
 
-	sprintf( command, "%d_!HOM", compumotor->controller_number );
+	sprintf( command, "%d_!HOM", (int) compumotor->controller_number );
 
 	length = strlen( command );
 
 	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
 
-		if ( (i+1) == compumotor->axis_number ) {
+		if ( (i+1) == (int) compumotor->axis_number ) {
 			switch( motor->home_search ) {
 			case 1:
 				command[ length + i ] = '0';
@@ -1188,11 +1194,11 @@ mxd_compumotor_constant_velocity_move( MX_MOTOR *motor )
 	/* Set the direction of the move. */
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		sprintf( command, "%d_!%dD+", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dD+", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 	} else {
-		sprintf( command, "%d_!%dD-", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dD-", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 	}
 		
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
@@ -1203,14 +1209,14 @@ mxd_compumotor_constant_velocity_move( MX_MOTOR *motor )
 
 	/* Construct the move command. */
 
-	sprintf( command, "%d_!GO", compumotor->controller_number );
+	sprintf( command, "%d_!GO", (int) compumotor->controller_number );
 
 	for ( i = 0; i < MX_MAX_COMPUMOTOR_AXES; i++ ) {
 
 		length = strlen( command );
 		command_buffer_left = sizeof( command ) - length - 1;
 
-		if ( (i+1) == compumotor->axis_number ) {
+		if ( (i+1) == (int) compumotor->axis_number ) {
 			strncat( command, "1", command_buffer_left );
 		} else {
 			strncat( command, "X", command_buffer_left );
@@ -1250,12 +1256,12 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "%d_!%dV", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dV", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1280,8 +1286,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		switch( (compumotor_interface->controller_type)[i] ) {
 		case MXT_COMPUMOTOR_ZETA_6000:
 			sprintf( command, "%d_!%dSSV",
-						compumotor->controller_number,
-						compumotor->axis_number );
+						(int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 
 			mx_status = mxi_compumotor_command( compumotor_interface,
 				command, response, sizeof(response),
@@ -1317,8 +1323,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "%d_!%dA", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dA", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1343,8 +1349,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		sprintf( command, "%d_!%dSGP", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGP", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1364,8 +1370,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_GAIN:
-		sprintf( command, "%d_!%dSGI", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGI", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1385,8 +1391,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		sprintf( command, "%d_!%dSGV", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGV", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1406,8 +1412,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		sprintf( command, "%d_!%dSGVF", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGVF", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1427,8 +1433,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		sprintf( command, "%d_!%dSGAF", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGAF", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1448,8 +1454,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		sprintf( command, "%d_!%dSGILIM", compumotor->controller_number,
-						compumotor->axis_number );
+		sprintf( command, "%d_!%dSGILIM", (int) compumotor->controller_number,
+						(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface, command,
 				response, sizeof(response), COMPUMOTOR_DEBUG );
@@ -1496,7 +1502,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -1505,9 +1511,10 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		double_value = mx_divide_safely( motor->raw_speed,
 						compumotor->axis_resolution );
 
-		sprintf( command, "%d_!%dV%f", compumotor->controller_number,
-						compumotor->axis_number,
-						double_value );
+		sprintf( command, "%d_!%dV%f",
+			(int) compumotor->controller_number,
+			(int) compumotor->axis_number,
+			double_value );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1553,8 +1560,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 						compumotor->axis_resolution );
 
 			sprintf( command, "%d_!%dSSV%f",
-						compumotor->controller_number,
-						compumotor->axis_number,
+						(int) compumotor->controller_number,
+						(int) compumotor->axis_number,
 						double_value );
 
 			mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1609,8 +1616,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 		/* First make sure that deceleration equals acceleration. */
 
-		sprintf( command, "%d_!%dAD0", compumotor->controller_number,
-					compumotor->axis_number );
+		sprintf( command, "%d_!%dAD0", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 		
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1626,8 +1633,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 					motor->raw_acceleration_parameters[0],
 					compumotor->axis_resolution );
 
-		sprintf( command, "%d_!%dA%f", compumotor->controller_number,
-					compumotor->axis_number,
+		sprintf( command, "%d_!%dA%f", (int) compumotor->controller_number,
+					(int) compumotor->axis_number,
 					double_value );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1664,9 +1671,9 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			motor->axis_enable = 1;
 		}
 		sprintf( command, "%d_!%dDRIVE%d",
-				compumotor->controller_number,
-				compumotor->axis_number,
-				motor->axis_enable );
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
+				(int) motor->axis_enable );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1677,9 +1684,9 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			motor->closed_loop = 1;
 		}
 		sprintf( command, "%d_!%dDRIVE%d",
-				compumotor->controller_number,
-				compumotor->axis_number,
-				motor->closed_loop );
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
+				(int) motor->closed_loop );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1690,9 +1697,9 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 			motor->fault_reset = 1;
 		}
 		sprintf( command, "%d_!%dDRIVE%d",
-				compumotor->controller_number,
-				compumotor->axis_number,
-				motor->fault_reset );
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
+				(int) motor->fault_reset );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1702,8 +1709,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		sprintf( command, "%d_!%dSGP%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->proportional_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1712,8 +1719,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_GAIN:
 		sprintf( command, "%d_!%dSGI%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->integral_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1722,8 +1729,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		sprintf( command, "%d_!%dSGV%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->derivative_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1732,8 +1739,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		sprintf( command, "%d_!%dSGVF%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->velocity_feedforward_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1742,8 +1749,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		sprintf( command, "%d_!%dSGAF%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->acceleration_feedforward_gain );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1752,8 +1759,8 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		sprintf( command, "%d_!%dSGILIM%f",
-				compumotor->controller_number,
-				compumotor->axis_number,
+				(int) compumotor->controller_number,
+				(int) compumotor->axis_number,
 				motor->integral_limit );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -1836,8 +1843,8 @@ mxd_compumotor_simultaneous_start( mx_length_type num_motor_records,
 		"namely %d and %d, on Compumotor interface '%s'.",
 				motor_record_array[0]->name,
 				motor_record->name,
-				controller_number,
-				current_controller_number,
+				(int) controller_number,
+				(int) current_controller_number,
 				compumotor_interface->record->name );
 		}
 	}
@@ -1881,8 +1888,8 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%d_!%dTAS", compumotor->controller_number,
-					compumotor->axis_number );
+	sprintf( command, "%d_!%dTAS", (int) compumotor->controller_number,
+					(int) compumotor->axis_number );
 
 	mx_status = mxi_compumotor_command( compumotor_interface, command,
 			response, sizeof response, COMPUMOTOR_DEBUG );
@@ -2020,7 +2027,7 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 	if ( (enable_flag != FALSE) && (enable_flag != TRUE) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal value %d for enable_flag argument.",
-			enable_flag );
+			(int) enable_flag );
 	}
 
 	/* Construct the MC command that we will use to change the mode. */
@@ -2037,9 +2044,9 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 
 	motor_array = compumotor_interface->motor_array[i];
 
-	sprintf( command, "%d_!%dMC%d", compumotor->controller_number,
-					compumotor->axis_number,
-					enable_flag );
+	sprintf( command, "%d_!%dMC%d", (int) compumotor->controller_number,
+					(int) compumotor->axis_number,
+					(int) enable_flag );
 
 	/* Send the MC command. */
 

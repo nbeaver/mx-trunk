@@ -161,8 +161,7 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 		"MX_RELAY pointer passed is NULL." );
 	}
 
-	generic_relay = (MX_GENERIC_RELAY *)
-				relay->record->record_type_struct;
+	generic_relay = (MX_GENERIC_RELAY *) relay->record->record_type_struct;
 
 	if ( generic_relay == (MX_GENERIC_RELAY *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -205,7 +204,7 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The relay command %d is unrecognized.",
-			relay->relay_command );
+			(int) relay->relay_command );
 	}
 
 	if ( generic_relay->grelay_flags & MXF_GRELAY_INVERT_OUTPUT ) {

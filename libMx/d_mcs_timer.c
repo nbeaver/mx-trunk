@@ -206,7 +206,7 @@ mxd_mcs_timer_is_busy( MX_TIMER *timer )
 	timer->busy = busy;
 
 	MX_DEBUG( 2,("%s: timer '%s' busy = %d",
-			fname, timer->record->name, timer->busy));
+			fname, timer->record->name, (int) timer->busy));
 
 	return mx_status;
 }
@@ -355,7 +355,7 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_mcs_timer_get_mode()";
 
 	MX_MCS_TIMER *mcs_timer;
-	int mode;
+	int32_t mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );

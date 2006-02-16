@@ -242,7 +242,7 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			if ( (scan->motor_is_independent_variable)[i] ) {
 				status = fprintf( output_file, " %-10.*g",
-					motor_record_array[i]->precision,
+					(int) motor_record_array[i]->precision,
 					(scan->motor_position)[i] );
 
 				CHECK_FPRINTF_STATUS;
@@ -263,7 +263,7 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			x_motor_record = scan->datafile.x_motor_array[i];
 
 			status = fprintf( output_file, " %-10.*g",
-				x_motor_record->precision,
+				(int) x_motor_record->precision,
 				scan->datafile.x_position_array[i][0] );
 
 			CHECK_FPRINTF_STATUS;
@@ -414,7 +414,7 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-				scan->record->precision,
+				(int) scan->record->precision,
 				double_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
@@ -436,7 +436,7 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-					scan->record->precision,
+					(int) scan->record->precision,
 					double_data_array[i] );
 
 			CHECK_FPRINTF_STATUS;

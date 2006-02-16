@@ -327,7 +327,7 @@ mxd_icplus_ain_open( MX_RECORD *record )
 
 	if ( ainput->record->mx_type == MXT_AIN_ICPLUS ) {
 		sprintf( icplus_ainput->command, ":READ%d:CURR?",
-						icplus->address );
+						(int) icplus->address );
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -348,7 +348,7 @@ mxd_icplus_ain_open( MX_RECORD *record )
 	  || ( strcmp( value_name, "POSY" ) == 0 ) )
 	{
 		sprintf( icplus_ainput->command, ":READ%d:%s?",
-					icplus->address, value_name );
+					(int) icplus->address, value_name );
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested value '%s' is not supported by the '%s' driver "
@@ -486,10 +486,10 @@ mxd_icplus_aout_open( MX_RECORD *record )
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_INTEGER;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:VOLT?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:VOLT?",
-						icplus->address );
+						(int) icplus->address );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -525,7 +525,7 @@ mxd_icplus_aout_open( MX_RECORD *record )
 		strcpy( icplus_aoutput->input_command, "" );
 
 		sprintf( icplus_aoutput->output_command, ":READ%d:AVGCURR",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "WDWCURR" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_INTEGER;
@@ -533,7 +533,7 @@ mxd_icplus_aout_open( MX_RECORD *record )
 		strcpy( icplus_aoutput->input_command, "" );
 
 		sprintf( icplus_aoutput->output_command, ":READ%d:WDWCURR",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "SINGLE" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_NONE;
@@ -541,97 +541,97 @@ mxd_icplus_aout_open( MX_RECORD *record )
 		strcpy( icplus_aoutput->input_command, "" );
 
 		sprintf( icplus_aoutput->output_command, ":READ%d:SINGLE",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "GX" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:GX?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:GX",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "GY" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:GY?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:GY",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "A1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:A1?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:A1",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "A2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:A2?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:A2",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "B1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:B1?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:B1",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "B2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:B2?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:B2",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "C1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:C1?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:C1",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "C2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:C2?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:C2",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "D1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:D1?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:D1",
-						icplus->address );
+						(int) icplus->address );
 	} else
 	if ( strcmp( value_name, "D2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
 		sprintf( icplus_aoutput->input_command, ":CONF%d:D2?",
-						icplus->address );
+						(int) icplus->address );
 
 		sprintf( icplus_aoutput->output_command, ":CONF%d:D2",
-						icplus->address );
+						(int) icplus->address );
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested value '%s' is not supported by the '%s' driver "
@@ -748,14 +748,14 @@ mxd_icplus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 		} else
 		if ( long_value >= 1 ) {
 			sprintf( command, ":READ%d:AVGCURR %ld",
-					icplus->address, long_value );
+					(int) icplus->address, long_value );
 		} else
 		if ( long_value > -1 ) {
-			sprintf( command, ":READ%d:SINGLE", icplus->address );
+			sprintf( command, ":READ%d:SINGLE", (int) icplus->address );
 		} else
 		if ( long_value >= -100 ) {
 			sprintf( command, ":READ%d:WDWCURR %ld",
-					icplus->address, -long_value );
+					(int) icplus->address, -long_value );
 		} else {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested moving average size of %ld for record '%s' is "

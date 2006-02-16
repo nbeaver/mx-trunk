@@ -411,7 +411,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: bragg_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: bragg_motor_record  busy = %d", fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -435,7 +435,7 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -458,7 +458,8 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: piezo_left_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: piezo_left_motor_record  busy = %d",
+		fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -493,7 +494,8 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 
 		mx_status = mx_motor_is_busy( gap_energy_motor_record, &busy );
 
-		MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, busy));
+		MX_DEBUG( 2,("%s: tune_motor_record  busy = %d",
+			fname, (int) busy));
 	}
 
 	motor->busy = busy;
@@ -1892,7 +1894,7 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -1958,7 +1960,7 @@ mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 	}
 

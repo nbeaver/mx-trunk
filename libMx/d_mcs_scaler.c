@@ -242,7 +242,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  MCS record            = %s\n",
 					mcs_scaler->mcs_record->name);
 	fprintf(file, "  scaler number         = %d\n",
-					mcs_scaler->scaler_number);
+					(int) mcs_scaler->scaler_number);
 
 	mx_status = mx_scaler_read( record, &current_value );
 
@@ -468,7 +468,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 
 	scaler->busy = busy;
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
 
 	return mx_status;
 }
@@ -543,7 +543,7 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 
 	MX_MCS_SCALER *mcs_scaler;
 	unsigned long scaler_index;
-	int mode;
+	int32_t mode;
 	double dark_current;
 	mx_status_type mx_status;
 

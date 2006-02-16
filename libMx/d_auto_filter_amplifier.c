@@ -482,7 +482,7 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	old_filter_setting = auto_filter_amp->present_filter_setting;
 
 	MX_DEBUG( 2,("%s: change_control = %d",
-			fname, autoscale->change_control));
+			fname, (int) autoscale->change_control));
 
 	switch( autoscale->change_control ) {
 	case MXF_AUTO_NO_CHANGE:
@@ -518,7 +518,7 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal value %d for change_control.",
-			autoscale->change_control );
+			(int) autoscale->change_control );
 	}
 
 	MX_DEBUG( 2,("%s: Changing filter '%s' from %#lx to %#lx.",
@@ -655,7 +655,7 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 		} else {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Illegal value %d for change_control.",
-				autoscale->change_control );
+				(int) autoscale->change_control );
 		}
 
 		/* Change the amplifier gain.
@@ -753,7 +753,7 @@ mxd_auto_filter_amp_get_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:
@@ -783,7 +783,7 @@ mxd_auto_filter_amp_set_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:

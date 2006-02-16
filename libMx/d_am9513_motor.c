@@ -696,7 +696,7 @@ mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 
 	motor->busy = busy;
 
-	MX_DEBUG( 2,("%s: busy = %d", fname, motor->busy));
+	MX_DEBUG( 2,("%s: busy = %d", fname, (int) motor->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }

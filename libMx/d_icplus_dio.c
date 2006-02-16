@@ -297,7 +297,8 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	"the legal range of 0 to 2.", port_number, dinput->record->name );
 	}
 
-	sprintf( command, ":SENS%d:STAT%d?", icplus->address, port_number );
+	sprintf( command, ":SENS%d:STAT%d?",
+			(int) icplus->address, port_number );
 
 	mx_status = mxd_icplus_command( icplus, command,
 				response, sizeof( response ),
@@ -326,7 +327,8 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_icplus_dout_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_icplus_dout_create_record_structures()";
+        static const char fname[] =
+		"mxd_icplus_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_ICPLUS_DOUTPUT *icplus_doutput;
@@ -389,7 +391,8 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	"the legal range of 0 to 2.", port_number, doutput->record->name );
 	}
 
-	sprintf( command, ":SOUR%d:STAT%d?", icplus->address, port_number );
+	sprintf( command, ":SOUR%d:STAT%d?",
+				(int) icplus->address, port_number );
 
 	mx_status = mxd_icplus_command( icplus, command,
 				response, sizeof( response ),
@@ -443,7 +446,7 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	}
 
 	sprintf( command, ":SOUR%d:STAT%d %lu",
-			icplus->address, port_number,
+			(int) icplus->address, port_number,
 			(unsigned long) doutput->value );
 
 	mx_status = mxd_icplus_command( icplus, command,

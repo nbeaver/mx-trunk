@@ -262,7 +262,7 @@ mxd_e662_open( MX_RECORD *record )
 	if ( rs232->word_size != 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The E-662 controller '%s' requires 8 bit characters.  Instead saw %d",
-			record->name, rs232->word_size );
+			record->name, (int) rs232->word_size );
 	}
 	if ( rs232->parity != 'N' ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -272,7 +272,7 @@ mxd_e662_open( MX_RECORD *record )
 	if ( rs232->stop_bits != 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The E-662 controller '%s' requires 1 stop bit.  Instead saw %d.",
-			record->name, rs232->stop_bits );
+			record->name, (int) rs232->stop_bits );
 	}
 	if ( (rs232->flow_control != 'H')
 	  && (rs232->flow_control != 'R') )

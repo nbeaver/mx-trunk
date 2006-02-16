@@ -418,7 +418,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -622,7 +622,7 @@ mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Scaler mode %d is not supported by the driver for scaler '%s'.",
-				scaler->mode, scaler->record->name );
+				(int) scaler->mode, scaler->record->name );
 		}
 
 		mx_status = mxi_databox_set_limit_mode( databox, limit_mode );

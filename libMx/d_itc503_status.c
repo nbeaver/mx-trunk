@@ -205,14 +205,15 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	"Illegal parameter type %d requested for ITC503 status record '%s'.  "
 	"Allowed parameter types are from 0 to 13.  Read the description of "
 	"the 'R' command in the ITC503 manual for more information.",
-			itc503_status->parameter_type, ainput->record->name );
+			(int) itc503_status->parameter_type,
+			ainput->record->name );
 	}
 
 	/* The requested parameter type is used directly to construct
 	 * an ITC503 'R' command.
 	 */
 
-	sprintf( command, "R%d", itc503_status->parameter_type );
+	sprintf( command, "R%d", (int) itc503_status->parameter_type );
 
 	/* Send the READ command to the controller. */
 

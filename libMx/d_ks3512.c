@@ -127,7 +127,7 @@ mxd_ks3512_finish_record_initialization( MX_RECORD *record )
         if ( ks3512->slot < 1 || ks3512->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
                 "CAMAC slot number %d is out of the allowed range 1-23.",
-                        ks3512->slot );
+                        (int) ks3512->slot );
         }
 
 	mx_status = mx_analog_input_finish_record_initialization( record );
@@ -158,7 +158,8 @@ mxd_ks3512_read( MX_ANALOG_INPUT *adc )
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
+			"CAMAC error: Q = %d, X = %d",
+			(int) camac_Q, (int) camac_X );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

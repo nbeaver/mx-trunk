@@ -117,7 +117,7 @@ mxd_adc_table_get_pointers( MX_TABLE *table,
 static mx_status_type
 mxd_adc_table_construct_table_subset( MX_TABLE *table,
 				MX_ADC_TABLE *adc_table,
-				int *num_motors,
+				mx_length_type *num_motors,
 				MX_RECORD **subset_array )
 {
 	static const char fname[] = "mxd_adc_table_construct_table_subset()";
@@ -490,7 +490,7 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD **marray;
 	MX_MOTOR *motor;
-	int i, num_motors;
+	mx_length_type i, num_motors;
 	double y1_position, y2_position;
 	double z1_position, z2_position, z3_position;
 	double rotation_radius;
@@ -1077,7 +1077,7 @@ mxd_adc_table_soft_abort( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, num_motors;
+	mx_length_type i, num_motors;
 	mx_status_type mx_status, mx_status_to_return;
 
 	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);
@@ -1114,7 +1114,7 @@ mxd_adc_table_immediate_abort( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, num_motors;
+	mx_length_type i, num_motors;
 	mx_status_type mx_status, mx_status_to_return;
 
 	mx_status = mxd_adc_table_get_pointers(table, &adc_table, fname);

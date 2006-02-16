@@ -443,7 +443,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	long raw_destination, dewar_puck_number, dewar_sample_number;
 	double dewar_rot_destination, dewar_x_destination;
-	int vertical_slide_status, small_slide_status;
+	int32_t vertical_slide_status, small_slide_status;
 	int the_move_can_be_performed;
 	unsigned long flags;
 	mx_status_type mx_status;
@@ -528,7 +528,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			"illegal relay status %d.",
 			motor->record->name, 
 			als_dewar_positioner->small_slide_record->name,
-			small_slide_status );
+			(int) small_slide_status );
 		}
 		if ( vertical_slide_status != MXF_RELAY_IS_OPEN ) {
 			return mx_error( MXE_PERMISSION_DENIED, fname,
@@ -537,7 +537,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			"illegal relay status %d.",
 			motor->record->name, 
 			als_dewar_positioner->vertical_slide_record->name,
-			vertical_slide_status );
+			(int) vertical_slide_status );
 		}
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,

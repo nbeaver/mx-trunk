@@ -217,7 +217,7 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"io_type %d for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
-			keithley2400_amp->io_type,
+			(int) keithley2400_amp->io_type,
 			amplifier->record->name );
 	}
 
@@ -313,7 +313,7 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"io_type %d for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
-			keithley2400_amp->io_type,
+			(int) keithley2400_amp->io_type,
 			amplifier->record->name );
 	}
 

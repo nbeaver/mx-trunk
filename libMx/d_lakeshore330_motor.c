@@ -384,7 +384,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		if ( rs232->word_size != 7 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires 7 bit characters.  Instead saw %d",
-				record->name, rs232->word_size );
+				record->name, (int) rs232->word_size );
 		}
 		if ( rs232->parity != 'O' ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -394,7 +394,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		if ( rs232->stop_bits != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires 1 stop bit.  Instead saw %d.",
-				record->name, rs232->stop_bits );
+				record->name, (int) rs232->stop_bits );
 		}
 		if (rs232->flow_control != 'N') {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

@@ -369,7 +369,7 @@ mxd_gm10_timer_is_busy( MX_TIMER *timer )
 	MX_DEBUG(-2,("%s: current time = (%lu,%lu), busy = %d",
 		fname, current_time_in_clock_ticks.high_order,
 		current_time_in_clock_ticks.low_order,
-		timer->busy ));
+		(int) timer->busy ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

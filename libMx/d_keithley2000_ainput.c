@@ -325,7 +325,7 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported measurement type %d for record '%s'",
-				keithley2000_ainput->measurement_type,
+				(int) keithley2000_ainput->measurement_type,
 				ainput->record->name );
 		}
 

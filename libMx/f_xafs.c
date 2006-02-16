@@ -372,7 +372,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					scan->record->precision,
+					(int) scan->record->precision,
 					linear_scan->start_position[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
@@ -382,13 +382,13 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 
 		for ( i = 0; i <= num_energy_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					scan->record->precision,
+					(int) scan->record->precision,
 					region_boundary[i] );
 			CHECK_FPRINTF_STATUS;
 		}
 		for ( i = num_energy_regions + 1; i < num_boundaries; i++ ) {
 			status = fprintf( output_file, "%.*gk ",
-					scan->record->precision,
+					(int) scan->record->precision,
 					region_boundary[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -398,7 +398,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 
 	case MXS_QUICK_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					scan->record->precision,
+					(int) scan->record->precision,
 					quick_scan->start_position[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
@@ -412,20 +412,20 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					scan->record->precision,
+					(int) scan->record->precision,
 					linear_scan->step_size[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
 	case MXS_XAFS_SCAN:
 		for ( i = 0; i < num_energy_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					scan->record->precision,
+					(int) scan->record->precision,
 					region_step_size[i] );
 			CHECK_FPRINTF_STATUS;
 		}
 		for ( i = num_energy_regions; i < num_regions; i++ ) {
 			status = fprintf( output_file, "%.*gk ",
-					scan->record->precision,
+					(int) scan->record->precision,
 					region_step_size[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -438,7 +438,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			quick_scan->requested_num_measurements - 1 );
 
 		status = fprintf( output_file, "%.*g\n",
-				scan->record->precision,
+				(int) scan->record->precision,
 				estimated_step_size );
 
 		CHECK_FPRINTF_STATUS;
@@ -453,14 +453,14 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					scan->record->precision,
+					(int) scan->record->precision,
 					measurement_time );
 		CHECK_FPRINTF_STATUS;
 		break;
 	case MXS_XAFS_SCAN:
 		for ( i = 0; i < num_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					scan->record->precision,
+					(int) scan->record->precision,
 					region_measurement_time[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -471,7 +471,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 		/* Another estimate. */
 
 		status = fprintf( output_file, "%.*g\n",
-			scan->record->precision,
+			(int) scan->record->precision,
 			mx_quick_scan_get_measurement_time(quick_scan) );
 
 		CHECK_FPRINTF_STATUS;
@@ -856,7 +856,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 		return mx_status;
 
 	status = fprintf( output_file, " %-10.*g",
-			xafs_file_struct->energy_motor_record->precision,
+			(int) xafs_file_struct->energy_motor_record->precision,
 			monochromator_energy );
 
 	CHECK_FPRINTF_STATUS;
@@ -889,7 +889,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 					measurement_time );
 
 			status = fprintf(output_file, " %.*g",
-						scan->record->precision,
+						(int) scan->record->precision,
 						scaler_counts_per_second);
 			break;
 
@@ -900,7 +900,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			analog_input_value = analog_input->value;
 
 			status = fprintf(output_file, " %.*g",
-						scan->record->precision,
+						(int) scan->record->precision,
 						analog_input_value);
 			break;
 
@@ -1035,7 +1035,7 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-				scan->record->precision,
+				(int) scan->record->precision,
 				double_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
@@ -1050,7 +1050,7 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 				/ measurement_time;
 
 		status = fprintf( output_file, " %.*g",
-					scan->record->precision,
+					(int) scan->record->precision,
 					scaler_counts_per_second );
 
 		CHECK_FPRINTF_STATUS;

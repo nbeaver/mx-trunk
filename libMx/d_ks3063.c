@@ -157,7 +157,7 @@ mxd_ks3063_in_finish_record_initialization( MX_RECORD *record )
         if ( ks3063_in->slot < 1 || ks3063_in->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
                 "CAMAC slot number %d is out of the allowed range 1-23.",
-                        ks3063_in->slot );
+                        (int) ks3063_in->slot );
         }
 
 	return MX_SUCCESSFUL_RESULT;
@@ -188,7 +188,7 @@ mxd_ks3063_in_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_in->camac_record->name);
-	fprintf(file, "  slot       = %d\n", ks3063_in->slot);
+	fprintf(file, "  slot       = %d\n", (int) ks3063_in->slot);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -199,8 +199,7 @@ mxd_ks3063_in_read( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_ks3063_in_read()";
 
 	MX_KS3063_IN *ks3063_in;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 
 	ks3063_in = (MX_KS3063_IN *) (dinput->record->record_type_struct);
 
@@ -209,14 +208,15 @@ mxd_ks3063_in_read( MX_DIGITAL_INPUT *dinput )
 			"MX_KS3063_IN pointer is NULL.");
 	}
 
-	mx_camac( (ks3063_in->camac_record), (ks3063_in->slot), 0, 0,
+	mx_camac( ks3063_in->camac_record, (int) ks3063_in->slot, 0, 0,
 		&data, &camac_Q, &camac_X );
 
 	dinput->value = (long) data;
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
+			"CAMAC error: Q = %d, X = %d",
+			(int) camac_Q, (int) camac_X );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -295,7 +295,7 @@ mxd_ks3063_out_finish_record_initialization( MX_RECORD *record )
         if ( ks3063_out->slot < 1 || ks3063_out->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
                 "CAMAC slot number %d is out of the allowed range 1-23.",
-                        ks3063_out->slot );
+                        (int) ks3063_out->slot );
         }
 
 	return MX_SUCCESSFUL_RESULT;
@@ -335,7 +335,7 @@ mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  value      = %lu\n", (unsigned long) doutput->value);
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_out->camac_record->name);
-	fprintf(file, "  slot       = %d\n", ks3063_out->slot);
+	fprintf(file, "  slot       = %d\n", (int) ks3063_out->slot);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -380,8 +380,7 @@ mxd_ks3063_out_write( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_ks3063_out_write()";
 
 	MX_KS3063_OUT *ks3063_out;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 
 	ks3063_out = (MX_KS3063_OUT *) (doutput->record->record_type_struct);
 
@@ -392,12 +391,13 @@ mxd_ks3063_out_write( MX_DIGITAL_OUTPUT *doutput )
 
 	data = (int32_t) doutput->value;
 
-	mx_camac( (ks3063_out->camac_record), (ks3063_out->slot), 1, 16,
+	mx_camac( ks3063_out->camac_record, ks3063_out->slot, 1, 16,
 		&data, &camac_Q, &camac_X );
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
+			"CAMAC error: Q = %d, X = %d",
+			(int) camac_Q, (int) camac_X );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

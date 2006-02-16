@@ -69,7 +69,8 @@ mxd_blind_relay_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_blind_relay_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_blind_relay_create_record_structures()";
+        static const char fname[] =
+		"mxd_blind_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_BLIND_RELAY *blind_relay;
@@ -255,7 +256,7 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The relay command %d is unrecognized.",
-			relay->relay_command );
+			(int) relay->relay_command );
 	}
 
 	new_value = new_value | shifted_value;
@@ -299,7 +300,7 @@ mxd_blind_relay_get_relay_status( MX_RELAY *relay )
 
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Last relay command %d for blind relay '%s' was illegal.",
-			relay->relay_command, relay->record->name );
+			(int) relay->relay_command, relay->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

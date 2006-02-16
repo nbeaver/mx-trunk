@@ -304,33 +304,33 @@ mxd_aframe_det_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		return mx_status;
 
 	fprintf(file, "  position       = %.*g %s\n",
-		record->precision,
+		(int) record->precision,
 		motor->position, motor->units );
 
 	fprintf(file, "  scale          = %.*g %s per raw unit.\n",
-		record->precision,
+		(int) record->precision,
 		motor->scale, motor->units );
 
 	fprintf(file, "  offset         = %.*g %s.\n",
-		record->precision,
+		(int) record->precision,
 		motor->offset, motor->units );
 
 	fprintf(file, "  backlash       = %.*g %s\n",
-		record->precision,
+		(int) record->precision,
 		motor->backlash_correction, motor->units );
 
 	fprintf(file, "  negative_limit = %.*g %s\n",
-		record->precision,
+		(int) record->precision,
 		motor->negative_limit, motor->units );
 
 	fprintf(file, "  positive_limit = %.*g %s\n",
-		record->precision,
+		(int) record->precision,
 		motor->positive_limit, motor->units );
 
 	move_deadband = motor->scale * (double) motor->raw_move_deadband.analog;
 
 	fprintf(file, "  move_deadband       = %.*g %s\n\n",
-		record->precision,
+		(int) record->precision,
 		move_deadband, motor->units );
 
 	switch( aframe_detector_motor->pseudomotor_type ) {
@@ -348,12 +348,13 @@ mxd_aframe_det_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 		break;
 	default:
 		fprintf(file,
-		      "  Warning: unrecognized pseudomotor_type = %d\n\n",
-			aframe_detector_motor->pseudomotor_type);
+		      "  Warning: unrecognized pseudomotor_type = %ld\n\n",
+			(long) aframe_detector_motor->pseudomotor_type);
 		break;
 	}
 
-	fprintf(file, "(%d).\n\n", aframe_detector_motor->pseudomotor_type);
+	fprintf(file, "(%ld).\n\n",
+		(long) aframe_detector_motor->pseudomotor_type);
 
 	fprintf(file, "  A record       = '%s'\n",
 		aframe_detector_motor->A_record->name );
@@ -947,8 +948,8 @@ mxd_aframe_det_motor_compute_pseudomotor_position(
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Pseudomotor type %d is not recognized.",
-			aframe_detector_motor->pseudomotor_type );
+			"Pseudomotor type %ld is not recognized.",
+			(long) aframe_detector_motor->pseudomotor_type );
 	}
 
 	MX_DEBUG( 2,("%s: pseudomotor_position = %g",
@@ -1057,8 +1058,8 @@ mxd_aframe_det_motor_compute_new_real_positions(
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Pseudomotor type %d is not recognized.",
-			aframe_detector_motor->pseudomotor_type );
+		"Pseudomotor type %ld is not recognized.",
+			(long) aframe_detector_motor->pseudomotor_type );
 	}
 
 	MX_DEBUG( 2,("%s: *new_dv_downstream = %g", fname, *new_dv_downstream));

@@ -766,7 +766,7 @@ mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -806,7 +806,7 @@ mxd_databox_motor_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:

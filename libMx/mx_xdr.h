@@ -40,6 +40,17 @@
 #      define xdr_uint64_t	xdr_u_hyper
 #   endif
 
+#   if defined(OS_CYGWIN)
+#      define xdr_int8_t	xdr_char
+#      define xdr_uint8_t	xdr_u_char
+#      define xdr_int16_t	xdr_short
+#      define xdr_uint16_t	xdr_u_short
+#      define xdr_int32_t	xdr_int
+#      define xdr_uint32_t	xdr_u_int
+#      define xdr_int64_t	xdr_int64_t
+#      define xdr_uint64_t	xdr_u_int64_t
+#   endif
+
 #   include <limits.h>
 #   include <rpc/types.h>
 #   include <rpc/xdr.h>

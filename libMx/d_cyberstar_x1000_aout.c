@@ -196,9 +196,11 @@ mxd_cyberstar_x1000_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( cyberstar_x1000_aoutput->output_type
 			== MXT_CYBERSTAR_X1000_HIGH_VOLTAGE )
 	{
-		sprintf( command, ":SOUR%d:VOLT?", cyberstar_x1000->address );
+		sprintf( command, ":SOUR%d:VOLT?",
+					(int) cyberstar_x1000->address );
 	} else {
-		sprintf( command, ":TRIG%d:ECO?", cyberstar_x1000->address );
+		sprintf( command, ":TRIG%d:ECO?",
+					(int) cyberstar_x1000->address );
 	}
 
 	mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000, command,
@@ -243,11 +245,13 @@ mxd_cyberstar_x1000_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( cyberstar_x1000_aoutput->output_type
 			== MXT_CYBERSTAR_X1000_HIGH_VOLTAGE )
 	{
-		sprintf( command, ":SOUR%d:VOLT %g", cyberstar_x1000->address,
-				aoutput->raw_value.double_value );
+		sprintf( command, ":SOUR%d:VOLT %g",
+					(int) cyberstar_x1000->address,
+					aoutput->raw_value.double_value );
 	} else {
-		sprintf( command, ":TRIG%d:ECO %g", cyberstar_x1000->address,
-				aoutput->raw_value.double_value );
+		sprintf( command, ":TRIG%d:ECO %g",
+					(int) cyberstar_x1000->address,
+					aoutput->raw_value.double_value );
 	}
 
 	mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000, command,

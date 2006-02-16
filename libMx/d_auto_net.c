@@ -441,7 +441,7 @@ mxd_auto_network_get_change_request( MX_AUTOSCALE *autoscale )
 
 	MX_DEBUG( 2,("%s: control = '%s', get_change_request = %d",
 			fname, autoscale->control_record->name,
-			autoscale->get_change_request));
+			(int) autoscale->get_change_request));
 
 	return mx_status;
 }
@@ -465,7 +465,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 
 	MX_DEBUG( 2,("%s: control = '%s', change_control = %d",
 			fname, autoscale->control_record->name,
-			change_control));
+			(int) change_control));
 
 	mx_status = mx_put( &(auto_network->change_control_nf),
 				MXFT_INT32, &change_control );
@@ -559,7 +559,7 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:
@@ -634,7 +634,7 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		autoscale->parameter_type));
+		(int) autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:

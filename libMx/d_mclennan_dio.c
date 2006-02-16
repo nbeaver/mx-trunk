@@ -299,7 +299,7 @@ mxd_mclennan_din_read( MX_DIGITAL_INPUT *dinput )
 	"Port number %d used by digital input record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			dinput->record->name,
-			mclennan->num_dinput_ports );
+			(int) mclennan->num_dinput_ports );
 	}
 
 	mx_status = mxd_mclennan_command( mclennan, "RP",
@@ -420,7 +420,7 @@ mxd_mclennan_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	"Port number %d used by digital output record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			doutput->record->name,
-			mclennan->num_doutput_ports );
+			(int) mclennan->num_doutput_ports );
 	}
 
 	if ( doutput->value != 0 ) {

@@ -319,7 +319,7 @@ mxd_mca_channel_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mca_channel_is_busy()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
@@ -392,7 +392,7 @@ mxd_mca_channel_set_parameter( MX_SCALER *scaler )
 		"Cannot set MCA channel scaler '%s' to counter mode %d.  "
 		"Only preset time mode is supported for now.",
 				scaler->record->name,
-				scaler->mode );
+				(int) scaler->mode );
 		}
 		break;
 	case MXLV_SCL_DARK_CURRENT:

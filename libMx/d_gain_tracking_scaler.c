@@ -399,7 +399,7 @@ mxd_gain_tracking_scaler_get_parameter( MX_SCALER *scaler )
 	static const char fname[] = "mxd_gain_tracking_scaler_get_parameter()";
 
 	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
-	int32_t mode;
+	int mode;
 	double dark_current;
 	mx_status_type mx_status;
 

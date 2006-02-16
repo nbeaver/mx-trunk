@@ -246,7 +246,7 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  d spacing              = %s\n",
 					energy_motor->d_spacing_record->name);
 	fprintf(file, "  angle scale            = %.*g radians per %s.\n",
-					record->precision,
+					(int) record->precision,
 					energy_motor->angle_scale,
 					dependent_motor->units);
 
@@ -259,39 +259,39 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	}
 
         fprintf(file, "  position               = %.*g %s  (%.*g)\n",
-		record->precision,
+		(int) record->precision,
                 motor->position, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_position.analog );
 	fprintf(file, "  energy scale           = %.*g %s per unscaled "
 							"energy unit.\n",
-		record->precision,
+		(int) record->precision,
 		motor->scale, motor->units);
 	fprintf(file, "  energy offset          = %.*g %s.\n",
-		record->precision,
+		(int) record->precision,
 		motor->offset, motor->units);
         fprintf(file, "  backlash               = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
                 motor->backlash_correction, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_backlash_correction.analog);
         fprintf(file, "  negative limit         = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
                 motor->negative_limit, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_negative_limit.analog);
         fprintf(file, "  positive limit         = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
 		motor->positive_limit, motor->units,
-		record->precision,
+		(int) record->precision,
 		motor->raw_positive_limit.analog);
 
 	move_deadband = motor->scale * motor->raw_move_deadband.analog;
 
 	fprintf(file, "  move deadband          = %.*g %s  (%.*g).\n\n",
-		record->precision,
+		(int) record->precision,
 		move_deadband, motor->units,
-		record->precision,
+		(int) record->precision,
 		motor->raw_move_deadband.analog);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -647,7 +647,7 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type );
+			(int) motor->parameter_type );
 
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(
@@ -759,7 +759,7 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type );
+			(int) motor->parameter_type );
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		mx_status =

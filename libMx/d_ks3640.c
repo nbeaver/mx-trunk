@@ -155,7 +155,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 	if ( ks3640->slot < 1 || ks3640->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"CAMAC slot number %d is out of allowed range 1-23.",
-			ks3640->slot );
+			(int) ks3640->slot );
 	}
 
 	/* === Encoder subaddress number === */
@@ -163,7 +163,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 	if ( ks3640->subaddress < 0 || ks3640->subaddress > 3 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Subaddress number %d is out of allowed range 0-3.",
-			ks3640->subaddress);
+			(int) ks3640->subaddress);
 	}
 
 	/* The 32 bit modification is a field modification of the 
@@ -184,7 +184,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Illegal value %d for 32 bit hardware modification field.  Must be 0 or 1.",
-			ks3640->use_32bit_mod );
+			(int) ks3640->use_32bit_mod );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -254,8 +254,7 @@ mxd_ks3640_open( MX_RECORD *record )
 
 	MX_ENCODER *encoder;
 	MX_KS3640 *ks3640;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -281,7 +280,7 @@ mxd_ks3640_open( MX_RECORD *record )
 	if ( camac_Q != 1 || camac_X != 1 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 	"Enabling LAMs for the CAMAC device '%s' failed. Q = %d, X = %d",
-			record->name, camac_Q, camac_X );
+			record->name, (int) camac_Q, (int) camac_X );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -295,8 +294,8 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 	MX_KS3640 *ks3640;
 	int32_t data, status_bits;
 	int32_t underflow_set_temp, overflow_set_temp;
+	int32_t camac_Q, camac_X;
 	int N, A;
-	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
@@ -314,7 +313,8 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 	if ( camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 "CAMAC error testing whether LAM is set for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
+			encoder->record->name,
+			(int) camac_Q, (int) camac_X );
 	}
 
 	/* If no bits are set (Q = 0), we need do nothing more. */
@@ -334,7 +334,8 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"CAMAC error getting LAM status bits for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
+			encoder->record->name,
+			(int) camac_Q, (int) camac_X );
 	}
 
 	underflow_set_temp = status_bits >> (2*A);
@@ -364,9 +365,8 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 	static const char fname[] = "mxd_ks3640_reset_overflow_status()";
 
 	MX_KS3640 *ks3640;
-	int32_t data;
+	int32_t camac_Q, camac_X, data;
 	int N, A;
-	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
@@ -385,7 +385,7 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"CAMAC error resetting underflow for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
+			encoder->record->name, (int) camac_Q, (int) camac_X );
 	}
 
 	/* Reset the overflow bit. */
@@ -396,7 +396,7 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 	"CAMAC error resetting overflow for device '%s': Q = %d, X = %d",
-			encoder->record->name, camac_Q, camac_X );
+			encoder->record->name, (int) camac_Q, (int) camac_X );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -408,8 +408,7 @@ mxd_ks3640_read( MX_ENCODER *encoder )
 	static const char fname[] = "mxd_ks3640_read()";
 
 	MX_KS3640 *ks3640;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
@@ -425,7 +424,8 @@ mxd_ks3640_read( MX_ENCODER *encoder )
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
+			"CAMAC error: Q = %d, X = %d",
+			(int) camac_Q, (int) camac_X );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -437,8 +437,7 @@ mxd_ks3640_write( MX_ENCODER *encoder )
 	static const char fname[] = "mxd_ks3640_write()";
 
 	MX_KS3640 *ks3640;
-	int32_t data;
-	int camac_Q, camac_X;
+	int32_t camac_Q, camac_X, data;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ks3640_get_pointers( encoder, &ks3640, fname );
@@ -454,7 +453,8 @@ mxd_ks3640_write( MX_ENCODER *encoder )
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
+			"CAMAC error: Q = %d, X = %d",
+			(int) camac_Q, (int) camac_X );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}

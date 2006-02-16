@@ -308,7 +308,7 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	"Port number %d used by analog input record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			ainput->record->name,
-			mclennan->num_ainput_ports );
+			(int) mclennan->num_ainput_ports );
 	}
 
 	sprintf( command, "AI%d", port_number );
@@ -427,7 +427,7 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	"Port number %d used by analog output record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			aoutput->record->name,
-			mclennan->num_aoutput_ports );
+			(int) mclennan->num_aoutput_ports );
 	}
 
 	sprintf( command, "AO%d/%ld", port_number,

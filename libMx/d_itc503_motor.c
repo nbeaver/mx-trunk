@@ -309,12 +309,12 @@ mxd_itc503_motor_open( MX_RECORD *record )
 		sprintf( command, "Q0" );
 
 	} else if ( itc503_motor->isobus_address <= 9 ) {
-		sprintf( command, "@%dQ0", itc503_motor->isobus_address );
+		sprintf( command, "@%dQ0", (int) itc503_motor->isobus_address );
 
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal ISOBUS address %d specified for ITC503 controller '%s'.",
-			itc503_motor->isobus_address, record->name );
+			(int) itc503_motor->isobus_address, record->name );
 	}
 
 	switch( interface_record->mx_class ) {
@@ -666,7 +666,7 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 		command_ptr = local_command_buffer;
 
 		sprintf( local_command_buffer, "@%d%s",
-				itc503_motor->isobus_address, command );
+			(int) itc503_motor->isobus_address, command );
 	}
 
 	error_occurred = FALSE;
@@ -790,7 +790,7 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 	"The command '%s' to ITC503 controller '%s' is still failing "
 	"after %d retries.  Giving up...", command_ptr,
 				itc503_motor->record->name,
-				itc503_motor->maximum_retries );
+				(int) itc503_motor->maximum_retries );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}

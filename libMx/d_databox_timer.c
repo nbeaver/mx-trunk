@@ -233,7 +233,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, timer->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) timer->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -537,7 +537,7 @@ mxd_databox_timer_set_mode( MX_TIMER *timer )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Timer mode %d is not supported by the driver for timer '%s'.",
-			timer->mode, timer->record->name );
+			(int) timer->mode, timer->record->name );
 	}
 
 	mx_status = mxi_databox_set_limit_mode( databox, limit_mode );

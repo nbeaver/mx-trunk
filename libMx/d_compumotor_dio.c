@@ -347,7 +347,7 @@ mxd_compumotor_din_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mxi_compumotor_get_controller_index( compumotor_interface,
-				compumotor_dinput->controller_number,
+				(int) compumotor_dinput->controller_number,
 				&(compumotor_dinput->controller_index));
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -412,22 +412,22 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
 			sprintf( command, "%d_!%dTIN.%d",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->brick_number,
-				compumotor_dinput->first_bit );
+				(int) compumotor_dinput->controller_number,
+				(int) compumotor_dinput->brick_number,
+				(int) compumotor_dinput->first_bit );
 		} else {
 			sprintf( command, "%d_!TIN.%d",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->first_bit );
+				(int) compumotor_dinput->controller_number,
+				(int) compumotor_dinput->first_bit );
 		}
 	} else {
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
 			sprintf( command, "%d_!%dTIN",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->brick_number );
+				(int) compumotor_dinput->controller_number,
+				(int) compumotor_dinput->brick_number );
 		} else {
 			sprintf( command, "%d_!TIN",
-				compumotor_dinput->controller_number );
+				(int) compumotor_dinput->controller_number );
 		}
 	}
 
@@ -591,7 +591,7 @@ mxd_compumotor_dout_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mxi_compumotor_get_controller_index( compumotor_interface,
-				compumotor_doutput->controller_number,
+				(int) compumotor_doutput->controller_number,
 				&(compumotor_doutput->controller_index));
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -638,22 +638,22 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
 			sprintf( command, "%d_!%dTOUT.%d",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->brick_number,
-				compumotor_doutput->first_bit );
+				(int) compumotor_doutput->controller_number,
+				(int) compumotor_doutput->brick_number,
+				(int) compumotor_doutput->first_bit );
 		} else {
 			sprintf( command, "%d_!TOUT.%d",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->first_bit );
+				(int) compumotor_doutput->controller_number,
+				(int) compumotor_doutput->first_bit );
 		}
 	} else {
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
 			sprintf( command, "%d_!%dTOUT",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->brick_number );
+				(int) compumotor_doutput->controller_number,
+				(int) compumotor_doutput->brick_number );
 		} else {
 			sprintf( command, "%d_!TOUT",
-				compumotor_doutput->controller_number );
+				(int) compumotor_doutput->controller_number );
 		}
 	}
 
@@ -736,11 +736,11 @@ mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ( controller_type == MXT_COMPUMOTOR_6K ) {
 		sprintf( command, "%d_!%dOUT",
-			compumotor_doutput->controller_number,
-			compumotor_doutput->brick_number );
+			(int) compumotor_doutput->controller_number,
+			(int) compumotor_doutput->brick_number );
 	} else {
 		sprintf( command, "%d_!OUT",
-			compumotor_doutput->controller_number );
+			(int) compumotor_doutput->controller_number );
 	}
 
 	first_offset = compumotor_doutput->first_bit - 1;

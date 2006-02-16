@@ -290,7 +290,7 @@ mxd_cyberstar_x1000_resynchronize( MX_RECORD *record )
 	(void) mx_rs232_discard_unwritten_output( cyberstar_x1000->rs232_record,
 						CYBERSTAR_X1000_DEBUG );
 
-	sprintf(command, "*RST%d", cyberstar_x1000->address );
+	sprintf(command, "*RST%d", (int) cyberstar_x1000->address );
 
 	mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 			command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -311,7 +311,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 	MX_CYBERSTAR_X1000 *cyberstar_x1000;
 	char command[40];
 	char response[80];
-	int num_items;
+	int num_items, int_value;
 	double double_value;
 	unsigned long time_constant_value;
 	mx_status_type mx_status;
@@ -331,7 +331,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 
 	switch( sca->parameter_type ) {
 	case MXLV_SCA_LOWER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:LOW?", cyberstar_x1000->address);
+		sprintf(command, ":SENS%d:SCA:LOW?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -351,7 +352,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_UPPER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:UPP?", cyberstar_x1000->address);
+		sprintf(command, ":SENS%d:SCA:UPP?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -371,7 +373,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_GAIN:
-		sprintf(command, ":INP%d:GAIN?", cyberstar_x1000->address);
+		sprintf(command, ":INP%d:GAIN?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -391,7 +394,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_TIME_CONSTANT:
-		sprintf(command, ":SENS%d:PKT?", cyberstar_x1000->address);
+		sprintf(command, ":SENS%d:PKT?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -417,7 +421,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_HIGH_VOLTAGE:
-		sprintf(command, ":SOUR%d:VOLT?", cyberstar_x1000->address);
+		sprintf(command, ":SOUR%d:VOLT?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -438,7 +443,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_DELAY:
-		sprintf(command, ":TRIG%d:ECO?", cyberstar_x1000->address);
+		sprintf(command, ":TRIG%d:ECO?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -460,7 +466,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_FORCED_REMOTE_CONTROL:
-		sprintf(command, ":SYST%d:COMM:REM?", cyberstar_x1000->address);
+		sprintf(command, ":SYST%d:COMM:REM?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -469,8 +476,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%d",
-				&(cyberstar_x1000->forced_remote_control) );
+		num_items = sscanf( response, "%d", &int_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -478,10 +484,13 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		"to the command '%s'.",
 				sca->record->name, command, response );
 		}
+
+		cyberstar_x1000->forced_remote_control = int_value;
 		break;
 
 	case MXLV_CYBERSTAR_X1000_SECURITY_STATUS:
-		sprintf(command, ":SYST%d:SEC?", cyberstar_x1000->address);
+		sprintf(command, ":SYST%d:SEC?",
+					(int) cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -490,8 +499,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%d",
-				&(cyberstar_x1000->security_status) );
+		num_items = sscanf( response, "%d", &int_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -499,6 +507,9 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		"to the command '%s'.",
 				sca->record->name, command, response );
 		}
+
+		cyberstar_x1000->security_status = int_value;
+
 		break;
 
 	default:
@@ -533,7 +544,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 	switch( sca->parameter_type ) {
 	case MXLV_SCA_LOWER_LEVEL:
 		sprintf(command, ":SENS%d:SCA:LOW %g",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				sca->lower_level);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -545,7 +556,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	case MXLV_SCA_UPPER_LEVEL:
 		sprintf(command, ":SENS%d:SCA:UPP %g",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				sca->upper_level);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -557,7 +568,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	case MXLV_SCA_GAIN:
 		sprintf(command, ":INP%d:GAIN %g",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				sca->gain);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -587,7 +598,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		time_constant_value = mx_round( 1.0e9 * sca->time_constant );
 
 		sprintf(command, ":SENS%d:PKT %ld",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				time_constant_value);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -614,7 +625,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		}
 
 		sprintf(command, ":SOUR%d:VOLT %g",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				cyberstar_x1000->high_voltage );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -637,7 +648,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		}
 
 		sprintf(command, ":TRIG%d:ECO %g",
-				cyberstar_x1000->address,
+				(int) cyberstar_x1000->address,
 				10.0 * cyberstar_x1000->delay );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
@@ -655,7 +666,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		}
 
 		sprintf(command, ":SYST%d:COMM:REM %s",
-				cyberstar_x1000->address, on_off );
+				(int) cyberstar_x1000->address, on_off );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -672,7 +683,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		}
 
 		sprintf(command, ":SYST%d:SEC %s",
-				cyberstar_x1000->address, on_off );
+				(int) cyberstar_x1000->address, on_off );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );

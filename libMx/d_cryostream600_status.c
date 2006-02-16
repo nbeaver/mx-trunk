@@ -312,7 +312,7 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Unrecognized parameter type %d for 'cryostream600_status' record '%s'.  "
 "The allowed values are in the range (1-7).",
-			cryostream600_status->parameter_type,
+			(int) cryostream600_status->parameter_type,
 			ainput->record->name );
 	}
 

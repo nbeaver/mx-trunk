@@ -146,7 +146,7 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 	if ( e500->slot < 1 || e500->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"CAMAC slot number %d is out of the allowed range 1-23.",
-			e500->slot );
+			(int) e500->slot );
 	}
 
 	/* Check the subaddress. */
@@ -154,7 +154,7 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 	if ( e500->subaddress < 1 || e500->subaddress > 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"E500 motor number %d is out of the allowed range 1-8.",
-			e500->subaddress );
+			(int) e500->subaddress );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -203,8 +203,8 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name        = %s\n", record->name);
 	fprintf(file, "  crate       = %s\n", crate->record->name);
-	fprintf(file, "  slot        = %d\n", e500->slot);
-	fprintf(file, "  subaddress  = %d\n", e500->subaddress);
+	fprintf(file, "  slot        = %d\n", (int) e500->slot);
+	fprintf(file, "  subaddress  = %d\n", (int) e500->subaddress);
 
 	position = motor->offset + motor->scale 
 		* (double)(motor->raw_position.stepper);
@@ -246,10 +246,11 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 		move_deadband, motor->units );
 
 	fprintf(file, "  base speed  = %hu\n", e500->e500_base_speed);
-	fprintf(file, "  slew speed  = %u\n", e500->e500_slew_speed);
+	fprintf(file, "  slew speed  = %u\n",
+					(unsigned int) e500->e500_slew_speed);
 	fprintf(file, "  accel. time = %hu\n", e500->acceleration_time);
 	fprintf(file, "  corr. limit = %hu\n", e500->correction_limit);
-	fprintf(file, "  LAM mask    = %d\n", e500->lam_mask);
+	fprintf(file, "  LAM mask    = %d\n", (int) e500->lam_mask);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -929,8 +930,7 @@ mx_e500_go_to_home( MX_E500 *e500 )
 {
 	static const char fname[] = "mx_e500_go_to_home()";
 
-	int slot, motor, camac_X;
-	int32_t data;
+	int32_t slot, motor, camac_X, data;
 
 	slot  = e500->slot;
 	motor = e500->subaddress;
@@ -952,8 +952,7 @@ mx_e500_simultaneous_start( MX_E500_MODULE *e500_module )
 {
 	static const char fname[] = "mx_e500_simultaneous_start()";
 
-	int32_t slot, camac_X;
-	int32_t data;
+	int32_t slot, camac_X, data;
 
 	crate = e500_module->crate;
 	slot  = e500_module->slot;

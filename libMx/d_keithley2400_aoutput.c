@@ -295,7 +295,7 @@ mxd_keithley2400_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported source type %d for Keithley 2400 "
 		"analog output '%s' used by record '%s'.",
-			keithley2400_aoutput->source_type,
+			(int) keithley2400_aoutput->source_type,
 			keithley2400->record->name,
 			aoutput->record->name );
 	}

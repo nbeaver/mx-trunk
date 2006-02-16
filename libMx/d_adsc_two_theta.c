@@ -254,39 +254,39 @@ mxd_adsc_two_theta_print_motor_structure( FILE *file, MX_RECORD *record )
 	}
 
         fprintf(file, "  position               = %.*g %s  (%.*g)\n",
-		record->precision,
+		(int) record->precision,
                 motor->position, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_position.analog );
 	fprintf(file, "  adsc_two_theta scale   = %.*g %s per unscaled "
 						"adsc_two_theta unit.\n",
-		record->precision,
+		(int) record->precision,
 		motor->scale, motor->units);
 	fprintf(file, "  adsc_two_theta offset          = %.*g %s.\n",
-		record->precision,
+		(int) record->precision,
 		motor->offset, motor->units);
         fprintf(file, "  backlash               = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
                 motor->backlash_correction, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_backlash_correction.analog);
         fprintf(file, "  negative limit         = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
                 motor->negative_limit, motor->units,
-		record->precision,
+		(int) record->precision,
                 motor->raw_negative_limit.analog);
         fprintf(file, "  positive limit         = %.*g %s  (%.*g).\n",
-		record->precision,
+		(int) record->precision,
 		motor->positive_limit, motor->units,
-		record->precision,
+		(int) record->precision,
 		motor->raw_positive_limit.analog);
 
 	move_deadband = motor->scale * motor->raw_move_deadband.analog;
 
 	fprintf(file, "  move deadband          = %.*g %s  (%.*g).\n\n",
-		record->precision,
+		(int) record->precision,
 		move_deadband, motor->units,
-		record->precision,
+		(int) record->precision,
 		motor->raw_move_deadband.analog);
 
 	return MX_SUCCESSFUL_RESULT;

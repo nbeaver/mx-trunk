@@ -692,7 +692,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			status = fprintf( gnuplot_data->pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
-					motor_record_array[i]->precision,
+					(int) motor_record_array[i]->precision,
 					motor_position,
 					motor->units );
 
@@ -745,7 +745,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			    status = fprintf( gnuplot_data->pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
-					motor_record_array[i]->precision,
+					(int) motor_record_array[i]->precision,
 					motor_position_array[i],
 					motor->units );
 

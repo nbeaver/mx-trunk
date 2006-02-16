@@ -421,7 +421,7 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 		timer->busy = FALSE;
 	}
 
-	MX_DEBUG( 2,("%s: busy = %d", fname, timer->busy));
+	MX_DEBUG( 2,("%s: busy = %d", fname, (int) timer->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
