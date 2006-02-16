@@ -453,7 +453,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate a %d element "
 			"array of MX_RECORD pointers for record '%s'.",
-			num_remote_motors, mce->record->name );
+			(int) num_remote_motors, mce->record->name );
 	}
 
 	/* Allocate an array to contain the remote motor names. */

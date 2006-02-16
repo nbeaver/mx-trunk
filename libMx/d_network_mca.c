@@ -563,7 +563,7 @@ mxd_network_mca_start( MX_MCA *mca )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unsupported preset type %d for MCA '%s'.",
-			mca->preset_type, mca->record->name );
+			(int) mca->preset_type, mca->record->name );
 	}
 
 	/* Tell the counting to start. */
@@ -684,7 +684,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
-		mca->parameter_type));
+		(int) mca->parameter_type));
 
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
@@ -836,7 +836,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mca->parameter_type );
+			(int) mca->parameter_type );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -860,7 +860,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
-		mca->parameter_type));
+		(int) mca->parameter_type));
 
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
@@ -936,7 +936,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mca->parameter_type );
+			(int) mca->parameter_type );
 	}
 
 	return mx_status;

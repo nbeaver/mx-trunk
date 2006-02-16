@@ -911,7 +911,7 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	if ( network_motor->need_to_get_remote_record_information ) {
 
@@ -1105,7 +1105,7 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			motor->parameter_type );
+			(int) motor->parameter_type );
 	}
 
 	return mx_status;
@@ -1131,7 +1131,7 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	if ( network_motor->need_to_get_remote_record_information ) {
 
@@ -1260,7 +1260,7 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			motor->parameter_type );
+			(int) motor->parameter_type );
 	}
 
 	return mx_status;

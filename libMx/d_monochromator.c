@@ -165,13 +165,13 @@ mxd_monochromator_get_pointers( MX_MOTOR *motor,
 "list_array pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_change_permitted == (int *) NULL ){
+	if ( (*monochromator)->speed_change_permitted == (mx_bool_type *) NULL){
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"speed_change_permitted pointer for monochromator record '%s' "
 		"passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_changed == (int *) NULL ) {
+	if ( (*monochromator)->speed_changed == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "speed_changed pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
@@ -188,7 +188,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 	MX_RECORD **record_array;
 	MX_RECORD *enable_status_record;
 	void *pointer_to_value;
-	int fast_mode;
+	int32_t fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_variable_pointer( list_record, &pointer_to_value );
@@ -424,7 +424,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 
 		MX_DEBUG( 2,("%s: monochromator->speed_changed[%d] = %d",
-			fname, i, monochromator->speed_changed[i]));
+			fname, i, (int) monochromator->speed_changed[i]));
 
 		if ( monochromator->speed_changed[i] ) {
 
@@ -948,7 +948,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s: ***** Now starting the move.", fname));
 
 	MX_DEBUG( 2,("%s: motor->synchronous_motion_mode = %d",
-			fname, motor->synchronous_motion_mode));
+			fname, (int) motor->synchronous_motion_mode));
 
 	monochromator->move_in_progress = TRUE;
 
@@ -1353,7 +1353,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
-		fname, motor->record->name, motor->parameter_type));
+		fname, motor->record->name, (int) motor->parameter_type));
 
 	/* Get the first entry in the list array. */
 
@@ -1477,7 +1477,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -1516,7 +1516,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
-		fname, motor->record->name, motor->parameter_type));
+		fname, motor->record->name, (int) motor->parameter_type));
 
 	/* Get the first entry in the list array. */
 
@@ -1593,7 +1593,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			motor->parameter_type,
+			(int) motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -3132,7 +3132,7 @@ mxd_monochromator_move_option_selector(
 	/* Change the option selector variable if necessary. */
 
 	MX_DEBUG( 2,("%s: new_selection = %d, old_selection = %d",
-		fname, new_selection, old_selection));
+		fname, (int) new_selection, (int) old_selection));
 
 	if ( new_selection != old_selection ) {
 

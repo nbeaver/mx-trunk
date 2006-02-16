@@ -728,7 +728,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
-		fname, mcs->record->name, mcs->parameter_type));
+		fname, mcs->record->name, (int) mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
@@ -792,7 +792,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	} else {
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			mcs->parameter_type );
+			(int) mcs->parameter_type );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 
@@ -818,7 +818,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
-		fname, mcs->record->name, mcs->parameter_type));
+		fname, mcs->record->name, (int) mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
@@ -832,7 +832,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 		external_channel_advance = mcs->external_channel_advance;
 
 		MX_DEBUG( 2,("%s: sending %d to '%s'",
-				fname, external_channel_advance,
+				fname, (int) external_channel_advance,
 			network_mcs->external_channel_advance_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),
@@ -902,7 +902,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	} else {
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			"Parameter type %d is not supported by this driver.",
-			mcs->parameter_type );
+			(int) mcs->parameter_type );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
 

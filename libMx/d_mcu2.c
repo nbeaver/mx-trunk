@@ -131,12 +131,12 @@ mxd_mcu2_command( MX_MCU2 *mcu2,
 
 	if ( flags & MXF_MCU2_NO_START_CHARACTER ) {
 		sprintf( local_command_buffer, "%02d%s",
-					mcu2->axis_address, command );
+					(int) mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer;
 	} else {
 		sprintf( local_command_buffer, "#%02d%s",
-					mcu2->axis_address, command );
+					(int) mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer + 1;
 	}
@@ -293,7 +293,7 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  RS-232 record name = %s\n",
 					mcu2->rs232_record->name);
 	fprintf(file, "  axis address       = %d\n",
-					mcu2->axis_address);
+					(int) mcu2->axis_address);
 	fprintf(file, "  mcu2_flags         = %#lx\n",
 					(unsigned long) mcu2->mcu2_flags);
 
@@ -602,7 +602,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -734,7 +734,7 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		motor->parameter_type));
+		(int) motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:

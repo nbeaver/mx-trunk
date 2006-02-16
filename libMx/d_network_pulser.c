@@ -253,14 +253,14 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "  mode                 = %d\n", pulse_mode );
+	fprintf(file, "  mode                 = %d\n", (int) pulse_mode );
 
 	mx_status = mx_pulse_generator_is_busy( record, &busy);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "  busy                 = %d\n", busy );
+	fprintf(file, "  busy                 = %d\n", (int) busy );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -361,7 +361,7 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-		pulse_generator->parameter_type));
+		(int) pulse_generator->parameter_type));
 
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
@@ -417,7 +417,7 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-		pulse_generator->parameter_type));
+		(int) pulse_generator->parameter_type));
 
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
