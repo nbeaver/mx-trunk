@@ -10,7 +10,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2006 Illinois Institute of Technology
+ * Copyright 2001-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,7 +130,7 @@ mx_dead_reckoning_start_motion( MX_DEAD_RECKONING *dead_reckoning,
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The acceleration type %d for motor '%s' is not supported.  "
 		"Only acceleration type MXF_MTR_ACCEL_RATE is supported.",
-			(int) motor->acceleration_type, motor->record->name );
+			motor->acceleration_type, motor->record->name );
 	}
 
 	motor->busy = TRUE;

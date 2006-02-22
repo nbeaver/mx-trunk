@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_tracker_din_record_field_defaults[] = {
 	MXD_TRACKER_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_tracker_din_num_record_fields
+long mxd_tracker_din_num_record_fields
 		= sizeof( mxd_tracker_din_record_field_defaults )
 			/ sizeof( mxd_tracker_din_record_field_defaults[0] );
 
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_tracker_dout_record_field_defaults[] = {
 	MXD_TRACKER_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_tracker_dout_num_record_fields
+long mxd_tracker_dout_num_record_fields
 		= sizeof( mxd_tracker_dout_record_field_defaults )
 			/ sizeof( mxd_tracker_dout_record_field_defaults[0] );
 
@@ -223,7 +223,6 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_TRACKER_DINPUT *tracker_dinput;
 	char command[80], response[80];
 	int num_items;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tracker_din_get_pointers( dinput,
@@ -244,7 +243,7 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &value );
+	num_items = sscanf( response, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -252,8 +251,6 @@ mxd_tracker_din_read( MX_DIGITAL_INPUT *dinput )
 		"to command '%s' for digital input '%s'.  Response = '%s'",
 			command, dinput->record->name, response );
 	}
-
-	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -337,7 +334,6 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	MX_TRACKER_DOUTPUT *tracker_doutput;
 	char command[80], response[80];
 	int num_items;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tracker_dout_get_pointers( doutput,
@@ -358,7 +354,7 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &value );
+	num_items = sscanf( response, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -366,8 +362,6 @@ mxd_tracker_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		"to command '%s' for digital output '%s'.  Response = '%s'",
 			command, doutput->record->name, response );
 	}
-
-	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -389,7 +383,7 @@ mxd_tracker_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	sprintf( command, ";%03d SA %d %lu", tracker_doutput->address,
 					tracker_doutput->location,
-					(unsigned long) doutput->value );
+					doutput->value );
 
 	mx_status = mxd_tracker_command( doutput->record,
 					tracker_doutput->rs232_record,

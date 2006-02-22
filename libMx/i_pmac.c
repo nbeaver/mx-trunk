@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_pmac_record_field_defaults[] = {
 	MXI_PMAC_STANDARD_FIELDS
 };
 
-mx_length_type mxi_pmac_num_record_fields
+long mxi_pmac_num_record_fields
 		= sizeof( mxi_pmac_record_field_defaults )
 			/ sizeof( mxi_pmac_record_field_defaults[0] );
 
@@ -336,7 +336,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pmac_special_processing_setup( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_pmac_special_processing_setup()";
+	const char fname[] = "mxi_pmac_special_processing_setup()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -655,14 +655,14 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 			void *variable_ptr,
 			int debug_flag )
 {
-	static const char fname[] = "mxi_pmac_get_variable()";
+	const char fname[] = "mxi_pmac_get_variable()";
 
 	char command_buffer[100];
 	char response[100];
 	char *command_ptr;
 	int num_items;
 	long long_value;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double double_value;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -691,7 +691,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 		return mx_status;
 
 	switch( variable_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		num_items = sscanf( response, "%ld", &long_value );
 
 		if ( num_items != 1 ) {
@@ -702,9 +702,9 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 				pmac->record->name, card_number,
 				command_buffer, response );
 		}
-		int32_ptr = (int32_t *) variable_ptr;
+		long_ptr = (long *) variable_ptr;
 
-		*int32_ptr = long_value;
+		*long_ptr = long_value;
 		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -724,7 +724,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -740,12 +740,12 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 			void *variable_ptr,
 			int debug_flag )
 {
-	static const char fname[] = "mxi_pmac_set_variable()";
+	const char fname[] = "mxi_pmac_set_variable()";
 
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double *double_ptr;
 	mx_status_type mx_status;
 
@@ -767,10 +767,10 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 	ptr = command_buffer + strlen( command_buffer );
 
 	switch( variable_type ) {
-	case MXFT_INT32:
-		int32_ptr = (int32_t *) variable_ptr;
+	case MXFT_LONG:
+		long_ptr = (long *) variable_ptr;
 
-		sprintf( ptr, "%ld", (long) *int32_ptr );
+		sprintf( ptr, "%ld", *long_ptr );
 		break;
 	case MXFT_DOUBLE:
 		double_ptr = (double *) variable_ptr;
@@ -779,7 +779,7 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,
@@ -1075,7 +1075,7 @@ static mx_status_type
 mxi_pmac_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	static const char fname[] = "mxi_pmac_process_function()";
+	const char fname[] = "mxi_pmac_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

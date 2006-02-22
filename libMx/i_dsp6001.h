@@ -29,25 +29,24 @@ MX_API mx_status_type mxi_dsp6001_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_dsp6001_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxi_dsp6001_get_lam_status( MX_CAMAC *crate,
-							int32_t *lam_n);
+MX_API mx_status_type mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_n);
 MX_API mx_status_type mxi_dsp6001_controller_command( MX_CAMAC *crate,
-							int32_t command );
+								int command );
 MX_API mx_status_type mxi_dsp6001_camac( MX_CAMAC *crate,
-		int32_t slot, int32_t subaddress, int32_t function_code,
-		int32_t *data, int32_t *Q, int32_t *X );
+		int slot, int subaddress, int function_code,
+		int32_t *data, int *Q, int *X );
 
 /* Define the data structures used by the DSP 6001/6002 interface code. */
 
 typedef struct {
 	MX_RECORD *portio_record;
-	mx_hex_type base_address;  /* Base address of the interface card. */
+	unsigned long base_address;  /* Base address of the interface card. */
 } MX_DSP6001;
 
 extern MX_RECORD_FUNCTION_LIST mxi_dsp6001_record_function_list;
 extern MX_CAMAC_FUNCTION_LIST mxi_dsp6001_camac_function_list;
 
-extern mx_length_type mxi_dsp6001_num_record_fields;
+extern long mxi_dsp6001_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_dsp6001_rfield_def_ptr;
 
 #define MXI_DSP6001_STANDARD_FIELDS \

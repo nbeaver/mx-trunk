@@ -51,11 +51,14 @@ MX_RECORD_FUNCTION_LIST mxd_am9513_motor_record_function_list = {
 	mxd_am9513_motor_initialize_type,
 	mxd_am9513_motor_create_record_structures,
 	mxd_am9513_motor_finish_record_initialization,
-	NULL,
+	mxd_am9513_motor_delete_record,
 	mxd_am9513_motor_print_structure,
+	mxd_am9513_motor_read_parms_from_hardware,
+	mxd_am9513_motor_write_parms_to_hardware,
+	mxd_am9513_motor_open,
+	mxd_am9513_motor_close,
 	NULL,
-	NULL,
-	mxd_am9513_motor_open
+	mxd_am9513_motor_resynchronize
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list = {
@@ -64,7 +67,10 @@ MX_MOTOR_FUNCTION_LIST mxd_am9513_motor_motor_function_list = {
 	mxd_am9513_motor_get_position,
 	mxd_am9513_motor_set_position,
 	mxd_am9513_motor_soft_abort,
-	mxd_am9513_motor_immediate_abort
+	mxd_am9513_motor_immediate_abort,
+	mxd_am9513_motor_positive_limit_hit,
+	mxd_am9513_motor_negative_limit_hit,
+	mxd_am9513_motor_find_home_position
 };
 
 /* Am9513 motor data structures. */
@@ -76,7 +82,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_am9513_motor_record_field_defaults[] = {
 	MXD_AM9513_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_am9513_motor_num_record_fields
+long mxd_am9513_motor_num_record_fields
 		= sizeof( mxd_am9513_motor_record_field_defaults )
 			/ sizeof( mxd_am9513_motor_record_field_defaults[0] );
 
@@ -90,11 +96,11 @@ static MX_AM9513 *debug_am9513_ptr = &mxi_am9513_debug_struct;
 static mx_status_type
 mxd_am9513_motor_get_pointers( MX_MOTOR *motor,
 				MX_AM9513_MOTOR **am9513_motor,
-				mx_length_type *num_counters,
+				long *num_counters,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxd_am9513_get_pointers()";
+	const char fname[] = "mxd_am9513_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -108,7 +114,7 @@ mxd_am9513_motor_get_pointers( MX_MOTOR *motor,
 			calling_fname );
 	}
 
-	if ( num_counters == (mx_length_type *) NULL ) {
+	if ( num_counters == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_counters pointer passed by '%s' was NULL.",
 			calling_fname );
@@ -146,14 +152,14 @@ mxd_am9513_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_am9513_motor_initialize_type( long type )
 {
-	static const char fname[] = "mxd_am9513_motor_initialize_type()";
+	const char fname[] = "mxd_am9513_motor_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	mx_length_type num_record_fields;
-	mx_length_type num_counters_field_index;
-	mx_length_type num_counters_varargs_cookie;
-	mx_status_type mx_status;
+	long num_record_fields;
+	long num_counters_field_index;
+	long num_counters_varargs_cookie;
+	mx_status_type status;
 
 	driver = mx_get_driver_by_type( type );
 
@@ -165,25 +171,25 @@ mxd_am9513_motor_initialize_type( long type )
 	record_field_defaults = *(driver->record_field_defaults_ptr);
 	num_record_fields = *(driver->num_record_fields);
 
-	mx_status = mx_find_record_field_defaults_index(
+	status = mx_find_record_field_defaults_index(
 			record_field_defaults, num_record_fields,
 			"num_counters", &num_counters_field_index );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_construct_varargs_cookie(
+	status = mx_construct_varargs_cookie(
 		num_counters_field_index, 0, &num_counters_varargs_cookie );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_find_record_field_defaults(
+	status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			"am9513_interface_array", &field );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	field->dimension[0] = num_counters_varargs_cookie;
 
@@ -193,8 +199,7 @@ mxd_am9513_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-			"mxd_am9513_motor_create_record_structures()";
+	const char fname[] = "mxd_am9513_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -234,24 +239,43 @@ mxd_am9513_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_finish_record_initialization( MX_RECORD *record )
 {
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mx_motor_finish_record_initialization( record );
+	status = mx_motor_finish_record_initialization( record );
 
-	return mx_status;
+	return status;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_motor_print_structure()";
+	const char fname[] = "mxd_am9513_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
-	mx_length_type i, num_counters;
+	long i, num_counters;
 	double position, move_deadband;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -281,7 +305,7 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type        = AM9513 motor.\n\n");
 
 	fprintf(file, "  name              = %s\n", record->name);
-	fprintf(file, "  num counters      = %ld\n", (long) num_counters);
+	fprintf(file, "  num counters      = %ld\n", num_counters);
 	fprintf(file, "  counter array     = (");
 
 	for ( i = 0; i < num_counters; i++ ) {
@@ -296,13 +320,13 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  direction record  = %s\n",
 					am9513_motor->direction_record->name );
 	fprintf(file, "  direction bit     = %ld\n",
-					(long) am9513_motor->direction_bit );
+					am9513_motor->direction_bit );
 	fprintf(file, "  step frequency    = %g\n",
 					am9513_motor->step_frequency );
 
-	mx_status = mx_motor_get_position( record, &position );
+	status = mx_motor_get_position( record, &position );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -310,7 +334,7 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
+			motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -318,29 +342,41 @@ mxd_am9513_motor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_write_parms_to_hardware( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_am9513_motor_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_motor_open()";
+	const char fname[] = "mxd_am9513_motor_open()";
 
 	MX_MOTOR *motor;
 	MX_AM9513_MOTOR *am9513_motor;
@@ -348,9 +384,9 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	MX_RECORD *low_record, *high_record;
 	MX_AM9513 *low_am9513, *high_am9513;
 	uint16_t counter_mode_register;
-	mx_length_type num_counters;
+	long num_counters;
 	int m, n, frequency_scaler_ratio;
-	uint32_t clock_ticks_uint32;
+	unsigned long clock_ticks_ulong;
 	uint16_t ticks_to_count_for;
 	double seconds_per_step, external_clock_ticks_per_step;
 	double ulong_max_double;
@@ -375,7 +411,7 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	if ( num_counters != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The number of counters (%ld) for motor '%s' should be equal to 2.",
-			(long) num_counters, record->name );
+			num_counters, record->name );
 	}
 
 	mx_status = mxi_am9513_grab_counters( record, num_counters,
@@ -467,10 +503,10 @@ mxd_am9513_motor_open( MX_RECORD *record )
 			am9513_motor->clock_frequency );
 	}
 
-	clock_ticks_uint32 = mx_round( external_clock_ticks_per_step );
+	clock_ticks_ulong = mx_round( external_clock_ticks_per_step );
 
-	MX_DEBUG( 2,("%s: clock_ticks_uint32 = %lu",
-			fname, (unsigned long) clock_ticks_uint32));
+	MX_DEBUG( 2,("%s: clock_ticks_ulong = %lu",
+				fname, clock_ticks_ulong));
 
 /* Replaced with alternative model below since this has a tendency
  * to result in the shortest possible step pulse length (basically 
@@ -509,28 +545,28 @@ mxd_am9513_motor_open( MX_RECORD *record )
  * to inter-step delay time.  (CUS 990628)
  */
 
-	if ( clock_ticks_uint32 > 524288L ) {
+	if ( clock_ticks_ulong > 524288L ) {
 		frequency_scaler_ratio = 0x0f00;		/* F5 */
 	        ticks_to_count_for = (uint16_t)
-			( clock_ticks_uint32 / 65536L );
+			( clock_ticks_ulong / 65536L );
 	} else 
-	if ( clock_ticks_uint32 > 32768L ) {
+	if ( clock_ticks_ulong > 32768L ) {
 		frequency_scaler_ratio = 0x0e00;		/* F4 */
 	        ticks_to_count_for = (uint16_t)
-			( clock_ticks_uint32 / 4096L );
+			( clock_ticks_ulong / 4096L );
 	} else 
-	if ( clock_ticks_uint32 > 2048L ) {
+	if ( clock_ticks_ulong > 2048L ) {
 		frequency_scaler_ratio = 0x0d00;		/* F3 */
 	        ticks_to_count_for = (uint16_t)
-			( clock_ticks_uint32 / 256L );
+			( clock_ticks_ulong / 256L );
 	} else 
-	if ( clock_ticks_uint32 > 128L ) {
+	if ( clock_ticks_ulong > 128L ) {
 		frequency_scaler_ratio = 0x0c00;		/* F2 */
 	        ticks_to_count_for = (uint16_t)
-			( clock_ticks_uint32 / 16L );
+			( clock_ticks_ulong / 16L );
 	} else {
 		frequency_scaler_ratio = 0x0b00;		/* F1 */
-	        ticks_to_count_for = (uint16_t) clock_ticks_uint32;
+	        ticks_to_count_for = (uint16_t) clock_ticks_ulong;
 	} 
 
 	MX_DEBUG( 2,
@@ -620,20 +656,35 @@ mxd_am9513_motor_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_am9513_motor_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_resynchronize( MX_RECORD *record )
+{
+	const char fname[] = "mxd_am9513_motor_resynchronize()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"Resynchronize is not yet implemented for Am9513 controlled motors." );
+}
+
 /* ============ Motor specific functions ============ */
 
 MX_EXPORT mx_status_type
 mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_am9513_motor_motor_is_busy()";
+	const char fname[] = "mxd_am9513_motor_motor_is_busy()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	uint8_t am9513_status, mask;
-	int busy;
-	mx_length_type num_counters;
+	long num_counters;
+	uint8_t am9513_status;
+	int mask, busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_motor_get_pointers( motor, &am9513_motor,
@@ -696,7 +747,7 @@ mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 
 	motor->busy = busy;
 
-	MX_DEBUG( 2,("%s: busy = %d", fname, (int) motor->busy));
+	MX_DEBUG( 2,("%s: busy = %d", fname, motor->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -789,16 +840,15 @@ mxd_am9513_motor_move_single_step( MX_AM9513_MOTOR *am9513_motor,
 MX_EXPORT mx_status_type
 mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_am9513_motor_move_absolute()";
+	const char fname[] = "mxd_am9513_motor_move_absolute()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *high_record, *low_record, *this_record;
 	MX_AM9513 *high_am9513, *low_am9513, *this_am9513;
 	int i, j, m, n;
-	int32_t relative_steps;
-	uint32_t output_value, mask;
-	mx_length_type num_counters;
+	long num_counters, relative_steps;
+	unsigned long output_value, mask;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_motor_get_pointers( motor, &am9513_motor,
@@ -848,13 +898,13 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: raw_destination = %ld, raw_position = %ld",
-		fname, (long) motor->raw_destination.stepper,
-		(long) motor->raw_position.stepper));
+		fname, motor->raw_destination.stepper,
+		motor->raw_position.stepper));
 
 	relative_steps = motor->raw_destination.stepper
 					- motor->raw_position.stepper;
 
-	MX_DEBUG( 2,("%s: relative_steps = %ld", fname, (long) relative_steps));
+	MX_DEBUG( 2,("%s: relative_steps = %ld", fname, relative_steps));
 
 	if ( ( relative_steps < -65534 ) || ( relative_steps > 65534 ) ) {
 
@@ -862,7 +912,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 "A move of motor '%s' to %g would require a relative move of %ld steps.  "
 "The maximum move currently allowed is 65534 steps or less.",
 			motor->record->name, motor->destination,
-			(long) relative_steps );
+			relative_steps );
 	}
 
 	/* If the number of relative steps is 0, then return immediately
@@ -887,8 +937,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: old output_value = %lu",
-				fname, (unsigned long) output_value));
+	MX_DEBUG( 2,("%s: old output_value = %lu", fname, output_value));
 
 	if ( relative_steps >= 0 ) {
 		mask = 1 << am9513_motor->direction_bit;
@@ -910,8 +959,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: new output_value = %lu",
-			fname, (unsigned long) output_value));
+	MX_DEBUG( 2,("%s: new output_value = %lu", fname, output_value));
 	MX_DEBUG( 2,("%s: last_direction = %d",
 			fname, am9513_motor->last_direction));
 
@@ -981,7 +1029,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 	am9513_motor->busy_retries_left = 1 + am9513_motor->busy_retries;
 
 	MX_DEBUG( 2,("%s: last_destination = %ld",
-			fname, (long) am9513_motor->last_destination));
+			fname, am9513_motor->last_destination));
 
 	for ( i = 1; i >= 0; i-- ) {
 
@@ -1005,15 +1053,15 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_am9513_motor_get_position()";
+	const char fname[] = "mxd_am9513_motor_get_position()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *high_record;
 	MX_AM9513 *high_am9513;
+	long num_counters;
 	int n;
 	uint16_t hold_register, step_offset;
-	mx_length_type num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_motor_get_pointers( motor, &am9513_motor,
@@ -1064,15 +1112,16 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s: hold = %hu, step_offset = %hu",
 		fname, hold_register, step_offset));
 
-	MX_DEBUG( 2,("%s: last_destination = %ld, last_direction = %d",
-		fname, (long) am9513_motor->last_destination,
+	MX_DEBUG( 2,
+("%s: last_destination = %ld, last_direction = %d",
+		fname, am9513_motor->last_destination,
 		am9513_motor->last_direction ));
 
 	motor->raw_position.stepper = am9513_motor->last_destination
 			- am9513_motor->last_direction * step_offset;
 
-	MX_DEBUG( 2,("%s: step_offset = %hu, (long) raw_position = %ld",
-		fname, step_offset, (long) motor->raw_position.stepper));
+	MX_DEBUG( 2,("%s: step_offset = %hu, raw_position = %ld",
+		fname, step_offset, motor->raw_position.stepper));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1080,13 +1129,13 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_am9513_motor_set_position()";
+	const char fname[] = "mxd_am9513_motor_set_position()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *high_record;
 	MX_AM9513 *high_am9513;
-	mx_length_type num_counters;
+	long num_counters;
 	int n;
 	mx_status_type mx_status;
 
@@ -1125,14 +1174,14 @@ mxd_am9513_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_am9513_motor_soft_abort()";
+	const char fname[] = "mxd_am9513_motor_soft_abort()";
 
 	MX_AM9513_MOTOR *am9513_motor;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	int n;
-	mx_length_type i, num_counters;
+	int i, n;
+	long num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_motor_get_pointers( motor, &am9513_motor,
@@ -1191,5 +1240,30 @@ MX_EXPORT mx_status_type
 mxd_am9513_motor_immediate_abort( MX_MOTOR *motor )
 {
 	return mxd_am9513_motor_soft_abort( motor );
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_positive_limit_hit( MX_MOTOR *motor )
+{
+	motor->positive_limit_hit = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_negative_limit_hit( MX_MOTOR *motor )
+{
+	motor->negative_limit_hit = FALSE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_motor_find_home_position( MX_MOTOR *motor )
+{
+	const char fname[] = "mxd_am9513_motor_find_home_position()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"The Am9513 motor driver does not support home searches." );
 }
 

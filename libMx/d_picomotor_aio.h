@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@ typedef struct {
 
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int32_t channel_number;
+	int channel_number;
 } MX_PICOMOTOR_AINPUT;
 
 #define MXD_PICOMOTOR_AINPUT_STANDARD_FIELDS \
@@ -41,7 +41,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_AINPUT, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_AINPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -55,7 +55,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_picomotor_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_picomotor_ain_analog_input_function_list;
 
-extern mx_length_type mxd_picomotor_ain_num_record_fields;
+extern long mxd_picomotor_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_picomotor_ain_rfield_def_ptr;
 
 #endif /* __D_PICOMOTOR_AIO_H__ */

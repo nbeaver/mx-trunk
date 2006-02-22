@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -349,8 +349,8 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 	MX_SCALER *scaler;
 	unsigned long seconds, milliseconds;
 	double double_value;
-	int32_t int32_value;
-	uint32_t uint32_value;
+	long long_value;
+	unsigned long ulong_value;
 	long i;
 	mx_status_type status;
 
@@ -463,14 +463,14 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 				break;
 			case MXC_DIGITAL_INPUT:
 				status = mx_digital_input_read(
-						input_device, &uint32_value );
+						input_device, &ulong_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}
 				break;
 			case MXC_DIGITAL_OUTPUT:
 				status = mx_digital_output_read(
-						input_device, &uint32_value );
+						input_device, &ulong_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}
@@ -484,14 +484,14 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 				break;
 			case MXC_SCALER:
 				status = mx_scaler_read(
-						input_device, &int32_value );
+						input_device, &long_value );
 				if ( status.code != MXE_SUCCESS ) {
 					return status;
 				}
 				scaler = (MX_SCALER *)
 					(input_device->record_class_struct);
 
-				scaler->value = int32_value;
+				scaler->value = long_value;
 				break;
 			case MXC_TIMER:
 				status = mx_timer_read(

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,32 +19,32 @@
 #define __D_BIT_H__
 
 typedef struct {
-	mx_bool_type invert;
+	int invert;
 
 	MX_RECORD *input_record;
-	int32_t input_bit_offset;
-	int32_t num_input_bits;
+	int input_bit_offset;
+	int num_input_bits;
 
-	uint32_t input_mask;
+	unsigned long input_mask;
 } MX_BIT_IN;
 
 typedef struct {
-	mx_bool_type invert;
+	int invert;
 
 	MX_RECORD *input_record;
-	int32_t input_bit_offset;
-	int32_t num_input_bits;
+	int input_bit_offset;
+	int num_input_bits;
 
 	MX_RECORD *output_record;
-	int32_t output_bit_offset;
-	int32_t num_output_bits;
+	int output_bit_offset;
+	int num_output_bits;
 
-	uint32_t input_mask;
-	uint32_t output_mask;
+	unsigned long input_mask;
+	unsigned long output_mask;
 } MX_BIT_OUT;
 
 #define MXD_BIT_IN_STANDARD_FIELDS \
-  {-1, -1, "invert", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "invert", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, invert), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -52,16 +52,16 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, input_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, input_bit_offset), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, num_input_bits), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #define MXD_BIT_OUT_STANDARD_FIELDS \
-  {-1, -1, "invert", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "invert", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, invert), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -69,11 +69,11 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, input_record), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, input_bit_offset), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, num_input_bits), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -81,11 +81,11 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, output_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, output_bit_offset), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, num_output_bits), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -113,7 +113,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_bit_in_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_bit_in_digital_input_function_list;
 
-extern mx_length_type mxd_bit_in_num_record_fields;
+extern long mxd_bit_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_bit_in_rfield_def_ptr;
 
 /* Second, the output functions. */
@@ -139,7 +139,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_bit_out_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_bit_out_digital_output_function_list;
 
-extern mx_length_type mxd_bit_out_num_record_fields;
+extern long mxd_bit_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_bit_out_rfield_def_ptr;
 
 #endif /* __D_BIT_H__ */

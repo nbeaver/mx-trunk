@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,16 +31,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmc_mcapi_record;
-	uint16_t channel_number;
-	mx_hex_type pmc_mcapi_dinput_flags;
+	unsigned short channel_number;
+	unsigned long pmc_mcapi_dinput_flags;
 } MX_PMC_MCAPI_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmc_mcapi_record;
-	uint16_t channel_number;
-	mx_hex_type pmc_mcapi_doutput_flags;
+	unsigned short channel_number;
+	unsigned long pmc_mcapi_doutput_flags;
 } MX_PMC_MCAPI_DOUTPUT;
 
 #define MXD_PMC_MCAPI_DINPUT_STANDARD_FIELDS \
@@ -49,7 +49,7 @@ typedef struct {
 		offsetof(MX_PMC_MCAPI_DINPUT, pmc_mcapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_UINT16, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_USHORT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_DINPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -64,7 +64,7 @@ typedef struct {
 		offsetof(MX_PMC_MCAPI_DOUTPUT, pmc_mcapi_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_UINT16, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_USHORT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI_DOUTPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -87,7 +87,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pmc_mcapi_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_pmc_mcapi_din_digital_input_function_list;
 
-extern mx_length_type mxd_pmc_mcapi_din_num_record_fields;
+extern long mxd_pmc_mcapi_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmc_mcapi_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -103,7 +103,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pmc_mcapi_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_pmc_mcapi_dout_digital_output_function_list;
 
-extern mx_length_type mxd_pmc_mcapi_dout_num_record_fields;
+extern long mxd_pmc_mcapi_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmc_mcapi_dout_rfield_def_ptr;
 
 #endif /* __D_PMC_MCAPI_DIO_H__ */

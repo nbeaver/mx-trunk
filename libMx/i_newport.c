@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_mm3000_record_field_defaults[] = {
 	MXI_NEWPORT_STANDARD_FIELDS
 };
 
-mx_length_type mxi_mm3000_num_record_fields
+long mxi_mm3000_num_record_fields
 		= sizeof( mxi_mm3000_record_field_defaults )
 			/ sizeof( mxi_mm3000_record_field_defaults[0] );
 
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_mm4000_record_field_defaults[] = {
 	MXI_NEWPORT_STANDARD_FIELDS
 };
 
-mx_length_type mxi_mm4000_num_record_fields
+long mxi_mm4000_num_record_fields
 		= sizeof( mxi_mm4000_record_field_defaults )
 			/ sizeof( mxi_mm4000_record_field_defaults[0] );
 
@@ -85,7 +85,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_esp_record_field_defaults[] = {
 	MXI_NEWPORT_STANDARD_FIELDS
 };
 
-mx_length_type mxi_esp_num_record_fields
+long mxi_esp_num_record_fields
 		= sizeof( mxi_esp_record_field_defaults )
 			/ sizeof( mxi_esp_record_field_defaults[0] );
 

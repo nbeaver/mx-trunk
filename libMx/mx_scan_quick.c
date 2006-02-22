@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,10 +36,10 @@ mx_quick_scan_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type num_record_fields;
-	mx_length_type num_independent_variables_varargs_cookie;
-	mx_length_type num_motors_varargs_cookie;
-	mx_length_type num_input_devices_varargs_cookie;
+	long num_record_fields;
+	long num_independent_variables_varargs_cookie;
+	long num_motors_varargs_cookie;
+	long num_input_devices_varargs_cookie;
 	mx_status_type status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -66,7 +66,7 @@ mx_quick_scan_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -194,8 +194,8 @@ mx_quick_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 				quick_scan->start_position[j], motor_units,
 				quick_scan->end_position[i], motor_units,
 				step_size, motor_units,
-				(long) quick_scan->requested_num_measurements,
-				(long) quick_scan->actual_num_measurements );
+				quick_scan->requested_num_measurements,
+				quick_scan->actual_num_measurements );
 
 			j++;
 		}
@@ -241,7 +241,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 	double start_position, end_position;
 	double old_speed, new_speed, measurement_time;
 	double d_spacing;
-	mx_length_type num_elements;
+	long num_elements;
 	void *pointer_to_value;
 	mx_status_type status;
 
@@ -255,7 +255,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 	if ( motor_index < 0 || motor_index >= scan->num_motors ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The motor index %ld passed is outside the allowed range of (0-%ld).",
-			motor_index, (long) scan->num_motors );
+			motor_index, scan->num_motors );
 	}
 
 	independent_variable_record = (scan->motor_record_array)[motor_index];
@@ -360,7 +360,7 @@ mx_quick_scan_restore_old_motor_speed( MX_QUICK_SCAN *quick_scan,
 	if ( motor_index < 0 || motor_index >= scan->num_motors ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The motor index %ld passed is outside the allowed range of (0-%ld).",
-			motor_index, (long) scan->num_motors );
+			motor_index, scan->num_motors );
 	}
 
 	independent_variable_record = (scan->motor_record_array)[motor_index];

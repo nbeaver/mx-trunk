@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,10 +34,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	int32_t port_number;
+	int port_number;
 	char appname[MXU_APPNAME_LENGTH+1];
 	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
-	mx_hex_type bluice_dcss_flags;
+	unsigned long bluice_dcss_flags;
 
 	MX_THREAD *dcss_monitor_thread;
 	unsigned long client_number;
@@ -56,7 +56,7 @@ MX_API mx_status_type mxn_bluice_dcss_server_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxn_bluice_dcss_server_record_function_list;
 
-extern mx_length_type mxn_bluice_dcss_server_num_record_fields;
+extern long mxn_bluice_dcss_server_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
 
 #define MXN_BLUICE_DCSS_SERVER_STANDARD_FIELDS \
@@ -64,7 +64,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

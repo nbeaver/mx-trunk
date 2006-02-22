@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_ain_record_field_defaults[] = {
 	MXD_MCLENNAN_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mclennan_ain_num_record_fields
+long mxd_mclennan_ain_num_record_fields
 		= sizeof( mxd_mclennan_ain_record_field_defaults )
 			/ sizeof( mxd_mclennan_ain_record_field_defaults[0] );
 
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_aout_record_field_defaults[] = {
 	MXD_MCLENNAN_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mclennan_aout_num_record_fields
+long mxd_mclennan_aout_num_record_fields
 		= sizeof( mxd_mclennan_aout_record_field_defaults )
 			/ sizeof( mxd_mclennan_aout_record_field_defaults[0] );
 
@@ -261,9 +261,9 @@ mxd_mclennan_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	mclennan_ainput->record = record;
 
-	/* Raw analog input values are stored as 32-bit integers. */
+	/* Raw analog input values are stored as longs. */
 
-	analog_input->subclass = MXT_AIN_INT32;
+	analog_input->subclass = MXT_AIN_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -279,7 +279,6 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	char response[80];
 	int num_items;
 	int port_number;
-	long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -308,7 +307,7 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	"Port number %d used by analog input record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			ainput->record->name,
-			(int) mclennan->num_ainput_ports );
+			mclennan->num_ainput_ports );
 	}
 
 	sprintf( command, "AI%d", port_number );
@@ -320,7 +319,7 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%ld", &value );
+	num_items = sscanf(response, "%ld", &(ainput->raw_value.long_value));
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -331,8 +330,6 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name,
 			response );
 	}
-
-	ainput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -350,7 +347,8 @@ mxd_mclennan_aout_create_record_structures( MX_RECORD *record )
 
         /* Allocate memory for the necessary structures. */
 
-        analog_output = (MX_ANALOG_OUTPUT *) malloc(sizeof(MX_ANALOG_OUTPUT));
+        analog_output = (MX_ANALOG_OUTPUT *)
+					malloc(sizeof(MX_ANALOG_OUTPUT));
 
         if ( analog_output == (MX_ANALOG_OUTPUT *) NULL ) {
                 return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -375,9 +373,9 @@ mxd_mclennan_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	mclennan_aoutput->record = record;
 
-	/* Raw analog output values are stored as 32-bit integers. */
+	/* Raw analog output values are stored as long. */
 
-	analog_output->subclass = MXT_AOU_INT32;
+	analog_output->subclass = MXT_AOU_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -427,11 +425,11 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	"Port number %d used by analog output record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			aoutput->record->name,
-			(int) mclennan->num_aoutput_ports );
+			mclennan->num_aoutput_ports );
 	}
 
 	sprintf( command, "AO%d/%ld", port_number,
-				(long) aoutput->raw_value.int32_value );
+				aoutput->raw_value.long_value );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 					NULL, 0, MXD_MCLENNAN_AIO_DEBUG );

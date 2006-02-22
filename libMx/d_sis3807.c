@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sis3807_record_field_defaults[] = {
 	MXD_SIS3807_STANDARD_FIELDS
 };
 
-mx_length_type mxd_sis3807_num_record_fields
+long mxd_sis3807_num_record_fields
 		= sizeof( mxd_sis3807_record_field_defaults )
 			/ sizeof( mxd_sis3807_record_field_defaults[0] );
 
@@ -783,6 +783,21 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	switch( pulse_generator->parameter_type ) {
 	case MXLV_PGN_NUM_PULSES:
 		if ( sis3807->burst_register_available ) {
+
+			if ( pulse_generator->num_pulses
+				> TWO_TO_THE_32ND_POWER_MINUS_ONE )
+			{
+				/* This case can't happen on a machine where
+				 * unsigned long is 32 bits.
+				 */
+
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+	"Requested number of pulses %lu for pulse generator '%s' is greater "
+	"than the maximum allowed number of pulses %lu.",
+					pulse_generator->num_pulses,
+					pulse_generator->record->name,
+					TWO_TO_THE_32ND_POWER_MINUS_ONE );
+			}
 
 			num_pulses = pulse_generator->num_pulses;
 

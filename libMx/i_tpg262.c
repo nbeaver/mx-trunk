@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_tpg262_record_field_defaults[] = {
 	MXI_TPG262_STANDARD_FIELDS
 };
 
-mx_length_type mxi_tpg262_num_record_fields
+long mxi_tpg262_num_record_fields
 		= sizeof( mxi_tpg262_record_field_defaults )
 			/ sizeof( mxi_tpg262_record_field_defaults[0] );
 

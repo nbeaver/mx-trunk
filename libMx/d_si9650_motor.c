@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,7 +77,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_si9650_motor_recfield_defaults[] = {
 	MXD_SI9650_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_si9650_motor_num_record_fields
+long mxd_si9650_motor_num_record_fields
 		= sizeof( mxd_si9650_motor_recfield_defaults )
 		/ sizeof( mxd_si9650_motor_recfield_defaults[0] );
 
@@ -544,8 +544,7 @@ mxd_si9650_motor_command( MX_SI9650_MOTOR *si9650_motor,
 
 	MX_INTERFACE *controller_interface;
 	int i, max_retries;
-	unsigned long wait_ms;
-	uint32_t num_input_bytes_available;
+	unsigned long wait_ms, num_input_bytes_available;
 	mx_status_type mx_status;
 
 	if ( si9650_motor == (MX_SI9650_MOTOR *) NULL ) {

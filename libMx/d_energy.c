@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_energy_motor_record_field_defaults[] = {
 	MXD_ENERGY_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_energy_motor_num_record_fields
+long mxd_energy_motor_num_record_fields
 		= sizeof( mxd_energy_motor_record_field_defaults )
 			/ sizeof( mxd_energy_motor_record_field_defaults[0] );
 
@@ -246,7 +246,7 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  d spacing              = %s\n",
 					energy_motor->d_spacing_record->name);
 	fprintf(file, "  angle scale            = %.*g radians per %s.\n",
-					(int) record->precision,
+					record->precision,
 					energy_motor->angle_scale,
 					dependent_motor->units);
 
@@ -259,39 +259,39 @@ mxd_energy_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	}
 
         fprintf(file, "  position               = %.*g %s  (%.*g)\n",
-		(int) record->precision,
+		record->precision,
                 motor->position, motor->units,
-		(int) record->precision,
+		record->precision,
                 motor->raw_position.analog );
 	fprintf(file, "  energy scale           = %.*g %s per unscaled "
 							"energy unit.\n",
-		(int) record->precision,
+		record->precision,
 		motor->scale, motor->units);
 	fprintf(file, "  energy offset          = %.*g %s.\n",
-		(int) record->precision,
+		record->precision,
 		motor->offset, motor->units);
         fprintf(file, "  backlash               = %.*g %s  (%.*g).\n",
-		(int) record->precision,
+		record->precision,
                 motor->backlash_correction, motor->units,
-		(int) record->precision,
+		record->precision,
                 motor->raw_backlash_correction.analog);
         fprintf(file, "  negative limit         = %.*g %s  (%.*g).\n",
-		(int) record->precision,
+		record->precision,
                 motor->negative_limit, motor->units,
-		(int) record->precision,
+		record->precision,
                 motor->raw_negative_limit.analog);
         fprintf(file, "  positive limit         = %.*g %s  (%.*g).\n",
-		(int) record->precision,
+		record->precision,
 		motor->positive_limit, motor->units,
-		(int) record->precision,
+		record->precision,
 		motor->raw_positive_limit.analog);
 
 	move_deadband = motor->scale * motor->raw_move_deadband.analog;
 
 	fprintf(file, "  move deadband          = %.*g %s  (%.*g).\n\n",
-		(int) record->precision,
+		record->precision,
 		move_deadband, motor->units,
-		(int) record->precision,
+		record->precision,
 		motor->raw_move_deadband.analog);
 
 	return MX_SUCCESSFUL_RESULT;
@@ -339,7 +339,7 @@ mxd_energy_motor_get_d_spacing( MX_MOTOR *motor,
 				MX_ENERGY_MOTOR *energy_motor,
 				double *d_spacing )
 {
-	mx_bool_type fast_mode;
+	int fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_fast_mode( motor->record, &fast_mode );
@@ -647,7 +647,7 @@ mxd_energy_motor_get_parameter( MX_MOTOR *motor )
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type );
+			motor->parameter_type );
 
 	case MXLV_MTR_ACCELERATION_TIME:
 		mx_status = mx_motor_get_acceleration_time(
@@ -759,7 +759,7 @@ mxd_energy_motor_set_parameter( MX_MOTOR *motor )
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type );
+			motor->parameter_type );
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
 		mx_status =
@@ -809,7 +809,7 @@ mxd_energy_motor_get_status( MX_MOTOR *motor )
 
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_energy_motor_get_pointers( motor, &energy_motor,
@@ -852,7 +852,7 @@ mxd_energy_motor_get_extended_status( MX_MOTOR *motor )
 
 	MX_ENERGY_MOTOR *energy_motor;
 	MX_RECORD *dependent_motor_record;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;
 

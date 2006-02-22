@@ -78,18 +78,18 @@ mx_mca_get_pointers( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_initialize_type( long record_type,
-			mx_length_type *num_record_fields,
+			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			mx_length_type *maximum_num_channels_varargs_cookie,
-			mx_length_type *maximum_num_rois_varargs_cookie,
-			mx_length_type *num_soft_rois_varargs_cookie )
+			long *maximum_num_channels_varargs_cookie,
+			long *maximum_num_rois_varargs_cookie,
+			long *num_soft_rois_varargs_cookie )
 {
 	static const char fname[] = "mx_mca_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type referenced_field_index;
+	long referenced_field_index;
 	mx_status_type mx_status;
 
 	if ( num_record_fields == NULL ) {
@@ -134,7 +134,7 @@ mx_mca_initialize_type( long record_type,
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -387,8 +387,8 @@ mx_mca_stop( MX_RECORD *mca_record )
 
 MX_EXPORT mx_status_type
 mx_mca_read( MX_RECORD *mca_record,
-		mx_length_type *num_channels,
-		uint32_t **channel_array )
+		unsigned long *num_channels,
+		unsigned long **channel_array )
 {
 	static const char fname[] = "mx_mca_read()";
 
@@ -431,7 +431,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (before read) mca->new_data_available = %d, mca->busy = %d",
-		fname, (int) mca->new_data_available, (int) mca->busy));
+		fname, mca->new_data_available, mca->busy));
 
 	if ( read_new_data ) {
 
@@ -447,7 +447,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (after read) mca->new_data_available = %d, mca->busy = %d",
-		fname, (int) mca->new_data_available, (int) mca->busy));
+		fname, mca->new_data_available, mca->busy));
 
 	if ( num_channels != NULL ) {
 		*num_channels = mca->current_num_channels;
@@ -491,7 +491,7 @@ mx_mca_clear( MX_RECORD *mca_record )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
+mx_mca_is_busy( MX_RECORD *mca_record, int *busy )
 {
 	static const char fname[] = "mx_mca_is_busy()";
 
@@ -526,8 +526,7 @@ mx_mca_is_busy( MX_RECORD *mca_record, mx_bool_type *busy )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_is_new_data_available( MX_RECORD *mca_record,
-				mx_bool_type *new_data_available )
+mx_mca_is_new_data_available( MX_RECORD *mca_record, int *new_data_available )
 {
 	static const char fname[] = "mx_mca_is_new_data_available()";
 
@@ -601,7 +600,7 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 
 MX_EXPORT mx_status_type
 mx_mca_start_with_preset( MX_RECORD *mca_record,
-				int32_t preset_type,
+				int preset_type,
 				double preset_value )
 {
 	static const char fname[] = "mx_mca_start_with_preset()";
@@ -646,7 +645,7 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal preset type %d for MCA '%s'.",
-			(int) preset_type, mca_record->name );
+			preset_type, mca_record->name );
 	}
 
 	mx_status = (*start_fn)( mca );
@@ -736,7 +735,7 @@ mx_mca_start_for_preset_real_time( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_start_for_preset_count( MX_RECORD *mca_record,
-				uint32_t preset_count )
+					unsigned long preset_count )
 {
 	static const char fname[] = "mx_mca_start_for_preset_count()";
 
@@ -775,7 +774,7 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mca_get_preset_type( MX_RECORD *mca_record, int32_t *preset_type )
+mx_mca_get_preset_type( MX_RECORD *mca_record, int *preset_type )
 {
 	static const char fname[] = "mx_mca_get_preset_type()";
 
@@ -812,7 +811,7 @@ mx_mca_get_preset_type( MX_RECORD *mca_record, int32_t *preset_type )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_set_preset_type( MX_RECORD *mca_record, int32_t preset_type )
+mx_mca_set_preset_type( MX_RECORD *mca_record, int preset_type )
 {
 	static const char fname[] = "mx_mca_set_preset_type()";
 
@@ -848,7 +847,7 @@ mx_mca_set_preset_type( MX_RECORD *mca_record, int32_t preset_type )
 
 MX_EXPORT mx_status_type
 mx_mca_get_preset_count_region( MX_RECORD *mca_record,
-			mx_length_type *preset_count_region )
+			unsigned long *preset_count_region )
 {
 	static const char fname[] = "mx_mca_get_preset_count_region()";
 
@@ -887,7 +886,7 @@ mx_mca_get_preset_count_region( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_set_preset_count_region( MX_RECORD *mca_record,
-			mx_length_type *preset_count_region )
+			unsigned long *preset_count_region )
 {
 	static const char fname[] = "mx_mca_set_preset_count_region()";
 
@@ -929,8 +928,8 @@ mx_mca_set_preset_count_region( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_roi( MX_RECORD *mca_record,
-			mx_length_type roi_number,
-			mx_length_type *roi )
+			unsigned long roi_number,
+			unsigned long *roi )
 {
 	static const char fname[] = "mx_mca_get_roi()";
 
@@ -950,10 +949,8 @@ mx_mca_get_roi( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%lu) for MCA '%s'.",
-				(unsigned long) roi_number,
-				mca->current_num_rois - 1L,
-				mca_record->name );
+			"of (0-%ld) for MCA '%s'.", roi_number,
+			mca->current_num_rois - 1, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -978,28 +975,20 @@ mx_mca_get_roi( MX_RECORD *mca_record,
 		roi[1] = mca->roi[1];
 	}
 
-	MX_DEBUG( 2,("%s: mca->roi[0] = %lu", fname,
-		(unsigned long) (mca->roi[0]) ));
+	MX_DEBUG( 2,("%s: mca->roi[0] = %lu", fname, mca->roi[0]));
+	MX_DEBUG( 2,("%s: mca->roi[1] = %lu", fname, mca->roi[1]));
 
-	MX_DEBUG( 2,("%s: mca->roi[1] = %lu", fname,
-		(unsigned long) (mca->roi[1]) ));
-
-	MX_DEBUG( 2,("%s: mca->roi_array[%lu][0] = %lu", fname,
-		(unsigned long) roi_number,
-		(unsigned long) (mca->roi_array[ roi_number ][0]) ));
-
-	MX_DEBUG( 2,("%s: mca->roi_array[%lu][1] = %lu", fname,
-		(unsigned long) roi_number,
-		(unsigned long) (mca->roi_array[ roi_number ][1]) ));
+	MX_DEBUG( 2,("%s: mca->roi_array[%lu][0] = %lu",
+	  fname, roi_number, mca->roi_array[ roi_number ][0]));
+	MX_DEBUG( 2,("%s: mca->roi_array[%lu][1] = %lu",
+	  fname, roi_number, mca->roi_array[ roi_number ][1]));
 
 	if ( mca->roi[0] > mca->roi[1] ) {
 		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 		"For MCA '%s', ROI %lu, the ROI lower limit %lu has a larger "
 		"index than the ROI upper limit %lu.",
-			mca->record->name,
-			(unsigned long) roi_number,
-			(unsigned long) mca->roi[0],
-			(unsigned long) mca->roi[1] );
+			mca->record->name, roi_number,
+			mca->roi[0], mca->roi[1] );
 	}
 
 	return mx_status;
@@ -1007,8 +996,8 @@ mx_mca_get_roi( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_set_roi( MX_RECORD *mca_record,
-			mx_length_type roi_number,
-			mx_length_type *roi )
+			unsigned long roi_number,
+			unsigned long *roi )
 {
 	static const char fname[] = "mx_mca_set_roi()";
 
@@ -1033,29 +1022,23 @@ mx_mca_set_roi( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%lu) for MCA '%s'.",
-				(unsigned long) roi_number,
-				mca->current_num_rois - 1L,
-				mca_record->name );
+			"of (0-%ld) for MCA '%s'.", roi_number,
+			mca->current_num_rois - 1, mca_record->name );
 	}
 
 	if ( roi[1] >= mca->current_num_channels ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI upper limit %lu is outside the allowed "
-			"range of (0-%lu) for MCA '%s'.",
-				(unsigned long) roi[1],
-				mca->current_num_channels - 1L,
-				mca_record->name );
+			"range of (0-%ld) for MCA '%s'.", roi[1],
+			mca->current_num_channels - 1, mca_record->name );
 	}
 
 	if ( roi[0] > roi[1] ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"The requested ROI lower limit %lu is larger than "
 			"the requested ROI upper limit %lu for MCA '%s'.  "
-			"This is not allowed.",
-				(unsigned long) roi[0],
-				(unsigned long) roi[1],
-				mca->record->name );
+			"This is not allowed.", roi[0], roi[1],
+			mca->record->name );
 	}
 
 	set_parameter = function_list->set_parameter;
@@ -1076,19 +1059,13 @@ mx_mca_set_roi( MX_RECORD *mca_record,
 	mca->roi[0] = roi[0];
 	mca->roi[1] = roi[1];
 
-	MX_DEBUG( 2,("%s: mca->roi[0] = %lu", fname,
-		(unsigned long) (mca->roi[0]) ));
+	MX_DEBUG( 2,("%s: mca->roi[0] = %lu", fname, mca->roi[0]));
+	MX_DEBUG( 2,("%s: mca->roi[1] = %lu", fname, mca->roi[1]));
 
-	MX_DEBUG( 2,("%s: mca->roi[1] = %lu", fname,
-		(unsigned long) (mca->roi[1]) ));
-
-	MX_DEBUG( 2,("%s: mca->roi_array[%lu][0] = %lu", fname,
-		(unsigned long) roi_number,
-		(unsigned long) (mca->roi_array[ roi_number ][0]) ));
-
-	MX_DEBUG( 2,("%s: mca->roi_array[%lu][1] = %lu", fname,
-		(unsigned long) roi_number,
-		(unsigned long) (mca->roi_array[ roi_number ][1]) ));
+	MX_DEBUG( 2,("%s: mca->roi_array[%lu][0] = %lu",
+	  fname, roi_number, mca->roi_array[ roi_number ][0]));
+	MX_DEBUG( 2,("%s: mca->roi_array[%lu][1] = %lu",
+	  fname, roi_number, mca->roi_array[ roi_number ][1]));
 
 	mx_status = (*set_parameter)( mca );
 
@@ -1097,8 +1074,8 @@ mx_mca_set_roi( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_roi_integral( MX_RECORD *mca_record,
-			mx_length_type roi_number,
-			uint32_t *roi_integral )
+			unsigned long roi_number,
+			unsigned long *roi_integral )
 {
 	static const char fname[] = "mx_mca_get_roi_integral()";
 
@@ -1118,10 +1095,8 @@ mx_mca_get_roi_integral( MX_RECORD *mca_record,
 	if ( roi_number >= mca->current_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Requested ROI number %lu is outside the allowed range "
-			"of (0-%ld) for MCA '%s'.",
-				(unsigned long) roi_number,
-				mca->current_num_rois - 1L,
-				mca_record->name );
+			"of (0-%ld) for MCA '%s'.", roi_number,
+			mca->current_num_rois - 1, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -1149,14 +1124,14 @@ mx_mca_get_roi_integral( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_roi_array( MX_RECORD *mca_record,
-			mx_length_type num_rois,
-			uint32_t **roi_array )
+			unsigned long num_rois,
+			unsigned long **roi_array )
 {
 	static const char fname[] = "mx_mca_get_roi_array()";
 
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
-	mx_length_type i;
+	unsigned long i;
 	mx_status_type ( *get_parameter ) ( MX_MCA * );
 	mx_status_type mx_status;
 
@@ -1176,10 +1151,8 @@ mx_mca_get_roi_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.",
-			(unsigned long) num_rois,
-			(unsigned long) mca->maximum_num_rois,
-			mca_record->name );
+		"of (0-%ld) for MCA '%s'.", num_rois,
+			mca->maximum_num_rois, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -1208,14 +1181,14 @@ mx_mca_get_roi_array( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_set_roi_array( MX_RECORD *mca_record,
-			mx_length_type num_rois,
-			mx_length_type **roi_array )
+			unsigned long num_rois,
+			unsigned long **roi_array )
 {
 	static const char fname[] = "mx_mca_set_roi_array()";
 
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
-	mx_length_type i;
+	unsigned long i;
 	mx_status_type ( *set_parameter ) ( MX_MCA * );
 	mx_status_type mx_status;
 
@@ -1235,10 +1208,8 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.",
-			(unsigned long) num_rois,
-			(unsigned long) mca->maximum_num_rois,
-			mca_record->name );
+		"of (0-%ld) for MCA '%s'.", num_rois,
+			mca->maximum_num_rois, mca_record->name );
 	}
 
 	set_parameter = function_list->set_parameter;
@@ -1258,9 +1229,8 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"Requested ROI upper limit %lu for ROI %lu is outside "
 			"the allowed range of (0-%ld) for MCA '%s'.",
-				(unsigned long) roi_array[i][1],
-				(unsigned long) i,
-				mca->current_num_channels - 1L,
+				roi_array[i][1], i,
+				mca->current_num_channels - 1,
 				mca->record->name );
 		}
 		if ( roi_array[i][0] > roi_array[i][1] ) {
@@ -1268,10 +1238,8 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 			"The requested ROI lower limit %lu for ROI %lu is "
 			"larger than the requested ROI upper limit %lu "
 			"for MCA '%s'.  This is not allowed.",
-				(unsigned long) roi_array[i][0],
-				(unsigned long) i,
-				(unsigned long) roi_array[i][1],
-				mca->record->name );
+			roi_array[i][0], i, roi_array[i][1],
+			mca->record->name );
 		}
 
 		mca->roi_array[i][0] = roi_array[i][0];
@@ -1285,14 +1253,14 @@ mx_mca_set_roi_array( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_roi_integral_array( MX_RECORD *mca_record,
-			mx_length_type num_rois,
-			uint32_t *roi_integral_array )
+			unsigned long num_rois,
+			unsigned long *roi_integral_array )
 {
 	static const char fname[] = "mx_mca_get_roi_integral_array()";
 
 	MX_MCA *mca;
 	MX_MCA_FUNCTION_LIST *function_list;
-	mx_length_type i;
+	unsigned long i;
 	mx_status_type ( *get_parameter ) ( MX_MCA * );
 	mx_status_type mx_status;
 
@@ -1312,10 +1280,8 @@ mx_mca_get_roi_integral_array( MX_RECORD *mca_record,
 	if ( num_rois >= mca->maximum_num_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested number of ROIs %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.",
-			(unsigned long) num_rois,
-			(unsigned long) mca->maximum_num_rois,
-			mca_record->name );
+		"of (0-%ld) for MCA '%s'.", num_rois,
+			mca->maximum_num_rois, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -1343,7 +1309,7 @@ mx_mca_get_roi_integral_array( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_num_channels( MX_RECORD *mca_record,
-			mx_length_type *num_channels )
+			unsigned long *num_channels )
 {
 	static const char fname[] = "mx_mca_get_num_channels()";
 
@@ -1377,16 +1343,14 @@ mx_mca_get_num_channels( MX_RECORD *mca_record,
 
 	mx_status = (*get_parameter)( mca );
 
-	if ( num_channels != (mx_length_type *) NULL ) {
-		*num_channels = mca->current_num_channels;
-	}
+	*num_channels = mca->current_num_channels;
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mca_set_num_channels( MX_RECORD *mca_record,
-			mx_length_type num_channels )
+			unsigned long num_channels )
 {
 	static const char fname[] = "mx_mca_set_num_channels()";
 
@@ -1406,9 +1370,8 @@ mx_mca_set_num_channels( MX_RECORD *mca_record,
 	if ( num_channels > mca->maximum_num_channels ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested number of MCA channels, %lu, is greater than "
-		"the maximum allowed number of MCA channels, %lu.",
-			(unsigned long) num_channels,
-			(unsigned long) mca->maximum_num_channels );
+		"the maximum allowed number of MCA channels, %ld.",
+			num_channels, mca->maximum_num_channels );
 	}
 
 	set_parameter = function_list->set_parameter;
@@ -1430,8 +1393,8 @@ mx_mca_set_num_channels( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_channel( MX_RECORD *mca_record,
-			mx_length_type channel_number,
-			uint32_t *channel_value )
+			unsigned long channel_number,
+			unsigned long *channel_value )
 {
 	static const char fname[] = "mx_mca_get_channel()";
 
@@ -1482,9 +1445,7 @@ mx_mca_get_channel( MX_RECORD *mca_record,
 
 	mx_status = (*get_parameter)( mca );
 
-	if ( channel_value != (uint32_t) NULL ) {
-		*channel_value = mca->channel_value;
-	}
+	*channel_value = mca->channel_value;
 
 	return mx_status;
 }
@@ -1564,7 +1525,7 @@ mx_mca_get_live_time( MX_RECORD *mca_record, double *live_time )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_get_counts( MX_RECORD *mca_record, uint32_t *counts )
+mx_mca_get_counts( MX_RECORD *mca_record, unsigned long *counts )
 {
 	static const char fname[] = "mx_mca_get_counts()";
 
@@ -1602,8 +1563,8 @@ mx_mca_get_counts( MX_RECORD *mca_record, uint32_t *counts )
 
 MX_EXPORT mx_status_type
 mx_mca_get_soft_roi( MX_RECORD *mca_record,
-			mx_length_type soft_roi_number,
-			mx_length_type *soft_roi )
+			unsigned long soft_roi_number,
+			unsigned long *soft_roi )
 {
 	static const char fname[] = "mx_mca_get_soft_roi()";
 
@@ -1629,10 +1590,8 @@ mx_mca_get_soft_roi( MX_RECORD *mca_record,
 	if ( soft_roi_number >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested soft ROI number %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.",
-			(unsigned long) soft_roi_number,
-			mca->num_soft_rois - 1L,
-			mca_record->name );
+		"of (0-%ld) for MCA '%s'.", soft_roi_number,
+			mca->num_soft_rois - 1, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -1657,27 +1616,21 @@ mx_mca_get_soft_roi( MX_RECORD *mca_record,
 		soft_roi[1] = mca->soft_roi[1];
 	}
 
-	MX_DEBUG( 2,("%s: mca->soft_roi[0] = %lu", fname,
-		(unsigned long) (mca->soft_roi[0]) ));
+	MX_DEBUG( 2,("%s: mca->soft_roi[0] = %lu", fname, mca->soft_roi[0]));
+	MX_DEBUG( 2,("%s: mca->soft_roi[1] = %lu", fname, mca->soft_roi[1]));
 
-	MX_DEBUG( 2,("%s: mca->soft_roi[1] = %lu", fname,
-		(unsigned long) (mca->soft_roi[1]) ));
-
-	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][0] = %lu", fname,
-		(unsigned long) soft_roi_number,
-		(unsigned long) (mca->soft_roi_array[ soft_roi_number ][0]) ));
-
-	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][1] = %lu", fname,
-		(unsigned long) soft_roi_number,
-		(unsigned long) (mca->soft_roi_array[ soft_roi_number ][1]) ));
+	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][0] = %lu",
+	  fname, soft_roi_number, mca->soft_roi_array[ soft_roi_number ][0]));
+	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][1] = %lu",
+	  fname, soft_roi_number, mca->soft_roi_array[ soft_roi_number ][1]));
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_mca_set_soft_roi( MX_RECORD *mca_record,
-			mx_length_type soft_roi_number,
-			mx_length_type *soft_roi )
+			unsigned long soft_roi_number,
+			unsigned long *soft_roi )
 {
 	static const char fname[] = "mx_mca_set_soft_roi()";
 
@@ -1708,8 +1661,8 @@ mx_mca_set_soft_roi( MX_RECORD *mca_record,
 	if ( soft_roi_number >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested soft ROI number %lu is outside the allowed range "
-		"of (0-%lu) for MCA '%s'.", (unsigned long) soft_roi_number,
-			mca->num_soft_rois - 1L, mca_record->name );
+		"of (0-%ld) for MCA '%s'.", soft_roi_number,
+			mca->num_soft_rois - 1, mca_record->name );
 	}
 
 	set_parameter = function_list->set_parameter;
@@ -1730,19 +1683,13 @@ mx_mca_set_soft_roi( MX_RECORD *mca_record,
 	mca->soft_roi[0] = soft_roi[0];
 	mca->soft_roi[1] = soft_roi[1];
 
-	MX_DEBUG( 2,("%s: mca->soft_roi[0] = %lu", fname,
-		(unsigned long) (mca->soft_roi[0]) ));
+	MX_DEBUG( 2,("%s: mca->soft_roi[0] = %lu", fname, mca->soft_roi[0]));
+	MX_DEBUG( 2,("%s: mca->soft_roi[1] = %lu", fname, mca->soft_roi[1]));
 
-	MX_DEBUG( 2,("%s: mca->soft_roi[1] = %lu", fname,
-		(unsigned long) (mca->soft_roi[1]) ));
-
-	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][0] = %lu", fname,
-		(unsigned long) soft_roi_number,
-		(unsigned long) (mca->soft_roi_array[ soft_roi_number ][0]) ));
-
-	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][1] = %lu", fname,
-		(unsigned long) soft_roi_number,
-		(unsigned long) (mca->soft_roi_array[ soft_roi_number ][1]) ));
+	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][0] = %lu",
+	  fname, soft_roi_number, mca->soft_roi_array[ soft_roi_number ][0]));
+	MX_DEBUG( 2,("%s: mca->soft_roi_array[%lu][1] = %lu",
+	  fname, soft_roi_number, mca->soft_roi_array[ soft_roi_number ][1]));
 
 	mx_status = (*set_parameter)( mca );
 
@@ -1751,8 +1698,8 @@ mx_mca_set_soft_roi( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_soft_roi_integral( MX_RECORD *mca_record,
-			mx_length_type soft_roi_number,
-			uint32_t *soft_roi_integral )
+			unsigned long soft_roi_number,
+			unsigned long *soft_roi_integral )
 {
 	static const char fname[] = "mx_mca_get_soft_roi_integral()";
 
@@ -1792,9 +1739,8 @@ mx_mca_get_soft_roi_integral( MX_RECORD *mca_record,
 	mca->soft_roi_integral_array[ soft_roi_number ]
 						= mca->soft_roi_integral;
 
-	MX_DEBUG( 2,("%s: Soft ROI %lu integral = %lu", fname,
-		(unsigned long) mca->soft_roi_number,
-		(unsigned long) mca->soft_roi_integral));
+	MX_DEBUG( 2,("%s: Soft ROI %lu integral = %lu",
+		fname, mca->soft_roi_number, mca->soft_roi_integral));
 
 	if ( soft_roi_integral != NULL ) {
 		*soft_roi_integral = mca->soft_roi_integral;
@@ -1805,8 +1751,8 @@ mx_mca_get_soft_roi_integral( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_soft_roi_integral_array( MX_RECORD *mca_record,
-			mx_length_type num_soft_rois,
-			uint32_t *soft_roi_integral_array )
+			unsigned long num_soft_rois,
+			unsigned long *soft_roi_integral_array )
 {
 	static const char fname[] = "mx_mca_get_soft_roi_integral_array()";
 
@@ -1832,10 +1778,8 @@ mx_mca_get_soft_roi_integral_array( MX_RECORD *mca_record,
 	if ( num_soft_rois >= mca->num_soft_rois ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Requested number of soft ROIs %lu is outside the allowed range "
-	"of (0-%lu) for MCA '%s'.",
-			(unsigned long) num_soft_rois,
-			(unsigned long) mca->num_soft_rois,
-			mca_record->name );
+	"of (0-%ld) for MCA '%s'.", num_soft_rois,
+			mca->num_soft_rois, mca_record->name );
 	}
 
 	get_parameter = function_list->get_parameter;
@@ -2010,13 +1954,13 @@ mx_mca_set_energy_offset( MX_RECORD *mca_record,
 
 MX_EXPORT mx_status_type
 mx_mca_get_energy_axis_array( MX_RECORD *mca_record,
-			mx_length_type num_channels,
+			unsigned long num_channels,
 			double *energy_axis_array )
 {
 	static const char fname[] = "mx_mca_get_energy_axis_array()";
 
 	MX_MCA *mca;
-	mx_length_type i;
+	unsigned long i;
 	double energy_scale, energy_offset;
 	mx_status_type mx_status;
 
@@ -2136,7 +2080,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
-		(int) mca->parameter_type));
+		mca->parameter_type));
 
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
@@ -2212,9 +2156,9 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 
 		MX_DEBUG( 2,("%s: soft_roi_number = %lu", fname, i));
 		MX_DEBUG( 2,("%s: soft roi lower limit = %lu",
-			fname, (unsigned long) (mca->soft_roi_array[i][0]) ));
+			fname, mca->soft_roi_array[i][0]));
 		MX_DEBUG( 2,("%s: soft roi upper limit = %lu",
-			fname, (unsigned long) (mca->soft_roi_array[i][1]) ));
+			fname, mca->soft_roi_array[i][1]));
 
 		integral = 0L;
 
@@ -2241,7 +2185,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		mca->soft_roi_integral = integral;
 
 		MX_DEBUG( 2,("%s: soft_roi_integral = %lu",
-			fname, (unsigned long) mca->soft_roi_integral));
+			fname, mca->soft_roi_integral));
 
 		mca->soft_roi_integral_array[i] = integral;
 		break;
@@ -2251,18 +2195,17 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 		if ( mca->channel_number >= mca->maximum_num_channels ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"mca->channel_number (%lu) is greater than or equal to "
-		"mca->maximum_num_channels (%lu).  This should not be "
+		"mca->maximum_num_channels (%ld).  This should not be "
 		"able to happen, so if you see this message, please "
 		"report the program bug to Bill Lavender.",
-			(unsigned long) mca->channel_number,
-			(unsigned long) mca->maximum_num_channels );
+			mca->channel_number, mca->maximum_num_channels );
 		}
 		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) mca->parameter_type );
+			mca->parameter_type );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2278,7 +2221,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
-		(int) mca->parameter_type));
+		mca->parameter_type));
 
 	i = mca->roi_number;
 
@@ -2309,7 +2252,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested ROI start channel %lu is outside the allowed range of (0-%ld) "
-"for the MCA '%s'.", roi_start, mca->maximum_num_channels-1L,
+"for the MCA '%s'.", roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
 		if ( roi_end >= mca->maximum_num_channels ) {
@@ -2318,7 +2261,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested ROI end channel %lu is outside the allowed range of (%lu-%ld) "
-"for the MCA '%s'.", roi_end, roi_start, mca->maximum_num_channels-1L,
+"for the MCA '%s'.", roi_end, roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
 		if ( roi_start > roi_end ) {
@@ -2354,7 +2297,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested soft ROI start channel %lu is outside the allowed range "
-"of (0-%ld) for the MCA '%s'.", soft_roi_start, mca->maximum_num_channels-1L,
+"of (0-%ld) for the MCA '%s'.", soft_roi_start, mca->maximum_num_channels-1,
 					mca->record->name );
 		}
 		if ( soft_roi_end >= mca->maximum_num_channels ) {
@@ -2364,7 +2307,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested soft ROI end channel %lu is outside the allowed range "
 "of (%lu-%ld) for the MCA '%s'.", soft_roi_end, soft_roi_start,
-					mca->maximum_num_channels-1L,
+					mca->maximum_num_channels-1,
 					mca->record->name );
 		}
 		if ( soft_roi_start > soft_roi_end ) {
@@ -2400,7 +2343,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "The requested channel number %lu is outside the allowed range of (0-%ld) "
-"for the MCA '%s'.", channel_number, mca->maximum_num_channels-1L,
+"for the MCA '%s'.", channel_number, mca->maximum_num_channels-1,
 				mca->record->name );
 		}
 		break;
@@ -2408,7 +2351,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) mca->parameter_type );
+			mca->parameter_type );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_rtems_vme_record_field_defaults[] = {
 	MXI_RTEMS_VME_STANDARD_FIELDS
 };
 
-mx_length_type mxi_rtems_vme_num_record_fields
+long mxi_rtems_vme_num_record_fields
 		= sizeof( mxi_rtems_vme_record_field_defaults )
 			/ sizeof( mxi_rtems_vme_record_field_defaults[0]);
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 /* ==== Am9513 timer data structure ==== */
 
 typedef struct {
-	mx_length_type num_counters;
+	long num_counters;
 	MX_INTERFACE *am9513_interface_array;
 	double clock_frequency;
 } MX_AM9513_TIMER;
@@ -36,25 +36,31 @@ MX_API mx_status_type mxd_am9513_timer_create_record_structures(
 					MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_timer_finish_record_initialization(
 					MX_RECORD *record );
+MX_API mx_status_type mxd_am9513_timer_delete_record( MX_RECORD *record );
+MX_API mx_status_type mxd_am9513_timer_read_parms_from_hardware(
+					MX_RECORD *record );
+MX_API mx_status_type mxd_am9513_timer_write_parms_to_hardware(
+					MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_timer_open( MX_RECORD *record );
 MX_API mx_status_type mxd_am9513_timer_close( MX_RECORD *record );
-
 MX_API mx_status_type mxd_am9513_timer_is_busy( MX_TIMER *timer );
 MX_API mx_status_type mxd_am9513_timer_start( MX_TIMER *timer );
 MX_API mx_status_type mxd_am9513_timer_stop( MX_TIMER *timer );
+MX_API mx_status_type mxd_am9513_timer_clear( MX_TIMER *timer );
+MX_API mx_status_type mxd_am9513_timer_read( MX_TIMER *timer );
 MX_API mx_status_type mxd_am9513_timer_get_mode( MX_TIMER *timer );
 MX_API mx_status_type mxd_am9513_timer_set_mode( MX_TIMER *timer );
 
 extern MX_RECORD_FUNCTION_LIST mxd_am9513_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_am9513_timer_timer_function_list;
 
-extern mx_length_type mxd_am9513_timer_num_record_fields;
+extern long mxd_am9513_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_am9513_timer_rfield_def_ptr;
 
 #define MXD_AM9513_TIMER_STANDARD_FIELDS \
-  {-1, -1, "num_counters", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_counters", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AM9513_TIMER, num_counters), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "am9513_interface_array", MXFT_INTERFACE, NULL, \
 	1, {MXU_VARARGS_LENGTH}, MXF_REC_TYPE_STRUCT, \

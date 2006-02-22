@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,19 +30,19 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
                             * to this relay.
                             */
-	int32_t relay_command;
-	int32_t relay_status;
+	int relay_command;
+	int relay_status;
 } MX_RELAY;
 
 #define MXLV_RLY_RELAY_COMMAND	1001
 #define MXLV_RLY_RELAY_STATUS	1002
 
 #define MX_RELAY_STANDARD_FIELDS \
-  {MXLV_RLY_RELAY_COMMAND, -1, "relay_command", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_RLY_RELAY_COMMAND, -1, "relay_command", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RELAY, relay_command), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_RLY_RELAY_STATUS, -1, "relay_status", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_RLY_RELAY_STATUS, -1, "relay_status", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RELAY, relay_status), \
 	{0}, NULL, MXFF_IN_SUMMARY}
 
@@ -52,8 +52,8 @@ typedef struct {
 } MX_RELAY_FUNCTION_LIST;
 
 MX_API mx_status_type mx_relay_command( MX_RECORD *relay_record,
-						int32_t relay_command );
+						int relay_command );
 MX_API mx_status_type mx_get_relay_status( MX_RECORD *relay_record,
-						int32_t *relay_status );
+						int *relay_status );
 
 #endif /* __MX_RELAY_H__ */

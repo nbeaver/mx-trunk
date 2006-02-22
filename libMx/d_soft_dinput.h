@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_soft_dinput_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_soft_dinput_digital_input_function_list;
 
-extern mx_length_type mxd_soft_dinput_num_record_fields;
+extern long mxd_soft_dinput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_soft_dinput_rfield_def_ptr;
 
 #endif /* __D_SOFT_DINPUT_H__ */

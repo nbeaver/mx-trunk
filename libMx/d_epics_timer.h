@@ -6,7 +6,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ typedef struct {
 	MX_EPICS_PV tp_pv;
 	MX_EPICS_PV vers_pv;
 
-	int num_epics_counters;
+	long num_epics_counters;
 	MX_EPICS_PV *gate_control_pv_array;
 } MX_EPICS_TIMER;
 
@@ -72,7 +72,7 @@ MX_API mx_status_type mxd_epics_timer_set_step_down_bit(
 extern MX_RECORD_FUNCTION_LIST mxd_epics_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_epics_timer_timer_function_list;
 
-extern mx_length_type mxd_epics_timer_num_record_fields;
+extern long mxd_epics_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_timer_rfield_def_ptr;
 
 #endif /* __D_EPICS_TIMER_H__ */

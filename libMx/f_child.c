@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_DATAFILE_FUNCTION_LIST mxdf_child_datafile_function_list = {
 MX_EXPORT mx_status_type
 mxdf_child_open( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_child_open()";
+	const char fname[] = "mxdf_child_open()";
 
 	MX_SCAN *child_scan, *parent_scan;
 	MX_RECORD *parent_scan_record_ptr;
@@ -149,7 +149,7 @@ mxdf_child_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_close( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_child_close()";
+	const char fname[] = "mxdf_child_close()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 
@@ -187,12 +187,12 @@ mxdf_child_write_main_header( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_write_segment_header( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_child_write_segment_header()";
+	const char fname[] = "mxdf_child_write_segment_header()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_DATAFILE * );
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
@@ -227,9 +227,9 @@ mxdf_child_write_segment_header( MX_DATAFILE *datafile )
 			datafile->filename );
 	}
 
-	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+	status = (*fptr) ( &(child_file_struct->local_parent_copy) );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -243,12 +243,12 @@ mxdf_child_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_child_add_measurement_to_datafile()";
+	const char fname[] = "mxdf_child_add_measurement_to_datafile()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;
 	mx_status_type( *fptr ) ( MX_DATAFILE * );
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( datafile == (MX_DATAFILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -281,23 +281,23 @@ mxdf_child_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			datafile->filename );
 	}
 
-	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy) );
+	status = (*fptr) ( &(child_file_struct->local_parent_copy) );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxdf_child_add_array_to_datafile( MX_DATAFILE *datafile,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array )
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array )
 {
-	static const char fname[] = "mxdf_child_add_array_to_datafile()";
+	const char fname[] = "mxdf_child_add_array_to_datafile()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;
-	mx_status_type( *fptr ) ( MX_DATAFILE *, long, mx_length_type, void *,
-						long, mx_length_type, void * );
-	mx_status_type mx_status;
+	mx_status_type( *fptr ) ( MX_DATAFILE *, long, long, void *,
+						long, long, void * );
+	mx_status_type status;
 
 	if ( datafile == (MX_DATAFILE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -330,10 +330,10 @@ mxdf_child_add_array_to_datafile( MX_DATAFILE *datafile,
 			datafile->filename );
 	}
 
-	mx_status = (*fptr) ( &(child_file_struct->local_parent_copy),
+	status = (*fptr) ( &(child_file_struct->local_parent_copy),
 				position_type, num_positions, position_array,
 				data_type, num_data_points, data_array );
 
-	return mx_status;
+	return status;
 }
 

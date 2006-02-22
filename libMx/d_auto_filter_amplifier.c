@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_auto_filter_amp_record_field_defaults[] = {
 	MX_AUTO_FILTER_AMP_STANDARD_FIELDS
 };
 
-mx_length_type mxd_auto_filter_amp_num_record_fields
+long mxd_auto_filter_amp_num_record_fields
 	= sizeof( mxd_auto_filter_amp_record_field_defaults )
 	/ sizeof( mxd_auto_filter_amp_record_field_defaults[0] );
 
@@ -305,7 +305,7 @@ mxd_auto_filter_amp_read_monitor( MX_AUTOSCALE *autoscale )
 {
 	static const char fname[] = "mxd_auto_filter_amp_read_monitor()";
 
-	int32_t scaler_value, offset;
+	long scaler_value, offset;
 	double offset_per_second, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -320,7 +320,7 @@ mxd_auto_filter_amp_read_monitor( MX_AUTOSCALE *autoscale )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, (long) scaler_value));
+	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, scaler_value));
 
 	/* For this autoscale driver, there is only one monitor offset. */
 
@@ -343,11 +343,11 @@ mxd_auto_filter_amp_read_monitor( MX_AUTOSCALE *autoscale )
 		offset = 0L;
 	}
 
-	MX_DEBUG( 2,("%s: offset = %ld", fname, (long) offset));
+	MX_DEBUG( 2,("%s: offset = %ld", fname, offset));
 
 	scaler_value -= offset;
 
-	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, (long) scaler_value));
+	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, scaler_value));
 
 	autoscale->monitor_value = scaler_value;
 
@@ -360,8 +360,8 @@ mxd_auto_filter_amp_get_change_request( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_filter_amp_get_change_request()";
 
 	MX_AUTO_FILTER_AMP *auto_filter_amp;
-	uint32_t filter_setting;
-	int32_t last_scaler_value;
+	unsigned long filter_setting;
+	long last_scaler_value;
 	double dynamic_low_limit, dynamic_high_limit, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -373,8 +373,7 @@ mxd_auto_filter_amp_get_change_request( MX_AUTOSCALE *autoscale )
 
 	last_scaler_value = autoscale->monitor_value;
 
-	MX_DEBUG( 2,("%s: last_scaler_value = %ld",
-			fname, (long) last_scaler_value));
+	MX_DEBUG( 2,("%s: last_scaler_value = %ld", fname, last_scaler_value));
 
 	mx_status = mx_digital_output_read( autoscale->control_record,
 						&filter_setting );
@@ -447,9 +446,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	MX_AUTO_FILTER_AMP *auto_filter_amp;
 	MX_RECORD *amplifier_autoscale_record;
 	MX_AUTOSCALE *amplifier_autoscale;
-	int i;
-	mx_bool_type busy;
-	uint32_t old_filter_setting, new_filter_setting;
+	int i, busy;
+	unsigned long old_filter_setting, new_filter_setting;
 	long last_amplifier_scaler_value;
 	double dynamic_low_limit, dynamic_high_limit;
 	double old_gain, new_gain;
@@ -482,7 +480,7 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	old_filter_setting = auto_filter_amp->present_filter_setting;
 
 	MX_DEBUG( 2,("%s: change_control = %d",
-			fname, (int) autoscale->change_control));
+			fname, autoscale->change_control));
 
 	switch( autoscale->change_control ) {
 	case MXF_AUTO_NO_CHANGE:
@@ -518,13 +516,12 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal value %d for change_control.",
-			(int) autoscale->change_control );
+			autoscale->change_control );
 	}
 
 	MX_DEBUG( 2,("%s: Changing filter '%s' from %#lx to %#lx.",
 		fname, autoscale->control_record->name,
-		(unsigned long) old_filter_setting,
-		(unsigned long) new_filter_setting));
+		old_filter_setting, new_filter_setting));
 
 	mx_status = mx_digital_output_write( autoscale->control_record,
 						new_filter_setting );
@@ -655,7 +652,7 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 		} else {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Illegal value %d for change_control.",
-				(int) autoscale->change_control );
+				autoscale->change_control );
 		}
 
 		/* Change the amplifier gain.
@@ -713,7 +710,7 @@ mxd_auto_filter_amp_set_offset_index( MX_AUTOSCALE *autoscale )
 {
 	static const char fname[] = "mxd_auto_filter_amp_set_offset_index()";
 
-	uint32_t saved_index;
+	unsigned long saved_index;
 
 	/* The offset index for the autoscale filter driver is only
 	 * allowed to be zero.
@@ -728,7 +725,7 @@ mxd_auto_filter_amp_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The requested monitor offset index of %lu is not allowed.  "
 		"Zero is the only allowed value.",
-			(unsigned long) saved_index );
+			saved_index );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -753,7 +750,7 @@ mxd_auto_filter_amp_get_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:
@@ -783,7 +780,7 @@ mxd_auto_filter_amp_set_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:

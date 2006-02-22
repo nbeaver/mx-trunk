@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,7 +78,7 @@ MX_API mx_status_type mxd_adc_table_negative_limit_hit( MX_TABLE *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_adc_table_record_function_list;
 extern MX_TABLE_FUNCTION_LIST mxd_adc_table_table_function_list;
 
-extern mx_length_type mxd_adc_table_num_record_fields;
+extern long mxd_adc_table_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_adc_table_rfield_def_ptr;
 
 #define MXD_ADC_TABLE_STANDARD_FIELDS \

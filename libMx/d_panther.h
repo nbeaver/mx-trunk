@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,24 +30,24 @@ typedef struct {
 
 	char axis_name;
 
-	int32_t default_speed;			/* command 'V' */
-	int32_t default_base_speed;		/* command 'I' */
-	int32_t acceleration_slope;		/* command 'K' */
-	int32_t deceleration_slope;		/* command 'K' */
-	int32_t microstep_divide_factor;	/* command 'D' */
-	char    step_resolution_mode;		/* command 'H' */
-	int32_t hold_current;			/* command 'Y' */
-	int32_t run_current;			/* command 'Y' */
-	int32_t settling_time_delay;		/* command 'E' */
-	int32_t limit_polarity;			/* command 'l' */
+	int  default_speed;			/* command 'V' */
+	int  default_base_speed;		/* command 'I' */
+	int  acceleration_slope;		/* command 'K' */
+	int  deceleration_slope;		/* command 'K' */
+	int  microstep_divide_factor;		/* command 'D' */
+	char step_resolution_mode;		/* command 'H' */
+	int  hold_current;			/* command 'Y' */
+	int  run_current;			/* command 'Y' */
+	int  settling_time_delay;		/* command 'E' */
+	int  limit_polarity;			/* command 'l' */
 
-	int32_t encoder_resolution;		/* command 'e' */
-	int32_t deadband_size;			/* command 'd' */
-	int32_t hunt_velocity;			/* command 'v' */
-	int32_t hunt_resolution;		/* command 'h' */
-	int32_t stall_factor;			/* command 's' */
-	int32_t stall_sample_rate;		/* command 't' */
-	int32_t max_stall_retries;		/* command 'r' */
+	int  encoder_resolution;		/* command 'e' */
+	int  deadband_size;			/* command 'd' */
+	int  hunt_velocity;			/* command 'v' */
+	int  hunt_resolution;			/* command 'h' */
+	int  stall_factor;			/* command 's' */
+	int  stall_sample_rate;			/* command 't' */
+	int  max_stall_retries;			/* command 'r' */
 } MX_PANTHER;
 
 /* Step resolution modes. */
@@ -113,10 +113,10 @@ MX_API mx_status_type mxd_panther_getc_nowait( MX_PANTHER *panther,
 MX_API mx_status_type mxd_panther_putc( MX_PANTHER *panther,
 			char c, int debug_flag );
 
-extern mx_length_type mxd_panther_hi_num_record_fields;
+extern long mxd_panther_hi_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_hi_rfield_def_ptr;
 
-extern mx_length_type mxd_panther_he_num_record_fields;
+extern long mxd_panther_he_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_he_rfield_def_ptr;
 
 #define MXD_PANTHER_HI_STANDARD_FIELDS \
@@ -128,23 +128,23 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_he_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, axis_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "default_speed", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_base_speed", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "default_base_speed", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, default_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "acceleration_slope", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "acceleration_slope", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, acceleration_slope), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "deceleration_slope", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "deceleration_slope", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, deceleration_slope), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "microstep_divide_factor", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "microstep_divide_factor", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, microstep_divide_factor),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -152,48 +152,48 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_panther_he_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, step_resolution_mode), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "hold_current", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "hold_current", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, hold_current), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "run_current", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "run_current", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, run_current), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "settling_time_delay", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "settling_time_delay", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, settling_time_delay), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "limit_polarity", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "limit_polarity", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, limit_polarity), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #define MXD_PANTHER_HE_STANDARD_FIELDS \
-  {-1, -1, "encoder_resolution", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "encoder_resolution", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, encoder_resolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "deadband_size", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "deadband_size", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, deadband_size), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "hunt_velocity", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "hunt_velocity", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, hunt_velocity), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "hunt_resolution", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "hunt_resolution", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, hunt_resolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "stall_factor", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "stall_factor", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, stall_factor), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "stall_sample_rate", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "stall_sample_rate", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, stall_sample_rate), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "max_stall_retries", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "max_stall_retries", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PANTHER, max_stall_retries), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

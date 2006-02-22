@@ -52,7 +52,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_portio_din_record_field_defaults[] = {
 	MXD_PORTIO_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_portio_din_num_record_fields
+long mxd_portio_din_num_record_fields
 		= sizeof( mxd_portio_din_record_field_defaults )
 			/ sizeof( mxd_portio_din_record_field_defaults[0] );
 
@@ -84,7 +84,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_portio_dout_record_field_defaults[] = {
 	MXD_PORTIO_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_portio_dout_num_record_fields
+long mxd_portio_dout_num_record_fields
 		= sizeof( mxd_portio_dout_record_field_defaults )
 			/ sizeof( mxd_portio_dout_record_field_defaults[0] );
 
@@ -96,7 +96,7 @@ mxd_portio_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PORTIO_DINPUT **portio_dinput,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_portio_din_get_pointers()";
+	const char fname[] = "mxd_portio_din_get_pointers()";
 
 	if ( dinput == (MX_DIGITAL_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -130,7 +130,7 @@ mxd_portio_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PORTIO_DOUTPUT **portio_doutput,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_portio_dout_get_pointers()";
+	const char fname[] = "mxd_portio_dout_get_pointers()";
 
 	if ( doutput == (MX_DIGITAL_OUTPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -164,7 +164,7 @@ mxd_portio_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_portio_din_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_portio_din_create_record_structures()";
+        const char fname[] = "mxd_portio_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_PORTIO_DINPUT *portio_dinput;
@@ -201,7 +201,7 @@ mxd_portio_din_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_portio_din_open()";
+	const char fname[] = "mxd_portio_din_open()";
 
 	MX_PORTIO_DINPUT *portio_dinput;
 	mx_status_type mx_status;
@@ -229,7 +229,7 @@ mxd_portio_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_portio_din_close()";
+	const char fname[] = "mxd_portio_din_close()";
 
 	MX_PORTIO_DINPUT *portio_dinput;
 	mx_status_type mx_status;
@@ -257,7 +257,7 @@ mxd_portio_din_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	static const char fname[] = "mxd_portio_din_read()";
+	const char fname[] = "mxd_portio_din_read()";
 
 	MX_PORTIO_DINPUT *portio_dinput;
 	uint8_t d8_value;
@@ -298,8 +298,7 @@ mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal data size %lu for PORTIO digital input record '%s'.  "
 		"The allowed values are 8, 16, and 32.",
-			(unsigned long) portio_dinput->data_size,
-			dinput->record->name );
+			portio_dinput->data_size, dinput->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -309,7 +308,7 @@ mxd_portio_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_portio_dout_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_portio_dout_create_record_structures()";
+        const char fname[] = "mxd_portio_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_PORTIO_DOUTPUT *portio_doutput;
@@ -347,7 +346,7 @@ mxd_portio_dout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_dout_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_portio_dout_open()";
+	const char fname[] = "mxd_portio_dout_open()";
 
 	MX_PORTIO_DOUTPUT *portio_doutput;
 	mx_status_type mx_status;
@@ -375,7 +374,7 @@ mxd_portio_dout_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_portio_dout_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_portio_dout_close()";
+	const char fname[] = "mxd_portio_dout_close()";
 
 	MX_PORTIO_DOUTPUT *portio_doutput;
 	mx_status_type mx_status;
@@ -417,7 +416,7 @@ mxd_portio_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	static const char fname[] = "mxd_portio_dout_write()";
+	const char fname[] = "mxd_portio_dout_write()";
 
 	MX_PORTIO_DOUTPUT *portio_doutput;
 	uint8_t d8_value;
@@ -458,8 +457,7 @@ mxd_portio_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal data size %lu for port I/O digital output record '%s'.  "
 	"The allowed values are 8, 16, and 32.",
-			(unsigned long) portio_doutput->data_size,
-			doutput->record->name );
+			portio_doutput->data_size, doutput->record->name );
 	}
 	return mx_status;
 }

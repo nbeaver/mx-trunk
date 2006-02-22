@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,9 +64,8 @@ motor_ptz_fn( int argc, char *argv[] )
 {
 	MX_RECORD *ptz_record;
 	MX_PAN_TILT_ZOOM *ptz;
-	mx_hex_type hex_value;
-	uint32_t uint32_value;
-	int32_t int32_value;
+	unsigned long ulong_value;
+	long long_value;
 	int status;
 	mx_status_type mx_status;
 
@@ -119,9 +118,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_pan_stop( ptz_record );
 		} else {
-			int32_value = mx_string_to_long( argv[4] );
+			long_value = mx_string_to_long( argv[4] );
 
-			mx_status = mx_ptz_set_pan( ptz_record, int32_value );
+			mx_status = mx_ptz_set_pan( ptz_record, long_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -146,9 +145,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_tilt_stop( ptz_record );
 		} else {
-			int32_value = mx_string_to_long( argv[4] );
+			long_value = mx_string_to_long( argv[4] );
 
-			mx_status = mx_ptz_set_tilt( ptz_record, int32_value );
+			mx_status = mx_ptz_set_tilt( ptz_record, long_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -182,9 +181,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_zoom_on( ptz_record );
 		} else {
-			uint32_value = mx_string_to_unsigned_long( argv[4] );
+			ulong_value = mx_string_to_unsigned_long( argv[4] );
 
-			mx_status = mx_ptz_set_zoom( ptz_record, uint32_value );
+			mx_status = mx_ptz_set_zoom( ptz_record, ulong_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -217,9 +216,9 @@ motor_ptz_fn( int argc, char *argv[] )
 
 			mx_status = mx_ptz_focus_stop( ptz_record );
 		} else {
-			uint32_value = mx_string_to_unsigned_long( argv[4] );
+			ulong_value = mx_string_to_unsigned_long( argv[4] );
 
-			mx_status = mx_ptz_set_focus( ptz_record, uint32_value);
+			mx_status = mx_ptz_set_focus( ptz_record, ulong_value );
 		}
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -232,13 +231,13 @@ motor_ptz_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_ptz_get_status( ptz_record, &hex_value );
+		mx_status = mx_ptz_get_status( ptz_record, &ulong_value );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
 		fprintf( output, "PTZ '%s' status = %#lx\n",
-			ptz_record->name, (unsigned long) hex_value );
+			ptz_record->name, ulong_value );
 	} else {
 		/* Unrecognized command. */
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *motor_record;
-	int32_t num_positions;
+	long num_positions;
 	double *position_array;
 } MX_POSITION_SELECT;
 
@@ -28,7 +28,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POSITION_SELECT, motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "num_positions", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_positions", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_POSITION_SELECT, num_positions), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -49,7 +49,7 @@ MX_API_PRIVATE mx_status_type mxv_position_select_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_position_select_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_position_select_variable_function_list;
 
-extern mx_length_type mxv_position_select_num_record_fields;
+extern long mxv_position_select_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_position_select_rfield_def_ptr;
 
 #endif /* __V_POSITION_SELECT_H__ */

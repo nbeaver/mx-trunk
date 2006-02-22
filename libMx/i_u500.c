@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_u500_record_field_defaults[] = {
 	MXI_U500_STANDARD_FIELDS
 };
 
-mx_length_type mxi_u500_num_record_fields
+long mxi_u500_num_record_fields
 		= sizeof( mxi_u500_record_field_defaults )
 			/ sizeof( mxi_u500_record_field_defaults[0] );
 
@@ -125,9 +125,9 @@ mxi_u500_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
         int i;
-        mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-        mx_length_type num_boards_varargs_cookie;
+        long num_record_fields;
+	long referenced_field_index;
+        long num_boards_varargs_cookie;
         mx_status_type status;
 
         driver = mx_get_driver_by_type( type );
@@ -153,7 +153,7 @@ mxi_u500_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+        if ( driver->num_record_fields == (long *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );

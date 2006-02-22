@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *autoscale_record;
-	mx_hex_type autoscale_flags;
+	unsigned long autoscale_flags;
 	double factor;
 } MX_AUTOSCALE_SCALER;
 
@@ -50,7 +50,7 @@ MX_API mx_status_type mxd_autoscale_scaler_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_autoscale_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_autoscale_scaler_scaler_function_list;
 
-extern mx_length_type mxd_autoscale_scaler_num_record_fields;
+extern long mxd_autoscale_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_autoscale_scaler_rfield_def_ptr;
 
 #define MXD_AUTOSCALE_SCALER_STANDARD_FIELDS \

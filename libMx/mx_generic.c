@@ -167,12 +167,12 @@ mx_generic_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mx_generic_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mx_generic_num_input_bytes_available()";
 
 	MX_GENERIC_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GENERIC *, uint32_t * );
+	mx_status_type (*fptr)( MX_GENERIC *, unsigned long * );
 	mx_status_type status;
 
 	if ( generic == NULL ) {

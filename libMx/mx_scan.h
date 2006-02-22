@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,15 +50,15 @@ typedef struct {
                             * to this MX_SCAN structure.
                             */
 
-	int32_t num_scans;
-	int32_t current_scan_number;
+	long num_scans;
+	long current_scan_number;
 
-	mx_length_type num_independent_variables;
-	mx_length_type num_motors;
+	long num_independent_variables;
+	long num_motors;
 	double *motor_position;
 	MX_RECORD **motor_record_array;
-	int32_t *motor_is_independent_variable;
-	mx_length_type num_input_devices;
+	long *motor_is_independent_variable;
+	long num_input_devices;
 	MX_RECORD **input_device_array;
 	unsigned long scan_flags;
 	double settling_time;
@@ -137,11 +137,11 @@ MX_API void mx_handle_abnormal_scan_termination( MX_LIST_HEAD *list_head,
 MX_API double mx_scan_get_measurement_time( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_fixup_varargs_record_field_defaults(
-		MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
-		mx_length_type num_record_fields,
-		mx_length_type *num_independent_variables_varargs_cookie,
-		mx_length_type *num_motors_varargs_cookie,
-		mx_length_type *num_input_devices_varargs_cookie );
+			MX_RECORD_FIELD_DEFAULTS *record_field_defaults,
+			long num_record_field,
+			long *num_independent_variables_varargs_cookie,
+			long *num_motors_varargs_cookie,
+			long *num_input_devices_varargs_cookie );
 
 MX_API mx_status_type mx_compute_normalized_device_value(
 				MX_RECORD *input_device,
@@ -162,18 +162,18 @@ MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
 
 #define MX_SCAN_STANDARD_FIELDS  \
-  {-1, -1, "num_scans", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_scans", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, num_scans), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_independent_variables", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_independent_variables", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, \
 	offsetof(MX_SCAN, num_independent_variables), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_motors", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_motors", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, num_motors), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
   {-1, -1, "motor_position", MXFT_DOUBLE, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, motor_position), \
@@ -184,14 +184,14 @@ MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 	{sizeof(MX_RECORD *)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "motor_is_independent_variable", MXFT_INT32, \
+  {-1, -1, "motor_is_independent_variable", MXFT_LONG, \
 	NULL, 1, {MXU_VARARGS_LENGTH}, MXF_REC_SUPERCLASS_STRUCT, \
 			offsetof(MX_SCAN, motor_is_independent_variable), \
-	{sizeof(long)}, NULL, (MXFF_VARARGS | MXFF_READ_ONLY)}, \
+	{sizeof(long)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1, "num_input_devices", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_input_devices", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, num_input_devices), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "input_device_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_SCAN, input_device_array), \

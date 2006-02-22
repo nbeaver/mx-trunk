@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,15 +25,15 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int32_t axis_id;
+	int axis_id;
 
-	uint32_t default_speed;
-	uint32_t default_base_speed;
-	uint32_t default_acceleration;
-	uint32_t default_acceleration_factor;
+	unsigned long default_speed;
+	unsigned long default_base_speed;
+	unsigned long default_acceleration;
+	unsigned long default_acceleration_factor;
 
-	uint16_t lines_per_revolution;
-	uint16_t steps_per_revolution;
+	unsigned short lines_per_revolution;
+	unsigned short steps_per_revolution;
 } MX_PCMOTION32_MOTOR;
 
 MX_API mx_status_type mxd_pcmotion32_initialize_type( long type );
@@ -68,7 +68,7 @@ MX_API mx_status_type mxd_pcmotion32_set_parameter( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_pcmotion32_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_pcmotion32_motor_function_list;
 
-extern mx_length_type mxd_pcmotion32_num_record_fields;
+extern long mxd_pcmotion32_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pcmotion32_rfield_def_ptr;
 
 #define MXD_PCMOTION32_MOTOR_STANDARD_FIELDS \
@@ -76,32 +76,32 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pcmotion32_rfield_def_ptr;
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_id", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, axis_id), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_speed", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_ULONG, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_base_speed", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_base_speed", MXFT_ULONG, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, default_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration", MXFT_ULONG, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, default_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration_factor", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration_factor", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, \
 					default_acceleration_factor), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "lines_per_revolution", MXFT_UINT16, NULL, 0, {0}, \
+  {-1, -1, "lines_per_revolution", MXFT_USHORT, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, lines_per_revolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "steps_per_revolution", MXFT_UINT16, NULL, 0, {0}, \
+  {-1, -1, "steps_per_revolution", MXFT_USHORT, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, steps_per_revolution), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,18 +24,18 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *modbus_record;
-	mx_hex_type modbus_address;
-	int32_t num_bits;
-	mx_hex_type modbus_function_code;
+	unsigned long modbus_address;
+	int num_bits;
+	unsigned long modbus_function_code;
 } MX_MODBUS_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *modbus_record;
-	mx_hex_type modbus_address;
-	int32_t num_bits;
-	mx_hex_type modbus_function_code;
+	unsigned long modbus_address;
+	int num_bits;
+	unsigned long modbus_function_code;
 } MX_MODBUS_DOUTPUT;
 
 #define MXD_MODBUS_DINPUT_STANDARD_FIELDS \
@@ -48,7 +48,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DINPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DINPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -66,7 +66,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DOUTPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_DOUTPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -87,7 +87,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_modbus_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_modbus_din_digital_input_function_list;
 
-extern mx_length_type mxd_modbus_din_num_record_fields;
+extern long mxd_modbus_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_modbus_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -102,7 +102,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_modbus_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_modbus_dout_digital_output_function_list;
 
-extern mx_length_type mxd_modbus_dout_num_record_fields;
+extern long mxd_modbus_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_modbus_dout_rfield_def_ptr;
 
 #endif /* __D_MODBUS_DIO_H__ */

@@ -70,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_win32com_record_field_defaults[] = {
 	MXI_WIN32COM_STANDARD_FIELDS
 };
 
-mx_length_type mxi_win32com_num_record_fields
+long mxi_win32com_num_record_fields
 		= sizeof( mxi_win32com_record_field_defaults )
 			/ sizeof( mxi_win32com_record_field_defaults[0] );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pfcu_record;
-	int32_t module_number;
+	int module_number;
 } MX_PFCU_SHUTTER_TIMER;
 
 /* Define all of the interface functions. */
@@ -48,7 +48,7 @@ MX_API mx_status_type mxd_pfcu_shutter_timer_set_mode( MX_TIMER *timer );
 extern MX_RECORD_FUNCTION_LIST mxd_pfcu_shutter_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_pfcu_shutter_timer_timer_function_list;
 
-extern mx_length_type mxd_pfcu_shutter_timer_num_record_fields;
+extern long mxd_pfcu_shutter_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pfcu_shutter_timer_rfield_def_ptr;
 
 #define MXD_PFCU_SHUTTER_TIMER_STANDARD_FIELDS \
@@ -56,7 +56,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pfcu_shutter_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_SHUTTER_TIMER, pfcu_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "module_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "module_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PFCU_SHUTTER_TIMER, module_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

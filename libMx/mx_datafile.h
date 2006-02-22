@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ typedef struct {
 	char options[MXU_DATAFILE_OPTIONS_LENGTH + 1];
 	char *filename;
 
-	mx_length_type num_x_motors;
+	long num_x_motors;
 	MX_RECORD **x_motor_array;
 	double **x_position_array;
 
@@ -66,9 +66,9 @@ typedef struct {
 	mx_status_type ( *write_segment_header ) ( MX_DATAFILE *datafile );
 	mx_status_type ( *write_trailer ) ( MX_DATAFILE *datafile );
 	mx_status_type ( *add_measurement_to_datafile )(MX_DATAFILE *datafile);
-	mx_status_type ( *add_array_to_datafile )( MX_DATAFILE *datafile,
-	 long position_type, mx_length_type num_positions, void *position_array,
-	 long data_type, mx_length_type num_data_points, void *data_array );
+	mx_status_type ( *add_array_to_datafile )(MX_DATAFILE *datafile,
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array );
 } MX_DATAFILE_FUNCTION_LIST;
 
 typedef struct {
@@ -88,20 +88,14 @@ MX_API mx_status_type mx_get_datafile_type_by_value(
 	MX_DATAFILE_TYPE_ENTRY **datafile_type_entry );
 
 MX_API mx_status_type mx_datafile_open( MX_DATAFILE *datafile );
-
 MX_API mx_status_type mx_datafile_close( MX_DATAFILE *datafile );
-
 MX_API mx_status_type mx_datafile_write_main_header( MX_DATAFILE *datafile );
-
 MX_API mx_status_type mx_datafile_write_segment_header(MX_DATAFILE *datafile);
-
 MX_API mx_status_type mx_datafile_write_trailer( MX_DATAFILE *datafile );
-
 MX_API mx_status_type mx_add_measurement_to_datafile( MX_DATAFILE *datafile );
-
 MX_API mx_status_type mx_add_array_to_datafile( MX_DATAFILE *datafile,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array );
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array );
 
 MX_API mx_status_type mx_parse_datafile_name( 
 			char *datafile_name, char **version_number_pointer,

@@ -202,7 +202,7 @@ mx_motor_get_pointers( MX_RECORD *motor_record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
+mx_motor_is_busy( MX_RECORD *motor_record, int *busy )
 {
 	static const char fname[] = "mx_motor_is_busy()";
 
@@ -377,7 +377,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_relative_with_report(MX_RECORD *motor_record,
 			double relative_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags)
+			int flags)
 {
 	double current_position, new_position;
 	mx_status_type status;
@@ -399,13 +399,13 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 			double destination,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags)
+			int flags)
 {
 	static const char fname[] = "mx_motor_move_absolute_with_report()";
 
 	MX_MOTOR *motor;
 	double raw_destination;
-	int32_t raw_motor_steps;
+	long raw_motor_steps;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -437,33 +437,30 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown motor subclass %d.", (int) motor->subclass );
+			"Unknown motor subclass %d.", motor->subclass );
 	}
 
 	return status;
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_move_absolute_with_report(
-			mx_length_type num_motors,
+mx_motor_array_move_absolute_with_report( int num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags )
+			int flags )
 {
 	static const char fname[] =
 			"mx_motor_array_move_absolute_with_report()";
 
 	MX_MOTOR *motor;
-	mx_length_type i;
-	mx_hex_type modified_flags;
-	mx_bool_type result_flag;
-	mx_bool_type do_backlash, individual_backlash_needed;
+	int i, modified_flags, result_flag;
+	int do_backlash, individual_backlash_needed;
 	double backlash, backlash_position;
 	double present_position, relative_motion;
 	mx_status_type status;
 
-	MX_DEBUG( 2,("%s: *** flags = %#lx ***", fname, (unsigned long) flags));
+	MX_DEBUG( 2,("%s: *** flags = %#x ***", fname, flags));
 
 	/* See if any of the requested moves will exceed a software limit. */
 
@@ -537,7 +534,7 @@ mx_motor_array_move_absolute_with_report(
 			}
 		}
 
-		MX_DEBUG( 2,("%s: do_backlash = %d", fname, (int) do_backlash));
+		MX_DEBUG( 2,("%s: do_backlash = %d", fname, do_backlash));
 
 		/* Do the backlash correction. */
 
@@ -578,12 +575,11 @@ mx_motor_array_move_absolute_with_report(
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_internal_move_with_report(
-			mx_length_type num_motors,
+mx_motor_array_internal_move_with_report( int num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags )
+			int flags )
 {
 	static const char fname[]
 		= "mx_motor_array_internal_move_with_report()";
@@ -591,16 +587,15 @@ mx_motor_array_internal_move_with_report(
 	MX_RECORD *first_motor_record;
 	MX_MOTOR_FUNCTION_LIST *flist;
 	mx_status_type (*simultaneous_start_fn)(
-					mx_length_type, MX_RECORD **,
-					double *, mx_hex_type );
+					int, MX_RECORD **, double *, int );
 	mx_status_type status;
 	int move_report_flag, modified_flags;
 	int wait_flag;
 	int i, j;
 
 	MX_DEBUG( 2,
-		("%s invoked.  flags = %#lx, move_report_fn = %p",
-		fname, (unsigned long) flags, move_report_fn));
+		("%s invoked.  flags = %#x, move_report_fn = %p",
+		fname, flags, move_report_fn));
 
 	move_report_flag = flags & MXF_MTR_SHOW_MOVE;
 
@@ -704,17 +699,16 @@ mx_motor_array_internal_move_with_report(
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
+mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 {
 	static const char fname[] = "mx_wait_for_motor_stop()";
 
 	int interrupt;
-	mx_hex_type motor_status, busy;
-	mx_hex_type error_bitmask;
-	mx_hex_type hardware_limit_bitmask, software_limit_bitmask;
-	mx_hex_type hardware_limit_hit, software_limit_hit;
-	mx_hex_type ignore_keyboard, ignore_limit_switches;
-	mx_hex_type ignore_pause;
+	unsigned long motor_status, busy, error_bitmask;
+	unsigned long hardware_limit_bitmask, software_limit_bitmask;
+	unsigned long hardware_limit_hit, software_limit_hit;
+	unsigned long ignore_keyboard, ignore_limit_switches;
+	unsigned long ignore_pause;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor_record->name ));
@@ -747,8 +741,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 
 			/* Has the motor hit a limit? */
 
-			hardware_limit_hit =
-				motor_status & hardware_limit_bitmask;
+			hardware_limit_hit = motor_status & limit_bitmask;
 
 			if ( hardware_limit_hit ) {
 				(void) mx_motor_soft_abort( motor_record );
@@ -758,8 +751,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 					motor_record->name );
 			}
 
-			software_limit_hit =
-				motor_status & software_limit_bitmask;
+			software_limit_hit = motor_status & limit_bitmask;
 
 			if ( software_limit_hit ) {
 				(void) mx_motor_soft_abort( motor_record );
@@ -790,8 +782,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 			return mx_error( MXE_INTERRUPTED, fname,
 				"Move aborted for motor '%s' due to errors.  "
 				"MX motor status = %#lx", 
-					motor_record->name,
-					(unsigned long) motor_status );
+					motor_record->name, motor_status );
 		}
 
 		/* Has the motor stopped? */
@@ -856,19 +847,18 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, mx_hex_type flags )
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
+mx_wait_for_motor_array_stop( int num_motor_records,
 			MX_RECORD **motor_record_array,
-			mx_hex_type flags )
+			int flags )
 {
 	static const char fname[] = "mx_wait_for_motor_array_stop()";
 
-	int interrupt;
-	mx_length_type i, j;
-	mx_bool_type motor_is_moving, any_error_occurred;
-	mx_hex_type motor_status, error_bitmask;
-	mx_hex_type hardware_limit_bitmask, software_limit_bitmask;
-	mx_hex_type ignore_keyboard, ignore_limit_switches;
-	mx_hex_type ignore_pause;
+	int i, j, interrupt;
+	int motor_is_moving, any_error_occurred;
+	unsigned long motor_status, error_bitmask;
+	unsigned long hardware_limit_bitmask, software_limit_bitmask;
+	unsigned long ignore_keyboard, ignore_limit_switches;
+	unsigned long ignore_pause;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -879,10 +869,10 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 
 	ignore_pause = flags & MXF_MTR_IGNORE_PAUSE;
 
-	hardware_limit_bitmask = 
+	hardware_limit_bitmask =
 		MXSF_MTR_POSITIVE_LIMIT_HIT | MXSF_MTR_NEGATIVE_LIMIT_HIT;
 
-	software_limit_bitmask = 
+	software_limit_bitmask =
 	    MXSF_MTR_SOFT_POSITIVE_LIMIT_HIT | MXSF_MTR_SOFT_NEGATIVE_LIMIT_HIT;
 
 	error_bitmask = MXSF_MTR_ERROR_BITMASK;
@@ -935,7 +925,7 @@ mx_wait_for_motor_array_stop( mx_length_type num_motor_records,
 				mx_warning( "Error occurred for motor '%s'.  "
 					"MX motor status = %#lx",
 					motor_record_array[i]->name,
-					(unsigned long) motor_status );
+					motor_status );
 
 				any_error_occurred = TRUE;
 			}
@@ -1073,7 +1063,7 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized motor subclass %d for motor '%s'.",
-			(int) motor->subclass, motor_record->name );
+			motor->subclass, motor_record->name );
 	}
 
 	status = ( *fptr ) ( motor );
@@ -1130,7 +1120,7 @@ mx_motor_get_position( MX_RECORD *motor_record, double *position )
 		raw_position = 0.0;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized motor subclass %d for motor '%s'.",
-			(int) motor->subclass, motor_record->name );
+			motor->subclass, motor_record->name );
 	}
 
 	/* Update position. */
@@ -1196,7 +1186,7 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_positive_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
+mx_motor_positive_limit_hit( MX_RECORD *motor_record, int *limit_hit )
 {
 	static const char fname[] = "mx_motor_positive_limit_hit()";
 
@@ -1273,7 +1263,7 @@ mx_motor_positive_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_negative_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
+mx_motor_negative_limit_hit( MX_RECORD *motor_record, int *limit_hit )
 {
 	static const char fname[] = "mx_motor_negative_limit_hit()";
 
@@ -1547,7 +1537,7 @@ mx_motor_set_traditional_status( MX_MOTOR *motor )
 		
 MX_EXPORT mx_status_type
 mx_motor_get_status( MX_RECORD *motor_record,
-			mx_hex_type *motor_status )
+			unsigned long *motor_status )
 {
 	static const char fname[] = "mx_motor_get_status()";
 
@@ -1613,7 +1603,7 @@ mx_motor_get_status( MX_RECORD *motor_record,
 MX_EXPORT mx_status_type
 mx_motor_get_extended_status( MX_RECORD *motor_record,
 			double *motor_position,
-			mx_hex_type *motor_status )
+			unsigned long *motor_status )
 {
 	static const char fname[] = "mx_motor_get_extended_status()";
 
@@ -1717,8 +1707,7 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 	}
 
 	sprintf( motor->extended_status, "%.*e %lx",
-		precision, motor->position,
-		(unsigned long) motor->status );
+		precision, motor->position, motor->status );
 
 	/* Return status values to the caller if desired. */
 
@@ -1953,7 +1942,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -2049,7 +2038,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						(int) motor->acceleration_type);
+						motor->acceleration_type );
 		}
 
 		MX_DEBUG( 2,("%s: motor->acceleration_time = %g",
@@ -2138,7 +2127,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration distance for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						(int) motor->acceleration_type);
+						motor->acceleration_type );
 		}
 		break;
 
@@ -2187,7 +2176,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 "Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type,
+			motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -2208,7 +2197,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 
 	switch( motor->parameter_type ) {
@@ -2300,7 +2289,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot set the acceleration time for motor '%s' since it has "
 	"an unsupported acceleration type of %d", motor->record->name,
-						(int) motor->acceleration_type);
+						motor->acceleration_type );
 		}
 
 		status = mx_motor_set_raw_acceleration_parameters(
@@ -2452,7 +2441,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 "Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type,
+			motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -2894,7 +2883,7 @@ mx_motor_restore_speed( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
-					mx_bool_type *synchronous_motion_mode )
+					int *synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_get_synchronous_motion_mode()";
 
@@ -2930,7 +2919,7 @@ mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_set_synchronous_motion_mode( MX_RECORD *motor_record,
-					mx_bool_type synchronous_motion_mode )
+					int synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_set_synchronous_motion_mode()";
 
@@ -3415,7 +3404,7 @@ mx_motor_set_gain( MX_RECORD *motor_record, int gain_type, double gain )
 
 MX_EXPORT mx_status_type
 mx_motor_home_search_succeeded( MX_RECORD *motor_record,
-				mx_bool_type *home_search_succeeded )
+				int *home_search_succeeded )
 {
 	static const char fname[] = "mx_motor_is_at_home_switch()";
 
@@ -3545,7 +3534,7 @@ mx_motor_compute_pseudomotor_position_from_real_position(
 					MX_RECORD *motor_record,
 					double real_position,
 					double *pseudomotor_position,
-					mx_bool_type recursion_flag )
+					int recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_pseudomotor_position_from_real_position()";
@@ -3569,7 +3558,7 @@ mx_motor_compute_pseudomotor_position_from_real_position(
 
 	MX_DEBUG( 2,
 	("%s(%d): motor '%s', real_position = %g, recursion_flag = %d",
-	fname, level, motor_record->name, real_position, (int) recursion_flag));
+	fname, level, motor_record->name, real_position, recursion_flag ));
 
 	fptr = fl_ptr->get_parameter;
 
@@ -3674,7 +3663,7 @@ mx_motor_compute_real_position_from_pseudomotor_position(
 					MX_RECORD *motor_record,
 					double pseudomotor_position,
 					double *real_position,
-					mx_bool_type recursion_flag )
+					int recursion_flag )
 {
 	static const char fname[] =
 		"mx_motor_compute_real_position_from_pseudomotor_position()";
@@ -3699,7 +3688,7 @@ mx_motor_compute_real_position_from_pseudomotor_position(
 	MX_DEBUG( 2,
 	("%s(%d): motor '%s', pseudomotor_position = %g, recursion_flag = %d",
 		fname, level, motor_record->name, pseudomotor_position,
-		(int) recursion_flag ));
+		recursion_flag ));
 
 	fptr = fl_ptr->get_parameter;
 
@@ -3842,8 +3831,7 @@ mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 	}
 
 	MX_DEBUG( 2,("%s: record '%s', pseudomotor->motor_flags = %lu",
-		fname, pseudomotor_record->name,
-		(unsigned long) pseudomotor->motor_flags));
+		fname, pseudomotor_record->name, pseudomotor->motor_flags));
 
 	if ( (pseudomotor->motor_flags & MXF_MTR_IS_PSEUDOMOTOR) == 0 ) {
 
@@ -3882,7 +3870,7 @@ mx_motor_get_real_motor_record( MX_RECORD *pseudomotor_record,
 MX_EXPORT mx_status_type
 mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 					MX_RECORD *alternate_motor_record,
-					mx_bool_type *motor_is_compatible )
+					int *motor_is_compatible )
 {
 	static const char fname[] =
 		"mx_alternate_motor_can_use_this_motors_mce()";
@@ -3890,7 +3878,7 @@ mx_alternate_motor_can_use_this_motors_mce( MX_RECORD *motor_record,
 	MX_RECORD *real_motor_record, *alternate_real_motor_record;
 	mx_status_type mx_status;
 
-	if ( motor_is_compatible == (mx_bool_type *) NULL ) {
+	if ( motor_is_compatible == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The motor_is_compatible pointer passed is NULL." );
 	}
@@ -4014,11 +4002,11 @@ mx_motor_use_start_positions( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_move_relative_steps_with_report(MX_RECORD *motor_record,
-			int32_t relative_steps,
+			long relative_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags)
+			int flags)
 {
-	int32_t current_position, new_position;
+	long current_position, new_position;
 	mx_status_type status;
 
 	status = mx_motor_get_position_steps(motor_record, &current_position);
@@ -4036,9 +4024,9 @@ mx_motor_move_relative_steps_with_report(MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
-			int32_t motor_steps,
+			long motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags)
+			int flags)
 {
 	static const char fname[]
 			= "mx_motor_move_absolute_steps_with_report()";
@@ -4046,12 +4034,11 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_MOTOR * );
-	int32_t positive_limit, negative_limit;
-	int32_t position, backlash;
-	int32_t relative_motion, backlash_position;
+	long positive_limit, negative_limit;
+	long position, backlash;
+	long relative_motion, backlash_position;
 	double dummy_position;
-	mx_bool_type do_backlash;
-	mx_hex_type mask;
+	int mask, do_backlash;
 	mx_status_type status, move_report_status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4125,8 +4112,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	"Backlash correction for '%s' to %ld steps would exceed positive limit "
 	"at %ld steps.",
 				motor_record->name,
-				(long) backlash_position,
-				(long) positive_limit);
+				backlash_position,
+				positive_limit);
 		}
 
 		if ( backlash_position < negative_limit ) {
@@ -4134,8 +4121,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	"Backlash correction for '%s' to %ld steps would exceed negative limit "
 	"at %ld steps.",
 				motor_record->name,
-				(long) backlash_position,
-				(long) negative_limit);
+				backlash_position,
+				negative_limit);
 		}
 
 		/* Do not do the backlash correction if we were only asked
@@ -4212,16 +4199,16 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Error: move of '%s' to %ld steps would exceed positive limit at %ld steps.",
 			motor_record->name,
-			(long) motor_steps,
-			(long) positive_limit );
+			motor_steps,
+			positive_limit );
 	}
 
 	if ( motor_steps < negative_limit ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Error: move of '%s' to %ld steps would exceed negative limit at %ld steps.",
 			motor_record->name,
-			(long) motor_steps,
-			(long) negative_limit );
+			motor_steps,
+			negative_limit );
 	}
 
 	/* Return now if we are only checking limits. */
@@ -4266,7 +4253,7 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_get_position_steps( MX_RECORD *motor_record, int32_t *motor_steps )
+mx_motor_get_position_steps( MX_RECORD *motor_record, long *motor_steps )
 {
 	static const char fname[] = "mx_motor_get_position_steps()";
 
@@ -4319,7 +4306,7 @@ mx_motor_get_position_steps( MX_RECORD *motor_record, int32_t *motor_steps )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_set_position_steps( MX_RECORD *motor_record, int32_t motor_steps )
+mx_motor_set_position_steps( MX_RECORD *motor_record, long motor_steps )
 {
 	static const char fname[] = "mx_motor_set_position_steps()";
 
@@ -4362,12 +4349,12 @@ mx_motor_set_position_steps( MX_RECORD *motor_record, int32_t motor_steps )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_steps_to_go( MX_RECORD *motor_record, int32_t *steps_to_go )
+mx_motor_steps_to_go( MX_RECORD *motor_record, long *steps_to_go )
 {
 	static const char fname[] = "mx_motor_steps_to_go()";
 
 	MX_MOTOR *motor;
-	int32_t step_position, step_destination;
+	long step_position, step_destination;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4400,7 +4387,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			double motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			mx_hex_type flags)
+			int flags)
 {
 	static const char fname[]
 		= "mx_motor_move_absolute_analog_with_report()";
@@ -4412,8 +4399,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	double present_position, backlash;
 	double relative_motion, backlash_position;
 	double test_var, dummy_position;
-	mx_bool_type do_backlash;
-	mx_hex_type mask;
+	int mask, do_backlash;
 	char units[80];
 	mx_status_type status, move_report_status;
 
@@ -4505,9 +4491,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Backlash correction for '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 				motor->record->name,
-				(int) motor->record->precision,
+				motor->record->precision,
 				backlash_position, units,
-				(int) motor->record->precision,
+				motor->record->precision,
 				positive_limit, units );
 		}
 
@@ -4525,9 +4511,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "Backlash correction for '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 				motor->record->name,
-				(int) motor->record->precision,
+				motor->record->precision,
 				backlash_position, units,
-				(int) motor->record->precision,
+				motor->record->precision,
 				negative_limit, units );
 		}
 
@@ -4614,9 +4600,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Error: move of '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 			motor->record->name,
-			(int) motor->record->precision,
+			motor->record->precision,
 			motor_position, units,
-			(int) motor->record->precision,
+			motor->record->precision,
 			positive_limit, units );
 	}
 
@@ -4633,9 +4619,9 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Error: move of '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 			motor->record->name,
-			(int) motor->record->precision,
+			motor->record->precision,
 			motor_position, units,
-			(int) motor->record->precision,
+			motor->record->precision,
 			negative_limit, units );
 	}
 
@@ -4780,14 +4766,14 @@ mx_motor_set_position_analog( MX_RECORD *motor_record,
 MX_EXPORT mx_status_type
 mx_is_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_position,
-	mx_bool_type *result_flag, mx_bool_type generate_error_message )
+	int *result_flag, int generate_error_message )
 {
 	static const char fname[] =
 		"mx_is_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
 	double scale, offset, unscaled_proposed_position;
-	int32_t proposed_step_position;
+	long proposed_step_position;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4827,7 +4813,7 @@ mx_is_motor_position_between_software_limits(
 	    break;
 	default:
 	    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Unrecognized motor subclass = %d", (int) motor->subclass );
+		"Unrecognized motor subclass = %d", motor->subclass );
 	}
 	return status;
 }
@@ -4835,7 +4821,7 @@ mx_is_motor_position_between_software_limits(
 MX_EXPORT mx_status_type
 mx_is_analog_motor_position_between_software_limits(
 	MX_RECORD *motor_record, double proposed_analog_position,
-	mx_bool_type *result_flag, mx_bool_type generate_error_message )
+	int *result_flag, int generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_analog_motor_position_between_software_limits()";
@@ -4858,7 +4844,7 @@ mx_is_analog_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (mx_bool_type *) NULL ) {
+	if ( result_flag == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}
@@ -4894,9 +4880,9 @@ mx_is_analog_motor_position_between_software_limits(
 			sprintf( message_buffer,
 		"Move of '%s' to %.*g%s would exceed positive limit at %.*g%s.",
 				motor_record->name,
-				(int) motor_record->precision,
+				motor_record->precision,
 				proposed_analog_position, units,
-				(int) motor_record->precision,
+				motor_record->precision,
 				positive_limit, units );
 		}
 	}
@@ -4917,9 +4903,9 @@ mx_is_analog_motor_position_between_software_limits(
 			sprintf( message_buffer,
 		"Move of '%s' to %.*g%s would exceed negative limit at %.*g%s.",
 				motor_record->name,
-				(int) motor_record->precision,
+				motor_record->precision,
 				proposed_analog_position, units,
-				(int) motor_record->precision,
+				motor_record->precision,
 				negative_limit, units );
 		}
 	}
@@ -4933,15 +4919,15 @@ mx_is_analog_motor_position_between_software_limits(
 
 MX_EXPORT mx_status_type
 mx_is_stepper_motor_position_between_software_limits(
-	MX_RECORD *motor_record, int32_t proposed_step_position,
-	mx_bool_type *result_flag, mx_bool_type generate_error_message )
+	MX_RECORD *motor_record, long proposed_step_position,
+	int *result_flag, int generate_error_message )
 {
 	static const char fname[] =
 	    "mx_is_stepper_motor_position_between_software_limits()";
 
 	MX_MOTOR *motor;
 	char message_buffer[120];
-	int32_t positive_limit, negative_limit;
+	long positive_limit, negative_limit;
 	mx_status_type status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4956,7 +4942,7 @@ mx_is_stepper_motor_position_between_software_limits(
 			motor->record->name );
 	}
 
-	if ( result_flag == (mx_bool_type *) NULL ) {
+	if ( result_flag == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"result_flag pointer passed was NULL." );
 	}
@@ -4974,8 +4960,8 @@ mx_is_stepper_motor_position_between_software_limits(
 			sprintf( message_buffer,
 	"Move of '%s' to %ld steps would exceed positive limit at %ld steps.",
 				motor_record->name,
-				(long) proposed_step_position,
-				(long) positive_limit );
+				proposed_step_position,
+				positive_limit );
 		}
 	}
 	if ( proposed_step_position < negative_limit ) {
@@ -4985,8 +4971,8 @@ mx_is_stepper_motor_position_between_software_limits(
 			sprintf( message_buffer,
 	"Move of '%s' to %ld steps would exceed negative limit at %ld steps.",
 				motor_record->name,
-				(long) proposed_step_position,
-				(long) negative_limit );
+				proposed_step_position,
+				negative_limit );
 		}
 	}
 

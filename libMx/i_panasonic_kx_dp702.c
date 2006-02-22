@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_panasonic_kx_dp702_rf_defaults[] = {
 	MXI_PANASONIC_KX_DP702_STANDARD_FIELDS
 };
 
-mx_length_type mxi_panasonic_kx_dp702_num_record_fields =
+long mxi_panasonic_kx_dp702_num_record_fields =
 		sizeof( mxi_panasonic_kx_dp702_rf_defaults )
 		/ sizeof( mxi_panasonic_kx_dp702_rf_defaults[0] );
 
@@ -225,8 +225,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 	static const char fname[] = "mxi_panasonic_kx_dp702_raw_cmd()";
 
 	char command_ascii[80], response_ascii[80], hex_buffer[10];
-	unsigned long i, wait_ms, max_attempts;
-	uint32_t num_bytes_available;
+	unsigned long i, num_bytes_available, wait_ms, max_attempts;
 	unsigned char local_command[5], local_response[5];
 	char *response_ptr;
 	size_t bytes_read;

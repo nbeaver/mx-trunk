@@ -7,14 +7,12 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define ORTEC974_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -61,12 +59,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_ortec974_scaler_record_field_defaults[] = {
 	MXD_ORTEC974_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ortec974_scaler_num_record_fields
+long mxd_ortec974_scaler_num_record_fields
 		= sizeof( mxd_ortec974_scaler_record_field_defaults )
 		  / sizeof( mxd_ortec974_scaler_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_scaler_rfield_def_ptr
 			= &mxd_ortec974_scaler_record_field_defaults[0];
+
+#define ORTEC974_DEBUG	FALSE
 
 #define CHANNEL_MASK(x)  (1 << ((x)-1))
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	int32_t scaler_number;
+	int scaler_number;
 	double epics_record_version;
 
 	MX_EPICS_PV cnt_pv;
@@ -42,7 +42,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_SCALER, epics_record_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "scaler_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "scaler_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_SCALER, scaler_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -73,7 +73,7 @@ MX_API mx_status_type mxd_epics_scaler_set_modes_of_associated_counters(
 extern MX_RECORD_FUNCTION_LIST mxd_epics_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_epics_scaler_scaler_function_list;
 
-extern mx_length_type mxd_epics_scaler_num_record_fields;
+extern long mxd_epics_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_scaler_rfield_def_ptr;
 
 #endif /* __D_EPICS_SCALER_H__ */

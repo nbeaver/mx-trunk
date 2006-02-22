@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_tpg262_pressure_record_field_defaults[] = {
 	MXD_TPG262_PRESSURE_STANDARD_FIELDS
 };
 
-mx_length_type mxd_tpg262_pressure_num_record_fields
+long mxd_tpg262_pressure_num_record_fields
 		= sizeof( mxd_tpg262_pressure_record_field_defaults )
 			/ sizeof( mxd_tpg262_pressure_record_field_defaults[0]);
 

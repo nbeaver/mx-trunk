@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ls330_motor_record_field_defaults[] = {
 	MXD_LS330_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ls330_motor_num_record_fields
+long mxd_ls330_motor_num_record_fields
 		= sizeof( mxd_ls330_motor_record_field_defaults )
 			/ sizeof( mxd_ls330_motor_record_field_defaults[0] );
 
@@ -379,12 +379,12 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		if ( (rs232->speed != 300) && (rs232->speed != 1200) ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires a port speed of either 300 "
-"or 1200 baud.  Instead saw %ld.", record->name, (long) rs232->speed );
+"or 1200 baud.  Instead saw %ld.", record->name, rs232->speed );
 		}
 		if ( rs232->word_size != 7 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires 7 bit characters.  Instead saw %d",
-				record->name, (int) rs232->word_size );
+				record->name, rs232->word_size );
 		}
 		if ( rs232->parity != 'O' ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -394,7 +394,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 		if ( rs232->stop_bits != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The LakeShore 330 controller '%s' requires 1 stop bit.  Instead saw %d.",
-				record->name, (int) rs232->stop_bits );
+				record->name, rs232->stop_bits );
 		}
 		if (rs232->flow_control != 'N') {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -409,8 +409,7 @@ mxd_ls330_motor_open( MX_RECORD *record )
 "to be a carriage return-line feed sequence.  "
 "Instead saw read terminator %#lx and write terminator %#lx.",
 			record->name,
-			(unsigned long) rs232->read_terminators,
-			(unsigned long) rs232->write_terminators);
+			rs232->read_terminators, rs232->write_terminators);
 		}
 	}
 

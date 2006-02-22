@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmc_mcapi_din_record_field_defaults[] = {
 	MXD_PMC_MCAPI_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmc_mcapi_din_num_record_fields
+long mxd_pmc_mcapi_din_num_record_fields
 		= sizeof( mxd_pmc_mcapi_din_record_field_defaults )
 			/ sizeof( mxd_pmc_mcapi_din_record_field_defaults[0] );
 
@@ -95,7 +95,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmc_mcapi_dout_record_field_defaults[] = {
 	MXD_PMC_MCAPI_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmc_mcapi_dout_num_record_fields
+long mxd_pmc_mcapi_dout_num_record_fields
 		= sizeof( mxd_pmc_mcapi_dout_record_field_defaults )
 			/ sizeof( mxd_pmc_mcapi_dout_record_field_defaults[0] );
 

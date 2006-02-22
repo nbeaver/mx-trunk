@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +26,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int32_t axis_address;
-	mx_hex_type mcu2_flags;
+	int axis_address;
+	unsigned long mcu2_flags;
 } MX_MCU2;
 
 MX_API mx_status_type mxd_mcu2_create_record_structures(
@@ -52,7 +52,7 @@ MX_API mx_status_type mxd_mcu2_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_mcu2_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_mcu2_motor_function_list;
 
-extern mx_length_type mxd_mcu2_num_record_fields;
+extern long mxd_mcu2_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mcu2_rfield_def_ptr;
 
 #define MXD_MCU2_STANDARD_FIELDS \
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mcu2_rfield_def_ptr;
 		offsetof(MX_MCU2, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_address", MXFT_INT32, NULL, 0, {0},\
+  {-1, -1, "axis_address", MXFT_INT, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCU2, axis_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

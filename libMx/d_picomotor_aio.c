@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"
@@ -45,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_ain_record_field_defaults[] = {
 	MXD_PICOMOTOR_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_picomotor_ain_num_record_fields
+long mxd_picomotor_ain_num_record_fields
 		= sizeof( mxd_picomotor_ain_record_field_defaults )
 			/ sizeof( mxd_picomotor_ain_record_field_defaults[0] );
 
@@ -149,9 +150,9 @@ mxd_picomotor_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	picomotor_ainput->record = record;
 
-	/* Raw analog input values are stored as 32-bit integers. */
+	/* Raw analog input values are stored as longs. */
 
-	analog_input->subclass = MXT_AIN_INT32;
+	analog_input->subclass = MXT_AIN_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -166,7 +167,6 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	char command[80];
 	char response[80];
 	int num_items;
-	long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -191,7 +191,7 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf(response, "%ld", &value );
+	num_items = sscanf(response, "%ld", &(ainput->raw_value.long_value));
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -202,8 +202,6 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 			ainput->record->name,
 			response );
 	}
-
-	ainput->raw_value.int32_value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

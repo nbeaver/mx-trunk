@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int32_t line_number;
+	int line_number;
 
 	int gated_counters_io_field;
 } MX_PDI45_TIMER;
@@ -46,7 +46,7 @@ MX_API mx_status_type mxd_pdi45_timer_set_mode( MX_TIMER *timer );
 extern MX_RECORD_FUNCTION_LIST mxd_pdi45_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_pdi45_timer_timer_function_list;
 
-extern mx_length_type mxd_pdi45_timer_num_record_fields;
+extern long mxd_pdi45_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_timer_rfield_def_ptr;
 
 #define MXD_PDI45_TIMER_STANDARD_FIELDS \
@@ -54,7 +54,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_TIMER, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_TIMER, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

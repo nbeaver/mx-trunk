@@ -31,7 +31,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_xafs_std_scan_defaults[] = {
 	MX_XAFS_SCAN_STANDARD_FIELDS
 };
 
-mx_length_type mxs_xafs_std_scan_num_record_fields
+long mxs_xafs_std_scan_num_record_fields
 			= sizeof( mxs_xafs_std_scan_defaults )
 			/ sizeof( mxs_xafs_std_scan_defaults[0] );
 

@@ -82,7 +82,7 @@ MX_API mx_status_type mxi_lpt_close( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_lpt_record_function_list;
 
-extern mx_length_type mxi_lpt_num_record_fields;
+extern long mxi_lpt_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_lpt_rfield_def_ptr;
 
 /* === Driver specific functions === */

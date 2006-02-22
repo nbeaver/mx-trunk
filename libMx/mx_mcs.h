@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,45 +24,45 @@ typedef struct {
 			    * to this MCS.
 			    */
 
-	mx_length_type maximum_num_scalers;
-	mx_length_type maximum_num_measurements;
+	long maximum_num_scalers;
+	long maximum_num_measurements;
 
 	MX_RECORD **scaler_record_array;
 
-	int32_t **data_array;
+	long **data_array;
 
 	MX_RECORD *external_channel_advance_record;
 	char external_channel_advance_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	mx_bool_type external_channel_advance;
-	uint32_t external_prescale;
+	int external_channel_advance;
+	unsigned long external_prescale;
 
 	MX_RECORD *timer_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	mx_bool_type start;
-	mx_bool_type stop;
-	mx_bool_type clear;
-	mx_bool_type busy;
-	int32_t mode;
-	int32_t parameter_type;
+	int start;
+	int stop;
+	int clear;
+	int busy;
+	int mode;
+	int parameter_type;
 
 	double measurement_time;
-	uint32_t measurement_counts;
-	mx_length_type current_num_scalers;
-	mx_length_type current_num_measurements;
+	unsigned long measurement_counts;
+	unsigned long current_num_scalers;
+	unsigned long current_num_measurements;
 
-	int32_t readout_preference;
+	int readout_preference;
 
-	mx_length_type scaler_index;
-	mx_length_type measurement_index;
+	long scaler_index;
+	long measurement_index;
 
 	double dark_current;
 
 	double *dark_current_array;	/* Expressed in counts per second. */
 
-	int32_t *scaler_data;
-	int32_t *measurement_data;
+	long *scaler_data;
+	long *measurement_data;
 	double *timer_data;
 } MX_MCS;
 
@@ -95,17 +95,17 @@ typedef struct {
 
 #define MX_MCS_STANDARD_FIELDS \
   {MXLV_MCS_MAXIMUM_NUM_SCALERS, -1, "maximum_num_scalers",\
-					MXFT_LENGTH, NULL, 0, {0}, \
+					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, maximum_num_scalers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_MAXIMUM_NUM_MEASUREMENTS, -1, "maximum_num_measurements", \
-					MXFT_LENGTH, NULL, 0, {0}, \
+					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, maximum_num_measurements), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_DATA_ARRAY, -1, "data_array", \
-		MXFT_INT32, NULL, 2, {MXU_VARARGS_LENGTH, MXU_VARARGS_LENGTH},\
+		MXFT_ULONG, NULL, 2, {MXU_VARARGS_LENGTH, MXU_VARARGS_LENGTH},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, data_array), \
 	{sizeof(unsigned long), sizeof(unsigned long *)}, NULL, MXFF_VARARGS},\
   \
@@ -115,12 +115,12 @@ typedef struct {
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE, -1, "external_channel_advance", \
-					  	MXFT_BOOL, NULL, 0, {0}, \
+					  	MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_channel_advance), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_EXTERNAL_PRESCALE, -1, "external_prescale", \
-	  					MXFT_UINT32, NULL, 0, {0}, \
+	  					MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_prescale), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -129,27 +129,27 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_MCS_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_MCS_START, -1, "start", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, start), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_MCS_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, stop), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_MCS_CLEAR, -1, "clear", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_MCS_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_MODE, -1, "mode", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_MCS_MODE, -1, "mode", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, mode), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, parameter_type), \
 	{0}, NULL, 0}, \
   \
@@ -158,26 +158,26 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_MCS_MEASUREMENT_COUNTS, -1, "measurement_counts", \
-					MXFT_UINT32, NULL,0,{0},\
+					MXFT_ULONG, NULL,0,{0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_counts), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCS_CURRENT_NUM_SCALERS, -1, "current_num_scalers", \
-						MXFT_LENGTH, NULL, 0, {0}, \
+						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, current_num_scalers), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCS_CURRENT_NUM_MEASUREMENTS, -1, "current_num_measurements", \
-						MXFT_LENGTH, NULL, 0, {0}, \
+						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, current_num_measurements), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_SCALER_INDEX, -1, "scaler_index", MXFT_LENGTH, NULL, 0, {0}, \
+  {MXLV_MCS_SCALER_INDEX, -1, "scaler_index", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, scaler_index), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCS_MEASUREMENT_INDEX, -1, "measurement_index", \
-					MXFT_LENGTH, NULL, 0, {0}, \
+					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_index), \
 	{0}, NULL, 0}, \
   \
@@ -191,12 +191,12 @@ typedef struct {
 	{sizeof(double)}, NULL, MXFF_VARARGS}, \
   \
   {MXLV_MCS_SCALER_DATA, -1, "scaler_data", \
-			MXFT_INT32, NULL, 1, {0}, \
+			MXFT_LONG, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, scaler_data), \
 	{sizeof(long)}, NULL, MXFF_VARARGS}, \
   \
   {MXLV_MCS_MEASUREMENT_DATA, -1, "measurement_data", \
-			MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+			MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, measurement_data), \
 	{sizeof(long)}, NULL, MXFF_VARARGS}, \
   \
@@ -230,11 +230,11 @@ MX_API mx_status_type mx_mcs_get_pointers( MX_RECORD *mcs_record,
 	const char *calling_fname );
 
 MX_API mx_status_type mx_mcs_initialize_type(
-		long record_type,
-		mx_length_type *num_record_fields,
-		MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-		mx_length_type *maximum_num_scalers_varargs_cookie,
-		mx_length_type *maximum_num_measurements_varargs_cookie );
+			long record_type,
+			long *num_record_fields,
+			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+			long *maximum_num_scalers_varargs_cookie,
+			long *maximum_num_measurements_varargs_cookie );
 
 MX_API mx_status_type mx_mcs_finish_record_initialization(
 					MX_RECORD *mcs_record );
@@ -242,44 +242,43 @@ MX_API mx_status_type mx_mcs_finish_record_initialization(
 MX_API mx_status_type mx_mcs_start( MX_RECORD *mcs_record );
 MX_API mx_status_type mx_mcs_stop( MX_RECORD *mcs_record );
 MX_API mx_status_type mx_mcs_clear( MX_RECORD *mcs_record );
-MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record,
-					mx_bool_type *busy );
+MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy );
 
 MX_API mx_status_type mx_mcs_read_all( MX_RECORD *mcs_record,
-					mx_length_type *num_scalers,
-					mx_length_type *num_measurements,
-					int32_t ***mcs_data );
+					unsigned long *num_scalers,
+					unsigned long *num_measurements,
+					long ***mcs_data );
 
 MX_API mx_status_type mx_mcs_read_scaler( MX_RECORD *mcs_record,
-					mx_length_type scaler_index,
-					mx_length_type *num_measurements,
-					int32_t **scaler_data );
+					unsigned long scaler_index,
+					unsigned long *num_measurements,
+					long **scaler_data );
 
 MX_API mx_status_type mx_mcs_read_measurement( MX_RECORD *mcs_record,
-					mx_length_type measurement_index,
-					mx_length_type *num_scalers,
-					int32_t **measurement_data );
+					unsigned long measurement_index,
+					unsigned long *num_scalers,
+					long **measurement_data );
 
 MX_API mx_status_type mx_mcs_read_timer( MX_RECORD *mcs_record,
-					mx_length_type *num_measurements,
+					unsigned long *num_measurements,
 					double **timer_data );
 
-MX_API mx_status_type mx_mcs_get_mode( MX_RECORD *mcs_record, int32_t *mode );
-MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, int32_t mode );
+MX_API mx_status_type mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode );
+MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, int mode );
 
 MX_API mx_status_type mx_mcs_get_external_channel_advance(
 					MX_RECORD *mcs_record,
-					mx_bool_type *external_channel_advance);
+					int *external_channel_advance );
 
 MX_API mx_status_type mx_mcs_set_external_channel_advance(
 					MX_RECORD *mcs_record,
-					mx_bool_type external_channel_advance);
+					int external_channel_advance );
 
 MX_API mx_status_type mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
-					uint32_t *external_prescale );
+					unsigned long *external_prescale );
 
 MX_API mx_status_type mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
-					uint32_t external_prescale );
+					unsigned long external_prescale );
 
 MX_API mx_status_type mx_mcs_get_measurement_time( MX_RECORD *mcs_record,
 					double *measurement_time );
@@ -287,29 +286,29 @@ MX_API mx_status_type mx_mcs_set_measurement_time( MX_RECORD *mcs_record,
 					double measurement_time );
 
 MX_API mx_status_type mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
-					uint32_t *measurement_counts );
+					unsigned long *measurement_counts );
 MX_API mx_status_type mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
-					uint32_t measurement_counts );
+					unsigned long measurement_counts );
 
 MX_API mx_status_type mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
-					mx_length_type *num_measurements );
+					unsigned long *num_measurements );
 MX_API mx_status_type mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
-					mx_length_type num_measurements );
+					unsigned long num_measurements );
 
 MX_API mx_status_type mx_mcs_get_dark_current_array( MX_RECORD *mcs_record,
-					mx_length_type num_scalers,
+					unsigned long num_scalers,
 					double *dark_current_array );
 
 MX_API mx_status_type mx_mcs_set_dark_current_array( MX_RECORD *mcs_record,
-					mx_length_type num_scalers,
+					unsigned long num_scalers,
 					double *dark_current_array );
 
 MX_API mx_status_type mx_mcs_get_dark_current( MX_RECORD *mcs_record,
-					mx_length_type scaler_index,
+					unsigned long scaler_index,
 					double *dark_current );
 
 MX_API mx_status_type mx_mcs_set_dark_current( MX_RECORD *mcs_record,
-					mx_length_type scaler_index,
+					unsigned long scaler_index,
 					double dark_current );
 
 MX_API mx_status_type mx_mcs_default_get_parameter_handler( MX_MCS *mcs );

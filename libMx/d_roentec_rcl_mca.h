@@ -30,6 +30,11 @@ typedef struct {
 
 	char command[MXU_ROENTEC_RCL_MAX_COMMAND_LENGTH+1];
 	char response[MXU_ROENTEC_RCL_MAX_COMMAND_LENGTH+1];
+
+#if ( MX_WORDSIZE != 32 )
+	uint32_t *channel_32bit_array;
+#endif
+
 } MX_ROENTEC_RCL_MCA;
 
 #define MXLV_ROENTEC_RCL_COMMAND			7001
@@ -91,7 +96,7 @@ MX_API mx_status_type mxd_roentec_rcl_read_32bit_array(
 extern MX_RECORD_FUNCTION_LIST mxd_roentec_rcl_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_roentec_rcl_mca_function_list;
 
-extern mx_length_type mxd_roentec_rcl_num_record_fields;
+extern long mxd_roentec_rcl_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_roentec_rcl_rfield_def_ptr;
 
 #endif /* __D_ROENTEC_RCL_MCA_H__ */

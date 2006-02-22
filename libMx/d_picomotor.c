@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_record_field_defaults[] = {
 	MXD_PICOMOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_picomotor_num_record_fields
+long mxd_picomotor_num_record_fields
 		= sizeof( mxd_picomotor_record_field_defaults )
 			/ sizeof( mxd_picomotor_record_field_defaults[0] );
 
@@ -276,8 +276,7 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 					picomotor->driver_name);
 	fprintf(file, "  motor number      = %d\n",
 					picomotor->motor_number);
-	fprintf(file, "  flags             = %#lx\n",
-					(unsigned long) picomotor->flags);
+	fprintf(file, "  flags             = %#lx\n", picomotor->flags);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -289,7 +288,7 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
+			motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -297,21 +296,21 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	mx_status = mx_motor_get_speed( record, &speed );
 
@@ -457,7 +456,7 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 	MX_PICOMOTOR *picomotor;
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
-	int32_t position_change;
+	long position_change;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -485,17 +484,17 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 				- motor->raw_position.stepper;
 
 		MX_DEBUG( 2,("%s: motor->raw_destination.stepper = %ld",
-			fname, (long) motor->raw_destination.stepper));
+			fname, motor->raw_destination.stepper));
 
 		MX_DEBUG( 2,("%s: motor->raw_position.stepper = %ld",
-		 	fname, (long) motor->raw_position.stepper));
+		 	fname, motor->raw_position.stepper));
 
 		MX_DEBUG( 2,("%s: position_change = %ld",
-			fname, (long) position_change));
+			fname, position_change));
 
 		sprintf( command, "REL %s %ld G",
 			picomotor->driver_name,
-			(long) position_change );
+			position_change );
 
 		/* Update picomotor->position_at_start_of_last_move by
 		 * setting it to what we think is the current position.
@@ -513,7 +512,7 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 
 		sprintf( command, "ABS %s %ld G",
 			picomotor->driver_name,
-			(long) motor->raw_destination.stepper );
+			motor->raw_destination.stepper );
 	}
 
 	mx_status = mxd_picomotor_motor_command( picomotor_controller,
@@ -597,7 +596,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 		    picomotor->position_at_start_of_last_move + motor_steps;
 
 		MX_DEBUG( 2,("%s: motor->raw_position.stepper = %ld",
-			fname, (long) motor->raw_position.stepper));
+			fname, motor->raw_position.stepper));
 		break;
 	default:
 		/* For all others, use absolute positioning. */
@@ -639,7 +638,7 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 		 */
 
 		sprintf( command, "POS %s=%ld", picomotor->driver_name,
-				(long) motor->raw_set_position.stepper );
+				motor->raw_set_position.stepper );
 
 		mx_status = mxi_picomotor_command( picomotor_controller,
 				command, NULL, 0, MXD_PICOMOTOR_DEBUG );
@@ -657,10 +656,10 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 					- motor->raw_position.stepper;
 
 		MX_DEBUG( 2,("%s: motor->raw_set_position.stepper = %ld",
-			fname, (long) motor->raw_set_position.stepper));
+			fname, motor->raw_set_position.stepper));
 
 		MX_DEBUG( 2,("%s: motor->raw_position.stepper = %ld",
-			fname, (long) motor->raw_position.stepper));
+			fname, motor->raw_position.stepper));
 
 		MX_DEBUG( 2,("%s: position_difference = %ld",
 			fname, position_difference));
@@ -1083,10 +1082,10 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_picomotor_simultaneous_start( mx_length_type num_motor_records,
+mxd_picomotor_simultaneous_start( int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
-				mx_hex_type flags )
+				int flags )
 {
 	static const char fname[] = "mxd_picomotor_simultaneous_start()";
 
@@ -1095,7 +1094,7 @@ mxd_picomotor_simultaneous_start( mx_length_type num_motor_records,
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	MX_PICOMOTOR_CONTROLLER *current_picomotor_controller;
 	MX_PICOMOTOR *current_picomotor;
-	mx_length_type i;
+	int i;
 	char command[80];
 
 	mx_status_type mx_status;
@@ -1155,7 +1154,7 @@ mxd_picomotor_simultaneous_start( mx_length_type num_motor_records,
 
 		sprintf( command, "ABS %s=%ld",
 				current_picomotor->driver_name,
-				(long) current_motor->raw_destination.stepper );
+				current_motor->raw_destination.stepper );
 
 		mx_status = mxi_picomotor_command( picomotor_controller,
 					command, NULL, 0,
@@ -1318,8 +1317,7 @@ mxd_picomotor_get_status( MX_MOTOR *motor )
 		break;
 	}
 
-	MX_DEBUG( 2,("%s: MX status word = %#lx",
-		fname, (unsigned long) motor->status));
+	MX_DEBUG( 2,("%s: MX status word = %#lx", fname, motor->status));
 
 	return MX_SUCCESSFUL_RESULT;
 }

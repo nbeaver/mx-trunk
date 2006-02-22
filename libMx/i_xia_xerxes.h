@@ -34,7 +34,7 @@ typedef struct {
 	char xiasystems_cfg[ MXU_FILENAME_LENGTH + 1 ];
 	char config_filename[ MXU_FILENAME_LENGTH + 1 ];
 
-	mx_length_type num_mcas;
+	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 	int *detector_channel_array;
 } MX_XIA_XERXES;
@@ -68,7 +68,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_XERXES, config_filename), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_mcas", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_XERXES, num_mcas ), \
 	{0}, NULL, 0 }
 
@@ -82,7 +82,7 @@ MX_API mx_status_type mxi_xia_xerxes_special_processing_setup(
 
 extern MX_RECORD_FUNCTION_LIST mxi_xia_xerxes_record_function_list;
 
-extern mx_length_type mxi_xia_xerxes_num_record_fields;
+extern long mxi_xia_xerxes_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_xia_xerxes_rfield_def_ptr;
 
 /* === Driver specific functions === */

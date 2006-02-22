@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ptz_motor_record_field_defaults[] = {
 	MXD_PTZ_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ptz_motor_num_record_fields
+long mxd_ptz_motor_num_record_fields
 		= sizeof( mxd_ptz_motor_record_field_defaults )
 			/ sizeof( mxd_ptz_motor_record_field_defaults[0] );
 
@@ -214,7 +214,7 @@ mxd_ptz_motor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position           = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
+			motor->raw_position.stepper );
 	fprintf(file, "  scale              = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset             = %g %s.\n",
@@ -222,21 +222,21 @@ mxd_ptz_motor_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash           = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit     = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit     = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband      = %g %s  (%ld steps)\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	mx_status = mx_motor_get_speed( record, &speed );
 
@@ -299,7 +299,7 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 	static const char fname[] = "mxd_ptz_motor_get_position()";
 
 	MX_PTZ_MOTOR *ptz_motor;
-	uint32_t uint32_value;
+	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
@@ -318,15 +318,15 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 		break;
 	case MXT_PTZ_MOTOR_ZOOM:
 		mx_status = mx_ptz_get_zoom( ptz_motor->ptz_record,
-							&uint32_value );
+							&ulong_value );
 
-		motor->raw_position.stepper = (long) uint32_value;
+		motor->raw_position.stepper = (long) ulong_value;
 		break;
 	case MXT_PTZ_MOTOR_FOCUS:
 		mx_status = mx_ptz_get_focus( ptz_motor->ptz_record,
-							&uint32_value );
+							&ulong_value );
 
-		motor->raw_position.stepper = (long) uint32_value;
+		motor->raw_position.stepper = (long) ulong_value;
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -396,7 +396,7 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_ptz_motor_get_parameter()";
 
 	MX_PTZ_MOTOR *ptz_motor;
-	uint32_t raw_speed;
+	unsigned long raw_speed;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );
@@ -503,7 +503,7 @@ mxd_ptz_motor_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_ptz_motor_get_status()";
 
 	MX_PTZ_MOTOR *ptz_motor;
-	mx_hex_type ptz_status;
+	unsigned long ptz_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_ptz_motor_get_pointers( motor, &ptz_motor, fname );

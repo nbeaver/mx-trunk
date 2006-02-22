@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,9 +24,9 @@
 
 typedef struct {
 	MX_RECORD *mardtb_record;
-	int32_t motor_number;
-	uint32_t default_speed;
-	uint32_t default_acceleration;
+	int motor_number;
+	unsigned long default_speed;
+	unsigned long default_acceleration;
 
 	MX_DEAD_RECKONING dead_reckoning;
 } MX_MARDTB_MOTOR;
@@ -46,7 +46,7 @@ MX_API mx_status_type mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_mardtb_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_mardtb_motor_motor_function_list;
 
-extern mx_length_type mxd_mardtb_motor_num_record_fields;
+extern long mxd_mardtb_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_motor_rfield_def_ptr;
 
 #define MXD_MARDTB_MOTOR_STANDARD_FIELDS \
@@ -54,15 +54,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, mardtb_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "default_speed", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_speed", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, default_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_acceleration", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "default_acceleration", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, default_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

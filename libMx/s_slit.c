@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_slit_linear_scan_defaults[] = {
 	MX_LINEAR_SCAN_STANDARD_FIELDS
 };
 
-mx_length_type mxs_slit_linear_scan_num_record_fields
+long mxs_slit_linear_scan_num_record_fields
 			= sizeof( mxs_slit_linear_scan_defaults )
 			/ sizeof( mxs_slit_linear_scan_defaults[0] );
 
@@ -62,7 +62,7 @@ MX_EXPORT mx_status_type
 mxs_slit_scan_create_record_structures( MX_RECORD *record,
 		MX_SCAN *scan, MX_LINEAR_SCAN *linear_scan )
 {
-	static const char fname[] = "mxs_slit_scan_create_record_structures()";
+	const char fname[] = "mxs_slit_scan_create_record_structures()";
 
 	MX_SLIT_SCAN *slit_scan;
 
@@ -94,7 +94,7 @@ mxs_slit_scan_create_record_structures( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mxs_slit_scan_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxs_slit_scan_finish_record_initialization()";
+	const char fname[] = "mxs_slit_scan_finish_record_initialization()";
 
 	MX_SCAN *scan;
 	MX_LINEAR_SCAN *linear_scan;
@@ -224,7 +224,7 @@ MX_EXPORT mx_status_type
 mxs_slit_scan_compute_motor_positions( MX_SCAN *scan,
 					MX_LINEAR_SCAN *linear_scan )
 {
-	static const char fname[] = "mxs_slit_scan_compute_motor_positions()";
+	const char fname[] = "mxs_slit_scan_compute_motor_positions()";
 
 	double *motor_position;
 	long i;
@@ -258,14 +258,13 @@ MX_EXPORT mx_status_type
 mxs_slit_scan_motor_record_array_move_special(
 				MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
-				int32_t num_motor_records,
+				int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				mx_hex_type flags )
+				int flags )
 {
-	static const char fname[] =
-			"mxs_slit_scan_motor_record_array_move_special()";
+	const char fname[] = "mxs_slit_scan_motor_record_array_move_special()";
 
 	MX_SLIT_SCAN *slit_scan;
 	MX_SLIT_MOTOR *slit_motor;
@@ -275,7 +274,7 @@ mxs_slit_scan_motor_record_array_move_special(
 	double negative_start_position, positive_start_position;
 	double slit_pseudo_motor_start_position;
 	double original_slit_center, original_slit_width;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.",fname));
 
@@ -317,22 +316,22 @@ mxs_slit_scan_motor_record_array_move_special(
 				slit_scan->real_motor_record_array[j]
 					= slit_motor->negative_motor_record;
 
-				mx_status = mx_motor_get_position(
+				status = mx_motor_get_position(
 					slit_motor->negative_motor_record,
 					&negative_original_position );
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				if ( status.code != MXE_SUCCESS )
+					return status;
 
 				slit_scan->real_motor_record_array[j+1]
 					= slit_motor->positive_motor_record;
 
-				mx_status = mx_motor_get_position(
+				status = mx_motor_get_position(
 					slit_motor->positive_motor_record,
 					&positive_original_position );
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				if ( status.code != MXE_SUCCESS )
+					return status;
 
 				/* Compute the scan starting positions 
 				 * depending on the slit motor type.
@@ -492,7 +491,7 @@ mxs_slit_scan_motor_record_array_move_special(
 			default:
 				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
 					fname, "Unknown slit type %ld.",
-					(long) slit_motor->slit_type );
+					slit_motor->slit_type );
 				break;
 			}
 
@@ -505,12 +504,12 @@ mxs_slit_scan_motor_record_array_move_special(
 
 	/* Now we may finally move the motors. */
 
-	mx_status = mx_motor_array_move_absolute(
+	status = mx_motor_array_move_absolute(
 			slit_scan->num_real_motors,
 			slit_scan->real_motor_record_array,
 			slit_scan->real_motor_position,
 			0 );
 
-	return mx_status;
+	return status;
 }
 

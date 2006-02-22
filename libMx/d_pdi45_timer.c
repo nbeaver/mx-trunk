@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_timer_record_field_defaults[] = {
 	MXD_PDI45_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pdi45_timer_num_record_fields
+long mxd_pdi45_timer_num_record_fields
 		= sizeof( mxd_pdi45_timer_record_field_defaults )
 		  / sizeof( mxd_pdi45_timer_record_field_defaults[0] );
 

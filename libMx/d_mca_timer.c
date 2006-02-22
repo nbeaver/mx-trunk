@@ -29,9 +29,15 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mca_timer_record_function_list = {
-	NULL,
+	mxd_mca_timer_initialize_type,
 	mxd_mca_timer_create_record_structures,
-	mxd_mca_timer_finish_record_initialization
+	mxd_mca_timer_finish_record_initialization,
+	mxd_mca_timer_delete_record,
+	NULL,
+	mxd_mca_timer_read_parms_from_hardware,
+	mxd_mca_timer_write_parms_to_hardware,
+	mxd_mca_timer_open,
+	mxd_mca_timer_close
 };
 
 MX_TIMER_FUNCTION_LIST mxd_mca_timer_timer_function_list = {
@@ -54,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_timer_record_field_defaults[] = {
 	MXD_MCA_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mca_timer_num_record_fields
+long mxd_mca_timer_num_record_fields
 		= sizeof( mxd_mca_timer_record_field_defaults )
 		  / sizeof( mxd_mca_timer_record_field_defaults[0] );
 
@@ -116,6 +122,14 @@ mxd_mca_timer_get_pointers( MX_TIMER *timer,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
+mxd_mca_timer_initialize_type( long type )
+{
+	/* Nothing needed here. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_mca_timer_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_mca_timer_create_record_structures()";
@@ -155,8 +169,7 @@ mxd_mca_timer_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_timer_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_mca_timer_finish_record_initialization()";
+	static const char fname[] = "mxd_mca_timer_finish_record_initialization()";
 
 	MX_TIMER *timer;
 	MX_MCA_TIMER *mca_timer;
@@ -190,12 +203,61 @@ mxd_mca_timer_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_mca_timer_delete_record( MX_RECORD *record )
+{
+	MX_MCA_TIMER *mca_timer;
+
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mca_timer = (MX_MCA_TIMER *) record->record_type_struct;
+
+	if ( mca_timer != NULL ) {
+
+		free( mca_timer );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mca_timer_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mca_timer_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mca_timer_open( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_mca_timer_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_mca_timer_is_busy( MX_TIMER *timer )
 {
 	static const char fname[] = "mxd_mca_timer_is_busy()";
 
 	MX_MCA_TIMER *mca_timer;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );

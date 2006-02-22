@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_timer_record_field_defaults[] = {
 	MX_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_timer_num_record_fields
+long mxd_soft_timer_num_record_fields
 		= sizeof( mxd_soft_timer_record_field_defaults )
 		  / sizeof( mxd_soft_timer_record_field_defaults[0] );
 

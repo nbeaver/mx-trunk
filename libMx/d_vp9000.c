@@ -14,8 +14,6 @@
  *
  */
 
-#define MXD_VP9000_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,12 +60,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_vp9000_record_field_defaults[] = {
 	MXD_VP9000_STANDARD_FIELDS
 };
 
-mx_length_type mxd_vp9000_num_record_fields
+long mxd_vp9000_num_record_fields
 		= sizeof( mxd_vp9000_record_field_defaults )
 			/ sizeof( mxd_vp9000_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_vp9000_rfield_def_ptr
 			= &mxd_vp9000_record_field_defaults[0];
+
+#define MXD_VP9000_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -169,18 +169,18 @@ mxd_vp9000_check_encoder_registration( MX_MOTOR *motor,
 	static const char fname[] = "mxd_vp9000_check_encoder_registration()";
 
 	char response[20];
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( vp9000_motor->vp9000_flags & MXF_VP9000_DISABLE_ENCODER_CHECK )
 		return MX_SUCCESSFUL_RESULT;
 
 	/* Check to see if the motor and encoder counts agree */
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 			"%", response, sizeof(response), MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	switch( response[0] ) {
 	case '=':   /* Everything is OK. */
@@ -250,12 +250,12 @@ mxd_vp9000_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] = "mxd_vp9000_finish_record_initialization()";
 
 	MX_VP9000_MOTOR *vp9000_motor;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mx_motor_finish_record_initialization( record );
+	status = mx_motor_finish_record_initialization( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	vp9000_motor = (MX_VP9000_MOTOR *) record->record_type_struct;
 
@@ -301,7 +301,7 @@ mxd_vp9000_print_structure( FILE *file, MX_RECORD *record )
 	MX_RECORD *interface_record;
 	MX_VP9000_MOTOR *vp9000_motor;
 	double position, move_deadband;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -349,9 +349,9 @@ mxd_vp9000_print_structure( FILE *file, MX_RECORD *record )
 					vp9000_motor->controller_number);
 	fprintf(file, "  motor number      = %d\n", vp9000_motor->motor_number);
 
-	mx_status = mx_motor_get_position( record, &position );
+	status = mx_motor_get_position( record, &position );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -359,7 +359,7 @@ mxd_vp9000_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
+			motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -367,26 +367,26 @@ mxd_vp9000_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	fprintf(file, "  raw speed         = %ld steps/second\n",
-		(long) vp9000_motor->vp9000_speed );
+		vp9000_motor->vp9000_speed );
 	fprintf(file, "  raw acceleration  = %ld steps/(second^2)\n\n",
-		(long) vp9000_motor->vp9000_acceleration );
+		vp9000_motor->vp9000_acceleration );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -401,33 +401,32 @@ mxd_vp9000_open( MX_RECORD *record )
 	MX_VP9000 *vp9000;
 	char command[40];
 	long acceleration_parameter;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warning. */
 
 	motor = NULL;
 
-	mx_status = mxd_vp9000_get_record_pointers( record, &motor, fname );
+	status = mxd_vp9000_get_record_pointers( record, &motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Set the raw speed. */
 
 	sprintf( command, "S%dM%ld", vp9000_motor->motor_number,
-				(long) vp9000_motor->vp9000_speed );
+				vp9000_motor->vp9000_speed );
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 					command, NULL, 0, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Set the raw acceleration. */
 
@@ -437,10 +436,10 @@ mxd_vp9000_open( MX_RECORD *record )
 	sprintf( command, "A%dM%ld", vp9000_motor->motor_number,
 				acceleration_parameter );
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 					command, NULL, 0, MXD_VP9000_DEBUG );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -449,7 +448,7 @@ mxd_vp9000_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxd_vp9000_resynchronize()";
 
 	MX_VP9000_MOTOR *vp9000_motor;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -464,10 +463,10 @@ mxd_vp9000_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mxi_vp9000_resynchronize(
+	status = mxi_vp9000_resynchronize(
 			vp9000_motor->interface_record );
 
-	return mx_status;
+	return status;
 }
 
 /* ============ Motor specific functions ============ */
@@ -482,14 +481,13 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 	MX_VP9000_MOTOR *vp9000_motor;
 	char c, c2;
 	int i;
-	uint32_t num_input_bytes_available;
-	mx_status_type mx_status;
+	unsigned long num_input_bytes_available;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( (vp9000->active_controller == 0) && (vp9000->active_motor == 0)) {
 
@@ -505,11 +503,11 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 			generic = (MX_GENERIC *)
 			  vp9000_motor->interface_record->record_class_struct;
 
-			mx_status = mxi_vp9000_num_input_bytes_available(
-					generic, &num_input_bytes_available );
+			status = mxi_vp9000_num_input_bytes_available( generic,
+						&num_input_bytes_available );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			if ( num_input_bytes_available == 0 ) {
 			    motor->busy = TRUE;
@@ -518,12 +516,12 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 			     * interface.
 			     */
 
-			    mx_status = mxi_vp9000_getc( vp9000,
+			    status = mxi_vp9000_getc( vp9000,
 					vp9000_motor->controller_number,
 					&c, MXF_GENERIC_WAIT );
 
-			    if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			    if ( status.code != MXE_SUCCESS )
+				return status;
 
 			    switch ( c ) {
 			    case '^':
@@ -537,12 +535,12 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 				 * to throw away.
 				 */
 
-				mx_status = mxi_vp9000_getc( vp9000,
+				status = mxi_vp9000_getc( vp9000,
 					vp9000_motor->controller_number,
 						&c2, MXF_GENERIC_WAIT );
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				if ( status.code != MXE_SUCCESS )
+					return status;
 
 				break;
 			    case 'O':
@@ -568,12 +566,12 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 				 * these characters away.
 				 */
 				for ( i = 0; i < 3; i++ ) {
-				    mx_status = mxi_vp9000_getc( vp9000,
+				    status = mxi_vp9000_getc( vp9000,
 					vp9000_motor->controller_number,
 					&c2, MXF_GENERIC_WAIT);
 
-					if ( mx_status.code != MXE_SUCCESS )
-					    return mx_status;
+					if (status.code != MXE_SUCCESS)
+					    return status;
 				}
 				break;
 			    default:
@@ -586,11 +584,11 @@ mxd_vp9000_motor_is_busy( MX_MOTOR *motor )
 			     * agree with each other.
 			     */
 
-			    mx_status = mxd_vp9000_check_encoder_registration(
+			    status = mxd_vp9000_check_encoder_registration(
 						motor, vp9000, vp9000_motor );
 
-			    if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			    if ( status.code != MXE_SUCCESS )
+				return status;
 			}
 		}
 	}
@@ -607,13 +605,12 @@ mxd_vp9000_move_absolute( MX_MOTOR *motor )
 	MX_VP9000_MOTOR *vp9000_motor;
 	char command[20];
 	long absolute_steps, relative_steps;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Set the position to move to. */
 
@@ -634,7 +631,7 @@ mxd_vp9000_move_absolute( MX_MOTOR *motor )
 	sprintf( command, "PM-0,IA%dM%ld,R",
 			vp9000_motor->motor_number, absolute_steps );
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 				command, NULL, 0, MXD_VP9000_DEBUG );
 
 	vp9000->active_controller = vp9000_motor->controller_number;
@@ -644,7 +641,7 @@ mxd_vp9000_move_absolute( MX_MOTOR *motor )
 	vp9000_motor->positive_limit_latch = FALSE;
 	vp9000_motor->negative_limit_latch = FALSE;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -662,20 +659,19 @@ mxd_vp9000_get_position( MX_MOTOR *motor )
 	double time_since_move_started;
 	double steps_moved_temp;
 	time_t current_time;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Is this motor in motion?  If so, estimate its current position
 	 * using dead reckoning.  The acceleration time is ignored by
 	 * this calculation.
 	 */
 
-	if ( vp9000_motor->motor_is_moving ) {
+	if ( vp9000_motor->motor_is_moving == TRUE ) {
 
 		current_time = time( NULL );
 
@@ -718,11 +714,11 @@ mxd_vp9000_get_position( MX_MOTOR *motor )
 		break;
 	}
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 			command, response, sizeof response, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_tokens = sscanf( response, "%ld", &motor_steps );
 
@@ -748,13 +744,12 @@ mxd_vp9000_set_position( MX_MOTOR *motor )
 	char command[100];
 	char response[20];
 	long new_position;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* This controller can only set the current position to zero.
 	 * Reject any attempts to set it to anything else.
@@ -786,21 +781,21 @@ mxd_vp9000_set_position( MX_MOTOR *motor )
 
 	sprintf( command, "PM-0,IA%dM-0,R", vp9000_motor->motor_number );
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 					command, NULL, 0, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* The controller will return a ^<CR> combination.  Discard these
 	 * two characters.
 	 */
 
-	mx_status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
 				response, sizeof response, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( strcmp( response, "^" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -809,7 +804,7 @@ mxd_vp9000_set_position( MX_MOTOR *motor )
 				motor->record->name, response );
 	}
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -820,13 +815,12 @@ mxd_vp9000_soft_abort( MX_MOTOR *motor )
 	MX_VP9000 *vp9000;
 	MX_VP9000_MOTOR *vp9000_motor;
 	char response[20];
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* If we are not the active motor, then just return. */
 
@@ -835,21 +829,21 @@ mxd_vp9000_soft_abort( MX_MOTOR *motor )
 
 	/* Tell the motor to decelerate to a stop. */
 
-	mx_status = mxi_vp9000_putc( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_putc( vp9000, vp9000_motor->controller_number,
 					'D', MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* The controller will return a ^<CR> combination.  Discard these
 	 * two characters and then reset the flags in the various structures.
 	 */
 
-	mx_status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
 				response, sizeof response, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( strcmp( response, "^" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -865,10 +859,10 @@ mxd_vp9000_soft_abort( MX_MOTOR *motor )
 
 	/* Check to see if the motor and encoder counts agree */
 
-	mx_status = mxd_vp9000_check_encoder_registration(
+	status = mxd_vp9000_check_encoder_registration(
 				motor, vp9000, vp9000_motor );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -879,13 +873,12 @@ mxd_vp9000_immediate_abort( MX_MOTOR *motor )
 	MX_VP9000 *vp9000;
 	MX_VP9000_MOTOR *vp9000_motor;
 	char response[20];
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* If we are not the active motor, then just return. */
 
@@ -894,21 +887,21 @@ mxd_vp9000_immediate_abort( MX_MOTOR *motor )
 
 	/* Tell the controller to kill the operation in progress. */
 
-	mx_status = mxi_vp9000_putc( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_putc( vp9000, vp9000_motor->controller_number,
 					'K', MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* The controller will return a ^<CR> combination.  Discard these
 	 * two characters and then reset the flags in the various structures.
 	 */
 
-	mx_status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_getline( vp9000, vp9000_motor->controller_number,
 				response, sizeof response, MXD_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( strcmp( response, "^" ) != 0 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -924,10 +917,10 @@ mxd_vp9000_immediate_abort( MX_MOTOR *motor )
 
 	/* Check to see if the motor and encoder counts agree */
 
-	mx_status = mxd_vp9000_check_encoder_registration(
+	status = mxd_vp9000_check_encoder_registration(
 				motor, vp9000, vp9000_motor );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -945,7 +938,7 @@ mxd_vp9000_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	if ( vp9000_motor->positive_limit_latch ) {
+	if ( vp9000_motor->positive_limit_latch == TRUE ) {
 		motor->positive_limit_hit = TRUE;
 	} else {
 		motor->positive_limit_hit = FALSE;
@@ -971,7 +964,7 @@ mxd_vp9000_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	if ( vp9000_motor->negative_limit_latch ) {
+	if ( vp9000_motor->negative_limit_latch == TRUE ) {
 		motor->negative_limit_hit = TRUE;
 	} else {
 		motor->negative_limit_hit = FALSE;
@@ -990,13 +983,12 @@ mxd_vp9000_find_home_position( MX_MOTOR *motor )
 	MX_VP9000 *vp9000;
 	MX_VP9000_MOTOR *vp9000_motor;
 	char command[20];
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_vp9000_get_pointers(motor,
-					&vp9000_motor, &vp9000, fname);
+	status = mxd_vp9000_get_pointers(motor, &vp9000_motor, &vp9000, fname);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( motor->home_search >= 0 ) {
 		sprintf( command, "I%dM0", vp9000_motor->motor_number );
@@ -1006,9 +998,9 @@ mxd_vp9000_find_home_position( MX_MOTOR *motor )
 
 	/* Command the home search to start. */
 
-	mx_status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
+	status = mxi_vp9000_command( vp9000, vp9000_motor->controller_number,
 				command, NULL, 0, MXD_VP9000_DEBUG );
 
-	return mx_status;
+	return status;
 }
 

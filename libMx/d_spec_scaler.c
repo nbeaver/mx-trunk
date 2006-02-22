@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_spec_scaler_record_field_defaults[] = {
 	MXD_SPEC_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_spec_scaler_num_record_fields
+long mxd_spec_scaler_num_record_fields
 		= sizeof( mxd_spec_scaler_record_field_defaults )
 		  / sizeof( mxd_spec_scaler_record_field_defaults[0] );
 
@@ -160,7 +160,7 @@ mxd_spec_scaler_read( MX_SCALER *scaler )
 
 	MX_SPEC_SCALER *spec_scaler;
 	char property_name[SV_NAME_LEN];
-	int32_t value;
+	long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -177,7 +177,7 @@ mxd_spec_scaler_read( MX_SCALER *scaler )
 					spec_scaler->remote_scaler_name );
 
 	mx_status = mx_spec_get_number( spec_scaler->spec_server_record,
-				property_name, MXFT_INT32, &value );
+				property_name, MXFT_LONG, &value );
 
 	scaler->raw_value = value;
 

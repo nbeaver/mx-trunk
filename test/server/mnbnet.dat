@@ -8,8 +8,6 @@ sff_header1    variable net_variable net_string "" "" 17id sff_header1.value 1  
 sff_header2    variable net_variable net_string "" "" 17id sff_header2.value 1  81 ""
 sff_header3    variable net_variable net_string "" "" 17id sff_header3.value 1  81 ""
 sff_header_fmt variable net_variable net_string "" "" 17id sff_header_fmt.value 1  161 "edge_energy | sff_header1 | sff_header2 | sff_header3 | %devices"
-64bit          variable net_variable net_int64 "" "" 17id 64bit.value 1 1 0
-64u            variable net_variable net_uint64 "" "" 17id 64u.value 1 1 0
 tty1           interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 17id tty1
 theta          device motor network_motor "" "" 10 0 -100000 100000 0 -1 -1 1 0 deg 17id theta_real
 rawomega       device motor network_motor "" "" 0 -20 -50000 50000 0 -1 -1 1 0 um 17id rawomega

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,8 @@ typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points
 			    * to this MX_VARIABLE structure.
 			    */
-	mx_length_type num_dimensions;
-	mx_length_type *dimension;
+	long num_dimensions;
+	long *dimension;
 
 	void *pointer_to_value;
 } MX_VARIABLE;
@@ -38,14 +38,14 @@ MX_API_PRIVATE mx_status_type mx_variable_initialize_type( long record_type );
 MX_API_PRIVATE mx_status_type
 		mx_variable_fixup_varargs_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		mx_length_type num_record_fields );
+		long num_record_fields );
 
 MX_API mx_status_type mx_send_variable( MX_RECORD *record );
 MX_API mx_status_type mx_receive_variable( MX_RECORD *record );
 
 MX_API mx_status_type mx_get_variable_parameters( MX_RECORD *record,
-					mx_length_type *num_dimensions,
-					mx_length_type **dimension_array,
+					long *num_dimensions,
+					long **dimension_array,
 					long *field_type,
 					void **pointer_to_value );
 
@@ -57,30 +57,35 @@ MX_API mx_status_type mx_get_variable_pointer( MX_RECORD *record,
 MX_API mx_status_type mx_get_1d_array_by_name( MX_RECORD *record_list,
 					char *record_name,
 					long field_type,
-					mx_length_type *num_elements,
+					long *num_elements,
 					void **pointer_to_value );
 
 MX_API mx_status_type mx_get_1d_array( MX_RECORD *record,
 					long field_type,
-					mx_length_type *num_elements,
+					long *num_elements,
 					void **pointer_to_value );
 
 MX_API mx_status_type mx_set_1d_array( MX_RECORD *record,
 					long field_type,
-					mx_length_type num_elements,
+					long num_elements,
 					void *pointer_to_value );
 
 /*---*/
 
-MX_API mx_status_type mx_get_int32_variable_by_name(
+MX_API mx_status_type mx_get_int_variable_by_name(
 					MX_RECORD *record_list,
 					char *record_name,
-					int32_t *int32_value );
+					int *int_value );
 
-MX_API mx_status_type mx_get_uint32_variable_by_name(
+MX_API mx_status_type mx_get_long_variable_by_name(
 					MX_RECORD *record_list,
 					char *record_name,
-					uint32_t *uint32_value );
+					long *long_value );
+
+MX_API mx_status_type mx_get_unsigned_long_variable_by_name(
+					MX_RECORD *record_list,
+					char *record_name,
+					unsigned long *unsigned_long_value );
 
 MX_API mx_status_type mx_get_double_variable_by_name(
 					MX_RECORD *record_list,
@@ -98,32 +103,26 @@ MX_API mx_status_type mx_get_string_variable_by_name(
 MX_API mx_status_type mx_get_char_variable( MX_RECORD *record,
 					char *char_value );
 
-MX_API mx_status_type mx_get_uchar_variable( MX_RECORD *record,
-					unsigned char *uchar_value );
+MX_API mx_status_type mx_get_unsigned_char_variable( MX_RECORD *record,
+					unsigned char *unsigned_char_value );
 
-MX_API mx_status_type mx_get_int8_variable( MX_RECORD *record,
-					int8_t *int8_value );
+MX_API mx_status_type mx_get_short_variable( MX_RECORD *record,
+					short *short_value );
 
-MX_API mx_status_type mx_get_uint8_variable( MX_RECORD *record,
-					uint8_t *uint8_value );
+MX_API mx_status_type mx_get_unsigned_short_variable( MX_RECORD *record,
+					unsigned short *unsigned_short_value );
 
-MX_API mx_status_type mx_get_int16_variable( MX_RECORD *record,
-					int16_t *int16_value );
+MX_API mx_status_type mx_get_int_variable( MX_RECORD *record,
+					int *int_value );
 
-MX_API mx_status_type mx_get_uint16_variable( MX_RECORD *record,
-					uint16_t *uint16_value );
+MX_API mx_status_type mx_get_unsigned_int_variable( MX_RECORD *record,
+					unsigned int *unsigned_int_value );
 
-MX_API mx_status_type mx_get_int32_variable( MX_RECORD *record,
-					int32_t *int32_value );
+MX_API mx_status_type mx_get_long_variable( MX_RECORD *record,
+					long *long_value );
 
-MX_API mx_status_type mx_get_uint32_variable( MX_RECORD *record,
-					uint32_t *uint32_value );
-
-MX_API mx_status_type mx_get_int64_variable( MX_RECORD *record,
-					int64_t *int64_value );
-
-MX_API mx_status_type mx_get_uint64_variable( MX_RECORD *record,
-					uint64_t *uint64_value );
+MX_API mx_status_type mx_get_unsigned_long_variable( MX_RECORD *record,
+					unsigned long *unsigned_long_value );
 
 MX_API mx_status_type mx_get_float_variable( MX_RECORD *record,
 					float *float_value );
@@ -140,32 +139,26 @@ MX_API mx_status_type mx_get_string_variable( MX_RECORD *record,
 MX_API mx_status_type mx_set_char_variable( MX_RECORD *record,
 					char char_value );
 
-MX_API mx_status_type mx_set_uchar_variable( MX_RECORD *record,
-					unsigned char uchar_value );
+MX_API mx_status_type mx_set_unsigned_char_variable( MX_RECORD *record,
+					unsigned char unsigned_char_value );
 
-MX_API mx_status_type mx_set_int8_variable( MX_RECORD *record,
-					int8_t int8_value );
+MX_API mx_status_type mx_set_short_variable( MX_RECORD *record,
+					short short_value );
 
-MX_API mx_status_type mx_set_uint8_variable( MX_RECORD *record,
-					uint8_t uint8_value );
+MX_API mx_status_type mx_set_unsigned_short_variable( MX_RECORD *record,
+					unsigned short unsigned_short_value );
 
-MX_API mx_status_type mx_set_int16_variable( MX_RECORD *record,
-					int16_t int16_value );
+MX_API mx_status_type mx_set_int_variable( MX_RECORD *record,
+					int int_value );
 
-MX_API mx_status_type mx_set_uint16_variable( MX_RECORD *record,
-					uint16_t uint16_value );
+MX_API mx_status_type mx_set_unsigned_int_variable( MX_RECORD *record,
+					unsigned int unsigned_int_value );
 
-MX_API mx_status_type mx_set_int32_variable( MX_RECORD *record,
-					int32_t int32_value );
+MX_API mx_status_type mx_set_long_variable( MX_RECORD *record,
+					long long_value );
 
-MX_API mx_status_type mx_set_uint32_variable( MX_RECORD *record,
-					uint32_t uint32_value );
-
-MX_API mx_status_type mx_set_int64_variable( MX_RECORD *record,
-					int64_t int64_value );
-
-MX_API mx_status_type mx_set_uint64_variable( MX_RECORD *record,
-					uint64_t uint64_value );
+MX_API mx_status_type mx_set_unsigned_long_variable( MX_RECORD *record,
+					unsigned long unsigned_long_value );
 
 MX_API mx_status_type mx_set_float_variable( MX_RECORD *record,
 					float float_value );
@@ -188,53 +181,49 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(char ****), sizeof(char *****), \
 	sizeof(char ******), sizeof(char *******) }
 
-#define MXA_INT8_SIZEOF \
-	{ sizeof(int8_t), sizeof(int8_t *), \
-	sizeof(int8_t **), sizeof(int8_t ***), \
-	sizeof(int8_t ****), sizeof(int8_t *****), \
-	sizeof(int8_t ******), sizeof(int8_t *******) }
+#define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
 
-#define MXA_UINT8_SIZEOF \
-	{ sizeof(uint8_t), sizeof(uint8_t *), \
-	sizeof(uint8_t **), sizeof(uint8_t ***), \
-	sizeof(uint8_t ****), sizeof(uint8_t *****), \
-	sizeof(uint8_t ******), sizeof(uint8_t *******) }
+#define MXA_UCHAR_SIZEOF \
+	{ sizeof(unsigned char), sizeof(unsigned char *), \
+	sizeof(unsigned char **), sizeof(unsigned char ***), \
+	sizeof(unsigned char ****), sizeof(unsigned char *****), \
+	sizeof(unsigned char ******), sizeof(unsigned char *******) }
 
-#define MXA_INT16_SIZEOF \
-	{ sizeof(int16_t), sizeof(int16_t *), \
-	sizeof(int16_t **), sizeof(int16_t ***), \
-	sizeof(int16_t ****), sizeof(int16_t *****), \
-	sizeof(int16_t ******), sizeof(int16_t *******) }
+#define MXA_SHORT_SIZEOF \
+	{ sizeof(short), sizeof(short *), \
+	sizeof(short **), sizeof(short ***), \
+	sizeof(short ****), sizeof(short *****), \
+	sizeof(short ******), sizeof(short *******) }
 
-#define MXA_UINT16_SIZEOF \
-	{ sizeof(uint16_t), sizeof(uint16_t *), \
-	sizeof(uint16_t **), sizeof(uint16_t ***), \
-	sizeof(uint16_t ****), sizeof(uint16_t *****), \
-	sizeof(uint16_t ******), sizeof(uint16_t *******) }
+#define MXA_USHORT_SIZEOF \
+	{ sizeof(unsigned short), sizeof(unsigned short *), \
+	sizeof(unsigned short **), sizeof(unsigned short ***), \
+	sizeof(unsigned short ****), sizeof(unsigned short *****), \
+	sizeof(unsigned short ******), sizeof(unsigned short *******) }
 
-#define MXA_INT32_SIZEOF \
-	{ sizeof(int32_t), sizeof(int32_t *), \
-	sizeof(int32_t **), sizeof(int32_t ***), \
-	sizeof(int32_t ****), sizeof(int32_t *****), \
-	sizeof(int32_t ******), sizeof(int32_t *******) }
+#define MXA_INT_SIZEOF \
+	{ sizeof(int), sizeof(int *), \
+	sizeof(int **), sizeof(int ***), \
+	sizeof(int ****), sizeof(int *****), \
+	sizeof(int ******), sizeof(int *******) }
 
-#define MXA_UINT32_SIZEOF \
-	{ sizeof(uint32_t), sizeof(uint32_t *), \
-	sizeof(uint32_t **), sizeof(uint32_t ***), \
-	sizeof(uint32_t ****), sizeof(uint32_t *****), \
-	sizeof(uint32_t ******), sizeof(uint32_t *******) }
+#define MXA_UINT_SIZEOF \
+	{ sizeof(unsigned int), sizeof(unsigned int *), \
+	sizeof(unsigned int **), sizeof(unsigned int ***), \
+	sizeof(unsigned int ****), sizeof(unsigned int *****), \
+	sizeof(unsigned int ******), sizeof(unsigned int *******) }
 
-#define MXA_INT64_SIZEOF \
-	{ sizeof(int64_t), sizeof(int64_t *), \
-	sizeof(int64_t **), sizeof(int64_t ***), \
-	sizeof(int64_t ****), sizeof(int64_t *****), \
-	sizeof(int64_t ******), sizeof(int64_t *******) }
+#define MXA_LONG_SIZEOF \
+	{ sizeof(long), sizeof(long *), \
+	sizeof(long **), sizeof(long ***), \
+	sizeof(long ****), sizeof(long *****), \
+	sizeof(long ******), sizeof(long *******) }
 
-#define MXA_UINT64_SIZEOF \
-	{ sizeof(uint64_t), sizeof(uint64_t *), \
-	sizeof(uint64_t **), sizeof(uint64_t ***), \
-	sizeof(uint64_t ****), sizeof(uint64_t *****), \
-	sizeof(uint64_t ******), sizeof(uint64_t *******) }
+#define MXA_ULONG_SIZEOF \
+	{ sizeof(unsigned long), sizeof(unsigned long *), \
+	sizeof(unsigned long **), sizeof(unsigned long ***), \
+	sizeof(unsigned long ****), sizeof(unsigned long *****), \
+	sizeof(unsigned long ******), sizeof(unsigned long *******) }
 
 #define MXA_FLOAT_SIZEOF \
 	{ sizeof(float), sizeof(float *), \
@@ -248,16 +237,6 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(double ****), sizeof(double *****), \
 	sizeof(double ******), sizeof(double *******) }
 
-#define MXA_HEX_SIZEOF      MXA_UINT32_SIZEOF
-
-#define MXA_CHAR_SIZEOF     MXA_STRING_SIZEOF
-
-#define MXA_UCHAR_SIZEOF \
-	{ sizeof(unsigned char), sizeof(unsigned char *), \
-	sizeof(unsigned char **), sizeof(unsigned char ***), \
-	sizeof(unsigned char ****), sizeof(unsigned char *****), \
-	sizeof(unsigned char ******), sizeof(unsigned char *******) }
-
 #define MXA_RECORD_SIZEOF \
 	{ sizeof(MX_RECORD *), sizeof(MX_RECORD **), \
 	sizeof(MX_RECORD ***), sizeof(MX_RECORD ****), \
@@ -269,14 +248,13 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 #define MXLV_VAR_VALUE		1001
 
 #define MX_VARIABLE_STANDARD_FIELDS \
-  {-1, -1, "num_dimensions", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_dimensions", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, num_dimensions), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_READ_ONLY)}, \
+	{0}, NULL, MXFF_IN_DESCRIPTION}, \
 \
-  {-1, -1, "dimension", MXFT_LENGTH, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "dimension", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, dimension), \
-	{sizeof(mx_length_type)}, NULL, \
-		(MXFF_IN_DESCRIPTION | MXFF_VARARGS | MXFF_READ_ONLY) }
+	{sizeof(long)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }
 
 
 /* =========================================== */
@@ -302,60 +280,46 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXA_UCHAR_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_INT8_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT8, NULL, \
+#define MX_SHORT_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_SHORT, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT8_SIZEOF, NULL, \
+	MXA_SHORT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_UINT8_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT8, NULL, \
+#define MX_USHORT_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_USHORT, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT8_SIZEOF, NULL, \
+	MXA_USHORT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_INT16_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT16, NULL, \
+#define MX_INT_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT16_SIZEOF, NULL, \
+	MXA_INT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_UINT16_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT16, NULL, \
+#define MX_UINT_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT16_SIZEOF, NULL, \
+	MXA_UINT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_INT32_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT32, NULL, \
+#define MX_LONG_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_LONG, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT32_SIZEOF, NULL, \
+	MXA_LONG_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_UINT32_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT32, NULL, \
+#define MX_ULONG_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_ULONG, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT32_SIZEOF, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
-
-#define MX_INT64_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT64, NULL, \
-	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT64_SIZEOF, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
-
-#define MX_UINT64_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT64, NULL, \
-	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT64_SIZEOF, NULL, \
+	MXA_ULONG_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_FLOAT_VARIABLE_STANDARD_FIELDS \

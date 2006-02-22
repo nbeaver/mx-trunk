@@ -17,8 +17,6 @@
  *
  */
 
-#define MXI_UGLIDE_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -49,12 +47,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_uglide_record_field_defaults[] = {
 	MXI_UGLIDE_STANDARD_FIELDS
 };
 
-mx_length_type mxi_uglide_num_record_fields
+long mxi_uglide_num_record_fields
 		= sizeof( mxi_uglide_record_field_defaults )
 			/ sizeof( mxi_uglide_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_uglide_rfield_def_ptr
 			= &mxi_uglide_record_field_defaults[0];
+
+#define MXI_UGLIDE_DEBUG	FALSE
 
 static mx_status_type mxi_uglide_handle_response( MX_UGLIDE *uglide,
 							char *command,
@@ -172,12 +172,11 @@ mxi_uglide_open( MX_RECORD *record )
 	char operation[40];
 	int mode, bypass_home_search, exit_loop;
 	unsigned long i, j, k;
-	unsigned long i_command_max_retries;
+	unsigned long i_command_max_retries, num_input_bytes_available;
 	unsigned long getline_max_attempts, getline_sleep_ms;
 	unsigned long home_search_max_attempts, home_search_sleep_ms;
 	char c;
 	long length;
-	uint32_t num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxi_uglide_get_pointers( record, &uglide, fname );
@@ -206,7 +205,7 @@ mxi_uglide_open( MX_RECORD *record )
 			return mx_status;
 
 		MX_DEBUG( 2,("%s: num_input_bytes_available = %lu",
-			fname, (unsigned long) num_input_bytes_available ));
+				fname, num_input_bytes_available ));
 
 		if ( num_input_bytes_available == 0 )
 			break;			/* Exit the for(;;) loop. */
@@ -475,7 +474,7 @@ mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 	char local_command[80];
 	char response[80];
 	int retry, first_pass;
-	uint32_t num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	if ( uglide == NULL ) {
@@ -609,8 +608,7 @@ mxi_uglide_getline( MX_UGLIDE *uglide,
 {
 	static const char fname[] = "mxi_uglide_getline()";
 
-	unsigned long i, max_retries, milliseconds;
-	uint32_t num_input_bytes_available;
+	unsigned long i, max_retries, milliseconds, num_input_bytes_available;
 	mx_status_type mx_status;
 
 	max_retries = 10;

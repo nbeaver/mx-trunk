@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,12 +51,12 @@ typedef struct {
 	char options[MXU_PLOT_OPTIONS_LENGTH + 1];
 	char *plot_arguments;
 
-	mx_length_type num_x_motors;
+	long num_x_motors;
 	MX_RECORD **x_motor_array;
 	double **x_position_array;
 
-	mx_bool_type continuous_plot;
-	mx_bool_type normalize_data;
+	int continuous_plot;
+	int normalize_data;
 
 	void *plot_type_struct;
 	void *plot_function_list;
@@ -68,8 +68,8 @@ typedef struct {
 	mx_status_type ( *close ) ( MX_PLOT *plot );
 	mx_status_type ( *add_measurement_to_plot_buffer ) ( MX_PLOT *plot );
 	mx_status_type ( *add_array_to_plot_buffer ) ( MX_PLOT *plot,
-	 long position_type, mx_length_type num_positions, void *position_array,
-	 long data_type, mx_length_type num_data_points, void *data_array );
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array );
 	mx_status_type ( *display_plot ) ( MX_PLOT *plot );
 	mx_status_type ( *set_x_range ) ( MX_PLOT *plot,
 					double x_min, double x_max );
@@ -95,28 +95,20 @@ MX_API mx_status_type mx_get_plot_type_by_value(
 	MX_PLOT_TYPE_ENTRY **plot_type_entry );
 
 MX_API mx_status_type mx_plot_open( MX_PLOT *plot );
-
 MX_API mx_status_type mx_plot_close( MX_PLOT *plot );
-
 MX_API mx_status_type mx_add_measurement_to_plot_buffer( MX_PLOT *plot );
-
 MX_API mx_status_type mx_add_array_to_plot_buffer( MX_PLOT *plot,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array );
-
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array );
 MX_API mx_status_type mx_display_plot( MX_PLOT * );
-
 MX_API mx_status_type mx_plot_set_x_range( MX_PLOT *plot,
 				double x_min, double x_max );
-
 MX_API mx_status_type mx_plot_set_y_range( MX_PLOT *plot,
 				double y_min, double y_max );
-
 MX_API mx_status_type mx_plot_start_plot_section( MX_PLOT *plot );
 
-MX_API mx_bool_type mx_plotting_is_enabled( MX_RECORD *record );
-
-MX_API void mx_set_plot_enable( MX_RECORD *record, mx_bool_type enable );
+MX_API int mx_plotting_is_enabled( MX_RECORD *record );
+MX_API void mx_set_plot_enable( MX_RECORD *record, int enable );
 
 MX_API MX_PLOT_TYPE_ENTRY *mx_plot_get_type_list( void );
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_ion_chamber_rf_defaults[] = {
 	MXD_BLUICE_ION_CHAMBER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_bluice_ion_chamber_num_record_fields
+long mxd_bluice_ion_chamber_num_record_fields
 		= sizeof( mxd_bluice_ion_chamber_rf_defaults )
 		  / sizeof( mxd_bluice_ion_chamber_rf_defaults[0] );
 

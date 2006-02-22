@@ -30,7 +30,7 @@ motor_prompt_for_scan_header( MX_SCAN *scan )
 	char prompt[100];
 	char new_value[200];
 	int i, status, header_string_length;
-	mx_length_type variable_length;
+	long variable_length;
 	mx_status_type mx_status;
 	void *pointer_to_value;
 

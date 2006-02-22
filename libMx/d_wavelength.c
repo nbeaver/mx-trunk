@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_wavelength_motor_record_field_defaults[] = {
 	MXD_WAVELENGTH_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_wavelength_motor_num_record_fields
+long mxd_wavelength_motor_num_record_fields
 		= sizeof( mxd_wavelength_motor_record_field_defaults )
 		    / sizeof( mxd_wavelength_motor_record_field_defaults[0] );
 
@@ -815,7 +815,7 @@ mxd_wavelength_motor_get_status( MX_MOTOR *motor )
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
 	MX_RECORD *dependent_motor_record;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_wavelength_motor_get_pointers( motor, &wavelength_motor,
@@ -858,7 +858,7 @@ mxd_wavelength_motor_get_extended_status( MX_MOTOR *motor )
 
 	MX_WAVELENGTH_MOTOR *wavelength_motor;
 	MX_RECORD *dependent_motor_record;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	double theta;
 	mx_status_type mx_status;
 

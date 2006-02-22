@@ -73,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pm304_record_field_defaults[] = {
 	MXD_PM304_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pm304_num_record_fields
+long mxd_pm304_num_record_fields
 		= sizeof( mxd_pm304_record_field_defaults )
 			/ sizeof( mxd_pm304_record_field_defaults[0] );
 
@@ -244,7 +244,7 @@ mxd_pm304_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  position           = %g %s  (%ld steps)\n",
 		motor->position, motor->units,
-		(long) motor->raw_position.stepper );
+		motor->raw_position.stepper );
 	fprintf(file, "  scale              = %g %s per step.\n",
 		motor->scale, motor->units);
 	fprintf(file, "  offset             = %g %s.\n",
@@ -252,21 +252,21 @@ mxd_pm304_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  backlash           = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper);
+		motor->raw_backlash_correction.stepper);
 
 	fprintf(file, "  negative limit     = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit     = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband      = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -278,7 +278,7 @@ mxd_pm304_open( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PM304 *pm304;
-	int32_t mclennan_position, position_from_database, difference;
+	long mclennan_position, position_from_database, difference;
 	double speed;
 	mx_status_type mx_status;
 
@@ -362,7 +362,7 @@ mxd_pm304_open( MX_RECORD *record )
 			mx_warning(
 "The McLennan controller '%s' appears to have been power cycled since "
 "the last time MX spoke to it.  Attempting to restore the saved position "
-"of %ld steps.", motor->record->name, (long) position_from_database );
+"of %ld steps.", motor->record->name, position_from_database );
 
 			mx_status = mx_motor_set_position_steps( motor->record,
 						position_from_database );

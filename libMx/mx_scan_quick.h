@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,11 +23,11 @@ typedef struct {
 	double *old_motor_speed;
 	double *start_position;
 	double *end_position;
-	int32_t requested_num_measurements;
-	int32_t actual_num_measurements;
+	long requested_num_measurements;
+	long actual_num_measurements;
 
-	int32_t use_synchronous_motion_mode;
-	int32_t *saved_synchronous_motion_mode;
+	int use_synchronous_motion_mode;
+	int *saved_synchronous_motion_mode;
 
 	double estimated_scan_duration;		/* in seconds */
 } MX_QUICK_SCAN;
@@ -63,17 +63,17 @@ MX_API_PRIVATE double mx_quick_scan_get_measurement_time(
 	{sizeof(double)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "requested_num_measurements", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "requested_num_measurements", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_QUICK_SCAN, requested_num_measurements), \
 	{0}, NULL, MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY }, \
   \
-  {-1, -1, "actual_num_measurements", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "actual_num_measurements", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_QUICK_SCAN, actual_num_measurements), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "saved_synchronous_motion_mode", MXFT_INT32, \
+  {-1, -1, "saved_synchronous_motion_mode", MXFT_INT, \
 		NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_QUICK_SCAN, saved_synchronous_motion_mode),\

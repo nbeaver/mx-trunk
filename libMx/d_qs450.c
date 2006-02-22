@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_qs450_record_field_defaults[] = {
 	MXD_QS450_STANDARD_FIELDS
 };
 
-mx_length_type mxd_qs450_num_record_fields
+long mxd_qs450_num_record_fields
 			= sizeof( mxd_qs450_record_field_defaults )
 				/ sizeof( mxd_qs450_record_field_defaults[0] );
 
@@ -72,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_ks3610_record_field_defaults[] = {
 	MXD_QS450_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ks3610_num_record_fields
+long mxd_ks3610_num_record_fields
 			= sizeof( mxd_ks3610_record_field_defaults )
 				/ sizeof( mxd_ks3610_record_field_defaults[0] );
 

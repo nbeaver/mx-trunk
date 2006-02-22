@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,11 +34,14 @@
 typedef struct {
 	MX_RECORD *record;
 
+	int interface_subtype;
 	MX_RECORD *rs232_record;
-	mx_length_type num_controllers;
-	mx_length_type *num_motors;
-	int32_t active_controller;
-	int32_t active_motor;
+	long num_controllers;
+	long *num_motors;
+	int active_controller;
+	int active_motor;
+
+	MX_RECORD *(*motor_array)[MX_MAX_VP9000_AXES];
 } MX_VP9000;
 
 #define MXI_VP9000_STANDARD_FIELDS \
@@ -46,15 +49,15 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_controllers", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_controllers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_VP9000, num_controllers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_motors", MXFT_LENGTH, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "num_motors", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000, num_motors), \
 	{sizeof(long)}, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS | MXFF_READ_ONLY)}
+		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}
 
 #ifndef MX_CR
 #define MX_CR	'\015'
@@ -79,7 +82,7 @@ MX_API mx_status_type mxi_vp9000_read( MX_GENERIC *generic,
 MX_API mx_status_type mxi_vp9000_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 MX_API mx_status_type mxi_vp9000_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available );
+				unsigned long *num_input_bytes_available );
 MX_API mx_status_type mxi_vp9000_discard_unread_input(
 				MX_GENERIC *generic, int debug_flag );
 MX_API mx_status_type mxi_vp9000_discard_unwritten_output(
@@ -88,7 +91,7 @@ MX_API mx_status_type mxi_vp9000_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_vp9000_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_vp9000_generic_function_list;
 
-extern mx_length_type mxi_vp9000_num_record_fields;
+extern long mxi_vp9000_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vp9000_rfield_def_ptr;
 
 /* === Driver specific functions === */

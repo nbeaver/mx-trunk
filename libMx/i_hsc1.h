@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,10 +33,10 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	mx_length_type num_modules;
+	long num_modules;
 
 	char **module_id;
-	mx_bool_type *module_is_busy;
+	int *module_is_busy;
 
 } MX_HSC1_INTERFACE;
 
@@ -45,7 +45,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HSC1_INTERFACE, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_modules", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_modules", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_HSC1_INTERFACE, num_modules), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -65,6 +65,11 @@ MX_API mx_status_type mxi_hsc1_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_hsc1_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxi_hsc1_delete_record( MX_RECORD *record );
+MX_API mx_status_type mxi_hsc1_read_parms_from_hardware(
+					MX_RECORD *record );
+MX_API mx_status_type mxi_hsc1_write_parms_to_hardware(
+					MX_RECORD *record );
 MX_API mx_status_type mxi_hsc1_open( MX_RECORD *record );
 MX_API mx_status_type mxi_hsc1_close( MX_RECORD *record );
 MX_API mx_status_type mxi_hsc1_resynchronize( MX_RECORD *record );
@@ -78,7 +83,7 @@ MX_API mx_status_type mxi_hsc1_read( MX_GENERIC *generic,
 MX_API mx_status_type mxi_hsc1_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 MX_API mx_status_type mxi_hsc1_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available );
+				unsigned long *num_input_bytes_available );
 MX_API mx_status_type mxi_hsc1_discard_unread_input(
 				MX_GENERIC *generic, int debug_flag );
 MX_API mx_status_type mxi_hsc1_discard_unwritten_output(
@@ -87,14 +92,14 @@ MX_API mx_status_type mxi_hsc1_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_hsc1_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_hsc1_generic_function_list;
 
-extern mx_length_type mxi_hsc1_num_record_fields;
+extern long mxi_hsc1_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_hsc1_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_hsc1_command(
-	MX_HSC1_INTERFACE *hsc1_interface, uint32_t module_number,
-	char *command, char *response, size_t response_buffer_length,
-	mx_hex_type debug_flag );
+	MX_HSC1_INTERFACE *hsc1_interface, unsigned long module_number,
+	char *command, char *response, int response_buffer_length,
+	int debug_flag );
 
 #endif /* __I_HSC1_H__ */

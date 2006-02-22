@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_keithley2700_record_field_defaults[] = {
 	MXI_KEITHLEY2700_STANDARD_FIELDS
 };
 
-mx_length_type mxi_keithley2700_num_record_fields
+long mxi_keithley2700_num_record_fields
 		= sizeof( mxi_keithley2700_record_field_defaults )
 		  / sizeof( mxi_keithley2700_record_field_defaults[0] );
 
@@ -187,7 +187,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 	char command[80];
 	char response[160];
 	int i, j, max_channels, module_type, num_items, channel_type;
-	mx_length_type dimension_array[2];
+	long dimension_array[2];
 	size_t size_array[2];
 	size_t length;
 	char *ptr;

@@ -45,7 +45,7 @@ static mx_status_type mx_delete_placeholder_handler( MX_RECORD *record,
 
 /* === */
 
-MX_EXPORT mx_bool_type
+MX_EXPORT int
 mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
 				long mx_class, long mx_type )
 {
@@ -309,7 +309,7 @@ mx_delete_record( MX_RECORD *record )
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"The record '%s' has %ld child records that depend on it.  The child "
 	"records must be deleted first before this record may be deleted.",
-			record->name, (long) record->num_child_records );
+				record->name, record->num_child_records );
 	}
 
 	/* Get a pointer to the record list head for later use. */
@@ -410,8 +410,7 @@ mx_delete_record( MX_RECORD *record )
 		list_head_struct->num_records--;
 
 		MX_DEBUG( 8,("%s: deleted record '%s', num_records = %lu",
-			fname, record->name,
-			(long) list_head_struct->num_records));
+			fname, record->name, list_head_struct->num_records));
 	}
 
 	/* Find the type specific 'delete record' function to 
@@ -616,7 +615,7 @@ mx_delete_placeholder_handler( MX_RECORD *record,
 	"The fixup_record_index (%ld) for record '%s', field '%s' is outside "
 	"the allowed range of 0 to %ld.",
 			fixup_record_index, record->name, record_field->name,
-			list_head->num_fixup_records - 1L );
+			(list_head->num_fixup_records) - 1 );
 	}
 
 	fixup_record_array = list_head->fixup_record_array;
@@ -704,7 +703,7 @@ mx_insert_after_record( MX_RECORD *old_record, MX_RECORD *new_record )
 	list_head->num_records++;
 
 	MX_DEBUG( 8,("%s: inserted record '%s', num_records = %lu",
-		fname, new_record->name, (long) list_head->num_records));
+		fname, new_record->name, list_head->num_records));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -892,9 +891,8 @@ mx_initialize_drivers( void )
 	MX_RECORD_FUNCTION_LIST *flist_ptr;
 	mx_status_type (*fptr) ( long );
 	mx_status_type mx_status;
-	long i;
-	mx_length_type j, num_record_fields;
-	mx_length_type *num_record_fields_ptr;
+	long *num_record_fields_ptr;
+	long i, j, num_record_fields;
 
 	MX_DEBUG( 6,("%s invoked.", fname));
 
@@ -927,7 +925,7 @@ mx_initialize_drivers( void )
 			{
 				MX_DEBUG( 8,
 		("num_record_fields = %ld, *record_field_defaults_ptr = %p",
-			     (long) *(list_ptr->num_record_fields),
+				    *(list_ptr->num_record_fields),
 				    *(list_ptr->record_field_defaults_ptr)));
 
 				mx_status
@@ -1421,7 +1419,7 @@ mx_write_database_file( MX_RECORD *record_list, char *filename,
 }
 
 MX_EXPORT mx_status_type
-mx_initialize_hardware( MX_RECORD *record_list_head, mx_hex_type inithw_flags )
+mx_initialize_hardware( MX_RECORD *record_list_head, int inithw_flags )
 {
 	static const char fname[] = "mx_initialize_hardware()";
 
@@ -1973,8 +1971,8 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 		= (MX_RECORD_ARRAY_DEPENDENCY_STRUCT *) dependency_struct_ptr;
 
 	MX_DEBUG( 8,("%s: add_dependency = %d, dependency_is_to_parent = %d",
-		fname, (int) dependency_struct->add_dependency,
-		(int) dependency_struct->dependency_is_to_parent));
+		fname, dependency_struct->add_dependency,
+		dependency_struct->dependency_is_to_parent));
 
 	if ( dependency_struct->add_dependency ) {
 		if ( dependency_struct->dependency_is_to_parent ) {
@@ -2000,7 +1998,7 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_add_parent_dependency(MX_RECORD *current_record,
-		mx_bool_type add_child_pointer_in_parent,
+		int add_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
 	static const char fname[] = "mx_add_parent_dependency()";
@@ -2138,7 +2136,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_parent_dependency(MX_RECORD *current_record,
-		mx_bool_type delete_child_pointer_in_parent,
+		int delete_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
 	static const char fname[] = "mx_delete_parent_dependency()";
@@ -2305,7 +2303,7 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_add_child_dependency(MX_RECORD *current_record,
-		mx_bool_type add_parent_pointer_in_child,
+		int add_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
 	static const char fname[] = "mx_add_child_dependency()";
@@ -2435,7 +2433,7 @@ mx_add_child_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_child_dependency(MX_RECORD *current_record,
-		mx_bool_type delete_parent_pointer_in_child,
+		int delete_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
 	static const char fname[] = "mx_delete_child_dependency()";
@@ -2689,7 +2687,7 @@ mx_set_field_application_ptr( MX_RECORD_FIELD *record_field,
  */
 
 MX_EXPORT mx_status_type
-mx_get_fast_mode( MX_RECORD *record, mx_bool_type *mode_flag )
+mx_get_fast_mode( MX_RECORD *record, int *mode_flag )
 {
 	static const char fname[] = "mx_get_fast_mode()";
 
@@ -2721,13 +2719,13 @@ mx_get_fast_mode( MX_RECORD *record, mx_bool_type *mode_flag )
 }
 
 MX_EXPORT mx_status_type
-mx_set_fast_mode( MX_RECORD *record, mx_bool_type mode_flag )
+mx_set_fast_mode( MX_RECORD *record, int mode_flag )
 {
 	static const char fname[] = "mx_set_fast_mode()";
 
 	MX_RECORD *list_head_record, *current_record;
 	MX_LIST_HEAD *list_head;
-	int32_t fast_mode_flag;
+	int fast_mode_flag;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2769,7 +2767,7 @@ mx_set_fast_mode( MX_RECORD *record, mx_bool_type mode_flag )
 
 			(void) mx_put_by_name( current_record,
 					"mx_database.fast_mode",
-					MXFT_INT32, &fast_mode_flag );
+					MXFT_INT, &fast_mode_flag );
 		}
 
 		current_record = current_record->next_record;

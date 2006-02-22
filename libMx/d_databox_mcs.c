@@ -15,8 +15,6 @@
  *
  */
 
-#define DATABOX_MCS_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,12 +63,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_databox_mcs_record_field_defaults[] = {
 	MXD_DATABOX_MCS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_databox_mcs_num_record_fields
+long mxd_databox_mcs_num_record_fields
 		= sizeof( mxd_databox_mcs_record_field_defaults )
 			/ sizeof( mxd_databox_mcs_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_mcs_rfield_def_ptr
 			= &mxd_databox_mcs_record_field_defaults[0];
+
+#define DATABOX_MCS_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -141,9 +141,9 @@ mxd_databox_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_scalers_varargs_cookie;
-	mx_length_type maximum_num_measurements_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_scalers_varargs_cookie;
+	long maximum_num_measurements_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mcs_initialize_type( record_type,
@@ -609,7 +609,7 @@ mxd_databox_mcs_handle_busy_response( MX_MCS *mcs,
 	("%s: measurement_number = %ld, position = %g, scaler_value = %ld",
 				fname, measurement_number,
 					databox_mcs->motor_position_data[i],
-					(long)(mcs->data_array[0][i]) ));
+					mcs->data_array[0][i]));
 		} else {
 			mcs->timer_data[i] = timer_value;
 
@@ -722,7 +722,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	MX_DATABOX *databox;
 	int i;
 	char c;
-	uint32_t num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_databox_mcs_get_pointers( mcs,
@@ -747,7 +747,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	 */
 
 	MX_DEBUG( 2,("%s: mcs->current_num_measurements = %lu",
-			fname, (unsigned long) mcs->current_num_measurements));
+			fname, mcs->current_num_measurements));
 
 	if ( ( mcs->current_num_measurements == 1L )
 	  && ( databox->last_start_action != MX_DATABOX_COUNTER_START_ACTION ))
@@ -853,7 +853,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	databox_mcs->buffer_index = 0;
 	databox_mcs->buffer_status = MXF_DATABOX_MCS_BUFFER_IS_FILLING;
 
-	MX_DEBUG( 2,("%s complete. busy = %d", fname, (int) mcs->busy));
+	MX_DEBUG( 2,("%s complete. busy = %d", fname, mcs->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -925,7 +925,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
-		(int) mcs->parameter_type));
+		mcs->parameter_type));
 
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_MEASUREMENT_TIME:
@@ -945,8 +945,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 		 */
 
 		MX_DEBUG( 2,("%s: Databox MCS '%s' measurement_counts = %lu",
-			fname, mcs->record->name,
-			(unsigned long) mcs->measurement_counts));
+			fname, mcs->record->name, mcs->measurement_counts));
 		break;
 
 	case MXLV_MCS_CURRENT_NUM_MEASUREMENTS:
@@ -957,8 +956,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 
 		MX_DEBUG( 2,
 		("%s: Databox MCS '%s' current_num_measurements = %lu",
-			fname, mcs->record->name,
-			(unsigned long) mcs->current_num_measurements));
+		    fname, mcs->record->name, mcs->current_num_measurements));
 		break;
 
 	case MXLV_MCS_MODE:
@@ -974,7 +972,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal MCS mode %d selected.  Only preset time and "
 		"preset count modes are allowed for a Databox MCS.",
-				(int) mcs->mode );
+				mcs->mode );
 		}
 
 		return mxi_databox_set_limit_mode( databox, limit_mode );
@@ -982,7 +980,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) mcs->parameter_type );
+			mcs->parameter_type );
 
 	}
 	MX_DEBUG( 2,("%s complete.", fname));

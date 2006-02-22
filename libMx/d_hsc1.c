@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_hsc1_record_field_defaults[] = {
 	MXD_HSC1_STANDARD_FIELDS
 };
 
-mx_length_type mxd_hsc1_num_record_fields
+long mxd_hsc1_num_record_fields
 		= sizeof( mxd_hsc1_record_field_defaults )
 			/ sizeof( mxd_hsc1_record_field_defaults[0] );
 
@@ -263,8 +263,7 @@ mxd_hsc1_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  interface name    = %s\n",
 						hsc1_interface_record->name);
 	fprintf(file, "  module number     = %lu\n",
-				(unsigned long) hsc1_motor->module_number);
-
+					hsc1_motor->module_number);
 	fprintf(file, "  motor name        = %c\n", hsc1_motor->motor_name);
 
 	status = mx_motor_get_position( record, &position );
@@ -277,7 +276,7 @@ mxd_hsc1_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
+			motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset            = %g %s.\n",
@@ -285,21 +284,21 @@ mxd_hsc1_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -432,12 +431,12 @@ mxd_hsc1_move_absolute( MX_MOTOR *motor )
 	switch( hsc1_motor->motor_name ) {
 	case 'A':
 		sprintf( command, "M %ld %ld",
-			(long) motor->raw_destination.stepper, b_steps );
+			motor->raw_destination.stepper, b_steps );
 
 		break;
 	case 'B':
 		sprintf( command, "M %ld %ld",
-			a_steps, (long) motor->raw_destination.stepper );
+			a_steps, motor->raw_destination.stepper );
 
 		break;
 	case 'C':
@@ -608,8 +607,8 @@ mxd_hsc1_soft_abort( MX_MOTOR *motor )
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_HSC1_MOTOR *hsc1_motor;
-	uint32_t module_number;
-	mx_hex_type flags;
+	unsigned long module_number;
+	int flags;
 	mx_status_type status;
 
 	status = mxd_hsc1_get_pointers( motor, &hsc1_motor,

@@ -457,8 +457,7 @@ mxser_receive_characters_from_the_server( MX_RECORD *port_record,
 {
 	char c;
 	double sleep_seconds;
-	unsigned long sleep_us;
-	uint32_t num_bytes_available;
+	unsigned long sleep_us, num_bytes_available;
 	mx_status_type mx_status;
 
 	sleep_seconds = mx_divide_safely( 10.0, (double) max_receive_speed );

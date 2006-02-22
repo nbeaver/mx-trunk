@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,15 +31,15 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int32_t axis_number;
-	int32_t axis_encoder_number;
+	int axis_number;
+	int axis_encoder_number;
 
-	int32_t controller_type;
+	int controller_type;
 
-	int32_t num_dinput_ports;
-	int32_t num_doutput_ports;
-	int32_t num_ainput_ports;
-	int32_t num_aoutput_ports;
+	int num_dinput_ports;
+	int num_doutput_ports;
+	int num_ainput_ports;
+	int num_aoutput_ports;
 } MX_MCLENNAN;
 
 /* Define all of the interface functions. */
@@ -72,7 +72,7 @@ MX_API mx_status_type mxd_mclennan_command( MX_MCLENNAN *mclennan,char *command,
 			char *response, int response_buffer_length,
 			int debug_flag );
 
-extern mx_length_type mxd_mclennan_num_record_fields;
+extern long mxd_mclennan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mclennan_rfield_def_ptr;
 
 #define MXD_MCLENNAN_STANDARD_FIELDS \
@@ -80,15 +80,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mclennan_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_encoder_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "axis_encoder_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN, axis_encoder_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "controller_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "controller_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN, controller_type), \
 	{0}, NULL, 0}
 

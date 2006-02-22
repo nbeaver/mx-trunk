@@ -14,8 +14,6 @@
  *
  */
 
-#define MXD_MCA_VALUE_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -43,12 +41,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_value_record_field_defaults[] = {
 	MX_MCA_VALUE_STANDARD_FIELDS,
 };
 
-mx_length_type mxd_mca_value_num_record_fields
+long mxd_mca_value_num_record_fields
 	= sizeof( mxd_mca_value_record_field_defaults )
 	/ sizeof( mxd_mca_value_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_mca_value_rfield_def_ptr
 		= &mxd_mca_value_record_field_defaults[0];
+
+#define MXD_MCA_VALUE_DEBUG	FALSE
 
 /* === */
 
@@ -57,7 +57,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 				MX_MCA_VALUE **mca_value,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxd_mca_value_get_pointers()";
+	const char fname[] = "mxd_mca_value_get_pointers()";
 
 	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -98,7 +98,7 @@ mxd_mca_value_get_pointers( MX_ANALOG_INPUT *analog_input,
 MX_EXPORT mx_status_type
 mxd_mca_value_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_value_create_record_structures()";
+	const char fname[] = "mxd_mca_value_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -142,7 +142,7 @@ mxd_mca_value_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_value_finish_record_initialization()";
+	const char fname[] = "mxd_mca_value_finish_record_initialization()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_MCA_VALUE *mca_value;
@@ -201,13 +201,12 @@ mxd_mca_value_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 {
-	static const char fname[] = "mxd_mca_value_read()";
+	const char fname[] = "mxd_mca_value_read()";
 
 	MX_MCA_VALUE *mca_value;
 
-	mx_length_type roi_number, soft_roi_number;
-	uint32_t roi_integral, soft_roi_integral;
-	unsigned long ulong_value;
+	unsigned long roi_number, soft_roi_number;
+	unsigned long roi_integral, soft_roi_integral;
 	double corrected_integral, real_time, live_time, multiplier;
 	double input_count_rate, output_count_rate;
 	int num_items;
@@ -222,7 +221,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 	MX_DEBUG( 2,
 ("%s invoked for record '%s'. value_type = %d, value_name = '%s'.",
 		fname, analog_input->record->name,
-		(int) mca_value->value_type, mca_value->value_name ));
+		mca_value->value_type, mca_value->value_name ));
 
 	/**** Handle the different value types. ****/
 
@@ -230,7 +229,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -239,8 +238,6 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
-
-		roi_number = ulong_value;
 
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
 						roi_number, &roi_integral );
@@ -250,7 +247,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_SOFT_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &soft_roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -259,8 +256,6 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
-
-		soft_roi_number = ulong_value;
 
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
 					soft_roi_number, &soft_roi_integral );
@@ -291,7 +286,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -300,8 +295,6 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
-
-		roi_number = ulong_value;
 
 		mx_status = mx_mca_get_roi_integral( mca_value->mca_record,
 						roi_number, &roi_integral );
@@ -331,7 +324,7 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_MCA_VALUE_CORRECTED_SOFT_ROI_INTEGRAL:
 		num_items = sscanf( mca_value->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &soft_roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -340,8 +333,6 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 				mca_value->value_parameters,
 				analog_input->record->name );
 		}
-
-		soft_roi_number = ulong_value;
 
 		mx_status = mx_mca_get_soft_roi_integral( mca_value->mca_record,
 					soft_roi_number, &soft_roi_integral );
@@ -394,12 +385,12 @@ mxd_mca_value_read( MX_ANALOG_INPUT *analog_input )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"The value type '%s' (%d) for MCA value record '%s' is unsupported.",
-			mca_value->value_name, (int) mca_value->value_type,
+			mca_value->value_name, mca_value->value_type,
 			analog_input->record->name );
 	}
 
 	MX_DEBUG( 2,("%s: value_type = %d, raw_value = %g",
-		fname, (int) mca_value->value_type,
+		fname, mca_value->value_type,
 		analog_input->raw_value.double_value ));
 
 	return mx_status;

@@ -57,7 +57,7 @@ MX_PLOT_FUNCTION_LIST mxp_gnuxafs_function_list = {
 MX_EXPORT mx_status_type
 mxp_gnuxafs_open( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuxafs_open()";
+	const char fname[] = "mxp_gnuxafs_open()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
@@ -169,7 +169,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_close( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuxafs_close()";
+	const char fname[] = "mxp_gnuxafs_close()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	int status;
@@ -217,7 +217,7 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuxafs_add_measurement_to_plot_buffer()";
+	const char fname[] = "mxp_gnuxafs_add_measurement_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
@@ -355,18 +355,18 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 MX_EXPORT mx_status_type
 mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array )
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array )
 {
-	static const char fname[] = "mxp_gnuxafs_add_array_to_plot_buffer()";
+	const char fname[] = "mxp_gnuxafs_add_array_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
-	int32_t *int32_data_array;
+	long *long_data_array;
 	double *double_position_array;
 	double scaler_counts_per_second;
 	double measurement_time;
-	mx_length_type i;
+	long i;
 	int status, saved_errno;
 	mx_status_type mx_status;
 
@@ -405,7 +405,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 		"The most recent attempt to connect to 'gnuplot' failed.");
 	}
 
-	int32_data_array = NULL;
+	long_data_array = NULL;
 	double_position_array = NULL;
 
 	/* Construct data type specific array pointers. */
@@ -420,12 +420,12 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 	}
 	
 	switch( data_type ) {
-	case MXFT_INT32:
-		int32_data_array = (void *) data_array;
+	case MXFT_LONG:
+		long_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-			"Only MXFT_INT32 data arrays are supported." );
+			"Only MXFT_LONG data arrays are supported." );
 	}
 	
 	/* ---- Write the most recent measurement out to the gnuplot ---- */
@@ -440,7 +440,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 
-		scaler_counts_per_second = ( (double) (int32_data_array[i]) )
+		scaler_counts_per_second = ( (double) long_data_array[i] )
 					/ measurement_time;
 
 		status = fprintf(gnuxafs_data->pipe, " %g",
@@ -458,11 +458,12 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 MX_EXPORT mx_status_type
 mxp_gnuxafs_display_plot( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuxafs_display_plot()";
+	const char fname[] = "mxp_gnuxafs_display_plot()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	int status, saved_errno;
-MX_DEBUG( 2,("%s invoked.", fname));
+
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( plot == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -497,7 +498,7 @@ MX_DEBUG( 2,("%s invoked.", fname));
 MX_EXPORT mx_status_type
 mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	static const char fname[] = "mxp_gnuxafs_set_x_range()";
+	const char fname[] = "mxp_gnuxafs_set_x_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	MX_SCAN *scan;
@@ -537,7 +538,7 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	static const char fname[] = "mxp_gnuxafs_set_y_range()";
+	const char fname[] = "mxp_gnuxafs_set_y_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	MX_SCAN *scan;

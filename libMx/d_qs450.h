@@ -24,8 +24,8 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-	int32_t subaddress;
+	int slot;
+	int subaddress;
 } MX_QS450;
 
 /* Define all of the interface functions. */
@@ -42,20 +42,19 @@ MX_API mx_status_type mxd_qs450_scaler_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_qs450_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_qs450_scaler_function_list;
 
-extern mx_length_type mxd_qs450_num_record_fields;
+extern long mxd_qs450_num_record_fields;
+extern long mxd_ks3610_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_qs450_record_field_def_ptr;
-
-extern mx_length_type mxd_ks3610_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3610_record_field_def_ptr;
 
 #define MXD_QS450_STANDARD_FIELDS \
   {-1, -1, "camac_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_QS450, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_QS450, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
-  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_QS450, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

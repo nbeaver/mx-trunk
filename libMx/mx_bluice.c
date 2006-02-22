@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -470,7 +470,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			"we have not successfully authenticated with the "
 			"Blu-Ice server at '%s', port %d.", name,
 				bluice_dcss_server->hostname,
-				(int) bluice_dcss_server->port_number );
+				bluice_dcss_server->port_number );
 		}
 	}
 

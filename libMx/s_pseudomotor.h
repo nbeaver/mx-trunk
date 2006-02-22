@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,11 +35,11 @@ MX_API mx_status_type mxs_pseudomotor_scan_compute_motor_positions(
 MX_API mx_status_type mxs_pseudomotor_scan_motor_record_array_move_special(
 				MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
-				int32_t num_motor_records,
+				int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				mx_hex_type flags );
+				int flags );
 
 MX_API mx_status_type mxs_pseudomotor_scan_prepare_for_scan_start(
 							MX_SCAN *scan );
@@ -47,7 +47,7 @@ MX_API mx_status_type mxs_pseudomotor_scan_prepare_for_scan_start(
 extern MX_LINEAR_SCAN_FUNCTION_LIST mxs_pseudomotor_linear_scan_function_list;
 extern MX_SCAN_FUNCTION_LIST mxs_pseudomotor_scan_function_list;
 
-extern mx_length_type mxs_pseudomotor_linear_scan_num_record_fields;
+extern long mxs_pseudomotor_linear_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_pseudomotor_linear_scan_def_ptr;
 
 #endif /* __S_PSEUDOMOTOR_H__ */

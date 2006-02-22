@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ MX_API mx_status_type mxi_d8_read( MX_GENERIC *generic,
 MX_API mx_status_type mxi_d8_write( MX_GENERIC *generic,
 					void *buffer, size_t count );
 MX_API mx_status_type mxi_d8_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available );
+				unsigned long *num_input_bytes_available );
 MX_API mx_status_type mxi_d8_discard_unread_input(
 				MX_GENERIC *generic, int debug_flag );
 MX_API mx_status_type mxi_d8_discard_unwritten_output(
@@ -68,7 +68,7 @@ MX_API mx_status_type mxi_d8_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_d8_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_d8_generic_function_list;
 
-extern mx_length_type mxi_d8_num_record_fields;
+extern long mxi_d8_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_d8_rfield_def_ptr;
 
 /* === Driver specific functions === */

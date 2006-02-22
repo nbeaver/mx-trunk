@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_API mx_status_type mxi_tpg262_command( MX_TPG262 *tpg262,
 
 extern MX_RECORD_FUNCTION_LIST mxi_tpg262_record_function_list;
 
-extern mx_length_type mxi_tpg262_num_record_fields;
+extern long mxi_tpg262_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_tpg262_rfield_def_ptr;
 
 #endif /* __I_TPG262_H__ */

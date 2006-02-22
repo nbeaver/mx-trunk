@@ -39,9 +39,9 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *bus_record;
-	mx_hex_type input_bus_address;
-	mx_hex_type output_bus_address;
-	int32_t num_data_bytes;		/* Either 3 or 5. */
+	unsigned long input_bus_address;
+	unsigned long output_bus_address;
+	int num_data_bytes;	/* Either 3 or 5. */
 
 	unsigned int num_input_bytes_in_buffer;
 	unsigned int next_input_byte_index;
@@ -95,7 +95,7 @@ MX_API mx_status_type mxi_wago750_serial_discard_unwritten_output(
 extern MX_RECORD_FUNCTION_LIST mxi_wago750_serial_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_wago750_serial_rs232_function_list;
 
-extern mx_length_type mxi_wago750_serial_num_record_fields;
+extern long mxi_wago750_serial_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_wago750_serial_rfield_def_ptr;
 
 #define MXI_WAGO750_SERIAL_STANDARD_FIELDS \
@@ -111,7 +111,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_wago750_serial_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WAGO750_SERIAL, output_bus_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "num_data_bytes", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_data_bytes", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WAGO750_SERIAL, num_data_bytes), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

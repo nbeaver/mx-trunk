@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,11 +29,11 @@ typedef struct {
                             * to this device.
                             */
 
-	union { int32_t int32_value;
+	union { long long_value;
 		double double_value;
 	} raw_value;
 
-	int32_t subclass;
+	int subclass;
 
 	double value;
 	double dark_current;
@@ -41,7 +41,7 @@ typedef struct {
 	double scale;
 	double offset;
 	char units[MXU_UNITS_NAME_LENGTH+1];
-	mx_hex_type analog_input_flags;
+	unsigned long analog_input_flags;
 
 	char timer_record_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 	MX_RECORD *timer_record;
@@ -51,10 +51,10 @@ typedef struct {
 #define MXLV_AIN_VALUE		2002
 #define MXLV_AIN_DARK_CURRENT	2003
 
-#define MX_INT32_ANALOG_INPUT_STANDARD_FIELDS \
-  {MXLV_AIN_RAW_VALUE, -1, "raw_value", MXFT_INT32, NULL, 0, {0}, \
+#define MX_LONG_ANALOG_INPUT_STANDARD_FIELDS \
+  {MXLV_AIN_RAW_VALUE, -1, "raw_value", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-			offsetof(MX_ANALOG_INPUT, raw_value.int32_value), \
+			offsetof(MX_ANALOG_INPUT, raw_value.long_value), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #define MX_DOUBLE_ANALOG_INPUT_STANDARD_FIELDS \
@@ -64,7 +64,7 @@ typedef struct {
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #define MX_ANALOG_INPUT_STANDARD_FIELDS \
-  {-1, -1, "subclass", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subclass", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ANALOG_INPUT, subclass), \
 	{0}, NULL, 0}, \
   \
@@ -114,8 +114,8 @@ MX_API mx_status_type mx_analog_input_finish_record_initialization(
 MX_API mx_status_type mx_analog_input_read( MX_RECORD *adc_record,
 							double *value );
 
-MX_API mx_status_type mx_analog_input_read_raw_int32( MX_RECORD *adc_record,
-							int32_t *raw_value );
+MX_API mx_status_type mx_analog_input_read_raw_long( MX_RECORD *adc_record,
+							long *raw_value );
 
 MX_API mx_status_type mx_analog_input_read_raw_double( MX_RECORD *adc_record,
 							double *raw_value );

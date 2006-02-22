@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -47,16 +47,15 @@ MX_API mx_status_type mxd_soft_motor_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_negative_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_soft_motor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_soft_motor_simultaneous_start(
-					mx_length_type num_motor_records,
-					MX_RECORD **motor_record_array,
-					double *position_array,
-					mx_hex_type flags );
+MX_API mx_status_type mxd_soft_motor_simultaneous_start( int num_motor_records,
+						MX_RECORD **motor_record_array,
+						double *position_array,
+						int flags );
 
 extern MX_RECORD_FUNCTION_LIST mxd_soft_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_soft_motor_motor_function_list;
 
-extern mx_length_type mxd_soft_motor_num_record_fields;
+extern long mxd_soft_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_soft_motor_rfield_def_ptr;
 
 #define MXD_SOFT_MOTOR_STANDARD_FIELDS \

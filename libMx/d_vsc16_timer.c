@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vsc16_timer_record_field_defaults[] = {
 	MXD_VSC16_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_vsc16_timer_num_record_fields
+long mxd_vsc16_timer_num_record_fields
 		= sizeof( mxd_vsc16_timer_record_field_defaults )
 		  / sizeof( mxd_vsc16_timer_record_field_defaults[0] );
 
@@ -204,8 +204,7 @@ mxd_vsc16_timer_open( MX_RECORD *record )
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
         "VSC16 counter number %d for timer '%s' is out of allowed range 1-%lu",
-                        counter_number, record->name,
-			(unsigned long) vsc16->num_counters );
+                        counter_number, record->name, vsc16->num_counters );
         }
 
 	vsc16->counter_record[ counter_number - 1 ] = record;

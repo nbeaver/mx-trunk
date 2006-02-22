@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *record;
-	int16_t controller_id;
+	short controller_id;
 	char savefile_name[MXU_FILENAME_LENGTH+1];
 	char startup_file_name[MXU_FILENAME_LENGTH+1];
 
@@ -46,7 +46,7 @@ typedef struct {
 #define MXLV_PMC_MCAPI_DOWNLOAD_FILE		7010
 
 #define MXI_PMC_MCAPI_STANDARD_FIELDS \
-  {-1, -1, "controller_id", MXFT_INT16, NULL, 0, {0}, \
+  {-1, -1, "controller_id", MXFT_SHORT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMC_MCAPI, controller_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -89,7 +89,7 @@ MX_API mx_status_type mxi_pmc_mcapi_special_processing_setup(
 
 extern MX_RECORD_FUNCTION_LIST mxi_pmc_mcapi_record_function_list;
 
-extern mx_length_type mxi_pmc_mcapi_num_record_fields;
+extern long mxi_pmc_mcapi_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pmc_mcapi_rfield_def_ptr;
 
 /* === Driver specific functions === */

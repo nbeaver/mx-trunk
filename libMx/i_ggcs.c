@@ -7,14 +7,12 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MXI_GGCS_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,12 +54,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_ggcs_record_field_defaults[] = {
 	MXI_GGCS_STANDARD_FIELDS
 };
 
-mx_length_type mxi_ggcs_num_record_fields
+long mxi_ggcs_num_record_fields
 		= sizeof( mxi_ggcs_record_field_defaults )
 			/ sizeof( mxi_ggcs_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_ggcs_rfield_def_ptr
 			= &mxi_ggcs_record_field_defaults[0];
+
+#define MXI_GGCS_DEBUG		FALSE
 
 /*==========================*/
 
@@ -399,7 +399,7 @@ mxi_ggcs_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mxi_ggcs_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mxi_ggcs_num_input_bytes_available()";
 

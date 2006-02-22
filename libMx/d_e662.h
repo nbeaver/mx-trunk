@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,9 +28,15 @@ typedef struct {
 
 /* Define all of the interface functions. */
 
+MX_API mx_status_type mxd_e662_initialize_type( long type );
 MX_API mx_status_type mxd_e662_create_record_structures( MX_RECORD *record );
+MX_API mx_status_type mxd_e662_finish_record_initialization(
+					MX_RECORD *record );
+MX_API mx_status_type mxd_e662_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_print_motor_structure(
 					FILE *file, MX_RECORD *record );
+MX_API mx_status_type mxd_e662_read_parms_from_hardware( MX_RECORD *record);
+MX_API mx_status_type mxd_e662_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_open( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_close( MX_RECORD *record );
 MX_API mx_status_type mxd_e662_resynchronize( MX_RECORD *record );
@@ -43,6 +49,7 @@ MX_API mx_status_type mxd_e662_soft_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_immediate_abort( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_positive_limit_hit( MX_MOTOR *motor );
 MX_API mx_status_type mxd_e662_negative_limit_hit( MX_MOTOR *motor );
+MX_API mx_status_type mxd_e662_find_home_position( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_e662_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_e662_motor_function_list;
@@ -53,7 +60,7 @@ MX_API mx_status_type mxd_e662_command( MX_E662 *e662, char *command,
 			char *response, int response_buffer_length,
 			int debug_flag );
 
-extern mx_length_type mxd_e662_num_record_fields;
+extern long mxd_e662_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_e662_rfield_def_ptr;
 
 #define MXD_E662_STANDARD_FIELDS \

@@ -6,7 +6,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -149,7 +149,7 @@ MX_API mx_status_type mxd_network_motor_get_pointers( MX_MOTOR *motor,
 extern MX_RECORD_FUNCTION_LIST mxd_network_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_network_motor_motor_function_list;
 
-extern mx_length_type mxd_network_motor_num_record_fields;
+extern long mxd_network_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_network_motor_rfield_def_ptr;
 
 #define MXD_NETWORK_MOTOR_STANDARD_FIELDS \

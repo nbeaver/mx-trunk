@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_amplifier_record_field_defaults[] = {
 	MX_AMPLIFIER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_amplifier_num_record_fields
+long mxd_soft_amplifier_num_record_fields
 		= sizeof( mxd_soft_amplifier_record_field_defaults )
 		  / sizeof( mxd_soft_amplifier_record_field_defaults[0] );
 

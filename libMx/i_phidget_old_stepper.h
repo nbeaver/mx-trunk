@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *usb_record;
-	int32_t order_number;
+	int order_number;
 
 	MX_USB_DEVICE *usb_device;
 } MX_PHIDGET_OLD_STEPPER_CONTROLLER;
@@ -43,7 +43,7 @@ typedef struct {
 		offsetof(MX_PHIDGET_OLD_STEPPER_CONTROLLER, usb_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "order_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "order_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_PHIDGET_OLD_STEPPER_CONTROLLER, order_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
@@ -54,7 +54,7 @@ MX_API mx_status_type mxi_phidget_old_stepper_open( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_phidget_old_stepper_record_function_list;
 
-extern mx_length_type mxi_phidget_old_stepper_num_record_fields;
+extern long mxi_phidget_old_stepper_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_phidget_old_stepper_rfield_def_ptr;
 
 #endif /* __I_PHIDGET_OLD_STEPPER_H__ */

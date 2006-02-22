@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 2001, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_blind_relay_record_field_defaults[] = {
 	MXD_BLIND_RELAY_STANDARD_FIELDS
 };
 
-mx_length_type mxd_blind_relay_num_record_fields
+long mxd_blind_relay_num_record_fields
 	= sizeof( mxd_blind_relay_record_field_defaults )
 		/ sizeof( mxd_blind_relay_record_field_defaults[0] );
 
@@ -69,8 +69,7 @@ mxd_blind_relay_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_blind_relay_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] =
-		"mxd_blind_relay_create_record_structures()";
+        const char fname[] = "mxd_blind_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_BLIND_RELAY *blind_relay;
@@ -110,7 +109,7 @@ mxd_blind_relay_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_blind_relay_finish_record_initialization( MX_RECORD *record )
 {
-        static const char fname[]
+        const char fname[]
 		= "mxd_blind_relay_finish_record_initialization()";
 
 	MX_RELAY *relay;
@@ -198,12 +197,12 @@ mxd_blind_relay_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_blind_relay_relay_command( MX_RELAY *relay )
 {
-	static const char fname[] = "mxd_blind_relay_relay_command()";
+	const char fname[] = "mxd_blind_relay_relay_command()";
 
 	MX_BLIND_RELAY *blind_relay;
-	uint32_t old_value, new_value, shifted_value, mask;
+	unsigned long old_value, new_value, shifted_value, mask;
 	int i;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( relay == (MX_RELAY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -234,11 +233,11 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 
 	/* Get the current value of the output record. */
 
-	mx_status = mx_digital_output_read( blind_relay->output_record,
+	status = mx_digital_output_read( blind_relay->output_record,
 						&old_value );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Compute the new value for the output record. */
 
@@ -256,18 +255,18 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The relay command %d is unrecognized.",
-			(int) relay->relay_command );
+			relay->relay_command );
 	}
 
 	new_value = new_value | shifted_value;
 
 	/* Send the new value. */
 
-	mx_status = mx_digital_output_write( blind_relay->output_record,
+	status = mx_digital_output_write( blind_relay->output_record,
 						new_value );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Wait for the settling time before returning.
 	 *
@@ -276,13 +275,13 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 
 	mx_msleep( blind_relay->settling_time );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_blind_relay_get_relay_status( MX_RELAY *relay )
 {
-	static const char fname[] = "mxd_blind_relay_get_relay_status()";
+	const char fname[] = "mxd_blind_relay_get_relay_status()";
 
 	if ( relay == (MX_RELAY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -300,7 +299,7 @@ mxd_blind_relay_get_relay_status( MX_RELAY *relay )
 
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Last relay command %d for blind relay '%s' was illegal.",
-			(int) relay->relay_command, relay->record->name );
+			relay->relay_command, relay->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -55,14 +55,14 @@ typedef struct {
 
 	char save_filename[ MXU_FILENAME_LENGTH + 1 ];
 
-	mx_length_type num_active_detector_channels;
-	int32_t *active_detector_channel_array;
+	long num_active_detector_channels;
+	int *active_detector_channel_array;
 
-	mx_length_type num_mcas;
+	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 
-	uint32_t num_detectors;
-	uint32_t num_modules;
+	unsigned long num_detectors;
+	unsigned long num_modules;
 } MX_XIA_HANDEL;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */
@@ -103,26 +103,26 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, save_filename), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {-1, -1, "num_active_detector_channels", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_active_detector_channels", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_XIA_HANDEL, num_active_detector_channels ), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "active_detector_channel_array", MXFT_INT32, \
+  {-1, -1, "active_detector_channel_array", MXFT_INT, \
 					NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_HANDEL, active_detector_channel_array ), \
 	{sizeof(int)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS) }, \
   \
-  {-1, -1, "num_mcas", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_mcas ), \
-	{0}, NULL, MXFF_READ_ONLY }, \
+	{0}, NULL, 0 }, \
   \
-  {-1, -1, "num_detectors", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "num_detectors", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_detectors ), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "num_modules", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "num_modules", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_modules ), \
 	{0}, NULL, 0 }
 
@@ -138,7 +138,7 @@ MX_API mx_status_type mxi_xia_handel_special_processing_setup(
 
 extern MX_RECORD_FUNCTION_LIST mxi_xia_handel_record_function_list;
 
-extern mx_length_type mxi_xia_handel_num_record_fields;
+extern long mxi_xia_handel_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_xia_handel_rfield_def_ptr;
 
 /* === Driver specific functions === */

@@ -14,8 +14,6 @@
  *
  */
 
-#define MXD_SOFT_MCA_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -58,12 +56,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_mca_record_field_defaults[] = {
 	MXD_SOFT_MCA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_mca_num_record_fields
+long mxd_soft_mca_num_record_fields
 		= sizeof( mxd_soft_mca_record_field_defaults )
 		  / sizeof( mxd_soft_mca_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_soft_mca_rfield_def_ptr
 			= &mxd_soft_mca_record_field_defaults[0];
+
+#define MXD_SOFT_MCA_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -117,10 +117,10 @@ MX_EXPORT mx_status_type
 mxd_soft_mca_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_channels_varargs_cookie;
-	mx_length_type maximum_num_rois_varargs_cookie;
-	mx_length_type num_soft_rois_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_channels_varargs_cookie;
+	long maximum_num_rois_varargs_cookie;
+	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
@@ -172,8 +172,7 @@ mxd_soft_mca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_soft_mca_finish_record_initialization()";
+	static const char fname[] = "mxd_soft_mca_finish_record_initialization()";
 
 	MX_MCA *mca;
 	MX_SOFT_MCA *soft_mca;
@@ -194,8 +193,8 @@ mxd_soft_mca_finish_record_initialization( MX_RECORD *record )
 
 	if ( soft_mca->simulated_channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory allocating an %lu channel simulated data array.",
-			(unsigned long) mca->maximum_num_channels );
+	"Ran out of memory allocating an %ld channel simulated data array.",
+			mca->maximum_num_channels );
 	}
 
 	soft_mca->multiplier = 0.0;
@@ -270,11 +269,12 @@ mxd_soft_mca_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "MCA parameters for record '%s':\n", record->name);
 
 	fprintf(file, "  MCA type              = SOFT_MCA.\n\n");
-	fprintf(file, "  filename              = '%s'\n", soft_mca->filename);
+	fprintf(file, "  filename              = '%s'\n",
+					soft_mca->filename);
 	fprintf(file, "  maximum # of channels = %ld\n",
-				(unsigned long) mca->maximum_num_channels);
+					mca->maximum_num_channels);
 	fprintf(file, "  maximum # of ROIs     = %ld\n",
-				(unsigned long) mca->maximum_num_rois);
+					mca->maximum_num_rois);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -632,11 +632,10 @@ mxd_soft_mca_get_parameter( MX_MCA *mca )
 		if ( mca->channel_number >= mca->maximum_num_channels ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"mca->channel_number (%lu) is greater than or equal to "
-		"mca->maximum_num_channels (%lu).  This should not be "
+		"mca->maximum_num_channels (%ld).  This should not be "
 		"able to happen, so if you see this message, please "
 		"report the program bug to Bill Lavender.",
-			(unsigned long) mca->channel_number,
-			(unsigned long) mca->maximum_num_channels );
+			mca->channel_number, mca->maximum_num_channels );
 		}
 
 		/* The following test is meant to interact with the current

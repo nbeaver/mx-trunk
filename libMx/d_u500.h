@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,11 +25,11 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *u500_record;
-	int32_t board_number;
+	int board_number;
 	char axis_name;
 	double default_speed;
 
-	int32_t motor_number;
+	int motor_number;
 } MX_U500_MOTOR;
 
 MX_API mx_status_type mxd_u500_create_record_structures( MX_RECORD *record );
@@ -51,7 +51,7 @@ MX_API mx_status_type mxd_u500_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_u500_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_u500_motor_function_list;
 
-extern mx_length_type mxd_u500_num_record_fields;
+extern long mxd_u500_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_u500_rfield_def_ptr;
 
 #define MXD_U500_STANDARD_FIELDS \
@@ -59,7 +59,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_u500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_MOTOR, u500_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "board_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "board_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_MOTOR, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

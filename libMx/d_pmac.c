@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_record_field_defaults[] = {
 	MXD_PMAC_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_num_record_fields
+long mxd_pmac_num_record_fields
 		= sizeof( mxd_pmac_record_field_defaults )
 			/ sizeof( mxd_pmac_record_field_defaults[0] );
 
@@ -85,7 +85,7 @@ mxd_pmac_get_pointers( MX_MOTOR *motor,
 			MX_PMAC_MOTOR **pmac_motor,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_pmac_get_pointers()";
+	const char fname[] = "mxd_pmac_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -115,7 +115,7 @@ mxd_pmac_motor_get_pmac_pointer( MX_PMAC_MOTOR *pmac_motor,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_pmac_motor_get_pmac_pointer()";
+	const char fname[] = "mxd_pmac_motor_get_pmac_pointer()";
 
 	MX_RECORD *pmac_record;
 
@@ -153,7 +153,7 @@ mxd_pmac_motor_get_pmac_pointer( MX_PMAC_MOTOR *pmac_motor,
 MX_EXPORT mx_status_type
 mxd_pmac_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pmac_create_record_structures()";
+	const char fname[] = "mxd_pmac_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor;
@@ -198,7 +198,7 @@ mxd_pmac_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pmac_finish_record_initialization()";
+	const char fname[] = "mxd_pmac_finish_record_initialization()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
@@ -226,11 +226,11 @@ mxd_pmac_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pmac_print_structure()";
+	const char fname[] = "mxd_pmac_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor;
-	int32_t motor_steps;
+	long motor_steps;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -267,7 +267,7 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 			* (double) motor_steps;
 	
 	fprintf(file, "  position       = %ld steps (%g %s)\n",
-			(long) motor_steps, position, motor->units);
+			motor_steps, position, motor->units);
 	fprintf(file, "  scale          = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset         = %g %s.\n",
@@ -277,27 +277,27 @@ mxd_pmac_print_structure( FILE *file, MX_RECORD *record )
 			* (double) (motor->raw_backlash_correction.stepper);
 	
 	fprintf(file, "  backlash       = %ld steps (%g %s)\n",
-			(long) motor->raw_backlash_correction.stepper,
+			motor->raw_backlash_correction.stepper,
 			backlash, motor->units);
 	
 	negative_limit = motor->offset
 	+ motor->scale * (double)(motor->raw_negative_limit.stepper);
 	
 	fprintf(file, "  negative limit = %ld steps (%g %s)\n",
-			(long) motor->raw_negative_limit.stepper,
+			motor->raw_negative_limit.stepper,
 			negative_limit, motor->units);
 
 	positive_limit = motor->offset
 	+ motor->scale * (double)(motor->raw_positive_limit.stepper);
 
 	fprintf(file, "  positive limit = %ld steps (%g %s)\n",
-			(long) motor->raw_positive_limit.stepper,
+			motor->raw_positive_limit.stepper,
 			positive_limit, motor->units);
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband  = %ld steps (%g %s)\n\n",
-			(long) motor->raw_move_deadband.stepper,
+			motor->raw_move_deadband.stepper,
 			move_deadband, motor->units );
 
 	return MX_SUCCESSFUL_RESULT;
@@ -312,7 +312,7 @@ mxd_pmac_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_resynchronize( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pmac_resynchronize()";
+	const char fname[] = "mxd_pmac_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_PMAC_MOTOR *pmac_motor;
@@ -340,7 +340,7 @@ mxd_pmac_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_move_absolute()";
+	const char fname[] = "mxd_pmac_move_absolute()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	MX_PMAC *pmac;
@@ -371,7 +371,7 @@ mxd_pmac_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_get_position_steps()";
+	const char fname[] = "mxd_pmac_get_position_steps()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	char response[50];
@@ -444,11 +444,11 @@ mxd_pmac_configure_position_registers( MX_PMAC *pmac,
 MX_EXPORT mx_status_type
 mxd_pmac_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_set_position()";
+	const char fname[] = "mxd_pmac_set_position()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	MX_PMAC *pmac;
-	int32_t motor_position_scale_factor;
+	long motor_position_scale_factor;
 	char command[40];
 	char response[40];
 	char *ptr;
@@ -500,7 +500,7 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 
 	/* Get the motor position scale factor.  The normal value is 96. */
 
-	mx_status = mxd_pmac_get_motor_variable( pmac_motor, 8, MXFT_INT32,
+	mx_status = mxd_pmac_get_motor_variable( pmac_motor, 8, MXFT_LONG,
 						&motor_position_scale_factor,
 						PMAC_DEBUG );
 
@@ -527,7 +527,7 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 	sprintf( ptr, "#%dHOMEZ M%d64=%ld*32*I%d08",
 			pmac_motor->motor_number,
 			pmac_motor->motor_number,
-			(long) motor->raw_set_position.stepper,
+			motor->raw_set_position.stepper,
 			pmac_motor->motor_number );
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -539,7 +539,7 @@ mxd_pmac_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_soft_abort()";
+	const char fname[] = "mxd_pmac_soft_abort()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
@@ -558,7 +558,7 @@ mxd_pmac_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_immediate_abort()";
+	const char fname[] = "mxd_pmac_immediate_abort()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
@@ -577,7 +577,7 @@ mxd_pmac_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_find_home_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_find_home_position()";
+	const char fname[] = "mxd_pmac_find_home_position()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
@@ -599,7 +599,7 @@ mxd_pmac_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_constant_velocity_move( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_constant_velocity_move()";
+	const char fname[] = "mxd_pmac_constant_velocity_move()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	mx_status_type mx_status;
@@ -626,11 +626,11 @@ mxd_pmac_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_get_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_get_parameter()";
+	const char fname[] = "mxd_pmac_get_parameter()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	double double_value;
-	int32_t int32_value;
+	long long_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
@@ -677,63 +677,63 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 30,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->proportional_gain = (double) int32_value;
+		motor->proportional_gain = (double) long_value;
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 33,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->integral_gain = (double) int32_value;
+		motor->integral_gain = (double) long_value;
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 31,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->derivative_gain = (double) int32_value;
+		motor->derivative_gain = (double) long_value;
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 32,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->velocity_feedforward_gain = (double) int32_value;
+		motor->velocity_feedforward_gain = (double) long_value;
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 35,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->acceleration_feedforward_gain = (double) int32_value;
+		motor->acceleration_feedforward_gain = (double) long_value;
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
 		mx_status = mxd_pmac_get_motor_variable( pmac_motor, 34,
-						MXFT_INT32, &int32_value,
+						MXFT_LONG, &long_value,
 						PMAC_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		motor->integral_limit = (double) int32_value;
+		motor->integral_limit = (double) long_value;
 		break;
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
@@ -745,11 +745,11 @@ mxd_pmac_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pmac_set_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_set_parameter()";
+	const char fname[] = "mxd_pmac_set_parameter()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	double double_value;
-	int32_t int32_value;
+	long long_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_get_pointers( motor, &pmac_motor, fname );
@@ -810,11 +810,11 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_AXIS_ENABLE:
 		if ( motor->axis_enable ) {
-			motor->axis_enable = TRUE;
+			motor->axis_enable = 1;
 		}
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 0,
-					MXFT_BOOL, &(motor->axis_enable),
+					MXFT_INT, &(motor->axis_enable),
 					PMAC_DEBUG );
 		break;
 	case MXLV_MTR_CLOSED_LOOP:
@@ -831,44 +831,44 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 						NULL, 0, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_PROPORTIONAL_GAIN:
-		int32_value = mx_round( motor->proportional_gain );
+		long_value = mx_round( motor->proportional_gain );
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 30,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_GAIN:
-		int32_value = mx_round( motor->integral_gain );
+		long_value = mx_round( motor->integral_gain );
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 33,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_DERIVATIVE_GAIN:
-		int32_value = mx_round( motor->derivative_gain );
+		long_value = mx_round( motor->derivative_gain );
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 31,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-		int32_value = mx_round( motor->velocity_feedforward_gain );
+		long_value = mx_round( motor->velocity_feedforward_gain );
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 32,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-		int32_value = mx_round( motor->acceleration_feedforward_gain );
+		long_value = mx_round( motor->acceleration_feedforward_gain );
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 35,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	case MXLV_MTR_INTEGRAL_LIMIT:
-		int32_value = mx_round( motor->integral_limit );
+		long_value = mx_round( motor->integral_limit );
 
-		if ( int32_value ) {
-			int32_value = 1;
+		if ( long_value ) {
+			long_value = 1;
 		}
 
 		mx_status = mxd_pmac_set_motor_variable( pmac_motor, 34,
-					MXFT_INT32, &int32_value, PMAC_DEBUG );
+					MXFT_LONG, &long_value, PMAC_DEBUG );
 		break;
 	default:
 		mx_status = mx_motor_default_set_parameter_handler( motor );
@@ -879,12 +879,12 @@ mxd_pmac_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pmac_simultaneous_start( mx_length_type num_motor_records,
+mxd_pmac_simultaneous_start( int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
-				mx_hex_type flags )
+				int flags )
 {
-	static const char fname[] = "mxd_pmac_simultaneous_start()";
+	const char fname[] = "mxd_pmac_simultaneous_start()";
 
 	MX_RECORD *pmac_interface_record, *motor_record;
 	MX_MOTOR *motor;
@@ -986,7 +986,7 @@ mxd_pmac_simultaneous_start( mx_length_type num_motor_records,
 MX_EXPORT mx_status_type
 mxd_pmac_get_status( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_pmac_get_status()";
+	const char fname[] = "mxd_pmac_get_status()";
 
 	MX_PMAC_MOTOR *pmac_motor;
 	char response[50];
@@ -1262,7 +1262,7 @@ mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
 			int response_buffer_length,
 			int debug_flag )
 {
-	static const char fname[] = "mxd_pmac_jog_command()";
+	const char fname[] = "mxd_pmac_jog_command()";
 
 	MX_PMAC *pmac;
 	char command_buffer[100];
@@ -1297,7 +1297,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 				void *variable_ptr,
 				int debug_flag )
 {
-	static const char fname[] = "mxd_pmac_get_motor_variable()";
+	const char fname[] = "mxd_pmac_get_motor_variable()";
 
 	MX_PMAC *pmac;
 	char command_buffer[100];
@@ -1305,7 +1305,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 	char *ptr;
 	int num_items;
 	long long_value;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double double_value;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -1338,7 +1338,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 		return mx_status;
 
 	switch( variable_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		num_items = sscanf( response, "%ld", &long_value );
 
 		if ( num_items != 1 ) {
@@ -1346,9 +1346,9 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 "Cannot parse response to command '%s' as a long integer.  Response = '%s'",
 				command_buffer, response );
 		}
-		int32_ptr = (int32_t *) variable_ptr;
+		long_ptr = (long *) variable_ptr;
 
-		*int32_ptr = long_value;
+		*long_ptr = long_value;
 		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -1365,7 +1365,7 @@ mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1378,13 +1378,13 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 				void *variable_ptr,
 				int debug_flag )
 {
-	static const char fname[] = "mxd_pmac_set_motor_variable()";
+	const char fname[] = "mxd_pmac_set_motor_variable()";
 
 	MX_PMAC *pmac;
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double *double_ptr;
 	mx_status_type mx_status;
 
@@ -1402,19 +1402,19 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 	ptr = command_buffer + strlen( command_buffer );
 
 	switch( variable_type ) {
-	case MXFT_INT32:
-		int32_ptr = (int32_t *) variable_ptr;
+	case MXFT_LONG:
+		long_ptr = (long *) variable_ptr;
 
 		if ( pmac->pmac_type & MX_PMAC_TYPE_TURBO ) {
 			sprintf( ptr, "I%02d%02d=%ld",
 				pmac_motor->motor_number,
 				variable_number,
-				(long) *int32_ptr );
+				*long_ptr );
 		} else {
 			sprintf( ptr, "I%d%02d=%ld",
 				pmac_motor->motor_number,
 				variable_number,
-				(long) *int32_ptr );
+				*long_ptr );
 		}
 		break;
 	case MXFT_DOUBLE:
@@ -1434,7 +1434,7 @@ mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,

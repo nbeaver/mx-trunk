@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,9 +49,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int32_t, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION,
-					mx_hex_type)
+					int, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
 		);
 
 /*=========*/
@@ -76,10 +75,10 @@ mxs_linear_scan_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	mx_length_type num_record_fields;
-	mx_length_type num_independent_variables_varargs_cookie;
-	mx_length_type num_motors_varargs_cookie;
-	mx_length_type num_input_devices_varargs_cookie;
+	long num_record_fields;
+	long num_independent_variables_varargs_cookie;
+	long num_motors_varargs_cookie;
+	long num_input_devices_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -107,7 +106,7 @@ mxs_linear_scan_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -235,13 +234,12 @@ mxs_linear_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-			"mxs_linear_scan_finish_record_initialization()";
+	static const char fname[] = "mxs_linear_scan_finish_record_initialization()";
 
 	MX_SCAN *scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_length_type dimension[2];
+	long dimension[2];
 	size_t element_size[2];
 	mx_status_type mx_status;
 
@@ -270,8 +268,7 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				(long) dimension[0], (long) dimension[1],
-				scan->record->name );
+				dimension[0], dimension[1], scan->record->name);
 		}
 	}
 
@@ -289,8 +286,7 @@ mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %ld by %ld array of "
 		"alternate position values for scan '%s'.",
-				(long) dimension[0], (long) dimension[1],
-				scan->record->name );
+				dimension[0], dimension[1], scan->record->name);
 		}
 	}
 
@@ -327,7 +323,7 @@ mxs_linear_scan_delete_record( MX_RECORD *record )
 	MX_LINEAR_SCAN *linear_scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_RECORD * );
-	mx_length_type dimension[2];
+	long dimension[2];
 	size_t element_size[2];
 	mx_status_type mx_status;
 
@@ -468,7 +464,7 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	if ( scan->num_motors == 0 ) {
 		if ( scan->num_independent_variables > 0 ) {
 			fprintf( file, "    %ld measurements\n",
-				(long) (linear_scan->num_measurements[j]) );
+				linear_scan->num_measurements[j] );
 		}
 	} else {
 		for ( i = 0; i < scan->num_motors; i++ ) {
@@ -499,7 +495,7 @@ mxs_linear_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 					motor_units,
 					linear_scan->step_size[j],
 					motor_units,
-				(long) (linear_scan->num_measurements[j]) );
+					linear_scan->num_measurements[j] );
 	
 				j++;
 			}
@@ -597,9 +593,8 @@ mxs_linear_scan_execute_scan_body( MX_SCAN *scan )
 					( MX_SCAN *, MX_LINEAR_SCAN * );
 	mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int32_t, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION,
-					mx_hex_type);
+					int, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION, int);
 	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
@@ -662,9 +657,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int32_t, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION,
-					mx_hex_type)
+					int, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
 		)
 {
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";

@@ -52,7 +52,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_6821_record_field_defaults[] = {
 	MXI_6821_STANDARD_FIELDS
 };
 
-mx_length_type mxi_6821_num_record_fields
+long mxi_6821_num_record_fields
 		= sizeof( mxi_6821_record_field_defaults )
 			/ sizeof( mxi_6821_record_field_defaults[0] );
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_compumotor_record_field_defaults[] = {
 	MXI_COMPUMOTOR_INTERFACE_STANDARD_FIELDS
 };
 
-mx_length_type mxi_compumotor_num_record_fields
+long mxi_compumotor_num_record_fields
 		= sizeof( mxi_compumotor_record_field_defaults )
 			/ sizeof( mxi_compumotor_record_field_defaults[0] );
 
@@ -108,9 +108,9 @@ mxi_compumotor_initialize_type( long type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-	mx_length_type num_controllers_varargs_cookie;
+	long num_record_fields;
+	long referenced_field_index;
+	long num_controllers_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( type );
@@ -137,7 +137,7 @@ mxi_compumotor_initialize_type( long type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -248,9 +248,9 @@ mxi_compumotor_finish_record_initialization( MX_RECORD *record )
 	if ( compumotor_interface->num_controllers <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Compumotor interface '%s' is configured for an illegal number "
-		"of controllers (%lu).  The minimum value allowed is 1.",
+		"of controllers (%ld).  The minimum value allowed is 1.",
 			compumotor_interface->record->name,
-			(unsigned long) compumotor_interface->num_controllers );
+			compumotor_interface->num_controllers );
 	}
 
 	/* Initialize the arrays. */
@@ -367,9 +367,9 @@ mxi_compumotor_open( MX_RECORD *record )
 			{
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "If MXF_COMPUMOTOR_AUTO_ADDRESS_CONFIG is set for record '%s', then the "
-"controller addresses in the database must be in order from 1 to %lu.",
+"controller addresses in the database must be in order from 1 to %ld.",
 				compumotor_interface->record->name,
-			(unsigned long) compumotor_interface->num_controllers );
+				compumotor_interface->num_controllers );
 			}
 		}
 
@@ -689,13 +689,12 @@ mxi_compumotor_process_function( void *record_ptr,
 
 MX_EXPORT mx_status_type
 mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-		char *command, char *response, size_t response_buffer_length,
-		mx_bool_type debug_flag )
+		char *command, char *response, int response_buffer_length,
+		int debug_flag )
 {
 	static const char fname[] = "mxi_compumotor_command()";
 
-	unsigned long sleep_ms;
-	uint32_t num_bytes_available;
+	unsigned long sleep_ms, num_bytes_available;
 	int i, max_attempts;
 	size_t length;
 	char c;
@@ -916,8 +915,8 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 MX_EXPORT mx_status_type
 mxi_compumotor_get_controller_index(
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int32_t controller_number,
-				int32_t *controller_index )
+				int controller_number,
+				int *controller_index )
 {
 	static const char fname[] = "mxi_compumotor_get_controller_index()";
 
@@ -952,11 +951,11 @@ mxi_compumotor_get_controller_index(
 
 MX_EXPORT mx_status_type
 mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int32_t controller_index,
-				mx_length_type num_motors,
+				int controller_index,
+				unsigned long num_motors,
 				MX_RECORD **motor_record_array,
 				double *motor_position_array,
-				mx_bool_type simultaneous_start )
+				int simultaneous_start )
 {
 	static const char fname[] = "mxi_compumotor_multiaxis_move()";
 

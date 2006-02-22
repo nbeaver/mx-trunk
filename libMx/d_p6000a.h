@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,7 +35,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_p6000a_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 		mxd_p6000a_analog_input_function_list;
 
-extern mx_length_type mxd_p6000a_num_record_fields;
+extern long mxd_p6000a_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_p6000a_rfield_def_ptr;
 
 #define MXD_P6000A_STANDARD_FIELDS \

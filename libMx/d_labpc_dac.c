@@ -66,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_labpc_dac_record_field_defaults[] = {
 	MXD_LABPC_DAC_STANDARD_FIELDS
 };
 
-mx_length_type mxd_labpc_dac_num_record_fields =
+long mxd_labpc_dac_num_record_fields =
 		sizeof( mxd_labpc_dac_record_field_defaults )
 		/ sizeof( mxd_labpc_dac_record_field_defaults[0] );
 

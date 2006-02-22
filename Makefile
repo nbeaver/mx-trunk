@@ -18,7 +18,7 @@
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 or 10 using GCC
 #   vms           - Compile for OpenVMS 7.3.1
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
-#   win32         - Compile for Microsoft Win32 with Visual C++ 6 or later
+#   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1
 #   win32-mingw   - Compile for Microsoft Win32 with MinGW 4.1.1 and MSYS 1.0.10
 #
@@ -39,7 +39,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = cygwin
+MX_ARCH = linux
 
 MX_INSTALL_DIR = /opt/mx
 

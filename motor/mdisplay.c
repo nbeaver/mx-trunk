@@ -23,14 +23,14 @@
 #define MAX_MOTORS	10
 
 mx_status_type
-motor_move_report_function( mx_hex_type flags,
-			mx_length_type num_motors,
-			MX_RECORD **motor_record )
+motor_move_report_function( int flags,
+				int num_motors,
+				MX_RECORD **motor_record )
 {
-	static const char fname[] = "motor_move_report_function()";
+	const char fname[] = "motor_move_report_function()";
 
 	MX_MOTOR *motor;
-	mx_hex_type *motor_status;
+	unsigned long *motor_status;
 	double current_position;
 	int i, motors_busy, abort_motors;
 	int exit_loop, return_code;
@@ -53,10 +53,10 @@ motor_move_report_function( mx_hex_type flags,
 		"Invoked with an invalid number of motors = %d", num_motors );
 	}
 
-	motor_status = (mx_hex_type *) malloc(
-				num_motors * sizeof(mx_hex_type) );
+	motor_status = (unsigned long *) malloc(
+				num_motors * sizeof(unsigned long) );
 
-	if ( motor_status == (mx_hex_type *) NULL ) {
+	if ( motor_status == (unsigned long *) NULL ) {
 		motor_bypass_limit_switch = FALSE;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,

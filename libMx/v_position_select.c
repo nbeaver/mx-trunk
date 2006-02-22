@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,10 +49,10 @@ MX_RECORD_FIELD_DEFAULTS mxv_position_select_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_POSITION_SELECT_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT32_VARIABLE_STANDARD_FIELDS
+	MX_INT_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_position_select_num_record_fields
+long mxv_position_select_num_record_fields
 	= sizeof( mxv_position_select_record_field_defaults )
 	/ sizeof( mxv_position_select_record_field_defaults[0] );
 
@@ -70,9 +70,9 @@ mxv_position_select_initialize_type( long record_type )
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
-        mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-        mx_length_type num_positions_varargs_cookie;
+        long num_record_fields;
+	long referenced_field_index;
+        long num_positions_varargs_cookie;
         mx_status_type mx_status;
 
 	mx_status = mx_variable_initialize_type( record_type );
@@ -103,7 +103,7 @@ mxv_position_select_initialize_type( long record_type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+        if ( driver->num_record_fields == (long *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -185,7 +185,7 @@ mxv_position_select_send_variable( MX_VARIABLE *variable )
 	MX_POSITION_SELECT *position_select;
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
-	int32_t int32_value;
+	int int_value;
 	double requested_position;
 	mx_status_type mx_status;
 
@@ -200,23 +200,23 @@ mxv_position_select_send_variable( MX_VARIABLE *variable )
 
 	value_ptr = mx_get_field_value_pointer( value_field );
 
-	int32_value = *((int32_t *) value_ptr);
+	int_value = *((int *) value_ptr);
 
-	if ( ( int32_value < 0 )
-	  || ( int32_value >= position_select->num_positions ) )
+	if ( ( int_value < 0 )
+	  || ( int_value >= position_select->num_positions ) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"Requested value %d for position select record '%s' "
 		"is outside the allowed range of 0-%ld",
-			int32_value, variable->record->name,
-			(long) position_select->num_positions );
+			int_value, variable->record->name,
+			position_select->num_positions );
 	}
 
 	/* Get the motor position that corresponds to the
 	 * requested selection and move there.
 	 */
 
-	requested_position = position_select->position_array[ int32_value ];
+	requested_position = position_select->position_array[ int_value ];
 
 	mx_status = mx_motor_move_absolute( position_select->motor_record,
 					requested_position, 0 );

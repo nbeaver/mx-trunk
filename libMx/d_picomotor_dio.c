@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_motor.h"
@@ -46,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_din_record_field_defaults[] = {
 	MXD_PICOMOTOR_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_picomotor_din_num_record_fields
+long mxd_picomotor_din_num_record_fields
 		= sizeof( mxd_picomotor_din_record_field_defaults )
 			/ sizeof( mxd_picomotor_din_record_field_defaults[0] );
 
@@ -71,7 +72,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_picomotor_dout_record_field_defaults[] = {
 	MXD_PICOMOTOR_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_picomotor_dout_num_record_fields
+long mxd_picomotor_dout_num_record_fields
 		= sizeof( mxd_picomotor_dout_record_field_defaults )
 			/ sizeof( mxd_picomotor_dout_record_field_defaults[0] );
 
@@ -273,7 +274,6 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char response[80];
 	char *ptr;
 	int num_items, channel_number;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	/* Supppress bogus GCC 4 uninitialized variable warnings. */
@@ -318,7 +318,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%lu", &value );
+	num_items = sscanf( ptr, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -328,8 +328,6 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name, command,
 			picomotor_controller->record->name, response );
 	}
-
-	dinput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -387,7 +385,6 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char response[80];
 	char *ptr;
 	int num_items, channel_number;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_dout_get_pointers( doutput,
@@ -427,7 +424,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	ptr++;
 
-	num_items = sscanf( ptr, "%lu", &value );
+	num_items = sscanf( ptr, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -437,8 +434,6 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name, command,
 			picomotor_controller->record->name, response );
 	}
-
-	doutput->value = value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -474,7 +469,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	sprintf( command, "OUT %s %d=%lu",
 			picomotor_doutput->driver_name,
-			channel_number, (unsigned long) doutput->value );
+			channel_number, doutput->value );
 
 	mx_status = mxi_picomotor_command( picomotor_controller, command,
 					NULL, 0, MXD_PICOMOTOR_DIO_DEBUG );

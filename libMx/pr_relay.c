@@ -67,7 +67,7 @@ mx_relay_process_function( void *record_ptr,
 	MX_RELAY *relay;
 	mx_status_type mx_status;
 
-	int32_t relay_status;
+	int relay_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;

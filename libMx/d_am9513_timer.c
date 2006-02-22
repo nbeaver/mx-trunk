@@ -42,10 +42,10 @@ MX_RECORD_FUNCTION_LIST mxd_am9513_timer_record_function_list = {
 	mxd_am9513_timer_initialize_type,
 	mxd_am9513_timer_create_record_structures,
 	mxd_am9513_timer_finish_record_initialization,
+	mxd_am9513_timer_delete_record,
 	NULL,
-	NULL,
-	NULL,
-	NULL,
+	mxd_am9513_timer_read_parms_from_hardware,
+	mxd_am9513_timer_write_parms_to_hardware,
 	mxd_am9513_timer_open,
 	mxd_am9513_timer_close
 };
@@ -54,8 +54,8 @@ MX_TIMER_FUNCTION_LIST mxd_am9513_timer_timer_function_list = {
 	mxd_am9513_timer_is_busy,
 	mxd_am9513_timer_start,
 	mxd_am9513_timer_stop,
-	NULL,
-	NULL,
+	mxd_am9513_timer_clear,
+	mxd_am9513_timer_read,
 	mxd_am9513_timer_get_mode,
 	mxd_am9513_timer_set_mode
 };
@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_am9513_timer_record_field_defaults[] = {
 	MXD_AM9513_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_am9513_timer_num_record_fields
+long mxd_am9513_timer_num_record_fields
 		= sizeof( mxd_am9513_timer_record_field_defaults )
 		  / sizeof( mxd_am9513_timer_record_field_defaults[0] );
 
@@ -80,11 +80,11 @@ static MX_AM9513 *debug_am9513_ptr = &mxi_am9513_debug_struct;
 static mx_status_type
 mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 				MX_AM9513_TIMER **am9513_timer,
-				mx_length_type *num_counters,
+				long *num_counters,
 				MX_INTERFACE **am9513_interface_array,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxd_am9513_get_pointers()";
+	const char fname[] = "mxd_am9513_get_pointers()";
 
 	if ( timer == (MX_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -98,7 +98,7 @@ mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 			calling_fname );
 	}
 
-	if ( num_counters == (mx_length_type *) NULL ) {
+	if ( num_counters == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_counters pointer passed by '%s' was NULL.",
 			calling_fname );
@@ -134,14 +134,14 @@ mxd_am9513_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_am9513_timer_initialize_type( long type )
 {
-	static const char fname[] = "mxd_am9513_timer_initialize_type()";
+	const char fname[] = "mxd_am9513_timer_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults, *field;
-	mx_length_type num_record_fields;
-	mx_length_type num_counters_field_index;
-	mx_length_type num_counters_varargs_cookie;
-	mx_status_type mx_status;
+	long num_record_fields;
+	long num_counters_field_index;
+	long num_counters_varargs_cookie;
+	mx_status_type status;
 
 	driver = mx_get_driver_by_type( type );
 
@@ -153,25 +153,25 @@ mxd_am9513_timer_initialize_type( long type )
 	record_field_defaults = *(driver->record_field_defaults_ptr);
 	num_record_fields = *(driver->num_record_fields);
 
-	mx_status = mx_find_record_field_defaults_index(
+	status = mx_find_record_field_defaults_index(
 			record_field_defaults, num_record_fields,
 			"num_counters", &num_counters_field_index );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_construct_varargs_cookie(
+	status = mx_construct_varargs_cookie(
 		num_counters_field_index, 0, &num_counters_varargs_cookie );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_find_record_field_defaults(
+	status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			"am9513_interface_array", &field );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	field->dimension[0] = num_counters_varargs_cookie;
 
@@ -181,8 +181,7 @@ mxd_am9513_timer_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-			"mxd_am9513_timer_create_record_structures()";
+	const char fname[] = "mxd_am9513_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_AM9513_TIMER *am9513_timer;
@@ -225,17 +224,48 @@ mxd_am9513_timer_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_am9513_timer_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_timer_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_timer_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_am9513_timer_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_timer_open()";
+	const char fname[] = "mxd_am9513_timer_open()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
+	long num_counters, high_order_counter;
 	int n;
-	mx_length_type num_counters, high_order_counter;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -255,7 +285,7 @@ mxd_am9513_timer_open( MX_RECORD *record )
 	if ( num_counters <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The number of counters (%ld) in record '%s' should be greater than zero.",
-			(long) num_counters, record->name );
+			num_counters, record->name );
 	}
 
 	mx_status = mxi_am9513_grab_counters( record, num_counters,
@@ -342,11 +372,11 @@ mxd_am9513_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_am9513_timer_close()";
+	const char fname[] = "mxd_am9513_timer_close()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
-	mx_length_type num_counters;
+	long num_counters;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -366,7 +396,7 @@ mxd_am9513_timer_close( MX_RECORD *record )
 	if ( num_counters <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The number of counters (%ld) in record '%s' should be greater than zero.",
-			(long) num_counters, record->name );
+			num_counters, record->name );
 	}
 
 	mx_status = mxi_am9513_release_counters( record, num_counters,
@@ -378,14 +408,15 @@ mxd_am9513_timer_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_is_busy( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_am9513_timer_is_busy()";
+	const char fname[] = "mxd_am9513_timer_is_busy()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	uint8_t am9513_status, mask;
-	mx_length_type num_counters;
+	long num_counters;
+	uint8_t am9513_status;
+	int mask;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -421,7 +452,7 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 		timer->busy = FALSE;
 	}
 
-	MX_DEBUG( 2,("%s: busy = %d", fname, (int) timer->busy));
+	MX_DEBUG( 2,("%s: busy = %d", fname, timer->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -429,21 +460,20 @@ mxd_am9513_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_start( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_am9513_timer_start()";
+	const char fname[] = "mxd_am9513_timer_start()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
+	uint16_t counter_mode_register;
+	long num_counters;
 	double seconds;
 	double clock_ticks_double;
 	double ulong_max_double;
-	uint32_t clock_ticks_uint32;
-	uint16_t counter_mode_register;
+	unsigned long clock_ticks_ulong;
 	uint16_t ticks_to_count_for;
-	uint16_t frequency_scaler_ratio;
-	int n;
-	mx_length_type num_counters;
+	int n, frequency_scaler_ratio;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_timer_get_pointers( timer, &am9513_timer,
@@ -491,46 +521,46 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 			seconds, am9513_timer->clock_frequency );
 	}
 
-	clock_ticks_uint32 = mx_round( clock_ticks_double );
+	clock_ticks_ulong = mx_round( clock_ticks_double );
 
 	/* The timer does not count down reliably for less than 3 clock
 	 * ticks, so we force 3 clock ticks to be the minimum.
 	 */
 
-	if ( clock_ticks_uint32 < 3 ) {
-		clock_ticks_uint32 = 3;
+	if ( clock_ticks_ulong < 3 ) {
+		clock_ticks_ulong = 3;
 	}
 
-	MX_DEBUG( 2,("%s: clock_ticks_uint32 = %lu",
-		fname, (unsigned long) clock_ticks_uint32));
+	MX_DEBUG( 2,("%s: clock_ticks_ulong = %lu",
+		fname, clock_ticks_ulong));
 
-	if ( clock_ticks_uint32 < 65536L ) {
+	if ( clock_ticks_ulong < 65536L ) {
 		frequency_scaler_ratio = 0x0b00;	/* source = F1 */
 
-		ticks_to_count_for = (uint16_t) clock_ticks_uint32;
+		ticks_to_count_for = (uint16_t) clock_ticks_ulong;
 	} else
-	if ( clock_ticks_uint32 < 1048576L ) {
+	if ( clock_ticks_ulong < 1048576L ) {
 		frequency_scaler_ratio = 0x0c00;	/* source = F2 */
 
 		ticks_to_count_for = (uint16_t)
-					( clock_ticks_uint32 / 16L );
+					( clock_ticks_ulong / 16L );
 	} else
-	if ( clock_ticks_uint32 < 16777216L ) {
+	if ( clock_ticks_ulong < 16777216L ) {
 		frequency_scaler_ratio = 0x0d00;	/* source = F3 */
 
 		ticks_to_count_for = (uint16_t)
-					( clock_ticks_uint32 / 256L );
+					( clock_ticks_ulong / 256L );
 	} else
-	if ( clock_ticks_uint32 < 268435456L ) {
+	if ( clock_ticks_ulong < 268435456L ) {
 		frequency_scaler_ratio = 0x0e00;	/* source = F4 */
 
 		ticks_to_count_for = (uint16_t)
-					( clock_ticks_uint32 / 4096L );
+					( clock_ticks_ulong / 4096L );
 	} else {
 		frequency_scaler_ratio = 0x0f00;	/* source = F5 */
 
 		ticks_to_count_for = (uint16_t)
-					( clock_ticks_uint32 / 65536L );
+					( clock_ticks_ulong / 65536L );
 	}
 
 	MX_DEBUG( 2,
@@ -591,16 +621,16 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_stop( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_am9513_timer_stop()";
+	const char fname[] = "mxd_am9513_timer_stop()";
 
 	MX_AM9513_TIMER *am9513_timer;
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
-	int n;
+	long num_counters;
+	int i, n;
 	double multiplier, result;
-	mx_length_type i, num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_timer_get_pointers( timer, &am9513_timer,
@@ -700,6 +730,24 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 }
 
 MX_EXPORT mx_status_type
+mxd_am9513_timer_clear( MX_TIMER *timer )
+{
+	const char fname[] = "mxd_am9513_timer_clear()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function should be possible, but has not been implemented yet.");
+}
+
+MX_EXPORT mx_status_type
+mxd_am9513_timer_read( MX_TIMER *timer )
+{
+	const char fname[] = "mxd_am9513_timer_read()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+	"This function should be possible, but has not been implemented yet.");
+}
+
+MX_EXPORT mx_status_type
 mxd_am9513_timer_get_mode( MX_TIMER *timer )
 {
 	timer->mode = MXCM_PRESET_MODE;
@@ -710,7 +758,7 @@ mxd_am9513_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_am9513_timer_set_mode( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_am9513_timer_set_mode()";
+	const char fname[] = "mxd_am9513_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

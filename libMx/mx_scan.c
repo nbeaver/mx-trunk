@@ -318,8 +318,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 	fprintf( file, "  Scan type             = %s\n\n", scan_type );
 
 	fprintf( file, "  Name                  = %s\n", record->name );
-	fprintf( file, "  Number of scans       = %ld\n",
-						(long) scan->num_scans );
+	fprintf( file, "  Number of scans       = %ld\n", scan->num_scans );
 	fprintf( file, "\n" );
 
 	if ( record->mx_type != MXS_XAF_STANDARD ) {
@@ -327,7 +326,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 			fprintf( file, "  1 motor:         " );
 		} else {
 			fprintf( file, "  %ld motors:        ",
-					(long) scan->num_motors );
+					scan->num_motors );
 		}
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			if ( i > 0 ) {
@@ -343,7 +342,7 @@ mx_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 		fprintf( file, "  1 input device:  " );
 	} else {
 		fprintf( file, "  %ld input devices: ",
-			(long) scan->num_input_devices );
+			scan->num_input_devices );
 	}
 	for ( i = 0; i < scan->num_input_devices; i++ ) {
 		if ( i > 0 ) {
@@ -445,7 +444,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 	MX_LIST_HEAD *list_head;
 	MX_CLOCK_TICK start_tick, end_tick;
 	MX_CLOCK_TICK scan_body_start_tick, scan_body_end_tick;
-	int32_t i;
+	long i;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ( "%s invoked.", fname ) );
@@ -596,7 +595,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		if ( scan->num_scans > 1 ) {
 			mx_info( "Starting scan %ld of %ld.",
-				(long) (i+1), (long) scan->num_scans );
+					i+1, scan->num_scans );
 		}
 
 		mx_status = prepare_for_scan_start_fn( scan );
@@ -1154,9 +1153,8 @@ mx_get_scan_handler_name_array( MX_SCAN *scan, char *list_record_name,
 	static const char fname[] = "mx_get_scan_handler_name_array()";
 
 	MX_RECORD *list_record;
-	long field_type;
-	mx_length_type num_dimensions;
-	mx_length_type *dimension_array;
+	long num_dimensions, field_type;
+	long *dimension_array;
 	void *pointer_to_value;
 	mx_status_type mx_status;
 
@@ -1185,13 +1183,12 @@ mx_get_scan_handler_name_array( MX_SCAN *scan, char *list_record_name,
 	if ( num_dimensions != 2 ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 "The measurement handler list '%s' is not a 2 dimensional string variable.  "
-"Instead it has %ld dimensions.", list_record_name, (long) num_dimensions );
+"Instead it has %ld dimensions.", list_record_name, num_dimensions );
 	}
 	if ( dimension_array[0] <= 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The measurement handler list '%s' has an illegal first dimension size of %ld."
-"  This size must be greater than zero.",
-			list_record_name, (long) dimension_array[0]);
+"  This size must be greater than zero.", list_record_name, dimension_array[0]);
 	}
 
 	*num_handlers = dimension_array[0];
@@ -1526,7 +1523,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	MX_LINEAR_SCAN *linear_scan;
 	double *motor_position;
 	double normalization;
-	int32_t *motor_is_independent_variable;
+	long *motor_is_independent_variable;
 	static char truncation_marker[] = " ... truncated ...";
 	char buffer[2000];
 	char little_buffer[50];
@@ -1562,7 +1559,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 				linear_scan = (MX_LINEAR_SCAN *)
 					(scan->record->record_class_struct);
 				sprintf( little_buffer, " %ld",
-					(long) (linear_scan->step_number[0]) );
+					(linear_scan->step_number)[0] );
 				strncat( buffer, little_buffer, buffer_left );
 			}
 		} else {
@@ -1862,16 +1859,15 @@ mx_scan_get_measurement_time( MX_SCAN *scan )
 MX_EXPORT mx_status_type
 mx_scan_fixup_varargs_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		mx_length_type num_record_fields,
-		mx_length_type *num_independent_variables_varargs_cookie,
-		mx_length_type *num_motors_varargs_cookie,
-		mx_length_type *num_input_devices_varargs_cookie )
+		long num_record_fields,
+		long *num_independent_variables_varargs_cookie,
+		long *num_motors_varargs_cookie,
+		long *num_input_devices_varargs_cookie )
 {
-	static const char fname[] =
-		"mx_scan_fixup_varargs_record_field_defaults()";
+	static const char fname[] = "mx_scan_fixup_varargs_record_field_defaults()";
 
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type referenced_field_index;
+	long referenced_field_index;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 8,("%s invoked.", fname));
@@ -1894,7 +1890,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_motors varargs cookie = %ld",
-			fname, (long) *num_motors_varargs_cookie));
+			fname, *num_motors_varargs_cookie));
 
 	/*---*/
 
@@ -1949,7 +1945,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_input_devices varargs cookie = %ld",
-			fname, (long) *num_input_devices_varargs_cookie));
+			fname, *num_input_devices_varargs_cookie));
 
 	/*---*/
 
@@ -1982,7 +1978,7 @@ mx_scan_fixup_varargs_record_field_defaults(
 		return mx_status;
 
 	MX_DEBUG( 8,("%s: num_independent_variables varargs_cookie = %ld",
-		fname, (long) *num_independent_variables_varargs_cookie));
+			fname, *num_independent_variables_varargs_cookie));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2000,11 +1996,10 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 {
 	static const char fname[] = "mx_compute_normalized_device_value()";
 
-	mx_length_type num_dimensions;
-	mx_length_type *dimension_array;
-	long field_type;
-	int32_t int32_value;
-	uint32_t uint32_value;
+	long *dimension_array;
+	long long_value, num_dimensions, field_type;
+	unsigned long ulong_value;
+	int int_value;
 	double double_value;
 	void *ptr_to_value;
 	mx_status_type mx_status;
@@ -2026,14 +2021,14 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 		case MXC_DIGITAL_INPUT:
 			mx_status = mx_digital_input_read( input_device,
-							&uint32_value );
-			*returned_value = (double) uint32_value;
+							&ulong_value );
+			*returned_value = (double) ulong_value;
 			break;
 
 		case MXC_DIGITAL_OUTPUT:
 			mx_status = mx_digital_output_read( input_device,
-							&uint32_value );
-			*returned_value = (double) uint32_value;
+							&ulong_value );
+			*returned_value = (double) ulong_value;
 			break;
 
 		case MXC_MOTOR:
@@ -2043,16 +2038,16 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			break;
 
 		case MXC_SCALER:
-			mx_status = mx_scaler_read( input_device, &int32_value);
+			mx_status = mx_scaler_read( input_device, &long_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			if ( measurement_time <= 0.0 ) {
-				*returned_value = (double) int32_value;
+				*returned_value = (double) long_value;
 			} else {
 				*returned_value = mx_divide_safely(
-							(double) int32_value,
+							(double) long_value,
 							measurement_time );
 			}
 			break;
@@ -2065,12 +2060,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( input_device,
-							&int32_value );
+							&int_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			*returned_value = (double) int32_value;
+			*returned_value = (double) int_value;
 			break;
 
 		default:
@@ -2098,39 +2093,26 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 				input_device->name );
 		}
 		switch( field_type ) {
-		case MXFT_INT8:
-			*returned_value = (double) *((int8_t *) ptr_to_value);
+		case MXFT_SHORT:
+			*returned_value = (double) *((short *) ptr_to_value);
 			break;
-		case MXFT_UINT8:
-			*returned_value = (double) *((uint8_t *) ptr_to_value);
+		case MXFT_USHORT:
+			*returned_value = (double)
+					*((unsigned short *) ptr_to_value);
 			break;
-		case MXFT_INT16:
-			*returned_value = (double) *((int16_t *) ptr_to_value);
+		case MXFT_INT:
+			*returned_value = (double) *((int *) ptr_to_value);
 			break;
-		case MXFT_UINT16:
-			*returned_value = (double) *((uint16_t *) ptr_to_value);
+		case MXFT_UINT:
+			*returned_value = (double)
+					*((unsigned int *) ptr_to_value);
 			break;
-		case MXFT_INT32:
-			*returned_value = (double) *((int32_t *) ptr_to_value);
+		case MXFT_LONG:
+			*returned_value = (double) *((long *) ptr_to_value);
 			break;
-		case MXFT_UINT32:
-		case MXFT_HEX:
-			*returned_value = (double) *((uint32_t *) ptr_to_value);
-			break;
-		case MXFT_INT64:
-			*returned_value = (double) *((int64_t *) ptr_to_value);
-			break;
-		case MXFT_UINT64:
-
-			/* Note: If you are using Visual C++ 6 and the
-			 * following line blows up with 'error C2520',
-			 * upgrade your copy of Visual C++ 6 to 
-			 * Service Pack 5.  After doing that, install
-			 * the Visual C++ 6.0 Processor Pack and then
-			 * the following line will compile correctly.
-			 */
-
-			*returned_value = (double) *((uint64_t *) ptr_to_value);
+		case MXFT_ULONG:
+			*returned_value = (double)
+					*((unsigned long *) ptr_to_value);
 			break;
 		case MXFT_FLOAT:
 			*returned_value = (double) *((float *) ptr_to_value);
@@ -2203,28 +2185,24 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			double_value = analog_input->value;
 
-			sprintf(buffer, "%-10.*g",
-				(int) input_device->precision,
-				double_value );
+			sprintf(buffer, "%-10.*g", input_device->precision,
+					double_value );
 			break;
 		case MXC_ANALOG_OUTPUT:
 			analog_output = (MX_ANALOG_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%-10.*g",
-				(int) input_device->precision,
-				analog_output->value);
+			sprintf(buffer, "%-10.*g", input_device->precision,
+					analog_output->value);
 			break;
 		case MXC_DIGITAL_INPUT:
 			digital_input = (MX_DIGITAL_INPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu",
-				(unsigned long) digital_input->value);
+			sprintf(buffer, "%10lu", digital_input->value);
 			break;
 		case MXC_DIGITAL_OUTPUT:
 			digital_output = (MX_DIGITAL_OUTPUT *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10lu",
-				(unsigned long) digital_output->value);
+			sprintf(buffer, "%10lu", digital_output->value);
 			break;
 		case MXC_MOTOR:
 			motor = (MX_MOTOR *)
@@ -2240,12 +2218,12 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 			default:
 				return mx_error(MXE_NOT_YET_IMPLEMENTED, fname,
 				"Motor subclass %d not yet implemented.",
-					(int) motor->subclass );
+					motor->subclass );
 			}
 			position = motor->offset + motor->scale * raw_position;
 
-			sprintf(buffer, "%-10.*g",
-				(int) input_device->precision, position);
+			sprintf(buffer, "%-10.*g", input_device->precision,
+					position);
 			break;
 		case MXC_SCALER:
 			scaler = (MX_SCALER *)
@@ -2253,11 +2231,11 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 
 			if ( measurement_time > 0.0 ) {
 				sprintf( buffer, "%-10.*g",
-					(int) input_device->precision,
+					input_device->precision,
 					mx_divide_safely( (double)scaler->value,
 						measurement_time ) );
 			} else {
-				sprintf( buffer, "%10ld", (long) scaler->value);
+				sprintf( buffer, "%10ld", scaler->value );
 			}
 			break;
 		case MXC_TIMER:
@@ -2268,7 +2246,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		case MXC_RELAY:
 			relay = (MX_RELAY *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10d", (int) relay->relay_status);
+			sprintf(buffer, "%10d", relay->relay_status);
 			break;
 		case MXC_AMPLIFIER:
 			amplifier = (MX_AMPLIFIER *)

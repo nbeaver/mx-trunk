@@ -53,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_gm10_timer_record_field_defaults[] = {
 	MXD_GM10_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_gm10_timer_num_record_fields
+long mxd_gm10_timer_num_record_fields
 		= sizeof( mxd_gm10_timer_record_field_defaults )
 		  / sizeof( mxd_gm10_timer_record_field_defaults[0] );
 
@@ -102,9 +102,9 @@ mxd_gm10_timer_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
-        mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-        mx_length_type num_scalers_varargs_cookie;
+        long num_record_fields;
+	long referenced_field_index;
+        long num_scalers_varargs_cookie;
         mx_status_type mx_status;
 
         driver = mx_get_driver_by_type( type );
@@ -130,7 +130,7 @@ mxd_gm10_timer_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+        if ( driver->num_record_fields == (long *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -240,7 +240,7 @@ mxd_gm10_timer_get_new_counts( MX_RECORD *timer_record,
 	MX_SCALER *scaler;
 	MX_GM10_SCALER *gm10_scaler;
 	char read_buffer[MXD_GM10_TIMER_BLOCK_SIZE];
-	uint32_t num_bytes_available;
+	unsigned long num_bytes_available;
 	unsigned long i, num_blocks, remainder;
 	mx_status_type mx_status;
 
@@ -290,8 +290,7 @@ mxd_gm10_timer_get_new_counts( MX_RECORD *timer_record,
 
 #if MXD_GM10_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: scaler '%s', new counts = %lu",
-		fname, scaler_record->name,
-		(unsigned long) num_bytes_available));
+		fname, scaler_record->name, num_bytes_available));
 #endif
 
 	/* Discard the bytes available on the serial port. */
@@ -369,7 +368,7 @@ mxd_gm10_timer_is_busy( MX_TIMER *timer )
 	MX_DEBUG(-2,("%s: current time = (%lu,%lu), busy = %d",
 		fname, current_time_in_clock_ticks.high_order,
 		current_time_in_clock_ticks.low_order,
-		(int) timer->busy ));
+		timer->busy ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

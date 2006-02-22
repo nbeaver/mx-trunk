@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_digital_input.h"
@@ -31,8 +32,15 @@
 /* Initialize the PMAC digital I/O driver jump tables. */
 
 MX_RECORD_FUNCTION_LIST mxd_pmac_din_record_function_list = {
+	mxd_pmac_din_initialize_type,
+	mxd_pmac_din_create_record_structures,
+	mxd_pmac_din_finish_record_initialization,
+	mxd_pmac_din_delete_record,
 	NULL,
-	mxd_pmac_din_create_record_structures
+	mxd_pmac_din_read_parms_from_hardware,
+	mxd_pmac_din_write_parms_to_hardware,
+	mxd_pmac_din_open,
+	mxd_pmac_din_close
 };
 
 MX_DIGITAL_INPUT_FUNCTION_LIST mxd_pmac_din_digital_input_function_list = {
@@ -45,7 +53,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_din_record_field_defaults[] = {
 	MXD_PMAC_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_din_num_record_fields
+long mxd_pmac_din_num_record_fields
 		= sizeof( mxd_pmac_din_record_field_defaults )
 			/ sizeof( mxd_pmac_din_record_field_defaults[0] );
 
@@ -55,8 +63,15 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pmac_din_rfield_def_ptr
 /* === */
 
 MX_RECORD_FUNCTION_LIST mxd_pmac_dout_record_function_list = {
+	mxd_pmac_dout_initialize_type,
+	mxd_pmac_dout_create_record_structures,
+	mxd_pmac_dout_finish_record_initialization,
+	mxd_pmac_dout_delete_record,
 	NULL,
-	mxd_pmac_dout_create_record_structures
+	mxd_pmac_dout_read_parms_from_hardware,
+	mxd_pmac_dout_write_parms_to_hardware,
+	mxd_pmac_dout_open,
+	mxd_pmac_dout_close
 };
 
 MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_pmac_dout_digital_output_function_list = {
@@ -70,7 +85,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_dout_record_field_defaults[] = {
 	MXD_PMAC_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_dout_num_record_fields
+long mxd_pmac_dout_num_record_fields
 		= sizeof( mxd_pmac_dout_record_field_defaults )
 			/ sizeof( mxd_pmac_dout_record_field_defaults[0] );
 
@@ -83,7 +98,7 @@ mxd_pmac_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_pmac_din_get_pointers()";
+	const char fname[] = "mxd_pmac_din_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -152,7 +167,7 @@ mxd_pmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_pmac_dout_get_pointers()";
+	const char fname[] = "mxd_pmac_dout_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -218,9 +233,15 @@ mxd_pmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 /* ===== Input functions. ===== */
 
 MX_EXPORT mx_status_type
+mxd_pmac_din_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_pmac_din_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_pmac_din_create_record_structures()";
+        const char fname[] = "mxd_pmac_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_PMAC_DINPUT *pmac_dinput;
@@ -255,16 +276,99 @@ mxd_pmac_din_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_pmac_din_finish_record_initialization( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_din_delete_record( MX_RECORD *record )
+{
+        if ( record == NULL ) {
+                return MX_SUCCESSFUL_RESULT;
+        }
+        if ( record->record_type_struct != NULL ) {
+                free( record->record_type_struct );
+
+                record->record_type_struct = NULL;
+        }
+        if ( record->record_class_struct != NULL ) {
+                free( record->record_class_struct );
+
+                record->record_class_struct = NULL;
+        }
+        return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_din_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_din_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_din_open( MX_RECORD *record )
+{
+	const char fname[] = "mxd_pmac_din_open()";
+
+	MX_DIGITAL_INPUT *dinput;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
+
+	/* Read the current value of the register. */
+
+	mx_status = mxd_pmac_din_read( dinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_din_close( MX_RECORD *record )
+{
+	const char fname[] = "mxd_pmac_din_close()";
+
+	MX_DIGITAL_INPUT *dinput;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	dinput = (MX_DIGITAL_INPUT *) record->record_class_struct;
+
+	/* Read the value of the input so that it can be recorded
+	 * correctly in the database file if the database file is
+	 * configured to be written to at program shutdown.
+	 */
+
+	mx_status = mxd_pmac_din_read( dinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	static const char fname[] = "mxd_pmac_din_read()";
+	const char fname[] = "mxd_pmac_din_read()";
 
 	MX_PMAC_DINPUT *pmac_dinput;
 	MX_PMAC *pmac;
 	char command[80];
 	char response[80];
 	int num_items;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -293,7 +397,7 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &value );
+	num_items = sscanf( response, "%lu", &(dinput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -302,17 +406,21 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 			response, dinput->record->name );
 	}
 
-	dinput->value = value;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ===== Output functions. ===== */
 
 MX_EXPORT mx_status_type
+mxd_pmac_dout_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_pmac_dout_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_pmac_dout_create_record_structures()";
+        const char fname[] = "mxd_pmac_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_PMAC_DOUTPUT *pmac_doutput;
@@ -348,16 +456,80 @@ mxd_pmac_dout_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_pmac_dout_finish_record_initialization( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_dout_delete_record( MX_RECORD *record )
+{
+        if ( record == NULL ) {
+                return MX_SUCCESSFUL_RESULT;
+        }
+        if ( record->record_type_struct != NULL ) {
+                free( record->record_type_struct );
+
+                record->record_type_struct = NULL;
+        }
+        if ( record->record_class_struct != NULL ) {
+                free( record->record_class_struct );
+
+                record->record_class_struct = NULL;
+        }
+        return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_dout_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_dout_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_dout_open( MX_RECORD *record )
+{
+	const char fname[] = "mxd_pmac_dout_open()";
+
+	MX_DIGITAL_OUTPUT *doutput;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	doutput = (MX_DIGITAL_OUTPUT *) record->record_class_struct;
+
+	/* Read the current value of the register. */
+
+	mx_status = mxd_pmac_dout_read( doutput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_pmac_dout_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	static const char fname[] = "mxd_pmac_dout_read()";
+	const char fname[] = "mxd_pmac_dout_read()";
 
 	MX_PMAC_DOUTPUT *pmac_doutput;
 	MX_PMAC *pmac;
 	char command[80];
 	char response[80];
 	int num_items;
-	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pmac_dout_get_pointers( doutput,
@@ -381,7 +553,7 @@ mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%lu", &value );
+	num_items = sscanf( response, "%lu", &(doutput->value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -390,15 +562,13 @@ mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			response, doutput->record->name );
 	}
 
-	doutput->value = value;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_pmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	static const char fname[] = "mxd_pmac_dout_write()";
+	const char fname[] = "mxd_pmac_dout_write()";
 
 	MX_PMAC_DOUTPUT *pmac_doutput;
 	MX_PMAC *pmac;
@@ -415,11 +585,11 @@ mxd_pmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		sprintf( command, "@%x%s=%lu",
 			pmac_doutput->card_number,
 			pmac_doutput->pmac_variable_name,
-			(unsigned long) doutput->value );
+			doutput->value );
 	} else {
 		sprintf( command, "%s=%lu",
 			pmac_doutput->pmac_variable_name,
-			(unsigned long) doutput->value );
+			doutput->value );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,

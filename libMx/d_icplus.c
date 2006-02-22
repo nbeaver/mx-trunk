@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_icplus_record_field_defaults[] = {
 	MXD_ICPLUS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_icplus_num_record_fields
+long mxd_icplus_num_record_fields
 		= sizeof( mxd_icplus_record_field_defaults )
 			/ sizeof( mxd_icplus_record_field_defaults[0] );
 
@@ -70,7 +70,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_qbpm_record_field_defaults[] = {
 	MXD_QBPM_STANDARD_FIELDS
 };
 
-mx_length_type mxd_qbpm_num_record_fields
+long mxd_qbpm_num_record_fields
 		= sizeof( mxd_qbpm_record_field_defaults )
 			/ sizeof( mxd_qbpm_record_field_defaults[0] );
 
@@ -166,8 +166,7 @@ mxd_icplus_open( MX_RECORD *record )
 	char command[40];
 	char response[80];
 	int timed_out;
-	unsigned long i, max_attempts, wait_ms;
-	uint32_t num_input_bytes_available;
+	unsigned long i, max_attempts, wait_ms, num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_icplus_get_pointers( record,
@@ -232,9 +231,9 @@ mxd_icplus_open( MX_RECORD *record )
 	 */
 
 	if ( icplus->record->mx_type == MXT_AMP_ICPLUS ) {
-		sprintf( command, ":READ%d:CURR?", (int) icplus->address );
+		sprintf( command, ":READ%d:CURR?", icplus->address );
 	} else {
-		sprintf( command, ":READ%d:CURR1?", (int) icplus->address );
+		sprintf( command, ":READ%d:CURR1?", icplus->address );
 	}
 
 	wait_ms = 100;
@@ -331,28 +330,24 @@ mxd_icplus_open( MX_RECORD *record )
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested averaging size of %d for record '%s' is "
 		"outside the allowed range of 1 to 100.",
-				(int) icplus->default_averaging,
-				record->name );
+				icplus->default_averaging, record->name );
 		} else
 		if ( icplus->default_averaging >= 1 ) {
 			sprintf( command, ":READ%d:AVGCURR %d",
-				(int) icplus->address,
-				(int) icplus->default_averaging );
+				icplus->address, icplus->default_averaging );
 		} else
 		if ( icplus->default_averaging > -1 ) {
 			sprintf( command, ":READ%d:SINGLE",
-				(int) icplus->address );
+				icplus->address );
 		} else
 		if ( icplus->default_averaging >= -100 ) {
 			sprintf( command, ":READ%d:WDWCURR %d",
-				(int) icplus->address,
-				(int) - icplus->default_averaging );
+				icplus->address, -(icplus->default_averaging) );
 		} else {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested moving average size of %d for record '%s' is "
 		"outside the allowed range of -1 to -100.",
-				(int) icplus->default_averaging,
-				record->name );
+				icplus->default_averaging, record->name );
 		}
 
 		mx_status = mxd_icplus_command( icplus, command, NULL, 0,
@@ -394,7 +389,7 @@ mxd_icplus_resynchronize( MX_RECORD *record )
 
 	/* Reset the IC PLUS. */
 
-	sprintf( command, "*RST%d", (int) icplus->address );
+	sprintf( command, "*RST%d", icplus->address );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					NULL, 0, MXD_ICPLUS_DEBUG );
@@ -415,7 +410,7 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 	MX_ICPLUS *icplus;
 	char command[40];
 	char response[40];
-	int exponent, num_items, int_value;
+	int exponent, num_items;
 	mx_status_type mx_status;
 
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {
@@ -429,7 +424,7 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, ":CONF%d:CURR:RANG?", (int) icplus->address );
+	sprintf( command, ":CONF%d:CURR:RANG?", icplus->address );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					response, sizeof response,
@@ -438,7 +433,7 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%d", &int_value );
+	num_items = sscanf( response, "%d", &(icplus->range) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -447,8 +442,6 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 			command, mx_get_driver_name( icplus->record ),
 			amplifier->record->name, response );
 	}
-
-	icplus->range = int_value;
 
 	if ( (icplus->qbpm_flags & MXF_QBPM_USE_NEW_GAINS) == 0 ) {
 		/* Use power of 10 gains. */
@@ -544,7 +537,7 @@ mxd_icplus_set_gain( MX_AMPLIFIER *amplifier )
 	}
 
 	sprintf( command, ":CONF%d:CURR:RANG %d",
-				(int) icplus->address, (int) icplus->range );
+				icplus->address, icplus->range );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					NULL, 0, MXD_ICPLUS_DEBUG );
@@ -574,7 +567,7 @@ mxd_icplus_get_offset( MX_AMPLIFIER *amplifier )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, ":CONF%d:CURR:OFFS?", (int) icplus->address );
+	sprintf( command, ":CONF%d:CURR:OFFS?", icplus->address );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					response, sizeof response,
@@ -629,7 +622,7 @@ mxd_icplus_set_offset( MX_AMPLIFIER *amplifier )
 	}
 
 	sprintf( command, ":CONF%d:CURR:OFFS %ld",
-				(int) icplus->address, offset_percentage );
+				icplus->address, offset_percentage );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					NULL, 0, MXD_ICPLUS_DEBUG );
@@ -650,8 +643,7 @@ mxd_icplus_command( MX_ICPLUS *icplus,
 
 	char c;
 	int i, max_attempts;
-	unsigned long sleep_ms;
-	uint32_t num_input_bytes_available;
+	unsigned long sleep_ms, num_input_bytes_available;
 	mx_status_type mx_status, mx_status2;
 
 	if ( icplus == (MX_ICPLUS *) NULL ) {

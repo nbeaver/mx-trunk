@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_databox_encoder_record_field_defaults[] = {
 	MXD_DATABOX_ENCODER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_databox_encoder_num_record_fields
+long mxd_databox_encoder_num_record_fields
 		= sizeof( mxd_databox_encoder_record_field_defaults )
 		  / sizeof( mxd_databox_encoder_record_field_defaults[0] );
 
@@ -125,9 +125,9 @@ mxd_databox_encoder_get_pointers( MX_MCE *mce,
 MX_EXPORT mx_status_type
 mxd_databox_encoder_initialize_type( long record_type )
 {
-	mx_length_type num_record_fields;
+	long num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type maximum_num_values_varargs_cookie;
+	long maximum_num_values_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mce_initialize_type( record_type,
@@ -243,7 +243,7 @@ mxd_databox_encoder_read( MX_MCE *mce )
 	mce->current_num_values = (long) mcs->current_num_measurements;
 
 	MX_DEBUG( 2,("%s: mce->current_num_values = %ld",
-		fname, (long) mce->current_num_values));
+		fname, mce->current_num_values));
 
 	for ( i = 0; i < mce->current_num_values; i++ ) {
 
@@ -274,7 +274,7 @@ mxd_databox_encoder_get_current_num_values( MX_MCE *mce )
 	mce->current_num_values = (long) mcs->current_num_measurements;
 
 	MX_DEBUG( 2,("%s: mce->current_num_values = %ld",
-		fname, (long) mce->current_num_values));
+		fname, mce->current_num_values));
 
 	return MX_SUCCESSFUL_RESULT;
 }

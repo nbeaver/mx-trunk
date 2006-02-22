@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,9 +23,9 @@
 /* ===== MX Compumotor linear interpolation motor data structures ===== */
 
 typedef struct {
-	mx_hex_type flags;
+	long flags;
 
-	mx_length_type num_motors;
+	long num_motors;
 	MX_RECORD **motor_record_array;
 	double *real_motor_scale;
 	double *real_motor_offset;
@@ -33,12 +33,12 @@ typedef struct {
 
 	double *motor_position_array;
 
-	int32_t *index_to_axis_number;
-	int32_t axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
+	int *index_to_axis_number;
+	int axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
 
 	MX_RECORD *compumotor_interface_record;
-	int32_t controller_index;
-	int32_t num_axes;
+	int controller_index;
+	int num_axes;
 } MX_COMPUMOTOR_LINEAR_MOTOR;
 
 /* Values for the flags variable. */
@@ -74,7 +74,7 @@ MX_API mx_status_type mxd_compumotor_linear_find_home_position(MX_MOTOR *motor);
 extern MX_RECORD_FUNCTION_LIST mxd_compumotor_linear_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_compumotor_linear_motor_function_list;
 
-extern mx_length_type mxd_compumotor_linear_num_record_fields;
+extern long mxd_compumotor_linear_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_linear_rfield_def_ptr;
 
 #define MXD_COMPUMOTOR_LINEAR_STANDARD_FIELDS \
@@ -82,9 +82,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_linear_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_LINEAR_MOTOR, flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_motors", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_motors", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_LINEAR_MOTOR, num_motors), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "motor_record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \

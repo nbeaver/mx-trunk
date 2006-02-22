@@ -59,10 +59,9 @@ motor_mcs_fn( int argc, char *argv[] )
 	int os_status, saved_errno;
 	char *endptr;
 	double measurement_time;
-	mx_length_type i, j, channel, measurement;
-	mx_length_type num_scalers, num_measurements;
-	int32_t *scaler_data;
-	int32_t **mcs_data;
+	unsigned long i, j, channel, measurement, num_scalers, num_measurements;
+	long *scaler_data;
+	long **mcs_data;
 	int busy, status;
 	mx_status_type mx_status;
 
@@ -258,8 +257,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		for ( i = 0; i < num_measurements; i++ ) {
 			for ( j = 0; j < num_scalers; j++ ) {
-				fprintf(savefile, "%10ld  ",
-					(long) mcs_data[j][i]);
+				fprintf(savefile, "%10ld  ", mcs_data[j][i]);
 
 				if ( feof(savefile) || ferror(savefile) ) {
 					fprintf( output,
@@ -317,7 +315,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 		for ( i = 0; i < num_measurements; i++ ) {
 
-			fprintf(savefile, "%10ld\n", (long) scaler_data[i]);
+			fprintf(savefile, "%10ld\n", scaler_data[i]);
 
 			if ( feof(savefile) || ferror(savefile) ) {
 				fprintf( output,
@@ -459,8 +457,7 @@ motor_mcs_fn( int argc, char *argv[] )
 
 			fprintf( output,
 				"MCS '%s' num measurements = %lu\n",
-				mcs_record->name,
-				(unsigned long) num_measurements );
+				mcs_record->name, num_measurements );
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
@@ -548,8 +545,8 @@ motor_mcs_fn( int argc, char *argv[] )
 static int
 motor_mcs_read( MX_RECORD *mcs_record, MX_MCS *mcs, unsigned long scaler_number)
 {
-	mx_length_type i, num_measurements;
-	int32_t *scaler_data;
+	unsigned long i, num_measurements;
+	long *scaler_data;
 	mx_status_type mx_status;
 
 	/* Read out the acquired data. */
@@ -574,10 +571,10 @@ motor_mcs_read( MX_RECORD *mcs_record, MX_MCS *mcs, unsigned long scaler_number)
 
 	for ( i = 0; i < num_measurements; i++ ) {
 		if ( (i % VALUES_PER_ROW) == 0 ) {
-			fprintf( output, "\n%4lu: ", (unsigned long) i );
+			fprintf( output, "\n%4lu: ", i );
 		}
 
-		fprintf( output, "%6ld ", (long) scaler_data[i] );
+		fprintf( output, "%6ld ", scaler_data[i] );
 
 #if 1
 		if ( ((i+1) % VALUES_PER_PAGE) == 0 ) {
@@ -595,8 +592,8 @@ motor_mcs_read( MX_RECORD *mcs_record, MX_MCS *mcs, unsigned long scaler_number)
 static int
 motor_mcs_read_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 {
-	mx_length_type i, j, num_scalers, num_measurements;
-	int32_t **mcs_data;
+	unsigned long i, j, num_scalers, num_measurements;
+	long **mcs_data;
 	mx_status_type mx_status;
 
 	/* Read out the acquired data. */
@@ -621,11 +618,11 @@ motor_mcs_read_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 #endif
 
 	for ( i = 0; i < num_measurements; i++ ) {
-		fprintf( output, "\n%4lu: ", (unsigned long) i );
+		fprintf( output, "\n%4lu: ", i );
 
 		for ( j = 0; j < num_scalers; j++ ) {
 
-			fprintf( output, "%6ld ", (long) mcs_data[j][i] );
+			fprintf( output, "%6ld ", mcs_data[j][i] );
 		}
 #if 1
 		if ( ((i+1) % ROWS_PER_PAGE) == 0 ) {
@@ -645,14 +642,14 @@ motor_mcs_measurement( MX_RECORD *mcs_record,
 			MX_MCS *mcs,
 			unsigned long measurement )
 {
-	mx_length_type i, num_scalers;
-	int32_t *measurement_data;
+	unsigned long i, num_scalers;
+	long *measurement_data;
 	mx_status_type mx_status;
 
 	if ( measurement >= mcs->current_num_measurements ) {
 		fprintf( output,
 	"Illegal measurement number %lu.  The allowed range is (0-%lu).\n",
-			measurement, mcs->current_num_measurements - 1L );
+			measurement, mcs->current_num_measurements - 1 );
 		return FAILURE;
 	}
 
@@ -665,7 +662,7 @@ motor_mcs_measurement( MX_RECORD *mcs_record,
 	fprintf( output, "%4lu: ", measurement );
 
 	for ( i = 0; i < num_scalers; i++ ) {
-		fprintf( output, "%6ld ", (long) measurement_data[i] );
+		fprintf( output, "%6ld ", measurement_data[i] );
 	}
 
 	fprintf( output, "\n" );
@@ -690,8 +687,8 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
-	mx_length_type i, num_measurements;
-	int32_t *scaler_data;
+	unsigned long i, num_measurements;
+	long *scaler_data;
 	int status;
 	mx_status_type mx_status;
 
@@ -749,8 +746,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	for ( i = 0; i < num_measurements; i++ ) {
 		status = fprintf( plotgnu_pipe,
-				"data %lu %ld\n", (unsigned long) i,
-					(long) scaler_data[i] );
+					"data %lu %ld\n", i, scaler_data[i] );
 	}
 
 	status = fprintf( plotgnu_pipe, "set title 'MCS display'\n" );
@@ -794,8 +790,8 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
-	mx_length_type i, j, num_scalers, num_measurements;
-	int32_t **mcs_data;
+	unsigned long i, j, num_scalers, num_measurements;
+	long **mcs_data;
 	int status;
 	mx_status_type mx_status;
 
@@ -849,7 +845,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	for ( j = 0; j < num_scalers; j++ ) {
 
-		status = fprintf( plotgnu_pipe, ";$f[%lu]", (unsigned long) j );
+		status = fprintf( plotgnu_pipe, ";$f[%lu]", j );
 	}
 	status = fprintf( plotgnu_pipe, "\n" );
 
@@ -859,11 +855,11 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 		"Sending data to the plotting program.  Please wait...\n" );
 
 	for ( i = 0; i < num_measurements; i++ ) {
-		status = fprintf( plotgnu_pipe, "data %lu", (unsigned long) i );
+		status = fprintf( plotgnu_pipe, "data %lu", i );
 
 		for ( j = 0; j < num_scalers; j++ ) {
 
-		status = fprintf( plotgnu_pipe, " %ld", (long) mcs_data[j][i] );
+		status = fprintf( plotgnu_pipe, " %ld", mcs_data[j][i] );
 		}
 
 		status = fprintf( plotgnu_pipe, "\n" );

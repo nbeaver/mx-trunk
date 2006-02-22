@@ -29,7 +29,7 @@ mx_camac_get_pointers( MX_RECORD *camac_record,
 			MX_CAMAC_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	static const char fname[] = "mx_camac_get_pointers()";
+	const char fname[] = "mx_camac_get_pointers()";
 
         if ( camac_record == (MX_RECORD *) NULL ) {
                 return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -72,20 +72,20 @@ mx_camac_get_pointers( MX_RECORD *camac_record,
 }
 
 MX_EXPORT mx_status_type
-mx_camac_get_lam_status( MX_RECORD *camac_record, int32_t *lam_n )
+mx_camac_get_lam_status( MX_RECORD *camac_record, int *lam_n )
 {
-	static const char fname[] = "mx_camac_get_lam_status()";
+	const char fname[] = "mx_camac_get_lam_status()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int32_t * );
-	mx_status_type mx_status;
+	mx_status_type ( *fptr ) ( MX_CAMAC *, int * );
+	mx_status_type status;
 
-	mx_status = mx_camac_get_pointers( camac_record,
+	status = mx_camac_get_pointers( camac_record,
 					&camac, &fl_ptr, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	fptr = fl_ptr->get_lam_status;
 
@@ -94,26 +94,26 @@ mx_camac_get_lam_status( MX_RECORD *camac_record, int32_t *lam_n )
 			"get_lam_status function pointer is NULL." );
 	}
 	
-	mx_status = ( *fptr ) ( camac, lam_n );
+	status = ( *fptr ) ( camac, lam_n );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
-mx_camac_controller_command( MX_RECORD *camac_record, int32_t command )
+mx_camac_controller_command( MX_RECORD *camac_record, int command )
 {
-	static const char fname[] = "mx_camac_controller_command()";
+	const char fname[] = "mx_camac_controller_command()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int32_t );
-	mx_status_type mx_status;
+	mx_status_type ( *fptr ) ( MX_CAMAC *, int );
+	mx_status_type status;
 
-	mx_status = mx_camac_get_pointers( camac_record,
+	status = mx_camac_get_pointers( camac_record,
 					&camac, &fl_ptr, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	fptr = fl_ptr->controller_command;
 
@@ -122,33 +122,33 @@ mx_camac_controller_command( MX_RECORD *camac_record, int32_t command )
 			"controller_command function pointer is NULL." );
 	}
 	
-	mx_status = ( *fptr ) ( camac, command );
+	status = ( *fptr ) ( camac, command );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mx_camac( MX_RECORD *camac_record,
-	int32_t slot,
-	int32_t subaddress,
-	int32_t function_code,
+	int slot,
+	int subaddress,
+	int function_code,
 	int32_t *data,
-	int32_t *Q,
-	int32_t *X )
+	int *Q,
+	int *X )
 {
-	static const char fname[] = "mx_camac()";
+	const char fname[] = "mx_camac()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr )( MX_CAMAC *,
-		int32_t, int32_t, int32_t, int32_t *, int32_t *, int32_t * );
-	mx_status_type mx_status;
+		int, int, int, int32_t *, int *, int * );
+	mx_status_type status;
 
-	mx_status = mx_camac_get_pointers( camac_record,
+	status = mx_camac_get_pointers( camac_record,
 					&camac, &fl_ptr, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	fptr = fl_ptr->camac;
 
@@ -159,10 +159,10 @@ mx_camac( MX_RECORD *camac_record,
 
 	/* Send the actual CAMAC command. */
 	
-	mx_status = ( *fptr ) ( camac,
+	status = ( *fptr ) ( camac,
 			slot, subaddress, function_code, data, Q, X );
 
-	return mx_status;
+	return status;
 }
 
 /* mx_camac_qwait() -- A CAMAC command is repeated until Q = 1.
@@ -171,13 +171,13 @@ mx_camac( MX_RECORD *camac_record,
 
 MX_EXPORT void
 mx_camac_qwait( MX_RECORD *camac_record,
-	int32_t slot,
-	int32_t subaddress,
-	int32_t function_code,
+	int slot,
+	int subaddress,
+	int function_code,
 	int32_t *data,
-	int32_t *X )
+	int *X )
 {
-	int32_t Q;
+	int Q;
 
 	Q = 0;
 	*X = 1;

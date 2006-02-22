@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -67,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_motor_record_field_defaults[] = {
 	MXD_NETWORK_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_motor_num_record_fields
+long mxd_network_motor_num_record_fields
 		= sizeof( mxd_network_motor_record_field_defaults )
 			/ sizeof( mxd_network_motor_record_field_defaults[0] );
 
@@ -113,7 +113,7 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 		= "mxd_network_motor_get_remote_record_information()";
 
 	MX_DRIVER *driver;
-	mx_length_type dimension[1];
+	long dimension[1];
 	mx_status_type mx_status;
 
 	network_motor->need_to_get_remote_record_information = FALSE;
@@ -121,7 +121,7 @@ mxd_network_motor_get_remote_record_information( MX_MOTOR *motor,
 	/* Get the 'motor_flags' value for the remote record. */
 
 	mx_status = mx_get( &(network_motor->motor_flags_nf),
-			MXFT_HEX, &(network_motor->remote_motor_flags) );
+			MXFT_ULONG, &(network_motor->remote_motor_flags) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -508,7 +508,7 @@ mxd_network_motor_resynchronize( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type resynchronize;
+	int resynchronize;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
@@ -530,10 +530,10 @@ mxd_network_motor_resynchronize( MX_RECORD *record )
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'.", fname, motor->record->name));
 
-	resynchronize = TRUE;
+	resynchronize = 1;
 
 	mx_status = mx_put( &(network_motor->resynchronize_nf),
-				MXFT_BOOL, &resynchronize );
+				MXFT_INT, &resynchronize );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -550,7 +550,7 @@ mxd_network_motor_motor_is_busy( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_motor_is_busy()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -573,7 +573,7 @@ mxd_network_motor_motor_is_busy( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	mx_status = mx_get( &(network_motor->busy_nf), MXFT_BOOL, &busy );
+	mx_status = mx_get( &(network_motor->busy_nf), MXFT_INT, &busy );
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -691,7 +691,7 @@ mxd_network_motor_soft_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_soft_abort()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type soft_abort;
+	int abort_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -711,10 +711,10 @@ mxd_network_motor_soft_abort( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	soft_abort = TRUE;
+	abort_flag = 1;
 
 	mx_status = mx_put( &(network_motor->soft_abort_nf),
-				MXFT_BOOL, &soft_abort );
+				MXFT_INT, &abort_flag );
 
 	return mx_status;
 }
@@ -725,7 +725,7 @@ mxd_network_motor_immediate_abort( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_immediate_abort()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type immediate_abort;
+	int abort_flag;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -745,10 +745,10 @@ mxd_network_motor_immediate_abort( MX_MOTOR *motor )
 			return mx_status;
 	}
 
-	immediate_abort = TRUE;
+	abort_flag = 1;
 
 	mx_status = mx_put( &(network_motor->immediate_abort_nf),
-				MXFT_BOOL, &immediate_abort );
+				MXFT_INT, &abort_flag );
 
 	return mx_status;
 }
@@ -759,7 +759,7 @@ mxd_network_motor_positive_limit_hit( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_positive_limit_hit()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type limit_hit;
+	int limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -780,7 +780,7 @@ mxd_network_motor_positive_limit_hit( MX_MOTOR *motor )
 	}
 
 	mx_status = mx_get( &(network_motor->positive_limit_hit_nf),
-				MXFT_BOOL, &limit_hit );
+				MXFT_INT, &limit_hit );
 
 	motor->positive_limit_hit = limit_hit;
 
@@ -793,7 +793,7 @@ mxd_network_motor_negative_limit_hit( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_negative_limit_hit()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_bool_type limit_hit;
+	int limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -814,7 +814,7 @@ mxd_network_motor_negative_limit_hit( MX_MOTOR *motor )
 	}
 
 	mx_status = mx_get( &(network_motor->negative_limit_hit_nf),
-				MXFT_BOOL, &limit_hit );
+				MXFT_INT, &limit_hit );
 
 	motor->negative_limit_hit = limit_hit;
 
@@ -850,7 +850,7 @@ mxd_network_motor_find_home_position( MX_MOTOR *motor )
 	home_search = motor->home_search;
 
 	mx_status = mx_put( &(network_motor->home_search_nf),
-				MXFT_INT32, &home_search );
+				MXFT_INT, &home_search );
 
 	return mx_status;
 }
@@ -885,7 +885,7 @@ mxd_network_motor_constant_velocity_move( MX_MOTOR *motor )
 	constant_velocity_move = motor->constant_velocity_move;
 
 	mx_status = mx_put( &(network_motor->constant_velocity_move_nf),
-				MXFT_INT32, &constant_velocity_move );
+				MXFT_INT, &constant_velocity_move );
 
 	return mx_status;
 }
@@ -896,9 +896,9 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_get_parameter()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_length_type dimension_array[1];
-	mx_hex_type flags;
-	mx_bool_type is_pseudomotor;
+	long dimension_array[1];
+	unsigned long flags;
+	int is_pseudomotor;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -911,7 +911,7 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	if ( network_motor->need_to_get_remote_record_information ) {
 
@@ -940,7 +940,7 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
 		mx_status = mx_get(&(network_motor->synchronous_motion_mode_nf),
-				MXFT_BOOL, &(motor->synchronous_motion_mode) );
+				MXFT_INT, &(motor->synchronous_motion_mode) );
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
@@ -1105,7 +1105,7 @@ mxd_network_motor_get_parameter( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) motor->parameter_type );
+			motor->parameter_type );
 	}
 
 	return mx_status;
@@ -1117,8 +1117,8 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 	static const char fname[] = "mxd_network_motor_set_parameter()";
 
 	MX_NETWORK_MOTOR *network_motor;
-	mx_length_type dimension_array[1];
-	mx_bool_type bool_value;
+	long dimension_array[1];
+	int int_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -1131,7 +1131,7 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	if ( network_motor->need_to_get_remote_record_information ) {
 
@@ -1177,22 +1177,22 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		bool_value = TRUE;
+		int_value = 1;
 
 		mx_status = mx_put( &(network_motor->save_speed_nf),
-					MXFT_BOOL, &bool_value );
+					MXFT_INT, &int_value );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		bool_value = TRUE;
+		int_value = 1;
 
 		mx_status = mx_put( &(network_motor->restore_speed_nf),
-					MXFT_BOOL, &bool_value );
+				MXFT_INT, &int_value );
 		break;
 
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
 		mx_status = mx_put(&(network_motor->synchronous_motion_mode_nf),
-				MXFT_BOOL, &(motor->synchronous_motion_mode) );
+				MXFT_INT, &(motor->synchronous_motion_mode) );
 		break;
 
 	case MXLV_MTR_SAVE_START_POSITIONS:
@@ -1202,22 +1202,22 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 
 	case MXLV_MTR_USE_START_POSITIONS:
 		mx_status = mx_put( &(network_motor->use_start_positions_nf),
-				MXFT_BOOL, &(motor->use_start_positions) );
+				MXFT_INT, &(motor->use_start_positions) );
 		break;
 
 	case MXLV_MTR_AXIS_ENABLE:
 		mx_status = mx_put( &(network_motor->axis_enable_nf),
-				MXFT_BOOL, &(motor->axis_enable) );
+				MXFT_INT, &(motor->axis_enable) );
 		break;
 
 	case MXLV_MTR_CLOSED_LOOP:
 		mx_status = mx_put( &(network_motor->closed_loop_nf),
-				MXFT_BOOL, &(motor->closed_loop) );
+				MXFT_INT, &(motor->closed_loop) );
 		break;
 
 	case MXLV_MTR_FAULT_RESET:
 		mx_status = mx_put( &(network_motor->fault_reset_nf),
-				MXFT_BOOL, &(motor->fault_reset) );
+				MXFT_INT, &(motor->fault_reset) );
 		break;
 
 	case MXLV_MTR_PROPORTIONAL_GAIN:
@@ -1260,7 +1260,7 @@ mxd_network_motor_set_parameter( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) motor->parameter_type );
+			motor->parameter_type );
 	}
 
 	return mx_status;
@@ -1329,10 +1329,9 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 
 	MX_NETWORK_SERVER *network_server;
 	MX_NETWORK_MOTOR *network_motor;
+	long dimension[1];
 	int num_items;
-	unsigned long motor_status;
-	mx_length_type dimension[1];
-	uint32_t remote_mx_version;
+	unsigned long remote_mx_version;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_motor_get_pointers( motor,
@@ -1390,7 +1389,7 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 
 		num_items = sscanf( motor->extended_status, "%lg %lx",
 				&(motor->raw_position.analog),
-				&motor_status );
+				&(motor->status ) );
 
 		if ( num_items != 2 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1400,8 +1399,6 @@ mxd_network_motor_get_extended_status( MX_MOTOR *motor )
 				network_motor->server_record->name,
 				"extended_status", motor->extended_status );
 		}
-
-		motor->status = motor_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

@@ -25,9 +25,9 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-	int32_t subaddress;
-	mx_bool_type use_32bit_mod;
+	int slot;
+	int subaddress;
+	int use_32bit_mod;
 } MX_KS3640;
 
 /* The 32 bit modification flagged by 'use_32bit_mod' is a field modification
@@ -56,7 +56,7 @@ MX_API mx_status_type mxd_ks3640_write( MX_ENCODER *encoder );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3640_record_function_list;
 extern MX_ENCODER_FUNCTION_LIST mxd_ks3640_encoder_function_list;
 
-extern mx_length_type mxd_ks3640_num_record_fields;
+extern long mxd_ks3640_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3640_rfield_def_ptr;
 
 #define MXD_KS3640_STANDARD_FIELDS \
@@ -64,15 +64,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3640_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3640, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3640, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3640, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "use_32bit_mod", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_32bit_mod", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3640, use_32bit_mod), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

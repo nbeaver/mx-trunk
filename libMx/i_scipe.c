@@ -8,14 +8,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MXI_SCIPE_SERVER_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,12 +58,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_scipe_record_field_defaults[] = {
 	MXI_SCIPE_SERVER_STANDARD_FIELDS
 };
 
-mx_length_type mxi_scipe_num_record_fields
+long mxi_scipe_num_record_fields
 		= sizeof( mxi_scipe_record_field_defaults )
 			/ sizeof( mxi_scipe_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_scipe_rfield_def_ptr
 			= &mxi_scipe_record_field_defaults[0];
+
+#define MXI_SCIPE_SERVER_DEBUG		FALSE
 
 /* A private function for the use of the driver. */
 
@@ -245,8 +245,7 @@ mxi_scipe_open( MX_RECORD *record )
 	"of RS-232 record '%s' be a carriage return followed by a line feed.  "
 	"Instead saw read terminator %#lx and write terminator %#lx.",
 		record->name, scipe_server->rs232_record->name,
-		(unsigned long) rs232->read_terminators,
-		(unsigned long) rs232->write_terminators );
+		rs232->read_terminators, rs232->write_terminators );
 	}
 
 	/* Synchronize with the SCIPE server. */
@@ -462,7 +461,7 @@ mxi_scipe_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mxi_scipe_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mxi_scipe_num_input_bytes_available()";
 
@@ -528,7 +527,7 @@ mxi_scipe_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 
 MX_EXPORT mx_status_type
 mxi_scipe_command( MX_SCIPE_SERVER *scipe_server, char *command,
-		char *response, size_t response_buffer_length,
+		char *response, int response_buffer_length,
 		int *response_code, char **result_ptr,
 		int debug_flag )
 {

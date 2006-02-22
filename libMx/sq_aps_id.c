@@ -30,7 +30,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2006 Illinois Institute of Technology
+ * Copyright 2000-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -91,7 +91,7 @@ MX_RECORD_FIELD_DEFAULTS mxs_apsid_quick_scan_defaults[] = {
 	MX_QUICK_SCAN_STANDARD_FIELDS
 };
 
-mx_length_type mxs_apsid_quick_scan_num_record_fields
+long mxs_apsid_quick_scan_num_record_fields
 			= sizeof( mxs_apsid_quick_scan_defaults )
 			/ sizeof( mxs_apsid_quick_scan_defaults[0] );
 
@@ -102,19 +102,18 @@ static mx_status_type
 mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 		MX_APSID_QUICK_SCAN_EXTENSION *apsid_quick_scan_extension )
 {
-	static const char fname[] = "mxs_apsid_quick_scan_find_parameters()";
+	const char fname[] = "mxs_apsid_quick_scan_find_parameters()";
 
 	MX_RECORD *parameters_record, *id_ev_record;
 	MX_APS_GAP *aps_gap_struct;
-	int32_t id_ev_enabled, undulator_harmonic;
-	mx_length_type num_parameters;
+	int id_ev_enabled;
+	long num_parameters, undulator_harmonic;
 	double d_spacing;
 	double *double_array;
 	char **string_array;
 	void *pointer_to_value;
-	long field_type;
-	mx_length_type num_dimensions, *dimension_array;
-	mx_status_type mx_status;
+	long field_type, num_dimensions, *dimension_array;
+	mx_status_type status;
 
 	/* Find the APS insertion device quick scan parameters record. */
 
@@ -130,12 +129,12 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 
 	/* This variable should be a two dimensional array of strings. */
 
-	mx_status = mx_get_variable_parameters( parameters_record,
+	status = mx_get_variable_parameters( parameters_record,
 				&num_dimensions, &dimension_array,
 				&field_type, &pointer_to_value );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( field_type != MXFT_STRING ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
@@ -146,14 +145,14 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The APS insertion device quick scan parameters record '%s' "
 		"should have 2 dimensions, but actually has %ld.",
-			parameters_record->name, (long) num_dimensions );
+			parameters_record->name, num_dimensions );
 	}
 	if ( dimension_array[0] != MX_APSID_NUM_PARAMS ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The APS insertion device quick scan parameters record '%s' "
 		"should be an array of %d strings, but actually contains "
 		"%ld strings.", parameters_record->name, MX_APSID_NUM_PARAMS,
-			(long) dimension_array[0] );
+			dimension_array[0] );
 	}
 
 	string_array = (char **) pointer_to_value;
@@ -199,12 +198,12 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 
 	/* Get the insertion device enable setting. */
 
-	mx_status = mx_get_int32_variable_by_name( scan->record->list_head,
+	status = mx_get_int_variable_by_name( scan->record->list_head,
 			string_array[ MX_APSID_ID_EV_ENABLED_NAME ],
 			&id_ev_enabled );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	apsid_quick_scan_extension->id_ev_enabled = id_ev_enabled;
 
@@ -212,12 +211,12 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 
 	/* Get the insertion device harmonic number and energy offset. */
 
-	mx_status = mx_get_1d_array_by_name( scan->record->list_head,
+	status = mx_get_1d_array_by_name( scan->record->list_head,
 			string_array[ MX_APSID_ID_EV_PARAMS_NAME ],
 			MXFT_DOUBLE, &num_parameters, &pointer_to_value );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	double_array = (double *) pointer_to_value;
 
@@ -230,25 +229,25 @@ mxs_apsid_quick_scan_find_parameters( MX_SCAN *scan,
 
 	/* Get the undulator harmonic from EPICS. */
 
-	mx_status = mx_get_int32_variable_by_name( scan->record->list_head,
+	status = mx_get_long_variable_by_name( scan->record->list_head,
 			string_array[ MX_APSID_UNDULATOR_HARMONIC_NAME ],
 			&undulator_harmonic );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	apsid_quick_scan_extension->undulator_harmonic = undulator_harmonic;
 
 	MX_DEBUG( 2,("%s: undulator_harmonic = %ld",
-				fname, (long) undulator_harmonic));
+					fname, undulator_harmonic));
 
 	/* Get the monochromator crystal D-spacing. */
 
-	mx_status = mx_get_double_variable_by_name( scan->record->list_head,
+	status = mx_get_double_variable_by_name( scan->record->list_head,
 			string_array[ MX_APSID_D_SPACING_NAME ], &d_spacing );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	apsid_quick_scan_extension->d_spacing = d_spacing;
 
@@ -325,11 +324,11 @@ mxs_apsid_quick_scan_compute_gap(
 		double position,
 		double *gap )
 {
-	static const char fname[] = "mxs_apsid_quick_scan_compute_gap()";
+	const char fname[] = "mxs_apsid_quick_scan_compute_gap()";
 
 	double energy, d_spacing, gap_calculated, gap_from_epics;
 	int sector_number;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	sector_number = apsid_quick_scan_extension->sector_number;
 
@@ -413,10 +412,10 @@ mxs_apsid_quick_scan_compute_gap(
 
 		sprintf( pvname, "ID%02d:HarmonicValue.VAL", sector_number );
 
-		mx_status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &harmonic );
+		status = mx_caget_by_name( pvname, MX_CA_LONG, 1, &harmonic );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		MX_DEBUG( 2,("%s: harmonic = %ld", fname, harmonic));
 
@@ -471,11 +470,11 @@ mxs_apsid_quick_scan_compute_gap(
 
 		/* First, save the old gap setpoint. */
 
-		mx_status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
+		status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
 					MX_CA_DOUBLE, 1, &original_gap );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		/* Change the energy setpoint. */
 
@@ -487,11 +486,11 @@ mxs_apsid_quick_scan_compute_gap(
 
 		id_ev_energy_keV = id_ev_energy / 1000.0;
 
-		mx_status = mx_caput( &(apsid_quick_scan_extension->energy_set_pv),
+		status = mx_caput( &(apsid_quick_scan_extension->energy_set_pv),
 					MX_CA_DOUBLE, 1, &id_ev_energy_keV );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		/* Wait a moment for the setpoint change to propagate
 		 * through EPICS.
@@ -504,19 +503,19 @@ mxs_apsid_quick_scan_compute_gap(
 		 * We can now read that back.
 		 */
 
-		mx_status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
+		status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
 					MX_CA_DOUBLE, 1, &gap_from_epics );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		/* Finally, restore the original gap setpoint. */
 
-		mx_status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
+		status = mx_caget( &(apsid_quick_scan_extension->gap_set_pv),
 					MX_CA_DOUBLE, 1, &original_gap );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		MX_DEBUG( 2,("%s: gap_from_epics = %g", fname, gap_from_epics));
 	}
@@ -552,7 +551,7 @@ mxs_apsid_quick_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 {
-	static const char fname[] = "mxs_apsid_quick_scan_prepare_for_scan_start()";
+	const char fname[] = "mxs_apsid_quick_scan_prepare_for_scan_start()";
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
@@ -562,15 +561,15 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	double id_ev_start_position, energy_start_position;
 	double id_ev_harmonic, id_ev_offset;
 	int busy;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
+	status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Allocate some memory for the quick scan extension structure
 	 * if it has not already been done.
@@ -606,11 +605,11 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Read in the various APS insertion device scan parameters. */
 
-	mx_status = mxs_apsid_quick_scan_find_parameters( scan,
+	status = mxs_apsid_quick_scan_find_parameters( scan,
 						apsid_quick_scan_extension );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Are insertion device coupled moves currently enabled in the
 	 * MX database?
@@ -626,9 +625,9 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 		/* Prepare for scan start. */
 
-		mx_status = mxs_mcs_quick_scan_prepare_for_scan_start( scan );
+		status = mxs_mcs_quick_scan_prepare_for_scan_start( scan );
 
-		return mx_status;
+		return status;
 	}
 
 	/* If we get here, coupled insertion device moves _are_ enabled,
@@ -671,11 +670,11 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 					id_ev_start_position,
 					id_ev_motor->units );
 
-	mx_status = mx_motor_move_absolute( id_ev_record,
+	status = mx_motor_move_absolute( id_ev_record,
 					id_ev_start_position, MXF_MTR_NOWAIT );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Now we are ready to perform the rest of the setup
 	 * for the quick scan.
@@ -687,10 +686,10 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	PRINT_SPEED( 1.0 );
 #endif
 
-	mx_status = mxs_mcs_quick_scan_prepare_for_scan_start( scan );
+	status = mxs_mcs_quick_scan_prepare_for_scan_start( scan );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	MX_DEBUG( 2,("%s: after regular prepare_for_scan_start", fname));
 
@@ -702,11 +701,11 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	 * wait for it to be done.
 	 */
 
-	mx_status = mx_motor_is_busy( id_ev_record, &busy );
+	status = mx_motor_is_busy( id_ev_record, &busy );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		(void) mx_scan_restore_speeds( scan );
-		return mx_status;
+		return status;
 	}
 
 	if ( busy ) {
@@ -714,11 +713,11 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	"Waiting for the insertion device '%s' to get to the start position.",
 			id_ev_record->name );
 
-		mx_status = mx_wait_for_motor_stop( id_ev_record, 0 );
+		status = mx_wait_for_motor_stop( id_ev_record, 0 );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		if ( status.code != MXE_SUCCESS ) {
 			(void) mx_scan_restore_speeds( scan );
-			return mx_status;
+			return status;
 		}
 	}
 
@@ -733,7 +732,7 @@ mxs_apsid_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 MX_EXPORT mx_status_type
 mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 {
-	static const char fname[] = "mxs_apsid_quick_scan_execute_scan_body()";
+	const char fname[] = "mxs_apsid_quick_scan_execute_scan_body()";
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
@@ -748,15 +747,15 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 	double starting_gap, ending_gap, gap_scan_time;
 	long i, busy, stop, start;
 	char status_byte;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
+	status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* If the insertion device coupling is turned off, the pointer
 	 * mcs_quick_scan->extension_ptr will be NULL.  In that case,
@@ -764,9 +763,9 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 	 */
 
 	if ( mcs_quick_scan->extension_ptr == NULL ) {
-		mx_status = mxs_mcs_quick_scan_execute_scan_body( scan );
+		status = mxs_mcs_quick_scan_execute_scan_body( scan );
 
-		return mx_status;
+		return status;
 	}
 
 	MX_DEBUG( 2,("%s: EPICS debug flag = %d",
@@ -801,19 +800,19 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	/* Set the gap to end at. */
 
-	mx_status = mxs_apsid_quick_scan_compute_gap(
+	status = mxs_apsid_quick_scan_compute_gap(
 					apsid_quick_scan_extension,
 					(scan->motor_record_array)[0],
 					(quick_scan->end_position)[0],
 					&ending_gap );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->ss_end_gap_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->ss_end_gap_pv),
 				MX_CA_DOUBLE, 1, &ending_gap );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 "The attempt to use synchronous scanning for APS sector %d-ID failed.  "
 "Perhaps synchronous scanning is not enabled for your sector?",
@@ -822,20 +821,20 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	/* Set the gap to start at. */
 
-	mx_status = mxs_apsid_quick_scan_compute_gap(
+	status = mxs_apsid_quick_scan_compute_gap(
 					apsid_quick_scan_extension,
 					(scan->motor_record_array)[0],
 					(quick_scan->start_position)[0],
 					&starting_gap );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->ss_start_gap_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->ss_start_gap_pv),
 				MX_CA_DOUBLE, 1, &starting_gap );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Set the scanning time. */
 
@@ -847,52 +846,52 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 			scan->record->name );
 	}
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->ss_time_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->ss_time_pv),
 				MX_CA_DOUBLE, 1, &gap_scan_time );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Toggle the synchronous scan mode off and then back on. */
 
 	stop = 0;
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->sync_scan_mode_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->sync_scan_mode_pv),
 				MX_CA_LONG, 1, &stop );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	start = 1;
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->sync_scan_mode_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->sync_scan_mode_pv),
 				MX_CA_LONG, 1, &start );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Start the undulator gap moving. */
 
 	start = 1;
 
-	mx_status = mx_caput( &(apsid_quick_scan_extension->ss_start_pv),
+	status = mx_caput( &(apsid_quick_scan_extension->ss_start_pv),
 				MX_CA_LONG, 1, &start );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Wait for the premove to finish. */
 
 	do {
 	    /* Check the status of the synchronous scanning. */
 
-	    mx_status = mx_caget( &(apsid_quick_scan_extension->ss_state_pv),
+	    status = mx_caget( &(apsid_quick_scan_extension->ss_state_pv),
 					MX_CA_CHAR, 1, &status_byte );
 
-	    if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	    if ( status.code != MXE_SUCCESS )
+		return status;
 
-	    /* If we get here, mx_status.code == MXE_SUCCESS.  This fact
+	    /* If we get here, status.code == MXE_SUCCESS.  This fact
 	     * is depended on by the logic of the rest of the loop.
 	     */
 
@@ -904,10 +903,10 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 		/* Check to see of the undulator is moving. */
 
-		mx_status = mx_caget( &(apsid_quick_scan_extension->busy_pv),
+		status = mx_caget( &(apsid_quick_scan_extension->busy_pv),
 					MX_CA_LONG, 1, &busy );
 
-		if ( mx_status.code == MXE_SUCCESS ) {
+		if ( status.code == MXE_SUCCESS ) {
 		    /* Only proceed if mx_caget_by_name() succeeded. */
 
 		    if ( busy == 0 ) {
@@ -915,20 +914,20 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 			 * find out why.
 			 */
 
-			mx_status = mx_epics_get_num_elements(
+			status = mx_epics_get_num_elements(
 				&(apsid_quick_scan_extension->message1_pv),
 				&num_elements );
 
-			if ( mx_status.code == MXE_SUCCESS ) {
+			if ( status.code == MXE_SUCCESS ) {
 			    /* Only proceed if mx_epics_get_num_elements()
 			     * succeeded.
 			     */
 
-			    mx_status = mx_caget(
+			    status = mx_caget(
 				&(apsid_quick_scan_extension->message1_pv),
 					MX_CA_STRING, num_elements, message1 );
 
-			    if ( mx_status.code == MXE_SUCCESS ) {
+			    if ( status.code == MXE_SUCCESS ) {
 				/* Only proceed if mx_caget_by_name()
 				 * succeeded.
 				 */
@@ -937,7 +936,7 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 				* send to the users.
 				*/
 
-				mx_status = mx_error(
+				status = mx_error(
 				    MXE_DEVICE_ACTION_FAILED, fname,
 			"The undulator did not start moving.  Reason = '%s'",
 				    message1 );
@@ -947,18 +946,18 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 	    }
 
-	    if ( mx_status.code == MXE_SUCCESS ) {
+	    if ( status.code == MXE_SUCCESS ) {
 		/* Give the user a chance to interrupt this loop. */
 
 		if ( mx_user_requested_interrupt() ) {
-		    mx_status = mx_error( MXE_INTERRUPTED, fname,
+		    status = mx_error( MXE_INTERRUPTED, fname,
 			"The quick scan was interrupted by the user." );
 		}
 	    }
 
 	    /* If anything failed above, abort the scan. */
 
-	    if ( mx_status.code != MXE_SUCCESS ) {
+	    if ( status.code != MXE_SUCCESS ) {
 
 		/* Stop the motors. */
 
@@ -972,7 +971,7 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 		/* Return the reason for the abort. */
 
-		return mx_status;
+		return status;
 	    }
 
 	    mx_msleep(1);  /* Give other processes a chance to run. */
@@ -992,32 +991,31 @@ mxs_apsid_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	/**** Start the rest of the motors moving. ****/
 
-	mx_status = mxs_mcs_quick_scan_execute_scan_body( scan );
+	status = mxs_mcs_quick_scan_execute_scan_body( scan );
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxs_apsid_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 {
-	static const char fname[] =
-		"mxs_apsid_quick_scan_cleanup_after_scan_end()";
+	const char fname[] = "mxs_apsid_quick_scan_cleanup_after_scan_end()";
 
 	MX_QUICK_SCAN *quick_scan;
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_APSID_QUICK_SCAN_EXTENSION *apsid_quick_scan_extension;
 	long stop;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	mx_status = mxs_mcs_quick_scan_get_pointers( scan,
+	status = mxs_mcs_quick_scan_get_pointers( scan,
 			&quick_scan, &mcs_quick_scan, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* If the insertion device coupling was turned on, we will
 	 * have to turn off synchronous scanning mode now.
@@ -1041,7 +1039,7 @@ mxs_apsid_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 			MX_CA_LONG, 1, &stop );
 	}
 
-	mx_status = mxs_mcs_quick_scan_cleanup_after_scan_end( scan );
+	status = mxs_mcs_quick_scan_cleanup_after_scan_end( scan );
 
 #if 0
 	mx_epics_set_debug_flag( FALSE );
@@ -1053,7 +1051,7 @@ mxs_apsid_quick_scan_cleanup_after_scan_end( MX_SCAN *scan )
 
 	MX_DEBUG( 2,("%s complete.", fname));
 
-	return mx_status;
+	return status;
 }
 
 #endif /* HAVE_EPICS */

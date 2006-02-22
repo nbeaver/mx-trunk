@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_ain_record_field_defaults[] = {
 	MXD_PMAC_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_ain_num_record_fields
+long mxd_pmac_ain_num_record_fields
 		= sizeof( mxd_pmac_ain_record_field_defaults )
 			/ sizeof( mxd_pmac_ain_record_field_defaults[0] );
 
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_aout_record_field_defaults[] = {
 	MXD_PMAC_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_aout_num_record_fields
+long mxd_pmac_aout_num_record_fields
 		= sizeof( mxd_pmac_aout_record_field_defaults )
 			/ sizeof( mxd_pmac_aout_record_field_defaults[0] );
 

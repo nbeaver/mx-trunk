@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -36,43 +36,38 @@ MX_API mx_status_type mxi_k500serial_print_interface_structure(
 					FILE *file, MX_RECORD *record );
 MX_API mx_status_type mxi_k500serial_open( MX_RECORD *record );
 
-MX_API mx_status_type mxi_k500serial_open_device( MX_GPIB *gpib,
-						int32_t address );
-MX_API mx_status_type mxi_k500serial_close_device( MX_GPIB *gpib,
-						int32_t address );
+MX_API mx_status_type mxi_k500serial_open_device(MX_GPIB *gpib, int address);
+MX_API mx_status_type mxi_k500serial_close_device(MX_GPIB *gpib, int address);
 MX_API mx_status_type mxi_k500serial_read( MX_GPIB *gpib,
-						int32_t address,
+						int address,
 						char *buffer,
 						size_t max_bytes_to_read,
 						size_t *bytes_read,
-						mx_hex_type flags );
+						int flags);
 MX_API mx_status_type mxi_k500serial_write( MX_GPIB *gpib,
-						int32_t address,
+						int address,
 						char *buffer,
 						size_t bytes_to_write,
 						size_t *bytes_written,
-						mx_hex_type flags );
-MX_API mx_status_type mxi_k500serial_interface_clear( MX_GPIB *gpib );
-MX_API mx_status_type mxi_k500serial_device_clear( MX_GPIB *gpib );
-MX_API mx_status_type mxi_k500serial_selective_device_clear( MX_GPIB *gpib,
-						int32_t address );
-MX_API mx_status_type mxi_k500serial_local_lockout( MX_GPIB *gpib );
-MX_API mx_status_type mxi_k500serial_remote_enable( MX_GPIB *gpib,
-						int32_t address );
-MX_API mx_status_type mxi_k500serial_go_to_local( MX_GPIB *gpib,
-						int32_t address );
-MX_API mx_status_type mxi_k500serial_trigger( MX_GPIB *gpib, int32_t address );
+						int flags);
+MX_API mx_status_type mxi_k500serial_interface_clear(MX_GPIB *gpib);
+MX_API mx_status_type mxi_k500serial_device_clear(MX_GPIB *gpib);
+MX_API mx_status_type mxi_k500serial_selective_device_clear(MX_GPIB *gpib,
+						int address);
+MX_API mx_status_type mxi_k500serial_local_lockout(MX_GPIB *gpib);
+MX_API mx_status_type mxi_k500serial_remote_enable(MX_GPIB *gpib, int address);
+MX_API mx_status_type mxi_k500serial_go_to_local(MX_GPIB *gpib, int address);
+MX_API mx_status_type mxi_k500serial_trigger(MX_GPIB *gpib, int address);
 MX_API mx_status_type mxi_k500serial_wait_for_service_request( MX_GPIB *gpib,
 						double timeout );
-MX_API mx_status_type mxi_k500serial_serial_poll( MX_GPIB *gpib,
-						int32_t address,
-						uint8_t *serial_poll_byte );
+MX_API mx_status_type mxi_k500serial_serial_poll( MX_GPIB *gpib, int address,
+					unsigned char *serial_poll_byte );
 MX_API mx_status_type mxi_k500serial_serial_poll_disable(MX_GPIB *gpib);
 
 extern MX_RECORD_FUNCTION_LIST mxi_k500serial_record_function_list;
 extern MX_GPIB_FUNCTION_LIST mxi_k500serial_gpib_function_list;
 
-extern mx_length_type mxi_k500serial_num_record_fields;
+extern long mxi_k500serial_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_k500serial_rfield_def_ptr;
 
 #define MXI_K500SERIAL_STANDARD_FIELDS \

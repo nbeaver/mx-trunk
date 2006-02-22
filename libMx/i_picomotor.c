@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_picomotor_record_field_defaults[] = {
 	MXI_PICOMOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxi_picomotor_num_record_fields
+long mxi_picomotor_num_record_fields
 		= sizeof( mxi_picomotor_record_field_defaults )
 			/ sizeof( mxi_picomotor_record_field_defaults[0] );
 

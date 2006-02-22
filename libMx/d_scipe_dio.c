@@ -16,8 +16,6 @@
  *
  */
 
-#define MXD_SCIPE_DIO_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +27,8 @@
 #include "mx_digital_output.h"
 #include "i_scipe.h"
 #include "d_scipe_dio.h"
+
+#define MXD_SCIPE_DIO_DEBUG	FALSE
 
 /* Initialize the SCIPE digital I/O driver jump tables. */
 
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_din_record_field_defaults[] = {
 	MXD_SCIPE_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_din_num_record_fields
+long mxd_scipe_din_num_record_fields
 		= sizeof( mxd_scipe_din_record_field_defaults )
 			/ sizeof( mxd_scipe_din_record_field_defaults[0] );
 
@@ -86,7 +86,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_dout_record_field_defaults[] = {
 	MXD_SCIPE_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_dout_num_record_fields
+long mxd_scipe_dout_num_record_fields
 		= sizeof( mxd_scipe_dout_record_field_defaults )
 			/ sizeof( mxd_scipe_dout_record_field_defaults[0] );
 
@@ -443,7 +443,7 @@ mxd_scipe_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	sprintf( command, "%s movenow %lu",
 			scipe_doutput->scipe_actuator_name,
-			(unsigned long) doutput->value );
+			doutput->value );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof( response ),

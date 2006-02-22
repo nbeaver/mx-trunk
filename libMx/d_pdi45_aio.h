@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,14 +22,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int32_t line_number;
+	int line_number;
 } MX_PDI45_AINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int32_t line_number;
+	int line_number;
 } MX_PDI45_AOUTPUT;
 
 #define MXD_PDI45_AINPUT_STANDARD_FIELDS \
@@ -37,7 +37,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_AINPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_AINPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -46,7 +46,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_AOUTPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_AOUTPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -62,7 +62,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pdi45_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_pdi45_ain_analog_input_function_list;
 
-extern mx_length_type mxd_pdi45_ain_num_record_fields;
+extern long mxd_pdi45_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_ain_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -76,7 +76,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pdi45_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_pdi45_aout_analog_output_function_list;
 
-extern mx_length_type mxd_pdi45_aout_num_record_fields;
+extern long mxd_pdi45_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_aout_rfield_def_ptr;
 
 #endif /* __D_PDI45_DIO_H__ */

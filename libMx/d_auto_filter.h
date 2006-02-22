@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,10 +18,10 @@
 #define _D_AUTO_FILTER_H_
 
 typedef struct {
-	uint32_t present_filter_setting;
+	unsigned long present_filter_setting;
 
-	uint32_t minimum_filter_setting;
-	uint32_t maximum_filter_setting;
+	unsigned long minimum_filter_setting;
+	unsigned long maximum_filter_setting;
 } MX_AUTO_FILTER;
 
 #define MX_AUTO_FILTER_STANDARD_FIELDS \
@@ -68,7 +68,7 @@ MX_API_PRIVATE mx_status_type mxd_auto_filter_set_parameter(
 extern MX_RECORD_FUNCTION_LIST mxd_auto_filter_record_function_list;
 extern MX_AUTOSCALE_FUNCTION_LIST mxd_auto_filter_autoscale_function_list;
 
-extern mx_length_type mxd_auto_filter_num_record_fields;
+extern long mxd_auto_filter_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_auto_filter_rfield_def_ptr;
 
 #endif /* _D_AUTO_FILTER_H_ */

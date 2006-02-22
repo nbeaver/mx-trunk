@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_timer_record_field_defaults[] = {
 	MXD_NETWORK_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_timer_num_record_fields
+long mxd_network_timer_num_record_fields
 		= sizeof( mxd_network_timer_record_field_defaults )
 		  / sizeof( mxd_network_timer_record_field_defaults[0] );
 
@@ -195,7 +195,7 @@ mxd_network_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_network_timer_is_busy()";
 
 	MX_NETWORK_TIMER *network_timer;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_timer_get_pointers(
@@ -204,7 +204,7 @@ mxd_network_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_timer->busy_nf), MXFT_BOOL, &busy );
+	mx_status = mx_get( &(network_timer->busy_nf), MXFT_INT, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -243,7 +243,7 @@ mxd_network_timer_stop( MX_TIMER *timer )
 	static const char fname[] = "mxd_network_timer_stop()";
 
 	MX_NETWORK_TIMER *network_timer;
-	mx_bool_type stop;
+	int stop;
 	double value;
 	mx_status_type mx_status;
 
@@ -253,9 +253,9 @@ mxd_network_timer_stop( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = TRUE;
+	stop = 1;
 
-	mx_status = mx_put( &(network_timer->stop_nf), MXFT_BOOL, &stop );
+	mx_status = mx_put( &(network_timer->stop_nf), MXFT_INT, &stop );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -273,7 +273,7 @@ mxd_network_timer_clear( MX_TIMER *timer )
 	static const char fname[] = "mxd_network_timer_clear()";
 
 	MX_NETWORK_TIMER *network_timer;
-	mx_bool_type clear;
+	int clear;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_timer_get_pointers(
@@ -282,9 +282,9 @@ mxd_network_timer_clear( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	clear = TRUE;
+	clear = 1;
 
-	mx_status = mx_put( &(network_timer->clear_nf), MXFT_BOOL, &clear );
+	mx_status = mx_put( &(network_timer->clear_nf), MXFT_INT, &clear );
 
 	timer->value = 0.0;
 
@@ -319,7 +319,7 @@ mxd_network_timer_get_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_network_timer_get_mode()";
 
 	MX_NETWORK_TIMER *network_timer;
-	int32_t mode;
+	int mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_timer_get_pointers(
@@ -328,7 +328,7 @@ mxd_network_timer_get_mode( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_timer->mode_nf), MXFT_INT32, &mode );
+	mx_status = mx_get( &(network_timer->mode_nf), MXFT_INT, &mode );
 
 	timer->mode = mode;
 
@@ -341,7 +341,7 @@ mxd_network_timer_set_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_network_timer_set_mode()";
 
 	MX_NETWORK_TIMER *network_timer;
-	int32_t mode;
+	int mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_timer_get_pointers(
@@ -352,7 +352,7 @@ mxd_network_timer_set_mode( MX_TIMER *timer )
 
 	mode = timer->mode;
 
-	mx_status = mx_put( &(network_timer->mode_nf), MXFT_INT32, &mode );
+	mx_status = mx_put( &(network_timer->mode_nf), MXFT_INT, &mode );
 
 	return mx_status;
 }

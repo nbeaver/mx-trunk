@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_shutter_rf_defaults[] = {
 	MXD_BLUICE_SHUTTER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_bluice_shutter_num_record_fields
+long mxd_bluice_shutter_num_record_fields
 	= sizeof( mxd_bluice_shutter_rf_defaults )
 		/ sizeof( mxd_bluice_shutter_rf_defaults[0] );
 
@@ -270,8 +270,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
-				(int) relay->relay_command,
-				relay->record->name );
+				relay->relay_command, relay->record->name );
 		}
 		break;
 	case MXN_BLUICE_DHS_SERVER:
@@ -290,8 +289,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal relay command %d requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
-				(int) relay->relay_command,
-				relay->record->name );
+				relay->relay_command, relay->record->name );
 		}
 	}
 

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,16 +37,16 @@ typedef struct {
 
 	double pulse_period;
 	double pulse_width;
-	uint32_t num_pulses;
+	unsigned long num_pulses;
 
 	double pulse_delay;
 
-	int32_t parameter_type;
-	int32_t mode;
-	
-	mx_bool_type busy;
-	mx_bool_type start;
-	mx_bool_type stop;
+	int parameter_type;
+
+	int mode;
+	int busy;
+	int start;
+	int stop;
 } MX_PULSE_GENERATOR;
 
 #define MXLV_PGN_PULSE_PERIOD	16001
@@ -67,7 +67,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, pulse_width), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_NUM_PULSES, -1, "num_pulses", MXFT_UINT32, NULL, 0, {0}, \
+  {MXLV_PGN_NUM_PULSES, -1, "num_pulses", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, num_pulses), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -75,19 +75,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, pulse_delay), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_MODE, -1, "mode", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_PGN_MODE, -1, "mode", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {MXLV_PGN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_PGN_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, busy), \
 	{0}, NULL, MXFF_IN_SUMMARY }, \
   \
-  {MXLV_PGN_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_PGN_START, -1, "start", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, start), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {MXLV_PGN_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_PGN_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_PULSE_GENERATOR, stop), \
 	{0}, NULL, 0 }
 
@@ -107,18 +107,17 @@ MX_API_PRIVATE mx_status_type mx_pulse_generator_get_pointers(
 
 MX_API mx_status_type mx_pulse_generator_initialize( MX_RECORD *record );
 
-MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record,
-							mx_bool_type *busy );
+MX_API mx_status_type mx_pulse_generator_is_busy( MX_RECORD *record, int *busy);
 
 MX_API mx_status_type mx_pulse_generator_start( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_stop( MX_RECORD *record );
 
 MX_API mx_status_type mx_pulse_generator_get_mode( MX_RECORD *record,
-							int32_t *mode );
+							int *mode );
 
 MX_API mx_status_type mx_pulse_generator_set_mode( MX_RECORD *record,
-							int32_t mode );
+							int mode );
 
 MX_API mx_status_type mx_pulse_generator_get_pulse_period( MX_RECORD *record, 
 							double *pulse_period );
@@ -133,10 +132,10 @@ MX_API mx_status_type mx_pulse_generator_set_pulse_width( MX_RECORD *record,
 							double pulse_width );
 
 MX_API mx_status_type mx_pulse_generator_get_num_pulses( MX_RECORD *record, 
-						uint32_t *num_pulses );
+						unsigned long *num_pulses );
 
 MX_API mx_status_type mx_pulse_generator_set_num_pulses( MX_RECORD *record, 
-						uint32_t num_pulses );
+						unsigned long num_pulses );
 
 MX_API mx_status_type mx_pulse_generator_get_pulse_delay( MX_RECORD *record, 
 							double *pulse_delay );

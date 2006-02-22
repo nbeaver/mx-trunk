@@ -76,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_wago750_serial_record_field_defaults[] = {
 	MXI_WAGO750_SERIAL_STANDARD_FIELDS
 };
 
-mx_length_type mxi_wago750_serial_num_record_fields
+long mxi_wago750_serial_num_record_fields
 		= sizeof( mxi_wago750_serial_record_field_defaults )
 			/ sizeof( mxi_wago750_serial_record_field_defaults[0] );
 
@@ -1278,7 +1278,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 
 		MX_WAGO_DEBUG(
 	    ("%s: *** bytes are in buffer, num_input_bytes_available = %lu ***",
-		fname, (unsigned long) rs232->num_input_bytes_available ));
+			fname, rs232->num_input_bytes_available ));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -1329,7 +1329,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 
 		MX_WAGO_DEBUG(
     ("%s: *** no bytes available in Wago, num_input_bytes_available = %lu ***",
-		fname, (unsigned long) rs232->num_input_bytes_available));
+			fname, rs232->num_input_bytes_available));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -1373,7 +1373,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 	rs232->num_input_bytes_available = num_bytes_available;
 
 	MX_WAGO_DEBUG(("%s: num_input_bytes_available = %lu",
-		fname, (unsigned long) rs232->num_input_bytes_available));
+		fname, rs232->num_input_bytes_available));
 
 	return MX_SUCCESSFUL_RESULT;
 }

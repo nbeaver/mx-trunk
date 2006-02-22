@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,42 +59,42 @@ MX_API mx_status_type mxi_network_gpib_close( MX_RECORD *record );
 MX_API mx_status_type mxi_network_gpib_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxi_network_gpib_open_device( MX_GPIB *gpib,
-							int32_t address );
+							int address );
 MX_API mx_status_type mxi_network_gpib_close_device( MX_GPIB *gpib,
-							int32_t address );
+							int address );
 MX_API mx_status_type mxi_network_gpib_read( MX_GPIB *gpib,
-						int32_t address,
+						int address,
 						char *buffer,
 						size_t max_bytes_to_read,
 						size_t *bytes_read,
-						mx_hex_type flags );
+						int flags );
 MX_API mx_status_type mxi_network_gpib_write( MX_GPIB *gpib,
-						int32_t address,
+						int address,
 						char *buffer,
 						size_t bytes_to_write,
 						size_t *bytes_written,
-						mx_hex_type flags );
+						int flags );
 MX_API mx_status_type mxi_network_gpib_interface_clear( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_device_clear( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_selective_device_clear( MX_GPIB *gpib,
-							int32_t address );
+								int address );
 MX_API mx_status_type mxi_network_gpib_local_lockout( MX_GPIB *gpib );
 MX_API mx_status_type mxi_network_gpib_remote_enable( MX_GPIB *gpib,
-							int32_t address );
+								int address );
 MX_API mx_status_type mxi_network_gpib_go_to_local( MX_GPIB *gpib,
-							int32_t address );
-MX_API mx_status_type mxi_network_gpib_trigger( MX_GPIB *gpib, int32_t address);
+								int address );
+MX_API mx_status_type mxi_network_gpib_trigger( MX_GPIB *gpib, int address );
 MX_API mx_status_type mxi_network_gpib_wait_for_service_request( MX_GPIB *gpib,
 							double timeout );
 MX_API mx_status_type mxi_network_gpib_serial_poll( MX_GPIB *gpib,
-					int32_t address,
-					uint8_t *serial_poll_byte );
+					int address,
+					unsigned char *serial_poll_byte );
 MX_API mx_status_type mxi_network_gpib_serial_poll_disable( MX_GPIB *gpib );
 
 extern MX_RECORD_FUNCTION_LIST mxi_network_gpib_record_function_list;
 extern MX_GPIB_FUNCTION_LIST mxi_network_gpib_gpib_function_list;
 
-extern mx_length_type mxi_network_gpib_num_record_fields;
+extern long mxi_network_gpib_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_network_gpib_rfield_def_ptr;
 
 #define MXI_NETWORK_GPIB_STANDARD_FIELDS \

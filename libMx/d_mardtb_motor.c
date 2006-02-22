@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mardtb_motor_record_field_defaults[] = {
 	MXD_MARDTB_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mardtb_motor_num_record_fields
+long mxd_mardtb_motor_num_record_fields
 		= sizeof( mxd_mardtb_motor_record_field_defaults )
 			/ sizeof( mxd_mardtb_motor_record_field_defaults[0] );
 
@@ -321,8 +321,8 @@ mxd_mardtb_motor_move_absolute( MX_MOTOR *motor )
 	/* Send the move command. */
 
 	sprintf( command, "stepper_cmd %d,2,%ld,%ld,%ld",
-			(int) mardtb_motor->motor_number,
-			(long) motor->raw_destination.stepper,
+			mardtb_motor->motor_number,
+			motor->raw_destination.stepper,
 			mx_round( motor->raw_speed
 					* MX_MARDTB_MOTOR_FUDGE_FACTOR ),
 			mx_round( motor->raw_acceleration_parameters[0] ) );
@@ -361,8 +361,7 @@ mxd_mardtb_motor_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "stepper_cmd %d,1",
-				(int) mardtb_motor->motor_number );
+	sprintf( command, "stepper_cmd %d,1", mardtb_motor->motor_number );
 
 #if 0
 	mx_status = mxi_mardtb_command( mardtb, command,
@@ -401,7 +400,7 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'", fname, motor->record->name));
-	MX_DEBUG( 2,("%s: motor->busy = %d", fname, (int) motor->busy));
+	MX_DEBUG( 2,("%s: motor->busy = %d", fname, motor->busy));
 
 	old_motor_is_busy = motor->busy;
 
@@ -449,8 +448,7 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 
 	/* Send the stepper_state command to the goniostat controller. */
 
-	sprintf( command, "stepper_state %d,1",
-				(int) mardtb_motor->motor_number );
+	sprintf( command, "stepper_state %d,1", mardtb_motor->motor_number );
 
 	mx_status = mxi_mardtb_command( mardtb, command,
 					response, sizeof (response),

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_dinput_record_field_defaults[] = {
 	MXD_NETWORK_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_dinput_num_record_fields
+long mxd_network_dinput_num_record_fields
 		= sizeof( mxd_network_dinput_record_field_defaults )
 			/ sizeof( mxd_network_dinput_record_field_defaults[0] );
 
@@ -154,7 +154,7 @@ mxd_network_dinput_read( MX_DIGITAL_INPUT *dinput )
 	const char fname[] = "mxd_network_dinput_read()";
 
 	MX_NETWORK_DINPUT *network_dinput;
-	mx_hex_type value;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_dinput_get_pointers(

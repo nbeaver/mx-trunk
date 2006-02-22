@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,12 @@ MX_API mx_status_type mxd_network_mca_finish_record_initialization(
 MX_API mx_status_type mxd_network_mca_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_print_structure( FILE *file,
 							MX_RECORD *record );
+MX_API mx_status_type mxd_network_mca_read_parms_from_hardware(
+							MX_RECORD *record );
+MX_API mx_status_type mxd_network_mca_write_parms_to_hardware(
+							MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_open( MX_RECORD *record );
+MX_API mx_status_type mxd_network_mca_close( MX_RECORD *record );
 MX_API mx_status_type mxd_network_mca_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_mca_start( MX_MCA *mca );
@@ -87,7 +92,7 @@ MX_API mx_status_type mxd_network_mca_set_parameter( MX_MCA *mca );
 extern MX_RECORD_FUNCTION_LIST mxd_network_mca_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_network_mca_mca_function_list;
 
-extern mx_length_type mxd_network_mca_num_record_fields;
+extern long mxd_network_mca_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_network_mca_rfield_def_ptr;
 
 #endif /* __D_NETWORK_MCA_H__ */

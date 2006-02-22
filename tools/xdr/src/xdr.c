@@ -33,14 +33,6 @@
 
 #include "xdr.h"
 
-#if MX_DATAFMT_NATIVE == MX_DATAFMT_LITTLE_ENDIAN
-#  define HIGH_LONGWORD	1
-#  define LOW_LONGWORD	0
-#else
-#  define HIGH_LONGWORD	0
-#  define LOW_LONGWORD	1
-#endif
-
 MX_EXPORT void
 mx_xdrmem_create( MX_XDR *xdrs,
 		char *xdr_buffer_address,
@@ -374,140 +366,6 @@ mx_xdr_u_long( MX_XDR *xdrs, u_long *u_long_ptr )
 }
 
 MX_EXPORT bool_t
-mx_xdr_hyper( MX_XDR *xdrs, quad_t *quad_ptr )
-{
-	u_long *xdr_ptr, *u_long_ptr;
-	u_long u_long_temp_array[2];
-	u_int *u_int_ptr;
-
-	if ( xdrs->buffer_bytes_left < 8 )
-		return FALSE;
-
-	xdr_ptr = (u_long *) xdrs->xdr_data_pointer;
-
-	/* The high order 32-bit half of the quad value is transmitted first. */
-
-	if ( xdrs->x_op == XDR_ENCODE ) {
-
-		if ( 2*sizeof(long) == sizeof(quad_t) ) {
-
-			u_long_ptr = (u_long *) quad_ptr;
-
-			xdr_ptr[0] = htonl( u_long_ptr[ HIGH_LONGWORD ] );
-			xdr_ptr[1] = htonl( u_long_ptr[ LOW_LONGWORD ] );
-
-		} else if ( 2*sizeof(int) == sizeof(quad_t) ) {
-
-			u_int_ptr = (u_int *) quad_ptr;
-
-			u_long_temp_array[0] = u_int_ptr[ HIGH_LONGWORD ];
-			u_long_temp_array[1] = u_int_ptr[ LOW_LONGWORD ];
-
-			xdr_ptr[0] = htonl( u_long_temp_array[0] );
-			xdr_ptr[1] = htonl( u_long_temp_array[1] );
-
-		} else {
-			return FALSE;
-		}
-
-	} else {	/* XDR_DECODE */
-
-		if ( 2*sizeof(long) == sizeof(quad_t) ) {
-
-			u_long_ptr = (u_long *) quad_ptr;
-
-			u_long_ptr[ HIGH_LONGWORD ] = ntohl( xdr_ptr[0] );
-			u_long_ptr[ LOW_LONGWORD ]  = ntohl( xdr_ptr[1] );
-
-		} else if ( 2*sizeof(int) == sizeof(quad_t) ) {
-
-			u_int_ptr = (u_int *) quad_ptr;
-
-			u_long_temp_array[0] = ntohl( xdr_ptr[0] );
-			u_long_temp_array[1] = ntohl( xdr_ptr[1] );
-
-			u_int_ptr[ HIGH_LONGWORD ] = u_long_temp_array[0];
-			u_int_ptr[ LOW_LONGWORD ]  = u_long_temp_array[1];
-
-		} else {
-			return FALSE;
-		}
-	}
-
-	xdrs->xdr_data_pointer  += 8;
-	xdrs->buffer_bytes_left -= 8;
-
-	return TRUE;
-}
-
-MX_EXPORT bool_t
-mx_xdr_u_hyper( MX_XDR *xdrs, u_quad_t *u_quad_ptr )
-{
-	u_long *xdr_ptr, *u_long_ptr;
-	u_long u_long_temp_array[2];
-	u_int *u_int_ptr;
-
-	if ( xdrs->buffer_bytes_left < 8 )
-		return FALSE;
-
-	xdr_ptr = (u_long *) xdrs->xdr_data_pointer;
-
-	/* The high order 32-bit half of the quad value is transmitted first. */
-
-	if ( xdrs->x_op == XDR_ENCODE ) {
-
-		if ( 2*sizeof(long) == sizeof(u_quad_t) ) {
-
-			u_long_ptr = (u_long *) u_quad_ptr;
-
-			xdr_ptr[0] = htonl( u_long_ptr[ HIGH_LONGWORD ] );
-			xdr_ptr[1] = htonl( u_long_ptr[ LOW_LONGWORD ] );
-
-		} else if ( 2*sizeof(int) == sizeof(u_quad_t) ) {
-
-			u_int_ptr = (u_int *) u_quad_ptr;
-
-			u_long_temp_array[0] = u_int_ptr[ HIGH_LONGWORD ];
-			u_long_temp_array[1] = u_int_ptr[ LOW_LONGWORD ];
-
-			xdr_ptr[0] = htonl( u_long_temp_array[0] );
-			xdr_ptr[1] = htonl( u_long_temp_array[1] );
-
-		} else {
-			return FALSE;
-		}
-
-	} else {	/* XDR_DECODE */
-
-		if ( 2*sizeof(long) == sizeof(u_quad_t) ) {
-
-			u_long_ptr = (u_long *) u_quad_ptr;
-
-			u_long_ptr[ HIGH_LONGWORD ] = ntohl( xdr_ptr[0] );
-			u_long_ptr[ LOW_LONGWORD ]  = ntohl( xdr_ptr[1] );
-
-		} else if ( 2*sizeof(int) == sizeof(u_quad_t) ) {
-
-			u_int_ptr = (u_int *) u_quad_ptr;
-
-			u_long_temp_array[0] = ntohl( xdr_ptr[0] );
-			u_long_temp_array[1] = ntohl( xdr_ptr[1] );
-
-			u_int_ptr[ HIGH_LONGWORD ] = u_long_temp_array[0];
-			u_int_ptr[ LOW_LONGWORD ]  = u_long_temp_array[1];
-
-		} else {
-			return FALSE;
-		}
-	}
-
-	xdrs->xdr_data_pointer  += 8;
-	xdrs->buffer_bytes_left -= 8;
-
-	return TRUE;
-}
-
-MX_EXPORT bool_t
 mx_xdr_float( MX_XDR *xdrs, float *float_ptr )
 {
 	u_long *xdr_ptr, *u_long_ptr;
@@ -561,6 +419,14 @@ mx_xdr_float( MX_XDR *xdrs, float *float_ptr )
 
 	return TRUE;
 }
+
+#if MX_DATAFMT_NATIVE == MX_DATAFMT_LITTLE_ENDIAN
+#  define HIGH_LONGWORD	1
+#  define LOW_LONGWORD	0
+#else
+#  define HIGH_LONGWORD	0
+#  define LOW_LONGWORD	1
+#endif
 
 MX_EXPORT bool_t
 mx_xdr_double( MX_XDR *xdrs, double *double_ptr )

@@ -15,8 +15,6 @@
  *
  */
 
-#define MICRO488EX_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -65,12 +63,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_micro488ex_record_field_defaults[] = {
 	MXI_MICRO488EX_STANDARD_FIELDS
 };
 
-mx_length_type mxi_micro488ex_num_record_fields
+long mxi_micro488ex_num_record_fields
 		= sizeof( mxi_micro488ex_record_field_defaults )
 			/ sizeof( mxi_micro488ex_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_micro488ex_rfield_def_ptr
 			= &mxi_micro488ex_record_field_defaults[0];
+
+#define MICRO488EX_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -449,24 +449,24 @@ mxi_micro488ex_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_open_device( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_open_device( MX_GPIB *gpib, int address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_close_device( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_close_device( MX_GPIB *gpib, int address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_micro488ex_read( MX_GPIB *gpib,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		mx_hex_type transfer_flags )
+		int transfer_flags )
 {
 	static const char fname[] = "mxi_micro488ex_read()";
 
@@ -529,11 +529,11 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_micro488ex_write( MX_GPIB *gpib,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		mx_hex_type transfer_flags )
+		int transfer_flags )
 {
 	static const char fname[] = "mxi_micro488ex_write()";
 
@@ -633,7 +633,7 @@ mxi_micro488ex_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, int address )
 {
 	static const char fname[] = "mxi_micro488ex_selective_device_clear()";
 
@@ -672,7 +672,7 @@ mxi_micro488ex_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_remote_enable( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_remote_enable( MX_GPIB *gpib, int address )
 {
 	static const char fname[] = "mxi_micro488ex_remote_enable()";
 
@@ -697,7 +697,7 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, int32_t address )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_go_to_local( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_go_to_local( MX_GPIB *gpib, int address )
 {
 	static const char fname[] = "mxi_micro488ex_go_to_local()";
 
@@ -722,7 +722,7 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, int32_t address )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_trigger( MX_GPIB *gpib, int32_t address )
+mxi_micro488ex_trigger( MX_GPIB *gpib, int address )
 {
 	static const char fname[] = "mxi_micro488ex_trigger_device()";
 
@@ -760,8 +760,8 @@ mxi_micro488ex_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_serial_poll( MX_GPIB *gpib, int32_t address,
-				uint8_t *serial_poll_byte)
+mxi_micro488ex_serial_poll( MX_GPIB *gpib, int address,
+				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_micro488ex_serial_poll()";
 

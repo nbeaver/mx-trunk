@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Invalid serial port speed = %ld", (long) rs232->speed);
+			"Invalid serial port speed = %ld", rs232->speed );
 
 		rs232->speed = -1;
 
@@ -66,8 +66,7 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Invalid serial port word size = %d",
-			(int) rs232->word_size );
+		    "Invalid serial port word size = %d", rs232->word_size );
 
 		rs232->word_size = -1;
 
@@ -114,8 +113,7 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Invalid serial port stop bits = %d",
-			(int) rs232->stop_bits );
+		    "Invalid serial port stop bits = %d", rs232->stop_bits );
 
 		rs232->stop_bits = -1;
 
@@ -209,7 +207,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 	rs232->read_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
 	MX_DEBUG( 2,("%s: rs232->num_read_terminator_chars = %d",
-			fname, (int) rs232->num_read_terminator_chars));
+			fname, rs232->num_read_terminator_chars));
 
 #if 0
 	MX_DEBUG(-2,("%s: read terminators = 0x%08lx",
@@ -243,7 +241,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 	rs232->write_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
 	MX_DEBUG( 2,("%s: rs232->num_write_terminator_chars = %d",
-			fname, (int) rs232->num_write_terminator_chars));
+			fname, rs232->num_write_terminator_chars));
 
 #if 0
 	MX_DEBUG(-2,("%s: write terminators = 0x%08lx",
@@ -309,7 +307,7 @@ mx_rs232_get_pointers( MX_RECORD *rs232_record,
 MX_EXPORT mx_status_type
 mx_rs232_getchar( MX_RECORD *record,
 			char *c,
-			mx_hex_type transfer_flags )
+			unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_getchar()";
 
@@ -343,7 +341,7 @@ mx_rs232_getchar( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_rs232_putchar( MX_RECORD *record,
 			char c,
-			mx_hex_type transfer_flags )
+			unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_putchar()";
 
@@ -378,7 +376,7 @@ mx_rs232_putchar( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_rs232_getchar_with_timeout( MX_RECORD *record,
 				char *c,
-				mx_hex_type transfer_flags,
+				unsigned long transfer_flags,
 				double timeout_in_seconds )
 {
 	static const char fname[] = "mx_rs232_getchar_with_timeout()";
@@ -448,7 +446,7 @@ mx_rs232_read( MX_RECORD *record,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		mx_hex_type transfer_flags )
+		unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_read()";
 
@@ -517,7 +515,7 @@ mx_rs232_write( MX_RECORD *record,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		mx_hex_type transfer_flags )
+		unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_write()";
 
@@ -585,7 +583,7 @@ mx_rs232_getline( MX_RECORD *record,
 			char *buffer,
 			size_t max_bytes_to_read,
 			size_t *bytes_read,
-			mx_hex_type transfer_flags )
+			unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_getline()";
 
@@ -596,7 +594,7 @@ mx_rs232_getline( MX_RECORD *record,
 	int i, terminators_seen, start_of_terminator, buffered_io;
 	char c;
 	int do_timeout, tick_comparison;
-	uint32_t num_bytes_available;
+	unsigned long num_bytes_available;
 	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
 	mx_status_type mx_status;
 
@@ -844,7 +842,7 @@ MX_EXPORT mx_status_type
 mx_rs232_putline( MX_RECORD *record,
 		char *buffer,
 		size_t *bytes_written,
-		mx_hex_type transfer_flags )
+		unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_putline()";
 
@@ -930,7 +928,7 @@ mx_rs232_putline( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_rs232_num_input_bytes_available( MX_RECORD *record,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mx_rs232_num_input_bytes_available()";
 
@@ -961,7 +959,7 @@ mx_rs232_num_input_bytes_available( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_rs232_discard_unread_input( MX_RECORD *record,
-				mx_hex_type transfer_flags )
+				unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_discard_unread_input()";
 
@@ -988,7 +986,7 @@ mx_rs232_discard_unread_input( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_rs232_discard_unwritten_output( MX_RECORD *record,
-				mx_hex_type transfer_flags )
+				unsigned long transfer_flags )
 {
 	static const char fname[] = "mx_rs232_discard_unwritten_output()";
 
@@ -1015,7 +1013,7 @@ mx_rs232_discard_unwritten_output( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_rs232_get_signal_state( MX_RECORD *record,
-			mx_hex_type *signal_state )
+			unsigned long *signal_state )
 {
 	static const char fname[] = "mx_rs232_get_signal_state()";
 
@@ -1053,7 +1051,7 @@ mx_rs232_get_signal_state( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_rs232_set_signal_state( MX_RECORD *record,
-			mx_hex_type signal_state )
+			unsigned long signal_state )
 {
 	static const char fname[] = "mx_rs232_set_signal_state()";
 
@@ -1170,13 +1168,12 @@ mx_rs232_print_signal_state( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_get_signal_bit( MX_RECORD *record,
-			int32_t bit_type, int32_t *bit_value )
+mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 
 	MX_RS232 *rs232;
-	mx_hex_type signal_state;
+	unsigned long signal_state;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
@@ -1184,7 +1181,7 @@ mx_rs232_get_signal_bit( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( bit_value == (int32_t *) NULL ) {
+	if ( bit_value == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The bit_value pointer passed was NULL." );
 	}
@@ -1204,13 +1201,12 @@ mx_rs232_get_signal_bit( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_set_signal_bit( MX_RECORD *record,
-			int32_t bit_type, int32_t bit_value )
+mx_rs232_set_signal_bit( MX_RECORD *record, int bit_type, int bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 
 	MX_RS232 *rs232;
-	mx_hex_type signal_state;
+	unsigned long signal_state;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
@@ -1235,11 +1231,11 @@ mx_rs232_set_signal_bit( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
-				int32_t word_size, char parity,
-				int32_t stop_bits, char flow_control,
-				mx_hex_type read_terminators,
-				mx_hex_type write_terminators )
+mx_rs232_verify_configuration( MX_RECORD *record, long speed,
+				int word_size, char parity,
+				int stop_bits, char flow_control,
+				unsigned long read_terminators,
+				unsigned long write_terminators )
 {
 	static const char fname[] = "mx_rs232_verify_configuration()";
 
@@ -1256,7 +1252,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The speed for RS-232 port '%s' is currently %ld, but should be %ld.",
-			record->name, (long) rs232->speed, (long) speed );
+				record->name, rs232->speed, speed );
 		}
 	}
 	if ( word_size != MXF_232_DONT_CARE ) {
@@ -1264,8 +1260,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The word size for RS-232 port '%s' is currently %d, but should be %d.",
-				record->name, (int) rs232->word_size,
-				(int) word_size );
+				record->name, rs232->word_size, word_size );
 		}
 	}
 	if ( parity != (char) MXF_232_DONT_CARE ) {
@@ -1281,8 +1276,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The stop bits for RS-232 port '%s' are currently %d, but should be %d.",
-				record->name, (int) rs232->stop_bits,
-				(int) stop_bits );
+				record->name, rs232->stop_bits, stop_bits );
 		}
 	}
 	if ( flow_control != (char) MXF_232_DONT_CARE ) {
@@ -1300,8 +1294,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The read terminators for RS-232 port '%s' are currently %#lx, "
 "but should be %#lx.", record->name,
-				(unsigned long) rs232->read_terminators,
-				(unsigned long) read_terminators );
+				rs232->read_terminators, read_terminators );
 		}
 	}
 	if ( write_terminators != MXF_232_DONT_CARE ) {
@@ -1310,8 +1303,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, int32_t speed,
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
 "The write terminators for RS-232 port '%s' are currently %#lx, "
 "but should be %#lx.", record->name,
-				(unsigned long) rs232->write_terminators,
-				(unsigned long) write_terminators );
+				rs232->write_terminators, write_terminators );
 		}
 	}
 	return MX_SUCCESSFUL_RESULT;

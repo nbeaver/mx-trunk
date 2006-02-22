@@ -45,12 +45,12 @@ MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_ks3112_analog_output_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_ks3112_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_INT32_ANALOG_OUTPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MXD_KS3112_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ks3112_num_record_fields
+long mxd_ks3112_num_record_fields
 		= sizeof( mxd_ks3112_record_field_defaults )
 			/ sizeof( mxd_ks3112_record_field_defaults[0] );
 
@@ -92,9 +92,9 @@ mxd_ks3112_create_record_structures( MX_RECORD *record )
 
         analog_output->record = record;
 
-	/* Raw analog output values are stored as 32-bit integers. */
+	/* Raw analog output values are stored as longs. */
 
-	analog_output->subclass = MXT_AOU_INT32;
+	analog_output->subclass = MXT_AOU_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -132,7 +132,7 @@ mxd_ks3112_finish_record_initialization( MX_RECORD *record )
         if ( ks3112->slot < 1 || ks3112->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
                 "CAMAC slot number %d is out of the allowed range 1-23.",
-                        (int) ks3112->slot );
+                        ks3112->slot );
         }
 
 	return MX_SUCCESSFUL_RESULT;
@@ -171,11 +171,11 @@ mxd_ks3112_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  value      = %ld (%g %s)\n",
-				(long) dac->raw_value.int32_value,
+				dac->raw_value.long_value,
 				dac->value, dac->units);
 	fprintf(file, "  crate      = %s\n", ks3112->camac_record->name);
-	fprintf(file, "  slot       = %d\n", (int) ks3112->slot);
-	fprintf(file, "  subaddress = %d\n", (int) ks3112->subaddress);
+	fprintf(file, "  slot       = %d\n", ks3112->slot);
+	fprintf(file, "  subaddress = %d\n", ks3112->subaddress);
 	fprintf(file, "  scale      = %g\n", dac->scale );
 	fprintf(file, "  offset     = %g\n", dac->offset );
 
@@ -202,7 +202,7 @@ mxd_ks3112_open( MX_RECORD *record )
 	"MX_ANALOG_OUTPUT pointer for record '%s' is NULL.", record->name);
 	}
 
-	dac->value = dac->offset + dac->scale * dac->raw_value.int32_value;
+	dac->value = dac->offset + dac->scale * dac->raw_value.long_value;
 
 	mx_status = mxd_ks3112_write( dac );
 
@@ -229,7 +229,8 @@ mxd_ks3112_write( MX_ANALOG_OUTPUT *dac )
 	static const char fname[] = "mxd_ks3112_write()";
 
 	MX_KS3112 *ks3112;
-	int32_t camac_Q, camac_X, data;
+	int32_t data;
+	int camac_Q, camac_X;
 
 	ks3112 = (MX_KS3112 *) (dac->record->record_type_struct);
 
@@ -238,18 +239,17 @@ mxd_ks3112_write( MX_ANALOG_OUTPUT *dac )
 			"MX_KS3112 pointer is NULL.");
 	}
 
-	data = dac->raw_value.int32_value;
+	data = (int32_t) dac->raw_value.long_value;
 
 	mx_camac( (ks3112->camac_record),
 		(ks3112->slot), (ks3112->subaddress), 16,
 		&data, &camac_Q, &camac_X );
 
-	dac->raw_value.int32_value = data;
+	dac->raw_value.long_value = data;
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"CAMAC error: Q = %d, X = %d",
-			(int) camac_Q, (int) camac_X );
+			"CAMAC error: Q = %d, X = %d", camac_Q, camac_X );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

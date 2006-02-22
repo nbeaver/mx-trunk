@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_pcmotion32_record_field_defaults[] = {
 	MXI_PCMOTION32_STANDARD_FIELDS
 };
 
-mx_length_type mxi_pcmotion32_num_record_fields
+long mxi_pcmotion32_num_record_fields
 		= sizeof( mxi_pcmotion32_record_field_defaults )
 			/ sizeof( mxi_pcmotion32_record_field_defaults[0] );
 

@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2400_doutput_rf_defaults[] = {
 	MXD_KEITHLEY2400_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_keithley2400_doutput_num_record_fields
+long mxd_keithley2400_doutput_num_record_fields
 		= sizeof( mxd_keithley2400_doutput_rf_defaults )
 		  / sizeof( mxd_keithley2400_doutput_rf_defaults[0] );
 
@@ -279,7 +279,7 @@ mxd_keithley2400_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "SOUR2:TTL %lu", (unsigned long) doutput->value );
+	sprintf( command, "SOUR2:TTL %lu", doutput->value );
 
 	mx_status = mxi_keithley_command( doutput->record, interface, command,
 					NULL, 0, KEITHLEY2400_DOUTPUT_DEBUG );

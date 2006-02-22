@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_cryostream600_status_field_default[] = {
 	MXD_CRYOSTREAM600_STATUS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_cryostream600_status_num_record_fields
+long mxd_cryostream600_status_num_record_fields
 		= sizeof( mxd_cryostream600_status_field_default )
 		/ sizeof( mxd_cryostream600_status_field_default[0] );
 
@@ -312,7 +312,7 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Unrecognized parameter type %d for 'cryostream600_status' record '%s'.  "
 "The allowed values are in the range (1-7).",
-			(int) cryostream600_status->parameter_type,
+			cryostream600_status->parameter_type,
 			ainput->record->name );
 	}
 

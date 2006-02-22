@@ -66,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pcstep_record_field_defaults[] = {
 	MXD_PCSTEP_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pcstep_num_record_fields
+long mxd_pcstep_num_record_fields
 		= sizeof( mxd_pcstep_record_field_defaults )
 			/ sizeof( mxd_pcstep_record_field_defaults[0] );
 
@@ -321,17 +321,13 @@ mxd_pcstep_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  axis id           = %d\n\n", pcstep_motor->axis_id);
 
 	fprintf(file, "  default speed        = %lu steps per sec\n",
-			(unsigned long) pcstep_motor->default_speed);
-
+				pcstep_motor->default_speed);
 	fprintf(file, "  default base speed   = %lu steps per sec\n",
-			(unsigned long) pcstep_motor->default_base_speed);
-
+				pcstep_motor->default_base_speed);
 	fprintf(file, "  default acceleration = %lu steps per sec^2\n",
-			(unsigned long) pcstep_motor->default_acceleration);
-
+				pcstep_motor->default_acceleration);
 	fprintf(file, "  default accel factor = %lu\n",
-		(unsigned long) pcstep_motor->default_acceleration_factor);
-
+				pcstep_motor->default_acceleration_factor);
 	if ( pcstep_motor->lines_per_revolution > 0 ) {
 		fprintf(file,
 		      "  lines per revolution = %hu\n",
@@ -352,31 +348,29 @@ mxd_pcstep_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position          = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
-
+			motor->raw_position.stepper );
 	fprintf(file, "  scale             = %g %s per step.\n",
 			motor->scale, motor->units);
-
 	fprintf(file, "  offset            = %g %s.\n",
 			motor->offset, motor->units);
 	
 	fprintf(file, "  backlash          = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit    = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit    = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband     = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	return MX_SUCCESSFUL_RESULT;
 }

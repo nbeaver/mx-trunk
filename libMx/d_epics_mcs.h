@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,10 +25,10 @@
 typedef struct {
 	char channel_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
 	char common_prefix[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	mx_hex_type epics_mcs_flags;
+	unsigned long epics_mcs_flags;
 
 	double epics_record_version;
-	int32_t *scaler_value_buffer;
+	long *scaler_value_buffer;
 
 	MX_EPICS_PV acquiring_pv;
 	MX_EPICS_PV dwell_pv;
@@ -70,7 +70,7 @@ MX_API mx_status_type mxd_epics_mcs_set_parameter( MX_MCS *mcs );
 extern MX_RECORD_FUNCTION_LIST mxd_epics_mcs_record_function_list;
 extern MX_MCS_FUNCTION_LIST mxd_epics_mcs_mcs_function_list;
 
-extern mx_length_type mxd_epics_mcs_num_record_fields;
+extern long mxd_epics_mcs_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_epics_mcs_rfield_def_ptr;
 
 #define MXD_EPICS_MCS_STANDARD_FIELDS \

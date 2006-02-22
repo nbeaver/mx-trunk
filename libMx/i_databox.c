@@ -7,14 +7,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MXI_DATABOX_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,17 +26,17 @@
 #include "d_databox_motor.h"
 
 MX_RECORD_FUNCTION_LIST mxi_databox_record_function_list = {
-	NULL,
+	mxi_databox_initialize_type,
 	mxi_databox_create_record_structures,
 	mxi_databox_finish_record_initialization,
+	mxi_databox_delete_record,
 	NULL,
-	NULL,
-	NULL,
-	NULL,
+	mxi_databox_read_parms_from_hardware,
+	mxi_databox_write_parms_to_hardware,
 	mxi_databox_open,
+	mxi_databox_close,
 	NULL,
-	NULL,
-	mxi_databox_resynchronize
+	mxi_databox_resynchronize,
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_databox_record_field_defaults[] = {
@@ -46,21 +44,29 @@ MX_RECORD_FIELD_DEFAULTS mxi_databox_record_field_defaults[] = {
 	MXI_DATABOX_STANDARD_FIELDS
 };
 
-mx_length_type mxi_databox_num_record_fields
+long mxi_databox_num_record_fields
 		= sizeof( mxi_databox_record_field_defaults )
 			/ sizeof( mxi_databox_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_databox_rfield_def_ptr
 			= &mxi_databox_record_field_defaults[0];
 
+#define MXI_DATABOX_DEBUG		FALSE
+
 static mx_status_type mxi_databox_resynchronize_basic( MX_RECORD * );
 
 /*==========================*/
 
 MX_EXPORT mx_status_type
+mxi_databox_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_databox_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_databox_create_record_structures()";
+	const char fname[] = "mxi_databox_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_DATABOX *databox;
@@ -96,8 +102,7 @@ mxi_databox_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_databox_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxi_databox_finish_record_initialization()";
+	const char fname[] = "mxi_databox_finish_record_initialization()";
 
 	MX_DATABOX *databox;
 	int i;
@@ -125,9 +130,40 @@ mxi_databox_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxi_databox_delete_record( MX_RECORD *record )
+{
+        if ( record == NULL ) {
+                return MX_SUCCESSFUL_RESULT;
+        }
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+                record->record_type_struct = NULL;
+        }
+        if ( record->record_class_struct != NULL ) {
+                free( record->record_class_struct );
+
+                record->record_class_struct = NULL;
+        }
+        return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_databox_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_databox_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_databox_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_databox_open()";
+	const char fname[] = "mxi_databox_open()";
 
 	MX_DATABOX *databox;
 	MX_RECORD *motor_record;
@@ -255,10 +291,16 @@ mxi_databox_open( MX_RECORD *record )
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mxi_databox_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
 static mx_status_type
 mxi_databox_resynchronize_basic( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_databox_resynchronize_basic()";
+	const char fname[] = "mxi_databox_resynchronize_basic()";
 
 	MX_DATABOX *databox;
 	char response[100];
@@ -374,7 +416,7 @@ mxi_databox_resynchronize_basic( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_databox_resynchronize( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_databox_resynchronize()";
+	const char fname[] = "mxi_databox_resynchronize()";
 
 	MX_DATABOX *databox;
 	mx_status_type mx_status;
@@ -441,7 +483,7 @@ mxi_databox_command( MX_DATABOX *databox,
 MX_EXPORT mx_status_type
 mxi_databox_putline( MX_DATABOX *databox, char *command, int debug_flag )
 {
-	static const char fname[] = "mxi_databox_putline()";
+	const char fname[] = "mxi_databox_putline()";
 
 	unsigned long i, length;
 	mx_status_type mx_status;
@@ -486,7 +528,7 @@ mxi_databox_getline( MX_DATABOX *databox,
 		char *response, int response_buffer_length,
 		int debug_flag )
 {
-	static const char fname[] = "mxi_databox_getline()";
+	const char fname[] = "mxi_databox_getline()";
 
 	size_t num_chars_returned;
 	mx_status_type mx_status;
@@ -525,7 +567,7 @@ mxi_databox_getline( MX_DATABOX *databox,
 MX_EXPORT mx_status_type
 mxi_databox_putchar( MX_DATABOX *databox, char c, int debug_flag )
 {
-	static const char fname[] = "mxi_databox_putchar()";
+	const char fname[] = "mxi_databox_putchar()";
 
 	long i, max_retries;
 	char cr;
@@ -580,7 +622,7 @@ mxi_databox_putchar( MX_DATABOX *databox, char c, int debug_flag )
 MX_EXPORT mx_status_type
 mxi_databox_getchar( MX_DATABOX *databox, char *c, int debug_flag )
 {
-	static const char fname[] = "mxi_databox_getline()";
+	const char fname[] = "mxi_databox_getline()";
 
 	mx_status_type mx_status;
 
@@ -605,7 +647,7 @@ mxi_databox_getchar( MX_DATABOX *databox, char *c, int debug_flag )
 MX_EXPORT mx_status_type
 mxi_databox_get_command_mode( MX_DATABOX *databox )
 {
-	static const char fname[] = "mxi_databox_get_command_mode()";
+	const char fname[] = "mxi_databox_get_command_mode()";
 
 	char response[120];
 	char *ptr;
@@ -701,7 +743,7 @@ mxi_databox_set_command_mode( MX_DATABOX *databox,
 				int new_mode,
 				int discard_response )
 {
-	static const char fname[] = "mxi_databox_set_command_mode()";
+	const char fname[] = "mxi_databox_set_command_mode()";
 
 	int old_mode;
 	mx_status_type mx_status;
@@ -814,7 +856,7 @@ mxi_databox_set_command_mode( MX_DATABOX *databox,
 MX_EXPORT mx_status_type
 mxi_databox_get_limit_mode( MX_DATABOX *databox )
 {
-	static const char fname[] = "mxi_databox_get_limit_mode()";
+	const char fname[] = "mxi_databox_get_limit_mode()";
 
 	MX_RECORD *motor_record;
 	char response[200];
@@ -893,7 +935,7 @@ mxi_databox_get_limit_mode( MX_DATABOX *databox )
 MX_EXPORT mx_status_type
 mxi_databox_set_limit_mode( MX_DATABOX *databox, int limit_mode )
 {
-	static const char fname[] = "mxi_databox_set_limit_mode()";
+	const char fname[] = "mxi_databox_set_limit_mode()";
 
 	MX_RECORD *motor_record;
 	char command[5];
@@ -963,7 +1005,7 @@ mxi_databox_get_record_from_motor_name( MX_DATABOX *databox,
 					char motor_name,
 					MX_RECORD **motor_record )
 {
-	static const char fname[] = "mxi_databox_get_record_from_motor_name()";
+	const char fname[] = "mxi_databox_get_record_from_motor_name()";
 
 	if ( databox == (MX_DATABOX *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1003,7 +1045,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 				double step_size,
 				long count_value )
 {
-	static const char fname[] = "mxi_databox_define_sequence()";
+	const char fname[] = "mxi_databox_define_sequence()";
 
 	char command[80];
 	char response[100];
@@ -1188,7 +1230,7 @@ mxi_databox_define_sequence( MX_DATABOX *databox,
 MX_EXPORT mx_status_type
 mxi_databox_discard_unread_input( MX_DATABOX *databox, int debug_flag )
 {
-	static const char fname[] = "mxi_databox_discard_unread_input()";
+	const char fname[] = "mxi_databox_discard_unread_input()";
 
 	MX_RECORD *rs232_record;
 	mx_status_type mx_status;

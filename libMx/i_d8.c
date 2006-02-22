@@ -7,14 +7,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MXI_D8_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,12 +54,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_d8_record_field_defaults[] = {
 	MXI_D8_STANDARD_FIELDS
 };
 
-mx_length_type mxi_d8_num_record_fields
+long mxi_d8_num_record_fields
 		= sizeof( mxi_d8_record_field_defaults )
 			/ sizeof( mxi_d8_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_d8_rfield_def_ptr
 			= &mxi_d8_record_field_defaults[0];
+
+#define MXI_D8_DEBUG		FALSE
 
 static mx_status_type mxi_d8_construct_error_message( char *d8_response,
 				char *record_name, const char *fname );
@@ -415,7 +415,7 @@ mxi_d8_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 MX_EXPORT mx_status_type
 mxi_d8_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mxi_d8_num_input_bytes_available()";
 

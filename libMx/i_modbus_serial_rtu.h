@@ -33,7 +33,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_modbus_serial_rtu_record_function_list;
 extern MX_MODBUS_FUNCTION_LIST mxi_modbus_serial_rtu_modbus_function_list;
 
-extern mx_length_type mxi_modbus_serial_rtu_num_record_fields;
+extern long mxi_modbus_serial_rtu_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_modbus_serial_rtu_rfield_def_ptr;
 
 #define MXI_MODBUS_SERIAL_RTU_STANDARD_FIELDS \

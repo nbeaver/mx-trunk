@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,16 +26,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int32_t line_number;
-	mx_hex_type pdi45_dinput_flags;
+	int line_number;
+	unsigned long pdi45_dinput_flags;
 } MX_PDI45_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int32_t line_number;
-	mx_hex_type pdi45_doutput_flags;
+	int line_number;
+	unsigned long pdi45_doutput_flags;
 } MX_PDI45_DOUTPUT;
 
 #define MXD_PDI45_DINPUT_STANDARD_FIELDS \
@@ -43,7 +43,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -56,7 +56,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -76,7 +76,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pdi45_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_pdi45_din_digital_input_function_list;
 
-extern mx_length_type mxd_pdi45_din_num_record_fields;
+extern long mxd_pdi45_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -90,7 +90,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pdi45_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_pdi45_dout_digital_output_function_list;
 
-extern mx_length_type mxd_pdi45_dout_num_record_fields;
+extern long mxd_pdi45_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pdi45_dout_rfield_def_ptr;
 
 #endif /* __D_PDI45_DIO_H__ */

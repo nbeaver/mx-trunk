@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,17 +77,17 @@ mx_mcai_get_pointers( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_mcai_initialize_type( long record_type,
-			mx_length_type *num_record_fields,
+			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			mx_length_type *maximum_num_channels_varargs_cookie )
+			long *maximum_num_channels_varargs_cookie )
 {
 	static const char fname[] = "mx_mcai_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type referenced_field_index;
-	mx_status_type mx_status;
+	long referenced_field_index;
+	mx_status_type status;
 
 	if ( num_record_fields == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -127,7 +127,7 @@ mx_mcai_initialize_type( long record_type,
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -137,26 +137,26 @@ mx_mcai_initialize_type( long record_type,
 
 	/*** Construct a varargs cookie for 'maximum_num_channels'. ***/
 
-	mx_status = mx_find_record_field_defaults_index(
+	status = mx_find_record_field_defaults_index(
 			*record_field_defaults, *num_record_fields,
 			"maximum_num_channels", &referenced_field_index );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
+	status = mx_construct_varargs_cookie( referenced_field_index, 0,
 					maximum_num_channels_varargs_cookie );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/*** 'channel_array' depends on 'maximum_num_channels'. ***/
 
-	mx_status = mx_find_record_field_defaults( *record_field_defaults,
+	status = mx_find_record_field_defaults( *record_field_defaults,
 			*num_record_fields, "channel_array", &field );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	field->dimension[0] = *maximum_num_channels_varargs_cookie;
 

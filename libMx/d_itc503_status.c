@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_itc503_status_field_default[] = {
 	MXD_ITC503_STATUS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_itc503_status_num_record_fields
+long mxd_itc503_status_num_record_fields
 		= sizeof( mxd_itc503_status_field_default )
 		/ sizeof( mxd_itc503_status_field_default[0] );
 
@@ -205,15 +205,14 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	"Illegal parameter type %d requested for ITC503 status record '%s'.  "
 	"Allowed parameter types are from 0 to 13.  Read the description of "
 	"the 'R' command in the ITC503 manual for more information.",
-			(int) itc503_status->parameter_type,
-			ainput->record->name );
+			itc503_status->parameter_type, ainput->record->name );
 	}
 
 	/* The requested parameter type is used directly to construct
 	 * an ITC503 'R' command.
 	 */
 
-	sprintf( command, "R%d", (int) itc503_status->parameter_type );
+	sprintf( command, "R%d", itc503_status->parameter_type );
 
 	/* Send the READ command to the controller. */
 

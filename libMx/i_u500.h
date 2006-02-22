@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,26 +45,26 @@
 
 typedef struct {
 	MX_RECORD *record;
-	mx_length_type num_boards;
-	int32_t *board_type;
+	long num_boards;
+	int *board_type;
 	char **firmware_filename;
 	char **parameter_filename;
 	char **calibration_filename;
 	char **pso_firmware_filename;
 
-	int16_t qlib_version[2];
-	int16_t drv_version[2];
-	int16_t wapi_version[2];
+	short qlib_version[2];
+	short drv_version[2];
+	short wapi_version[2];
 
-	char    program_name[ MXU_U500_PROGRAM_NAME_LENGTH+1 ];
-	int32_t program_number;
-	char    load_program[ MXU_FILENAME_LENGTH+1 ];
-	int32_t unload_program;
-	int32_t run_program;
-	int32_t stop_program;
-	int32_t fault_acknowledge;
+	char program_name[ MXU_U500_PROGRAM_NAME_LENGTH+1 ];
+	int program_number;
+	char load_program[ MXU_FILENAME_LENGTH+1 ];
+	int unload_program;
+	int run_program;
+	int stop_program;
+	int fault_acknowledge;
 
-	int32_t current_board_number;
+	int current_board_number;
 } MX_U500;
 
 #define MXLV_U500_PROGRAM_NAME		8000
@@ -76,11 +76,11 @@ typedef struct {
 #define MXLV_U500_FAULT_ACKNOWLEDGE	8006
 
 #define MXI_U500_STANDARD_FIELDS \
-  {-1, -1, "num_boards", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_boards", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, num_boards), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "board_type", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "board_type", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, board_type), \
 	{sizeof(int)}, NULL, MXFF_VARARGS}, \
   \
@@ -108,15 +108,15 @@ typedef struct {
 	{sizeof(char), sizeof(char *)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "qlib_version", MXFT_INT16, NULL, 1, {2}, \
+  {-1, -1, "qlib_version", MXFT_SHORT, NULL, 1, {2}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, qlib_version), \
 	{sizeof(short)}, NULL, 0}, \
   \
-  {-1, -1, "drv_version", MXFT_INT16, NULL, 1, {2}, \
+  {-1, -1, "drv_version", MXFT_SHORT, NULL, 1, {2}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, drv_version), \
 	{sizeof(short)}, NULL, 0}, \
   \
-  {-1, -1, "wapi_version", MXFT_INT16, NULL, 1, {2}, \
+  {-1, -1, "wapi_version", MXFT_SHORT, NULL, 1, {2}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, wapi_version), \
 	{sizeof(short)}, NULL, 0}, \
   \
@@ -125,7 +125,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, program_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_U500_PROGRAM_NUMBER, -1, "program_number", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_U500_PROGRAM_NUMBER, -1, "program_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, program_number), \
 	{0}, NULL, 0}, \
   \
@@ -134,20 +134,20 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, load_program), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_U500_UNLOAD_PROGRAM, -1, "unload_program", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_U500_UNLOAD_PROGRAM, -1, "unload_program", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, unload_program), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_U500_RUN_PROGRAM, -1, "run_program", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_U500_RUN_PROGRAM, -1, "run_program", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, run_program), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_U500_STOP_PROGRAM, -1, "stop_program", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_U500_STOP_PROGRAM, -1, "stop_program", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, stop_program), \
 	{0}, NULL, 0}, \
   \
   {MXLV_U500_FAULT_ACKNOWLEDGE, -1, "fault_acknowledge", \
-					MXFT_INT32, NULL, 0, {0}, \
+					MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, fault_acknowledge), \
 	{0}, NULL, 0}
 
@@ -159,7 +159,7 @@ MX_API mx_status_type mxi_u500_special_processing_setup( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_u500_record_function_list;
 
-extern mx_length_type mxi_u500_num_record_fields;
+extern long mxi_u500_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_u500_rfield_def_ptr;
 
 /* === Driver specific functions === */

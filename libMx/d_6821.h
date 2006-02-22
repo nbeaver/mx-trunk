@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_6821_in_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_6821_in_digital_input_function_list;
 
-extern mx_length_type mxd_6821_in_num_record_fields;
+extern long mxd_6821_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_6821_in_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -84,7 +84,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_6821_out_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_6821_out_digital_output_function_list;
 
-extern mx_length_type mxd_6821_out_num_record_fields;
+extern long mxd_6821_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_6821_out_rfield_def_ptr;
 
 #endif /* __D_6821_H__ */

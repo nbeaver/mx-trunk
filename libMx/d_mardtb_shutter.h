@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@ MX_API mx_status_type mxd_mardtb_shutter_get_relay_status( MX_RELAY *relay );
 extern MX_RECORD_FUNCTION_LIST mxd_mardtb_shutter_record_function_list;
 extern MX_RELAY_FUNCTION_LIST mxd_mardtb_shutter_relay_function_list;
 
-extern mx_length_type mxd_mardtb_shutter_num_record_fields;
+extern long mxd_mardtb_shutter_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_shutter_rfield_def_ptr;
 
 #endif /* __D_MARDTB_SHUTTER_H__ */

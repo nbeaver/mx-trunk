@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_dxp_sum_record_field_defaults[] = {
 	MX_XIA_DXP_SUM_STANDARD_FIELDS,
 };
 
-mx_length_type mxd_xia_dxp_sum_num_record_fields
+long mxd_xia_dxp_sum_num_record_fields
 	= sizeof( mxd_xia_dxp_sum_record_field_defaults )
 	/ sizeof( mxd_xia_dxp_sum_record_field_defaults[0] );
 
@@ -110,14 +110,15 @@ mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 	MX_XIA_DXP_SUM *xia_dxp_sum;
 
 	MX_RECORD *xia_dxp_record;
-	mx_length_type num_mcas, num_elements;
+	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 
 	MX_RECORD *mca_record;
 	MX_MCA *mca;
 
 	void *field_value_pointer;
-	int32_t *enable_array;
+	int *enable_array;
+	long num_elements;
 	unsigned long i, num_enabled_mcas;
 	double corrected_roi_value, weighted_roi_value, weighted_sum;
 	mx_status_type mx_status;
@@ -158,13 +159,13 @@ mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 	/* Get the MCA enable flags. */
 
 	mx_status = mx_get_1d_array( xia_dxp_sum->mca_enable_record,
-					MXFT_INT32, &num_elements,
+					MXFT_INT, &num_elements,
 					&field_value_pointer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	enable_array = (int32_t *) field_value_pointer;
+	enable_array = (int *) field_value_pointer;
 
 	if ( num_elements < num_mcas ) {
 		num_mcas = num_elements;

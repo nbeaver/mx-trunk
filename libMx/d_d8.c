@@ -8,14 +8,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define D8_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,12 +60,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_d8_motor_record_field_defaults[] = {
 	MXD_D8_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_d8_motor_num_record_fields
+long mxd_d8_motor_num_record_fields
 		= sizeof( mxd_d8_motor_record_field_defaults )
 			/ sizeof( mxd_d8_motor_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_d8_motor_rfield_def_ptr
 			= &mxd_d8_motor_record_field_defaults[0];
+
+#define D8_MOTOR_DEBUG	FALSE
 
 /* === */
 
@@ -258,8 +258,7 @@ mxd_d8_motor_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  port name         = %s\n", d8_record->name);
-	fprintf(file, "  drive number      = %d\n",
-					(int) d8_motor->drive_number);
+	fprintf(file, "  drive number      = %d\n", d8_motor->drive_number);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -469,7 +468,7 @@ mxd_d8_motor_open( MX_RECORD *record )
 	 * get position command.
 	 */
 
-	sprintf( command, "AV%d", (int) d8_motor->drive_number );
+	sprintf( command, "AV%d", d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -480,9 +479,9 @@ mxd_d8_motor_open( MX_RECORD *record )
 	if ( strcmp( response, "AV0.--" ) == 0 ) {
 
 		MX_DEBUG(-2,("%s: Axis %d is not initialized yet.",
-			fname, (int) d8_motor->drive_number));
+			fname, d8_motor->drive_number));
 
-		sprintf( command, "AV%d,0.00", (int) d8_motor->drive_number );
+		sprintf( command, "AV%d,0.00", d8_motor->drive_number );
 
 		mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -523,7 +522,7 @@ mxd_d8_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "ST%d", 5 + (int) d8_motor->drive_number );
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -565,7 +564,7 @@ mxd_d8_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "GO%d,%g,%g", (int) d8_motor->drive_number,
+	sprintf( command, "GO%d,%g,%g", d8_motor->drive_number,
 					motor->raw_destination.analog,
 					d8_motor->d8_speed );
 
@@ -593,7 +592,7 @@ mxd_d8_motor_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "AV%d", (int) d8_motor->drive_number );
+	sprintf( command, "AV%d", d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -631,7 +630,7 @@ mxd_d8_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "AV%d,%g", (int) d8_motor->drive_number,
+	sprintf( command, "AV%d,%g", d8_motor->drive_number,
 					motor->raw_set_position.analog );
 
 	mx_status = mxi_d8_command( d8, command,
@@ -640,7 +639,7 @@ mxd_d8_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "ZI%d,0", (int) d8_motor->drive_number );
+	sprintf( command, "ZI%d,0", d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -648,7 +647,7 @@ mxd_d8_motor_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "IN%d", (int) d8_motor->drive_number );
+	sprintf( command, "IN%d", d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -672,7 +671,7 @@ mxd_d8_motor_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "HT%d", (int) d8_motor->drive_number );
+	sprintf( command, "HT%d", d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command, NULL, 0, D8_MOTOR_DEBUG );
 
@@ -720,7 +719,7 @@ mxd_d8_motor_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "ST%d", 5 + (int) d8_motor->drive_number );
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -763,7 +762,7 @@ mxd_d8_motor_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "ST%d", 5 + (int) d8_motor->drive_number );
+	sprintf( command, "ST%d", 5 + d8_motor->drive_number );
 
 	mx_status = mxi_d8_command( d8, command,
 			response, sizeof response, D8_MOTOR_DEBUG );
@@ -804,9 +803,9 @@ mxd_d8_motor_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->home_search >= 0 ) {
-		sprintf( command, "FR%d,U", (int) d8_motor->drive_number );
+		sprintf( command, "FR%d,U", d8_motor->drive_number );
 	} else {
-		sprintf( command, "FR%d,D", (int) d8_motor->drive_number );
+		sprintf( command, "FR%d,D", d8_motor->drive_number );
 	}
 
 	mx_status = mxi_d8_command( d8, command,

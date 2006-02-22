@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_aps_quadem_record_field_defaults[] = {
 	MXD_APS_QUADEM_STANDARD_FIELDS
 };
 
-mx_length_type mxd_aps_quadem_num_record_fields
+long mxd_aps_quadem_num_record_fields
 		= sizeof( mxd_aps_quadem_record_field_defaults )
 		  / sizeof( mxd_aps_quadem_record_field_defaults[0] );
 

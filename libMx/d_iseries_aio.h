@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,8 +23,8 @@ typedef struct {
 
 	MX_RECORD *iseries_record;
 	char command[ MXU_ISERIES_COMMAND_LENGTH+1 ];
-	int32_t num_command_bytes;
-	int32_t default_precision;
+	int num_command_bytes;
+	int default_precision;
 
 	char command_prefix;
 	unsigned long command_index;
@@ -35,8 +35,8 @@ typedef struct {
 
 	MX_RECORD *iseries_record;
 	char command[ MXU_ISERIES_COMMAND_LENGTH+1 ];
-	int32_t num_command_bytes;
-	int32_t default_precision;
+	int num_command_bytes;
+	int default_precision;
 
 	char command_prefix;
 	unsigned long command_index;
@@ -51,11 +51,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AINPUT, command), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_command_bytes", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_command_bytes", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AINPUT, num_command_bytes), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_precision", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "default_precision", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AINPUT, default_precision), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -68,11 +68,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AOUTPUT, command), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_command_bytes", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_command_bytes", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AOUTPUT, num_command_bytes), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "default_precision", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "default_precision", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ISERIES_AOUTPUT, default_precision), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -91,7 +91,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_iseries_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_iseries_ain_analog_input_function_list;
 
-extern mx_length_type mxd_iseries_ain_num_record_fields;
+extern long mxd_iseries_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_iseries_ain_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -108,7 +108,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_iseries_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_iseries_aout_analog_output_function_list;
 
-extern mx_length_type mxd_iseries_aout_num_record_fields;
+extern long mxd_iseries_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_iseries_aout_rfield_def_ptr;
 
 #endif /* __D_ISERIES_AIO_H__ */

@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_monochromator_record_field_defaults[] = {
 	MXD_MONOCHROMATOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_monochromator_num_record_fields
+long mxd_monochromator_num_record_fields
 		= sizeof( mxd_monochromator_record_field_defaults )
 			/ sizeof( mxd_monochromator_record_field_defaults[0] );
 
@@ -165,13 +165,13 @@ mxd_monochromator_get_pointers( MX_MOTOR *motor,
 "list_array pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_change_permitted == (mx_bool_type *) NULL){
+	if ( (*monochromator)->speed_change_permitted == (int *) NULL ){
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"speed_change_permitted pointer for monochromator record '%s' "
 		"passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_changed == (mx_bool_type *) NULL ) {
+	if ( (*monochromator)->speed_changed == (int *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "speed_changed pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
@@ -188,7 +188,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 	MX_RECORD **record_array;
 	MX_RECORD *enable_status_record;
 	void *pointer_to_value;
-	int32_t fast_mode;
+	int fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_variable_pointer( list_record, &pointer_to_value );
@@ -424,7 +424,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 
 		MX_DEBUG( 2,("%s: monochromator->speed_changed[%d] = %d",
-			fname, i, (int) monochromator->speed_changed[i]));
+			fname, i, monochromator->speed_changed[i]));
 
 		if ( monochromator->speed_changed[i] ) {
 
@@ -484,9 +484,9 @@ mxd_monochromator_initialize_type( long record_type )
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
 	int i;
-	mx_length_type num_record_fields;
-	mx_length_type num_dependencies_field_index;
-	mx_length_type num_dependencies_varargs_cookie;
+	long num_record_fields;
+	long num_dependencies_field_index;
+	long num_dependencies_varargs_cookie;
 	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( record_type );
@@ -514,7 +514,7 @@ mxd_monochromator_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -948,7 +948,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s: ***** Now starting the move.", fname));
 
 	MX_DEBUG( 2,("%s: motor->synchronous_motion_mode = %d",
-			fname, (int) motor->synchronous_motion_mode));
+			fname, motor->synchronous_motion_mode));
 
 	monochromator->move_in_progress = TRUE;
 
@@ -1353,7 +1353,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
-		fname, motor->record->name, (int) motor->parameter_type));
+		fname, motor->record->name, motor->parameter_type));
 
 	/* Get the first entry in the list array. */
 
@@ -1477,7 +1477,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type,
+			motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -1516,7 +1516,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
-		fname, motor->record->name, (int) motor->parameter_type));
+		fname, motor->record->name, motor->parameter_type));
 
 	/* Get the first entry in the list array. */
 
@@ -1593,7 +1593,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
-			(int) motor->parameter_type,
+			motor->parameter_type,
 			motor->record->name );
 	}
 
@@ -1617,7 +1617,7 @@ mxd_monochromator_get_status( MX_MOTOR *motor )
 	MX_RECORD **record_array;
 	MX_RECORD *record;
 	int i, j, num_records, enabled, dependency_type;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1872,7 +1872,7 @@ mxd_mono_get_energy_pointers( MX_MONOCHROMATOR *monochromator,
 	MX_RECORD **record_array;
 	double *parameter_array;
 	int num_records, num_parameters;
-	mx_length_type num_elements;
+	long num_elements;
 	void *pointer_to_value;
 	mx_status_type mx_status;
 
@@ -2238,8 +2238,7 @@ mxd_monochromator_move_insertion_device_energy(
 	MX_RECORD *id_motor_record;
 	double *parameter_array;
 	int num_parameters, num_records;
-	mx_length_type num_elements;
-	long gap_harmonic;
+	long num_elements, gap_harmonic;
 	double gap_offset, d_spacing, denominator, mono_energy, id_energy;
 	void *pointer_to_value;
 	int enabled;
@@ -2346,8 +2345,7 @@ mxd_monochromator_get_double_crystal_parameters(
 
 	MX_RECORD **record_array;
 	int num_records;
-	mx_length_type num_variable_elements;
-	long i;
+	long i, num_variable_elements;
 	void *pointer_to_value;
 	double *variable_array;
 	mx_status_type mx_status;
@@ -2418,7 +2416,7 @@ mxd_monochromator_get_double_crystal_parameters(
 			monochromator->record->name,
 			record_array[1]->name,
 			num_parameters,
-			(long) num_variable_elements );
+			num_variable_elements );
 	}
 
 	if ( tuning_parameters != (double *) NULL ) {
@@ -2755,7 +2753,7 @@ mxd_monochromator_move_diffractometer_theta(
 	double numerator, sin_theta, diffractometer_theta;
 	void *pointer_to_value;
 	int enabled, num_parameters, num_records;
-	mx_length_type num_elements;
+	long num_elements;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2892,7 +2890,7 @@ mxd_monochromator_move_e_polynomial(
 	MX_RECORD *energy_polynomial_record;
 	double *parameter_array;
 	int i, num_parameters, num_records;
-	mx_length_type num_elements;
+	long num_elements;
 	double d_spacing, denominator, mono_energy, energy_polynomial;
 	void *pointer_to_value;
 	int enabled;
@@ -3009,10 +3007,9 @@ mxd_monochromator_move_option_selector(
 	double **option_range_array;
 	double lower_limit, upper_limit;
 	int enabled, num_records, exit_loop;
-	long field_type, num_ranges;
-	int32_t old_selection, new_selection;
-	mx_length_type num_dimensions;
-	mx_length_type *dimension_array;
+	int old_selection, new_selection;
+	long num_dimensions, field_type, num_ranges;
+	long *dimension_array;
 	mx_status_type mx_status;
 
 	if ( flags & MXF_MTR_ONLY_CHECK_LIMITS ) {
@@ -3049,7 +3046,7 @@ mxd_monochromator_move_option_selector(
 
 	/* Get the current value of the option selector. */
 
-	mx_status = mx_get_int32_variable( option_selector_record,
+	mx_status = mx_get_int_variable( option_selector_record,
 					&old_selection );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3132,11 +3129,11 @@ mxd_monochromator_move_option_selector(
 	/* Change the option selector variable if necessary. */
 
 	MX_DEBUG( 2,("%s: new_selection = %d, old_selection = %d",
-		fname, (int) new_selection, (int) old_selection));
+		fname, new_selection, old_selection));
 
 	if ( new_selection != old_selection ) {
 
-		mx_status = mx_set_int32_variable( option_selector_record,
+		mx_status = mx_set_int_variable( option_selector_record,
 					new_selection );
 
 		if ( mx_status.code != MXE_SUCCESS )

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *mcs_record;
-	int32_t scaler_number;
+	int scaler_number;
 } MX_MCS_SCALER;
 
 #define MXD_MCS_SCALER_STANDARD_FIELDS \
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_SCALER, mcs_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "scaler_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "scaler_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCS_SCALER, scaler_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -59,7 +59,7 @@ MX_API mx_status_type mxd_mcs_scaler_set_modes_of_associated_counters(
 extern MX_RECORD_FUNCTION_LIST mxd_mcs_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_mcs_scaler_scaler_function_list;
 
-extern mx_length_type mxd_mcs_scaler_num_record_fields;
+extern long mxd_mcs_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mcs_scaler_rfield_def_ptr;
 
 #endif /* __D_MCS_SCALER_H__ */

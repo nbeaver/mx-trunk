@@ -54,7 +54,7 @@ MX_PLOT_FUNCTION_LIST mxp_gnuplot_function_list = {
 MX_EXPORT mx_status_type
 mxp_gnuplot_open( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_open()";
+	const char fname[] = "mxp_gnuplot_open()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
@@ -128,7 +128,7 @@ mxp_gnuplot_open( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_close( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_close()";
+	const char fname[] = "mxp_gnuplot_close()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	int status;
@@ -175,7 +175,7 @@ mxp_gnuplot_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_add_measurement_to_plot_buffer()";
+	const char fname[] = "mxp_gnuplot_add_measurement_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
@@ -322,16 +322,16 @@ mxp_gnuplot_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 MX_EXPORT mx_status_type
 mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array )
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array )
 {
-	static const char fname[] = "mxp_gnuplot_add_array_to_plot_buffer()";
+	const char fname[] = "mxp_gnuplot_add_array_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
-	int32_t *int32_position_array, *int32_data_array;
+	long *long_position_array, *long_data_array;
 	double *double_position_array, *double_data_array;
-	mx_length_type i;
+	long i;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -363,33 +363,33 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		"The most recent attempt to connect to 'plotgnu' failed.");
 	}
 
-	int32_position_array = int32_data_array = NULL;
+	long_position_array = long_data_array = NULL;
 	double_position_array = double_data_array = NULL;
 
 	/* Construct data type specific array pointers. */
 
 	switch( position_type ) {
-	case MXFT_INT32:
-		int32_position_array = (void *) position_array;
+	case MXFT_LONG:
+		long_position_array = (void *) position_array;
 		break;
 	case MXFT_DOUBLE:
 		double_position_array = (void *) position_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
+	"Only MXFT_LONG or MXFT_DOUBLE position arrays are supported." );
 	}
 	
 	switch( data_type ) {
-	case MXFT_INT32:
-		int32_data_array = (void *) data_array;
+	case MXFT_LONG:
+		long_data_array = (void *) data_array;
 		break;
 	case MXFT_DOUBLE:
 		double_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
+	"Only MXFT_LONG or MXFT_DOUBLE data arrays are supported." );
 	}
 	
 	/* ---- Write the arrays out to plotgnu. ---- */
@@ -409,10 +409,10 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		(gnuplot_data->plotfile_step_count)++;
 	} else {
 		switch( position_type ) {
-		case MXFT_INT32:
+		case MXFT_LONG:
 			for ( i = 0; i < num_positions; i++ ) {
 				status = fprintf( gnuplot_data->pipe,
-				    " %ld", (long) (int32_position_array[i]) );
+					    " %ld", long_position_array[i] );
 
 				CHECK_PLOTGNU_STATUS;
 			}
@@ -420,7 +420,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 		case MXFT_DOUBLE:
 			for ( i = 0; i < num_positions; i++ ) {
 				status = fprintf( gnuplot_data->pipe,
-				    " %g", double_position_array[i] );
+					    " %g", double_position_array[i] );
 
 				CHECK_PLOTGNU_STATUS;
 			}
@@ -431,10 +431,10 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 	/* Plot the scaler measurements. */
 
 	switch( data_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( gnuplot_data->pipe, " %ld",
-					(long) (int32_data_array[i]) );
+					long_data_array[i] );
 
 			CHECK_PLOTGNU_STATUS;
 		}
@@ -459,7 +459,7 @@ mxp_gnuplot_add_array_to_plot_buffer( MX_PLOT *plot,
 MX_EXPORT mx_status_type
 mxp_gnuplot_display_plot( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_display_plot()";
+	const char fname[] = "mxp_gnuplot_display_plot()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	int status, saved_errno;
@@ -499,7 +499,7 @@ mxp_gnuplot_display_plot( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	static const char fname[] = "mxp_gnuplot_set_x_range()";
+	const char fname[] = "mxp_gnuplot_set_x_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	MX_SCAN *scan;
@@ -539,7 +539,7 @@ mxp_gnuplot_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 MX_EXPORT mx_status_type
 mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	static const char fname[] = "mxp_gnuplot_set_y_range()";
+	const char fname[] = "mxp_gnuplot_set_y_range()";
 
 	MX_PLOT_GNUPLOT *gnuplot_data;
 	MX_SCAN *scan;
@@ -579,7 +579,7 @@ mxp_gnuplot_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 MX_EXPORT mx_status_type
 mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 {
-	static const char fname[] = "mxp_gnuplot_start_plot_section()";
+	const char fname[] = "mxp_gnuplot_start_plot_section()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUPLOT *gnuplot_data;
@@ -589,7 +589,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 	MX_MOTOR *energy_motor;
 	double motor_position;
 	double *motor_position_array;
-	int32_t *motor_is_independent_variable_array;
+	long *motor_is_independent_variable_array;
 	int status;
 	long i, j, innermost_index, num_independent_variables;
 	mx_status_type mx_status;
@@ -692,7 +692,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			status = fprintf( gnuplot_data->pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
-					(int) motor_record_array[i]->precision,
+					motor_record_array[i]->precision,
 					motor_position,
 					motor->units );
 
@@ -745,7 +745,7 @@ mxp_gnuplot_start_plot_section( MX_PLOT *plot )
 			    status = fprintf( gnuplot_data->pipe,
 					"  %s = %.*g %s",
 					motor_record_array[i]->name,
-					(int) motor_record_array[i]->precision,
+					motor_record_array[i]->precision,
 					motor_position_array[i],
 					motor->units );
 

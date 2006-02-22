@@ -14,8 +14,6 @@
  *
  */
 
-#define MX_VXI_MEMACC_DEBUG	FALSE
-
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -34,13 +32,13 @@
 #include "i_vxi_memacc.h"
 
 MX_RECORD_FUNCTION_LIST mxi_vxi_memacc_record_function_list = {
-	NULL,
+	mxi_vxi_memacc_initialize_type,
 	mxi_vxi_memacc_create_record_structures,
 	mxi_vxi_memacc_finish_record_initialization,
-	NULL,
+	mxi_vxi_memacc_delete_record,
 	mxi_vxi_memacc_print_structure,
-	NULL,
-	NULL,
+	mxi_vxi_memacc_read_parms_from_hardware,
+	mxi_vxi_memacc_write_parms_to_hardware,
 	mxi_vxi_memacc_open,
 	mxi_vxi_memacc_close,
 	NULL,
@@ -61,12 +59,16 @@ MX_RECORD_FIELD_DEFAULTS mxi_vxi_memacc_record_field_defaults[] = {
 	MX_VME_STANDARD_FIELDS
 };
 
-mx_length_type mxi_vxi_memacc_num_record_fields
+long mxi_vxi_memacc_num_record_fields
 		= sizeof( mxi_vxi_memacc_record_field_defaults )
 			/ sizeof( mxi_vxi_memacc_record_field_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxi_vxi_memacc_rfield_def_ptr
 		= &mxi_vxi_memacc_record_field_defaults[0];
+
+/*--*/
+
+#define MX_VXI_MEMACC_DEBUG	FALSE
 
 /*--*/
 
@@ -133,7 +135,7 @@ mxi_vxi_memacc_get_pointers( MX_VME *vme,
 				MX_VXI_MEMACC_CRATE **crate,
 				const char calling_fname[] )
 {
-	static const char fname[] = "mxi_vxi_memacc_get_pointers()";
+	const char fname[] = "mxi_vxi_memacc_get_pointers()";
 
 	MX_VXI_MEMACC *vxi_memacc_ptr;
 
@@ -169,9 +171,8 @@ mxi_vxi_memacc_get_pointers( MX_VME *vme,
 		}
 		if ( vme->crate >= vxi_memacc_ptr->num_crates ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal VME crate number %lu.  Allowed range = (0 - %lu).",
-				(unsigned long) vme->crate,
-				vxi_memacc_ptr->num_crates - 1 );
+	"Illegal VME crate number %lu.  Allowed range = (0 - %lu).",
+			vme->crate, vxi_memacc_ptr->num_crates - 1 );
 		}
 
 		*crate = &( vxi_memacc_ptr->crate_array[ vme->crate ] );
@@ -183,9 +184,15 @@ mxi_vxi_memacc_get_pointers( MX_VME *vme,
 /*---*/
 
 MX_EXPORT mx_status_type
+mxi_vxi_memacc_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_vxi_memacc_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_vxi_memacc_create_record_structures()";
+	const char fname[] = "mxi_vxi_memacc_create_record_structures()";
 
 	MX_VME *vme;
 	MX_VXI_MEMACC *vxi_memacc;
@@ -222,7 +229,7 @@ mxi_vxi_memacc_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
+	const char fname[] =
 			"mxi_vxi_memacc_finish_record_initialization()";
 
 	MX_VME *vme;
@@ -250,9 +257,28 @@ mxi_vxi_memacc_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxi_vxi_memacc_delete_record( MX_RECORD *record )
+{
+        if ( record == NULL ) {
+                return MX_SUCCESSFUL_RESULT;
+        }
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+                record->record_type_struct = NULL;
+        }
+        if ( record->record_class_struct != NULL ) {
+                free( record->record_class_struct );
+
+                record->record_class_struct = NULL;
+        }
+        return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_vxi_memacc_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxi_vxi_memacc_print_structure()";
+	const char fname[] = "mxi_vxi_memacc_print_structure()";
 
 	MX_VME *vme;
 	MX_VXI_MEMACC *vxi_memacc;
@@ -301,9 +327,21 @@ mxi_vxi_memacc_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxi_vxi_memacc_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_vxi_memacc_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxi_vxi_memacc_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_vxi_memacc_open()";
+	const char fname[] = "mxi_vxi_memacc_open()";
 
 	MX_VME *vme;
 	MX_VXI_MEMACC *vxi_memacc;
@@ -462,7 +500,7 @@ mxi_vxi_memacc_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_close( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_vxi_memacc_close()";
+	const char fname[] = "mxi_vxi_memacc_close()";
 
 	MX_VME *vme;
 	MX_VXI_MEMACC *vxi_memacc;
@@ -516,7 +554,7 @@ mxi_vxi_memacc_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_input( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_input()";
+	const char fname[] = "mxi_vxi_memacc_input()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -547,8 +585,7 @@ mxi_vxi_memacc_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -573,8 +610,7 @@ mxi_vxi_memacc_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.",
-			(unsigned long) vme->data_size );
+		"Unsupported VME data size %lu.", vme->data_size );
 		break;
 	}
 
@@ -587,9 +623,7 @@ mxi_vxi_memacc_input( MX_VME *vme )
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 	"Unable to read a value from record '%s', crate %lu, address %#lx.  "
 	"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 	}
@@ -600,7 +634,7 @@ mxi_vxi_memacc_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_output( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_output()";
+	const char fname[] = "mxi_vxi_memacc_output()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -631,8 +665,7 @@ mxi_vxi_memacc_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -657,8 +690,7 @@ mxi_vxi_memacc_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.",
-			(unsigned long) vme->data_size );
+		"Unsupported VME data size %lu.", vme->data_size );
 		break;
 	}
 
@@ -671,9 +703,7 @@ mxi_vxi_memacc_output( MX_VME *vme )
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 	"Unable to write a value to record '%s', crate %lu, address %#lx.  "
 	"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 	}
@@ -684,7 +714,7 @@ mxi_vxi_memacc_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_multi_input( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_multi_input()";
+	const char fname[] = "mxi_vxi_memacc_multi_input()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -725,8 +755,7 @@ mxi_vxi_memacc_multi_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -754,8 +783,7 @@ mxi_vxi_memacc_multi_input( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.",
-			(unsigned long) vme->data_size );
+		"Unsupported VME data size %lu.", vme->data_size );
 		break;
 	}
 
@@ -768,10 +796,8 @@ mxi_vxi_memacc_multi_input( MX_VME *vme )
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 	"Unable to read %lu values from record '%s', crate %lu, address %#lx.  "
 	"Status code = %#lX.  Reason = '%s'",
-			(unsigned long) vme->num_values,
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->num_values,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 	}
@@ -782,7 +808,7 @@ mxi_vxi_memacc_multi_input( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_multi_output( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_multi_output()";
+	const char fname[] = "mxi_vxi_memacc_multi_output()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -823,8 +849,7 @@ mxi_vxi_memacc_multi_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -852,8 +877,7 @@ mxi_vxi_memacc_multi_output( MX_VME *vme )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME data size %lu.",
-			(unsigned long) vme->data_size );
+		"Unsupported VME data size %lu.", vme->data_size );
 		break;
 	}
 
@@ -866,10 +890,8 @@ mxi_vxi_memacc_multi_output( MX_VME *vme )
 		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 	"Unable to write %lu values to record '%s', crate %lu, address %#lx.  "
 	"Status code = %#lX.  Reason = '%s'",
-			(unsigned long) vme->num_values,
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->num_values,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 	}
@@ -880,7 +902,7 @@ mxi_vxi_memacc_multi_output( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_get_parameter( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_get_parameter()";
+	const char fname[] = "mxi_vxi_memacc_get_parameter()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -917,9 +939,7 @@ mxi_vxi_memacc_get_parameter( MX_VME *vme )
 		"Unable to read attribute VI_ATTR_SRC_INCREMENT "
 		"for record '%s', crate %lu, address %#lx.  "
 		"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 		}
@@ -945,9 +965,7 @@ mxi_vxi_memacc_get_parameter( MX_VME *vme )
 		"Unable to read attribute VI_ATTR_DEST_INCREMENT "
 		"for record '%s', crate %lu, address %#lx.  "
 		"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 		}
@@ -973,7 +991,7 @@ mxi_vxi_memacc_get_parameter( MX_VME *vme )
 MX_EXPORT mx_status_type
 mxi_vxi_memacc_set_parameter( MX_VME *vme )
 {
-	static const char fname[] = "mxi_vxi_memacc_set_parameter()";
+	const char fname[] = "mxi_vxi_memacc_set_parameter()";
 
 	MX_VXI_MEMACC *vxi_memacc;
 	MX_VXI_MEMACC_CRATE *crate;
@@ -1009,9 +1027,7 @@ mxi_vxi_memacc_set_parameter( MX_VME *vme )
 		"Unable to write attribute VI_ATTR_SRC_INCREMENT "
 		"for record '%s', crate %lu, address %#lx.  "
 		"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 		}
@@ -1035,9 +1051,7 @@ mxi_vxi_memacc_set_parameter( MX_VME *vme )
 		"Unable to write attribute VI_ATTR_DEST_INCREMENT "
 		"for record '%s', crate %lu, address %#lx.  "
 		"Status code = %#lX.  Reason = '%s'",
-			vme->record->name,
-			(unsigned long) vme->crate,
-			(unsigned long) vme->address,
+			vme->record->name, vme->crate, vme->address,
 			(unsigned long) visa_status,
 			visa_error_message );
 		}

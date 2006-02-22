@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -276,7 +276,7 @@
 
 /* --- Analog input subclasses -- */
 
-#define MXT_AIN_INT32			101
+#define MXT_AIN_LONG			101
 #define MXT_AIN_DOUBLE			102
 
 /* --- Analog output types --- */
@@ -306,7 +306,7 @@
 
 /* --- Analog output subclasses -- */
 
-#define MXT_AOU_INT32			201
+#define MXT_AOU_LONG			201
 #define MXT_AOU_DOUBLE			202
 
 /* --- Digital input types --- */
@@ -644,31 +644,27 @@
 #define MXV_INL_STRING			500001
 #define MXV_INL_CHAR			500002
 #define MXV_INL_UCHAR			500003
-#define MXV_INL_INT16			500004
-#define MXV_INL_UINT16			500005
-#define MXV_INL_INT32			500006
-#define MXV_INL_UINT32			500007
+#define MXV_INL_SHORT			500004
+#define MXV_INL_USHORT			500005
+#define MXV_INL_INT			500006
+#define MXV_INL_UINT			500007
+#define MXV_INL_LONG			500008
+#define MXV_INL_ULONG			500009
 #define MXV_INL_FLOAT			500010
 #define MXV_INL_DOUBLE			500011
-#define MXV_INL_INT8			500013
-#define MXV_INL_UINT8			500014
-#define MXV_INL_INT64			500015
-#define MXV_INL_UINT64			500016
 #define MXV_INL_RECORD			500031
 
 #define MXV_NET_STRING			501001
 #define MXV_NET_CHAR			501002
 #define MXV_NET_UCHAR			501003
-#define MXV_NET_INT16			501004
-#define MXV_NET_UINT16			501005
-#define MXV_NET_INT32			501006
-#define MXV_NET_UINT32			501007
+#define MXV_NET_SHORT			501004
+#define MXV_NET_USHORT			501005
+#define MXV_NET_INT			501006
+#define MXV_NET_UINT			501007
+#define MXV_NET_LONG			501008
+#define MXV_NET_ULONG			501009
 #define MXV_NET_FLOAT			501010
 #define MXV_NET_DOUBLE			501011
-#define MXV_NET_INT8			501013
-#define MXV_NET_UINT8			501014
-#define MXV_NET_INT64			501015
-#define MXV_NET_UINT64			501016
 #define MXV_NET_RECORD			501031
 
 #define MXV_EPI_STRING			502001
@@ -687,20 +683,19 @@
 
 #define MXV_CAL_POSITION_SELECT		503601
 
-#define MXV_PMA_INT32			504006
-#define MXV_PMA_UINT32			504007
+#define MXV_PMA_LONG			504008
+#define MXV_PMA_ULONG			504009
 #define MXV_PMA_DOUBLE			504011
 
 #define MXV_SPEC_STRING			505001
-#define MXV_SPEC_INT8			505002
-#define MXV_SPEC_UINT8			505003
-#define MXV_SPEC_INT16			505004
-#define MXV_SPEC_UINT16			505005
-#define MXV_SPEC_INT32			505006
-#define MXV_SPEC_UINT32			505007
+#define MXV_SPEC_CHAR			505002
+#define MXV_SPEC_UCHAR			505003
+#define MXV_SPEC_SHORT			505004
+#define MXV_SPEC_USHORT			505005
+#define MXV_SPEC_LONG			505008
+#define MXV_SPEC_ULONG			505009
 #define MXV_SPEC_FLOAT			505010
 #define MXV_SPEC_DOUBLE			505011
-#define MXV_SPEC_CHAR			505013
 
 #define MXV_BLUICE_MASTER		506001
 #define MXV_BLUICE_COMMAND		506002

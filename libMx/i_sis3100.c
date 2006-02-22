@@ -76,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_sis3100_record_field_defaults[] = {
 	MXI_SIS3100_STANDARD_FIELDS
 };
 
-mx_length_type mxi_sis3100_num_record_fields
+long mxi_sis3100_num_record_fields
 		= sizeof( mxi_sis3100_record_field_defaults )
 			/ sizeof( mxi_sis3100_record_field_defaults[0]);
 
@@ -688,8 +688,7 @@ mxi_sis3100_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -712,8 +711,7 @@ mxi_sis3100_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -736,15 +734,13 @@ mxi_sis3100_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -765,12 +761,9 @@ mxi_sis3100_input( MX_VME *vme )
 			"Error reading from VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, "
 			"VME status = %#x, error message = '%s'",
-				vme->record->name,
-				(unsigned long) vme->crate,
-				(unsigned long) vme->address_mode,
-				(unsigned long) vme->data_size,
-				(unsigned long) vme->address,
-				vme_status,
+				vme->record->name, vme->crate,
+				vme->address_mode, vme->data_size,
+				vme->address, vme_status,
 				mxi_sis3100_strerror( vme_status ) );
 
 		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
@@ -824,8 +817,7 @@ mxi_sis3100_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -848,8 +840,7 @@ mxi_sis3100_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -872,15 +863,13 @@ mxi_sis3100_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -901,12 +890,9 @@ mxi_sis3100_output( MX_VME *vme )
 			"Error writing to VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, "
 			"VME status = %#x, error message = '%s'",
-				vme->record->name,
-				(unsigned long) vme->crate,
-				(unsigned long) vme->address_mode,
-				(unsigned long) vme->data_size,
-				(unsigned long) vme->address,
-				vme_status,
+				vme->record->name, vme->crate,
+				vme->address_mode, vme->data_size,
+				vme->address, vme_status,
 				mxi_sis3100_strerror( vme_status ) );
 
 		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
@@ -1007,8 +993,7 @@ mxi_sis3100_multi_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 	case MXF_VME_A24:
@@ -1087,8 +1072,7 @@ mxi_sis3100_multi_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -1168,15 +1152,13 @@ mxi_sis3100_multi_input( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -1196,7 +1178,7 @@ mxi_sis3100_multi_input( MX_VME *vme )
 		"Only %lu values were transferred out of %lu values requested "
 		"for VME interface '%s'.",
 				(unsigned long) num_values_transferred,
-				(unsigned long) vme->num_values,
+				vme->num_values,
 				vme->record->name );
 		} else {
 			return MX_SUCCESSFUL_RESULT;
@@ -1206,12 +1188,9 @@ mxi_sis3100_multi_input( MX_VME *vme )
 			"Error reading from VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, "
 			"VME status = %#x, error message = '%s'",
-				vme->record->name,
-				(unsigned long) vme->crate,
-				(unsigned long) vme->address_mode,
-				(unsigned long) vme->data_size,
-				(unsigned long) vme->address,
-				vme_status,
+				vme->record->name, vme->crate,
+				vme->address_mode, vme->data_size,
+				vme->address, vme_status,
 				mxi_sis3100_strerror( vme_status ) );
 
 		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {
@@ -1311,8 +1290,7 @@ mxi_sis3100_multi_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -1384,8 +1362,7 @@ mxi_sis3100_multi_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
@@ -1457,15 +1434,13 @@ mxi_sis3100_multi_output( MX_VME *vme )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Unsupported VME data size %lu.",
-				(unsigned long) vme->data_size );
+			"Unsupported VME data size %lu.", vme->data_size );
 			break;
 		}
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported VME address space %lu.",
-			(unsigned long) vme->address_mode );
+		"Unsupported VME address space %lu.", vme->address_mode );
 		break;
 	}
 
@@ -1485,7 +1460,7 @@ mxi_sis3100_multi_output( MX_VME *vme )
 		"Only %lu values were transferred out of %lu values requested "
 		"for VME interface '%s'.",
 				(unsigned long) num_values_transferred,
-				(unsigned long) vme->num_values,
+				vme->num_values,
 				vme->record->name );
 		} else {
 			return MX_SUCCESSFUL_RESULT;
@@ -1495,12 +1470,9 @@ mxi_sis3100_multi_output( MX_VME *vme )
 			"Error writing to VME interface '%s', crate %lu, "
 			"A%lu, D%lu, address %#lx, "
 			"VME status = %#x, error message = '%s'",
-				vme->record->name,
-				(unsigned long) vme->crate,
-				(unsigned long) vme->address_mode,
-				(unsigned long) vme->data_size,
-				(unsigned long) vme->address,
-				vme_status,
+				vme->record->name, vme->crate,
+				vme->address_mode, vme->data_size,
+				vme->address, vme_status,
 				mxi_sis3100_strerror( vme_status ) );
 
 		if ( vme->vme_flags & MXF_VME_IGNORE_BUS_ERRORS ) {

@@ -32,10 +32,10 @@ MX_RECORD_FUNCTION_LIST mxd_network_mca_record_function_list = {
 	mxd_network_mca_finish_record_initialization,
 	mxd_network_mca_delete_record,
 	mxd_network_mca_print_structure,
-	NULL,
-	NULL,
+	mxd_network_mca_read_parms_from_hardware,
+	mxd_network_mca_write_parms_to_hardware,
 	mxd_network_mca_open,
-	NULL,
+	mxd_network_mca_close,
 	NULL,
 	mxd_network_mca_resynchronize
 };
@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_mca_record_field_defaults[] = {
 	MXD_NETWORK_MCA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_mca_num_record_fields
+long mxd_network_mca_num_record_fields
 		= sizeof( mxd_network_mca_record_field_defaults )
 		  / sizeof( mxd_network_mca_record_field_defaults[0] );
 
@@ -121,10 +121,10 @@ MX_EXPORT mx_status_type
 mxd_network_mca_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_channels_varargs_cookie;
-	mx_length_type maximum_num_rois_varargs_cookie;
-	mx_length_type num_soft_rois_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_channels_varargs_cookie;
+	long maximum_num_rois_varargs_cookie;
+	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
@@ -196,13 +196,13 @@ mxd_network_mca_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mca->channel_array = (uint32_t *)
-		malloc( mca->maximum_num_channels * sizeof(uint32_t) );
+	mca->channel_array = ( unsigned long * )
+		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel data array.",
-			(unsigned long) mca->maximum_num_channels );
+		"Ran out of memory allocating an %ld channel data array.",
+			mca->maximum_num_channels );
 	}
 
 	mx_status = mx_mca_finish_record_initialization( record );
@@ -389,9 +389,21 @@ mxd_network_mca_print_structure( FILE *file, MX_RECORD *record )
 					network_mca->server_record->name);
 	fprintf(file, "  remote record         = %s\n",
 					network_mca->remote_record_name);
-	fprintf(file, "  maximum # of channels = %lu\n",
-				(unsigned long) mca->maximum_num_channels);
+	fprintf(file, "  maximum # of channels = %ld\n",
+					mca->maximum_num_channels);
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mca_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mca_write_parms_to_hardware( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -402,8 +414,8 @@ mxd_network_mca_open( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_NETWORK_MCA *network_mca;
-	mx_length_type i;
-	mx_length_type remote_num_soft_rois;
+	unsigned long i;
+	long remote_num_soft_rois;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -452,7 +464,7 @@ mxd_network_mca_open( MX_RECORD *record )
 	 */
 
 	mx_status = mx_get( &(network_mca->num_soft_rois_nf),
-				MXFT_LENGTH, &remote_num_soft_rois );
+				MXFT_LONG, &remote_num_soft_rois );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -466,19 +478,24 @@ mxd_network_mca_open( MX_RECORD *record )
 		 */
 
 		mx_warning(
-	"'num_soft_rois' (%lu) for record '%s' is larger than the value of "
+	"'num_soft_rois' (%ld) for record '%s' is larger than the value of "
 	"remote record field '%s' (%ld) on server '%s'.  The local value of "
 	"'num_soft_rois' will be reduced to %ld.",
-			(unsigned long) mca->num_soft_rois,
-			record->name,
+			mca->num_soft_rois, record->name,
 			network_mca->num_soft_rois_nf.nfname,
-			(unsigned long) remote_num_soft_rois,
+			remote_num_soft_rois,
 			network_mca->server_record->name,
-			(unsigned long) remote_num_soft_rois );
+			remote_num_soft_rois );
 
 		mca->num_soft_rois = remote_num_soft_rois;
 	}
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_mca_close( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -489,7 +506,7 @@ mxd_network_mca_resynchronize( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type resynchronize;
+	int resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -507,10 +524,10 @@ mxd_network_mca_resynchronize( MX_RECORD *record )
 		return mx_status;
 	}
 
-	resynchronize = TRUE;
+	resynchronize = 1;
 
 	mx_status = mx_put( &(network_mca->resynchronize_nf),
-				MXFT_BOOL, &resynchronize );
+				MXFT_INT, &resynchronize );
 
 	return mx_status;
 }
@@ -521,7 +538,7 @@ mxd_network_mca_start( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_start()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type start;
+	long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -531,8 +548,9 @@ mxd_network_mca_start( MX_MCA *mca )
 
 	/* Set the preset type. */
 
-	mx_status = mx_put( &(network_mca->preset_type_nf),
-					MXFT_INT32, &(mca->preset_type) );
+	value = mca->preset_type;
+
+	mx_status = mx_put( &(network_mca->preset_type_nf), MXFT_INT, &value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -563,14 +581,14 @@ mxd_network_mca_start( MX_MCA *mca )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unsupported preset type %d for MCA '%s'.",
-			(int) mca->preset_type, mca->record->name );
+			mca->preset_type, mca->record->name );
 	}
 
 	/* Tell the counting to start. */
 
-	start = TRUE;
+	value = 1;
 
-	mx_status = mx_put( &(network_mca->start_nf), MXFT_BOOL, &start );
+	mx_status = mx_put( &(network_mca->start_nf), MXFT_INT, &value );
 
 	return mx_status;
 }
@@ -581,7 +599,7 @@ mxd_network_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_stop()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type stop;
+	long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -589,9 +607,9 @@ mxd_network_mca_stop( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = TRUE;
+	value = 1;
 
-	mx_status = mx_put( &(network_mca->stop_nf), MXFT_BOOL, &stop );
+	mx_status = mx_put( &(network_mca->stop_nf), MXFT_INT, &value );
 
 	return mx_status;
 }
@@ -602,8 +620,8 @@ mxd_network_mca_read( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_read()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_length_type num_channels;
-	mx_length_type dimension_array[1];
+	long dimension_array[1];
+	unsigned long num_channels;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -616,10 +634,10 @@ mxd_network_mca_read( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	dimension_array[0] = num_channels;
+	dimension_array[0] = (long) num_channels;
 
 	mx_status = mx_get_array( &(network_mca->channel_array_nf),
-				MXFT_UINT32, 1, dimension_array,
+				MXFT_ULONG, 1, dimension_array,
 				mca->channel_array );
 	return mx_status;
 }
@@ -630,7 +648,7 @@ mxd_network_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_clear()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type clear;
+	long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -638,9 +656,9 @@ mxd_network_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	clear = TRUE;
+	value = 1;
 
-	mx_status = mx_put( &(network_mca->clear_nf), MXFT_BOOL, &clear );
+	mx_status = mx_put( &(network_mca->clear_nf), MXFT_INT, &value );
 
 	return mx_status;
 }
@@ -651,7 +669,7 @@ mxd_network_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_busy()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -659,7 +677,7 @@ mxd_network_mca_busy( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_mca->busy_nf), MXFT_BOOL, &busy );
+	mx_status = mx_get( &(network_mca->busy_nf), MXFT_INT, &busy );
 
 	mca->busy = busy;
 
@@ -672,7 +690,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_get_parameter()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_length_type dimension_array[2];
+	long dimension_array[2];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -684,33 +702,33 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
-		(int) mca->parameter_type));
+		mca->parameter_type));
 
 	if ( mca->parameter_type == MXLV_MCA_CURRENT_NUM_CHANNELS ) {
 
 		mx_status = mx_get( &(network_mca->current_num_channels_nf),
-				MXFT_LENGTH, &(mca->current_num_channels) );
+				MXFT_LONG, &(mca->current_num_channels) );
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The MCA '%s' controlled by server '%s' is reported to have %lu channels, "
-"but the record '%s' is only configured to support up to %lu channels.",
+"The MCA '%s' controlled by server '%s' is reported to have %ld channels, "
+"but the record '%s' is only configured to support up to %ld channels.",
 				network_mca->remote_record_name,
 				network_mca->server_record->name,
-				(unsigned long) mca->current_num_channels,
+				mca->current_num_channels,
 				mca->record->name,
-				(unsigned long) mca->maximum_num_channels );
+				mca->maximum_num_channels );
 		}
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_get( &(network_mca->preset_type_nf),
-					MXFT_INT32, &(mca->preset_type) );
+					MXFT_INT, &(mca->preset_type) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -719,13 +737,13 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_get_array( &(network_mca->roi_array_nf),
-					MXFT_LENGTH, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->roi_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL_ARRAY ) {
 
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -733,13 +751,13 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[0] = mca->current_num_rois;
 
 		mx_status = mx_get_array( &(network_mca->roi_integral_array_nf),
-						MXFT_UINT32, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->roi_integral_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
 
 		mx_status = mx_put( &(network_mca->roi_number_nf),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -747,19 +765,19 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_get_array( &(network_mca->roi_nf),
-					MXFT_LENGTH, 1, dimension_array,
+					MXFT_ULONG, 1, dimension_array,
 					&(mca->roi) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_INTEGRAL ) {
 
 		mx_status = mx_put( &(network_mca->roi_number_nf),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_get( &(network_mca->roi_integral_nf),
-					MXFT_UINT32, &(mca->roi_integral) );
+					MXFT_ULONG, &(mca->roi_integral) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_ARRAY ) {
 
@@ -767,7 +785,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_get_array( &(network_mca->soft_roi_array_nf),
-					MXFT_LENGTH, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->soft_roi_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_INTEGRAL_ARRAY ) {
@@ -776,13 +794,13 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 
 		mx_status = mx_get_array(
 				&(network_mca->soft_roi_integral_array_nf),
-				MXFT_UINT32, 1, dimension_array,
+				MXFT_ULONG, 1, dimension_array,
 				&(mca->soft_roi_integral_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI ) {
 
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -790,29 +808,29 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_get_array( &(network_mca->soft_roi_nf),
-						MXFT_LENGTH, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->soft_roi) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_INTEGRAL ) {
 
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_get( &(network_mca->soft_roi_integral_nf),
-					MXFT_UINT32, &(mca->soft_roi_integral));
+					MXFT_ULONG, &(mca->soft_roi_integral) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_CHANNEL_NUMBER ) {
 
 		mx_status = mx_get( &(network_mca->channel_number_nf),
-					MXFT_LENGTH, &(mca->channel_number) );
+					MXFT_ULONG, &(mca->channel_number) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_CHANNEL_VALUE ) {
 
 		mx_status = mx_get( &(network_mca->channel_value_nf),
-					MXFT_UINT32, &(mca->channel_value) );
+					MXFT_ULONG, &(mca->channel_value) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_REAL_TIME ) {
 
@@ -836,7 +854,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) mca->parameter_type );
+			mca->parameter_type );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -848,7 +866,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_set_parameter()";
 
 	MX_NETWORK_MCA *network_mca;
-	mx_length_type dimension_array[2];
+	long dimension_array[2];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -860,17 +878,17 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
-		(int) mca->parameter_type));
+		mca->parameter_type));
 
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_put( &(network_mca->preset_type_nf),
-					MXFT_INT32, &(mca->preset_type) );
+					MXFT_INT, &(mca->preset_type) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
 		mx_status = mx_put( &(network_mca->current_num_rois_nf),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -879,13 +897,13 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_put_array( &(network_mca->roi_array_nf),
-						MXFT_LENGTH, 2, dimension_array,
+						MXFT_ULONG, 2, dimension_array,
 						&(mca->roi_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI ) {
 
 		mx_status = mx_put( &(network_mca->roi_number_nf),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -893,7 +911,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_put_array( &(network_mca->roi_nf),
-						MXFT_LENGTH, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->roi) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI_ARRAY ) {
@@ -902,13 +920,13 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_put_array( &(network_mca->soft_roi_array_nf),
-						MXFT_LENGTH, 2, dimension_array,
+						MXFT_ULONG, 2, dimension_array,
 						&(mca->soft_roi_array) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_SOFT_ROI ) {
 
 		mx_status = mx_put( &(network_mca->soft_roi_number_nf),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -916,13 +934,13 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_put_array( &(network_mca->soft_roi_nf),
-						MXFT_LENGTH, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->soft_roi) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_CHANNEL_NUMBER ) {
 
 		mx_status = mx_put( &(network_mca->channel_number_nf),
-					MXFT_LENGTH, &(mca->channel_number) );
+					MXFT_ULONG, &(mca->channel_number) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ENERGY_SCALE ) {
 
@@ -936,7 +954,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %d is not supported by this driver.",
-			(int) mca->parameter_type );
+			mca->parameter_type );
 	}
 
 	return mx_status;

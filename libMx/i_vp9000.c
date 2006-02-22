@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vp9000_record_field_defaults[] = {
 	MXI_VP9000_STANDARD_FIELDS
 };
 
-mx_length_type mxi_vp9000_num_record_fields
+long mxi_vp9000_num_record_fields
 		= sizeof( mxi_vp9000_record_field_defaults )
 			/ sizeof( mxi_vp9000_record_field_defaults[0] );
 
@@ -145,10 +145,10 @@ mxi_vp9000_initialize_type( long type )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-	mx_length_type num_controllers_varargs_cookie;
-	mx_status_type mx_status;
+	long num_record_fields;
+	long referenced_field_index;
+	long num_controllers_varargs_cookie;
+	mx_status_type status;
 
 	driver = mx_get_driver_by_type( type );
 
@@ -174,7 +174,7 @@ mxi_vp9000_initialize_type( long type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -182,25 +182,25 @@ mxi_vp9000_initialize_type( long type )
 
 	num_record_fields = *(driver->num_record_fields);
 
-	mx_status = mx_find_record_field_defaults_index(
+	status = mx_find_record_field_defaults_index(
 			record_field_defaults, num_record_fields,
 			"num_controllers", &referenced_field_index );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_construct_varargs_cookie( referenced_field_index,
+	status = mx_construct_varargs_cookie( referenced_field_index,
 				0, &num_controllers_varargs_cookie);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_find_record_field_defaults(
+	status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			"num_motors", &field );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	field->dimension[0] = num_controllers_varargs_cookie;
 
@@ -276,24 +276,24 @@ mxi_vp9000_open( MX_RECORD *record )
 	MX_RS232 *rs232;
 	int i, configuration_is_correct;
 	char c;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2, ("mxi_vp9000_open() invoked."));
 
-	mx_status = mxi_vp9000_get_record_pointers( record, &generic, fname );
+	status = mxi_vp9000_get_record_pointers( record, &generic, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* The Velmex VP9000 expects its serial port to always be set to
 	 * 7 bits, even parity, 2 stop bits.  Check to see if the underlying
 	 * RS-232 port is configured this way.
 	 */
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	rs232_record = vp9000->rs232_record;
 
@@ -345,21 +345,21 @@ mxi_vp9000_open( MX_RECORD *record )
 	 * VP9000 RS-232 port.
 	 */
 
-	mx_status = mx_generic_discard_unwritten_output(
+	status = mx_generic_discard_unwritten_output(
 						generic, MXI_VP9000_DEBUG );
 
-	switch( mx_status.code ) {
+	switch( status.code ) {
 	case MXE_SUCCESS:
 	case MXE_UNSUPPORTED:
 		break;		/* Continue on. */
 	default:
-		return mx_status;
+		return status;
 	}
 
-	mx_status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );
+	status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( vp9000->num_controllers == 1 ) {
 
@@ -368,15 +368,15 @@ mxi_vp9000_open( MX_RECORD *record )
 		 * carriage return at the end of each response.
 		 */
 
-		mx_status = mxi_vp9000_putline(vp9000, 1, "G", MXI_VP9000_DEBUG);
+		status = mxi_vp9000_putline(vp9000, 1, "G", MXI_VP9000_DEBUG);
 	} else {
 		/* Put all the VP9000s online using the '&' command. */
 
-		mx_status = mxi_vp9000_putline(vp9000, 1, "&", MXI_VP9000_DEBUG);
+		status = mxi_vp9000_putline(vp9000, 1, "&", MXI_VP9000_DEBUG);
 	}
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	for ( i = 1; i <= vp9000->num_controllers; i++ ) {
 
@@ -384,26 +384,26 @@ mxi_vp9000_open( MX_RECORD *record )
 		 * for their status.
 		 */
 
-		mx_status = mxi_vp9000_putline(vp9000, 1, "V", MXI_VP9000_DEBUG);
+		status = mxi_vp9000_putline(vp9000, 1, "V", MXI_VP9000_DEBUG);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
-		mx_status = mxi_vp9000_getc(vp9000, i, &c, MXI_VP9000_DEBUG);
+		status = mxi_vp9000_getc(vp9000, i, &c, MXI_VP9000_DEBUG);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		switch ( c ) {
 		case 'R':	/* Ready for commands. */
 
 			/* There should be a carriage return to discard. */
 
-			mx_status = mxi_vp9000_getc(vp9000, i, &c,
+			status = mxi_vp9000_getc(vp9000, i, &c,
 							MXI_VP9000_DEBUG);
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			if ( c != MX_CR ) {
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -436,10 +436,10 @@ mxi_vp9000_open( MX_RECORD *record )
 		 * is hit.
 		 */
 
-		mx_status = mxi_vp9000_putline(vp9000, 1, "O1", MXI_VP9000_DEBUG);
+		status = mxi_vp9000_putline(vp9000, 1, "O1", MXI_VP9000_DEBUG);
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -451,41 +451,41 @@ mxi_vp9000_close( MX_RECORD *record )
 
 	MX_GENERIC *generic;
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
-	mx_status = mxi_vp9000_get_record_pointers( record, &generic, fname );
+	status = mxi_vp9000_get_record_pointers( record, &generic, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Tell the VP9000 to leave On-Line mode and return to Jog/slew mode. */
 
-	mx_status = mxi_vp9000_putline(vp9000, 1, "Q", MXI_VP9000_DEBUG);
+	status = mxi_vp9000_putline(vp9000, 1, "Q", MXI_VP9000_DEBUG);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Throw away any pending input and output on the VP9000 RS-232 port. */
 
-	mx_status = mx_generic_discard_unwritten_output(
+	status = mx_generic_discard_unwritten_output(
 						generic, MXI_VP9000_DEBUG );
 
-	switch( mx_status.code ) {
+	switch( status.code ) {
 	case MXE_SUCCESS:
 	case MXE_UNSUPPORTED:
 		break;		/* Continue on. */
 	default:
-		return mx_status;
+		return status;
 	}
 
-	mx_status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );
+	status = mx_generic_discard_unread_input( generic, MXI_VP9000_DEBUG );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -493,16 +493,16 @@ mxi_vp9000_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_vp9000_resynchronize( MX_RECORD *record )
 {
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_close( record );
+	status = mxi_vp9000_close( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mxi_vp9000_open( record );
+	status = mxi_vp9000_open( record );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -511,16 +511,16 @@ mxi_vp9000_getchar( MX_GENERIC *generic, char *c, int flags )
 	static const char fname[] = "mxi_vp9000_getchar()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_getchar( vp9000->rs232_record, c, flags );
+	status = mx_rs232_getchar( vp9000->rs232_record, c, flags );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -529,16 +529,16 @@ mxi_vp9000_putchar( MX_GENERIC *generic, char c, int flags )
 	static const char fname[] = "mxi_vp9000_putchar()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_putchar( vp9000->rs232_record, c, flags );
+	status = mx_rs232_putchar( vp9000->rs232_record, c, flags );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -547,17 +547,17 @@ mxi_vp9000_read( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_vp9000_read()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_read( vp9000->rs232_record,
+	status = mx_rs232_read( vp9000->rs232_record,
 				buffer, count, NULL, 0 );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -566,37 +566,37 @@ mxi_vp9000_write( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_vp9000_write()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_write( vp9000->rs232_record,
+	status = mx_rs232_write( vp9000->rs232_record,
 					buffer, count, NULL, 0 );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxi_vp9000_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available )
+				unsigned long *num_input_bytes_available )
 {
 	static const char fname[] = "mxi_vp9000_num_input_bytes_available()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_num_input_bytes_available(
+	status = mx_rs232_num_input_bytes_available(
 			vp9000->rs232_record, num_input_bytes_available );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -605,17 +605,17 @@ mxi_vp9000_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_vp9000_discard_unread_input()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_discard_unread_input(
+	status = mx_rs232_discard_unread_input(
 					vp9000->rs232_record, debug_flag );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -624,17 +624,17 @@ mxi_vp9000_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_vp9000_discard_unwritten_output()";
 
 	MX_VP9000 *vp9000;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
+	status = mxi_vp9000_get_pointers( generic, &vp9000, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_rs232_discard_unwritten_output(
+	status = mx_rs232_discard_unwritten_output(
 					vp9000->rs232_record, debug_flag );
 
-	return mx_status;
+	return status;
 }
 
 /* === Functions specific to this driver. === */
@@ -649,7 +649,7 @@ mxi_vp9000_command( MX_VP9000 *vp9000, int controller_number,
 	MX_GENERIC *generic;
 	unsigned long sleep_ms;
 	int i, max_attempts;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	MX_DEBUG(2,("%s invoked.", fname));
 
@@ -667,11 +667,11 @@ mxi_vp9000_command( MX_VP9000 *vp9000, int controller_number,
 
 	/* Send the command string. */
 
-	mx_status = mxi_vp9000_putline( vp9000, controller_number,
+	status = mxi_vp9000_putline( vp9000, controller_number,
 					command, debug_flag );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* Get the response, if one is expected. */
 
@@ -688,27 +688,27 @@ mxi_vp9000_command( MX_VP9000 *vp9000, int controller_number,
 				vp9000->record->name, command ));
 			}
 
-			mx_status = mxi_vp9000_getline( vp9000, controller_number,
+			status = mxi_vp9000_getline( vp9000, controller_number,
 					response, response_buffer_length,
 					debug_flag );
 
-			if ( mx_status.code == MXE_SUCCESS ) {
+			if ( status.code == MXE_SUCCESS ) {
 				break;		/* Exit the for() loop. */
 
-			} else if ( mx_status.code != MXE_NOT_READY ) {
+			} else if ( status.code != MXE_NOT_READY ) {
 				MX_DEBUG(-2,
-		("*** Exiting with MX status = %ld for VP9000 interface '%s'",
-		 			mx_status.code, vp9000->record->name));
-				return mx_status;
+		("*** Exiting with status = %ld for VP9000 interface '%s'",
+		 			status.code, vp9000->record->name));
+				return status;
 			}
 			mx_msleep(sleep_ms);
 		}
 
 		if ( i >= max_attempts ) {
-			mx_status = mxi_vp9000_discard_unread_input(
+			status = mxi_vp9000_discard_unread_input(
 					generic, debug_flag );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
+			if ( status.code != MXE_SUCCESS ) {
 				mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Failed at attempt to discard unread characters in buffer "
 		"for VP9000 interface '%s'", vp9000->record->name );
@@ -733,17 +733,17 @@ mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
 
 	char c;
 	int i;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("mxi_vp9000_getline() invoked."));
 	}
 
 	for ( i = 0; i < (buffer_length - 1) ; i++ ) {
-		mx_status = mxi_vp9000_getc( vp9000, controller_number,
+		status = mxi_vp9000_getc( vp9000, controller_number,
 						&c, MXF_GENERIC_WAIT );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		if ( status.code != MXE_SUCCESS ) {
 			/* Make the buffer contents a valid C string
 			 * before returning, so that we can at least
 			 * see what appeared before the error.
@@ -756,11 +756,11 @@ mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
 					fname, buffer));
 
 				MX_DEBUG(-2,
-				("Failed with MX status = %ld, c = 0x%x '%c'",
-				mx_status.code, c, c));
+				("Failed with status = %ld, c = 0x%x '%c'",
+				status.code, c, c));
 			}
 
-			return mx_status;
+			return status;
 		}
 
 		if ( debug_flag ) {
@@ -791,13 +791,13 @@ mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
 	 */
 
 	if ( buffer[i] != MX_CR ) {
-		mx_status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		status = mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Warning: Input buffer overrun for VP9000 interface '%s'.",
 			vp9000->record->name );
 
 		buffer[i] = '\0';
 	} else {
-		mx_status = MX_SUCCESSFUL_RESULT;
+		status = MX_SUCCESSFUL_RESULT;
 
 		buffer[i] = '\0';
 	}
@@ -810,7 +810,7 @@ mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
 		MX_DEBUG(-2, ("mxi_vp9000_getline: buffer = '%s'", buffer) );
 	}
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -822,7 +822,7 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 	char *ptr;
 	char c;
 	int i;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 #if MXI_VP9000_DEBUG
 	if ( 1 ) {
@@ -843,11 +843,11 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 	/* Send the required number of opening curly braces. */
 
 	for ( i = 1; i < controller_number; i++ ) {
-		mx_status = mxi_vp9000_putc( vp9000, controller_number,
+		status = mxi_vp9000_putc( vp9000, controller_number,
 						'{', MXF_GENERIC_WAIT );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
@@ -862,11 +862,11 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 	while ( *ptr != '\0' ) {
 		c = *ptr;
 
-		mx_status = mxi_vp9000_putc( vp9000, controller_number,
+		status = mxi_vp9000_putc( vp9000, controller_number,
 						c, MXF_GENERIC_WAIT );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
@@ -879,11 +879,11 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 	/* Send the required number of closing curly braces. */
 
 	for ( i = 1; i < controller_number; i++ ) {
-		mx_status = mxi_vp9000_putc( vp9000, controller_number,
+		status = mxi_vp9000_putc( vp9000, controller_number,
 						 '}', MXF_GENERIC_WAIT );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
@@ -895,11 +895,11 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 
 	c = MX_CR;
 
-	mx_status = mxi_vp9000_putc( vp9000, controller_number,
+	status = mxi_vp9000_putc( vp9000, controller_number,
 					c, MXF_GENERIC_WAIT );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,
@@ -914,11 +914,11 @@ mxi_vp9000_getc( MX_VP9000 *vp9000, int controller_number,
 			char *c, int debug_flag )
 {
 	MX_GENERIC *generic;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	generic = (MX_GENERIC *) vp9000->record->record_class_struct;
 
-	mx_status = mx_generic_getchar( generic, c, MXF_GENERIC_WAIT );
+	status = mx_generic_getchar( generic, c, MXF_GENERIC_WAIT );
 
 #if MXI_VP9000_DEBUG
 	if ( 1 ) {
@@ -928,7 +928,7 @@ mxi_vp9000_getc( MX_VP9000 *vp9000, int controller_number,
 		MX_DEBUG(-2, ("mxi_vp9000_getc: received 0x%x '%c'", *c, *c));
 	}
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -936,11 +936,11 @@ mxi_vp9000_putc( MX_VP9000 *vp9000, int controller_number,
 			char c, int debug_flag )
 {
 	MX_GENERIC *generic;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	generic = (MX_GENERIC *) vp9000->record->record_class_struct;
 
-	mx_status = mx_generic_putchar( generic, c, MXF_GENERIC_WAIT );
+	status = mx_generic_putchar( generic, c, MXF_GENERIC_WAIT );
 
 #if MXI_VP9000_DEBUG
 	if ( 1 ) {
@@ -950,6 +950,6 @@ mxi_vp9000_putc( MX_VP9000 *vp9000, int controller_number,
 		MX_DEBUG(-2, ("mxi_vp9000_putc: sent 0x%x '%c'", c, c));
 	}
 
-	return mx_status;
+	return status;
 }
 

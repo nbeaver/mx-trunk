@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,10 +23,10 @@
 /* ===== Am9513 scaler data structure ===== */
 
 typedef struct {
-	mx_length_type num_counters;
+	long num_counters;
 	MX_INTERFACE *am9513_interface_array;
-	mx_hex_type gating_control;
-	mx_hex_type count_source;
+	long gating_control;
+	long count_source;
 } MX_AM9513_SCALER;
 
 /* Define all of the interface functions. */
@@ -55,13 +55,13 @@ MX_API mx_status_type mxd_am9513_scaler_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_am9513_scaler_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_am9513_scaler_scaler_function_list;
 
-extern mx_length_type mxd_am9513_scaler_num_record_fields;
+extern long mxd_am9513_scaler_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_am9513_scaler_rfield_def_ptr;
 
 #define MXD_AM9513_SCALER_STANDARD_FIELDS \
-  {-1, -1, "num_counters", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_counters", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AM9513_SCALER, num_counters), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "am9513_interface_array", MXFT_INTERFACE, NULL, \
 	1, {MXU_VARARGS_LENGTH}, MXF_REC_TYPE_STRUCT, \

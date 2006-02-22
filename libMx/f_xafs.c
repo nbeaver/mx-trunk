@@ -225,9 +225,8 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	size_t blank_length;
 	MX_RECORD *keithley_gain_record;
 	char keithley_gain_record_name[40];
-	long field_type;
-	mx_length_type num_dimensions, *dimension_array;
-	mx_length_type num_keithleys, *keithley_gain_array;
+	long num_dimensions, *dimension_array, field_type;
+	long num_keithleys, *keithley_gain_array;
 	void *pointer_to_value;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -372,7 +371,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					(int) scan->record->precision,
+					scan->record->precision,
 					linear_scan->start_position[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
@@ -382,13 +381,13 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 
 		for ( i = 0; i <= num_energy_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					(int) scan->record->precision,
+					scan->record->precision,
 					region_boundary[i] );
 			CHECK_FPRINTF_STATUS;
 		}
 		for ( i = num_energy_regions + 1; i < num_boundaries; i++ ) {
 			status = fprintf( output_file, "%.*gk ",
-					(int) scan->record->precision,
+					scan->record->precision,
 					region_boundary[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -398,7 +397,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 
 	case MXS_QUICK_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					(int) scan->record->precision,
+					scan->record->precision,
 					quick_scan->start_position[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
@@ -412,20 +411,20 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					(int) scan->record->precision,
+					scan->record->precision,
 					linear_scan->step_size[0] );
 		CHECK_FPRINTF_STATUS;
 		break;
 	case MXS_XAFS_SCAN:
 		for ( i = 0; i < num_energy_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					(int) scan->record->precision,
+					scan->record->precision,
 					region_step_size[i] );
 			CHECK_FPRINTF_STATUS;
 		}
 		for ( i = num_energy_regions; i < num_regions; i++ ) {
 			status = fprintf( output_file, "%.*gk ",
-					(int) scan->record->precision,
+					scan->record->precision,
 					region_step_size[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -438,7 +437,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			quick_scan->requested_num_measurements - 1 );
 
 		status = fprintf( output_file, "%.*g\n",
-				(int) scan->record->precision,
+				scan->record->precision,
 				estimated_step_size );
 
 		CHECK_FPRINTF_STATUS;
@@ -453,14 +452,14 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	switch( scan->record->mx_class ) {
 	case MXS_LINEAR_SCAN:
 		status = fprintf( output_file, "%.*g\n",
-					(int) scan->record->precision,
+					scan->record->precision,
 					measurement_time );
 		CHECK_FPRINTF_STATUS;
 		break;
 	case MXS_XAFS_SCAN:
 		for ( i = 0; i < num_regions; i++ ) {
 			status = fprintf( output_file, "%.*g ",
-					(int) scan->record->precision,
+					scan->record->precision,
 					region_measurement_time[i] );
 			CHECK_FPRINTF_STATUS;
 		}
@@ -471,7 +470,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 		/* Another estimate. */
 
 		status = fprintf( output_file, "%.*g\n",
-			(int) scan->record->precision,
+			scan->record->precision,
 			mx_quick_scan_get_measurement_time(quick_scan) );
 
 		CHECK_FPRINTF_STATUS;
@@ -561,7 +560,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 "The field '%s.value' has the wrong number of dimensions.  It should have "
 "2 dimensions, but actually has %ld dimensions.", 
-			amplifier_list_record_name, (long) num_dimensions );
+				amplifier_list_record_name, num_dimensions );
 		}
 
 		num_keithleys = dimension_array[0];
@@ -645,12 +644,12 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( field_type != MXFT_INT32 ) {
+		if ( field_type != MXFT_LONG ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 "The field '%s.value' has the wrong field type.  It should be of type %s, "
 "but is actually of type %s.",
 				keithley_gain_record_name,
-				mx_get_field_type_string( MXFT_INT32 ),
+				mx_get_field_type_string( MXFT_LONG ),
 				mx_get_field_type_string( field_type ) );
 		}
 
@@ -658,7 +657,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 "The field '%s.value' has the wrong number of dimensions.  It should have "
 "1 dimension, but actually has %ld dimensions.", 
-			keithley_gain_record_name, (long) num_dimensions );
+				keithley_gain_record_name, num_dimensions );
 		}
 
 		num_keithleys = dimension_array[0];
@@ -675,7 +674,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 			num_keithleys = num_input_devices;
 		}
 
-		keithley_gain_array = (mx_length_type *) pointer_to_value;
+		keithley_gain_array = (long *) pointer_to_value;
 
 		status = fprintf( output_file,
 				"Gains=" );
@@ -683,7 +682,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 
 		for ( i = 0; i < num_keithleys; i++ ) {
 			status = fprintf(output_file, " %ld.00",
-					(long)(keithley_gain_array[i]) );
+						keithley_gain_array[i]);
 			CHECK_FPRINTF_STATUS;
 		}
 
@@ -856,7 +855,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 		return mx_status;
 
 	status = fprintf( output_file, " %-10.*g",
-			(int) xafs_file_struct->energy_motor_record->precision,
+			xafs_file_struct->energy_motor_record->precision,
 			monochromator_energy );
 
 	CHECK_FPRINTF_STATUS;
@@ -889,7 +888,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 					measurement_time );
 
 			status = fprintf(output_file, " %.*g",
-						(int) scan->record->precision,
+						scan->record->precision,
 						scaler_counts_per_second);
 			break;
 
@@ -900,7 +899,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			analog_input_value = analog_input->value;
 
 			status = fprintf(output_file, " %.*g",
-						(int) scan->record->precision,
+						scan->record->precision,
 						analog_input_value);
 			break;
 
@@ -937,15 +936,15 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 MX_EXPORT mx_status_type
 mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array )
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array )
 {
 	static const char fname[] = "mxdf_xafs_add_array_to_datafile()";
 
 	MX_DATAFILE_XAFS *xafs_file_struct;
 	MX_SCAN *scan;
 	FILE *output_file;
-	int32_t *int32_position_array, *int32_data_array;
+	long *long_position_array, *long_data_array;
 	double *double_position_array, *double_data_array;
 	double scaler_counts_per_second;
 	double measurement_time;
@@ -991,21 +990,21 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	int32_position_array = int32_data_array = NULL;
+	long_position_array = long_data_array = NULL;
 	double_position_array = double_data_array = NULL;
 
 	/* Construct data type specific array pointers. */
 
 	switch( position_type ) {
-	case MXFT_INT32:
-		int32_position_array = (void *) position_array;
+	case MXFT_LONG:
+		long_position_array = (void *) position_array;
 		break;
 	case MXFT_DOUBLE:
 		double_position_array = (void *) position_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
+	"Only MXFT_LONG or MXFT_DOUBLE position arrays are supported." );
 	}
 
 	/* MXFT_DOUBLE data arrays are not supported since the inputs
@@ -1013,21 +1012,21 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	 */
 	
 	switch( data_type ) {
-	case MXFT_INT32:
-		int32_data_array = (void *) data_array;
+	case MXFT_LONG:
+		long_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 data arrays are supported." );
+	"Only MXFT_LONG data arrays are supported." );
 	}
 	
 	/* Print out the current motor positions (if any). */
 
 	switch( position_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10ld",
-				(long) (int32_position_array[i]) );
+				long_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
 		}
@@ -1035,7 +1034,7 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-				(int) scan->record->precision,
+				scan->record->precision,
 				double_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
@@ -1046,11 +1045,11 @@ mxdf_xafs_add_array_to_datafile( MX_DATAFILE *datafile,
 	/* Print out the scaler measurements. */
 
 	for ( i = 0; i < num_data_points; i++ ) {
-		scaler_counts_per_second = ( (double) int32_data_array[i] )
+		scaler_counts_per_second = ( (double) long_data_array[i] )
 				/ measurement_time;
 
 		status = fprintf( output_file, " %.*g",
-					(int) scan->record->precision,
+					scan->record->precision,
 					scaler_counts_per_second );
 
 		CHECK_FPRINTF_STATUS;

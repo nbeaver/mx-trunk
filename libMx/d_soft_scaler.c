@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_scaler_record_field_defaults[] = {
 	MXD_SOFT_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_scaler_num_record_fields
+long mxd_soft_scaler_num_record_fields
 		= sizeof( mxd_soft_scaler_record_field_defaults )
 		  / sizeof( mxd_soft_scaler_record_field_defaults[0] );
 
@@ -77,9 +77,9 @@ mxd_soft_scaler_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
-        mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-        mx_length_type num_intensity_modifiers_varargs_cookie;
+        long num_record_fields;
+	long referenced_field_index;
+        long num_intensity_modifiers_varargs_cookie;
         mx_status_type mx_status;
 
         driver = mx_get_driver_by_type( type );
@@ -105,7 +105,7 @@ mxd_soft_scaler_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+        if ( driver->num_record_fields == (long *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -127,7 +127,7 @@ mxd_soft_scaler_initialize_type( long type )
                 return mx_status;
 
         MX_DEBUG( 2,("%s: num_intensity_modifiers varargs cookie = %ld",
-                        fname, (long) num_intensity_modifiers_varargs_cookie));
+                        fname, num_intensity_modifiers_varargs_cookie));
 
 	mx_status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
@@ -203,7 +203,7 @@ mxd_soft_scaler_finish_record_initialization( MX_RECORD *record )
 	if ( soft_scaler->motor_position == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Couldn't allocate %lu doubles for motor position array.",
-			(unsigned long) soft_scaler->num_datapoints );
+			soft_scaler->num_datapoints );
 	}
 
 	soft_scaler->scaler_value = (double *)
@@ -212,7 +212,7 @@ mxd_soft_scaler_finish_record_initialization( MX_RECORD *record )
 	if ( soft_scaler->scaler_value == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Couldn't allocate %lu doubles for scaler value array.",
-			(unsigned long) soft_scaler->num_datapoints );
+			soft_scaler->num_datapoints );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -400,10 +400,9 @@ static mx_status_type
 mxd_soft_scaler_compute_intensity_modifier( MX_RECORD *modifier_record,
 						double *modifier_value )
 {
-	static const char fname[] =
-		"mxd_soft_scaler_compute_intensity_modifier()";
+	static const char fname[] = "mxd_soft_scaler_compute_intensity_modifier()";
 
-	uint32_t dout_value;
+	unsigned long dout_value;
 	double gain, filter_attenuation, single_thickness_attenuation;
 	mx_status_type mx_status;
 

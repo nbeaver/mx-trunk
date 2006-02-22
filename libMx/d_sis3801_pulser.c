@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sis3801_pulser_record_field_defaults[] = {
 	MXD_SIS3801_PULSER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_sis3801_pulser_num_record_fields
+long mxd_sis3801_pulser_num_record_fields
 		= sizeof( mxd_sis3801_pulser_record_field_defaults )
 			/ sizeof( mxd_sis3801_pulser_record_field_defaults[0] );
 
@@ -190,7 +190,7 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: sis3801_pulser->address_mode = %lu",
-			fname, (unsigned long) sis3801_pulser->address_mode));
+			fname, sis3801_pulser->address_mode));
 
 	/* Reset the SIS3801. */
 
@@ -217,9 +217,8 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 	sis3801_pulser->module_id = ( module_id_register >> 16 ) & 0xffff;
 	sis3801_pulser->firmware_version = ( module_id_register >> 12 ) & 0xf;
 
-	MX_DEBUG( 2,("%s: module id = %#lx, firmware version = %lu", fname,
-		(unsigned long) sis3801_pulser->module_id,
-		(unsigned long) sis3801_pulser->firmware_version));
+	MX_DEBUG( 2,("%s: module id = %#lx, firmware version = %lu",
+	  fname, sis3801_pulser->module_id, sis3801_pulser->firmware_version));
 
 	/* Compute the maximum allowed prescale factor for this module. */
 

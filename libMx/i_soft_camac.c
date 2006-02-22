@@ -46,8 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_scamac_record_field_defaults[] = {
   MXI_SCAMAC_STANDARD_FIELDS
 };
 
-mx_length_type mxi_scamac_num_record_fields
-				= sizeof( mxi_scamac_record_field_defaults )
+long mxi_scamac_num_record_fields = sizeof( mxi_scamac_record_field_defaults )
 				/ sizeof( mxi_scamac_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_scamac_record_field_def_ptr
@@ -123,7 +122,7 @@ mxi_scamac_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_get_lam_status( MX_CAMAC *crate, int32_t *lam_n )
+mxi_scamac_get_lam_status( MX_CAMAC *crate, int *lam_n )
 {
 	*lam_n = 0;
 
@@ -131,14 +130,14 @@ mxi_scamac_get_lam_status( MX_CAMAC *crate, int32_t *lam_n )
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_controller_command( MX_CAMAC *crate, int32_t command )
+mxi_scamac_controller_command( MX_CAMAC *crate, int command )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_camac( MX_CAMAC *crate, int32_t slot, int32_t subaddress,
-		int32_t function_code, int32_t *data, int32_t *Q, int32_t *X)
+mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
+		int function_code, int32_t *data, int *Q, int *X)
 {
 	static const char fname[] = "mxi_scamac_camac()";
 

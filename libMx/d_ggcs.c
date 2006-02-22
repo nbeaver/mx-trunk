@@ -8,14 +8,12 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define GGCS_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -62,12 +60,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_ggcs_motor_record_field_defaults[] = {
 	MXD_GGCS_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_ggcs_motor_num_record_fields
+long mxd_ggcs_motor_num_record_fields
 		= sizeof( mxd_ggcs_motor_record_field_defaults )
 			/ sizeof( mxd_ggcs_motor_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_ggcs_motor_rfield_def_ptr
 			= &mxd_ggcs_motor_record_field_defaults[0];
+
+#define GGCS_MOTOR_DEBUG	TRUE
 
 /* === */
 
@@ -77,7 +77,7 @@ mxd_ggcs_motor_get_pointers( MX_MOTOR *motor,
 				MX_GGCS **ggcs,
 				const char *calling_fname )
 {
-	static const char fname[] = "mxd_ggcs_motor_get_pointers()";
+	const char fname[] = "mxd_ggcs_motor_get_pointers()";
 
 	MX_RECORD *ggcs_record;
 
@@ -139,7 +139,7 @@ mxd_ggcs_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_ggcs_motor_create_record_structures()";
+	const char fname[] = "mxd_ggcs_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -208,7 +208,7 @@ mxd_ggcs_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_ggcs_motor_print_structure()";
+	const char fname[] = "mxd_ggcs_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_RECORD *ggcs_record;
@@ -258,8 +258,7 @@ mxd_ggcs_motor_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  port name         = %s\n", ggcs_record->name);
-	fprintf(file, "  axis number       = %d\n",
-					(int) ggcs_motor->axis_number);
+	fprintf(file, "  axis number       = %d\n", ggcs_motor->axis_number);
 
 	status = mx_motor_get_position( record, &position );
 
@@ -301,7 +300,7 @@ mxd_ggcs_motor_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_read_parms_from_hardware( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_ggcs_motor_read_parms_from_hardware()";
+	const char fname[] = "mxd_ggcs_motor_read_parms_from_hardware()";
 
 	MX_MOTOR *motor;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -370,7 +369,7 @@ mxd_ggcs_motor_read_parms_from_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_write_parms_to_hardware( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_ggcs_motor_write_parms_to_hardware()";
+	const char fname[] = "mxd_ggcs_motor_write_parms_to_hardware()";
 
 	MX_MOTOR *motor;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -455,7 +454,7 @@ mxd_ggcs_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_motor_is_busy()";
+	const char fname[] = "mxd_ggcs_motor_motor_is_busy()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -469,7 +468,7 @@ mxd_ggcs_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", (int) ggcs_motor->axis_number );
+	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command,
@@ -494,7 +493,7 @@ mxd_ggcs_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_move_absolute()";
+	const char fname[] = "mxd_ggcs_motor_move_absolute()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -509,7 +508,7 @@ mxd_ggcs_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Set the position to move to. */
 
-	sprintf( command, "F%d,%g", (int) ggcs_motor->axis_number,
+	sprintf( command, "F%d,%g", ggcs_motor->axis_number,
 					motor->raw_position.analog );
 
 	status = mxi_ggcs_command( ggcs, command,
@@ -529,7 +528,7 @@ mxd_ggcs_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_get_position()";
+	const char fname[] = "mxd_ggcs_motor_get_position()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -545,7 +544,7 @@ mxd_ggcs_motor_get_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "P%d", (int) ggcs_motor->axis_number );
+	sprintf( command, "P%d", ggcs_motor->axis_number );
 
 	status = mxi_ggcs_command( ggcs, command,
 			response, sizeof response, GGCS_MOTOR_DEBUG );
@@ -569,7 +568,7 @@ mxd_ggcs_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_set_position()";
+	const char fname[] = "mxd_ggcs_motor_set_position()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -582,7 +581,7 @@ mxd_ggcs_motor_set_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", (int) ggcs_motor->axis_number );
+	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command, NULL, 0, GGCS_MOTOR_DEBUG );
@@ -596,7 +595,7 @@ mxd_ggcs_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_soft_abort()";
+	const char fname[] = "mxd_ggcs_motor_soft_abort()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -619,7 +618,7 @@ mxd_ggcs_motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_immediate_abort()";
+	const char fname[] = "mxd_ggcs_motor_immediate_abort()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -642,7 +641,7 @@ mxd_ggcs_motor_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_positive_limit_hit()";
+	const char fname[] = "mxd_ggcs_motor_positive_limit_hit()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -682,7 +681,7 @@ mxd_ggcs_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_negative_limit_hit()";
+	const char fname[] = "mxd_ggcs_motor_negative_limit_hit()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -722,7 +721,7 @@ mxd_ggcs_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_ggcs_motor_find_home_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_ggcs_motor_find_home_position()";
+	const char fname[] = "mxd_ggcs_motor_find_home_position()";
 
 	MX_GGCS *ggcs;
 	MX_GGCS_MOTOR *ggcs_motor;
@@ -735,7 +734,7 @@ mxd_ggcs_motor_find_home_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", (int) ggcs_motor->axis_number );
+	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command,

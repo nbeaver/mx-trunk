@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,10 +45,10 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int32_t board_id;
+	int board_id;
 
-	mx_hex_type limit_switch_polarity;
-	mx_hex_type enable_limit_switches;
+	unsigned long limit_switch_polarity;
+	unsigned long enable_limit_switches;
 
 	MX_RECORD *motor_array[MX_PCMOTION32_NUM_MOTORS];
 } MX_PCMOTION32;
@@ -81,8 +81,7 @@ MX_API char *mxi_pcmotion32_strerror( int status_code );
 extern MX_RECORD_FUNCTION_LIST mxi_pcmotion32_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_pcmotion32_generic_function_list;
 
-extern mx_length_type mxi_pcmotion32_num_record_fields;
+extern long mxi_pcmotion32_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_pcmotion32_rfield_def_ptr;
 
 #endif /* __I_PCMOTION32_H__ */
-

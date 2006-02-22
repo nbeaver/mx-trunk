@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004, 2006 Illinois Institute of Technology
+ * Copyright 2002-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_sca_record_field_defaults[] = {
 	MXD_NETWORK_SCA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_sca_num_record_fields
+long mxd_network_sca_num_record_fields
 		= sizeof( mxd_network_sca_record_field_defaults )
 		  / sizeof( mxd_network_sca_record_field_defaults[0] );
 
@@ -209,7 +209,7 @@ mxd_network_sca_resynchronize( MX_RECORD *record )
 
 	MX_SCA *sca;
 	MX_NETWORK_SCA *network_sca;
-	mx_bool_type resynchronize;
+	int resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -224,10 +224,10 @@ mxd_network_sca_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	resynchronize = TRUE;
+	resynchronize = 1;
 
 	mx_status = mx_put( &(network_sca->resynchronize_nf),
-				MXFT_BOOL, &resynchronize );
+				MXFT_INT, &resynchronize );
 
 	return mx_status;
 }
@@ -272,7 +272,7 @@ mxd_network_sca_get_parameter( MX_SCA *sca )
 	if ( sca->parameter_type == MXLV_SCA_MODE ) {
 
 		mx_status = mx_get( &(network_sca->sca_mode_nf),
-					MXFT_INT32, &(sca->sca_mode) );
+					MXFT_INT, &(sca->sca_mode) );
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -323,7 +323,7 @@ mxd_network_sca_set_parameter( MX_SCA *sca )
 	if ( sca->parameter_type == MXLV_SCA_MODE ) {
 
 		mx_status = mx_put( &(network_sca->sca_mode_nf),
-					MXFT_INT32, &(sca->sca_mode) );
+					MXFT_INT, &(sca->sca_mode) );
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,13 +22,6 @@
 #include <time.h>	/* We get 'struct timespec' from here. */
 
 #include <stdarg.h>	/* We get 'va_list' from here. */
-
-#include "mx_stdint.h"
-
-#ifndef TRUE
-#define TRUE	1
-#define FALSE	0
-#endif
 
 /*
  * Macros for declaring shared library or DLL functions.
@@ -181,6 +174,11 @@
 #endif
 
 /*------------------------------------------------------------------------*/
+
+#ifndef TRUE
+#define TRUE	1
+#define FALSE	0
+#endif
 
 #define MX_WHITESPACE		" \t"
 
@@ -461,7 +459,7 @@ MX_API void mx_info_dialog( char *text_prompt,
 
 MX_API void mx_info_entry_dialog( char *text_prompt,
 					char *gui_prompt,
-					mx_bool_type echo_characters,
+					int echo_characters,
 					char *response,
 					size_t max_response_length );
 
@@ -472,9 +470,9 @@ MX_API void mx_set_info_dialog_function( void (*)( char *, char *, char * ) );
 MX_API void mx_info_default_dialog_function( char *, char *, char * );
 
 MX_API void mx_set_info_entry_dialog_function(
-		void (*)( char *, char *, mx_bool_type, char *, size_t ) );
+			void (*)( char *, char *, int, char *, size_t ) );
 MX_API void mx_info_default_entry_dialog_function(
-			char *, char *, mx_bool_type, char *, size_t );
+					char *, char *, int, char *, size_t );
 
 
 /* === Warning messages. === */

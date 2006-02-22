@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_channel_record_field_defaults[] = {
 	MXD_MCA_CHANNEL_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mca_channel_num_record_fields
+long mxd_mca_channel_num_record_fields
 		= sizeof( mxd_mca_channel_record_field_defaults )
 		  / sizeof( mxd_mca_channel_record_field_defaults[0] );
 
@@ -75,7 +75,7 @@ mxd_mca_channel_get_pointers( MX_SCALER *scaler,
 			MX_MCA_CHANNEL **mca_channel,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_mca_channel_get_pointers()";
+	const char fname[] = "mxd_mca_channel_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -131,7 +131,7 @@ mxd_mca_channel_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_mca_channel_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_channel_create_record_structures()";
+	const char fname[] = "mxd_mca_channel_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_MCA_CHANNEL *mca_channel;
@@ -167,7 +167,7 @@ mxd_mca_channel_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_channel_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_mca_channel_finish_record_initialization()";
+	const char fname[] = "mxd_mca_channel_finish_record_initialization()";
 
 	MX_MCA_CHANNEL *mca_channel;
 	MX_RECORD *mca_record;
@@ -254,90 +254,90 @@ mxd_mca_channel_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_mca_channel_clear( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_clear()";
+	const char fname[] = "mxd_mca_channel_clear()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_mca_clear( mca_channel->mca_record );
+	status = mx_mca_clear( mca_channel->mca_record );
 
 	scaler->raw_value = 0L;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_overflow_set( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_overflow_set()";
+	const char fname[] = "mxd_mca_channel_overflow_set()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	/* WML: I haven't decided how to do this yet. */
 
 	scaler->overflow_set = FALSE;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_read( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_read()";
+	const char fname[] = "mxd_mca_channel_read()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	uint32_t value;
-	mx_status_type mx_status;
+	unsigned long value;
+	mx_status_type status;
 
-	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_mca_get_channel( mca_channel->mca_record,
+	status = mx_mca_get_channel( mca_channel->mca_record,
 					mca_channel->channel_number, &value );
 
-	scaler->raw_value = (int32_t) value;
+	scaler->raw_value = (long) value;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_is_busy( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_is_busy()";
+	const char fname[] = "mxd_mca_channel_is_busy()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_bool_type busy;
-	mx_status_type mx_status;
+	int busy;
+	mx_status_type status;
 
-	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_mca_is_busy( mca_channel->mca_record, &busy );
+	status = mx_mca_is_busy( mca_channel->mca_record, &busy );
 
 	scaler->busy = busy;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_mca_channel_start( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_start()";
+	const char fname[] = "mxd_mca_channel_start()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"This function requires support by the MCA record class that "
@@ -347,21 +347,21 @@ mxd_mca_channel_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_mca_channel_stop( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_stop()";
+	const char fname[] = "mxd_mca_channel_stop()";
 
 	MX_MCA_CHANNEL *mca_channel;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
+	status = mxd_mca_channel_get_pointers( scaler, &mca_channel, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
-	mx_status = mx_mca_stop( mca_channel->mca_record );
+	status = mx_mca_stop( mca_channel->mca_record );
 
 	scaler->raw_value = 0;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -383,7 +383,7 @@ mxd_mca_channel_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_mca_channel_set_parameter( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_mca_channel_set_parameter()";
+	const char fname[] = "mxd_mca_channel_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:
@@ -392,7 +392,7 @@ mxd_mca_channel_set_parameter( MX_SCALER *scaler )
 		"Cannot set MCA channel scaler '%s' to counter mode %d.  "
 		"Only preset time mode is supported for now.",
 				scaler->record->name,
-				(int) scaler->mode );
+				scaler->mode );
 		}
 		break;
 	case MXLV_SCL_DARK_CURRENT:

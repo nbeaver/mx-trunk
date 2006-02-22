@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *handel_record;
-	mx_bool_type use_real_time;
+	int use_real_time;
 
 	unsigned int detector_channel_set;
 
@@ -51,7 +51,7 @@ MX_API mx_status_type mxd_xia_handel_timer_get_last_measurement_time(MX_TIMER *t
 extern MX_RECORD_FUNCTION_LIST mxd_xia_handel_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_xia_handel_timer_timer_function_list;
 
-extern mx_length_type mxd_xia_handel_timer_num_record_fields;
+extern long mxd_xia_handel_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_xia_handel_timer_rfield_def_ptr;
 
 #define MXD_XIA_HANDEL_TIMER_STANDARD_FIELDS \
@@ -59,7 +59,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_xia_handel_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL_TIMER, handel_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "use_real_time", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_real_time", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL_TIMER, use_real_time), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

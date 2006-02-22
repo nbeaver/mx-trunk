@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,9 +21,9 @@ typedef struct {
 	int  file_descriptor;
 
 	char filename[ MXU_FILENAME_LENGTH+1 ];
-	int32_t crate_number;
+	int  crate_number;
 
-	mx_hex_type version_register;
+	unsigned long version_register;
 } MX_SIS3100;
 
 MX_API mx_status_type mxi_sis3100_create_record_structures( MX_RECORD *record );
@@ -45,7 +45,7 @@ MX_API mx_status_type mxi_sis3100_set_parameter( MX_VME *vme );
 extern MX_RECORD_FUNCTION_LIST mxi_sis3100_record_function_list;
 extern MX_VME_FUNCTION_LIST mxi_sis3100_vme_function_list;
 
-extern mx_length_type mxi_sis3100_num_record_fields;
+extern long mxi_sis3100_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_sis3100_rfield_def_ptr;
 
 #define MXI_SIS3100_STANDARD_FIELDS \
@@ -53,7 +53,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_sis3100_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SIS3100, filename ), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SIS3100, crate_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

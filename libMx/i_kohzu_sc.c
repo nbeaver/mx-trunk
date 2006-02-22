@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_kohzu_sc_record_field_defaults[] = {
 	MXI_KOHZU_SC_STANDARD_FIELDS
 };
 
-mx_length_type mxi_kohzu_sc_num_record_fields
+long mxi_kohzu_sc_num_record_fields
 		= sizeof( mxi_kohzu_sc_record_field_defaults )
 			/ sizeof( mxi_kohzu_sc_record_field_defaults[0] );
 
@@ -186,7 +186,7 @@ mxi_kohzu_sc_open( MX_RECORD *record )
 			"RS-232 port '%s' used by Kohzu SC-x00 "
 			"controller '%s'.  The supported speeds are "
 			"38400, 19200, and 9600.",
-				(long) rs232->speed,
+				rs232->speed,
 				port_interface->record->name,
 				record->name );
 		}
@@ -202,8 +202,8 @@ mxi_kohzu_sc_open( MX_RECORD *record )
 			"terminators were %#04lx",
 				port_interface->record->name,
 				record->name,
-				(unsigned long) rs232->read_terminators,
-				(unsigned long) rs232->write_terminators );
+				rs232->read_terminators,
+				rs232->write_terminators );
 		}
 		break;
 

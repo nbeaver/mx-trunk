@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -65,7 +65,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_spec_motor_record_field_defaults[] = {
 	MXD_SPEC_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_spec_motor_num_record_fields
+long mxd_spec_motor_num_record_fields
 		= sizeof( mxd_spec_motor_record_field_defaults )
 			/ sizeof( mxd_spec_motor_record_field_defaults[0] );
 
@@ -297,8 +297,7 @@ mxd_spec_motor_motor_is_busy( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	mx_bool_type move_done;
-	int clock_tick_comparison;
+	int move_done, clock_tick_comparison;
 	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
 
@@ -311,7 +310,7 @@ mxd_spec_motor_motor_is_busy( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_BOOL, &move_done );
+				property_name, MXFT_INT, &move_done );
 
 	/* Sometimes, immediately after a move starts, spec will report
 	 * the value of move_done as 0.  In order to reduce the chance
@@ -490,7 +489,7 @@ mxd_spec_motor_positive_limit_hit( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	mx_bool_type limit_hit;
+	int limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_motor_get_pointers( motor, &spec_motor, fname );
@@ -502,7 +501,7 @@ mxd_spec_motor_positive_limit_hit( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_BOOL, &limit_hit );
+				property_name, MXFT_INT, &limit_hit );
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -524,7 +523,7 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	mx_bool_type limit_hit;
+	int limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_motor_get_pointers( motor, &spec_motor, fname );
@@ -536,7 +535,7 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_BOOL, &limit_hit );
+				property_name, MXFT_INT, &limit_hit );
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -806,17 +805,17 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_spec_motor_simultaneous_start( mx_length_type num_motor_records,
+mxd_spec_motor_simultaneous_start( int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *destination_array,
-				mx_hex_type flags )
+				int flags )
 {
 	const char fname[] = "mxd_spec_motor_simultaneous_start()";
 
 	MX_RECORD *motor_record, *spec_server_record;
 	MX_MOTOR *motor;
 	MX_SPEC_MOTOR *spec_motor;
-	mx_length_type i;
+	int i;
 	double raw_destination;
 	char property_name[SV_NAME_LEN];
 	mx_status_type mx_status;

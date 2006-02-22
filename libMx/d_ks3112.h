@@ -23,8 +23,8 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-	int32_t subaddress;
+	int slot;
+	int subaddress;
 } MX_KS3112;
 
 #define MXD_KS3112_STANDARD_FIELDS \
@@ -32,11 +32,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3112, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3112, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3112, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -55,7 +55,7 @@ MX_API mx_status_type mxd_ks3112_write( MX_ANALOG_OUTPUT *dac );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3112_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_ks3112_analog_output_function_list;
 
-extern mx_length_type mxd_ks3112_num_record_fields;
+extern long mxd_ks3112_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3112_rfield_def_ptr;
 
 #endif /* __D_KS3112_H__ */

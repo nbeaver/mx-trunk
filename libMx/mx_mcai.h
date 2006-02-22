@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,15 +24,15 @@
 typedef struct {
 	MX_RECORD *record;
 
-	mx_length_type maximum_num_channels;
-	mx_length_type current_num_channels;
+	long maximum_num_channels;
+	long current_num_channels;
 
 	double *channel_array;
 
 	double scale;
 	double offset;
 	char units[MXU_UNITS_NAME_LENGTH+1];
-	mx_hex_type mcai_flags;
+	unsigned long mcai_flags;
 } MX_MCAI;
 
 #define MXLV_MCAI_CHANNEL_ARRAY		10001
@@ -41,13 +41,13 @@ typedef struct {
 
 #define MX_MCAI_STANDARD_FIELDS \
   {MXLV_MCAI_MAXIMUM_NUM_CHANNELS, -1, "maximum_num_channels", \
-	  		MXFT_LENGTH, NULL, 0, {0}, \
+	  		MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_MCAI, maximum_num_channels), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY),}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY),}, \
   \
   {MXLV_MCAI_CURRENT_NUM_CHANNELS, -1, "current_num_channels", \
-	  		MXFT_LENGTH, NULL, 0, {0}, \
+	  		MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCAI, current_num_channels), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY),}, \
   \
@@ -83,9 +83,9 @@ typedef struct {
 
 MX_API mx_status_type mx_mcai_initialize_type(
 			long record_type,
-			mx_length_type *num_record_fields,
+			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			mx_length_type *maximum_num_channels_varargs_cookie );
+			long *maximum_num_channels_varargs_cookie );
 
 MX_API mx_status_type mx_mcai_finish_record_initialization(
 							MX_RECORD *mcai_record);

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ mx_ptz_get_pointers( MX_RECORD *record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_ptz_command( MX_RECORD *record, uint32_t command )
+mx_ptz_command( MX_RECORD *record, unsigned long command )
 {
 	static const char fname[] = "mx_ptz_command()";
 
@@ -107,7 +107,7 @@ mx_ptz_command( MX_RECORD *record, uint32_t command )
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_ptz_get_status( MX_RECORD *record, uint32_t *status )
+mx_ptz_get_status( MX_RECORD *record, unsigned long *status )
 {
 	static const char fname[] = "mx_ptz_get_status()";
 
@@ -143,7 +143,7 @@ mx_ptz_get_status( MX_RECORD *record, uint32_t *status )
 MX_EXPORT mx_status_type
 mx_ptz_get_parameter( MX_RECORD *record,
 			int parameter_type,
-			uint32_t *parameter_value )
+			unsigned long *parameter_value )
 {
 	static const char fname[] = "mx_ptz_get_parameter()";
 
@@ -181,7 +181,7 @@ mx_ptz_get_parameter( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_ptz_set_parameter( MX_RECORD *record,
 			int parameter_type,
-			uint32_t parameter_value )
+			unsigned long parameter_value )
 {
 	static const char fname[] = "mx_ptz_get_parameter()";
 
@@ -388,7 +388,8 @@ mx_ptz_pan_stop( MX_RECORD *ptz_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_pan( MX_RECORD *ptz_record, int32_t *pan_value )
+mx_ptz_get_pan( MX_RECORD *ptz_record,
+		long *pan_value )
 {
 	static const char fname[] = "mx_ptz_get_pan()";
 
@@ -415,7 +416,7 @@ mx_ptz_get_pan( MX_RECORD *ptz_record, int32_t *pan_value )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( pan_value != (int32_t *) NULL ) {
+	if ( pan_value != (long *) NULL ) {
 		*pan_value = ptz->pan_position;
 	}
 
@@ -423,7 +424,8 @@ mx_ptz_get_pan( MX_RECORD *ptz_record, int32_t *pan_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_pan( MX_RECORD *ptz_record, int32_t pan_value )
+mx_ptz_set_pan( MX_RECORD *ptz_record,
+		long pan_value )
 {
 	static const char fname[] = "mx_ptz_set_pan()";
 
@@ -455,7 +457,8 @@ mx_ptz_set_pan( MX_RECORD *ptz_record, int32_t pan_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_pan_speed( MX_RECORD *ptz_record, uint32_t *pan_speed )
+mx_ptz_get_pan_speed( MX_RECORD *ptz_record,
+		unsigned long *pan_speed )
 {
 	static const char fname[] = "mx_ptz_get_pan_speed()";
 
@@ -482,7 +485,7 @@ mx_ptz_get_pan_speed( MX_RECORD *ptz_record, uint32_t *pan_speed )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( pan_speed != (uint32_t *) NULL ) {
+	if ( pan_speed != (unsigned long *) NULL ) {
 		*pan_speed = ptz->pan_speed;
 	}
 
@@ -490,7 +493,8 @@ mx_ptz_get_pan_speed( MX_RECORD *ptz_record, uint32_t *pan_speed )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_pan_speed( MX_RECORD *ptz_record, uint32_t pan_speed )
+mx_ptz_set_pan_speed( MX_RECORD *ptz_record,
+		unsigned long pan_speed )
 {
 	static const char fname[] = "mx_ptz_set_pan_speed()";
 
@@ -617,7 +621,8 @@ mx_ptz_tilt_stop( MX_RECORD *ptz_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_tilt( MX_RECORD *ptz_record, int32_t *tilt_value )
+mx_ptz_get_tilt( MX_RECORD *ptz_record,
+		long *tilt_value )
 {
 	static const char fname[] = "mx_ptz_get_tilt()";
 
@@ -644,7 +649,7 @@ mx_ptz_get_tilt( MX_RECORD *ptz_record, int32_t *tilt_value )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( tilt_value != (int32_t *) NULL ) {
+	if ( tilt_value != (long *) NULL ) {
 		*tilt_value = ptz->tilt_position;
 	}
 
@@ -652,7 +657,8 @@ mx_ptz_get_tilt( MX_RECORD *ptz_record, int32_t *tilt_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_tilt( MX_RECORD *ptz_record, int32_t tilt_value )
+mx_ptz_set_tilt( MX_RECORD *ptz_record,
+		long tilt_value )
 {
 	static const char fname[] = "mx_ptz_set_tilt()";
 
@@ -684,7 +690,8 @@ mx_ptz_set_tilt( MX_RECORD *ptz_record, int32_t tilt_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_tilt_speed( MX_RECORD *ptz_record, uint32_t *tilt_speed )
+mx_ptz_get_tilt_speed( MX_RECORD *ptz_record,
+		unsigned long *tilt_speed )
 {
 	static const char fname[] = "mx_ptz_get_tilt_speed()";
 
@@ -711,7 +718,7 @@ mx_ptz_get_tilt_speed( MX_RECORD *ptz_record, uint32_t *tilt_speed )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( tilt_speed != (uint32_t *) NULL ) {
+	if ( tilt_speed != (unsigned long *) NULL ) {
 		*tilt_speed = ptz->tilt_speed;
 	}
 
@@ -719,7 +726,8 @@ mx_ptz_get_tilt_speed( MX_RECORD *ptz_record, uint32_t *tilt_speed )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_tilt_speed( MX_RECORD *ptz_record, uint32_t tilt_speed )
+mx_ptz_set_tilt_speed( MX_RECORD *ptz_record,
+		unsigned long tilt_speed )
 {
 	static const char fname[] = "mx_ptz_set_tilt_speed()";
 
@@ -846,7 +854,8 @@ mx_ptz_zoom_stop( MX_RECORD *ptz_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_zoom( MX_RECORD *ptz_record, uint32_t *zoom_value )
+mx_ptz_get_zoom( MX_RECORD *ptz_record,
+		unsigned long *zoom_value )
 {
 	static const char fname[] = "mx_ptz_get_zoom()";
 
@@ -873,7 +882,7 @@ mx_ptz_get_zoom( MX_RECORD *ptz_record, uint32_t *zoom_value )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( zoom_value != (uint32_t *) NULL ) {
+	if ( zoom_value != (unsigned long *) NULL ) {
 		*zoom_value = ptz->zoom_position;
 	}
 
@@ -881,7 +890,8 @@ mx_ptz_get_zoom( MX_RECORD *ptz_record, uint32_t *zoom_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_zoom( MX_RECORD *ptz_record, uint32_t zoom_value )
+mx_ptz_set_zoom( MX_RECORD *ptz_record,
+		unsigned long zoom_value )
 {
 	static const char fname[] = "mx_ptz_set_zoom()";
 
@@ -913,7 +923,8 @@ mx_ptz_set_zoom( MX_RECORD *ptz_record, uint32_t zoom_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_zoom_speed( MX_RECORD *ptz_record, uint32_t *zoom_speed )
+mx_ptz_get_zoom_speed( MX_RECORD *ptz_record,
+		unsigned long *zoom_speed )
 {
 	static const char fname[] = "mx_ptz_get_zoom_speed()";
 
@@ -940,7 +951,7 @@ mx_ptz_get_zoom_speed( MX_RECORD *ptz_record, uint32_t *zoom_speed )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( zoom_speed != (uint32_t *) NULL ) {
+	if ( zoom_speed != (unsigned long *) NULL ) {
 		*zoom_speed = ptz->zoom_speed;
 	}
 
@@ -948,7 +959,8 @@ mx_ptz_get_zoom_speed( MX_RECORD *ptz_record, uint32_t *zoom_speed )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_zoom_speed( MX_RECORD *ptz_record, uint32_t zoom_speed )
+mx_ptz_set_zoom_speed( MX_RECORD *ptz_record,
+		unsigned long zoom_speed )
 {
 	static const char fname[] = "mx_ptz_set_zoom_speed()";
 
@@ -1203,7 +1215,8 @@ mx_ptz_focus_stop( MX_RECORD *ptz_record )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_focus( MX_RECORD *ptz_record, uint32_t *focus_value )
+mx_ptz_get_focus( MX_RECORD *ptz_record,
+		unsigned long *focus_value )
 {
 	static const char fname[] = "mx_ptz_get_focus()";
 
@@ -1230,7 +1243,7 @@ mx_ptz_get_focus( MX_RECORD *ptz_record, uint32_t *focus_value )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( focus_value != (uint32_t *) NULL ) {
+	if ( focus_value != (unsigned long *) NULL ) {
 		*focus_value = ptz->focus_position;
 	}
 
@@ -1238,7 +1251,8 @@ mx_ptz_get_focus( MX_RECORD *ptz_record, uint32_t *focus_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_focus( MX_RECORD *ptz_record, uint32_t focus_value )
+mx_ptz_set_focus( MX_RECORD *ptz_record,
+		unsigned long focus_value )
 {
 	static const char fname[] = "mx_ptz_set_focus()";
 
@@ -1270,7 +1284,8 @@ mx_ptz_set_focus( MX_RECORD *ptz_record, uint32_t focus_value )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_get_focus_speed( MX_RECORD *ptz_record, uint32_t *focus_speed )
+mx_ptz_get_focus_speed( MX_RECORD *ptz_record,
+		unsigned long *focus_speed )
 {
 	static const char fname[] = "mx_ptz_get_focus_speed()";
 
@@ -1297,7 +1312,7 @@ mx_ptz_get_focus_speed( MX_RECORD *ptz_record, uint32_t *focus_speed )
 
 	mx_status = (*get_parameter_fn)( ptz );
 
-	if ( focus_speed != (uint32_t *) NULL ) {
+	if ( focus_speed != (unsigned long *) NULL ) {
 		*focus_speed = ptz->focus_speed;
 	}
 
@@ -1305,7 +1320,8 @@ mx_ptz_get_focus_speed( MX_RECORD *ptz_record, uint32_t *focus_speed )
 }
 
 MX_EXPORT mx_status_type
-mx_ptz_set_focus_speed( MX_RECORD *ptz_record, uint32_t focus_speed )
+mx_ptz_set_focus_speed( MX_RECORD *ptz_record,
+		unsigned long focus_speed )
 {
 	static const char fname[] = "mx_ptz_set_focus_speed()";
 

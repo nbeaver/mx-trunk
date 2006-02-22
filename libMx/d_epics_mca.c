@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006 Illinois Institute of Technology
+ * Copyright 2002-2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_epics_mca_record_field_defaults[] = {
 	MXD_EPICS_MCA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_epics_mca_num_record_fields
+long mxd_epics_mca_num_record_fields
 		= sizeof( mxd_epics_mca_record_field_defaults )
 		  / sizeof( mxd_epics_mca_record_field_defaults[0] );
 
@@ -117,10 +117,10 @@ MX_EXPORT mx_status_type
 mxd_epics_mca_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_channels_varargs_cookie;
-	mx_length_type maximum_num_rois_varargs_cookie;
-	mx_length_type num_soft_rois_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_channels_varargs_cookie;
+	long maximum_num_rois_varargs_cookie;
+	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
@@ -179,13 +179,13 @@ mxd_epics_mca_finish_record_initialization( MX_RECORD *record )
 
 	mca = (MX_MCA *) record->record_class_struct;
 
-	mca->channel_array = (uint32_t *)
-		malloc( mca->maximum_num_channels * sizeof(uint32_t) );
+	mca->channel_array = ( unsigned long * )
+		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory allocating an %lu channel data array.",
-			(unsigned long) mca->maximum_num_channels );
+			mca->maximum_num_channels );
 	}
 
 	mx_status = mx_mca_finish_record_initialization( record );
@@ -256,7 +256,7 @@ mxd_epics_mca_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  EPICS record name     = %s\n",
 					epics_mca->epics_record_name);
 	fprintf(file, "  maximum # of channels = %lu\n",
-				(unsigned long) mca->maximum_num_channels);
+					mca->maximum_num_channels);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -540,7 +540,7 @@ mxd_epics_mca_read( MX_MCA *mca )
 	const char fname[] = "mxd_epics_mca_read()";
 
 	MX_EPICS_MCA *epics_mca;
-	mx_length_type num_channels;
+	unsigned long num_channels;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epics_mca_get_pointers( mca, &epics_mca, fname );
@@ -648,9 +648,9 @@ mxd_epics_mca_get_parameter( MX_MCA *mca )
 			"but the record '%s' is only configured to support "
 			"up to %lu channels.",
 				epics_mca->epics_record_name,
-				(unsigned long) mca->current_num_channels,
+				mca->current_num_channels,
 				mca->record->name,
-				(unsigned long) mca->maximum_num_channels );
+				mca->maximum_num_channels );
 		}
 	} else
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
@@ -876,9 +876,9 @@ mxd_epics_mca_set_parameter( MX_MCA *mca )
 			"but the record '%s' is only configured to support "
 			"up to %lu channels.",
 				epics_mca->epics_record_name,
-				(unsigned long) mca->current_num_channels,
+				mca->current_num_channels,
 				mca->record->name,
-				(unsigned long) mca->maximum_num_channels );
+				mca->maximum_num_channels );
 		}
 
 	} else

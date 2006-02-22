@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,8 +83,8 @@ typedef struct {
 	char name[MXU_FIELD_NAME_LENGTH+1];
 	long datatype;
 	void *typeinfo;
-	mx_length_type num_dimensions;
-	mx_length_type dimension[MXU_FIELD_MAX_DIMENSIONS];
+	long num_dimensions;
+	long dimension[MXU_FIELD_MAX_DIMENSIONS];
 	short structure_id;
 	size_t structure_offset;
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
@@ -98,8 +98,8 @@ typedef struct {
 	char *name;
 	long datatype;
 	void *typeinfo;
-	mx_length_type num_dimensions;
-	mx_length_type *dimension;
+	long num_dimensions;
+	long *dimension;
 	void *data_pointer;
 	size_t *data_element_size;
 	mx_status_type (*process_function) (void *, void *, int);
@@ -129,11 +129,11 @@ typedef struct mx_record_type {
 	void *acl;
 	char acl_description[MXU_ACL_DESCRIPTION_LENGTH+1];
 	signed long handle;
-	int32_t precision;
-	mx_bool_type resynchronize;
-	mx_bool_type report;
-	mx_hex_type record_flags;
-	mx_hex_type record_processing_flags;
+	int precision;
+	int resynchronize;
+	int report;
+	unsigned long record_flags;
+	unsigned long record_processing_flags;
 	struct mx_record_type *list_head;
 	struct mx_record_type *previous_record;
 	struct mx_record_type *next_record;
@@ -143,14 +143,14 @@ typedef struct mx_record_type {
 	void *record_function_list;	/* Ptr to MX_RECORD_FUNCTION_LIST */
 	void *superclass_specific_function_list;
 	void *class_specific_function_list;
-	mx_length_type        num_record_fields;
+	long                  num_record_fields;
 	MX_RECORD_FIELD       *record_field_array;
 	struct mx_record_type *allocated_by;
-	mx_length_type        num_groups;
+	long                  num_groups;
 	struct mx_record_type **group_array;
-	mx_length_type        num_parent_records;
+	long                  num_parent_records;
 	struct mx_record_type **parent_record_array;
-	mx_length_type        num_child_records;
+	long                  num_child_records;
 	struct mx_record_type **child_record_array;
 	MX_EVENT_TIME_MANAGER *event_time_manager;
 	void *event_queue;		/* Ptr to MXSRV_QUEUED_EVENT */
@@ -165,33 +165,22 @@ typedef struct {
 /* The following is the current list of record field types. */
 
 #define MXFT_STRING		1
-#define MXFT_CHAR		2	/* 'char' used as an ASCII character. */
-#define MXFT_UCHAR		3	/* Unsigned ASCII character. */
-
-#define MXFT_INT16		4
-#define MXFT_UINT16		5
-#define MXFT_INT32		6
-#define MXFT_UINT32		7
-
-	/* 8 and 9 are reserved for obsolete field types. */
-
+#define MXFT_CHAR		2
+#define MXFT_UCHAR		3
+#define MXFT_SHORT		4
+#define MXFT_USHORT		5
+#define MXFT_INT		6
+#define MXFT_UINT		7
+#define MXFT_LONG		8
+#define MXFT_ULONG		9
 #define MXFT_FLOAT		10
 #define MXFT_DOUBLE		11
 
-#define MXFT_HEX		12	/* Stored as a uint32_t. */
-
-#define MXFT_INT8		13	/* 'char' used as an 8-bit number. */
-#define MXFT_UINT8		14	/* Unsigned 8-bit number. */
-
-#define MXFT_INT64		15
-#define MXFT_UINT64		16
+#define MXFT_HEX		12	/* Stored as an unsigned long. */
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
 #define MXFT_INTERFACE		33
-
-#define MXFT_LENGTH		MXFT_INT32
-#define MXFT_BOOL		MXFT_INT32
 
 /* MX_NUM_RECORD_ID_FIELDS is the number of fields at the beginning
  * of a record description needed to unambiguously identify
@@ -245,15 +234,15 @@ typedef struct {
 	{sizeof(char)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "precision", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "precision", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, precision), \
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE }, \
   \
-  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_REC_REPORT, -1, "report", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_REC_REPORT, -1, "report", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, report), \
 	{0}, NULL, 0}, \
   \
@@ -261,7 +250,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "record_processing_flags", MXFT_HEX, NULL, 0, {0}, \
+  {-1, -1, "record_processing_flags", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_processing_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -269,7 +258,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, allocated_by), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "num_groups", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_groups", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_groups),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -279,7 +268,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_parent_records", MXFT_LENGTH, NULL, 0, {0},\
+  {-1, -1, "num_parent_records", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_parent_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -289,7 +278,7 @@ typedef struct {
 	{sizeof(MX_RECORD *)}, NULL, \
 	    (MXFF_VARARGS | MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "num_child_records", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_child_records", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, num_child_records),\
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
@@ -344,7 +333,7 @@ typedef struct {
 	MX_RECORD_FUNCTION_LIST *record_function_list;
 	void *superclass_specific_function_list;
 	void *class_specific_function_list;
-	mx_length_type *num_record_fields;
+	long *num_record_fields;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 } MX_DRIVER;
 
@@ -363,8 +352,8 @@ typedef struct {
 } MX_INTERFACE;
 
 typedef struct {
-	mx_bool_type add_dependency;
-	mx_bool_type dependency_is_to_parent;
+	int add_dependency;
+	int dependency_is_to_parent;
 } MX_RECORD_ARRAY_DEPENDENCY_STRUCT;
 
 /* MX_LIST_HEAD is a place to put information about the record list
@@ -374,23 +363,23 @@ typedef struct {
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
-	mx_bool_type list_is_active;
-	mx_bool_type fast_mode;
-	mx_bool_type allow_fast_mode;
+	int list_is_active;
+	int fast_mode;
+	int allow_fast_mode;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
-	mx_length_type num_records;
+	unsigned long num_records;
 
-	mx_bool_type is_server;
+	int is_server;
 	void *connection_acl;
-	mx_bool_type fixup_records_in_use;
-	mx_length_type num_fixup_records;
+	int fixup_records_in_use;
+	long num_fixup_records;
 	void **fixup_record_array;
-	mx_bool_type plotting_enabled;
-	int32_t default_precision;
-	int32_t default_data_format;
+	int plotting_enabled;
+	int default_precision;
+	int default_data_format;
 	void *log_handler;
-	int32_t server_protocols_active;
+	long server_protocols_active;
 	void *handle_table;
 	void *application_ptr;
 	char username[ MXU_USERNAME_LENGTH + 1 ];
@@ -412,7 +401,7 @@ typedef struct {
 #define MXF_INITHW_TRACE_OPENS		0x1
 #define MXF_INITHW_ABORT_ON_FAULT	0x2
 
-MX_API mx_bool_type mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
+MX_API int mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
 					long mx_class, long mx_type );
 
 MX_API MX_DRIVER *mx_get_driver_by_name( char *name );
@@ -446,7 +435,7 @@ MX_API MX_RECORD      *mx_initialize_record_list( void );
 MX_API mx_status_type  mx_initialize_drivers( void );
 
 MX_API mx_status_type  mx_initialize_hardware( MX_RECORD *record_list,
-						mx_hex_type inithw_flags );
+							int trace_flag );
 
 MX_API mx_status_type  mx_shutdown_hardware( MX_RECORD *record_list );
 
@@ -590,32 +579,30 @@ MX_API_PRIVATE long mx_get_max_string_token_length( MX_RECORD_FIELD *field );
 
 MX_API_PRIVATE mx_status_type mx_convert_varargs_cookie_to_value(
 				MX_RECORD *record,
-				mx_length_type varargs_cookie,
-				mx_length_type *returned_value );
+				long varargs_cookie,
+				long *returned_value );
 
 MX_API_PRIVATE mx_status_type mx_construct_varargs_cookie(
-				mx_length_type field_index,
-				mx_length_type array_in_field_index,
-				mx_length_type *returned_varargs_cookie );
+				long field_index,
+				long array_in_field_index,
+				long *returned_varargs_cookie );
 
 MX_API_PRIVATE mx_status_type mx_replace_varargs_cookies_with_values(
-				MX_RECORD *record,
-				mx_length_type i,
-				mx_bool_type allow_forward_references );
+		MX_RECORD *record, long i, int allow_forward_references );
 
 /* --- */
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		mx_length_type num_record_fields,
+		long num_record_fields,
 		const char *name_of_field_to_find,
 		MX_RECORD_FIELD_DEFAULTS **default_field_that_was_found );
 
 MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults_index(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
-		mx_length_type num_record_fields,
+		long num_record_fields,
 		const char *name_of_field_to_find,
-		mx_length_type *index_of_field_that_was_found );
+		long *index_of_field_that_was_found );
 
 MX_API_PRIVATE const char *mx_get_field_label_string( MX_RECORD *record,
 						long label_value );
@@ -625,7 +612,7 @@ MX_API_PRIVATE const char *mx_get_field_type_string( long field_type );
 MX_API_PRIVATE void *mx_get_field_value_pointer( MX_RECORD_FIELD *field );
 
 MX_API_PRIVATE mx_status_type  mx_setup_typeinfo_for_record_type_fields(
-		mx_length_type num_record_fields,
+		long num_record_fields,
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_for_type,
 		long mx_type, long mx_class, long mx_superclass );
 
@@ -649,8 +636,8 @@ MX_API mx_status_type  mx_get_datatype_sizeof_array( long datatype,
 MX_API_PRIVATE mx_status_type  mx_construct_temp_record_field(
 					MX_RECORD_FIELD *temp_record_field,
 					long datatype,
-					mx_length_type num_dimensions,
-					mx_length_type *dimension,
+					long num_dimensions,
+					long *dimension,
 					size_t *data_element_size,
 					void *value_ptr );
 
@@ -708,21 +695,21 @@ MX_API_PRIVATE mx_status_type  mx_record_array_dependency_handler(
 					long dimension_level );
 
 MX_API_PRIVATE mx_status_type  mx_add_parent_dependency(
-				MX_RECORD *current_record,
-				mx_bool_type add_child_pointer_in_parent,
-				MX_RECORD *parent_record );
+					MX_RECORD *current_record,
+					int add_child_pointer_in_parent,
+					MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_delete_parent_dependency(
-				MX_RECORD *current_record,
-				mx_bool_type delete_child_pointer_in_parent,
-				MX_RECORD *parent_record );
+					MX_RECORD *current_record,
+					int delete_child_pointer_in_parent,
+					MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_add_child_dependency(
-				MX_RECORD *current_record,
-				mx_bool_type add_parent_pointer_in_child,
-				MX_RECORD *child_record );
+					MX_RECORD *current_record,
+					int add_parent_pointer_in_child,
+					MX_RECORD *child_record );
 MX_API_PRIVATE mx_status_type  mx_delete_child_dependency(
-				MX_RECORD *current_record,
-				mx_bool_type delete_parent_pointer_in_child,
-				MX_RECORD *child_record );
+					MX_RECORD *current_record,
+					int delete_parent_pointer_in_child,
+					MX_RECORD *child_record );
 
 /* --- */
 
@@ -740,9 +727,9 @@ MX_API mx_status_type  mx_set_program_name( MX_RECORD *record_list,
 						char *program_name );
 
 MX_API mx_status_type  mx_get_fast_mode( MX_RECORD *record_list,
-						mx_bool_type *mode_flag );
+						int *mode_flag );
 
 MX_API mx_status_type  mx_set_fast_mode( MX_RECORD *record_list,
-						mx_bool_type mode_flag );
+						int mode_flag );
 
 #endif /* __MX_RECORD_H__ */

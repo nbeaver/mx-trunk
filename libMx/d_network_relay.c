@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_relay_record_field_defaults[] = {
 	MXD_NETWORK_RELAY_STANDARD_FIELDS
 };
 
-mx_length_type mxd_network_relay_num_record_fields
+long mxd_network_relay_num_record_fields
 	= sizeof( mxd_network_relay_record_field_defaults )
 		/ sizeof( mxd_network_relay_record_field_defaults[0] );
 
@@ -170,7 +170,7 @@ mxd_network_relay_relay_command( MX_RELAY *relay )
 		return mx_status;
 
 	mx_status = mx_put( &(network_relay->relay_command_nf),
-				MXFT_INT32, &(relay->relay_command) );
+				MXFT_INT, &(relay->relay_command) );
 
 	return mx_status;
 }
@@ -181,7 +181,7 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 	const char fname[] = "mxd_network_relay_get_relay_status()";
 
 	MX_NETWORK_RELAY *network_relay;
-	int32_t relay_status;
+	int relay_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_relay_get_pointers(
@@ -191,7 +191,7 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 		return mx_status;
 
 	mx_status = mx_get( &(network_relay->relay_status_nf),
-				MXFT_INT32, &relay_status );
+				MXFT_INT, &relay_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

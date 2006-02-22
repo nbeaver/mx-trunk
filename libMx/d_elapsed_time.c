@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,11 +31,15 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_elapsed_time_record_function_list = {
-	NULL,
+	mxd_elapsed_time_initialize_type,
 	mxd_elapsed_time_create_record_structures,
 	mxd_elapsed_time_finish_record_initialization,
-	NULL,
-	mxd_elapsed_time_print_motor_structure
+	mxd_elapsed_time_delete_record,
+	mxd_elapsed_time_print_motor_structure,
+	mxd_elapsed_time_read_parms_from_hardware,
+	mxd_elapsed_time_write_parms_to_hardware,
+	mxd_elapsed_time_open,
+	mxd_elapsed_time_close
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list = {
@@ -47,7 +51,7 @@ MX_MOTOR_FUNCTION_LIST mxd_elapsed_time_motor_function_list = {
 	mxd_elapsed_time_immediate_abort,
 	mxd_elapsed_time_positive_limit_hit,
 	mxd_elapsed_time_negative_limit_hit,
-	NULL,
+	mxd_elapsed_time_find_home_position,
 	NULL,
 	mx_motor_default_get_parameter_handler,
 	mx_motor_default_set_parameter_handler
@@ -62,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_elapsed_time_record_field_defaults[] = {
 	MXD_ELAPSED_TIME_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_elapsed_time_num_record_fields
+long mxd_elapsed_time_num_record_fields
 		= sizeof( mxd_elapsed_time_record_field_defaults )
 			/ sizeof( mxd_elapsed_time_record_field_defaults[0] );
 
@@ -70,10 +74,17 @@ MX_RECORD_FIELD_DEFAULTS *mxd_elapsed_time_rfield_def_ptr
 			= &mxd_elapsed_time_record_field_defaults[0];
 
 MX_EXPORT mx_status_type
+mxd_elapsed_time_initialize_type( long type )
+{
+	/* Nothing needed here. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_elapsed_time_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_elapsed_time_create_record_structures()";
+	const char fname[] = "mxd_elapsed_time_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_ELAPSED_TIME_MOTOR *elapsed_time;
@@ -116,12 +127,12 @@ mxd_elapsed_time_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
 
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mx_motor_finish_record_initialization( record );
+	status = mx_motor_finish_record_initialization( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -158,14 +169,33 @@ mxd_elapsed_time_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_elapsed_time_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_elapsed_time_print_motor_structure()";
+	const char fname[] = "mxd_elapsed_time_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_ELAPSED_TIME_MOTOR *elapsed_time;
 	double position;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -192,10 +222,10 @@ mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name           = %s\n", record->name);
 
-	mx_status = mx_motor_get_position( record, &position );
+	status = mx_motor_get_position( record, &position );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	fprintf(file, "  position       = %g %s (%g sec)\n",
 		motor->position, motor->units,
@@ -219,6 +249,30 @@ mxd_elapsed_time_print_motor_structure( FILE *file, MX_RECORD *record )
 		motor->positive_limit, motor->units,
 		motor->raw_positive_limit.analog );
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_elapsed_time_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_elapsed_time_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_elapsed_time_open( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_elapsed_time_close( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -246,17 +300,17 @@ mxd_elapsed_time_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_elapsed_time_move_absolute()";
+	const char fname[] = "mxd_elapsed_time_move_absolute()";
 
 	MX_ELAPSED_TIME_MOTOR *elapsed_time_motor;
 	double current_time, requested_time, time_since_reset;
 	int interrupt;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	elapsed_time_motor = (MX_ELAPSED_TIME_MOTOR *)
 			motor->record->record_type_struct;
 
-	mx_status = MX_SUCCESSFUL_RESULT;
+	status = MX_SUCCESSFUL_RESULT;
 
 	current_time = mxd_elapsed_time_get_current_time();
 
@@ -295,8 +349,7 @@ mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 
 			if ( interrupt == MXF_USER_INT_ABORT ) {
 
-				mx_status =
-					mx_error_quiet( MXE_INTERRUPTED, fname,
+				status = mx_error_quiet(MXE_INTERRUPTED,fname,
 					"Wait for time %g was interrupted",
 					requested_time );
 
@@ -304,8 +357,7 @@ mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 			}
 			if ( interrupt == MXF_USER_INT_PAUSE ) {
 
-				mx_status =
-					mx_error( MXE_PAUSE_REQUESTED, fname,
+				status = mx_error(MXE_PAUSE_REQUESTED, fname,
 					"Pause requested by user." );
 
 				break;      /* Exit the while() loop. */
@@ -316,7 +368,7 @@ mxd_elapsed_time_move_absolute( MX_MOTOR *motor )
 	}
 	motor->raw_position.analog = time_since_reset;
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
@@ -380,6 +432,12 @@ mxd_elapsed_time_negative_limit_hit( MX_MOTOR *motor )
 {
 	motor->negative_limit_hit = FALSE;
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_elapsed_time_find_home_position( MX_MOTOR *motor )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

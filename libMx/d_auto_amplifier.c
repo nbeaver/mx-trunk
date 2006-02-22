@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_auto_amplifier_record_field_defaults[] = {
 	MX_AUTO_AMPLIFIER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_auto_amplifier_num_record_fields
+long mxd_auto_amplifier_num_record_fields
 	= sizeof( mxd_auto_amplifier_record_field_defaults )
 	/ sizeof( mxd_auto_amplifier_record_field_defaults[0] );
 
@@ -67,7 +67,7 @@ mxd_auto_amplifier_get_pointers( MX_AUTOSCALE *autoscale,
 			MX_AUTO_AMPLIFIER **auto_amplifier,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_auto_amplifier_get_pointers()";
+	const char fname[] = "mxd_auto_amplifier_get_pointers()";
 
 	if ( autoscale == (MX_AUTOSCALE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -110,7 +110,7 @@ mxd_auto_amplifier_initialize_type( long record_type )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_auto_amplifier_create_record_structures()";
+	const char fname[] = "mxd_auto_amplifier_create_record_structures()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_AMPLIFIER *auto_amplifier;
@@ -150,7 +150,7 @@ mxd_auto_amplifier_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[]
+	const char fname[]
 		= "mxd_auto_amplifier_finish_record_initialization()";
 
 	MX_AUTOSCALE *autoscale;
@@ -256,7 +256,7 @@ mxd_auto_amplifier_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_auto_amplifier_open()";
+	const char fname[] = "mxd_auto_amplifier_open()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTO_AMPLIFIER *auto_amplifier;
@@ -333,11 +333,10 @@ mxd_auto_amplifier_dummy_function( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_read_monitor()";
+	const char fname[] = "mxd_auto_amplifier_read_monitor()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
-	long offset_index;
-	int32_t scaler_value, offset;
+	long scaler_value, offset, offset_index;
 	double offset_per_second, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -353,7 +352,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, (long) scaler_value));
+	MX_DEBUG( 2,("%s: scaler_value = %ld", fname, scaler_value));
 	MX_DEBUG( 2,("%s: present_amplifier_gain = %g",
 			fname, auto_amplifier->present_amplifier_gain));
 
@@ -376,8 +375,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
 		"illegal_value of %ld.  The allowed values are (0 - %lu)",
-			offset_index,
-			(unsigned long) autoscale->num_monitor_offsets );
+			offset_index, autoscale->num_monitor_offsets );
 	}
 
 	offset_per_second = autoscale->monitor_offset_array[offset_index];
@@ -396,11 +394,11 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 		offset = 0L;
 	}
 
-	MX_DEBUG( 2,("%s: offset = %ld", fname, (long) offset));
+	MX_DEBUG( 2,("%s: offset = %ld", fname, offset));
 
 	scaler_value -= offset;
 
-	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, (long) scaler_value));
+	MX_DEBUG( 2,("%s: new scaler_value = %ld", fname, scaler_value));
 
 	autoscale->monitor_value = scaler_value;
 
@@ -410,7 +408,7 @@ mxd_auto_amplifier_read_monitor( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_get_change_request()";
+	const char fname[] = "mxd_auto_amplifier_get_change_request()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
@@ -525,7 +523,7 @@ mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_change_control()";
+	const char fname[] = "mxd_auto_amplifier_change_control()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double old_gain, new_gain;
@@ -540,7 +538,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 	old_gain = auto_amplifier->present_amplifier_gain;
 
 	MX_DEBUG( 2,("%s: change_control = %d",
-			fname, (int) autoscale->change_control));
+			fname, autoscale->change_control));
 
 	switch( autoscale->change_control ) {
 	case MXF_AUTO_NO_CHANGE:
@@ -575,7 +573,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal value %d for change control.",
-			(int) autoscale->change_control );
+			autoscale->change_control );
 	}
 
 	MX_DEBUG( 2,("%s: Changing gain from %g to %g",
@@ -594,7 +592,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_get_offset_index()";
+	const char fname[] = "mxd_auto_amplifier_get_offset_index()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
@@ -623,8 +621,7 @@ mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The offset_index for monitor_value_array has an "
 		"illegal_value of %ld.  The allowed values are (0 - %lu)",
-			offset_index,
-			(unsigned long) autoscale->num_monitor_offsets );
+			offset_index, autoscale->num_monitor_offsets );
 	}
 
 	autoscale->monitor_offset_index = offset_index;
@@ -635,11 +632,11 @@ mxd_auto_amplifier_get_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_set_offset_index()";
+	const char fname[] = "mxd_auto_amplifier_set_offset_index()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	double gain;
-	uint32_t offset_index;
+	unsigned long offset_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_amplifier_get_pointers( autoscale,
@@ -655,8 +652,7 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested offset_index has an "
 		"illegal_value of %lu.  The allowed values are (0 - %lu)",
-			(unsigned long) offset_index,
-			(unsigned long) autoscale->num_monitor_offsets );
+			offset_index, autoscale->num_monitor_offsets );
 	}
 
 	gain = auto_amplifier->gain_range[0] * pow(10.0, (double) offset_index);
@@ -674,7 +670,7 @@ mxd_auto_amplifier_set_offset_index( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_get_parameter()";
+	const char fname[] = "mxd_auto_amplifier_get_parameter()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	mx_status_type mx_status;
@@ -690,7 +686,7 @@ mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:
@@ -704,7 +700,7 @@ mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 MX_EXPORT mx_status_type
 mxd_auto_amplifier_set_parameter( MX_AUTOSCALE *autoscale )
 {
-	static const char fname[] = "mxd_auto_amplifier_set_parameter()";
+	const char fname[] = "mxd_auto_amplifier_set_parameter()";
 
 	MX_AUTO_AMPLIFIER *auto_amplifier;
 	mx_status_type mx_status;
@@ -720,7 +716,7 @@ mxd_auto_amplifier_set_parameter( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	default:

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,7 @@ MX_API mx_status_type mxd_databox_mcs_start_sequence( MX_RECORD *mcs_record,
 extern MX_RECORD_FUNCTION_LIST mxd_databox_mcs_record_function_list;
 extern MX_MCS_FUNCTION_LIST mxd_databox_mcs_mcs_function_list;
 
-extern mx_length_type mxd_databox_mcs_num_record_fields;
+extern long mxd_databox_mcs_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_databox_mcs_rfield_def_ptr;
 
 #define MXD_DATABOX_MCS_STANDARD_FIELDS \

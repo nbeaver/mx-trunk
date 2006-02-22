@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *kx_dp702_record;
-	int32_t camera_number;
+	int camera_number;
 } MX_PANASONIC_KX_DP702_PTZ;
 
 #define MXD_PANASONIC_KX_DP702_PTZ_STANDARD_FIELDS \
@@ -32,7 +32,7 @@ typedef struct {
 			offsetof(MX_PANASONIC_KX_DP702_PTZ, kx_dp702_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "camera_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "camera_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT,offsetof(MX_PANASONIC_KX_DP702_PTZ, camera_number),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -52,7 +52,7 @@ MX_API mx_status_type mxd_panasonic_kx_dp702_set_parameter(
 extern MX_RECORD_FUNCTION_LIST mxd_panasonic_kx_dp702_record_function_list;
 extern MX_PAN_TILT_ZOOM_FUNCTION_LIST mxd_panasonic_kx_dp702_ptz_function_list;
 
-extern mx_length_type mxd_panasonic_kx_dp702_num_record_fields;
+extern long mxd_panasonic_kx_dp702_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_panasonic_kx_dp702_rfield_def_ptr;
 
 #endif /* __D_PANASONIC_KX_DP702_H__ */

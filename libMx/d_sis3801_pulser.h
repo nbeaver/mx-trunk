@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,18 +30,17 @@ typedef struct {
 
 	MX_RECORD *vme_record;
 	char address_mode_name[ MXU_VME_ADDRESS_MODE_LENGTH + 1 ];
-	uint32_t address_mode;
+	unsigned long crate_number;
+	unsigned long address_mode;
+	unsigned long base_address;
 
-	uint32_t crate_number;
-	mx_hex_type base_address;
+	unsigned long sis3801_flags;
+	unsigned long control_input_mode;
 
-	mx_hex_type sis3801_flags;
-	mx_hex_type control_input_mode;
+	unsigned long module_id;
+	unsigned long firmware_version;
 
-	mx_hex_type module_id;
-	mx_hex_type firmware_version;
-
-	uint32_t maximum_prescale_factor;
+	unsigned long maximum_prescale_factor;
 
 	MX_CLOCK_TICK finish_time;
 } MX_SIS3801_PULSER;
@@ -56,7 +55,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, address_mode_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -80,7 +79,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801_PULSER, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "maximum_prescale_factor", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "maximum_prescale_factor", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_SIS3801_PULSER, maximum_prescale_factor), \
 	{0}, NULL, MXFF_READ_ONLY }
@@ -104,7 +103,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_sis3801_pulser_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST 
 		mxd_sis3801_pulser_pulse_generator_function_list;
 
-extern mx_length_type mxd_sis3801_pulser_num_record_fields;
+extern long mxd_sis3801_pulser_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_sis3801_pulser_rfield_def_ptr;
 
 #endif /* __D_SIS3801_PULSER_H__ */

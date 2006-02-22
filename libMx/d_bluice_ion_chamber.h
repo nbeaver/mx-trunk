@@ -5,7 +5,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_bluice_ion_chamber_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_bluice_ion_chamber_analog_input_function_list;
 
-extern mx_length_type mxd_bluice_ion_chamber_num_record_fields;
+extern long mxd_bluice_ion_chamber_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_bluice_ion_chamber_rfield_def_ptr;
 
 #define MXD_BLUICE_ION_CHAMBER_STANDARD_FIELDS \

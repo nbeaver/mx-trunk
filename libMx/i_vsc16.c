@@ -42,7 +42,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_vsc16_record_field_defaults[] = {
 	MXI_VSC16_STANDARD_FIELDS
 };
 
-mx_length_type mxi_vsc16_num_record_fields
+long mxi_vsc16_num_record_fields
 		= sizeof( mxi_vsc16_record_field_defaults )
 			/ sizeof( mxi_vsc16_record_field_defaults[0] );
 

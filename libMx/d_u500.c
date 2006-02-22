@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -81,7 +81,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_u500_record_field_defaults[] = {
 	MXD_U500_STANDARD_FIELDS
 };
 
-mx_length_type mxd_u500_num_record_fields
+long mxd_u500_num_record_fields
 		= sizeof( mxd_u500_record_field_defaults )
 			/ sizeof( mxd_u500_record_field_defaults[0] );
 

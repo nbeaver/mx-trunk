@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,14 +23,14 @@ typedef struct {
 	MX_RECORD *scipe_server_record;
 	char scipe_amplifier_name[ MX_SCIPE_OBJECT_NAME_LENGTH + 1 ];
 
-	double  bias_voltage;
-	int32_t filter_type;
-	double  lowpass_filter_3db_point;
-	double  highpass_filter_3db_point;
-	int32_t reset_filter;
-	int32_t gain_mode;
-	int32_t invert_signal;
-	int32_t blank_output;
+	double bias_voltage;
+	int    filter_type;
+	double lowpass_filter_3db_point;
+	double highpass_filter_3db_point;
+	int    reset_filter;
+	int    gain_mode;
+	int    invert_signal;
+	int    blank_output;
 } MX_SCIPE_AMPLIFIER;
 
 #define MXLV_SCIPE_AMPLIFIER_BIAS_VOLTAGE		0
@@ -62,7 +62,7 @@ MX_API mx_status_type mxd_scipe_amplifier_set_parameter(
 extern MX_RECORD_FUNCTION_LIST mxd_scipe_amplifier_record_function_list;
 extern MX_AMPLIFIER_FUNCTION_LIST mxd_scipe_amplifier_amplifier_function_list;
 
-extern mx_length_type mxd_scipe_amplifier_num_record_fields;
+extern long mxd_scipe_amplifier_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr;
 
 #define MXD_SCIPE_AMPLIFIER_STANDARD_FIELDS \
@@ -82,7 +82,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr;
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_FILTER_TYPE, -1, \
-  		"filter_type", MXFT_INT32, NULL, 0, {0}, \
+  		"filter_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, filter_type), \
 	{0}, NULL, 0}, \
   \
@@ -99,21 +99,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr;
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_RESET_FILTER, -1, \
-	  	"reset_filter", MXFT_INT32, NULL, 0, {0}, \
+	  	"reset_filter", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, reset_filter), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_SCIPE_AMPLIFIER_GAIN_MODE, -1, "gain_mode", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCIPE_AMPLIFIER_GAIN_MODE, -1, "gain_mode", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, gain_mode), \
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_INVERT_SIGNAL, -1, \
-	  	"invert_signal", MXFT_INT32, NULL, 0, {0}, \
+	  	"invert_signal", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, invert_signal), \
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_BLANK_OUTPUT, -1, \
-	  	"blank_output", MXFT_INT32, NULL, 0, {0}, \
+	  	"blank_output", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, blank_output), \
 	{0}, NULL, 0}
 

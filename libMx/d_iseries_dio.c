@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_iseries_din_record_field_defaults[] = {
 	MXD_ISERIES_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_iseries_din_num_record_fields
+long mxd_iseries_din_num_record_fields
 		= sizeof( mxd_iseries_din_record_field_defaults )
 			/ sizeof( mxd_iseries_din_record_field_defaults[0] );
 
@@ -73,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_iseries_dout_record_field_defaults[] = {
 	MXD_ISERIES_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_iseries_dout_num_record_fields
+long mxd_iseries_dout_num_record_fields
 		= sizeof( mxd_iseries_dout_record_field_defaults )
 			/ sizeof( mxd_iseries_dout_record_field_defaults[0] );
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,8 +61,8 @@ typedef struct {
 
 typedef struct {
 	MX_RECORD *vme_record;
-	uint32_t crate_number;
-	mx_hex_type base_address;
+	unsigned long crate_number;
+	unsigned long base_address;
 } MX_VME58_PORTIO;
 
 typedef struct {
@@ -73,8 +73,8 @@ typedef struct {
 		MX_VME58_ESRF esrf;
 	} u;
 
-	int32_t controller_type;
-	int32_t num_axes;
+	int controller_type;
+	int num_axes;
 
 	MX_RECORD *motor_array[MX_MAX_VME58_AXES];
 
@@ -86,11 +86,11 @@ typedef struct {
 } MX_VME58;
 
 #define MXI_VME58_COMMON_STANDARD_FIELDS \
-  {-1, -1, "controller_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "controller_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, controller_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_axes", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_axes", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, num_axes), \
 	{0}, NULL, 0}
 
@@ -104,7 +104,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, u.portio.crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -121,12 +121,12 @@ MX_API mx_status_type mxi_vme58_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_vme58_record_function_list;
 
-extern mx_length_type mxi_vme58_num_record_fields;
+extern long mxi_vme58_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vme58_rfield_def_ptr;
 
 #if HAVE_VME58_ESRF
 
-extern mx_length_type mxi_vme58_esrf_num_record_fields;
+extern long mxi_vme58_esrf_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vme58_esrf_rfield_def_ptr;
 
 #endif /* HAVE_VME58_ESRF */

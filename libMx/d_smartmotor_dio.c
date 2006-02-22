@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_din_record_field_defaults[] = {
 	MXD_SMARTMOTOR_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_smartmotor_din_num_record_fields
+long mxd_smartmotor_din_num_record_fields
 		= sizeof( mxd_smartmotor_din_record_field_defaults )
 			/ sizeof( mxd_smartmotor_din_record_field_defaults[0] );
 
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_dout_record_field_defaults[] = {
 	MXD_SMARTMOTOR_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_smartmotor_dout_num_record_fields
+long mxd_smartmotor_dout_num_record_fields
 		= sizeof( mxd_smartmotor_dout_record_field_defaults )
 			/ sizeof( mxd_smartmotor_dout_record_field_defaults[0] );
 
@@ -457,11 +457,9 @@ mxd_smartmotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	port_name = smartmotor_doutput->port_name;
 
 	if ( port_name[0] == 'U' ) {
-		sprintf( command, "%sI=%lu", port_name,
-					(unsigned long) doutput->value );
+		sprintf( command, "%sI=%lu", port_name, doutput->value );
 	} else {
-		sprintf( command, "DOUT%s,%lu", port_name,
-					(unsigned long) doutput->value );
+		sprintf( command, "DOUT%s,%lu", port_name, doutput->value );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,

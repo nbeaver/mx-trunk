@@ -79,7 +79,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pcmotion32_record_field_defaults[] = {
 	MXD_PCMOTION32_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pcmotion32_num_record_fields
+long mxd_pcmotion32_num_record_fields
 		= sizeof( mxd_pcmotion32_record_field_defaults )
 			/ sizeof( mxd_pcmotion32_record_field_defaults[0] );
 

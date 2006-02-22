@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +30,7 @@ typedef struct {
 	double gain;
 	double time_constant;
 
-	int32_t sca_mode;
+	int sca_mode;
 } MX_SCA;
 
 /* SCA modes */
@@ -65,7 +65,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCA, time_constant), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
-  {MXLV_SCA_MODE, -1, "sca_mode", MXFT_INT32, NULL, 0, {0}, \
+  {MXLV_SCA_MODE, -1, "sca_mode", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCA, sca_mode), \
 	{0}, NULL, MXFF_IN_SUMMARY}
 

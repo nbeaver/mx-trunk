@@ -51,7 +51,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_linux_parport_in_record_field_defaults[] = {
 	MXD_LINUX_PARPORT_IN_STANDARD_FIELDS
 };
 
-mx_length_type mxd_linux_parport_in_num_record_fields
+long mxd_linux_parport_in_num_record_fields
 		= sizeof( mxd_linux_parport_in_record_field_defaults )
 		  / sizeof( mxd_linux_parport_in_record_field_defaults[0] );
 
@@ -78,7 +78,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_linux_parport_out_record_field_defaults[] = {
 	MXD_LINUX_PARPORT_OUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_linux_parport_out_num_record_fields
+long mxd_linux_parport_out_num_record_fields
 		= sizeof( mxd_linux_parport_out_record_field_defaults )
 		  / sizeof( mxd_linux_parport_out_record_field_defaults[0] );
 

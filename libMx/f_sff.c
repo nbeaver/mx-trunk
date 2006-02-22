@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,6 @@
 #include <errno.h>
 
 #include "mx_util.h"
-#include "mx_stdint.h"
 #include "mx_array.h"
 #include "mx_driver.h"
 #include "mx_scan.h"
@@ -64,7 +63,7 @@ static mx_status_type mxdf_sff_handle_special_token(
 MX_EXPORT mx_status_type
 mxdf_sff_open( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_sff_open()";
+	const char fname[] = "mxdf_sff_open()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	int saved_errno;
@@ -112,7 +111,7 @@ mxdf_sff_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_sff_close( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_sff_close()";
+	const char fname[] = "mxdf_sff_close()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	int status, saved_errno;
@@ -178,7 +177,7 @@ mxdf_sff_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_sff_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	static const char fname[] = "mxdf_sff_add_measurement_to_datafile()";
+	const char fname[] = "mxdf_sff_add_measurement_to_datafile()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	MX_RECORD **motor_record_array;
@@ -254,7 +253,7 @@ mxdf_sff_add_measurement_to_datafile( MX_DATAFILE *datafile )
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			if ( (scan->motor_is_independent_variable)[i] ) {
 				status = fprintf( output_file, " %-10.*g",
-					(int) motor_record_array[i]->precision,
+					motor_record_array[i]->precision,
 					(scan->motor_position)[i] );
 
 				CHECK_FPRINTF_STATUS;
@@ -275,7 +274,7 @@ mxdf_sff_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			x_motor_record = scan->datafile.x_motor_array[i];
 
 			status = fprintf( output_file, " %-10.*g",
-				(int) x_motor_record->precision,
+				x_motor_record->precision,
 				scan->datafile.x_position_array[i][0] );
 
 			CHECK_FPRINTF_STATUS;
@@ -337,17 +336,17 @@ mxdf_sff_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 MX_EXPORT mx_status_type
 mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
-	long position_type, mx_length_type num_positions, void *position_array,
-	long data_type, mx_length_type num_data_points, void *data_array )
+		long position_type, long num_positions, void *position_array,
+		long data_type, long num_data_points, void *data_array )
 {
-	static const char fname[] = "mxdf_sff_add_array_to_datafile()";
+	const char fname[] = "mxdf_sff_add_array_to_datafile()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	MX_SCAN *scan;
 	FILE *output_file;
-	int32_t *int32_position_array, *int32_data_array;
+	long *long_position_array, *long_data_array;
 	double *double_position_array, *double_data_array;
-	mx_length_type i;
+	long i;
 	int status, saved_errno;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -382,42 +381,42 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 			datafile->filename );
 	}
 
-	int32_position_array = int32_data_array = NULL;
+	long_position_array = long_data_array = NULL;
 	double_position_array = double_data_array = NULL;
 
 	/* Construct data type specific array pointers. */
 
 	switch( position_type ) {
-	case MXFT_INT32:
-		int32_position_array = (void *) position_array;
+	case MXFT_LONG:
+		long_position_array = (void *) position_array;
 		break;
 	case MXFT_DOUBLE:
 		double_position_array = (void *) position_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 or MXFT_DOUBLE position arrays are supported." );
+	"Only MXFT_LONG or MXFT_DOUBLE position arrays are supported." );
 	}
 	
 	switch( data_type ) {
-	case MXFT_INT32:
-		int32_data_array = (void *) data_array;
+	case MXFT_LONG:
+		long_data_array = (void *) data_array;
 		break;
 	case MXFT_DOUBLE:
 		double_data_array = (void *) data_array;
 		break;
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"Only MXFT_INT32 or MXFT_DOUBLE data arrays are supported." );
+	"Only MXFT_LONG or MXFT_DOUBLE data arrays are supported." );
 	}
 	
 	/* Print out the current motor positions (if any). */
 
 	switch( position_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10ld",
-				(long)(int32_position_array[i]) );
+				long_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
 		}
@@ -425,7 +424,7 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_positions; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-				(int) scan->record->precision,
+				scan->record->precision,
 				double_position_array[i] );
 
 			CHECK_FPRINTF_STATUS;
@@ -436,10 +435,10 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	/* Print out the scaler measurements. */
 
 	switch( data_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( output_file, " %-10ld",
-					(long)(int32_data_array[i]) );
+					long_data_array[i] );
 
 			CHECK_FPRINTF_STATUS;
 		}
@@ -447,7 +446,7 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 	case MXFT_DOUBLE:
 		for ( i = 0; i < num_data_points; i++ ) {
 			status = fprintf( output_file, " %-10.*g",
-					(int) scan->record->precision,
+					scan->record->precision,
 					double_data_array[i] );
 
 			CHECK_FPRINTF_STATUS;
@@ -469,7 +468,7 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 static mx_status_type
 mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 {
-	static const char fname[] = "mxdf_sff_write_header()";
+	const char fname[] = "mxdf_sff_write_header()";
 
 	MX_RECORD *record_list, *record;
 	MX_DATAFILE_SFF *sff_file_struct;
@@ -694,7 +693,7 @@ static mx_status_type
 mxdf_sff_write_token_value( MX_DATAFILE *datafile,
 		FILE *output_file, char *token, MX_RECORD *record_list )
 {
-	static const char fname[] = "mxdf_sff_write_token_value()";
+	const char fname[] = "mxdf_sff_write_token_value()";
 
 	mx_status_type mx_status;
 	MX_RECORD *record;
@@ -796,7 +795,7 @@ static mx_status_type
 mxdf_sff_handle_special_token( MX_DATAFILE *datafile,
 		FILE *output_file, char *token, MX_RECORD *record_list )
 {
-	static const char fname[] = "mxdf_sff_handle_special_token()";
+	const char fname[] = "mxdf_sff_handle_special_token()";
 
 	MX_SCAN *scan;
 	MX_RECORD_FIELD *record_field;

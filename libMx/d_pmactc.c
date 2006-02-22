@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_tc_motor_record_field_defaults[] = {
 	MXD_PMAC_TC_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_tc_motor_num_record_fields
+long mxd_pmac_tc_motor_num_record_fields
 		= sizeof( mxd_pmac_tc_motor_record_field_defaults )
 			/ sizeof( mxd_pmac_tc_motor_record_field_defaults[0] );
 
@@ -103,7 +103,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_bio_motor_record_field_defaults[] = {
 	MXD_PMAC_BIO_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_bio_motor_num_record_fields
+long mxd_pmac_bio_motor_num_record_fields
 		= sizeof( mxd_pmac_bio_motor_record_field_defaults )
 			/ sizeof( mxd_pmac_bio_motor_record_field_defaults[0] );
 

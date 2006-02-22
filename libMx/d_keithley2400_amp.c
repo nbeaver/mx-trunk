@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2400_amp_record_field_defaults[] = {
 	MXD_KEITHLEY2400_AMP_STANDARD_FIELDS
 };
 
-mx_length_type mxd_keithley2400_amp_num_record_fields
+long mxd_keithley2400_amp_num_record_fields
 		= sizeof( mxd_keithley2400_amp_record_field_defaults )
 		    / sizeof( mxd_keithley2400_amp_record_field_defaults[0] );
 
@@ -217,7 +217,7 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"io_type %d for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
-			(int) keithley2400_amp->io_type,
+			keithley2400_amp->io_type,
 			amplifier->record->name );
 	}
 
@@ -313,7 +313,7 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"io_type %d for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
-			(int) keithley2400_amp->io_type,
+			keithley2400_amp->io_type,
 			amplifier->record->name );
 	}
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_API_PRIVATE mx_status_type mxd_auto_amplifier_set_parameter(
 extern MX_RECORD_FUNCTION_LIST mxd_auto_amplifier_record_function_list;
 extern MX_AUTOSCALE_FUNCTION_LIST mxd_auto_amplifier_autoscale_function_list;
 
-extern mx_length_type mxd_auto_amplifier_num_record_fields;
+extern long mxd_auto_amplifier_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_auto_amplifier_rfield_def_ptr;
 
 #endif /* _D_AUTO_AMPLIFIER_H_ */

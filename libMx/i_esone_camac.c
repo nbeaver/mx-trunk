@@ -56,7 +56,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_esone_camac_record_field_defaults[] = {
 	MXI_ESONE_CAMAC_STANDARD_FIELDS
 };
 
-mx_length_type mxi_esone_camac_num_record_fields
+long mxi_esone_camac_num_record_fields
 	= sizeof( mxi_esone_camac_record_field_defaults )
 	/ sizeof( mxi_esone_camac_record_field_defaults[0] );
 
@@ -72,7 +72,7 @@ mxi_esone_camac_get_pointers( MX_CAMAC *camac,
 			MX_ESONE_CAMAC **esone_camac,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxi_esone_camac_get_pointers()";
+	const char fname[] = "mxi_esone_camac_get_pointers()";
 
 	MX_RECORD *esone_camac_record;
 
@@ -114,7 +114,7 @@ mxi_esone_camac_get_pointers( MX_CAMAC *camac,
 MX_EXPORT mx_status_type
 mxi_esone_camac_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_esone_camac_create_record_structures()";
+	const char fname[] = "mxi_esone_camac_create_record_structures()";
 
 	MX_CAMAC *crate;
 	MX_ESONE_CAMAC *esone_camac;

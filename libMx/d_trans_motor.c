@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_trans_motor_record_field_defaults[] = {
 	MXD_TRANS_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_trans_motor_num_record_fields
+long mxd_trans_motor_num_record_fields
 		= sizeof( mxd_trans_motor_record_field_defaults )
 			/ sizeof( mxd_trans_motor_record_field_defaults[0] );
 
@@ -80,7 +80,7 @@ mxd_trans_motor_get_pointers( MX_MOTOR *motor,
 			MX_TRANSLATION_MOTOR **translation_motor,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_trans_motor_get_pointers()";
+	const char fname[] = "mxd_trans_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -104,10 +104,9 @@ mxd_trans_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_trans_motor_initialize_type( long type )
 {
-        static const char fname[] = "mxs_trans_motor_initialize_type()";
+        const char fname[] = "mxs_trans_motor_initialize_type()";
 
-        static const char
-	  field_name[NUM_TRANS_MOTOR_FIELDS][MXU_FIELD_NAME_LENGTH+1]
+        const char field_name[NUM_TRANS_MOTOR_FIELDS][MXU_FIELD_NAME_LENGTH+1]
             = {
                 "motor_record_array",
 		"position_array",
@@ -118,10 +117,10 @@ mxd_trans_motor_initialize_type( long type )
         MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
         MX_RECORD_FIELD_DEFAULTS *field;
         int i;
-        mx_length_type num_record_fields;
-	mx_length_type referenced_field_index;
-        mx_length_type num_motors_varargs_cookie;
-        mx_status_type mx_status;
+        long num_record_fields;
+	long referenced_field_index;
+        long num_motors_varargs_cookie;
+        mx_status_type status;
 
         driver = mx_get_driver_by_type( type );
 
@@ -146,7 +145,7 @@ mxd_trans_motor_initialize_type( long type )
                         driver->name );
         }
 
-        if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+        if ( driver->num_record_fields == (long *) NULL ) {
                 return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
                 "'num_record_fields' pointer for record type '%s' is NULL.",
                         driver->name );
@@ -154,29 +153,29 @@ mxd_trans_motor_initialize_type( long type )
 
 	num_record_fields = *(driver->num_record_fields);
 
-	mx_status = mx_find_record_field_defaults_index(
+        status = mx_find_record_field_defaults_index(
                         record_field_defaults, num_record_fields,
                         "num_motors", &referenced_field_index );
 
-        if ( mx_status.code != MXE_SUCCESS )
-                return mx_status;
+        if ( status.code != MXE_SUCCESS )
+                return status;
 
-	mx_status = mx_construct_varargs_cookie(
+        status = mx_construct_varargs_cookie(
                         referenced_field_index, 0, &num_motors_varargs_cookie);
 
-        if ( mx_status.code != MXE_SUCCESS )
-                return mx_status;
+        if ( status.code != MXE_SUCCESS )
+                return status;
 
         MX_DEBUG( 2,("%s: num_motors varargs cookie = %ld",
-                        fname, (long) num_motors_varargs_cookie));
+                        fname, num_motors_varargs_cookie));
 
 	for ( i = 0; i < NUM_TRANS_MOTOR_FIELDS; i++ ) {
-		mx_status = mx_find_record_field_defaults(
+		status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			field_name[i], &field );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		field->dimension[0] = num_motors_varargs_cookie;
 	}
@@ -187,7 +186,7 @@ mxd_trans_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_trans_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_trans_motor_create_record_structures()";
+	const char fname[] = "mxd_trans_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_TRANSLATION_MOTOR *trans_motor;
@@ -230,12 +229,12 @@ mxd_trans_motor_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
 
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mx_motor_finish_record_initialization( record );
+	status = mx_motor_finish_record_initialization( record );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -266,14 +265,14 @@ mxd_trans_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_trans_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_trans_motor_print_motor_structure()";
+	const char fname[] = "mxd_trans_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	MX_RECORD **motor_record_array;
 	long i, num_motors;
 	double position, move_deadband;
-	mx_status_type mx_status;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -305,9 +304,9 @@ mxd_trans_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name                 = %s\n", record->name);
 
-	mx_status = mx_motor_get_position( record, &position );
+	status = mx_motor_get_position( record, &position );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -382,20 +381,20 @@ mxd_trans_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_trans_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_motor_is_busy()";
+	const char fname[] = "mxd_trans_motor_motor_is_busy()";
 
 	MX_TRANSLATION_MOTOR *translation_motor;
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	long i, num_motors;
 	int busy;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -411,10 +410,10 @@ mxd_trans_motor_motor_is_busy( MX_MOTOR *motor )
 			motor->record->name );
 		}
 
-		mx_status = mx_motor_is_busy( child_motor_record, &busy );
+		status = mx_motor_is_busy( child_motor_record, &busy );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		/* If the child motor is busy, we are done. */
 
@@ -433,7 +432,7 @@ mxd_trans_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_move_absolute()";
+	const char fname[] = "mxd_trans_motor_move_absolute()";
 
 	MX_TRANSLATION_MOTOR *translation_motor;
 	MX_RECORD **motor_record_array;
@@ -444,13 +443,13 @@ mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 	double old_translation_position;
 	double translation_position_difference;
 	double position_sum;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -476,11 +475,11 @@ mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_get_position(
+		status = mx_motor_get_position(
 			child_motor_record, &position_array[i] );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		position_sum += position_array[i];
 	}
@@ -529,17 +528,17 @@ mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 		move_flags = MXF_MTR_NOWAIT;
 	} 
 
-	mx_status = mx_motor_array_move_absolute(
+	status = mx_motor_array_move_absolute(
 			num_motors, motor_record_array, position_array,
 			move_flags );
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trans_motor_get_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_get_position()";
+	const char fname[] = "mxd_trans_motor_get_position()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
@@ -548,13 +547,13 @@ mxd_trans_motor_get_position( MX_MOTOR *motor )
 	MX_TRANSLATION_MOTOR *translation_motor;
 	double translation_position;
 	double position_sum;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -567,11 +566,11 @@ mxd_trans_motor_get_position( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_get_position(
+		status = mx_motor_get_position(
 			child_motor_record, &position_array[i] );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		position_sum += position_array[i];
 	}
@@ -586,7 +585,7 @@ mxd_trans_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_set_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_set_position()";
+	const char fname[] = "mxd_trans_motor_set_position()";
 
 	MX_TRANSLATION_MOTOR *translation_motor;
 	MX_RECORD **motor_record_array;
@@ -597,13 +596,13 @@ mxd_trans_motor_set_position( MX_MOTOR *motor )
 	double old_translation_position;
 	double translation_position_difference;
 	double position_sum;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -629,11 +628,11 @@ mxd_trans_motor_set_position( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_get_position(
+		status = mx_motor_get_position(
 			child_motor_record, &position_array[i] );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		position_sum += position_array[i];
 	}
@@ -650,21 +649,21 @@ mxd_trans_motor_set_position( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		position_array[i] += translation_position_difference;
 
-		mx_status = mx_motor_check_position_limits( motor_record_array[i],
+		status = mx_motor_check_position_limits( motor_record_array[i],
 							position_array[i], 0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 	}
 
 	/* Now set the new positions. */
 
 	for ( i = 0; i < num_motors; i++ ) {
-		mx_status = mx_motor_set_position( motor_record_array[i],
+		status = mx_motor_set_position( motor_record_array[i],
 						position_array[i] );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -673,19 +672,19 @@ mxd_trans_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_soft_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_soft_abort()";
+	const char fname[] = "mxd_trans_motor_soft_abort()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	long i, num_motors;
 	MX_TRANSLATION_MOTOR *translation_motor;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -693,29 +692,29 @@ mxd_trans_motor_soft_abort( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_soft_abort( child_motor_record );
+		status = mx_motor_soft_abort( child_motor_record );
 	}
 
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trans_motor_immediate_abort( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_immediate_abort()";
+	const char fname[] = "mxd_trans_motor_immediate_abort()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	long i, num_motors;
 	MX_TRANSLATION_MOTOR *translation_motor;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -723,29 +722,29 @@ mxd_trans_motor_immediate_abort( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_immediate_abort( child_motor_record );
+		status = mx_motor_immediate_abort( child_motor_record );
 	}
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trans_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_positive_limit_hit()";
+	const char fname[] = "mxd_trans_motor_positive_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	long i, num_motors;
 	int limit_hit;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -755,11 +754,11 @@ mxd_trans_motor_positive_limit_hit( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_positive_limit_hit(
+		status = mx_motor_positive_limit_hit(
 					child_motor_record, &limit_hit );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		if ( limit_hit == TRUE ) {
 			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -778,20 +777,20 @@ mxd_trans_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_negative_limit_hit()";
+	const char fname[] = "mxd_trans_motor_negative_limit_hit()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	long i, num_motors;
 	int limit_hit;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	num_motors = translation_motor->num_motors;
 	motor_record_array = translation_motor->motor_record_array;
@@ -801,11 +800,11 @@ mxd_trans_motor_negative_limit_hit( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_negative_limit_hit(
+		status = mx_motor_negative_limit_hit(
 					child_motor_record, &limit_hit );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
 		if ( limit_hit == TRUE ) {
 			(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -824,7 +823,7 @@ mxd_trans_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_find_home_position( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_find_home_position()";
+	const char fname[] = "mxd_trans_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 		"Home searches for translation motor '%s' is _not_ allowed.",
@@ -834,20 +833,20 @@ mxd_trans_motor_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_constant_velocity_move()";
+	const char fname[] = "mxd_trans_motor_constant_velocity_move()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	long i, num_motors;
 	int direction;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	direction = motor->constant_velocity_move;
 
@@ -857,11 +856,11 @@ mxd_trans_motor_constant_velocity_move( MX_MOTOR *motor )
 	for ( i = 0; i < num_motors; i++ ) {
 		child_motor_record = motor_record_array[i];
 
-		mx_status = mx_motor_constant_velocity_move(
+		status = mx_motor_constant_velocity_move(
 					child_motor_record, direction );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -869,20 +868,20 @@ mxd_trans_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_get_parameter()";
+	const char fname[] = "mxd_trans_motor_get_parameter()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	long i, num_motors;
 	double sum, max_value, double_value;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
 		fname, motor->record->name,
@@ -903,10 +902,10 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_get_speed( child_motor_record,
+			status = mx_motor_get_speed( child_motor_record,
 								&double_value );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			sum += double_value;
 		}
@@ -920,10 +919,10 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_get_base_speed( child_motor_record,
+			status = mx_motor_get_base_speed( child_motor_record,
 								&double_value );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			sum += double_value;
 		}
@@ -952,11 +951,11 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_get_acceleration_distance(
+			status = mx_motor_get_acceleration_distance(
 					child_motor_record, &double_value );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			if ( double_value > max_value )
 				max_value = double_value;
@@ -971,11 +970,11 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_get_acceleration_time(
+			status = mx_motor_get_acceleration_time(
 					child_motor_record, &double_value );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			if ( double_value > max_value )
 				max_value = double_value;
@@ -1001,13 +1000,13 @@ mxd_trans_motor_get_parameter( MX_MOTOR *motor )
 		return mx_motor_default_get_parameter_handler( motor );
 	}
 
-	return mx_status;
+	return status;
 }
 
 MX_EXPORT mx_status_type
 mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_trans_motor_set_parameter()";
+	const char fname[] = "mxd_trans_motor_set_parameter()";
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
@@ -1016,13 +1015,13 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 	double start_position, end_position, time_for_move, speed;
 	double pseudomotor_difference, position_sum;
 	double *position_array, *start_position_array;
-	mx_status_type mx_status;
+	mx_status_type status;
 
-	mx_status = mxd_trans_motor_get_pointers( motor,
+	status = mxd_trans_motor_get_pointers( motor,
 						&translation_motor, fname );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	if ( status.code != MXE_SUCCESS )
+		return status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
 		fname, motor->record->name,
@@ -1041,11 +1040,11 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_set_speed( child_motor_record,
+			status = mx_motor_set_speed( child_motor_record,
 							motor->raw_speed );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1053,11 +1052,11 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_set_base_speed( child_motor_record,
+			status = mx_motor_set_base_speed( child_motor_record,
 							motor->raw_base_speed );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1065,12 +1064,12 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_set_raw_acceleration_parameters(
+			status = mx_motor_set_raw_acceleration_parameters(
 					child_motor_record,
 					motor->raw_acceleration_parameters );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1084,10 +1083,10 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_set_speed(child_motor_record, speed);
+			status = mx_motor_set_speed(child_motor_record, speed);
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1095,10 +1094,10 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_save_speed( child_motor_record );
+			status = mx_motor_save_speed( child_motor_record );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1106,10 +1105,10 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_restore_speed( child_motor_record );
+			status = mx_motor_restore_speed( child_motor_record );
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1117,12 +1116,12 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		for ( i = 0; i < num_motors; i++ ) {
 			child_motor_record = motor_record_array[i];
 
-			mx_status = mx_motor_set_synchronous_motion_mode(
+			status = mx_motor_set_synchronous_motion_mode(
 						child_motor_record,
 						motor->synchronous_motion_mode);
 
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
+			if ( status.code != MXE_SUCCESS )
+				return status;
 		}
 		break;
 
@@ -1150,10 +1149,10 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		 * 'translation_motor->saved_start_position_array'.
 		 */
 
-		mx_status = mxd_trans_motor_get_position( motor );
+		status = mxd_trans_motor_get_position( motor );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( status.code != MXE_SUCCESS )
+			return status;
 
                 MX_DEBUG( 2,
         ("%s: motor '%s' raw_saved_start_position = %g, raw_position = %g",
@@ -1202,6 +1201,6 @@ mxd_trans_motor_set_parameter( MX_MOTOR *motor )
 		return mx_motor_default_set_parameter_handler( motor );
 	}
 
-	return mx_status;
+	return status;
 }
 

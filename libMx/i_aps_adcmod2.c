@@ -42,7 +42,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_aps_adcmod2_record_field_defaults[] = {
 	MXI_APS_ADCMOD2_STANDARD_FIELDS
 };
 
-mx_length_type mxi_aps_adcmod2_num_record_fields
+long mxi_aps_adcmod2_num_record_fields
 		= sizeof( mxi_aps_adcmod2_record_field_defaults )
 			/ sizeof( mxi_aps_adcmod2_record_field_defaults[0] );
 
@@ -143,10 +143,10 @@ mxi_aps_adcmod2_print_structure( FILE *file, MX_RECORD *record )
 						aps_adcmod2->vme_record->name);
 
 	fprintf(file, "  crate_number               = %lu\n",
-				(unsigned long) aps_adcmod2->crate_number);
+						aps_adcmod2->crate_number);
 
 	fprintf(file, "  base address               = %#lx\n",
-				(unsigned long) aps_adcmod2->base_address);
+						aps_adcmod2->base_address);
 
 	fprintf(file, "  amplifiers in use          = (");
 
@@ -354,7 +354,7 @@ mxi_aps_adcmod2_latch_values( MX_APS_ADCMOD2 *aps_adcmod2 )
 	}
 
 	MX_DEBUG( 2,("%s: base_address = %#lx",
-		fname, (unsigned long) aps_adcmod2->base_address));
+		fname, aps_adcmod2->base_address));
 
 	for ( j = 0; j < MX_APS_ADCMOD2_MAX_INPUTS; j++ ) {
 		sum_array[j] = 0.0;

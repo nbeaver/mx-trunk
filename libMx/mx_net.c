@@ -281,8 +281,7 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 			MX_DEBUG( 2,
 		("%s: Marking handle as invalid, network_field '%s' (%ld,%ld)",
 				fname, nf->nfname,
-				(long) nf->record_handle,
-				(long) nf->field_handle));
+				nf->record_handle, nf->field_handle));
 
 			nf->record_handle = MX_ILLEGAL_HANDLE;
 			nf->field_handle = MX_ILLEGAL_HANDLE;
@@ -416,8 +415,8 @@ static mx_status_type
 mx_network_field_get_parameters( MX_RECORD *server_record,
 			MX_RECORD_FIELD *local_field,
 			long *datatype,
-			mx_length_type *num_dimensions,
-			mx_length_type **dimension_array,
+			long *num_dimensions,
+			long **dimension_array,
 			size_t **data_element_size_array,
 			MX_NETWORK_SERVER **server,
 			MX_NETWORK_SERVER_FUNCTION_LIST **function_list,
@@ -439,19 +438,17 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 
 	switch( *datatype ) {
 	case MXFT_STRING:
-	case MXFT_INT8:
-	case MXFT_UINT8:
-	case MXFT_INT16:
-	case MXFT_UINT16:
-	case MXFT_INT32:
-	case MXFT_UINT32:
-	case MXFT_INT64:
-	case MXFT_UINT64:
+	case MXFT_CHAR:
+	case MXFT_UCHAR:
+	case MXFT_SHORT:
+	case MXFT_USHORT:
+	case MXFT_INT:
+	case MXFT_UINT:
+	case MXFT_LONG:
+	case MXFT_ULONG:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
 	case MXFT_HEX:
-	case MXFT_CHAR:
-	case MXFT_UCHAR:
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -646,8 +643,8 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 MX_EXPORT mx_status_type
 mx_get_array( MX_NETWORK_FIELD *nf,
 		long datatype,
-		mx_length_type num_dimensions,
-		mx_length_type *dimension,
+		long num_dimensions,
+		long *dimension,
 		void *value_ptr )
 {
 	static const char fname[] = "mx_get_array()";
@@ -682,8 +679,8 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 MX_EXPORT mx_status_type
 mx_put_array( MX_NETWORK_FIELD *nf,
 		long datatype,
-		mx_length_type num_dimensions,
-		mx_length_type *dimension,
+		long num_dimensions,
+		long *dimension,
 		void *value_ptr )
 {
 	static const char fname[] = "mx_put_array()";
@@ -722,15 +719,15 @@ mx_internal_get_array( MX_RECORD *server_record,
 		char *remote_record_field_name,
 		MX_NETWORK_FIELD *nf,
 		long datatype,
-		mx_length_type num_dimensions,
-		mx_length_type *dimension,
+		long num_dimensions,
+		long *dimension,
 		void *value_ptr )
 {
 	static const char fname[] = "mx_internal_get_array()";
 
 	MX_RECORD_FIELD local_temp_record_field;
-	mx_length_type *dimension_array;
-	mx_length_type local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
+	long *dimension_array;
+	long local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
 	mx_status_type mx_status;
 
@@ -743,7 +740,7 @@ mx_internal_get_array( MX_RECORD *server_record,
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "dimension array pointer is NULL, but num_dimensions (%ld) is greater than 0",
-			(long) num_dimensions );
+			num_dimensions );
 	}
 
 	/* Setting the first element of data_element_size to be zero causes
@@ -780,15 +777,15 @@ mx_internal_put_array( MX_RECORD *server_record,
 		char *remote_record_field_name,
 		MX_NETWORK_FIELD *nf,
 		long datatype,
-		mx_length_type num_dimensions,
-		mx_length_type *dimension,
+		long num_dimensions,
+		long *dimension,
 		void *value_ptr )
 {
 	static const char fname[] = "mx_internal_put_array()";
 
 	MX_RECORD_FIELD local_temp_record_field;
-	mx_length_type *dimension_array;
-	mx_length_type local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
+	long *dimension_array;
+	long local_dimension_array[MXU_FIELD_MAX_DIMENSIONS];
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
 	mx_status_type mx_status;
 
@@ -801,7 +798,7 @@ mx_internal_put_array( MX_RECORD *server_record,
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "dimension array pointer is NULL, but num_dimensions (%ld) is greater than 0",
-			(long) num_dimensions );
+			num_dimensions );
 	}
 
 	/* Setting the first element of data_element_size to be zero causes
@@ -883,8 +880,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	mx_status_type ( *token_parser )
 		(void *, char *, MX_RECORD *, MX_RECORD_FIELD *,
 		MX_RECORD_FIELD_PARSE_STATUS *);
-	long datatype;
-	mx_length_type num_dimensions, *dimension_array;
+	long datatype, num_dimensions, *dimension_array;
 	size_t *data_element_size_array;
 	int array_is_dynamically_allocated;
 	int use_network_handles;
@@ -1184,7 +1180,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
-			(unsigned long) server->data_format );
+			server->data_format );
 	}
 
 	return mx_status;
@@ -1203,8 +1199,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
-	long datatype;
-	mx_length_type num_dimensions, *dimension_array;
+	long datatype, num_dimensions, *dimension_array;
 	size_t *data_element_size_array;
 	int array_is_dynamically_allocated;
 	int use_network_handles;
@@ -1426,7 +1421,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
-			(unsigned long) server->data_format );
+			server->data_format );
 	}
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
@@ -1543,8 +1538,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	if ( nf->server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 	"The server_record pointer for network field (%ld,%ld) '%s' is NULL.",
-			(long) nf->record_handle, (long) nf->field_handle,
-			nf->nfname );
+			nf->record_handle, nf->field_handle, nf->nfname );
 	}
 
 	server = (MX_NETWORK_SERVER *) nf->server_record->record_class_struct;
@@ -1694,10 +1688,10 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 MX_EXPORT mx_status_type
 mx_get_field_type( MX_RECORD *server_record, 
 			char *remote_record_field_name,
-			mx_length_type max_dimensions,
+			long max_dimensions,
 			long *datatype,
-			mx_length_type *num_dimensions,
-			mx_length_type *dimension_array )
+			long *num_dimensions,
+			long *dimension_array )
 {
 	static const char fname[] = "mx_get_field_type()";
 
@@ -1833,7 +1827,7 @@ mx_get_field_type( MX_RECORD *server_record,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Incomplete dimension array received.  %ld dimension values were received, "
 "but %ld dimension values were expected.",
-			(long) (message_length - 2), (long) *num_dimensions );
+			(long) (message_length - 2), *num_dimensions );
 	}
 	if ( *num_dimensions < max_dimensions ) {
 		max_dimensions = *num_dimensions;
@@ -2289,7 +2283,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 MX_EXPORT mx_status_type
 mx_network_request_data_format( MX_RECORD *server_record,
-				mx_hex_type requested_format )
+				unsigned long requested_format )
 {
 	static const char fname[] = "mx_network_request_data_format()";
 

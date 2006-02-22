@@ -624,9 +624,8 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 
 	MX_RECORD *server_record;
 	long i, num_elements;
-	long datatype;
-	mx_length_type num_dimensions;
-	mx_length_type dimension_array[MXU_FIELD_MAX_DIMENSIONS];
+	long datatype, num_dimensions;
+	long dimension_array[MXU_FIELD_MAX_DIMENSIONS];
 	char server_name[MXU_HOSTNAME_LENGTH+1];
 	char server_arguments[MXU_SERVER_ARGUMENTS_LENGTH+1];
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
@@ -710,7 +709,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 
 	MX_DEBUG( 2,
 	("datatype = %ld, num_dimensions = %ld, dimension_array[0] = %ld",
-		datatype, (long) num_dimensions, (long) dimension_array[0] ));
+			datatype, num_dimensions, dimension_array[0] ));
 
 	/* Create an MX database record of class 'net_variable' */
 
@@ -727,29 +726,23 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	case MXFT_UCHAR:
 		strlcat( description, "net_uchar ", sizeof(description) );
 		break;
-	case MXFT_INT8:
-		strlcat( description, "net_int8 ", sizeof(description) );
+	case MXFT_SHORT:
+		strlcat( description, "net_short ", sizeof(description) );
 		break;
-	case MXFT_UINT8:
-		strlcat( description, "net_uint8 ", sizeof(description) );
+	case MXFT_USHORT:
+		strlcat( description, "net_ushort ", sizeof(description) );
 		break;
-	case MXFT_INT16:
-		strlcat( description, "net_int16 ", sizeof(description) );
+	case MXFT_INT:
+		strlcat( description, "net_int ", sizeof(description) );
 		break;
-	case MXFT_UINT16:
-		strlcat( description, "net_uint16 ", sizeof(description) );
+	case MXFT_UINT:
+		strlcat( description, "net_uint ", sizeof(description) );
 		break;
-	case MXFT_INT32:
-		strlcat( description, "net_int32 ", sizeof(description) );
+	case MXFT_LONG:
+		strlcat( description, "net_long ", sizeof(description) );
 		break;
-	case MXFT_UINT32:
-		strlcat( description, "net_uint32 ", sizeof(description) );
-		break;
-	case MXFT_INT64:
-		strlcat( description, "net_int64 ", sizeof(description) );
-		break;
-	case MXFT_UINT64:
-		strlcat( description, "net_uint64 ", sizeof(description) );
+	case MXFT_ULONG:
+		strlcat( description, "net_ulong ", sizeof(description) );
 		break;
 	case MXFT_FLOAT:
 		strlcat( description, "net_float ", sizeof(description) );
@@ -772,7 +765,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	snprintf( ptr, sizeof(description) - string_length,
 			"\"\" \"\" %s %s.%s %ld %ld ",
 			server_record->name, record_name, field_name,
-			(long) num_dimensions, (long) dimension_array[0] );
+			num_dimensions, dimension_array[0] );
 
 	if ( datatype == MXFT_STRING ) {
 		num_elements = 1;
@@ -786,7 +779,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 		ptr = description + string_length;
 
 		snprintf( ptr, sizeof(description) - string_length,
-			"%ld ", (long) dimension_array[i] );
+			"%ld ", dimension_array[i] );
 
 		num_elements *= dimension_array[i];
 	}
@@ -864,7 +857,6 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char *ptr, *r_ptr;
 	char description[MXU_RECORD_DESCRIPTION_LENGTH+1];
-	size_t string_length;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked for epics_pv_name = '%s'",

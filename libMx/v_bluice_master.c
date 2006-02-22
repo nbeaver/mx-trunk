@@ -45,10 +45,10 @@ MX_RECORD_FIELD_DEFAULTS mxv_bluice_master_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_BLUICE_MASTER_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT32_VARIABLE_STANDARD_FIELDS
+	MX_INT_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_bluice_master_num_record_fields
+long mxv_bluice_master_num_record_fields
 	= sizeof( mxv_bluice_master_field_defaults )
 	/ sizeof( mxv_bluice_master_field_defaults[0] );
 

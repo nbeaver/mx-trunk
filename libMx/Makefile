@@ -100,7 +100,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_pfcu.c d_pfcu_filter_summary.c d_pfcu_shutter_timer.c \
 	d_phidget_old_stepper.c \
 	d_picomotor.c d_picomotor_aio.c d_picomotor_dio.c d_pm304.c \
-	d_pmac.c d_pmac_aio.c d_pmac_cs_axis.c d_pmac_dio.c d_pmac_mce.c \
+	d_pmac.c d_pmac_aio.c d_pmac_dio.c d_pmac_mce.c d_pmac_cs_axis.c \
 	d_pmactc.c d_pmc_mcapi.c d_pmc_mcapi_aio.c d_pmc_mcapi_dio.c \
 	d_portio_dio.c d_ptz_motor.c d_qbpm_mcai.c d_qmotor.c d_qs450.c \
 	d_record_field_motor.c \

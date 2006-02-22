@@ -49,20 +49,20 @@
 typedef struct {
 	MX_RECORD *record;
 
-	uint32_t    crate;
-	mx_hex_type address;
-	uint32_t    address_mode;
-	uint32_t    data_size;
+	unsigned long crate;
+	unsigned long address;
+	unsigned long address_mode;
+	unsigned long data_size;
 
-	uint32_t    num_values;
-	uint32_t    read_address_increment;
-	uint32_t    write_address_increment;
+	unsigned long num_values;
+	unsigned long read_address_increment;
+	unsigned long write_address_increment;
 
 	void *data_pointer;
 
-	int32_t parameter_type;
+	int parameter_type;
 
-	mx_hex_type vme_flags;
+	unsigned long vme_flags;
 } MX_VME;
 
 #define MXLV_VME_READ_ADDRESS_INCREMENT		1001
@@ -87,110 +87,110 @@ typedef struct {
 MX_API mx_status_type mx_vme_finish_record_initialization( MX_RECORD *record );
 
 MX_API mx_status_type mx_vme_in8( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint8_t *value );
 
 MX_API mx_status_type mx_vme_in16( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint16_t *value );
 
 MX_API mx_status_type mx_vme_in32( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint32_t *value );
 
 MX_API mx_status_type mx_vme_out8( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint8_t value );
 
 MX_API mx_status_type mx_vme_out16( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint16_t value );
 
 MX_API mx_status_type mx_vme_out32( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					mx_hex_type address,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address,
 					uint32_t value );
 
 MX_API mx_status_type mx_vme_multi_in8( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint8_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_in16( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint16_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_in32( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint32_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out8( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint8_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out16( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint16_t *value_array );
 
 MX_API mx_status_type mx_vme_multi_out32( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_mode,
-					uint32_t address_increment,
-					mx_hex_type address,
-					uint32_t num_values,
+					unsigned long crate,
+					unsigned long address_mode,
+					unsigned long address_increment,
+					unsigned long address,
+					unsigned long num_values,
 					uint32_t *value_array );
 
 MX_API mx_status_type mx_vme_get_read_address_increment( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t *address_increment );
+					unsigned long crate,
+					unsigned long *address_increment );
 
 MX_API mx_status_type mx_vme_set_read_address_increment( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_increment );
+					unsigned long crate,
+					unsigned long address_increment );
 
 MX_API mx_status_type mx_vme_get_write_address_increment( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t *address_increment );
+					unsigned long crate,
+					unsigned long *address_increment );
 
 MX_API mx_status_type mx_vme_set_write_address_increment( MX_RECORD *record,
-					uint32_t crate,
-					uint32_t address_increment );
+					unsigned long crate,
+					unsigned long address_increment );
 
 MX_API mx_status_type mx_vme_parse_address_mode( const char *mode_name,
-						uint32_t *address_mode );
+						unsigned long *address_mode );
 
 MX_API mx_status_type mx_vme_parse_data_size( const char *size_name,
-						uint32_t *data_size );
+						unsigned long *data_size );
 
 /* ============== Interface function prototypes ============= */
 

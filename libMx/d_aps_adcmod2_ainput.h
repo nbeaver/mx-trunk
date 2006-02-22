@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 typedef struct {
 	MX_RECORD *aps_adcmod2_record;
 
-	int32_t ainput_number;
+	int ainput_number;
 } MX_APS_ADCMOD2_AINPUT;
 
 /* Define all of the interface functions. */
@@ -37,7 +37,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_aps_adcmod2_ainput_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_aps_adcmod2_ainput_analog_input_function_list;
 
-extern mx_length_type mxd_aps_adcmod2_ainput_num_record_fields;
+extern long mxd_aps_adcmod2_ainput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr;
 
 #define MXD_APS_ADCMOD2_AINPUT_STANDARD_FIELDS \
@@ -46,7 +46,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr;
 		offsetof(MX_APS_ADCMOD2_AINPUT, aps_adcmod2_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "ainput_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "ainput_number", MXFT_INT, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_APS_ADCMOD2_AINPUT, ainput_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

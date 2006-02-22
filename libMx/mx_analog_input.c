@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -206,8 +206,8 @@ mx_analog_input_read( MX_RECORD *record, double *value_ptr )
 
 	mx_status = (*read_fn)( analog_input );
 
-	if ( analog_input->subclass == MXT_AIN_INT32 ) {
-		raw_value = (double) analog_input->raw_value.int32_value;
+	if ( analog_input->subclass == MXT_AIN_LONG ) {
+		raw_value = (double) analog_input->raw_value.long_value;
 	} else {
 		raw_value = analog_input->raw_value.double_value;
 	}
@@ -280,13 +280,13 @@ mx_analog_input_read( MX_RECORD *record, double *value_ptr )
 }
 
 MX_EXPORT mx_status_type
-mx_analog_input_read_raw_int32( MX_RECORD *record, int32_t *raw_value )
+mx_analog_input_read_raw_long( MX_RECORD *record, long *raw_value )
 {
 	static const char fname[] = "mx_analog_input_read_raw_long()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_ANALOG_INPUT_FUNCTION_LIST *function_list;
-	int32_t local_raw_value;
+	long local_raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_INPUT * );
 	mx_status_type mx_status;
 
@@ -296,7 +296,7 @@ mx_analog_input_read_raw_int32( MX_RECORD *record, int32_t *raw_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( analog_input->subclass != MXT_AIN_INT32 ) {
+	if ( analog_input->subclass != MXT_AIN_LONG ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 	"This function may only be used with analog inputs that return values "
 	"as long integers.  The record '%s' returns values as doubles so "
@@ -314,7 +314,7 @@ mx_analog_input_read_raw_int32( MX_RECORD *record, int32_t *raw_value )
 
 	mx_status = (*read_fn)( analog_input );
 
-	local_raw_value = analog_input->raw_value.int32_value;
+	local_raw_value = analog_input->raw_value.long_value;
 
 	analog_input->value = analog_input->offset + analog_input->scale
 					* (double) local_raw_value;

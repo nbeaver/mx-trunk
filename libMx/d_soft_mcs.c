@@ -60,7 +60,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_mcs_record_field_defaults[] = {
 	MXD_SOFT_MCS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_mcs_num_record_fields
+long mxd_soft_mcs_num_record_fields
 		= sizeof( mxd_soft_mcs_record_field_defaults )
 			/ sizeof( mxd_soft_mcs_record_field_defaults[0] );
 
@@ -115,9 +115,9 @@ mxd_soft_mcs_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_scalers_varargs_cookie;
-	mx_length_type maximum_num_measurements_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_scalers_varargs_cookie;
+	long maximum_num_measurements_varargs_cookie;
 	mx_status_type status;
 
 	status = mx_mcs_initialize_type( record_type,
@@ -246,8 +246,7 @@ mxd_soft_mcs_start( MX_MCS *mcs )
 
 	MX_DEBUG( 2,
 		("%s: measurement_time = %g seconds, num_measurements = %lu",
-		fname, mcs->measurement_time,
-		(unsigned long) mcs->current_num_measurements));
+		fname, mcs->measurement_time, mcs->current_num_measurements));
 
 	MX_DEBUG( 2,
 	("%s: total counting time = %g seconds, (%lu, %lu) in clock_ticks.",
@@ -371,16 +370,15 @@ mxd_soft_mcs_read_measurement( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', measurement_index = %lu",
-		fname, mcs->record->name,
-		(unsigned long) mcs->measurement_index));
+	MX_DEBUG( 2,("%s invoked for MCS '%s', measurement_index = %ld",
+		fname, mcs->record->name, mcs->measurement_index));
 
 	for ( i = 0; i < mcs->current_num_scalers; i++ ) {
 		mcs->measurement_data[i]
 			= mcs->data_array[i][ mcs->measurement_index ];
 
 		MX_DEBUG( 2,("%s: mcs->measurement_data[%lu] = %ld",
-			fname, i, (long) mcs->measurement_data[i]));
+			fname, i, mcs->measurement_data[i]));
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -414,7 +412,7 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
 		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
-			fname, (unsigned long) mcs->current_num_measurements));
+			fname, mcs->current_num_measurements));
 
 	} else {
 		return mx_mcs_default_get_parameter_handler( mcs );
@@ -458,7 +456,7 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 	} else if ( mcs->parameter_type == MXLV_MCS_CURRENT_NUM_MEASUREMENTS ){
 
 		MX_DEBUG( 2,("%s: MCS number of measurements = %lu",
-			fname, (unsigned long) mcs->current_num_measurements));
+			fname, mcs->current_num_measurements));
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
 

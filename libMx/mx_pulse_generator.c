@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -136,8 +136,7 @@ mx_pulse_generator_initialize( MX_RECORD *record )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record,
-				mx_bool_type *busy )
+mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record, int *busy )
 {
 	static const char fname[] = "mx_pulse_generator_is_busy()";
 
@@ -232,7 +231,7 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int32_t *mode )
+mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int *mode )
 {
 	static const char fname[] = "mx_pulse_generator_get_mode()";
 
@@ -269,7 +268,7 @@ mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int32_t *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, int32_t mode )
+mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, int mode )
 {
 	static const char fname[] = "mx_pulse_generator_set_mode()";
 
@@ -444,7 +443,7 @@ mx_pulse_generator_set_pulse_width( MX_RECORD *pulse_generator_record,
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_get_num_pulses( MX_RECORD *pulse_generator_record,
-					uint32_t *num_pulses )
+					unsigned long *num_pulses )
 {
 	static const char fname[] = "mx_pulse_generator_get_num_pulses()";
 
@@ -482,7 +481,7 @@ mx_pulse_generator_get_num_pulses( MX_RECORD *pulse_generator_record,
 
 MX_EXPORT mx_status_type
 mx_pulse_generator_set_num_pulses( MX_RECORD *pulse_generator_record,
-					uint32_t num_pulses )
+					unsigned long num_pulses )
 {
 	static const char fname[] = "mx_pulse_generator_set_num_pulses()";
 
@@ -606,7 +605,7 @@ mx_pulse_generator_default_get_parameter_handler(
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-			(int) pulse_generator->parameter_type,
+			pulse_generator->parameter_type,
 			pulse_generator->record->name );
 	}
 
@@ -635,7 +634,7 @@ mx_pulse_generator_default_set_parameter_handler(
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
-			(int) pulse_generator->parameter_type,
+			pulse_generator->parameter_type,
 			pulse_generator->record->name );
 	}
 

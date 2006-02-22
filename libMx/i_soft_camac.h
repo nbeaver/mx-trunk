@@ -23,13 +23,12 @@ MX_API mx_status_type mxi_scamac_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_scamac_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxi_scamac_get_lam_status( MX_CAMAC *crate,
-							int32_t *lam_n );
+MX_API mx_status_type mxi_scamac_get_lam_status( MX_CAMAC *crate, int *lam_n );
 MX_API mx_status_type mxi_scamac_controller_command( MX_CAMAC *crate,
-							int32_t command );
+								int command );
 MX_API mx_status_type mxi_scamac_camac( MX_CAMAC *crate,
-		int32_t slot, int32_t subaddress, int32_t function_code,
-		int32_t *data, int32_t *Q, int32_t *X );
+		int slot, int subaddress, int function_code,
+		int32_t *data, int *Q, int *X );
 
 typedef struct {
 	FILE *logfile;
@@ -39,7 +38,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_scamac_record_function_list;
 extern MX_CAMAC_FUNCTION_LIST mxi_scamac_camac_function_list;
 
-extern mx_length_type mxi_scamac_num_record_fields;
+extern long mxi_scamac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_scamac_record_field_def_ptr;
 
 #define MXI_SCAMAC_STANDARD_FIELDS \

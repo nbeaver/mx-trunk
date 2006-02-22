@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sr630_ainput_rf_defaults[] = {
 	MXD_SR630_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_sr630_ainput_num_record_fields
+long mxd_sr630_ainput_num_record_fields
 		= sizeof( mxd_sr630_ainput_rf_defaults )
 		  / sizeof( mxd_sr630_ainput_rf_defaults[0] );
 

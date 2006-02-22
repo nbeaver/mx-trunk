@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -76,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_cryostream600_motor_recfield_defaults[] = {
 	MXD_CRYOSTREAM600_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_cryostream600_motor_num_record_fields
+long mxd_cryostream600_motor_num_record_fields
 		= sizeof( mxd_cryostream600_motor_recfield_defaults )
 		/ sizeof( mxd_cryostream600_motor_recfield_defaults[0] );
 
@@ -130,7 +130,7 @@ mxd_cryostream600_motor_create_record_structures( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
-	mx_length_type dimension[2];
+	long dimension[2];
 	size_t dimension_size[2];
 
 	/* Allocate memory for the necessary structures. */
@@ -183,7 +183,7 @@ mxd_cryostream600_motor_create_record_structures( MX_RECORD *record )
 	if ( cryostream600_motor->response_token_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 	"Ran out of memory trying to allocate a %ld by %ld string array.",
-		(long) dimension[0], (long) dimension[1] );
+		dimension[0], dimension[1] );
 	}
 
         return MX_SUCCESSFUL_RESULT;
@@ -250,7 +250,7 @@ MX_EXPORT mx_status_type
 mxd_cryostream600_motor_delete_record( MX_RECORD *record )
 {
 	MX_CRYOSTREAM600_MOTOR *cryostream600_motor;
-	mx_length_type dimension[2];
+	long dimension[2];
 	size_t dimension_size[2];
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -699,7 +699,7 @@ mxd_cryostream600_motor_wait_for_response( MX_RECORD *rs232_record,
 		= "mxd_cryostream600_motor_wait_for_response()";
 
 	int i, max_retries;
-	uint32_t num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	unsigned long wait_ms;
 	mx_status_type mx_status;
 

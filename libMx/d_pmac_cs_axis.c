@@ -81,7 +81,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pmac_cs_axis_record_field_defaults[] = {
 	MXD_PMAC_CS_AXIS_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pmac_cs_axis_num_record_fields
+long mxd_pmac_cs_axis_num_record_fields
 		= sizeof( mxd_pmac_cs_axis_record_field_defaults )
 			/ sizeof( mxd_pmac_cs_axis_record_field_defaults[0] );
 
@@ -216,7 +216,7 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_PMAC_COORDINATE_SYSTEM_AXIS *axis;
-	int32_t motor_steps;
+	long motor_steps;
 	double position, backlash;
 	double negative_limit, positive_limit, move_deadband;
 	mx_status_type mx_status;
@@ -260,7 +260,7 @@ mxd_pmac_cs_axis_print_structure( FILE *file, MX_RECORD *record )
 			* (double) motor_steps;
 	
 	fprintf(file, "  position       = %ld steps (%g %s)\n",
-			(long) motor_steps, position, motor->units);
+			motor_steps, position, motor->units);
 	fprintf(file, "  scale          = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset         = %g %s.\n",
@@ -731,10 +731,10 @@ mxd_pmac_cs_axis_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_pmac_cs_axis_simultaneous_start( mx_length_type num_motor_records,
+mxd_pmac_cs_axis_simultaneous_start( int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
-				mx_hex_type flags )
+				int flags )
 {
 	static const char fname[] = "mxd_pmac_cs_axis_simultaneous_start()";
 
@@ -1149,7 +1149,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	char response[100];
 	int num_items;
 	long long_value;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double double_value;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -1182,7 +1182,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 		return mx_status;
 
 	switch( variable_type ) {
-	case MXFT_INT32:
+	case MXFT_LONG:
 		num_items = sscanf( response, "%ld", &long_value );
 
 		if ( num_items != 1 ) {
@@ -1193,9 +1193,9 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 				pmac->record->name, axis->card_number,
 				command_buffer, response );
 		}
-		int32_ptr = (int32_t *) variable_ptr;
+		long_ptr = (long *) variable_ptr;
 
-		*int32_ptr = long_value;
+		*long_ptr = long_value;
 		break;
 	case MXFT_DOUBLE:
 		num_items = sscanf( response, "%lg", &double_value );
@@ -1215,7 +1215,7 @@ mxd_pmac_cs_axis_get_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1236,7 +1236,7 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
-	int32_t *int32_ptr;
+	long *long_ptr;
 	double *double_ptr;
 	size_t buffer_used, buffer_left;
 	mx_status_type mx_status;
@@ -1269,10 +1269,10 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 	ptr = command_buffer + buffer_used;
 
 	switch( variable_type ) {
-	case MXFT_INT32:
-		int32_ptr = (int32_t *) variable_ptr;
+	case MXFT_LONG:
+		long_ptr = (long *) variable_ptr;
 
-		snprintf( ptr, buffer_left, "%ld", (long) *int32_ptr );
+		snprintf( ptr, buffer_left, "%ld", *long_ptr );
 		break;
 	case MXFT_DOUBLE:
 		double_ptr = (double *) variable_ptr;
@@ -1281,7 +1281,7 @@ mxd_pmac_cs_axis_set_variable( MX_PMAC_COORDINATE_SYSTEM_AXIS *axis,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Only MXFT_INT32 and MXFT_DOUBLE are supported." );
+		"Only MXFT_LONG and MXFT_DOUBLE are supported." );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command_buffer,

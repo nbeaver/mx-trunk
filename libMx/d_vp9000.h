@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,19 +25,19 @@
 
 typedef struct {
 	MX_RECORD *interface_record;
-	int32_t controller_number;
-	int32_t motor_number;
-	int32_t vp9000_speed;
-	int32_t vp9000_acceleration;
-	mx_hex_type vp9000_flags;
+	int controller_number;
+	int motor_number;
+	long vp9000_speed;
+	long vp9000_acceleration;
+	unsigned long vp9000_flags;
 
-	mx_bool_type motor_is_moving;
-	int32_t last_move_direction;
+	int motor_is_moving;
+	long last_move_direction;
 
-	mx_bool_type positive_limit_latch;
-	mx_bool_type negative_limit_latch;
+	int positive_limit_latch;
+	int negative_limit_latch;
 
-	int32_t last_start_position;
+	long last_start_position;
 	time_t last_start_time;
 } MX_VP9000_MOTOR;
 
@@ -63,7 +63,7 @@ MX_API mx_status_type mxd_vp9000_find_home_position( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_vp9000_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_vp9000_motor_function_list;
 
-extern mx_length_type mxd_vp9000_num_record_fields;
+extern long mxd_vp9000_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_vp9000_rfield_def_ptr;
 
 #define MXD_VP9000_STANDARD_FIELDS \
@@ -72,19 +72,19 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vp9000_rfield_def_ptr;
 		offsetof(MX_VP9000_MOTOR, interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "controller_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "vp9000_speed", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "vp9000_speed", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, vp9000_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "vp9000_acceleration", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "vp9000_acceleration", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, vp9000_acceleration), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

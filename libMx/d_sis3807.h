@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,9 +25,9 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *sis3807_record;
-	int32_t      channel_number;
-	mx_bool_type invert_output;
-	mx_hex_type  sis3807_flags;
+	int channel_number;
+	int invert_output;
+	unsigned long sis3807_flags;
 
 	MX_CLOCK_TICK finish_time;
 } MX_SIS3807_PULSER;
@@ -37,11 +37,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, sis3807_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "invert_output", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "invert_output", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, invert_output), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -64,7 +64,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_sis3807_record_function_list;
 extern MX_PULSE_GENERATOR_FUNCTION_LIST 
 		mxd_sis3807_pulse_generator_function_list;
 
-extern mx_length_type mxd_sis3807_num_record_fields;
+extern long mxd_sis3807_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_sis3807_rfield_def_ptr;
 
 #endif /* __D_SIS3807_H__ */

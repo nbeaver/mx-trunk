@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,7 +62,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcs_scaler_record_field_defaults[] = {
 	MXD_MCS_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mcs_scaler_num_record_fields
+long mxd_mcs_scaler_num_record_fields
 		= sizeof( mxd_mcs_scaler_record_field_defaults )
 		  / sizeof( mxd_mcs_scaler_record_field_defaults[0] );
 
@@ -214,7 +214,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 
 	MX_SCALER *scaler;
 	MX_MCS_SCALER *mcs_scaler;
-	int32_t current_value;
+	long current_value;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -242,7 +242,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  MCS record            = %s\n",
 					mcs_scaler->mcs_record->name);
 	fprintf(file, "  scaler number         = %d\n",
-					(int) mcs_scaler->scaler_number);
+					mcs_scaler->scaler_number);
 
 	mx_status = mx_scaler_read( record, &current_value );
 
@@ -252,7 +252,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 			record->name );
 	}
 
-	fprintf(file, "  present value         = %ld\n", (long) current_value);
+	fprintf(file, "  present value         = %ld\n", current_value);
 
 	mx_status = mx_scaler_get_dark_current( record, NULL );
 
@@ -263,10 +263,8 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 	}
 
 	fprintf(file, "  dark current          = %g counts per second.\n",
-					scaler->dark_current);
-
-	fprintf(file, "  scaler flags          = %#lx\n",
-					(unsigned long) scaler->scaler_flags);
+						scaler->dark_current);
+	fprintf(file, "  scaler flags          = %#lx\n", scaler->scaler_flags);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -304,7 +302,7 @@ mxd_mcs_scaler_read( MX_SCALER *scaler )
 	MX_MCS *mcs;
 	MX_RECORD *timer_record;
 	long scaler_index, offset;
-	mx_bool_type fast_mode;
+	int fast_mode;
 	double dark_current, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -452,7 +450,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mcs_scaler_is_busy()";
 
 	MX_MCS_SCALER *mcs_scaler;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_scaler_get_pointers( scaler,
@@ -468,7 +466,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 
 	scaler->busy = busy;
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
 
 	return mx_status;
 }
@@ -488,7 +486,7 @@ mxd_mcs_scaler_start( MX_SCALER *scaler )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for scaler '%s' for %ld counts.",
-			fname, scaler->record->name, (long) scaler->raw_value));
+			fname, scaler->record->name, scaler->raw_value));
 
 	mx_status = mx_mcs_set_measurement_counts( mcs_scaler->mcs_record,
 							scaler->raw_value );
@@ -543,7 +541,7 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 
 	MX_MCS_SCALER *mcs_scaler;
 	unsigned long scaler_index;
-	int32_t mode;
+	int mode;
 	double dark_current;
 	mx_status_type mx_status;
 

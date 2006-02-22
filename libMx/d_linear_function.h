@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,9 +23,9 @@
 /* ===== MX linear function motor data structures ===== */
 
 typedef struct {
-	mx_hex_type linear_function_flags;
+	long linear_function_flags;
 
-	mx_length_type num_records;
+	long num_records;
 	MX_RECORD **record_array;
 	double *real_scale;
 	double *real_offset;
@@ -33,7 +33,7 @@ typedef struct {
 
 	/* Motor arrays */
 
-	mx_length_type num_motors;
+	long num_motors;
 	MX_RECORD **motor_record_array;
 	double *motor_position_array;
 	double *real_motor_scale;
@@ -42,7 +42,7 @@ typedef struct {
 
 	/* Variable arrays */
 
-	mx_length_type num_variables;
+	long num_variables;
 	MX_RECORD **variable_record_array;
 	double *variable_value_array;
 	double *real_variable_scale;
@@ -84,7 +84,7 @@ MX_API mx_status_type mxd_linear_function_find_home_position(MX_MOTOR *motor);
 extern MX_RECORD_FUNCTION_LIST mxd_linear_function_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_linear_function_motor_function_list;
 
-extern mx_length_type mxd_linear_function_num_record_fields;
+extern long mxd_linear_function_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_linear_function_rfield_def_ptr;
 
 #define MXD_LINEAR_FUNCTION_STANDARD_FIELDS \
@@ -93,9 +93,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_linear_function_rfield_def_ptr;
 		offsetof(MX_LINEAR_FUNCTION_MOTOR, linear_function_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_records", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_records", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINEAR_FUNCTION_MOTOR, num_records), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY) }, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
   {-1, -1, "record_array", MXFT_RECORD, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LINEAR_FUNCTION_MOTOR, record_array),\

@@ -74,7 +74,7 @@ MX_API mx_status_type mxi_linux_parport_close( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_linux_parport_record_function_list;
 
-extern mx_length_type mxi_linux_parport_num_record_fields;
+extern long mxi_linux_parport_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_linux_parport_rfield_def_ptr;
 
 /* === Driver specific functions === */

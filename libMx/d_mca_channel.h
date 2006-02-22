@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *mca_record;
-	uint32_t channel_number;
+	unsigned long channel_number;
 } MX_MCA_CHANNEL;
 
 MX_API mx_status_type mxd_mca_channel_initialize_type( long type );
@@ -47,7 +47,7 @@ MX_API mx_status_type mxd_mca_channel_set_parameter( MX_SCALER *scaler );
 extern MX_RECORD_FUNCTION_LIST mxd_mca_channel_record_function_list;
 extern MX_SCALER_FUNCTION_LIST mxd_mca_channel_scaler_function_list;
 
-extern mx_length_type mxd_mca_channel_num_record_fields;
+extern long mxd_mca_channel_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_channel_rfield_def_ptr;
 
 #define MXD_MCA_CHANNEL_STANDARD_FIELDS \
@@ -55,7 +55,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_channel_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_CHANNEL, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_ULONG, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_CHANNEL, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_epics_din_record_field_defaults[] = {
 	MXD_EPICS_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_epics_din_num_record_fields
+long mxd_epics_din_num_record_fields
 		= sizeof( mxd_epics_din_record_field_defaults )
 			/ sizeof( mxd_epics_din_record_field_defaults[0] );
 
@@ -85,7 +85,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_epics_dout_record_field_defaults[] = {
 	MXD_EPICS_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_epics_dout_num_record_fields
+long mxd_epics_dout_num_record_fields
 		= sizeof( mxd_epics_dout_record_field_defaults )
 			/ sizeof( mxd_epics_dout_record_field_defaults[0] );
 

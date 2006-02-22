@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_als_dewar_positioner_rf_defaults[] = {
 	MXD_ALS_DEWAR_POSITIONER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_als_dewar_positioner_num_record_fields
+long mxd_als_dewar_positioner_num_record_fields
 		= sizeof( mxd_als_dewar_positioner_rf_defaults )
 			/ sizeof( mxd_als_dewar_positioner_rf_defaults[0] );
 
@@ -443,7 +443,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	long raw_destination, dewar_puck_number, dewar_sample_number;
 	double dewar_rot_destination, dewar_x_destination;
-	int32_t vertical_slide_status, small_slide_status;
+	int vertical_slide_status, small_slide_status;
 	int the_move_can_be_performed;
 	unsigned long flags;
 	mx_status_type mx_status;
@@ -528,7 +528,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			"illegal relay status %d.",
 			motor->record->name, 
 			als_dewar_positioner->small_slide_record->name,
-			(int) small_slide_status );
+			small_slide_status );
 		}
 		if ( vertical_slide_status != MXF_RELAY_IS_OPEN ) {
 			return mx_error( MXE_PERMISSION_DENIED, fname,
@@ -537,7 +537,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			"illegal relay status %d.",
 			motor->record->name, 
 			als_dewar_positioner->vertical_slide_record->name,
-			(int) vertical_slide_status );
+			vertical_slide_status );
 		}
 
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -851,8 +851,8 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 	static const char fname[] = "mxd_als_dewar_positioner_get_status()";
 
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
-	mx_hex_type dewar_rot_status, dewar_x_status, total_status;
-	mx_hex_type home_search_succeeded;
+	unsigned long dewar_rot_status, dewar_x_status, total_status;
+	unsigned long home_search_succeeded;
 	mx_status_type mx_status;
 
 	mx_status = mxd_als_dewar_positioner_get_pointers( motor,
@@ -876,8 +876,7 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: dewar_rot_status = %#lx, dewar_x_status = %#lx",
-		fname, (unsigned long) dewar_rot_status,
-		(unsigned long) dewar_x_status));
+		fname, dewar_rot_status, dewar_x_status));
 
 	/* For the most part, just or-ing together the individual status
 	 * words does the right thing.
@@ -905,8 +904,7 @@ mxd_als_dewar_positioner_get_status( MX_MOTOR *motor )
 
 	motor->status = total_status;
 
-	MX_DEBUG( 2,("%s: motor->status = %#lx",
-		fname, (unsigned long) motor->status));
+	MX_DEBUG( 2,("%s: motor->status = %#lx", fname, motor->status));
 
 	/* See if it is time to restore the motor speeds. */
 

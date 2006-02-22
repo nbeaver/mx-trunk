@@ -77,7 +77,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_smartmotor_record_field_defaults[] = {
 	MXD_SMARTMOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_smartmotor_num_record_fields
+long mxd_smartmotor_num_record_fields
 		= sizeof( mxd_smartmotor_record_field_defaults )
 			/ sizeof( mxd_smartmotor_record_field_defaults[0] );
 
@@ -1099,8 +1099,8 @@ mxd_smartmotor_get_status( MX_MOTOR *motor )
 		motor->status &= ( ~ MXSF_MTR_HOME_SEARCH_SUCCEEDED );
 	}
 
-	MX_DEBUG( 2,("%s: home_search_succeeded flag bit set = %lu", fname,
-	    (unsigned long) motor->status & MXSF_MTR_HOME_SEARCH_SUCCEEDED ));
+	MX_DEBUG( 2,("%s: home_search_succeeded flag bit set = %lu",
+		fname, motor->status & MXSF_MTR_HOME_SEARCH_SUCCEEDED ));
 
 	return mx_status;
 }
@@ -1156,8 +1156,8 @@ mxd_smartmotor_get_extended_status( MX_MOTOR *motor )
 		motor->status &= ( ~ MXSF_MTR_HOME_SEARCH_SUCCEEDED );
 	}
 
-	MX_DEBUG( 2,("%s: home_search_succeeded flag bit set = %lu", fname,
-	    (unsigned long) motor->status & MXSF_MTR_HOME_SEARCH_SUCCEEDED ));
+	MX_DEBUG( 2,("%s: home_search_succeeded flag bit set = %lu",
+		fname, motor->status & MXSF_MTR_HOME_SEARCH_SUCCEEDED ));
 
 	return mx_status;
 }

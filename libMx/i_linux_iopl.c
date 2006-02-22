@@ -66,7 +66,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_linux_iopl_record_field_defaults[] = {
 	MXI_LINUX_IOPL_STANDARD_FIELDS
 };
 
-mx_length_type mxi_linux_iopl_num_record_fields
+long mxi_linux_iopl_num_record_fields
 		= sizeof( mxi_linux_iopl_record_field_defaults )
 			/ sizeof( mxi_linux_iopl_record_field_defaults[0] );
 

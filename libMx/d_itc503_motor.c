@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_itc503_motor_recfield_defaults[] = {
 	MXD_ITC503_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_itc503_motor_num_record_fields
+long mxd_itc503_motor_num_record_fields
 		= sizeof( mxd_itc503_motor_recfield_defaults )
 		/ sizeof( mxd_itc503_motor_recfield_defaults[0] );
 
@@ -309,12 +309,12 @@ mxd_itc503_motor_open( MX_RECORD *record )
 		sprintf( command, "Q0" );
 
 	} else if ( itc503_motor->isobus_address <= 9 ) {
-		sprintf( command, "@%dQ0", (int) itc503_motor->isobus_address );
+		sprintf( command, "@%dQ0", itc503_motor->isobus_address );
 
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Illegal ISOBUS address %d specified for ITC503 controller '%s'.",
-			(int) itc503_motor->isobus_address, record->name );
+			itc503_motor->isobus_address, record->name );
 	}
 
 	switch( interface_record->mx_class ) {
@@ -593,8 +593,7 @@ mxd_itc503_motor_wait_for_rs232_response( MX_RECORD *rs232_record,
 		= "mxd_itc503_motor_wait_for_rs232)response()";
 
 	int i, max_retries;
-	unsigned long wait_ms;
-	uint32_t num_input_bytes_available;
+	unsigned long wait_ms, num_input_bytes_available;
 	mx_status_type mx_status;
 
 	max_retries = 50;
@@ -666,7 +665,7 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 		command_ptr = local_command_buffer;
 
 		sprintf( local_command_buffer, "@%d%s",
-			(int) itc503_motor->isobus_address, command );
+				itc503_motor->isobus_address, command );
 	}
 
 	error_occurred = FALSE;
@@ -790,7 +789,7 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 	"The command '%s' to ITC503 controller '%s' is still failing "
 	"after %d retries.  Giving up...", command_ptr,
 				itc503_motor->record->name,
-				(int) itc503_motor->maximum_retries );
+				itc503_motor->maximum_retries );
 	} else {
 		return MX_SUCCESSFUL_RESULT;
 	}

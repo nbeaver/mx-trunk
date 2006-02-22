@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_wago750_modbus_aout_rf_defaults[] = {
 	MXD_MODBUS_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_wago750_modbus_aout_num_record_fields
+long mxd_wago750_modbus_aout_num_record_fields
 		= sizeof( mxd_wago750_modbus_aout_rf_defaults )
 			/ sizeof( mxd_wago750_modbus_aout_rf_defaults[0]);
 
@@ -132,9 +132,9 @@ mxd_wago750_modbus_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	modbus_aoutput->record = record;
 
-	/* Raw analog output values are stored as 32-bit integers. */
+	/* Raw analog output values are stored as longs. */
 
-	analog_output->subclass = MXT_AOU_INT32;
+	analog_output->subclass = MXT_AOU_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -145,7 +145,7 @@ mxd_wago750_modbus_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	static const char fname[] = "mxd_wago750_modbus_aout_read()";
 
 	MX_MODBUS_AOUTPUT *modbus_aoutput;
-	int32_t raw_value;
+	long raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[2];
@@ -213,35 +213,35 @@ mxd_wago750_modbus_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	case MXF_MOD_WRITE_SINGLE_COIL:
 	case MXF_MOD_WRITE_MULTIPLE_COILS:
 		if ( num_bits <= 8 ) {
-			raw_value = (int32_t) mx_uint8_array[0];
+			raw_value = (long) mx_uint8_array[0];
 		} else
 		if ( num_bits <= 16 ) {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[1];
+			raw_value = ( (long) mx_uint8_array[0] ) << 8;
+			raw_value |= (long) mx_uint8_array[1];
 		} else
 		if ( num_bits <= 24 ) {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 16;
-			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[2];
+			raw_value = ( (long) mx_uint8_array[0] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 8;
+			raw_value |= (long) mx_uint8_array[2];
 		} else {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 24;
-			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 16;
-			raw_value |= ( (int32_t) mx_uint8_array[2] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[3];
+			raw_value = ( (long) mx_uint8_array[0] ) << 24;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[2] ) << 8;
+			raw_value |= (long) mx_uint8_array[3];
 		}
 		break;
 	case MXF_MOD_WRITE_SINGLE_REGISTER:
 	case MXF_MOD_WRITE_MULTIPLE_REGISTERS:
 		if ( num_bits <= 16 ) {
-			raw_value = (int32_t) mx_uint16_array[0];
+			raw_value = (long) mx_uint16_array[0];
 		} else {
-			raw_value = ( (int32_t) mx_uint16_array[0] ) << 16;
-			raw_value |= (int32_t) mx_uint16_array[1];
+			raw_value = ( (long) mx_uint16_array[0] ) << 16;
+			raw_value |= (long) mx_uint16_array[1];
 		}
 		break;
 	}
 
-	aoutput->raw_value.int32_value = raw_value;
+	aoutput->raw_value.long_value = raw_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }

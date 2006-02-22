@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,8 +27,8 @@ typedef struct {
 				 * structure.
 				 */
 	MX_RECORD *pmac_record;
-	int32_t card_number;
-	int32_t motor_number;
+	int card_number;
+	int motor_number;
 } MX_PMAC_MOTOR;
 
 MX_API mx_status_type mxd_pmac_create_record_structures( MX_RECORD *record );
@@ -46,17 +46,16 @@ MX_API mx_status_type mxd_pmac_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_pmac_simultaneous_start(
-					mx_length_type num_motor_records,
-					MX_RECORD **motor_record_array,
-					double *position_array,
-					mx_hex_type flags );
+MX_API mx_status_type mxd_pmac_simultaneous_start( int num_motor_records,
+						MX_RECORD **motor_record_array,
+						double *position_array,
+						int flags );
 MX_API mx_status_type mxd_pmac_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_pmac_motor_function_list;
 
-extern mx_length_type mxd_pmac_num_record_fields;
+extern long mxd_pmac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 
 #define MXD_PMAC_STANDARD_FIELDS \
@@ -64,11 +63,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, pmac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, card_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

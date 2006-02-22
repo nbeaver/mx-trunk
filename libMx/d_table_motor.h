@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *table_record;
-	int32_t axis_id;
+	int axis_id;
 } MX_TABLE_MOTOR;
 
 /* Define all of the interface functions. */
@@ -57,7 +57,7 @@ MX_API mx_status_type mxd_table_motor_set_parameter( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_table_motor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_table_motor_motor_function_list;
 
-extern mx_length_type mxd_table_motor_num_record_fields;
+extern long mxd_table_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_table_motor_rfield_def_ptr;
 
 #define MXD_TABLE_MOTOR_STANDARD_FIELDS \
@@ -65,7 +65,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_table_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TABLE_MOTOR, table_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_id", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TABLE_MOTOR, axis_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

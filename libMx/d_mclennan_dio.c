@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_din_record_field_defaults[] = {
 	MXD_MCLENNAN_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mclennan_din_num_record_fields
+long mxd_mclennan_din_num_record_fields
 		= sizeof( mxd_mclennan_din_record_field_defaults )
 			/ sizeof( mxd_mclennan_din_record_field_defaults[0] );
 
@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_dout_record_field_defaults[] = {
 	MXD_MCLENNAN_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mclennan_dout_num_record_fields
+long mxd_mclennan_dout_num_record_fields
 		= sizeof( mxd_mclennan_dout_record_field_defaults )
 			/ sizeof( mxd_mclennan_dout_record_field_defaults[0] );
 
@@ -299,7 +299,7 @@ mxd_mclennan_din_read( MX_DIGITAL_INPUT *dinput )
 	"Port number %d used by digital input record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			dinput->record->name,
-			(int) mclennan->num_dinput_ports );
+			mclennan->num_dinput_ports );
 	}
 
 	mx_status = mxd_mclennan_command( mclennan, "RP",
@@ -420,7 +420,7 @@ mxd_mclennan_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	"Port number %d used by digital output record '%s' is outside "
 	"the legal range of 1 to %d.", port_number,
 			doutput->record->name,
-			(int) mclennan->num_doutput_ports );
+			mclennan->num_doutput_ports );
 	}
 
 	if ( doutput->value != 0 ) {

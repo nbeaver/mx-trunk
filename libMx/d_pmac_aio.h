@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmac_record;
-	int32_t card_number;
+	int card_number;
 	char pmac_variable_name[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 } MX_PMAC_AINPUT;
 
@@ -35,7 +35,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmac_record;
-	int32_t card_number;
+	int card_number;
 	char pmac_variable_name[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 } MX_PMAC_AOUTPUT;
 
@@ -44,7 +44,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_AINPUT, pmac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_AINPUT, card_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -58,7 +58,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_AOUTPUT, pmac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_AOUTPUT, card_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -79,7 +79,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pmac_ain_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_pmac_ain_analog_input_function_list;
 
-extern mx_length_type mxd_pmac_ain_num_record_fields;
+extern long mxd_pmac_ain_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_ain_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -94,7 +94,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_pmac_aout_record_function_list;
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST
 				mxd_pmac_aout_analog_output_function_list;
 
-extern mx_length_type mxd_pmac_aout_num_record_fields;
+extern long mxd_pmac_aout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_aout_rfield_def_ptr;
 
 #endif /* __D_PMAC_AIO_H__ */

@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_com_record_field_defaults[] = {
 	MXI_COM_STANDARD_FIELDS
 };
 
-mx_length_type mxi_com_num_record_fields
+long mxi_com_num_record_fields
 		= sizeof( mxi_com_record_field_defaults )
 			/ sizeof( mxi_com_record_field_defaults[0] );
 
@@ -323,7 +323,7 @@ mxi_com_getchar( MX_RS232 *rs232, char *c )
 				    } else {
 					return mx_error_quiet(
 						MXE_NOT_READY, fname,
-	"Read attempt from port '%s' exceeded maximum retry count = %d",
+	"Read attempt from port '%s' exceeded maximum retry count = %ld",
 						rs232->record->name,
 						com->max_read_retries );
 				    }
@@ -562,7 +562,7 @@ msdos_com_write_parms( MX_RS232 *rs232 )
 	case 50:
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported COM speed = %d for COM '%s'.", 
+		"Unsupported COM speed = %ld for COM '%s'.", 
 		rs232->speed, record_name);
 
 		break;

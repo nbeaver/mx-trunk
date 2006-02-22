@@ -5,14 +5,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define SCIPE_TIMER_DEBUG FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,14 +27,15 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_timer_record_function_list = {
-	NULL,
+	mxd_scipe_timer_initialize_type,
 	mxd_scipe_timer_create_record_structures,
-	mx_timer_finish_record_initialization,
+	mxd_scipe_timer_finish_record_initialization,
+	mxd_scipe_timer_delete_record,
 	NULL,
-	NULL,
-	NULL,
-	NULL,
-	mxd_scipe_timer_open
+	mxd_scipe_timer_read_parms_from_hardware,
+	mxd_scipe_timer_write_parms_to_hardware,
+	mxd_scipe_timer_open,
+	mxd_scipe_timer_close
 };
 
 MX_TIMER_FUNCTION_LIST mxd_scipe_timer_timer_function_list = {
@@ -44,7 +43,10 @@ MX_TIMER_FUNCTION_LIST mxd_scipe_timer_timer_function_list = {
 	mxd_scipe_timer_start,
 	mxd_scipe_timer_stop,
 	mxd_scipe_timer_clear,
-	mxd_scipe_timer_read
+	mxd_scipe_timer_read,
+	mxd_scipe_timer_get_mode,
+	mxd_scipe_timer_set_mode,
+	mxd_scipe_timer_set_modes_of_associated_counters
 };
 
 /* SCIPE timer data structures. */
@@ -55,12 +57,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_timer_record_field_defaults[] = {
 	MXD_SCIPE_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_timer_num_record_fields
+long mxd_scipe_timer_num_record_fields
 		= sizeof( mxd_scipe_timer_record_field_defaults )
 		  / sizeof( mxd_scipe_timer_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_scipe_timer_rfield_def_ptr
 			= &mxd_scipe_timer_record_field_defaults[0];
+
+#define SCIPE_TIMER_DEBUG FALSE
 
 /* A private function for the use of the driver. */
 
@@ -70,7 +74,7 @@ mxd_scipe_timer_get_pointers( MX_TIMER *timer,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_scipe_timer_get_pointers()";
+	const char fname[] = "mxd_scipe_timer_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -129,10 +133,15 @@ mxd_scipe_timer_get_pointers( MX_TIMER *timer,
 /* === */
 
 MX_EXPORT mx_status_type
+mxd_scipe_timer_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_timer_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_scipe_timer_create_record_structures()";
+	const char fname[] = "mxd_scipe_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_SCIPE_TIMER *scipe_timer;
@@ -167,9 +176,46 @@ mxd_scipe_timer_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_scipe_timer_finish_record_initialization( MX_RECORD *record )
+{
+	return mx_timer_finish_record_initialization( record );
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_timer_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_scipe_timer_open()";
+	const char fname[] = "mxd_scipe_timer_open()";
 
 	MX_TIMER *timer;
 	MX_SCIPE_TIMER *scipe_timer;
@@ -218,9 +264,15 @@ mxd_scipe_timer_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_scipe_timer_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_timer_is_busy( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_scipe_timer_is_busy()";
+	const char fname[] = "mxd_scipe_timer_is_busy()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -267,7 +319,7 @@ mxd_scipe_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_start( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_scipe_timer_start()";
+	const char fname[] = "mxd_scipe_timer_start()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -331,7 +383,7 @@ mxd_scipe_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_stop( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_scipe_timer_stop()";
+	const char fname[] = "mxd_scipe_timer_stop()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -372,7 +424,7 @@ mxd_scipe_timer_stop( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_clear( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_scipe_timer_clear()";
+	const char fname[] = "mxd_scipe_timer_clear()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -411,7 +463,7 @@ mxd_scipe_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_scipe_timer_read( MX_TIMER *timer )
 {
-	static const char fname[] = "mxd_scipe_timer_read()";
+	const char fname[] = "mxd_scipe_timer_read()";
 
 	MX_SCIPE_TIMER *scipe_timer;
 	MX_SCIPE_SERVER *scipe_server;
@@ -461,6 +513,24 @@ mxd_scipe_timer_read( MX_TIMER *timer )
 	timer->value = mx_divide_safely( timer_raw_value,
 					scipe_timer->clock_frequency );
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_get_mode( MX_TIMER *timer )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_set_mode( MX_TIMER *timer )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_timer_set_modes_of_associated_counters( MX_TIMER *timer )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

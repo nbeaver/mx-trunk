@@ -39,99 +39,99 @@ MX_VARIABLE_FUNCTION_LIST mxv_spec_property_variable_function_list = {
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_int32_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_long_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT32_VARIABLE_STANDARD_FIELDS
+	MX_LONG_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_int32_num_record_fields
-	= sizeof( mxv_spec_int32_field_defaults )
-	/ sizeof( mxv_spec_int32_field_defaults[0] );
+long mxv_spec_long_num_record_fields
+	= sizeof( mxv_spec_long_field_defaults )
+	/ sizeof( mxv_spec_long_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_int32_rfield_def_ptr
-		= &mxv_spec_int32_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_long_rfield_def_ptr
+		= &mxv_spec_long_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_uint32_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_ulong_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UINT32_VARIABLE_STANDARD_FIELDS
+	MX_ULONG_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_uint32_num_record_fields
-	= sizeof( mxv_spec_uint32_field_defaults )
-	/ sizeof( mxv_spec_uint32_field_defaults[0] );
+long mxv_spec_ulong_num_record_fields
+	= sizeof( mxv_spec_ulong_field_defaults )
+	/ sizeof( mxv_spec_ulong_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_uint32_rfield_def_ptr
-		= &mxv_spec_uint32_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_ulong_rfield_def_ptr
+		= &mxv_spec_ulong_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_int16_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_short_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT16_VARIABLE_STANDARD_FIELDS
+	MX_SHORT_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_int16_num_record_fields
-	= sizeof( mxv_spec_int16_field_defaults )
-	/ sizeof( mxv_spec_int16_field_defaults[0] );
+long mxv_spec_short_num_record_fields
+	= sizeof( mxv_spec_short_field_defaults )
+	/ sizeof( mxv_spec_short_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_int16_rfield_def_ptr
-		= &mxv_spec_int16_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_short_rfield_def_ptr
+		= &mxv_spec_short_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_uint16_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_ushort_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UINT16_VARIABLE_STANDARD_FIELDS
+	MX_USHORT_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_uint16_num_record_fields
-	= sizeof( mxv_spec_uint16_field_defaults )
-	/ sizeof( mxv_spec_uint16_field_defaults[0] );
+long mxv_spec_ushort_num_record_fields
+	= sizeof( mxv_spec_ushort_field_defaults )
+	/ sizeof( mxv_spec_ushort_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_uint16_rfield_def_ptr
-		= &mxv_spec_uint16_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_ushort_rfield_def_ptr
+		= &mxv_spec_ushort_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_int8_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_char_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT8_VARIABLE_STANDARD_FIELDS
+	MX_CHAR_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_int8_num_record_fields
-	= sizeof( mxv_spec_int8_field_defaults )
-	/ sizeof( mxv_spec_int8_field_defaults[0] );
+long mxv_spec_char_num_record_fields
+	= sizeof( mxv_spec_char_field_defaults )
+	/ sizeof( mxv_spec_char_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_int8_rfield_def_ptr
-		= &mxv_spec_int8_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_char_rfield_def_ptr
+		= &mxv_spec_char_field_defaults[0];
 
 /*---*/
 
-MX_RECORD_FIELD_DEFAULTS mxv_spec_uint8_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_spec_uchar_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UINT8_VARIABLE_STANDARD_FIELDS
+	MX_UCHAR_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_uint8_num_record_fields
-	= sizeof( mxv_spec_uint8_field_defaults )
-	/ sizeof( mxv_spec_uint8_field_defaults[0] );
+long mxv_spec_uchar_num_record_fields
+	= sizeof( mxv_spec_uchar_field_defaults )
+	/ sizeof( mxv_spec_uchar_field_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_uint8_rfield_def_ptr
-		= &mxv_spec_uint8_field_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_spec_uchar_rfield_def_ptr
+		= &mxv_spec_uchar_field_defaults[0];
 
 /*---*/
 
@@ -142,7 +142,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_spec_float_field_defaults[] = {
 	MX_FLOAT_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_float_num_record_fields
+long mxv_spec_float_num_record_fields
 	= sizeof( mxv_spec_float_field_defaults )
 	/ sizeof( mxv_spec_float_field_defaults[0] );
 
@@ -158,7 +158,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_spec_double_field_defaults[] = {
 	MX_DOUBLE_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_double_num_record_fields
+long mxv_spec_double_num_record_fields
 	= sizeof( mxv_spec_double_field_defaults )
 	/ sizeof( mxv_spec_double_field_defaults[0] );
 
@@ -174,28 +174,12 @@ MX_RECORD_FIELD_DEFAULTS mxv_spec_string_field_defaults[] = {
 	MX_STRING_VARIABLE_STANDARD_FIELDS
 };
 
-mx_length_type mxv_spec_string_num_record_fields
+long mxv_spec_string_num_record_fields
 	= sizeof( mxv_spec_string_field_defaults )
 	/ sizeof( mxv_spec_string_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxv_spec_string_rfield_def_ptr
 		= &mxv_spec_string_field_defaults[0];
-
-/*---*/
-
-MX_RECORD_FIELD_DEFAULTS mxv_spec_char_field_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MXV_SPEC_PROPERTY_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_CHAR_VARIABLE_STANDARD_FIELDS
-};
-
-mx_length_type mxv_spec_char_num_record_fields
-	= sizeof( mxv_spec_char_field_defaults )
-	/ sizeof( mxv_spec_char_field_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_spec_char_rfield_def_ptr
-		= &mxv_spec_char_field_defaults[0];
 
 /*---*/
 
@@ -306,9 +290,8 @@ mxv_spec_send_variable( MX_VARIABLE *variable )
 	MX_RECORD_FIELD *field;
 	mx_status_type (*token_constructor)( void *, char *, size_t,
 					MX_RECORD *, MX_RECORD_FIELD * );
-	long field_type;
-	mx_length_type num_dimensions;
-	mx_length_type *dimension_array;
+	long num_dimensions, field_type;
+	long *dimension_array;
 	void *value_ptr;
 	char buffer[2000];
 	char *buffer_ptr;
@@ -341,7 +324,7 @@ mxv_spec_send_variable( MX_VARIABLE *variable )
 		"for 'spec_property' records, but record '%s' "
 		"is %ld-dimensional.",
 			variable->record->name,
-			(long) num_dimensions );
+			num_dimensions );
 	}
 
 	mx_status = mx_get_token_constructor( field_type, &token_constructor );
@@ -386,9 +369,8 @@ mxv_spec_receive_variable( MX_VARIABLE *variable )
 	mx_status_type (*token_parser)( void *, char *,
 				MX_RECORD *, MX_RECORD_FIELD *,
 				MX_RECORD_FIELD_PARSE_STATUS * );
-	long field_type;
-	mx_length_type num_dimensions;
-	mx_length_type *dimension_array;
+	long num_dimensions, field_type;
+	long *dimension_array;
 	void *value_ptr;
 	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
 	char buffer[2000];
@@ -421,7 +403,7 @@ mxv_spec_receive_variable( MX_VARIABLE *variable )
 		"for 'spec_property' records, but record '%s' "
 		"is %ld-dimensional.",
 			variable->record->name,
-			(long) num_dimensions );
+			num_dimensions );
 	}
 
 	mx_status = mx_get_token_parser( field_type, &token_parser );

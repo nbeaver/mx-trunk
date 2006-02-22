@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,17 +18,17 @@
 #define __D_BLIND_RELAY_H__
 
 typedef struct {
-	uint32_t settling_time;	/* in milliseconds */
+	unsigned long settling_time;	/* in milliseconds */
 
 	MX_RECORD *output_record;
-	int32_t output_bit_offset;
-	int32_t num_output_bits;
-	mx_hex_type close_output_value;
-	mx_hex_type open_output_value;
+	int output_bit_offset;
+	int num_output_bits;
+	unsigned long close_output_value;
+	unsigned long open_output_value;
 } MX_BLIND_RELAY;
 
 #define MXD_BLIND_RELAY_STANDARD_FIELDS \
-  {-1, -1, "settling_time", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "settling_time", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, settling_time), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -36,11 +36,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, output_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, output_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, num_output_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -84,7 +84,7 @@ MX_API mx_status_type mxd_blind_relay_get_relay_status( MX_RELAY *relay );
 extern MX_RECORD_FUNCTION_LIST mxd_blind_relay_record_function_list;
 extern MX_RELAY_FUNCTION_LIST mxd_blind_relay_relay_function_list;
 
-extern mx_length_type mxd_blind_relay_num_record_fields;
+extern long mxd_blind_relay_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_blind_relay_rfield_def_ptr;
 
 #endif /* __D_BLIND_RELAY_H__ */

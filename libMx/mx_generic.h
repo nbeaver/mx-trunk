@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ typedef struct {
 	mx_status_type ( *write ) ( MX_GENERIC *generic,
 					void *buffer, size_t count );
 	mx_status_type ( *num_input_bytes_available ) ( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available );
+				unsigned long *num_input_bytes_available );
 	mx_status_type ( *discard_unread_input ) ( MX_GENERIC *generic,
 							int debug_flag );
 	mx_status_type ( *discard_unwritten_output ) ( MX_GENERIC *generic,
@@ -67,7 +67,7 @@ MX_API mx_status_type mx_generic_write( MX_GENERIC *generic,
 						void *buffer, size_t count );
 
 MX_API mx_status_type mx_generic_num_input_bytes_available( MX_GENERIC *generic,
-				uint32_t *num_input_bytes_available );
+				unsigned long *num_input_bytes_available );
 
 MX_API mx_status_type mx_generic_discard_unread_input( MX_GENERIC *generic,
 							int debug_flag );

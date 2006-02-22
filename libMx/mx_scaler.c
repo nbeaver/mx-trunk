@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -163,7 +163,7 @@ mx_scaler_clear( MX_RECORD *scaler_record )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_overflow_set( MX_RECORD *scaler_record, mx_bool_type *overflow_set )
+mx_scaler_overflow_set( MX_RECORD *scaler_record, int *overflow_set )
 {
 	static const char fname[] = "mx_scaler_overflow_set()";
 
@@ -194,7 +194,7 @@ mx_scaler_overflow_set( MX_RECORD *scaler_record, mx_bool_type *overflow_set )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_read( MX_RECORD *scaler_record, int32_t *value )
+mx_scaler_read( MX_RECORD *scaler_record, long *value )
 {
 	static const char fname[] = "mx_scaler_read()";
 
@@ -202,7 +202,7 @@ mx_scaler_read( MX_RECORD *scaler_record, int32_t *value )
 	MX_RECORD *timer_record;
 	MX_SCALER_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_SCALER * );
-	int32_t offset;
+	long offset;
 	int subtract_dark_current, timer_mode;
 	double last_measurement_time;
 	mx_status_type mx_status;
@@ -308,7 +308,7 @@ mx_scaler_read( MX_RECORD *scaler_record, int32_t *value )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_read_raw( MX_RECORD *scaler_record, int32_t *value )
+mx_scaler_read_raw( MX_RECORD *scaler_record, long *value )
 {
 	static const char fname[] = "mx_scaler_read_raw()";
 
@@ -350,7 +350,7 @@ mx_scaler_read_raw( MX_RECORD *scaler_record, int32_t *value )
 	scaler->value = scaler->raw_value;
 
 	MX_DEBUG( 2,("%s: scaler '%s', value = %ld",
-		fname, scaler->record->name, (long) scaler->value));
+		fname, scaler->record->name, scaler->value));
 
 	if ( value != NULL ) {
 		*value = scaler->value;
@@ -360,7 +360,7 @@ mx_scaler_read_raw( MX_RECORD *scaler_record, int32_t *value )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_is_busy( MX_RECORD *scaler_record, mx_bool_type *busy )
+mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy )
 {
 	static const char fname[] = "mx_scaler_is_busy()";
 
@@ -391,7 +391,7 @@ mx_scaler_is_busy( MX_RECORD *scaler_record, mx_bool_type *busy )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_start( MX_RECORD *scaler_record, int32_t preset_count )
+mx_scaler_start( MX_RECORD *scaler_record, long preset_count )
 {
 	static const char fname[] = "mx_scaler_start()";
 
@@ -425,7 +425,7 @@ mx_scaler_start( MX_RECORD *scaler_record, int32_t preset_count )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_stop( MX_RECORD *scaler_record, int32_t *present_value )
+mx_scaler_stop( MX_RECORD *scaler_record, long *present_value )
 {
 	static const char fname[] = "mx_scaler_stop()";
 
@@ -641,7 +641,7 @@ mx_scaler_default_get_parameter_handler( MX_SCALER *scaler )
 "Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
-			(int) scaler->parameter_type,
+			scaler->parameter_type,
 			scaler->record->name );
 	}
 
@@ -667,7 +667,7 @@ mx_scaler_default_set_parameter_handler( MX_SCALER *scaler )
 "Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
-			(int) scaler->parameter_type,
+			scaler->parameter_type,
 			scaler->record->name );
 	}
 

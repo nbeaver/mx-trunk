@@ -27,7 +27,7 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
-	mx_length_type num_mcas;
+	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 
 	MX_NETWORK_FIELD num_mcas_nf;
@@ -84,47 +84,47 @@ MX_API mx_status_type mxi_xia_network_resynchronize( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_xia_network_record_function_list;
 
-extern mx_length_type mxi_xia_network_num_record_fields;
+extern long mxi_xia_network_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_xia_network_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_xia_network_restore_configuration( MX_RECORD *record,
 					char *configuration_filename,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_is_busy( MX_MCA *mca,
-					mx_bool_type *busy_flag,
-					mx_bool_type debug_flag );
+					int *busy_flag,
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_read_parameter( MX_MCA *mca,
 					char *parameter_name,
 					uint32_t *value_ptr,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_write_parameter( MX_MCA *mca,
 					char *parameter_name,
 					uint32_t value,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_write_param_to_all_channels(
 					MX_MCA *mca,
 					char *parameter_name,
 					uint32_t value,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_start_run( MX_MCA *mca,
-					mx_bool_type clear_flag,
-					mx_bool_type debug_flag );
+					int clear_flag,
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_stop_run( MX_MCA *mca,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_read_spectrum( MX_MCA *mca,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_read_statistics( MX_MCA *mca,
-					mx_bool_type debug_flag );
+					int debug_flag );
 
 MX_API mx_status_type mxi_xia_network_get_mx_parameter( MX_MCA *mca );
 

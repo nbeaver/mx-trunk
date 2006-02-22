@@ -45,12 +45,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_modbus_ain_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_modbus_ain_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_MODBUS_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_modbus_ain_num_record_fields
+long mxd_modbus_ain_num_record_fields
 		= sizeof( mxd_modbus_ain_record_field_defaults )
 			/ sizeof( mxd_modbus_ain_record_field_defaults[0] );
 
@@ -72,12 +72,12 @@ MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_modbus_aout_analog_output_function_list
 
 MX_RECORD_FIELD_DEFAULTS mxd_modbus_aout_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_INT32_ANALOG_OUTPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MX_ANALOG_OUTPUT_STANDARD_FIELDS,
 	MXD_MODBUS_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_modbus_aout_num_record_fields
+long mxd_modbus_aout_num_record_fields
 		= sizeof( mxd_modbus_aout_record_field_defaults )
 			/ sizeof( mxd_modbus_aout_record_field_defaults[0]);
 
@@ -192,9 +192,9 @@ mxd_modbus_ain_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	modbus_ainput->record = record;
 
-	/* Raw analog input values are stored as 32-bit integers. */
+	/* Raw analog input values are stored as longs. */
 
-	analog_input->subclass = MXT_AIN_INT32;
+	analog_input->subclass = MXT_AIN_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -205,7 +205,7 @@ mxd_modbus_ain_read( MX_ANALOG_INPUT *ainput )
 	static const char fname[] = "mxd_modbus_ain_read()";
 
 	MX_MODBUS_AINPUT *modbus_ainput;
-	int32_t raw_value;
+	long raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[2];
@@ -301,21 +301,21 @@ mxd_modbus_ain_read( MX_ANALOG_INPUT *ainput )
 		}
 #endif
 		if ( num_bits <= 8 ) {
-			raw_value = (int32_t) mx_uint8_array[0];
+			raw_value = (long) mx_uint8_array[0];
 		} else
 		if ( num_bits <= 16 ) {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[1];
+			raw_value = ( (long) mx_uint8_array[0] ) << 8;
+			raw_value |= (long) mx_uint8_array[1];
 		} else
 		if ( num_bits <= 24 ) {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 16;
-			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[2];
+			raw_value = ( (long) mx_uint8_array[0] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 8;
+			raw_value |= (long) mx_uint8_array[2];
 		} else {
-			raw_value = ( (int32_t) mx_uint8_array[0] ) << 24;
-			raw_value |= ( (int32_t) mx_uint8_array[1] ) << 16;
-			raw_value |= ( (int32_t) mx_uint8_array[2] ) << 8;
-			raw_value |= (int32_t) mx_uint8_array[3];
+			raw_value = ( (long) mx_uint8_array[0] ) << 24;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[2] ) << 8;
+			raw_value |= (long) mx_uint8_array[3];
 		}
 		break;
 	case MXF_MOD_READ_HOLDING_REGISTERS:
@@ -332,15 +332,15 @@ mxd_modbus_ain_read( MX_ANALOG_INPUT *ainput )
 		}
 #endif
 		if ( num_bits <= 16 ) {
-			raw_value = (int32_t) mx_uint16_array[0];
+			raw_value = (long) mx_uint16_array[0];
 		} else {
-			raw_value = ( (int32_t) mx_uint16_array[0] ) << 16;
-			raw_value |= (int32_t) mx_uint16_array[1];
+			raw_value = ( (long) mx_uint16_array[0] ) << 16;
+			raw_value |= (long) mx_uint16_array[1];
 		}
 		break;
 	}
 
-	ainput->raw_value.int32_value = raw_value;
+	ainput->raw_value.long_value = raw_value;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -383,9 +383,9 @@ mxd_modbus_aout_create_record_structures( MX_RECORD *record )
         analog_output->record = record;
 	modbus_aoutput->record = record;
 
-	/* Raw analog output values are stored as 32-bit integers. */
+	/* Raw analog output values are stored as longs. */
 
-	analog_output->subclass = MXT_AOU_INT32;
+	analog_output->subclass = MXT_AOU_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -404,7 +404,7 @@ mxd_modbus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	static const char fname[] = "mxd_modbus_aout_write()";
 
 	MX_MODBUS_AOUTPUT *modbus_aoutput;
-	int32_t raw_value;
+	long raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[2];
@@ -430,7 +430,7 @@ mxd_modbus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	function_code = (int) modbus_aoutput->modbus_function_code;
 
-	raw_value = aoutput->raw_value.int32_value;
+	raw_value = aoutput->raw_value.long_value;
 
 	MX_DEBUG(-2,("%s: function_code = %d, raw_value = %#lx (%ld)",
 		fname, function_code, (long) raw_value, (long) raw_value));

@@ -142,7 +142,7 @@
  * ftp://ftp.esrf.fr/pub/cs/ess/linux/drivers/oms/oms-2.0.tgz
  */
 
-#define HAVE_VME58_ESRF			0
+#define HAVE_JORWAY_CAMAC		0
 
 /*****************************************************************************
  *
@@ -151,7 +151,7 @@
  *
  */
 
-#define HAVE_JORWAY_CAMAC		0
+#define HAVE_VME58_ESRF			0
 
 /*****************************************************************************
  *

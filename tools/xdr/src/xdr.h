@@ -16,7 +16,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,24 +28,6 @@
 
 #if defined(OS_WIN32) || defined(OS_DJGPP)
 #  define MX_DATAFMT_NATIVE	MX_DATAFMT_LITTLE_ENDIAN
-#else
-#error Native data format not yet defined.
-#endif
-
-#if defined(OS_WIN32)
-   typedef __int64 			quad_t;
-   typedef unsigned __int64		u_quad_t;
-
-#elif defined(OS_DJGPP)
-   typedef long long			quad_t;
-
-#  if !defined(HAVE_U_QUAD_T)	/* Avoid a collision with Watt-32. */
-#     define HAVE_U_QUAD_T
-      typedef unsigned long long	u_quad_t;
-#  endif
-
-#else
-#error quad_t and u_quad_t not yet defined.
 #endif
 
 /* XDR_FREE is not implemented. */
@@ -86,17 +68,6 @@ typedef bool_t (*xdrproc_t) (MX_XDR *, void *, ...);
 #define xdr_u_int	mx_xdr_u_int
 #define xdr_long	mx_xdr_long
 #define xdr_u_long	mx_xdr_u_long
-#define xdr_hyper	mx_xdr_hyper
-#define xdr_u_hyper	mx_xdr_u_hyper
-
-#define xdr_int8_t	mx_xdr_char
-#define xdr_uint8_t	mx_xdr_u_char
-#define xdr_int16_t	mx_xdr_short
-#define xdr_uint16_t	mx_xdr_u_short
-#define xdr_int32_t	mx_xdr_int
-#define xdr_uint32_t	mx_xdr_u_int
-#define xdr_int64_t	mx_xdr_hyper
-#define xdr_uint64_t	mx_xdr_u_hyper
 
 MX_API void mx_xdrmem_create( MX_XDR *xdrs,
 			char *addr,
@@ -139,10 +110,6 @@ MX_API bool_t mx_xdr_u_int( MX_XDR *xdrs, u_int *u_int_ptr );
 MX_API bool_t mx_xdr_long( MX_XDR *xdrs, long *long_ptr );
 
 MX_API bool_t mx_xdr_u_long( MX_XDR *xdrs, u_long *u_long_ptr );
-
-MX_API bool_t mx_xdr_hyper( MX_XDR *xdrs, quad_t *quad_ptr );
-
-MX_API bool_t mx_xdr_u_hyper( MX_XDR *xdrs, u_quad_t *u_quad_ptr );
 
 #endif /* __XDR_H__ */
 

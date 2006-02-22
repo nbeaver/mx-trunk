@@ -15,8 +15,6 @@
  *
  */
 
-#define MXI_PCSTEP_DEBUG	FALSE
-
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -61,12 +59,14 @@ MX_RECORD_FIELD_DEFAULTS mxi_pcstep_record_field_defaults[] = {
 	MXI_PCSTEP_STANDARD_FIELDS
 };
 
-mx_length_type mxi_pcstep_num_record_fields
+long mxi_pcstep_num_record_fields
 		= sizeof( mxi_pcstep_record_field_defaults )
 			/ sizeof( mxi_pcstep_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_pcstep_rfield_def_ptr
 			= &mxi_pcstep_record_field_defaults[0];
+
+#define MXI_PCSTEP_DEBUG	FALSE
 
 static mx_status_type
 mxi_pcstep_get_pointers( MX_RECORD *record,

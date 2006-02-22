@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,9 +30,9 @@
 typedef struct {
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int32_t motor_number;
-	int32_t driver_type;
-	mx_hex_type flags;
+	int motor_number;
+	int driver_type;
+	long flags;
 
 	/* The following is only used by the Model 8753 which
 	 * does not report absolute positions.
@@ -59,17 +59,16 @@ MX_API mx_status_type mxd_picomotor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_picomotor_simultaneous_start(
-					mx_length_type num_motor_records,
-					MX_RECORD **motor_record_array,
-					double *position_array,
-					mx_hex_type flags );
+MX_API mx_status_type mxd_picomotor_simultaneous_start( int num_motor_records,
+						MX_RECORD **motor_record_array,
+						double *position_array,
+						int flags );
 MX_API mx_status_type mxd_picomotor_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_picomotor_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_picomotor_motor_function_list;
 
-extern mx_length_type mxd_picomotor_num_record_fields;
+extern long mxd_picomotor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_picomotor_rfield_def_ptr;
 
 #define MXD_PICOMOTOR_STANDARD_FIELDS \
@@ -83,7 +82,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_picomotor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0},\
+  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

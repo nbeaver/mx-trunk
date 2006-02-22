@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pfcu_shutter_timer_rf_defaults[] = {
 	MXD_PFCU_SHUTTER_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pfcu_shutter_timer_num_record_fields
+long mxd_pfcu_shutter_timer_num_record_fields
 		= sizeof( mxd_pfcu_shutter_timer_rf_defaults )
 		  / sizeof( mxd_pfcu_shutter_timer_rf_defaults[0] );
 
@@ -192,7 +192,7 @@ mxd_pfcu_shutter_timer_is_busy( MX_TIMER *timer )
 
 	MX_PFCU_SHUTTER_TIMER *pfcu_shutter_timer;
 	MX_PFCU *pfcu;
-	uint32_t num_input_bytes_available;
+	unsigned long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pfcu_shutter_timer_get_pointers( timer,

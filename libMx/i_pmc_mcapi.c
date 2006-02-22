@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,7 +63,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_pmc_mcapi_record_field_defaults[] = {
 	MXI_PMC_MCAPI_STANDARD_FIELDS
 };
 
-mx_length_type mxi_pmc_mcapi_num_record_fields
+long mxi_pmc_mcapi_num_record_fields
 		= sizeof( mxi_pmc_mcapi_record_field_defaults )
 			/ sizeof( mxi_pmc_mcapi_record_field_defaults[0] );
 

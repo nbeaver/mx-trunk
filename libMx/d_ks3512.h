@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,8 +23,8 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-	int32_t subaddress;
+	int slot;
+	int subaddress;
 } MX_KS3512;
 
 #define MXD_KS3512_STANDARD_FIELDS \
@@ -32,11 +32,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3512, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -52,7 +52,7 @@ MX_API mx_status_type mxd_ks3512_read( MX_ANALOG_INPUT *adc );
 extern MX_RECORD_FUNCTION_LIST mxd_ks3512_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_ks3512_analog_input_function_list;
 
-extern mx_length_type mxd_ks3512_num_record_fields;
+extern long mxd_ks3512_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_ks3512_rfield_def_ptr;
 
 #endif /* __D_KS3512_H__ */

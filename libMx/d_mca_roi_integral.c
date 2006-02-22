@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_roi_integral_record_field_defaults[] = {
 	MXD_MCA_ROI_INTEGRAL_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mca_roi_integral_num_record_fields
+long mxd_mca_roi_integral_num_record_fields
 		= sizeof( mxd_mca_roi_integral_record_field_defaults )
 		  / sizeof( mxd_mca_roi_integral_record_field_defaults[0] );
 
@@ -242,7 +242,7 @@ mxd_mca_roi_integral_read( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mca_roi_integral_read()";
 
 	MX_MCA_ROI_INTEGRAL *mca_roi_integral;
-	uint32_t value;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_roi_integral_get_pointers(
@@ -255,7 +255,7 @@ mxd_mca_roi_integral_read( MX_SCALER *scaler )
 					mca_roi_integral->roi_number,
 					&value );
 
-	scaler->raw_value = (int32_t) value;
+	scaler->raw_value = (long) value;
 
 	return mx_status;
 }
@@ -266,7 +266,7 @@ mxd_mca_roi_integral_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mca_roi_integral_is_busy()";
 
 	MX_MCA_ROI_INTEGRAL *mca_roi_integral;
-	mx_bool_type busy;
+	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_roi_integral_get_pointers(
@@ -341,7 +341,7 @@ mxd_mca_roi_integral_set_parameter( MX_SCALER *scaler )
 		"Cannot set MCA channel scaler '%s' to counter mode %d.  "
 		"Only preset time mode is supported for now.",
 				scaler->record->name,
-				(int) scaler->mode );
+				scaler->mode );
 		}
 		break;
 	case MXLV_SCL_DARK_CURRENT:

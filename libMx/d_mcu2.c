@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mcu2_record_field_defaults[] = {
 	MXD_MCU2_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mcu2_num_record_fields
+long mxd_mcu2_num_record_fields
 		= sizeof( mxd_mcu2_record_field_defaults )
 			/ sizeof( mxd_mcu2_record_field_defaults[0] );
 
@@ -131,12 +131,12 @@ mxd_mcu2_command( MX_MCU2 *mcu2,
 
 	if ( flags & MXF_MCU2_NO_START_CHARACTER ) {
 		sprintf( local_command_buffer, "%02d%s",
-					(int) mcu2->axis_address, command );
+					mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer;
 	} else {
 		sprintf( local_command_buffer, "#%02d%s",
-					(int) mcu2->axis_address, command );
+					mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer + 1;
 	}
@@ -293,9 +293,8 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  RS-232 record name = %s\n",
 					mcu2->rs232_record->name);
 	fprintf(file, "  axis address       = %d\n",
-					(int) mcu2->axis_address);
-	fprintf(file, "  mcu2_flags         = %#lx\n",
-					(unsigned long) mcu2->mcu2_flags);
+					mcu2->axis_address);
+	fprintf(file, "  mcu2_flags         = %#lx\n", mcu2->mcu2_flags);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -307,8 +306,7 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  position           = %g %s  (%ld steps)\n",
 			motor->position, motor->units,
-			(long) motor->raw_position.stepper );
-
+			motor->raw_position.stepper );
 	fprintf(file, "  scale              = %g %s per step.\n",
 			motor->scale, motor->units);
 	fprintf(file, "  offset             = %g %s.\n",
@@ -316,21 +314,21 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	
 	fprintf(file, "  backlash           = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper );
+		motor->raw_backlash_correction.stepper );
 	
 	fprintf(file, "  negative limit     = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit     = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband      = %g %s  (%ld steps)\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	mx_status = mx_motor_get_speed( record, &speed );
 
@@ -407,7 +405,7 @@ mxd_mcu2_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	sprintf( command, "G%+ld",
-			(long) motor->raw_destination.stepper );
+			motor->raw_destination.stepper );
 
 	mx_status = mxd_mcu2_command( mcu2, command, NULL, 0, MXD_MCU2_DEBUG );
 
@@ -477,7 +475,7 @@ mxd_mcu2_set_position( MX_MOTOR *motor )
 		return mx_status;
 
 	sprintf( command, "P=%+ld",
-			(long) motor->raw_set_position.stepper );
+			motor->raw_set_position.stepper );
 
 	mx_status = mxd_mcu2_command( mcu2, command, NULL, 0, MXD_MCU2_DEBUG );
 
@@ -602,7 +600,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -734,7 +732,7 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -950,8 +948,7 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 				ptr[0], motor->record->name );
 	}
 
-	MX_DEBUG( 2,("%s: MX status word = %#lx",
-			fname, (unsigned long) motor->status));
+	MX_DEBUG( 2,("%s: MX status word = %#lx", fname, motor->status));
 
 	return MX_SUCCESSFUL_RESULT;
 }

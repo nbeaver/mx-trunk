@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_aps_adcmod2_record_field_defaults[] = {
 	MXD_APS_ADCMOD2_STANDARD_FIELDS
 };
 
-mx_length_type mxd_aps_adcmod2_num_record_fields
+long mxd_aps_adcmod2_num_record_fields
 		= sizeof( mxd_aps_adcmod2_record_field_defaults )
 		  / sizeof( mxd_aps_adcmod2_record_field_defaults[0] );
 
@@ -411,7 +411,7 @@ mxd_aps_adcmod2_get_parameter( MX_AMPLIFIER *amplifier )
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
-		(int) amplifier->parameter_type));
+		amplifier->parameter_type));
 
 	switch( amplifier->parameter_type ) {
 	default:
@@ -443,7 +443,7 @@ mxd_aps_adcmod2_set_parameter( MX_AMPLIFIER *amplifier )
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
-		(int) amplifier->parameter_type));
+		amplifier->parameter_type));
 
 	switch( amplifier->parameter_type ) {
 	default:

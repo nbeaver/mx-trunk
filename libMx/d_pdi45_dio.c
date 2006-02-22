@@ -44,7 +44,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_din_record_field_defaults[] = {
 	MXD_PDI45_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pdi45_din_num_record_fields
+long mxd_pdi45_din_num_record_fields
 		= sizeof( mxd_pdi45_din_record_field_defaults )
 			/ sizeof( mxd_pdi45_din_record_field_defaults[0] );
 
@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_dout_record_field_defaults[] = {
 	MXD_PDI45_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pdi45_dout_num_record_fields
+long mxd_pdi45_dout_num_record_fields
 		= sizeof( mxd_pdi45_dout_record_field_defaults )
 			/ sizeof( mxd_pdi45_dout_record_field_defaults[0] );
 

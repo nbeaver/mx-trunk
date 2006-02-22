@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -270,8 +270,7 @@ mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	MX_SCAN *scan;
 	MX_RECORD *pulse_generator_record;
-	mx_bool_type busy;
-	int interrupt;
+	int busy, interrupt;
 	mx_status_type status;
 
 	if ( measurement == NULL ) {

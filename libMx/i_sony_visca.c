@@ -40,8 +40,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_sony_visca_rf_defaults[] = {
 	MXI_SONY_VISCA_STANDARD_FIELDS
 };
 
-mx_length_type mxi_sony_visca_num_record_fields
-				= sizeof( mxi_sony_visca_rf_defaults )
+long mxi_sony_visca_num_record_fields = sizeof( mxi_sony_visca_rf_defaults )
 				/ sizeof( mxi_sony_visca_rf_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxi_sony_visca_rfield_def_ptr
@@ -363,8 +362,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	size_t num_response_bytes, bytes_read;
 	int num_command_body_bytes, more_message_to_read, exit_loop;
 	int encoded_camera_number, received_camera_number;
-	unsigned long i, wait_ms, max_attempts;
-	uint32_t num_bytes_available;
+	unsigned long i, num_bytes_available, wait_ms, max_attempts;
 	mx_status_type mx_status;
 
 	/* How many bytes are in the command body? */

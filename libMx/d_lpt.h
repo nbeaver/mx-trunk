@@ -66,7 +66,7 @@ MX_API mx_status_type mxd_lpt_in_read( MX_DIGITAL_INPUT *dinput );
 extern MX_RECORD_FUNCTION_LIST mxd_lpt_in_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST mxd_lpt_in_digital_input_function_list;
 
-extern mx_length_type mxd_lpt_in_num_record_fields;
+extern long mxd_lpt_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_lpt_in_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -81,7 +81,7 @@ MX_API mx_status_type mxd_lpt_out_write( MX_DIGITAL_OUTPUT *doutput );
 extern MX_RECORD_FUNCTION_LIST mxd_lpt_out_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST mxd_lpt_out_digital_output_function_list;
 
-extern mx_length_type mxd_lpt_out_num_record_fields;
+extern long mxd_lpt_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_lpt_out_rfield_def_ptr;
 
 #endif /* __D_LPT_H__ */

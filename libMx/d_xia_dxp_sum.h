@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,7 +19,7 @@
 
 typedef struct {
 	MX_RECORD *xia_dxp_record;
-	mx_length_type roi_number;
+	unsigned long roi_number;
 	MX_RECORD *mca_enable_record;
 } MX_XIA_DXP_SUM;
 
@@ -28,7 +28,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_SUM, xia_dxp_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "roi_number", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "roi_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_SUM, roi_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -44,7 +44,7 @@ MX_API_PRIVATE mx_status_type mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *ainput );
 extern MX_RECORD_FUNCTION_LIST mxd_xia_dxp_sum_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_xia_dxp_sum_analog_input_function_list;
 
-extern mx_length_type mxd_xia_dxp_sum_num_record_fields;
+extern long mxd_xia_dxp_sum_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_xia_dxp_sum_rfield_def_ptr;
 
 #endif /* _D_XIA_DXP_SUM_H_ */

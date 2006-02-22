@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_ks3344_record_field_defaults[] = {
 	MXI_KS3344_STANDARD_FIELDS
 };
 
-mx_length_type mxi_ks3344_num_record_fields
+long mxi_ks3344_num_record_fields
 		= sizeof( mxi_ks3344_record_field_defaults )
 			/ sizeof( mxi_ks3344_record_field_defaults[0] );
 
@@ -360,7 +360,7 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 					MXE_NOT_READY, fname,
 	"Read attempt from port '%s' exceeded maximum retry count = %ld",
 					rs232->record->name,
-					(long) ks3344->max_read_retries );
+					ks3344->max_read_retries );
 				}
 			    }
 
@@ -696,7 +696,7 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported KS3344 speed = %ld for KS3344 '%s'.", 
-		(long) rs232->speed, record->name);
+		rs232->speed, record->name);
 	}
 
 	/* Set the word size. */

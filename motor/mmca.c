@@ -44,10 +44,10 @@ motor_mca_fn( int argc, char *argv[] )
 	size_t length;
 	double counting_time;
 	int busy, status, os_status, saved_errno, use_real_time;
-	mx_length_type i, roi_number, channel_number;
-	mx_length_type roi[2], num_channels;
-	uint32_t *channel_array;
-	uint32_t roi_integral, channel_value;
+	unsigned long i, roi_number;
+	unsigned long *channel_array;
+	unsigned long roi[2], roi_integral, num_channels;
+	unsigned long channel_number, channel_value;
 	double real_time, live_time, icr, ocr;
 	mx_status_type mx_status;
 
@@ -301,8 +301,7 @@ motor_mca_fn( int argc, char *argv[] )
 
 		for ( i = 0; i < num_channels; i++ ) {
 
-			fprintf(savefile, "%10lu\n",
-				(unsigned long) channel_array[i]);
+			fprintf(savefile, "%10lu\n", channel_array[i]);
 
 			if ( feof(savefile) || ferror(savefile) ) {
 				fprintf( output,
@@ -416,10 +415,8 @@ motor_mca_fn( int argc, char *argv[] )
 
 			fprintf( output,
 				"MCA '%s' ROI %lu: start = %lu, end = %lu\n",
-				mca_record->name,
-				(unsigned long) roi_number,
-				(unsigned long) roi[0],
-				(unsigned long) roi[1] );
+				mca_record->name, roi_number,
+				roi[0], roi[1] );
 		} else
 		if ( strncmp( "integral", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -450,7 +447,7 @@ motor_mca_fn( int argc, char *argv[] )
 
 			fprintf( output,
 				"MCA '%s' ROI integrated counts = %lu\n",
-				mca_record->name, (unsigned long) roi_integral);
+				mca_record->name, roi_integral );
 		} else
 		if ( strncmp( "soft_roi", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -481,10 +478,8 @@ motor_mca_fn( int argc, char *argv[] )
 
 			fprintf( output,
 			"MCA '%s' soft ROI %lu: start = %lu, end = %lu\n",
-				mca_record->name,
-				(unsigned long) roi_number,
-				(unsigned long) roi[0],
-				(unsigned long) roi[1] );
+				mca_record->name, roi_number,
+				roi[0], roi[1] );
 		} else
 		if ( strncmp( "soft_integral", argv[4], strlen(argv[4])) == 0) {
 
@@ -515,7 +510,7 @@ motor_mca_fn( int argc, char *argv[] )
 
 			fprintf( output,
 				"MCA '%s' soft ROI integrated counts = %lu\n",
-				mca_record->name, (unsigned long) roi_integral);
+				mca_record->name, roi_integral );
 		} else
 		if ( strncmp( "num_channels", argv[4], strlen(argv[4]) ) == 0) {
 
@@ -527,7 +522,7 @@ motor_mca_fn( int argc, char *argv[] )
 
 			fprintf( output,
 				"MCA '%s' number of channels = %lu\n",
-				mca_record->name, (unsigned long) num_channels);
+				mca_record->name, num_channels );
 
 		} else
 		if ( strncmp( "real_time", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -581,9 +576,8 @@ motor_mca_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output, "MCA '%s' channel %lu = %lu\n",
-				mca_record->name,
-				(unsigned long) channel_number,
-				(unsigned long) channel_value );
+				mca_record->name, channel_number,
+				channel_value );
 		} else
 		if ( strncmp( "icr", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -769,8 +763,8 @@ motor_mca_fn( int argc, char *argv[] )
 static int
 motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 {
-	mx_length_type i, num_channels;
-	uint32_t *channel_array;
+	unsigned long i, num_channels;
+	unsigned long *channel_array;
 	mx_status_type mx_status;
 
 	/* Read out the acquired data. */
@@ -794,10 +788,10 @@ motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 
 	for ( i = 0; i < num_channels; i++ ) {
 		if ( (i % VALUES_PER_ROW) == 0 ) {
-			fprintf( output, "\n%4lu: ", (unsigned long) i );
+			fprintf( output, "\n%4lu: ", i );
 		}
 
-		fprintf( output, "%6lu ", (unsigned long) channel_array[i] );
+		fprintf( output, "%6lu ", channel_array[i] );
 
 #if 1
 		if ( ((i+1) % VALUES_PER_PAGE) == 0 ) {
@@ -841,9 +835,9 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	MX_LIST_HEAD *list_head;
 	FILE *plotgnu_pipe;
-	uint32_t *channel_array;
+	unsigned long *channel_array;
 	int status;
-	mx_length_type i, num_channels;
+	unsigned long i, num_channels;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -893,9 +887,7 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	for ( i = 0; i < num_channels; i++ ) {
 		status = fprintf( plotgnu_pipe,
-			"data %lu %lu\n",
-			(unsigned long) i,
-			(unsigned long) channel_array[i] );
+					"data %lu %lu\n", i, channel_array[i] );
 	}
 
 	status = fprintf( plotgnu_pipe, "set title 'MCA display'\n" );

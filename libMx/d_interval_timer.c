@@ -59,7 +59,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_interval_timer_record_field_defaults[] = {
 	MXD_INTERVAL_TIMER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_interval_timer_num_record_fields
+long mxd_interval_timer_num_record_fields
 		= sizeof( mxd_interval_timer_record_field_defaults )
 		  / sizeof( mxd_interval_timer_record_field_defaults[0] );
 

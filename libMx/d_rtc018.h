@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,8 +24,7 @@
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-
+	int slot;
 	int saved_step_down_bit;
 	double seconds_per_tick;
 } MX_RTC018;
@@ -49,7 +48,7 @@ MX_API mx_status_type mxd_rtc018_set_step_down_bit(
 extern MX_RECORD_FUNCTION_LIST mxd_rtc018_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_rtc018_timer_function_list;
 
-extern mx_length_type mxd_rtc018_num_record_fields;
+extern long mxd_rtc018_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_rtc018_rfield_def_ptr;
 
 #define MXD_RTC018_STANDARD_FIELDS \
@@ -57,7 +56,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_rtc018_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RTC018, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_RTC018, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

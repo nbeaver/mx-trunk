@@ -68,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_slit_motor_record_field_defaults[] = {
 	MXD_SLIT_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_slit_motor_num_record_fields
+long mxd_slit_motor_num_record_fields
 		= sizeof( mxd_slit_motor_record_field_defaults )
 			/ sizeof( mxd_slit_motor_record_field_defaults[0] );
 
@@ -247,8 +247,7 @@ mxd_slit_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type      = SLIT_MOTOR.\n\n");
 
 	fprintf(file, "  name            = %s\n", record->name);
-	fprintf(file, "  slit type       = %ld\n",
-					(long) slit_motor->slit_type);
+	fprintf(file, "  slit type       = %ld\n", slit_motor->slit_type);
 	fprintf(file, "  negative motor  = %s\n",
 					negative_motor_record->name);
 	fprintf(file, "  positive motor  = %s\n",
@@ -404,7 +403,7 @@ mxd_slit_motor_move_absolute( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown slit motor type %ld for slit motor '%s'",
-			(long) slit_motor->slit_type, motor->record->name );
+			slit_motor->slit_type, motor->record->name );
 	}
 
 	/* Now perform the move. */
@@ -487,7 +486,7 @@ mxd_slit_motor_get_position( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unknown slit motor type %ld for slit motor '%s'",
-			(long) slit_motor->slit_type, motor->record->name );
+			slit_motor->slit_type, motor->record->name );
 	}
 
 	motor->raw_position.analog = slit_position;
@@ -654,8 +653,7 @@ mxd_slit_motor_set_parameter( MX_MOTOR *motor )
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			    "Unknown slit motor type %ld for slit motor '%s'",
-				(long) slit_motor->slit_type,
-				motor->record->name );
+				slit_motor->slit_type, motor->record->name );
 		}
 
 		slit_motor->saved_positive_motor_start_position
@@ -693,7 +691,7 @@ mxd_slit_motor_get_status( MX_MOTOR *motor )
 
 	MX_SLIT_MOTOR *slit_motor;
 	MX_RECORD *negative_motor_record, *positive_motor_record;
-	mx_hex_type positive_motor_status, negative_motor_status;
+	unsigned long positive_motor_status, negative_motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_slit_motor_get_pointers( motor, &slit_motor,
@@ -815,7 +813,7 @@ mxd_slit_motor_get_status( MX_MOTOR *motor )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal slit type %ld for slit motor '%s'",
-			(long) slit_motor->slit_type, motor->record->name );
+			slit_motor->slit_type, motor->record->name );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

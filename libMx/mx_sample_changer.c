@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -208,7 +208,7 @@ mx_sample_changer_unmount_sample( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_grab_sample( MX_RECORD *record, int32_t sample_id )
+mx_sample_changer_grab_sample( MX_RECORD *record, long sample_id )
 {
 	static const char fname[] = "mx_sample_changer_grab_sample()";
 
@@ -387,7 +387,7 @@ mx_sample_changer_get_sample_holder( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_get_sample_id( MX_RECORD *record, int32_t *sample_id )
+mx_sample_changer_get_sample_id( MX_RECORD *record, long *sample_id )
 {
 	static const char fname[] = "mx_sample_changer_get_sample_id()";
 
@@ -401,7 +401,7 @@ mx_sample_changer_get_sample_id( MX_RECORD *record, int32_t *sample_id )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( sample_id != (int32_t *) NULL ) {
+	if ( sample_id != (long *) NULL ) {
 		*sample_id = changer->current_sample_id;
 	}
 
@@ -409,7 +409,7 @@ mx_sample_changer_get_sample_id( MX_RECORD *record, int32_t *sample_id )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_set_sample_id( MX_RECORD *record, int32_t sample_id )
+mx_sample_changer_set_sample_id( MX_RECORD *record, long sample_id )
 {
 	static const char fname[] = "mx_sample_changer_get_sample_id()";
 
@@ -549,7 +549,7 @@ mx_sample_changer_reset( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_get_status( MX_RECORD *record, mx_hex_type *changer_status )
+mx_sample_changer_get_status( MX_RECORD *record, unsigned long *changer_status )
 {
 	static const char fname[] = "mx_sample_changer_get_status()";
 
@@ -578,7 +578,7 @@ mx_sample_changer_get_status( MX_RECORD *record, mx_hex_type *changer_status )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( changer_status != (mx_hex_type *) NULL ) {
+	if ( changer_status != (unsigned long *) NULL ) {
 		*changer_status = changer->status;
 	}
 
@@ -586,15 +586,15 @@ mx_sample_changer_get_status( MX_RECORD *record, mx_hex_type *changer_status )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_is_busy( MX_RECORD *record, mx_bool_type *busy )
+mx_sample_changer_is_busy( MX_RECORD *record, int *busy )
 {
 	static const char fname[] = "mx_sample_changer_is_busy()";
 
 	MX_SAMPLE_CHANGER *changer;
-	mx_hex_type changer_status;
+	unsigned long changer_status;
 	mx_status_type mx_status;
 
-	if ( busy == (mx_bool_type *) NULL ) {
+	if ( busy == (int *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"The 'busy' pointer passed was NULL." );
 	}

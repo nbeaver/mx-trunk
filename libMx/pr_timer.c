@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -69,27 +69,30 @@ mx_timer_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_TIMER *timer;
-	mx_status_type mx_status;
+	mx_status_type status;
+
+	double seconds;
+	int busy, mode;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	timer = (MX_TIMER *) (record->record_class_struct);
 
-	mx_status = MX_SUCCESSFUL_RESULT;
+	status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_TIM_VALUE:
-			mx_status = mx_timer_read( record, NULL );
+			status = mx_timer_read( record, &seconds );
 		case MXLV_TIM_BUSY:
-			mx_status = mx_timer_is_busy( record, NULL );
+			status = mx_timer_is_busy( record, &busy );
 			break;
 		case MXLV_TIM_MODE:
-			mx_status = mx_timer_get_mode( record, NULL );
+			status = mx_timer_get_mode( record, &mode );
 			break;
 		case MXLV_TIM_LAST_MEASUREMENT_TIME:
-			mx_status = mx_timer_get_last_measurement_time( record,
+			status = mx_timer_get_last_measurement_time( record,
 									NULL );
 			break;
 		default:
@@ -102,16 +105,16 @@ mx_timer_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_TIM_VALUE:
-			mx_status = mx_timer_start( record, timer->value );
+			status = mx_timer_start( record, timer->value );
 			break;
 		case MXLV_TIM_STOP:
-			mx_status = mx_timer_stop( record, NULL );
+			status = mx_timer_stop( record, &seconds );
 			break;
 		case MXLV_TIM_CLEAR:
-			mx_status = mx_timer_clear( record );
+			status = mx_timer_clear( record );
 			break;
 		case MXLV_TIM_MODE:
-			mx_status = mx_timer_set_mode( record, timer->mode );
+			status = mx_timer_set_mode( record, timer->mode );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -125,6 +128,6 @@ mx_timer_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return mx_status;
+	return status;
 }
 

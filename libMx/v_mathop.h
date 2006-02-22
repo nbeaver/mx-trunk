@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,9 +48,9 @@
 #define MXF_MATHOP_WRITE_ONLY_REDEFINES_VALUE	0x2
 
 typedef struct {
-	int32_t num_items;
-	int32_t item_to_change;
-	mx_hex_type mathop_flags;
+	long num_items;
+	long item_to_change;
+	unsigned long mathop_flags;
 	char operation_name[ MXU_MATHOP_NAME_LENGTH + 1 ];
 	char **item_array;
 
@@ -58,15 +58,15 @@ typedef struct {
 	MX_RECORD **record_array;
 	double *value_array;
 
-	mx_bool_type has_been_initialized;
+	int has_been_initialized;
 } MX_MATHOP_VARIABLE;
 
 #define MX_MATHOP_VARIABLE_STANDARD_FIELDS \
-  {-1, -1, "num_items", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "num_items", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MATHOP_VARIABLE, num_items), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "item_to_change", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "item_to_change", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MATHOP_VARIABLE, item_to_change), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
@@ -100,7 +100,7 @@ MX_API_PRIVATE mx_status_type mxv_mathop_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_mathop_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_mathop_variable_function_list;
 
-extern mx_length_type mxv_mathop_num_record_fields;
+extern long mxv_mathop_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_mathop_rfield_def_ptr;
 
 #endif /* __V_MATHOP_H__ */

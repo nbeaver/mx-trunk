@@ -7,14 +7,12 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define DATABOX_SCALER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,23 +30,28 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_databox_scaler_record_function_list = {
-	NULL,
+	mxd_databox_scaler_initialize_type,
 	mxd_databox_scaler_create_record_structures,
 	mxd_databox_scaler_finish_record_initialization,
-	NULL,
-	mxd_databox_scaler_print_structure
+	mxd_databox_scaler_delete_record,
+	mxd_databox_scaler_print_structure,
+	mxd_databox_scaler_read_parms_from_hardware,
+	mxd_databox_scaler_write_parms_to_hardware,
+	mxd_databox_scaler_open,
+	mxd_databox_scaler_close
 };
 
 MX_SCALER_FUNCTION_LIST mxd_databox_scaler_scaler_function_list = {
-	NULL,
-	NULL,
+	mxd_databox_scaler_clear,
+	mxd_databox_scaler_overflow_set,
 	mxd_databox_scaler_read,
 	NULL,
 	mxd_databox_scaler_is_busy,
 	mxd_databox_scaler_start,
 	mxd_databox_scaler_stop,
 	mxd_databox_scaler_get_parameter,
-	mxd_databox_scaler_set_parameter
+	mxd_databox_scaler_set_parameter,
+	mxd_databox_scaler_set_modes_of_associated_counters
 };
 
 /* Databox scaler data structures. */
@@ -59,12 +62,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_databox_scaler_record_field_defaults[] = {
 	MXD_DATABOX_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_databox_scaler_num_record_fields
+long mxd_databox_scaler_num_record_fields
 		= sizeof( mxd_databox_scaler_record_field_defaults )
 		  / sizeof( mxd_databox_scaler_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_scaler_rfield_def_ptr
 			= &mxd_databox_scaler_record_field_defaults[0];
+
+#define DATABOX_SCALER_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -74,7 +79,7 @@ mxd_databox_scaler_get_pointers( MX_SCALER *scaler,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_databox_scaler_get_pointers()";
+	const char fname[] = "mxd_databox_scaler_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -125,10 +130,15 @@ mxd_databox_scaler_get_pointers( MX_SCALER *scaler,
 /*------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
+mxd_databox_scaler_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_databox_scaler_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_databox_scaler_create_record_structures()";
+	const char fname[] = "mxd_databox_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_DATABOX_SCALER *databox_scaler;
@@ -165,8 +175,8 @@ mxd_databox_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_databox_scaler_finish_record_initialization()";
+	const char fname[]
+		= "mxd_databox_scaler_finish_record_initialization()";
 
 	MX_SCALER *scaler;
 	mx_status_type mx_status;
@@ -188,14 +198,33 @@ mxd_databox_scaler_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_databox_scaler_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_databox_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_databox_scaler_print_structure()";
+	const char fname[] = "mxd_databox_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_DATABOX_SCALER *databox_scaler;
-	int32_t current_value;
-	mx_status_type mx_status;
+	long current_value;
+	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -222,29 +251,67 @@ mxd_databox_scaler_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  DATABOX record            = %s\n",
 					databox_scaler->databox_record->name);
 
-	mx_status = mx_scaler_read( record, &current_value );
+	status = mx_scaler_read( record, &current_value );
 
-	if ( mx_status.code != MXE_SUCCESS ) {
+	if ( status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read value of scaler '%s'",
 			record->name );
 	}
 
-	fprintf(file, "  present value         = %ld\n", (long) current_value);
-
+	fprintf(file, "  present value         = %ld\n", current_value);
 	fprintf(file, "  dark current          = %g counts per second.\n",
-					scaler->dark_current);
-
-	fprintf(file, "  scaler flags          = %#lx\n",
-					(unsigned long) scaler->scaler_flags);
+						scaler->dark_current);
+	fprintf(file, "  scaler flags          = %#lx\n", scaler->scaler_flags);
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
+mxd_databox_scaler_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_write_parms_to_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_open( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_clear( MX_SCALER *scaler )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_overflow_set( MX_SCALER *scaler )
+{
+	const char fname[] = "mxd_databox_scaler_overflow_set()";
+
+	scaler->overflow_set = 0;
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"This type of scaler cannot check for overflow set." );
+}
+
+MX_EXPORT mx_status_type
 mxd_databox_scaler_read( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_read()";
+	const char fname[] = "mxd_databox_scaler_read()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -340,8 +407,7 @@ mxd_databox_scaler_read( MX_SCALER *scaler )
 
 	scaler->raw_value = scaler_value;
 
-	MX_DEBUG( 2,("%s complete.  value = %ld",
-		fname, (long) scaler->raw_value));
+	MX_DEBUG( 2,("%s complete.  value = %ld", fname, scaler->raw_value));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -349,7 +415,7 @@ mxd_databox_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_is_busy()";
+	const char fname[] = "mxd_databox_scaler_is_busy()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -418,7 +484,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -426,7 +492,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_start( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_start()";
+	const char fname[] = "mxd_databox_scaler_start()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -541,7 +607,7 @@ mxd_databox_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_stop( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_stop()";
+	const char fname[] = "mxd_databox_scaler_stop()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Stopping Databox scaler '%s' is not supported.",
@@ -551,7 +617,7 @@ mxd_databox_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_get_parameter( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_get_parameter()";
+	const char fname[] = "mxd_databox_scaler_get_parameter()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -597,7 +663,7 @@ mxd_databox_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_databox_scaler_set_parameter()";
+	const char fname[] = "mxd_databox_scaler_set_parameter()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -622,7 +688,7 @@ mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Scaler mode %d is not supported by the driver for scaler '%s'.",
-				(int) scaler->mode, scaler->record->name );
+				scaler->mode, scaler->record->name );
 		}
 
 		mx_status = mxi_databox_set_limit_mode( databox, limit_mode );
@@ -635,5 +701,15 @@ mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_databox_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
+{
+	/* The Databox supports only one counter and one timer, so this
+	 * function is unnecessary.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -69,7 +69,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_sis3801_record_field_defaults[] = {
 	MXD_SIS3801_STANDARD_FIELDS
 };
 
-mx_length_type mxd_sis3801_num_record_fields
+long mxd_sis3801_num_record_fields
 		= sizeof( mxd_sis3801_record_field_defaults )
 			/ sizeof( mxd_sis3801_record_field_defaults[0] );
 
@@ -135,9 +135,9 @@ MX_EXPORT mx_status_type
 mxd_sis3801_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_scalers_varargs_cookie;
-	mx_length_type maximum_num_measurements_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_scalers_varargs_cookie;
+	long maximum_num_measurements_varargs_cookie;
 	mx_status_type status;
 
 	status = mx_mcs_initialize_type( record_type,
@@ -580,7 +580,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 		"The external prescale factor %ld for MCS '%s' is too large.  "
 		"The largest allowed external prescale factor is %lu.",
 			(long) prescale_factor, sis3801->record->name,
-			(unsigned long) sis3801->maximum_prescale_factor );
+			sis3801->maximum_prescale_factor );
 		}
 	} else {
 		/* Use internal clock. */
@@ -929,9 +929,8 @@ mxd_sis3801_read_all( MX_MCS *mcs )
 				mx_warning(
 	"%s: The MCS '%s' FIFO ran out of data at measurement %ld, scaler %ld "
 	"when there should have been %lu measurements for the %lu scalers.",
-				fname, mcs->record->name, j, i,
-				(unsigned long) mcs->current_num_measurements,
-				(unsigned long) mcs->current_num_scalers );
+		fname, mcs->record->name,
+		j, i, mcs->current_num_measurements, mcs->current_num_scalers);
 
 				return MX_SUCCESSFUL_RESULT;
 			}

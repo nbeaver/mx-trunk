@@ -22,6 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_stdint.h"
 #include "mx_rs232.h"
 #include "mx_sample_changer.h"
 
@@ -66,7 +67,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_als_robot_java_record_field_defaults[] = {
 	MXD_ALS_ROBOT_JAVA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_als_robot_java_num_record_fields
+long mxd_als_robot_java_num_record_fields
 		= sizeof( mxd_als_robot_java_record_field_defaults )
 			/ sizeof( mxd_als_robot_java_record_field_defaults[0] );
 
@@ -249,7 +250,7 @@ mxd_als_robot_java_mount_sample( MX_SAMPLE_CHANGER *changer )
 
 	sprintf( command, "run_op %lu mount %s %ld",
 		interaction_id, changer->requested_sample_holder,
-				(long) changer->requested_sample_id );
+				changer->requested_sample_id );
 
 	mx_status = mxd_als_robot_java_command( changer, als_robot_java,
 				command, NULL, 0, MXD_ALS_ROBOT_JAVA_DEBUG );
@@ -478,7 +479,6 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	char command[100];
 	char response[100];
 	int num_items, value;
-	unsigned long current_sample_id;
 	unsigned long interaction_id;
 	mx_status_type mx_status;
 
@@ -504,17 +504,15 @@ mxd_als_robot_java_get_status( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%s %lu %d",
+	num_items = sscanf( response, "%s %ld %d",
 			changer->current_sample_holder,
-			&current_sample_id, &value );
+			&(changer->current_sample_id), &value );
 
 	if ( num_items != 3 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Did not the expected response to a 'dev_status' command.  "
 		"num_items = %d, response = '%s'", num_items, response );
 	}
-
-	changer->current_sample_id = current_sample_id;
 
 	if ( strcmp( changer->current_sample_holder, "0" ) == 0 ) {
 		changer->current_sample_holder[0] = '\0';

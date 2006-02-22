@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pmac_record;
-	int32_t card_number;
+	int card_number;
 	char pmac_variable_name[ MXU_PMAC_VARIABLE_NAME_LENGTH + 1 ];
 } MX_PMAC_VARIABLE;
 
@@ -30,7 +30,7 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_VARIABLE, pmac_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_VARIABLE, card_number), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -51,12 +51,12 @@ MX_API_PRIVATE mx_status_type mxv_pmac_receive_variable(
 extern MX_RECORD_FUNCTION_LIST mxv_pmac_record_function_list;
 extern MX_VARIABLE_FUNCTION_LIST mxv_pmac_variable_function_list;
 
-extern mx_length_type mxv_pmac_int32_num_record_fields;
-extern mx_length_type mxv_pmac_uint32_num_record_fields;
-extern mx_length_type mxv_pmac_double_num_record_fields;
+extern long mxv_pmac_long_num_record_fields;
+extern long mxv_pmac_ulong_num_record_fields;
+extern long mxv_pmac_double_num_record_fields;
 
-extern MX_RECORD_FIELD_DEFAULTS *mxv_pmac_int32_rfield_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_pmac_uint32_rfield_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_pmac_long_rfield_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_pmac_ulong_rfield_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_pmac_double_rfield_def_ptr;
 
 #endif /* __V_PMAC_H__ */

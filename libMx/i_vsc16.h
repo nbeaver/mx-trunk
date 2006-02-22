@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,14 +46,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *vme_record;
-	uint32_t crate_number;
-	mx_hex_type base_address;
+	unsigned long crate_number;
+	unsigned long base_address;
 
-	mx_length_type num_counters;
+	unsigned long num_counters;
 	MX_RECORD *counter_record[MX_MAX_VSC16_CHANNELS];
 
-	uint8_t module_type;
-	uint8_t serial_number;
+	unsigned char module_type;
+	unsigned char serial_number;
 } MX_VSC16;
 
 #define MXI_VSC16_STANDARD_FIELDS \
@@ -61,7 +61,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16, vme_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VSC16, crate_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -76,7 +76,7 @@ MX_API mx_status_type mxi_vsc16_open( MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxi_vsc16_record_function_list;
 
-extern mx_length_type mxi_vsc16_num_record_fields;
+extern long mxi_vsc16_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vsc16_rfield_def_ptr;
 
 /* === Driver specific functions === */

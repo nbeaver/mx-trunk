@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,7 +18,6 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "mx_inttypes.h"
 #include "mx_socket.h"
 #include "mx_spec.h"
 #include "n_spec.h"
@@ -750,47 +749,37 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* This code uses C99 style formatting macros from "mx_inttypes.h". */
-
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
-		strlcpy( format, "%c", sizeof(format) );
-		break;
 	case MXFT_UCHAR:
-		strlcpy( format, "%c", sizeof(format) );
+		strcpy( format, "%c" );
 		break;
-	case MXFT_INT8:
-		strlcpy( format, "%" SCNd8, sizeof(format) );
+	case MXFT_SHORT:
+		strcpy( format, "%hd" );
 		break;
-	case MXFT_UINT8:
-		strlcpy( format, "%" SCNu8, sizeof(format) );
+	case MXFT_USHORT:
+		strcpy( format, "%hu" );
 		break;
-	case MXFT_INT16:
-		strlcpy( format, "%" SCNd16, sizeof(format) );
+	case MXFT_INT:
+		strcpy( format, "%d" );
 		break;
-	case MXFT_UINT16:
-		strlcpy( format, "%" SCNu16, sizeof(format) );
+	case MXFT_UINT:
+		strcpy( format, "%u" );
 		break;
-	case MXFT_INT32:
-		strlcpy( format, "%" SCNd32, sizeof(format) );
+	case MXFT_LONG:
+		strcpy( format, "%ld" );
 		break;
-	case MXFT_UINT32:
-		strlcpy( format, "%" SCNu32, sizeof(format) );
-		break;
-	case MXFT_INT64:
-		strlcpy( format, "%" SCNd64, sizeof(format) );
-		break;
-	case MXFT_UINT64:
-		strlcpy( format, "%" SCNu64, sizeof(format) );
+	case MXFT_ULONG:
+		strcpy( format, "%lu" );
 		break;
 	case MXFT_HEX:
-		strlcpy( format, "%" SCNx32, sizeof(format) );
+		strcpy( format, "%lx" );
 		break;
 	case MXFT_FLOAT:
-		strlcpy( format, "%g", sizeof(format) );
+		strcpy( format, "%g" );
 		break;
 	case MXFT_DOUBLE:
-		strlcpy( format, "%lg", sizeof(format) );
+		strcpy( format, "%lg" );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -820,61 +809,40 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 {
 	static const char fname[] = "mx_spec_put_number()";
 
-	char buffer[80];
+	char string_buffer[80];
 	mx_status_type mx_status;
 
 	switch( mx_datatype ) {
 	case MXFT_CHAR:
-		snprintf( buffer, sizeof(buffer),
-				"%c", *((char *) value));
-		break;
 	case MXFT_UCHAR:
-		snprintf( buffer, sizeof(buffer),
-				"%c", *((unsigned char *) value));
+		sprintf( string_buffer, "%c", *((char *) value));
 		break;
-	case MXFT_INT8:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRId8, *((int8_t *) value));
+	case MXFT_SHORT:
+		sprintf( string_buffer, "%hd", *((short *) value));
 		break;
-	case MXFT_UINT8:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRIu8, *((uint8_t *) value));
+	case MXFT_USHORT:
+		sprintf( string_buffer, "%hu", *((unsigned short *) value));
 		break;
-	case MXFT_INT16:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRId16, *((int16_t *) value));
+	case MXFT_INT:
+		sprintf( string_buffer, "%d", *((int *) value));
 		break;
-	case MXFT_UINT16:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRIu16, *((uint16_t *) value));
+	case MXFT_UINT:
+		sprintf( string_buffer, "%u", *((unsigned int *) value));
 		break;
-	case MXFT_INT32:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRId32, *((int32_t *) value));
+	case MXFT_LONG:
+		sprintf( string_buffer, "%ld", *((long *) value));
 		break;
-	case MXFT_UINT32:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRIu32, *((uint32_t *) value));
-		break;
-	case MXFT_INT64:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRId64, *((int64_t *) value));
-		break;
-	case MXFT_UINT64:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRIu64, *((uint64_t *) value));
+	case MXFT_ULONG:
+		sprintf( string_buffer, "%lu", *((unsigned long *) value));
 		break;
 	case MXFT_HEX:
-		snprintf( buffer, sizeof(buffer),
-				"%" PRIx32, *((uint32_t *) value));
+		sprintf( string_buffer, "%lx", *((unsigned long *) value));
 		break;
 	case MXFT_FLOAT:
-		snprintf( buffer, sizeof(buffer),
-				"%g", *((float *) value));
+		sprintf( string_buffer, "%g", *((float *) value));
 		break;
 	case MXFT_DOUBLE:
-		snprintf( buffer, sizeof(buffer),
-				"%g", *((double *) value));
+		sprintf( string_buffer, "%g", *((double *) value));
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -884,7 +852,7 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 
 	mx_status = mx_spec_put_string( spec_server_record,
 					property_name,
-					buffer );
+					string_buffer );
 
 	return mx_status;
 }

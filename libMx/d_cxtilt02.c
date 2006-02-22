@@ -42,12 +42,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_cxtilt02_analog_input_function_list = {
 
 MX_RECORD_FIELD_DEFAULTS mxd_cxtilt02_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_CXTILT02_ANGLE_STANDARD_FIELDS
 };
 
-mx_length_type mxd_cxtilt02_num_record_fields
+long mxd_cxtilt02_num_record_fields
 		= sizeof( mxd_cxtilt02_record_field_defaults )
 			/ sizeof( mxd_cxtilt02_record_field_defaults[0] );
 
@@ -162,9 +162,9 @@ mxd_cxtilt02_create_record_structures( MX_RECORD *record )
         analog_input->record = record;
 	cxtilt02_angle->record = record;
 
-	/* Raw analog input values are stored as 32-bit integers. */
+	/* Raw analog input values are stored as longs. */
 
-	analog_input->subclass = MXT_AIN_INT32;
+	analog_input->subclass = MXT_AIN_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -195,10 +195,10 @@ mxd_cxtilt02_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	if ( cxtilt02_angle->angle_id == MXF_CXTILT02_PITCH ) {
-		ainput->raw_value.int32_value = cxtilt02->raw_pitch;
+		ainput->raw_value.long_value = cxtilt02->raw_pitch;
 	} else
 	if ( cxtilt02_angle->angle_id == MXF_CXTILT02_ROLL ) {
-		ainput->raw_value.int32_value = cxtilt02->raw_roll;
+		ainput->raw_value.long_value = cxtilt02->raw_roll;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal angle ID for CXTILT02 angle record '%s'.  "

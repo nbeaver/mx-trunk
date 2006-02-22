@@ -58,7 +58,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2400_aoutput_rf_defaults[] = {
 	MXD_KEITHLEY2400_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_keithley2400_aoutput_num_record_fields
+long mxd_keithley2400_aoutput_num_record_fields
 		= sizeof( mxd_keithley2400_aoutput_rf_defaults )
 		  / sizeof( mxd_keithley2400_aoutput_rf_defaults[0] );
 
@@ -295,7 +295,7 @@ mxd_keithley2400_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported source type %d for Keithley 2400 "
 		"analog output '%s' used by record '%s'.",
-			(int) keithley2400_aoutput->source_type,
+			keithley2400_aoutput->source_type,
 			keithley2400->record->name,
 			aoutput->record->name );
 	}

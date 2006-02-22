@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_modbus_din_record_field_defaults[] = {
 	MXD_MODBUS_DINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_modbus_din_num_record_fields
+long mxd_modbus_din_num_record_fields
 		= sizeof( mxd_modbus_din_record_field_defaults )
 			/ sizeof( mxd_modbus_din_record_field_defaults[0] );
 
@@ -74,7 +74,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_modbus_dout_record_field_defaults[] = {
 	MXD_MODBUS_DOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_modbus_dout_num_record_fields
+long mxd_modbus_dout_num_record_fields
 		= sizeof( mxd_modbus_dout_record_field_defaults )
 			/ sizeof( mxd_modbus_dout_record_field_defaults[0]);
 
@@ -198,7 +198,7 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 	static const char fname[] = "mxd_modbus_din_read()";
 
 	MX_MODBUS_DINPUT *modbus_dinput;
-	uint32_t raw_value;
+	long raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[2];
@@ -283,30 +283,30 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 	case MXF_MOD_READ_COILS:
 	case MXF_MOD_READ_DISCRETE_INPUTS:
 		if ( num_bits <= 8 ) {
-			raw_value = (uint32_t) mx_uint8_array[0];
+			raw_value = (long) mx_uint8_array[0];
 		} else
 		if ( num_bits <= 16 ) {
-			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 8;
-			raw_value |= (uint32_t) mx_uint8_array[1];
+			raw_value = ( (long) mx_uint8_array[0] ) << 8;
+			raw_value |= (long) mx_uint8_array[1];
 		} else
 		if ( num_bits <= 24 ) {
-			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 16;
-			raw_value |= ( (uint32_t) mx_uint8_array[1] ) << 8;
-			raw_value |= (uint32_t) mx_uint8_array[2];
+			raw_value = ( (long) mx_uint8_array[0] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 8;
+			raw_value |= (long) mx_uint8_array[2];
 		} else {
-			raw_value = ( (uint32_t) mx_uint8_array[0] ) << 24;
-			raw_value |= ( (uint32_t) mx_uint8_array[1] ) << 16;
-			raw_value |= ( (uint32_t) mx_uint8_array[2] ) << 8;
-			raw_value |= (uint32_t) mx_uint8_array[3];
+			raw_value = ( (long) mx_uint8_array[0] ) << 24;
+			raw_value |= ( (long) mx_uint8_array[1] ) << 16;
+			raw_value |= ( (long) mx_uint8_array[2] ) << 8;
+			raw_value |= (long) mx_uint8_array[3];
 		}
 		break;
 	case MXF_MOD_READ_HOLDING_REGISTERS:
 	case MXF_MOD_READ_INPUT_REGISTERS:
 		if ( num_bits <= 16 ) {
-			raw_value = (uint32_t) mx_uint16_array[0];
+			raw_value = (long) mx_uint16_array[0];
 		} else {
-			raw_value = ( (uint32_t) mx_uint16_array[0] ) << 16;
-			raw_value |= (uint32_t) mx_uint16_array[1];
+			raw_value = ( (long) mx_uint16_array[0] ) << 16;
+			raw_value |= (long) mx_uint16_array[1];
 		}
 		break;
 	}
@@ -371,7 +371,7 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	static const char fname[] = "mxd_modbus_dout_write()";
 
 	MX_MODBUS_DOUTPUT *modbus_doutput;
-	uint32_t raw_value;
+	long raw_value;
 	int function_code, num_bits, num_registers;
 	uint8_t mx_uint8_array[4];
 	uint16_t mx_uint16_array[4];
@@ -397,7 +397,7 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	function_code = (int) modbus_doutput->modbus_function_code;
 
-	raw_value = doutput->value;
+	raw_value = (long) doutput->value;
 
 	switch( function_code ) {
 	case MXF_MOD_WRITE_SINGLE_COIL:

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2006 Illinois Institute of Technology
+ * Copyright 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,7 +41,7 @@ MX_API mx_status_type mxi_vxworks_vme_set_parameter( MX_VME *vme );
 extern MX_RECORD_FUNCTION_LIST mxi_vxworks_vme_record_function_list;
 extern MX_VME_FUNCTION_LIST mxi_vxworks_vme_vme_function_list;
 
-extern mx_length_type mxi_vxworks_vme_num_record_fields;
+extern long mxi_vxworks_vme_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vxworks_vme_rfield_def_ptr;
 
 #define MXI_VXWORKS_VME_STANDARD_FIELDS \

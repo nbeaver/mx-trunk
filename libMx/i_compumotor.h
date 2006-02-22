@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,13 +51,13 @@ typedef struct {
 
 	int interface_subtype;
 	MX_RECORD *rs232_record;
-	mx_hex_type interface_flags;
+	long interface_flags;
 
-	mx_length_type num_controllers;
-	int32_t *controller_number;
-	int32_t *num_axes;
+	long num_controllers;
+	int *controller_number;
+	int *num_axes;
 
-	mx_hex_type *controller_type;
+	unsigned long *controller_type;
 	MX_RECORD *(*motor_array)[MX_MAX_COMPUMOTOR_AXES];
 
 	char command[MX_COMPUMOTOR_MAX_COMMAND_LENGTH+1];
@@ -79,18 +79,18 @@ typedef struct {
 		offsetof(MX_COMPUMOTOR_INTERFACE, interface_flags), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_controllers", MXFT_LENGTH, NULL, 0, {0}, \
+  {-1, -1, "num_controllers", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_COMPUMOTOR_INTERFACE, num_controllers), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "controller_number", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "controller_number", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_COMPUMOTOR_INTERFACE, controller_number), \
 	{sizeof(int)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "num_axes", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "num_axes", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR_INTERFACE, num_axes), \
 	{sizeof(int)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
@@ -130,26 +130,23 @@ MX_API mx_status_type mxi_compumotor_special_processing_setup(
 
 extern MX_RECORD_FUNCTION_LIST mxi_compumotor_record_function_list;
 
-extern mx_length_type mxi_compumotor_num_record_fields;
+extern long mxi_compumotor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_compumotor_rfield_def_ptr;
 
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_compumotor_command(
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-	char *command, char *response, size_t response_buffer_length,
-	mx_bool_type debug_flag );
+	char *command, char *response, int response_buffer_length,
+	int debug_flag );
 
 MX_API mx_status_type mxi_compumotor_get_controller_index(
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-	int32_t controller_number, int32_t *controller_index );
+	int controller_number, int *controller_index );
 
 MX_API mx_status_type mxi_compumotor_multiaxis_move(
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-	int32_t controller_number,
-	mx_length_type num_motors,
-	MX_RECORD **motor_record_array,
-	double *motor_position_array,
-	mx_bool_type simultaneous_start );
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface, int controller_number,
+	unsigned long num_motors, MX_RECORD **motor_record_array,
+	double *motor_position_array, int simultaneous_start );
 
 #endif /* __I_COMPUMOTOR_H__ */

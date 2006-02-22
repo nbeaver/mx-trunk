@@ -71,7 +71,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_epics_motor_record_field_defaults[] = {
 	MXD_EPICS_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_epics_motor_num_record_fields
+long mxd_epics_motor_num_record_fields
 		= sizeof( mxd_epics_motor_record_field_defaults )
 			/ sizeof( mxd_epics_motor_record_field_defaults[0] );
 
@@ -782,12 +782,12 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_epics_motor_simultaneous_start( mx_length_type num_motor_records,
+mxd_epics_motor_simultaneous_start( int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *destination_array,
-				mx_hex_type flags )
+				int flags )
 {
-	static const char fname[] = "mxd_epics_motor_simultaneous_start()";
+	const char fname[] = "mxd_epics_motor_simultaneous_start()";
 
 	MX_RECORD *motor_record;
 	MX_MOTOR *motor;
@@ -840,7 +840,7 @@ mxd_epics_motor_simultaneous_start( mx_length_type num_motor_records,
 MX_EXPORT mx_status_type
 mxd_epics_motor_get_extended_status( MX_MOTOR *motor )
 {
-	static const char fname[] = "mxd_epics_motor_get_extended_status()";
+	const char fname[] = "mxd_epics_motor_get_extended_status()";
 
 	MX_EPICS_GROUP epics_group;
 	MX_EPICS_MOTOR *epics_motor;

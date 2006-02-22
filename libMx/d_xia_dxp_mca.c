@@ -111,7 +111,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_dxp_record_field_defaults[] = {
 #   define XIA_DEBUG_STATISTICS(x)
 #endif
 
-mx_length_type mxd_xia_dxp_num_record_fields
+long mxd_xia_dxp_num_record_fields
 		= sizeof( mxd_xia_dxp_record_field_defaults )
 		  / sizeof( mxd_xia_dxp_record_field_defaults[0] );
 
@@ -164,10 +164,10 @@ MX_EXPORT mx_status_type
 mxd_xia_dxp_initialize_type( long record_type )
 {
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
-	mx_length_type num_record_fields;
-	mx_length_type maximum_num_channels_varargs_cookie;
-	mx_length_type maximum_num_rois_varargs_cookie;
-	mx_length_type num_soft_rois_varargs_cookie;
+	long num_record_fields;
+	long maximum_num_channels_varargs_cookie;
+	long maximum_num_rois_varargs_cookie;
+	long num_soft_rois_varargs_cookie;
 	mx_status_type mx_status;
 
 	mx_status = mx_mca_initialize_type( record_type,
@@ -282,29 +282,27 @@ mxd_xia_dxp_finish_record_initialization( MX_RECORD *record )
 
 	if ( mca->maximum_num_rois > MX_XIA_DXP_MCA_MAX_SCAS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of ROIs (%lu) for XIA MCA '%s' is greater "
+"The requested maximum number of ROIs (%ld) for XIA MCA '%s' is greater "
 "than the maximum allowed value of %d.",
-			(unsigned long) mca->maximum_num_rois,
-			record->name,
+			mca->maximum_num_rois, record->name,
 			MX_XIA_DXP_MCA_MAX_SCAS );
 	}
 
 	if ( mca->maximum_num_channels > MX_XIA_DXP_MCA_MAX_BINS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The requested maximum number of channels (%lu) for XIA MCA '%s' is greater "
+"The requested maximum number of channels (%ld) for XIA MCA '%s' is greater "
 "than the maximum allowed value of %d.",
-			(unsigned long) mca->maximum_num_channels,
-			record->name,
+			mca->maximum_num_channels, record->name,
 			MX_XIA_DXP_MCA_MAX_BINS );
 	}
 
-	mca->channel_array = (uint32_t *)
-		malloc( mca->maximum_num_channels * sizeof(uint32_t) );
+	mca->channel_array = ( unsigned long * )
+		malloc( mca->maximum_num_channels * sizeof( unsigned long ) );
 
 	if ( mca->channel_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory allocating an %lu channel data array.",
-			(unsigned long) mca->maximum_num_channels );
+		"Ran out of memory allocating an %ld channel data array.",
+			mca->maximum_num_channels );
 	}
 
 	mca->preset_type = MXF_MCA_PRESET_LIVE_TIME;
@@ -357,8 +355,8 @@ mxd_xia_dxp_print_structure( FILE *file, MX_RECORD *record )
 					xia_dxp_mca->xia_dxp_record->name);
 	fprintf(file, "  mca label             = %s\n",
 					xia_dxp_mca->mca_label);
-	fprintf(file, "  maximum # of bins     = %lu\n",
-				(unsigned long) mca->maximum_num_channels);
+	fprintf(file, "  maximum # of bins     = %ld\n",
+					mca->maximum_num_channels);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -517,8 +515,7 @@ mxd_xia_dxp_network_open( MX_MCA *mca,
 		"XIA network record '%s'.  This MCA would be record %lu "
 		"of the MCA record array, but that array only has room "
 		"for %lu records.", mca->record->name,
-			xia_dxp_record->name, i+1,
-			(unsigned long) xia_network->num_mcas );
+			xia_dxp_record->name, i+1, xia_network->num_mcas );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1227,7 +1224,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 		mx_status = mx_get(
 		    &(xia_network->hardware_scas_are_enabled_nf[mca_number]),
-			MXFT_BOOL, &(xia_dxp_mca->hardware_scas_are_enabled) );
+			MXFT_INT, &(xia_dxp_mca->hardware_scas_are_enabled) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -2151,7 +2148,7 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	uint32_t low_limit, high_limit;
 	uint32_t i, j, roi_boundary;
-	mx_length_type roi[2];
+	unsigned long roi[2];
 	char name[20];
 	mx_status_type mx_status;
 
@@ -2193,15 +2190,15 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			mx_warning(
-"MCA '%s' reports that it currently has %lu channels.  "
-"The MX record is currently configured for a maximum of %lu channels, "
-"so channels %lu to %lu will be discarded.  "
+"MCA '%s' reports that it currently has %ld channels.  "
+"The MX record is currently configured for a maximum of %ld channels, "
+"so channels %ld to %ld will be discarded.  "
 "This probably means that the MX database is not correctly configured.",
 				mca->record->name,
-				(unsigned long) mca->current_num_channels,
-				(unsigned long) mca->maximum_num_channels,
-				(unsigned long) mca->current_num_channels,
-				mca->maximum_num_channels - 1L );
+				mca->current_num_channels,
+				mca->maximum_num_channels,
+				mca->current_num_channels,
+				mca->maximum_num_channels - 1 );
 
 			mca->current_num_channels = mca->maximum_num_channels;
 		}
@@ -2254,8 +2251,7 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 		MX_DEBUG( 2,
 	("%s: Integrating MCA '%s' ROI %lu integral from bin %lu to bin %lu",
 				fname, mca->record->name, (unsigned long) i,
-				(unsigned long) roi[0],
-				(unsigned long) roi[1]));
+				roi[0], roi[1]));
 
 		mca->roi_integral = 0;
 
@@ -2263,9 +2259,8 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 			mca->roi_integral += mca->channel_array[j];
 		}
 
-		MX_DEBUG( 2,("%s: ROI %lu integral = %lu", fname,
-			(unsigned long) i,
-			(unsigned long) mca->roi_integral));
+		MX_DEBUG( 2,("%s: ROI %lu integral = %lu",
+			fname, (unsigned long) i, mca->roi_integral));
 
 		break;
 	case MXLV_MCA_LIVE_TIME:
@@ -2385,7 +2380,7 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 
 MX_EXPORT mx_status_type
 mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
-				mx_length_type *num_mcas,
+				unsigned long *num_mcas,
 				MX_RECORD ***mca_record_array )
 {
 	static const char fname[] = "mxd_xia_dxp_get_mca_array()";
@@ -2468,14 +2463,14 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 
 MX_EXPORT mx_status_type
 mxd_xia_dxp_get_rate_corrected_roi_integral( MX_MCA *mca,
-			mx_length_type roi_number,
+			unsigned long roi_number,
 			double *corrected_roi_value )
 {
 	static const char fname[] =
 		"mxd_xia_dxp_get_rate_corrected_roi_integral()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
-	uint32_t mca_value;
+	unsigned long mca_value;
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
 
@@ -2514,14 +2509,14 @@ mxd_xia_dxp_get_rate_corrected_roi_integral( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxd_xia_dxp_get_livetime_corrected_roi_integral( MX_MCA *mca,
-			mx_length_type roi_number,
+			unsigned long roi_number,
 			double *corrected_roi_value )
 {
 	static const char fname[] =
 		"mxd_xia_dxp_get_livetime_corrected_roi_integral()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
-	uint32_t mca_value;
+	unsigned long mca_value;
 	double corrected_value, multiplier;
 	mx_status_type mx_status;
 
@@ -2565,7 +2560,7 @@ mxd_xia_dxp_get_livetime_corrected_roi_integral( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxd_xia_dxp_read_statistics( MX_MCA *mca,
 				MX_XIA_DXP_MCA *xia_dxp_mca,
-				mx_bool_type debug_flag )
+				int debug_flag )
 {
 	static const char fname[] = "mxd_xia_dxp_read_statistics()";
 
@@ -2662,7 +2657,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 		("%s: Read mca '%s' parameter name = '%s', value = %lu",
 				fname, mca->record->name,
 				xia_dxp_mca->parameter_name,
-				(unsigned long) xia_dxp_mca->parameter_value));
+				xia_dxp_mca->parameter_value));
 
 			break;
 		case MXLV_XIA_DXP_STATISTICS:
@@ -2776,7 +2771,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 		("%s: Write mca '%s' parameter name = '%s', value = %lu",
 				fname, mca->record->name,
 				xia_dxp_mca->parameter_name,
-				(unsigned long) xia_dxp_mca->parameter_value));
+				xia_dxp_mca->parameter_value));
 
 			if ( xia_dxp_mca->write_parameter == NULL ) {
 				return mx_error( MXE_INITIALIZATION_ERROR,
@@ -2796,7 +2791,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 ("%s: Write to all channels for mca '%s' parameter name = '%s', value = %lu",
 				fname, mca->record->name,
 				xia_dxp_mca->parameter_name,
-		    (unsigned long) xia_dxp_mca->param_value_to_all_channels));
+				xia_dxp_mca->param_value_to_all_channels));
 
 			if ( xia_dxp_mca->write_parameter_to_all_channels
 				== NULL )

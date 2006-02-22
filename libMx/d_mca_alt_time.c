@@ -50,7 +50,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mca_alt_time_record_field_defaults[] = {
 	MXD_MCA_ALT_TIME_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mca_alt_time_num_record_fields
+long mxd_mca_alt_time_num_record_fields
 		= sizeof( mxd_mca_alt_time_record_field_defaults )
 		  / sizeof( mxd_mca_alt_time_record_field_defaults[0] );
 
@@ -244,7 +244,7 @@ mxd_mca_alt_time_read( MX_SCALER *scaler )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal 'time_type' value %d for record '%s'.  "
 		"The allowed values are 0, 1, and 2.",
-			(int) mca_alt_time->time_type,
+			mca_alt_time->time_type,
 			scaler->record->name );
 	}
 

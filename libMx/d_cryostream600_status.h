@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,7 +30,7 @@
 
 typedef struct {
 	MX_RECORD *cryostream600_motor_record;
-	int32_t parameter_type;
+	int parameter_type;
 } MX_CRYOSTREAM600_STATUS;
 
 /* Define all of the interface functions. */
@@ -46,7 +46,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_cryostream600_status_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 			mxd_cryostream600_status_analog_input_function_list;
 
-extern mx_length_type mxd_cryostream600_status_num_record_fields;
+extern long mxd_cryostream600_status_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_cryostream600_status_rfield_def_ptr;
 
 #define MXD_CRYOSTREAM600_STATUS_STANDARD_FIELDS \
@@ -55,7 +55,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_cryostream600_status_rfield_def_ptr;
 	    offsetof(MX_CRYOSTREAM600_STATUS, cryostream600_motor_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "parameter_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_CRYOSTREAM600_STATUS, parameter_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,15 +55,15 @@ MX_API mx_status_type mxi_ks3344_discard_unwritten_output( MX_RS232 *rs232 );
 
 typedef struct {
 	MX_RECORD *camac_record;
-	int32_t slot;
-	int32_t subaddress;
-	int32_t max_read_retries;
+	int slot;
+	int subaddress;
+	long max_read_retries;
 } MX_KS3344;
 
 extern MX_RECORD_FUNCTION_LIST mxi_ks3344_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_ks3344_rs232_function_list;
 
-extern mx_length_type mxi_ks3344_num_record_fields;
+extern long mxi_ks3344_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_ks3344_rfield_def_ptr;
 
 #define MXI_KS3344_STANDARD_FIELDS \
@@ -71,15 +71,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_ks3344_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3344, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3344, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3344, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "max_read_retries", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "max_read_retries", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KS3344, max_read_retries), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

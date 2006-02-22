@@ -32,9 +32,8 @@ MX_RECORD_FUNCTION_LIST mxd_net_sample_changer_record_function_list = {
 	mxd_net_sample_changer_finish_record_initialization
 };
 
-MX_SAMPLE_CHANGER_FUNCTION_LIST
-		mxd_net_sample_changer_sample_changer_function_list = {
-
+MX_SAMPLE_CHANGER_FUNCTION_LIST mxd_net_sample_changer_sample_changer_function_list
+  = {
 	mxd_net_sample_changer_initialize,
 	mxd_net_sample_changer_shutdown,
 	mxd_net_sample_changer_mount_sample,
@@ -58,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_net_sample_changer_rf_field_defaults[] = {
 	MXD_NET_SAMPLE_CHANGER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_net_sample_changer_num_record_fields
+long mxd_net_sample_changer_num_record_fields
 		= sizeof( mxd_net_sample_changer_rf_field_defaults )
 			/ sizeof( mxd_net_sample_changer_rf_field_defaults[0] );
 
@@ -235,7 +234,7 @@ mxd_net_sample_changer_initialize( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_initialize()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type initialize;
+	int initialize;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -247,10 +246,10 @@ mxd_net_sample_changer_initialize( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	initialize = TRUE;
+	initialize = 1;
 
 	mx_status = mx_put( &(net_sample_changer->initialize_nf),
-				MXFT_BOOL, &initialize );
+				MXFT_INT, &initialize );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -263,7 +262,7 @@ mxd_net_sample_changer_shutdown( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_shutdown()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type shutdown;
+	int shutdown;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -275,10 +274,10 @@ mxd_net_sample_changer_shutdown( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	shutdown = TRUE;
+	shutdown = 1;
 
 	mx_status = mx_put( &(net_sample_changer->shutdown_nf),
-				MXFT_BOOL, &shutdown );
+				MXFT_INT, &shutdown );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -291,7 +290,7 @@ mxd_net_sample_changer_mount_sample( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_mount_sample()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type mount_sample;
+	int mount_sample;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -305,10 +304,10 @@ mxd_net_sample_changer_mount_sample( MX_SAMPLE_CHANGER *changer )
 
 	/* Mount the sample. */
 
-	mount_sample = TRUE;
+	mount_sample = 1;
 
 	mx_status = mx_put( &(net_sample_changer->mount_sample_nf),
-				MXFT_BOOL, &(mount_sample) );
+				MXFT_INT, &(mount_sample) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -321,7 +320,7 @@ mxd_net_sample_changer_unmount_sample( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_unmount_sample()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type unmount_sample;
+	int unmount_sample;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -333,10 +332,10 @@ mxd_net_sample_changer_unmount_sample( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	unmount_sample = TRUE;
+	unmount_sample = 1;
 
 	mx_status = mx_put( &(net_sample_changer->unmount_sample_nf),
-				MXFT_BOOL, &(unmount_sample) );
+				MXFT_INT, &(unmount_sample) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -349,7 +348,7 @@ mxd_net_sample_changer_grab_sample( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_grab_sample()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type grab_sample;
+	int grab_sample;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -364,17 +363,17 @@ mxd_net_sample_changer_grab_sample( MX_SAMPLE_CHANGER *changer )
 	/* Identify the sample ID to use. */
 
 	mx_status = mx_put( &(net_sample_changer->requested_sample_id_nf),
-			MXFT_INT32, &(changer->requested_sample_id) );
+			MXFT_ULONG, &(changer->requested_sample_id) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Mount the sample. */
 
-	grab_sample = TRUE;
+	grab_sample = 1;
 
 	mx_status = mx_put( &(net_sample_changer->grab_sample_nf),
-				MXFT_BOOL, &(grab_sample) );
+				MXFT_INT, &(grab_sample) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -392,7 +391,7 @@ mxd_net_sample_changer_ungrab_sample( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_ungrab_sample()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type ungrab_sample;
+	int ungrab_sample;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -404,10 +403,10 @@ mxd_net_sample_changer_ungrab_sample( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	ungrab_sample = TRUE;
+	ungrab_sample = 1;
 
 	mx_status = mx_put( &(net_sample_changer->ungrab_sample_nf),
-				MXFT_BOOL, &(ungrab_sample) );
+				MXFT_INT, &(ungrab_sample) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -421,8 +420,8 @@ mxd_net_sample_changer_select_sample_holder( MX_SAMPLE_CHANGER *changer )
 		"mxd_net_sample_changer_select_sample_holder()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_length_type dimension_array[1];
-	mx_bool_type select_sample_holder;
+	long dimension_array[1];
+	int select_sample_holder;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -446,10 +445,10 @@ mxd_net_sample_changer_select_sample_holder( MX_SAMPLE_CHANGER *changer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	select_sample_holder = TRUE;
+	select_sample_holder = 1;
 
 	mx_status = mx_put( &(net_sample_changer->select_sample_holder_nf),
-				MXFT_BOOL, &(select_sample_holder) );
+				MXFT_INT, &(select_sample_holder) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -470,7 +469,7 @@ mxd_net_sample_changer_unselect_sample_holder( MX_SAMPLE_CHANGER *changer )
 		"mxd_net_sample_changer_unselect_sample_holder()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type unselect_sample_holder;
+	int unselect_sample_holder;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -482,10 +481,10 @@ mxd_net_sample_changer_unselect_sample_holder( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	unselect_sample_holder = TRUE;
+	unselect_sample_holder = 1;
 
 	mx_status = mx_put( &(net_sample_changer->unselect_sample_holder_nf),
-				MXFT_BOOL, &(unselect_sample_holder) );
+				MXFT_INT, &(unselect_sample_holder) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -505,7 +504,7 @@ mxd_net_sample_changer_soft_abort( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_soft_abort()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type soft_abort;
+	int soft_abort;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -517,10 +516,10 @@ mxd_net_sample_changer_soft_abort( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	soft_abort = TRUE;
+	soft_abort = 1;
 
 	mx_status = mx_put( &(net_sample_changer->soft_abort_nf),
-				MXFT_BOOL, &(soft_abort) );
+				MXFT_INT, &(soft_abort) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -533,7 +532,7 @@ mxd_net_sample_changer_immediate_abort( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_immediate_abort()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type immediate_abort;
+	int immediate_abort;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -545,10 +544,10 @@ mxd_net_sample_changer_immediate_abort( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	immediate_abort = TRUE;
+	immediate_abort = 1;
 
 	mx_status = mx_put( &(net_sample_changer->immediate_abort_nf),
-				MXFT_BOOL, &(immediate_abort) );
+				MXFT_INT, &(immediate_abort) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -561,7 +560,7 @@ mxd_net_sample_changer_idle( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_idle()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type idle;
+	int idle;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -573,10 +572,9 @@ mxd_net_sample_changer_idle( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	idle = TRUE;
+	idle = 1;
 
-	mx_status = mx_put( &(net_sample_changer->idle_nf),
-				MXFT_BOOL, &(idle) );
+	mx_status = mx_put( &(net_sample_changer->idle_nf), MXFT_INT, &(idle) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -589,7 +587,7 @@ mxd_net_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_reset()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type reset;
+	int reset;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -601,10 +599,10 @@ mxd_net_sample_changer_reset( MX_SAMPLE_CHANGER *changer )
 	MX_DEBUG(-2,("%s invoked for record '%s'.",
 			fname, changer->record->name));
 
-	reset = TRUE;
+	reset = 1;
 
 	mx_status = mx_put( &(net_sample_changer->reset_nf),
-				MXFT_BOOL, &(reset) );
+				MXFT_INT, &(reset) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -629,7 +627,7 @@ mxd_net_sample_changer_get_status( MX_SAMPLE_CHANGER *changer )
 			fname, changer->record->name));
 
 	mx_status = mx_get( &(net_sample_changer->status_nf),
-				MXFT_INT32, &(changer->status) );
+				MXFT_ULONG, &(changer->status) );
 
 	MX_DEBUG(-2,("%s complete.", fname));
 
@@ -642,7 +640,7 @@ mxd_net_sample_changer_set_parameter( MX_SAMPLE_CHANGER *changer )
 	static const char fname[] = "mxd_net_sample_changer_set_parameter()";
 
 	MX_NET_SAMPLE_CHANGER *net_sample_changer;
-	mx_bool_type bool_value;
+	int int_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_net_sample_changer_get_pointers( changer,
@@ -660,16 +658,16 @@ mxd_net_sample_changer_set_parameter( MX_SAMPLE_CHANGER *changer )
 
 	switch( changer->parameter_type ) {
 	case MXLV_CHG_COOLDOWN:
-		bool_value = TRUE;
+		int_value = 1;
 
 		mx_status = mx_put( &(net_sample_changer->cooldown_nf),
-					MXFT_BOOL, &(bool_value) );
+					MXFT_INT, &(int_value) );
 		break;
 	case MXLV_CHG_DEICE:
-		bool_value = TRUE;
+		int_value = 1;
 
 		mx_status = mx_put( &(net_sample_changer->deice_nf),
-					MXFT_BOOL, &(bool_value) );
+					MXFT_INT, &(int_value) );
 		break;
 	default:
 		mx_status =  mx_sample_changer_default_set_parameter_handler(

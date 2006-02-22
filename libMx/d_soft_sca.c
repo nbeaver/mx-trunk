@@ -7,14 +7,12 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
-
-#define MXD_SOFT_SCA_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,12 +49,14 @@ MX_RECORD_FIELD_DEFAULTS mxd_soft_sca_record_field_defaults[] = {
 	MXD_SOFT_SCA_STANDARD_FIELDS
 };
 
-mx_length_type mxd_soft_sca_num_record_fields
+long mxd_soft_sca_num_record_fields
 		= sizeof( mxd_soft_sca_record_field_defaults )
 		  / sizeof( mxd_soft_sca_record_field_defaults[0] );
 
 MX_RECORD_FIELD_DEFAULTS *mxd_soft_sca_rfield_def_ptr
 			= &mxd_soft_sca_record_field_defaults[0];
+
+#define MXD_SOFT_SCA_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ MX_API mx_status_type mxs_input_scan_compute_motor_positions(
 
 extern MX_LINEAR_SCAN_FUNCTION_LIST mxs_input_linear_scan_function_list;
 
-extern mx_length_type mxs_input_linear_scan_num_record_fields;
+extern long mxs_input_linear_scan_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxs_input_linear_scan_def_ptr;
 
 #endif /* __S_INPUT_H__ */

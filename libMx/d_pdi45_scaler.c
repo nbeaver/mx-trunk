@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_pdi45_scaler_record_field_defaults[] = {
 	MXD_PDI45_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_pdi45_scaler_num_record_fields
+long mxd_pdi45_scaler_num_record_fields
 		= sizeof( mxd_pdi45_scaler_record_field_defaults )
 		  / sizeof( mxd_pdi45_scaler_record_field_defaults[0] );
 

@@ -22,6 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_stdint.h"
 #include "mx_driver.h"
 #include "mx_analog_input.h"
 #include "mx_mca.h"
@@ -45,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_xia_dxp_input_record_field_defaults[] = {
 	MX_XIA_DXP_INPUT_STANDARD_FIELDS,
 };
 
-mx_length_type mxd_xia_dxp_input_num_record_fields
+long mxd_xia_dxp_input_num_record_fields
 	= sizeof( mxd_xia_dxp_input_record_field_defaults )
 	/ sizeof( mxd_xia_dxp_input_record_field_defaults[0] );
 
@@ -57,8 +58,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_xia_dxp_input_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_xia_dxp_input_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_xia_dxp_input_create_record_structures()";
+	static const char fname[] = "mxd_xia_dxp_input_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_XIA_DXP_INPUT *xia_dxp_input;
@@ -110,11 +110,9 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 	MX_XIA_DXP_INPUT *xia_dxp_input;
 
 	uint32_t parameter_value;
-	mx_length_type roi_number;
-	uint32_t mca_value;
+	unsigned long roi_number, mca_value;
 	double corrected_value;
 	int num_items;
-	unsigned long ulong_value;
 	mx_status_type mx_status;
 
 	if ( analog_input == (MX_ANALOG_INPUT *) NULL ) {
@@ -191,7 +189,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -200,8 +198,6 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 				xia_dxp_input->value_parameters,
 				analog_input->record->name );
 		}
-
-		roi_number = ulong_value;
 
 		mx_status = mx_mca_get_roi_integral(
 						xia_dxp_input->mca_record,
@@ -212,7 +208,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_RATE_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -221,8 +217,6 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 				xia_dxp_input->value_parameters,
 				analog_input->record->name );
 		}
-
-		roi_number = ulong_value;
 
 		mx_status = mxd_xia_dxp_get_rate_corrected_roi_integral(
 							mca, roi_number,
@@ -236,7 +230,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	case MXT_XIA_DXP_VAR_LIVETIME_CORRECTED_ROI_INTEGRAL:
 		num_items = sscanf( xia_dxp_input->value_parameters,
-					"%lu", &ulong_value );
+					"%lu", &roi_number );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -245,8 +239,6 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 				xia_dxp_input->value_parameters,
 				analog_input->record->name );
 		}
-
-		roi_number = ulong_value;
 
 		mx_status = mxd_xia_dxp_get_livetime_corrected_roi_integral(
 							mca, roi_number,

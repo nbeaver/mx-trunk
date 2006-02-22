@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,8 +29,7 @@
 mx_status_type
 mx_setup_digital_input_process_functions( MX_RECORD *record )
 {
-	static const char fname[] =
-			"mx_setup_digital_input_process_functions()";
+	static const char fname[] = "mx_setup_digital_input_process_functions()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -65,6 +64,7 @@ mx_digital_input_process_function( void *record_ptr,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	MX_DIGITAL_INPUT *digital_input;
+	unsigned long value;
 	mx_status_type status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -77,7 +77,7 @@ mx_digital_input_process_function( void *record_ptr,
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_DIN_VALUE:
-			status = mx_digital_input_read( record, NULL );
+			status = mx_digital_input_read(record, &value);
 			break;
 		default:
 			MX_DEBUG( 1,(

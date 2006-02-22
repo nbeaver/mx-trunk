@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *tpg262_record;
-	int32_t gauge_number;
+	int gauge_number;
 } MX_TPG262_PRESSURE;
 
 #define MXD_TPG262_PRESSURE_STANDARD_FIELDS \
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TPG262_PRESSURE, tpg262_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "gauge_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "gauge_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TPG262_PRESSURE, gauge_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -47,7 +47,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_tpg262_pressure_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_tpg262_pressure_analog_input_function_list;
 
-extern mx_length_type mxd_tpg262_pressure_num_record_fields;
+extern long mxd_tpg262_pressure_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_tpg262_pressure_rfield_def_ptr;
 
 #endif /* __D_TPG262_PRESSURE_H__ */

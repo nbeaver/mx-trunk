@@ -47,7 +47,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_cxtilt02_record_field_defaults[] = {
 	MXI_CXTILT02_STANDARD_FIELDS
 };
 
-mx_length_type mxi_cxtilt02_num_record_fields
+long mxi_cxtilt02_num_record_fields
 		= sizeof( mxi_cxtilt02_record_field_defaults )
 			/ sizeof( mxi_cxtilt02_record_field_defaults[0] );
 
@@ -351,11 +351,11 @@ mxi_cxtilt02_read_angles( MX_CXTILT02 *cxtilt02 )
 				(unsigned int) checksum);
 	}
 
-	cxtilt02->raw_pitch = 0xffff & ( (int16_t) pitch_lsb
-					+ 256 * (int16_t) pitch_msb );
+	cxtilt02->raw_pitch = 0xffff & ( (short) pitch_lsb
+					+ 256 * (short) pitch_msb );
 
-	cxtilt02->raw_roll = 0xffff & ( (int16_t) roll_lsb
-					+ 256 * (int16_t) roll_msb );
+	cxtilt02->raw_roll = 0xffff & ( (short) roll_lsb
+					+ 256 * (short) roll_msb );
 
 #if MXI_CXTILT02_DEBUG		
 	MX_DEBUG(-2,("%s: raw_pitch = %#x, raw_roll = %#x", fname,

@@ -45,7 +45,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_modbus_serial_rtu_record_field_defaults[] = {
 	MXI_MODBUS_SERIAL_RTU_STANDARD_FIELDS
 };
 
-mx_length_type mxi_modbus_serial_rtu_num_record_fields
+long mxi_modbus_serial_rtu_num_record_fields
 	= sizeof( mxi_modbus_serial_rtu_record_field_defaults )
 	/ sizeof( mxi_modbus_serial_rtu_record_field_defaults[0] );
 

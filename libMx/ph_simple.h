@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2006 Illinois Institute of Technology
+ * Copyright 2001 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 typedef struct {
 	MX_RECORD *permit_record;
 
-	uint32_t permit_value;
+	unsigned long permit_value;
 } MX_SIMPLE_MEASUREMENT_PERMIT;
 
 MX_API mx_status_type mxph_simple_create_handler(

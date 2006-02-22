@@ -5,7 +5,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ MX_API mx_status_type mxd_spec_timer_stop( MX_TIMER *timer );
 extern MX_RECORD_FUNCTION_LIST mxd_spec_timer_record_function_list;
 extern MX_TIMER_FUNCTION_LIST mxd_spec_timer_timer_function_list;
 
-extern mx_length_type mxd_spec_timer_num_record_fields;
+extern long mxd_spec_timer_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_spec_timer_rfield_def_ptr;
 
 #define MXD_SPEC_TIMER_STANDARD_FIELDS \

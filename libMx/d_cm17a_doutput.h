@@ -24,7 +24,7 @@ typedef struct {
 
 	MX_RECORD *cm17a_record;
 	char house_code;
-	int32_t device_code;
+	int device_code;
 
 	uint16_t on_command;
 	uint16_t off_command;
@@ -41,7 +41,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, house_code), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "device_code", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "device_code", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, device_code), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -57,7 +57,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_cm17a_doutput_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_cm17a_doutput_digital_output_function_list;
 
-extern mx_length_type mxd_cm17a_doutput_num_record_fields;
+extern long mxd_cm17a_doutput_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_cm17a_doutput_rfield_def_ptr;
 
 #endif /* __D_CM17A_DOUTPUT_H__ */

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,13 +223,13 @@ mx_gpib_get_pointers( MX_RECORD *gpib_record,
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_open_device( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_open_device( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_open_device()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -264,13 +264,13 @@ mx_gpib_open_device( MX_RECORD *gpib_record, int32_t address )
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_close_device( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_close_device( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_close_device()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -288,7 +288,7 @@ mx_gpib_close_device( MX_RECORD *gpib_record, int32_t address )
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Attempted to close GPIB address %d on interface '%s' "
 		"when it was already closed.",
-			(int) address, gpib_record->name );
+			address, gpib_record->name );
 	} else {
 
 		fptr = fl_ptr->close_device;
@@ -310,19 +310,18 @@ mx_gpib_close_device( MX_RECORD *gpib_record, int32_t address )
 
 MX_EXPORT mx_status_type
 mx_gpib_read( MX_RECORD *gpib_record,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		mx_hex_type flags)
+		int flags)
 {
 	static const char fname[] = "mx_gpib_read()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
 	size_t local_bytes_read;
-	mx_status_type (*fptr)(MX_GPIB *,
-			int32_t, char *, size_t, size_t *, mx_hex_type);
+	mx_status_type (*fptr)(MX_GPIB *, int, char *, size_t, size_t *, int);
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -354,19 +353,18 @@ mx_gpib_read( MX_RECORD *gpib_record,
 
 MX_EXPORT mx_status_type
 mx_gpib_write( MX_RECORD *gpib_record,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		mx_hex_type flags)
+		int flags)
 {
 	static const char fname[] = "mx_gpib_write()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
 	size_t local_bytes_written;
-	mx_status_type (*fptr)(MX_GPIB *,
-			int32_t, char *, size_t, size_t *, mx_hex_type);
+	mx_status_type (*fptr)(MX_GPIB *, int, char *, size_t, size_t *, int);
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -404,19 +402,18 @@ mx_gpib_write( MX_RECORD *gpib_record,
 
 MX_EXPORT mx_status_type
 mx_gpib_getline( MX_RECORD *gpib_record,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		mx_hex_type flags)
+		int flags)
 {
 	static const char fname[] = "mx_gpib_getline()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
 	size_t real_max_bytes_to_read, real_bytes_read;
-	mx_status_type (*fptr)(MX_GPIB *,
-			int32_t, char *, size_t, size_t *, mx_hex_type);
+	mx_status_type (*fptr)(MX_GPIB *, int, char *, size_t, size_t *, int);
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -456,10 +453,10 @@ mx_gpib_getline( MX_RECORD *gpib_record,
 
 MX_EXPORT mx_status_type
 mx_gpib_putline( MX_RECORD *gpib_record,
-		int32_t address,
+		int address,
 		char *buffer,
 		size_t *bytes_written,
-		mx_hex_type flags)
+		int flags)
 {
 	static const char fname[] = "mx_gpib_putline()";
 
@@ -467,8 +464,7 @@ mx_gpib_putline( MX_RECORD *gpib_record,
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
 	size_t bytes_to_write;
 	size_t local_bytes_written;
-	mx_status_type (*fptr)(MX_GPIB *,
-			int32_t, char *, size_t, size_t *, mx_hex_type);
+	mx_status_type (*fptr)(MX_GPIB *, int, char *, size_t, size_t *, int);
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -557,13 +553,13 @@ mx_gpib_device_clear( MX_RECORD *gpib_record )
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_selective_device_clear( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_selective_device_clear( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_selective_device_clear()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -613,13 +609,13 @@ mx_gpib_local_lockout( MX_RECORD *gpib_record )
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_remote_enable( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_remote_enable( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_remote_enable()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -641,13 +637,13 @@ mx_gpib_remote_enable( MX_RECORD *gpib_record, int32_t address )
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_go_to_local( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_go_to_local( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_go_to_local()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -669,13 +665,13 @@ mx_gpib_go_to_local( MX_RECORD *gpib_record, int32_t address )
 }
 
 MX_EXPORT mx_status_type
-mx_gpib_trigger( MX_RECORD *gpib_record, int32_t address )
+mx_gpib_trigger( MX_RECORD *gpib_record, int address )
 {
 	static const char fname[] = "mx_gpib_trigger()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t );
+	mx_status_type (*fptr)( MX_GPIB *, int );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,
@@ -726,13 +722,13 @@ mx_gpib_wait_for_service_request( MX_RECORD *gpib_record, double timeout )
 
 MX_EXPORT mx_status_type
 mx_gpib_serial_poll( MX_RECORD *gpib_record,
-			int32_t address, uint8_t *serial_poll_byte )
+			int address, unsigned char *serial_poll_byte )
 {
 	static const char fname[] = "mx_gpib_serial_poll()";
 
 	MX_GPIB *gpib;
 	MX_GPIB_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_GPIB *, int32_t, uint8_t * );
+	mx_status_type (*fptr)( MX_GPIB *, int, unsigned char * );
 	mx_status_type mx_status;
 
 	mx_status = mx_gpib_get_pointers( gpib_record,

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,12 +28,12 @@
 typedef struct {
 	int file_handle;
 	char filename[MXU_FILENAME_LENGTH + 1];
-	int32_t channel;
-	int32_t gain;
-	mx_bool_type use_unipolar_input;
-	mx_bool_type use_dma;
-	int32_t trigger_type;
-	mx_bool_type use_differential_input;
+	int channel;
+	int gain;
+	int use_unipolar_input;
+	int use_dma;
+	int trigger_type;
+	int use_differential_input;
 } MX_LABPC_ADC;
 
 #define MXD_LABPC_ADC_STANDARD_FIELDS \
@@ -41,27 +41,27 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "channel", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, channel), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "gain", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "gain", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, gain), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_unipolar_input", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_unipolar_input", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_unipolar_input), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_dma", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_dma", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_dma), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "trigger_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "trigger_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, trigger_type), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "use_differential_input", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_differential_input", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_ADC, use_differential_input), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -76,7 +76,7 @@ MX_API mx_status_type mxd_labpc_adc_read( MX_ANALOG_INPUT *adc );
 
 extern MX_ANALOG_INPUT_FUNCTION_LIST mxd_labpc_adc_analog_input_function_list;
 
-extern mx_length_type mxd_labpc_adc_num_record_fields;
+extern long mxd_labpc_adc_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_adc_rfield_def_ptr;
 
 /* ============ Analog output channels ============ */
@@ -84,7 +84,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_adc_rfield_def_ptr;
 typedef struct {
 	int file_handle;
 	char filename[MXU_FILENAME_LENGTH + 1];
-	mx_bool_type use_unipolar_output;
+	int use_unipolar_output;
 } MX_LABPC_DAC;
 
 #define MXD_LABPC_DAC_STANDARD_FIELDS \
@@ -92,7 +92,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_DAC, filename), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "use_unipolar_output", MXFT_BOOL, NULL, 0, {0}, \
+  {-1, -1, "use_unipolar_output", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_LABPC_DAC, use_unipolar_output), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -118,7 +118,7 @@ MX_API mx_status_type mxd_labpc_dac_write( MX_ANALOG_OUTPUT *dac );
 
 extern MX_ANALOG_OUTPUT_FUNCTION_LIST mxd_labpc_dac_analog_output_function_list;
 
-extern mx_length_type mxd_labpc_dac_num_record_fields;
+extern long mxd_labpc_dac_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_dac_rfield_def_ptr;
 
 /* ============ Digital input channels ============ */
@@ -154,7 +154,7 @@ MX_API mx_status_type mxd_labpc_din_read( MX_DIGITAL_INPUT *dinput );
 
 extern MX_DIGITAL_INPUT_FUNCTION_LIST mxd_labpc_din_digital_input_function_list;
 
-extern mx_length_type mxd_labpc_din_num_record_fields;
+extern long mxd_labpc_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_din_rfield_def_ptr;
 
 /* ============ Digital output channels ============ */
@@ -192,7 +192,7 @@ MX_API mx_status_type mxd_labpc_dout_write( MX_DIGITAL_OUTPUT *doutput );
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_labpc_dout_digital_output_function_list;
 
-extern mx_length_type mxd_labpc_dout_num_record_fields;
+extern long mxd_labpc_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_labpc_dout_rfield_def_ptr;
 
 #endif /* __D_LABPC_H__ */

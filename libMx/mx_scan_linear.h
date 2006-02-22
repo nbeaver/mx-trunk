@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,8 @@ typedef struct {
 
 	double *start_position;
 	double *step_size;
-	int32_t *num_measurements;
-	int32_t *step_number;
+	long *num_measurements;
+	long *step_number;
 
 	void *record_type_struct;
 } MX_LINEAR_SCAN;
@@ -45,11 +45,11 @@ typedef struct {
 	mx_status_type ( *motor_record_array_move_special ) (
 				MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
-				int32_t num_motor_records,
+				int num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				mx_hex_type flags );
+				int flags );
 } MX_LINEAR_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mxs_linear_scan_initialize_type( long );
@@ -82,11 +82,11 @@ extern MX_SCAN_FUNCTION_LIST mxs_linear_scan_scan_function_list;
 	MXF_REC_CLASS_STRUCT, offsetof(MX_LINEAR_SCAN, step_size), \
 	{sizeof(double)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
-  {-1, -1, "num_measurements", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "num_measurements", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_LINEAR_SCAN, num_measurements), \
 	{sizeof(long)}, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS)}, \
-  {-1, -1, "step_number", MXFT_INT32, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "step_number", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_LINEAR_SCAN, step_number), \
 	{sizeof(long)}, NULL, MXFF_VARARGS}
 

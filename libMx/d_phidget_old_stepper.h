@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *controller_record;
-	int32_t motor_number;
+	int motor_number;
 
 	double default_speed;
 	double default_base_speed;
@@ -51,7 +51,7 @@ MX_API mx_status_type mxd_phidget_old_stepper_get_extended_status(
 extern MX_RECORD_FUNCTION_LIST mxd_phidget_old_stepper_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_phidget_old_stepper_motor_function_list;
 
-extern mx_length_type mxd_phidget_old_stepper_num_record_fields;
+extern long mxd_phidget_old_stepper_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_phidget_old_stepper_rfield_def_ptr;
 
 #define MXD_PHIDGET_OLD_STEPPER_STANDARD_FIELDS \
@@ -59,7 +59,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_phidget_old_stepper_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PHIDGET_OLD_STEPPER, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PHIDGET_OLD_STEPPER, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_delta_motor_record_field_defaults[] = {
 	MXD_DELTA_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_delta_motor_num_record_fields
+long mxd_delta_motor_num_record_fields
 		= sizeof( mxd_delta_motor_record_field_defaults )
 			/ sizeof( mxd_delta_motor_record_field_defaults[0] );
 
@@ -121,8 +121,7 @@ mxd_delta_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_delta_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_delta_motor_create_record_structures()";
+	static const char fname[] = "mxd_delta_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_DELTA_MOTOR *delta_motor;
@@ -638,7 +637,7 @@ mxd_delta_motor_get_status( MX_MOTOR *motor )
 
 	MX_DELTA_MOTOR *delta_motor;
 	MX_RECORD *moving_motor_record;
-	mx_hex_type motor_status;
+	unsigned long motor_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
@@ -684,7 +683,7 @@ mxd_delta_motor_get_fixed_position_value(
 
 	MX_RECORD *fixed_position_record;
 	void *pointer_to_value;
-	mx_bool_type fast_mode;
+	int fast_mode;
 	mx_status_type mx_status;
 
 	if ( delta_motor == (MX_DELTA_MOTOR *) NULL ) {

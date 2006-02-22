@@ -16,8 +16,6 @@
  *
  */
 
-#define MXD_SCIPE_AIO_DEBUG	FALSE
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,6 +27,8 @@
 #include "mx_analog_output.h"
 #include "i_scipe.h"
 #include "d_scipe_aio.h"
+
+#define MXD_SCIPE_AIO_DEBUG	FALSE
 
 /* Initialize the SCIPE analog I/O driver jump tables. */
 
@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_ain_record_field_defaults[] = {
 	MXD_SCIPE_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_ain_num_record_fields
+long mxd_scipe_ain_num_record_fields
 		= sizeof( mxd_scipe_ain_record_field_defaults )
 			/ sizeof( mxd_scipe_ain_record_field_defaults[0] );
 
@@ -73,7 +73,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_aout_record_field_defaults[] = {
 	MXD_SCIPE_AOUTPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_aout_num_record_fields
+long mxd_scipe_aout_num_record_fields
 		= sizeof( mxd_scipe_aout_record_field_defaults )
 			/ sizeof( mxd_scipe_aout_record_field_defaults[0] );
 

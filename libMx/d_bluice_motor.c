@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,7 +64,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_bluice_motor_record_field_defaults[] = {
 	MXD_BLUICE_MOTOR_STANDARD_FIELDS
 };
 
-mx_length_type mxd_bluice_motor_num_record_fields
+long mxd_bluice_motor_num_record_fields
 		= sizeof( mxd_bluice_motor_record_field_defaults )
 			/ sizeof( mxd_bluice_motor_record_field_defaults[0] );
 
@@ -585,7 +585,7 @@ mxd_bluice_motor_get_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 
 	switch( motor->parameter_type ) {
@@ -628,7 +628,7 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
-		(int) motor->parameter_type));
+		motor->parameter_type));
 
 	if ( foreign_motor->u.motor.is_pseudo ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -708,8 +708,7 @@ mxd_bluice_motor_get_status( MX_MOTOR *motor )
 		motor->status &= ( ~ MXSF_MTR_IS_BUSY );
 	}
 
-	MX_DEBUG( 2,("%s: MX status word = %#lx",
-		fname, (unsigned long) motor->status));
+	MX_DEBUG( 2,("%s: MX status word = %#lx", fname, motor->status));
 
 	return MX_SUCCESSFUL_RESULT;
 }

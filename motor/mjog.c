@@ -35,7 +35,7 @@ motor_mjog_fn( int argc, char *argv[] )
 	long naptime, timeout;
 
 	int use_steps, move_motor;
-	int32_t steps, relative_steps, jog_step_size;
+	long steps, relative_steps, jog_step_size;
 	double position, relative_motion, step_size, jog_size;
 	size_t length;
 	mx_status_type mx_status;
@@ -179,16 +179,16 @@ motor_mjog_fn( int argc, char *argv[] )
 				motor_name);
 		fprintf( output,
 			"    Hit %s to move by %ld steps.\n",
-				right_arrow_label, (long) jog_step_size);
+				right_arrow_label, jog_step_size);
 		fprintf( output,
 			"    Hit %s to move by %ld steps.\n",
-				left_arrow_label, (long) (-jog_step_size) );
+				left_arrow_label, -jog_step_size);
 		fprintf( output,
 			"    Hit %s to move by %ld steps.\n",
-			ctrl_right_arrow_label, 10 * (long) jog_step_size);
+				ctrl_right_arrow_label, 10 * jog_step_size);
 		fprintf( output,
 			"    Hit %s to move by %ld steps.\n",
-			ctrl_left_arrow_label, -10 * (long) jog_step_size);
+				ctrl_left_arrow_label, -10 * jog_step_size);
 		fprintf( output, "\n");
 	} else {
 		fprintf( output,
@@ -258,7 +258,7 @@ motor_mjog_fn( int argc, char *argv[] )
 				}
 
 				fprintf( output, "%ld  (%.*g %s)\n",
-					(long) steps,
+					steps,
 					record->precision,
 					step_size * (double) steps,
 					motor->units );
@@ -384,7 +384,7 @@ motor_mjog_fn( int argc, char *argv[] )
 			if ( use_steps ) {
 				fprintf( output,
 				"Moving '%s' by %ld steps to ",
-				motor_name, (long) relative_steps );
+				motor_name, relative_steps );
 
 				mx_status
 				  = mx_motor_move_relative_steps_with_report(

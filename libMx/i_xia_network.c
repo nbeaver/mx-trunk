@@ -48,7 +48,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_xia_network_record_field_defaults[] = {
 	MXI_XIA_NETWORK_STANDARD_FIELDS
 };
 
-mx_length_type mxi_xia_network_num_record_fields
+long mxi_xia_network_num_record_fields
 		= sizeof( mxi_xia_network_record_field_defaults )
 			/ sizeof( mxi_xia_network_record_field_defaults[0] );
 
@@ -314,8 +314,7 @@ mxi_xia_network_open( MX_RECORD *record )
 
 	/* Find out how many detector channels (MCAs) there are. */
 
-	mx_status = mx_get(&(xia_network->num_mcas_nf),
-			MXFT_LENGTH, &num_mcas );
+	mx_status = mx_get(&(xia_network->num_mcas_nf), MXFT_ULONG, &num_mcas );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -410,7 +409,7 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_xia_network_resynchronize()";
 
 	MX_XIA_NETWORK *xia_network;
-	mx_bool_type resynchronize;
+	int resynchronize;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -428,10 +427,10 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	resynchronize = TRUE;
+	resynchronize = 1;
 
 	mx_status = mx_put( &(xia_network->resynchronize_nf),
-				MXFT_BOOL, &resynchronize );
+				MXFT_INT, &resynchronize );
 
 	return mx_status;
 }
@@ -440,14 +439,14 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_xia_network_is_busy( MX_MCA *mca,
-			mx_bool_type *busy_flag,
-			mx_bool_type debug_flag )
+			int *busy_flag,
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_is_busy()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	mx_bool_type busy;
+	int busy;
 	long i;
 	mx_status_type mx_status;
 
@@ -459,7 +458,7 @@ mxi_xia_network_is_busy( MX_MCA *mca,
 
 	i = xia_dxp_mca->detector_channel;
 
-	mx_status = mx_get( &(xia_network->busy_nf[i]), MXFT_BOOL, &busy );
+	mx_status = mx_get( &(xia_network->busy_nf[i]), MXFT_INT, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -477,14 +476,13 @@ MX_EXPORT mx_status_type
 mxi_xia_network_read_parameter( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t *value_ptr,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_parameter()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	unsigned long parameter_value;
 	mx_status_type mx_status;
 
@@ -513,7 +511,7 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 		return mx_status;
 
 	mx_status = mx_get( &(xia_network->parameter_value_nf[i]),
-					MXFT_UINT32, &parameter_value );
+					MXFT_ULONG, &parameter_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -532,14 +530,13 @@ MX_EXPORT mx_status_type
 mxi_xia_network_write_parameter( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t value,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_write_parameter()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	unsigned long parameter_value;
 	mx_status_type mx_status;
 
@@ -570,7 +567,7 @@ mxi_xia_network_write_parameter( MX_MCA *mca,
 		return mx_status;
 
 	mx_status = mx_put( &(xia_network->parameter_value_nf[i]),
-					MXFT_UINT32, &parameter_value );
+					MXFT_ULONG, &parameter_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -588,15 +585,14 @@ MX_EXPORT mx_status_type
 mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
 			uint32_t value,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] =
 			"mxi_xia_network_write_param_to_all_channels()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	unsigned long parameter_value;
 	mx_status_type mx_status;
 
@@ -627,7 +623,7 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 		return mx_status;
 
 	mx_status = mx_put( &(xia_network->param_value_to_all_channels_nf[i]),
-					MXFT_UINT32, &parameter_value );
+					MXFT_ULONG, &parameter_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -643,15 +639,14 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_start_run( MX_MCA *mca,
-			mx_bool_type clear_flag,
-			mx_bool_type debug_flag )
+			int clear_flag,
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_start_run()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	double parameter_array[2];
 	mx_status_type mx_status;
 
@@ -702,13 +697,13 @@ mxi_xia_network_start_run( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_stop_run( MX_MCA *mca,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_stop_run()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	mx_bool_type stop;
+	int stop;
 	long i;
 	mx_status_type mx_status;
 
@@ -724,23 +719,22 @@ mxi_xia_network_stop_run( MX_MCA *mca,
 		MX_DEBUG(-2,("%s: Record '%s'.", fname, mca->record->name));
 	}
 
-	stop = TRUE;
+	stop = 1;
 
-	mx_status = mx_put( &(xia_network->stop_nf[i]), MXFT_BOOL, &stop );
+	mx_status = mx_put( &(xia_network->stop_nf[i]), MXFT_INT, &stop );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxi_xia_network_read_spectrum( MX_MCA *mca,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_spectrum()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxi_xia_network_get_pointers( mca,
@@ -755,7 +749,7 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 		/* See if the new_data_available flag is set in the server. */
 
 		mx_status = mx_get( &(xia_network->new_data_available_nf[i]),
-					MXFT_BOOL, &(mca->new_data_available) );
+					MXFT_INT, &(mca->new_data_available) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -764,9 +758,8 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 	if ( mca->new_data_available ) {
 		if ( debug_flag ) {
 			MX_DEBUG(-2,
-			("%s: reading out %lu channels from MCA '%s'.",
-			  fname, (unsigned long) mca->current_num_channels,
-			  mca->record->name));
+			("%s: reading out %ld channels from MCA '%s'.",
+			  fname, mca->current_num_channels, mca->record->name));
 		}
 	} else {
 		if ( debug_flag ) {
@@ -781,7 +774,7 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 	dimension_array[0] = mca->current_num_channels;
 
 	mx_status = mx_get_array( &(xia_network->channel_array_nf[i]),
-					MXFT_UINT32, 1, dimension_array,
+					MXFT_ULONG, 1, dimension_array,
 					mca->channel_array );
 
 	if ( debug_flag ) {
@@ -797,14 +790,13 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_read_statistics( MX_MCA *mca,
-			mx_bool_type debug_flag )
+			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_statistics()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[1];
+	long i, dimension_array[1];
 	mx_status_type mx_status;
 
 	mx_status = mxi_xia_network_get_pointers( mca,
@@ -821,7 +813,7 @@ mxi_xia_network_read_statistics( MX_MCA *mca,
 
 		mx_status = mx_get(
 			&(xia_network->new_statistics_available_nf[i]),
-			MXFT_BOOL, &(xia_dxp_mca->new_statistics_available) );
+			MXFT_INT, &(xia_dxp_mca->new_statistics_available) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -876,8 +868,7 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[2];
+	long i, dimension_array[2];
 	mx_status_type mx_status;
 
 	mx_status = mxi_xia_network_get_pointers( mca,
@@ -896,28 +887,28 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 		mx_status = mx_get( &(xia_network->current_num_channels_nf[i]),
-				MXFT_LENGTH, &(mca->current_num_channels) );
+				MXFT_LONG, &(mca->current_num_channels) );
 
 		if ( mca->current_num_channels > mca->maximum_num_channels ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-"The MCA '%s' controlled by server '%s' is reported to have %lu channels, "
-"but the record '%s' is only configured to support up to %lu channels.",
+"The MCA '%s' controlled by server '%s' is reported to have %ld channels, "
+"but the record '%s' is only configured to support up to %ld channels.",
 				xia_dxp_mca->mca_label,
 				xia_network->server_record->name,
-				(unsigned long) mca->current_num_channels,
+				mca->current_num_channels,
 				mca->record->name,
-				(unsigned long) mca->maximum_num_channels );
+				mca->maximum_num_channels );
 		}
 		break;
 
 	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_get( &(xia_network->preset_type_nf[i]),
-					MXFT_INT32, &(mca->preset_type) );
+					MXFT_INT, &(mca->preset_type) );
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:
 		mx_status = mx_put( &(xia_network->current_num_rois_nf[i]),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -926,13 +917,13 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_get_array( &(xia_network->roi_array_nf[i]),
-					MXFT_UINT32, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->roi_array) );
 		break;
 
 	case MXLV_MCA_ROI_INTEGRAL_ARRAY:
 		mx_status = mx_put( &(xia_network->current_num_rois_nf[i]),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -941,13 +932,13 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 		mx_status = mx_get_array(
 				&(xia_network->roi_integral_array_nf[i]),
-					MXFT_UINT32, 1, dimension_array,
+					MXFT_ULONG, 1, dimension_array,
 					&(mca->roi_integral_array) );
 		break;
 
 	case MXLV_MCA_ROI:
 		mx_status = mx_put( &(xia_network->roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -955,19 +946,19 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_get_array( &(xia_network->roi_nf[i]),
-						MXFT_UINT32, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->roi) );
 		break;
 	
 	case MXLV_MCA_ROI_INTEGRAL:
 		mx_status = mx_put( &(xia_network->roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_get( &(xia_network->roi_integral_nf[i]),
-					MXFT_UINT32, &(mca->roi_integral) );
+					MXFT_ULONG, &(mca->roi_integral) );
 		break;
 
 	case MXLV_MCA_SOFT_ROI_ARRAY:
@@ -975,7 +966,7 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_get_array( &(xia_network->soft_roi_array_nf[i]),
-					MXFT_UINT32, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->soft_roi_array) );
 		break;
 
@@ -984,13 +975,13 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 		mx_status = mx_get_array(
 				&(xia_network->soft_roi_integral_array_nf[i]),
-				MXFT_UINT32, 1, dimension_array,
+				MXFT_ULONG, 1, dimension_array,
 				&(mca->soft_roi_integral_array) );
 		break;
 
 	case MXLV_MCA_SOFT_ROI:
 		mx_status = mx_put( &(xia_network->soft_roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -998,29 +989,29 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_get_array( &(xia_network->soft_roi_nf[i]),
-						MXFT_UINT32, 1, dimension_array,
+						MXFT_ULONG, 1, dimension_array,
 						&(mca->soft_roi) );
 		break;
 
 	case MXLV_MCA_SOFT_ROI_INTEGRAL:
 		mx_status = mx_put( &(xia_network->soft_roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		mx_status = mx_get( &(xia_network->soft_roi_integral_nf[i]),
-				MXFT_UINT32, &(mca->soft_roi_integral) );
+				MXFT_ULONG, &(mca->soft_roi_integral) );
 		break;
 
 	case MXLV_MCA_CHANNEL_NUMBER:
 		mx_status = mx_get( &(xia_network->channel_number_nf[i]),
-				MXFT_LENGTH, &(mca->channel_number) );
+				MXFT_ULONG, &(mca->channel_number) );
 		break;
 
 	case MXLV_MCA_CHANNEL_VALUE:
 		mx_status = mx_get( &(xia_network->channel_value_nf[i]),
-				MXFT_UINT32, &(mca->channel_value) );
+				MXFT_ULONG, &(mca->channel_value) );
 
 		break;
 
@@ -1049,8 +1040,7 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	long i;
-	mx_length_type dimension_array[2];
+	long i, dimension_array[2];
 	mx_status_type mx_status;
 
 	mx_status = mxi_xia_network_get_pointers( mca,
@@ -1069,17 +1059,17 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 	switch( mca->parameter_type ) {
 	case MXLV_MCA_CURRENT_NUM_CHANNELS:
 		mx_status = mx_put( &(xia_network->current_num_channels_nf[i]),
-				MXFT_LENGTH, &(mca->current_num_channels) );
+				MXFT_LONG, &(mca->current_num_channels) );
 		break;
 
 	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_put( &(xia_network->preset_type_nf[i]),
-					MXFT_INT32, &(mca->preset_type) );
+					MXFT_INT, &(mca->preset_type) );
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:
 		mx_status = mx_put( &(xia_network->current_num_rois_nf[i]),
-					MXFT_LENGTH, &(mca->current_num_rois) );
+					MXFT_LONG, &(mca->current_num_rois) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1088,13 +1078,13 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_put_array( &(xia_network->roi_array_nf[i]),
-					MXFT_UINT32, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->roi_array) );
 		break;
 
 	case MXLV_MCA_ROI:
 		mx_status = mx_put( &(xia_network->roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->roi_number) );
+					MXFT_ULONG, &(mca->roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1102,7 +1092,7 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_put_array( &(xia_network->roi_nf[i]),
-					MXFT_UINT32, 1, dimension_array,
+					MXFT_ULONG, 1, dimension_array,
 					&(mca->roi) );
 		break;
 
@@ -1111,13 +1101,13 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 		dimension_array[1] = 2;
 
 		mx_status = mx_put_array( &(xia_network->soft_roi_array_nf[i]),
-					MXFT_UINT32, 2, dimension_array,
+					MXFT_ULONG, 2, dimension_array,
 					&(mca->soft_roi_array) );
 		break;
 
 	case MXLV_MCA_SOFT_ROI:
 		mx_status = mx_put( &(xia_network->soft_roi_number_nf[i]),
-					MXFT_LENGTH, &(mca->soft_roi_number) );
+					MXFT_ULONG, &(mca->soft_roi_number) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1125,13 +1115,13 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 		dimension_array[0] = 2;
 
 		mx_status = mx_put_array( &(xia_network->soft_roi_nf[i]),
-					MXFT_UINT32, 1, dimension_array,
+					MXFT_ULONG, 1, dimension_array,
 					&(mca->soft_roi) );
 		break;
 
 	case MXLV_MCA_CHANNEL_NUMBER:
 		mx_status = mx_put( &(xia_network->channel_number_nf[i]),
-					MXFT_LENGTH, &(mca->channel_number) );
+					MXFT_ULONG, &(mca->channel_number) );
 		break;
 
 	default:

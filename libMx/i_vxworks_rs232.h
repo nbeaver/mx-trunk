@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ typedef struct {
 extern MX_RECORD_FUNCTION_LIST mxi_vxworks_rs232_record_function_list;
 extern MX_RS232_FUNCTION_LIST mxi_vxworks_rs232_rs232_function_list;
 
-extern mx_length_type mxi_vxworks_rs232_num_record_fields;
+extern long mxi_vxworks_rs232_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxi_vxworks_rs232_rfield_def_ptr;
 
 #define MXI_VXWORKS_RS232_STANDARD_FIELDS \

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2006 Illinois Institute of Technology
+ * Copyright 2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,16 +27,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *portio_record;
-	mx_hex_type address;
-	uint32_t data_size;
+	unsigned long address;
+	unsigned long data_size;
 } MX_PORTIO_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *portio_record;
-	mx_hex_type address;
-	uint32_t data_size;
+	unsigned long address;
+	unsigned long data_size;
 } MX_PORTIO_DOUTPUT;
 
 #define MXD_PORTIO_DINPUT_STANDARD_FIELDS \
@@ -48,7 +48,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DINPUT, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "data_size", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "data_size", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DINPUT, data_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -61,7 +61,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DOUTPUT, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "data_size", MXFT_UINT32, NULL, 0, {0}, \
+  {-1, -1, "data_size", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PORTIO_DOUTPUT, data_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -80,7 +80,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_portio_din_record_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_portio_din_digital_input_function_list;
 
-extern mx_length_type mxd_portio_din_num_record_fields;
+extern long mxd_portio_din_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_portio_din_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -96,7 +96,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_portio_dout_record_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_portio_dout_digital_output_function_list;
 
-extern mx_length_type mxd_portio_dout_num_record_fields;
+extern long mxd_portio_dout_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_portio_dout_rfield_def_ptr;
 
 #endif /* __D_PORTIO_DIO_H__ */

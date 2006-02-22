@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,16 +74,16 @@ mx_mce_get_pointers( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_initialize_type( long record_type,
-			mx_length_type *num_record_fields,
+			long *num_record_fields,
 			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
-			mx_length_type *maximum_num_values_varargs_cookie )
+			long *maximum_num_values_varargs_cookie )
 {
 	static const char fname[] = "mx_mce_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
 	MX_RECORD_FIELD_DEFAULTS *field;
-	mx_length_type referenced_field_index;
+	long referenced_field_index;
 	mx_status_type mx_status;
 
 	if ( num_record_fields == NULL ) {
@@ -124,7 +124,7 @@ mx_mce_initialize_type( long record_type,
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );
@@ -183,7 +183,7 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: field->num_dimensions = %ld",
-			fname, (long) field->num_dimensions));
+			fname, field->num_dimensions));
 
 	field->dimension[0] = mce->num_motors;
 
@@ -192,8 +192,7 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 
 MX_EXPORT mx_status_type
 mx_mce_get_overflow_status( MX_RECORD *mce_record,
-				mx_bool_type *underflow_set,
-				mx_bool_type *overflow_set )
+		int *underflow_set, int *overflow_set )
 {
 	static const char fname[] = "mx_mce_get_overflow_status()";
 
@@ -253,7 +252,7 @@ mx_mce_reset_overflow_status( MX_RECORD *mce_record )
 
 MX_EXPORT mx_status_type
 mx_mce_read( MX_RECORD *mce_record,
-		mx_length_type *num_values,
+		unsigned long *num_values,
 		double **value_array )
 {
 	static const char fname[] = "mx_mce_read()";
@@ -291,7 +290,7 @@ mx_mce_read( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_get_current_num_values( MX_RECORD *mce_record,
-		mx_length_type *num_values )
+		unsigned long *num_values )
 {
 	static const char fname[] = "mx_mce_get_current_num_values()";
 
@@ -324,7 +323,7 @@ mx_mce_get_current_num_values( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_get_motor_record_array( MX_RECORD *mce_record,
-				mx_length_type *num_motors,
+				int *num_motors,
 				MX_RECORD ***motor_record_array )
 {
 	static const char fname[] = "mx_mce_get_motor_record_array()";

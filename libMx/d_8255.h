@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -78,7 +78,7 @@ extern MX_GENERIC_FUNCTION_LIST mxd_8255_in_generic_function_list;
 extern MX_DIGITAL_INPUT_FUNCTION_LIST
 				mxd_8255_in_digital_input_function_list;
 
-extern mx_length_type mxd_8255_in_num_record_fields;
+extern long mxd_8255_in_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_8255_in_rfield_def_ptr;
 
 /* Second the output functions. */
@@ -105,7 +105,7 @@ extern MX_GENERIC_FUNCTION_LIST mxd_8255_out_generic_function_list;
 extern MX_DIGITAL_OUTPUT_FUNCTION_LIST
 				mxd_8255_out_digital_output_function_list;
 
-extern mx_length_type mxd_8255_out_num_record_fields;
+extern long mxd_8255_out_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_8255_out_rfield_def_ptr;
 
 #endif /* __D_8255_H__ */

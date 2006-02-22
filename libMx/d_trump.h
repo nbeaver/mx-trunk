@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2006 Illinois Institute of Technology
+ * Copyright 1999-2000 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *umcbi_record;
-	int32_t detector_number;
+	int detector_number;
 	MX_UMCBI_DETECTOR *detector;
 } MX_TRUMP_MCA;
 
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, umcbi_record ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "detector_number", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "detector_number", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, detector_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -40,8 +40,11 @@ MX_API mx_status_type mxd_trump_initialize_type( long type );
 MX_API mx_status_type mxd_trump_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_trump_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_print_structure( FILE *file,
 							MX_RECORD *record );
+MX_API mx_status_type mxd_trump_read_parms_from_hardware( MX_RECORD *record );
+MX_API mx_status_type mxd_trump_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_open( MX_RECORD *record );
 MX_API mx_status_type mxd_trump_close( MX_RECORD *record );
 
@@ -56,7 +59,7 @@ MX_API mx_status_type mxd_trump_set_parameter( MX_MCA *mca );
 extern MX_RECORD_FUNCTION_LIST mxd_trump_record_function_list;
 extern MX_MCA_FUNCTION_LIST mxd_trump_mca_function_list;
 
-extern mx_length_type mxd_trump_num_record_fields;
+extern long mxd_trump_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_trump_rfield_def_ptr;
 
 #endif /* __D_TRUMP_H__ */

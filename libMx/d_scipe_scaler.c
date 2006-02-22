@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2006 Illinois Institute of Technology
+ * Copyright 2000-2002 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
@@ -28,26 +29,28 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_scipe_scaler_record_function_list = {
-	NULL,
+	mxd_scipe_scaler_initialize_type,
 	mxd_scipe_scaler_create_record_structures,
-	mx_scaler_finish_record_initialization,
-	NULL,
+	mxd_scipe_scaler_finish_record_initialization,
+	mxd_scipe_scaler_delete_record,
 	mxd_scipe_scaler_print_structure,
-	NULL,
-	NULL,
-	mxd_scipe_scaler_open
+	mxd_scipe_scaler_read_parms_from_hardware,
+	mxd_scipe_scaler_write_parms_to_hardware,
+	mxd_scipe_scaler_open,
+	mxd_scipe_scaler_close
 };
 
 MX_SCALER_FUNCTION_LIST mxd_scipe_scaler_scaler_function_list = {
 	mxd_scipe_scaler_clear,
-	NULL,
+	mxd_scipe_scaler_overflow_set,
 	mxd_scipe_scaler_read,
 	NULL,
 	mxd_scipe_scaler_is_busy,
 	mxd_scipe_scaler_start,
 	mxd_scipe_scaler_stop,
-	mx_scaler_default_get_parameter_handler,
-	mx_scaler_default_set_parameter_handler
+	mxd_scipe_scaler_get_parameter,
+	mxd_scipe_scaler_set_parameter,
+	mxd_scipe_scaler_set_modes_of_associated_counters
 };
 
 /* SCIPE scaler data structures. */
@@ -58,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_scipe_scaler_record_field_defaults[] = {
 	MXD_SCIPE_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_scipe_scaler_num_record_fields
+long mxd_scipe_scaler_num_record_fields
 		= sizeof( mxd_scipe_scaler_record_field_defaults )
 		  / sizeof( mxd_scipe_scaler_record_field_defaults[0] );
 
@@ -75,7 +78,7 @@ mxd_scipe_scaler_get_pointers( MX_SCALER *scaler,
 			MX_SCIPE_SERVER **scipe_server,
 			const char *calling_fname )
 {
-	static const char fname[] = "mxd_scipe_scaler_get_pointers()";
+	const char fname[] = "mxd_scipe_scaler_get_pointers()";
 
 	MX_RECORD *scipe_server_record;
 
@@ -134,10 +137,15 @@ mxd_scipe_scaler_get_pointers( MX_SCALER *scaler,
 /* === */
 
 MX_EXPORT mx_status_type
+mxd_scipe_scaler_initialize_type( long type )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] =
-		"mxd_scipe_scaler_create_record_structures()";
+	const char fname[] = "mxd_scipe_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
@@ -172,13 +180,48 @@ mxd_scipe_scaler_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_scipe_scaler_finish_record_initialization( MX_RECORD *record )
+{
+	MX_SCALER *scaler;
+	mx_status_type mx_status;
+
+	mx_status = mx_scaler_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	scaler = (MX_SCALER *) record->record_class_struct;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_delete_record( MX_RECORD *record )
+{
+	if ( record == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+	if ( record->record_type_struct != NULL ) {
+		free( record->record_type_struct );
+
+		record->record_type_struct = NULL;
+	}
+	if ( record->record_class_struct != NULL ) {
+		free( record->record_class_struct );
+
+		record->record_class_struct = NULL;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_scipe_scaler_print_structure()";
+	const char fname[] = "mxd_scipe_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
-	int32_t current_value;
+	long current_value;
 	mx_status_type status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -216,21 +259,30 @@ mxd_scipe_scaler_print_structure( FILE *file, MX_RECORD *record )
 			record->name );
 	}
 
-	fprintf(file, "  present value         = %ld\n", (long) current_value);
-
+	fprintf(file, "  present value         = %ld\n", current_value);
 	fprintf(file, "  dark current          = %g counts per second.\n",
-					scaler->dark_current);
+						scaler->dark_current);
+	fprintf(file, "  scaler flags          = %#lx\n", scaler->scaler_flags);
 
-	fprintf(file, "  scaler flags          = %#lx\n",
-					(unsigned long) scaler->scaler_flags);
+	return MX_SUCCESSFUL_RESULT;
+}
 
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_read_parms_from_hardware( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_write_parms_to_hardware( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_open( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_scipe_scaler_open()";
+	const char fname[] = "mxd_scipe_scaler_open()";
 
 	MX_SCALER *scaler;
 	MX_SCIPE_SCALER *scipe_scaler;
@@ -277,9 +329,15 @@ mxd_scipe_scaler_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
+mxd_scipe_scaler_close( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_scaler_clear( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_scipe_scaler_clear()";
+	const char fname[] = "mxd_scipe_scaler_clear()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -316,9 +374,18 @@ mxd_scipe_scaler_clear( MX_SCALER *scaler )
 }
 
 MX_EXPORT mx_status_type
+mxd_scipe_scaler_overflow_set( MX_SCALER *scaler )
+{
+	const char fname[] = "mxd_scipe_scaler_overflow_set()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+		"SCIPE scalers cannot check for overflow status." );
+}
+
+MX_EXPORT mx_status_type
 mxd_scipe_scaler_read( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_scipe_scaler_read()";
+	const char fname[] = "mxd_scipe_scaler_read()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -326,7 +393,6 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 	char response[80];
 	char *result_ptr;
 	int num_items, scipe_response_code;
-	long raw_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_scipe_scaler_get_pointers( scaler,
@@ -356,7 +422,7 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 
 	/* Parse the result string to get the scaler value. */
 
-	num_items = sscanf( result_ptr, "%ld", &raw_value );
+	num_items = sscanf( result_ptr, "%ld", &(scaler->raw_value) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -365,15 +431,13 @@ mxd_scipe_scaler_read( MX_SCALER *scaler )
 			command, scaler->record->name, response );
 	}
 
-	scaler->raw_value = raw_value;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_scipe_scaler_is_busy()";
+	const char fname[] = "mxd_scipe_scaler_is_busy()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -421,7 +485,7 @@ mxd_scipe_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_start( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_scipe_scaler_start()";
+	const char fname[] = "mxd_scipe_scaler_start()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -439,7 +503,7 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 
 	sprintf( command, "%s preset %ld",
 			scipe_scaler->scipe_scaler_name,
-			(long) scaler->raw_value );
+			scaler->raw_value );
 
 	mx_status = mxi_scipe_command( scipe_server, command,
 				response, sizeof(response),
@@ -479,7 +543,7 @@ mxd_scipe_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scipe_scaler_stop( MX_SCALER *scaler )
 {
-	static const char fname[] = "mxd_scipe_scaler_stop()";
+	const char fname[] = "mxd_scipe_scaler_stop()";
 
 	MX_SCIPE_SCALER *scipe_scaler;
 	MX_SCIPE_SERVER *scipe_server;
@@ -514,6 +578,24 @@ mxd_scipe_scaler_stop( MX_SCALER *scaler )
 
 	scaler->raw_value = 0L;
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_get_parameter( MX_SCALER *scaler )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_set_parameter( MX_SCALER *scaler )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_scipe_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

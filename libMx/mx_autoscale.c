@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2003 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -264,7 +264,7 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_LOW_LIMIT:
@@ -279,7 +279,7 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 "Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
-			(int) autoscale->parameter_type,
+			autoscale->parameter_type,
 			autoscale->record->name );
 	}
 
@@ -297,7 +297,7 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
-		(int) autoscale->parameter_type));
+		autoscale->parameter_type));
 
 
 	switch( autoscale->parameter_type ) {
@@ -313,7 +313,7 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 "Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
-			(int) autoscale->parameter_type,
+			autoscale->parameter_type,
 			autoscale->record->name );
 	}
 
@@ -639,7 +639,7 @@ mx_autoscale_create_monitor_offset_array( MX_AUTOSCALE *autoscale )
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate a %lu element array of doubles for "
 "the monitor_offset_array field of record '%s'.",
-			(unsigned long) autoscale->num_monitor_offsets,
+			autoscale->num_monitor_offsets,
 			autoscale->record->name );
 	}
 

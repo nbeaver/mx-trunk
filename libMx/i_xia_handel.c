@@ -75,7 +75,7 @@ MX_RECORD_FIELD_DEFAULTS mxi_xia_handel_record_field_defaults[] = {
 	MXI_XIA_HANDEL_STANDARD_FIELDS
 };
 
-mx_length_type mxi_xia_handel_num_record_fields
+long mxi_xia_handel_num_record_fields
 		= sizeof( mxi_xia_handel_record_field_defaults )
 			/ sizeof( mxi_xia_handel_record_field_defaults[0] );
 
@@ -170,7 +170,7 @@ mxi_xia_handel_initialize_type( long record_type )
 			driver->name );
 	}
 
-	if ( driver->num_record_fields == (mx_length_type *) NULL ) {
+	if ( driver->num_record_fields == (long *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'num_record_fields' pointer for record type '%s' is NULL.",
 			driver->name );

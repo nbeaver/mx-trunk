@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004, 2006 Illinois Institute of Technology
+ * Copyright 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -71,7 +71,7 @@ MX_API mx_status_type mxd_als_dewar_positioner_get_status( MX_MOTOR *motor );
 extern MX_RECORD_FUNCTION_LIST mxd_als_dewar_positioner_record_function_list;
 extern MX_MOTOR_FUNCTION_LIST mxd_als_dewar_positioner_motor_function_list;
 
-extern mx_length_type mxd_als_dewar_positioner_num_record_fields;
+extern long mxd_als_dewar_positioner_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_als_dewar_positioner_rfield_def_ptr;
 
 #define MXD_ALS_DEWAR_POSITIONER_STANDARD_FIELDS \

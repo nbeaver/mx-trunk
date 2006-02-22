@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004, 2006 Illinois Institute of Technology
+ * Copyright 2001, 2004 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@
 
 typedef struct {
 	MX_RECORD *mca_record;
-	int32_t value_type;
+	int value_type;
 	char value_parameters[ MXU_XIA_DXP_VARIABLE_PARAMETER_LENGTH + 1 ];
 } MX_XIA_DXP_INPUT;
 
@@ -43,7 +43,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_INPUT, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "value_type", MXFT_INT32, NULL, 0, {0}, \
+  {-1, -1, "value_type", MXFT_INT, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_INPUT, value_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
@@ -61,7 +61,7 @@ extern MX_RECORD_FUNCTION_LIST mxd_xia_dxp_input_record_function_list;
 extern MX_ANALOG_INPUT_FUNCTION_LIST
 				mxd_xia_dxp_input_analog_input_function_list;
 
-extern mx_length_type mxd_xia_dxp_input_num_record_fields;
+extern long mxd_xia_dxp_input_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_xia_dxp_input_rfield_def_ptr;
 
 #endif /* _D_XIA_DXP_VAR_H_ */

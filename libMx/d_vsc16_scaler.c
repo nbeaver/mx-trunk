@@ -61,7 +61,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_vsc16_scaler_record_field_defaults[] = {
 	MXD_VSC16_SCALER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_vsc16_scaler_num_record_fields
+long mxd_vsc16_scaler_num_record_fields
 		= sizeof( mxd_vsc16_scaler_record_field_defaults )
 		  / sizeof( mxd_vsc16_scaler_record_field_defaults[0] );
 
@@ -182,7 +182,7 @@ mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 	MX_SCALER *scaler;
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	int32_t current_value;
+	long current_value;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -213,7 +213,7 @@ mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 			record->name );
 	}
 
-	fprintf(file, "  present value         = %ld\n", (long) current_value);
+	fprintf(file, "  present value         = %ld\n", current_value);
 
 	mx_status = mx_scaler_get_dark_current( record, NULL );
 
@@ -225,8 +225,7 @@ mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  dark current          = %g counts per second.\n",
 						scaler->dark_current);
-	fprintf(file, "  scaler flags          = %#lx\n",
-					(unsigned long) scaler->scaler_flags);
+	fprintf(file, "  scaler flags          = %#lx\n",scaler->scaler_flags);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -262,8 +261,7 @@ mxd_vsc16_scaler_open( MX_RECORD *record )
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
         "VSC16 counter number %d for scaler '%s' is out of allowed range 1-%lu",
-                        counter_number, record->name,
-			(unsigned long) vsc16->num_counters );
+                        counter_number, record->name, vsc16->num_counters );
         }
 
 	vsc16->counter_record[ counter_number - 1 ] = record;

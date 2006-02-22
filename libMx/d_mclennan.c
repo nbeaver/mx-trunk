@@ -76,7 +76,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mclennan_record_field_defaults[] = {
 	MXD_MCLENNAN_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mclennan_num_record_fields
+long mxd_mclennan_num_record_fields
 		= sizeof( mxd_mclennan_record_field_defaults )
 			/ sizeof( mxd_mclennan_record_field_defaults[0] );
 
@@ -208,14 +208,11 @@ mxd_mclennan_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  rs232               = %s\n",
 						mclennan->rs232_record->name);
 
-	fprintf(file, "  axis number         = %d\n",
-					(int) mclennan->axis_number);
-
+	fprintf(file, "  axis number         = %d\n", mclennan->axis_number);
 	fprintf(file, "  axis encoder number = %d\n",
-					(int) mclennan->axis_encoder_number);
-
+						mclennan->axis_encoder_number);
 	fprintf(file, "  controller type     = PM%d\n",
-					(int) mclennan->controller_type);
+						mclennan->controller_type);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -227,7 +224,7 @@ mxd_mclennan_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  position            = %g %s  (%ld steps)\n",
 		motor->position, motor->units,
-		(long) motor->raw_position.stepper );
+		motor->raw_position.stepper );
 	fprintf(file, "  scale               = %g %s per step.\n",
 		motor->scale, motor->units);
 	fprintf(file, "  offset              = %g %s.\n",
@@ -235,21 +232,21 @@ mxd_mclennan_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  backlash            = %g %s  (%ld steps)\n",
 		motor->backlash_correction, motor->units,
-		(long) motor->raw_backlash_correction.stepper);
+		motor->raw_backlash_correction.stepper);
 
 	fprintf(file, "  negative limit      = %g %s  (%ld steps)\n",
 		motor->negative_limit, motor->units,
-		(long) motor->raw_negative_limit.stepper );
+		motor->raw_negative_limit.stepper );
 
 	fprintf(file, "  positive limit      = %g %s  (%ld steps)\n",
 		motor->positive_limit, motor->units,
-		(long) motor->raw_positive_limit.stepper );
+		motor->raw_positive_limit.stepper );
 
 	move_deadband = motor->scale * (double)motor->raw_move_deadband.stepper;
 
 	fprintf(file, "  move deadband       = %g %s  (%ld steps)\n\n",
 		move_deadband, motor->units,
-		(long) motor->raw_move_deadband.stepper );
+		motor->raw_move_deadband.stepper );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -340,7 +337,7 @@ mxd_mclennan_resynchronize( MX_RECORD *record )
 	 * and figure out what kind of controller it is.
 	 */
 
-	sprintf( command, "%dID", (int) mclennan->axis_number );
+	sprintf( command, "%dID", mclennan->axis_number );
 
 	mx_status = mx_rs232_putline( mclennan->rs232_record, command,
 					NULL, 0 );
@@ -413,7 +410,7 @@ mxd_mclennan_resynchronize( MX_RECORD *record )
 	}
 
 	MX_DEBUG(-2,("%s: Mclennan controller type = PM%d",
-			fname, (int) mclennan->controller_type));
+			fname, mclennan->controller_type));
 
 	/* Reset any errors. */
 
@@ -559,7 +556,7 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 	if ( mclennan->axis_encoder_number >= 0 ) {
 
 		sprintf( command, "%dAP%ld",
-			(int) mclennan->axis_encoder_number, motor_steps );
+				mclennan->axis_encoder_number, motor_steps );
 
 		mx_status = mx_rs232_putline( mclennan->rs232_record,
 					command, NULL, MCLENNAN_DEBUG );
@@ -574,8 +571,8 @@ mxd_mclennan_set_position( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( expected_response, "%d:OK",
-				(int) mclennan->axis_encoder_number );
+		sprintf( expected_response,
+				"%d:OK", mclennan->axis_encoder_number );
 
 		if ( strcmp( response, expected_response ) != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1507,7 +1504,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 
 	/* Send the axis number prefix. */
 
-	sprintf( prefix, "%d", (int) mclennan->axis_number );
+	sprintf( prefix, "%d", mclennan->axis_number );
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("mxd_mclennan_command: command = '%s%s'",
@@ -1603,8 +1600,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported Mclennan controller type %d for motor '%s'",
-			(int) mclennan->controller_type,
-			mclennan->record->name );
+			mclennan->controller_type, mclennan->record->name );
 		break;
 	}
 
@@ -1633,7 +1629,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 	"match the expected axis number of %d.",
 			response_prefix, response_ptr,
 			mclennan->record->name,
-			(int) mclennan->axis_number );
+			mclennan->axis_number );
 	}
 
 	ptr++;
@@ -1693,7 +1689,7 @@ mxd_mclennan_handle_error( MX_MCLENNAN *mclennan,
 	return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
 		"Error occurred for command '%d%s' sent to motor '%s'.  "
 		"Error message = '%s'.",
-			(int) mclennan->axis_number, command,
+			mclennan->axis_number, command,
 			mclennan->record->name, error_message );
 }
 

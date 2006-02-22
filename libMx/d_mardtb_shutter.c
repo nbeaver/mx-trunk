@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_mardtb_shutter_rf_defaults[] = {
 	MXD_MARDTB_SHUTTER_STANDARD_FIELDS
 };
 
-mx_length_type mxd_mardtb_shutter_num_record_fields
+long mxd_mardtb_shutter_num_record_fields
 	= sizeof( mxd_mardtb_shutter_rf_defaults )
 		/ sizeof( mxd_mardtb_shutter_rf_defaults[0] );
 
@@ -177,7 +177,7 @@ mxd_mardtb_shutter_relay_command( MX_RELAY *relay )
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal relay command value %d for MarDTB shutter '%s'.  "
 		"The allowed values are 0 and 1",
-			(int) relay->relay_command, relay->record->name );
+			relay->relay_command, relay->record->name );
 	}
 
 	mx_status = mxi_mardtb_command( mardtb, command,

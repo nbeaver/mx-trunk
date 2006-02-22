@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -57,7 +57,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_keithley2000_ainput_rf_defaults[] = {
 	MXD_KEITHLEY2000_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_keithley2000_ainput_num_record_fields
+long mxd_keithley2000_ainput_num_record_fields
 		= sizeof( mxd_keithley2000_ainput_rf_defaults )
 		  / sizeof( mxd_keithley2000_ainput_rf_defaults[0] );
 
@@ -325,7 +325,7 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Unsupported measurement type %d for record '%s'",
-				(int) keithley2000_ainput->measurement_type,
+				keithley2000_ainput->measurement_type,
 				ainput->record->name );
 		}
 

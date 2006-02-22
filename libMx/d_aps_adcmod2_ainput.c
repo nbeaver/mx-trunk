@@ -38,12 +38,12 @@ MX_ANALOG_INPUT_FUNCTION_LIST mxd_aps_adcmod2_ainput_analog_input_function_list 
 
 MX_RECORD_FIELD_DEFAULTS mxd_aps_adcmod2_ainput_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
-	MX_INT32_ANALOG_INPUT_STANDARD_FIELDS,
+	MX_LONG_ANALOG_INPUT_STANDARD_FIELDS,
 	MX_ANALOG_INPUT_STANDARD_FIELDS,
 	MXD_APS_ADCMOD2_AINPUT_STANDARD_FIELDS
 };
 
-mx_length_type mxd_aps_adcmod2_ainput_num_record_fields
+long mxd_aps_adcmod2_ainput_num_record_fields
 		= sizeof( mxd_aps_adcmod2_ainput_rf_defaults )
 			/ sizeof( mxd_aps_adcmod2_ainput_rf_defaults[0] );
 
@@ -55,7 +55,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_aps_adcmod2_ainput_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] =
+        const char fname[] =
 			"mxd_aps_adcmod2_ainput_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
@@ -87,9 +87,9 @@ mxd_aps_adcmod2_ainput_create_record_structures( MX_RECORD *record )
 
         analog_input->record = record;
 
-	/* Raw analog input values are stored as 32-bit integers. */
+	/* Raw analog input values are stored as longs. */
 
-	analog_input->subclass = MXT_AIN_INT32;
+	analog_input->subclass = MXT_AIN_LONG;
 
         return MX_SUCCESSFUL_RESULT;
 }
@@ -97,11 +97,12 @@ mxd_aps_adcmod2_ainput_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 {
-	static const char fname[] = "mxd_aps_adcmod2_ainput_read()";
+	const char fname[] = "mxd_aps_adcmod2_ainput_read()";
 
 	MX_APS_ADCMOD2_AINPUT *aps_adcmod2_ainput;
 	MX_APS_ADCMOD2 *aps_adcmod2;
 	MX_RECORD *aps_adcmod2_record;
+	unsigned long offset;
 	uint16_t raw_value;
 	mx_status_type mx_status;
 
@@ -124,14 +125,20 @@ mxd_aps_adcmod2_ainput_read( MX_ANALOG_INPUT *ainput )
 
 	aps_adcmod2 = (MX_APS_ADCMOD2 *) aps_adcmod2_record->record_type_struct;
 
+	offset = (unsigned long) ( 4 * aps_adcmod2_ainput->ainput_number );
+
+#if 0
+	mx_status = mxi_aps_adcmod2_in16( aps_adcmod2, offset, &raw_value );
+#else
 	mx_status = mxi_aps_adcmod2_read_value( aps_adcmod2,
 					aps_adcmod2_ainput->ainput_number,
 					&raw_value );
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ainput->raw_value.int32_value = (int32_t) raw_value;
+	ainput->raw_value.long_value = (long) raw_value;
 
 	return mx_status;
 }
