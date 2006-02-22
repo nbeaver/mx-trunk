@@ -479,7 +479,7 @@ mxd_smartmotor_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	} else {
 		sprintf( command, "AOUT%s,%ld",
-			port_name, (long) aoutput->raw_value.int32_value );
+			port_name, (long) aoutput->raw_value.long_value );
 	}
 
 	mx_status = mxd_smartmotor_command( smartmotor, command,

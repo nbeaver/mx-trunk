@@ -741,7 +741,8 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 
 			/* Has the motor hit a limit? */
 
-			hardware_limit_hit = motor_status & limit_bitmask;
+			hardware_limit_hit = 
+					motor_status & hardware_limit_bitmask;
 
 			if ( hardware_limit_hit ) {
 				(void) mx_motor_soft_abort( motor_record );
@@ -751,7 +752,8 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 					motor_record->name );
 			}
 
-			software_limit_hit = motor_status & limit_bitmask;
+			software_limit_hit =
+					motor_status & software_limit_bitmask;
 
 			if ( software_limit_hit ) {
 				(void) mx_motor_soft_abort( motor_record );

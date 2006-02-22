@@ -48,7 +48,6 @@ mx_update_record_values( MX_RECORD *record )
 	const char fname[] = "mx_update_record_values()";
 
 	MX_RECORD_FUNCTION_LIST *flist;
-	mx_status_type ( *fptr ) ( MX_RECORD * );
 	int int_value;
 	long long_value;
 	unsigned long ulong_value;
