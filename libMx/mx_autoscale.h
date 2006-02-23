@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -31,19 +31,20 @@ typedef struct {
 	MX_RECORD *monitor_record;
 	MX_RECORD *control_record;
 	MX_RECORD *timer_record;
-	int enabled;
+	mx_bool_type enabled;
+
 	double low_limit;
 	double high_limit;
 	double low_deadband;
 	double high_deadband;
 
 	long monitor_value;
-	int get_change_request;
-	int change_control;
+	long get_change_request;
+	long change_control;
 
-	int parameter_type;
+	long parameter_type;
 
-	int last_limit_tripped;
+	long last_limit_tripped;
 
 	unsigned long monitor_offset_index;
 
@@ -77,7 +78,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AUTOSCALE, timer_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_AUT_ENABLED, -1, "enabled", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_AUT_ENABLED, -1, "enabled", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AUTOSCALE, enabled), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -102,15 +103,15 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_AUT_GET_CHANGE_REQUEST, -1, "get_change_request", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AUTOSCALE, get_change_request), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AUT_CHANGE_CONTROL, -1, "change_control", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_AUT_CHANGE_CONTROL, -1, "change_control", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AUTOSCALE, change_control), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AUTOSCALE, parameter_type), \
 	{0}, NULL, 0}, \
   \
@@ -143,10 +144,10 @@ MX_API mx_status_type mx_autoscale_read_monitor( MX_RECORD *record,
 							long *monitor_value );
 
 MX_API mx_status_type mx_autoscale_get_change_request( MX_RECORD *record,
-							int *change_request );
+							long *change_request );
 
 MX_API mx_status_type mx_autoscale_change_control( MX_RECORD *record,
-							int change_control );
+							long change_control );
 
 MX_API mx_status_type mx_autoscale_get_offset_index( MX_RECORD *record,
 					unsigned long *monitor_offset_index );

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -108,7 +108,7 @@ mx_autoscale_read_monitor( MX_RECORD *autoscale_record, long *monitor_value )
 
 MX_EXPORT mx_status_type
 mx_autoscale_get_change_request( MX_RECORD *autoscale_record,
-				int *change_request )
+				long *change_request )
 {
 	static const char fname[] = "mx_autoscale_get_change_request()";
 
@@ -145,7 +145,7 @@ mx_autoscale_get_change_request( MX_RECORD *autoscale_record,
 }
 
 MX_EXPORT mx_status_type
-mx_autoscale_change_control( MX_RECORD *autoscale_record, int change_control )
+mx_autoscale_change_control( MX_RECORD *autoscale_record, long change_control )
 {
 	static const char fname[] = "mx_autoscale_change_control()";
 
@@ -260,7 +260,8 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 	static const char fname[] =
 		"mx_autoscale_default_get_parameter_handler()";
 
-	MX_DEBUG( 2,("%s invoked for autoscale '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,
+	("%s invoked for autoscale '%s', parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
@@ -276,7 +277,8 @@ mx_autoscale_default_get_parameter_handler( MX_AUTOSCALE *autoscale )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
+		"Parameter type '%s' (%ld) is not supported by the MX driver "
+		"for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
 			autoscale->parameter_type,
@@ -293,7 +295,7 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 		"mx_autoscale_default_set_parameter_handler()";
 
 	MX_DEBUG( 2,(
-	"%s invoked for autoscale '%s', parameter type '%s' (%d).",
+	"%s invoked for autoscale '%s', parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string(autoscale->record,
 					autoscale->parameter_type),
@@ -310,7 +312,8 @@ mx_autoscale_default_set_parameter_handler( MX_AUTOSCALE *autoscale )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for autoscale '%s'.",
+		"Parameter type '%s' (%ld) is not supported by the MX driver "
+		"for autoscale '%s'.",
 			mx_get_field_label_string( autoscale->record,
 						autoscale->parameter_type ),
 			autoscale->parameter_type,

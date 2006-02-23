@@ -23,7 +23,7 @@
 typedef struct {
 	MX_RECORD *aps_adcmod2_record;
 
-	int ainput_number;
+	long ainput_number;
 } MX_APS_ADCMOD2_AINPUT;
 
 /* Define all of the interface functions. */
@@ -46,7 +46,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_ainput_rfield_def_ptr;
 		offsetof(MX_APS_ADCMOD2_AINPUT, aps_adcmod2_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "ainput_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "ainput_number", MXFT_LONG, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_APS_ADCMOD2_AINPUT, ainput_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

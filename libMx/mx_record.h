@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,7 @@
 /* Include hardware and operating system dependent definitions and symbols. */
 
 #include "mx_util.h"
+#include "mx_stdint.h"
 #include "mx_clock.h"
 
 /* ------------------------------------------------------------------ */
@@ -129,9 +130,10 @@ typedef struct mx_record_type {
 	void *acl;
 	char acl_description[MXU_ACL_DESCRIPTION_LENGTH+1];
 	signed long handle;
+	long long_precision;
 	int precision;
-	int resynchronize;
-	int report;
+	mx_bool_type resynchronize;
+	mx_bool_type report;
 	unsigned long record_flags;
 	unsigned long record_processing_flags;
 	struct mx_record_type *list_head;
@@ -169,14 +171,19 @@ typedef struct {
 #define MXFT_UCHAR		3
 #define MXFT_SHORT		4
 #define MXFT_USHORT		5
-#define MXFT_INT		6
-#define MXFT_UINT		7
+#define MXFT_BOOL		6
+
+/* Record field type 7 is reserved. */
+
 #define MXFT_LONG		8
 #define MXFT_ULONG		9
 #define MXFT_FLOAT		10
 #define MXFT_DOUBLE		11
 
 #define MXFT_HEX		12	/* Stored as an unsigned long. */
+
+#define MXFT_INT64		14
+#define MXFT_UINT64		15
 
 #define MXFT_RECORD		31
 #define MXFT_RECORDTYPE		32
@@ -194,12 +201,13 @@ typedef struct {
  * of each record field array.
  */
 
-#define MXLV_REC_RESYNCHRONIZE		101
-#define MXLV_REC_REPORT			102
-#define MXLV_REC_ALLOCATED_BY		103
-#define MXLV_REC_GROUP_ARRAY		104
-#define MXLV_REC_PARENT_RECORD_ARRAY	105
-#define MXLV_REC_CHILD_RECORD_ARRAY	106
+#define MXLV_REC_PRECISION		101
+#define MXLV_REC_RESYNCHRONIZE		102
+#define MXLV_REC_REPORT			103
+#define MXLV_REC_ALLOCATED_BY		104
+#define MXLV_REC_GROUP_ARRAY		105
+#define MXLV_REC_PARENT_RECORD_ARRAY	106
+#define MXLV_REC_CHILD_RECORD_ARRAY	107
 
 #define MX_RECORD_STANDARD_FIELDS  \
   {-1, -1, "name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
@@ -234,15 +242,15 @@ typedef struct {
 	{sizeof(char)}, NULL, \
 		(MXFF_IN_DESCRIPTION | MXFF_NO_NEXT_EVENT_TIME_UPDATE)}, \
   \
-  {-1, -1, "precision", MXFT_INT, NULL, 0, {0}, \
-	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, precision), \
+  {-1, -1, "precision", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, long_precision), \
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE }, \
   \
-  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_REC_REPORT, -1, "report", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_REC_REPORT, -1, "report", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, report), \
 	{0}, NULL, 0}, \
   \
@@ -352,8 +360,8 @@ typedef struct {
 } MX_INTERFACE;
 
 typedef struct {
-	int add_dependency;
-	int dependency_is_to_parent;
+	mx_bool_type add_dependency;
+	mx_bool_type dependency_is_to_parent;
 } MX_RECORD_ARRAY_DEPENDENCY_STRUCT;
 
 /* MX_LIST_HEAD is a place to put information about the record list
@@ -363,21 +371,21 @@ typedef struct {
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
-	int list_is_active;
-	int fast_mode;
-	int allow_fast_mode;
+	mx_bool_type list_is_active;
+	mx_bool_type fast_mode;
+	mx_bool_type allow_fast_mode;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
 	unsigned long num_records;
 
-	int is_server;
+	mx_bool_type is_server;
 	void *connection_acl;
-	int fixup_records_in_use;
+	mx_bool_type fixup_records_in_use;
 	long num_fixup_records;
 	void **fixup_record_array;
-	int plotting_enabled;
-	int default_precision;
-	int default_data_format;
+	mx_bool_type plotting_enabled;
+	long default_precision;
+	long default_data_format;
 	void *log_handler;
 	long server_protocols_active;
 	void *handle_table;
@@ -401,8 +409,10 @@ typedef struct {
 #define MXF_INITHW_TRACE_OPENS		0x1
 #define MXF_INITHW_ABORT_ON_FAULT	0x2
 
-MX_API int mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
-					long mx_class, long mx_type );
+MX_API mx_bool_type mx_verify_driver_type( MX_RECORD *record,
+					long mx_superclass,
+					long mx_class,
+					long mx_type );
 
 MX_API MX_DRIVER *mx_get_driver_by_name( char *name );
 MX_API MX_DRIVER *mx_get_driver_by_type( long record_type );
@@ -435,7 +445,7 @@ MX_API MX_RECORD      *mx_initialize_record_list( void );
 MX_API mx_status_type  mx_initialize_drivers( void );
 
 MX_API mx_status_type  mx_initialize_hardware( MX_RECORD *record_list,
-							int trace_flag );
+						mx_bool_type trace_flag );
 
 MX_API mx_status_type  mx_shutdown_hardware( MX_RECORD *record_list );
 
@@ -588,7 +598,8 @@ MX_API_PRIVATE mx_status_type mx_construct_varargs_cookie(
 				long *returned_varargs_cookie );
 
 MX_API_PRIVATE mx_status_type mx_replace_varargs_cookies_with_values(
-		MX_RECORD *record, long i, int allow_forward_references );
+		MX_RECORD *record, long i,
+		mx_bool_type allow_forward_references );
 
 /* --- */
 
@@ -695,21 +706,21 @@ MX_API_PRIVATE mx_status_type  mx_record_array_dependency_handler(
 					long dimension_level );
 
 MX_API_PRIVATE mx_status_type  mx_add_parent_dependency(
-					MX_RECORD *current_record,
-					int add_child_pointer_in_parent,
-					MX_RECORD *parent_record );
+				MX_RECORD *current_record,
+				mx_bool_type add_child_pointer_in_parent,
+				MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_delete_parent_dependency(
-					MX_RECORD *current_record,
-					int delete_child_pointer_in_parent,
-					MX_RECORD *parent_record );
+				MX_RECORD *current_record,
+				mx_bool_type delete_child_pointer_in_parent,
+				MX_RECORD *parent_record );
 MX_API_PRIVATE mx_status_type  mx_add_child_dependency(
-					MX_RECORD *current_record,
-					int add_parent_pointer_in_child,
-					MX_RECORD *child_record );
+				MX_RECORD *current_record,
+				mx_bool_type add_parent_pointer_in_child,
+				MX_RECORD *child_record );
 MX_API_PRIVATE mx_status_type  mx_delete_child_dependency(
-					MX_RECORD *current_record,
-					int delete_parent_pointer_in_child,
-					MX_RECORD *child_record );
+				MX_RECORD *current_record,
+				mx_bool_type delete_parent_pointer_in_child,
+				MX_RECORD *child_record );
 
 /* --- */
 
@@ -727,9 +738,9 @@ MX_API mx_status_type  mx_set_program_name( MX_RECORD *record_list,
 						char *program_name );
 
 MX_API mx_status_type  mx_get_fast_mode( MX_RECORD *record_list,
-						int *mode_flag );
+						mx_bool_type *mode_flag );
 
 MX_API mx_status_type  mx_set_fast_mode( MX_RECORD *record_list,
-						int mode_flag );
+						mx_bool_type mode_flag );
 
 #endif /* __MX_RECORD_H__ */

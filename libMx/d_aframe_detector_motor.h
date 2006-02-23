@@ -27,7 +27,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int pseudomotor_type;
+	long pseudomotor_type;
 
 	MX_RECORD *A_record;
 	MX_RECORD *B_record;
@@ -82,7 +82,7 @@ extern long mxd_aframe_det_motor_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aframe_det_motor_rfield_def_ptr;
 
 #define MXD_AFRAME_DETECTOR_MOTOR_STANDARD_FIELDS \
-  {-1, -1, "pseudomotor_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "pseudomotor_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_AFRAME_DETECTOR_MOTOR, pseudomotor_type),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \

@@ -26,7 +26,7 @@
 MX_EXPORT mx_status_type
 mx_variable_initialize_type( long record_type )
 {
-	const char fname[] = "mx_variable_initialize_type()";
+	static const char fname[] = "mx_variable_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
@@ -82,7 +82,7 @@ mx_variable_fixup_varargs_record_field_defaults(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_array,
 		long num_record_fields )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mx_variable_fixup_varargs_record_field_defaults()";
 
 	MX_RECORD_FIELD_DEFAULTS *dimension_field, *value_field;
@@ -170,7 +170,7 @@ mx_variable_fixup_varargs_record_field_defaults(
 MX_EXPORT mx_status_type
 mx_send_variable( MX_RECORD *record )
 {
-	const char fname[] = "mx_send_variable()";
+	static const char fname[] = "mx_send_variable()";
 
 	MX_VARIABLE *variable;
 	MX_VARIABLE_FUNCTION_LIST *variable_flist;
@@ -217,7 +217,7 @@ mx_send_variable( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mx_receive_variable( MX_RECORD *record )
 {
-	const char fname[] = "mx_receive_variable()";
+	static const char fname[] = "mx_receive_variable()";
 
 	MX_VARIABLE *variable;
 	MX_VARIABLE_FUNCTION_LIST *variable_flist;
@@ -295,7 +295,7 @@ mx_get_variable_parameters( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_get_variable_pointer( MX_RECORD *record, void **pointer_to_value )
 {
-	const char fname[] = "mx_get_variable_pointer()";
+	static const char fname[] = "mx_get_variable_pointer()";
 
 	MX_RECORD_FIELD *value_field;
 	mx_status_type status;
@@ -324,7 +324,7 @@ mx_get_1d_array_by_name( MX_RECORD *record_list,
 		long *num_elements,
 		void **pointer_to_value )
 {
-	const char fname[] = "mx_get_1d_array_by_name()";
+	static const char fname[] = "mx_get_1d_array_by_name()";
 
 	MX_RECORD *record;
 	long num_dimensions, *dimension_array, actual_field_type;
@@ -375,7 +375,7 @@ mx_get_1d_array( MX_RECORD *record,
 		long *num_elements,
 		void **pointer_to_value )
 {
-	const char fname[] = "mx_get_1d_array()";
+	static const char fname[] = "mx_get_1d_array()";
 
 	long num_dimensions, *dimension_array, actual_field_type;
 	mx_status_type status;
@@ -423,7 +423,7 @@ mx_set_1d_array( MX_RECORD *record,
 		long num_elements,
 		void *pointer_to_supplied_value )
 {
-	const char fname[] = "mx_test_1d_array()";
+	static const char fname[] = "mx_test_1d_array()";
 
 	long num_dimensions, *dimension_array, actual_field_type;
 	void *pointer_to_value;
@@ -483,17 +483,20 @@ mx_set_1d_array( MX_RECORD *record,
 		case MXFT_USHORT:
 			value_size = num_elements * sizeof(unsigned short);
 			break;
-		case MXFT_INT:
-			value_size = num_elements * sizeof(int);
-			break;
-		case MXFT_UINT:
-			value_size = num_elements * sizeof(unsigned int);
+		case MXFT_BOOL:
+			value_size = num_elements * sizeof(mx_bool_type);
 			break;
 		case MXFT_LONG:
 			value_size = num_elements * sizeof(long);
 			break;
 		case MXFT_ULONG:
 			value_size = num_elements * sizeof(unsigned long);
+			break;
+		case MXFT_INT64:
+			value_size = num_elements * sizeof(int64_t);
+			break;
+		case MXFT_UINT64:
+			value_size = num_elements * sizeof(int64_t);
 			break;
 		case MXFT_FLOAT:
 			value_size = num_elements * sizeof(float);
@@ -519,28 +522,28 @@ mx_set_1d_array( MX_RECORD *record,
 /*---*/
 
 MX_EXPORT mx_status_type
-mx_get_int_variable_by_name( MX_RECORD *record_list,
+mx_get_bool_variable_by_name( MX_RECORD *record_list,
 		char *record_name,
-		int *int_value )
+		mx_bool_type *bool_value )
 {
-	const char fname[] = "mx_get_int_variable_by_name()";
+	static const char fname[] = "mx_get_bool_variable_by_name()";
 
 	long num_elements;
 	void *pointer_to_value;
 	mx_status_type status;
 
-	if ( int_value == NULL ) {
+	if ( bool_value == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"int_value pointer passed was NULL." );
+		"bool_value pointer passed was NULL." );
 	}
 
 	status = mx_get_1d_array_by_name( record_list, record_name,
-			MXFT_INT, &num_elements, &pointer_to_value );
+			MXFT_BOOL, &num_elements, &pointer_to_value );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	*int_value = *( (int *) pointer_to_value );
+	*bool_value = *( (mx_bool_type *) pointer_to_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -550,7 +553,7 @@ mx_get_long_variable_by_name( MX_RECORD *record_list,
 		char *record_name,
 		long *long_value )
 {
-	const char fname[] = "mx_get_long_variable_by_name()";
+	static const char fname[] = "mx_get_long_variable_by_name()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -577,7 +580,7 @@ mx_get_unsigned_long_variable_by_name( MX_RECORD *record_list,
 		char *record_name,
 		unsigned long *unsigned_long_value )
 {
-	const char fname[] = "mx_get_unsigned_long_variable_by_name()";
+	static const char fname[] = "mx_get_unsigned_long_variable_by_name()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -604,7 +607,7 @@ mx_get_double_variable_by_name( MX_RECORD *record_list,
 		char *record_name,
 		double *double_value )
 {
-	const char fname[] = "mx_get_double_variable_by_name()";
+	static const char fname[] = "mx_get_double_variable_by_name()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -632,7 +635,7 @@ mx_get_string_variable_by_name( MX_RECORD *record_list,
 		char *string_value,
 		size_t max_string_length )
 {
-	const char fname[] = "mx_get_string_variable_by_name()";
+	static const char fname[] = "mx_get_string_variable_by_name()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -665,7 +668,7 @@ MX_EXPORT mx_status_type
 mx_get_char_variable( MX_RECORD *record,
 			char *char_value )
 {
-	const char fname[] = "mx_get_char_variable()";
+	static const char fname[] = "mx_get_char_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -691,7 +694,7 @@ MX_EXPORT mx_status_type
 mx_get_unsigned_char_variable( MX_RECORD *record,
 			unsigned char *unsigned_char_value )
 {
-	const char fname[] = "mx_get_unsigned_char_variable()";
+	static const char fname[] = "mx_get_unsigned_char_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -717,7 +720,7 @@ MX_EXPORT mx_status_type
 mx_get_short_variable( MX_RECORD *record,
 			short *short_value )
 {
-	const char fname[] = "mx_get_short_variable()";
+	static const char fname[] = "mx_get_short_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -743,7 +746,7 @@ MX_EXPORT mx_status_type
 mx_get_unsigned_short_variable( MX_RECORD *record,
 			unsigned short *unsigned_short_value )
 {
-	const char fname[] = "mx_get_unsigned_short_variable()";
+	static const char fname[] = "mx_get_unsigned_short_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -766,53 +769,27 @@ mx_get_unsigned_short_variable( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_get_int_variable( MX_RECORD *record,
-			int *int_value )
+mx_get_bool_variable( MX_RECORD *record,
+			mx_bool_type *bool_value )
 {
-	const char fname[] = "mx_get_int_variable()";
+	static const char fname[] = "mx_get_bool_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
 	mx_status_type status;
 
-	if ( int_value == NULL ) {
+	if ( bool_value == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"int_value pointer passed was NULL." );
+		"bool_value pointer passed was NULL." );
 	}
 
-	status = mx_get_1d_array( record, MXFT_INT,
+	status = mx_get_1d_array( record, MXFT_BOOL,
 					&num_elements, &pointer_to_value );
 
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	*int_value = *( (int *) pointer_to_value );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_get_unsigned_int_variable( MX_RECORD *record,
-			unsigned int *unsigned_int_value )
-{
-	const char fname[] = "mx_get_unsigned_int_variable()";
-
-	long num_elements;
-	void *pointer_to_value;
-	mx_status_type status;
-
-	if ( unsigned_int_value == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"unsigned_int_value pointer passed was NULL." );
-	}
-
-	status = mx_get_1d_array( record, MXFT_UINT,
-					&num_elements, &pointer_to_value );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
-
-	*unsigned_int_value = *( (unsigned int *) pointer_to_value );
+	*bool_value = *( (mx_bool_type *) pointer_to_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -821,7 +798,7 @@ MX_EXPORT mx_status_type
 mx_get_long_variable( MX_RECORD *record,
 			long *long_value )
 {
-	const char fname[] = "mx_get_long_variable()";
+	static const char fname[] = "mx_get_long_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -847,7 +824,7 @@ MX_EXPORT mx_status_type
 mx_get_unsigned_long_variable( MX_RECORD *record,
 			unsigned long *unsigned_long_value )
 {
-	const char fname[] = "mx_get_unsigned_long_variable()";
+	static const char fname[] = "mx_get_unsigned_long_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -870,10 +847,62 @@ mx_get_unsigned_long_variable( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_get_int64_variable( MX_RECORD *record,
+			int64_t *int64_value )
+{
+	static const char fname[] = "mx_get_int64_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( int64_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"int64_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_INT64,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*int64_value = *( (int64_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_get_uint64_variable( MX_RECORD *record,
+			uint64_t *uint64_value )
+{
+	static const char fname[] = "mx_get_uint64_variable()";
+
+	long num_elements;
+	void *pointer_to_value;
+	mx_status_type status;
+
+	if ( uint64_value == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"uint64_value pointer passed was NULL." );
+	}
+
+	status = mx_get_1d_array( record, MXFT_UINT64,
+					&num_elements, &pointer_to_value );
+
+	if ( status.code != MXE_SUCCESS )
+		return status;
+
+	*uint64_value = *( (uint64_t *) pointer_to_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_get_float_variable( MX_RECORD *record,
 			float *float_value )
 {
-	const char fname[] = "mx_get_float_variable()";
+	static const char fname[] = "mx_get_float_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -899,7 +928,7 @@ MX_EXPORT mx_status_type
 mx_get_double_variable( MX_RECORD *record,
 			double *double_value )
 {
-	const char fname[] = "mx_get_double_variable()";
+	static const char fname[] = "mx_get_double_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -926,7 +955,7 @@ mx_get_string_variable( MX_RECORD *record,
 			char *string_value,
 			size_t max_string_length )
 {
-	const char fname[] = "mx_get_string_variable()";
+	static const char fname[] = "mx_get_string_variable()";
 
 	long num_elements;
 	void *pointer_to_value;
@@ -982,16 +1011,9 @@ mx_set_unsigned_short_variable( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_set_int_variable( MX_RECORD *record, int int_value )
+mx_set_bool_variable( MX_RECORD *record, mx_bool_type bool_value )
 {
-	return mx_set_1d_array( record, MXFT_INT, 1L, &int_value );
-}
-
-MX_EXPORT mx_status_type
-mx_set_unsigned_int_variable( MX_RECORD *record,
-			unsigned int unsigned_int_value )
-{
-	return mx_set_1d_array( record, MXFT_UINT, 1L, &unsigned_int_value );
+	return mx_set_1d_array( record, MXFT_BOOL, 1L, &bool_value );
 }
 
 MX_EXPORT mx_status_type
@@ -1005,6 +1027,18 @@ mx_set_unsigned_long_variable( MX_RECORD *record,
 			unsigned long unsigned_long_value )
 {
 	return mx_set_1d_array( record, MXFT_ULONG, 1L, &unsigned_long_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_int64_variable( MX_RECORD *record, int64_t int64_value )
+{
+	return mx_set_1d_array( record, MXFT_INT64, 1L, &int64_value );
+}
+
+MX_EXPORT mx_status_type
+mx_set_uint64_variable( MX_RECORD *record, uint64_t uint64_value )
+{
+	return mx_set_1d_array( record, MXFT_UINT64, 1L, &uint64_value );
 }
 
 MX_EXPORT mx_status_type

@@ -245,14 +245,16 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	long field_type;
 	unsigned long permit_value;
 
+	mx_bool_type bool_value;
 	char char_value;
 	unsigned char uchar_value;
 	short short_value;
 	unsigned short ushort_value;
 	int int_value;
-	unsigned int uint_value;
 	long long_value;
 	unsigned long ulong_value;
+	int64_t int64_value;
+	uint64_t uint64_value;
 	mx_status_type mx_status;
 
 	mx_status = mxph_simple_get_pointers( permit_handler,
@@ -346,23 +348,13 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				permit_handler->permit_status = TRUE;
 			}
 			break;
-		case MXFT_INT:
-			mx_status = mx_get_int_variable( permit_record,
-								&int_value );
+		case MXFT_BOOL:
+			mx_status = mx_get_bool_variable( permit_record,
+								&bool_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value == permit_value ) {
-				permit_handler->permit_status = TRUE;
-			}
-			break;
-		case MXFT_UINT:
-			mx_status = mx_get_unsigned_int_variable( permit_record,
-								&uint_value );
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( uint_value == permit_value ) {
+			if ( bool_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;
@@ -384,6 +376,26 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 				return mx_status;
 
 			if ( ulong_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_INT64:
+			mx_status = mx_get_int64_variable( permit_record,
+								&int64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( int64_value == permit_value ) {
+				permit_handler->permit_status = TRUE;
+			}
+			break;
+		case MXFT_UINT64:
+			mx_status = mx_get_uint64_variable( permit_record,
+								&uint64_value );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( uint64_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

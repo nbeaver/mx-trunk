@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,7 +33,7 @@ typedef struct {
 		double double_value;
 	} raw_value;
 
-	int subclass;
+	long subclass;
 
 	double value;
 	double dark_current;
@@ -64,7 +64,7 @@ typedef struct {
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
 #define MX_ANALOG_INPUT_STANDARD_FIELDS \
-  {-1, -1, "subclass", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "subclass", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_ANALOG_INPUT, subclass), \
 	{0}, NULL, 0}, \
   \

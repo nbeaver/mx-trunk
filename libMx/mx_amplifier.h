@@ -29,7 +29,7 @@ typedef struct {
 	double offset;
 	double time_constant;
 
-	int parameter_type;
+	long parameter_type;
 
 	double gain_range[2];
 } MX_AMPLIFIER;
@@ -53,7 +53,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AMPLIFIER, time_constant), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AMPLIFIER, parameter_type), \
 	{0}, NULL, 0}, \
   \

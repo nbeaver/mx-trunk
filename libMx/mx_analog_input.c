@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -144,7 +144,8 @@ mx_analog_input_read( MX_RECORD *record, double *value_ptr )
 	MX_RECORD *timer_record;
 	double value, raw_value;
 	mx_status_type ( *read_fn ) ( MX_ANALOG_INPUT * );
-	int timer_mode, subtract_dark_current, normalize_to_value_per_second;
+	long timer_mode;
+	int subtract_dark_current, normalize_to_value_per_second;
 	double normalized_dark_current, last_measurement_time;
 	mx_status_type mx_status;
 

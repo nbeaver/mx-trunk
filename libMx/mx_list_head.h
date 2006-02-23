@@ -20,15 +20,15 @@
 #define MXLV_LHD_STATUS		101
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
-  {-1, -1, "list_is_active", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, list_is_active), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "fast_mode", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "fast_mode", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, fast_mode), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "allow_fast_mode", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "allow_fast_mode", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, allow_fast_mode), \
 	{0}, NULL, 0}, \
   \

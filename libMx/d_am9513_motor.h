@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,11 +29,11 @@ typedef struct {
 	long direction_bit;
 	double clock_frequency;
 	double step_frequency;
-	int busy_retries;
+	long busy_retries;
 
 	long last_destination;
-	int last_direction;
-	int busy_retries_left;
+	long last_direction;
+	long busy_retries_left;
 } MX_AM9513_MOTOR;
 
 MX_API mx_status_type mxd_am9513_motor_initialize_type( long type );
@@ -95,7 +95,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_am9513_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AM9513_MOTOR, step_frequency), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "busy_retries", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "busy_retries", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_AM9513_MOTOR, busy_retries), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

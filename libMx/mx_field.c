@@ -24,7 +24,7 @@
 
 #include "mxconfig.h"
 #include "mx_util.h"
-#include "mx_stdint.h"
+#include "mx_inttypes.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_array.h"
@@ -98,10 +98,11 @@ mx_get_field_type_string( long field_type )
 	{ MXFT_UCHAR,		"MXFT_UCHAR" },
 	{ MXFT_SHORT,		"MXFT_SHORT" },
 	{ MXFT_USHORT,		"MXFT_USHORT" },
-	{ MXFT_INT,		"MXFT_INT" },
-	{ MXFT_UINT,		"MXFT_UINT" },
+	{ MXFT_BOOL,		"MXFT_BOOL" },
 	{ MXFT_LONG,		"MXFT_LONG" },
 	{ MXFT_ULONG,		"MXFT_ULONG" },
+	{ MXFT_INT64,		"MXFT_INT64" },
+	{ MXFT_UINT64,		"MXFT_UINT64" },
 	{ MXFT_FLOAT,		"MXFT_FLOAT" },
 	{ MXFT_DOUBLE,		"MXFT_DOUBLE" },
 
@@ -1073,57 +1074,52 @@ mx_construct_ushort_field( void *dataptr,
 }
 
 static mx_status_type
-mx_parse_int_field( void *dataptr, char *token,
+mx_parse_bool_field( void *dataptr, char *token,
 			MX_RECORD *record, MX_RECORD_FIELD *field,
 			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
 {
-	static const char fname[] = "mx_parse_int_field()";
+	static const char fname[] = "mx_parse_bool_field()";
 
+	int int_value;
+	mx_bool_type *bool_ptr;
 	int num_items;
 
-	num_items = sscanf( token, "%d", (int *) dataptr );
+	bool_ptr = dataptr;
+
+	num_items = sscanf( token, "%d", &int_value );
 
 	if ( num_items != 1 )
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Long not found in token '%s'", token );
+		"Boolean value not found in token '%s'", token );
+
+	switch( int_value ) {
+	case 0:
+	case 1:
+		*bool_ptr = (mx_bool_type) int_value;
+		break;
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		  "Value %d found for boolean field is not a legal boolean "
+		  "value.  The allowed values are 0 and 1.", int_value );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mx_construct_int_field( void *dataptr,
+mx_construct_bool_field( void *dataptr,
 			char *token_buffer, size_t token_buffer_length,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
-	sprintf( token_buffer, "%d", *((int *) dataptr) );
+	mx_bool_type bool_value;
 
-	return MX_SUCCESSFUL_RESULT;
-}
+	bool_value = *((mx_bool_type *) dataptr);
 
-static mx_status_type
-mx_parse_uint_field( void *dataptr, char *token,
-			MX_RECORD *record, MX_RECORD_FIELD *field,
-			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
-{
-	static const char fname[] = "mx_parse_uint_field()";
-
-	int num_items;
-
-	num_items = sscanf( token, "%u", (unsigned int *) dataptr );
-
-	if ( num_items != 1 )
-		return mx_error( MXE_UNPARSEABLE_STRING, fname,
-		"Unsigned int not found in token '%s'", token );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mx_construct_uint_field( void *dataptr,
-			char *token_buffer, size_t token_buffer_length,
-			MX_RECORD *record, MX_RECORD_FIELD *record_field )
-{
-	sprintf( token_buffer, "%u", *((unsigned int *) dataptr) );
+	if ( bool_value ) {
+		sprintf( token_buffer, "1" );
+	} else {
+		sprintf( token_buffer, "0" );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1180,6 +1176,76 @@ mx_construct_ulong_field( void *dataptr,
 			MX_RECORD *record, MX_RECORD_FIELD *record_field )
 {
 	sprintf( token_buffer, "%lu", *((unsigned long *) dataptr) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_int64_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_int64_field()";
+
+	int64_t *int64_ptr;
+	int num_items;
+
+	int64_ptr = (int64_t *) dataptr;
+
+	num_items = sscanf( token, "%" SCNd64, int64_ptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Integer not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_int64_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	int64_t int64_value;
+
+	int64_value = *((int64_t *) dataptr);
+
+	sprintf( token_buffer, "%" PRId64, int64_value );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_parse_uint64_field( void *dataptr, char *token,
+			MX_RECORD *record, MX_RECORD_FIELD *field,
+			MX_RECORD_FIELD_PARSE_STATUS *parse_status)
+{
+	static const char fname[] = "mx_parse_uint64_field()";
+
+	uint64_t *uint64_ptr;
+	int num_items;
+
+	uint64_ptr = (uint64_t *) dataptr;
+
+	num_items = sscanf( token, "%" SCNu64, uint64_ptr );
+
+	if ( num_items != 1 )
+		return mx_error( MXE_UNPARSEABLE_STRING, fname,
+		"Unsigned integer not found in token '%s'", token );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_construct_uint64_field( void *dataptr,
+			char *token_buffer, size_t token_buffer_length,
+			MX_RECORD *record, MX_RECORD_FIELD *record_field )
+{
+	uint64_t uint64_value;
+
+	uint64_value = *((uint64_t *) dataptr);
+
+	sprintf( token_buffer, "%" PRIu64, uint64_value );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2448,17 +2514,20 @@ mx_get_token_parser( long field_type,
 	case MXFT_USHORT:
 		*token_parser = mx_parse_ushort_field;
 		break;
-	case MXFT_INT:
-		*token_parser = mx_parse_int_field;
-		break;
-	case MXFT_UINT:
-		*token_parser = mx_parse_uint_field;
+	case MXFT_BOOL:
+		*token_parser = mx_parse_bool_field;
 		break;
 	case MXFT_LONG:
 		*token_parser = mx_parse_long_field;
 		break;
 	case MXFT_ULONG:
 		*token_parser = mx_parse_ulong_field;
+		break;
+	case MXFT_INT64:
+		*token_parser = mx_parse_int64_field;
+		break;
+	case MXFT_UINT64:
+		*token_parser = mx_parse_uint64_field;
 		break;
 	case MXFT_FLOAT:
 		*token_parser = mx_parse_float_field;
@@ -2522,17 +2591,20 @@ mx_get_token_constructor( long field_type,
 	case MXFT_USHORT:
 		*token_constructor = mx_construct_ushort_field;
 		break;
-	case MXFT_INT:
-		*token_constructor = mx_construct_int_field;
-		break;
-	case MXFT_UINT:
-		*token_constructor = mx_construct_uint_field;
+	case MXFT_BOOL:
+		*token_constructor = mx_construct_bool_field;
 		break;
 	case MXFT_LONG:
 		*token_constructor = mx_construct_long_field;
 		break;
 	case MXFT_ULONG:
 		*token_constructor = mx_construct_ulong_field;
+		break;
+	case MXFT_INT64:
+		*token_constructor = mx_construct_int64_field;
+		break;
+	case MXFT_UINT64:
+		*token_constructor = mx_construct_uint64_field;
 		break;
 	case MXFT_FLOAT:
 		*token_constructor = mx_construct_float_field;
@@ -3242,10 +3314,13 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	static size_t short_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_SHORT_SIZEOF;
 	static size_t ushort_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_USHORT_SIZEOF;
-	static size_t int_sizeof[MXU_FIELD_MAX_DIMENSIONS]   = MXA_INT_SIZEOF;
-	static size_t uint_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_UINT_SIZEOF;
+	static size_t bool_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_BOOL_SIZEOF;
 	static size_t long_sizeof[MXU_FIELD_MAX_DIMENSIONS]  = MXA_LONG_SIZEOF;
 	static size_t ulong_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_ULONG_SIZEOF;
+	static size_t int64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_INT64_SIZEOF;
+	static size_t uint64_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_UINT64_SIZEOF;
 	static size_t float_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_FLOAT_SIZEOF;
 	static size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_DOUBLE_SIZEOF;
@@ -3266,17 +3341,20 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	case MXFT_USHORT:
 		*sizeof_array = ushort_sizeof;
 		break;
-	case MXFT_INT:
-		*sizeof_array = int_sizeof;
-		break;
-	case MXFT_UINT:
-		*sizeof_array = uint_sizeof;
+	case MXFT_BOOL:
+		*sizeof_array = bool_sizeof;
 		break;
 	case MXFT_LONG:
 		*sizeof_array = long_sizeof;
 		break;
 	case MXFT_ULONG:
 		*sizeof_array = ulong_sizeof;
+		break;
+	case MXFT_INT64:
+		*sizeof_array = int64_sizeof;
+		break;
+	case MXFT_UINT64:
+		*sizeof_array = uint64_sizeof;
 		break;
 	case MXFT_FLOAT:
 		*sizeof_array = float_sizeof;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -251,7 +251,7 @@ mxfh_autoscale_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	const char fname[] = "mxfh_autoscale_check_for_fault()";
 
 	MX_AUTOSCALE_MEASUREMENT_FAULT *autoscale_fault_struct;
-	int change_request;
+	long change_request;
 	mx_status_type mx_status;
 
 	mx_status = mxfh_autoscale_get_pointers( fault_handler,

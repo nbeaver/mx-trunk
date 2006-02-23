@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -202,8 +202,8 @@ mx_scaler_read( MX_RECORD *scaler_record, long *value )
 	MX_RECORD *timer_record;
 	MX_SCALER_FUNCTION_LIST *function_list;
 	mx_status_type ( *read_fn ) ( MX_SCALER * );
-	long offset;
-	int subtract_dark_current, timer_mode;
+	long offset, timer_mode;
+	int subtract_dark_current;
 	double last_measurement_time;
 	mx_status_type mx_status;
 
@@ -458,7 +458,7 @@ mx_scaler_stop( MX_RECORD *scaler_record, long *present_value )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_get_mode( MX_RECORD *scaler_record, int *mode )
+mx_scaler_get_mode( MX_RECORD *scaler_record, long *mode )
 {
 	static const char fname[] = "mx_scaler_get_mode()";
 
@@ -494,7 +494,7 @@ mx_scaler_get_mode( MX_RECORD *scaler_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_set_mode( MX_RECORD *scaler_record, int mode )
+mx_scaler_set_mode( MX_RECORD *scaler_record, long mode )
 {
 	static const char fname[] = "mx_scaler_set_mode()";
 
@@ -638,7 +638,7 @@ mx_scaler_default_get_parameter_handler( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
 			scaler->parameter_type,
@@ -664,7 +664,7 @@ mx_scaler_default_set_parameter_handler( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for scaler '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for scaler '%s'.",
 			mx_get_field_label_string( scaler->record,
 						scaler->parameter_type ),
 			scaler->parameter_type,

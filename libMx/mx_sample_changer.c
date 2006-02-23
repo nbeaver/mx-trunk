@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -630,7 +630,7 @@ mx_sample_changer_default_get_parameter_handler( MX_SAMPLE_CHANGER *changer )
 	switch( changer->parameter_type ) {
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for SAMPLE_CHANGER '%s'.",
 			mx_get_field_label_string( changer->record,
 					changer->parameter_type ),
@@ -653,7 +653,7 @@ mx_sample_changer_default_set_parameter_handler( MX_SAMPLE_CHANGER *changer )
 	switch( changer->parameter_type ) {
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for SAMPLE_CHANGER '%s'.",
 			mx_get_field_label_string( changer->record,
 					changer->parameter_type ),

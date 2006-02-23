@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,10 +39,11 @@ extern long mxv_inline_char_variable_num_record_fields;
 extern long mxv_inline_uchar_variable_num_record_fields;
 extern long mxv_inline_short_variable_num_record_fields;
 extern long mxv_inline_ushort_variable_num_record_fields;
-extern long mxv_inline_int_variable_num_record_fields;
-extern long mxv_inline_uint_variable_num_record_fields;
+extern long mxv_inline_bool_variable_num_record_fields;
 extern long mxv_inline_long_variable_num_record_fields;
 extern long mxv_inline_ulong_variable_num_record_fields;
+extern long mxv_inline_int64_variable_num_record_fields;
+extern long mxv_inline_uint64_variable_num_record_fields;
 extern long mxv_inline_float_variable_num_record_fields;
 extern long mxv_inline_double_variable_num_record_fields;
 extern long mxv_inline_record_variable_num_record_fields;
@@ -52,10 +53,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_char_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uchar_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_short_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_ushort_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int_variable_def_ptr;
-extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_bool_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_long_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_ulong_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_int64_variable_def_ptr;
+extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint64_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_float_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_double_variable_def_ptr;
 extern MX_RECORD_FIELD_DEFAULTS *mxv_inline_record_variable_def_ptr;

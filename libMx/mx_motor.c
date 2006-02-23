@@ -437,7 +437,7 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown motor subclass %d.", motor->subclass );
+			"Unknown motor subclass %ld.", motor->subclass );
 	}
 
 	return status;
@@ -1064,7 +1064,7 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized motor subclass %d for motor '%s'.",
+		"Unrecognized motor subclass %ld for motor '%s'.",
 			motor->subclass, motor_record->name );
 	}
 
@@ -1121,7 +1121,7 @@ mx_motor_get_position( MX_RECORD *motor_record, double *position )
 	default:
 		raw_position = 0.0;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unrecognized motor subclass %d for motor '%s'.",
+		"Unrecognized motor subclass %ld for motor '%s'.",
 			motor->subclass, motor_record->name );
 	}
 
@@ -1342,7 +1342,7 @@ mx_motor_negative_limit_hit( MX_RECORD *motor_record, int *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_find_home_position( MX_RECORD *motor_record, int direction )
+mx_motor_find_home_position( MX_RECORD *motor_record, long direction )
 {
 	static const char fname[] = "mx_motor_find_home_position()";
 
@@ -1388,7 +1388,7 @@ mx_motor_zero_position_value( MX_RECORD *motor_record )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_constant_velocity_move( MX_RECORD *motor_record, int direction )
+mx_motor_constant_velocity_move( MX_RECORD *motor_record, long direction )
 {
 	static const char fname[] = "mx_motor_constant_velocity_move()";
 
@@ -1866,7 +1866,7 @@ mx_motor_check_speed_limits( MX_MOTOR *motor,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_motor_get_parameter( MX_RECORD *motor_record, int parameter_type )
+mx_motor_get_parameter( MX_RECORD *motor_record, long parameter_type )
 {
 	static const char fname[] = "mx_motor_get_parameter()";
 
@@ -1897,7 +1897,7 @@ mx_motor_get_parameter( MX_RECORD *motor_record, int parameter_type )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_set_parameter( MX_RECORD *motor_record, int parameter_type )
+mx_motor_set_parameter( MX_RECORD *motor_record, long parameter_type )
 {
 	static const char fname[] = "mx_motor_set_parameter()";
 
@@ -1941,7 +1941,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 	double real_raw_start_position, real_raw_end_position;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
 		motor->parameter_type));
@@ -2039,7 +2039,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration time for motor '%s' since it has "
-	"an unsupported acceleration type of %d", motor->record->name,
+	"an unsupported acceleration type of %ld", motor->record->name,
 						motor->acceleration_type );
 		}
 
@@ -2128,7 +2128,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot compute the acceleration distance for motor '%s' since it has "
-	"an unsupported acceleration type of %d", motor->record->name,
+	"an unsupported acceleration type of %ld", motor->record->name,
 						motor->acceleration_type );
 		}
 		break;
@@ -2175,7 +2175,7 @@ mx_motor_default_get_parameter_handler( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type,
@@ -2196,7 +2196,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 	double old_saved_speed, current_speed;
 	mx_status_type status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s', parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string(motor->record,motor->parameter_type),
 		motor->parameter_type));
@@ -2290,7 +2290,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
 	"Cannot set the acceleration time for motor '%s' since it has "
-	"an unsupported acceleration type of %d", motor->record->name,
+	"an unsupported acceleration type of %ld", motor->record->name,
 						motor->acceleration_type );
 		}
 
@@ -2440,7 +2440,7 @@ mx_motor_default_set_parameter_handler( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for motor '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
 			motor->parameter_type,
@@ -3002,7 +3002,7 @@ mx_motor_set_speed_between_positions( MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_get_acceleration_type( MX_RECORD *motor_record,
-				int *acceleration_type )
+				long *acceleration_type )
 {
 	static const char fname[] = "mx_motor_get_acceleration_type()";
 
@@ -4815,7 +4815,7 @@ mx_is_motor_position_between_software_limits(
 	    break;
 	default:
 	    return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Unrecognized motor subclass = %d", motor->subclass );
+		"Unrecognized motor subclass = %ld", motor->subclass );
 	}
 	return status;
 }

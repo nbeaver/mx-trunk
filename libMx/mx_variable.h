@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -72,10 +72,10 @@ MX_API mx_status_type mx_set_1d_array( MX_RECORD *record,
 
 /*---*/
 
-MX_API mx_status_type mx_get_int_variable_by_name(
+MX_API mx_status_type mx_get_bool_variable_by_name(
 					MX_RECORD *record_list,
 					char *record_name,
-					int *int_value );
+					mx_bool_type *bool_value );
 
 MX_API mx_status_type mx_get_long_variable_by_name(
 					MX_RECORD *record_list,
@@ -112,17 +112,20 @@ MX_API mx_status_type mx_get_short_variable( MX_RECORD *record,
 MX_API mx_status_type mx_get_unsigned_short_variable( MX_RECORD *record,
 					unsigned short *unsigned_short_value );
 
-MX_API mx_status_type mx_get_int_variable( MX_RECORD *record,
-					int *int_value );
-
-MX_API mx_status_type mx_get_unsigned_int_variable( MX_RECORD *record,
-					unsigned int *unsigned_int_value );
+MX_API mx_status_type mx_get_bool_variable( MX_RECORD *record,
+					mx_bool_type *bool_value );
 
 MX_API mx_status_type mx_get_long_variable( MX_RECORD *record,
 					long *long_value );
 
 MX_API mx_status_type mx_get_unsigned_long_variable( MX_RECORD *record,
 					unsigned long *unsigned_long_value );
+
+MX_API mx_status_type mx_get_int64_variable( MX_RECORD *record,
+					int64_t *int64_value );
+
+MX_API mx_status_type mx_get_uint64_variable( MX_RECORD *record,
+					uint64_t *uint64_value );
 
 MX_API mx_status_type mx_get_float_variable( MX_RECORD *record,
 					float *float_value );
@@ -148,17 +151,20 @@ MX_API mx_status_type mx_set_short_variable( MX_RECORD *record,
 MX_API mx_status_type mx_set_unsigned_short_variable( MX_RECORD *record,
 					unsigned short unsigned_short_value );
 
-MX_API mx_status_type mx_set_int_variable( MX_RECORD *record,
-					int int_value );
-
-MX_API mx_status_type mx_set_unsigned_int_variable( MX_RECORD *record,
-					unsigned int unsigned_int_value );
+MX_API mx_status_type mx_set_bool_variable( MX_RECORD *record,
+					mx_bool_type bool_value );
 
 MX_API mx_status_type mx_set_long_variable( MX_RECORD *record,
 					long long_value );
 
 MX_API mx_status_type mx_set_unsigned_long_variable( MX_RECORD *record,
 					unsigned long unsigned_long_value );
+
+MX_API mx_status_type mx_set_int64_variable( MX_RECORD *record,
+					int64_t int64_value );
+
+MX_API mx_status_type mx_set_uint64_variable( MX_RECORD *record,
+					uint64_t uint64_value );
 
 MX_API mx_status_type mx_set_float_variable( MX_RECORD *record,
 					float float_value );
@@ -201,17 +207,11 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(unsigned short ****), sizeof(unsigned short *****), \
 	sizeof(unsigned short ******), sizeof(unsigned short *******) }
 
-#define MXA_INT_SIZEOF \
-	{ sizeof(int), sizeof(int *), \
-	sizeof(int **), sizeof(int ***), \
-	sizeof(int ****), sizeof(int *****), \
-	sizeof(int ******), sizeof(int *******) }
-
-#define MXA_UINT_SIZEOF \
-	{ sizeof(unsigned int), sizeof(unsigned int *), \
-	sizeof(unsigned int **), sizeof(unsigned int ***), \
-	sizeof(unsigned int ****), sizeof(unsigned int *****), \
-	sizeof(unsigned int ******), sizeof(unsigned int *******) }
+#define MXA_BOOL_SIZEOF \
+	{ sizeof(mx_bool_type), sizeof(mx_bool_type *), \
+	sizeof(mx_bool_type **), sizeof(mx_bool_type ***), \
+	sizeof(mx_bool_type ****), sizeof(mx_bool_type *****), \
+	sizeof(mx_bool_type ******), sizeof(mx_bool_type *******) }
 
 #define MXA_LONG_SIZEOF \
 	{ sizeof(long), sizeof(long *), \
@@ -224,6 +224,18 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(unsigned long **), sizeof(unsigned long ***), \
 	sizeof(unsigned long ****), sizeof(unsigned long *****), \
 	sizeof(unsigned long ******), sizeof(unsigned long *******) }
+
+#define MXA_INT64_SIZEOF \
+	{ sizeof(int64_t), sizeof(int64_t *), \
+	sizeof(int64_t **), sizeof(int64_t ***), \
+	sizeof(int64_t ****), sizeof(int64_t *****), \
+	sizeof(int64_t ******), sizeof(int64_t *******) }
+
+#define MXA_UINT64_SIZEOF \
+	{ sizeof(uint64_t), sizeof(uint64_t *), \
+	sizeof(uint64_t **), sizeof(uint64_t ***), \
+	sizeof(uint64_t ****), sizeof(uint64_t *****), \
+	sizeof(uint64_t ******), sizeof(uint64_t *******) }
 
 #define MXA_FLOAT_SIZEOF \
 	{ sizeof(float), sizeof(float *), \
@@ -294,18 +306,11 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXA_USHORT_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
-#define MX_INT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_INT, NULL, \
+#define MX_BOOL_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_BOOL, NULL, \
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_INT_SIZEOF, NULL, \
-	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
-
-#define MX_UINT_VARIABLE_STANDARD_FIELDS \
-  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT, NULL, \
-	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
-	MXA_UINT_SIZEOF, NULL, \
+	MXA_BOOL_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_LONG_VARIABLE_STANDARD_FIELDS \
@@ -320,6 +325,20 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
 	MXA_ULONG_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_INT64_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_INT64, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_INT64_SIZEOF, NULL, \
+	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
+
+#define MX_UINT64_VARIABLE_STANDARD_FIELDS \
+  {MXLV_VAR_VALUE, -1, "value", MXFT_UINT64, NULL, \
+	MXU_VARARGS_LENGTH, {MXU_VARARGS_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_VARIABLE, pointer_to_value), \
+	MXA_UINT64_SIZEOF, NULL, \
 	(MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_VARARGS) }
 
 #define MX_FLOAT_VARIABLE_STANDARD_FIELDS \

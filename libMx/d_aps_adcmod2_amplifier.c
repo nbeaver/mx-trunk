@@ -407,7 +407,7 @@ mxd_aps_adcmod2_get_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -439,7 +439,7 @@ mxd_aps_adcmod2_set_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),

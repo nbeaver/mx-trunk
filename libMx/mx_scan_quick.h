@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,8 +26,8 @@ typedef struct {
 	long requested_num_measurements;
 	long actual_num_measurements;
 
-	int use_synchronous_motion_mode;
-	int *saved_synchronous_motion_mode;
+	mx_bool_type use_synchronous_motion_mode;
+	mx_bool_type *saved_synchronous_motion_mode;
 
 	double estimated_scan_duration;		/* in seconds */
 } MX_QUICK_SCAN;
@@ -73,7 +73,7 @@ MX_API_PRIVATE double mx_quick_scan_get_measurement_time(
 		offsetof(MX_QUICK_SCAN, actual_num_measurements), \
 	{0}, NULL, 0 }, \
   \
-  {-1, -1, "saved_synchronous_motion_mode", MXFT_INT, \
+  {-1, -1, "saved_synchronous_motion_mode", MXFT_BOOL, \
 		NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_QUICK_SCAN, saved_synchronous_motion_mode),\

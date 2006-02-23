@@ -2100,12 +2100,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 			*returned_value = (double)
 					*((unsigned short *) ptr_to_value);
 			break;
-		case MXFT_INT:
-			*returned_value = (double) *((int *) ptr_to_value);
-			break;
-		case MXFT_UINT:
-			*returned_value = (double)
-					*((unsigned int *) ptr_to_value);
+		case MXFT_BOOL:
+			if ( *((mx_bool_type *) ptr_to_value) == FALSE ) {
+				*returned_value = FALSE;
+			} else {
+				*returned_value = TRUE;
+			}
 			break;
 		case MXFT_LONG:
 			*returned_value = (double) *((long *) ptr_to_value);
@@ -2113,6 +2113,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 		case MXFT_ULONG:
 			*returned_value = (double)
 					*((unsigned long *) ptr_to_value);
+			break;
+		case MXFT_INT64:
+			*returned_value = (double) *((int32_t *) ptr_to_value);
+			break;
+		case MXFT_UINT64:
+			*returned_value = (double) *((uint32_t *) ptr_to_value);
 			break;
 		case MXFT_FLOAT:
 			*returned_value = (double) *((float *) ptr_to_value);
@@ -2217,7 +2223,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 				break;
 			default:
 				return mx_error(MXE_NOT_YET_IMPLEMENTED, fname,
-				"Motor subclass %d not yet implemented.",
+				"Motor subclass %ld not yet implemented.",
 					motor->subclass );
 			}
 			position = motor->offset + motor->scale * raw_position;

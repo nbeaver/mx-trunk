@@ -44,6 +44,7 @@ mx_setup_record_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_REC_PRECISION:
 		case MXLV_REC_RESYNCHRONIZE:
 		case MXLV_REC_REPORT:
 			record_field->process_function
@@ -79,6 +80,9 @@ mx_record_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_REC_PRECISION:
+			record->long_precision = record->precision;
+			break;
 		default:
 			MX_DEBUG(-2,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -88,6 +92,9 @@ mx_record_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_REC_PRECISION:
+			record->precision = record->long_precision;
+			break;
 		case MXLV_REC_RESYNCHRONIZE:
 			resynchronize_fn = record_function_list->resynchronize;
 

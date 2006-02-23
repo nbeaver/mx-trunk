@@ -537,7 +537,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 
 	old_gain = auto_amplifier->present_amplifier_gain;
 
-	MX_DEBUG( 2,("%s: change_control = %d",
+	MX_DEBUG( 2,("%s: change_control = %ld",
 			fname, autoscale->change_control));
 
 	switch( autoscale->change_control ) {
@@ -572,7 +572,7 @@ mxd_auto_amplifier_change_control( MX_AUTOSCALE *autoscale )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal value %d for change control.",
+			"Illegal value %ld for change control.",
 			autoscale->change_control );
 	}
 
@@ -682,7 +682,7 @@ mxd_auto_amplifier_get_parameter( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	MX_DEBUG( 2,(
-	"%s invoked for autoscale '%s' for parameter type '%s' (%d).",
+	"%s invoked for autoscale '%s' for parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
@@ -712,7 +712,7 @@ mxd_auto_amplifier_set_parameter( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	MX_DEBUG( 2,(
-	"%s invoked for autoscale '%s' for parameter type '%s' (%d).",
+	"%s invoked for autoscale '%s' for parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),

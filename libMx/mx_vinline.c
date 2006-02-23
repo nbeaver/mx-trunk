@@ -111,33 +111,18 @@ MX_RECORD_FIELD_DEFAULTS *mxv_inline_ushort_variable_def_ptr
 
 /* ==== */
 
-MX_RECORD_FIELD_DEFAULTS mxv_inline_int_variable_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxv_inline_bool_variable_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT_VARIABLE_STANDARD_FIELDS
+	MX_BOOL_VARIABLE_STANDARD_FIELDS
 };
 
-long mxv_inline_int_variable_num_record_fields
-			= sizeof( mxv_inline_int_variable_defaults )
-			/ sizeof( mxv_inline_int_variable_defaults[0] );
+long mxv_inline_bool_variable_num_record_fields
+			= sizeof( mxv_inline_bool_variable_defaults )
+			/ sizeof( mxv_inline_bool_variable_defaults[0] );
 
-MX_RECORD_FIELD_DEFAULTS *mxv_inline_int_variable_def_ptr
-			= &mxv_inline_int_variable_defaults[0];
-
-/* ==== */
-
-MX_RECORD_FIELD_DEFAULTS mxv_inline_uint_variable_defaults[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_VARIABLE_STANDARD_FIELDS,
-	MX_UINT_VARIABLE_STANDARD_FIELDS
-};
-
-long mxv_inline_uint_variable_num_record_fields
-			= sizeof( mxv_inline_uint_variable_defaults )
-			/ sizeof( mxv_inline_uint_variable_defaults[0] );
-
-MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint_variable_def_ptr
-			= &mxv_inline_uint_variable_defaults[0];
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_bool_variable_def_ptr
+			= &mxv_inline_bool_variable_defaults[0];
 
 /* ==== */
 
@@ -168,6 +153,36 @@ long mxv_inline_ulong_variable_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxv_inline_ulong_variable_def_ptr
 			= &mxv_inline_ulong_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_inline_int64_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_INT64_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_inline_int64_variable_num_record_fields
+			= sizeof( mxv_inline_int64_variable_defaults )
+			/ sizeof( mxv_inline_int64_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_int64_variable_def_ptr
+			= &mxv_inline_int64_variable_defaults[0];
+
+/* ==== */
+
+MX_RECORD_FIELD_DEFAULTS mxv_inline_uint64_variable_defaults[] = {
+	MX_RECORD_STANDARD_FIELDS,
+	MX_VARIABLE_STANDARD_FIELDS,
+	MX_UINT64_VARIABLE_STANDARD_FIELDS
+};
+
+long mxv_inline_uint64_variable_num_record_fields
+			= sizeof( mxv_inline_uint64_variable_defaults )
+			/ sizeof( mxv_inline_uint64_variable_defaults[0] );
+
+MX_RECORD_FIELD_DEFAULTS *mxv_inline_uint64_variable_def_ptr
+			= &mxv_inline_uint64_variable_defaults[0];
 
 /* ==== */
 

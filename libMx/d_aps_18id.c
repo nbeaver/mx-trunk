@@ -17,7 +17,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1888,7 +1888,7 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%d) is not supported "
+			"Parameter type '%s' (%ld) is not supported "
 			"by the APS_18ID driver for motor '%s'.",
 
 			mx_get_field_label_string( motor->record,
@@ -1954,7 +1954,7 @@ mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%d) is not supported "
+			"Parameter type '%s' (%ld) is not supported "
 			"by the APS_18ID driver for motor '%s'.",
 
 			mx_get_field_label_string( motor->record,

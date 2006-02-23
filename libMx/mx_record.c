@@ -2719,13 +2719,13 @@ mx_get_fast_mode( MX_RECORD *record, int *mode_flag )
 }
 
 MX_EXPORT mx_status_type
-mx_set_fast_mode( MX_RECORD *record, int mode_flag )
+mx_set_fast_mode( MX_RECORD *record, mx_bool_type mode_flag )
 {
 	static const char fname[] = "mx_set_fast_mode()";
 
 	MX_RECORD *list_head_record, *current_record;
 	MX_LIST_HEAD *list_head;
-	int fast_mode_flag;
+	mx_bool_type fast_mode_flag;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2767,7 +2767,7 @@ mx_set_fast_mode( MX_RECORD *record, int mode_flag )
 
 			(void) mx_put_by_name( current_record,
 					"mx_database.fast_mode",
-					MXFT_INT, &fast_mode_flag );
+					MXFT_BOOL, &fast_mode_flag );
 		}
 
 		current_record = current_record->next_record;

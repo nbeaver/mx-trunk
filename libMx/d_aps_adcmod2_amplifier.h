@@ -23,7 +23,7 @@
 typedef struct {
 	MX_RECORD *aps_adcmod2_record;
 
-	int amplifier_number;
+	long amplifier_number;
 } MX_APS_ADCMOD2_AMPLIFIER;
 
 MX_API mx_status_type mxd_aps_adcmod2_create_record_structures(
@@ -48,7 +48,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_adcmod2_rfield_def_ptr;
 		offsetof(MX_APS_ADCMOD2_AMPLIFIER, aps_adcmod2_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "amplifier_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "amplifier_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_APS_ADCMOD2_AMPLIFIER, amplifier_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}

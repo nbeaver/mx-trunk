@@ -442,10 +442,11 @@ mx_network_field_get_parameters( MX_RECORD *server_record,
 	case MXFT_UCHAR:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
-	case MXFT_INT:
-	case MXFT_UINT:
+	case MXFT_BOOL:
 	case MXFT_LONG:
 	case MXFT_ULONG:
+	case MXFT_INT64:
+	case MXFT_UINT64:
 	case MXFT_FLOAT:
 	case MXFT_DOUBLE:
 	case MXFT_HEX:
@@ -882,8 +883,9 @@ mx_get_field_array( MX_RECORD *server_record,
 		MX_RECORD_FIELD_PARSE_STATUS *);
 	long datatype, num_dimensions, *dimension_array;
 	size_t *data_element_size_array;
-	int array_is_dynamically_allocated;
-	int use_network_handles;
+	mx_bool_type array_is_dynamically_allocated;
+	mx_bool_type use_network_handles;
+	mx_bool_type truncate_64bit_longs;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
@@ -1144,11 +1146,18 @@ mx_get_field_array( MX_RECORD *server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
+		if (server->server_flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS) {
+			truncate_64bit_longs = FALSE;
+		} else {
+			truncate_64bit_longs = TRUE;
+		}
+
 		mx_status = mx_copy_buffer_to_array( message, message_length,
 				value_ptr, array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
-				NULL );
+				NULL,
+				truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( mx_status.code, fname,
@@ -1201,8 +1210,9 @@ mx_put_field_array( MX_RECORD *server_record,
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 	long datatype, num_dimensions, *dimension_array;
 	size_t *data_element_size_array;
-	int array_is_dynamically_allocated;
-	int use_network_handles;
+	mx_bool_type array_is_dynamically_allocated;
+	mx_bool_type use_network_handles;
+	mx_bool_type truncate_64bit_longs;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
@@ -1352,12 +1362,19 @@ mx_put_field_array( MX_RECORD *server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
+		if (server->server_flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS) {
+			truncate_64bit_longs = FALSE;
+		} else {
+			truncate_64bit_longs = TRUE;
+		}
+
 		mx_status = mx_copy_array_to_buffer( value_ptr,
 				array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
-				&num_bytes_copied );
+				&num_bytes_copied,
+				truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( mx_status.code, fname,

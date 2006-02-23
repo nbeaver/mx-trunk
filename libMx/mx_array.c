@@ -321,7 +321,9 @@ mx_write_void_pointer_to_memory_location( void *memory_location, void *ptr )
 }
 
 static size_t
-mxp_scalar_element_size( long mx_datatype ) {
+mxp_scalar_element_size( long mx_datatype,
+			mx_bool_type truncate_64bit_longs )
+{
 	size_t element_size;
 
 	switch( mx_datatype ) {
@@ -329,14 +331,29 @@ mxp_scalar_element_size( long mx_datatype ) {
 	case MXFT_UCHAR:      element_size = sizeof(unsigned char);       break;
 	case MXFT_SHORT:      element_size = sizeof(short);               break;
 	case MXFT_USHORT:     element_size = sizeof(unsigned short);      break;
-	case MXFT_INT:        element_size = sizeof(int);                 break;
-	case MXFT_UINT:       element_size = sizeof(unsigned int);        break;
-	case MXFT_LONG:       element_size = sizeof(long);                break;
-	case MXFT_ULONG:      element_size = sizeof(unsigned long);       break;
+	case MXFT_BOOL:       element_size = sizeof(mx_bool_type);        break;
+	case MXFT_INT64:      element_size = sizeof(int64_t);             break;
+	case MXFT_UINT64:     element_size = sizeof(uint64_t);            break;
 	case MXFT_FLOAT:      element_size = sizeof(float);               break;
 	case MXFT_DOUBLE:     element_size = sizeof(double);              break;
 
 	case MXFT_HEX:        element_size = sizeof(unsigned long);       break;
+
+	case MXFT_LONG:       
+		if ( truncate_64bit_longs ) {
+		              element_size = 4;
+		} else {
+		              element_size = sizeof(long);
+		}
+		break;
+
+	case MXFT_ULONG:       
+		if ( truncate_64bit_longs ) {
+		              element_size = 4;
+		} else {
+		              element_size = sizeof(unsigned long);
+		}
+		break;
 
 	case MXFT_RECORD:     element_size = MXU_RECORD_NAME_LENGTH;      break;
 	case MXFT_RECORDTYPE: element_size = MXU_DRIVER_NAME_LENGTH;      break;
@@ -344,16 +361,65 @@ mxp_scalar_element_size( long mx_datatype ) {
 	default:              element_size = 0;                           break;
 	}
 
+#if 1
+	if ( truncate_64bit_longs ) {
+		MX_DEBUG(-2,
+	    ("mxp_scaler_element_size(): mx_datatype = %ld, element_size = %ld",
+	    		mx_datatype, (long) element_size ));
+	}
+#endif
+
 	return element_size;
+}
+
+static void
+mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
+{
+	uint64_t *uint64_ptr;
+	uint32_t *uint32_ptr;
+	size_t i;
+
+	MX_DEBUG(-2,("mx_copy_32bits_to_64bits: num_elements = %ld",
+		(long) num_elements ));
+
+	uint64_ptr = destination;
+	uint32_ptr = source;
+
+	for ( i = 0; i < num_elements; i++ ) {
+		uint64_ptr[i] = (uint64_t) uint32_ptr[i];
+	}
+
+	return;
+}
+
+static void
+mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
+{
+	uint64_t *uint64_ptr;
+	uint32_t *uint32_ptr;
+	size_t i;
+
+	MX_DEBUG(-2,("mx_copy_64bits_to_32bits: num_elements = %ld",
+		(long) num_elements ));
+
+	uint32_ptr = destination;
+	uint64_ptr = source;
+
+	for ( i = 0; i < num_elements; i++ ) {
+		uint32_ptr[i] = (uint32_t) uint64_ptr[i];
+	}
+
+	return;
 }
 
 MX_EXPORT mx_status_type
 mx_copy_array_to_buffer( void *array_pointer,
-		int array_is_dynamically_allocated,
+		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
 		void *destination_buffer, size_t destination_buffer_length,
-		size_t *num_bytes_copied )
+		size_t *num_bytes_copied,
+		mx_bool_type truncate_64bit_longs )
 {
 	static const char fname[] = "mx_copy_array_to_buffer()";
 
@@ -422,7 +488,8 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		/* Handling scalars takes a bit more effort. */
 
-		bytes_to_copy = mxp_scalar_element_size( mx_datatype );
+		bytes_to_copy = mxp_scalar_element_size( mx_datatype,
+							truncate_64bit_longs );
 
 		if ( bytes_to_copy > destination_buffer_length ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -446,15 +513,25 @@ mx_copy_array_to_buffer( void *array_pointer,
 		case MXFT_UCHAR:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
-		case MXFT_INT:
-		case MXFT_UINT:
-		case MXFT_LONG:
-		case MXFT_HEX:
-		case MXFT_ULONG:
+		case MXFT_BOOL:
+		case MXFT_INT64:
+		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
 			memcpy( destination_buffer,
 					array_pointer, bytes_to_copy );
+			break;
+
+		case MXFT_HEX:
+		case MXFT_LONG:
+		case MXFT_ULONG:
+			if ( truncate_64bit_longs ) {
+				mx_copy_64bits_to_32bits( destination_buffer,
+					array_pointer, 1 );
+			} else {
+				memcpy( destination_buffer,
+					array_pointer, bytes_to_copy );
+			}
 			break;
 
 		case MXFT_RECORD:
@@ -520,12 +597,40 @@ mx_copy_array_to_buffer( void *array_pointer,
 				(long) destination_buffer_length );
 		}
 
-		if ( mx_datatype == MXFT_STRING ) {
+		switch( mx_datatype ) {
+		case MXFT_STRING:
 			strlcpy( (char *) destination_buffer,
 					array_pointer, bytes_to_copy );
-		} else {
+			break;
+
+		case MXFT_CHAR:
+		case MXFT_UCHAR:
+		case MXFT_SHORT:
+		case MXFT_USHORT:
+		case MXFT_BOOL:
+		case MXFT_INT64:
+		case MXFT_UINT64:
+		case MXFT_FLOAT:
+		case MXFT_DOUBLE:
 			memcpy( destination_buffer,
 					array_pointer, bytes_to_copy );
+			break;
+		case MXFT_HEX:
+		case MXFT_LONG:
+		case MXFT_ULONG:
+			if ( truncate_64bit_longs ) {
+				mx_copy_64bits_to_32bits( destination_buffer,
+					array_pointer, dimension_array[0] );
+			} else {
+				memcpy( destination_buffer,
+					array_pointer, bytes_to_copy );
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Array copy for data type %ld is not supported.",
+				mx_datatype );
 		}
 
 		if ( num_bytes_copied != NULL ) {
@@ -600,7 +705,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
 				destination_pointer, buffer_left,
-				NULL );
+				NULL, truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -616,10 +721,11 @@ mx_copy_array_to_buffer( void *array_pointer,
 MX_EXPORT mx_status_type
 mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		void *array_pointer,
-		int array_is_dynamically_allocated,
+		mx_bool_type array_is_dynamically_allocated,
 		long mx_datatype, long num_dimensions,
 		long *dimension_array, size_t *data_element_size_array,
-		size_t *num_bytes_copied )
+		size_t *num_bytes_copied,
+		mx_bool_type truncate_64bit_longs )
 {
 	static const char fname[] = "mx_copy_buffer_to_array()";
 
@@ -678,7 +784,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 		/* Handling scalars takes a bit more effort. */
 
-		bytes_to_copy = mxp_scalar_element_size( mx_datatype );
+		bytes_to_copy = mxp_scalar_element_size( mx_datatype,
+						truncate_64bit_longs );
 
 		if ( bytes_to_copy > source_buffer_length ) {
 			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
@@ -704,14 +811,24 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_UCHAR:
 		case MXFT_SHORT:
 		case MXFT_USHORT:
-		case MXFT_INT:
-		case MXFT_UINT:
-		case MXFT_LONG:
-		case MXFT_HEX:
-		case MXFT_ULONG:
+		case MXFT_BOOL:
+		case MXFT_INT64:
+		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
 			memcpy( array_pointer, source_buffer, bytes_to_copy );
+			break;
+
+		case MXFT_HEX:
+		case MXFT_LONG:
+		case MXFT_ULONG:
+			if ( truncate_64bit_longs ) {
+				mx_copy_32bits_to_64bits( array_pointer,
+					source_buffer, 1 );
+			} else {
+				memcpy( array_pointer,
+					source_buffer, bytes_to_copy );
+			}
 			break;
 
 		default:
@@ -741,11 +858,40 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 			bytes_to_copy = array_size;
 		}
 
-		if ( mx_datatype == MXFT_STRING ) {
+		switch( mx_datatype ) {
+		case MXFT_STRING:
 			strlcpy( (char *) array_pointer,
 					source_buffer, bytes_to_copy );
-		} else {
+			break;
+
+		case MXFT_CHAR:
+		case MXFT_UCHAR:
+		case MXFT_SHORT:
+		case MXFT_USHORT:
+		case MXFT_BOOL:
+		case MXFT_INT64:
+		case MXFT_UINT64:
+		case MXFT_FLOAT:
+		case MXFT_DOUBLE:
 			memcpy( array_pointer, source_buffer, bytes_to_copy );
+			break;
+
+		case MXFT_HEX:
+		case MXFT_LONG:
+		case MXFT_ULONG:
+			if ( truncate_64bit_longs ) {
+				mx_copy_32bits_to_64bits( array_pointer,
+					source_buffer, dimension_array[0] );
+			} else {
+				memcpy( array_pointer,
+					source_buffer, bytes_to_copy );
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Array copy for data type %ld is not supported.",
+				mx_datatype );
 		}
 
 		if ( num_bytes_copied != NULL ) {
@@ -798,7 +944,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 				array_is_dynamically_allocated,
 				mx_datatype, num_dimensions - 1,
 				&dimension_array[1], data_element_size_array,
-				NULL );
+				NULL,
+				truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -825,21 +972,22 @@ mxp_xdr_scalar_element_size( long mx_datatype ) {
 	case MXFT_UCHAR:
 	case MXFT_SHORT:
 	case MXFT_USHORT:
-	case MXFT_INT:
-	case MXFT_UINT:
+	case MXFT_BOOL:
 	case MXFT_LONG:
 	case MXFT_ULONG:
 	case MXFT_HEX:
 	case MXFT_FLOAT:
 		element_size = 4;
 		break;
+	case MXFT_INT64:
+	case MXFT_UINT64:
 	case MXFT_DOUBLE:
 		element_size = 8;
 		break;
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
-		native_size = mxp_scalar_element_size( mx_datatype );
+		native_size = mxp_scalar_element_size( mx_datatype, FALSE );
 
 		element_size = 4 * (native_size / 4);
 
@@ -984,7 +1132,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		/* Handling scalars takes a bit more effort. */
 
-		native_data_size = mxp_scalar_element_size( mx_datatype );
+		native_data_size = mxp_scalar_element_size(mx_datatype, FALSE);
 
 		xdr_data_size = mxp_xdr_scalar_element_size( mx_datatype );
 
@@ -1029,11 +1177,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		case MXFT_USHORT:
 			xdr_status = xdr_u_short( &xdrs, array_pointer );
 			break;
-		case MXFT_INT:
+		case MXFT_BOOL:
 			xdr_status = xdr_int( &xdrs, array_pointer );
-			break;
-		case MXFT_UINT:
-			xdr_status = xdr_u_int( &xdrs, array_pointer );
 			break;
 		case MXFT_LONG:
 			xdr_status = xdr_long( &xdrs, array_pointer );
@@ -1041,6 +1186,12 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		case MXFT_HEX:
 		case MXFT_ULONG:
 			xdr_status = xdr_u_long( &xdrs, array_pointer );
+			break;
+		case MXFT_INT64:
+			xdr_status = xdr_hyper( &xdrs, array_pointer );
+			break;
+		case MXFT_UINT64:
+			xdr_status = xdr_u_hyper( &xdrs, array_pointer );
 			break;
 		case MXFT_FLOAT:
 			xdr_status = xdr_float( &xdrs, array_pointer );
@@ -1055,7 +1206,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_record->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-					mxp_scalar_element_size( mx_datatype ));
+				mxp_scalar_element_size( mx_datatype, FALSE ));
 			break;
 		case MXFT_RECORDTYPE:
 			mx_driver = (MX_DRIVER *) array_pointer;
@@ -1063,7 +1214,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_driver->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-					mxp_scalar_element_size( mx_datatype ));
+				mxp_scalar_element_size( mx_datatype, FALSE ));
 			break;
 		case MXFT_INTERFACE:
 			mx_interface = (MX_INTERFACE *) array_pointer;
@@ -1071,7 +1222,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_interface->address_name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-					mxp_scalar_element_size( mx_datatype ));
+				mxp_scalar_element_size( mx_datatype, FALSE ));
 			break;
 
 		default:
@@ -1171,10 +1322,11 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			case MXFT_UCHAR:  XDR_DO_ARRAY(xdr_u_char);  break;
 			case MXFT_SHORT:  XDR_DO_ARRAY(xdr_short);   break;
 			case MXFT_USHORT: XDR_DO_ARRAY(xdr_u_short); break;
-			case MXFT_INT:    XDR_DO_ARRAY(xdr_int);     break;
-			case MXFT_UINT:   XDR_DO_ARRAY(xdr_u_int);   break;
+			case MXFT_BOOL:   XDR_DO_ARRAY(xdr_int);     break;
 			case MXFT_LONG:   XDR_DO_ARRAY(xdr_long);    break;
 			case MXFT_ULONG:  XDR_DO_ARRAY(xdr_u_long);  break;
+			case MXFT_INT64:  XDR_DO_ARRAY(xdr_hyper);   break;
+			case MXFT_UINT64: XDR_DO_ARRAY(xdr_u_hyper); break;
 			case MXFT_FLOAT:  XDR_DO_ARRAY(xdr_float);   break;
 			case MXFT_DOUBLE: XDR_DO_ARRAY(xdr_double);  break;
 			default:
@@ -1238,7 +1390,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		/* This is a structure array. */
 
 		last_dimension_native_size_in_bytes = 
-					mxp_scalar_element_size(mx_datatype);
+				mxp_scalar_element_size( mx_datatype, FALSE );
 
 		last_dimension_xdr_size_in_bytes =
 				mxp_xdr_scalar_element_size( mx_datatype );
@@ -1375,9 +1527,9 @@ mx_convert_and_copy_array(
 {
 	static const char fname[] = "mx_convert_and_copy_array()";
 
-	int int_source_value;
+	long long_source_value;
 	double double_source_value;
-	int *int_dest_ptr;
+	long *long_dest_ptr;
 	double *double_dest_ptr;
 
 	if ( ( source_num_dimensions == 0 )
@@ -1396,18 +1548,18 @@ mx_convert_and_copy_array(
 			source_num_dimensions, destination_num_dimensions );
 	}
 
-	if ( source_datatype == MXFT_INT ) {
-		int_source_value = *((int *) source_array_pointer);
+	if ( source_datatype == MXFT_LONG ) {
+		long_source_value = *((long *) source_array_pointer);
 
-		if ( destination_datatype == MXFT_INT ) {
-			int_dest_ptr = (int *) destination_array_pointer;
+		if ( destination_datatype == MXFT_LONG ) {
+			long_dest_ptr = (long *) destination_array_pointer;
 
-			*int_dest_ptr = int_source_value;
+			*long_dest_ptr = long_source_value;
 		} else
 		if ( destination_datatype == MXFT_DOUBLE ) {
 			double_dest_ptr = (double *) destination_array_pointer;
 
-			*double_dest_ptr = (double) int_source_value;
+			*double_dest_ptr = (double) long_source_value;
 		} else {
 			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		    "MX datatype %ld is not yet implemented for this function.",
@@ -1417,10 +1569,10 @@ mx_convert_and_copy_array(
 	if ( source_datatype == MXFT_DOUBLE ) {
 		double_source_value = *((double *) source_array_pointer);
 
-		if ( destination_datatype == MXFT_INT ) {
-			int_dest_ptr = (int *) destination_array_pointer;
+		if ( destination_datatype == MXFT_LONG ) {
+			long_dest_ptr = (long *) destination_array_pointer;
 
-			*int_dest_ptr = mx_round( double_source_value );
+			*long_dest_ptr = mx_round( double_source_value );
 		} else
 		if ( destination_datatype == MXFT_DOUBLE ) {
 			double_dest_ptr = (double *) destination_array_pointer;

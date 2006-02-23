@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,11 +24,12 @@ typedef struct {
                             * to this timer.
                             */
 	double value;
-	int busy;
-	int stop;
-	int clear;
-	int mode;
 
+	mx_bool_type busy;
+	mx_bool_type stop;
+	mx_bool_type clear;
+
+	long mode;
 	double last_measurement_time;
 } MX_TIMER;
 
@@ -44,19 +45,19 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, value), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_TIM_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_TIM_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, busy), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_TIM_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_TIM_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, stop), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_TIM_CLEAR, -1, "clear", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_TIM_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, clear), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_TIM_MODE, -1, "mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_TIM_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_TIMER, mode), \
 	{0}, NULL, 0 }, \
   \
@@ -85,7 +86,8 @@ MX_API_PRIVATE mx_status_type mx_timer_get_pointers( MX_RECORD *timer_record,
 MX_API_PRIVATE mx_status_type mx_timer_finish_record_initialization(
 						MX_RECORD *record);
 
-MX_API mx_status_type mx_timer_is_busy( MX_RECORD *timer_record, int *busy );
+MX_API mx_status_type mx_timer_is_busy( MX_RECORD *timer_record,
+						mx_bool_type *busy );
 
 MX_API mx_status_type mx_timer_start( MX_RECORD *timer_record, double seconds);
 
@@ -96,9 +98,9 @@ MX_API mx_status_type mx_timer_clear( MX_RECORD *timer_record );
 
 MX_API mx_status_type mx_timer_read( MX_RECORD *timer_record, double *seconds );
 
-MX_API mx_status_type mx_timer_get_mode( MX_RECORD *timer_record, int *mode );
+MX_API mx_status_type mx_timer_get_mode( MX_RECORD *timer_record, long *mode );
 
-MX_API mx_status_type mx_timer_set_mode( MX_RECORD *timer_record, int mode );
+MX_API mx_status_type mx_timer_set_mode( MX_RECORD *timer_record, long mode );
 
 MX_API mx_status_type mx_timer_set_modes_of_associated_counters(
 						MX_RECORD *timer_record );

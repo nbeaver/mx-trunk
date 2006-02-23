@@ -711,7 +711,7 @@ mxd_am9513_motor_motor_is_busy( MX_MOTOR *motor )
 
 		am9513_status = this_am9513->status_register;
 
-		MX_DEBUG( 2,("%s: am9513_status = 0x%x, retries = %d",
+		MX_DEBUG( 2,("%s: am9513_status = 0x%x, retries = %ld",
 					fname, am9513_status,
 					am9513_motor->busy_retries_left));
 
@@ -960,7 +960,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: new output_value = %lu", fname, output_value));
-	MX_DEBUG( 2,("%s: last_direction = %d",
+	MX_DEBUG( 2,("%s: last_direction = %ld",
 			fname, am9513_motor->last_direction));
 
 	/* We must handle the case of moving 1 step specially.  This
@@ -1090,7 +1090,7 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 
 	hold_register = high_am9513->hold_register[n];
 
-	MX_DEBUG( 2,("%s: busy_retries_left = %d",
+	MX_DEBUG( 2,("%s: busy_retries_left = %ld",
 			fname, am9513_motor->busy_retries_left));
 
 	/* If the hold register contains 0xffff, this means the Am9513
@@ -1113,7 +1113,7 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 		fname, hold_register, step_offset));
 
 	MX_DEBUG( 2,
-("%s: last_destination = %ld, last_direction = %d",
+	("%s: last_destination = %ld, last_direction = %ld",
 		fname, am9513_motor->last_destination,
 		am9513_motor->last_direction ));
 

@@ -435,11 +435,11 @@ mxd_auto_network_get_change_request( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	mx_status = mx_get( &(auto_network->get_change_request_nf),
-				MXFT_INT, &get_change_request );
+				MXFT_LONG, &get_change_request );
 
 	autoscale->get_change_request = get_change_request;
 
-	MX_DEBUG( 2,("%s: control = '%s', get_change_request = %d",
+	MX_DEBUG( 2,("%s: control = '%s', get_change_request = %ld",
 			fname, autoscale->control_record->name,
 			autoscale->get_change_request));
 
@@ -468,7 +468,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 			change_control));
 
 	mx_status = mx_put( &(auto_network->change_control_nf),
-				MXFT_INT, &change_control );
+				MXFT_LONG, &change_control );
 
 	return mx_status;
 }
@@ -542,7 +542,7 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 
 	MX_AUTO_NETWORK *auto_network;
 	long dimension_array[1];
-	int int_value;
+	mx_bool_type bool_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -553,7 +553,7 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	MX_DEBUG( 2,(
-	"%s invoked for autoscale '%s' for parameter type '%s' (%d).",
+	"%s invoked for autoscale '%s' for parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
@@ -562,9 +562,9 @@ mxd_auto_network_get_parameter( MX_AUTOSCALE *autoscale )
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:
 		mx_status = mx_get( &(auto_network->enabled_nf),
-					MXFT_INT, &int_value );
+					MXFT_BOOL, &bool_value );
 
-		autoscale->enabled = int_value;
+		autoscale->enabled = bool_value;
 		break;
 
 	case MXLV_AUT_LOW_LIMIT:
@@ -617,7 +617,7 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 
 	MX_AUTO_NETWORK *auto_network;
 	long dimension_array[1];
-	int int_value;
+	mx_bool_type bool_value;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -628,7 +628,7 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 		return mx_status;
 
 	MX_DEBUG( 2,(
-	"%s invoked for autoscale '%s' for parameter type '%s' (%d).",
+	"%s invoked for autoscale '%s' for parameter type '%s' (%ld).",
 		fname, autoscale->record->name,
 		mx_get_field_label_string( autoscale->record,
 			autoscale->parameter_type ),
@@ -636,10 +636,10 @@ mxd_auto_network_set_parameter( MX_AUTOSCALE *autoscale )
 
 	switch( autoscale->parameter_type ) {
 	case MXLV_AUT_ENABLED:
-		int_value = autoscale->enabled;
+		bool_value = autoscale->enabled;
 
 		mx_status = mx_put( &(auto_network->enabled_nf),
-					MXFT_INT, &int_value );
+					MXFT_BOOL, &bool_value );
 		break;
 
 	case MXLV_AUT_LOW_LIMIT:

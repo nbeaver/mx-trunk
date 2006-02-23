@@ -2243,7 +2243,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 #if 1 /* WML: FIXME - This is a temporary kludge. */
 		{
 			MX_RECORD *kludge_record;
-			int pulse_mode;
+			long pulse_mode;
 
 			kludge_record = mx_get_record(clock_record,
 							"mx_pulse_tweak");
@@ -2251,7 +2251,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 			if ( kludge_record == NULL ) {
 				pulse_mode = MXF_PGN_PULSE;
 			} else {
-				status = mx_get_int_variable( kludge_record,
+				status = mx_get_long_variable( kludge_record,
 								&pulse_mode );
 
 				if ( status.code != MXE_SUCCESS )
@@ -2356,7 +2356,7 @@ mxs_mcs_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( synchronous_motion_mode_record == (MX_RECORD *) NULL ) {
 		quick_scan->use_synchronous_motion_mode = FALSE;
 	} else {
-		status = mx_get_int_variable( synchronous_motion_mode_record,
+		status = mx_get_bool_variable( synchronous_motion_mode_record,
 				&(quick_scan->use_synchronous_motion_mode));
 	}
 

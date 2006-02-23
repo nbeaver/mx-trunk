@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -18,6 +18,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_inttypes.h"
 #include "mx_socket.h"
 #include "mx_spec.h"
 #include "n_spec.h"
@@ -760,11 +761,8 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 	case MXFT_USHORT:
 		strcpy( format, "%hu" );
 		break;
-	case MXFT_INT:
+	case MXFT_BOOL:
 		strcpy( format, "%d" );
-		break;
-	case MXFT_UINT:
-		strcpy( format, "%u" );
 		break;
 	case MXFT_LONG:
 		strcpy( format, "%ld" );
@@ -774,6 +772,12 @@ mx_spec_get_number( MX_RECORD *spec_server_record,
 		break;
 	case MXFT_HEX:
 		strcpy( format, "%lx" );
+		break;
+	case MXFT_INT64:
+		strcpy( format, "%" SCNd64 );
+		break;
+	case MXFT_UINT64:
+		strcpy( format, "%" SCNu64 );
 		break;
 	case MXFT_FLOAT:
 		strcpy( format, "%g" );
@@ -823,11 +827,8 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 	case MXFT_USHORT:
 		sprintf( string_buffer, "%hu", *((unsigned short *) value));
 		break;
-	case MXFT_INT:
-		sprintf( string_buffer, "%d", *((int *) value));
-		break;
-	case MXFT_UINT:
-		sprintf( string_buffer, "%u", *((unsigned int *) value));
+	case MXFT_BOOL:
+		sprintf( string_buffer, "%d", *((mx_bool_type *) value));
 		break;
 	case MXFT_LONG:
 		sprintf( string_buffer, "%ld", *((long *) value));
@@ -837,6 +838,12 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		break;
 	case MXFT_HEX:
 		sprintf( string_buffer, "%lx", *((unsigned long *) value));
+		break;
+	case MXFT_INT64:
+		sprintf( string_buffer, "%" PRId64, *((int64_t *) value));
+		break;
+	case MXFT_UINT64:
+		sprintf( string_buffer, "%" PRIu64, *((uint64_t *) value));
 		break;
 	case MXFT_FLOAT:
 		sprintf( string_buffer, "%g", *((float *) value));
