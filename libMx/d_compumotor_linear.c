@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -846,14 +846,14 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 		= compumotor_linear_motor->compumotor_interface_record;
 
 	compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
-    		compumotor_interface_record->record_type_struct;
+    			compumotor_interface_record->record_type_struct;
 
 	/* Get the current positions. */
 
 	n = compumotor_linear_motor->controller_index;
 
-	sprintf( command, "%d_!TPE",
-			compumotor_interface->controller_number[n] );
+	snprintf( command, sizeof(command), "%ld_!TPE",
+				compumotor_interface->controller_number[n] );
 
 	status = mxi_compumotor_command( compumotor_interface, command,
 			response, sizeof(response), COMPUMOTOR_LINEAR_DEBUG );
@@ -964,7 +964,8 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 
 	n = compumotor_linear_motor->controller_index;
 
-	sprintf( command, "%d_!S", compumotor_interface->controller_number[n] );
+	snprintf( command, sizeof(command), "%ld_!S",
+				compumotor_interface->controller_number[n] );
 
 	for ( i = 0; i < compumotor_linear_motor->num_axes; i++ ) {
 
@@ -978,12 +979,12 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 
 		ptr = command + length;
 
-		buffer_left = sizeof( command ) - length - 1;
+		buffer_left = sizeof( command ) - length;
 
 		if ( will_be_stopped ) {
-			strncat( ptr, "1", buffer_left );
+			strlcat( ptr, "1", buffer_left );
 		} else {
-			strncat( ptr, "0", buffer_left );
+			strlcat( ptr, "0", buffer_left );
 		}
 	}
 
@@ -1025,7 +1026,8 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 
 	n = compumotor_linear_motor->controller_index;
 
-	sprintf(command, "%d_!K", compumotor_interface->controller_number[n]);
+	snprintf( command, sizeof(command), "%ld_!K",
+				compumotor_interface->controller_number[n] );
 
 	status = mxi_compumotor_command( compumotor_interface, command,
 					NULL, 0, COMPUMOTOR_LINEAR_DEBUG );

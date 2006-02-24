@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -268,7 +268,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal relay command %d requested for Blu-Ice "
+			"Illegal relay command %ld requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
 				relay->relay_command, relay->record->name );
 		}
@@ -287,7 +287,7 @@ mxd_bluice_shutter_relay_command( MX_RELAY *relay )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal relay command %d requested for Blu-Ice "
+			"Illegal relay command %ld requested for Blu-Ice "
 			"shutter '%s'.  The legal values are 0 and 1.",
 				relay->relay_command, relay->record->name );
 		}

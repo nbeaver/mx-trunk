@@ -24,7 +24,7 @@ typedef struct {
 
 	MX_RECORD *cm17a_record;
 	char house_code;
-	int device_code;
+	long device_code;
 
 	uint16_t on_command;
 	uint16_t off_command;
@@ -41,7 +41,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, house_code), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "device_code", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "device_code", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CM17A_DOUTPUT, device_code), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

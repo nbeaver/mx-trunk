@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -306,14 +306,15 @@ mxd_itc503_motor_open( MX_RECORD *record )
 	 */
 
 	if ( itc503_motor->isobus_address < 0 ) {
-		sprintf( command, "Q0" );
+		snprintf( command, sizeof(command), "Q0" );
 
 	} else if ( itc503_motor->isobus_address <= 9 ) {
-		sprintf( command, "@%dQ0", itc503_motor->isobus_address );
+		snprintf( command, sizeof(command),
+			"@%ldQ0", itc503_motor->isobus_address );
 
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal ISOBUS address %d specified for ITC503 controller '%s'.",
+	"Illegal ISOBUS address %ld specified for ITC503 controller '%s'.",
 			itc503_motor->isobus_address, record->name );
 	}
 
@@ -406,7 +407,7 @@ mxd_itc503_motor_open( MX_RECORD *record )
 
 	c_command_value = (int) (( itc503_motor->itc503_motor_flags ) & 0x3);
 
-	sprintf( command, "C%d", c_command_value );
+	snprintf( command, sizeof(command), "C%d", c_command_value );
 
 	mx_status = mxd_itc503_motor_command( itc503_motor, command,
 						response, sizeof(response),
@@ -464,7 +465,8 @@ mxd_itc503_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "T%f", motor->raw_destination.analog );
+	snprintf( command, sizeof(command),
+		"T%f", motor->raw_destination.analog );
 
 	mx_status = mxd_itc503_motor_command( itc503_motor,
 					command, response, sizeof(response),
@@ -664,8 +666,8 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 	} else {
 		command_ptr = local_command_buffer;
 
-		sprintf( local_command_buffer, "@%d%s",
-				itc503_motor->isobus_address, command );
+		snprintf( local_command_buffer, sizeof(local_command_buffer),
+			"@%ld%s", itc503_motor->isobus_address, command );
 	}
 
 	error_occurred = FALSE;
@@ -787,7 +789,7 @@ mxd_itc503_motor_command( MX_ITC503_MOTOR *itc503_motor,
 	if ( error_occurred ) {
 		return mx_error( MXE_TIMED_OUT, fname,
 	"The command '%s' to ITC503 controller '%s' is still failing "
-	"after %d retries.  Giving up...", command_ptr,
+	"after %ld retries.  Giving up...", command_ptr,
 				itc503_motor->record->name,
 				itc503_motor->maximum_retries );
 	} else {

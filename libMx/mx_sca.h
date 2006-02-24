@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int parameter_type;
+	long parameter_type;
 
 	double lower_level;
 	double upper_level;
@@ -30,7 +30,7 @@ typedef struct {
 	double gain;
 	double time_constant;
 
-	int sca_mode;
+	long sca_mode;
 } MX_SCA;
 
 /* SCA modes */
@@ -65,7 +65,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCA, time_constant), \
 	{0}, NULL, MXFF_IN_SUMMARY}, \
   \
-  {MXLV_SCA_MODE, -1, "sca_mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCA_MODE, -1, "sca_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_SCA, sca_mode), \
 	{0}, NULL, MXFF_IN_SUMMARY}
 
@@ -79,10 +79,10 @@ MX_API_PRIVATE mx_status_type mx_sca_get_pointers( MX_RECORD *sca_record,
 	const char *calling_fname );
 
 MX_API mx_status_type mx_sca_get_parameter( MX_RECORD *sca_record,
-						int parameter_type );
+						long parameter_type );
 
 MX_API mx_status_type mx_sca_set_parameter( MX_RECORD *sca_record,
-						int parameter_type );
+						long parameter_type );
 
 MX_API mx_status_type mx_sca_get_lower_level( MX_RECORD *sca_record,
 						double *lower_level );
@@ -106,9 +106,9 @@ MX_API mx_status_type mx_sca_get_time_constant( MX_RECORD *sca_record,
 MX_API mx_status_type mx_sca_set_time_constant( MX_RECORD *sca_record,
 						double time_constant );
 
-MX_API mx_status_type mx_sca_get_mode( MX_RECORD *sca_record, int *mode );
+MX_API mx_status_type mx_sca_get_mode( MX_RECORD *sca_record, long *mode );
 
-MX_API mx_status_type mx_sca_set_mode( MX_RECORD *sca_record, int mode );
+MX_API mx_status_type mx_sca_set_mode( MX_RECORD *sca_record, long mode );
 
 MX_API mx_status_type mx_sca_default_get_parameter_handler( MX_SCA *sca );
 

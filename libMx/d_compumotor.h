@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,9 +30,9 @@
 
 typedef struct {
 	MX_RECORD *compumotor_interface_record;
-	int controller_number;
-	int axis_number;
-	long flags;
+	long controller_number;
+	long axis_number;
+	unsigned long flags;
 
 	int controller_index;
 	int continuous_mode_enabled;
@@ -85,11 +85,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_compumotor_rfield_def_ptr;
 		offsetof(MX_COMPUMOTOR, compumotor_interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_COMPUMOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

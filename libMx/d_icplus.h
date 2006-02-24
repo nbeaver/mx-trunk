@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,12 +27,12 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
-	int default_averaging;
+	long address;
+	long default_averaging;
 	unsigned long qbpm_flags;
 
-	int range;
-	int discard_echoed_command_line;
+	long range;
+	mx_bool_type discard_echoed_command_line;
 } MX_ICPLUS;
 
 #define MXD_ICPLUS_STANDARD_FIELDS \
@@ -40,11 +40,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "range", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "range", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, range), \
 	{0}, NULL, 0}
 
@@ -53,11 +53,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "default_averaging", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "default_averaging", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, default_averaging), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -65,7 +65,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, qbpm_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "range", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "range", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_ICPLUS, range), \
 	{0}, NULL, 0}
 

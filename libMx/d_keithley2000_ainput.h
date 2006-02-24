@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int measurement_type;
+	long measurement_type;
 } MX_KEITHLEY2000_AINPUT;
 
 MX_API mx_status_type mxd_keithley2000_ainput_create_record_structures(
@@ -44,7 +44,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2000_ainput_rfield_def_ptr;
 		offsetof(MX_KEITHLEY2000_AINPUT, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "measurement_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "measurement_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2000_AINPUT,measurement_type),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

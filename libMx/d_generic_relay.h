@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,14 +33,14 @@ typedef struct {
 	unsigned long settling_time;	/* in milliseconds */
 
 	MX_RECORD *input_record;   /* You read the relay status from here. */
-	int input_bit_offset;
-	int num_input_bits;
+	long input_bit_offset;
+	long num_input_bits;
 	unsigned long closed_input_value;
 	unsigned long open_input_value;
 
 	MX_RECORD *output_record;  /* You send relay commands to here. */
-	int output_bit_offset;
-	int num_output_bits;
+	long output_bit_offset;
+	long num_output_bits;
 	unsigned long close_output_value;
 	unsigned long open_output_value;
 } MX_GENERIC_RELAY;
@@ -58,11 +58,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, input_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, input_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, num_input_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -78,11 +78,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, output_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, output_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GENERIC_RELAY, num_output_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

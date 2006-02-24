@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,10 +22,10 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int system_channel;
+	long system_channel;
 
-	int slot;
-	int channel;
+	long slot;
+	long channel;
 } MX_KEITHLEY2700_AINPUT;
 
 MX_API mx_status_type mxd_keithley2700_ainput_create_record_structures(
@@ -48,7 +48,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_keithley2700_ainput_rfield_def_ptr;
 		offsetof(MX_KEITHLEY2700_AINPUT, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "system_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "system_channel", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2700_AINPUT, system_channel),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

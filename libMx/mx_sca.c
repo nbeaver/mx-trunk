@@ -37,7 +37,7 @@ mx_sca_get_pointers( MX_RECORD *sca_record,
 			MX_SCA_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_sca_get_pointers()";
+	static const char fname[] = "mx_sca_get_pointers()";
 
 	if ( sca_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -78,7 +78,7 @@ mx_sca_get_pointers( MX_RECORD *sca_record,
 MX_EXPORT mx_status_type
 mx_sca_get_lower_level( MX_RECORD *sca_record, double *lower_level )
 {
-	const char fname[] = "mx_sca_get_lower_level()";
+	static const char fname[] = "mx_sca_get_lower_level()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -114,7 +114,7 @@ mx_sca_get_lower_level( MX_RECORD *sca_record, double *lower_level )
 MX_EXPORT mx_status_type
 mx_sca_set_lower_level( MX_RECORD *sca_record, double lower_level )
 {
-	const char fname[] = "mx_sca_set_lower_level()";
+	static const char fname[] = "mx_sca_set_lower_level()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -148,7 +148,7 @@ mx_sca_set_lower_level( MX_RECORD *sca_record, double lower_level )
 MX_EXPORT mx_status_type
 mx_sca_get_upper_level( MX_RECORD *sca_record, double *upper_level )
 {
-	const char fname[] = "mx_sca_get_upper_level()";
+	static const char fname[] = "mx_sca_get_upper_level()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -184,7 +184,7 @@ mx_sca_get_upper_level( MX_RECORD *sca_record, double *upper_level )
 MX_EXPORT mx_status_type
 mx_sca_set_upper_level( MX_RECORD *sca_record, double upper_level )
 {
-	const char fname[] = "mx_sca_set_upper_level()";
+	static const char fname[] = "mx_sca_set_upper_level()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -218,7 +218,7 @@ mx_sca_set_upper_level( MX_RECORD *sca_record, double upper_level )
 MX_EXPORT mx_status_type
 mx_sca_get_gain( MX_RECORD *sca_record, double *gain )
 {
-	const char fname[] = "mx_sca_get_gain()";
+	static const char fname[] = "mx_sca_get_gain()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -254,7 +254,7 @@ mx_sca_get_gain( MX_RECORD *sca_record, double *gain )
 MX_EXPORT mx_status_type
 mx_sca_set_gain( MX_RECORD *sca_record, double gain )
 {
-	const char fname[] = "mx_sca_set_gain()";
+	static const char fname[] = "mx_sca_set_gain()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -288,7 +288,7 @@ mx_sca_set_gain( MX_RECORD *sca_record, double gain )
 MX_EXPORT mx_status_type
 mx_sca_get_time_constant( MX_RECORD *sca_record, double *time_constant )
 {
-	const char fname[] = "mx_sca_get_time_constant()";
+	static const char fname[] = "mx_sca_get_time_constant()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -324,7 +324,7 @@ mx_sca_get_time_constant( MX_RECORD *sca_record, double *time_constant )
 MX_EXPORT mx_status_type
 mx_sca_set_time_constant( MX_RECORD *sca_record, double time_constant )
 {
-	const char fname[] = "mx_sca_set_time_constant()";
+	static const char fname[] = "mx_sca_set_time_constant()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -356,9 +356,9 @@ mx_sca_set_time_constant( MX_RECORD *sca_record, double time_constant )
 }
 
 MX_EXPORT mx_status_type
-mx_sca_get_mode( MX_RECORD *sca_record, int *mode )
+mx_sca_get_mode( MX_RECORD *sca_record, long *mode )
 {
-	const char fname[] = "mx_sca_get_mode()";
+	static const char fname[] = "mx_sca_get_mode()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -392,9 +392,9 @@ mx_sca_get_mode( MX_RECORD *sca_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_sca_set_mode( MX_RECORD *sca_record, int mode )
+mx_sca_set_mode( MX_RECORD *sca_record, long mode )
 {
-	const char fname[] = "mx_sca_set_mode()";
+	static const char fname[] = "mx_sca_set_mode()";
 
 	MX_SCA *sca;
 	MX_SCA_FUNCTION_LIST *function_list;
@@ -428,7 +428,7 @@ mx_sca_set_mode( MX_RECORD *sca_record, int mode )
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_sca_get_parameter( MX_RECORD *sca_record, int parameter_type )
+mx_sca_get_parameter( MX_RECORD *sca_record, long parameter_type )
 {
 	static const char fname[] = "mx_sca_get_parameter()";
 
@@ -459,7 +459,7 @@ mx_sca_get_parameter( MX_RECORD *sca_record, int parameter_type )
 }
 
 MX_EXPORT mx_status_type
-mx_sca_set_parameter( MX_RECORD *sca_record, int parameter_type )
+mx_sca_set_parameter( MX_RECORD *sca_record, long parameter_type )
 {
 	static const char fname[] = "mx_sca_set_parameter()";
 
@@ -494,9 +494,9 @@ mx_sca_set_parameter( MX_RECORD *sca_record, int parameter_type )
 MX_EXPORT mx_status_type
 mx_sca_default_get_parameter_handler( MX_SCA *sca )
 {
-	const char fname[] = "mx_sca_default_get_parameter_handler()";
+	static const char fname[] = "mx_sca_default_get_parameter_handler()";
 
-	MX_DEBUG(-2,("%s invoked for SCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for SCA '%s', parameter type '%s' (%ld).",
 		fname, sca->record->name,
 		mx_get_field_label_string(sca->record,sca->parameter_type),
 		sca->parameter_type));
@@ -516,7 +516,7 @@ mx_sca_default_get_parameter_handler( MX_SCA *sca )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			sca->parameter_type );
 	}
 
@@ -526,9 +526,9 @@ mx_sca_default_get_parameter_handler( MX_SCA *sca )
 MX_EXPORT mx_status_type
 mx_sca_default_set_parameter_handler( MX_SCA *sca )
 {
-	const char fname[] = "mx_sca_default_set_parameter_handler()";
+	static const char fname[] = "mx_sca_default_set_parameter_handler()";
 
-	MX_DEBUG(-2,("%s invoked for SCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for SCA '%s', parameter type '%s' (%ld).",
 		fname, sca->record->name,
 		mx_get_field_label_string(sca->record,sca->parameter_type),
 		sca->parameter_type));
@@ -549,7 +549,7 @@ mx_sca_default_set_parameter_handler( MX_SCA *sca )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			sca->parameter_type );
 	}
 

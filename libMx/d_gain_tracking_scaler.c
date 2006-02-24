@@ -23,7 +23,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002 Illinois Institute of Technology
+ * Copyright 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -442,7 +442,7 @@ mxd_gain_tracking_scaler_get_parameter( MX_SCALER *scaler )
 	const char fname[] = "mxd_gain_tracking_scaler_get_parameter()";
 
 	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
-	int mode;
+	long mode;
 	double dark_current;
 	mx_status_type mx_status;
 

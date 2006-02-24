@@ -8,12 +8,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define GGCS_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,8 +68,6 @@ long mxd_ggcs_motor_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_ggcs_motor_rfield_def_ptr
 			= &mxd_ggcs_motor_record_field_defaults[0];
-
-#define GGCS_MOTOR_DEBUG	TRUE
 
 /* === */
 
@@ -258,7 +258,7 @@ mxd_ggcs_motor_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  port name         = %s\n", ggcs_record->name);
-	fprintf(file, "  axis number       = %d\n", ggcs_motor->axis_number);
+	fprintf(file, "  axis number       = %ld\n", ggcs_motor->axis_number);
 
 	status = mx_motor_get_position( record, &position );
 
@@ -468,7 +468,7 @@ mxd_ggcs_motor_motor_is_busy( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
+	sprintf( command, "%%%%%ld", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command,
@@ -508,7 +508,7 @@ mxd_ggcs_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Set the position to move to. */
 
-	sprintf( command, "F%d,%g", ggcs_motor->axis_number,
+	sprintf( command, "F%ld,%g", ggcs_motor->axis_number,
 					motor->raw_position.analog );
 
 	status = mxi_ggcs_command( ggcs, command,
@@ -544,7 +544,7 @@ mxd_ggcs_motor_get_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "P%d", ggcs_motor->axis_number );
+	sprintf( command, "P%ld", ggcs_motor->axis_number );
 
 	status = mxi_ggcs_command( ggcs, command,
 			response, sizeof response, GGCS_MOTOR_DEBUG );
@@ -581,7 +581,7 @@ mxd_ggcs_motor_set_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
+	sprintf( command, "%%%%%ld", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command, NULL, 0, GGCS_MOTOR_DEBUG );
@@ -734,7 +734,7 @@ mxd_ggcs_motor_find_home_position( MX_MOTOR *motor )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	sprintf( command, "%%%%%d", ggcs_motor->axis_number );
+	sprintf( command, "%%%%%ld", ggcs_motor->axis_number );
 
 #if 0
 	status = mxi_ggcs_command( ggcs, command,

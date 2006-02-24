@@ -326,8 +326,10 @@ mxd_icplus_ain_open( MX_RECORD *record )
 	/* The ICPLUS monitor only supports reading the current. */
 
 	if ( ainput->record->mx_type == MXT_AIN_ICPLUS ) {
-		sprintf( icplus_ainput->command, ":READ%d:CURR?",
-						icplus->address );
+		snprintf( icplus_ainput->command,
+			sizeof(icplus_ainput->command),
+			":READ%ld:CURR?", icplus->address );
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
@@ -347,8 +349,9 @@ mxd_icplus_ain_open( MX_RECORD *record )
 	  || ( strcmp( value_name, "POSX" ) == 0 )
 	  || ( strcmp( value_name, "POSY" ) == 0 ) )
 	{
-		sprintf( icplus_ainput->command, ":READ%d:%s?",
-					icplus->address, value_name );
+		snprintf( icplus_ainput->command,
+			sizeof(icplus_ainput->command),
+			":READ%ld:%s?", icplus->address, value_name );
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested value '%s' is not supported by the '%s' driver "
@@ -485,11 +488,13 @@ mxd_icplus_aout_open( MX_RECORD *record )
 	if ( aoutput->record->mx_type == MXT_AOU_ICPLUS ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_INTEGER;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:VOLT?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:VOLT?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:VOLT?",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:VOLT?", icplus->address );
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -507,8 +512,11 @@ mxd_icplus_aout_open( MX_RECORD *record )
 
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_AVERAGE;
 
-		strcpy( icplus_aoutput->input_command, "" );
-		strcpy( icplus_aoutput->output_command, "" );
+		strlcpy( icplus_aoutput->input_command, "",
+			sizeof(icplus_aoutput->input_command) );
+
+		strlcpy( icplus_aoutput->output_command, "",
+			sizeof(icplus_aoutput->output_command) );
 
 		/* Initialize the variable value to match the value set by
 		 * the primary QBPM record.
@@ -522,116 +530,142 @@ mxd_icplus_aout_open( MX_RECORD *record )
 	if ( strcmp( value_name, "AVGCURR" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_INTEGER;
 
-		strcpy( icplus_aoutput->input_command, "" );
+		strlcpy( icplus_aoutput->input_command, "",
+			sizeof(icplus_aoutput->input_command) );
 
-		sprintf( icplus_aoutput->output_command, ":READ%d:AVGCURR",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":READ%ld:AVGCURR", icplus->address );
 	} else
 	if ( strcmp( value_name, "WDWCURR" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_INTEGER;
 
-		strcpy( icplus_aoutput->input_command, "" );
+		strlcpy( icplus_aoutput->input_command, "",
+			sizeof(icplus_aoutput->input_command) );
 
-		sprintf( icplus_aoutput->output_command, ":READ%d:WDWCURR",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":READ%ld:WDWCURR", icplus->address );
 	} else
 	if ( strcmp( value_name, "SINGLE" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_NONE;
 
-		strcpy( icplus_aoutput->input_command, "" );
+		strlcpy( icplus_aoutput->input_command, "",
+			sizeof(icplus_aoutput->input_command) );
 
-		sprintf( icplus_aoutput->output_command, ":READ%d:SINGLE",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":READ%ld:SINGLE", icplus->address );
 	} else
 	if ( strcmp( value_name, "GX" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:GX?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:GX?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:GX",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:GX", icplus->address );
 	} else
 	if ( strcmp( value_name, "GY" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:GY?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:GY?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:GY",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:GY", icplus->address );
 	} else
 	if ( strcmp( value_name, "A1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:A1?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:A1?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:A1",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:A1", icplus->address );
 	} else
 	if ( strcmp( value_name, "A2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:A2?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:A2?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:A2",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:A2", icplus->address );
 	} else
 	if ( strcmp( value_name, "B1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:B1?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:B1?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:B1",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:B1", icplus->address );
 	} else
 	if ( strcmp( value_name, "B2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:B2?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:B2?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:B2",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:B2", icplus->address );
 	} else
 	if ( strcmp( value_name, "C1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:C1?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:C1?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:C1",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:C1", icplus->address );
 	} else
 	if ( strcmp( value_name, "C2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:C2?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:C2?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:C2",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:C2", icplus->address );
 	} else
 	if ( strcmp( value_name, "D1" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:D1?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:D1?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:D1",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:D1", icplus->address );
 	} else
 	if ( strcmp( value_name, "D2" ) == 0 ) {
 		icplus_aoutput->argument_type = MXAT_ICPLUS_AOUTPUT_DOUBLE;
 
-		sprintf( icplus_aoutput->input_command, ":CONF%d:D2?",
-						icplus->address );
+		snprintf( icplus_aoutput->input_command,
+			sizeof(icplus_aoutput->input_command),
+			":CONF%ld:D2?", icplus->address );
 
-		sprintf( icplus_aoutput->output_command, ":CONF%d:D2",
-						icplus->address );
+		snprintf( icplus_aoutput->output_command,
+			sizeof(icplus_aoutput->output_command),
+			":CONF%ld:D2", icplus->address );
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Requested value '%s' is not supported by the '%s' driver "
@@ -710,16 +744,19 @@ mxd_icplus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	switch( icplus_aoutput->argument_type ) {
 	case MXAT_ICPLUS_AOUTPUT_NONE:
-		strcpy( command, icplus_aoutput->output_command );
+		strlcpy( command,icplus_aoutput->output_command,
+					sizeof(command) );
 		break;
 
 	case MXAT_ICPLUS_AOUTPUT_INTEGER:
-		sprintf( command, "%s %ld", icplus_aoutput->output_command,
+		snprintf( command, sizeof(command), "%s %ld",
+				icplus_aoutput->output_command,
 				mx_round(aoutput->raw_value.double_value) );
 		break;
 
 	case MXAT_ICPLUS_AOUTPUT_DOUBLE:
-		sprintf( command, "%s %g", icplus_aoutput->output_command,
+		snprintf( command, sizeof(command), "%s %g",
+				icplus_aoutput->output_command,
 				aoutput->raw_value.double_value );
 		break;
 
@@ -747,15 +784,21 @@ mxd_icplus_aout_write( MX_ANALOG_OUTPUT *aoutput )
 				long_value, icplus->record->name );
 		} else
 		if ( long_value >= 1 ) {
-			sprintf( command, ":READ%d:AVGCURR %ld",
-					icplus->address, long_value );
+			snprintf( command, sizeof(command),
+					":READ%ld:AVGCURR %ld",
+					icplus->address,
+					long_value );
 		} else
 		if ( long_value > -1 ) {
-			sprintf( command, ":READ%d:SINGLE", icplus->address );
+			snprintf( command, sizeof(command),
+					":READ%ld:SINGLE",
+					icplus->address );
 		} else
 		if ( long_value >= -100 ) {
-			sprintf( command, ":READ%d:WDWCURR %ld",
-					icplus->address, -long_value );
+			snprintf( command, sizeof(command),
+					":READ%ld:WDWCURR %ld",
+					icplus->address,
+					-long_value );
 		} else {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested moving average size of %ld for record '%s' is "

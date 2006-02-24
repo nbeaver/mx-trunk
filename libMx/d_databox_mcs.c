@@ -15,6 +15,8 @@
  *
  */
 
+#define DATABOX_MCS_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,8 +71,6 @@ long mxd_databox_mcs_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_mcs_rfield_def_ptr
 			= &mxd_databox_mcs_record_field_defaults[0];
-
-#define DATABOX_MCS_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -922,7 +922,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%ld)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
@@ -970,7 +970,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal MCS mode %d selected.  Only preset time and "
+		"Illegal MCS mode %ld selected.  Only preset time and "
 		"preset count modes are allowed for a Databox MCS.",
 				mcs->mode );
 		}
@@ -979,7 +979,7 @@ mxd_databox_mcs_set_parameter( MX_MCS *mcs )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mcs->parameter_type );
 
 	}

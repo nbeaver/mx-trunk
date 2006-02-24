@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *ggcs_record;
-	int axis_number;
+	long axis_number;
 } MX_GGCS_MOTOR;
 
 MX_API mx_status_type mxd_ggcs_motor_initialize_type( long type );
@@ -62,7 +62,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ggcs_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GGCS_MOTOR, ggcs_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_GGCS_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

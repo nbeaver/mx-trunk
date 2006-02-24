@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,11 +41,11 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_INTERFACE controller_interface;
-	int isobus_address;
+	long isobus_address;
 
 	unsigned long itc503_motor_flags;
 
-	int maximum_retries;
+	long maximum_retries;
 
 	double busy_deadband;		/* in K */
 } MX_ITC503_MOTOR;
@@ -82,7 +82,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, controller_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "isobus_address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "isobus_address", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, isobus_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -90,7 +90,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_itc503_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, itc503_motor_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "maximum_retries", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "maximum_retries", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ITC503_MOTOR, maximum_retries), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

@@ -290,7 +290,8 @@ mxd_cyberstar_x1000_resynchronize( MX_RECORD *record )
 	(void) mx_rs232_discard_unwritten_output( cyberstar_x1000->rs232_record,
 						CYBERSTAR_X1000_DEBUG );
 
-	sprintf(command, "*RST%d", cyberstar_x1000->address );
+	snprintf( command, sizeof(command),
+			"*RST%ld", cyberstar_x1000->address );
 
 	mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 			command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -323,7 +324,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for sca '%s' for parameter type '%s' (%d).",
+	("%s invoked for sca '%s' for parameter type '%s' (%ld).",
 		fname, sca->record->name,
 		mx_get_field_label_string( sca->record,
 			sca->parameter_type ),
@@ -331,7 +332,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 
 	switch( sca->parameter_type ) {
 	case MXLV_SCA_LOWER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:LOW?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SENS%ld:SCA:LOW?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -351,7 +353,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_UPPER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:UPP?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SENS%ld:SCA:UPP?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -371,7 +374,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_GAIN:
-		sprintf(command, ":INP%d:GAIN?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":INP%ld:GAIN?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -391,7 +395,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_TIME_CONSTANT:
-		sprintf(command, ":SENS%d:PKT?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SENS%ld:PKT?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -417,7 +422,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_HIGH_VOLTAGE:
-		sprintf(command, ":SOUR%d:VOLT?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SOUR%ld:VOLT?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -438,7 +444,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_DELAY:
-		sprintf(command, ":TRIG%d:ECO?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":TRIG%ld:ECO?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -460,7 +467,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_FORCED_REMOTE_CONTROL:
-		sprintf(command, ":SYST%d:COMM:REM?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SYST%ld:COMM:REM?", cyberstar_x1000->address);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -469,7 +477,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%d",
+		num_items = sscanf( response, "%ld",
 				&(cyberstar_x1000->forced_remote_control) );
 
 		if ( num_items != 1 ) {
@@ -481,7 +489,8 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_CYBERSTAR_X1000_SECURITY_STATUS:
-		sprintf(command, ":SYST%d:SEC?", cyberstar_x1000->address);
+		snprintf( command, sizeof(command),
+				":SYST%ld:SEC?", cyberstar_x1000->address );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 					command, response, sizeof response,
@@ -490,7 +499,7 @@ mxd_cyberstar_x1000_get_parameter( MX_SCA *sca )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response, "%d",
+		num_items = sscanf( response, "%ld",
 				&(cyberstar_x1000->security_status) );
 
 		if ( num_items != 1 ) {
@@ -524,7 +533,7 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for sca '%s' for parameter type '%s' (%d).",
+	("%s invoked for sca '%s' for parameter type '%s' (%ld).",
 		fname, sca->record->name,
 		mx_get_field_label_string( sca->record,
 			sca->parameter_type ),
@@ -532,9 +541,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	switch( sca->parameter_type ) {
 	case MXLV_SCA_LOWER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:LOW %g",
-				cyberstar_x1000->address,
-				sca->lower_level);
+		snprintf( command, sizeof(command), ":SENS%ld:SCA:LOW %g",
+						cyberstar_x1000->address,
+						sca->lower_level);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -544,9 +553,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_UPPER_LEVEL:
-		sprintf(command, ":SENS%d:SCA:UPP %g",
-				cyberstar_x1000->address,
-				sca->upper_level);
+		snprintf( command, sizeof(command), ":SENS%ld:SCA:UPP %g",
+						cyberstar_x1000->address,
+						sca->upper_level);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -556,9 +565,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 		break;
 
 	case MXLV_SCA_GAIN:
-		sprintf(command, ":INP%d:GAIN %g",
-				cyberstar_x1000->address,
-				sca->gain);
+		snprintf( command, sizeof(command), ":INP%ld:GAIN %g",
+						cyberstar_x1000->address,
+						sca->gain);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -586,9 +595,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 		time_constant_value = mx_round( 1.0e9 * sca->time_constant );
 
-		sprintf(command, ":SENS%d:PKT %ld",
-				cyberstar_x1000->address,
-				time_constant_value);
+		snprintf( command, sizeof(command), ":SENS%ld:PKT %ld",
+						cyberstar_x1000->address,
+						time_constant_value);
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -613,9 +622,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 				sca->record->name );
 		}
 
-		sprintf(command, ":SOUR%d:VOLT %g",
-				cyberstar_x1000->address,
-				cyberstar_x1000->high_voltage );
+		snprintf( command, sizeof(command), ":SOUR%ld:VOLT %g",
+						cyberstar_x1000->address,
+						cyberstar_x1000->high_voltage );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -636,9 +645,9 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 				sca->record->name );
 		}
 
-		sprintf(command, ":TRIG%d:ECO %g",
-				cyberstar_x1000->address,
-				10.0 * cyberstar_x1000->delay );
+		snprintf( command, sizeof(command), ":TRIG%ld:ECO %g",
+						cyberstar_x1000->address,
+						10.0 * cyberstar_x1000->delay );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -649,13 +658,13 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	case MXLV_CYBERSTAR_X1000_FORCED_REMOTE_CONTROL:
 		if ( cyberstar_x1000->forced_remote_control == 0 ) {
-			strcpy( on_off, "OFF" );
+			strlcpy( on_off, "OFF", sizeof(on_off) );
 		} else {
-			strcpy( on_off, "ON" );
+			strlcpy( on_off, "ON", sizeof(on_off) );
 		}
 
-		sprintf(command, ":SYST%d:COMM:REM %s",
-				cyberstar_x1000->address, on_off );
+		snprintf( command, sizeof(command), ":SYST%ld:COMM:REM %s",
+					cyberstar_x1000->address, on_off );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );
@@ -666,13 +675,13 @@ mxd_cyberstar_x1000_set_parameter( MX_SCA *sca )
 
 	case MXLV_CYBERSTAR_X1000_SECURITY_STATUS:
 		if ( cyberstar_x1000->security_status == 0 ) {
-			strcpy( on_off, "OFF" );
+			strlcpy( on_off, "OFF", sizeof(on_off) );
 		} else {
-			strcpy( on_off, "ON" );
+			strlcpy( on_off, "ON", sizeof(on_off) );
 		}
 
-		sprintf(command, ":SYST%d:SEC %s",
-				cyberstar_x1000->address, on_off );
+		snprintf( command, sizeof(command), ":SYST%ld:SEC %s",
+					cyberstar_x1000->address, on_off );
 
 		mx_status = mxd_cyberstar_x1000_command( cyberstar_x1000,
 				command, NULL, 0, CYBERSTAR_X1000_DEBUG );

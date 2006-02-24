@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -202,7 +202,7 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	  || ( itc503_status->parameter_type > 13 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal parameter type %d requested for ITC503 status record '%s'.  "
+	"Illegal parameter type %ld requested for ITC503 status record '%s'.  "
 	"Allowed parameter types are from 0 to 13.  Read the description of "
 	"the 'R' command in the ITC503 manual for more information.",
 			itc503_status->parameter_type, ainput->record->name );
@@ -212,7 +212,8 @@ mxd_itc503_status_read( MX_ANALOG_INPUT *ainput )
 	 * an ITC503 'R' command.
 	 */
 
-	sprintf( command, "R%d", itc503_status->parameter_type );
+	snprintf( command, sizeof(command),
+			"R%ld", itc503_status->parameter_type );
 
 	/* Send the READ command to the controller. */
 

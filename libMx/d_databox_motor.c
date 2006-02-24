@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DATABOX_MOTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -73,8 +75,6 @@ long mxd_databox_motor_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_motor_rfield_def_ptr
 			= &mxd_databox_motor_record_field_defaults[0];
 
-#define DATABOX_MOTOR_DEBUG	FALSE
-
 /* A private function for the use of the driver. */
 
 static mx_status_type
@@ -83,7 +83,7 @@ mxd_databox_motor_get_pointers( MX_MOTOR *motor,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_databox_motor_get_pointers()";
+	static const char fname[] = "mxd_databox_motor_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -142,7 +142,7 @@ mxd_databox_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_databox_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_motor_create_record_structures()";
+	static const char fname[] = "mxd_databox_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_DATABOX_MOTOR *databox_motor;
@@ -186,7 +186,7 @@ mxd_databox_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_motor_finish_record_initialization()";
+	static const char fname[] = "mxd_databox_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_DATABOX *databox;
@@ -287,7 +287,7 @@ mxd_databox_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_motor_print_structure()";
+	static const char fname[] = "mxd_databox_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_DATABOX_MOTOR *databox_motor;
@@ -386,7 +386,7 @@ mxd_databox_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_motor_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_motor_resynchronize()";
+	static const char fname[] = "mxd_databox_motor_resynchronize()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	mx_status_type mx_status;
@@ -416,7 +416,7 @@ mxd_databox_motor_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_motor_is_busy()";
+	static const char fname[] = "mxd_databox_motor_motor_is_busy()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -490,7 +490,7 @@ mxd_databox_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_move_absolute()";
+	static const char fname[] = "mxd_databox_motor_move_absolute()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -636,7 +636,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_get_position()";
+	static const char fname[] = "mxd_databox_motor_get_position()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -695,7 +695,7 @@ mxd_databox_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_set_position()";
+	static const char fname[] = "mxd_databox_motor_set_position()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -762,7 +762,7 @@ mxd_databox_motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_immediate_abort()";
+	static const char fname[] = "mxd_databox_motor_immediate_abort()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -813,7 +813,7 @@ mxd_databox_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_find_home_position()";
+	static const char fname[] = "mxd_databox_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Home searches are not supported for motor '%s'",
@@ -823,7 +823,7 @@ mxd_databox_motor_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_databox_motor_constant_velocity_move()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Constant velocity moves are not supported for motor '%s'",
@@ -835,7 +835,7 @@ mxd_databox_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_get_parameter()";
+	static const char fname[] = "mxd_databox_motor_get_parameter()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -847,7 +847,7 @@ mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -875,7 +875,7 @@ mxd_databox_motor_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_databox_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_databox_motor_set_parameter()";
+	static const char fname[] = "mxd_databox_motor_set_parameter()";
 
 	MX_DATABOX_MOTOR *databox_motor;
 	MX_DATABOX *databox;
@@ -887,7 +887,7 @@ mxd_databox_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),

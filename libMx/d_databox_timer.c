@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2003 Illinois Institute of Technology
+ * Copyright 2000-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define DATABOX_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,8 +71,6 @@ long mxd_databox_timer_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_databox_timer_rfield_def_ptr
 			= &mxd_databox_timer_record_field_defaults[0];
 
-#define DATABOX_TIMER_DEBUG	FALSE
-
 /* A private function for the use of the driver. */
 
 static mx_status_type
@@ -79,7 +79,7 @@ mxd_databox_timer_get_pointers( MX_TIMER *timer,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_databox_timer_get_pointers()";
+	static const char fname[] = "mxd_databox_timer_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -138,7 +138,7 @@ mxd_databox_timer_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_databox_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_timer_create_record_structures()";
+	static const char fname[] = "mxd_databox_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_DATABOX_TIMER *databox_timer;
@@ -226,7 +226,7 @@ mxd_databox_timer_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_is_busy()";
+	static const char fname[] = "mxd_databox_timer_is_busy()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -302,7 +302,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_start()";
+	static const char fname[] = "mxd_databox_timer_start()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -425,7 +425,7 @@ mxd_databox_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_stop()";
+	static const char fname[] = "mxd_databox_timer_stop()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Stopping Databox timer '%s' is not supported.",
@@ -441,7 +441,7 @@ mxd_databox_timer_clear( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_read( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_read()";
+	static const char fname[] = "mxd_databox_timer_read()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -545,7 +545,7 @@ mxd_databox_timer_read( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_get_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_get_mode()";
+	static const char fname[] = "mxd_databox_timer_get_mode()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -581,7 +581,7 @@ mxd_databox_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_databox_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_databox_timer_set_mode()";
+	static const char fname[] = "mxd_databox_timer_set_mode()";
 
 	MX_DATABOX_TIMER *databox_timer;
 	MX_DATABOX *databox;
@@ -603,7 +603,7 @@ mxd_databox_timer_set_mode( MX_TIMER *timer )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	"Timer mode %d is not supported by the driver for timer '%s'.",
+	"Timer mode %ld is not supported by the driver for timer '%s'.",
 			timer->mode, timer->record->name );
 	}
 

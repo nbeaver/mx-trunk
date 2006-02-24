@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,7 +79,7 @@ mxd_databox_scaler_get_pointers( MX_SCALER *scaler,
 			MX_DATABOX **databox,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_databox_scaler_get_pointers()";
+	static const char fname[] = "mxd_databox_scaler_get_pointers()";
 
 	MX_RECORD *databox_record;
 
@@ -138,7 +138,7 @@ mxd_databox_scaler_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_scaler_create_record_structures()";
+	static const char fname[] = "mxd_databox_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_DATABOX_SCALER *databox_scaler;
@@ -175,7 +175,7 @@ mxd_databox_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_databox_scaler_finish_record_initialization()";
 
 	MX_SCALER *scaler;
@@ -219,7 +219,7 @@ mxd_databox_scaler_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_databox_scaler_print_structure()";
+	static const char fname[] = "mxd_databox_scaler_print_structure()";
 
 	MX_SCALER *scaler;
 	MX_DATABOX_SCALER *databox_scaler;
@@ -300,7 +300,7 @@ mxd_databox_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_overflow_set()";
+	static const char fname[] = "mxd_databox_scaler_overflow_set()";
 
 	scaler->overflow_set = 0;
 
@@ -311,7 +311,7 @@ mxd_databox_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_read()";
+	static const char fname[] = "mxd_databox_scaler_read()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -415,7 +415,7 @@ mxd_databox_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_is_busy()";
+	static const char fname[] = "mxd_databox_scaler_is_busy()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -492,7 +492,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_start()";
+	static const char fname[] = "mxd_databox_scaler_start()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -607,7 +607,7 @@ mxd_databox_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_stop()";
+	static const char fname[] = "mxd_databox_scaler_stop()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Stopping Databox scaler '%s' is not supported.",
@@ -617,7 +617,7 @@ mxd_databox_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_get_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_get_parameter()";
+	static const char fname[] = "mxd_databox_scaler_get_parameter()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -663,7 +663,7 @@ mxd_databox_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_databox_scaler_set_parameter()";
+	static const char fname[] = "mxd_databox_scaler_set_parameter()";
 
 	MX_DATABOX_SCALER *databox_scaler;
 	MX_DATABOX *databox;
@@ -687,7 +687,7 @@ mxd_databox_scaler_set_parameter( MX_SCALER *scaler )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-	"Scaler mode %d is not supported by the driver for scaler '%s'.",
+	"Scaler mode %ld is not supported by the driver for scaler '%s'.",
 				scaler->mode, scaler->record->name );
 		}
 

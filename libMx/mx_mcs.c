@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ mx_mcs_get_pointers( MX_RECORD *mcs_record,
 			MX_MCS_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_mcs_get_pointers()";
+	static const char fname[] = "mx_mcs_get_pointers()";
 
 	if ( mcs_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -89,7 +89,7 @@ mx_mcs_initialize_type( long record_type,
 			long *maximum_num_scalers_varargs_cookie,
 			long *maximum_num_measurements_varargs_cookie )
 {
-	const char fname[] = "mx_mcs_initialize_type()";
+	static const char fname[] = "mx_mcs_initialize_type()";
 
 	MX_DRIVER *driver;
 	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
@@ -222,7 +222,7 @@ mx_mcs_initialize_type( long record_type,
 MX_EXPORT mx_status_type
 mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_finish_record_initialization()";
+	static const char fname[] = "mx_mcs_finish_record_initialization()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -358,7 +358,7 @@ mx_mcs_finish_record_initialization( MX_RECORD *mcs_record )
 MX_EXPORT mx_status_type
 mx_mcs_start( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_start()";
+	static const char fname[] = "mx_mcs_start()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -387,7 +387,7 @@ mx_mcs_start( MX_RECORD *mcs_record )
 MX_EXPORT mx_status_type
 mx_mcs_stop( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_stop()";
+	static const char fname[] = "mx_mcs_stop()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -416,7 +416,7 @@ mx_mcs_stop( MX_RECORD *mcs_record )
 MX_EXPORT mx_status_type
 mx_mcs_clear( MX_RECORD *mcs_record )
 {
-	const char fname[] = "mx_mcs_clear()";
+	static const char fname[] = "mx_mcs_clear()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -445,7 +445,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 MX_EXPORT mx_status_type
 mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
 {
-	const char fname[] = "mx_mcs_is_busy()";
+	static const char fname[] = "mx_mcs_is_busy()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -481,7 +481,7 @@ mx_mcs_read_all( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			long ***mcs_data )
 {
-	const char fname[] = "mx_mcs_read_all()";
+	static const char fname[] = "mx_mcs_read_all()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -526,7 +526,7 @@ mx_mcs_read_scaler( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			long **scaler_data )
 {
-	const char fname[] = "mx_mcs_read_scaler()";
+	static const char fname[] = "mx_mcs_read_scaler()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -580,7 +580,7 @@ mx_mcs_read_measurement( MX_RECORD *mcs_record,
 			unsigned long *num_scalers,
 			long **measurement_data )
 {
-	const char fname[] = "mx_mcs_read_measurement()";
+	static const char fname[] = "mx_mcs_read_measurement()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -629,7 +629,7 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 			unsigned long *num_measurements,
 			double **timer_data )
 {
-	const char fname [] = "mx_mcs_read_timer()";
+	static const char fname [] = "mx_mcs_read_timer()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -664,9 +664,9 @@ mx_mcs_read_timer( MX_RECORD *mcs_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
+mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode )
 {
-	const char fname[] = "mx_mcs_get_mode()";
+	static const char fname[] = "mx_mcs_get_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -697,9 +697,9 @@ mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_set_mode( MX_RECORD *mcs_record, int mode )
+mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
 {
-	const char fname[] = "mx_mcs_set_mode()";
+	static const char fname[] = "mx_mcs_set_mode()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -731,7 +731,7 @@ MX_EXPORT mx_status_type
 mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 					int *external_channel_advance )
 {
-	const char fname[] = "mx_mcs_get_external_channel_advance()";
+	static const char fname[] = "mx_mcs_get_external_channel_advance()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -765,7 +765,7 @@ MX_EXPORT mx_status_type
 mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
 					int external_channel_advance )
 {
-	const char fname[] = "mx_mcs_set_external_channel_advance()";
+	static const char fname[] = "mx_mcs_set_external_channel_advance()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -797,7 +797,7 @@ MX_EXPORT mx_status_type
 mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 					unsigned long *external_prescale )
 {
-	const char fname[] = "mx_mcs_get_external_prescale()";
+	static const char fname[] = "mx_mcs_get_external_prescale()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -831,7 +831,7 @@ MX_EXPORT mx_status_type
 mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 					unsigned long external_prescale )
 {
-	const char fname[] = "mx_mcs_set_external_prescale()";
+	static const char fname[] = "mx_mcs_set_external_prescale()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -862,7 +862,7 @@ mx_mcs_set_external_prescale( MX_RECORD *mcs_record,
 MX_EXPORT mx_status_type
 mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 {
-	const char fname[] = "mx_mcs_get_measurement_time()";
+	static const char fname[] = "mx_mcs_get_measurement_time()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -895,7 +895,7 @@ mx_mcs_get_measurement_time( MX_RECORD *mcs_record, double *measurement_time )
 MX_EXPORT mx_status_type
 mx_mcs_set_measurement_time( MX_RECORD *mcs_record, double measurement_time )
 {
-	const char fname[] = "mx_mcs_set_measurement_time()";
+	static const char fname[] = "mx_mcs_set_measurement_time()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -927,7 +927,7 @@ MX_EXPORT mx_status_type
 mx_mcs_get_measurement_counts( MX_RECORD *mcs_record,
 					unsigned long *measurement_counts )
 {
-	const char fname[] = "mx_mcs_get_measurement_counts()";
+	static const char fname[] = "mx_mcs_get_measurement_counts()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -961,7 +961,7 @@ MX_EXPORT mx_status_type
 mx_mcs_set_measurement_counts( MX_RECORD *mcs_record,
 					unsigned long measurement_counts )
 {
-	const char fname[] = "mx_mcs_set_measurement_counts()";
+	static const char fname[] = "mx_mcs_set_measurement_counts()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -993,7 +993,7 @@ MX_EXPORT mx_status_type
 mx_mcs_get_num_measurements( MX_RECORD *mcs_record,
 					unsigned long *num_measurements )
 {
-	const char fname[] = "mx_mcs_get_num_measurements()";
+	static const char fname[] = "mx_mcs_get_num_measurements()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -1027,7 +1027,7 @@ MX_EXPORT mx_status_type
 mx_mcs_set_num_measurements( MX_RECORD *mcs_record,
 					unsigned long num_measurements )
 {
-	const char fname[] = "mx_mcs_set_num_measurements()";
+	static const char fname[] = "mx_mcs_set_num_measurements()";
 
 	MX_MCS *mcs;
 	MX_MCS_FUNCTION_LIST *function_list;
@@ -1285,7 +1285,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for MCS '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for MCS '%s'.",
 			mx_get_field_label_string( mcs->record,
 						mcs->parameter_type ),
 			mcs->parameter_type,
@@ -1298,7 +1298,7 @@ mx_mcs_default_get_parameter_handler( MX_MCS *mcs )
 MX_EXPORT mx_status_type
 mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 {
-	static const char fname[] = "mx_mcs_default_set_parameter_handler()";
+	static const char fname[] ="mx_mcs_default_set_parameter_handler()";
 
 	switch( mcs->parameter_type ) {
 	case MXLV_MCS_MODE:
@@ -1316,7 +1316,7 @@ mx_mcs_default_set_parameter_handler( MX_MCS *mcs )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Parameter type '%s' (%d) is not supported by the MX driver for MCS '%s'.",
+"Parameter type '%s' (%ld) is not supported by the MX driver for MCS '%s'.",
 			mx_get_field_label_string( mcs->record,
 						mcs->parameter_type ),
 			mcs->parameter_type,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -238,7 +238,7 @@ mxd_kohzu_sc_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  controller name   = %s\n",
 					kohzu_sc->record->name);
-	fprintf(file, "  axis number       = %d\n",
+	fprintf(file, "  axis number       = %ld\n",
 					kohzu_sc_motor->axis_number);
 	fprintf(file, "  kohzu_sc_flags    = %#lx\n",
 					kohzu_sc_motor->kohzu_sc_flags);
@@ -336,7 +336,8 @@ mxd_kohzu_sc_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "APS%d/2/0/0/%ld/0/0/1",
+	snprintf( command, sizeof(command),
+			"APS%ld/2/0/0/%ld/0/0/1",
 			kohzu_sc_motor->axis_number,
 			motor->raw_destination.stepper );
 
@@ -363,7 +364,8 @@ mxd_kohzu_sc_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "RDP%d/0", kohzu_sc_motor->axis_number );
+	snprintf( command, sizeof(command),
+			"RDP%ld/0", kohzu_sc_motor->axis_number );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 			response, sizeof response, KOHZU_SC_MOTOR_DEBUG );
@@ -398,7 +400,8 @@ mxd_kohzu_sc_set_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "WRP%d/%ld", kohzu_sc_motor->axis_number,
+	snprintf( command, sizeof(command), "WRP%ld/%ld",
+				kohzu_sc_motor->axis_number,
 				motor->raw_set_position.stepper );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
@@ -423,7 +426,8 @@ mxd_kohzu_sc_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "STP%d/0", kohzu_sc_motor->axis_number );
+	snprintf( command, sizeof(command),
+		"STP%ld/0", kohzu_sc_motor->axis_number );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 					NULL, 0, KOHZU_SC_MOTOR_DEBUG );
@@ -446,7 +450,8 @@ mxd_kohzu_sc_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "STP%d/1", kohzu_sc_motor->axis_number );
+	snprintf( command, sizeof(command),
+		"STP%ld/1", kohzu_sc_motor->axis_number );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 					NULL, 0, KOHZU_SC_MOTOR_DEBUG );
@@ -469,7 +474,8 @@ mxd_kohzu_sc_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "ORG%d/2/0/0/3/1", kohzu_sc_motor->axis_number );
+	snprintf( command, sizeof(command),
+		"ORG%ld/2/0/0/3/1", kohzu_sc_motor->axis_number );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 					NULL, 0, KOHZU_SC_MOTOR_DEBUG );
@@ -502,7 +508,8 @@ mxd_kohzu_sc_constant_velocity_move( MX_MOTOR *motor )
 		rotational_direction = 0;
 	}
 
-	sprintf( command, "FRP%d/2/0/0/%d/1",
+	snprintf( command, sizeof(command),
+			"FRP%ld/2/0/0/%d/1",
 			kohzu_sc_motor->axis_number,
 			rotational_direction );
 		
@@ -545,7 +552,8 @@ mxd_kohzu_sc_get_parameter( MX_MOTOR *motor )
 		 * all with one command.
 		 */
 
-		sprintf( command, "RMS%d", kohzu_sc_motor->axis_number );
+		snprintf( command, sizeof(command),
+			"RMS%ld", kohzu_sc_motor->axis_number );
 
 		mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 				response, sizeof(response),
@@ -685,7 +693,8 @@ mxd_kohzu_sc_set_parameter( MX_MOTOR *motor )
 		if ( kohzu_acceleration_time > 1000000 )
 			kohzu_acceleration_time = 1000000;
 
-		sprintf( command, "ASI%d/%lu/%lu/%lu/%lu/0/0/0/1/1/0/0/0/0",
+		snprintf( command, sizeof(command),
+				"ASI%ld/%lu/%lu/%lu/%lu/0/0/0/1/1/0/0/0/0",
 				kohzu_sc_motor->axis_number,
 				kohzu_base_speed,
 				kohzu_speed,
@@ -714,7 +723,8 @@ mxd_kohzu_sc_set_parameter( MX_MOTOR *motor )
 			excitation_output = 1;
 		}
 
-		sprintf( command, "COF%d/%d",
+		snprintf( command, sizeof(command),
+				"COF%ld/%d",
 				kohzu_sc_motor->axis_number,
 				excitation_output );
 
@@ -818,7 +828,8 @@ mxd_kohzu_sc_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "STR1/%d", kohzu_sc_motor->axis_number );
+	snprintf( command, sizeof(command),
+			"STR1/%ld", kohzu_sc_motor->axis_number );
 
 	mx_status = mxi_kohzu_sc_command( kohzu_sc, command,
 			response, sizeof response, KOHZU_SC_MOTOR_DEBUG );

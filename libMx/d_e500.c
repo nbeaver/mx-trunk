@@ -153,7 +153,7 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 
 	if ( e500->slot < 1 || e500->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"CAMAC slot number %d is out of the allowed range 1-23.",
+		"CAMAC slot number %ld is out of the allowed range 1-23.",
 			e500->slot );
 	}
 
@@ -161,7 +161,7 @@ mxd_e500_finish_record_initialization( MX_RECORD *record )
 
 	if ( e500->subaddress < 1 || e500->subaddress > 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"E500 motor number %d is out of the allowed range 1-8.",
+		"E500 motor number %ld is out of the allowed range 1-8.",
 			e500->subaddress );
 	}
 
@@ -230,8 +230,8 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name        = %s\n", record->name);
 	fprintf(file, "  crate       = %s\n", crate->record->name);
-	fprintf(file, "  slot        = %d\n", e500->slot);
-	fprintf(file, "  subaddress  = %d\n", e500->subaddress);
+	fprintf(file, "  slot        = %ld\n", e500->slot);
+	fprintf(file, "  subaddress  = %ld\n", e500->subaddress);
 
 	position = motor->offset + motor->scale 
 		* (double)(motor->raw_position.stepper);
@@ -270,10 +270,10 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 	    motor->raw_move_deadband.stepper, move_deadband, motor->units );
 
 	fprintf(file, "  base speed  = %hu\n", e500->e500_base_speed);
-	fprintf(file, "  slew speed  = %u\n", e500->e500_slew_speed);
+	fprintf(file, "  slew speed  = %lu\n", e500->e500_slew_speed);
 	fprintf(file, "  accel. time = %hu\n", e500->acceleration_time);
 	fprintf(file, "  corr. limit = %hu\n", e500->correction_limit);
-	fprintf(file, "  LAM mask    = %d\n", e500->lam_mask);
+	fprintf(file, "  LAM mask    = %ld\n", e500->lam_mask);
 
 	return MX_SUCCESSFUL_RESULT;
 }

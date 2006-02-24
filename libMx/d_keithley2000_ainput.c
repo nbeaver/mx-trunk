@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -324,7 +324,7 @@ mxd_keithley2000_ainput_read( MX_ANALOG_INPUT *ainput )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Unsupported measurement type %d for record '%s'",
+			"Unsupported measurement type %ld for record '%s'",
 				keithley2000_ainput->measurement_type,
 				ainput->record->name );
 		}

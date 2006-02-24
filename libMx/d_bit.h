@@ -19,32 +19,32 @@
 #define __D_BIT_H__
 
 typedef struct {
-	int invert;
+	mx_bool_type invert;
 
 	MX_RECORD *input_record;
-	int input_bit_offset;
-	int num_input_bits;
+	long input_bit_offset;
+	long num_input_bits;
 
 	unsigned long input_mask;
 } MX_BIT_IN;
 
 typedef struct {
-	int invert;
+	mx_bool_type invert;
 
 	MX_RECORD *input_record;
-	int input_bit_offset;
-	int num_input_bits;
+	long input_bit_offset;
+	long num_input_bits;
 
 	MX_RECORD *output_record;
-	int output_bit_offset;
-	int num_output_bits;
+	long output_bit_offset;
+	long num_output_bits;
 
 	unsigned long input_mask;
 	unsigned long output_mask;
 } MX_BIT_OUT;
 
 #define MXD_BIT_IN_STANDARD_FIELDS \
-  {-1, -1, "invert", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "invert", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, invert), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -52,16 +52,16 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, input_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, input_bit_offset), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_IN, num_input_bits), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 #define MXD_BIT_OUT_STANDARD_FIELDS \
-  {-1, -1, "invert", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "invert", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, invert), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -69,11 +69,11 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, input_record), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "input_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "input_bit_offset", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, input_bit_offset), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_input_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_input_bits", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, num_input_bits), \
         {0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -81,11 +81,11 @@ typedef struct {
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, output_record), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, output_bit_offset), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_BIT_OUT, num_output_bits), \
         {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

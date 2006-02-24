@@ -99,7 +99,7 @@ mxd_compumotor_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_COMPUMOTOR_INTERFACE **compumotor_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_compumotor_din_get_pointers()";
+	static const char fname[] = "mxd_compumotor_din_get_pointers()";
 
 	MX_RECORD *compumotor_interface_record;
 
@@ -173,7 +173,7 @@ mxd_compumotor_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_COMPUMOTOR_INTERFACE **compumotor_interface,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_compumotor_dout_get_pointers()";
+	static const char fname[] = "mxd_compumotor_dout_get_pointers()";
 
 	MX_RECORD *compumotor_interface_record;
 
@@ -252,7 +252,7 @@ mxd_compumotor_din_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_compumotor_din_create_record_structures()";
+        static const char fname[] = "mxd_compumotor_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_COMPUMOTOR_DINPUT *compumotor_dinput;
@@ -326,7 +326,7 @@ mxd_compumotor_din_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_din_open()";
+	static const char fname[] = "mxd_compumotor_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
 	MX_COMPUMOTOR_DINPUT *compumotor_dinput;
@@ -363,7 +363,7 @@ mxd_compumotor_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_din_close()";
+	static const char fname[] = "mxd_compumotor_din_close()";
 
 	MX_DIGITAL_INPUT *dinput;
 	mx_status_type mx_status;
@@ -388,7 +388,7 @@ mxd_compumotor_din_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_compumotor_din_read()";
+	static const char fname[] = "mxd_compumotor_din_read()";
 
 	MX_COMPUMOTOR_DINPUT *compumotor_dinput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
@@ -410,23 +410,23 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( compumotor_dinput->num_bits == 1 ) {
 
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
-			sprintf( command, "%d_!%dTIN.%d",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->brick_number,
-				compumotor_dinput->first_bit );
+			snprintf( command, sizeof(command), "%ld_!%ldTIN.%ld",
+					compumotor_dinput->controller_number,
+					compumotor_dinput->brick_number,
+					compumotor_dinput->first_bit );
 		} else {
-			sprintf( command, "%d_!TIN.%d",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->first_bit );
+			snprintf( command, sizeof(command), "%ld_!TIN.%ld",
+					compumotor_dinput->controller_number,
+					compumotor_dinput->first_bit );
 		}
 	} else {
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
-			sprintf( command, "%d_!%dTIN",
-				compumotor_dinput->controller_number,
-				compumotor_dinput->brick_number );
+			snprintf( command, sizeof(command), "%ld_!%ldTIN",
+					compumotor_dinput->controller_number,
+					compumotor_dinput->brick_number );
 		} else {
-			sprintf( command, "%d_!TIN",
-				compumotor_dinput->controller_number );
+			snprintf( command, sizeof(command), "%ld_!TIN",
+					compumotor_dinput->controller_number );
 		}
 	}
 
@@ -491,7 +491,7 @@ mxd_compumotor_dout_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_compumotor_dout_create_record_structures()";
+        static const char fname[] = "mxd_compumotor_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
@@ -566,7 +566,7 @@ mxd_compumotor_dout_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_compumotor_dout_open()";
+	static const char fname[] = "mxd_compumotor_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
@@ -610,7 +610,7 @@ mxd_compumotor_dout_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_compumotor_dout_read()";
+	static const char fname[] = "mxd_compumotor_dout_read()";
 
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
@@ -633,23 +633,23 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( compumotor_doutput->num_bits == 1 ) {
 
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
-			sprintf( command, "%d_!%dTOUT.%d",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->brick_number,
-				compumotor_doutput->first_bit );
+			snprintf( command, sizeof(command), "%ld_!%ldTOUT.%ld",
+					compumotor_doutput->controller_number,
+					compumotor_doutput->brick_number,
+					compumotor_doutput->first_bit );
 		} else {
-			sprintf( command, "%d_!TOUT.%d",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->first_bit );
+			snprintf( command, sizeof(command), "%ld_!TOUT.%ld",
+					compumotor_doutput->controller_number,
+					compumotor_doutput->first_bit );
 		}
 	} else {
 		if ( controller_type == MXT_COMPUMOTOR_6K ) {
-			sprintf( command, "%d_!%dTOUT",
-				compumotor_doutput->controller_number,
-				compumotor_doutput->brick_number );
+			snprintf( command, sizeof(command), "%ld_!%ldTOUT",
+					compumotor_doutput->controller_number,
+					compumotor_doutput->brick_number );
 		} else {
-			sprintf( command, "%d_!TOUT",
-				compumotor_doutput->controller_number );
+			snprintf( command, sizeof(command), "%ld_!TOUT",
+					compumotor_doutput->controller_number );
 		}
 	}
 
@@ -706,14 +706,13 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_compumotor_dout_write()";
+	static const char fname[] = "mxd_compumotor_dout_write()";
 
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[200];
 	int i, first_offset, last_offset;
 	unsigned long value, controller_type;
-	size_t buffer_left;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_dout_get_pointers( doutput,
@@ -729,12 +728,12 @@ mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 					compumotor_doutput->controller_index ];
 
 	if ( controller_type == MXT_COMPUMOTOR_6K ) {
-		sprintf( command, "%d_!%dOUT",
-			compumotor_doutput->controller_number,
-			compumotor_doutput->brick_number );
+		snprintf( command, sizeof(command), "%ld_!%ldOUT",
+				compumotor_doutput->controller_number,
+				compumotor_doutput->brick_number );
 	} else {
-		sprintf( command, "%d_!OUT",
-			compumotor_doutput->controller_number );
+		snprintf( command, sizeof(command), "%ld_!OUT",
+				compumotor_doutput->controller_number );
 	}
 
 	first_offset = compumotor_doutput->first_bit - 1;
@@ -743,13 +742,8 @@ mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	/* Leave the leading bits alone. */
 
-	buffer_left = sizeof(command) - strlen(command);
-
 	for ( i = 0; i < first_offset; i++ ) {
-
-		strncat( command, "X", buffer_left );
-
-		buffer_left--;
+		strlcat( command, "X", sizeof(command) );
 	}
 
 	/* Copy the bits from the digital output device to the command. */
@@ -757,12 +751,10 @@ mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	for ( i = first_offset; i <= last_offset; i++ ) {
 
 		if ( value & 0x1 ) {
-			strncat( command, "1", buffer_left );
+			strlcat( command, "1", sizeof(command) );
 		} else {
-			strncat( command, "0", buffer_left );
+			strlcat( command, "0", sizeof(command) );
 		}
-
-		buffer_left--;
 
 		value >>= 1;
 	}

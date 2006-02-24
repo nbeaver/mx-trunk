@@ -2252,7 +2252,7 @@ mx_convert_normalized_device_value_to_string( MX_RECORD *input_device,
 		case MXC_RELAY:
 			relay = (MX_RELAY *)
 				(input_device->record_class_struct);
-			sprintf(buffer, "%10d", relay->relay_status);
+			sprintf(buffer, "%10ld", relay->relay_status);
 			break;
 		case MXC_AMPLIFIER:
 			amplifier = (MX_AMPLIFIER *)

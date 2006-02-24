@@ -54,13 +54,13 @@ extern MX_MOTOR_FUNCTION_LIST mxd_e500_motor_function_list;
 
 typedef struct {
 	MX_RECORD      *camac_record;
-	int            slot;
-	int            subaddress;
+	long           slot;
+	long           subaddress;
 	unsigned short e500_base_speed;
-	unsigned int   e500_slew_speed;
+	unsigned long  e500_slew_speed;
 	unsigned short acceleration_time;
 	unsigned short correction_limit;
-	int            lam_mask;
+	long           lam_mask;
 } MX_E500;
 
 extern long mxd_e500_num_record_fields;
@@ -71,11 +71,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, camac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, slot), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "subaddress", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "subaddress", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, subaddress), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -83,7 +83,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, e500_base_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "e500_slew_speed", MXFT_UINT, NULL, 0, {0}, \
+  {-1, -1, "e500_slew_speed", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, e500_slew_speed), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -95,17 +95,9 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_e500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, correction_limit), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "lam_mask", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "lam_mask", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_E500, lam_mask), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
-
-/*
- * typedef struct {
- *	MX_CAMAC *crate;
- *	int slot;
- *	MX_E500 motor[MX_MOTORS_PER_E500];
- * } MX_E500_MODULE;
- */
 
 /* ===== E500 C preprocessor definitions ===== */
 

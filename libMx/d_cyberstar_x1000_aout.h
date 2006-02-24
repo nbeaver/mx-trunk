@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,7 +29,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *cyberstar_x1000_record;
-	int output_type;
+	long output_type;
 } MX_CYBERSTAR_X1000_AOUTPUT;
 
 #define MXD_CYBERSTAR_X1000_AOUTPUT_STANDARD_FIELDS \
@@ -38,7 +38,7 @@ typedef struct {
 						cyberstar_x1000_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "output_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "output_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CYBERSTAR_X1000_AOUTPUT, \
 						output_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}

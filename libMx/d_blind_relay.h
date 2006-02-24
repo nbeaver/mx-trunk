@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2001 Illinois Institute of Technology
+ * Copyright 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@ typedef struct {
 	unsigned long settling_time;	/* in milliseconds */
 
 	MX_RECORD *output_record;
-	int output_bit_offset;
-	int num_output_bits;
+	long output_bit_offset;
+	long num_output_bits;
 	unsigned long close_output_value;
 	unsigned long open_output_value;
 } MX_BLIND_RELAY;
@@ -36,11 +36,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, output_record), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "output_bit_offset", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "output_bit_offset", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, output_bit_offset), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "num_output_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_output_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLIND_RELAY, num_output_bits), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

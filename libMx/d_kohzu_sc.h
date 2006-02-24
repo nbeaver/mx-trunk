@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,8 +25,8 @@
 
 typedef struct {
 	MX_RECORD *kohzu_sc_record;
-	int axis_number;
-	long kohzu_sc_flags;
+	long axis_number;
+	unsigned long kohzu_sc_flags;
 } MX_KOHZU_SC_MOTOR;
 
 MX_API mx_status_type mxd_kohzu_sc_create_record_structures(
@@ -69,7 +69,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_kohzu_sc_rfield_def_ptr;
 		offsetof(MX_KOHZU_SC_MOTOR, kohzu_sc_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KOHZU_SC_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

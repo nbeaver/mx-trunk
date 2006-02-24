@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,25 +34,26 @@ typedef struct {
 	MX_RECORD *external_channel_advance_record;
 	char external_channel_advance_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	int external_channel_advance;
+	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 
 	MX_RECORD *timer_record;
 	char timer_name[ MXU_RECORD_NAME_LENGTH + 1 ];
 
-	int start;
-	int stop;
-	int clear;
-	int busy;
-	int mode;
-	int parameter_type;
+	mx_bool_type start;
+	mx_bool_type stop;
+	mx_bool_type clear;
+	mx_bool_type busy;
+
+	long mode;
+	long parameter_type;
 
 	double measurement_time;
 	unsigned long measurement_counts;
 	unsigned long current_num_scalers;
 	unsigned long current_num_measurements;
 
-	int readout_preference;
+	long readout_preference;
 
 	long scaler_index;
 	long measurement_index;
@@ -115,7 +116,7 @@ typedef struct {
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE, -1, "external_channel_advance", \
-					  	MXFT_INT, NULL, 0, {0}, \
+					  	MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, external_channel_advance), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -129,27 +130,27 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, timer_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_MCS_START, -1, "start", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCS_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, start), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCS_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, stop), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_CLEAR, -1, "clear", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCS_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, clear), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCS_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, busy), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCS_MODE, -1, "mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCS_MODE, -1, "mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, mode), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCS, parameter_type), \
 	{0}, NULL, 0}, \
   \
@@ -240,9 +241,13 @@ MX_API mx_status_type mx_mcs_finish_record_initialization(
 					MX_RECORD *mcs_record );
 
 MX_API mx_status_type mx_mcs_start( MX_RECORD *mcs_record );
+
 MX_API mx_status_type mx_mcs_stop( MX_RECORD *mcs_record );
+
 MX_API mx_status_type mx_mcs_clear( MX_RECORD *mcs_record );
-MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy );
+
+MX_API mx_status_type mx_mcs_is_busy( MX_RECORD *mcs_record,
+					mx_bool_type *busy );
 
 MX_API mx_status_type mx_mcs_read_all( MX_RECORD *mcs_record,
 					unsigned long *num_scalers,
@@ -263,16 +268,16 @@ MX_API mx_status_type mx_mcs_read_timer( MX_RECORD *mcs_record,
 					unsigned long *num_measurements,
 					double **timer_data );
 
-MX_API mx_status_type mx_mcs_get_mode( MX_RECORD *mcs_record, int *mode );
-MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, int mode );
+MX_API mx_status_type mx_mcs_get_mode( MX_RECORD *mcs_record, long *mode );
+MX_API mx_status_type mx_mcs_set_mode( MX_RECORD *mcs_record, long mode );
 
 MX_API mx_status_type mx_mcs_get_external_channel_advance(
 					MX_RECORD *mcs_record,
-					int *external_channel_advance );
+					mx_bool_type *external_channel_advance);
 
 MX_API mx_status_type mx_mcs_set_external_channel_advance(
 					MX_RECORD *mcs_record,
-					int external_channel_advance );
+					mx_bool_type external_channel_advance );
 
 MX_API mx_status_type mx_mcs_get_external_prescale( MX_RECORD *mcs_record,
 					unsigned long *external_prescale );

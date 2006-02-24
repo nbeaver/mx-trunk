@@ -274,7 +274,8 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_ICPLUS *icplus;
 	char command[40];
 	char response[80];
-	int port_number, num_items;
+	int num_items;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -292,11 +293,12 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 
 	if ((port_number < 0) || (port_number > 2)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital input record '%s' is outside "
+	"Port number %ld used by digital input record '%s' is outside "
 	"the legal range of 0 to 2.", port_number, dinput->record->name );
 	}
 
-	sprintf( command, ":SENS%d:STAT%d?", icplus->address, port_number );
+	snprintf( command, sizeof(command),
+			":SENS%ld:STAT%ld?", icplus->address, port_number );
 
 	mx_status = mxd_icplus_command( icplus, command,
 				response, sizeof( response ),
@@ -323,7 +325,8 @@ mxd_icplus_din_read( MX_DIGITAL_INPUT *dinput )
 MX_EXPORT mx_status_type
 mxd_icplus_dout_create_record_structures( MX_RECORD *record )
 {
-        static const char fname[] = "mxd_icplus_dout_create_record_structures()";
+        static const char fname[] =
+		"mxd_icplus_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_ICPLUS_DOUTPUT *icplus_doutput;
@@ -368,7 +371,8 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	MX_ICPLUS *icplus;
 	char command[40];
 	char response[80];
-	int port_number, num_items;
+	int num_items;
+	long port_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_icplus_dout_get_pointers( doutput,
@@ -381,11 +385,12 @@ mxd_icplus_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	if ((port_number < 0) || (port_number > 2)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital output record '%s' is outside "
+	"Port number %ld used by digital output record '%s' is outside "
 	"the legal range of 0 to 2.", port_number, doutput->record->name );
 	}
 
-	sprintf( command, ":SOUR%d:STAT%d?", icplus->address, port_number );
+	snprintf( command, sizeof(command), ":SOUR%ld:STAT%ld?",
+				icplus->address, port_number );
 
 	mx_status = mxd_icplus_command( icplus, command,
 				response, sizeof( response ),
@@ -415,7 +420,7 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_ICPLUS_DOUTPUT *icplus_doutput;
 	MX_ICPLUS *icplus;
 	char command[80];
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_icplus_dout_get_pointers( doutput,
@@ -428,7 +433,7 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ((port_number < 0) || (port_number > 2)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital output record '%s' is outside "
+	"Port number %ld used by digital output record '%s' is outside "
 	"the legal range of 0 to 2.", port_number, doutput->record->name );
 	}
 
@@ -436,8 +441,8 @@ mxd_icplus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, ":SOUR%d:STAT%d %lu",
-			icplus->address, port_number, doutput->value );
+	snprintf( command, sizeof(command), ":SOUR%ld:STAT%ld %lu",
+				icplus->address, port_number, doutput->value );
 
 	mx_status = mxd_icplus_command( icplus, command,
 					NULL, 0, MXD_ICPLUS_DIO_DEBUG );

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -254,7 +254,7 @@ mxd_blind_relay_relay_command( MX_RELAY *relay )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The relay command %d is unrecognized.",
+		"The relay command %ld is unrecognized.",
 			relay->relay_command );
 	}
 
@@ -298,7 +298,7 @@ mxd_blind_relay_get_relay_status( MX_RELAY *relay )
 		relay->relay_status = MXF_RELAY_ILLEGAL_STATUS;
 
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-		"Last relay command %d for blind relay '%s' was illegal.",
+		"Last relay command %ld for blind relay '%s' was illegal.",
 			relay->relay_command, relay->record->name );
 	}
 	return MX_SUCCESSFUL_RESULT;

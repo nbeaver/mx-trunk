@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *cxtilt02_record;
-	int angle_id;
+	long angle_id;
 } MX_CXTILT02_ANGLE;
 
 #define MXD_CXTILT02_ANGLE_STANDARD_FIELDS \
@@ -42,7 +42,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CXTILT02_ANGLE, cxtilt02_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "angle_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "angle_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_CXTILT02_ANGLE, angle_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

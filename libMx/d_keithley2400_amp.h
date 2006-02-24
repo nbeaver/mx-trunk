@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *controller_record;
-	int io_type;
+	long io_type;
 } MX_KEITHLEY2400_AMP;
 
 /* Values for the 'io_type' field. */
@@ -35,7 +35,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2400_AMP, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "io_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "io_type", MXFT_LONG, NULL, 0, {0}, \
         MXF_REC_TYPE_STRUCT, offsetof(MX_KEITHLEY2400_AMP, io_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

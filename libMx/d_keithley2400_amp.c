@@ -198,13 +198,13 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 
 		switch( keithley2400->last_measurement_type ) {
 		case MXT_KEITHLEY2400_VOLT:
-			sprintf( command, ":SENS:VOLT:RANG?" );
+			snprintf( command, sizeof(command), ":SENS:VOLT:RANG?");
 			break;
 		case MXT_KEITHLEY2400_CURR:
-			sprintf( command, ":SENS:CURR:RANG?" );
+			snprintf( command, sizeof(command), ":SENS:CURR:RANG?");
 			break;
 		case MXT_KEITHLEY2400_RES:
-			sprintf( command, ":SENS:RES:RANG?" );
+			snprintf( command, sizeof(command), ":SENS:RES:RANG?" );
 			break;
 		}
 		break;
@@ -215,7 +215,7 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"io_type %d for amplifier '%s' is not supported.  "
+		"io_type %ld for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
 			keithley2400_amp->io_type,
 			amplifier->record->name );
@@ -276,13 +276,16 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 
 			switch( keithley2400->last_measurement_type ) {
 			case MXT_KEITHLEY2400_VOLT:
-				sprintf( command, ":SENS:VOLT:RANG:AUTO ON" );
+				snprintf( command, sizeof(command),
+						":SENS:VOLT:RANG:AUTO ON" );
 				break;
 			case MXT_KEITHLEY2400_CURR:
-				sprintf( command, ":SENS:CURR:RANG:AUTO ON" );
+				snprintf( command, sizeof(command),
+						":SENS:CURR:RANG:AUTO ON" );
 				break;
 			case MXT_KEITHLEY2400_RES:
-				sprintf( command, ":SENS:RES:RANG:AUTO ON" );
+				snprintf( command, sizeof(command),
+						":SENS:RES:RANG:AUTO ON" );
 				break;
 			}
 		} else {
@@ -290,16 +293,16 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 
 			switch( keithley2400->last_measurement_type ) {
 			case MXT_KEITHLEY2400_VOLT:
-				sprintf( command, ":SENS:VOLT:RANG %g",
-						amplifier->gain );
+				snprintf( command, sizeof(command),
+					":SENS:VOLT:RANG %g", amplifier->gain );
 				break;
 			case MXT_KEITHLEY2400_CURR:
-				sprintf( command, ":SENS:CURR:RANG %g",
-						amplifier->gain );
+				snprintf( command, sizeof(command),
+					":SENS:CURR:RANG %g", amplifier->gain );
 				break;
 			case MXT_KEITHLEY2400_RES:
-				sprintf( command, ":SENS:RES:RANG %g",
-						amplifier->gain );
+				snprintf( command, sizeof(command),
+					":SENS:RES:RANG %g", amplifier->gain );
 				break;
 			}
 		}
@@ -311,7 +314,7 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"io_type %d for amplifier '%s' is not supported.  "
+		"io_type %ld for amplifier '%s' is not supported.  "
 		"Only 1 for input and 2 for output are supported.",
 			keithley2400_amp->io_type,
 			amplifier->record->name );

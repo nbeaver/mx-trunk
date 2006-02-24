@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,9 +22,9 @@
 typedef struct {
 	MX_RECORD *record;
 	long encoder_type;
-	int overflow_set;
-	int underflow_set;
-	int motor_can_use_this_mce;
+	mx_bool_type overflow_set;
+	mx_bool_type underflow_set;
+	mx_bool_type motor_can_use_this_mce;
 
 	long maximum_num_values;
 
@@ -34,7 +34,7 @@ typedef struct {
 	double scale;
 	double offset;
 
-	int num_motors;
+	long num_motors;
 	MX_RECORD **motor_record_array;
 
 	char selected_motor_name[ MXU_RECORD_NAME_LENGTH + 1 ];
@@ -51,11 +51,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, encoder_type), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "overflow_set", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "overflow_set", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, overflow_set), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "underflow_set", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "underflow_set", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, underflow_set), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
@@ -81,7 +81,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, offset), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_MCE_NUM_MOTORS, -1, "num_motors", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCE_NUM_MOTORS, -1, "num_motors", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCE, num_motors), \
 	{0}, NULL, 0}, \
   \

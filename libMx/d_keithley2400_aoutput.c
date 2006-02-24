@@ -284,16 +284,16 @@ mxd_keithley2400_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 
 	switch( keithley2400_aoutput->source_type ) {
 	case MXT_KEITHLEY2400_VOLT:
-		sprintf( command, ":SOUR:VOLT:LEV %g",
-				aoutput->raw_value.double_value );
+		snprintf( command, sizeof(command),
+			":SOUR:VOLT:LEV %g", aoutput->raw_value.double_value );
 		break;
 	case MXT_KEITHLEY2400_CURR:
-		sprintf( command, ":SOUR:CURR:LEV %g",
-				aoutput->raw_value.double_value );
+		snprintf( command, sizeof(command),
+			":SOUR:CURR:LEV %g", aoutput->raw_value.double_value );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported source type %d for Keithley 2400 "
+		"Unsupported source type %ld for Keithley 2400 "
 		"analog output '%s' used by record '%s'.",
 			keithley2400_aoutput->source_type,
 			keithley2400->record->name,

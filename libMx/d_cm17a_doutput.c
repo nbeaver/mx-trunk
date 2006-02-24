@@ -253,7 +253,7 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 	}
 	if ( (device_index < 0) || (device_index >= 16 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal device code %d selected for CM17A digital output '%s'.  "
+	"Illegal device code %ld selected for CM17A digital output '%s'.  "
 	"The allowed values are from 1 to 16.",
 			cm17a_doutput->device_code, record->name );
 	}
