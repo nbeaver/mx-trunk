@@ -9,12 +9,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MMC32_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -74,15 +76,13 @@ long mxd_mmc32_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr
 			= &mxd_mmc32_record_field_defaults[0];
 
-#define MMC32_DEBUG	TRUE
-
 /* ========== Private functions for the use of the driver =========== */
 
 static mx_status_type
 mxd_mmc32_get_pointers( MX_MOTOR *motor,
 			MX_MMC32 **mmc32,
 			MX_RECORD **gpib_record,
-			int *address,
+			long *address,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_mmc32_get_pointers()";
@@ -119,7 +119,8 @@ mxd_mmc32_get_pointers( MX_MOTOR *motor,
 
 		if ( *address < 0 || *address > 31 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"GPIB address %d for motor '%s' passed by '%s' is not in allowed range (0-31).",
+			"GPIB address %ld for motor '%s' passed by '%s' "
+			"is not in allowed range (0-31).",
 				*address, motor->record->name, calling_fname );
 		}
 	}
@@ -128,7 +129,7 @@ mxd_mmc32_get_pointers( MX_MOTOR *motor,
 
 static mx_status_type
 mxd_mmc32_command( MX_RECORD *gpib_record,
-			int address, 
+			long address, 
 			char *command,
 			char *response,
 			size_t response_buffer_length,
@@ -257,7 +258,7 @@ mxd_mmc32_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  gpib interface      = %s:%s\n",
 		mmc32->gpib_interface.record->name,
 		mmc32->gpib_interface.address_name );
-	fprintf(file, "  motor number        = %d\n", mmc32->motor_number );
+	fprintf(file, "  motor number        = %ld\n", mmc32->motor_number );
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -304,7 +305,7 @@ mxd_mmc32_open( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -337,7 +338,7 @@ mxd_mmc32_open( MX_RECORD *record )
 	 * 3) P3 output mode = step and direction.
 	 */
 
-	sprintf( command, "N%d F4", mmc32->motor_number );
+	sprintf( command, "N%ld F4", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -347,7 +348,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the velocity multiplication factor. */
 
-	sprintf( command, "N%d Z%f", mmc32->motor_number,
+	sprintf( command, "N%ld Z%f", mmc32->motor_number,
 					mmc32->multiplication_factor );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
@@ -358,7 +359,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the start velocity */
 
-	sprintf( command, "U%d", mmc32->start_velocity );
+	sprintf( command, "U%ld", mmc32->start_velocity );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -368,7 +369,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the peak velocity */
 
-	sprintf( command, "V%d", mmc32->peak_velocity );
+	sprintf( command, "V%ld", mmc32->peak_velocity );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -378,7 +379,7 @@ mxd_mmc32_open( MX_RECORD *record )
 
 	/* Set the acceleration steps */
 
-	sprintf( command, "A%d", mmc32->acceleration_steps );
+	sprintf( command, "A%ld", mmc32->acceleration_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -397,7 +398,8 @@ mxd_mmc32_close( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address, num_items, value;
+	int num_items;
+	long address, value;
 	char command[40], response[40];
 	mx_status_type mx_status;
 
@@ -421,12 +423,12 @@ mxd_mmc32_close( MX_RECORD *record )
 
 	/* Get the start velocity. */
 
-	sprintf( command, "N%d IU", mmc32->motor_number );
+	sprintf( command, "N%ld IU", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			command, response, sizeof response, MMC32_DEBUG );
 
-	num_items = sscanf( response, "%d", &value );
+	num_items = sscanf( response, "%ld", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -441,7 +443,7 @@ mxd_mmc32_close( MX_RECORD *record )
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			"IV", response, sizeof response, MMC32_DEBUG );
 
-	num_items = sscanf( response, "%d", &value );
+	num_items = sscanf( response, "%ld", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -456,7 +458,7 @@ mxd_mmc32_close( MX_RECORD *record )
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			"IA", response, sizeof response, MMC32_DEBUG );
 
-	num_items = sscanf( response, "%d", &value );
+	num_items = sscanf( response, "%ld", &value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -483,7 +485,7 @@ mxd_mmc32_move_absolute( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	char command[40];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -498,7 +500,7 @@ mxd_mmc32_move_absolute( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_destination.stepper;
 
-	sprintf( command, "N%d M%ld", mmc32->motor_number, motor_steps );
+	sprintf( command, "N%ld M%ld", mmc32->motor_number, motor_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 				command, NULL, 0, MMC32_DEBUG );
@@ -513,7 +515,8 @@ mxd_mmc32_get_position( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address, num_items;
+	int num_items;
+	long address;
 	char command[40], response[40];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -526,7 +529,7 @@ mxd_mmc32_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%d IP", mmc32->motor_number );
+	sprintf( command, "N%ld IP", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 			command, response, sizeof(response), MMC32_DEBUG );
@@ -554,7 +557,7 @@ mxd_mmc32_set_position( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	char command[40];
 	long motor_steps;
 	mx_status_type mx_status;
@@ -569,7 +572,7 @@ mxd_mmc32_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "N%d P%ld", mmc32->motor_number, motor_steps );
+	sprintf( command, "N%ld P%ld", mmc32->motor_number, motor_steps );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 				command, NULL, 0, MMC32_DEBUG );
@@ -584,7 +587,7 @@ mxd_mmc32_soft_abort( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -608,7 +611,7 @@ mxd_mmc32_immediate_abort( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -632,7 +635,7 @@ mxd_mmc32_find_home_position( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address;
+	long address;
 	char command[40];
 	mx_status_type mx_status;
 
@@ -644,7 +647,7 @@ mxd_mmc32_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%d H", mmc32->motor_number );
+	sprintf( command, "N%ld H", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address,
 					command, NULL, 0, MMC32_DEBUG );
@@ -659,7 +662,8 @@ mxd_mmc32_get_status( MX_MOTOR *motor )
 
 	MX_MMC32 *mmc32;
 	MX_RECORD *gpib_record;
-	int address, num_items, output_status;
+	int num_items;
+	long address, output_status;
 	char command[40];
 	char response[40];
 	mx_status_type mx_status;
@@ -672,7 +676,7 @@ mxd_mmc32_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "N%d IO", mmc32->motor_number );
+	sprintf( command, "N%ld IO", mmc32->motor_number );
 
 	mx_status = mxd_mmc32_command( gpib_record, address, command,
 				response, sizeof(response), MMC32_DEBUG );
@@ -680,12 +684,12 @@ mxd_mmc32_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%d", &output_status );
+	num_items = sscanf( response, "%ld", &output_status );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Attempt to read MMC32 output status byte failed.  "
-		"(interface = '%s', address = %d, motor_number = %d)",
+		"(interface = '%s', address = %ld, motor_number = %ld)",
 			gpib_record->name, address, mmc32->motor_number );
 	}
 

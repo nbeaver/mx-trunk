@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2000, 2002-2003 Illinois Institute of Technology
+ * Copyright 1999, 2000, 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,9 +29,9 @@ typedef struct {
 	MX_RECORD *record;
 	long num_dependencies;
 	MX_RECORD **list_array;
-	int *speed_change_permitted;
-	int *speed_changed;
-	int move_in_progress;
+	mx_bool_type *speed_change_permitted;
+	mx_bool_type *speed_changed;
+	mx_bool_type move_in_progress;
 	double move_time;
 } MX_MONOCHROMATOR;
 
@@ -103,12 +103,12 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_monochromator_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONOCHROMATOR, list_array), \
 	{sizeof(MX_RECORD *)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_VARARGS)}, \
   \
-  {-1, -1, "speed_change_permitted", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "speed_change_permitted", MXFT_BOOL, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 			offsetof(MX_MONOCHROMATOR, speed_change_permitted),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1, "speed_changed", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "speed_changed", MXFT_BOOL, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MONOCHROMATOR, speed_changed),\
 	{sizeof(int)}, NULL, MXFF_VARARGS}
 

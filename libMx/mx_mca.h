@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,13 +29,14 @@ typedef struct {
 
 	unsigned long *channel_array;
 
-	int start;
-	int stop;
-	int clear;
-	int busy;
-	int new_data_available;
-	int preset_type;
-	int parameter_type;
+	mx_bool_type start;
+	mx_bool_type stop;
+	mx_bool_type clear;
+	mx_bool_type busy;
+	mx_bool_type new_data_available;
+
+	long preset_type;
+	long parameter_type;
 
 	double start_with_preset[2];
 
@@ -148,32 +149,32 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, channel_array), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
   \
-  {MXLV_MCA_START, -1, "start", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCA_START, -1, "start", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, start), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCA_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCA_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, stop), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCA_CLEAR, -1, "clear", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCA_CLEAR, -1, "clear", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, clear), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCA_BUSY, -1, "busy", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCA_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, busy), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MCA_NEW_DATA_AVAILABLE, -1, "new_data_available", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, new_data_available), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_MCA_PRESET_TYPE, -1, "preset_type", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_MCA_PRESET_TYPE, -1, "preset_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, preset_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "parameter_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, parameter_type), \
 	{0}, NULL, 0}, \
   \
@@ -336,13 +337,14 @@ MX_API mx_status_type mx_mca_read( MX_RECORD *mca_record,
 					unsigned long *num_channels,
 					unsigned long **channel_array );
 MX_API mx_status_type mx_mca_clear( MX_RECORD *mca_record );
-MX_API mx_status_type mx_mca_is_busy( MX_RECORD *mca_record, int *busy );
+MX_API mx_status_type mx_mca_is_busy( MX_RECORD *mca_record,
+					mx_bool_type *busy );
 MX_API mx_status_type mx_mca_is_new_data_available( MX_RECORD *mca_record,
-						int *new_data_available );
+					mx_bool_type *new_data_available );
 
 MX_API mx_status_type mx_mca_start_without_preset( MX_RECORD *mca_record );
 MX_API mx_status_type mx_mca_start_with_preset( MX_RECORD *mca_record,
-						int preset_type,
+						long preset_type,
 						double preset_value );
 
 MX_API mx_status_type mx_mca_start_for_preset_live_time( MX_RECORD *mca_record,
@@ -353,14 +355,14 @@ MX_API mx_status_type mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 					unsigned long preset_count );
 
 MX_API mx_status_type mx_mca_get_parameter( MX_RECORD *mca_record,
-						int parameter_type );
+						long parameter_type );
 MX_API mx_status_type mx_mca_set_parameter( MX_RECORD *mca_record,
-						int parameter_type );
+						long parameter_type );
 
 MX_API mx_status_type mx_mca_get_preset_type( MX_RECORD *mca_record,
-						int *preset_type );
+						long *preset_type );
 MX_API mx_status_type mx_mca_set_preset_type( MX_RECORD *mca_record,
-						int preset_type );
+						long preset_type );
 MX_API mx_status_type mx_mca_get_preset_count_region( MX_RECORD *mca_record,
 					unsigned long *preset_count_region );
 MX_API mx_status_type mx_mca_set_preset_count_region( MX_RECORD *mca_record,

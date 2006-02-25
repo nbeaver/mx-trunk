@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2005 Illinois Institute of Technology
+ * Copyright 2000-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -355,7 +355,7 @@ mxd_mcs_timer_get_mode( MX_TIMER *timer )
 	const char fname[] = "mxd_mcs_timer_get_mode()";
 
 	MX_MCS_TIMER *mcs_timer;
-	int mode;
+	long mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_timer_get_pointers( timer, &mcs_timer, fname );

@@ -242,7 +242,7 @@ mxd_mca_alt_time_read( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal 'time_type' value %d for record '%s'.  "
+		"Illegal 'time_type' value %ld for record '%s'.  "
 		"The allowed values are 0, 1, and 2.",
 			mca_alt_time->time_type,
 			scaler->record->name );

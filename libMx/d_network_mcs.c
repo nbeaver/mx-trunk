@@ -429,7 +429,7 @@ mxd_network_mcs_start( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_start()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long start;
+	mx_bool_type start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -437,9 +437,9 @@ mxd_network_mcs_start( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	start = 1;
+	start = TRUE;
 
-	mx_status = mx_put( &(network_mcs->start_nf), MXFT_LONG, &start );
+	mx_status = mx_put( &(network_mcs->start_nf), MXFT_BOOL, &start );
 
 	return mx_status;
 }
@@ -450,7 +450,7 @@ mxd_network_mcs_stop( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_stop()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long stop;
+	mx_bool_type stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -458,9 +458,9 @@ mxd_network_mcs_stop( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_mcs->stop_nf), MXFT_LONG, &stop );
+	mx_status = mx_put( &(network_mcs->stop_nf), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -471,7 +471,7 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_clear()";
 
 	MX_NETWORK_MCS *network_mcs;
-	long clear;
+	mx_bool_type clear;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -479,9 +479,9 @@ mxd_network_mcs_clear( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	clear = 1;
+	clear = TRUE;
 
-	mx_status = mx_put( &(network_mcs->clear_nf), MXFT_LONG, &clear );
+	mx_status = mx_put( &(network_mcs->clear_nf), MXFT_BOOL, &clear );
 
 	return mx_status;
 }
@@ -492,7 +492,7 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 	static const char fname[] = "mxd_network_mcs_busy()";
 
 	MX_NETWORK_MCS *network_mcs;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mcs_get_pointers( mcs, &network_mcs, fname );
@@ -500,7 +500,7 @@ mxd_network_mcs_busy( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_mcs->busy_nf), MXFT_INT, &busy );
+	mx_status = mx_get( &(network_mcs->busy_nf), MXFT_BOOL, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -716,7 +716,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 
 	MX_NETWORK_MCS *network_mcs;
 	long mode;
-	int external_channel_advance;
+	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
 	double measurement_time, dark_current;
@@ -727,7 +727,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
@@ -739,7 +739,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_CHANNEL_ADVANCE ) {
 
 		mx_status = mx_get( &(network_mcs->external_channel_advance_nf),
-					MXFT_INT, &external_channel_advance );
+					MXFT_BOOL, &external_channel_advance );
 
 		mcs->external_channel_advance = external_channel_advance;
 
@@ -790,7 +790,7 @@ mxd_network_mcs_get_parameter( MX_MCS *mcs )
 
 	} else {
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mcs->parameter_type );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));
@@ -805,7 +805,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 	MX_NETWORK_MCS *network_mcs;
 	long mode;
-	int external_channel_advance;
+	mx_bool_type external_channel_advance;
 	unsigned long external_prescale;
 	unsigned long num_measurements, measurement_counts;
 	double measurement_time, dark_current;
@@ -816,7 +816,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
@@ -834,7 +834,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 			network_mcs->external_channel_advance_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),
-					MXFT_INT, &external_channel_advance );
+					MXFT_BOOL, &external_channel_advance );
 
 	} else if ( mcs->parameter_type == MXLV_MCS_EXTERNAL_PRESCALE ) {
 
@@ -899,7 +899,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 
 	} else {
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type %d is not supported by this driver.",
+			"Parameter type %ld is not supported by this driver.",
 			mcs->parameter_type );
 	}
 	MX_DEBUG( 2,("%s complete.", fname));

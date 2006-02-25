@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -231,7 +231,7 @@ mx_pulse_generator_stop( MX_RECORD *pulse_generator_record )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int *mode )
+mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, long *mode )
 {
 	static const char fname[] = "mx_pulse_generator_get_mode()";
 
@@ -268,7 +268,7 @@ mx_pulse_generator_get_mode( MX_RECORD *pulse_generator_record, int *mode )
 }
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, int mode )
+mx_pulse_generator_set_mode( MX_RECORD *pulse_generator_record, long mode )
 {
 	static const char fname[] = "mx_pulse_generator_set_mode()";
 
@@ -601,7 +601,7 @@ mx_pulse_generator_default_get_parameter_handler(
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -630,7 +630,7 @@ mx_pulse_generator_default_set_parameter_handler(
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for pulse generator '%s'.",
 			mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),

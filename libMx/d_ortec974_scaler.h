@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *ortec974_record;
-	int channel_number;
+	long channel_number;
 } MX_ORTEC974_SCALER;
 
 /* Define all of the interface functions. */
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_scaler_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ORTEC974_SCALER, ortec974_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ORTEC974_SCALER, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

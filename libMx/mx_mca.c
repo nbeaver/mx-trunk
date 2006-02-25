@@ -600,7 +600,7 @@ mx_mca_start_without_preset( MX_RECORD *mca_record )
 
 MX_EXPORT mx_status_type
 mx_mca_start_with_preset( MX_RECORD *mca_record,
-				int preset_type,
+				long preset_type,
 				double preset_value )
 {
 	static const char fname[] = "mx_mca_start_with_preset()";
@@ -644,7 +644,7 @@ mx_mca_start_with_preset( MX_RECORD *mca_record,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal preset type %d for MCA '%s'.",
+			"Illegal preset type %ld for MCA '%s'.",
 			preset_type, mca_record->name );
 	}
 
@@ -774,7 +774,7 @@ mx_mca_start_for_preset_count( MX_RECORD *mca_record,
 }
 
 MX_EXPORT mx_status_type
-mx_mca_get_preset_type( MX_RECORD *mca_record, int *preset_type )
+mx_mca_get_preset_type( MX_RECORD *mca_record, long *preset_type )
 {
 	static const char fname[] = "mx_mca_get_preset_type()";
 
@@ -811,7 +811,7 @@ mx_mca_get_preset_type( MX_RECORD *mca_record, int *preset_type )
 }
 
 MX_EXPORT mx_status_type
-mx_mca_set_preset_type( MX_RECORD *mca_record, int preset_type )
+mx_mca_set_preset_type( MX_RECORD *mca_record, long preset_type )
 {
 	static const char fname[] = "mx_mca_set_preset_type()";
 
@@ -2077,7 +2077,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 
 	unsigned long i, j, channel_value, integral;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2204,7 +2204,7 @@ mx_mca_default_get_parameter_handler( MX_MCA *mca )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
 	}
 
@@ -2218,7 +2218,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 	unsigned long i, roi_start, roi_end, soft_roi_start, soft_roi_end;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2350,7 +2350,7 @@ mx_mca_default_set_parameter_handler( MX_MCA *mca )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
 	}
 

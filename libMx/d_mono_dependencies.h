@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,20 +27,20 @@ static mx_status_type mxd_monochromator_get_pointers( MX_MOTOR *motor,
 
 static mx_status_type mxd_monochromator_get_enable_status(
 					MX_RECORD *list_record, 
-					int *dependency_type );
+					mx_bool_type *enable_status );
 
 static mx_status_type mxd_monochromator_get_dependency_type(
 					MX_RECORD *list_record, 
-					int *dependency_type );
+					long *dependency_type );
 
 static mx_status_type mxd_monochromator_get_param_array_from_list(
 					MX_RECORD *list_record,
-					int *num_parameters,
+					long *num_parameters,
 					double **parameter_array );
 
 static mx_status_type mxd_monochromator_get_record_array_from_list(
 					MX_RECORD *list_record,
-					int *num_records,
+					long *num_records,
 					MX_RECORD ***record_array );
 
 /* === */

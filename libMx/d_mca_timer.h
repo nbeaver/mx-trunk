@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 typedef struct {
 	MX_RECORD *mca_record;
 	double preset_time;
-	int use_real_time;
+	mx_bool_type use_real_time;
 } MX_MCA_TIMER;
 
 /* Define all of the interface functions. */
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mca_timer_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_TIMER, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "use_real_time", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_real_time", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCA_TIMER, use_real_time), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

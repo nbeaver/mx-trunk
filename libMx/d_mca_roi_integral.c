@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2005 Illinois Institute of Technology
+ * Copyright 2000-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -338,7 +338,7 @@ mxd_mca_roi_integral_set_parameter( MX_SCALER *scaler )
 	case MXLV_SCL_MODE:
 		if ( scaler->mode != MXCM_COUNTER_MODE ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Cannot set MCA channel scaler '%s' to counter mode %d.  "
+		"Cannot set MCA channel scaler '%s' to counter mode %ld.  "
 		"Only preset time mode is supported for now.",
 				scaler->record->name,
 				scaler->mode );

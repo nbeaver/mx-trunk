@@ -294,7 +294,7 @@ mxd_mdrive_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name );
 	}
 
-	sprintf( command, "PR I%d", mdrive_dinput->port_number );
+	sprintf( command, "PR I%ld", mdrive_dinput->port_number );
 
 	mx_status = mxd_mdrive_command( mdrive, command,
 				response, sizeof( response ),
@@ -405,7 +405,7 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "I%d=%lu",
+	sprintf( command, "I%ld=%lu",
 			mdrive_doutput->port_number, doutput->value );
 
 	mx_status = mxd_mdrive_command( mdrive, command,

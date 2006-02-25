@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -383,7 +383,8 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	static const char fname[] = "mxd_network_mce_get_motor_record_array()";
 
 	MX_NETWORK_MCE *network_mce;
-	int i, num_remote_motors, is_network_motor, name_matches;
+	mx_bool_type is_network_motor, name_matches;
+	long i, num_remote_motors;
 	char **motor_name_array;
 	long dimension_array[2];
 	size_t size_array[2];
@@ -435,7 +436,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 	/* Find out how many remote motors are supported by this MCE. */
 
 	mx_status = mx_get( &(network_mce->num_motors_nf),
-				MXFT_INT, &num_remote_motors );
+				MXFT_LONG, &num_remote_motors );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -449,7 +450,7 @@ mxd_network_mce_get_motor_record_array( MX_MCE *mce )
 
 	if ( mce->motor_record_array == NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate a %d element "
+			"Ran out of memory trying to allocate a %ld element "
 			"array of MX_RECORD pointers for record '%s'.",
 			num_remote_motors, mce->record->name );
 	}

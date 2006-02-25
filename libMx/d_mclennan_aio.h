@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,14 +27,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *mclennan_record;
-	int port_number;
+	long port_number;
 } MX_MCLENNAN_AINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *mclennan_record;
-	int port_number;
+	long port_number;
 } MX_MCLENNAN_AOUTPUT;
 
 #define MXD_MCLENNAN_AINPUT_STANDARD_FIELDS \
@@ -42,7 +42,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN_AINPUT, mclennan_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN_AINPUT, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -51,7 +51,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN_AOUTPUT, mclennan_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCLENNAN_AOUTPUT, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

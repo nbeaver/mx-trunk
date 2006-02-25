@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,9 +24,9 @@
 
 typedef struct {
 	MX_RECORD *newport_record;
-	int axis_number;
+	long axis_number;
 
-	int hardware_limits_active_high;
+	mx_bool_type hardware_limits_active_high;
 } MX_NEWPORT_MOTOR;
 
 MX_API mx_status_type mxd_newport_create_record_structures( MX_RECORD *record );
@@ -67,7 +67,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_esp_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_MOTOR, newport_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_NEWPORT_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

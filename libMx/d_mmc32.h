@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,11 +24,11 @@
 
 typedef struct {
 	MX_INTERFACE gpib_interface;
-	int motor_number;	/* From 0 to 32 */
+	long motor_number;	/* From 0 to 32 */
 	double multiplication_factor;
-	int start_velocity;
-	int peak_velocity;
-	int acceleration_steps;
+	long start_velocity;
+	long peak_velocity;
+	long acceleration_steps;
 } MX_MMC32;
 
 /* Define all of the interface functions. */
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, gpib_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -69,15 +69,15 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mmc32_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, multiplication_factor), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "start_velocity", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "start_velocity", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, start_velocity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "peak_velocity", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "peak_velocity", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, peak_velocity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "acceleration_steps", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "acceleration_steps", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MMC32, acceleration_steps), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

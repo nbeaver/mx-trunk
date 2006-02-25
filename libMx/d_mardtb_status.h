@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,7 +22,7 @@
 
 typedef struct {
 	MX_RECORD *mardtb_record;
-	int parameter_number;
+	long parameter_number;
 } MX_MARDTB_STATUS;
 
 /* Define all of the interface functions. */
@@ -44,7 +44,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_status_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_STATUS, mardtb_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "parameter_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "parameter_number", MXFT_LONG, NULL, 0, {0}, \
      MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_STATUS, parameter_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -205,7 +205,7 @@ mxd_ortec974_scaler_finish_record_initialization( MX_RECORD *record )
 	if ( (ortec974_scaler->channel_number < 2)
 	  || (ortec974_scaler->channel_number > 4 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Ortec 974 channel number %d is out of allowed range 2-4.",
+		"Ortec 974 channel number %ld is out of allowed range 2-4.",
 			ortec974_scaler->channel_number );
 	}
 
@@ -327,7 +327,7 @@ mxd_ortec974_scaler_read( MX_SCALER *scaler )
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"No counter value found in Ortec 974 response '%s' for channel %d.",
+	"No counter value found in Ortec 974 response '%s' for channel %ld.",
 			response, ortec974_scaler->channel_number );
 	}
 

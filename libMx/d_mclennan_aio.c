@@ -278,7 +278,7 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 	char command[80];
 	char response[80];
 	int num_items;
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -304,13 +304,13 @@ mxd_mclennan_ain_read( MX_ANALOG_INPUT *ainput )
 
 	if ((port_number < 1) || (port_number > mclennan->num_ainput_ports)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by analog input record '%s' is outside "
-	"the legal range of 1 to %d.", port_number,
+	"Port number %ld used by analog input record '%s' is outside "
+	"the legal range of 1 to %ld.", port_number,
 			ainput->record->name,
 			mclennan->num_ainput_ports );
 	}
 
-	sprintf( command, "AI%d", port_number );
+	sprintf( command, "AI%ld", port_number );
 
 	mx_status = mxd_mclennan_command( mclennan, command,
 				response, sizeof( response ),
@@ -396,7 +396,7 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	MX_MCLENNAN_AOUTPUT *mclennan_aoutput;
 	MX_MCLENNAN *mclennan;
 	char command[80];
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -422,13 +422,13 @@ mxd_mclennan_aout_write( MX_ANALOG_OUTPUT *aoutput )
 
 	if ((port_number < 1) || (port_number > mclennan->num_aoutput_ports)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by analog output record '%s' is outside "
-	"the legal range of 1 to %d.", port_number,
+	"Port number %ld used by analog output record '%s' is outside "
+	"the legal range of 1 to %ld.", port_number,
 			aoutput->record->name,
 			mclennan->num_aoutput_ports );
 	}
 
-	sprintf( command, "AO%d/%ld", port_number,
+	sprintf( command, "AO%ld/%ld", port_number,
 				aoutput->raw_value.long_value );
 
 	mx_status = mxd_mclennan_command( mclennan, command,

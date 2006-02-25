@@ -154,7 +154,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 
 	if ( ks3640->slot < 1 || ks3640->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"CAMAC slot number %d is out of allowed range 1-23.",
+			"CAMAC slot number %ld is out of allowed range 1-23.",
 			ks3640->slot );
 	}
 
@@ -162,7 +162,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 
 	if ( ks3640->subaddress < 0 || ks3640->subaddress > 3 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Subaddress number %d is out of allowed range 0-3.",
+		"Subaddress number %ld is out of allowed range 0-3.",
 			ks3640->subaddress);
 	}
 

@@ -8,7 +8,7 @@
  *
  *-----------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -253,7 +253,7 @@ mxd_newport_finish_record_initialization( MX_RECORD *record )
 	  || ( newport_motor->axis_number > 4 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"Illegal axis number %d for MX_NEWPORT_MOTOR.  Allowed range from 1 to 4.",
+"Illegal axis number %ld for MX_NEWPORT_MOTOR.  Allowed range from 1 to 4.",
 			newport_motor->axis_number );
 	}
 
@@ -320,7 +320,7 @@ mxd_newport_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name           = %s\n", record->name);
 	fprintf(file, "  port name      = %s\n", newport->record->name);
-	fprintf(file, "  axis number    = %d\n", newport_motor->axis_number);
+	fprintf(file, "  axis number    = %ld\n", newport_motor->axis_number);
 
 	mx_status = mx_motor_get_position( record, &position );
 
@@ -444,7 +444,7 @@ mxd_newport_open( MX_RECORD *record )
 
 	} else {	/* Newport ESP */
 
-		sprintf( command, "%dZH?", newport_motor->axis_number );
+		sprintf( command, "%ldZH?", newport_motor->axis_number );
 
 		
 		mx_status = mxi_newport_command( newport, command,
@@ -479,7 +479,7 @@ mxd_newport_open( MX_RECORD *record )
 	 */
 
 	if ( record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%dMO", newport_motor->axis_number );
+		sprintf( command, "%ldMO", newport_motor->axis_number );
 		
 		mx_status = mxi_newport_command( newport, command,
 						NULL, 0, NEWPORT_DEBUG );
@@ -529,7 +529,7 @@ mxd_newport_resynchronize( MX_RECORD *record )
 	 */
 
 	if ( record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%dMO", newport_motor->axis_number );
+		sprintf( command, "%ldMO", newport_motor->axis_number );
 		
 		mx_status = mxi_newport_command( newport, command,
 						NULL, 0, NEWPORT_DEBUG );
@@ -562,9 +562,9 @@ mxd_newport_motor_is_busy( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->record->mx_type == MXT_MTR_ESP ) {
-		sprintf( command, "%dMD?", newport_motor->axis_number );
+		sprintf( command, "%ldMD?", newport_motor->axis_number );
 	} else {
-		sprintf( command, "%dMS", newport_motor->axis_number );
+		sprintf( command, "%ldMS", newport_motor->axis_number );
 	}
 
 	mx_status = mxi_newport_command( newport, command,
@@ -626,14 +626,14 @@ mxd_newport_move_absolute( MX_MOTOR *motor )
 
 		motor_steps = motor->raw_destination.stepper;
 
-		sprintf( command, "%dPA%ld",
+		sprintf( command, "%ldPA%ld",
 				newport_motor->axis_number, motor_steps );
 
 	} else {	/* ESP and MM4000 */
 
 		raw_position = motor->raw_destination.analog;
 
-		sprintf( command, "%dPA%g",
+		sprintf( command, "%ldPA%g",
 			newport_motor->axis_number, raw_position );
 	}
 
@@ -663,7 +663,7 @@ mxd_newport_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%dTP", newport_motor->axis_number );
+	sprintf( command, "%ldTP", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -732,11 +732,11 @@ mxd_newport_set_position( MX_MOTOR *motor )
 		"to any value other than zero." );
 		}
 
-		sprintf( command, "%dZP", newport_motor->axis_number );
+		sprintf( command, "%ldZP", newport_motor->axis_number );
 
 	} else {	/* ESP */
 
-		sprintf( command, "%dDH%g",
+		sprintf( command, "%ldDH%g",
 				newport_motor->axis_number, position );
 	}
 
@@ -765,7 +765,7 @@ mxd_newport_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%dST", newport_motor->axis_number );
+	sprintf( command, "%ldST", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 					NULL, 0, NEWPORT_DEBUG );
@@ -791,7 +791,7 @@ mxd_newport_immediate_abort( MX_MOTOR *motor )
 
 	switch( motor->record->mx_type ) {
 	case MXT_MTR_MM3000:
-		sprintf( command, "%dAB", newport_motor->axis_number );
+		sprintf( command, "%ldAB", newport_motor->axis_number );
 		break;
 	case MXT_MTR_MM4000:
 	case MXT_MTR_ESP:
@@ -890,7 +890,7 @@ mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 
 	case MXT_MTR_MM3000:
 	case MXT_MTR_MM4000:
-		sprintf( command, "%dMS", newport_motor->axis_number );
+		sprintf( command, "%ldMS", newport_motor->axis_number );
 
 		mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -1010,7 +1010,7 @@ mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 
 	case MXT_MTR_MM3000:
 	case MXT_MTR_MM4000:
-		sprintf( command, "%dMS", newport_motor->axis_number );
+		sprintf( command, "%ldMS", newport_motor->axis_number );
 
 		mx_status = mxi_newport_command( newport, command,
 				response, sizeof response, NEWPORT_DEBUG );
@@ -1068,7 +1068,7 @@ mxd_newport_find_home_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "%dOR", newport_motor->axis_number );
+	sprintf( command, "%ldOR", newport_motor->axis_number );
 
 	mx_status = mxi_newport_command( newport, command,
 					NULL, 0, NEWPORT_DEBUG );
@@ -1099,9 +1099,9 @@ mxd_newport_constant_velocity_move( MX_MOTOR *motor )
 	case MXT_MTR_MM3000:
 	case MXT_MTR_ESP:
 		if ( motor->constant_velocity_move >= 0 ) {
-			sprintf( command, "%dMV+", newport_motor->axis_number );
+			sprintf( command, "%ldMV+", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%dMV-", newport_motor->axis_number );
+			sprintf( command, "%ldMV-", newport_motor->axis_number);
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1143,7 +1143,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -1153,9 +1153,9 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 
 		if ( motor->record->mx_type == MXT_MTR_ESP ) {
-			sprintf( command, "%dVA?", newport_motor->axis_number );
+			sprintf( command, "%ldVA?", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%dDV", newport_motor->axis_number );
+			sprintf( command, "%ldDV", newport_motor->axis_number );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1189,7 +1189,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 
 		if ( motor->record->mx_type == MXT_MTR_MM3000 ) {
 
-			sprintf( command, "%dDV", newport_motor->axis_number );
+			sprintf( command, "%ldDV", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport, command,
 				response, sizeof(response), NEWPORT_DEBUG );
@@ -1218,7 +1218,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			}
 		} else if ( motor->record->mx_type == MXT_MTR_ESP ) {
 
-			sprintf( command, "%dVB?", newport_motor->axis_number );
+			sprintf( command, "%ldVB?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 				response, sizeof(response), NEWPORT_DEBUG );
@@ -1242,9 +1242,9 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
 		if ( motor->record->mx_type == MXT_MTR_ESP ) {
-			sprintf( command, "%dAC?", newport_motor->axis_number );
+			sprintf( command, "%ldAC?", newport_motor->axis_number);
 		} else {
-			sprintf( command, "%dDA", newport_motor->axis_number );
+			sprintf( command, "%ldDA", newport_motor->axis_number );
 		}
 
 		mx_status = mxi_newport_command( newport, command,
@@ -1273,10 +1273,10 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->proportional_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%dKP?",
+				sprintf( command, "%ldKP?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%dXP",
+				sprintf( command, "%ldXP",
 					newport_motor->axis_number );
 			}
 
@@ -1303,10 +1303,10 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->integral_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%dKI?",
+				sprintf( command, "%ldKI?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%dXI",
+				sprintf( command, "%ldXI",
 					newport_motor->axis_number );
 			}
 
@@ -1333,10 +1333,10 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->derivative_gain = 0.0;
 		} else {
 			if ( motor->record->mx_type == MXT_MTR_ESP ) {
-				sprintf( command, "%dKP?",
+				sprintf( command, "%ldKP?",
 					newport_motor->axis_number );
 			} else {
-				sprintf( command, "%dXP",
+				sprintf( command, "%ldXP",
 					newport_motor->axis_number );
 			}
 
@@ -1363,7 +1363,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->velocity_feedforward_gain = 0.0;
 
 		} else {
-			sprintf( command, "%dVF?", newport_motor->axis_number );
+			sprintf( command, "%ldVF?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
@@ -1388,7 +1388,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 			motor->acceleration_feedforward_gain = 0.0;
 
 		} else {
-			sprintf( command, "%dAF?", newport_motor->axis_number );
+			sprintf( command, "%ldAF?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
@@ -1412,7 +1412,7 @@ mxd_newport_get_parameter( MX_MOTOR *motor )
 		if ( motor->record->mx_type == MXT_MTR_MM3000 ) {
 			motor->integral_limit = 0.0;
 		} else {
-			sprintf( command, "%dKS?", newport_motor->axis_number );
+			sprintf( command, "%ldKS?", newport_motor->axis_number);
 
 			mx_status = mxi_newport_command( newport, command,
 					response, sizeof(response),
@@ -1455,7 +1455,7 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -1463,7 +1463,7 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "%dVA%g", newport_motor->axis_number,
+		sprintf( command, "%ldVA%g", newport_motor->axis_number,
 						motor->raw_speed );
 
 		mx_status = mxi_newport_command( newport,
@@ -1476,7 +1476,7 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM3000 */
 
-			sprintf( command, "%dVB%g", newport_motor->axis_number,
+			sprintf( command, "%ldVB%g", newport_motor->axis_number,
 						motor->raw_base_speed );
 
 			mx_status = mxi_newport_command( newport,
@@ -1485,7 +1485,7 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "%dAC%g", newport_motor->axis_number,
+		sprintf( command, "%ldAC%g", newport_motor->axis_number,
 					motor->raw_acceleration_parameters[0] );
 
 		mx_status = mxi_newport_command( newport,
@@ -1526,13 +1526,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%dKP%f", newport_motor->axis_number,
+			sprintf( command, "%ldKP%f", newport_motor->axis_number,
 					motor->proportional_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1546,13 +1546,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%dKI%f", newport_motor->axis_number,
+			sprintf( command, "%ldKI%f", newport_motor->axis_number,
 					motor->integral_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1566,13 +1566,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP and MM4000 */
 
-			sprintf( command, "%dKD%f", newport_motor->axis_number,
+			sprintf( command, "%ldKD%f", newport_motor->axis_number,
 					motor->derivative_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1586,13 +1586,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP */
 
-			sprintf( command, "%dVF%f", newport_motor->axis_number,
+			sprintf( command, "%ldVF%f", newport_motor->axis_number,
 					motor->velocity_feedforward_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1606,13 +1606,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 
 		} else {		/* ESP */
 
-			sprintf( command, "%dAF%f", newport_motor->axis_number,
+			sprintf( command, "%ldAF%f", newport_motor->axis_number,
 					motor->acceleration_feedforward_gain );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
@@ -1625,13 +1625,13 @@ mxd_newport_set_parameter( MX_MOTOR *motor )
 			motor->integral_limit = 0.0;
 
 		} else {
-			sprintf( command, "%dKS%f", newport_motor->axis_number,
+			sprintf( command, "%ldKS%f", newport_motor->axis_number,
 					motor->integral_limit );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );
 
-			sprintf( command, "%dUF", newport_motor->axis_number );
+			sprintf( command, "%ldUF", newport_motor->axis_number );
 
 			mx_status = mxi_newport_command( newport,
 					command, NULL, 0, NEWPORT_DEBUG );

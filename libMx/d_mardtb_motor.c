@@ -320,7 +320,7 @@ mxd_mardtb_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Send the move command. */
 
-	sprintf( command, "stepper_cmd %d,2,%ld,%ld,%ld",
+	sprintf( command, "stepper_cmd %ld,2,%ld,%ld,%ld",
 			mardtb_motor->motor_number,
 			motor->raw_destination.stepper,
 			mx_round( motor->raw_speed
@@ -361,7 +361,7 @@ mxd_mardtb_motor_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "stepper_cmd %d,1", mardtb_motor->motor_number );
+	sprintf( command, "stepper_cmd %ld,1", mardtb_motor->motor_number );
 
 #if 0
 	mx_status = mxi_mardtb_command( mardtb, command,
@@ -448,7 +448,7 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 
 	/* Send the stepper_state command to the goniostat controller. */
 
-	sprintf( command, "stepper_state %d,1", mardtb_motor->motor_number );
+	sprintf( command, "stepper_state %ld,1", mardtb_motor->motor_number );
 
 	mx_status = mxi_mardtb_command( mardtb, command,
 					response, sizeof (response),

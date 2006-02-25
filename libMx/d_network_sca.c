@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -209,7 +209,7 @@ mxd_network_sca_resynchronize( MX_RECORD *record )
 
 	MX_SCA *sca;
 	MX_NETWORK_SCA *network_sca;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -224,10 +224,10 @@ mxd_network_sca_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	resynchronize = 1;
+	resynchronize = TRUE;
 
 	mx_status = mx_put( &(network_sca->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
@@ -272,11 +272,11 @@ mxd_network_sca_get_parameter( MX_SCA *sca )
 	if ( sca->parameter_type == MXLV_SCA_MODE ) {
 
 		mx_status = mx_get( &(network_sca->sca_mode_nf),
-					MXFT_INT, &(sca->sca_mode) );
+					MXFT_LONG, &(sca->sca_mode) );
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			sca->parameter_type );
 	}
 
@@ -323,11 +323,11 @@ mxd_network_sca_set_parameter( MX_SCA *sca )
 	if ( sca->parameter_type == MXLV_SCA_MODE ) {
 
 		mx_status = mx_put( &(network_sca->sca_mode_nf),
-					MXFT_INT, &(sca->sca_mode) );
+					MXFT_LONG, &(sca->sca_mode) );
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			sca->parameter_type );
 	}
 

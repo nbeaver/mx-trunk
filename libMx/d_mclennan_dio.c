@@ -270,7 +270,7 @@ mxd_mclennan_din_read( MX_DIGITAL_INPUT *dinput )
 	char response[80];
 	char input_char;
 	int offset;
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -296,8 +296,8 @@ mxd_mclennan_din_read( MX_DIGITAL_INPUT *dinput )
 
 	if ((port_number < 1) || (port_number > mclennan->num_dinput_ports)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital input record '%s' is outside "
-	"the legal range of 1 to %d.", port_number,
+	"Port number %ld used by digital input record '%s' is outside "
+	"the legal range of 1 to %ld.", port_number,
 			dinput->record->name,
 			mclennan->num_dinput_ports );
 	}
@@ -391,7 +391,7 @@ mxd_mclennan_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_MCLENNAN *mclennan;
 	char command[80];
 	int i, j, num_output_ports;
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -417,8 +417,8 @@ mxd_mclennan_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ((port_number < 1) || (port_number > mclennan->num_doutput_ports)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital output record '%s' is outside "
-	"the legal range of 1 to %d.", port_number,
+	"Port number %ld used by digital output record '%s' is outside "
+	"the legal range of 1 to %ld.", port_number,
 			doutput->record->name,
 			mclennan->num_doutput_ports );
 	}

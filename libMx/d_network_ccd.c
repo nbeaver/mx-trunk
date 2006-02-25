@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -271,7 +271,7 @@ mxd_network_ccd_stop( MX_CCD *ccd )
 	static const char fname[] = "mxd_network_ccd_stop()";
 
 	MX_NETWORK_CCD *network_ccd;
-	int stop;
+	mx_bool_type stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
@@ -282,9 +282,9 @@ mxd_network_ccd_stop( MX_CCD *ccd )
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, ccd->record->name));
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_ccd->stop_nf), MXFT_INT, &stop );
+	mx_status = mx_put( &(network_ccd->stop_nf), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -336,7 +336,7 @@ mxd_network_ccd_readout( MX_CCD *ccd )
 		return mx_status;
 
 	mx_status = mx_put( &(network_ccd->readout_nf),
-				MXFT_INT, &(ccd->readout) );
+				MXFT_BOOL, &(ccd->readout) );
 	return mx_status;
 }
 
@@ -363,7 +363,7 @@ mxd_network_ccd_dezinger( MX_CCD *ccd )
 		return mx_status;
 
 	mx_status = mx_put( &(network_ccd->dezinger_nf),
-				MXFT_INT, &(ccd->dezinger) );
+				MXFT_BOOL, &(ccd->dezinger) );
 	return mx_status;
 }
 
@@ -373,7 +373,7 @@ mxd_network_ccd_correct( MX_CCD *ccd )
 	static const char fname[] = "mxd_network_ccd_correct()";
 
 	MX_NETWORK_CCD *network_ccd;
-	int correct;
+	mx_bool_type correct;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_ccd_get_pointers( ccd, &network_ccd, fname );
@@ -384,9 +384,9 @@ mxd_network_ccd_correct( MX_CCD *ccd )
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, ccd->record->name));
 
-	correct = 1;
+	correct = TRUE;
 
-	mx_status = mx_put( &(network_ccd->correct_nf), MXFT_INT, &correct );
+	mx_status = mx_put( &(network_ccd->correct_nf), MXFT_BOOL, &correct );
 
 	return mx_status;
 }
@@ -424,7 +424,7 @@ mxd_network_ccd_writefile( MX_CCD *ccd )
 		return mx_status;
 
 	mx_status = mx_put( &(network_ccd->writefile_nf),
-				MXFT_INT, &(ccd->writefile) );
+				MXFT_BOOL, &(ccd->writefile) );
 	return mx_status;
 }
 
@@ -444,7 +444,7 @@ mxd_network_ccd_get_parameter( MX_CCD *ccd )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for CCD '%s', parameter type '%s' (%d)",
+	("%s invoked for CCD '%s', parameter type '%s' (%ld)",
 		fname, ccd->record->name,
 		mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),
@@ -455,14 +455,14 @@ mxd_network_ccd_get_parameter( MX_CCD *ccd )
 		dimension[0] = 2;
 
 		mx_status = mx_get_array( &(network_ccd->data_frame_size_nf),
-					MXFT_INT, 1, dimension,
+					MXFT_LONG, 1, dimension,
 					&(ccd->data_frame_size) );
 		break;
 	case MXLV_CCD_BIN_SIZE:
 		dimension[0] = 2;
 
 		mx_status = mx_get_array( &(network_ccd->bin_size_nf),
-					MXFT_INT, 1, dimension,
+					MXFT_LONG, 1, dimension,
 					&(ccd->bin_size) );
 		break;
 	default:
@@ -489,7 +489,7 @@ mxd_network_ccd_set_parameter( MX_CCD *ccd )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for CCD '%s', parameter type '%s' (%d)",
+	("%s invoked for CCD '%s', parameter type '%s' (%ld)",
 		fname, ccd->record->name,
 		mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),
@@ -500,7 +500,7 @@ mxd_network_ccd_set_parameter( MX_CCD *ccd )
 		dimension[0] = 2;
 
 		mx_status = mx_put_array( &(network_ccd->data_frame_size_nf),
-						MXFT_INT, 1, dimension,
+						MXFT_LONG, 1, dimension,
 						&(ccd->data_frame_size) );
 		break;
 	case MXLV_CCD_HEADER_VARIABLE_NAME:

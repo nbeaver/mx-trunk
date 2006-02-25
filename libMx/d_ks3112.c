@@ -131,7 +131,7 @@ mxd_ks3112_finish_record_initialization( MX_RECORD *record )
 
         if ( ks3112->slot < 1 || ks3112->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                "CAMAC slot number %d is out of the allowed range 1-23.",
+                "CAMAC slot number %ld is out of the allowed range 1-23.",
                         ks3112->slot );
         }
 
@@ -174,8 +174,8 @@ mxd_ks3112_print_structure( FILE *file, MX_RECORD *record )
 				dac->raw_value.long_value,
 				dac->value, dac->units);
 	fprintf(file, "  crate      = %s\n", ks3112->camac_record->name);
-	fprintf(file, "  slot       = %d\n", ks3112->slot);
-	fprintf(file, "  subaddress = %d\n", ks3112->subaddress);
+	fprintf(file, "  slot       = %ld\n", ks3112->slot);
+	fprintf(file, "  subaddress = %ld\n", ks3112->subaddress);
 	fprintf(file, "  scale      = %g\n", dac->scale );
 	fprintf(file, "  offset     = %g\n", dac->offset );
 

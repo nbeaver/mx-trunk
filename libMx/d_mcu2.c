@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -130,12 +130,12 @@ mxd_mcu2_command( MX_MCU2 *mcu2,
 	flags = mcu2->mcu2_flags;
 
 	if ( flags & MXF_MCU2_NO_START_CHARACTER ) {
-		sprintf( local_command_buffer, "%02d%s",
+		sprintf( local_command_buffer, "%02ld%s",
 					mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer;
 	} else {
-		sprintf( local_command_buffer, "#%02d%s",
+		sprintf( local_command_buffer, "#%02ld%s",
 					mcu2->axis_address, command );
 
 		address_ptr = local_command_buffer + 1;
@@ -292,7 +292,7 @@ mxd_mcu2_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name               = %s\n", record->name);
 	fprintf(file, "  RS-232 record name = %s\n",
 					mcu2->rs232_record->name);
-	fprintf(file, "  axis address       = %d\n",
+	fprintf(file, "  axis address       = %ld\n",
 					mcu2->axis_address);
 	fprintf(file, "  mcu2_flags         = %#lx\n", mcu2->mcu2_flags);
 
@@ -596,7 +596,7 @@ mxd_mcu2_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -728,7 +728,7 @@ mxd_mcu2_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),

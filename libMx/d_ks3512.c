@@ -126,7 +126,7 @@ mxd_ks3512_finish_record_initialization( MX_RECORD *record )
 
         if ( ks3512->slot < 1 || ks3512->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                "CAMAC slot number %d is out of the allowed range 1-23.",
+                "CAMAC slot number %ld is out of the allowed range 1-23.",
                         ks3512->slot );
         }
 

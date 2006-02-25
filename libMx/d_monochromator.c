@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -181,7 +181,7 @@ mxd_monochromator_get_pointers( MX_MOTOR *motor,
 
 static mx_status_type
 mxd_monochromator_get_enable_status( MX_RECORD *list_record,
-					int *enable_status )
+					mx_bool_type *enable_status )
 {
 	static const char fname[] = "mxd_monochromator_get_enable_status()";
 
@@ -228,7 +228,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 
 static mx_status_type
 mxd_monochromator_get_dependency_type( MX_RECORD *list_record,
-					int *dependency_type )
+					long *dependency_type )
 {
 	MX_RECORD **record_array;
 	MX_RECORD *dependency_type_record;
@@ -262,7 +262,7 @@ mxd_monochromator_get_dependency_type( MX_RECORD *list_record,
 
 static mx_status_type
 mxd_monochromator_get_param_array_from_list( MX_RECORD *list_record,
-					int *num_parameters,
+					long *num_parameters,
 					double **parameter_array )
 {
 	static const char fname[]
@@ -311,7 +311,7 @@ mxd_monochromator_get_param_array_from_list( MX_RECORD *list_record,
 
 static mx_status_type
 mxd_monochromator_get_record_array_from_list( MX_RECORD *list_record,
-					int *num_records,
+					long *num_records,
 					MX_RECORD ***returned_record_array )
 {
 	static const char fname[]
@@ -412,7 +412,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *record;
-	int i, j, num_records;
+	long i, j, num_records;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_pointers( motor,
@@ -423,7 +423,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 
-		MX_DEBUG( 2,("%s: monochromator->speed_changed[%d] = %d",
+		MX_DEBUG( 2,("%s: monochromator->speed_changed[%ld] = %d",
 			fname, i, monochromator->speed_changed[i]));
 
 		if ( monochromator->speed_changed[i] ) {
@@ -437,14 +437,15 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			MX_DEBUG( 2,("%s: list_record = '%s', num_records = %d",
+			MX_DEBUG( 2,
+				("%s: list_record = '%s', num_records = %ld",
 				fname, list_record->name, num_records));
 
 			for ( j = 0; j < num_records; j++ ) {
 
 				record = record_array[j];
 
-				MX_DEBUG( 2,("%s: record_array[%d] = '%s'",
+				MX_DEBUG( 2,("%s: record_array[%ld] = '%s'",
 					fname, j, record->name));
 
 				if ( (record->mx_superclass == MXR_DEVICE)
@@ -599,7 +600,8 @@ mxd_monochromator_finish_record_initialization( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_MONOCHROMATOR *monochromator;
 	MX_RECORD *list_record;
-	int i, dependency_type, theta_dependency_found, energy_dependency_found;
+	long i, dependency_type;
+	mx_bool_type theta_dependency_found, energy_dependency_found;
 	mx_status_type mx_status;
 
 	mx_status = mx_motor_finish_record_initialization( record );
@@ -786,7 +788,8 @@ mxd_monochromator_open( MX_RECORD *record )
 	MX_RECORD *list_record, *dependent_record;
 	MX_RECORD **record_array;
 	MX_MOTOR *motor, *dependent_motor;
-	int i, j, num_records, speed_change_permitted, flags;
+	long i, j, num_records, flags;
+	mx_bool_type speed_change_permitted;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -873,7 +876,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 	mx_status_type (*fptr)( MX_MONOCHROMATOR *, MX_RECORD *, long,
 					double, double, int );
 	double raw_destination, old_raw_position, dummy;
-	int i, dependency_type;
+	long i, dependency_type;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -909,7 +912,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 
 		if ( list_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-"Record pointer for element %d of list_array in monochromator '%s' is NULL.",
+"Record pointer for element %ld of list_array in monochromator '%s' is NULL.",
 				i, motor->record->name );
 		}
 
@@ -923,7 +926,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 
 		if ( flist == NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"Monochromator function list entry for dependency type %d is NULL.",
+	"Monochromator function list entry for dependency type %ld is NULL.",
 				dependency_type );
 		}
 
@@ -931,7 +934,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 
 		if ( fptr == NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"move function pointer for monochromator dependency type %d is NULL.",
+	"move function pointer for monochromator dependency type %ld is NULL.",
 				dependency_type );
 		}
 
@@ -999,7 +1002,7 @@ mxd_monochromator_get_position( MX_MOTOR *motor )
 	MX_MONOCHROMATOR_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)(MX_MONOCHROMATOR *, MX_RECORD *, long, double *);
 	double position;
-	int dependency_type;
+	long dependency_type;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1034,7 +1037,7 @@ mxd_monochromator_get_position( MX_MOTOR *motor )
 
 	if ( flist == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"Monochromator function list entry for dependency type %d is NULL.",
+	"Monochromator function list entry for dependency type %ld is NULL.",
 			dependency_type );
 	}
 
@@ -1042,7 +1045,7 @@ mxd_monochromator_get_position( MX_MOTOR *motor )
 
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"get_position pointer for monochromator dependency type %d is NULL.",
+	"get_position pointer for monochromator dependency type %ld is NULL.",
 			dependency_type );
 	}
 
@@ -1072,7 +1075,7 @@ mxd_monochromator_set_position( MX_MOTOR *motor )
 	MX_MONOCHROMATOR_FUNCTION_LIST *flist;
 	mx_status_type (*fptr)( MX_MONOCHROMATOR *, MX_RECORD *, long, double );
 	double raw_set_position;
-	int dependency_type;
+	long dependency_type;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1109,7 +1112,7 @@ mxd_monochromator_set_position( MX_MOTOR *motor )
 
 	if ( flist == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"Monochromator function list entry for dependency type %d is NULL.",
+	"Monochromator function list entry for dependency type %ld is NULL.",
 			dependency_type );
 	}
 
@@ -1117,7 +1120,7 @@ mxd_monochromator_set_position( MX_MOTOR *motor )
 
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"get_position pointer for monochromator dependency type %d is NULL.",
+	"get_position pointer for monochromator dependency type %ld is NULL.",
 			dependency_type );
 	}
 
@@ -1144,7 +1147,7 @@ mxd_monochromator_soft_abort( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *record;
-	int i, j, num_records;
+	long i, j, num_records;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1204,7 +1207,7 @@ mxd_monochromator_immediate_abort( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *record;
-	int i, j, num_records;
+	long i, j, num_records;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1261,7 +1264,7 @@ mxd_monochromator_constant_velocity_move( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *record;
-	int num_records;
+	long num_records;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1334,7 +1337,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *theta_record;
-	int num_records;
+	long num_records;
 	double double_value;
 	double start_position, end_position;
 	double real_start_position, real_end_position;
@@ -1352,7 +1355,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
+	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %ld",
 		fname, motor->record->name, motor->parameter_type));
 
 	/* Get the first entry in the list array. */
@@ -1473,7 +1476,7 @@ mxd_monochromator_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%d) is not supported by the "
+			"Parameter type '%s' (%ld) is not supported by the "
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
@@ -1499,7 +1502,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *theta_record;
-	int num_records;
+	long num_records;
 	double start_position, end_position, time_for_move;
 	mx_status_type mx_status;
 
@@ -1515,7 +1518,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %d",
+	MX_DEBUG( 2,("%s: motor '%s', parameter_type = %ld",
 		fname, motor->record->name, motor->parameter_type));
 
 	/* Get the first entry in the list array. */
@@ -1589,7 +1592,7 @@ mxd_monochromator_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Parameter type '%s' (%d) is not supported by the "
+			"Parameter type '%s' (%ld) is not supported by the "
 			"monochromator driver for motor '%s'.",
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
@@ -1616,8 +1619,9 @@ mxd_monochromator_get_status( MX_MOTOR *motor )
 	MX_RECORD *list_record;
 	MX_RECORD **record_array;
 	MX_RECORD *record;
-	int i, j, num_records, enabled, dependency_type;
+	long i, j, num_records, dependency_type;
 	unsigned long motor_status;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 #if MXD_MONOCHROMATOR_DEBUG_TIMING
@@ -1750,7 +1754,7 @@ mxd_monochromator_get_theta_position( MX_MONOCHROMATOR *monochromator,
 {
 	MX_RECORD **theta_record_array;
 	MX_RECORD *theta_record;
-	int num_records;
+	long num_records;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_record_array_from_list(
@@ -1777,7 +1781,7 @@ mxd_monochromator_set_theta_position( MX_MONOCHROMATOR *monochromator,
 {
 	MX_RECORD **theta_record_array;
 	MX_RECORD *theta_record;
-	int num_records;
+	long num_records;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_record_array_from_list(
@@ -1808,8 +1812,9 @@ mxd_monochromator_move_theta( MX_MONOCHROMATOR *monochromator,
 
 	MX_RECORD **theta_record_array;
 	MX_RECORD *theta_record;
-	int enabled, num_records;
+	long num_records;
 	double theta_speed;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	/* Is this dependency enabled? */
@@ -1871,8 +1876,7 @@ mxd_mono_get_energy_pointers( MX_MONOCHROMATOR *monochromator,
 
 	MX_RECORD **record_array;
 	double *parameter_array;
-	int num_records, num_parameters;
-	long num_elements;
+	long num_records, num_parameters, num_elements;
 	void *pointer_to_value;
 	mx_status_type mx_status;
 
@@ -1885,7 +1889,7 @@ mxd_mono_get_energy_pointers( MX_MONOCHROMATOR *monochromator,
 	if ( num_parameters != 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The parameter array for list record '%s' does not have 1 parameter.  "
-"Instead, it has %d parameters.", list_record->name, num_parameters );
+"Instead, it has %ld parameters.", list_record->name, num_parameters );
 	}
 
 	*radians_per_engineering_unit = parameter_array[0];
@@ -1908,7 +1912,7 @@ mxd_mono_get_energy_pointers( MX_MONOCHROMATOR *monochromator,
 	if ( num_records != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' should have 2 records in it.  "
-	"Instead there are %d records in it.",
+	"Instead there are %ld records in it.",
 			list_record->name, num_records );
 	}
 
@@ -2035,7 +2039,7 @@ mxd_monochromator_move_energy( MX_MONOCHROMATOR *monochromator,
 	double energy, old_energy, d_spacing, denominator;
 	double angle_in_radians, old_angle_in_radians;
 	double energy_speed, radians_per_engineering_unit;
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2136,8 +2140,9 @@ mxd_monochromator_move_polynomial( MX_MONOCHROMATOR *monochromator,
 	MX_RECORD **record_array;
 	MX_RECORD *dependent_motor_record;
 	double *parameter_array;
-	int i, num_records, num_parameters, enabled;
+	long i, num_records, num_parameters;
 	double dependent_value;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2163,7 +2168,7 @@ mxd_monochromator_move_polynomial( MX_MONOCHROMATOR *monochromator,
 	if ( num_records != 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' should have 1 record in it.  "
-	"Instead there are %d records in it.",
+	"Instead there are %ld records in it.",
 			list_record->name, num_records );
 	}
 
@@ -2237,11 +2242,10 @@ mxd_monochromator_move_insertion_device_energy(
 	MX_RECORD **record_array;
 	MX_RECORD *id_motor_record;
 	double *parameter_array;
-	int num_parameters, num_records;
-	long num_elements, gap_harmonic;
+	long num_parameters, num_records, num_elements, gap_harmonic;
 	double gap_offset, d_spacing, denominator, mono_energy, id_energy;
 	void *pointer_to_value;
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2261,7 +2265,7 @@ mxd_monochromator_move_insertion_device_energy(
 	if ( num_parameters != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The parameter array for list record '%s' does not have 2 parameters.  "
-"Instead, it has %d parameters.", list_record->name, num_parameters );
+"Instead, it has %ld parameters.", list_record->name, num_parameters );
 	}
 
 	gap_harmonic = mx_round( parameter_array[0] );
@@ -2283,7 +2287,7 @@ mxd_monochromator_move_insertion_device_energy(
 	if ( num_records != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' does not have 2 records.  "
-	"Instead, it has %d records.", list_record->name, num_records );
+	"Instead, it has %ld records.", list_record->name, num_records );
 	}
 
 	/* The first record is the insertion device motor record. */
@@ -2344,8 +2348,7 @@ mxd_monochromator_get_double_crystal_parameters(
 		= "mxd_monochromator_get_double_crystal_parameters()";
 
 	MX_RECORD **record_array;
-	int num_records;
-	long i, num_variable_elements;
+	long i, num_variable_elements, num_records;
 	void *pointer_to_value;
 	double *variable_array;
 	mx_status_type mx_status;
@@ -2380,7 +2383,7 @@ mxd_monochromator_get_double_crystal_parameters(
 	if ( num_records != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' should have 2 records in it.  "
-	"Instead there are %d records in it.",
+	"Instead there are %ld records in it.",
 			list_record->name, num_records );
 	}
 
@@ -2464,7 +2467,7 @@ mxd_monochromator_move_bragg_normal( MX_MONOCHROMATOR *monochromator,
 	MX_MOTOR *monochromator_motor;
 	MX_RECORD *normal_record;
 	double old_bragg_normal, new_bragg_normal, beam_offset, denominator;
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2597,7 +2600,7 @@ mxd_monochromator_move_bragg_parallel( MX_MONOCHROMATOR *monochromator,
 
 	MX_RECORD *parallel_record;
 	double new_bragg_parallel, beam_offset, denominator;
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2669,7 +2672,7 @@ mxd_monochromator_move_table( MX_MONOCHROMATOR *monochromator,
 	MX_RECORD *table_record;
 	double constant, crystal_separation, new_table_position;
 	double table_parameters[2];
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2752,8 +2755,8 @@ mxd_monochromator_move_diffractometer_theta(
 	double diffractometer_scale, diffractometer_offset;
 	double numerator, sin_theta, diffractometer_theta;
 	void *pointer_to_value;
-	int enabled, num_parameters, num_records;
-	long num_elements;
+	long num_parameters, num_records, num_elements;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2773,7 +2776,7 @@ mxd_monochromator_move_diffractometer_theta(
 	if ( num_parameters != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The parameter array for list record '%s' should have 2 parameters in it.  "
-"Instead, there are %d parameters in it.", list_record->name, num_parameters );
+"Instead, there are %ld parameters in it.", list_record->name, num_parameters );
 	}
 
 	diffractometer_scale = parameter_array[0];
@@ -2788,7 +2791,7 @@ mxd_monochromator_move_diffractometer_theta(
 	if ( num_records != 3 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The record array for list record '%s' should have 3 records in it.  "
-"Instead, there are %d records in it.", list_record->name, num_records );
+"Instead, there are %ld records in it.", list_record->name, num_records );
 	}
 
 	/* The first record in the record array is the motor record
@@ -2889,11 +2892,10 @@ mxd_monochromator_move_e_polynomial(
 	MX_RECORD **record_array;
 	MX_RECORD *energy_polynomial_record;
 	double *parameter_array;
-	int i, num_parameters, num_records;
-	long num_elements;
+	long i, num_parameters, num_records, num_elements;
 	double d_spacing, denominator, mono_energy, energy_polynomial;
 	void *pointer_to_value;
-	int enabled;
+	mx_bool_type enabled;
 	mx_status_type mx_status;
 
 	mx_status = mxd_monochromator_get_enable_status( list_record, &enabled);
@@ -2919,7 +2921,7 @@ mxd_monochromator_move_e_polynomial(
 	if ( num_records != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' does not have 2 records.  "
-	"Instead, it has %d records.", list_record->name, num_records );
+	"Instead, it has %ld records.", list_record->name, num_records );
 	}
 
 	/* The first record is the energy polynomial motor record. */
@@ -3006,9 +3008,9 @@ mxd_monochromator_move_option_selector(
 	void *pointer_to_value;
 	double **option_range_array;
 	double lower_limit, upper_limit;
-	int enabled, num_records, exit_loop;
-	int old_selection, new_selection;
-	long num_dimensions, field_type, num_ranges;
+	mx_bool_type enabled, exit_loop;
+	long old_selection, new_selection;
+	long num_records, num_dimensions, field_type, num_ranges;
 	long *dimension_array;
 	mx_status_type mx_status;
 
@@ -3033,7 +3035,7 @@ mxd_monochromator_move_option_selector(
 	if ( num_records != 2 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The record array for list record '%s' does not have 2 records.  "
-	"Instead, it has %d records.", list_record->name, num_records );
+	"Instead, it has %ld records.", list_record->name, num_records );
 	}
 
 	/* The first record is the option selector record. */
@@ -3046,7 +3048,7 @@ mxd_monochromator_move_option_selector(
 
 	/* Get the current value of the option selector. */
 
-	mx_status = mx_get_int_variable( option_selector_record,
+	mx_status = mx_get_long_variable( option_selector_record,
 					&old_selection );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -3128,12 +3130,12 @@ mxd_monochromator_move_option_selector(
 
 	/* Change the option selector variable if necessary. */
 
-	MX_DEBUG( 2,("%s: new_selection = %d, old_selection = %d",
+	MX_DEBUG( 2,("%s: new_selection = %ld, old_selection = %ld",
 		fname, new_selection, old_selection));
 
 	if ( new_selection != old_selection ) {
 
-		mx_status = mx_set_int_variable( option_selector_record,
+		mx_status = mx_set_long_variable( option_selector_record,
 					new_selection );
 
 		if ( mx_status.code != MXE_SUCCESS )

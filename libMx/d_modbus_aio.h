@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@ typedef struct {
 
 	MX_RECORD *modbus_record;
 	unsigned long modbus_address;
-	int num_bits;
+	long num_bits;
 	unsigned long modbus_function_code;
 } MX_MODBUS_AINPUT;
 
@@ -34,7 +34,7 @@ typedef struct {
 
 	MX_RECORD *modbus_record;
 	unsigned long modbus_address;
-	int num_bits;
+	long num_bits;
 	unsigned long modbus_function_code;
 } MX_MODBUS_AOUTPUT;
 
@@ -48,7 +48,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_AINPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_AINPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -66,7 +66,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_AOUTPUT, modbus_address),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_AOUTPUT, num_bits),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

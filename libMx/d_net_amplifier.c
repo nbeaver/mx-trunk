@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -198,7 +198,7 @@ mxd_network_amplifier_resynchronize( MX_RECORD *record )
 
 	MX_AMPLIFIER *amplifier;
 	MX_NETWORK_AMPLIFIER *network_amplifier;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -217,7 +217,7 @@ mxd_network_amplifier_resynchronize( MX_RECORD *record )
 	resynchronize = 1;
 
 	mx_status = mx_put( &(network_amplifier->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
@@ -376,7 +376,7 @@ mxd_network_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG( 2,
-		("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+		("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 						amplifier->parameter_type ),

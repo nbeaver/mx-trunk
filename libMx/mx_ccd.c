@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -352,7 +352,7 @@ mx_ccd_default_get_parameter_handler( MX_CCD *ccd )
 	switch( ccd->parameter_type ) {
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for CCD '%s'.",
 			mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),
@@ -375,7 +375,7 @@ mx_ccd_default_set_parameter_handler( MX_CCD *ccd )
 	switch( ccd->parameter_type ) {
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type '%s' (%d) is not supported by the "
+		"Parameter type '%s' (%ld) is not supported by the "
 		"MX driver for CCD '%s'.",
 			mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),

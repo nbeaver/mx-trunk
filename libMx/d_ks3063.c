@@ -156,7 +156,7 @@ mxd_ks3063_in_finish_record_initialization( MX_RECORD *record )
 
         if ( ks3063_in->slot < 1 || ks3063_in->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                "CAMAC slot number %d is out of the allowed range 1-23.",
+                "CAMAC slot number %ld is out of the allowed range 1-23.",
                         ks3063_in->slot );
         }
 
@@ -188,7 +188,7 @@ mxd_ks3063_in_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_in->camac_record->name);
-	fprintf(file, "  slot       = %d\n", ks3063_in->slot);
+	fprintf(file, "  slot       = %ld\n", ks3063_in->slot);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -294,7 +294,7 @@ mxd_ks3063_out_finish_record_initialization( MX_RECORD *record )
 
         if ( ks3063_out->slot < 1 || ks3063_out->slot > 23 ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-                "CAMAC slot number %d is out of the allowed range 1-23.",
+                "CAMAC slot number %ld is out of the allowed range 1-23.",
                         ks3063_out->slot );
         }
 
@@ -335,7 +335,7 @@ mxd_ks3063_out_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  value      = %lu\n", doutput->value);
 	fprintf(file, "  name       = %s\n", record->name);
 	fprintf(file, "  crate      = %s\n", ks3063_out->camac_record->name);
-	fprintf(file, "  slot       = %d\n", ks3063_out->slot);
+	fprintf(file, "  slot       = %ld\n", ks3063_out->slot);
 
 	return MX_SUCCESSFUL_RESULT;
 }

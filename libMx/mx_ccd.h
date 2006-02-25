@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,20 +59,20 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int data_frame_size[2];
-	int bin_size[2];
+	long data_frame_size[2];
+	long bin_size[2];
 	unsigned long status;
 	unsigned long ccd_flags;
 
-	int parameter_type;
+	long parameter_type;
 
 	double preset_time;
 
-	int stop;
-	int readout;
-	int dezinger;
-	int correct;
-	int writefile;
+	mx_bool_type stop;
+	mx_bool_type readout;
+	mx_bool_type dezinger;
+	mx_bool_type correct;
+	mx_bool_type writefile;
 	char writefile_name[MXU_FILENAME_LENGTH + 1];
 
 	char header_variable_name[MXU_CCD_HEADER_NAME_LENGTH + 1];
@@ -94,11 +94,11 @@ typedef struct {
 #define MXLV_CCD_HEADER_VARIABLE_CONTENTS	17013
 
 #define MX_CCD_STANDARD_FIELDS \
-  {MXLV_CCD_DATA_FRAME_SIZE, -1, "data_frame_size", MXFT_INT, NULL, 1, {2}, \
+  {MXLV_CCD_DATA_FRAME_SIZE, -1, "data_frame_size", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, data_frame_size), \
 	{sizeof(int)}, NULL, 0 }, \
   \
-  {MXLV_CCD_BIN_SIZE, -1, "bin_size", MXFT_INT, NULL, 1, {2}, \
+  {MXLV_CCD_BIN_SIZE, -1, "bin_size", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, bin_size), \
 	{sizeof(int)}, NULL, 0 }, \
   \
@@ -114,23 +114,23 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, preset_time), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CCD_STOP, -1, "stop", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CCD_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, stop), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CCD_READOUT, -1, "readout", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CCD_READOUT, -1, "readout", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, readout), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CCD_DEZINGER, -1, "dezinger", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CCD_DEZINGER, -1, "dezinger", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, dezinger), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CCD_CORRECT, -1, "correct", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CCD_CORRECT, -1, "correct", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, correct), \
 	{0}, NULL, 0 }, \
   \
-  {MXLV_CCD_WRITEFILE, -1, "writefile", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_CCD_WRITEFILE, -1, "writefile", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_CCD, writefile), \
 	{0}, NULL, 0 }, \
   \

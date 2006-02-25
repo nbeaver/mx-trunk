@@ -12,7 +12,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2002, 2004 Illinois Institute of Technology
+ * Copyright 2000-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -241,7 +241,7 @@ mxd_mcs_scaler_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Scaler type           = MCS_SCALER.\n\n");
 	fprintf(file, "  MCS record            = %s\n",
 					mcs_scaler->mcs_record->name);
-	fprintf(file, "  scaler number         = %d\n",
+	fprintf(file, "  scaler number         = %ld\n",
 					mcs_scaler->scaler_number);
 
 	mx_status = mx_scaler_read( record, &current_value );
@@ -541,7 +541,7 @@ mxd_mcs_scaler_get_parameter( MX_SCALER *scaler )
 
 	MX_MCS_SCALER *mcs_scaler;
 	unsigned long scaler_index;
-	int mode;
+	long mode;
 	double dark_current;
 	mx_status_type mx_status;
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -170,7 +170,7 @@ mxd_network_relay_relay_command( MX_RELAY *relay )
 		return mx_status;
 
 	mx_status = mx_put( &(network_relay->relay_command_nf),
-				MXFT_INT, &(relay->relay_command) );
+				MXFT_LONG, &(relay->relay_command) );
 
 	return mx_status;
 }
@@ -181,7 +181,7 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 	const char fname[] = "mxd_network_relay_get_relay_status()";
 
 	MX_NETWORK_RELAY *network_relay;
-	int relay_status;
+	long relay_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_relay_get_pointers(
@@ -191,7 +191,7 @@ mxd_network_relay_get_relay_status( MX_RELAY *relay )
 		return mx_status;
 
 	mx_status = mx_get( &(network_relay->relay_status_nf),
-				MXFT_INT, &relay_status );
+				MXFT_LONG, &relay_status );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

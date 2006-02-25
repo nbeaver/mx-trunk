@@ -506,7 +506,7 @@ mxd_network_mca_resynchronize( MX_RECORD *record )
 
 	MX_MCA *mca;
 	MX_NETWORK_MCA *network_mca;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -524,10 +524,10 @@ mxd_network_mca_resynchronize( MX_RECORD *record )
 		return mx_status;
 	}
 
-	resynchronize = 1;
+	resynchronize = TRUE;
 
 	mx_status = mx_put( &(network_mca->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
@@ -538,7 +538,7 @@ mxd_network_mca_start( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_start()";
 
 	MX_NETWORK_MCA *network_mca;
-	long value;
+	mx_bool_type start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -548,9 +548,8 @@ mxd_network_mca_start( MX_MCA *mca )
 
 	/* Set the preset type. */
 
-	value = mca->preset_type;
-
-	mx_status = mx_put( &(network_mca->preset_type_nf), MXFT_INT, &value );
+	mx_status = mx_put( &(network_mca->preset_type_nf),
+				MXFT_LONG, &(mca->preset_type) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -580,15 +579,15 @@ mxd_network_mca_start( MX_MCA *mca )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unsupported preset type %d for MCA '%s'.",
+			"Unsupported preset type %ld for MCA '%s'.",
 			mca->preset_type, mca->record->name );
 	}
 
 	/* Tell the counting to start. */
 
-	value = 1;
+	start = TRUE;
 
-	mx_status = mx_put( &(network_mca->start_nf), MXFT_INT, &value );
+	mx_status = mx_put( &(network_mca->start_nf), MXFT_BOOL, &start );
 
 	return mx_status;
 }
@@ -599,7 +598,7 @@ mxd_network_mca_stop( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_stop()";
 
 	MX_NETWORK_MCA *network_mca;
-	long value;
+	mx_bool_type stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -607,9 +606,9 @@ mxd_network_mca_stop( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_mca->stop_nf), MXFT_INT, &value );
+	mx_status = mx_put( &(network_mca->stop_nf), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -648,7 +647,7 @@ mxd_network_mca_clear( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_clear()";
 
 	MX_NETWORK_MCA *network_mca;
-	long value;
+	mx_bool_type clear;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -656,9 +655,9 @@ mxd_network_mca_clear( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	value = 1;
+	clear = TRUE;
 
-	mx_status = mx_put( &(network_mca->clear_nf), MXFT_INT, &value );
+	mx_status = mx_put( &(network_mca->clear_nf), MXFT_BOOL, &clear );
 
 	return mx_status;
 }
@@ -669,7 +668,7 @@ mxd_network_mca_busy( MX_MCA *mca )
 	static const char fname[] = "mxd_network_mca_busy()";
 
 	MX_NETWORK_MCA *network_mca;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_mca_get_pointers( mca, &network_mca, fname );
@@ -677,7 +676,7 @@ mxd_network_mca_busy( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_mca->busy_nf), MXFT_INT, &busy );
+	mx_status = mx_get( &(network_mca->busy_nf), MXFT_BOOL, &busy );
 
 	mca->busy = busy;
 
@@ -698,7 +697,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
@@ -723,7 +722,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_get( &(network_mca->preset_type_nf),
-					MXFT_INT, &(mca->preset_type) );
+					MXFT_LONG, &(mca->preset_type) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
@@ -853,7 +852,7 @@ mxd_network_mca_get_parameter( MX_MCA *mca )
 					MXFT_DOUBLE, &(mca->energy_offset) );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
 	}
 
@@ -874,7 +873,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s' for parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string( mca->record,
 			mca->parameter_type ),
@@ -883,7 +882,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 	if ( mca->parameter_type == MXLV_MCA_PRESET_TYPE ) {
 
 		mx_status = mx_put( &(network_mca->preset_type_nf),
-					MXFT_INT, &(mca->preset_type) );
+					MXFT_LONG, &(mca->preset_type) );
 	} else
 	if ( mca->parameter_type == MXLV_MCA_ROI_ARRAY ) {
 
@@ -953,7 +952,7 @@ mxd_network_mca_set_parameter( MX_MCA *mca )
 					MXFT_DOUBLE, &(mca->energy_offset) );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			mca->parameter_type );
 	}
 

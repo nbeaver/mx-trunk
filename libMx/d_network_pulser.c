@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,7 +201,8 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 	MX_NETWORK_PULSER *network_pulser;
 	double pulse_period, pulse_width, pulse_delay;
 	unsigned long num_pulses;
-	int pulse_mode, busy;
+	long pulse_mode;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -250,12 +251,12 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  pulse_delay          = %g sec\n", pulse_delay );
 
-	mx_status = mx_pulse_generator_get_mode( record, &pulse_mode);
+	mx_status = mx_pulse_generator_get_mode( record, &pulse_mode );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "  mode                 = %d\n", pulse_mode );
+	fprintf(file, "  mode                 = %ld\n", pulse_mode );
 
 	mx_status = mx_pulse_generator_is_busy( record, &busy);
 
@@ -275,7 +276,7 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 	static const char fname[] = "mxd_network_pulser_busy()";
 
 	MX_NETWORK_PULSER *network_pulser;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
@@ -287,7 +288,7 @@ mxd_network_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
 
-	mx_status = mx_get( &(network_pulser->busy_nf), MXFT_INT, &busy );
+	mx_status = mx_get( &(network_pulser->busy_nf), MXFT_BOOL, &busy );
 
 	pulse_generator->busy = busy;
 
@@ -300,7 +301,7 @@ mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 	static const char fname[] = "mxd_network_pulser_start()";
 
 	MX_NETWORK_PULSER *network_pulser;
-	int start;
+	mx_bool_type start;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
@@ -312,9 +313,9 @@ mxd_network_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
 
-	start = 1;
+	start = TRUE;
 
-	mx_status = mx_put( &(network_pulser->start_nf), MXFT_INT, &start );
+	mx_status = mx_put( &(network_pulser->start_nf), MXFT_BOOL, &start );
 
 	return mx_status;
 }
@@ -325,7 +326,7 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 	static const char fname[] = "mxd_network_pulser_stop()";
 
 	MX_NETWORK_PULSER *network_pulser;
-	int stop;
+	mx_bool_type stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_pulser_get_pointers( pulse_generator,
@@ -337,9 +338,9 @@ mxd_network_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 	MX_DEBUG( 2,("%s invoked for record '%s'.",
 			fname, pulse_generator->record->name));
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(network_pulser->stop_nf), MXFT_INT, &stop );
+	mx_status = mx_put( &(network_pulser->stop_nf), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -359,7 +360,7 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -383,7 +384,7 @@ mxd_network_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		break;
 	case MXLV_PGN_MODE:
 		mx_status = mx_get( &(network_pulser->mode_nf),
-					MXFT_INT, &(pulse_generator->mode) );
+					MXFT_LONG, &(pulse_generator->mode) );
 
 		break;
 	case MXLV_PGN_PULSE_PERIOD:
@@ -415,7 +416,7 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -439,7 +440,7 @@ mxd_network_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		break;
 	case MXLV_PGN_MODE:
 		mx_status = mx_put( &(network_pulser->mode_nf),
-					MXFT_INT, &(pulse_generator->mode) );
+					MXFT_LONG, &(pulse_generator->mode) );
 
 		break;
 	case MXLV_PGN_PULSE_PERIOD:

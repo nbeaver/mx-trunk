@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int axis_address;
+	long axis_address;
 	unsigned long mcu2_flags;
 } MX_MCU2;
 
@@ -61,7 +61,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mcu2_rfield_def_ptr;
 		offsetof(MX_MCU2, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_address", MXFT_INT, NULL, 0, {0},\
+  {-1, -1, "axis_address", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MCU2, axis_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

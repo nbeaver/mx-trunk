@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2004 Illinois Institute of Technology
+ * Copyright 2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *mardtb_record;
-	int motor_number;
+	long motor_number;
 	unsigned long default_speed;
 	unsigned long default_acceleration;
 
@@ -54,7 +54,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_mardtb_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, mardtb_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MARDTB_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
