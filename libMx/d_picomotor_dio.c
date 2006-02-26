@@ -296,7 +296,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 			dinput->record->name );
 	}
 
-	sprintf( command, "IN %s %d",
+	sprintf( command, "IN %s %ld",
 			picomotor_dinput->driver_name,
 			picomotor_dinput->channel_number );
 
@@ -402,7 +402,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			doutput->record->name );
 	}
 
-	sprintf( command, "OUT %s %d",
+	sprintf( command, "OUT %s %ld",
 			picomotor_doutput->driver_name,
 			picomotor_doutput->channel_number );
 

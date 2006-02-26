@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
+	long line_number;
 	unsigned long pdi45_dinput_flags;
 } MX_PDI45_DINPUT;
 
@@ -34,7 +34,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *pdi45_record;
-	int line_number;
+	long line_number;
 	unsigned long pdi45_doutput_flags;
 } MX_PDI45_DOUTPUT;
 
@@ -43,7 +43,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DINPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -56,7 +56,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, pdi45_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "line_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "line_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI45_DOUTPUT, line_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

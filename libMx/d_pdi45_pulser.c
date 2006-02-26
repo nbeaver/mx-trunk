@@ -309,7 +309,7 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -364,7 +364,7 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),

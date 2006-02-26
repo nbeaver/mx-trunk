@@ -1798,7 +1798,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_compumotor_simultaneous_start( int num_motor_records,
+mxd_compumotor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
 				int flags )

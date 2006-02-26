@@ -230,8 +230,8 @@ mxd_pm304_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  rs232               = %s\n",
 						pm304->rs232_record->name);
 
-	fprintf(file, "  axis number         = %d\n", pm304->axis_number);
-	fprintf(file, "  axis encoder number = %d\n",
+	fprintf(file, "  axis number         = %ld\n", pm304->axis_number);
+	fprintf(file, "  axis encoder number = %ld\n",
 						pm304->axis_encoder_number);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -478,7 +478,7 @@ mxd_pm304_resynchronize( MX_RECORD *record )
 
 	/* Verify that we got the identification message that we expected. */
 
-	strcpy( banner, "Mclennan Servo Supplies Ltd" );
+	strlcpy( banner, "Mclennan Servo Supplies Ltd", sizeof(banner) );
 
 	length = strlen( banner );
 
@@ -549,7 +549,7 @@ mxd_pm304_move_absolute( MX_MOTOR *motor )
 
 	/* Format the move command and send it. */
 
-	sprintf( command, "ma%ld", motor_steps );
+	snprintf( command, sizeof(command), "ma%ld", motor_steps );
 
 	mx_status = mxd_pm304_command( pm304, command,
 			response, sizeof response, PM304_DEBUG );
@@ -622,7 +622,7 @@ mxd_pm304_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "ap%ld", motor_steps );
+	snprintf( command, sizeof(command), "ap%ld", motor_steps );
 
 	mx_status = mxd_pm304_command( pm304, command,
 			response, sizeof response, PM304_DEBUG );
@@ -640,7 +640,7 @@ mxd_pm304_set_position( MX_MOTOR *motor )
 
 	if ( pm304->axis_encoder_number >= 0 ) {
 
-		sprintf( command, "%dap%ld",
+		snprintf( command, sizeof(command), "%ldap%ld",
 				pm304->axis_encoder_number, motor_steps );
 
 		mx_status = mxd_pm304_putline( pm304, command, PM304_DEBUG );
@@ -649,13 +649,13 @@ mxd_pm304_set_position( MX_MOTOR *motor )
 			return mx_status;
 
 		mx_status = mxd_pm304_getline( pm304,
-				response, sizeof response, PM304_DEBUG );
+				response, sizeof(response), PM304_DEBUG );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( expected_response,
-				"%d:OK", pm304->axis_encoder_number );
+		snprintf( expected_response, sizeof(expected_response),
+				"%ld:OK", pm304->axis_encoder_number );
 
 		if ( strcmp( response, expected_response ) != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -703,7 +703,7 @@ mxd_pm304_soft_abort( MX_MOTOR *motor )
 	 * command (an ESC character).
 	 */
 
-	sprintf( command, "%d\033", pm304->axis_number );
+	snprintf( command, sizeof(command), "%ld\033", pm304->axis_number );
 
 	mx_status = mxd_pm304_putline( pm304, command, PM304_DEBUG );
 
@@ -729,7 +729,7 @@ mxd_pm304_immediate_abort( MX_MOTOR *motor )
 
 	/* Send the immediate abort command (a ctrl-C character). */
 
-	sprintf( command, "%d\003", pm304->axis_number );
+	snprintf( command, sizeof(command), "%ld\003", pm304->axis_number );
 
 	mx_status = mxd_pm304_putline( pm304, command, PM304_DEBUG );
 
@@ -825,9 +825,9 @@ mxd_pm304_find_home_position( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->home_search >= 0 ) {
-		strcpy( command, "ix" );
+		strlcpy( command, "ix", sizeof(command) );
 	} else {
-		strcpy( command, "ix-1" );
+		strlcpy( command, "ix-1", sizeof(command) );
 	}
 		
 	mx_status = mxd_pm304_command( pm304, command,
@@ -852,9 +852,9 @@ mxd_pm304_constant_velocity_move( MX_MOTOR *motor )
 		return mx_status;
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		strcpy( command, "cv" );
+		strlcpy( command, "cv", sizeof(command) );
 	} else {
-		strcpy( command, "cv-1" );
+		strlcpy( command, "cv-1", sizeof(command) );
 	}
 
 	mx_status = mxd_pm304_command( pm304, command,
@@ -947,7 +947,8 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "sv%ld", mx_round( motor->raw_speed ) );
+		snprintf( command, sizeof(command), "sv%ld",
+			mx_round( motor->raw_speed ) );
 
 		mx_status = mxd_pm304_command( pm304, command,
 				response, sizeof(response), PM304_DEBUG );
@@ -959,7 +960,7 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		sprintf( command, "sa%ld",
+		snprintf( command, sizeof(command), "sa%ld",
 			mx_round( motor->raw_acceleration_parameters[0] ));
 
 		mx_status = mxd_pm304_command( pm304, command,
@@ -968,7 +969,7 @@ mxd_pm304_set_parameter( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		sprintf( command, "sd%ld",
+		snprintf( command, sizeof(command), "sd%ld",
 			mx_round( motor->raw_acceleration_parameters[1] ));
 
 		mx_status = mxd_pm304_command( pm304, command,
@@ -1080,7 +1081,7 @@ mxd_pm304_command( MX_PM304 *pm304, char *command, char *response,
 
 	/* Send the axis number prefix. */
 
-	sprintf( prefix, "%d", pm304->axis_number );
+	snprintf( prefix, sizeof(prefix), "%ld", pm304->axis_number );
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("%s: command = '%s%s'", fname, prefix, command));
@@ -1158,7 +1159,7 @@ mxd_pm304_command( MX_PM304 *pm304, char *command, char *response,
 
 	if ( strncmp( prefix, response, prefix_length ) != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Address prefix %d not seen in response '%s'",
+		"Address prefix %ld not seen in response '%s'",
 				pm304->axis_number, response );
 	}
 

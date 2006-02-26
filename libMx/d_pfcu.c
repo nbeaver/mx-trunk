@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -161,9 +161,9 @@ mxd_pfcu_relay_command( MX_RELAY *relay )
 	switch ( relay->record->mx_type ) {
 	case MXT_RLY_PFCU_FILTER:
 		if ( relay->relay_command == MXF_OPEN_RELAY ) {
-			sprintf( command, "R%d", pfcu_relay->filter_number );
+			sprintf( command, "R%ld", pfcu_relay->filter_number );
 		} else {
-			sprintf( command, "I%d", pfcu_relay->filter_number );
+			sprintf( command, "I%ld", pfcu_relay->filter_number );
 		}
 		break;
 	case MXT_RLY_PFCU_SHUTTER:

@@ -154,7 +154,7 @@ mxd_qs450_finish_record_initialization( MX_RECORD *record )
 
 	if ( qs450->slot < 1 || qs450->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"CAMAC slot number %d is out of allowed range 1-23.",
+			"CAMAC slot number %ld is out of allowed range 1-23.",
 			qs450->slot );
 	}
 
@@ -166,14 +166,14 @@ mxd_qs450_finish_record_initialization( MX_RECORD *record )
 	case MXT_SCL_QS450:
 		if ( qs450->subaddress < 0 || qs450->subaddress > 3 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Subaddress number %d is out of allowed range 0-3.",
+			"Subaddress number %ld is out of allowed range 0-3.",
 				qs450->subaddress );
 		}
 		break;
 	case MXT_SCL_KS3610:
 		if ( qs450->subaddress < 0 || qs450->subaddress > 5 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Subaddress number %d is out of allowed range 0-5.",
+			"Subaddress number %ld is out of allowed range 0-5.",
 				qs450->subaddress );
 		}
 		break;

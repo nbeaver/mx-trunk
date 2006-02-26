@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *ptz_record;
-	int ptz_motor_type;
+	long ptz_motor_type;
 } MX_PTZ_MOTOR;
 
 MX_API mx_status_type mxd_ptz_motor_create_record_structures(
@@ -57,7 +57,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_ptz_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PTZ_MOTOR, ptz_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "ptz_motor_type", MXFT_INT, NULL, 0, {0},\
+  {-1, -1, "ptz_motor_type", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PTZ_MOTOR, ptz_motor_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

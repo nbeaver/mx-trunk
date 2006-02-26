@@ -212,7 +212,7 @@ mxd_pdi45_timer_open( MX_RECORD *record )
 	  || ( io_type > 0x84 ) )
 	{
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"The digital I/O line %d of PDI45 controller '%s' used by "
+	"The digital I/O line %ld of PDI45 controller '%s' used by "
 	"PDI45 timer '%s' is not configured to be a time delay output.",
 			pdi45_timer->line_number,
 			pdi45->record->name,
@@ -319,7 +319,7 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 
 	/* Enable gated counters. */
 
-	sprintf( command, "00U%02X", pdi45_timer->gated_counters_io_field );
+	sprintf( command, "00U%02lX", pdi45_timer->gated_counters_io_field );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
 

@@ -587,7 +587,7 @@ mx_motor_array_internal_move_with_report( int num_motors,
 	MX_RECORD *first_motor_record;
 	MX_MOTOR_FUNCTION_LIST *flist;
 	mx_status_type (*simultaneous_start_fn)(
-					int, MX_RECORD **, double *, int );
+					long, MX_RECORD **, double *, int );
 	mx_status_type status;
 	int move_report_flag, modified_flags;
 	int wait_flag;

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ typedef struct {
 
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int channel_number;
+	long channel_number;
 } MX_PICOMOTOR_DINPUT;
 
 typedef struct {
@@ -36,7 +36,7 @@ typedef struct {
 
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int channel_number;
+	long channel_number;
 } MX_PICOMOTOR_DOUTPUT;
 
 #define MXD_PICOMOTOR_DINPUT_STANDARD_FIELDS \
@@ -50,7 +50,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_DINPUT, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_DINPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -65,7 +65,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_DOUTPUT, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR_DOUTPUT, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

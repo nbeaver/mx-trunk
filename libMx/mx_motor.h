@@ -598,7 +598,7 @@ typedef struct {
 	mx_status_type ( *constant_velocity_move )( MX_MOTOR *motor );
 	mx_status_type ( *get_parameter )( MX_MOTOR *motor );
 	mx_status_type ( *set_parameter )( MX_MOTOR *motor );
-	mx_status_type ( *simultaneous_start )( int num_motor_records,
+	mx_status_type ( *simultaneous_start )( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
 						int flags );

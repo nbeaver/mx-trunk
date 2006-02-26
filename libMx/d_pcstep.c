@@ -318,7 +318,7 @@ mxd_pcstep_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  controller record = %s\n", pcstep->record->name);
-	fprintf(file, "  axis id           = %d\n\n", pcstep_motor->axis_id);
+	fprintf(file, "  axis id           = %ld\n\n", pcstep_motor->axis_id);
 
 	fprintf(file, "  default speed        = %lu steps per sec\n",
 				pcstep_motor->default_speed);
@@ -1216,7 +1216,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -1302,7 +1302,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,8 +25,8 @@
 typedef struct {
 	MX_RECORD *rs232_record;
 
-	int axis_number;
-	int axis_encoder_number;
+	long axis_number;
+	long axis_encoder_number;
 
 	double minimum_event_interval;
 } MX_PM304;
@@ -80,11 +80,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pm304_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_encoder_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_encoder_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PM304, axis_encoder_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

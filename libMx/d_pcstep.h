@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000 Illinois Institute of Technology
+ * Copyright 2000, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int axis_id;
+	long axis_id;
 
 	unsigned long default_speed;
 	unsigned long default_base_speed;
@@ -75,7 +75,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pcstep_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCSTEP_MOTOR, axis_id), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

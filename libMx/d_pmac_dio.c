@@ -98,7 +98,7 @@ mxd_pmac_din_get_pointers( MX_DIGITAL_INPUT *dinput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pmac_din_get_pointers()";
+	static const char fname[] = "mxd_pmac_din_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -167,7 +167,7 @@ mxd_pmac_dout_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pmac_dout_get_pointers()";
+	static const char fname[] = "mxd_pmac_dout_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -241,7 +241,7 @@ mxd_pmac_din_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_pmac_din_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pmac_din_create_record_structures()";
+        static const char fname[] = "mxd_pmac_din_create_record_structures()";
 
         MX_DIGITAL_INPUT *digital_input;
         MX_PMAC_DINPUT *pmac_dinput;
@@ -315,7 +315,7 @@ mxd_pmac_din_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_din_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pmac_din_open()";
+	static const char fname[] = "mxd_pmac_din_open()";
 
 	MX_DIGITAL_INPUT *dinput;
 	mx_status_type mx_status;
@@ -337,7 +337,7 @@ mxd_pmac_din_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_din_close( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pmac_din_close()";
+	static const char fname[] = "mxd_pmac_din_close()";
 
 	MX_DIGITAL_INPUT *dinput;
 	mx_status_type mx_status;
@@ -362,7 +362,7 @@ mxd_pmac_din_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_pmac_din_read()";
+	static const char fname[] = "mxd_pmac_din_read()";
 
 	MX_PMAC_DINPUT *pmac_dinput;
 	MX_PMAC *pmac;
@@ -383,11 +383,14 @@ mxd_pmac_din_read( MX_DIGITAL_INPUT *dinput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s",
+		snprintf( command, sizeof(command),
+			"@%lx%s",
 			pmac_dinput->card_number,
 			pmac_dinput->pmac_variable_name );
 	} else {
-		strcpy( command, pmac_dinput->pmac_variable_name );
+		strlcpy( command,
+			pmac_dinput->pmac_variable_name,
+			sizeof(command) );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -420,7 +423,7 @@ mxd_pmac_dout_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_pmac_dout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pmac_dout_create_record_structures()";
+        static const char fname[] = "mxd_pmac_dout_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_PMAC_DOUTPUT *pmac_doutput;
@@ -495,7 +498,7 @@ mxd_pmac_dout_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_dout_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pmac_dout_open()";
+	static const char fname[] = "mxd_pmac_dout_open()";
 
 	MX_DIGITAL_OUTPUT *doutput;
 	mx_status_type mx_status;
@@ -523,7 +526,7 @@ mxd_pmac_dout_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_pmac_dout_read()";
+	static const char fname[] = "mxd_pmac_dout_read()";
 
 	MX_PMAC_DOUTPUT *pmac_doutput;
 	MX_PMAC *pmac;
@@ -539,11 +542,14 @@ mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s",
+		snprintf( command, sizeof(command),
+			"@%lx%s",
 			pmac_doutput->card_number,
 			pmac_doutput->pmac_variable_name );
 	} else {
-		strcpy( command, pmac_doutput->pmac_variable_name );
+		strlcpy( command,
+			pmac_doutput->pmac_variable_name,
+			sizeof(command) );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -568,7 +574,7 @@ mxd_pmac_dout_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_pmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_pmac_dout_write()";
+	static const char fname[] = "mxd_pmac_dout_write()";
 
 	MX_PMAC_DOUTPUT *pmac_doutput;
 	MX_PMAC *pmac;
@@ -582,12 +588,14 @@ mxd_pmac_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s=%lu",
+		snprintf( command, sizeof(command),
+			"@%lx%s=%lu",
 			pmac_doutput->card_number,
 			pmac_doutput->pmac_variable_name,
 			doutput->value );
 	} else {
-		sprintf( command, "%s=%lu",
+		snprintf( command, sizeof(command),
+			"%s=%lu",
 			pmac_doutput->pmac_variable_name,
 			doutput->value );
 	}

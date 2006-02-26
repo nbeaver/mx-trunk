@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -201,7 +201,7 @@ mxd_ptz_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name               = %s\n", record->name);
 	fprintf(file, "  PTZ record name    = %s\n",
 					ptz_motor->ptz_record->name);
-	fprintf(file, "  PTZ motor type     = %d\n",
+	fprintf(file, "  PTZ motor type     = %ld\n",
 					ptz_motor->ptz_motor_type);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -286,7 +286,7 @@ mxd_ptz_motor_move_absolute( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
 	}
 
@@ -330,7 +330,7 @@ mxd_ptz_motor_get_position( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
 	}
 
@@ -365,7 +365,7 @@ mxd_ptz_motor_soft_abort( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
 	}
 
@@ -404,7 +404,7 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -431,7 +431,7 @@ mxd_ptz_motor_get_parameter( MX_MOTOR *motor )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 				ptz_motor->ptz_motor_type, motor->record->name);
 		}
 
@@ -457,7 +457,7 @@ mxd_ptz_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -486,7 +486,7 @@ mxd_ptz_motor_set_parameter( MX_MOTOR *motor )
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 				ptz_motor->ptz_motor_type, motor->record->name);
 		}
 		break;
@@ -593,7 +593,7 @@ mxd_ptz_motor_get_status( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported PTZ motor type %d requested for PTZ motor '%s'.",
+		"Unsupported PTZ motor type %ld requested for PTZ motor '%s'.",
 			ptz_motor->ptz_motor_type, motor->record->name );
 	}
 

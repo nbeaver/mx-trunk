@@ -180,7 +180,7 @@ mxd_picomotor_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "AIN %s %d",
+	sprintf( command, "AIN %s %ld",
 		picomotor_ainput->driver_name,
 		picomotor_ainput->channel_number );
 

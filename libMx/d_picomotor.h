@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,9 +30,9 @@
 typedef struct {
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
-	int motor_number;
-	int driver_type;
-	long flags;
+	long motor_number;
+	long driver_type;
+	unsigned long flags;
 
 	/* The following is only used by the Model 8753 which
 	 * does not report absolute positions.
@@ -59,7 +59,7 @@ MX_API mx_status_type mxd_picomotor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_picomotor_simultaneous_start( int num_motor_records,
+MX_API mx_status_type mxd_picomotor_simultaneous_start( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
 						int flags );
@@ -82,7 +82,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_picomotor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, driver_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0},\
+  {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

@@ -15,7 +15,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -326,25 +326,25 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move deadband      = %ld steps (%g %s)\n\n",
 	    motor->raw_move_deadband.stepper, move_deadband, motor->units);
 
-	fprintf(file, "  default speed      = %d steps per sec.\n",
+	fprintf(file, "  default speed      = %ld steps per sec.\n",
 					panther->default_speed );
-	fprintf(file, "  default base speed = %d steps per sec.\n",
+	fprintf(file, "  default base speed = %ld steps per sec.\n",
 					panther->default_base_speed );
-	fprintf(file, "  accel. slope       = %d\n",
+	fprintf(file, "  accel. slope       = %ld\n",
 					panther->acceleration_slope);
-	fprintf(file, "  decel. slope       = %d\n",
+	fprintf(file, "  decel. slope       = %ld\n",
 					panther->deceleration_slope);
-	fprintf(file, "  divide factor      = %d\n",
+	fprintf(file, "  divide factor      = %ld\n",
 					panther->microstep_divide_factor );
 	fprintf(file, "  resolution mode    = %c\n",
 					panther->step_resolution_mode );
-	fprintf(file, "  hold current       = %d %%\n",
+	fprintf(file, "  hold current       = %ld %%\n",
 					panther->hold_current );
-	fprintf(file, "  run current        = %d %%\n",
+	fprintf(file, "  run current        = %ld %%\n",
 					panther->run_current );
-	fprintf(file, "  settling time      = %d\n",
+	fprintf(file, "  settling time      = %ld\n",
 					panther->settling_time_delay );
-	fprintf(file, "  limit polarity     = %d\n\n",
+	fprintf(file, "  limit polarity     = %ld\n\n",
 					panther->limit_polarity );
 
 	/* Encoder parameters. */
@@ -357,20 +357,20 @@ mxd_panther_print_motor_structure( FILE *file, MX_RECORD *record )
 		}
 
 		fprintf(file,
-		    "  encoder resolution = %d encoder counts per 1/4 rev.\n",
+		    "  encoder resolution = %ld encoder counts per 1/4 rev.\n",
 					panther->encoder_resolution );
-		fprintf(file, "  deadband size      = %d encoder counts\n",
+		fprintf(file, "  deadband size      = %ld encoder counts\n",
 					panther->deadband_size );
 		fprintf(file,
-		    "  hunt velocity      = %d motor steps per sec.\n",
+		    "  hunt velocity      = %ld motor steps per sec.\n",
 					panther->hunt_velocity );
-		fprintf(file, "  hunt resolution    = %d\n",
+		fprintf(file, "  hunt resolution    = %ld\n",
 					panther->hunt_resolution );
-		fprintf(file, "  stall factor       = %d\n",
+		fprintf(file, "  stall factor       = %ld\n",
 					panther->stall_factor );
-		fprintf(file, "  stall sample rate  = %d\n",
+		fprintf(file, "  stall sample rate  = %ld\n",
 					panther->stall_sample_rate );
-		fprintf(file, "  max stall retries  = %d\n",
+		fprintf(file, "  max stall retries  = %ld\n",
 					panther->max_stall_retries );
 	}
 
@@ -785,7 +785,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Base speed === */
 
-	sprintf( command, "I %d", panther->default_base_speed );
+	sprintf( command, "I %ld", panther->default_base_speed );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -801,7 +801,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Slew speed === */
 
-	sprintf( command, "V %d", panther->default_speed );
+	sprintf( command, "V %ld", panther->default_speed );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -817,7 +817,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Acceleration and deceleration slopes === */
 
-	sprintf( command, "K %d %d",
+	sprintf( command, "K %ld %ld",
 		panther->acceleration_slope, panther->deceleration_slope );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
@@ -834,7 +834,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Microstep divide factor === */
 
-	sprintf( command, "D %d", panther->microstep_divide_factor );
+	sprintf( command, "D %ld", panther->microstep_divide_factor );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -878,7 +878,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Hold and run currents === */
 
-	sprintf( command, "Y %d %d",
+	sprintf( command, "Y %ld %ld",
 		panther->hold_current, panther->run_current );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
@@ -895,7 +895,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Settling time delay === */
 
-	sprintf( command, "E %d", panther->settling_time_delay );
+	sprintf( command, "E %ld", panther->settling_time_delay );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -956,7 +956,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Deadband size === */
 
-	sprintf( command, "d %d", panther->deadband_size );
+	sprintf( command, "d %ld", panther->deadband_size );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -972,7 +972,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Hunt velocity === */
 
-	sprintf( command, "v %d", panther->hunt_velocity );
+	sprintf( command, "v %ld", panther->hunt_velocity );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -988,7 +988,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Hunt resolution === */
 
-	sprintf( command, "h %d", panther->hunt_resolution );
+	sprintf( command, "h %ld", panther->hunt_resolution );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1004,7 +1004,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Stall factor === */
 
-	sprintf( command, "s %d", panther->stall_factor );
+	sprintf( command, "s %ld", panther->stall_factor );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1020,7 +1020,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Stall sample rate === */
 
-	sprintf( command, "t %d", panther->stall_sample_rate );
+	sprintf( command, "t %ld", panther->stall_sample_rate );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1036,7 +1036,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 
 	/* === Maximum stall retries === */
 
-	sprintf( command, "r %d", panther->max_stall_retries );
+	sprintf( command, "r %ld", panther->max_stall_retries );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1158,7 +1158,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	/* Now update the resolution if possible. */
 
 	if ( update_encoder_resolution == TRUE ) {
-		sprintf( command, "e %d", panther->encoder_resolution );
+		sprintf( command, "e %ld", panther->encoder_resolution );
 
 		status = mxd_panther_putline( panther, command,
 						TRUE, PANTHER_DEBUG );
@@ -1582,7 +1582,7 @@ mxd_panther_set_position( MX_MOTOR *motor )
 	 * a non-zero value in Party Line mode.
 	 */
 
-	sprintf( command, "e %d", panther->encoder_resolution );
+	sprintf( command, "e %ld", panther->encoder_resolution );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1995,7 +1995,7 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 		sprintf( command, "K %ld %ld", accel_slope, decel_slope );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 

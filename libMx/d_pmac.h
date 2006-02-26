@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,8 +27,8 @@ typedef struct {
 				 * structure.
 				 */
 	MX_RECORD *pmac_record;
-	int card_number;
-	int motor_number;
+	long card_number;
+	long motor_number;
 } MX_PMAC_MOTOR;
 
 MX_API mx_status_type mxd_pmac_create_record_structures( MX_RECORD *record );
@@ -46,7 +46,7 @@ MX_API mx_status_type mxd_pmac_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_pmac_simultaneous_start( int num_motor_records,
+MX_API mx_status_type mxd_pmac_simultaneous_start( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
 						int flags );
@@ -63,11 +63,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, pmac_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "card_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "card_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, card_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -76,18 +76,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pmac_rfield_def_ptr;
 MX_API mx_status_type mxd_pmac_jog_command( MX_PMAC_MOTOR *pmac_motor,
 						char *command,
 						char *response,
-						int response_buffer_length,
+						size_t response_buffer_length,
 						int debug_flag );
 
 MX_API mx_status_type mxd_pmac_get_motor_variable( MX_PMAC_MOTOR *pmac_motor,
-						int variable_number,
-						int variable_type,
+						long variable_number,
+						long variable_type,
 						void *variable_ptr,
 						int debug_flag );
 
 MX_API mx_status_type mxd_pmac_set_motor_variable( MX_PMAC_MOTOR *pmac_motor,
-						int variable_number,
-						int variable_type,
+						long variable_number,
+						long variable_type,
 						void *variable_ptr,
 						int debug_flag );
 

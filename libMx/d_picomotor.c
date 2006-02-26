@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -274,7 +274,7 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 					picomotor_controller->record->name);
 	fprintf(file, "  driver name       = %s\n",
 					picomotor->driver_name);
-	fprintf(file, "  motor number      = %d\n",
+	fprintf(file, "  motor number      = %ld\n",
 					picomotor->motor_number);
 	fprintf(file, "  flags             = %#lx\n", picomotor->flags);
 
@@ -820,7 +820,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -828,7 +828,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "VEL %s %d",
+		sprintf( command, "VEL %s %ld",
 				picomotor->driver_name,
 				picomotor->motor_number );
 
@@ -870,7 +870,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 			"is not supported.", motor->record->name );
 		}
 
-		sprintf( command, "MPV %s %d",
+		sprintf( command, "MPV %s %ld",
 				picomotor->driver_name,
 				picomotor->motor_number );
 
@@ -906,7 +906,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 		break;
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 
-		sprintf( command, "ACC %s %d",
+		sprintf( command, "ACC %s %ld",
 				picomotor->driver_name,
 				picomotor->motor_number );
 
@@ -974,7 +974,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -984,7 +984,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_SPEED:
 		ulong_value = (unsigned long) mx_round( motor->raw_speed );
 
-		sprintf( command, "VEL %s %d=%lu",
+		sprintf( command, "VEL %s %ld=%lu",
 				picomotor->driver_name,
 				picomotor->motor_number,
 				ulong_value );
@@ -1006,7 +1006,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 
 		ulong_value = (unsigned long) mx_round( motor->raw_base_speed );
 
-		sprintf( command, "MPV %s %d=%lu",
+		sprintf( command, "MPV %s %ld=%lu",
 				picomotor->driver_name,
 				picomotor->motor_number,
 				ulong_value );
@@ -1023,7 +1023,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 		ulong_value = (unsigned long)
 			mx_round( motor->raw_acceleration_parameters[0] );
 
-		sprintf( command, "ACC %s %d=%lu",
+		sprintf( command, "ACC %s %ld=%lu",
 				picomotor->driver_name,
 				picomotor->motor_number,
 				ulong_value );
@@ -1082,7 +1082,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_picomotor_simultaneous_start( int num_motor_records,
+mxd_picomotor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
 				int flags )

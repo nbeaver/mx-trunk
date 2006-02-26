@@ -87,7 +87,7 @@ mxd_pmac_ain_get_pointers( MX_ANALOG_INPUT *ainput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pmac_ain_get_pointers()";
+	static const char fname[] = "mxd_pmac_ain_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -156,7 +156,7 @@ mxd_pmac_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 			MX_PMAC **pmac,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pmac_aout_get_pointers()";
+	static const char fname[] = "mxd_pmac_aout_get_pointers()";
 
 	MX_RECORD *pmac_record;
 
@@ -224,7 +224,7 @@ mxd_pmac_aout_get_pointers( MX_ANALOG_OUTPUT *aoutput,
 MX_EXPORT mx_status_type
 mxd_pmac_ain_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pmac_ain_create_record_structures()";
+        static const char fname[] = "mxd_pmac_ain_create_record_structures()";
 
         MX_ANALOG_INPUT *analog_input;
         MX_PMAC_AINPUT *pmac_ainput;
@@ -265,7 +265,7 @@ mxd_pmac_ain_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_ain_read( MX_ANALOG_INPUT *ainput )
 {
-	const char fname[] = "mxd_pmac_ain_read()";
+	static const char fname[] = "mxd_pmac_ain_read()";
 
 	MX_PMAC_AINPUT *pmac_ainput;
 	MX_PMAC *pmac;
@@ -286,11 +286,14 @@ mxd_pmac_ain_read( MX_ANALOG_INPUT *ainput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s",
+		snprintf( command, sizeof(command),
+			"@%lx%s",
 			pmac_ainput->card_number,
 			pmac_ainput->pmac_variable_name );
 	} else {
-		strcpy( command, pmac_ainput->pmac_variable_name );
+		strlcpy( command,
+			pmac_ainput->pmac_variable_name,
+			sizeof(command) );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -317,7 +320,7 @@ mxd_pmac_ain_read( MX_ANALOG_INPUT *ainput )
 MX_EXPORT mx_status_type
 mxd_pmac_aout_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pmac_aout_create_record_structures()";
+        static const char fname[] = "mxd_pmac_aout_create_record_structures()";
 
         MX_ANALOG_OUTPUT *analog_output;
         MX_PMAC_AOUTPUT *pmac_aoutput;
@@ -359,7 +362,7 @@ mxd_pmac_aout_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pmac_aout_read( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_pmac_aout_read()";
+	static const char fname[] = "mxd_pmac_aout_read()";
 
 	MX_PMAC_AOUTPUT *pmac_aoutput;
 	MX_PMAC *pmac;
@@ -375,11 +378,14 @@ mxd_pmac_aout_read( MX_ANALOG_OUTPUT *aoutput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s",
+		snprintf( command, sizeof(command),
+			"@%lx%s",
 			pmac_aoutput->card_number,
 			pmac_aoutput->pmac_variable_name );
 	} else {
-		strcpy( command, pmac_aoutput->pmac_variable_name );
+		strlcpy( command,
+			pmac_aoutput->pmac_variable_name,
+			sizeof(command) );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -404,7 +410,7 @@ mxd_pmac_aout_read( MX_ANALOG_OUTPUT *aoutput )
 MX_EXPORT mx_status_type
 mxd_pmac_aout_write( MX_ANALOG_OUTPUT *aoutput )
 {
-	const char fname[] = "mxd_pmac_aout_write()";
+	static const char fname[] = "mxd_pmac_aout_write()";
 
 	MX_PMAC_AOUTPUT *pmac_aoutput;
 	MX_PMAC *pmac;
@@ -418,12 +424,14 @@ mxd_pmac_aout_write( MX_ANALOG_OUTPUT *aoutput )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s=%g",
+		snprintf( command, sizeof(command),
+			"@%lx%s=%g",
 			pmac_aoutput->card_number,
 			pmac_aoutput->pmac_variable_name,
 			aoutput->raw_value.double_value );
 	} else {
-		sprintf( command, "%s=%g",
+		snprintf( command, sizeof(command),
+			"%s=%g",
 			pmac_aoutput->pmac_variable_name,
 			aoutput->raw_value.double_value );
 	}

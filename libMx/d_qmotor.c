@@ -16,7 +16,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -711,7 +711,7 @@ mxd_q_motor_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Q pseudomotor '%s' cannot report the value of parameter '%s' (%d).",
+"Q pseudomotor '%s' cannot report the value of parameter '%s' (%ld).",
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
@@ -820,7 +820,7 @@ mxd_q_motor_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"Q pseudomotor '%s' cannot set the value of parameter '%s' (%d).",
+"Q pseudomotor '%s' cannot set the value of parameter '%s' (%ld).",
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),

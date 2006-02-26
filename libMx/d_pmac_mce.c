@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -299,7 +299,8 @@ mxd_pmac_mce_finish_record_initialization( MX_RECORD *record )
 
 	pmac_mce->selected_motor_record = NULL;
 
-	strcpy( mce->selected_motor_name, "" );
+	strlcpy( mce->selected_motor_name, "",
+			sizeof(mce->selected_motor_name) );
 
 #if 0
 	{
@@ -519,10 +520,12 @@ mxd_pmac_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	 */
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%xM3300=%d", pmac_motor->card_number,
-						pmac_motor->motor_number );
+		snprintf( command, sizeof(command),
+			"@%lxM3300=%ld",
+			pmac_motor->card_number, pmac_motor->motor_number );
 	} else {
-		sprintf( command, "M3300=%d", pmac_motor->motor_number );
+		snprintf( command, sizeof(command),
+			"M3300=%ld", pmac_motor->motor_number );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -531,10 +534,12 @@ mxd_pmac_mce_connect_mce_to_motor( MX_MCE *mce, MX_RECORD *motor_record )
 	/* Run the PLCC program to change the axis. */
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%xENA PLC %d", pmac_motor->card_number,
-						pmac_mce->plc_program_number );
+		snprintf( command, sizeof(command),
+			"@%lxENA PLC %ld",
+			pmac_motor->card_number, pmac_mce->plc_program_number );
 	} else {
-		sprintf( command, "ENA PLC %d", pmac_mce->plc_program_number );
+		snprintf( command, sizeof(command),
+			"ENA PLC %ld", pmac_mce->plc_program_number );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,

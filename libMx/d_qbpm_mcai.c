@@ -215,7 +215,7 @@ mxd_qbpm_mcai_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( qbpm_mcai->command, ":READ%d:CURRALL?", icplus->address );
+	sprintf( qbpm_mcai->command, ":READ%ld:CURRALL?", icplus->address );
 
         return MX_SUCCESSFUL_RESULT;
 }

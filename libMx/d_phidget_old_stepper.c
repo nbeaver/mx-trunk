@@ -227,7 +227,7 @@ mxd_phidget_old_stepper_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type         = PHIDGET_OLD_STEPPER.\n\n");
 	fprintf(file, "  name               = %s\n", record->name);
 
-	fprintf(file, "  board number       = %d\n",
+	fprintf(file, "  board number       = %ld\n",
 				phidget_old_stepper->motor_number);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -463,7 +463,7 @@ mxd_phidget_old_stepper_get_extended_status( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal motor number %d specified for motor '%s'",
+		"Illegal motor number %ld specified for motor '%s'",
 			phidget_old_stepper->motor_number,
 			motor->record->name );
 	}
