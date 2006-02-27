@@ -183,7 +183,7 @@ mxd_spec_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_spec_timer_is_busy()";
 
 	MX_SPEC_TIMER *spec_timer;
-	int busy;
+	long busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_timer_get_pointers( timer, &spec_timer, fname );
@@ -193,7 +193,7 @@ mxd_spec_timer_is_busy( MX_TIMER *timer )
 
 	mx_status = mx_spec_get_number( spec_timer->spec_server_record,
 					"scaler/.all./count",
-					MXFT_INT, &busy );
+					MXFT_LONG, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -245,7 +245,7 @@ mxd_spec_timer_stop( MX_TIMER *timer )
 	static const char fname[] = "mxd_spec_timer_stop()";
 
 	MX_SPEC_TIMER *spec_timer;
-	int stop;
+	long stop;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_timer_get_pointers( timer, &spec_timer, fname );
@@ -263,7 +263,7 @@ mxd_spec_timer_stop( MX_TIMER *timer )
 
 	mx_status = mx_spec_put_number( spec_timer->spec_server_record,
 					"scaler/.all./count",
-					MXFT_INT, &stop );
+					MXFT_LONG, &stop );
 	return mx_status;
 }
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1012,7 +1012,7 @@ mxd_scipe_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -1086,7 +1086,7 @@ mxd_scipe_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 				0.001 * (double) bias_voltage_setting;
 		break;
 	case MXLV_SCIPE_AMPLIFIER_FILTER_TYPE:
-		num_items = sscanf( result_ptr, "%d",
+		num_items = sscanf( result_ptr, "%ld",
 					&(scipe_amplifier->filter_type) );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_LOWPASS_FILTER_3DB_POINT:
@@ -1102,19 +1102,19 @@ mxd_scipe_amplifier_get_parameter( MX_AMPLIFIER *amplifier )
 				&(scipe_amplifier->highpass_filter_3db_point) );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_RESET_FILTER:
-		num_items = sscanf( result_ptr, "%d",
+		num_items = sscanf( result_ptr, "%ld",
 				&(scipe_amplifier->reset_filter) );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_GAIN_MODE:
-		num_items = sscanf( result_ptr, "%d",
+		num_items = sscanf( result_ptr, "%ld",
 				&(scipe_amplifier->gain_mode) );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_INVERT_SIGNAL:
-		num_items = sscanf( result_ptr, "%d",
+		num_items = sscanf( result_ptr, "%ld",
 				&(scipe_amplifier->invert_signal) );
 		break;
 	case MXLV_SCIPE_AMPLIFIER_BLANK_OUTPUT:
-		num_items = sscanf( result_ptr, "%d",
+		num_items = sscanf( result_ptr, "%ld",
 				&(scipe_amplifier->blank_output) );
 	}
 
@@ -1152,7 +1152,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -1216,7 +1216,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		  || ( scipe_amplifier->filter_type > 5 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested filter type %d for amplifier '%s' is outside "
+	"The requested filter type %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 5.",
 				scipe_amplifier->filter_type,
 				amplifier->record->name );
@@ -1224,7 +1224,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter type using the FLTT command. */
 
-		sprintf( command, "%s_filter_type movenow %d",
+		sprintf( command, "%s_filter_type movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->filter_type );
 		break;
@@ -1341,7 +1341,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		  || ( scipe_amplifier->gain_mode > 2 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested gain mode %d for amplifier '%s' is outside "
+	"The requested gain mode %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 2.",
 				scipe_amplifier->gain_mode,
 				amplifier->record->name );
@@ -1349,7 +1349,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the gain mode using the GNMD command. */
 
-		sprintf( command, "%s_gain_mode movenow %d",
+		sprintf( command, "%s_gain_mode movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->gain_mode );
 		break;
@@ -1359,7 +1359,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		  || ( scipe_amplifier->invert_signal > 1 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested invert signal value %d for amplifier '%s' is "
+	"The requested invert signal value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
 				scipe_amplifier->invert_signal,
 				amplifier->record->name );
@@ -1367,7 +1367,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Change the signal inversion using the INVT command. */
 
-		sprintf( command, "%s_invert_signal movenow %d",
+		sprintf( command, "%s_invert_signal movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->invert_signal );
 		break;
@@ -1377,7 +1377,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 		  || ( scipe_amplifier->blank_output > 1 ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested blank output value %d for amplifier '%s' is "
+	"The requested blank output value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
 				scipe_amplifier->blank_output,
 				amplifier->record->name );
@@ -1385,7 +1385,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Change the blank output via the BLNK command. */
 
-		sprintf( command, "%s_blank movenow %d",
+		sprintf( command, "%s_blank movenow %ld",
 				scipe_amplifier->scipe_amplifier_name,
 				scipe_amplifier->blank_output );
 		break;

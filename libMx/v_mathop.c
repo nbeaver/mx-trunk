@@ -14,6 +14,8 @@
  *
  */
 
+#define MXV_MATHOP_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -66,8 +68,6 @@ long mxv_mathop_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxv_mathop_rfield_def_ptr
 		= &mxv_mathop_record_field_defaults[0];
-
-#define MXV_MATHOP_DEBUG	FALSE
 
 /********************************************************************/
 
@@ -524,6 +524,9 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		 */
 
 		switch( field_type ) {
+		case MXFT_BOOL:
+			*value = (double) *(mx_bool_type *) pointer_to_value;
+			break;
 		case MXFT_CHAR:
 			*value = (double) *(char *) pointer_to_value;
 			break;
@@ -536,18 +539,18 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 		case MXFT_USHORT:
 			*value = (double) *(unsigned short *) pointer_to_value;
 			break;
-		case MXFT_INT:
-			*value = (double) *(int *) pointer_to_value;
-			break;
-		case MXFT_UINT:
-			*value = (double) *(unsigned int *) pointer_to_value;
-			break;
 		case MXFT_LONG:
 			*value = (double) *(long *) pointer_to_value;
 			break;
 		case MXFT_ULONG:
 		case MXFT_HEX:
 			*value = (double) *(unsigned long *) pointer_to_value;
+			break;
+		case MXFT_INT64:
+			*value = (double) *(int64_t *) pointer_to_value;
+			break;
+		case MXFT_UINT64:
+			*value = (double) *(uint64_t *) pointer_to_value;
 			break;
 		case MXFT_FLOAT:
 			*value = (double) *(float *) pointer_to_value;
@@ -580,14 +583,15 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 
 	void *pointer_to_value;
 	long num_dimensions, field_type;
+	mx_bool_type *bool_ptr;
 	char *char_ptr;
 	unsigned char *uchar_ptr;
 	short *short_ptr;
 	unsigned short *ushort_ptr;
-	int *int_ptr;
-	unsigned int *uint_ptr;
 	long *long_ptr;
 	unsigned long *ulong_ptr;
+	int64_t *int64_ptr;
+	uint64_t *uint64_ptr;
 	float *float_ptr;
 	double *double_ptr;
 	mx_status_type mx_status;
@@ -700,15 +704,10 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 
 			*ushort_ptr = (unsigned short) mx_round( new_value );
 			break;
-		case MXFT_INT:
-			int_ptr = (int *) pointer_to_value;
+		case MXFT_BOOL:
+			bool_ptr = (mx_bool_type *) pointer_to_value;
 
-			*int_ptr = (int) mx_round( new_value );
-			break;
-		case MXFT_UINT:
-			uint_ptr = (unsigned int *) pointer_to_value;
-
-			*uint_ptr = (unsigned int) mx_round( new_value );
+			*bool_ptr = (mx_bool_type) mx_round( new_value );
 			break;
 		case MXFT_LONG:
 			long_ptr = (long *) pointer_to_value;
@@ -719,6 +718,16 @@ mxv_mathop_put_value( MX_RECORD *record, double new_value, unsigned long flags )
 			ulong_ptr = (unsigned long *) pointer_to_value;
 
 			*ulong_ptr = (unsigned long) mx_round( new_value );
+			break;
+		case MXFT_INT64:
+			int64_ptr = (int64_t *) pointer_to_value;
+
+			*int64_ptr = (int64_t) mx_round( new_value );
+			break;
+		case MXFT_UINT64:
+			uint64_ptr = (uint64_t *) pointer_to_value;
+
+			*uint64_ptr = (uint64_t) mx_round( new_value );
 			break;
 		case MXFT_FLOAT:
 			float_ptr = (float *) pointer_to_value;

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,13 +24,13 @@ typedef struct {
 	MX_RECORD *rs232_record;
 
 	double bias_voltage;
-	int    filter_type;
+	long   filter_type;
 	double lowpass_filter_3db_point;
 	double highpass_filter_3db_point;
-	int    reset_filter;
-	int    gain_mode;
-	int    invert_signal;
-	int    blank_output;
+	long   reset_filter;
+	long   gain_mode;
+	long   invert_signal;
+	long   blank_output;
 
 	/* The following fields are used to store the old settings of SR570
 	 * parameters, so that if the user requests an invalid value, the
@@ -41,12 +41,12 @@ typedef struct {
 	double old_gain;
 	double old_offset;
 	double old_bias_voltage;
-	int    old_filter_type;
+	long   old_filter_type;
 	double old_lowpass_filter_3db_point;
 	double old_highpass_filter_3db_point;
-	int    old_gain_mode;
-	int    old_invert_signal;
-	int    old_blank_output;
+	long   old_gain_mode;
+	long   old_invert_signal;
+	long   old_blank_output;
 } MX_SR570;
 
 #define MXLV_SR570_BIAS_VOLTAGE		0
@@ -83,7 +83,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, bias_voltage), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_FILTER_TYPE, -1, "filter_type", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SR570_FILTER_TYPE, -1, "filter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, filter_type), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -97,19 +97,19 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, highpass_filter_3db_point), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_RESET_FILTER, -1, "reset_filter", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SR570_RESET_FILTER, -1, "reset_filter", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, reset_filter), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_SR570_GAIN_MODE, -1, "gain_mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SR570_GAIN_MODE, -1, "gain_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, gain_mode), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_INVERT_SIGNAL, -1, "invert_signal", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SR570_INVERT_SIGNAL, -1, "invert_signal", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, invert_signal), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {MXLV_SR570_BLANK_OUTPUT, -1, "blank_output", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SR570_BLANK_OUTPUT, -1, "blank_output", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SR570, blank_output), \
 	{0}, NULL, 0}
 

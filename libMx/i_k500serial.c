@@ -218,7 +218,7 @@ mxi_k500serial_print_interface_structure( FILE *file, MX_RECORD *record )
 					k500serial->rs232_record->name);
 	fprintf(file, "  default I/O timeout    = %g\n",
 					gpib->default_io_timeout);
-	fprintf(file, "  default EOI mode       = %d\n",
+	fprintf(file, "  default EOI mode       = %ld\n",
 					gpib->default_eoi_mode);
 
 	read_eos_char = (char) ( gpib->default_read_terminator & 0xff );
@@ -437,7 +437,7 @@ mxi_k500serial_open( MX_RECORD *record )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal GPIB EOI mode %d", gpib->default_eoi_mode );
+			"Illegal GPIB EOI mode %ld", gpib->default_eoi_mode );
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
@@ -469,24 +469,24 @@ mxi_k500serial_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_k500serial_open_device( MX_GPIB *gpib, int address )
+mxi_k500serial_open_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_close_device( MX_GPIB *gpib, int address )
+mxi_k500serial_close_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_k500serial_read( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_k500serial_read()";
 
@@ -501,7 +501,7 @@ mxi_k500serial_read( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "EN;%02d", address );
+	sprintf( command, "EN;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command, NULL, flags );
 
@@ -518,11 +518,11 @@ mxi_k500serial_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_k500serial_write( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_k500serial_write()";
 
@@ -540,7 +540,7 @@ mxi_k500serial_write( MX_GPIB *gpib,
 
 	/* Send the 500-SERIAL command prefix. */
 
-	sprintf( prefix, "OA;%02d;", address );
+	sprintf( prefix, "OA;%02ld;", address );
 
 	mx_status = mx_rs232_write( rs232_record, prefix,
 					MX_PREFIX_BUFFER_LENGTH, NULL, flags );
@@ -607,7 +607,7 @@ mxi_k500serial_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_k500serial_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_selective_device_clear()";
 
@@ -622,7 +622,7 @@ mxi_k500serial_selective_device_clear( MX_GPIB *gpib, int address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "C;%02d", address );
+	sprintf( command, "C;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -652,7 +652,7 @@ mxi_k500serial_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_remote_enable( MX_GPIB *gpib, int address )
+mxi_k500serial_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_remote_enable()";
 
@@ -667,7 +667,7 @@ mxi_k500serial_remote_enable( MX_GPIB *gpib, int address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "RE;%02d", address );
+	sprintf( command, "RE;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -676,7 +676,7 @@ mxi_k500serial_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_go_to_local( MX_GPIB *gpib, int address )
+mxi_k500serial_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_go_to_local()";
 
@@ -691,7 +691,7 @@ mxi_k500serial_go_to_local( MX_GPIB *gpib, int address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "L;%02d", address );
+	sprintf( command, "L;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );
@@ -700,7 +700,7 @@ mxi_k500serial_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_trigger( MX_GPIB *gpib, int address )
+mxi_k500serial_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_k500serial_trigger_device()";
 
@@ -722,7 +722,7 @@ mxi_k500serial_trigger( MX_GPIB *gpib, int address )
 	if ( address < 0 ) {
 		strcpy( command, "TR" );
 	} else {
-		sprintf( command, "TR;%02d", address );
+		sprintf( command, "TR;%02ld", address );
 	}
 
 	mx_status = mx_rs232_putline( rs232_record, command,
@@ -741,7 +741,7 @@ mxi_k500serial_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_k500serial_serial_poll( MX_GPIB *gpib, int address,
+mxi_k500serial_serial_poll( MX_GPIB *gpib, long address,
 				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_k500serial_serial_poll()";
@@ -764,7 +764,7 @@ mxi_k500serial_serial_poll( MX_GPIB *gpib, int address,
 
 	/* Send the serial poll command. */
 
-	sprintf( command, "SP;%02d", address );
+	sprintf( command, "SP;%02ld", address );
 
 	mx_status = mx_rs232_putline( rs232_record, command,
 						NULL, K500SERIAL_DEBUG );

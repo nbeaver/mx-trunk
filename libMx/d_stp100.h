@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,11 +41,11 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int board_number;
+	long board_number;
 
-	int positive_limit_switch_pin;
-	int negative_limit_switch_pin;
-	int home_switch_pin;
+	long positive_limit_switch_pin;
+	long negative_limit_switch_pin;
+	long home_switch_pin;
 
 	double default_speed;
 	double default_base_speed;
@@ -84,7 +84,7 @@ extern MX_MOTOR_FUNCTION_LIST mxd_stp100_motor_motor_function_list;
 MX_API mx_status_type mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 						char *command,
 						char *response,
-						int response_buffer_length,
+						size_t response_buffer_length,
 						int debug_flag );
 
 extern long mxd_stp100_motor_num_record_fields;
@@ -95,21 +95,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_stp100_motor_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "board_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "board_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "positive_limit_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "positive_limit_switch_pin", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_STP100_MOTOR, positive_limit_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "negative_limit_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "negative_limit_switch_pin", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_STP100_MOTOR, negative_limit_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "home_switch_pin", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "home_switch_pin", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_STP100_MOTOR, home_switch_pin), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

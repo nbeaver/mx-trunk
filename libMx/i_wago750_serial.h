@@ -41,17 +41,17 @@ typedef struct {
 	MX_RECORD *bus_record;
 	unsigned long input_bus_address;
 	unsigned long output_bus_address;
-	int num_data_bytes;	/* Either 3 or 5. */
+	long num_data_bytes;	/* Either 3 or 5. */
 
-	unsigned int num_input_bytes_in_buffer;
-	unsigned int next_input_byte_index;
+	unsigned long num_input_bytes_in_buffer;
+	unsigned long next_input_byte_index;
 	uint8_t input_buffer[5];
 
-	int interleaved_data_addresses;
-	int control_address;
-	int status_address;
+	long interleaved_data_addresses;
+	long control_address;
+	long status_address;
 
-	int num_data_bytes_warning;
+	long num_data_bytes_warning;
 
 	unsigned long wait_ms;
 	unsigned long max_attempts;
@@ -111,7 +111,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_wago750_serial_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WAGO750_SERIAL, output_bus_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "num_data_bytes", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_data_bytes", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_WAGO750_SERIAL, num_data_bytes), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,7 +73,7 @@ typedef struct {
 	MX_SOCKET *marccd_socket;
 
 	char marccd_host[ MXU_HOSTNAME_LENGTH + 1 ];
-	int marccd_port;
+	long marccd_port;
 
 	/* The command that currently should be executing. */
 
@@ -101,7 +101,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_REMOTE_MARCCD, marccd_host), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "marccd_port", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "marccd_port", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_REMOTE_MARCCD, marccd_port), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

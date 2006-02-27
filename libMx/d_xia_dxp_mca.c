@@ -1224,7 +1224,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 		mx_status = mx_get(
 		    &(xia_network->hardware_scas_are_enabled_nf[mca_number]),
-			MXFT_INT, &(xia_dxp_mca->hardware_scas_are_enabled) );
+			MXFT_BOOL, &(xia_dxp_mca->hardware_scas_are_enabled) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1286,7 +1286,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 	if ( display_config ) {
 		mx_info(
-	"MCA '%s': codevar = %d, coderev = %d, hardware SCAs = %d",
+	"MCA '%s': codevar = %#lx, coderev = %#lx, hardware SCAs = %d",
 			xia_dxp_mca->record->name,
 			xia_dxp_mca->firmware_code_variant,
 			xia_dxp_mca->firmware_code_revision,
@@ -1335,7 +1335,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	xia_dxp_mca->old_preset_high_order = (uint32_t) MX_ULONG_MAX;
 	xia_dxp_mca->old_preset_low_order  = (uint32_t) MX_ULONG_MAX;
 
-	MX_DEBUG( 2,("%s: MCA '%s' detector channel = %d",
+	MX_DEBUG( 2,("%s: MCA '%s' detector channel = %ld",
 		fname, record->name, xia_dxp_mca->detector_channel));
 
 	/****************** DXP runtime clock tick ******************/
@@ -1741,7 +1741,7 @@ mxd_xia_dxp_start( MX_MCA *mca )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Preset type %d is not supported for record '%s'",
+			"Preset type %ld is not supported for record '%s'",
 			mca->preset_type, mca->record->name );
 	}
 
@@ -2060,7 +2060,7 @@ mxd_xia_dxp_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2087,7 +2087,7 @@ mxd_xia_dxp_set_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2157,7 +2157,7 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -2298,7 +2298,7 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));

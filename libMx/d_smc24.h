@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,16 +24,16 @@
 
 typedef struct {
 	MX_RECORD *crate_record;
-	int slot;
+	long slot;
 	MX_RECORD *encoder_record;
 	double motor_steps_per_encoder_tick;
-	int flags;
+	unsigned long flags;
 } MX_SMC24;
 
 /* Bit masks for the "flags" field. */
 
-#define MXF_SMC24_USE_32BIT_SOFTWARE_COUNTER	1
-#define MXF_SMC24_USE_CW_CCW_MOTOR_PULSES	2
+#define MXF_SMC24_USE_32BIT_SOFTWARE_COUNTER	0x1
+#define MXF_SMC24_USE_CW_CCW_MOTOR_PULSES	0x2
 
 /* Define all of the interface functions. */
 
@@ -64,7 +64,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_smc24_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SMC24, crate_record ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SMC24, slot ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -76,7 +76,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_smc24_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SMC24, motor_steps_per_encoder_tick),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "flags", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SMC24, flags ), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

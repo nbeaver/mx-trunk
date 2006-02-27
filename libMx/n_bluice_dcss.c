@@ -691,7 +691,7 @@ stog_log( MX_THREAD *thread,
 	static const char fname[] = "stog_log()";
 #endif
 
-	int severity, locale;
+	long severity, locale;
 	char device_name[MXU_BLUICE_NAME_LENGTH+1];
 	char message_body[500];
 	mx_status_type mx_status;

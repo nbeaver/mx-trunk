@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,16 +22,16 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
-	int location;
+	long address;
+	long location;
 } MX_TRACKER_DINPUT;
 
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
-	int address;
-	int location;
+	long address;
+	long location;
 } MX_TRACKER_DOUTPUT;
 
 #define MXD_TRACKER_DINPUT_STANDARD_FIELDS \
@@ -39,11 +39,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DINPUT, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DINPUT, address), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "location", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "location", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DINPUT, location), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -52,11 +52,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DOUTPUT, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "address", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "address", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DOUTPUT, address), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "location", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "location", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TRACKER_DOUTPUT, location), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 

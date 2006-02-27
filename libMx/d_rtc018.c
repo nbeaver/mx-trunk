@@ -108,11 +108,11 @@ mxd_rtc018_finish_record_initialization( MX_RECORD *record )
 
 	if ( rtc018->slot < 1 || rtc018->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"CAMAC slot number %d is out of allowed range 1-23.",
+			"CAMAC slot number %ld is out of allowed range 1-23.",
 			rtc018->slot );
 	}
 
-	MX_DEBUG(2, ("slot = %d, timer name = '%s'.",
+	MX_DEBUG(2, ("slot = %ld, timer name = '%s'.",
 		rtc018->slot, record->name));
 
 	rtc018->saved_step_down_bit = -1;

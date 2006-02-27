@@ -438,8 +438,8 @@ mxd_timer_fanout_get_mode( MX_TIMER *timer )
 
 	MX_TIMER_FANOUT *timer_fanout;
 	MX_RECORD *child_timer_record;
-	long i;
-	int first_time, mode;
+	long i, mode;
+	mx_bool_type first_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_timer_fanout_get_pointers(timer, &timer_fanout, fname);
@@ -483,8 +483,7 @@ mxd_timer_fanout_set_mode( MX_TIMER *timer )
 
 	MX_TIMER_FANOUT *timer_fanout;
 	MX_RECORD *child_timer_record;
-	long i;
-	int mode;
+	long i, mode;
 	mx_status_type mx_status;
 
 	mx_status = mxd_timer_fanout_get_pointers(timer, &timer_fanout, fname);

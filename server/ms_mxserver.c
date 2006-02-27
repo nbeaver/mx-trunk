@@ -540,6 +540,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	new_socket_handler->data_format = list_head->default_data_format;
 
+	new_socket_handler->truncate_64bit_longs = TRUE;
+
 	new_socket_handler->authentication_type = MXF_SRVAUTH_NONE;
 
 	/* Allocate memory for the message buffer. */
@@ -731,7 +733,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	client_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(1,("%s invoked for socket handler %d.", fname,
+	MX_DEBUG(1,("%s invoked for socket handler %ld.", fname,
 				socket_handler->handler_array_index));
 
 #if NETWORK_DEBUG_VERBOSE
@@ -1274,11 +1276,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	switch ( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-		mx_status = mxsrv_handle_get_array(
-				socket_handler->synchronous_socket,
-				record, record_field,
-				socket_handler->data_format,
-				receive_buffer );
+		mx_status = mxsrv_handle_get_array( socket_handler,
+						record, record_field,
+						receive_buffer );
 
 		update_next_event_time = TRUE;
 		break;
@@ -1293,12 +1293,10 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
 		}
 
-		mx_status = mxsrv_handle_put_array(
-				socket_handler->synchronous_socket,
-				record, record_field,
-				socket_handler->data_format,
-				receive_buffer,
-				value_ptr );
+		mx_status = mxsrv_handle_put_array( socket_handler,
+						record, record_field,
+						receive_buffer,
+						value_ptr );
 
 		update_next_event_time = TRUE;
 		break;
@@ -1395,7 +1393,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 mx_status_type
 mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 {
-	static const char fname[] = "mxsrv_mx_client_socket_proc_queued_event()";
+	static const char fname[] =
+			"mxsrv_mx_client_socket_proc_queued_event()";
 
 	MX_RECORD *record_list;
 	MX_SOCKET_HANDLER *socket_handler;
@@ -1441,12 +1440,10 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 	switch ( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-		mx_status = mxsrv_handle_get_array(
-				socket_handler->synchronous_socket,
-				queued_event->record,
-				queued_event->record_field,
-				socket_handler->data_format,
-				queued_event->event_data );
+		mx_status = mxsrv_handle_get_array( socket_handler,
+						queued_event->record,
+						queued_event->record_field,
+						queued_event->event_data );
 
 		break;
 	case MX_NETMSG_PUT_ARRAY_BY_NAME:
@@ -1462,13 +1459,11 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 			value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
 		}
 
-		mx_status = mxsrv_handle_put_array(
-				socket_handler->synchronous_socket,
-				queued_event->record,
-				queued_event->record_field,
-				socket_handler->data_format,
-				message_buffer,
-				value_ptr );
+		mx_status = mxsrv_handle_put_array( socket_handler,
+						queued_event->record,
+						queued_event->record_field,
+						message_buffer,
+						value_ptr );
 
 		break;
 	default:
@@ -1494,10 +1489,9 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 }
 
 mx_status_type
-mxsrv_handle_get_array( MX_SOCKET *mx_socket,
+mxsrv_handle_get_array( MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			unsigned long data_format,
 			void *received_buffer )
 {
 	static const char fname[] = "mxsrv_handle_get_array()";
@@ -1508,6 +1502,8 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 	long send_buffer_header_length, send_buffer_message_length;
 	long send_buffer_message_actual_length;
 	size_t num_bytes_copied;
+
+	MX_SOCKET *mx_socket;
 	void *pointer_to_value;
 	int array_is_dynamically_allocated;
 	mx_status_type ( *token_constructor )
@@ -1521,6 +1517,8 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 #endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
+
+	mx_socket = socket_handler->synchronous_socket;
 
 	MX_DEBUG(1,("***** %s invoked for socket %d *****",
 				fname, mx_socket->socket_fd));
@@ -1565,7 +1563,7 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 
-		switch( data_format ) {
+		switch( socket_handler->data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 
 		        /* Return the data in ASCII MX database format. */
@@ -1629,7 +1627,8 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 					record_field->data_element_size,
 					send_buffer_message,
 					send_buffer_message_length,
-					&num_bytes_copied );
+					&num_bytes_copied,
+					socket_handler->truncate_64bit_longs );
 
 			send_buffer_message_actual_length =
 						(long) num_bytes_copied;
@@ -1661,7 +1660,7 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		    "Unrecognized network data format type %lu was requested.",
-		    		data_format );
+		    		socket_handler->data_format );
 		}
 	}
 
@@ -1786,10 +1785,9 @@ mxsrv_handle_get_array( MX_SOCKET *mx_socket,
 }
 
 mx_status_type
-mxsrv_handle_put_array( MX_SOCKET *mx_socket,
+mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			unsigned long data_format,
 			void *receive_buffer,
 			void *value_buffer_ptr )
 {
@@ -1805,6 +1803,7 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length, send_buffer_message_length;
 
+	MX_SOCKET *mx_socket;
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char token_buffer[500];
 	void *pointer_to_value;
@@ -1825,6 +1824,8 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 #endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
+
+	mx_socket = socket_handler->synchronous_socket;
 
 	MX_DEBUG(1,("***** %s invoked for socket %d *****",
 		fname, mx_socket->socket_fd));
@@ -1909,7 +1910,7 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 			break;		/* Exit the do...while(0) loop. */
 		}
 
-		switch( data_format ) {
+		switch( socket_handler->data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 
 			/* The data were sent in ASCII MX database format. */
@@ -1981,7 +1982,8 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 					record_field->num_dimensions,
 					record_field->dimension,
 					record_field->data_element_size,
-					NULL );
+					NULL,
+					socket_handler->truncate_64bit_longs );
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
@@ -2037,7 +2039,7 @@ mxsrv_handle_put_array( MX_SOCKET *mx_socket,
 		default:
 			mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		    "Unrecognized network data format type %lu was requested.",
-		    		data_format );
+		    		socket_handler->data_format );
 			break;
 		}
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001-2002, 2005 Illinois Institute of Technology
+ * Copyright 2001-2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -79,8 +79,8 @@ typedef struct {
 
 	unsigned long maximum_prescale_factor;
 
-	int fifo_size_in_kwords;		/* A word is 16 bits long */
-	int counts_available_in_fifo;
+	long fifo_size_in_kwords;		/* A word is 16 bits long */
+	mx_bool_type counts_available_in_fifo;
 
 	MX_CLOCK_TICK finish_time;
 } MX_SIS3801;
@@ -123,11 +123,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, maximum_prescale_factor), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "fifo_size_in_kwords", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "fifo_size_in_kwords", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, fifo_size_in_kwords), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "counts_available_in_fifo", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "counts_available_in_fifo", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3801, counts_available_in_fifo), \
 	{0}, NULL, MXFF_READ_ONLY }
 

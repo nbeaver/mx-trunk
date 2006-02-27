@@ -512,7 +512,7 @@ mxd_vsc16_timer_set_mode( MX_TIMER *timer )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	"Unsupported preset mode %d requested for VSC16 timer '%s'.  "
+	"Unsupported preset mode %ld requested for VSC16 timer '%s'.  "
 	"Only preset mode and counter mode are supported.",
 			timer->mode, timer->record->name );
 	}

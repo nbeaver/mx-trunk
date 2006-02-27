@@ -61,7 +61,8 @@ MX_RECORD_FIELD_DEFAULTS *mxd_xia_dxp_sum_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxd_xia_dxp_sum_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_xia_dxp_sum_create_record_structures()";
+	static const char fname[] =
+			"mxd_xia_dxp_sum_create_record_structures()";
 
 	MX_ANALOG_INPUT *analog_input;
 	MX_XIA_DXP_SUM *xia_dxp_sum;
@@ -105,7 +106,7 @@ mxd_xia_dxp_sum_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 {
-	const char fname[] = "mxd_xia_dxp_sum_read()";
+	static const char fname[] = "mxd_xia_dxp_sum_read()";
 
 	MX_XIA_DXP_SUM *xia_dxp_sum;
 
@@ -117,7 +118,7 @@ mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 	MX_MCA *mca;
 
 	void *field_value_pointer;
-	int *enable_array;
+	mx_bool_type *enable_array;
 	long num_elements;
 	unsigned long i, num_enabled_mcas;
 	double corrected_roi_value, weighted_roi_value, weighted_sum;
@@ -159,13 +160,13 @@ mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 	/* Get the MCA enable flags. */
 
 	mx_status = mx_get_1d_array( xia_dxp_sum->mca_enable_record,
-					MXFT_INT, &num_elements,
+					MXFT_BOOL, &num_elements,
 					&field_value_pointer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	enable_array = (int *) field_value_pointer;
+	enable_array = (mx_bool_type *) field_value_pointer;
 
 	if ( num_elements < num_mcas ) {
 		num_mcas = num_elements;
@@ -193,7 +194,7 @@ mxd_xia_dxp_sum_read( MX_ANALOG_INPUT *analog_input )
 				mca_record->name );
 		}
 
-		if ( enable_array[i] != 0 ) {
+		if ( enable_array[i] != FALSE ) {
 
 			mx_status = mxd_xia_dxp_get_rate_corrected_roi_integral(
 							mca,

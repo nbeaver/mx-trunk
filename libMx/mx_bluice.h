@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,9 +51,9 @@
 
 typedef struct {
 	char counter_name[MXU_BLUICE_NAME_LENGTH+1];
-	int channel_number;
+	long channel_number;
 	char timer_name[MXU_BLUICE_NAME_LENGTH+1];
-	int timer_type;
+	long timer_type;
 
 	double value;
 
@@ -63,7 +63,7 @@ typedef struct {
 
 typedef struct {
 	char dhs_name[MXU_BLUICE_NAME_LENGTH+1];
-	int is_pseudo;
+	mx_bool_type is_pseudo;
 	double position;		/* scaled */
 	double upper_limit;		/* scaled */
 	double lower_limit;		/* scaled */
@@ -71,20 +71,20 @@ typedef struct {
 	double speed;			/* steps/second */	/* real only */
 	double acceleration_time;	/* seconds */		/* real only */
 	double backlash;		/* steps */		/* real only */
-	int lower_limit_on;
-	int upper_limit_on;
-	int motor_lock_on;
-	int backlash_on;					/* real only */
-	int reverse_on;						/* real only */
+	mx_bool_type lower_limit_on;
+	mx_bool_type upper_limit_on;
+	mx_bool_type motor_lock_on;
+	mx_bool_type backlash_on;				/* real only */
+	mx_bool_type reverse_on;				/* real only */
 
 	/* The following are non-Blu-Ice fields for the use of MX. */
 
 	MX_MOTOR *mx_motor;
-	int move_in_progress;
+	mx_bool_type move_in_progress;
 } MX_BLUICE_FOREIGN_MOTOR;
 
 typedef struct {
-	int shutter_status;
+	long shutter_status;
 
 	MX_RELAY *mx_relay;
 } MX_BLUICE_FOREIGN_SHUTTER;
@@ -103,7 +103,7 @@ typedef struct {
 #define MXT_BLUICE_FOREIGN_STRING	4
 
 typedef struct {
-	int foreign_type;
+	long foreign_type;
 	char name[MXU_BLUICE_NAME_LENGTH+1];
 	char dhs_server_name[MXU_BLUICE_NAME_LENGTH+1];
 
@@ -142,16 +142,16 @@ typedef struct {
 	long receive_buffer_length;
 	long num_received_bytes;
 
-	int num_ion_chambers;
+	long num_ion_chambers;
 	MX_BLUICE_FOREIGN_DEVICE **ion_chamber_array;
 
-	int num_motors;
+	long num_motors;
 	MX_BLUICE_FOREIGN_DEVICE **motor_array;
 
-	int num_shutters;
+	long num_shutters;
 	MX_BLUICE_FOREIGN_DEVICE **shutter_array;
 
-	int num_strings;
+	long num_strings;
 	MX_BLUICE_FOREIGN_DEVICE **string_array;
 } MX_BLUICE_SERVER;
 
@@ -180,13 +180,13 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 #define MXT_BLUICE_STOC	5
 
 MX_API mx_status_type
-mx_bluice_get_message_type( char *message_string, int *message_type );
+mx_bluice_get_message_type( char *message_string, long *message_type );
 
 MX_API mx_status_type
 mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			char *name,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
-			int *num_foreign_devices_ptr,
+			long *num_foreign_devices_ptr,
 			size_t foreign_pointer_size,
 			size_t foreign_device_size,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr );
@@ -199,19 +199,21 @@ MX_API mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
 			MX_BLUICE_SERVER *bluice_server,
 			char *name,
-			int bluice_foreign_type,
+			long bluice_foreign_type,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
-			int *num_foreign_devices_ptr,
+			long *num_foreign_devices_ptr,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr,
 			double timeout_in_seconds );
 
 /* ----- */
 
 MX_API mx_status_type
-mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server, int *master_flag );
+mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
+			mx_bool_type *master_flag );
 
 MX_API mx_status_type
-mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server, int take_master );
+mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
+			mx_bool_type take_master );
 
 MX_API mx_status_type
 mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
@@ -228,8 +230,8 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server );
 
 MX_API mx_status_type
 mx_bluice_parse_log_message( char *log_message,
-				int *severity,
-				int *locale,
+				long *severity,
+				long *locale,
 				char *device_name,
 				size_t device_name_length,
 				char *message_body,
@@ -256,7 +258,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 MX_API mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *motion_status_message,
-				int move_in_progress );
+				mx_bool_type move_in_progress );
 
 #endif /* __MX_BLUICE_H__ */
 

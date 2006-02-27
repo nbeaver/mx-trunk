@@ -199,15 +199,15 @@ mxd_sis3807_open( MX_RECORD *record )
 	{
 		if ( sis3807->num_channels == 1 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Channel number %d for 'sis3807_pulser' '%s' is illegal.  "
+	"Channel number %ld for 'sis3807_pulser' '%s' is illegal.  "
 	"The only allowed channel number for 'sis3807' record '%s' is 1.",
 				sis3807_pulser->channel_number, record->name,
 				sis3807->record->name );
 		} else {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Channel number %d for 'sis3807_pulser' '%s' is illegal.  "
+	"Channel number %ld for 'sis3807_pulser' '%s' is illegal.  "
 	"The allowed range of channel numbers for 'sis3807' record '%s' "
-	"is from 1 to %d.",
+	"is from 1 to %ld.",
 				sis3807_pulser->channel_number, record->name,
 				sis3807->record->name, sis3807->num_channels );
 		}
@@ -852,7 +852,7 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 			break;
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-		"Pulse mode %d is not supported for pulse generator '%s'.  "
+		"Pulse mode %ld is not supported for pulse generator '%s'.  "
 		"Only pulse mode (1) and square wave mode (2) are supported.",
 				pulse_generator->mode,
 				pulse_generator->record->name );

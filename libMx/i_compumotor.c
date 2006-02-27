@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -224,8 +224,7 @@ mxi_compumotor_finish_record_initialization( MX_RECORD *record )
 		"mxi_compumotor_finish_record_initialization()";
 
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
-	int i, j;
-	long num_controllers;
+	long i, j, num_controllers;
 
 	compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
 					record->record_type_struct;
@@ -487,7 +486,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 
 	for ( i = 0; i < compumotor_interface->num_controllers; i++ ) {
 
-		sprintf( command, "%d_!TREV",
+		snprintf( command, sizeof(command), "%ld_!TREV",
 				compumotor_interface->controller_number[i] );
 	
 		mx_status = mxi_compumotor_command( compumotor_interface,
@@ -559,7 +558,7 @@ mxi_compumotor_resynchronize( MX_RECORD *record )
 
 	for ( i = 0; i < compumotor_interface->num_controllers; i++ ) {
 
-		sprintf( command, "%d_!DRIVE",
+		snprintf( command, sizeof(command), "%ld_!DRIVE",
 				compumotor_interface->controller_number[i] );
 
 		for ( j = 0; j < compumotor_interface->num_axes[i]; j++ ) {
@@ -689,13 +688,13 @@ mxi_compumotor_process_function( void *record_ptr,
 
 MX_EXPORT mx_status_type
 mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-		char *command, char *response, int response_buffer_length,
+		char *command, char *response, size_t response_buffer_length,
 		int debug_flag )
 {
 	static const char fname[] = "mxi_compumotor_command()";
 
 	unsigned long sleep_ms, num_bytes_available;
-	int i, max_attempts;
+	long i, max_attempts;
 	size_t length;
 	char c;
 	char echoed_command_string[200];
@@ -915,13 +914,13 @@ mxi_compumotor_command( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 MX_EXPORT mx_status_type
 mxi_compumotor_get_controller_index(
 				MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int controller_number,
-				int *controller_index )
+				long controller_number,
+				long *controller_index )
 {
 	static const char fname[] = "mxi_compumotor_get_controller_index()";
 
-	int i;
-	int *controller_number_array;
+	long i;
+	long *controller_number_array;
 
 	/* Find the array index for this controller number. */
 
@@ -933,7 +932,7 @@ mxi_compumotor_get_controller_index(
 			*controller_index = i;
 
 			MX_DEBUG( 2,
-			("%s: controller_number = %d controller_index = %d",
+			("%s: controller_number = %ld controller_index = %ld",
 			fname, controller_number, *controller_index ));
 
 			break;	/* Exit the for() loop. */
@@ -942,7 +941,7 @@ mxi_compumotor_get_controller_index(
 
 	if ( i >= compumotor_interface->num_controllers ) {
 		return mx_error( MXE_NOT_FOUND, fname,
-"Compumotor interface record '%s' does not have a controller number %d.",
+"Compumotor interface record '%s' does not have a controller number %ld.",
 			compumotor_interface->record->name, controller_number );
 	}
 
@@ -951,11 +950,11 @@ mxi_compumotor_get_controller_index(
 
 MX_EXPORT mx_status_type
 mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
-				int controller_index,
-				unsigned long num_motors,
+				long controller_index,
+				long num_motors,
 				MX_RECORD **motor_record_array,
 				double *motor_position_array,
-				int simultaneous_start )
+				mx_bool_type simultaneous_start )
 {
 	static const char fname[] = "mxi_compumotor_multiaxis_move()";
 
@@ -967,9 +966,9 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 					MX_MOTOR_NUM_ACCELERATION_PARAMS];
 
 	double destination[MX_MAX_COMPUMOTOR_AXES];
-	int will_be_moved[MX_MAX_COMPUMOTOR_AXES];
-	int axis, controller_number;
-	unsigned long i, num_axes;
+	mx_bool_type will_be_moved[MX_MAX_COMPUMOTOR_AXES];
+	long axis, controller_number;
+	long i, num_axes;
 	char command[80];
 	char *ptr;
 	size_t length, buffer_left;
@@ -1009,8 +1008,9 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	
 		/* Set the acceleration for the linear interpolation move. */
 	
-		sprintf( command, "%d_!PA%g", controller_number,
-			raw_acceleration_parameter_array[0] );
+		snprintf( command, sizeof(command),
+			"%ld_!PA%g", controller_number,
+				raw_acceleration_parameter_array[0] );
 	
 		mx_status = mxi_compumotor_command( compumotor_interface,
 					command, NULL, 0,
@@ -1021,7 +1021,8 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	
 		/* Set the velocity for the linear interpolation move. */
 	
-		sprintf( command, "%d_!PV%g", controller_number, velocity );
+		snprintf( command, sizeof(command),
+			"%ld_!PV%g", controller_number, velocity );
 	
 		mx_status = mxi_compumotor_command( compumotor_interface,
 					command, NULL, 0,
@@ -1059,7 +1060,7 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		destination[axis-1] = mx_divide_safely( motor_position_array[i],
 							motor->scale );
 
-		MX_DEBUG( 2, ("%s: axis = %d, destination = %g",
+		MX_DEBUG( 2, ("%s: axis = %ld, destination = %g",
 			fname, axis, destination[axis-1] ));
 
 		will_be_moved[axis-1] = TRUE;
@@ -1067,7 +1068,7 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 	num_axes = compumotor_interface->num_axes[ controller_number - 1 ];
 
-	sprintf( command, "%d_!D", controller_number );
+	snprintf( command, sizeof(command), "%ld_!D", controller_number );
 
 	for ( i = 0; i < num_axes; i++ ) {
 
@@ -1080,6 +1081,8 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		length = strlen( command );
 
 		ptr = command + length;
+
+		buffer_left = sizeof( command ) - length;
 
 		if ( i != 0 ) {
 			*ptr = ',';
@@ -1096,7 +1099,7 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 			 * of 5 digits after the decimal point.
 			 */
 
-			sprintf( ptr, "%.5f", destination[i] );
+			snprintf( ptr, buffer_left, "%.5f", destination[i] );
 		}
 	}
 
@@ -1113,9 +1116,11 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 	/* Construct the command to start the move. */
 
 	if ( simultaneous_start ) {
-		sprintf( command, "%d_!GO", controller_number );
+		snprintf( command, sizeof(command),
+				"%ld_!GO", controller_number );
 	} else {
-		sprintf( command, "%d_!GOL", controller_number );
+		snprintf( command, sizeof(command),
+				"%ld_!GOL", controller_number );
 	}
 
 	for ( i = 0; i < num_axes; i++ ) {
@@ -1124,12 +1129,12 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		ptr = command + length;
 
-		buffer_left = sizeof( command ) - length - 1;
+		buffer_left = sizeof( command ) - length;
 
 		if ( will_be_moved[i] ) {
-			strncat( ptr, "1", buffer_left );
+			strlcat( ptr, "1", buffer_left );
 		} else {
-			strncat( ptr, "0", buffer_left );
+			strlcat( ptr, "0", buffer_left );
 		}
 	}
 

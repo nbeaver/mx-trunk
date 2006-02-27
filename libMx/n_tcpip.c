@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -220,7 +220,7 @@ mxn_tcpip_server_open( MX_RECORD *record )
 		tcpip_server->socket = NULL;
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"The MX server at port %d on the computer '%s' is either not running "
+"The MX server at port %ld on the computer '%s' is either not running "
 "or is not working correctly.  "
 "You can try to fix this by restarting the MX server.",
 			tcpip_server->port, tcpip_server->hostname );
@@ -230,14 +230,17 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 		return mx_error( mx_status.code, fname,
 "An unexpected error occurred while trying to connect to the MX server "
-"at port %d on the computer '%s'.", tcpip_server->port, tcpip_server->hostname);
+"at port %ld on the computer '%s'.",
+			tcpip_server->port, tcpip_server->hostname);
 
 	}
 
-	/* Set the socket to non-blocking mode if requested. */
+	/* Set the socket to non-blocking mode if desired. */
 
-	if ( flags & MXF_NETWORK_SERVER_TEST_NON_BLOCKING ) {
+	if ( flags & MXF_NETWORK_SERVER_BLOCKING_IO ) {
 
+		network_server->timeout = -1.0;
+	} else {
 		mx_status = mx_socket_set_non_blocking_mode( server_socket,
 								TRUE );
 
@@ -245,8 +248,6 @@ mxn_tcpip_server_open( MX_RECORD *record )
 			return mx_status;
 
 		network_server->timeout = 5.0;
-	} else {
-		network_server->timeout = -1.0;
 	}
 
 	/* See if the user has requested a particular data format. */
@@ -481,13 +482,13 @@ mxn_tcpip_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 
 		if ( flags & MXF_NETWORK_SERVER_NO_AUTO_RECONNECT ) {
 			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
-			"Server '%s' at '%s', port %d is not connected.",
+			"Server '%s' at '%s', port %ld is not connected.",
 				network_server->record->name,
 				tcpip_server->hostname,
 				tcpip_server->port );
 		} else {
 			mx_info(
-			"*** Reconnecting to server '%s' at '%s', port %d.",
+			"*** Reconnecting to server '%s' at '%s', port %ld.",
 				network_server->record->name,
 				tcpip_server->hostname,
 				tcpip_server->port );

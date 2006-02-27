@@ -409,7 +409,7 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_xia_network_resynchronize()";
 
 	MX_XIA_NETWORK *xia_network;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -427,10 +427,10 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	resynchronize = 1;
+	resynchronize = TRUE;
 
 	mx_status = mx_put( &(xia_network->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
@@ -446,7 +446,7 @@ mxi_xia_network_is_busy( MX_MCA *mca,
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	int busy;
+	mx_bool_type busy;
 	long i;
 	mx_status_type mx_status;
 
@@ -458,7 +458,7 @@ mxi_xia_network_is_busy( MX_MCA *mca,
 
 	i = xia_dxp_mca->detector_channel;
 
-	mx_status = mx_get( &(xia_network->busy_nf[i]), MXFT_INT, &busy );
+	mx_status = mx_get( &(xia_network->busy_nf[i]), MXFT_BOOL, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -496,7 +496,7 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,
-		("%s: Record '%s', channel %d, parameter '%s'.",
+		("%s: Record '%s', channel %ld, parameter '%s'.",
 			fname, mca->record->name,
 			xia_dxp_mca->detector_channel, parameter_name));
 	}
@@ -552,7 +552,7 @@ mxi_xia_network_write_parameter( MX_MCA *mca,
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,
-		("%s: Record '%s', channel %d, parameter '%s', value = %lu.",
+		("%s: Record '%s', channel %ld, parameter '%s', value = %lu.",
 			fname, mca->record->name, xia_dxp_mca->detector_channel,
 			parameter_name, parameter_value));
 	}
@@ -608,7 +608,7 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,
-		("%s: Record '%s', channel %d, parameter '%s', value = %lu.",
+		("%s: Record '%s', channel %ld, parameter '%s', value = %lu.",
 			fname, mca->record->name, xia_dxp_mca->detector_channel,
 			parameter_name, parameter_value));
 	}
@@ -679,7 +679,7 @@ mxi_xia_network_start_run( MX_MCA *mca,
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown preset type %d for MCA '%s'",
+			"Unknown preset type %ld for MCA '%s'",
 			mca->preset_type, mca->record->name );
 	}
 
@@ -703,7 +703,7 @@ mxi_xia_network_stop_run( MX_MCA *mca,
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_NETWORK *xia_network;
-	int stop;
+	mx_bool_type stop;
 	long i;
 	mx_status_type mx_status;
 
@@ -719,9 +719,9 @@ mxi_xia_network_stop_run( MX_MCA *mca,
 		MX_DEBUG(-2,("%s: Record '%s'.", fname, mca->record->name));
 	}
 
-	stop = 1;
+	stop = TRUE;
 
-	mx_status = mx_put( &(xia_network->stop_nf[i]), MXFT_INT, &stop );
+	mx_status = mx_put( &(xia_network->stop_nf[i]), MXFT_BOOL, &stop );
 
 	return mx_status;
 }
@@ -749,7 +749,7 @@ mxi_xia_network_read_spectrum( MX_MCA *mca,
 		/* See if the new_data_available flag is set in the server. */
 
 		mx_status = mx_get( &(xia_network->new_data_available_nf[i]),
-					MXFT_INT, &(mca->new_data_available) );
+					MXFT_BOOL, &(mca->new_data_available) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -813,7 +813,7 @@ mxi_xia_network_read_statistics( MX_MCA *mca,
 
 		mx_status = mx_get(
 			&(xia_network->new_statistics_available_nf[i]),
-			MXFT_INT, &(xia_dxp_mca->new_statistics_available) );
+			MXFT_BOOL, &(xia_dxp_mca->new_statistics_available) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -879,7 +879,7 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 	i = xia_dxp_mca->detector_channel;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -903,7 +903,7 @@ mxi_xia_network_get_mx_parameter( MX_MCA *mca )
 
 	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_get( &(xia_network->preset_type_nf[i]),
-					MXFT_INT, &(mca->preset_type) );
+					MXFT_LONG, &(mca->preset_type) );
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:
@@ -1051,7 +1051,7 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 
 	i = xia_dxp_mca->detector_channel;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -1064,7 +1064,7 @@ mxi_xia_network_set_mx_parameter( MX_MCA *mca )
 
 	case MXLV_MCA_PRESET_TYPE:
 		mx_status = mx_put( &(xia_network->preset_type_nf[i]),
-					MXFT_INT, &(mca->preset_type) );
+					MXFT_LONG, &(mca->preset_type) );
 		break;
 
 	case MXLV_MCA_ROI_ARRAY:

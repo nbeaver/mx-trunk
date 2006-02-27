@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ MX_RECORD_FIELD_DEFAULTS mxv_position_select_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_POSITION_SELECT_STANDARD_FIELDS,
 	MX_VARIABLE_STANDARD_FIELDS,
-	MX_INT_VARIABLE_STANDARD_FIELDS
+	MX_LONG_VARIABLE_STANDARD_FIELDS
 };
 
 long mxv_position_select_num_record_fields
@@ -185,7 +185,7 @@ mxv_position_select_send_variable( MX_VARIABLE *variable )
 	MX_POSITION_SELECT *position_select;
 	MX_RECORD_FIELD *value_field;
 	void *value_ptr;
-	int int_value;
+	long long_value;
 	double requested_position;
 	mx_status_type mx_status;
 
@@ -200,15 +200,15 @@ mxv_position_select_send_variable( MX_VARIABLE *variable )
 
 	value_ptr = mx_get_field_value_pointer( value_field );
 
-	int_value = *((int *) value_ptr);
+	long_value = *((long *) value_ptr);
 
-	if ( ( int_value < 0 )
-	  || ( int_value >= position_select->num_positions ) )
+	if ( ( long_value < 0 )
+	  || ( long_value >= position_select->num_positions ) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested value %d for position select record '%s' "
+		"Requested value %ld for position select record '%s' "
 		"is outside the allowed range of 0-%ld",
-			int_value, variable->record->name,
+			long_value, variable->record->name,
 			position_select->num_positions );
 	}
 
@@ -216,7 +216,7 @@ mxv_position_select_send_variable( MX_VARIABLE *variable )
 	 * requested selection and move there.
 	 */
 
-	requested_position = position_select->position_array[ int_value ];
+	requested_position = position_select->position_array[ long_value ];
 
 	mx_status = mx_motor_move_absolute( position_select->motor_record,
 					requested_position, 0 );

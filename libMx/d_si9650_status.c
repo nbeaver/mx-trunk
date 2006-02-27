@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -227,7 +227,7 @@ mxd_si9650_status_read( MX_ANALOG_INPUT *ainput )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"Unrecognized parameter type %d for 'si9650_status' record '%s'.  "
+"Unrecognized parameter type %ld for 'si9650_status' record '%s'.  "
 "The allowed values are in the range (1-2).",
 			si9650_status->parameter_type,
 			ainput->record->name );

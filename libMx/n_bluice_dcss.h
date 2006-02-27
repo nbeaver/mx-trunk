@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,15 +34,15 @@ typedef struct {
 	MX_RECORD *record;
 
 	char hostname[MXU_HOSTNAME_LENGTH+1];
-	int port_number;
+	long port_number;
 	char appname[MXU_APPNAME_LENGTH+1];
 	char authentication_data[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	unsigned long bluice_dcss_flags;
 
 	MX_THREAD *dcss_monitor_thread;
 	unsigned long client_number;
-	int is_authenticated;
-	int is_master;
+	mx_bool_type is_authenticated;
+	mx_bool_type is_master;
 } MX_BLUICE_DCSS_SERVER;
 
 /* Define all of the client interface functions. */
@@ -64,7 +64,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_bluice_dcss_server_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_BLUICE_DCSS_SERVER, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

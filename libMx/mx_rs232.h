@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -97,9 +97,9 @@ typedef struct {
 	MX_RECORD *record;
 
 	long speed;
-	int word_size;
+	long word_size;
 	char parity;
-	int stop_bits;
+	long stop_bits;
 	char flow_control;
 	unsigned long read_terminators;
 	unsigned long write_terminators;
@@ -114,16 +114,16 @@ typedef struct {
 	 * if you try to use the names of run-time library functions here.
 	 */
 
-	int getchar_value;
-	int putchar_value;
+	char getchar_value;
+	char putchar_value;
 
 	unsigned long num_input_bytes_available;
 
-	int discard_unread_input;
-	int discard_unwritten_output;
+	mx_bool_type discard_unread_input;
+	mx_bool_type discard_unwritten_output;
 
-	int num_read_terminator_chars;
-	int num_write_terminator_chars;
+	long num_read_terminator_chars;
+	long num_write_terminator_chars;
 	char read_terminator_array[MX_RS232_MAX_TERMINATORS+1];
 	char write_terminator_array[MX_RS232_MAX_TERMINATORS+1];
 
@@ -147,7 +147,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, speed), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "word_size", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "word_size", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, word_size), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -155,7 +155,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, parity), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stop_bits", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stop_bits", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, stop_bits), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -179,11 +179,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, rs232_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
   \
-  {MXLV_232_GETCHAR, -1, "getchar", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_232_GETCHAR, -1, "getchar", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, getchar_value), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_232_PUTCHAR, -1, "putchar", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_232_PUTCHAR, -1, "putchar", MXFT_CHAR, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, putchar_value), \
 	{0}, NULL, 0}, \
   \
@@ -193,12 +193,12 @@ typedef struct {
 	{0}, NULL, 0}, \
   \
   {MXLV_232_DISCARD_UNREAD_INPUT, -1, "discard_unread_input", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, discard_unread_input), \
 	{0}, NULL, 0}, \
   \
   {MXLV_232_DISCARD_UNWRITTEN_OUTPUT, -1, "discard_unwritten_output", \
-						MXFT_INT, NULL, 0, {0}, \
+						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_RS232, discard_unwritten_output), \
 	{0}, NULL, 0}, \
   \
@@ -306,16 +306,16 @@ MX_API mx_status_type mx_rs232_set_signal_state( MX_RECORD *rs232_record,
 MX_API mx_status_type mx_rs232_print_signal_state( MX_RECORD *rs232_record );
 
 MX_API mx_status_type mx_rs232_get_signal_bit( MX_RECORD *rs232_record,
-					int bit_type, int *bit_value );
+					long bit_type, long *bit_value );
 
 MX_API mx_status_type mx_rs232_set_signal_bit( MX_RECORD *rs232_record,
-					int bit_type, int bit_value );
+					long bit_type, long bit_value );
 
 MX_API mx_status_type mx_rs232_verify_configuration( MX_RECORD *rs232_record,
 					long speed,
-					int word_size,
+					long word_size,
 					char parity,
-					int stop_bits,
+					long stop_bits,
 					char flow_control,
 					unsigned long read_terminators,
 					unsigned long write_terminators );

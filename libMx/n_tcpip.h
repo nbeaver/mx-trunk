@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,10 +23,10 @@
 
 typedef struct {
 	char hostname[ MXU_HOSTNAME_LENGTH + 1 ];
-	int port;
+	long port;
 
 	MX_SOCKET *socket;
-	int first_attempt;
+	mx_bool_type first_attempt;
 } MX_TCPIP_SERVER;
 
 /* Define all of the client interface functions. */
@@ -68,7 +68,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxn_tcpip_server_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCPIP_SERVER, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCPIP_SERVER, port), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

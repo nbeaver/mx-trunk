@@ -152,7 +152,7 @@ mxd_smc24_finish_record_initialization( MX_RECORD *record )
 
 	if ( smc24->slot < 1 || smc24->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"CAMAC slot number %d is out of allowed range 1-23.",
+			"CAMAC slot number %ld is out of allowed range 1-23.",
 			smc24->slot );
 	}
 	return status;
@@ -194,7 +194,7 @@ mxd_smc24_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name        = %s\n", record->name);
 	fprintf(file, "  crate       = %s\n", smc24->crate_record->name);
-	fprintf(file, "  slot        = %d\n", smc24->slot);
+	fprintf(file, "  slot        = %ld\n", smc24->slot);
 	fprintf(file, "  encoder     = %s\n", smc24->encoder_record->name);
 
 	status = mx_encoder_read( smc24->encoder_record, &encoder_ticks );
@@ -243,8 +243,7 @@ mxd_smc24_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move deadband  = %ld steps (%g %s)\n",
 		motor->raw_move_deadband.stepper, move_deadband, motor->units);
 
-	fprintf(file, "  flags       = 0x%x (%d)\n",
-					smc24->flags, smc24->flags);
+	fprintf(file, "  flags       = 0x%lx\n", smc24->flags);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -334,7 +333,7 @@ mxd_smc24_move_absolute( MX_MOTOR *motor )
 
 	if ( camac_X != 1 || camac_Q != 1 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	"Attempt to move SMC24 motor failed.  N = %d, Q = %d, X = %d",
+	"Attempt to move SMC24 motor failed.  N = %ld, Q = %d, X = %d",
 			smc24->slot, camac_Q, camac_X );
 	}
 	
@@ -596,7 +595,7 @@ mxd_smc24_steps_to_go( MX_MOTOR *motor, long *steps_to_go )
 
 	if ( camac_X != 1 || camac_Q != 1 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	"Unable to read SMC24's counter register.  N = %d, Q = %d, X = %d",
+	"Unable to read SMC24's counter register.  N = %ld, Q = %d, X = %d",
 			smc24->slot, camac_Q, camac_X );
 	}
 
@@ -693,7 +692,7 @@ smc24_read_status_register( MX_SMC24 *smc24, int32_t *status_register )
 
 	if ( camac_X != 1 || camac_Q != 1 ) {
 		return mx_error( MXE_DEVICE_ACTION_FAILED, fname,
-	"Failed to get SMC24 motor status register.  N = %d, Q = %d, X = %d",
+	"Failed to get SMC24 motor status register.  N = %ld, Q = %d, X = %d",
 			smc24->slot, camac_Q, camac_X );
 	}
 	return MX_SUCCESSFUL_RESULT;

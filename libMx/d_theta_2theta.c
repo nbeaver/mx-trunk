@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -675,7 +675,7 @@ mxd_theta_2theta_motor_get_parameter( MX_MOTOR *motor )
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 
@@ -718,7 +718,7 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 			return status;
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 

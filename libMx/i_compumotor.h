@@ -145,8 +145,8 @@ MX_API mx_status_type mxi_compumotor_get_controller_index(
 	long controller_number, long *controller_index );
 
 MX_API mx_status_type mxi_compumotor_multiaxis_move(
-	MX_COMPUMOTOR_INTERFACE *compumotor_interface, int controller_number,
-	unsigned long num_motors, MX_RECORD **motor_record_array,
+	MX_COMPUMOTOR_INTERFACE *compumotor_interface, long controller_number,
+	long num_motors, MX_RECORD **motor_record_array,
 	double *motor_position_array, mx_bool_type simultaneous_start );
 
 #endif /* __I_COMPUMOTOR_H__ */

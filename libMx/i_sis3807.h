@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,15 +63,15 @@ typedef struct {
 	unsigned long address_mode;
 	unsigned long base_address;
 
-	int num_channels;
+	long          num_channels;
 	unsigned long output_invert_register;
-	int enable_factor_8_predivider;
+	mx_bool_type  enable_factor_8_predivider;
 
 	unsigned long module_id;
 	unsigned long firmware_version;
 
-	int burst_register_available;
-	int pulse_width_available;
+	mx_bool_type burst_register_available;
+	mx_bool_type pulse_width_available;
 } MX_SIS3807;
 
 #define MXI_SIS3807_STANDARD_FIELDS \
@@ -92,7 +92,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, base_address), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_channels", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_channels", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, num_channels), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -100,7 +100,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, output_invert_register), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "enable_factor_8_predivider", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "enable_factor_8_predivider", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, enable_factor_8_predivider), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -112,11 +112,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, firmware_version), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "burst_register_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "burst_register_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, burst_register_available), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "pulse_width_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "pulse_width_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807, pulse_width_available), \
 	{0}, NULL, MXFF_READ_ONLY }
 

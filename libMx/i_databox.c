@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -446,7 +446,7 @@ mxi_databox_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_databox_command( MX_DATABOX *databox,
-		char *command, char *response, int response_buffer_length,
+		char *command, char *response, size_t response_buffer_length,
 		int debug_flag )
 {
 	mx_status_type mx_status;

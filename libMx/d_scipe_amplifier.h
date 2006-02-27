@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,13 +24,13 @@ typedef struct {
 	char scipe_amplifier_name[ MX_SCIPE_OBJECT_NAME_LENGTH + 1 ];
 
 	double bias_voltage;
-	int    filter_type;
+	long   filter_type;
 	double lowpass_filter_3db_point;
 	double highpass_filter_3db_point;
-	int    reset_filter;
-	int    gain_mode;
-	int    invert_signal;
-	int    blank_output;
+	long   reset_filter;
+	long   gain_mode;
+	long   invert_signal;
+	long   blank_output;
 } MX_SCIPE_AMPLIFIER;
 
 #define MXLV_SCIPE_AMPLIFIER_BIAS_VOLTAGE		0
@@ -82,7 +82,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr;
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_FILTER_TYPE, -1, \
-  		"filter_type", MXFT_INT, NULL, 0, {0}, \
+  		"filter_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, filter_type), \
 	{0}, NULL, 0}, \
   \
@@ -99,21 +99,21 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_scipe_amplifier_rfield_def_ptr;
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_RESET_FILTER, -1, \
-	  	"reset_filter", MXFT_INT, NULL, 0, {0}, \
+	  	"reset_filter", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, reset_filter), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_SCIPE_AMPLIFIER_GAIN_MODE, -1, "gain_mode", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_SCIPE_AMPLIFIER_GAIN_MODE, -1, "gain_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, gain_mode), \
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_INVERT_SIGNAL, -1, \
-	  	"invert_signal", MXFT_INT, NULL, 0, {0}, \
+	  	"invert_signal", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, invert_signal), \
 	{0}, NULL, 0}, \
   \
   {MXLV_SCIPE_AMPLIFIER_BLANK_OUTPUT, -1, \
-	  	"blank_output", MXFT_INT, NULL, 0, {0}, \
+	  	"blank_output", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SCIPE_AMPLIFIER, blank_output), \
 	{0}, NULL, 0}
 

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,8 +54,9 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *rs232_record;
+	mx_bool_type use_external_time_base;
 	double maximum_stepping_rate;
-	int use_external_time_base;
+
 	int command_mode;
 	int limit_mode;
 	char moving_motor;
@@ -71,7 +72,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX, rs232_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "use_external_time_base", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "use_external_time_base", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_DATABOX, use_external_time_base), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
@@ -107,7 +108,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_databox_rfield_def_ptr;
 
 MX_API mx_status_type mxi_databox_command(
 	MX_DATABOX *databox,
-	char *command, char *response, int response_buffer_length,
+	char *command, char *response, size_t response_buffer_length,
 	int debug_flag );
 
 MX_API mx_status_type mxi_databox_putline(

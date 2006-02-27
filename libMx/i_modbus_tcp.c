@@ -168,7 +168,7 @@ mxi_modbus_tcp_open( MX_RECORD *record )
 
 	if ( modbus_tcp->port_number != 502 ) {
 		mx_warning(
-		"MODBUS interface record '%s' is using TCP port number %d "
+		"MODBUS interface record '%s' is using TCP port number %ld "
 		"rather than the standard MODBUS/TCP port number of 502.",
 			record->name, modbus_tcp->port_number );
 	}
@@ -199,7 +199,7 @@ mxi_modbus_tcp_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_error( mx_status.code, fname,
-"Failed to open TCP connection for record '%s' to host '%s' at port '%d'.",
+"Failed to open TCP connection for record '%s' to host '%s' at port '%ld'.",
 		  record->name, modbus_tcp->hostname, modbus_tcp->port_number );
 
 		return mx_status;
@@ -268,7 +268,7 @@ mxi_modbus_tcp_reconnect_socket( MX_MODBUS *modbus )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_error( mx_status.code, fname,
-"Failed to open TCP connection for record '%s' to host '%s' at port '%d'.",
+"Failed to open TCP connection for record '%s' to host '%s' at port '%ld'.",
 				modbus_tcp->record->name,
 				modbus_tcp->hostname,
 				modbus_tcp->port_number );

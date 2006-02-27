@@ -75,7 +75,7 @@ mxd_sis3801_pulser_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 			MX_SIS3801_PULSER **sis3801_pulser,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_sis3801_pulser_get_pointers()";
+	static const char fname[] = "mxd_sis3801_pulser_get_pointers()";
 
 	MX_RECORD *sis3801_pulser_record;
 
@@ -117,7 +117,7 @@ mxd_sis3801_pulser_get_pointers( MX_PULSE_GENERATOR *pulse_generator,
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_sis3801_pulser_create_record_structures()";
+	static const char fname[] = "mxd_sis3801_pulser_create_record_structures()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_SIS3801_PULSER *sis3801_pulser;
@@ -155,7 +155,7 @@ mxd_sis3801_pulser_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_sis3801_pulser_open()";
+	static const char fname[] = "mxd_sis3801_pulser_open()";
 
 	MX_PULSE_GENERATOR *pulse_generator;
 	MX_SIS3801_PULSER *sis3801_pulser;
@@ -309,7 +309,7 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_sis3801_pulser_busy()";
+	static const char fname[] = "mxd_sis3801_pulser_busy()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	MX_CLOCK_TICK current_time;
@@ -370,7 +370,7 @@ mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_sis3801_pulser_start()";
+	static const char fname[] = "mxd_sis3801_pulser_start()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	MX_CLOCK_TICK start_time, finish_time, countdown_ticks;
@@ -457,7 +457,7 @@ mxd_sis3801_pulser_start( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_sis3801_pulser_stop()";
+	static const char fname[] = "mxd_sis3801_pulser_stop()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	mx_status_type mx_status;
@@ -505,7 +505,7 @@ mxd_sis3801_pulser_stop( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_sis3801_pulser_get_parameter()";
+	static const char fname[] = "mxd_sis3801_pulser_get_parameter()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	uint32_t prescale_factor;
@@ -518,7 +518,7 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -581,7 +581,7 @@ mxd_sis3801_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 MX_EXPORT mx_status_type
 mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 {
-	const char fname[] = "mxd_sis3801_pulser_set_parameter()";
+	static const char fname[] = "mxd_sis3801_pulser_set_parameter()";
 
 	MX_SIS3801_PULSER *sis3801_pulser;
 	double maximum_pulse_period;
@@ -597,7 +597,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	control_register_value = 0;
 
 	MX_DEBUG( 2,
-	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%d)",
+	("%s invoked for PULSE_GENERATOR '%s', parameter type '%s' (%ld)",
 		fname, pulse_generator->record->name,
 		mx_get_field_label_string( pulse_generator->record,
 					pulse_generator->parameter_type ),
@@ -629,7 +629,7 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	case MXLV_PGN_MODE:
 		if ( pulse_generator->mode != MXF_PGN_PULSE ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Pulse generator mode %d is not supported for "
+			"Pulse generator mode %ld is not supported for "
 			"pulse generator '%s'.  "
 			"Only pulse mode (1) is supported.",
 				pulse_generator->mode,

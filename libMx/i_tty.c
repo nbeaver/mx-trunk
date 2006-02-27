@@ -1687,7 +1687,7 @@ mxi_tty_posix_termios_set_word_size( MX_RS232 *rs232 )
 	case 8: 	word_bit = CS8;		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-"Unsupported RS-232 word size %d requested for RS-232 record '%s', tty '%s'.",
+"Unsupported RS-232 word size %ld requested for RS-232 record '%s', tty '%s'.",
 			rs232->word_size, rs232->record->name, tty->filename );
 	}
 
@@ -1895,7 +1895,7 @@ mxi_tty_posix_termios_set_stop_bits( MX_RS232 *rs232 )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported number of stop bits (%d) requested "
+		"Unsupported number of stop bits (%ld) requested "
 		"for RS-232 record '%s', tty '%s'.",
 			rs232->stop_bits, rs232->record->name, tty->filename );
 	}

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002, 2005 Illinois Institute of Technology
+ * Copyright 2002, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,8 +25,8 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *sis3807_record;
-	int channel_number;
-	int invert_output;
+	long channel_number;
+	mx_bool_type invert_output;
 	unsigned long sis3807_flags;
 
 	MX_CLOCK_TICK finish_time;
@@ -37,11 +37,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, sis3807_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "channel_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "channel_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, channel_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "invert_output", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "invert_output", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_SIS3807_PULSER, invert_output), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

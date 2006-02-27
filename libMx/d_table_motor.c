@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -283,7 +283,7 @@ mxd_table_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  name           = %s\n", record->name);
 	fprintf(file, "  table record   = %s\n",
 					table_motor->table_record->name );
-	fprintf(file, "  axis id        = %d\n",
+	fprintf(file, "  axis id        = %ld\n",
 					table_motor->axis_id );
 
 	status = mx_motor_get_position( record, &position );

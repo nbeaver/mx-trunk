@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999 Illinois Institute of Technology
+ * Copyright 1999, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,8 +33,8 @@ typedef struct {
 
 	/* Parameters shared by all three stepping motor ports. */
 	char stepper_mode;
-	int  stepper_speed;
-	int  stepper_stop_delay;
+	long stepper_speed;
+	long stepper_stop_delay;
 
 	char currently_moving_stepper;
 	long current_move_distance;
@@ -55,11 +55,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stepper_speed", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stepper_speed", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_speed), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "stepper_stop_delay", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "stepper_stop_delay", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PDI40, stepper_stop_delay), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
@@ -95,7 +95,7 @@ MX_API mx_status_type mxi_pdi40_putc( MX_PDI40 *pdi40,
 					char c, int debug_flag );
 
 MX_API mx_status_type mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40,
-					int *a_motor_is_busy );
+					mx_bool_type *a_motor_is_busy );
 
 extern MX_RECORD_FUNCTION_LIST mxi_pdi40_record_function_list;
 extern MX_GENERIC_FUNCTION_LIST mxi_pdi40_generic_function_list;

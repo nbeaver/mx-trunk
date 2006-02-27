@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -66,7 +66,7 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Invalid serial port word size = %d", rs232->word_size );
+		    "Invalid serial port word size = %ld", rs232->word_size );
 
 		rs232->word_size = -1;
 
@@ -113,7 +113,7 @@ mx_rs232_check_port_parameters( MX_RECORD *rs232_record )
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		    "Invalid serial port stop bits = %d", rs232->stop_bits );
+		    "Invalid serial port stop bits = %ld", rs232->stop_bits );
 
 		rs232->stop_bits = -1;
 
@@ -206,7 +206,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 
 	rs232->read_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
-	MX_DEBUG( 2,("%s: rs232->num_read_terminator_chars = %d",
+	MX_DEBUG( 2,("%s: rs232->num_read_terminator_chars = %ld",
 			fname, rs232->num_read_terminator_chars));
 
 #if 0
@@ -240,7 +240,7 @@ mx_rs232_convert_terminator_characters( MX_RECORD *rs232_record )
 
 	rs232->write_terminator_array[MX_RS232_MAX_TERMINATORS] = '\0';
 
-	MX_DEBUG( 2,("%s: rs232->num_write_terminator_chars = %d",
+	MX_DEBUG( 2,("%s: rs232->num_write_terminator_chars = %ld",
 			fname, rs232->num_write_terminator_chars));
 
 #if 0
@@ -1168,7 +1168,7 @@ mx_rs232_print_signal_state( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
+mx_rs232_get_signal_bit( MX_RECORD *record, long bit_type, long *bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 
@@ -1181,7 +1181,7 @@ mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( bit_value == (int *) NULL ) {
+	if ( bit_value == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The bit_value pointer passed was NULL." );
 	}
@@ -1201,7 +1201,7 @@ mx_rs232_get_signal_bit( MX_RECORD *record, int bit_type, int *bit_value )
 }
 
 MX_EXPORT mx_status_type
-mx_rs232_set_signal_bit( MX_RECORD *record, int bit_type, int bit_value )
+mx_rs232_set_signal_bit( MX_RECORD *record, long bit_type, long bit_value )
 {
 	static const char fname[] = "mx_rs232_get_signal_bit()";
 
@@ -1232,8 +1232,8 @@ mx_rs232_set_signal_bit( MX_RECORD *record, int bit_type, int bit_value )
 
 MX_EXPORT mx_status_type
 mx_rs232_verify_configuration( MX_RECORD *record, long speed,
-				int word_size, char parity,
-				int stop_bits, char flow_control,
+				long word_size, char parity,
+				long stop_bits, char flow_control,
 				unsigned long read_terminators,
 				unsigned long write_terminators )
 {
@@ -1259,7 +1259,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 		if ( word_size != rs232->word_size ) {
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-"The word size for RS-232 port '%s' is currently %d, but should be %d.",
+"The word size for RS-232 port '%s' is currently %ld, but should be %ld.",
 				record->name, rs232->word_size, word_size );
 		}
 	}
@@ -1275,7 +1275,7 @@ mx_rs232_verify_configuration( MX_RECORD *record, long speed,
 		if ( stop_bits != rs232->stop_bits ) {
 			return mx_error(
 				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
-"The stop bits for RS-232 port '%s' are currently %d, but should be %d.",
+"The stop bits for RS-232 port '%s' are currently %ld, but should be %ld.",
 				record->name, rs232->stop_bits, stop_bits );
 		}
 	}

@@ -139,7 +139,7 @@ mxi_sis3807_open( MX_RECORD *record )
 		return mx_status;
 
 #if MXI_SIS3807_DEBUG
-	MX_DEBUG(-2,("%s: sis3807->address_mode = %lu",
+	MX_DEBUG(-2,("%s: sis3807->address_mode = %#lx",
 			fname, sis3807->address_mode));
 #endif
 
@@ -175,7 +175,7 @@ mxi_sis3807_open( MX_RECORD *record )
 	}
 
 #if MXI_SIS3807_DEBUG
-	MX_DEBUG(-2,("%s: module id = %#lx, firmware version = %lu",
+	MX_DEBUG(-2,("%s: module id = %#lx, firmware version = %#lx",
 		fname, sis3807->module_id, sis3807->firmware_version));
 #endif
 
@@ -188,8 +188,8 @@ mxi_sis3807_open( MX_RECORD *record )
 	case 1:
 		if ( sis3807->num_channels != 4 ) {
 			mx_warning(
-	"SIS3807 module '%s' is using version %lu firmware which only supports "
-	"4 channel operation.  Changing num_channels from %d to 4.",
+	"SIS3807 module '%s' is using version %#lx firmware which only "
+	"supports 4 channel operation.  Changing num_channels from %ld to 4.",
 			sis3807->record->name,
 			sis3807->firmware_version,
 			sis3807->num_channels );
@@ -202,9 +202,9 @@ mxi_sis3807_open( MX_RECORD *record )
 		  && ( sis3807->num_channels != 2 ) )
 		{
 			mx_warning(
-	"SIS3807 module '%s' is using version %lu firmware which only supports "
-	"4 channel or 2 channel operation.  "
-	"Changing num_channels from %d to 4.",
+	"SIS3807 module '%s' is using version %#lx firmware which only "
+	"supports 4 channel or 2 channel operation.  "
+	"Changing num_channels from %ld to 4.",
 			sis3807->record->name,
 			sis3807->firmware_version,
 			sis3807->num_channels );
@@ -216,8 +216,8 @@ mxi_sis3807_open( MX_RECORD *record )
 	case 4:
 		if ( sis3807->num_channels != 1 ) {
 			mx_warning(
-	"SIS3807 module '%s' is using version %lu firmware which only supports "
-	"1 channel operation.  Changing num_channels from %d to 1.",
+	"SIS3807 module '%s' is using version %#lx firmware which only "
+	"supports 1 channel operation.  Changing num_channels from %ld to 1.",
 			sis3807->record->name,
 			sis3807->firmware_version,
 			sis3807->num_channels );
@@ -232,9 +232,9 @@ mxi_sis3807_open( MX_RECORD *record )
 	default:
 		if ( sis3807->num_channels != 1 ) {
 			mx_warning(
-	"SIS3807 module '%s' is using unrecognized firmware version %lu.  "
+	"SIS3807 module '%s' is using unrecognized firmware version %#lx.  "
 	"Since we do not know how many channels this firmware supports, "
-	"we will play it safe and change num_channels from %d to 1.",
+	"we will play it safe and change num_channels from %ld to 1.",
 			sis3807->record->name,
 			sis3807->firmware_version,
 			sis3807->num_channels );

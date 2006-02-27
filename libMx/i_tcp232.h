@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -61,7 +61,7 @@ typedef struct {
 
 	MX_SOCKET *socket;
 	char hostname[MXU_HOSTNAME_LENGTH + 1];
-	int port_number;
+	long port_number;
 	unsigned long tcp232_flags;
 } MX_TCP232;
 
@@ -76,7 +76,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_tcp232_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_TCP232, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

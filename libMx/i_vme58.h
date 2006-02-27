@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2002 Illinois Institute of Technology
+ * Copyright 2000-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -73,8 +73,8 @@ typedef struct {
 		MX_VME58_ESRF esrf;
 	} u;
 
-	int controller_type;
-	int num_axes;
+	long controller_type;
+	long num_axes;
 
 	MX_RECORD *motor_array[MX_MAX_VME58_AXES];
 
@@ -86,11 +86,11 @@ typedef struct {
 } MX_VME58;
 
 #define MXI_VME58_COMMON_STANDARD_FIELDS \
-  {-1, -1, "controller_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, controller_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_axes", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_axes", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58, num_axes), \
 	{0}, NULL, 0}
 

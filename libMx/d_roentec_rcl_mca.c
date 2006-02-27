@@ -636,7 +636,7 @@ mxd_roentec_rcl_start( MX_MCA *mca )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Preset type %d is not supported for record '%s'",
+			"Preset type %ld is not supported for record '%s'",
 			mca->preset_type, mca->record->name );
 	}
 
@@ -825,7 +825,7 @@ mxd_roentec_rcl_get_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));
@@ -1109,7 +1109,7 @@ mxd_roentec_rcl_set_parameter( MX_MCA *mca )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for MCA '%s', parameter type '%s' (%ld).",
 		fname, mca->record->name,
 		mx_get_field_label_string(mca->record,mca->parameter_type),
 		mca->parameter_type));

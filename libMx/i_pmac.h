@@ -1,15 +1,13 @@
 /*
  * Name:   i_pmac.h
  *
- * Purpose: Header for MX driver for Delta Tau PMAC controllers.  Note that
- *          this is the driver for talking to the PMAC itself.  PMAC-controlled
- *          motors are interfaced via the driver in libmx/d_pmac.c.
+ * Purpose: Header for MX driver for Delta Tau PMAC controllers.
  *
  * Author:  William Lavender
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2003 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -55,15 +53,15 @@
 
 typedef struct {
 	MX_RECORD *record;
-	int pmac_type;
-	int port_type;
+	long pmac_type;
+	long port_type;
 
 	/* PMAC controller PROM version. */
 
-	int major_version;
-	int minor_version;
+	long major_version;
+	long minor_version;
 
-	int i6_variable;  /* affects error reporting */
+	long i6_variable;  /* affects error reporting */
 
 	/* Parameters shared by all motor axes. */
 
@@ -71,7 +69,7 @@ typedef struct {
 
 	char port_type_name[MX_PMAC_PORT_TYPE_LENGTH+1];
 	char port_args[MX_PMAC_PORT_ARGS_LENGTH+1];
-	int num_cards;
+	long num_cards;
 
 	char command[MX_PMAC_MAX_COMMAND_LENGTH+1];
 	char response[MX_PMAC_MAX_COMMAND_LENGTH+1];
@@ -96,7 +94,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, port_args), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "num_cards", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_cards", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PMAC, num_cards), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
@@ -137,18 +135,18 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_pmac_rfield_def_ptr;
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_pmac_command( MX_PMAC *pmac, char *command,
-		char *response, int response_buffer_length, int debug_flag );
+		char *response, size_t response_buffer_length, int debug_flag );
 
 MX_API mx_status_type mxi_pmac_card_command( MX_PMAC *pmac,
-		int card_number, char *command,
-		char *response, int response_buffer_length, int debug_flag );
+		long card_number, char *command,
+		char *response, size_t response_buffer_length, int debug_flag );
 
 MX_API mx_status_type mxi_pmac_get_variable( MX_PMAC *pmac,
-		int card_number, char *variable_name, int variable_type,
+		long card_number, char *variable_name, long variable_type,
 		void *variable_ptr, int debug_flag );
 
 MX_API mx_status_type mxi_pmac_set_variable( MX_PMAC *pmac,
-		int card_number, char *variable_name, int variable_type,
+		long card_number, char *variable_name, long variable_type,
 		void *variable_ptr, int debug_flag );
 
 #endif /* __I_PMAC_H__ */

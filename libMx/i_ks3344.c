@@ -135,7 +135,7 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 
 	if ( ks3344->slot < 1 || ks3344->slot > 23 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"CAMAC slot number %d is out of allowed range 1-23.",
+			"CAMAC slot number %ld is out of allowed range 1-23.",
 			ks3344->slot);
 	}
 
@@ -143,7 +143,7 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 
 	if ( ks3344->subaddress < 0 || ks3344->subaddress > 3 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Subaddress number %d is out of allowed range 0-3.",
+		"Subaddress number %ld is out of allowed range 0-3.",
 			ks3344->subaddress);
 	}
 
@@ -708,7 +708,7 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 	case 5:		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported KS3344 word size = %d for KS3344 '%s'.", 
+		"Unsupported KS3344 word size = %ld for KS3344 '%s'.", 
 		rs232->word_size, record->name);
 	}
 
@@ -743,7 +743,7 @@ mxi_ks3344_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported KS3344 stop bits = %d for KS3344 '%s'.", 
+		"Unsupported KS3344 stop bits = %ld for KS3344 '%s'.", 
 		rs232->stop_bits, record->name);
 	}
 

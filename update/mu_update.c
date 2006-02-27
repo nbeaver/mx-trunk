@@ -720,6 +720,9 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	case MXFT_STRING:
 		strlcat( description, "net_string ", sizeof(description) );
 		break;
+	case MXFT_BOOL:
+		strlcat( description, "net_bool ", sizeof(description) );
+		break;
 	case MXFT_CHAR:
 		strlcat( description, "net_char ", sizeof(description) );
 		break;
@@ -732,17 +735,17 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	case MXFT_USHORT:
 		strlcat( description, "net_ushort ", sizeof(description) );
 		break;
-	case MXFT_INT:
-		strlcat( description, "net_int ", sizeof(description) );
-		break;
-	case MXFT_UINT:
-		strlcat( description, "net_uint ", sizeof(description) );
-		break;
 	case MXFT_LONG:
 		strlcat( description, "net_long ", sizeof(description) );
 		break;
 	case MXFT_ULONG:
 		strlcat( description, "net_ulong ", sizeof(description) );
+		break;
+	case MXFT_INT64:
+		strlcat( description, "net_int64 ", sizeof(description) );
+		break;
+	case MXFT_UINT64:
+		strlcat( description, "net_uint64 ", sizeof(description) );
 		break;
 	case MXFT_FLOAT:
 		strlcat( description, "net_float ", sizeof(description) );

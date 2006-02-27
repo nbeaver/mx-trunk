@@ -278,7 +278,7 @@ mxd_smartmotor_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%d/%s", &(smartmotor->sample_rate),
+	num_items = sscanf( response, "%ld/%s", &(smartmotor->sample_rate),
 					smartmotor->firmware_version );
 
 	if ( num_items != 2 ) {
@@ -984,7 +984,7 @@ mxd_smartmotor_check_home_search_status( MX_MOTOR *motor,
 	unsigned long flags, limit_bits;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("motor '%s': home_search = %d",
+	MX_DEBUG( 2,("motor '%s': home_search = %ld",
 		motor->record->name, motor->home_search));
 
 	MX_DEBUG( 2,("motor '%s': historical_left_limit = %d",
@@ -1166,7 +1166,7 @@ mxd_smartmotor_get_extended_status( MX_MOTOR *motor )
 
 MX_EXPORT mx_status_type
 mxd_smartmotor_command( MX_SMARTMOTOR *smartmotor, char *command,
-			char *response, int response_buffer_length,
+			char *response, size_t response_buffer_length,
 			int debug_flag )
 {
 	static const char fname[] = "mxd_smartmotor_command()";

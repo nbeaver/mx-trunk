@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -193,7 +193,8 @@ mxd_tpg262_pressure_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "PR%d", tpg262_pressure->gauge_number );
+	snprintf( command, sizeof(command),
+		"PR%ld", tpg262_pressure->gauge_number );
 
 	mx_status = mxi_tpg262_command( tpg262, command,
 					response, sizeof(response),

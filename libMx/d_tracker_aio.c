@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -240,8 +240,9 @@ mxd_tracker_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, ";%03d RA %d 1", tracker_ainput->address,
-						tracker_ainput->location );
+	snprintf( command, sizeof(command),
+		";%03ld RA %ld 1", tracker_ainput->address,
+				tracker_ainput->location );
 
 	mx_status = mxd_tracker_command( ainput->record,
 					tracker_ainput->rs232_record,
@@ -355,8 +356,9 @@ mxd_tracker_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, ";%03d RA %d 1", tracker_aoutput->address,
-						tracker_aoutput->location );
+	snprintf( command, sizeof(command),
+		";%03ld RA %ld 1", tracker_aoutput->address,
+				tracker_aoutput->location );
 
 	mx_status = mxd_tracker_command( aoutput->record,
 					tracker_aoutput->rs232_record,
@@ -394,9 +396,10 @@ mxd_tracker_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, ";%03d SA %d %g", tracker_aoutput->address,
-					tracker_aoutput->location,
-					aoutput->raw_value.double_value );
+	snprintf( command, sizeof(command),
+		";%03ld SA %ld %g", tracker_aoutput->address,
+				tracker_aoutput->location,
+				aoutput->raw_value.double_value );
 
 	mx_status = mxd_tracker_command( aoutput->record,
 					tracker_aoutput->rs232_record,

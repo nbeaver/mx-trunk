@@ -8,12 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define SR570_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,8 +71,6 @@ long mxd_sr570_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_sr570_rfield_def_ptr
 			= &mxd_sr570_record_field_defaults[0];
-
-#define SR570_DEBUG	FALSE
 
 /* Private functions for the use of the driver. */
 
@@ -720,7 +720,7 @@ mxd_sr570_get_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -764,7 +764,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -836,7 +836,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the filter type. */
 
-		sprintf( command, "FLTT %d", sr570->filter_type );
+		sprintf( command, "FLTT %ld", sr570->filter_type );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -995,7 +995,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 		/* Set the gain mode. */
 
-		sprintf( command, "GNMD %d", sr570->gain_mode );
+		sprintf( command, "GNMD %ld", sr570->gain_mode );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -1022,7 +1022,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sprintf( command, "INVT %d", sr570->invert_signal );
+		sprintf( command, "INVT %ld", sr570->invert_signal );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );
@@ -1049,7 +1049,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 				amplifier->record->name );
 		}
 
-		sprintf( command, "BLNK %d", sr570->blank_output );
+		sprintf( command, "BLNK %ld", sr570->blank_output );
 
 		mx_status = mx_rs232_putline( sr570->rs232_record,
 						command, NULL, SR570_DEBUG );

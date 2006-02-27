@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,18 +25,17 @@
 
 typedef struct {
 	MX_RECORD *interface_record;
-	int controller_number;
-	int motor_number;
+	long controller_number;
+	long motor_number;
 	long vp9000_speed;
 	long vp9000_acceleration;
 	unsigned long vp9000_flags;
 
-	int motor_is_moving;
+	mx_bool_type motor_is_moving;
+	mx_bool_type positive_limit_latch;
+	mx_bool_type negative_limit_latch;
+
 	long last_move_direction;
-
-	int positive_limit_latch;
-	int negative_limit_latch;
-
 	long last_start_position;
 	time_t last_start_time;
 } MX_VP9000_MOTOR;
@@ -72,11 +71,11 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vp9000_rfield_def_ptr;
 		offsetof(MX_VP9000_MOTOR, interface_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "controller_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "controller_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, controller_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "motor_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VP9000_MOTOR, motor_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000, 2002 Illinois Institute of Technology
+ * Copyright 2000, 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,8 +30,8 @@
 
 typedef struct {
 	MX_RECORD *vme58_record;
-	int axis_number;
-	long flags;
+	long axis_number;
+	unsigned long flags;
 
 	long default_speed;
 	long default_base_speed;
@@ -76,7 +76,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_vme58_rfield_def_ptr;
 		offsetof(MX_VME58_MOTOR, vme58_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "axis_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_VME58_MOTOR, axis_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

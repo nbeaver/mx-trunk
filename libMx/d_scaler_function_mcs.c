@@ -771,7 +771,7 @@ mxd_scaler_function_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 1,("%s invoked for MCS '%s', type = %d",
+	MX_DEBUG( 1,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {

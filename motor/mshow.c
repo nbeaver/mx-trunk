@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "mx_inttypes.h"
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
 #include "mx_digital_input.h"
@@ -694,6 +695,9 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 	field_type = field->datatype;
 
 	switch( field_type ) {
+	case MXFT_BOOL:
+		fprintf( output, "%d", *((mx_bool_type *) data_ptr) );
+		break;
 	case MXFT_STRING:
 		fprintf( output, "\"%s\"", (char *) data_ptr );
 		break;
@@ -709,17 +713,17 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 	case MXFT_USHORT:
 		fprintf( output, "%hu", *((unsigned short *) data_ptr) );
 		break;
-	case MXFT_INT:
-		fprintf( output, "%d", *((int *) data_ptr) );
-		break;
-	case MXFT_UINT:
-		fprintf( output, "%u", *((unsigned int *) data_ptr) );
-		break;
 	case MXFT_LONG:
 		fprintf( output, "%ld", *((long *) data_ptr) );
 		break;
 	case MXFT_ULONG:
 		fprintf( output, "%lu", *((unsigned long *) data_ptr) );
+		break;
+	case MXFT_INT64:
+		fprintf( output, "%" PRId64, *((int64_t *) data_ptr) );
+		break;
+	case MXFT_UINT64:
+		fprintf( output, "%" PRIu64, *((uint64_t *) data_ptr) );
 		break;
 	case MXFT_FLOAT:
 		fprintf( output, "%.*g", record->precision,

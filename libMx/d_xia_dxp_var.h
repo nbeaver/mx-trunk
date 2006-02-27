@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2004 Illinois Institute of Technology
+ * Copyright 2001, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@
 
 typedef struct {
 	MX_RECORD *mca_record;
-	int value_type;
+	long value_type;
 	char value_parameters[ MXU_XIA_DXP_VARIABLE_PARAMETER_LENGTH + 1 ];
 } MX_XIA_DXP_INPUT;
 
@@ -43,7 +43,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_INPUT, mca_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \
-  {-1, -1, "value_type", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "value_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_INPUT, value_type), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
   \

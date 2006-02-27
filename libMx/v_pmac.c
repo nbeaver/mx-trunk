@@ -234,7 +234,7 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		long_value = *((long *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%x%s=%ld",
+			sprintf( command, "@%lx%s=%ld",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				long_value );
@@ -248,7 +248,7 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		ulong_value = *((unsigned long *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%x%s=%lu",
+			sprintf( command, "@%lx%s=%lu",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				ulong_value );
@@ -262,7 +262,7 @@ mxv_pmac_send_variable( MX_VARIABLE *variable )
 		double_value = *((double *) value_ptr);
 
 		if ( pmac->num_cards > 1 ) {
-			sprintf( command, "@%x%s=%g",
+			sprintf( command, "@%lx%s=%g",
 				pmac_variable->card_number,
 				pmac_variable->pmac_variable_name,
 				double_value );
@@ -310,7 +310,7 @@ mxv_pmac_receive_variable( MX_VARIABLE *variable )
 		return mx_status;
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command, "@%x%s", pmac_variable->card_number,
+		sprintf( command, "@%lx%s", pmac_variable->card_number,
 				pmac_variable->pmac_variable_name );
 	} else {
 		sprintf( command, "%s", pmac_variable->pmac_variable_name );

@@ -8,12 +8,16 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_TCP232_DEBUG	FALSE
+
+#define MXI_TCP232_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +36,6 @@
 #include "mx_socket.h"
 #include "mx_select.h"
 #include "i_tcp232.h"
-
-#define MXI_TCP232_DEBUG	FALSE
-
-#define MXI_TCP232_DEBUG_TIMING	FALSE
 
 #if MXI_TCP232_DEBUG_TIMING
 #  include "mx_hrt.h"
@@ -199,7 +199,7 @@ mxi_tcp232_open_socket( MX_RS232 *rs232, MX_TCP232 *tcp232 )
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		(void) mx_error( mx_status.code, fname,
-"Failed to open TCP connection for record '%s' to host '%s' at port '%d'",
+"Failed to open TCP connection for record '%s' to host '%s' at port '%ld'",
 			tcp232->record->name,
 			tcp232->hostname,
 			tcp232->port_number );

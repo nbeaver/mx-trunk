@@ -77,7 +77,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -782,7 +782,7 @@ mxd_tangent_arm_get_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 	case MXLV_MTR_ACCELERATION_DISTANCE:
 		return mx_error( MXE_UNSUPPORTED, fname,
-	"Pseudomotor '%s' cannot report a value for parameter '%s' (%d).",
+	"Pseudomotor '%s' cannot report a value for parameter '%s' (%ld).",
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),
@@ -929,7 +929,7 @@ mxd_tangent_arm_set_parameter( MX_MOTOR *motor )
 	case MXLV_MTR_MAXIMUM_SPEED:
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Pseudomotor '%s' cannot set the value of parameter '%s' (%d).",
+	"Pseudomotor '%s' cannot set the value of parameter '%s' (%ld).",
 			motor->record->name,
 			mx_get_field_label_string( motor->record,
 						motor->parameter_type ),

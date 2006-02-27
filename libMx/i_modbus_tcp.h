@@ -32,7 +32,7 @@ typedef struct {
 
 	MX_SOCKET *socket;
 	char hostname[MXU_HOSTNAME_LENGTH + 1];
-	int port_number;
+	long port_number;
 	unsigned long unit_id;
 
 	uint16_t transaction_id;
@@ -52,7 +52,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_modbus_tcp_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_TCP, hostname), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "port_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "port_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_MODBUS_TCP, port_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

@@ -305,7 +305,7 @@ mxd_vme58_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  name              = %s\n", record->name);
 	fprintf(file, "  controller        = %s\n", vme58->record->name);
-	fprintf(file, "  axis number       = %d\n", vme58_motor->axis_number);
+	fprintf(file, "  axis number       = %ld\n", vme58_motor->axis_number);
 	fprintf(file, "  flags             = %#lx\n", vme58_motor->flags);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -1054,7 +1054,7 @@ mxd_vme58_set_parameter( MX_MOTOR *motor )
 
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 

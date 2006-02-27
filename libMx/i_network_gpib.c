@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_NETWORK_GPIB_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +24,6 @@
 #include "mx_gpib.h"
 #include "mx_net.h"
 #include "i_network_gpib.h"
-
-#define MXI_NETWORK_GPIB_DEBUG		FALSE
 
 MX_RECORD_FUNCTION_LIST mxi_network_gpib_record_function_list = {
 	NULL,
@@ -113,11 +113,11 @@ mxi_network_gpib_get_pointers( MX_GPIB *gpib,
 static void
 mxi_network_gpib_display_binary( const char *fname,
 				MX_GPIB *gpib,
-				int address,
+				long address,
 				char *buffer,
 				long max_bytes_to_display,
 				long bytes_transferred,
-				int is_write_operation )
+				mx_bool_type is_write_operation )
 {
 	/* Display binary data as hex. */
 		
@@ -375,7 +375,7 @@ mxi_network_gpib_resynchronize( MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_NETWORK_GPIB *network_gpib;
-	int resynchronize;
+	mx_bool_type resynchronize;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -390,16 +390,16 @@ mxi_network_gpib_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	resynchronize = 1;
+	resynchronize = TRUE;
 
 	mx_status = mx_put( &(network_gpib->resynchronize_nf),
-				MXFT_INT, &resynchronize );
+				MXFT_BOOL, &resynchronize );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_open_device( MX_GPIB *gpib, int address )
+mxi_network_gpib_open_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_open_device()";
 
@@ -417,7 +417,7 @@ mxi_network_gpib_open_device( MX_GPIB *gpib, int address )
 #endif
 
 	mx_status = mx_put( &(network_gpib->open_device_nf),
-					MXFT_INT, &address );
+					MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -426,7 +426,7 @@ mxi_network_gpib_open_device( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_close_device( MX_GPIB *gpib, int address )
+mxi_network_gpib_close_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_close_device()";
 
@@ -444,7 +444,7 @@ mxi_network_gpib_close_device( MX_GPIB *gpib, int address )
 #endif
 
 	mx_status = mx_put( &(network_gpib->close_device_nf),
-					MXFT_INT, &address );
+					MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -454,11 +454,11 @@ mxi_network_gpib_close_device( MX_GPIB *gpib, int address )
 
 MX_EXPORT mx_status_type
 mxi_network_gpib_read( MX_GPIB *gpib,
-			int address,
+			long address,
 			char *buffer,
 			size_t max_bytes_to_read,
 			size_t *bytes_read,
-			int flags )
+			unsigned long flags )
 {
 	static const char fname[] = "mxi_network_gpib_read()";
 
@@ -474,7 +474,7 @@ mxi_network_gpib_read( MX_GPIB *gpib,
 
 	/* Set the address and the number of bytes to read. */
 
-	mx_status = mx_put( &(network_gpib->address_nf), MXFT_INT, &address );
+	mx_status = mx_put( &(network_gpib->address_nf), MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -529,11 +529,11 @@ mxi_network_gpib_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_network_gpib_write( MX_GPIB *gpib,
-			int address,
+			long address,
 			char *buffer,
 			size_t bytes_to_write,
 			size_t *bytes_written,
-			int flags )
+			unsigned long flags )
 {
 	static const char fname[] = "mxi_network_gpib_write()";
 
@@ -549,7 +549,7 @@ mxi_network_gpib_write( MX_GPIB *gpib,
 
 	/* Set the address and the number of bytes to write. */
 
-	mx_status = mx_put( &(network_gpib->address_nf), MXFT_INT, &address );
+	mx_status = mx_put( &(network_gpib->address_nf), MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -608,7 +608,7 @@ mxi_network_gpib_interface_clear( MX_GPIB *gpib )
 	static const char fname[] = "mxi_network_gpib_interface_clear()";
 
 	MX_NETWORK_GPIB *network_gpib;
-	int dummy_value;
+	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -620,10 +620,10 @@ mxi_network_gpib_interface_clear( MX_GPIB *gpib )
 	MX_DEBUG(-2,("%s: interface clear for GPIB interface '%s'.",
 			fname, gpib->record->name ));
 #endif
-	dummy_value = 1;
+	bool_value = TRUE;
 
 	mx_status = mx_put( &(network_gpib->interface_clear_nf),
-						MXFT_INT, &dummy_value );
+						MXFT_BOOL, &bool_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -637,7 +637,7 @@ mxi_network_gpib_device_clear( MX_GPIB *gpib )
 	static const char fname[] = "mxi_network_gpib_device_clear()";
 
 	MX_NETWORK_GPIB *network_gpib;
-	int dummy_value;
+	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -649,10 +649,10 @@ mxi_network_gpib_device_clear( MX_GPIB *gpib )
 	MX_DEBUG(-2,("%s: device clear for GPIB device '%s'.",
 			fname, gpib->record->name ));
 #endif
-	dummy_value = 1;
+	bool_value = TRUE;
 
 	mx_status = mx_put( &(network_gpib->device_clear_nf),
-						MXFT_INT, &dummy_value );
+						MXFT_BOOL, &bool_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -661,7 +661,7 @@ mxi_network_gpib_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_network_gpib_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_selective_device_clear()";
 
@@ -680,7 +680,7 @@ mxi_network_gpib_selective_device_clear( MX_GPIB *gpib, int address )
 #endif
 
 	mx_status = mx_put( &(network_gpib->selective_device_clear_nf),
-						MXFT_INT, &address );
+						MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -694,7 +694,7 @@ mxi_network_gpib_local_lockout( MX_GPIB *gpib )
 	static const char fname[] = "mxi_network_gpib_local_lockout()";
 
 	MX_NETWORK_GPIB *network_gpib;
-	int dummy_value;
+	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -706,10 +706,10 @@ mxi_network_gpib_local_lockout( MX_GPIB *gpib )
 	MX_DEBUG(-2,("%s: local lockout for GPIB device '%s'.",
 			fname, gpib->record->name ));
 #endif
-	dummy_value = 1;
+	bool_value = TRUE;
 
 	mx_status = mx_put( &(network_gpib->local_lockout_nf),
-						MXFT_INT, &dummy_value );
+						MXFT_BOOL, &bool_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -718,7 +718,7 @@ mxi_network_gpib_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_remote_enable( MX_GPIB *gpib, int address )
+mxi_network_gpib_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_remote_enable()";
 
@@ -737,7 +737,7 @@ mxi_network_gpib_remote_enable( MX_GPIB *gpib, int address )
 #endif
 
 	mx_status = mx_put( &(network_gpib->remote_enable_nf),
-						MXFT_INT, &address );
+						MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -746,7 +746,7 @@ mxi_network_gpib_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_go_to_local( MX_GPIB *gpib, int address )
+mxi_network_gpib_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_go_to_local()";
 
@@ -765,7 +765,7 @@ mxi_network_gpib_go_to_local( MX_GPIB *gpib, int address )
 #endif
 
 	mx_status = mx_put( &(network_gpib->go_to_local_nf),
-						MXFT_INT, &address );
+						MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -774,7 +774,7 @@ mxi_network_gpib_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_network_gpib_trigger( MX_GPIB *gpib, int address )
+mxi_network_gpib_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_network_gpib_trigger()";
 
@@ -791,7 +791,7 @@ mxi_network_gpib_trigger( MX_GPIB *gpib, int address )
 			fname, gpib->record->name, address ));
 #endif
 
-	mx_status = mx_put( &(network_gpib->trigger_nf), MXFT_INT, &address );
+	mx_status = mx_put( &(network_gpib->trigger_nf), MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -829,7 +829,7 @@ mxi_network_gpib_wait_for_service_request( MX_GPIB *gpib, double timeout )
 
 MX_EXPORT mx_status_type
 mxi_network_gpib_serial_poll( MX_GPIB *gpib,
-				int address,
+				long address,
 				unsigned char *serial_poll_byte )
 {
 	static const char fname[] = "mxi_network_gpib_serial_poll()";
@@ -845,7 +845,7 @@ mxi_network_gpib_serial_poll( MX_GPIB *gpib,
 
 	/* Set the GPIB address. */
 
-	mx_status = mx_put( &(network_gpib->address_nf), MXFT_INT, &address );
+	mx_status = mx_put( &(network_gpib->address_nf), MXFT_LONG, &address );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -877,7 +877,7 @@ mxi_network_gpib_serial_poll_disable( MX_GPIB *gpib )
 	static const char fname[] = "mxi_network_gpib_serial_poll_disable()";
 
 	MX_NETWORK_GPIB *network_gpib;
-	int dummy_value;
+	mx_bool_type bool_value;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_gpib_get_pointers( gpib, &network_gpib, fname );
@@ -889,10 +889,10 @@ mxi_network_gpib_serial_poll_disable( MX_GPIB *gpib )
 	MX_DEBUG(-2,("%s: serial poll disable for GPIB device '%s'.",
 			fname, gpib->record->name ));
 #endif
-	dummy_value = 1;
+	bool_value = TRUE;
 
 	mx_status = mx_put( &(network_gpib->serial_poll_disable_nf),
-						MXFT_INT, &dummy_value );
+						MXFT_BOOL, &bool_value );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

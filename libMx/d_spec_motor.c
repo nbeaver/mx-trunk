@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -297,7 +297,7 @@ mxd_spec_motor_motor_is_busy( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	int move_done, clock_tick_comparison;
+	long move_done, clock_tick_comparison;
 	MX_CLOCK_TICK current_tick;
 	mx_status_type mx_status;
 
@@ -310,7 +310,7 @@ mxd_spec_motor_motor_is_busy( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_INT, &move_done );
+				property_name, MXFT_LONG, &move_done );
 
 	/* Sometimes, immediately after a move starts, spec will report
 	 * the value of move_done as 0.  In order to reduce the chance
@@ -489,7 +489,7 @@ mxd_spec_motor_positive_limit_hit( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	int limit_hit;
+	long limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_motor_get_pointers( motor, &spec_motor, fname );
@@ -501,7 +501,7 @@ mxd_spec_motor_positive_limit_hit( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_INT, &limit_hit );
+				property_name, MXFT_LONG, &limit_hit );
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -523,7 +523,7 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 
 	MX_SPEC_MOTOR *spec_motor;
 	char property_name[SV_NAME_LEN];
-	int limit_hit;
+	long limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_spec_motor_get_pointers( motor, &spec_motor, fname );
@@ -535,7 +535,7 @@ mxd_spec_motor_negative_limit_hit( MX_MOTOR *motor )
 				spec_motor->remote_motor_name );
 
 	mx_status = mx_spec_get_number( spec_motor->spec_server_record,
-				property_name, MXFT_INT, &limit_hit );
+				property_name, MXFT_LONG, &limit_hit );
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -584,7 +584,7 @@ mxd_spec_motor_find_home_position( MX_MOTOR *motor )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal home search value %d specified for motor '%s'.  "
+		"Illegal home search value %ld specified for motor '%s'.  "
 		"The legal values are -1, 1 for home search, "
 		"-2, 2 for limit search, 0 for ***FIXME***",
 			motor->home_search, motor->record->name );
@@ -619,7 +619,7 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -695,7 +695,7 @@ mxd_spec_motor_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 
@@ -721,7 +721,7 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG(-2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -793,7 +793,7 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Parameter type %d is not supported by this driver.",
+		"Parameter type %ld is not supported by this driver.",
 			motor->parameter_type );
 	}
 
@@ -805,7 +805,7 @@ mxd_spec_motor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_spec_motor_simultaneous_start( int num_motor_records,
+mxd_spec_motor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *destination_array,
 				int flags )

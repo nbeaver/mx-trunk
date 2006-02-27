@@ -93,23 +93,22 @@ typedef struct {
 	unsigned long baseline_history_length;
 	unsigned long *baseline_history_array;
 
-	int sca_has_been_initialized[ MX_XIA_DXP_MCA_MAX_SCAS ];
+	mx_bool_type sca_has_been_initialized[ MX_XIA_DXP_MCA_MAX_SCAS ];
 
-	int mca_record_array_index;
+	long mca_record_array_index;
 
-	int detector_channel;
+	long dxp_module;
 
-	int dxp_module;
+	long detector_channel;
+	long crate;
+	long slot;
+	long dxp_channel;
 
-	int crate;
-	int slot;
-	int dxp_channel;
+	unsigned long firmware_code_variant;
+	unsigned long firmware_code_revision;
 
-	int firmware_code_variant;
-	int firmware_code_revision;
-	int hardware_scas_are_enabled;
-
-	int new_statistics_available;
+	mx_bool_type hardware_scas_are_enabled;
+	mx_bool_type new_statistics_available;
 
 	/* Clock tick intervals in seconds. */
 
@@ -131,7 +130,7 @@ typedef struct {
 	uint32_t old_preset_low_order;
 
 	mx_status_type (*is_busy)( MX_MCA *mca,
-					int *busy_flag,
+					mx_bool_type *busy_flag,
 					int debug_flag);
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
@@ -150,7 +149,7 @@ typedef struct {
 					int debug_flag );
 
 	mx_status_type (*start_run)( MX_MCA *mca,
-					int clear_flag,
+					mx_bool_type clear_flag,
 					int debug_flag );
 
 	mx_status_type (*stop_run)( MX_MCA *mca,
@@ -192,7 +191,7 @@ typedef struct {
 	unsigned short num_parameters;
 	unsigned short *parameter_array;
 
-	int use_mca_channel_array;
+	mx_bool_type use_mca_channel_array;
 
 	unsigned int num_spectrum_bins;
 	unsigned long *spectrum_array;
@@ -315,36 +314,36 @@ typedef struct {
 			offsetof( MX_XIA_DXP_MCA, baseline_history_array ), \
 	{sizeof(unsigned long)}, NULL, MXFF_VARARGS}, \
   \
-  {-1, -1, "detector_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "detector_channel", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, detector_channel ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "crate", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "crate", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, crate ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "slot", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "slot", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, slot ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "dxp_channel", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "dxp_channel", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_XIA_DXP_MCA, dxp_channel ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "firmware_code_variant", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "firmware_code_variant", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_MCA, firmware_code_variant), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "firmware_code_revision", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "firmware_code_revision", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_DXP_MCA, firmware_code_revision), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "hardware_scas_are_enabled", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "hardware_scas_are_enabled", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_DXP_MCA, hardware_scas_are_enabled ), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {-1, -1, "new_statistics_available", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "new_statistics_available", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_DXP_MCA, new_statistics_available ), \
 	{0}, NULL, MXFF_READ_ONLY}, \

@@ -202,7 +202,7 @@ mxd_vsc16_scaler_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file, "  Scaler type           = VSC16_SCALER.\n\n");
 	fprintf(file, "  VSC16 record          = %s\n", vsc16->record->name);
-	fprintf(file, "  counter number        = %d\n",
+	fprintf(file, "  counter number        = %ld\n",
 					vsc16_scaler->counter_number);
 
 	mx_status = mx_scaler_read( record, &current_value );
@@ -631,7 +631,7 @@ mxd_vsc16_scaler_set_parameter( MX_SCALER *scaler )
 
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported preset mode %d requested for VSC16 scaler '%s'.  "
+		"Unsupported preset mode %ld requested for VSC16 scaler '%s'.  "
 		"Only preset mode and counter mode are supported.",
 				scaler->mode, scaler->record->name );
 		}

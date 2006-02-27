@@ -658,7 +658,7 @@ mxd_remote_marccd_get_parameter( MX_CCD *ccd )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for CCD '%s', parameter type '%s' (%d)",
+	("%s invoked for CCD '%s', parameter type '%s' (%ld)",
 		fname, ccd->record->name,
 		mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),
@@ -703,7 +703,7 @@ mxd_remote_marccd_set_parameter( MX_CCD *ccd )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for CCD '%s', parameter type '%s' (%d)",
+	("%s invoked for CCD '%s', parameter type '%s' (%ld)",
 		fname, ccd->record->name,
 		mx_get_field_label_string( ccd->record,
 					ccd->parameter_type ),
@@ -711,7 +711,7 @@ mxd_remote_marccd_set_parameter( MX_CCD *ccd )
 
 	switch( ccd->parameter_type ) {
 	case MXLV_CCD_DATA_FRAME_SIZE:
-		sprintf( command, "set_bin,%d,%d", ccd->bin_size[0],
+		sprintf( command, "set_bin,%ld,%ld", ccd->bin_size[0],
 						ccd->bin_size[1] );
 
 		mx_status = mxd_remote_marccd_command( ccd, remote_marccd,
@@ -1148,7 +1148,7 @@ mxd_remote_marccd_handle_response( MX_CCD *ccd,
 
 	if ( strncmp( response, "is_size", 7 ) == 0 ) {
 
-		num_items = sscanf( response, "is_size,%d,%d",
+		num_items = sscanf( response, "is_size,%ld,%ld",
 				&(ccd->data_frame_size[0]),
 				&(ccd->data_frame_size[1]) );
 
@@ -1159,14 +1159,14 @@ mxd_remote_marccd_handle_response( MX_CCD *ccd,
 		}
 
 		MX_DEBUG( 2,
-			("%s: data_frame_size[0] = %d, data_frame_size[1] = %d",
+		("%s: data_frame_size[0] = %ld, data_frame_size[1] = %ld",
 			fname, ccd->data_frame_size[0],
 			ccd->data_frame_size[0]));
 
 	} else
 	if ( strncmp( response, "is_bin", 6 ) == 0 ) {
 
-		num_items = sscanf( response, "is_bin,%d,%d",
+		num_items = sscanf( response, "is_bin,%ld,%ld",
 				&(ccd->bin_size[0]),
 				&(ccd->bin_size[1]) );
 
@@ -1176,7 +1176,7 @@ mxd_remote_marccd_handle_response( MX_CCD *ccd,
 				"response '%s'.", response );
 		}
 
-		MX_DEBUG( 2,("%s: bin_size[0] = %d, bin_size[1] = %d",
+		MX_DEBUG( 2,("%s: bin_size[0] = %ld, bin_size[1] = %ld",
 			fname, ccd->bin_size[0], ccd->bin_size[1]));
 
 	} else

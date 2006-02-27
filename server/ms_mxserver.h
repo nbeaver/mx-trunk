@@ -87,17 +87,15 @@ extern mx_status_type mxsrv_mx_client_socket_proc_queued_event(
 			MX_QUEUED_EVENT *queued_event );
 
 extern mx_status_type mxsrv_handle_get_array(
-			MX_SOCKET *mx_socket,
+			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			unsigned long data_format,
 			void *received_message_ptr );
 
 extern mx_status_type mxsrv_handle_put_array(
-			MX_SOCKET *mx_socket,
+			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			unsigned long data_format,
 			void *received_message_ptr,
 			void *received_value_ptr );
 

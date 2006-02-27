@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@ struct mx_unix_domain_auth {
 typedef struct {
 	MX_SOCKET *synchronous_socket;
 	MX_SOCKET *callback_socket;
-	int handler_array_index;
+	long handler_array_index;
 	struct mx_event_handler_type *event_handler;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	char client_address_string[MXU_ADDRESS_STRING_LENGTH + 1];
@@ -53,7 +53,9 @@ typedef struct {
 	char program_name[MXU_PROGRAM_NAME_LENGTH + 1];
 	unsigned long process_id;
 	unsigned long data_format;
-	int authentication_type;
+	mx_bool_type truncate_64bit_longs;
+
+	long authentication_type;
 	union {
 		struct mx_no_auth none;
 #if HAVE_UNIX_DOMAIN_SOCKETS

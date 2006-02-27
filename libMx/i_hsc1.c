@@ -303,7 +303,7 @@ mxi_hsc1_open( MX_RECORD *record )
 	}
 	if ( rs232->word_size != 8 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-"The HSC-1 controller requires 8 bit characters.  Instead saw %d",
+"The HSC-1 controller requires 8 bit characters.  Instead saw %ld",
 			rs232->word_size );
 	}
 	if ( rs232->parity != 'N' ) {
@@ -313,7 +313,7 @@ mxi_hsc1_open( MX_RECORD *record )
 	}
 	if ( rs232->stop_bits != 1 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The HSC-1 controller requires 1 stop bit.  Instead saw %d.",
+		"The HSC-1 controller requires 1 stop bit.  Instead saw %ld.",
 			rs232->stop_bits );
 	}
 	if (rs232->flow_control != 'N') {

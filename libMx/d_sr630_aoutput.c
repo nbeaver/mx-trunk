@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -227,14 +227,14 @@ mxd_sr630_aoutput_open( MX_RECORD *record )
 	  || ( sr630_aoutput->channel_number > 4 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal channel number %d for SR630 analog output '%s'.  "
+		"Illegal channel number %ld for SR630 analog output '%s'.  "
 		"The allowed range of channel numbers is 1 to 4.",
 			sr630_aoutput->channel_number, record->name );
 	}
 
 	/* Configure the channel as a voltage output. */
 
-	sprintf( command, "VOUT %d,1", sr630_aoutput->channel_number );
+	sprintf( command, "VOUT %ld,1", sr630_aoutput->channel_number );
 
 	mx_status = mxi_sr630_command( sr630, command,
 				NULL, 0, SR630_AOUTPUT_DEBUG );
@@ -258,7 +258,7 @@ mxd_sr630_aoutput_write( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "VOUT %d,%f", sr630_aoutput->channel_number,
+	sprintf( command, "VOUT %ld,%f", sr630_aoutput->channel_number,
 				aoutput->raw_value.double_value );
 
 	mx_status = mxi_sr630_command( sr630, command,

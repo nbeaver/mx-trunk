@@ -438,7 +438,7 @@ motor_setup_quick_scan_parameters(
 			}
 			break;
 		default:
-			fprintf(output,"Unknown motor subclass %d.\n",
+			fprintf(output,"Unknown motor subclass %ld.\n",
 				motor->subclass);
 			FREE_MOTOR_NAME_ARRAY;
 			return FAILURE;

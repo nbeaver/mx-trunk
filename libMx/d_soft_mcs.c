@@ -397,12 +397,12 @@ mxd_soft_mcs_get_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
-		MX_DEBUG( 2,("%s: MCS mode = %d", fname, mcs->mode));
+		MX_DEBUG( 2,("%s: MCS mode = %ld", fname, mcs->mode));
 
 	} else if ( mcs->parameter_type == MXLV_MCS_MEASUREMENT_TIME ) {
 
@@ -435,16 +435,16 @@ mxd_soft_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %d",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', type = %ld",
 		fname, mcs->record->name, mcs->parameter_type));
 
 	if ( mcs->parameter_type == MXLV_MCS_MODE ) {
 
-		MX_DEBUG( 2,("%s: MCS mode = %d", fname, mcs->mode));
+		MX_DEBUG( 2,("%s: MCS mode = %ld", fname, mcs->mode));
 
 		if ( mcs->mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal MCS mode %d selected.  Only preset time mode is "
+		"Illegal MCS mode %ld selected.  Only preset time mode is "
 		"allowed for a soft MCS.", mcs->mode );
 		}
 

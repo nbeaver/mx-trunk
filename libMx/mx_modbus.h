@@ -129,31 +129,31 @@ MX_API mx_status_type mx_modbus_command( MX_RECORD *modbus_record,
 /* ... not all function codes are implemented yet ... */
 
 MX_API mx_status_type mx_modbus_read_coils( MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_coils,
+					unsigned long starting_address,
+					unsigned long num_coils,
 					uint8_t *coil_value_array );
 
 MX_API mx_status_type mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_inputs,
+					unsigned long starting_address,
+					unsigned long num_inputs,
 					uint8_t *input_value_array );
 
 MX_API mx_status_type mx_modbus_read_holding_registers(MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_registers,
+					unsigned long starting_address,
+					unsigned long num_registers,
 					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_read_input_registers( MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_registers,
+					unsigned long starting_address,
+					unsigned long num_registers,
 					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_write_single_coil( MX_RECORD *modbus_record,
-					unsigned int output_address,
-					unsigned int coil_value );
+					unsigned long output_address,
+					unsigned long coil_value );
 
 MX_API mx_status_type mx_modbus_write_single_register( MX_RECORD *modbus_record,
-					unsigned int register_address,
+					unsigned long register_address,
 					uint16_t register_value );
 
 MX_API mx_status_type mx_modbus_read_exception_status( MX_RECORD *modbus_record,
@@ -164,34 +164,34 @@ MX_API mx_status_type mx_modbus_get_comm_event_counter(MX_RECORD *modbus_record,
 					uint16_t *event_count );
 
 MX_API mx_status_type mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_coils,
+					unsigned long starting_address,
+					unsigned long num_coils,
 					uint8_t *coil_value_bit_array );
 
 MX_API mx_status_type mx_modbus_write_multiple_registers(
 					MX_RECORD *modbus_record,
-					unsigned int starting_address,
-					unsigned int num_registers,
+					unsigned long starting_address,
+					unsigned long num_registers,
 					uint16_t *register_value_array );
 
 MX_API mx_status_type mx_modbus_mask_write_register( MX_RECORD *modbus_record,
-					unsigned int register_address,
+					unsigned long register_address,
 					uint16_t and_mask,
 					uint16_t or_mask );
 
 MX_API mx_status_type mx_modbus_read_write_multiple_registers(
 					MX_RECORD *modbus_record,
-					unsigned int read_starting_address,
-					unsigned int num_registers_to_read,
+					unsigned long read_starting_address,
+					unsigned long num_registers_to_read,
 					uint16_t *read_register_array,
-					unsigned int write_starting_address,
-					unsigned int num_registers_to_write,
+					unsigned long write_starting_address,
+					unsigned long num_registers_to_write,
 					uint16_t *write_register_array );
 
 MX_API mx_status_type mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
-					unsigned int fifo_pointer_address,
-					unsigned int max_fifo_values,
+					unsigned long fifo_pointer_address,
+					unsigned long max_fifo_values,
 					uint16_t *fifo_value_array,
-					unsigned int *num_fifo_values_read );
+					unsigned long *num_fifo_values_read );
 
 #endif /* __MX_MODBUS_H__ */

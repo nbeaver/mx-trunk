@@ -159,7 +159,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 			mca_record->name );
 	}
 
-	MX_DEBUG( 2,("%s invoked for record '%s'. value_type = %d",
+	MX_DEBUG( 2,("%s invoked for record '%s'. value_type = %ld",
 		fname, analog_input->record->name, xia_dxp_input->value_type));
 
 	MX_DEBUG( 2,
@@ -338,11 +338,11 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"The value type %d for XIA DXP variable '%s' is unsupported.",
+		"The value type %ld for XIA DXP variable '%s' is unsupported.",
 			xia_dxp_input->value_type, analog_input->record->name );
 	}
 
-	MX_DEBUG( 2,("%s: value_type = %d, raw_value = %g",
+	MX_DEBUG( 2,("%s: value_type = %ld, raw_value = %g",
 		fname, xia_dxp_input->value_type,
 		analog_input->raw_value.double_value ));
 

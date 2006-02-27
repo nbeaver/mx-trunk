@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,7 +225,7 @@ mxd_sr630_ainput_open( MX_RECORD *record )
 	  || ( sr630_ainput->channel_number > 16 ) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal channel number %d for SR630 analog input '%s'.  "
+		"Illegal channel number %ld for SR630 analog input '%s'.  "
 		"The allowed channel numbers are from 1 to 16.",
 			sr630_ainput->channel_number,
 			record->name );
@@ -279,7 +279,7 @@ mxd_sr630_ainput_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "MEAS? %d", sr630_ainput->channel_number );
+	sprintf( command, "MEAS? %ld", sr630_ainput->channel_number );
 
 	mx_status = mxi_sr630_command( sr630, command,
 					response, sizeof(response),

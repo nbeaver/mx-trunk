@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -356,7 +356,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_bluice_get_message_type( char *message_string, int *message_type )
+mx_bluice_get_message_type( char *message_string, long *message_type )
 {
 	static const char fname[] = "mx_bluice_get_message_type()";
 
@@ -364,7 +364,7 @@ mx_bluice_get_message_type( char *message_string, int *message_type )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'message_string' pointer passed was NULL." );
 	}
-	if ( message_type == (int *) NULL ) {
+	if ( message_type == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'message_type' pointer passed was NULL." );
 	}
@@ -396,7 +396,7 @@ MX_EXPORT mx_status_type
 mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			char *name,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
-			int *num_foreign_devices_ptr,
+			long *num_foreign_devices_ptr,
 			size_t foreign_pointer_size,
 			size_t foreign_device_size,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr )
@@ -422,7 +422,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'foreign_device_array_ptr' pointer passed was NULL." );
 	}
-	if ( num_foreign_devices_ptr == (int *) NULL) {
+	if ( num_foreign_devices_ptr == (long *) NULL) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'num_foreign_devices_ptr' pointer passed was NULL." );
 	}
@@ -442,7 +442,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		if ( (*foreign_device_array_ptr) == NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
 			"'*foreign_device_array_ptr' is NULL even though "
-			"'*num_foreign_devices_ptr' is %d.",
+			"'*num_foreign_devices_ptr' is %ld.",
 				*num_foreign_devices_ptr );
 		}
 	}
@@ -468,7 +468,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 			"Cannot access Blu-Ice device '%s' since "
 			"we have not successfully authenticated with the "
-			"Blu-Ice server at '%s', port %d.", name,
+			"Blu-Ice server at '%s', port %ld.", name,
 				bluice_dcss_server->hostname,
 				bluice_dcss_server->port_number );
 		}
@@ -677,9 +677,9 @@ MX_EXPORT mx_status_type
 mx_bluice_wait_for_device_pointer_initialization(
 			MX_BLUICE_SERVER *bluice_server,
 			char *name,
-			int bluice_foreign_type,
+			long bluice_foreign_type,
 			MX_BLUICE_FOREIGN_DEVICE ***foreign_device_array_ptr,
-			int *num_foreign_devices_ptr,
+			long *num_foreign_devices_ptr,
 			MX_BLUICE_FOREIGN_DEVICE **foreign_device_ptr,
 			double timeout_in_seconds )
 {
@@ -729,8 +729,8 @@ mx_bluice_wait_for_device_pointer_initialization(
 
 	if ( bluice_foreign_type != (*foreign_device_ptr)->foreign_type ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The type (%d) of Blu-Ice server device '%s' does not "
-		"match the expected type of %d.  Perhaps you have specified "
+		"The type (%ld) of Blu-Ice server device '%s' does not "
+		"match the expected type of %ld.  Perhaps you have specified "
 		"an incorrect device name?",
 			(*foreign_device_ptr)->foreign_type,
 			name, bluice_foreign_type );
@@ -917,8 +917,8 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
 
 MX_EXPORT mx_status_type
 mx_bluice_parse_log_message( char *log_message,
-				int *severity,
-				int *locale,
+				long *severity,
+				long *locale,
 				char *device_name,
 				size_t device_name_length,
 				char *message_body,
@@ -932,11 +932,11 @@ mx_bluice_parse_log_message( char *log_message,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'log_message' pointer passed was NULL." );
 	}
-	if ( severity == (int *) NULL ) {
+	if ( severity == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'severity' pointer passed was NULL." );
 	}
-	if ( locale == (int *) NULL ) {
+	if ( locale == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'locale' pointer passed was NULL." );
 	}
@@ -992,7 +992,7 @@ mx_bluice_parse_log_message( char *log_message,
 	}
 
 	MX_DEBUG( 2,
-	("%s: severity level = %d, severity token = '%s', ptr = '%s'",
+	("%s: severity level = %ld, severity token = '%s', ptr = '%s'",
 		fname, *severity, token_ptr, ptr ));
 
 	/* Get the locale. */
@@ -1014,7 +1014,7 @@ mx_bluice_parse_log_message( char *log_message,
 			"message from the Blu-Ice server.", token_ptr );
 	}
 
-	MX_DEBUG( 2,("%s: locale = %d, locale token = '%s', ptr = '%s'",
+	MX_DEBUG( 2,("%s: locale = %ld, locale token = '%s', ptr = '%s'",
 		fname, *locale, token_ptr, ptr ));
 
 	/* Get the device name. */
@@ -1052,7 +1052,7 @@ mx_bluice_configure_ion_chamber( MX_BLUICE_SERVER *bluice_server,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_ion_chamber;
 	char *ptr, *token_ptr;
 	char *ion_chamber_name, *dhs_server_name, *counter_name, *timer_name;
-	int message_type, channel_number, timer_type;
+	long message_type, channel_number, timer_type;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1228,7 +1228,7 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
 	char format_string[100];
 	char name[MXU_BLUICE_NAME_LENGTH+1];
-	int message_type, num_items, format_length;
+	long message_type, num_items, format_length;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1310,12 +1310,12 @@ mx_bluice_configure_motor( MX_BLUICE_SERVER *bluice_server,
 			if ( format_length >= sizeof(format_string) ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"The length needed for the format string for "
-				"stog_configure_real_motor is %d bytes, "
-				"but the format string buffer is only %d "
+				"stog_configure_real_motor is %ld bytes, "
+				"but the format string buffer is only %ld "
 				"bytes.  You must recompile this version of "
 				"MX with a longer format string buffer size.",
 					format_length + 1,
-					(int) sizeof(format_string) );
+					(long) sizeof(format_string) );
 			}
 
 			num_items = sscanf( config_string, format_string,
@@ -1434,7 +1434,7 @@ mx_bluice_configure_shutter( MX_BLUICE_SERVER *bluice_server,
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_shutter;
 	char *ptr, *token_ptr, *shutter_name, *dhs_server_name;
-	int message_type, shutter_status;
+	long message_type, shutter_status;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {
@@ -1560,7 +1560,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 	MX_BLUICE_FOREIGN_DEVICE *foreign_string;
 	char *ptr, *token_ptr, *string_name, *dhs_server_name, *string_contents;
 	size_t string_length;
-	int message_type;
+	long message_type;
 	mx_status_type mx_status;
 
 	if ( bluice_server == (MX_BLUICE_SERVER *) NULL ) {

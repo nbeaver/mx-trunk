@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -236,8 +236,10 @@ mxn_unix_server_open( MX_RECORD *record )
 
 	/* Set the socket to non-blocking mode if requested. */
 
-	if ( flags & MXF_NETWORK_SERVER_TEST_NON_BLOCKING ) {
+	if ( flags & MXF_NETWORK_SERVER_BLOCKING_IO ) {
 
+		network_server->timeout = -1.0;
+	} else {
 		mx_status = mx_socket_set_non_blocking_mode( server_socket,
 								TRUE );
 
@@ -245,8 +247,6 @@ mxn_unix_server_open( MX_RECORD *record )
 			return mx_status;
 
 		network_server->timeout = 5.0;
-	} else {
-		network_server->timeout = -1.0;
 	}
 
 	/* Transmit a single null byte to the remote server.  For Unix domain

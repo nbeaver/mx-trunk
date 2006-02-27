@@ -15,7 +15,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -381,17 +381,17 @@ mxd_pdi40motor_write_parms_to_hardware( MX_RECORD *record )
 		motor, pdi40_motor, pdi40) );
 	MX_DEBUG(2, ("Record name = '%s', PDI40 name = '%s', name = '%c'",
 		record->name, pdi40->record->name, pdi40_motor->stepper_name));
-	MX_DEBUG(2, ("  stepper mode = '%c', speed = %d, stop delay = %d",
+	MX_DEBUG(2, ("  stepper mode = '%c', speed = %ld, stop delay = %ld",
 		pdi40->stepper_mode, pdi40->stepper_speed,
 		pdi40->stepper_stop_delay));
 
 	/* Send the command to the PDI 40. */
 
-	sprintf( buffer, "SE%c%c%d;%d",
-		pdi40_motor->stepper_name,
-		pdi40->stepper_mode,
-		pdi40->stepper_speed,
-		pdi40->stepper_stop_delay );
+	snprintf( buffer, sizeof(buffer), "SE%c%c%ld;%ld",
+			pdi40_motor->stepper_name,
+			pdi40->stepper_mode,
+			pdi40->stepper_speed,
+			pdi40->stepper_stop_delay );
 
 	MX_DEBUG(2, ("SE buffer = '%s'", buffer) );
 
@@ -563,13 +563,15 @@ mxd_pdi40motor_move_absolute( MX_MOTOR *motor )
 	/* Format the move command and send it. */
 
 	if ( relative_steps >= 0 ) {
-		sprintf( command, "S%cR%ld",
-			pdi40_motor->stepper_name,
-			relative_steps );
+		snprintf( command, sizeof(command),
+				"S%cR%ld",
+				pdi40_motor->stepper_name,
+				relative_steps );
 	} else {
-		sprintf( command, "S%cL%ld",
-			pdi40_motor->stepper_name,
-			- relative_steps );
+		snprintf( command, sizeof(command),
+				"S%cL%ld",
+				pdi40_motor->stepper_name,
+				- relative_steps );
 	}
 
 	status = mxi_pdi40_putline( pdi40, command, FALSE );

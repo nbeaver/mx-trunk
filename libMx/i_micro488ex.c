@@ -15,6 +15,8 @@
  *
  */
 
+#define MICRO488EX_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,8 +71,6 @@ long mxi_micro488ex_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_micro488ex_rfield_def_ptr
 			= &mxi_micro488ex_record_field_defaults[0];
-
-#define MICRO488EX_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -327,7 +327,7 @@ mxi_micro488ex_print_interface_structure( FILE *file, MX_RECORD *record )
 					micro488ex->rs232_record->name);
 	fprintf(file, "  default I/O timeout    = %g\n",
 					gpib->default_io_timeout);
-	fprintf(file, "  default EOI mode       = %d\n",
+	fprintf(file, "  default EOI mode       = %ld\n",
 					gpib->default_eoi_mode);
 
 	read_eos_char = (char) ( gpib->default_read_terminator & 0xff );
@@ -449,24 +449,24 @@ mxi_micro488ex_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_open_device( MX_GPIB *gpib, int address )
+mxi_micro488ex_open_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_close_device( MX_GPIB *gpib, int address )
+mxi_micro488ex_close_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_micro488ex_read( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int transfer_flags )
+		unsigned long transfer_flags )
 {
 	static const char fname[] = "mxi_micro488ex_read()";
 
@@ -494,7 +494,7 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 			fname, command, micro488ex->record->name ));
 	}
 
-	sprintf( command, "ENTER %02d", address );
+	sprintf( command, "ENTER %02ld", address );
 
 	mx_status = mx_rs232_putline( micro488ex->rs232_record,
 					command, NULL, transfer_flags );
@@ -529,11 +529,11 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_micro488ex_write( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int transfer_flags )
+		unsigned long transfer_flags )
 {
 	static const char fname[] = "mxi_micro488ex_write()";
 
@@ -559,7 +559,7 @@ mxi_micro488ex_write( MX_GPIB *gpib,
 
 	/* Send the Micro488EX command prefix. */
 
-	sprintf( prefix, "OUTPUT %02d;", address );
+	sprintf( prefix, "OUTPUT %02ld;", address );
 
 	if ( debug ) {
 		MX_DEBUG(-2,("%s: sending '%s%s' to '%s'.",
@@ -633,7 +633,7 @@ mxi_micro488ex_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_selective_device_clear()";
 
@@ -646,7 +646,7 @@ mxi_micro488ex_selective_device_clear( MX_GPIB *gpib, int address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	sprintf( command, "CLEAR %02d", address );
+	sprintf( command, "CLEAR %02ld", address );
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
 					NULL, 0, MICRO488EX_DEBUG );
@@ -672,7 +672,7 @@ mxi_micro488ex_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_remote_enable( MX_GPIB *gpib, int address )
+mxi_micro488ex_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_remote_enable()";
 
@@ -688,7 +688,7 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, int address )
 	if ( address < 0 ) {
 		strcpy( command, "REMOTE" );
 	} else {
-		sprintf( command, "REMOTE %02d", address );
+		sprintf( command, "REMOTE %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -697,7 +697,7 @@ mxi_micro488ex_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_go_to_local( MX_GPIB *gpib, int address )
+mxi_micro488ex_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_go_to_local()";
 
@@ -713,7 +713,7 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, int address )
 	if ( address < 0 ) {
 		strcpy( command, "LOCAL" );
 	} else {
-		sprintf( command, "LOCAL %02d", address );
+		sprintf( command, "LOCAL %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -722,7 +722,7 @@ mxi_micro488ex_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_trigger( MX_GPIB *gpib, int address )
+mxi_micro488ex_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_micro488ex_trigger_device()";
 
@@ -742,7 +742,7 @@ mxi_micro488ex_trigger( MX_GPIB *gpib, int address )
 	if ( address < 0 ) {
 		strcpy( command, "TR" );
 	} else {
-		sprintf( command, "TRIGGER %02d", address );
+		sprintf( command, "TRIGGER %02ld", address );
 	}
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
@@ -760,7 +760,7 @@ mxi_micro488ex_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_micro488ex_serial_poll( MX_GPIB *gpib, int address,
+mxi_micro488ex_serial_poll( MX_GPIB *gpib, long address,
 				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_micro488ex_serial_poll()";
@@ -781,7 +781,7 @@ mxi_micro488ex_serial_poll( MX_GPIB *gpib, int address,
 
 	/* Get the serial poll byte. */
 
-	sprintf( command, "SPOLL %02d", address );
+	sprintf( command, "SPOLL %02ld", address );
 
 	mx_status = mxi_micro488ex_command( micro488ex, command,
 					response, sizeof(response),

@@ -85,7 +85,7 @@ mxd_stp100_motor_get_pointers( MX_MOTOR *motor,
 			MX_STP100_MOTOR **stp100_motor,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_stp100_motor_get_pointers()";
+	static const char fname[] = "mxd_stp100_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,7 +113,8 @@ mxd_stp100_motor_get_pointers( MX_MOTOR *motor,
 MX_EXPORT mx_status_type
 mxd_stp100_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_stp100_motor_create_record_structures()";
+	static const char fname[] =
+		"mxd_stp100_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_STP100_MOTOR *stp100_motor;
@@ -161,10 +162,11 @@ mxd_stp100_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_stp100_motor_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_stp100_motor_finish_record_initialization()";
 
 	MX_STP100_MOTOR *stp100_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	stp100_motor = (MX_STP100_MOTOR *) record->record_type_struct;
 
@@ -174,10 +176,10 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Check for a valid board number. */
 
@@ -185,7 +187,7 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 	  || (stp100_motor->board_number > 255) )
 	{
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Illegal STP100_MOTOR board number %d.  The allowed range is (0-255).",
+	"Illegal STP100_MOTOR board number %ld.  The allowed range is (0-255).",
 			stp100_motor->board_number );
 	}
 
@@ -205,7 +207,7 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal positive limit switch pin number %d.",
+		"Illegal positive limit switch pin number %ld.",
 			stp100_motor->positive_limit_switch_pin );
 	}
 	switch( stp100_motor->negative_limit_switch_pin ) {
@@ -230,22 +232,22 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal positive limit switch pin number %d.",
+		"Illegal positive limit switch pin number %ld.",
 			stp100_motor->positive_limit_switch_pin );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_stp100_motor_print_motor_structure()";
+	static const char fname[] = "mxd_stp100_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_STP100_MOTOR *stp100_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -254,10 +256,10 @@ mxd_stp100_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 
 	motor = (MX_MOTOR *) (record->record_class_struct);
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 
@@ -266,21 +268,21 @@ mxd_stp100_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  rs232              = %s\n",
 				stp100_motor->rs232_record->name);
 
-	fprintf(file, "  board number       = %d\n",
+	fprintf(file, "  board number       = %ld\n",
 				stp100_motor->board_number);
 
-	fprintf(file, "  positive limit switch pin = %d\n",
+	fprintf(file, "  positive limit switch pin = %ld\n",
 				stp100_motor->positive_limit_switch_pin );
 
-	fprintf(file, "  negative limit switch pin = %d\n",
+	fprintf(file, "  negative limit switch pin = %ld\n",
 				stp100_motor->negative_limit_switch_pin );
 
-	fprintf(file, "  home switch pin           = %d\n",
+	fprintf(file, "  home switch pin           = %ld\n",
 				stp100_motor->home_switch_pin );
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -318,12 +320,12 @@ mxd_stp100_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_stp100_motor_open()";
+	static const char fname[] = "mxd_stp100_motor_open()";
 
 	MX_MOTOR *motor;
 	MX_STP100_MOTOR *stp100_motor;
 	double raw_acceleration_parameters[ MX_MOTOR_NUM_ACCELERATION_PARAMS ];
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -332,15 +334,15 @@ mxd_stp100_motor_open( MX_RECORD *record )
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_stp100_motor_resynchronize( record );
+	mx_status = mxd_stp100_motor_resynchronize( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if 0
 	{
@@ -348,11 +350,11 @@ mxd_stp100_motor_open( MX_RECORD *record )
 
 		MX_DEBUG(-2,("%s: about to read the acceleration time.",fname));
 
-		status = mx_motor_get_acceleration_time( record,
+		mx_status = mx_motor_get_acceleration_time( record,
 							&acceleration_time );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG(-2,("%s: motor '%s' acceleration_time = %g seconds",
 				fname, record->name, acceleration_time ));
@@ -361,16 +363,16 @@ mxd_stp100_motor_open( MX_RECORD *record )
 
 	/* Update the speed, base speed, and acceleration. */
 
-	status = mx_motor_set_speed( record, stp100_motor->default_speed );
+	mx_status = mx_motor_set_speed( record, stp100_motor->default_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_set_base_speed( record,
+	mx_status = mx_motor_set_base_speed( record,
 					stp100_motor->default_base_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	raw_acceleration_parameters[0] =
 			stp100_motor->default_acceleration_time;
@@ -379,19 +381,19 @@ mxd_stp100_motor_open( MX_RECORD *record )
 	raw_acceleration_parameters[2] = 0.0;
 	raw_acceleration_parameters[3] = 0.0;
 
-	status = mx_motor_set_raw_acceleration_parameters( record,
+	mx_status = mx_motor_set_raw_acceleration_parameters( record,
 						raw_acceleration_parameters );
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_stp100_motor_resynchronize()";
+	static const char fname[] = "mxd_stp100_motor_resynchronize()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -408,27 +410,27 @@ mxd_stp100_motor_resynchronize( MX_RECORD *record )
 
 	/* Discard any unread RS-232 input or unwritten RS-232 output. */
 
-	status = mx_rs232_discard_unwritten_output( stp100_motor->rs232_record,
+	mx_status = mx_rs232_discard_unwritten_output(
+			stp100_motor->rs232_record, STP100_MOTOR_DEBUG );
+
+	if (mx_status.code != MXE_SUCCESS && mx_status.code != MXE_UNSUPPORTED)
+		return mx_status;
+
+	mx_status = mx_rs232_discard_unread_input( stp100_motor->rs232_record,
 							STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS && status.code != MXE_UNSUPPORTED )
-		return status;
-
-	status = mx_rs232_discard_unread_input( stp100_motor->rs232_record,
-							STP100_MOTOR_DEBUG );
-
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Send a get_position() command to verify that the controller
 	 * is there and to update the current position in the motor structure.
 	 */
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
 	/* Check to see if the controller responded. */
 
-	switch( status.code ) {
+	switch( mx_status.code ) {
 	case MXE_SUCCESS:
 		break;
 	case MXE_NOT_READY:
@@ -436,7 +438,7 @@ mxd_stp100_motor_resynchronize( MX_RECORD *record )
 "No response from the Pontech controller for '%s'.  Is it turned on?",
 			record->name );
 	default:
-		return status;
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -445,28 +447,28 @@ mxd_stp100_motor_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_is_busy()";
+	static const char fname[] = "mxd_stp100_motor_is_busy()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char response[80];
 	long difference;
 	int num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Ask for the difference between the destination position and
 	 * the current position.  If it is non-zero, the motor is moving.
 	 */
 
-	status = mxd_stp100_motor_command( stp100_motor, "RT",
+	mx_status = mxd_stp100_motor_command( stp100_motor, "RT",
 			response, sizeof response, STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &difference );
 
@@ -488,17 +490,17 @@ mxd_stp100_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_move_absolute()";
+	static const char fname[] = "mxd_stp100_motor_move_absolute()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
 	long motor_steps;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Setup the positive limit switch. */
 
@@ -508,16 +510,16 @@ mxd_stp100_motor_move_absolute( MX_MOTOR *motor )
 
 			/* Active closed. */
 
-			sprintf( command, "TC%d",
+			snprintf( command, sizeof(command), "TC%ld",
 				stp100_motor->positive_limit_switch_pin );
 		} else {
 
 			/* Active open. */
 
-			sprintf( command, "TS%d",
+			snprintf( command, sizeof(command), "TS%ld",
 				stp100_motor->positive_limit_switch_pin );
 		}
-		status = mxd_stp100_motor_command( stp100_motor, command,
+		mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 	}
 
@@ -529,16 +531,16 @@ mxd_stp100_motor_move_absolute( MX_MOTOR *motor )
 
 			/* Active closed. */
 
-			sprintf( command, "TC%d",
+			snprintf( command, sizeof(command), "TC%ld",
 				stp100_motor->negative_limit_switch_pin );
 		} else {
 
 			/* Active open. */
 
-			sprintf( command, "TS%d",
+			snprintf( command, sizeof(command), "TS%ld",
 				stp100_motor->negative_limit_switch_pin );
 		}
-		status = mxd_stp100_motor_command( stp100_motor, command,
+		mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 	}
 
@@ -546,35 +548,35 @@ mxd_stp100_motor_move_absolute( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_destination.stepper;
 
-	sprintf( command, "MI%ld", motor_steps );
+	snprintf( command, sizeof(command), "MI%ld", motor_steps );
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_get_position()";
+	static const char fname[] = "mxd_stp100_motor_get_position()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char response[80];
 	int num_items;
 	long motor_steps;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_stp100_motor_command( stp100_motor, "RC",
+	mx_status = mxd_stp100_motor_command( stp100_motor, "RC",
 			response, sizeof response, STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &motor_steps );
 
@@ -591,81 +593,81 @@ mxd_stp100_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_set_position()";
+	static const char fname[] = "mxd_stp100_motor_set_position()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
 	long motor_steps;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	sprintf( command, "HM%ld", motor_steps );
+	snprintf( command, sizeof(command), "HM%ld", motor_steps );
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_soft_abort()";
+	static const char fname[] = "mxd_stp100_motor_soft_abort()";
 
 	MX_STP100_MOTOR *stp100_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_stp100_motor_command( stp100_motor, "H0",
+	mx_status = mxd_stp100_motor_command( stp100_motor, "H0",
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_immediate_abort()";
+	static const char fname[] = "mxd_stp100_motor_immediate_abort()";
 
 	MX_STP100_MOTOR *stp100_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxd_stp100_motor_command( stp100_motor, "HI",
+	mx_status = mxd_stp100_motor_command( stp100_motor, "HI",
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_stp100_motor_positive_limit_hit()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
 	char response[80];
 	int num_items, pin_state;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( stp100_motor->positive_limit_switch_pin == 0 ) {
 		motor->positive_limit_hit = FALSE;
@@ -673,13 +675,14 @@ mxd_stp100_motor_positive_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	sprintf( command, "RP%d", stp100_motor->positive_limit_switch_pin );
+	snprintf( command, sizeof(command), "RP%ld",
+			stp100_motor->positive_limit_switch_pin );
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 			response, sizeof response, STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", &pin_state );
 
@@ -719,18 +722,18 @@ mxd_stp100_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_stp100_motor_negative_limit_hit()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
 	char response[80];
 	int num_items, pin_state;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( stp100_motor->negative_limit_switch_pin == 0 ) {
 		motor->negative_limit_hit = FALSE;
@@ -738,13 +741,14 @@ mxd_stp100_motor_negative_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	sprintf( command, "RP%d", stp100_motor->negative_limit_switch_pin );
+	snprintf( command, sizeof(command), "RP%ld",
+			stp100_motor->negative_limit_switch_pin );
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 			response, sizeof response, STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", &pin_state );
 
@@ -784,16 +788,16 @@ mxd_stp100_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_find_home_position()";
+	static const char fname[] = "mxd_stp100_motor_find_home_position()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( stp100_motor->home_switch_pin < 0 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -802,61 +806,63 @@ mxd_stp100_motor_find_home_position( MX_MOTOR *motor )
 	}
 
 	if ( motor->home_search >= 0 ) {
-		sprintf( command, "TC%dH+", stp100_motor->home_switch_pin );
+		snprintf( command, sizeof(command), "TC%ldH+",
+					stp100_motor->home_switch_pin );
 	} else {
-		sprintf( command, "TC%dH-", stp100_motor->home_switch_pin );
+		snprintf( command, sizeof(command), "TC%ldH-",
+					stp100_motor->home_switch_pin );
 	}
 		
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_stp100_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_stp100_motor_constant_velocity_move()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[20];
 	char response[80];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( motor->constant_velocity_move >= 0 ) {
-		strcpy( command, "H+" );
+		strlcpy( command, "H+", sizeof(command) );
 	} else {
-		strcpy( command, "H-" );
+		strlcpy( command, "H-", sizeof(command) );
 	}
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						response, sizeof(response),
 						STP100_MOTOR_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 static mx_status_type
 mxd_stp100_motor_get_factor( MX_STP100_MOTOR *stp100_motor,
 				char *command, int *factor )
 {
-	const char fname[] = "mxd_stp100_motor_get_factor()";
+	static const char fname[] = "mxd_stp100_motor_get_factor()";
 
 	char response[80];
 	int num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_command( stp100_motor, command,
+	mx_status = mxd_stp100_motor_command( stp100_motor, command,
 					response, sizeof(response),
 					STP100_MOTOR_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%d", factor );
 
@@ -872,21 +878,21 @@ mxd_stp100_motor_get_factor( MX_STP100_MOTOR *stp100_motor,
 MX_EXPORT mx_status_type
 mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_get_parameter()";
+	static const char fname[] = "mxd_stp100_motor_get_parameter()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	int step_delay, minimum_step_delay, total_step_delay;
 	int acceleration_factor;
 	double microseconds_per_step, numerator;
 	double acceleration_seconds, acceleration_ticks;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -899,11 +905,11 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSD", &step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		microseconds_per_step = 1.6 * (double) step_delay;
 
@@ -915,19 +921,19 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 
 		/* Get the step delay. */
    
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSD", &step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Get the minimum step delay. */
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSM", &minimum_step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		total_step_delay = step_delay + minimum_step_delay;
 
@@ -955,27 +961,27 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 
 		/* Get the step delay. */
    
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSD", &step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Get the minimum step delay. */
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSM", &minimum_step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Get the acceleration factor. */
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSA", &acceleration_factor );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Compute the acceleration time in 1.6 microsecond ticks. */
 
@@ -1006,7 +1012,7 @@ mxd_stp100_motor_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_stp100_motor_set_parameter()";
+	static const char fname[] = "mxd_stp100_motor_set_parameter()";
 
 	MX_STP100_MOTOR *stp100_motor;
 	char command[80];
@@ -1014,14 +1020,14 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 	double microseconds_per_step, minimum_base_speed;
 	double acceleration_factor, numerator;
 	double acceleration_seconds, acceleration_ticks;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_stp100_motor_get_pointers( motor, &stp100_motor, fname );
+	mx_status = mxd_stp100_motor_get_pointers(motor, &stp100_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -1034,21 +1040,21 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 
 		step_delay = (int) mx_round( microseconds_per_step / 1.6 );
 
-		sprintf( command, "SD%d", step_delay );
+		snprintf( command, sizeof(command), "SD%d", step_delay );
 
-		status = mxd_stp100_motor_command( stp100_motor, command,
+		mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-		return status;
+		return mx_status;
 
 	case MXLV_MTR_BASE_SPEED:
 		/* Get the slew speed step delay. */
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSD", &step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Compute the total step delay for the base speed. */
 
@@ -1074,12 +1080,12 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 
 		minimum_step_delay = total_step_delay - step_delay;
 
-		sprintf( command, "SM%d", minimum_step_delay );
+		snprintf( command, sizeof(command), "SM%d", minimum_step_delay);
 
-		status = mxd_stp100_motor_command( stp100_motor, command,
+		mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-		return status;
+		return mx_status;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
 		/* The smallest possible total step delay is 6 according
@@ -1112,19 +1118,19 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 
 		/* Get the step delay. */
    
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSD", &step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Get the minimum step delay. */
 
-		status = mxd_stp100_motor_get_factor( stp100_motor,
+		mx_status = mxd_stp100_motor_get_factor( stp100_motor,
 						"RSM", &minimum_step_delay );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Convert the acceleration time in seconds to acceleration
 		 * time in units of 1.6 microsecond ticks.
@@ -1142,12 +1148,13 @@ mxd_stp100_motor_set_parameter( MX_MOTOR *motor )
 		acceleration_factor = mx_divide_safely( numerator,
 					2.0 * acceleration_ticks );
 
-		sprintf( command, "SA%ld", mx_round( acceleration_factor ) );
+		snprintf( command, sizeof(command), "SA%ld",
+					mx_round( acceleration_factor ) );
 
-		status = mxd_stp100_motor_command( stp100_motor, command,
+		mx_status = mxd_stp100_motor_command( stp100_motor, command,
 						NULL, 0, STP100_MOTOR_DEBUG );
 
-		return status;
+		return mx_status;
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
@@ -1166,15 +1173,15 @@ MX_EXPORT mx_status_type
 mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 			char *command,
 			char *response,
-			int response_buffer_length,
+			size_t response_buffer_length,
 			int debug_flag )
 {
-	const char fname[] = "mxd_stp100_motor_command()";
+	static const char fname[] = "mxd_stp100_motor_command()";
 
 	char command_string[100];
 	int i, max_attempts;
 	unsigned long sleep_ms;
-	mx_status_type status;
+	mx_status_type mx_status;
 #if STP100_MOTOR_DEBUG_TIMING
 	MX_HRT_RS232_TIMING command_timing, response_timing;
 #endif
@@ -1190,7 +1197,7 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 
 	/* Construct the complete command with the board number prefix. */
 
-	sprintf( command_string, "BD%d,%s",
+	snprintf( command_string, sizeof(command), "BD%ld,%s",
 				stp100_motor->board_number, command );
 
 	if ( debug_flag ) {
@@ -1203,15 +1210,15 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 
 	/* Send the command string. */
 
-	status = mx_rs232_putline( stp100_motor->rs232_record,
+	mx_status = mx_rs232_putline( stp100_motor->rs232_record,
 					command_string, NULL, 0 );
 
 #if STP100_MOTOR_DEBUG_TIMING
 	MX_HRT_RS232_END_COMMAND( command_timing );
 #endif
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if STP100_MOTOR_DEBUG_TIMING
 	MX_HRT_RS232_COMMAND_RESULTS( command_timing, command_string, fname );
@@ -1237,7 +1244,7 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 						stp100_motor->rs232_record );
 #endif
 
-			status = mx_rs232_getline( stp100_motor->rs232_record,
+			mx_status = mx_rs232_getline( stp100_motor->rs232_record,
 					response, response_buffer_length,
 					NULL, MXF_232_WAIT );
 
@@ -1246,13 +1253,14 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 						2 + strlen(response) );
 #endif
 
-			if ( status.code == MXE_SUCCESS ) {
+			if ( mx_status.code == MXE_SUCCESS ) {
 				break;		/* Exit the for() loop. */
 
-			} else if ( status.code != MXE_NOT_READY ) {
-				MX_DEBUG(-2,
-				("*** Exiting with status = %ld",status.code));
-				return status;
+			} else if ( mx_status.code != MXE_NOT_READY ) {
+				MX_DEBUG(-2,("*** Exiting with status = %ld",
+					mx_status.code));
+
+				return mx_status;
 			}
 			mx_msleep(sleep_ms);
 		}
@@ -1266,10 +1274,10 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 #endif
 
 		if ( i >= max_attempts ) {
-			status = mx_rs232_discard_unread_input(
+			mx_status = mx_rs232_discard_unread_input(
 				stp100_motor->rs232_record, debug_flag );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Failed at attempt to discard unread characters in buffer for record '%s'",
 					stp100_motor->rs232_record->name );

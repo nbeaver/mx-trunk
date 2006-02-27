@@ -298,7 +298,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%d", &(pmac->i6_variable) );
+	num_items = sscanf( response, "%ld", &(pmac->i6_variable) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -314,7 +314,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response, "%d.%d",
+	num_items = sscanf( response, "%ld.%ld",
 			&(pmac->major_version), &(pmac->minor_version) );
 
 	if ( num_items != 2 ) {
@@ -336,7 +336,7 @@ mxi_pmac_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_pmac_special_processing_setup( MX_RECORD *record )
 {
-	const char fname[] = "mxi_pmac_special_processing_setup()";
+	static const char fname[] = "mxi_pmac_special_processing_setup()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -444,7 +444,7 @@ static int mxi_pmac_num_error_messages =
 
 MX_EXPORT mx_status_type
 mxi_pmac_command( MX_PMAC *pmac, char *command,
-		char *response, int response_buffer_length,
+		char *response, size_t response_buffer_length,
 		int debug_flag )
 {
 	static const char fname[] = "mxi_pmac_command()";
@@ -568,7 +568,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"The PMAC interface '%s' reported an error for the command '%s', "
-	"but the PMAC I6 variable has the unexpected value of %d.  "
+	"but the PMAC I6 variable has the unexpected value of %ld.  "
 	"This interferes with the parsing of error messages from the PMAC.  "
 	"PMAC error message = '%s'",
 			pmac->record->name, command,
@@ -602,42 +602,32 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 /*----*/
 
 MX_EXPORT mx_status_type
-mxi_pmac_card_command( MX_PMAC *pmac, int card_number,
+mxi_pmac_card_command( MX_PMAC *pmac, long card_number,
 		char *command,
-		char *response, int response_buffer_length,
+		char *response, size_t response_buffer_length,
 		int debug_flag )
 {
-	static const char fname[] = "mxi_pmac_card_command()";
-
-	char local_command_buffer[100];
+	char local_buffer[100];
 	char *command_ptr, *ptr;
-	size_t prefix_length, total_length;
+	size_t prefix_length;
 	mx_status_type mx_status;
 
 	if ( pmac->num_cards == 1 ) {
 		command_ptr = command;
 	
 	} else {
-		command_ptr = local_command_buffer;
+		command_ptr = local_buffer;
 
 		/* Construct the card number prefix. */
 
-		sprintf( command_ptr, "@%x", card_number );
+		snprintf( command_ptr, sizeof(local_buffer),
+			"@%lx", card_number );
 
 		prefix_length = strlen( command_ptr );
 
-		total_length = strlen( command ) + prefix_length;
-
-		if ( total_length > ( sizeof(local_command_buffer) - 1 ) ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-	"The command '%s' is too long to fit in the local command buffer.  "
-	"Maximum length = %ld.",  command,
-		   (long)( sizeof(local_command_buffer) - prefix_length - 1 ));
-		}
-
 		ptr = command_ptr + prefix_length;
 
-		strcpy( ptr, command );
+		strlcpy( ptr, command, sizeof(local_buffer) - prefix_length );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command,
@@ -649,13 +639,13 @@ mxi_pmac_card_command( MX_PMAC *pmac, int card_number,
 
 MX_EXPORT mx_status_type
 mxi_pmac_get_variable( MX_PMAC *pmac,
-			int card_number,
+			long card_number,
 			char *variable_name,
-			int variable_type,
+			long variable_type,
 			void *variable_ptr,
 			int debug_flag )
 {
-	const char fname[] = "mxi_pmac_get_variable()";
+	static const char fname[] = "mxi_pmac_get_variable()";
 
 	char command_buffer[100];
 	char response[100];
@@ -677,7 +667,8 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 	}
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command_buffer, "@%x%s", card_number, variable_name );
+		snprintf( command_buffer, sizeof(command_buffer),
+				"@%lx%s", card_number, variable_name );
 
 		command_ptr = command_buffer;
 	} else {
@@ -696,7 +687,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"The response from PMAC '%s', card %d for the "
+				"The response from PMAC '%s', card %ld for the "
 				"command '%s' is not an integer number.  "
 				"Response = '%s'",
 				pmac->record->name, card_number,
@@ -711,7 +702,7 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"The response from PMAC '%s', card %d for the "
+				"The response from PMAC '%s', card %ld for the "
 				"command '%s' is not a number.  "
 				"Response = '%s'",
 				pmac->record->name, card_number,
@@ -734,19 +725,20 @@ mxi_pmac_get_variable( MX_PMAC *pmac,
 
 MX_EXPORT mx_status_type
 mxi_pmac_set_variable( MX_PMAC *pmac,
-			int card_number,
+			long card_number,
 			char *variable_name,
-			int variable_type,
+			long variable_type,
 			void *variable_ptr,
 			int debug_flag )
 {
-	const char fname[] = "mxi_pmac_set_variable()";
+	static const char fname[] = "mxi_pmac_set_variable()";
 
 	char command_buffer[100];
 	char response[100];
 	char *ptr;
 	long *long_ptr;
 	double *double_ptr;
+	size_t string_length;
 	mx_status_type mx_status;
 
 	if ( pmac == (MX_PMAC *) NULL ) {
@@ -759,23 +751,29 @@ mxi_pmac_set_variable( MX_PMAC *pmac,
 	}
 
 	if ( pmac->num_cards > 1 ) {
-		sprintf( command_buffer, "@%x%s=", card_number, variable_name );
+		snprintf( command_buffer, sizeof(command_buffer),
+				"@%lx%s=", card_number, variable_name );
 	} else {
-		sprintf( command_buffer, "%s=", variable_name );
+		snprintf( command_buffer, sizeof(command_buffer),
+				"%s=", variable_name );
 	}
 
-	ptr = command_buffer + strlen( command_buffer );
+	string_length = strlen( command_buffer );
+
+	ptr = command_buffer + string_length;
 
 	switch( variable_type ) {
 	case MXFT_LONG:
 		long_ptr = (long *) variable_ptr;
 
-		sprintf( ptr, "%ld", *long_ptr );
+		snprintf( ptr, sizeof(command_buffer) - string_length,
+				"%ld", *long_ptr );
 		break;
 	case MXFT_DOUBLE:
 		double_ptr = (double *) variable_ptr;
 
-		sprintf( ptr, "%f", *double_ptr );
+		snprintf( ptr, sizeof(command_buffer) - string_length,
+				"%f", *double_ptr );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -827,7 +825,7 @@ mxi_pmac_send_command( MX_PMAC *pmac,
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown PMAC interface port_type = %d.",
+			"Unknown PMAC interface port_type = %ld.",
 			pmac->port_type );
 		break;
 	}
@@ -876,7 +874,7 @@ mxi_pmac_receive_response( MX_PMAC *pmac,
 		break;
 	default:
 		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Unknown PMAC interface port_type = %d.",
+			"Unknown PMAC interface port_type = %ld.",
 			pmac->port_type );
 		break;
 	}
@@ -1075,7 +1073,7 @@ static mx_status_type
 mxi_pmac_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	const char fname[] = "mxi_pmac_process_function()";
+	static const char fname[] = "mxi_pmac_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;

@@ -185,8 +185,8 @@ mx_modbus_command( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_coils( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_coils,
+			unsigned long starting_address,
+			unsigned long num_coils,
 			uint8_t *coil_value_array )
 {
 	static const char fname[] = "mx_modbus_read_coils()";
@@ -204,7 +204,7 @@ mx_modbus_read_coils( MX_RECORD *modbus_record,
 
 	if ( num_coils > MXU_MODBUS_MAX_COILS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of coils (%u) for MODBUS record '%s' "
+		"Requested number of coils (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_coils, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
@@ -249,8 +249,8 @@ mx_modbus_read_coils( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_inputs,
+			unsigned long starting_address,
+			unsigned long num_inputs,
 			uint8_t *input_value_array )
 {
 	static const char fname[] = "mx_modbus_read_discrete_inputs()";
@@ -268,7 +268,7 @@ mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 
 	if ( num_inputs > MXU_MODBUS_MAX_COILS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of inputs (%u) for MODBUS record '%s' "
+		"Requested number of inputs (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_inputs, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
@@ -314,8 +314,8 @@ mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_registers,
+			unsigned long starting_address,
+			unsigned long num_registers,
 			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_read_holding_registers()";
@@ -333,7 +333,7 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of registers (%u) for MODBUS record '%s' "
+		"Requested number of registers (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
@@ -380,8 +380,8 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_input_registers( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_registers,
+			unsigned long starting_address,
+			unsigned long num_registers,
 			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_read_input_registers()";
@@ -399,7 +399,7 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_READABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of registers (%u) for MODBUS record '%s' "
+		"Requested number of registers (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_READABLE );
@@ -468,8 +468,8 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_write_single_coil( MX_RECORD *modbus_record,
-			unsigned int output_address,
-			unsigned int coil_value )
+			unsigned long output_address,
+			unsigned long coil_value )
 {
 	uint8_t request_buffer[5];
 	uint8_t response_buffer[5];
@@ -496,7 +496,7 @@ mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_write_single_register( MX_RECORD *modbus_record,
-			unsigned int output_address,
+			unsigned long output_address,
 			uint16_t register_value )
 {
 	uint8_t request_buffer[5];
@@ -612,8 +612,8 @@ mx_modbus_get_comm_event_counter( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_coils,
+			unsigned long starting_address,
+			unsigned long num_coils,
 			uint8_t *coil_value_array )
 {
 	static const char fname[] = "mx_modbus_write_multiple_coils()";
@@ -630,7 +630,7 @@ mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 
 	if ( num_coils > MXU_MODBUS_MAX_COILS_WRITEABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of coils (%u) for MODBUS record '%s' "
+		"Requested number of coils (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_coils, modbus_record->name,
 			MXU_MODBUS_MAX_COILS_WRITEABLE );
@@ -666,8 +666,8 @@ mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
-			unsigned int starting_address,
-			unsigned int num_registers,
+			unsigned long starting_address,
+			unsigned long num_registers,
 			uint16_t *register_value_array )
 {
 	static const char fname[] = "mx_modbus_write_multiple_registers()";
@@ -684,7 +684,7 @@ mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 
 	if ( num_registers > MXU_MODBUS_MAX_REGISTERS_WRITEABLE ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of registers (%u) for MODBUS record '%s' "
+		"Requested number of registers (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			num_registers, modbus_record->name,
 			MXU_MODBUS_MAX_REGISTERS_WRITEABLE );
@@ -721,7 +721,7 @@ mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_mask_write_register( MX_RECORD *modbus_record,
-			unsigned int register_address,
+			unsigned long register_address,
 			uint16_t and_mask,
 			uint16_t or_mask )
 {
@@ -750,11 +750,11 @@ mx_modbus_mask_write_register( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
-			unsigned int read_starting_address,
-			unsigned int num_registers_to_read,
+			unsigned long read_starting_address,
+			unsigned long num_registers_to_read,
 			uint16_t *read_register_array,
-			unsigned int write_starting_address,
-			unsigned int num_registers_to_write,
+			unsigned long write_starting_address,
+			unsigned long num_registers_to_write,
 			uint16_t *write_register_array )
 {
 	static const char fname[] = "mx_modbus_read_write_multiple_registers()";
@@ -776,14 +776,14 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 
 	if ( num_registers_to_read > MXU_MODBUS_MAX_READ_WRITE_REGISTERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of registers (%u) to read for "
+		"Requested number of registers (%lu) to read for "
 		"MODBUS record '%s' exceeds the maximum allowed value of %d.",
 			num_registers_to_read, modbus_record->name,
 			MXU_MODBUS_MAX_READ_WRITE_REGISTERS );
 	}
 	if ( num_registers_to_write > MXU_MODBUS_MAX_READ_WRITE_REGISTERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of registers (%u) to write for "
+		"Requested number of registers (%lu) to write for "
 		"MODBUS record '%s' exceeds the maximum allowed value of %d.",
 			num_registers_to_write, modbus_record->name,
 			MXU_MODBUS_MAX_READ_WRITE_REGISTERS );
@@ -856,10 +856,10 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 
 MX_EXPORT mx_status_type
 mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
-			unsigned int fifo_pointer_address,
-			unsigned int max_fifo_values,
+			unsigned long fifo_pointer_address,
+			unsigned long max_fifo_values,
 			uint16_t *fifo_value_array,
-			unsigned int *num_fifo_values_read )
+			unsigned long *num_fifo_values_read )
 {
 	static const char fname[] = "mx_modbus_read_fifo_queue()";
 
@@ -879,7 +879,7 @@ mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 
 	if ( max_fifo_values > MXU_MODBUS_MAX_FIFO_VALUES ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Requested number of fifo values (%u) for MODBUS record '%s' "
+		"Requested number of fifo values (%lu) for MODBUS record '%s' "
 		"exceeds the maximum allowed value of %d.",
 			max_fifo_values, modbus_record->name,
 			MXU_MODBUS_MAX_FIFO_VALUES );

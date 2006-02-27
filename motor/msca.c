@@ -30,7 +30,8 @@ motor_sca_fn( int argc, char *argv[] )
 
 	MX_RECORD *sca_record;
 	MX_SCA *sca;
-	int status, mode;
+	int status;
+	long mode;
 	double lower_level, upper_level, gain, time_constant;
 	mx_status_type mx_status;
 
@@ -193,7 +194,7 @@ motor_sca_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output,
-				"SCA '%s' mode = %d\n",
+				"SCA '%s' mode = %ld\n",
 				sca_record->name, mode );
 
 		} else {

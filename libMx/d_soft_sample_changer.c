@@ -412,7 +412,7 @@ mxd_soft_sample_changer_set_parameter( MX_SAMPLE_CHANGER *changer )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for sample changer '%s', parameter type '%s' (%d)",
+	("%s invoked for sample changer '%s', parameter type '%s' (%ld)",
 		fname, changer->record->name,
 		mx_get_field_label_string( changer->record,
 					changer->parameter_type ),
