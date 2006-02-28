@@ -437,8 +437,8 @@ mxd_am9513_motor_open( MX_RECORD *record )
 		"driver must be from the same chip.", record->name );
 	}
 
-	m = am9513_interface_array[0].address - 1;
-	n = am9513_interface_array[1].address - 1;
+	m = (int) am9513_interface_array[0].address - 1;
+	n = (int) am9513_interface_array[1].address - 1;
 
 	if ( m+1 != n ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -868,7 +868,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 
 		this_am9513 = (MX_AM9513 *) this_record->record_type_struct;
 
-		j = am9513_interface_array[i].address - 1;
+		j = (int) am9513_interface_array[i].address - 1;
 
 		mx_status = mxi_am9513_disarm_counter( this_am9513, j );
 
@@ -882,13 +882,13 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 
 	low_am9513 = (MX_AM9513 *) low_record->record_type_struct;
 
-	m = am9513_interface_array[0].address - 1;
+	m = (int) am9513_interface_array[0].address - 1;
 
 	high_record = am9513_interface_array[1].record;
 
 	high_am9513 = (MX_AM9513 *) high_record->record_type_struct;
 
-	n = am9513_interface_array[1].address - 1;
+	n = (int) am9513_interface_array[1].address - 1;
 
 	/*** Read the current position and compute the relative motion. ***/
 
@@ -969,7 +969,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 	 * cause it to roll over to 0xffff, which is undesirable.
 	 */
 
-	if ( abs( relative_steps ) == 1 ) {
+	if ( abs( (int) relative_steps ) == 1 ) {
 		mx_status = mxd_am9513_motor_move_single_step(
 					am9513_motor, low_am9513, m );
 
@@ -982,7 +982,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 	 * one more step than the number you put in the load register.
 	 */
 
-	high_am9513->load_register[n] = abs( relative_steps ) - 1;
+	high_am9513->load_register[n] = abs( (int) relative_steps ) - 1;
 
 	MX_DEBUG( 2,("%s: loading value %hu",
 			fname, high_am9513->load_register[n] ));
@@ -1037,7 +1037,7 @@ mxd_am9513_motor_move_absolute( MX_MOTOR *motor )
 
 		this_am9513 = (MX_AM9513 *) this_record->record_type_struct;
 
-		j = am9513_interface_array[i].address - 1;
+		j = (int) am9513_interface_array[i].address - 1;
 
 		mx_status = mxi_am9513_arm_counter( this_am9513, j );
 
@@ -1076,7 +1076,7 @@ mxd_am9513_motor_get_position( MX_MOTOR *motor )
 
 	high_am9513 = (MX_AM9513 *) high_record->record_type_struct;
 
-	n = am9513_interface_array[1].address - 1;
+	n = (int) am9513_interface_array[1].address - 1;
 
 	MX_AM9513_DEBUG( high_am9513, 0 );
 	MX_AM9513_DEBUG( debug_am9513_ptr, 1 );
@@ -1153,7 +1153,7 @@ mxd_am9513_motor_set_position( MX_MOTOR *motor )
 
 	high_am9513 = (MX_AM9513 *) high_record->record_type_struct;
 
-	n = am9513_interface_array[1].address - 1;
+	n = (int) am9513_interface_array[1].address - 1;
 
 	/* Set the load register to 0xffff.  When the 'get_position'
 	 * function adds 1 to this 16-bit value, it will roll over to 0.
@@ -1205,7 +1205,7 @@ mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 
 		this_am9513 = (MX_AM9513 *) this_record->record_type_struct;
 
-		n = am9513_interface_array[i].address - 1;
+		n = (int) am9513_interface_array[i].address - 1;
 
 		mx_status = mxi_am9513_disarm_counter( this_am9513, n );
 
@@ -1223,7 +1223,7 @@ mxd_am9513_motor_soft_abort( MX_MOTOR *motor )
 
 		this_am9513 = (MX_AM9513 *) this_record->record_type_struct;
 
-		n = am9513_interface_array[i].address - 1;
+		n = (int) am9513_interface_array[i].address - 1;
 
 		mx_status = mxi_am9513_clear_tc( this_am9513, n );
 

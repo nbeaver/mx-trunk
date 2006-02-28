@@ -485,7 +485,7 @@ mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 
 	autoscale->get_change_request = MXF_AUTO_NO_CHANGE;
 
-	if ( last_scaler_value > dynamic_high_limit ) {
+	if ( ((double) last_scaler_value) > dynamic_high_limit ) {
 		MX_DEBUG( 2,("%s: Go to LOWER gain", fname));
 
 		if ( gain <= auto_amplifier->gain_range[0] ) {
@@ -499,7 +499,7 @@ mxd_auto_amplifier_get_change_request( MX_AUTOSCALE *autoscale )
 
 		autoscale->last_limit_tripped = MXF_AUTO_HIGH_LIMIT_TRIPPED;
 	} else
-	if ( last_scaler_value < dynamic_low_limit ) {
+	if ( ((double) last_scaler_value) < dynamic_low_limit ) {
 		MX_DEBUG( 2,("%s: Go to HIGHER gain", fname));
 
 		if ( gain >= auto_amplifier->gain_range[1] ) {

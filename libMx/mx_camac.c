@@ -72,13 +72,13 @@ mx_camac_get_pointers( MX_RECORD *camac_record,
 }
 
 MX_EXPORT mx_status_type
-mx_camac_get_lam_status( MX_RECORD *camac_record, int *lam_n )
+mx_camac_get_lam_status( MX_RECORD *camac_record, long *lam_n )
 {
 	const char fname[] = "mx_camac_get_lam_status()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int * );
+	mx_status_type ( *fptr ) ( MX_CAMAC *, long * );
 	mx_status_type status;
 
 	status = mx_camac_get_pointers( camac_record,
@@ -100,13 +100,13 @@ mx_camac_get_lam_status( MX_RECORD *camac_record, int *lam_n )
 }
 
 MX_EXPORT mx_status_type
-mx_camac_controller_command( MX_RECORD *camac_record, int command )
+mx_camac_controller_command( MX_RECORD *camac_record, long command )
 {
 	const char fname[] = "mx_camac_controller_command()";
 
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
-	mx_status_type ( *fptr ) ( MX_CAMAC *, int );
+	mx_status_type ( *fptr ) ( MX_CAMAC *, long );
 	mx_status_type status;
 
 	status = mx_camac_get_pointers( camac_record,
@@ -129,9 +129,9 @@ mx_camac_controller_command( MX_RECORD *camac_record, int command )
 
 MX_EXPORT mx_status_type
 mx_camac( MX_RECORD *camac_record,
-	int slot,
-	int subaddress,
-	int function_code,
+	long slot,
+	long subaddress,
+	long function_code,
 	int32_t *data,
 	int *Q,
 	int *X )
@@ -141,7 +141,7 @@ mx_camac( MX_RECORD *camac_record,
 	MX_CAMAC *camac;
 	MX_CAMAC_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr )( MX_CAMAC *,
-		int, int, int, int32_t *, int *, int * );
+		long, long, long, int32_t *, int *, int * );
 	mx_status_type status;
 
 	status = mx_camac_get_pointers( camac_record,
@@ -171,9 +171,9 @@ mx_camac( MX_RECORD *camac_record,
 
 MX_EXPORT void
 mx_camac_qwait( MX_RECORD *camac_record,
-	int slot,
-	int subaddress,
-	int function_code,
+	long slot,
+	long subaddress,
+	long function_code,
 	int32_t *data,
 	int *X )
 {

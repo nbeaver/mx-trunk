@@ -233,9 +233,8 @@ mxd_am9513_scaler_open( MX_RECORD *record )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
-	int i, m, n;
-	int same_chip, use_external;
-	long num_counters;
+	mx_bool_type same_chip, use_external;
+	long i, m, n,num_counters;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -444,8 +443,7 @@ mxd_am9513_scaler_clear( MX_SCALER *scaler )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	long num_counters;
-	int i, n;
+	long i, n, num_counters;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_scaler_get_pointers( scaler, &am9513_scaler,
@@ -596,8 +594,7 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 	MX_INTERFACE *am9513_interface_array;
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
-	long num_counters;
-	int i, n;
+	long i, n, num_counters;
 	uint16_t hold_register;
 	unsigned long scaler_value;
 	mx_status_type mx_status;

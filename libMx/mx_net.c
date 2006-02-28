@@ -982,7 +982,7 @@ mx_get_field_array( MX_RECORD *server_record,
 		strlcpy( message, remote_record_field_name,
 				MXU_RECORD_FIELD_NAME_LENGTH );
 
-		message_length = strlen( message ) + 1;
+		message_length = (uint32_t) ( strlen( message ) + 1 );
 	} else {
 
 		/* Use binary network handle */
@@ -990,8 +990,8 @@ mx_get_field_array( MX_RECORD *server_record,
 		header[MX_NETWORK_MESSAGE_TYPE]
 				= htonl( MX_NETMSG_GET_ARRAY_BY_HANDLE );
 
-		uint32_message[0] = htonl( nf->record_handle );
-		uint32_message[1] = htonl( nf->field_handle );
+		uint32_message[0] = (uint32_t) htonl( nf->record_handle );
+		uint32_message[1] = (uint32_t) htonl( nf->field_handle );
 
 		message_length = 2 * sizeof( uint32_t );
 	}
@@ -1304,8 +1304,8 @@ mx_put_field_array( MX_RECORD *server_record,
 		header[MX_NETWORK_MESSAGE_TYPE]
 				= htonl( MX_NETMSG_PUT_ARRAY_BY_HANDLE );
 
-		uint32_message[0] = htonl( nf->record_handle );
-		uint32_message[1] = htonl( nf->field_handle );
+		uint32_message[0] = (uint32_t) htonl( nf->record_handle );
+		uint32_message[1] = (uint32_t) htonl( nf->field_handle );
 
 		message_length = 2 * sizeof( uint32_t );
 	}
@@ -1576,7 +1576,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	strlcpy( message, nf->nfname, MXU_RECORD_FIELD_NAME_LENGTH );
 
-	message_length = strlen( message ) + 1;
+	message_length = (uint32_t) ( strlen( message ) + 1 );
+
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
@@ -1666,7 +1667,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	/***** Get the network handle out of what we were sent. *****/
 
-	header_length_in_32bit_words = header_length / sizeof(uint32_t);
+	header_length_in_32bit_words = (uint32_t)
+				( header_length / sizeof(uint32_t) );
 
 	message_uint32_array = header + header_length_in_32bit_words;
 
@@ -1752,7 +1754,8 @@ mx_get_field_type( MX_RECORD *server_record,
 	strlcpy( message, remote_record_field_name,
 					MXU_RECORD_FIELD_NAME_LENGTH );
 
-	message_length = strlen( message ) + 1;
+	message_length = (uint32_t) ( strlen( message ) + 1 );
+
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
@@ -1816,7 +1819,8 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	/***** Get the type information out of what we were sent. *****/
 
-	header_length_in_32bit_words = header_length / sizeof(uint32_t);
+	header_length_in_32bit_words = (uint32_t)
+				( header_length / sizeof(uint32_t) );
 
 	message_uint32_array = header + header_length_in_32bit_words;
 
@@ -1824,7 +1828,8 @@ mx_get_field_type( MX_RECORD *server_record,
 	*num_dimensions
 		= (long) ntohl( (unsigned long) message_uint32_array[1] );
 
-	expected_message_length = sizeof(long) * ( (*num_dimensions) + 2 );
+	expected_message_length = (uint32_t)
+				( sizeof(long) * ( (*num_dimensions) + 2 ) );
 
 	if ( message_length < expected_message_length ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1931,7 +1936,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	strncat( message, " ", 1 );
 
-	message_length = strlen( message );
+	message_length = (uint32_t) strlen( message );
 
 	ptr = message + message_length;
 
@@ -1939,7 +1944,8 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
-	message_length = strlen( message ) + 1;
+	message_length = (uint32_t) ( strlen( message ) + 1 );
+
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
@@ -2056,7 +2062,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
 
-	uint32_message[0] = htonl( option_number );
+	uint32_message[0] = (uint32_t) htonl( option_number );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( sizeof(uint32_t) );
 
@@ -2137,7 +2143,8 @@ mx_network_get_option( MX_RECORD *server_record,
 			(long) message_length );
 	}
 
-	header_length_in_32bit_words = header_length / sizeof(uint32_t);
+	header_length_in_32bit_words = (uint32_t)
+				( header_length / sizeof(uint32_t) );
 
 	uint32_message = header + header_length_in_32bit_words;
 
@@ -2203,8 +2210,8 @@ mx_network_set_option( MX_RECORD *server_record,
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
 
-	uint32_message[0] = htonl( option_number );
-	uint32_message[1] = htonl( option_value );
+	uint32_message[0] = (uint32_t) htonl( option_number );
+	uint32_message[1] = (uint32_t) htonl( option_value );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( 2 * sizeof(uint32_t) );
 

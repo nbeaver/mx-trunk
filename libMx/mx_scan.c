@@ -515,7 +515,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 	if ( scan->missing_record_array != NULL ) {
 		char name_buffer[1000];
-		int max_names_listed;
+		long max_names_listed;
 		size_t name_buffer_used_length;
 
 		if ( scan->num_missing_records == 1 ) {
@@ -1528,7 +1528,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	char buffer[2000];
 	char little_buffer[50];
 	size_t buffer_left, max_length, trailing_space;
-	int i, num_motors, num_input_devices;
+	long i, num_motors, num_input_devices;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -1999,7 +1999,6 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 	long *dimension_array;
 	long long_value, num_dimensions, field_type;
 	unsigned long ulong_value;
-	int int_value;
 	double double_value;
 	void *ptr_to_value;
 	mx_status_type mx_status;
@@ -2060,12 +2059,12 @@ mx_compute_normalized_device_value( MX_RECORD *input_device,
 
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( input_device,
-							&int_value );
+							&long_value );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			*returned_value = (double) int_value;
+			*returned_value = (double) long_value;
 			break;
 
 		default:

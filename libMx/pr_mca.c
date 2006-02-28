@@ -85,8 +85,9 @@ mx_mca_process_function( void *record_ptr,
 	MX_MCA *mca;
 	unsigned long ulong_value;
 	double double_value;
-	int preset_type, busy;
 	double preset_value;
+	long preset_type;
+	mx_bool_type busy;
 	mx_status_type status;
 
 	record = (MX_RECORD *) record_ptr;

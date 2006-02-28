@@ -264,8 +264,7 @@ mxd_am9513_timer_open( MX_RECORD *record )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
-	long num_counters, high_order_counter;
-	int n;
+	long n, num_counters, high_order_counter;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
@@ -467,13 +466,13 @@ mxd_am9513_timer_start( MX_TIMER *timer )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
-	long num_counters;
+	long n, num_counters;
 	double seconds;
 	double clock_ticks_double;
 	double ulong_max_double;
 	unsigned long clock_ticks_ulong;
 	uint16_t ticks_to_count_for;
-	int n, frequency_scaler_ratio;
+	int frequency_scaler_ratio;
 	mx_status_type mx_status;
 
 	mx_status = mxd_am9513_timer_get_pointers( timer, &am9513_timer,
@@ -628,8 +627,7 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
 	uint16_t counter_mode_register;
-	long num_counters;
-	int i, n;
+	long i, n, num_counters;
 	double multiplier, result;
 	mx_status_type mx_status;
 

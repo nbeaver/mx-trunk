@@ -36,7 +36,7 @@ typedef struct {
 	MX_CLOCK_TICK next_measurement_time;
 
 	unsigned long microseconds_between_raw_measurements;
-	int use_udelay;
+	mx_bool_type use_udelay;
 
 	MX_RECORD *amplifier_array[MX_APS_ADCMOD2_MAX_AMPLIFIERS];
 	uint16_t input_value[MX_APS_ADCMOD2_MAX_INPUTS];
@@ -86,7 +86,7 @@ MX_API mx_status_type mxi_aps_adcmod2_out16( MX_APS_ADCMOD2 *aps_adcmod2,
 						uint16_t word_value );
 
 MX_API mx_status_type mxi_aps_adcmod2_command( MX_APS_ADCMOD2 *aps_adcmod2,
-						int electrometer_number,
+						long electrometer_number,
 						uint16_t command,
 						uint16_t value );
 

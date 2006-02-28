@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -192,7 +192,8 @@ mx_mce_fixup_motor_record_array_field( MX_MCE *mce )
 
 MX_EXPORT mx_status_type
 mx_mce_get_overflow_status( MX_RECORD *mce_record,
-		int *underflow_set, int *overflow_set )
+			mx_bool_type *underflow_set,
+			mx_bool_type *overflow_set )
 {
 	static const char fname[] = "mx_mce_get_overflow_status()";
 
@@ -323,7 +324,7 @@ mx_mce_get_current_num_values( MX_RECORD *mce_record,
 
 MX_EXPORT mx_status_type
 mx_mce_get_motor_record_array( MX_RECORD *mce_record,
-				int *num_motors,
+				long *num_motors,
 				MX_RECORD ***motor_record_array )
 {
 	static const char fname[] = "mx_mce_get_motor_record_array()";

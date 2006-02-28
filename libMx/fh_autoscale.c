@@ -38,7 +38,7 @@ mxfh_autoscale_get_pointers( MX_MEASUREMENT_FAULT *fault_handler,
 			MX_AUTOSCALE_MEASUREMENT_FAULT **autoscale_fault_struct,
 			const char *calling_fname )
 {
-	const char fname[] = "mxfh_autoscale_get_pointers()";
+	static const char fname[] = "mxfh_autoscale_get_pointers()";
 
 	if ( fault_handler == (MX_MEASUREMENT_FAULT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -71,7 +71,7 @@ mxfh_autoscale_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 				void *fault_driver_ptr, void *scan_ptr,
 				char *description )
 {
-	const char fname[] = "mxfh_autoscale_create_handler()";
+	static const char fname[] = "mxfh_autoscale_create_handler()";
 
 	MX_MEASUREMENT_FAULT_DRIVER *fault_driver;
 	MX_MEASUREMENT_FAULT *fault_handler_ptr;
@@ -217,7 +217,7 @@ mxfh_autoscale_create_handler( MX_MEASUREMENT_FAULT **fault_handler,
 MX_EXPORT mx_status_type
 mxfh_autoscale_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_autoscale_destroy_handler()";
+	static const char fname[] = "mxfh_autoscale_destroy_handler()";
 
 	MX_AUTOSCALE_MEASUREMENT_FAULT *autoscale_fault_struct;
 	mx_status_type mx_status;
@@ -248,7 +248,7 @@ mxfh_autoscale_destroy_handler( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_autoscale_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_autoscale_check_for_fault()";
+	static const char fname[] = "mxfh_autoscale_check_for_fault()";
 
 	MX_AUTOSCALE_MEASUREMENT_FAULT *autoscale_fault_struct;
 	long change_request;
@@ -284,7 +284,7 @@ mxfh_autoscale_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 MX_EXPORT mx_status_type
 mxfh_autoscale_reset( MX_MEASUREMENT_FAULT *fault_handler )
 {
-	const char fname[] = "mxfh_autoscale_reset()";
+	static const char fname[] = "mxfh_autoscale_reset()";
 
 	MX_AUTOSCALE_MEASUREMENT_FAULT *autoscale_fault_struct;
 	mx_status_type mx_status;

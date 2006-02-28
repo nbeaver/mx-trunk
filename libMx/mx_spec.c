@@ -80,11 +80,11 @@ mx_spec_get_pointers( MX_RECORD *spec_server_record,
 
 MX_EXPORT mx_status_type
 mx_spec_send_message( MX_RECORD *spec_server_record,
-                        int spec_command_code,
-                        int spec_datatype,
-                        unsigned spec_array_data_rows,
-                        unsigned spec_array_data_cols,
-                        unsigned spec_data_length,
+                        long spec_command_code,
+                        long spec_datatype,
+                        long spec_array_data_rows,
+                        long spec_array_data_cols,
+                        long spec_data_length,
                         char *spec_property_name,
                         void *data_pointer )
 {
@@ -93,7 +93,7 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 	MX_SPEC_SERVER *spec_server;
 	MX_SOCKET *spec_server_socket;
 	struct svr_head message_header;
-	size_t message_header_size;
+	long message_header_size;
 	mx_status_type mx_status;
 
 	mx_status = mx_spec_get_pointers( spec_server_record,
@@ -117,15 +117,15 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 
 	message_header.magic = SV_SPEC_MAGIC;
 	message_header.vers = SV_VERSION;
-	message_header.size = message_header_size;
+	message_header.size = (unsigned) message_header_size;
 	message_header.sn = 0;
 	message_header.sec = 0;
 	message_header.usec = 0;
-	message_header.cmd = spec_command_code;
-	message_header.type = spec_datatype;
-	message_header.rows = spec_array_data_rows;
-	message_header.cols = spec_array_data_cols;
-	message_header.len = spec_data_length;
+	message_header.cmd = (int) spec_command_code;
+	message_header.type = (int) spec_datatype;
+	message_header.rows = (unsigned) spec_array_data_rows;
+	message_header.cols = (unsigned) spec_array_data_cols;
+	message_header.len = (unsigned) spec_data_length;
 
 	strlcpy( message_header.name, spec_property_name, SV_NAME_LEN );
 
@@ -153,12 +153,12 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 
 MX_EXPORT mx_status_type
 mx_spec_receive_message( MX_RECORD *spec_server_record,
-                        int *spec_command_code,
-                        int *spec_datatype,
-                        unsigned *spec_array_data_rows,
-                        unsigned *spec_array_data_cols,
-                        unsigned maximum_data_length,
-                        unsigned *spec_data_length,
+                        long *spec_command_code,
+                        long *spec_datatype,
+                        long *spec_array_data_rows,
+                        long *spec_array_data_cols,
+                        long maximum_data_length,
+                        long *spec_data_length,
                         char *spec_property_name,
                         void *data_pointer )
 {
@@ -167,7 +167,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	MX_SPEC_SERVER *spec_server;
 	MX_SOCKET *spec_server_socket;
 	struct svr_head message_header;
-	size_t expected_message_header_size;
+	long expected_message_header_size;
 	mx_status_type mx_status;
 
 	mx_status = mx_spec_get_pointers( spec_server_record,
@@ -203,9 +203,9 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	if ( message_header.size != expected_message_header_size ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 	"The message header size %u for the header sent by Spec server '%s' "
-	"does not match the expected value of %u.",
+	"does not match the expected value of %lu.",
 			message_header.size, spec_server_record->name,
-			(unsigned int) expected_message_header_size );
+			expected_message_header_size );
 	}
 
 	if ( spec_command_code != NULL ) {
@@ -265,13 +265,13 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 
 MX_EXPORT mx_status_type
 mx_spec_send_command( MX_RECORD *spec_server_record,
-			int spec_command_code,
+			long spec_command_code,
 			char *command )
 {
-	int data_length;
+	long data_length;
 	mx_status_type mx_status;
 
-	data_length = strlen( command ) + 1;
+	data_length = (long) strlen( command ) + 1L;
 
 	mx_status = mx_spec_send_message( spec_server_record,
 					spec_command_code,
@@ -284,14 +284,14 @@ mx_spec_send_command( MX_RECORD *spec_server_record,
 MX_EXPORT mx_status_type
 mx_spec_receive_response_line( MX_RECORD *spec_server_record,
 				char *response,
-				size_t response_buffer_length )
+				long response_buffer_length )
 {
 	static const char fname[] = "mx_spec_receive_response_line()";
 
 	MX_SPEC_SERVER *spec_server;
 	MX_SOCKET *spec_server_socket;
-	int spec_command_code, spec_datatype;
-	unsigned data_rows, data_cols, data_length;
+	long spec_command_code, spec_datatype;
+	long data_rows, data_cols, data_length;
 	char spec_property_name[SV_NAME_LEN+1];
 	mx_status_type mx_status;
 
@@ -338,7 +338,7 @@ mx_spec_receive_response_line( MX_RECORD *spec_server_record,
 
 MX_EXPORT mx_status_type
 mx_spec_num_response_bytes_available( MX_RECORD *spec_server_record,
-					int *num_bytes_available )
+					long *num_bytes_available )
 {
 	static const char fname[] = "mx_spec_num_response_bytes_available()";
 
@@ -401,10 +401,10 @@ mx_spec_get_array( MX_RECORD *spec_server_record,
 {
 	static const char fname[] = "mx_spec_get_array()";
 
-	unsigned data_rows, data_columns, data_length;
-	unsigned received_data_rows, received_data_columns;
-	unsigned received_data_length;
-	int received_command_code, received_datatype;
+	long data_rows, data_columns, data_length;
+	long received_data_rows, received_data_columns;
+	long received_data_length;
+	long received_command_code, received_datatype;
 	char received_property_name[SV_NAME_LEN];
 	mx_status_type mx_status;
 
@@ -529,7 +529,7 @@ mx_spec_put_array( MX_RECORD *spec_server_record,
 {
 	static const char fname[] = "mx_spec_put_array()";
 
-	unsigned data_rows, data_columns, data_length;
+	long data_rows, data_columns, data_length;
 	mx_status_type mx_status;
 
 	if ( ( num_dimensions < 1 ) || ( num_dimensions > 2 ) ) {
@@ -627,10 +627,10 @@ MX_EXPORT mx_status_type
 mx_spec_get_string( MX_RECORD *spec_server_record,
 			char *property_name,
 			char *string_value,
-			size_t max_string_length )
+			long max_string_length )
 {
-	int returned_command_code, returned_datatype;
-	unsigned returned_data_rows, returned_data_cols, returned_data_length;
+	long returned_command_code, returned_datatype;
+	long returned_data_rows, returned_data_cols, returned_data_length;
 	char returned_property_name[SV_NAME_LEN];
 	mx_status_type mx_status;
 
@@ -684,7 +684,7 @@ mx_spec_put_string( MX_RECORD *spec_server_record,
 			char *property_name,
 			char *string_value )
 {
-	size_t string_length;
+	long string_length;
 	mx_status_type mx_status;
 
 #if SPEC_DEBUG_TIMING
@@ -694,7 +694,7 @@ mx_spec_put_string( MX_RECORD *spec_server_record,
 	if ( string_value == NULL ) {
 		string_length = 0;
 	} else {
-		string_length = strlen(string_value) + 1;
+		string_length = (int) strlen(string_value) + 1;
 	}
 
 	/* Send the string. */

@@ -444,7 +444,7 @@ mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_move_absolute_with_report( int num_motors,
+mx_motor_array_move_absolute_with_report( long num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
@@ -575,7 +575,7 @@ mx_motor_array_move_absolute_with_report( int num_motors,
 }
 
 MX_EXPORT mx_status_type
-mx_motor_array_internal_move_with_report( int num_motors,
+mx_motor_array_internal_move_with_report( long num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
@@ -849,7 +849,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_array_stop( int num_motor_records,
+mx_wait_for_motor_array_stop( long num_motor_records,
 			MX_RECORD **motor_record_array,
 			int flags )
 {
@@ -4300,7 +4300,7 @@ mx_motor_get_position_steps( MX_RECORD *motor_record, long *motor_steps )
 	/* Update position. */
 
 	motor->position = motor->offset
-			+ (motor->scale) * motor->raw_position.stepper;
+			+ (motor->scale) * (double) motor->raw_position.stepper;
 
 	*motor_steps = motor->raw_position.stepper;
 

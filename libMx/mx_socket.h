@@ -238,11 +238,11 @@ MX_API mx_status_type mx_socket_getline( MX_SOCKET *mx_socket,
 
 MX_API mx_status_type mx_socket_fionread_num_input_bytes_available(
 					MX_SOCKET *mx_socket,
-					int *num_input_bytes_available );
+					long *num_input_bytes_available );
 
 MX_API mx_status_type mx_socket_select_num_input_bytes_available(
 					MX_SOCKET *mx_socket,
-					int *num_input_bytes_available );
+					long *num_input_bytes_available );
 
 MX_API mx_status_type mx_socket_discard_unread_input( MX_SOCKET *mx_socket );
 

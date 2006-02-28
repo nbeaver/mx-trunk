@@ -78,14 +78,14 @@ typedef struct {
 #define MX_AM9513_DATA_REGISTER  0
 #define MX_AM9513_CMD_REGISTER   1
 
-MX_API uint8_t mxi_am9513_inp8( MX_AM9513 *am9513, int port_number );
+MX_API uint8_t mxi_am9513_inp8( MX_AM9513 *am9513, long port_number );
 
-MX_API uint16_t mxi_am9513_inp16( MX_AM9513 *am9513, int port_number );
+MX_API uint16_t mxi_am9513_inp16( MX_AM9513 *am9513, long port_number );
 
-MX_API void mxi_am9513_outp8( MX_AM9513 *am9513, int port_number,
+MX_API void mxi_am9513_outp8( MX_AM9513 *am9513, long port_number,
 						uint8_t byte_value );
 
-MX_API void mxi_am9513_outp16( MX_AM9513 *am9513, int port_number,
+MX_API void mxi_am9513_outp16( MX_AM9513 *am9513, long port_number,
 						uint16_t word_value );
 
 /*---*/
@@ -114,44 +114,44 @@ MX_API mx_status_type mxi_am9513_release_counters( MX_RECORD *record,
 					long num_counters,
 					MX_INTERFACE *am9513_interface_array );
 
-MX_API char *mxi_am9513_dump( MX_AM9513 *am9513, int do_inquire );
+MX_API char *mxi_am9513_dump( MX_AM9513 *am9513, mx_bool_type do_inquire );
 
 MX_API mx_status_type mxi_am9513_get_counter_mode_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_set_counter_mode_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_get_load_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_set_load_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_load_counter_from_load_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_load_counter(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_get_hold_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_set_hold_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_save_counter_to_hold_register(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_read_counter(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
-MX_API mx_status_type mxi_am9513_set_tc( MX_AM9513 *am9513, int counter );
-MX_API mx_status_type mxi_am9513_clear_tc( MX_AM9513 *am9513, int counter );
+MX_API mx_status_type mxi_am9513_set_tc( MX_AM9513 *am9513, long counter );
+MX_API mx_status_type mxi_am9513_clear_tc( MX_AM9513 *am9513, long counter );
 
-MX_API mx_status_type mxi_am9513_arm_counter( MX_AM9513 *am9513, int counter );
+MX_API mx_status_type mxi_am9513_arm_counter( MX_AM9513 *am9513, long counter );
 MX_API mx_status_type mxi_am9513_disarm_counter(
-					MX_AM9513 *am9513, int counter );
+					MX_AM9513 *am9513, long counter );
 
 MX_API mx_status_type mxi_am9513_get_status( MX_AM9513 *am9513 );
 

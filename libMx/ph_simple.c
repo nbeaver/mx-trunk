@@ -250,7 +250,6 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 	unsigned char uchar_value;
 	short short_value;
 	unsigned short ushort_value;
-	int int_value;
 	long long_value;
 	unsigned long ulong_value;
 	int64_t int64_value;
@@ -286,11 +285,11 @@ mxph_simple_check_for_permission( MX_MEASUREMENT_PERMIT *permit_handler )
 			break;
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( permit_record,
-								&int_value );
+								&long_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value == permit_value ) {
+			if ( long_value == permit_value ) {
 				permit_handler->permit_status = TRUE;
 			}
 			break;

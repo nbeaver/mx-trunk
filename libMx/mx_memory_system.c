@@ -538,7 +538,6 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 	struct rminfo rminfo_struct;
 	unsigned long pagesize;
-	int status;
 
 	if ( meminfo == (MX_SYSTEM_MEMINFO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -553,7 +552,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 	MX_DEBUG(-2,("%s: pagesize = %lu", fname, pagesize));
 
-	status = sysmp( MP_KERNADDR, MPSA_RMINFO, &rminfo_struct );
+	(void) sysmp( MP_KERNADDR, MPSA_RMINFO, &rminfo_struct );
 
 #if 0
 	MX_DEBUG(-2,("%s: freemem = %lu", fname,

@@ -603,7 +603,7 @@ mxd_databox_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Now check to see if we got the rest of the message. */
 
-	message_length = strlen( stepping );
+	message_length = (int) strlen( stepping );
 
 	for ( i = 1; i < message_length; i++ ) {
 		mx_status = mxi_databox_getchar( databox,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,7 +186,7 @@ mx_quick_scan_print_scan_structure( FILE *file, MX_RECORD *record )
 		quick_scan->end_position[j] - quick_scan->start_position[j],
 
 			step_size = mx_divide_safely( scan_distance,
-				quick_scan->requested_num_measurements - 1L );
+			 (double)(quick_scan->requested_num_measurements - 1L));
 
 			fprintf( file,
 "    %s: %g %s to %g %s, %g %s steps, %ld req meas, %ld act meas\n",
@@ -322,7 +322,7 @@ mx_quick_scan_set_new_motor_speed( MX_QUICK_SCAN *quick_scan, long motor_index )
 
 	new_speed = mx_divide_safely( end_position - start_position,
 				measurement_time *
-				(quick_scan->requested_num_measurements - 1));
+			(double) (quick_scan->requested_num_measurements - 1));
 
 	new_speed = fabs(new_speed);
 

@@ -93,7 +93,7 @@ mx_record_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_REC_PRECISION:
-			record->precision = record->long_precision;
+			record->precision = (int) record->long_precision;
 			break;
 		case MXLV_REC_RESYNCHRONIZE:
 			resynchronize_fn = record_function_list->resynchronize;

@@ -478,7 +478,7 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 	char header_fmt[500];
 	char header_fmt_name[20];
 	char *ptr, *token_ptr, *token_end;
-	int num_lines, num_matched, num_not_matched;
+	long num_lines, num_matched, num_not_matched;
 	int status, saved_errno;
 	mx_status_type mx_status;
 
@@ -580,15 +580,15 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 	switch( header_type ) {
 	case MX_SFF_MAIN_HEADER:
 		status = fprintf( output_file,
-				"# SFF main_header %d\n", num_lines );
+				"# SFF main_header %ld\n", num_lines );
 		break;
 	case MX_SFF_SEGMENT_HEADER:
 		status = fprintf( output_file,
-				"# SFF segment_header %d\n", num_lines );
+				"# SFF segment_header %ld\n", num_lines );
 		break;
 	case MX_SFF_TRAILER:
 		status = fprintf( output_file,
-				"# SFF trailer %d\n", num_lines );
+				"# SFF trailer %ld\n", num_lines );
 		break;
 	default:
 		status = FAILURE;
@@ -609,7 +609,7 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 
 		/* Skip leading white space. */
 
-		num_matched = strspn( ptr, MX_SFF_TOKEN_SEPARATORS );
+		num_matched = (long) strspn( ptr, MX_SFF_TOKEN_SEPARATORS );
 
 		token_ptr = ptr + num_matched;
 
@@ -634,7 +634,8 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 		}
 		/* Otherwise, find the end of the token. */
 
-		num_not_matched = strcspn(token_ptr, MX_SFF_TOKEN_SEPARATORS);
+		num_not_matched =
+			(long) strcspn(token_ptr, MX_SFF_TOKEN_SEPARATORS);
 
 		MX_DEBUG( 2,("%s: num_not_matched = %d",
 					fname, num_not_matched));

@@ -37,7 +37,7 @@
 
 #define MX_SIGNAL_MUTEX_UNLOCK \
 		do {							\
-			int mt_status;					\
+			long mt_status;					\
 									\
 			mt_status = mx_mutex_unlock( mx_signal_mutex );	\
 									\

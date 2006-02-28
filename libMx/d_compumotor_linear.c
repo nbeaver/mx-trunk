@@ -252,7 +252,7 @@ mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	long i, num_motors, axis_number;
-	int controller_index;
+	long controller_index;
 	mx_status_type status;
 
 	status = mx_motor_finish_record_initialization( record );
@@ -287,8 +287,8 @@ mxd_compumotor_linear_finish_record_initialization( MX_RECORD *record )
 			num_motors );
 		}
 
-		compumotor_linear_motor->index_to_axis_number = (int *)
-				malloc( num_motors * sizeof(int) );
+		compumotor_linear_motor->index_to_axis_number = (long *)
+				malloc( num_motors * sizeof(long) );
 	
 		if ( compumotor_linear_motor->index_to_axis_number == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -821,8 +821,8 @@ mxd_compumotor_linear_get_position( MX_MOTOR *motor )
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	double *real_motor_scale, *real_motor_offset;
-	long i, j, motor_index, num_motors;
-	int n, num_items;
+	long i, j, n, motor_index, num_motors;
+	int num_items;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
 	double motor_position, raw_motor_position;
 	double pseudomotor_position, pseudomotor_change;
@@ -939,7 +939,8 @@ mxd_compumotor_linear_soft_abort( MX_MOTOR *motor )
 	char command[80];
 	char *ptr;
 	size_t length, buffer_left;
-	int n, will_be_stopped;
+	long n;
+	mx_bool_type will_be_stopped;
 	mx_status_type status;
 
 	status = mxd_compumotor_linear_get_pointers( motor,
@@ -1005,7 +1006,7 @@ mxd_compumotor_linear_immediate_abort( MX_MOTOR *motor )
 	MX_RECORD *compumotor_interface_record;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
-	int n;
+	long n;
 	mx_status_type status;
 
 	status = mxd_compumotor_linear_get_pointers( motor,

@@ -400,7 +400,7 @@ mxd_auto_filter_amp_get_change_request( MX_AUTOSCALE *autoscale )
 
 	autoscale->get_change_request = MXF_AUTO_NO_CHANGE;
 
-	if ( last_scaler_value > dynamic_high_limit ) {
+	if ( ((double) last_scaler_value) > dynamic_high_limit ) {
 		MX_DEBUG( 2,("%s: Go to THICKER filter", fname));
 
 		if ( filter_setting >= auto_filter_amp->maximum_filter_setting )
@@ -415,7 +415,7 @@ mxd_auto_filter_amp_get_change_request( MX_AUTOSCALE *autoscale )
 
 		autoscale->last_limit_tripped = MXF_AUTO_HIGH_LIMIT_TRIPPED;
 	} else
-	if ( last_scaler_value < dynamic_low_limit ) {
+	if ( ((double) last_scaler_value) < dynamic_low_limit ) {
 		MX_DEBUG( 2,("%s: Go to THINNER filter", fname));
 
 		if ( filter_setting <= auto_filter_amp->minimum_filter_setting )
@@ -623,7 +623,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 			 * to the amplifier gain.
 			 */
 
-			if ( last_amplifier_scaler_value <= dynamic_high_limit )
+			if ( ((double) last_amplifier_scaler_value)
+					<= dynamic_high_limit )
 			{
 				MX_DEBUG( 2,
 ("%s: last scaler value <= dyn. high limit, so autoscaling is complete.",
@@ -640,7 +641,8 @@ mxd_auto_filter_amp_change_control( MX_AUTOSCALE *autoscale )
 			 * to the amplifier gain.
 			 */
 
-			if ( last_amplifier_scaler_value >= dynamic_low_limit )
+			if ( ((double) last_amplifier_scaler_value)
+					>= dynamic_low_limit )
 			{
 
 				MX_DEBUG( 2,

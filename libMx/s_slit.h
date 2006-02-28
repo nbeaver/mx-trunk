@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999 Illinois Institute of Technology
+ * Copyright 1999, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@ typedef struct {
 	MX_RECORD **real_motor_record_array;
 	double *real_motor_start_position;
 	double *real_motor_position;
-	int first_step;
+	mx_bool_type first_step;
 } MX_SLIT_SCAN;
 
 MX_API mx_status_type mxs_slit_scan_create_record_structures(
@@ -40,7 +40,7 @@ MX_API mx_status_type mxs_slit_scan_compute_motor_positions(
 MX_API mx_status_type mxs_slit_scan_motor_record_array_move_special(
 				MX_SCAN *scan,
 				MX_LINEAR_SCAN *linear_scan,
-				int num_motor_records,
+				long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,

@@ -886,7 +886,7 @@ mx_rs232_putline( MX_RECORD *record,
 
 		array = rs232->write_terminator_array;
 
-		length = strlen( buffer );
+		length = (int) strlen( buffer );
 
 		for ( i = 0; i < length; i++ ) {
 			c = buffer[i];

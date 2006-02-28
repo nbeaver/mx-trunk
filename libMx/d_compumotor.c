@@ -375,7 +375,7 @@ mxd_compumotor_check_for_servo( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 {
 	static const char fname[] = "mxd_compumotor_check_for_servo()";
 
-	int i, j, k, l, num_axes, skipped;
+	size_t i, j, k, l, num_axes, skipped;
 	char command[80];
 	char response[80];
 	mx_status_type mx_status;
@@ -699,7 +699,7 @@ mxd_compumotor_motor_is_busy( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[80];
-	int length;
+	size_t length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -746,7 +746,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 	char command[80];
 	double destination;
 	unsigned long flags;
-	int i, length, command_buffer_left;
+	size_t i, length, command_buffer_left;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -871,7 +871,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	char command[100];
 	char buffer[80];
 	unsigned long flags;
-	int i, j, num_axes;
+	size_t i, j, num_axes;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -954,7 +954,7 @@ mxd_compumotor_soft_abort( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
-	int i, length;
+	size_t i, length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -1027,7 +1027,7 @@ mxd_compumotor_positive_limit_hit( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[80];
-	int length;
+	size_t length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -1078,7 +1078,7 @@ mxd_compumotor_negative_limit_hit( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[80];
-	int length;
+	size_t length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -1129,7 +1129,7 @@ mxd_compumotor_find_home_position( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
-	int i, length;
+	size_t i, length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -1247,7 +1247,8 @@ mxd_compumotor_get_parameter( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[80];
-	int i, num_items;
+	int num_items;
+	size_t i;
 	double double_value;
 	mx_status_type mx_status;
 
@@ -1509,7 +1510,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 	MX_COMPUMOTOR *compumotor;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
-	int i;
+	size_t i;
 	double double_value, new_raw_value;
 	mx_status_type mx_status;
 
@@ -1901,7 +1902,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[80];
-	int length;
+	size_t length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_compumotor_get_pointers( motor, &compumotor,
@@ -2035,7 +2036,7 @@ mxd_compumotor_enable_continuous_mode( MX_COMPUMOTOR *compumotor,
 
 	MX_RECORD **motor_array;
 	char command[80];
-	int i, num_axes;
+	size_t i, num_axes;
 	mx_status_type mx_status;
 
 	/* Are we being commanded to change to the positioner mode

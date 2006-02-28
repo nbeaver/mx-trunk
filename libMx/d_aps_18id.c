@@ -1040,8 +1040,9 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		if ( status.code != MXE_SUCCESS )
 			return status;
 		
-		ruler = ( bpm_top_value - bpm_bottom_value )
-				/ (  bpm_top_value + bpm_bottom_value );
+		ruler = mx_divide_safely(
+				(double) (bpm_top_value - bpm_bottom_value),
+				(double) (bpm_top_value + bpm_bottom_value) );
 
 		if ( piezo_enable == 1 ){
 		
@@ -1730,7 +1731,7 @@ mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *tune_motor_record;
-	int direction;
+	long direction;
 	mx_status_type status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {

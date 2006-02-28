@@ -67,8 +67,6 @@ mx_relay_process_function( void *record_ptr,
 	MX_RELAY *relay;
 	mx_status_type mx_status;
 
-	int relay_status;
-
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	relay = (MX_RELAY *) (record->record_class_struct);
@@ -79,8 +77,7 @@ mx_relay_process_function( void *record_ptr,
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_RLY_RELAY_STATUS:
-			mx_status = mx_get_relay_status( record,
-							&relay_status );
+			mx_status = mx_get_relay_status( record, NULL );
 			break;
 		default:
 			MX_DEBUG( 1,(

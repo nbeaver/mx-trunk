@@ -33,12 +33,12 @@ typedef struct {
 
 	double *motor_position_array;
 
-	int *index_to_axis_number;
-	int axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
+	long *index_to_axis_number;
+	long axis_number_to_index[MX_MAX_COMPUMOTOR_AXES];
 
 	MX_RECORD *compumotor_interface_record;
-	int controller_index;
-	int num_axes;
+	long controller_index;
+	long num_axes;
 } MX_COMPUMOTOR_LINEAR_MOTOR;
 
 /* Values for the flags variable. */

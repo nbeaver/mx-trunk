@@ -243,7 +243,7 @@ mxd_cm17a_doutput_open( MX_RECORD *record )
 	/* See if the house code and device code are legal. */
 
 	house_index  = cm17a_doutput->house_code - 'A';
-	device_index = cm17a_doutput->device_code - 1;
+	device_index = (int) cm17a_doutput->device_code - 1;
 
 	if ( (house_index < 0) || (house_index >= 16 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

@@ -682,7 +682,18 @@ mx_insert_after_record( MX_RECORD *old_record, MX_RECORD *new_record )
 
 	list_head = mx_get_record_list_head_struct(old_record);
 
-	new_record->precision = list_head->default_precision;
+	/* The following song and dance with the precision variables
+	 * is due to the fact that we must have a 'long' variable
+	 * for network communications, but we must have an 'int'
+	 * variable for the right thing to happen in printf()
+	 * statements.
+	 */
+
+	new_record->long_precision = list_head->default_precision;
+
+	new_record->precision = (int) new_record->long_precision;
+
+	/* Setup pointers for the new record. */
 
 	old_next_record = old_record->next_record;
 

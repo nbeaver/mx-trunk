@@ -1028,7 +1028,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	unsigned long xdr_buffer_address, address_remainder;
 	long i, n;
 	int xdr_status;
-	unsigned int num_array_elements;
+	u_int num_array_elements;
 	int return_structure_name, structure_name_length;
 	enum xdr_op operation;
 	mx_status_type mx_status;
@@ -1156,7 +1156,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		xdrmem_create( &xdrs,
 				xdr_buffer,
-				xdr_buffer_length,
+				(u_int) xdr_buffer_length,
 				operation );
 
 		switch( mx_datatype ) {
@@ -1206,7 +1206,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_record->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-				mxp_scalar_element_size( mx_datatype, FALSE ));
+			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
 			break;
 		case MXFT_RECORDTYPE:
 			mx_driver = (MX_DRIVER *) array_pointer;
@@ -1214,7 +1214,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_driver->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-				mxp_scalar_element_size( mx_datatype, FALSE ));
+			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
 			break;
 		case MXFT_INTERFACE:
 			mx_interface = (MX_INTERFACE *) array_pointer;
@@ -1222,7 +1222,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_interface->address_name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-				mxp_scalar_element_size( mx_datatype, FALSE ));
+			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
 			break;
 
 		default:
@@ -1256,7 +1256,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		xdr_status = xdr_array( &xdrs, &ptr, \
 					&num_array_elements, \
 					num_array_elements, \
-					data_element_size_array[0], \
+					(u_int) data_element_size_array[0], \
 					(xdrproc_t) (xdr_filter) )
 
 	/* NOTE: 1-dimensional arrays of structures are reported as if they
@@ -1279,9 +1279,9 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 			native_array_size++;
 
-			num_array_elements = dimension_array[0] + 1;
+			num_array_elements = (u_int) (dimension_array[0] + 1);
 		} else {
-			num_array_elements = dimension_array[0];
+			num_array_elements = (u_int) (dimension_array[0]);
 		}
 
 		xdr_array_size += 4;   /* Add space for the length field. */
@@ -1308,14 +1308,14 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		xdrmem_create( &xdrs,
 				xdr_buffer,
-				xdr_buffer_length,
+				(u_int) xdr_buffer_length,
 				operation );
 
 		ptr = (char *) array_pointer;
 
 		if ( mx_datatype == MXFT_STRING ) {
 			xdr_status = xdr_string( &xdrs, &ptr,
-						native_array_size );
+						(u_int) native_array_size );
 		} else {
 			switch( mx_datatype ) {
 			case MXFT_CHAR:   XDR_DO_ARRAY(xdr_char);    break;
@@ -1457,7 +1457,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 	xdrmem_create( &xdrs,
 			xdr_buffer,
-			xdr_buffer_length,
+			(u_int) xdr_buffer_length,
 			operation );
 
 	for ( n = 0; n < dimension_array[0]; n++ ) {

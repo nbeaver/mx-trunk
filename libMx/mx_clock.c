@@ -229,7 +229,7 @@ mx_clock_ticks_per_second( void )
     || defined(OS_HPUX) || defined(OS_VMS) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX)
 
-	clock_ticks_per_second = CLK_TCK;
+	clock_ticks_per_second = (double) CLK_TCK;
 
 #elif defined(OS_DJGPP)
 

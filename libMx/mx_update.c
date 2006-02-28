@@ -48,7 +48,6 @@ mx_update_record_values( MX_RECORD *record )
 	const char fname[] = "mx_update_record_values()";
 
 	MX_RECORD_FUNCTION_LIST *flist;
-	int int_value;
 	long long_value;
 	unsigned long ulong_value;
 	double double_value;
@@ -118,7 +117,7 @@ mx_update_record_values( MX_RECORD *record )
 				break;
 			case MXC_RELAY:
 				status = mx_get_relay_status(
-							record, &int_value);
+							record, &long_value);
 				break;
 			case MXC_AMPLIFIER:
 				status = mx_amplifier_get_gain(

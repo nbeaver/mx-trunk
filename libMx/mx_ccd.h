@@ -192,16 +192,16 @@ MX_API mx_status_type mx_ccd_default_get_parameter_handler( MX_CCD *ccd );
 MX_API mx_status_type mx_ccd_default_set_parameter_handler( MX_CCD *ccd );
 
 MX_API mx_status_type mx_ccd_get_data_frame_size( MX_RECORD *record,
-						int *x_size,
-						int *y_size );
+						long *x_size,
+						long *y_size );
 
 MX_API mx_status_type mx_ccd_get_bin_size( MX_RECORD *record,
-						int *x_size,
-						int *y_size );
+						long *x_size,
+						long *y_size );
 
 MX_API mx_status_type mx_ccd_set_bin_size( MX_RECORD *record,
-						int x_size,
-						int y_size );
+						long x_size,
+						long y_size );
 
 MX_API mx_status_type mx_ccd_read_header_variable( MX_RECORD *record,
 						char *header_variable_name,

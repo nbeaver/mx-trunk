@@ -9,7 +9,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -443,8 +443,8 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 	MX_ALS_DEWAR_POSITIONER *als_dewar_positioner;
 	long raw_destination, dewar_puck_number, dewar_sample_number;
 	double dewar_rot_destination, dewar_x_destination;
-	int vertical_slide_status, small_slide_status;
-	int the_move_can_be_performed;
+	long vertical_slide_status, small_slide_status;
+	mx_bool_type the_move_can_be_performed;
 	unsigned long flags;
 	mx_status_type mx_status;
 

@@ -394,7 +394,8 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[200];
-	int i, j, num_items;
+	int num_items;
+	size_t i, j;
 	unsigned long controller_type;
 	mx_status_type mx_status;
 
@@ -616,7 +617,8 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	char response[200];
-	int i, j, num_items;
+	int num_items;
+	size_t i, j;
 	unsigned long controller_type;
 	mx_status_type mx_status;
 
@@ -711,7 +713,7 @@ mxd_compumotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_COMPUMOTOR_DOUTPUT *compumotor_doutput;
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[200];
-	int i, first_offset, last_offset;
+	size_t i, first_offset, last_offset;
 	unsigned long value, controller_type;
 	mx_status_type mx_status;
 

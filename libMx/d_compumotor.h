@@ -34,9 +34,9 @@ typedef struct {
 	long axis_number;
 	unsigned long flags;
 
-	int controller_index;
-	int continuous_mode_enabled;
-	int is_servo;
+	long controller_index;
+	mx_bool_type continuous_mode_enabled;
+	mx_bool_type is_servo;
 	double axis_resolution;
 } MX_COMPUMOTOR;
 

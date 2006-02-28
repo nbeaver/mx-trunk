@@ -81,7 +81,7 @@ mxd_e500_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_e500_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e500_create_record_structures()";
+	static const char fname[] = "mxd_e500_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_E500 *e500;
@@ -121,7 +121,7 @@ mxd_e500_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_e500_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e500_finish_record_initialization()";
+	static const char fname[] = "mxd_e500_finish_record_initialization()";
 
 	MX_E500 *e500;
 	mx_status_type status;
@@ -190,7 +190,7 @@ mxd_e500_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_e500_print_motor_structure()";
+	static const char fname[] = "mxd_e500_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_CAMAC *crate;
@@ -281,7 +281,7 @@ mxd_e500_print_motor_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_e500_read_parms_from_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e500_read_parms_from_hardware()";
+	static const char fname[] = "mxd_e500_read_parms_from_hardware()";
 
 	MX_MOTOR *motor;
 	MX_E500 *e500;
@@ -355,7 +355,7 @@ mxd_e500_read_parms_from_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_e500_write_parms_to_hardware( MX_RECORD *record )
 {
-	const char fname[] = "mxd_e500_write_parms_to_hardware()";
+	static const char fname[] = "mxd_e500_write_parms_to_hardware()";
 
 	MX_MOTOR *motor;
 	MX_E500 *e500;
@@ -444,7 +444,7 @@ mxd_e500_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_e500_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_motor_is_busy()";
+	static const char fname[] = "mxd_e500_motor_is_busy()";
 
 	MX_E500 *e500;
 	int busy;
@@ -467,7 +467,7 @@ mxd_e500_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_move_absolute_steps()";
+	static const char fname[] = "mxd_e500_move_absolute_steps()";
 
 	MX_E500 *e500;
 	int32_t e500_motor_steps;
@@ -490,7 +490,7 @@ mxd_e500_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_get_position()";
+	static const char fname[] = "mxd_e500_get_position()";
 
 	MX_E500 *e500;
 	int32_t e500_motor_steps;
@@ -513,7 +513,7 @@ mxd_e500_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_set_position_steps()";
+	static const char fname[] = "mxd_e500_set_position_steps()";
 
 	MX_E500 *e500;
 	long motor_steps;
@@ -528,7 +528,8 @@ mxd_e500_set_position( MX_MOTOR *motor )
 
 	motor_steps = motor->raw_set_position.stepper;
 
-	status = mx_e500_write_absolute_accumulator( e500, motor_steps );
+	status = mx_e500_write_absolute_accumulator( e500,
+						(int32_t) motor_steps );
 
 	return status;
 }
@@ -536,7 +537,7 @@ mxd_e500_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_soft_abort()";
+	static const char fname[] = "mxd_e500_soft_abort()";
 
 	MX_E500 *e500;
 	mx_status_type status;
@@ -558,7 +559,7 @@ mxd_e500_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_immediate_abort()";
+	static const char fname[] = "mxd_e500_immediate_abort()";
 
 	MX_E500 *e500;
 	mx_status_type status;
@@ -580,7 +581,7 @@ mxd_e500_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_positive_limit_hit()";
+	static const char fname[] = "mxd_e500_positive_limit_hit()";
 
 	MX_E500 *e500;
 	int limit_hit;
@@ -603,7 +604,7 @@ mxd_e500_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_negative_limit_hit()";
+	static const char fname[] = "mxd_e500_negative_limit_hit()";
 
 	MX_E500 *e500;
 	int limit_hit;
@@ -626,7 +627,7 @@ mxd_e500_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_e500_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_e500_find_home_position()";
+	static const char fname[] = "mxd_e500_find_home_position()";
 
 	MX_E500 *e500;
 	mx_status_type status;
@@ -967,9 +968,10 @@ mx_e500_soft_abort( MX_E500 *e500 )
 MX_EXPORT mx_status_type
 mx_e500_go_to_home( MX_E500 *e500 )
 {
-	const char fname[] = "mx_e500_go_to_home()";
+	static const char fname[] = "mx_e500_go_to_home()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t data;
 
 	slot  = e500->slot;
@@ -990,9 +992,10 @@ mx_e500_go_to_home( MX_E500 *e500 )
 MX_EXPORT mx_status_type
 mx_e500_simultaneous_start( MX_E500_MODULE *e500_module )
 {
-	const char fname[] = "mx_e500_simultaneous_start()";
+	static const char fname[] = "mx_e500_simultaneous_start()";
 
-	int slot, camac_X;
+	long slot;
+	int camac_X;
 	int32_t data;
 
 	crate = e500_module->crate;
@@ -1053,9 +1056,10 @@ MX_EXPORT mx_status_type
 mx_e500_read_absolute_accumulator( MX_E500 *e500,
 				int32_t *accumulator )
 {
-	const char fname[] = "mx_e500_read_absolute_accumulator()";
+	static const char fname[] = "mx_e500_read_absolute_accumulator()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t data;
 
 	slot  = e500->slot;
@@ -1096,9 +1100,10 @@ mx_e500_read_absolute_accumulator( MX_E500 *e500,
 MX_EXPORT mx_status_type
 mx_e500_read_baserate( MX_E500 *e500, uint16_t *actual_rate )
 {
-	const char fname[] = "mx_e500_read_baserate()";
+	static const char fname[] = "mx_e500_read_baserate()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	uint8_t  programmed_rate;
 	int32_t data;
 
@@ -1143,9 +1148,10 @@ mx_e500_read_baserate( MX_E500 *e500, uint16_t *actual_rate )
 MX_EXPORT mx_status_type
 mx_e500_read_command_status_reg( MX_E500 *e500, int32_t *csr )
 {
-	const char fname[] = "mx_e500_read_command_status_reg()";
+	static const char fname[] = "mx_e500_read_command_status_reg()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t data;
 
 	slot  = e500->slot;
@@ -1224,7 +1230,7 @@ MX_EXPORT mx_status_type
 mx_e500_read_lam_status( MX_E500 *e500, int *lam_status )
 {
 	mx_status_type status;
-	int motor;
+	long motor;
 	int32_t csr, lam_status_temp;
 
 	motor = e500->subaddress;
@@ -1255,10 +1261,11 @@ MX_EXPORT mx_status_type
 mx_e500_read_module_id( MX_E500_MODULE *e500_module,
 				uint16_t *id, uint8_t *revision )
 {
-	const char fname[] = "mx_e500_read_module_id()";
+	static const char fname[] = "mx_e500_read_module_id()";
 
 	MX_CAMAC *crate;
-	int slot, camac_X;
+	long slot;
+	int camac_X;
 	int32_t data;
 
 	crate = e500_module->crate;
@@ -1300,9 +1307,10 @@ mx_e500_read_module_id( MX_E500_MODULE *e500_module,
 MX_EXPORT mx_status_type
 mx_e500_read_pulse_parameter_reg( MX_E500 *e500 )
 {
-	const char fname[] = "mx_e500_read_pulse_parameter_reg()";
+	static const char fname[] = "mx_e500_read_pulse_parameter_reg()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t data;
 
 	slot  = e500->slot;
@@ -1344,9 +1352,10 @@ MX_EXPORT mx_status_type
 mx_e500_read_relative_magnitude( MX_E500 *e500,
 					int32_t *relative_magnitude )
 {
-	const char fname[] = "mx_e500_read_relative_magnitude()";
+	static const char fname[] = "mx_e500_read_relative_magnitude()";
 
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t data;
 
 	slot  = e500->slot;
@@ -1387,9 +1396,9 @@ MX_EXPORT mx_status_type
 mx_e500_write_absolute_accumulator( MX_E500 *e500,
 					int32_t accumulator )
 {
-	const char fname[] = "mx_e500_write_absolute_accumulator()";
+	static const char fname[] = "mx_e500_write_absolute_accumulator()";
 
-	int slot, motor;
+	long slot, motor;
 	int camac_X;
 
 	slot  = e500->slot;
@@ -1446,9 +1455,9 @@ mx_e500_write_baserate( MX_E500 *e500 )
 MX_EXPORT mx_status_type
 mx_e500_write_command_status_reg( MX_E500 *e500, int32_t csr )
 {
-	const char fname[] = "mx_e500_write_command_status_reg()";
+	static const char fname[] = "mx_e500_write_command_status_reg()";
 
-	int slot, motor;
+	long slot, motor;
 	int camac_X;
 
 	slot  = e500->slot;
@@ -1524,7 +1533,7 @@ mx_e500_write_lam_mask( MX_E500 *e500 )
 	mx_status_type status;
 	int32_t mask, csr;
 
-	mask = e500->lam_mask;
+	mask = (int32_t) e500->lam_mask;
 
 	status = mx_e500_preserve_csr_bitmap( e500, &csr );
 
@@ -1545,10 +1554,11 @@ mx_e500_write_lam_mask( MX_E500 *e500 )
 MX_EXPORT mx_status_type
 mx_e500_write_pulse_parameter_reg( MX_E500 *e500 )
 {
-	const char fname[] = "mx_e500_write_pulse_parameter_reg()";
+	static const char fname[] = "mx_e500_write_pulse_parameter_reg()";
 
 	int32_t data;
-	int slot, motor, camac_X;
+	long slot, motor;
+	int camac_X;
 	int32_t slew_rate, accel_decel_time;
 
 	slot  = e500->slot;
@@ -1580,9 +1590,9 @@ mx_e500_write_pulse_parameter_reg( MX_E500 *e500 )
 MX_EXPORT mx_status_type
 mx_e500_write_relative_magnitude( MX_E500 *e500, int32_t magnitude )
 {
-	const char fname[] = "mx_e500_write_relative_magnitude()";
+	static const char fname[] = "mx_e500_write_relative_magnitude()";
 
-	int slot, motor;
+	long slot, motor;
 	int camac_X;
 
 	slot  = e500->slot;

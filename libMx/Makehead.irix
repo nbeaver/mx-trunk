@@ -10,6 +10,11 @@
 #
 
 #
+# If you wish to compile a 64-bit version of MX, uncomment the following line.
+#
+USE_64_BITS = -64
+
+#
 INCLUDES	= $(MX_INCLUDES) $(READLINE_INCLUDES)
 
 LIB_DIRS	= -L/usr/lib32 -L$(MX_LIB_DIR)
@@ -80,10 +85,10 @@ SUPPRESSED      = -woff 85,134,1110,1174,1209,1552
 CC		= cc
 
 CFLAGS		= -g $(INCLUDES) -DOS_IRIX $(EXTRA_FLAGS) -DDEBUG \
-			-w2 -fullwarn $(SUPPRESSED)
+			-w2 -fullwarn $(SUPPRESSED) $(USE_64_BITS)
 
 CFLAGS_EPICS	= -g $(INCLUDES) -DOS_IRIX $(EXTRA_FLAGS) -DDEBUG \
-			-w2 $(SUPPRESSED) $(EPICS_INCLUDES)
+			-w2 $(SUPPRESSED) $(USE_64_BITS) $(EPICS_INCLUDES)
 
 # Special cases for individual files.
 

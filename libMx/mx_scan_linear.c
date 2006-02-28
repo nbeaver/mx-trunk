@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -49,7 +49,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
+					long, MX_RECORD **, double *,
 					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
 		);
 
@@ -593,7 +593,7 @@ mxs_linear_scan_execute_scan_body( MX_SCAN *scan )
 					( MX_SCAN *, MX_LINEAR_SCAN * );
 	mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
+					long, MX_RECORD **, double *,
 					MX_MOTOR_MOVE_REPORT_FUNCTION, int);
 	mx_status_type mx_status;
 
@@ -657,7 +657,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
-					int, MX_RECORD **, double *,
+					long, MX_RECORD **, double *,
 					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
 		)
 {

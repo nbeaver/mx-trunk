@@ -434,7 +434,7 @@ mxdf_xafs_write_main_header( MX_DATAFILE *datafile )
 	case MXS_QUICK_SCAN:
 		estimated_step_size = mx_divide_safely(
 		  quick_scan->end_position[0] - quick_scan->start_position[0],
-			quick_scan->requested_num_measurements - 1 );
+		    (double) (quick_scan->requested_num_measurements - 1L) );
 
 		status = fprintf( output_file, "%.*g\n",
 				scan->record->precision,

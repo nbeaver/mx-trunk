@@ -378,7 +378,7 @@ mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 
 	autoscale->get_change_request = MXF_AUTO_NO_CHANGE;
 
-	if ( last_scaler_value > dynamic_high_limit ) {
+	if ( ((double) last_scaler_value) > dynamic_high_limit ) {
 		MX_DEBUG( 2,("%s: Go to THICKER filter", fname));
 
 		if ( filter_setting >= auto_filter->maximum_filter_setting ) {
@@ -392,7 +392,7 @@ mxd_auto_filter_get_change_request( MX_AUTOSCALE *autoscale )
 
 		autoscale->last_limit_tripped = MXF_AUTO_HIGH_LIMIT_TRIPPED;
 	} else
-	if ( last_scaler_value < dynamic_low_limit ) {
+	if ( ((double) last_scaler_value) < dynamic_low_limit ) {
 		MX_DEBUG( 2,("%s: Go to THINNER filter", fname));
 
 		if ( filter_setting <= auto_filter->minimum_filter_setting ) {

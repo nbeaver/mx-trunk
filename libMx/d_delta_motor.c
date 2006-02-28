@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -441,7 +441,7 @@ mxd_delta_motor_find_home_position( MX_MOTOR *motor )
 
 	MX_DELTA_MOTOR *delta_motor;
 	MX_RECORD *moving_motor_record;
-	int direction;
+	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,
@@ -468,7 +468,7 @@ mxd_delta_motor_constant_velocity_move( MX_MOTOR *motor )
 
 	MX_DELTA_MOTOR *delta_motor;
 	MX_RECORD *moving_motor_record;
-	int direction;
+	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_delta_motor_get_pointers( motor,

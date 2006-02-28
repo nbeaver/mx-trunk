@@ -52,8 +52,8 @@ typedef struct {
 } MX_RELAY_FUNCTION_LIST;
 
 MX_API mx_status_type mx_relay_command( MX_RECORD *relay_record,
-						int relay_command );
+						long relay_command );
 MX_API mx_status_type mx_get_relay_status( MX_RECORD *relay_record,
-						int *relay_status );
+						long *relay_status );
 
 #endif /* __MX_RELAY_H__ */

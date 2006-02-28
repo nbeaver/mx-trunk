@@ -158,7 +158,7 @@ mxd_cryostream600_status_read( MX_ANALOG_INPUT *ainput )
 	char *identifier, *mode, *ice_block_token;
 	double set_temperature, temperature_error, final_temperature;
 	double ramp_rate, evaporator_temperature;
-	int tokens_returned;
+	long tokens_returned;
 	mx_status_type mx_status;
 
 	/* Find and check a bunch of pointers. */

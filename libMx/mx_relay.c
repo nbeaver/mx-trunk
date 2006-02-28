@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@ mx_get_relay_pointers( MX_RECORD *record,
 			MX_RELAY_FUNCTION_LIST **flist,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_get_relay_pointers()";
+	static const char fname[] = "mx_get_relay_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -67,19 +67,19 @@ mx_get_relay_pointers( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_relay_command( MX_RECORD *record, int relay_command )
+mx_relay_command( MX_RECORD *record, long relay_command )
 {
-	const char fname[] = "mx_relay_command()";
+	static const char fname[] = "mx_relay_command()";
 
 	MX_RELAY *relay;
 	MX_RELAY_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr )( MX_RELAY * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_get_relay_pointers( record, &relay, &flist, fname );
+	mx_status = mx_get_relay_pointers( record, &relay, &flist, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = flist->relay_command;
 
@@ -91,25 +91,25 @@ mx_relay_command( MX_RECORD *record, int relay_command )
 
 	relay->relay_command = relay_command;
 
-	status = ( *fptr ) ( relay );
+	mx_status = ( *fptr ) ( relay );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_get_relay_status( MX_RECORD *record, int *relay_status )
+mx_get_relay_status( MX_RECORD *record, long *relay_status )
 {
-	const char fname[] = "mx_get_relay_status()";
+	static const char fname[] = "mx_get_relay_status()";
 
 	MX_RELAY *relay;
 	MX_RELAY_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr )( MX_RELAY * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_get_relay_pointers( record, &relay, &flist, fname );
+	mx_status = mx_get_relay_pointers( record, &relay, &flist, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = flist->get_relay_status;
 
@@ -119,12 +119,12 @@ mx_get_relay_status( MX_RECORD *record, int *relay_status )
 			record->name );
 	}
 
-	status = ( *fptr ) ( relay );
+	mx_status = ( *fptr ) ( relay );
 
-	if ( relay_status != (int *) NULL ) {
+	if ( relay_status != (long *) NULL ) {
 		*relay_status = relay->relay_status;
 	}
 
-	return status;
+	return mx_status;
 }
 

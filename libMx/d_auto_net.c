@@ -452,7 +452,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 	static const char fname[] = "mxd_auto_network_change_control()";
 
 	MX_AUTO_NETWORK *auto_network;
-	int change_control;
+	long change_control;
 	mx_status_type mx_status;
 
 	mx_status = mxd_auto_network_get_pointers( autoscale,

@@ -230,7 +230,7 @@ mx_bluice_receive_message( MX_RECORD *bluice_server_record,
 	long text_data_length, binary_data_length, total_data_length;
 	long maximum_length;
 	size_t actual_bytes_received;
-	int num_bytes_available;
+	long num_bytes_available;
 	unsigned long i, wait_ms, max_attempts;
 	char *data_pointer;
 	mx_status_type mx_status;
@@ -404,7 +404,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 	static const char fname[] = "mx_bluice_setup_device_pointer()";
 
 	size_t i;
-	int num_elements, old_num_elements;
+	long num_elements, old_num_elements;
 	char *ptr;
 	MX_BLUICE_FOREIGN_DEVICE *foreign_device;
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
@@ -589,7 +589,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 		{
 			int j;
 
-			MX_DEBUG(-2,("%s: num_elements = %d",
+			MX_DEBUG(-2,("%s: num_elements = %ld",
 				fname, num_elements));
 
 			MX_DEBUG(-2,("%s: foreign_device_array_ptr = %p",
@@ -624,7 +624,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 			mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory allocating an %d element array "
+			"Ran out of memory allocating an %ld element array "
 			"of Blu-Ice foreign devices.", num_elements );
 		}
 	}

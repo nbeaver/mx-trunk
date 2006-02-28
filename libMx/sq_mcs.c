@@ -796,7 +796,7 @@ mxs_mcs_quick_scan_find_encoder_readout( MX_RECORD *motor_record )
 {
 	MX_RECORD *record_list;
 	MX_RECORD *current_record, *encoder_record;
-	int i, num_motors;
+	long i, num_motors;
 	MX_RECORD **motor_record_array;
 	mx_status_type mx_status;
 

@@ -784,7 +784,7 @@ mx_vme_parse_address_mode( const char *mode_name, unsigned long *address_mode )
 
 	strlcpy( address_mode_name, mode_name, sizeof(address_mode_name) );
 
-	length = strlen( address_mode_name );
+	length = (int) strlen( address_mode_name );
 
 	for ( i = 0; i < length; i++ ) {
 		c = address_mode_name[i];
@@ -833,7 +833,7 @@ mx_vme_parse_data_size( const char *size_name, unsigned long *data_size )
 
 	strlcpy( data_size_name, size_name, sizeof(data_size_name) );
 
-	length = strlen( data_size_name );
+	length = (int) strlen( data_size_name );
 
 	for ( i = 0; i < length; i++ ) {
 		c = data_size_name[i];

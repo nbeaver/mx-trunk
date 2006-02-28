@@ -305,7 +305,6 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 	unsigned char uchar_value;
 	short short_value;
 	unsigned short ushort_value;
-	int int_value;
 	long long_value;
 	unsigned long ulong_value;
 	int64_t int64_value;
@@ -341,11 +340,11 @@ mxfh_simple_check_for_fault( MX_MEASUREMENT_FAULT *fault_handler )
 			break;
 		case MXC_RELAY:
 			mx_status = mx_get_relay_status( fault_record,
-								&int_value );
+								&long_value );
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( int_value != no_fault_value ) {
+			if ( long_value != no_fault_value ) {
 				fault_handler->fault_status = TRUE;
 			}
 			break;

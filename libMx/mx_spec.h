@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -75,22 +75,22 @@ struct svr_head {
 
 MX_API mx_status_type
 mx_spec_send_message( MX_RECORD *spec_server_record,
-			int spec_command_code,
-			int spec_datatype,
-			unsigned spec_array_data_rows,
-			unsigned spec_array_data_cols,
-			unsigned spec_data_length,
+			long spec_command_code,
+			long spec_datatype,
+			long spec_array_data_rows,
+			long spec_array_data_cols,
+			long spec_data_length,
 			char *spec_property_name,
 			void *data_pointer );
 
 MX_API mx_status_type
 mx_spec_receive_message( MX_RECORD *spec_server_record,
-			int *spec_command_code,
-			int *spec_datatype,
-			unsigned *spec_array_data_rows,
-			unsigned *spec_array_data_cols,
-			unsigned maximum_data_length,
-			unsigned *spec_data_length,
+			long *spec_command_code,
+			long *spec_datatype,
+			long *spec_array_data_rows,
+			long *spec_array_data_cols,
+			long maximum_data_length,
+			long *spec_data_length,
 			char *spec_property_name,
 			void *data_pointer );
 
@@ -98,17 +98,17 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 
 MX_API mx_status_type
 mx_spec_send_command( MX_RECORD *spec_server_record,
-			int spec_command_code,
+			long spec_command_code,
 			char *command );
 
 MX_API mx_status_type
 mx_spec_receive_response_line( MX_RECORD *spec_server_record,
 			char *response,
-			size_t response_buffer_length );
+			long response_buffer_length );
 
 MX_API mx_status_type
 mx_spec_num_response_bytes_available( MX_RECORD *spec_server_record,
-					int *num_bytes_available );
+					long *num_bytes_available );
 
 MX_API mx_status_type
 mx_spec_discard_unread_responses( MX_RECORD *spec_server_record );
@@ -135,7 +135,7 @@ MX_API mx_status_type
 mx_spec_get_string( MX_RECORD *spec_server_record,
 			char *property_name,
 			char *string_value,
-			size_t max_string_length );
+			long max_string_length );
 
 MX_API mx_status_type
 mx_spec_put_string( MX_RECORD *spec_server_record,

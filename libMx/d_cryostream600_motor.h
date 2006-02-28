@@ -27,11 +27,11 @@ typedef struct {
 	double ramp_rate;		/* in K per hour */
 	double busy_deadband;		/* in K */
 
-	int max_response_tokens;
-	int max_token_length;
+	long max_response_tokens;
+	long max_token_length;
 	char **response_token_array;
 
-	int num_tokens_returned;
+	long num_tokens_returned;
 } MX_CRYOSTREAM600_MOTOR;
 
 /* Define all of the interface functions. */

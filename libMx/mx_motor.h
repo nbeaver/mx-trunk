@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -606,7 +606,7 @@ typedef struct {
 	mx_status_type ( *get_extended_status )( MX_MOTOR *motor );
 } MX_MOTOR_FUNCTION_LIST;
 
-typedef mx_status_type (*MX_MOTOR_MOVE_REPORT_FUNCTION)(int, int, MX_RECORD **);
+typedef mx_status_type (*MX_MOTOR_MOVE_REPORT_FUNCTION)(int, long, MX_RECORD **);
 
 /* ============== Public functions and symbols . ================= */
 
@@ -658,14 +658,14 @@ MX_API mx_status_type mx_motor_move_absolute_with_report(
 			int flags);
 
 MX_API mx_status_type mx_motor_array_move_absolute_with_report(
-			int num_motor_records,
+			long num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
 			int flags );
 
 MX_API mx_status_type mx_motor_array_internal_move_with_report(
-			int num_motor_records,
+			long num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
@@ -676,7 +676,7 @@ MX_API mx_status_type mx_wait_for_motor_stop(
 			int flags );
 
 MX_API mx_status_type mx_wait_for_motor_array_stop(
-			int num_motor_records,
+			long num_motor_records,
 			MX_RECORD **motor_record_array,
 			int flags );
 

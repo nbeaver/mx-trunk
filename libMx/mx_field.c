@@ -600,7 +600,7 @@ mx_create_record_from_description(
 	fprintf(stderr,"\n");
 #endif
 
-	record_name_length = strlen( token[0] );
+	record_name_length = (int) strlen( token[0] );
 
 	if ( record_name_length >= MXU_RECORD_NAME_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -931,7 +931,7 @@ mx_construct_string_field( void *dataptr,
 
 	ptr = (char *) dataptr;
 
-	string_length = strlen(ptr);
+	string_length = (int) strlen(ptr);
 
 	/* Are there any whitespace characters in this string? */
 
@@ -1857,7 +1857,7 @@ mx_initialize_parse_status( MX_RECORD_FIELD_PARSE_STATUS *parse_status,
 	if ( separators == NULL ) {
 		parse_status->num_separators = 0;
 	} else {
-		parse_status->num_separators = strlen( separators );
+		parse_status->num_separators = (int) strlen( separators );
 	}
 
 	parse_status->start_of_trailing_whitespace = NULL;
@@ -2350,7 +2350,7 @@ mx_get_next_record_token( MX_RECORD_FIELD_PARSE_STATUS *parse_status,
 	separators = parse_status->separators;
 	num_separators = parse_status->num_separators;
 
-	remaining_length = strlen(remaining_string);
+	remaining_length = (int) strlen(remaining_string);
 
 	if ( remaining_length <= 0 ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,

@@ -777,7 +777,7 @@ mxd_cryostream600_motor_command( MX_CRYOSTREAM600_MOTOR *cryostream600_motor,
 		MX_DEBUG(-2,("%s: sending command '%s'.", fname, command));
 	}
 
-	command_length = strlen( command );
+	command_length = (int) strlen( command );
 
 	wait_ms = 300;
 
@@ -875,7 +875,7 @@ mxd_cryostream600_motor_parse_response(
 
 	char **token_array;
 	char *token_ptr, *colon_ptr;
-	int i, token_length;
+	long i, token_length;
 
 	if ( cryostream600_motor == (MX_CRYOSTREAM600_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,

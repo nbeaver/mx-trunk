@@ -52,7 +52,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	char *ptr;
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
-	long i, bytes_left, bytes_received, initial_recv_length;
+	int i, bytes_left, bytes_received, initial_recv_length;
 	uint32_t magic_value, header_length, message_length;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
@@ -227,8 +227,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	/* Receive the rest of the data. */
 
-	bytes_left = (long)
-		(header_length + message_length - initial_recv_length);
+	bytes_left = header_length + message_length - initial_recv_length;
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 	n = -1;
@@ -340,7 +339,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	char *ptr;
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
-	long bytes_left, bytes_sent;
+	int bytes_left, bytes_sent;
 	uint32_t magic_value, header_length, message_length;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
@@ -381,7 +380,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				ntohl( header[MX_NETWORK_STATUS_CODE] ) ));
 #endif
 
-	bytes_left = (long) (header_length + message_length);
+	bytes_left = header_length + message_length;
 
 #if 0
         {
@@ -533,7 +532,8 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 	}
 
 	header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
-	message_length = 1 + strlen( error_message.message );
+
+	message_length = (uint32_t) ( 1 + strlen( error_message.message ) );
 
 	/* The output of malloc() is assigned to a void pointer here
 	 * because assigning it to a char pointer and then casting
@@ -556,11 +556,18 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	strcpy( message, error_message.message );
 
-	header[ MX_NETWORK_MAGIC ] = htonl( MX_NETWORK_MAGIC_VALUE );
-	header[ MX_NETWORK_HEADER_LENGTH ] = htonl( header_length );
-	header[ MX_NETWORK_MESSAGE_LENGTH ] = htonl( message_length );
-	header[ MX_NETWORK_STATUS_CODE ] = htonl( error_message.code );
-	header[ MX_NETWORK_MESSAGE_TYPE ] = htonl( return_message_type );
+	header[ MX_NETWORK_MAGIC ] = (uint32_t) htonl( MX_NETWORK_MAGIC_VALUE );
+
+	header[ MX_NETWORK_HEADER_LENGTH ] = (uint32_t) htonl( header_length );
+
+	header[ MX_NETWORK_MESSAGE_LENGTH ] = (uint32_t)
+					htonl( message_length );
+
+	header[ MX_NETWORK_STATUS_CODE ] = (uint32_t)
+					htonl( error_message.code );
+
+	header[ MX_NETWORK_MESSAGE_TYPE ] = (uint32_t)
+					htonl( return_message_type );
 
 	/* Send back the error message. */
 

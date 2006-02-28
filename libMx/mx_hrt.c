@@ -29,7 +29,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2004 Illinois Institute of Technology
+ * Copyright 2002-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -83,7 +83,8 @@ mx_add_high_resolution_times( struct timespec time1,
 
 	result.tv_nsec = nanoseconds % 1000000000L;
 
-	result.tv_sec = time1.tv_sec + time2.tv_sec + nanoseconds / 1000000000L;
+	result.tv_sec = (time_t)
+		( time1.tv_sec + time2.tv_sec + nanoseconds / 1000000000L );
 
 	return result;
 }
@@ -443,7 +444,8 @@ mx_high_resolution_time_init( void )
 
 	volatile void *void_addr;
 	__psunsigned_t phys_addr, raddr;
-	int fd, poffmask, cyclecntr_size;
+	int fd, poffmask;
+	long cyclecntr_size;
 	unsigned int cycleval;
 
 	mx_high_resolution_time_init_invoked = TRUE;

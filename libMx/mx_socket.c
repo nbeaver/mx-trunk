@@ -177,7 +177,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	memset((char *) &destination_address, 0, sizeof(destination_address));
 
 	destination_address.sin_family = AF_INET;
-	destination_address.sin_addr.s_addr = inet_address;
+	destination_address.sin_addr.s_addr = (uint32_t) inet_address;
 	destination_address.sin_port = htons( (unsigned short) port_number );
 
 	/* Create a socket. */
@@ -1101,7 +1101,8 @@ mx_socket_send( MX_SOCKET *mx_socket,
 	ptr = (char *) message_buffer;
 
 	while( bytes_left > 0 ) {
-		bytes_sent = send( mx_socket->socket_fd, ptr, bytes_left, 0 );
+		bytes_sent = send( mx_socket->socket_fd,
+					ptr, (int) bytes_left, 0 );
 
 		switch( bytes_sent ) {
 		case MX_SOCKET_ERROR:
@@ -1188,7 +1189,8 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 	num_terminators_seen = 0;
 
 	while( bytes_left > 0 ) {
-		bytes_received = recv(mx_socket->socket_fd, ptr, bytes_left, 0);
+		bytes_received = recv( mx_socket->socket_fd,
+					ptr, (int) bytes_left, 0 );
 
 #if MX_SOCKET_DEBUG
 		if ( bytes_received < bytes_left ) {
@@ -1362,7 +1364,7 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 
 MX_EXPORT mx_status_type
 mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
-						int *num_input_bytes_available)
+					long *num_input_bytes_available )
 {
 	static const char fname[] =
 		"mx_socket_fionread_num_input_bytes_available()";
@@ -1373,7 +1375,7 @@ mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( num_input_bytes_available == (int *) NULL ) {
+	if ( num_input_bytes_available == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_input_bytes_available pointer passed was NULL." );
 	}
@@ -1396,7 +1398,7 @@ mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
-						int *num_input_bytes_available)
+					long *num_input_bytes_available )
 {
 	static const char fname[] =
 		"mx_socket_fionread_num_input_bytes_available()";
@@ -1410,7 +1412,7 @@ mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_socket_select_num_input_bytes_available( MX_SOCKET *mx_socket,
-						int *num_input_bytes_available)
+					long *num_input_bytes_available )
 {
 	static const char fname[] =
 		"mx_socket_select_num_input_bytes_available()";
@@ -1429,7 +1431,7 @@ mx_socket_select_num_input_bytes_available( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( num_input_bytes_available == (int *) NULL ) {
+	if ( num_input_bytes_available == (long *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_input_bytes_available pointer passed was NULL." );
 	}
@@ -1491,7 +1493,7 @@ mx_socket_discard_unread_input( MX_SOCKET *mx_socket )
 	char discard_buffer[ MXU_SOCKET_DISCARD_BUFFER_LENGTH ];
 	unsigned long i, max_attempts, wait_ms, num_chars;
 	unsigned long j, k, num_blocks, remainder;
-	int num_input_bytes_available;
+	long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	k = 0;	/* To avoid an unused variable warning. */

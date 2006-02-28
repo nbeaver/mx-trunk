@@ -769,7 +769,7 @@ mx_getch( void )
 	if ( tty_raw( fileno(stdin) ) != 0 )
 		return(-1);
 
-	nchars = read( fileno(stdin), &ch, 1 );
+	nchars = (int) read( fileno(stdin), &ch, 1 );
 
 	if ( nchars != 1 )
 		return(-1);
@@ -833,7 +833,7 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 		return;
 	}
 
-	fgets( buffer, max_buffer_length, stdin );
+	fgets( buffer, (int) max_buffer_length, stdin );
 
 	/* Delete any trailing newline. */
 

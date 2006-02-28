@@ -388,7 +388,7 @@ mx_ccd_default_set_parameter_handler( MX_CCD *ccd )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_get_data_frame_size( MX_RECORD *ccd_record, int *x_size, int *y_size )
+mx_ccd_get_data_frame_size( MX_RECORD *ccd_record, long *x_size, long *y_size )
 {
 	static const char fname[] = "mx_ccd_get_data_frame_size()";
 
@@ -428,7 +428,7 @@ mx_ccd_get_data_frame_size( MX_RECORD *ccd_record, int *x_size, int *y_size )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_get_bin_size( MX_RECORD *ccd_record, int *x_size, int *y_size )
+mx_ccd_get_bin_size( MX_RECORD *ccd_record, long *x_size, long *y_size )
 {
 	static const char fname[] = "mx_ccd_get_bin_size()";
 
@@ -468,7 +468,7 @@ mx_ccd_get_bin_size( MX_RECORD *ccd_record, int *x_size, int *y_size )
 }
 
 MX_EXPORT mx_status_type
-mx_ccd_set_bin_size( MX_RECORD *ccd_record, int x_size, int y_size )
+mx_ccd_set_bin_size( MX_RECORD *ccd_record, long x_size, long y_size )
 {
 	static const char fname[] = "mx_ccd_get_bin_size()";
 
