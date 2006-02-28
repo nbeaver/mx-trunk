@@ -71,9 +71,11 @@ typedef struct {
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
 	unsigned long data_format;
-	int server_supports_network_handles;
 
-	int network_handles_are_valid;
+	mx_bool_type server_supports_network_handles;
+	mx_bool_type network_handles_are_valid;
+	mx_bool_type truncate_64bit_longs;
+
 	unsigned long network_field_array_block_size;
 
 	unsigned long num_network_fields;
@@ -184,8 +186,9 @@ typedef struct {
 	 * MX_NETWORK_DATAFMT_RAW, and MX_NETWORK_DATAFMT_XDR.
 	 */
 
-#define MX_NETWORK_OPTION_DATAFMT		0x1
-#define MX_NETWORK_OPTION_NATIVE_DATAFMT	0x2
+#define MX_NETWORK_OPTION_DATAFMT		1
+#define MX_NETWORK_OPTION_NATIVE_DATAFMT	2
+#define MX_NETWORK_OPTION_64BIT_LONG		3
 
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 				unsigned long buffer_length, void *buffer );
@@ -306,6 +309,8 @@ MX_API mx_status_type mx_network_set_option( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_request_data_format(
 			MX_RECORD *server_record,
 			unsigned long requested_format );
+
+MX_API mx_status_type mx_network_request_64bit_longs(MX_RECORD *server_record);
 
 MX_API mx_status_type mx_parse_network_field_id( char *network_field_id,
 		char *server_name, size_t max_server_name_length,

@@ -885,7 +885,6 @@ mx_get_field_array( MX_RECORD *server_record,
 	size_t *data_element_size_array;
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
-	mx_bool_type truncate_64bit_longs;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
@@ -1146,18 +1145,12 @@ mx_get_field_array( MX_RECORD *server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		if (server->server_flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS) {
-			truncate_64bit_longs = FALSE;
-		} else {
-			truncate_64bit_longs = TRUE;
-		}
-
 		mx_status = mx_copy_buffer_to_array( message, message_length,
 				value_ptr, array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				NULL,
-				truncate_64bit_longs );
+				server->truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( mx_status.code, fname,
@@ -1212,7 +1205,6 @@ mx_put_field_array( MX_RECORD *server_record,
 	size_t *data_element_size_array;
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
-	mx_bool_type truncate_64bit_longs;
 
 	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
@@ -1362,19 +1354,13 @@ mx_put_field_array( MX_RECORD *server_record,
 		break;
 
 	case MX_NETWORK_DATAFMT_RAW:
-		if (server->server_flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS) {
-			truncate_64bit_longs = FALSE;
-		} else {
-			truncate_64bit_longs = TRUE;
-		}
-
 		mx_status = mx_copy_array_to_buffer( value_ptr,
 				array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
 				&num_bytes_copied,
-				truncate_64bit_longs );
+				server->truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( mx_status.code, fname,
@@ -2450,6 +2436,69 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		MX_DEBUG( 2,("%s: Assuming ASCII data format is in use.",
 				fname));
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_request_64bit_longs( MX_RECORD *server_record )
+{
+	static const char fname[] = "mx_network_request_64bit_longs()";
+
+	MX_NETWORK_SERVER *server;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"server_record argument passed was NULL." );
+	}
+
+	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+#if 0 && ( MX_WORDSIZE != 64 )
+	server->truncate_64bit_longs = TRUE;
+
+	return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The client computer is not a 64-bit computer, so it "
+		"cannot request 64-bit longs for network communication." );
+
+#else   /* MX_WORDSIZE == 64 */
+
+	if ( server->remote_mx_version < 1002000 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The remote server cannot support 64-bit network longs since "
+		"it is running MX version %ld.%ld.%ld.  The oldest version "
+		"of MX that supports 64-bit network longs is MX 1.2.0.",
+			server->remote_mx_version / 1000000,
+			( server->remote_mx_version % 1000000 ) / 1000,
+			server->remote_mx_version % 1000 );
+	}
+
+	mx_status = mx_network_set_option( server_record,
+			MX_NETWORK_OPTION_64BIT_LONG, TRUE );
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		server->truncate_64bit_longs = FALSE;
+		break;
+	default:
+		server->truncate_64bit_longs = TRUE;
+
+		return mx_status;
+	}
+
+#endif  /* MX_WORDSIZE == 64 */
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -540,7 +540,11 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	new_socket_handler->data_format = list_head->default_data_format;
 
+#if ( MX_WORDSIZE == 64 )
 	new_socket_handler->truncate_64bit_longs = TRUE;
+#else
+	new_socket_handler->truncate_64bit_longs = FALSE;
+#endif
 
 	new_socket_handler->authentication_type = MXF_SRVAUTH_NONE;
 
@@ -2579,6 +2583,19 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 	case MX_NETWORK_OPTION_NATIVE_DATAFMT:
 		option_value = mx_native_data_format();
 		break;
+	case MX_NETWORK_OPTION_64BIT_LONG:
+
+#if ( MX_WORDSIZE != 64 )
+		option_value = FALSE;
+#else  /* MX_WORDSIZE == 64 */
+		if ( socket_handler->truncate_64bit_longs ) {
+			option_value = FALSE;
+		} else {
+			option_value = TRUE;
+		}
+#endif /* MX_WORDSIZE == 64 */
+
+		break;
 	default:
 		option_value = 0;
 		illegal_option_number = TRUE;
@@ -2688,6 +2705,25 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 	switch( option_number ) {
 	case MX_NETWORK_OPTION_DATAFMT:
 		socket_handler->data_format = option_value;
+		break;
+
+	case MX_NETWORK_OPTION_64BIT_LONG:
+
+#if ( MX_WORDSIZE != 64 )
+		if ( option_value != FALSE ) {
+			illegal_option_value = TRUE;
+		}
+#else  /* MX_WORDSIZE == 64 */
+		if ( option_value == FALSE ) {
+			socket_handler->truncate_64bit_longs = TRUE;
+		} else {
+			socket_handler->truncate_64bit_longs = FALSE;
+		}
+#endif /* MX_WORDSIZE == 64 */
+
+		MX_DEBUG(-2,("%s: option_value = %d, truncate_64bit_longs = %d",
+			fname, option_value,
+			socket_handler->truncate_64bit_longs ));
 		break;
 	default:
 		illegal_option_number = TRUE;

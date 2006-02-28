@@ -67,7 +67,8 @@ MX_RECORD_FIELD_DEFAULTS *mxn_unix_server_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxn_unix_server_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxn_unix_server_create_record_structures()";
+	static const char fname[] =
+		"mxn_unix_server_create_record_structures()";
 
 	MX_NETWORK_SERVER *network_server;
 	MX_UNIX_SERVER *unix_server;
@@ -97,6 +98,7 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 			= &mxn_unix_server_network_server_function_list;
 
 	network_server->server_supports_network_handles = TRUE;
+	network_server->network_handles_are_valid = TRUE;
 
 	network_server->record = record;
 
@@ -110,10 +112,15 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_NETWORK_MESSAGE_BUFFER union." );
 	}
 
-	network_server->network_handles_are_valid = TRUE;
 	network_server->network_field_array_block_size = 100L;
 	network_server->num_network_fields = 0;
 	network_server->network_field_array = NULL;
+
+#if ( MX_WORDSIZE == 64 )
+	network_server->truncate_64bit_longs = TRUE;
+#else
+	network_server->truncate_64bit_longs = FALSE;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -165,7 +172,7 @@ mxn_unix_server_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxn_unix_server_open( MX_RECORD *record )
 {
-	const char fname[] = "mxn_unix_server_open()";
+	static const char fname[] = "mxn_unix_server_open()";
 
 	MX_LIST_HEAD *list_head;
 	MX_NETWORK_SERVER *network_server;
@@ -298,7 +305,21 @@ mxn_unix_server_open( MX_RECORD *record )
 	mx_status = mx_set_client_info( record,
 				list_head->username, list_head->program_name );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* See if the user has requested that 64-bit long integers be
+	 * sent and received using the full 64-bit resolution.
+	 */
+
+	if ( flags & MXF_NETWORK_SERVER_USE_64BIT_LONGS ) {
+		mx_status = mx_network_request_64bit_longs( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -344,7 +365,7 @@ MX_EXPORT mx_status_type
 mxn_unix_server_receive_message(MX_NETWORK_SERVER *network_server,
 				unsigned long buffer_length, void *buffer)
 {
-	const char fname[] = "mxn_unix_server_receive_message()";
+	static const char fname[] = "mxn_unix_server_receive_message()";
 
 	MX_UNIX_SERVER *unix_server;
 	char location[ sizeof(fname) + MXU_HOSTNAME_LENGTH + 20 ];
@@ -389,7 +410,7 @@ mxn_unix_server_receive_message(MX_NETWORK_SERVER *network_server,
 MX_EXPORT mx_status_type
 mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server, void *buffer)
 {
-	const char fname[] = "mxn_unix_server_send_message()";
+	static const char fname[] = "mxn_unix_server_send_message()";
 
 	MX_UNIX_SERVER *unix_server;
 	char location[ sizeof(fname) + MXU_HOSTNAME_LENGTH + 20 ];
@@ -460,7 +481,7 @@ mxn_unix_server_connection_is_up( MX_NETWORK_SERVER *network_server,
 MX_EXPORT mx_status_type
 mxn_unix_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 {
-	const char fname[] = "mxn_unix_server_reconnect_if_down()";
+	static const char fname[] = "mxn_unix_server_reconnect_if_down()";
 
 	MX_UNIX_SERVER *unix_server;
 	unsigned long flags;
