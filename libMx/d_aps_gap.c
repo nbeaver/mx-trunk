@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -176,7 +176,7 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 
 	if ( aps_gap->sector_number < 1 || aps_gap->sector_number > 35 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal APS sector number %d.  Allowed range is 1 to 35.",
+		"Illegal APS sector number %ld.  Allowed range is 1 to 35.",
 			aps_gap->sector_number );
 	}
 
@@ -217,7 +217,7 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal APS gap motor subtype %d.", aps_gap->motor_subtype );
+		"Illegal APS gap motor subtype %ld.", aps_gap->motor_subtype );
 		break;
 	}
 
@@ -263,8 +263,8 @@ mxd_aps_gap_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type      = APS_GAP.\n\n");
 
 	fprintf(file, "  name            = %s\n", record->name);
-	fprintf(file, "  sector number   = %d\n", aps_gap->sector_number);
-	fprintf(file, "  motor subtype   = %d\n", aps_gap->motor_subtype);
+	fprintf(file, "  sector number   = %ld\n", aps_gap->sector_number);
+	fprintf(file, "  motor subtype   = %ld\n", aps_gap->motor_subtype);
 
 	mx_status = mx_motor_get_position( record, &position );
 

@@ -20,7 +20,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -157,7 +157,7 @@ mxi_ni488_gpib_error_text( int ibsta_value )
 
 	static char dynamic_error_message[120];
 
-	static int num_error_messages = sizeof( error_message_table )
+	static long num_error_messages = sizeof( error_message_table )
 					/ sizeof( error_message_table[0] );
 	int iberr_value;
 
@@ -284,10 +284,10 @@ mxi_ni488_print_interface_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  GPIB type              = NI488.\n\n");
 
 	fprintf(file, "  name                   = %s\n", record->name);
-	fprintf(file, "  board number           = %d\n", ni488->board_number);
+	fprintf(file, "  board number           = %ld\n", ni488->board_number);
 	fprintf(file, "  default I/O timeout    = %g\n",
 					gpib->default_io_timeout);
-	fprintf(file, "  default EOI mode       = %d\n",
+	fprintf(file, "  default EOI mode       = %ld\n",
 					gpib->default_eoi_mode);
 
 	read_eos_char = gpib->default_read_terminator;
@@ -322,7 +322,7 @@ mxi_ni488_open( MX_RECORD *record )
 
 	MX_GPIB *gpib;
 	MX_NI488 *ni488;
-	int i;
+	long i;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -361,7 +361,7 @@ mxi_ni488_open( MX_RECORD *record )
 
 static mx_status_type
 mxi_ni488_compute_eos_value( MX_GPIB *gpib,
-				int address,
+				long address,
 				unsigned long *eos_value )
 {
 	static const char fname[] = "mxi_ni488_compute_eos_value()";
@@ -524,7 +524,7 @@ mxi_ni488_compute_time_duration_code( double io_timeout )
 static mx_status_type
 mxi_ni488_get_device_descriptor( MX_GPIB *gpib,
 				MX_NI488 *ni488,
-				int address,
+				long address,
 				int *device_descriptor )
 {
 	int dev;
@@ -551,7 +551,7 @@ mxi_ni488_get_device_descriptor( MX_GPIB *gpib,
 /* ========== Device specific functions ========== */
 
 MX_EXPORT mx_status_type
-mxi_ni488_open_device( MX_GPIB *gpib, int address )
+mxi_ni488_open_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_open_device()";
 
@@ -606,7 +606,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 
 	if ( ( dev == -1 ) || ( ibsta_value & ERR ) ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot open GPIB address %d on interface '%s'.  GPIB error = '%s'",
+	"Cannot open GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -619,7 +619,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"ibln() failed while attempting to check for the presence "
-		"of a device at GPIB address %d for interface '%s'.  "
+		"of a device at GPIB address %ld for interface '%s'.  "
 		"GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -631,7 +631,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 
 		if ( ibsta_value & ERR ) {
 			(void) mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot close GPIB address %d on interface '%s'.  GPIB error = '%s'",
+	"Cannot close GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 		}
@@ -639,7 +639,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 		ni488->device_descriptor[address] = -1;
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"There is no device present at GPIB address %d for interface '%s'.",
+	"There is no device present at GPIB address %ld for interface '%s'.",
 			address, ni488->record->name );
 	}
 
@@ -653,7 +653,7 @@ mxi_ni488_open_device( MX_GPIB *gpib, int address )
 
 
 MX_EXPORT mx_status_type
-mxi_ni488_close_device( MX_GPIB *gpib, int address )
+mxi_ni488_close_device( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_close_device()";
 
@@ -681,7 +681,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot read secondary address for primary GPIB address %d on interface '%s'."
+"Cannot read secondary address for primary GPIB address %ld on interface '%s'."
 "  GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -694,7 +694,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot read I/O timeout for GPIB address %d on interface '%s'.  "
+"Cannot read I/O timeout for GPIB address %ld on interface '%s'.  "
 "GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -708,7 +708,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot read EOI handling mode for GPIB address %d on interface '%s'.  "
+"Cannot read EOI handling mode for GPIB address %ld on interface '%s'.  "
 "GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -721,7 +721,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot get read EOS character for GPIB address %d on interface '%s'.  "
+"Cannot get read EOS character for GPIB address %ld on interface '%s'.  "
 "GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -734,7 +734,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot get write EOS character for GPIB address %d on interface '%s'.  "
+"Cannot get write EOS character for GPIB address %ld on interface '%s'.  "
 "GPIB error = '%s'", address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -745,7 +745,7 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot close GPIB address %d on interface '%s'.  GPIB error = '%s'",
+	"Cannot close GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -757,11 +757,11 @@ mxi_ni488_close_device( MX_GPIB *gpib, int address )
 
 MX_EXPORT mx_status_type
 mxi_ni488_read( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_ni488_read()";
 
@@ -799,8 +799,8 @@ mxi_ni488_read( MX_GPIB *gpib,
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Read for GPIB address %d on interface '%s' was unsuccessful.  "
-		"GPIB error = '%s'",
+		"Read for GPIB address %ld on interface '%s' "
+		"was unsuccessful.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -828,11 +828,11 @@ mxi_ni488_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_ni488_write( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_ni488_write()";
 
@@ -855,10 +855,10 @@ mxi_ni488_write( MX_GPIB *gpib,
 	}
 
 	MX_DEBUG( 2,
-	("%s: gpib = '%s', address = %d, buffer = '%s', bytes_to_write = %d, "
-	"bytes_written = %p, flags = %d",
-		fname, gpib->record->name, address, buffer, bytes_to_write,
-		bytes_written, flags ));
+	("%s: gpib = '%s', address = %ld, buffer = '%s', bytes_to_write = %ld, "
+	"bytes_written = %p, flags = %lu",
+		fname, gpib->record->name, address, buffer,
+		(long) bytes_to_write, bytes_written, flags ));
 
 	/* If the write terminator is not '\0', then the buffer must
 	 * have a line terminator character added at the end, since
@@ -977,7 +977,7 @@ mxi_ni488_write( MX_GPIB *gpib,
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Write for GPIB address %d on interface '%s' was unsuccessful."
+		"Write for GPIB address %ld on interface '%s' was unsuccessful."
 		"  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
@@ -1050,7 +1050,7 @@ mxi_ni488_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_ni488_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_selective_device_clear()";
 
@@ -1078,7 +1078,7 @@ mxi_ni488_selective_device_clear( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot clear GPIB address %d on interface '%s'.  GPIB error = '%s'",
+	"Cannot clear GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -1120,7 +1120,7 @@ mxi_ni488_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_remote_enable( MX_GPIB *gpib, int address )
+mxi_ni488_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_remote_enable()";
 
@@ -1142,7 +1142,7 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot perform remote enable for GPIB address %d on interface '%s'.  "
+	"Cannot perform remote enable for GPIB address %ld on interface '%s'.  "
 	"GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
@@ -1152,7 +1152,7 @@ mxi_ni488_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_go_to_local( MX_GPIB *gpib, int address )
+mxi_ni488_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_go_to_local()";
 
@@ -1180,7 +1180,7 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Cannot go to local for GPIB address %d on interface '%s'.  GPIB error = '%s'",
+"Cannot go to local for GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -1189,7 +1189,7 @@ mxi_ni488_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_trigger( MX_GPIB *gpib, int address )
+mxi_ni488_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_ni488_trigger()";
 
@@ -1217,7 +1217,7 @@ mxi_ni488_trigger( MX_GPIB *gpib, int address )
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-	"Cannot trigger GPIB address %d on interface '%s'.  GPIB error = '%s'",
+	"Cannot trigger GPIB address %ld on interface '%s'.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}
@@ -1264,7 +1264,7 @@ mxi_ni488_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_ni488_serial_poll( MX_GPIB *gpib, int address,
+mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_ni488_serial_poll()";
@@ -1298,7 +1298,7 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, int address,
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-"Serial poll of address %d for GPIB interface '%s' failed.  GPIB error = '%s'",
+"Serial poll of address %ld for GPIB interface '%s' failed.  GPIB error = '%s'",
 			address, ni488->record->name,
 			mxi_ni488_gpib_error_text( ibsta_value ) );
 	}

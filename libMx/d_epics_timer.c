@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -485,7 +485,7 @@ mxd_epics_timer_set_mode( MX_TIMER *timer )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The counter mode %d requested for timer '%s' is not supported.",
+	"The counter mode %ld requested for timer '%s' is not supported.",
 			timer->mode, timer->record->name );
 		break;
 	}

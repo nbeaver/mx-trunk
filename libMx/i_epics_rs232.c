@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -434,7 +434,7 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	case 5: wordsize = MXF_EPICS_RS232_WORDSIZE_5; break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported EPICS RS-232 word size = %d for port '%s'.", 
+		"Unsupported EPICS RS-232 word size = %ld for port '%s'.", 
 		rs232->word_size, record->name);
 
 		break;
@@ -498,7 +498,7 @@ mxi_epics_rs232_open( MX_RECORD *record )
 	case 2: stop_bits = MXF_EPICS_RS232_STOPBITS_2; break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported EPICS RS-232 stop bits = %d for port '%s'.", 
+		"Unsupported EPICS RS-232 stop bits = %ld for port '%s'.", 
 		rs232->stop_bits, record->name);
 
 		break;

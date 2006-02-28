@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -424,7 +424,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	MX_EPICS_SCALER *epics_scaler;
 	MX_EPICS_TIMER *epics_timer;
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
-	int joerger_quick_scan_enabled;
+	mx_bool_type joerger_quick_scan_enabled;
 	long i, j, timer_preset, allowed_device;
 	double scan_duration_seconds, scan_duration_ticks;
 	double epics_update_rate, measurement_time_per_point;
@@ -457,7 +457,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( joerger_quick_scan_enable_record == (MX_RECORD *) NULL ) {
 		joerger_quick_scan_enabled = FALSE;
 	} else {
-		mx_status = mx_get_int_variable(
+		mx_status = mx_get_bool_variable(
 				joerger_quick_scan_enable_record,
 				&joerger_quick_scan_enabled );
 	}
@@ -699,7 +699,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( synchronous_motion_mode_record == (MX_RECORD *) NULL ) {
 		quick_scan->use_synchronous_motion_mode = FALSE;
 	} else {
-		mx_status = mx_get_int_variable( synchronous_motion_mode_record,
+		mx_status = mx_get_bool_variable(synchronous_motion_mode_record,
 				&(quick_scan->use_synchronous_motion_mode));
 	}
 

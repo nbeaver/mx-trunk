@@ -358,7 +358,7 @@ mxd_aps_quadem_get_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -367,7 +367,6 @@ mxd_aps_quadem_get_parameter( MX_AMPLIFIER *amplifier )
 	switch( amplifier->parameter_type ) {
 	default:
 		return mx_amplifier_default_get_parameter_handler( amplifier );
-		break;
 	}
 }
 
@@ -386,7 +385,7 @@ mxd_aps_quadem_set_parameter( MX_AMPLIFIER *amplifier )
 		return mx_status;
 
 	MX_DEBUG(-2,
-	("%s invoked for amplifier '%s' for parameter type '%s' (%d).",
+	("%s invoked for amplifier '%s' for parameter type '%s' (%ld).",
 		fname, amplifier->record->name,
 		mx_get_field_label_string( amplifier->record,
 			amplifier->parameter_type ),
@@ -396,7 +395,6 @@ mxd_aps_quadem_set_parameter( MX_AMPLIFIER *amplifier )
 	default:
 		mx_status = mx_amplifier_default_set_parameter_handler(
 				amplifier );
-		break;
 	}
 
 	return mx_status;

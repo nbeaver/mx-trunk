@@ -579,7 +579,7 @@ mxd_epics_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -679,7 +679,7 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -782,7 +782,7 @@ mxd_epics_motor_set_parameter( MX_MOTOR *motor )
 }
 
 MX_EXPORT mx_status_type
-mxd_epics_motor_simultaneous_start( int num_motor_records,
+mxd_epics_motor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *destination_array,
 				int flags )

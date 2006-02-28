@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@ typedef struct {
 	int  file_descriptor;
 
 	char filename[ MXU_FILENAME_LENGTH+1 ];
-	int  crate_number;
+	long crate_number;
 
 	unsigned long version_register;
 } MX_SIS3100;
@@ -53,7 +53,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_sis3100_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SIS3100, filename ), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "crate_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "crate_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_SIS3100, crate_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

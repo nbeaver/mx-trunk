@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 
 typedef struct {
 	char epics_record_name[ MXU_EPICS_PVNAME_LENGTH+1 ];
-	int scaler_number;
+	long scaler_number;
 	double epics_record_version;
 
 	MX_EPICS_PV cnt_pv;
@@ -42,7 +42,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_SCALER, epics_record_name), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "scaler_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "scaler_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPICS_SCALER, scaler_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

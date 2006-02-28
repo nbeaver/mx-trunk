@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -239,7 +239,7 @@ mxi_epics_gpib_print_interface_structure( FILE *file, MX_RECORD *record )
 					epics_gpib->epics_record_name);
 	fprintf(file, "  default I/O timeout    = %g\n",
 					gpib->default_io_timeout);
-	fprintf(file, "  default EOI mode       = %d\n",
+	fprintf(file, "  default EOI mode       = %ld\n",
 					gpib->default_eoi_mode);
 
 	read_eos_char = (char) ( gpib->default_read_terminator & 0xff );
@@ -402,24 +402,24 @@ mxi_epics_gpib_open( MX_RECORD *record )
 /* ========== Device specific calls ========== */
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_open_device( MX_GPIB *gpib, int address )
+mxi_epics_gpib_open_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_close_device( MX_GPIB *gpib, int address )
+mxi_epics_gpib_close_device( MX_GPIB *gpib, long address )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_epics_gpib_read( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t max_bytes_to_read,
 		size_t *bytes_read,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_epics_gpib_read()";
 
@@ -432,13 +432,13 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("*** %s: about to read from '%s:%d ***",
+	MX_DEBUG( 2,("*** %s: about to read from '%s:%ld ***",
 				fname, gpib->record->name, address));
 
 	if ( max_bytes_to_read > epics_gpib->max_input_length ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Requested number of characters (%ld) for GPIB port '%s' is longer "
-	"than the maximum input buffer length of %d.",
+	"than the maximum input buffer length of %ld.",
 			(long) max_bytes_to_read, gpib->record->name,
 			epics_gpib->max_input_length );
 	}
@@ -535,7 +535,7 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 		*bytes_read = num_chars_read;
 	}
 
-	MX_DEBUG( 2,("*** %s: read '%s' from '%s:%d' ***",
+	MX_DEBUG( 2,("*** %s: read '%s' from '%s:%ld' ***",
 			fname, buffer, gpib->record->name, address));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -543,11 +543,11 @@ mxi_epics_gpib_read( MX_GPIB *gpib,
 
 MX_EXPORT mx_status_type
 mxi_epics_gpib_write( MX_GPIB *gpib,
-		int address,
+		long address,
 		char *buffer,
 		size_t bytes_to_write,
 		size_t *bytes_written,
-		int flags )
+		unsigned long flags )
 {
 	static const char fname[] = "mxi_epics_gpib_write()";
 
@@ -560,13 +560,13 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("*** %s: sending '%s' to '%s:%d' ***",
+	MX_DEBUG( 2,("*** %s: sending '%s' to '%s:%ld' ***",
 			fname, buffer, gpib->record->name, address));
 
 	if ( bytes_to_write > epics_gpib->max_output_length ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 	"Requested number of characters (%ld) for GPIB port '%s' is longer "
-	"than the maximum output buffer length of %d.",
+	"than the maximum output buffer length of %ld.",
 			(long) bytes_to_write, gpib->record->name,
 			epics_gpib->max_output_length );
 	}
@@ -640,7 +640,7 @@ mxi_epics_gpib_write( MX_GPIB *gpib,
 		*bytes_written = bytes_to_write;
 	}
 
-	MX_DEBUG( 2,("*** %s: write to '%s:%d' complete ***",
+	MX_DEBUG( 2,("*** %s: write to '%s:%ld' complete ***",
 				fname, gpib->record->name, address));
 
 	return mx_status;
@@ -675,7 +675,7 @@ mxi_epics_gpib_device_clear( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_selective_device_clear( MX_GPIB *gpib, int address )
+mxi_epics_gpib_selective_device_clear( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_selective_device_clear()";
 
@@ -713,7 +713,7 @@ mxi_epics_gpib_local_lockout( MX_GPIB *gpib )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_remote_enable( MX_GPIB *gpib, int address )
+mxi_epics_gpib_remote_enable( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_remote_enable()";
 
@@ -722,7 +722,7 @@ mxi_epics_gpib_remote_enable( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_go_to_local( MX_GPIB *gpib, int address )
+mxi_epics_gpib_go_to_local( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_go_to_local()";
 
@@ -741,7 +741,7 @@ mxi_epics_gpib_go_to_local( MX_GPIB *gpib, int address )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_trigger( MX_GPIB *gpib, int address )
+mxi_epics_gpib_trigger( MX_GPIB *gpib, long address )
 {
 	static const char fname[] = "mxi_epics_gpib_trigger_device()";
 
@@ -771,7 +771,7 @@ mxi_epics_gpib_wait_for_service_request( MX_GPIB *gpib, double timeout )
 }
 
 MX_EXPORT mx_status_type
-mxi_epics_gpib_serial_poll( MX_GPIB *gpib, int address,
+mxi_epics_gpib_serial_poll( MX_GPIB *gpib, long address,
 				unsigned char *serial_poll_byte)
 {
 	static const char fname[] = "mxi_epics_gpib_serial_poll()";

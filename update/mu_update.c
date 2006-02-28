@@ -855,7 +855,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 {
 	static const char fname[] = "mxupd_add_epics_variable_to_database()";
 
-	long i, length;
+	long i, length, string_length;
 	long epics_datatype, epics_array_length;
 	char record_field_name[MXU_RECORD_FIELD_NAME_LENGTH+1];
 	char *ptr, *r_ptr;

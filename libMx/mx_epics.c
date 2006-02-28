@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2476,10 +2476,10 @@ mx_epics_convert_mx_type_to_epics_type( long mx_type,
 	case MXFT_USHORT:
 		*epics_type = DBR_SHORT;
 		break;
-	case MXFT_INT:
-	case MXFT_UINT:
+	case MXFT_BOOL:
 	case MXFT_LONG:
 	case MXFT_ULONG:
+	case MXFT_HEX:
 		*epics_type = DBR_LONG;
 		break;
 	case MXFT_FLOAT:
@@ -2488,6 +2488,14 @@ mx_epics_convert_mx_type_to_epics_type( long mx_type,
 	case MXFT_DOUBLE:
 		*epics_type = DBR_DOUBLE;
 		break;
+	case MXFT_INT64:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"MX record field type MXFT_INT64 cannot be converted "
+			"to an EPICS type." );
+	case MXFT_UINT64:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"MX record field type MXFT_UINT64 cannot be converted "
+			"to an EPICS type." );
 	default:
 		*epics_type = -1;
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

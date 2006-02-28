@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 typedef struct {
 	char pvname[MXU_EPICS_PVNAME_LENGTH+1];
 	long epics_type;
-	int num_elements;
+	long num_elements;
 
 	MX_EPICS_PV pv;
 } MX_EPICS_VARIABLE;
@@ -34,7 +34,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, epics_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "num_elements", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "num_elements", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_EPICS_VARIABLE, num_elements), \
 	{0}, NULL, 0}
 

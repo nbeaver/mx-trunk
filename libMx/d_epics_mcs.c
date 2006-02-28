@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -653,7 +653,7 @@ mxd_epics_mcs_get_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%ld)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
@@ -695,7 +695,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%d)",
+	MX_DEBUG( 2,("%s invoked for MCS '%s', parameter type '%s' (%ld)",
 		fname, mcs->record->name,
 		mx_get_field_label_string( mcs->record, mcs->parameter_type ),
 		mcs->parameter_type));
@@ -705,7 +705,7 @@ mxd_epics_mcs_set_parameter( MX_MCS *mcs )
 
 		if ( mcs->mode != MXM_PRESET_TIME ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal MCS mode %d selected.  Only preset time mode is "
+		"Illegal MCS mode %ld selected.  Only preset time mode is "
 		"allowed for an EPICS MCS.", mcs->mode );
 		}
 		break;

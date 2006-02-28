@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -77,7 +77,7 @@ MX_API mx_status_type mxd_epics_motor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_motor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_motor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_epics_motor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_epics_motor_simultaneous_start( int num_motor_records,
+MX_API mx_status_type mxd_epics_motor_simultaneous_start(long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
 						int flags );

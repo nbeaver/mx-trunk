@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -185,7 +185,7 @@ mxd_epics_scaler_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Scaler type           = EPICS_SCALER.\n\n");
 	fprintf(file, "  EPICS record          = %s\n",
 					epics_scaler->epics_record_name);
-	fprintf(file, "  scaler number         = %d\n",
+	fprintf(file, "  scaler number         = %ld\n",
 					epics_scaler->scaler_number);
 
 	mx_status = mx_scaler_read( record, &current_value );
@@ -638,7 +638,7 @@ mxd_epics_scaler_set_mode( MX_SCALER *scaler )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The counter mode %d requested for scaler '%s' is not supported.",
+	"The counter mode %ld requested for scaler '%s' is not supported.",
 			scaler->mode, scaler->record->name );
 		break;
 	}
@@ -696,7 +696,7 @@ mxd_epics_scaler_set_modes_of_associated_counters( MX_SCALER *scaler )
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"The counter mode %d is not supported by this function.",
+		"The counter mode %ld is not supported by this function.",
 			scaler->mode );
 		break;
 	}

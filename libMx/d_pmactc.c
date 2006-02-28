@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -400,7 +400,7 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 
 	current_tick = mx_current_clock_tick();
 
-	MX_DEBUG( 2,("%s: motor '%s' initial motion_state = %d",
+	MX_DEBUG( 2,("%s: motor '%s' initial motion_state = %ld",
 		fname, motor->record->name, pmac_tc_motor->motion_state));
 
 	switch( pmac_tc_motor->motion_state ) {
@@ -456,14 +456,14 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"MX '%s' motor '%s' has illegal motion state %d",
+		"MX '%s' motor '%s' has illegal motion state %ld",
 			mx_get_driver_name( motor->record ),
 			motor->record->name,
 			pmac_tc_motor->motion_state );
 		break;
 	}
 
-	MX_DEBUG( 2,("%s: motor '%s' modified motion_state = %d",
+	MX_DEBUG( 2,("%s: motor '%s' modified motion_state = %ld",
 		fname, motor->record->name, pmac_tc_motor->motion_state));
 
 	/* If we get here, ask EPICS for the 'in_position' state. */
@@ -516,7 +516,8 @@ mxd_pmac_tc_motor_motor_is_busy( MX_MOTOR *motor )
 				current_tick, pmac_tc_motor->end_delay_ticks );
 	}
 
-	MX_DEBUG( 2,("%s: motor '%s' final motion_state = %d, motor->busy = %d",
+	MX_DEBUG( 2,
+		("%s: motor '%s' final motion_state = %ld, motor->busy = %d",
 		fname, motor->record->name, pmac_tc_motor->motion_state,
 		motor->busy ));
 
@@ -646,7 +647,7 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%d).",
+	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%ld).",
 		fname, motor->record->name, motor->record->mx_type,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -656,11 +657,11 @@ mxd_pmac_tc_motor_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "I%d16", pmac_tc_motor->motor_number );
+		sprintf( command, "I%ld16", pmac_tc_motor->motor_number );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Parameter type %d is not supported by the driver for motor '%s'",
+	"Parameter type %ld is not supported by the driver for motor '%s'",
 			motor->parameter_type, motor->record->name );
 		break;
 	}
@@ -714,7 +715,7 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,
-	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%d).",
+	("%s invoked for motor '%s' (type %ld) for parameter type '%s' (%ld).",
 		fname, motor->record->name, motor->record->mx_type,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -724,12 +725,12 @@ mxd_pmac_tc_motor_set_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		sprintf( command, "I%d16=%ld", pmac_tc_motor->motor_number,
+		sprintf( command, "I%ld16=%ld", pmac_tc_motor->motor_number,
 						mx_round( motor->raw_speed ) );
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Parameter type %d is not supported by the driver for motor '%s'",
+	"Parameter type %ld is not supported by the driver for motor '%s'",
 			motor->parameter_type, motor->record->name );
 		break;
 	}
@@ -760,7 +761,7 @@ mxd_pmac_bio_motor_get_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
@@ -868,7 +869,7 @@ mxd_pmac_bio_motor_set_parameter( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%d).",
+	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),

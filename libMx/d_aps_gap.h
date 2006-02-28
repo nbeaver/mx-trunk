@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,8 +21,8 @@
 /* ===== MX APS undulator gap record data structures ===== */
 
 typedef struct {
-	int sector_number;
-	int motor_subtype;
+	long sector_number;
+	long motor_subtype;
 
 	MX_EPICS_PV position_pv;
 	MX_EPICS_PV destination_pv;
@@ -61,11 +61,11 @@ extern long mxd_aps_gap_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_aps_gap_record_field_def_ptr;
 
 #define MXD_APS_GAP_STANDARD_FIELDS \
-  {-1, -1, "sector_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "sector_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_GAP, sector_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "motor_subtype", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "motor_subtype", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_APS_GAP, motor_subtype), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
