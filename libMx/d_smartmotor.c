@@ -1190,7 +1190,7 @@ mxd_smartmotor_command( MX_SMARTMOTOR *smartmotor, char *command,
 
 	/* Send the motor address prefix. */
 
-	address_prefix = 128 + smartmotor->motor_address;
+	address_prefix = (char) ( 128 + smartmotor->motor_address );
 
 	mx_status = mx_rs232_putchar( smartmotor->rs232_record,
 						address_prefix, 0 );

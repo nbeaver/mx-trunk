@@ -218,11 +218,17 @@ mx_modbus_read_coils( MX_RECORD *modbus_record,
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ] = MXF_MOD_READ_COILS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_coils >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_coils & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_coils >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_coils & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 5,
@@ -283,11 +289,17 @@ mx_modbus_read_discrete_inputs( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_DISCRETE_INPUTS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_inputs >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_inputs & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_inputs >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_inputs & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 5,
@@ -344,11 +356,17 @@ mx_modbus_read_holding_registers( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_HOLDING_REGISTERS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_registers >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_registers & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_registers >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_registers & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 5,
@@ -410,11 +428,17 @@ mx_modbus_read_input_registers( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_INPUT_REGISTERS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_registers >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_registers & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_registers >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_registers & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 5,
@@ -481,10 +505,14 @@ mx_modbus_write_single_coil( MX_RECORD *modbus_record,
 
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ] = MXF_MOD_WRITE_SINGLE_COIL;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( output_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = output_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( output_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = coil_value;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( output_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t) coil_value;
+
 	request_buffer[ MXF_MOD_PDU_DATA+3 ] = 0x00;
 
 	mx_status = mx_modbus_command( modbus_record,
@@ -506,11 +534,17 @@ mx_modbus_write_single_register( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_WRITE_SINGLE_REGISTER;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( output_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = output_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( output_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( register_value >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = register_value & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( output_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( register_value >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( register_value & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 5,
@@ -645,13 +679,18 @@ mx_modbus_write_multiple_coils( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_WRITE_MULTIPLE_COILS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_coils >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_coils & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+4 ] = num_coil_bytes;
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_coils >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t) ( num_coils & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+4 ] = (uint8_t) num_coil_bytes;
 
 	memcpy( &request_buffer[ MXF_MOD_PDU_DATA+5 ],
 		coil_value_array,
@@ -695,21 +734,29 @@ mx_modbus_write_multiple_registers( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_WRITE_MULTIPLE_REGISTERS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( starting_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( num_registers >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_registers & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( starting_address & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+4 ] = num_register_bytes;
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_registers >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_registers & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+4 ] = (uint8_t) num_register_bytes;
 
 	for ( i = 0; i < num_registers; i++ ) {
 
 		j = MXF_MOD_PDU_DATA + 5 + 2*i;
 
-		request_buffer[j] = ( register_value_array[i] >> 8 ) & 0xff;
+		request_buffer[j] = (uint8_t)
+				( ( register_value_array[i] >> 8 ) & 0xff );
 
-		request_buffer[j+1] = register_value_array[i] & 0xff;
+		request_buffer[j+1] = (uint8_t)
+				( register_value_array[i] & 0xff );
 	}
 
 	mx_status = mx_modbus_command( modbus_record,
@@ -732,14 +779,23 @@ mx_modbus_mask_write_register( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_MASK_WRITE_REGISTER;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]   = ( register_address >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = register_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( register_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ] = ( and_mask >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = and_mask & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( register_address & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+4 ] = ( or_mask >> 8 ) & 0xff;
-	request_buffer[ MXF_MOD_PDU_DATA+5 ] = or_mask & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( and_mask >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( and_mask & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+4 ] = (uint8_t)
+				( ( or_mask >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+5 ] = (uint8_t)
+				( or_mask & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 7,
@@ -796,39 +852,46 @@ mx_modbus_read_write_multiple_registers( MX_RECORD *modbus_record,
 
 	/* --- */
 
-	request_buffer[ MXF_MOD_PDU_DATA ]
-				= ( read_starting_address >> 8 ) & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( read_starting_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = read_starting_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( read_starting_address & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+2 ]
-				= ( num_registers_to_read >> 8 ) & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+2 ] = (uint8_t)
+				( ( num_registers_to_read >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+3 ] = num_registers_to_read & 0xff;
-
-	/* --- */
-
-	request_buffer[ MXF_MOD_PDU_DATA+4 ]
-				= ( write_starting_address >> 8 ) & 0xff;
-
-	request_buffer[ MXF_MOD_PDU_DATA+5 ] = write_starting_address & 0xff;
-
-	request_buffer[ MXF_MOD_PDU_DATA+6 ]
-				= ( num_registers_to_write >> 8 ) & 0xff;
-
-	request_buffer[ MXF_MOD_PDU_DATA+7 ] = num_registers_to_write & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+3 ] = (uint8_t)
+				( num_registers_to_read & 0xff );
 
 	/* --- */
 
-	request_buffer[ MXF_MOD_PDU_DATA+8 ] = num_register_bytes_to_write;
+	request_buffer[ MXF_MOD_PDU_DATA+4 ] = (uint8_t)
+				( ( write_starting_address >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+5 ] = (uint8_t)
+				( write_starting_address & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+6 ] = (uint8_t)
+				( ( num_registers_to_write >> 8 ) & 0xff );
+
+	request_buffer[ MXF_MOD_PDU_DATA+7 ] = (uint8_t)
+				( num_registers_to_write & 0xff );
+
+	/* --- */
+
+	request_buffer[ MXF_MOD_PDU_DATA+8 ] = (uint8_t)
+					num_register_bytes_to_write;
 
 	for ( i = 0; i < num_registers_to_write; i++ ) {
 
 		j = MXF_MOD_PDU_DATA + 9 + 2*i;
 
-		request_buffer[j] = ( write_register_array[i] >> 8 ) & 0xff;
+		request_buffer[j] = (uint8_t)
+				( ( write_register_array[i] >> 8 ) & 0xff );
 
-		request_buffer[j+1] = write_register_array[i] & 0xff;
+		request_buffer[j+1] = (uint8_t)
+				( write_register_array[i] & 0xff );
 	}
 
 	mx_status = mx_modbus_command( modbus_record,
@@ -888,10 +951,11 @@ mx_modbus_read_fifo_queue( MX_RECORD *modbus_record,
 	request_buffer[ MXF_MOD_PDU_FUNCTION_CODE ]
 					= MXF_MOD_READ_INPUT_REGISTERS;
 
-	request_buffer[ MXF_MOD_PDU_DATA ]
-					= ( fifo_pointer_address >> 8 ) & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA ] = (uint8_t)
+				( ( fifo_pointer_address >> 8 ) & 0xff );
 
-	request_buffer[ MXF_MOD_PDU_DATA+1 ] = fifo_pointer_address & 0xff;
+	request_buffer[ MXF_MOD_PDU_DATA+1 ] = (uint8_t)
+				( fifo_pointer_address & 0xff );
 
 	mx_status = mx_modbus_command( modbus_record,
 				request_buffer, 3,

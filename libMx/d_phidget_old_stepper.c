@@ -15,7 +15,7 @@
  *
  */
 
-#define PHIDGET_OLD_STEPPER_DEBUG		FALSE
+#define PHIDGET_OLD_STEPPER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -367,7 +367,7 @@ mxd_phidget_old_stepper_move_absolute( MX_MOTOR *motor )
 	speed        = mx_round( motor->raw_speed );
 	acceleration = mx_round( motor->raw_acceleration_parameters[0] );
 
-	buffer[0] = phidget_old_stepper->motor_number;
+	buffer[0] = (unsigned char) phidget_old_stepper->motor_number;
 	buffer[1] = 0;
 	buffer[2] = (unsigned char) ( acceleration & 0xff );
 	buffer[3] = (unsigned char) ( (acceleration >> 8) & 0xff );

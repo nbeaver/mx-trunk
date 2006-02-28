@@ -612,7 +612,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 	uint16_t input_register_array[3];
 	uint8_t *input_buffer;
 	uint8_t new_control_byte, control_byte, status_byte, data_byte_0;
-	long byte_index, num_bytes_in_buffer;
+	unsigned long byte_index, num_bytes_in_buffer;
 	long num_wago_bytes_to_read, real_num_wago_bytes_to_read;
 	long receive_request_bit, new_receive_acknowledge_bit;
 	long mask, saved_control_bits;
@@ -638,7 +638,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 
 	num_bytes_in_buffer = wago750_serial->num_input_bytes_in_buffer;
 
-	MX_WAGO_DEBUG(("%s: #1 byte_index = %ld, num_bytes_in_buffer = %ld",
+	MX_WAGO_DEBUG(("%s: #1 byte_index = %lu, num_bytes_in_buffer = %lu",
 		fname, byte_index, num_bytes_in_buffer));
 
 	if ( byte_index < num_bytes_in_buffer ) {
@@ -811,8 +811,8 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 	("%s: new_receive_acknowledge_bit = %#lx, saved_control_bits = %#lx",
 		    fname, new_receive_acknowledge_bit, saved_control_bits));
 
-		new_control_byte = 
-			new_receive_acknowledge_bit | saved_control_bits;
+		new_control_byte =  (uint8_t)
+			( new_receive_acknowledge_bit | saved_control_bits );
 
 		MX_WAGO_DEBUG(("%s: new_control_byte = %#x",
 			fname, new_control_byte));
@@ -830,7 +830,7 @@ mxi_wago750_serial_getchar( MX_RS232 *rs232, char *c )
 
 	num_bytes_in_buffer = wago750_serial->num_input_bytes_in_buffer;
 
-	MX_WAGO_DEBUG(("%s: #2 byte_index = %ld, num_bytes_in_buffer = %ld",
+	MX_WAGO_DEBUG(("%s: #2 byte_index = %lu, num_bytes_in_buffer = %lu",
 		fname, byte_index, num_bytes_in_buffer));
 
 	/* Return the next available byte to the routine that called us
@@ -880,7 +880,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 	uint8_t old_control_byte, new_control_byte;
 	char *buffer_ptr;
 	unsigned long i, j, num_full_blocks, num_registers_to_write;
-	long write_size, final_write_size, real_write_size;
+	unsigned long write_size, final_write_size, real_write_size;
 	long input_buffer_full, transmit_request, transmit_acknowledge;
 	long new_transmit_request, new_transmit_acknowledge;
 	long old_receive_acknowledge;
@@ -910,7 +910,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 
 	final_write_size = bytes_to_write % wago750_serial->num_data_bytes;
 
-	MX_WAGO_DEBUG(("%s: num_full_blocks = %lu, final_write_size = %ld",
+	MX_WAGO_DEBUG(("%s: num_full_blocks = %lu, final_write_size = %lu",
 		fname, num_full_blocks, final_write_size));
 
 	/* Loop over the blocks to write. */
@@ -1000,7 +1000,7 @@ mxi_wago750_serial_write( MX_RS232 *rs232,
 		 * 'transmit_acknowledge' bit that we just received.
 		 */
 
-		new_control_byte = old_receive_acknowledge;
+		new_control_byte = (uint8_t) old_receive_acknowledge;
 
 		if ( transmit_acknowledge != 0 ) {
 			new_control_byte
@@ -1249,7 +1249,8 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 	MX_WAGO750_SERIAL *wago750_serial;
 	uint8_t status_byte, control_byte, data_byte_0;
 	long receive_request, receive_acknowledge;
-	long byte_index, num_bytes_in_buffer, num_bytes_available;
+	long num_bytes_available;
+	unsigned long byte_index, num_bytes_in_buffer;
 	mx_status_type mx_status;
 
 	mx_status = mxi_wago750_serial_get_pointers( rs232,

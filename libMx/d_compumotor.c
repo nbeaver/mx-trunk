@@ -745,7 +745,7 @@ mxd_compumotor_move_absolute( MX_MOTOR *motor )
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	char command[80];
 	double destination;
-	long flags;
+	unsigned long flags;
 	int i, length, command_buffer_left;
 	mx_status_type mx_status;
 
@@ -870,7 +870,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	double other_motor_position;
 	char command[100];
 	char buffer[80];
-	long flags;
+	unsigned long flags;
 	int i, j, num_axes;
 	mx_status_type mx_status;
 
