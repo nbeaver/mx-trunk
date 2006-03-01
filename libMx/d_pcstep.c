@@ -200,7 +200,7 @@ mxd_pcstep_finish_record_initialization( MX_RECORD *record )
 			record->name );
 	}
 
-	axis_id = pcstep_motor->axis_id;
+	axis_id = (int) pcstep_motor->axis_id;
 
 	if ( (axis_id < 1) || (axis_id > 4) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -251,7 +251,7 @@ mxd_pcstep_delete_record( MX_RECORD *record )
 	     * motor_array structure.
 	     */
 
-	    axis_id = pcstep_motor->axis_id;
+	    axis_id = (int) pcstep_motor->axis_id;
 
 	    if ( (axis_id >= 1) && (axis_id <= 4) ) {
 
@@ -411,7 +411,7 @@ mxd_pcstep_write_parms_to_hardware( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	/* Initialize the motor using the initialization procedure 
 	 * recommended in the manual.
@@ -588,7 +588,7 @@ mxd_pcstep_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_READ_PER_AXIS_HW_STATUS(n),
@@ -630,6 +630,7 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 
 	MX_PCSTEP_MOTOR *pcstep_motor;
 	MX_PCSTEP *pcstep;
+	uint32_t raw_destination;
 	uint32_t mode_control_data_word;
 	uint32_t axis_hardware_status;
 	uint32_t limit_switch_status;
@@ -653,7 +654,7 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 
 	/* Select absolute position mode. */
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mode_control_data_word = 0;
 
@@ -666,9 +667,11 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 
 	/* Set the destination. */
 
+	raw_destination = (uint32_t) motor->raw_destination.stepper;
+
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_LOAD_TARGET_POSITION(n),
-				motor->raw_destination.stepper, NULL );
+				raw_destination, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -800,7 +803,7 @@ mxd_pcstep_get_position( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_READ_POSITION(n), 0,
@@ -845,7 +848,7 @@ mxd_pcstep_set_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_RESET_POSITION_COUNTER_TO_ZERO(n),
@@ -870,7 +873,7 @@ mxd_pcstep_soft_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_STOP_MOTION(n), 0, NULL );
@@ -898,7 +901,7 @@ mxd_pcstep_immediate_abort( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_KILL_MOTION(n), 0, NULL );
@@ -934,7 +937,7 @@ mxd_pcstep_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	limit_bit = limit_switch_status & ( 1 << (2*(4-n) + 1) );
 
@@ -971,7 +974,7 @@ mxd_pcstep_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	limit_bit = limit_switch_status & ( 1 << (2*(4-n)) );
 
@@ -1043,7 +1046,7 @@ mxd_pcstep_find_home_position( MX_MOTOR *motor )
 		direction_bits = 0xFFFF;
 	}
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_FIND_HOME(n), direction_bits, NULL );
@@ -1086,7 +1089,7 @@ mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 
 	/* Select velocity mode. */
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	mode_control_data_word = 0xFF00;
 
@@ -1154,7 +1157,7 @@ mxd_pcstep_get_parameter( MX_MOTOR *motor )
 	}
 #endif
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
 
@@ -1248,11 +1251,11 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 			pcstep->record->name );
 	}
 
-	n = pcstep_motor->axis_id;
+	n = (int) pcstep_motor->axis_id;
 
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
 
-		value_to_send = mx_round( motor->raw_speed );
+		value_to_send = (uint32_t) mx_round( motor->raw_speed );
 
 		mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_LOAD_STEPS_PER_SECOND(n),
@@ -1260,7 +1263,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 
 	} else if ( motor->parameter_type == MXLV_MTR_BASE_SPEED ) {
 
-		value_to_send = mx_round( motor->raw_base_speed );
+		value_to_send = (uint32_t) mx_round( motor->raw_base_speed );
 
 		mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_SET_BASE_VELOCITY(n),
@@ -1279,7 +1282,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 		/* First, set the acceleration. */
 
 		value_to_send = 
-			mx_round( motor->raw_acceleration_parameters[0] );
+		    (uint32_t) mx_round( motor->raw_acceleration_parameters[0]);
 
 		mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_LOAD_ACCELERATION(n),
@@ -1291,7 +1294,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 		/* Then, set the acceleration factor. */
 
 		value_to_send =
-			mx_round( motor->raw_acceleration_parameters[1] );
+		    (uint32_t) mx_round( motor->raw_acceleration_parameters[1]);
 
 		mx_status = mxi_pcstep_command( pcstep,
 				MX_PCSTEP_LOAD_ACCELERATION_FACTOR(n),

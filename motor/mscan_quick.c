@@ -114,7 +114,7 @@ motor_setup_quick_scan_parameters(
 		return FAILURE;
 	}
 
-	default_precision = list_head_struct->default_precision;
+	default_precision = (int) list_head_struct->default_precision;
 
 	/* Get the scan type. */
 
@@ -503,7 +503,7 @@ motor_setup_quick_scan_parameters(
 
 				default_double = mx_divide_safely(
 		quick_scan->end_position[j] - quick_scan->start_position[j],
-			quick_scan->requested_num_measurements - 1L );
+		(double) (quick_scan->requested_num_measurements - 1L) );
 
 			} else {
 				default_double = 1.0;

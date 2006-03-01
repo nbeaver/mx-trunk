@@ -38,7 +38,6 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_stdint.h"
 #include "mx_hrt.h"
 #include "mx_socket.h"
 #include "mx_net.h"
@@ -640,7 +639,7 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 	 * mca->channel_array already the right size?
 	 */
 
-	if ( ( sizeof(uint32_t) == sizeof(unsigned long) )
+	if ( ( sizeof(unsigned long) != 4 )
 	  && ( mca->maximum_num_channels >= xia_dxp_mca->num_spectrum_bins ) )
 	{
 		/* We do not need to allocate a spectrum array since
@@ -1028,7 +1027,7 @@ mxd_xia_dxp_handel_open( MX_MCA *mca,
 	 * mca->channel_array already the right size?
 	 */
 
-	if ( ( sizeof(uint32_t) == sizeof(unsigned long) )
+	if ( ( sizeof(unsigned long) != 4 )
 	  && ( mca->maximum_num_channels >= xia_dxp_mca->num_spectrum_bins ) )
 	{
 		/* We do not need to allocate a spectrum array since
@@ -1127,8 +1126,8 @@ mxd_xia_dxp_open( MX_RECORD *record )
 	MX_XIA_NETWORK *xia_network;
 	unsigned long i, mca_number;
 	int display_config;
-	uint32_t codevar, coderev;
-	uint32_t sysmicrosec;
+	unsigned long codevar, coderev;
+	unsigned long sysmicrosec;
 	mx_status_type mx_status;
 
 #if ( HAVE_XIA_HANDEL && MXD_XIA_DXP_DEBUG_TIMING )
@@ -1331,9 +1330,9 @@ mxd_xia_dxp_open( MX_RECORD *record )
 
 	/* Initialize the saved preset values to illegal values. */
 
-	xia_dxp_mca->old_preset_type       = (uint32_t) MX_ULONG_MAX;
-	xia_dxp_mca->old_preset_high_order = (uint32_t) MX_ULONG_MAX;
-	xia_dxp_mca->old_preset_low_order  = (uint32_t) MX_ULONG_MAX;
+	xia_dxp_mca->old_preset_type       = (unsigned long) MX_ULONG_MAX;
+	xia_dxp_mca->old_preset_high_order = (unsigned long) MX_ULONG_MAX;
+	xia_dxp_mca->old_preset_low_order  = (unsigned long) MX_ULONG_MAX;
 
 	MX_DEBUG( 2,("%s: MCA '%s' detector channel = %ld",
 		fname, record->name, xia_dxp_mca->detector_channel));
@@ -1708,13 +1707,13 @@ mxd_xia_dxp_start( MX_MCA *mca )
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	double preset_time;
 	double xia_clock_ticks, xia_high_order_double, xia_low_order_double;
-	uint32_t xia_preset_type;
-	uint32_t xia_high_order, xia_low_order;
+	unsigned long xia_preset_type;
+	unsigned long xia_high_order, xia_low_order;
 	mx_status_type mx_status;
 
 #if MXD_XIA_VERIFY_PRESETS
-	uint32_t returned_preset_type;
-	uint32_t returned_xia_high_order, returned_xia_low_order;
+	unsigned long returned_preset_type;
+	unsigned long returned_xia_high_order, returned_xia_low_order;
 #endif /* MXD_XIA_VERIFY_PRESETS */
 
 	mx_status = mxd_xia_dxp_get_pointers( mca, &xia_dxp_mca, fname );
@@ -2146,8 +2145,8 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_xia_dxp_default_get_mx_parameter()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
-	uint32_t low_limit, high_limit;
-	uint32_t i, j, roi_boundary;
+	unsigned long low_limit, high_limit;
+	unsigned long i, j, roi_boundary;
 	unsigned long roi[2];
 	char name[20];
 	mx_status_type mx_status;
@@ -2289,7 +2288,7 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 	static const char fname[] = "mxd_xia_dxp_default_set_mx_parameter()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
-	uint32_t i, low_limit, high_limit;
+	unsigned long i, low_limit, high_limit;
 	char name[20];
 	mx_status_type mx_status;
 
@@ -2355,8 +2354,8 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 			sprintf( name, "SCA%luLO", (unsigned long) i );
 
 			mx_status = (xia_dxp_mca->write_parameter)( mca,
-						name, mca->roi_array[i][0],
-						MXD_XIA_DXP_DEBUG );
+					name, mca->roi_array[i][0],
+					MXD_XIA_DXP_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2364,8 +2363,8 @@ mxd_xia_dxp_default_set_mx_parameter( MX_MCA *mca )
 			sprintf( name, "SCA%luHI", (unsigned long) i );
 
 			mx_status = (xia_dxp_mca->write_parameter)( mca,
-						name, mca->roi_array[i][1],
-						MXD_XIA_DXP_DEBUG );
+					name, mca->roi_array[i][1],
+					MXD_XIA_DXP_DEBUG );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2622,7 +2621,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_MCA *mca;
 	MX_XIA_DXP_MCA *xia_dxp_mca;
-	uint32_t parameter_value;
+	unsigned long parameter_value;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
@@ -2682,16 +2681,16 @@ mxd_xia_dxp_process_function( void *record_ptr,
 					= xia_dxp_mca->output_count_rate;
 
 			xia_dxp_mca->statistics[ MX_XIA_DXP_NUM_FAST_PEAKS ]
-						= xia_dxp_mca->num_fast_peaks;
+					= (double) xia_dxp_mca->num_fast_peaks;
 
 			xia_dxp_mca->statistics[ MX_XIA_DXP_NUM_EVENTS ]
-						= xia_dxp_mca->num_events;
+					= (double) xia_dxp_mca->num_events;
 
 			xia_dxp_mca->statistics[ MX_XIA_DXP_NUM_UNDERFLOWS ]
-						= xia_dxp_mca->num_underflows;
+					= (double) xia_dxp_mca->num_underflows;
 
 			xia_dxp_mca->statistics[ MX_XIA_DXP_NUM_OVERFLOWS ]
-						= xia_dxp_mca->num_overflows;
+					= (double) xia_dxp_mca->num_overflows;
 			break;
 		case MXLV_XIA_DXP_BASELINE_ARRAY:
 			MX_DEBUG(-2,
@@ -2782,7 +2781,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 
 			mx_status = (xia_dxp_mca->write_parameter)( mca,
 				xia_dxp_mca->parameter_name,
-				(uint32_t) xia_dxp_mca->parameter_value,
+				xia_dxp_mca->parameter_value,
 				MXD_XIA_DXP_DEBUG );
 
 			break;
@@ -2806,7 +2805,7 @@ mxd_xia_dxp_process_function( void *record_ptr,
 			    (xia_dxp_mca->write_parameter_to_all_channels)(
 				mca,
 				xia_dxp_mca->parameter_name,
-			(uint32_t) xia_dxp_mca->param_value_to_all_channels,
+				xia_dxp_mca->param_value_to_all_channels,
 				MXD_XIA_DXP_DEBUG );
 
 			break;

@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,7 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 
-	int num_cameras;
+	long num_cameras;
 } MX_SONY_VISCA;
 
 #define MXI_SONY_VISCA_STANDARD_FIELDS \
@@ -60,7 +60,7 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 
 MX_API mx_status_type
 mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			unsigned char *response,
 			size_t max_response_length,

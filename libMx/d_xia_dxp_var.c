@@ -109,7 +109,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_DXP_INPUT *xia_dxp_input;
 
-	uint32_t parameter_value;
+	unsigned long parameter_value;
 	unsigned long roi_number, mca_value;
 	double corrected_value;
 	int num_items;

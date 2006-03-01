@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -64,16 +64,16 @@ MX_API mx_status_type mxi_mardtb_command( MX_MARDTB *mardtb, char *command,
 				int debug_flag );
 
 MX_API mx_status_type mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
-							int *move_in_progress );
+						mx_bool_type *move_in_progress);
 
 MX_API mx_status_type mxi_mardtb_force_status_update( MX_MARDTB *mardtb );
 
 MX_API mx_status_type mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
-						int parameter_number,
+						long parameter_number,
 						unsigned long *parameter_value);
 
 MX_API mx_status_type mxi_mardtb_read_status_parameter( MX_MARDTB *mardtb,
-						int parameter_number,
+						long parameter_number,
 						unsigned long *parameter_value);
 
 extern MX_RECORD_FUNCTION_LIST mxi_mardtb_record_function_list;

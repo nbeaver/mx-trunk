@@ -14,6 +14,8 @@
  *
  */
 
+#define VME58_MOTOR_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,8 +29,6 @@
 #include "mx_vme.h"
 #include "i_vme58.h"
 #include "d_vme58.h"
-
-#define VME58_MOTOR_DEBUG	TRUE
 
 /* ============ Motor channels ============ */
 
@@ -230,7 +230,7 @@ mxd_vme58_finish_record_initialization( MX_RECORD *record )
 			vme58->record->name );
 	}
 
-	i = vme58_motor->axis_number - 1;
+	i = (int) vme58_motor->axis_number - 1;
 
 	if ( vme58->motor_array == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -509,7 +509,7 @@ mxd_vme58_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length <= 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -713,7 +713,7 @@ mxd_vme58_positive_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length <= 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -771,7 +771,7 @@ mxd_vme58_negative_limit_hit( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length <= 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

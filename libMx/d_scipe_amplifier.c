@@ -1160,7 +1160,7 @@ mxd_scipe_amplifier_set_parameter( MX_AMPLIFIER *amplifier )
 
 	switch( amplifier->parameter_type ) {
 	case MXLV_SCIPE_AMPLIFIER_BIAS_VOLTAGE:
-		bias_voltage_setting = mx_round( 1000.0 *
+		bias_voltage_setting = (int) mx_round( 1000.0 *
 				scipe_amplifier->bias_voltage );
 
 		if ( abs( bias_voltage_setting ) > 5000 ) {

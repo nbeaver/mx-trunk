@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -169,7 +169,7 @@ mxi_panasonic_kx_dp702_open( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			size_t command_length )
 {
@@ -215,7 +215,7 @@ mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 
 MX_EXPORT mx_status_type
 mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			size_t command_length,
 			unsigned char *response,
@@ -246,7 +246,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 
 	if ( kx_dp702->last_camera_number != camera_number ) {
 		local_command[0] = 0xef;
-		local_command[1] = camera_number;
+		local_command[1] = (unsigned char) camera_number;
 
 #if MXI_PANASONIC_KX_DP702_DEBUG
 		MX_DEBUG(-2,("%s: Switching to camera %d",

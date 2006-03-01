@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -640,7 +640,7 @@ mxi_vp9000_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 /* === Functions specific to this driver. === */
 
 MX_EXPORT mx_status_type
-mxi_vp9000_command( MX_VP9000 *vp9000, int controller_number,
+mxi_vp9000_command( MX_VP9000 *vp9000, long controller_number,
 		char *command, char *response, int response_buffer_length,
 		int debug_flag )
 {
@@ -726,7 +726,7 @@ mxi_vp9000_command( MX_VP9000 *vp9000, int controller_number,
 }
 
 MX_EXPORT mx_status_type
-mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
+mxi_vp9000_getline( MX_VP9000 *vp9000, long controller_number,
 		char *buffer, long buffer_length, int debug_flag )
 {
 	static const char fname[] = "mxi_vp9000_getline()";
@@ -814,7 +814,7 @@ mxi_vp9000_getline( MX_VP9000 *vp9000, int controller_number,
 }
 
 MX_EXPORT mx_status_type
-mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
+mxi_vp9000_putline( MX_VP9000 *vp9000, long controller_number,
 				char *buffer, int debug_flag )
 {
 	static const char fname[] = "mxi_vp9000_putline()";
@@ -910,7 +910,7 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, int controller_number,
 }
 
 MX_EXPORT mx_status_type
-mxi_vp9000_getc( MX_VP9000 *vp9000, int controller_number,
+mxi_vp9000_getc( MX_VP9000 *vp9000, long controller_number,
 			char *c, int debug_flag )
 {
 	MX_GENERIC *generic;
@@ -932,7 +932,7 @@ mxi_vp9000_getc( MX_VP9000 *vp9000, int controller_number,
 }
 
 MX_EXPORT mx_status_type
-mxi_vp9000_putc( MX_VP9000 *vp9000, int controller_number,
+mxi_vp9000_putc( MX_VP9000 *vp9000, long controller_number,
 			char c, int debug_flag )
 {
 	MX_GENERIC *generic;

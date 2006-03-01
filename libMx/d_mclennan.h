@@ -69,7 +69,7 @@ extern MX_MOTOR_FUNCTION_LIST mxd_mclennan_motor_function_list;
 /* Define some extra functions for the use of this driver. */
 
 MX_API mx_status_type mxd_mclennan_command( MX_MCLENNAN *mclennan,char *command,
-			char *response, int response_buffer_length,
+			char *response, long response_buffer_length,
 			int debug_flag );
 
 extern long mxd_mclennan_num_record_fields;

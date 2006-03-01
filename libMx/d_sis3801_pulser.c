@@ -273,7 +273,8 @@ mxd_sis3801_pulser_open( MX_RECORD *record )
 
 	/* Set the control input mode. */
 
-	control_register = ( sis3801_pulser->control_input_mode & 0x3 ) << 2;
+	control_register =
+	    (uint32_t) ( ( sis3801_pulser->control_input_mode & 0x3 ) << 2 );
 
 	mx_status = mx_vme_out32( sis3801_pulser->vme_record,
 				sis3801_pulser->crate_number,
@@ -643,7 +644,8 @@ mxd_sis3801_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		MX_DEBUG( 2,("%s: pulse_period = %g seconds",
 				fname, pulse_generator->pulse_period));
 
-		prescale_factor = mx_round( MX_SIS3801_10MHZ_INTERNAL_CLOCK
+		prescale_factor = (uint32_t)
+				mx_round( MX_SIS3801_10MHZ_INTERNAL_CLOCK
 					* pulse_generator->pulse_period );
 
 		if ( prescale_factor >=

@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -106,7 +106,7 @@ mxn_spec_server_open( MX_RECORD *record )
 	char *program_id, *ptr;
 	int i, c, program_id_is_a_port_number;
 	int port, first_port_number, last_port_number;
-	int spec_command_code;
+	long spec_command_code;
 	unsigned long process_id;
 	size_t hostname_length, program_id_length;
 	char client_id[ MXU_PROGRAM_NAME_LENGTH + 1 ];
@@ -285,7 +285,7 @@ mxn_spec_server_open( MX_RECORD *record )
 							SV_HELLO,
 							SV_STRING,
 							0, 0,
-							strlen(client_id) + 1,
+						(long) strlen(client_id) + 1,
 							"", client_id );
 
 			if ( mx_status.code != MXE_SUCCESS )

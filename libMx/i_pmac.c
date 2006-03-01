@@ -117,7 +117,7 @@ mxi_pmac_finish_record_initialization( MX_RECORD *record )
 
 	port_type_name = pmac->port_type_name;
 
-	length = strlen( port_type_name );
+	length = (int) strlen( port_type_name );
 
 	for ( i = 0; i < length; i++ ) {
 		if ( isupper( (int) (port_type_name[i]) ) ) {
@@ -486,7 +486,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		receive_response_length = sizeof(alt_response_buffer);
 	} else {
 		receive_response = response;
-		receive_response_length = response_buffer_length;
+		receive_response_length = (int) response_buffer_length;
 	}
 
 	mx_status = mxi_pmac_receive_response( pmac,
@@ -505,7 +505,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 	if ( receive_response[0] != MX_BELL ) {
 
 		if ( response != NULL ) {
-			length = strlen( response );
+			length = (int) strlen( response );
 
 			if ( response[length - 1] == MX_ACK ) {
 				response[length - 1] = '\0';
@@ -534,7 +534,7 @@ mxi_pmac_command( MX_PMAC *pmac, char *command,
 		 * error message.
 		 */
 
-		length = strlen( receive_response );
+		length = (int) strlen( receive_response );
 
 		if ( receive_response[ length - 1 ] == MX_CR ) {
 			receive_response[ length - 1 ] = '\0';

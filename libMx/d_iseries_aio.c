@@ -277,7 +277,7 @@ mxd_iseries_ain_finish_record_initialization( MX_RECORD *record )
 
 	iseries_ainput = (MX_ISERIES_AINPUT *) record->record_type_struct;
 
-	record->precision = iseries_ainput->default_precision;
+	record->precision = (int) iseries_ainput->default_precision;
 
 	iseries_ainput->command_prefix = iseries_ainput->command[0];
 
@@ -373,7 +373,7 @@ mxd_iseries_aout_finish_record_initialization( MX_RECORD *record )
 
 	iseries_aoutput = (MX_ISERIES_AOUTPUT *) record->record_type_struct;
 
-	record->precision = iseries_aoutput->default_precision;
+	record->precision = (int) iseries_aoutput->default_precision;
 
 	iseries_aoutput->command_prefix = iseries_aoutput->command[0];
 

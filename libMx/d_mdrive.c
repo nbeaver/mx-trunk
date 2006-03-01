@@ -212,19 +212,19 @@ mxd_mdrive_print_motor_structure( FILE *file, MX_RECORD *record )
 						mdrive->rs232_record->name);
 
 	fprintf(file, "  axis name             = %d\n", mdrive->axis_name);
-	fprintf(file, "  I/O setup             = %d",
+	fprintf(file, "  I/O setup             = %ld",
 						mdrive->io_setup[0]);
 
 	for ( i = 1; i <= 4; i++ ) {
-		fprintf(file, " %d", mdrive->io_setup[i]);
+		fprintf(file, " %ld", mdrive->io_setup[i]);
 	}
 	fprintf(file, "\n");
 
-	fprintf(file, "  negative limit switch = %d\n",
+	fprintf(file, "  negative limit switch = %ld\n",
 						mdrive->negative_limit_switch);
-	fprintf(file, "  positive limit switch = %d\n",
+	fprintf(file, "  positive limit switch = %ld\n",
 						mdrive->positive_limit_switch);
-	fprintf(file, "  home switch           = %d\n",
+	fprintf(file, "  home switch           = %ld\n",
 						mdrive->home_switch);
 
 	mx_status = mx_motor_get_position( record, &position );
@@ -295,7 +295,7 @@ mxd_mdrive_get_io_config( MX_MDRIVE *mdrive, int io_point_number )
 
 	i = io_point_number - 1;
 
-	num_items = sscanf( response, "%d", &(mdrive->io_setup[i]) );
+	num_items = sscanf( response, "%ld", &(mdrive->io_setup[i]) );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_UNPARSEABLE_STRING, fname,
@@ -843,7 +843,7 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 	num_chars_expected = 2;
 
 	if ( mdrive->negative_limit_switch != 0 ) {
-		sprintf( ptr, " I%d", mdrive->negative_limit_switch );
+		sprintf( ptr, " I%ld", mdrive->negative_limit_switch );
 
 		ptr = command + strlen(command);
 
@@ -851,7 +851,7 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 	}
 
 	if ( mdrive->positive_limit_switch != 0 ) {
-		sprintf( ptr, " I%d", mdrive->positive_limit_switch );
+		sprintf( ptr, " I%ld", mdrive->positive_limit_switch );
 
 		ptr = command + strlen(command);
 
@@ -859,7 +859,7 @@ mxd_mdrive_get_status( MX_MOTOR *motor )
 	}
 
 	if ( mdrive->home_switch != 0 ) {
-		sprintf( ptr, " I%d", mdrive->home_switch );
+		sprintf( ptr, " I%ld", mdrive->home_switch );
 
 		ptr = command + strlen(command);
 
@@ -959,9 +959,9 @@ mxd_mdrive_command( MX_MDRIVE *mdrive, char *command,
 		MX_DEBUG(-2, ("%s: command = '%s%s'", fname, prefix, command));
 	}
 
-	prefix_length = strlen( prefix );
+	prefix_length = (int) strlen( prefix );
 
-	command_length = prefix_length + strlen( command );
+	command_length = prefix_length + (int) strlen( command );
 
 #if 0
 	/* The MDrive always echoes the transmitted command line

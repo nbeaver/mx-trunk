@@ -537,7 +537,7 @@ mxi_newport_command( MX_NEWPORT *newport, char *command,
 
 	MX_GENERIC *generic;
 	unsigned long sleep_ms;
-	int i, j, max_attempts;
+	unsigned long i, j, max_attempts;
 	size_t prefix_length, response_length;
 	char local_error_buffer[250];
 	int local_error_buffer_length;

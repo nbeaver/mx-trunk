@@ -425,7 +425,6 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 	long num_dimensions, field_type;
 	unsigned long ulong_value;
 	long long_value;
-	int int_value;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -483,7 +482,7 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			mx_status = mx_amplifier_get_gain( record, value );
 			break;
 		case MXC_RELAY:
-			mx_status = mx_get_relay_status( record, &int_value );
+			mx_status = mx_get_relay_status( record, &long_value );
 			break;
 		default:
 			return mx_error( MXE_TYPE_MISMATCH, fname,

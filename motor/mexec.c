@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -132,7 +132,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 
 		/* Zap any trailing newline in the buffer. */
 
-		buffer_length = strlen( buffer );
+		buffer_length = (int) strlen( buffer );
 
 		if ( buffer_length > 0 ) {
 			if ( buffer[buffer_length - 1] == '\n' ) {
@@ -149,7 +149,7 @@ motor_exec_common( char *script_name, int verbose_flag )
 		 * First skip over any leading spaces or tabs.
 		 */
 
-		whitespace_length = strspn( buffer, " \t" );
+		whitespace_length = (int) strspn( buffer, " \t" );
 
 		if ( whitespace_length < buffer_length ) {
 			/* If the first non-whitespace character is

@@ -271,7 +271,8 @@ mxd_pdi45_ain_read( MX_ANALOG_INPUT *ainput )
 	MX_PDI45 *pdi45;
 	char command[80];
 	char response[80];
-	int num_items, hex_value;
+	int num_items;
+	long hex_value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -294,7 +295,7 @@ mxd_pdi45_ain_read( MX_ANALOG_INPUT *ainput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 3, "%2x", &hex_value );
+	num_items = sscanf( response + 3, "%2lx", &hex_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -360,7 +361,8 @@ mxd_pdi45_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	MX_PDI45 *pdi45;
 	char command[80];
 	char response[80];
-	int num_items, hex_value;
+	int num_items;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_aout_get_pointers( aoutput,
@@ -378,7 +380,7 @@ mxd_pdi45_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 2, "%2x", &hex_value );
+	num_items = sscanf( response + 2, "%2lx", &hex_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -400,7 +402,7 @@ mxd_pdi45_aout_write( MX_ANALOG_OUTPUT *aoutput )
 	MX_PDI45_AOUTPUT *pdi45_aoutput;
 	MX_PDI45 *pdi45;
 	char command[80];
-	int hex_value;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_aout_get_pointers( aoutput,
@@ -427,7 +429,7 @@ mxd_pdi45_aout_write( MX_ANALOG_OUTPUT *aoutput )
 			( 5.0 / 256.0 ) * (double) 0xff );
 	}
 
-	sprintf( command, "FFJ000%01X%03X",
+	sprintf( command, "FFJ000%01X%03lX",
 		1 << ( pdi45_aoutput->line_number ), hex_value );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );

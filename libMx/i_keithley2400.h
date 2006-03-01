@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,8 +22,8 @@ typedef struct {
 
 	MX_INTERFACE port_interface;
 
-	int last_source_type;
-	int last_measurement_type;
+	long last_source_type;
+	long last_measurement_type;
 } MX_KEITHLEY2400;
 
 /* 'measurement_type' values for the MX_KEITHLEY2400 structure. */
@@ -47,25 +47,25 @@ MX_API mx_status_type mxi_keithley2400_close( MX_RECORD *record );
 MX_API mx_status_type mxi_keithley2400_get_measurement_type(
 						MX_KEITHLEY2400 *keithley2400,
 						MX_INTERFACE *port_interface,
-						int *measurement_type,
+						long *measurement_type,
 						int debug_flag );
 
 MX_API mx_status_type mxi_keithley2400_set_measurement_type(
 						MX_KEITHLEY2400 *keithley2400,
 						MX_INTERFACE *port_interface,
-						int measurement_type,
+						long measurement_type,
 						int debug_flag );
 
 MX_API mx_status_type mxi_keithley2400_get_source_type(
 						MX_KEITHLEY2400 *keithley2400,
 						MX_INTERFACE *port_interface,
-						int *source_type,
+						long *source_type,
 						int debug_flag );
 
 MX_API mx_status_type mxi_keithley2400_set_source_type(
 						MX_KEITHLEY2400 *keithley2400,
 						MX_INTERFACE *port_interface,
-						int source_type,
+						long source_type,
 						int debug_flag );
 
 extern MX_RECORD_FUNCTION_LIST mxi_keithley2400_record_function_list;

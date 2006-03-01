@@ -475,7 +475,7 @@ mxi_xia_network_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t *value_ptr,
+			unsigned long *value_ptr,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_read_parameter()";
@@ -529,7 +529,7 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t value,
+			unsigned long value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_write_parameter()";
@@ -584,7 +584,7 @@ mxi_xia_network_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t value,
+			unsigned long value,
 			int debug_flag )
 {
 	static const char fname[] =

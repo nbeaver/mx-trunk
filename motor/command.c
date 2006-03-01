@@ -242,7 +242,7 @@ cmd_parse_command_line( int *argc, char *command_line )
 			}
 		}
 
-		ptr_diff = dest_ptr - buffer;
+		ptr_diff = (int) (dest_ptr - buffer);
 
 		if ( ptr_diff >= MAX_COMMAND_LENGTH ) {
 			if ( ptr_diff == MAX_COMMAND_LENGTH ) {
@@ -464,7 +464,7 @@ cmd_read_next_command_line( char *prompt )
 
 			/* Zap any trailing newline. */
 
-			length = strlen( buffer );
+			length = (int) strlen( buffer );
 
 			if ( buffer[ length-1 ] == '\n' ) {
 				buffer[ length-1 ] = '\0';

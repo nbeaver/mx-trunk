@@ -238,7 +238,7 @@ mxd_vsc16_scaler_open( MX_RECORD *record )
 	MX_SCALER *scaler;
 	MX_VSC16_SCALER *vsc16_scaler;
 	MX_VSC16 *vsc16;
-	int counter_number;
+	long counter_number;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -441,7 +441,7 @@ mxd_vsc16_scaler_start( MX_SCALER *scaler )
 	MX_RECORD *vme_record;
 	uint32_t preset;
 	unsigned long crate, base, preset_address;
-	int counter_index;
+	long counter_index;
 	mx_status_type mx_status;
 
 	mx_status = mxd_vsc16_scaler_get_pointers( scaler,
@@ -458,7 +458,7 @@ mxd_vsc16_scaler_start( MX_SCALER *scaler )
 
 	/* Set the scaler preset. */
 
-	preset = scaler->value;
+	preset = (uint32_t) scaler->value;
 
 	preset_address = base + MX_VSC16_PRESET_BASE + 4 * counter_index;
 

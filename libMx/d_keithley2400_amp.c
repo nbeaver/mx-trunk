@@ -176,7 +176,8 @@ mxd_keithley2400_amp_get_gain( MX_AMPLIFIER *amplifier )
 	MX_INTERFACE *interface;
 	char command[80];
 	char response[80];
-	int measurement_type, num_items;
+	int num_items;
+	long measurement_type;
 	double gain_value;
 	mx_status_type mx_status;
 
@@ -251,7 +252,7 @@ mxd_keithley2400_amp_set_gain( MX_AMPLIFIER *amplifier )
 	MX_KEITHLEY2400 *keithley2400;
 	MX_INTERFACE *interface;
 	char command[80];
-	int measurement_type;
+	long measurement_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2400_amp_get_pointers( amplifier,

@@ -278,7 +278,7 @@ mxi_aps_adcmod2_out16( MX_APS_ADCMOD2 *aps_adcmod2, unsigned long offset,
 }
 
 MX_EXPORT mx_status_type
-mxi_aps_adcmod2_command( MX_APS_ADCMOD2 *aps_adcmod2, int electrometer_number,
+mxi_aps_adcmod2_command( MX_APS_ADCMOD2 *aps_adcmod2, long electrometer_number,
 				uint16_t command, uint16_t value )
 {
 	static const char fname[] = "mxi_aps_adcmod2_command()";

@@ -757,7 +757,8 @@ mxd_remote_marccd_command( MX_CCD *ccd,
 	size_t num_bytes_left;
 	char *ptr;
 	char newline = '\n';
-	int saved_errno, num_bytes_written;
+	int saved_errno;
+	long num_bytes_written;
 	mx_status_type mx_status;
 
 	if ( remote_marccd == (MX_REMOTE_MARCCD *) NULL ) {
@@ -1072,7 +1073,8 @@ mxd_remote_marccd_handle_response( MX_CCD *ccd,
 
 	char response[100];
 	size_t length;
-	int i, num_bytes_read, num_items, saved_errno, marccd_state;
+	int i, num_items, saved_errno, marccd_state;
+	long num_bytes_read;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s: invoked.",fname));

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -37,7 +37,7 @@ mx_table_get_pointers( MX_RECORD *table_record,
 			MX_TABLE_FUNCTION_LIST **function_list_ptr,
 			const char *calling_fname )
 {
-	const char fname[] = "mx_table_get_pointers()";
+	static const char fname[] = "mx_table_get_pointers()";
 
 	if ( table_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -82,20 +82,20 @@ mx_table_get_pointers( MX_RECORD *table_record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_table_is_busy( MX_RECORD *table_record, int axis_id, int *busy )
+mx_table_is_busy( MX_RECORD *table_record, long axis_id, mx_bool_type *busy )
 {
-	const char fname[] = "mx_table_is_busy()";
+	static const char fname[] = "mx_table_is_busy()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->table_is_busy;
 
@@ -106,28 +106,30 @@ mx_table_is_busy( MX_RECORD *table_record, int axis_id, int *busy )
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	*busy = table->busy;
+	if ( busy != (mx_bool_type *) NULL ) {
+		*busy = table->busy;
+	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_table_soft_abort( MX_RECORD *table_record, int axis_id )
+mx_table_soft_abort( MX_RECORD *table_record, long axis_id )
 {
-	const char fname[] = "mx_table_soft_abort()";
+	static const char fname[] = "mx_table_soft_abort()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->soft_abort;
 
@@ -138,26 +140,26 @@ mx_table_soft_abort( MX_RECORD *table_record, int axis_id )
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_table_immediate_abort( MX_RECORD *table_record, int axis_id )
+mx_table_immediate_abort( MX_RECORD *table_record, long axis_id )
 {
-	const char fname[] = "mx_table_immediate_abort()";
+	static const char fname[] = "mx_table_immediate_abort()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE *);
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->immediate_abort;
 
@@ -168,27 +170,27 @@ mx_table_immediate_abort( MX_RECORD *table_record, int axis_id )
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_table_move_absolute( MX_RECORD *table_record,
-				int axis_id, double destination )
+				long axis_id, double destination )
 {
-	const char fname[] = "mx_table_move_absolute()";
+	static const char fname[] = "mx_table_move_absolute()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->move_absolute;
 
@@ -201,27 +203,27 @@ mx_table_move_absolute( MX_RECORD *table_record,
 
 	table->destination = destination;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_table_get_position( MX_RECORD *table_record,
-				int axis_id, double *position )
+				long axis_id, double *position )
 {
-	const char fname[] = "mx_table_get_position()";
+	static const char fname[] = "mx_table_get_position()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->get_position;
 
@@ -232,29 +234,31 @@ mx_table_get_position( MX_RECORD *table_record,
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	*position = table->position;
+	if ( position != (double *) NULL ) {
+		*position = table->position;
+	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_table_set_position( MX_RECORD *table_record,
-				int axis_id, double set_position )
+				long axis_id, double set_position )
 {
-	const char fname[] = "mx_table_set_position()";
+	static const char fname[] = "mx_table_set_position()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->set_position;
 
@@ -267,27 +271,27 @@ mx_table_set_position( MX_RECORD *table_record,
 
 	table->set_position = set_position;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_table_positive_limit_hit( MX_RECORD *table_record,
-				int axis_id, int *limit_hit )
+				long axis_id, mx_bool_type *limit_hit )
 {
-	const char fname[] = "mx_table_positive_limit_hit()";
+	static const char fname[] = "mx_table_positive_limit_hit()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->positive_limit_hit;
 
@@ -298,29 +302,31 @@ mx_table_positive_limit_hit( MX_RECORD *table_record,
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	*limit_hit = table->positive_limit_hit;
+	if ( limit_hit != (mx_bool_type *) NULL ) {
+		*limit_hit = table->positive_limit_hit;
+	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_table_negative_limit_hit( MX_RECORD *table_record,
-				int axis_id, int *limit_hit )
+				long axis_id, mx_bool_type *limit_hit )
 {
-	const char fname[] = "mx_table_negative_limit_hit()";
+	static const char fname[] = "mx_table_negative_limit_hit()";
 
 	MX_TABLE *table;
 	MX_TABLE_FUNCTION_LIST *fl_ptr;
 	mx_status_type ( *fptr ) ( MX_TABLE * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_table_get_pointers( table_record,
+	mx_status = mx_table_get_pointers( table_record,
 					&table, &fl_ptr, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fptr = fl_ptr->negative_limit_hit;
 
@@ -331,10 +337,12 @@ mx_table_negative_limit_hit( MX_RECORD *table_record,
 
 	table->axis_id = axis_id;
 
-	status = ( *fptr ) ( table );
+	mx_status = ( *fptr ) ( table );
 
-	*limit_hit = table->negative_limit_hit;
+	if ( limit_hit != (mx_bool_type *) NULL ) {
+		*limit_hit = table->negative_limit_hit;
+	}
 
-	return status;
+	return mx_status;
 }
 

@@ -71,7 +71,7 @@ mxd_pdi45_timer_get_pointers( MX_TIMER *timer,
 			MX_PDI45 **pdi45,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_pdi45_timer_get_pointers()";
+	static const char fname[] = "mxd_pdi45_timer_get_pointers()";
 
 	MX_PDI45_TIMER *pdi45_timer_ptr;
 	MX_RECORD *pdi45_record;
@@ -126,7 +126,7 @@ mxd_pdi45_timer_get_pointers( MX_TIMER *timer,
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi45_timer_create_record_structures()";
+	static const char fname[] = "mxd_pdi45_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_PDI45_TIMER *pdi45_timer;
@@ -181,7 +181,7 @@ mxd_pdi45_timer_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pdi45_timer_open()";
+	static const char fname[] = "mxd_pdi45_timer_open()";
 
 	MX_TIMER *timer;
 	MX_PDI45_TIMER *pdi45_timer;
@@ -243,13 +243,14 @@ mxd_pdi45_timer_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_pdi45_timer_is_busy()";
+	static const char fname[] = "mxd_pdi45_timer_is_busy()";
 
 	MX_PDI45_TIMER *pdi45_timer;
 	MX_PDI45 *pdi45;
 	char command[80];
 	char response[80];
-	int num_items, timer_on, hex_value;
+	int num_items, timer_on;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_timer_get_pointers( timer,
@@ -266,7 +267,7 @@ mxd_pdi45_timer_is_busy( MX_TIMER *timer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 1, "%1X%4X", &timer_on, &hex_value );
+	num_items = sscanf( response + 1, "%1X%4lX", &timer_on, &hex_value );
 
 	if ( num_items != 2 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -289,12 +290,12 @@ mxd_pdi45_timer_is_busy( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_pdi45_timer_start()";
+	static const char fname[] = "mxd_pdi45_timer_start()";
 
 	MX_PDI45_TIMER *pdi45_timer;
 	MX_PDI45 *pdi45;
 	char command[80];
-	int hex_value;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_timer_get_pointers( timer,
@@ -309,7 +310,7 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 
 	hex_value = mx_round( 100.0 * timer->value );
 
-	sprintf( command, "00*100%02X%04X",
+	sprintf( command, "00*100%02X%04lX",
 		1 << ( pdi45_timer->line_number ), hex_value );
 
 	mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );
@@ -338,7 +339,7 @@ mxd_pdi45_timer_start( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_pdi45_timer_stop()";
+	static const char fname[] = "mxd_pdi45_timer_stop()";
 
 	MX_PDI45_TIMER *pdi45_timer;
 	MX_PDI45 *pdi45;
@@ -391,7 +392,7 @@ mxd_pdi45_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_pdi45_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_pdi45_timer_set_mode()";
+	static const char fname[] = "mxd_pdi45_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
 		return mx_error( MXE_UNSUPPORTED, fname,

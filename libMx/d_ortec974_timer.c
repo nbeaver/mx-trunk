@@ -210,7 +210,8 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 	MX_ORTEC974_TIMER *ortec974_timer;
 	MX_ORTEC974 *ortec974;
 	char response[80];
-	int num_items, nap_milliseconds;
+	int num_items;
+	unsigned long nap_milliseconds;
 	long time1, time2;
 	mx_status_type status;
 

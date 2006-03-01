@@ -59,9 +59,9 @@ motor_get_int( FILE *file, char *prompt,
 			return FAILURE;
 		}
 
-		string_length = strlen( buffer );
+		string_length = (int) strlen( buffer );
 
-		whitespace_length = strspn( buffer, WHITESPACE );
+		whitespace_length = (int) strspn( buffer, WHITESPACE );
 
 		if ( whitespace_length >= string_length ) {
 			if ( have_default ) {
@@ -119,9 +119,9 @@ motor_get_long( FILE *file, char *prompt,
 			return FAILURE;
 		}
 
-		string_length = strlen( buffer );
+		string_length = (int) strlen( buffer );
 
-		whitespace_length = strspn( buffer, WHITESPACE );
+		whitespace_length = (int) strspn( buffer, WHITESPACE );
 
 		if ( whitespace_length >= string_length ) {
 			if ( have_default ) {
@@ -179,9 +179,9 @@ motor_get_double( FILE *file, char *prompt,
 			return FAILURE;
 		}
 
-		string_length = strlen( buffer );
+		string_length = (int) strlen( buffer );
 
-		whitespace_length = strspn( buffer, WHITESPACE );
+		whitespace_length = (int) strspn( buffer, WHITESPACE );
 
 		if ( whitespace_length >= string_length ) {
 			if ( have_default ) {
@@ -362,7 +362,7 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 				} else {
 					strlcpy( string, ptr, *string_length );
 				}
-				*string_length = strlen(string);
+				*string_length = (int) strlen(string);
 				input_accepted = TRUE;
 	
 				free(ptr);
@@ -383,14 +383,14 @@ motor_get_string( FILE *file, char *prompt, char *default_string,
 
 				string[ *string_length - 1 ] = '\0';
 
-				*string_length = strlen(string);
+				*string_length = (int) strlen(string);
 
 				/* Zap any trailing newline. */
 
 				if ( string[ *string_length - 1 ] == '\n' ) {
 					string[ *string_length - 1 ] = '\0';
 
-					*string_length = strlen(string);
+					*string_length = (int) strlen(string);
 				}
 			}
 		}
@@ -632,7 +632,7 @@ motor_get_string_from_list( FILE *file, char *prompt,
 		if ( status != SUCCESS )
 			return status;
 
-		length = strlen( selected_string );
+		length = (int) strlen( selected_string );
 
 		for ( i = 0; i < num_strings; i++ ) {
 			if ( length >= min_length_array[i] ) {
@@ -657,7 +657,7 @@ motor_get_string_from_list( FILE *file, char *prompt,
 		}
 	}
 
-	*string_length = strlen( selected_string );
+	*string_length = (int) strlen( selected_string );
 
 	return SUCCESS;
 }

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,12 +34,12 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int interface_subtype;
+	long interface_subtype;
 	MX_RECORD *rs232_record;
 	long num_controllers;
 	long *num_motors;
-	int active_controller;
-	int active_motor;
+	long active_controller;
+	long active_motor;
 
 	MX_RECORD *(*motor_array)[MX_MAX_VP9000_AXES];
 } MX_VP9000;
@@ -97,20 +97,20 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_vp9000_rfield_def_ptr;
 /* === Driver specific functions === */
 
 MX_API mx_status_type mxi_vp9000_command(
-	MX_VP9000 *vp9000_interface, int controller_number,
+	MX_VP9000 *vp9000_interface, long controller_number,
 	char *command, char *response, int response_buffer_length,
 	int debug_flag );
 MX_API mx_status_type mxi_vp9000_getline(
-			MX_VP9000 *vp9000_interface, int controller_number,
+			MX_VP9000 *vp9000_interface, long controller_number,
 			char *buffer, long buffer_size, int debug_flag );
 MX_API mx_status_type mxi_vp9000_putline(
-			MX_VP9000 *vp9000_interface, int controller_number,
+			MX_VP9000 *vp9000_interface, long controller_number,
 			char *buffer, int debug_flag );
 MX_API mx_status_type mxi_vp9000_getc(
-			MX_VP9000 *vp9000_interface, int controller_number,
+			MX_VP9000 *vp9000_interface, long controller_number,
 			char *c, int debug_flag );
 MX_API mx_status_type mxi_vp9000_putc(
-			MX_VP9000 *vp9000_interface, int controller_number,
+			MX_VP9000 *vp9000_interface, long controller_number,
 			char c, int debug_flag );
 
 #endif /* __I_VP9000_H__ */

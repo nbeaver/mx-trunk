@@ -63,7 +63,7 @@ static int  pr_last_crate_used = -1;
 
 static void
 pr_camac_crate_select( MX_RECORD *portio_record,
-				unsigned long base_address, int crate )
+				unsigned long base_address, long crate )
 {
 	uint8_t select_byte;
 
@@ -134,12 +134,12 @@ mxi_dsp6001_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_status )
+mxi_dsp6001_get_lam_status( MX_CAMAC *crate, long *lam_status )
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
-	int crate_number;
+	long crate_number;
 	uint8_t status;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
@@ -166,12 +166,12 @@ mxi_dsp6001_get_lam_status( MX_CAMAC *crate, int *lam_status )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
+mxi_dsp6001_controller_command(MX_CAMAC *crate, long command )
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
-	int crate_number;
+	long crate_number;
 	uint8_t command_byte;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
@@ -202,15 +202,16 @@ mxi_dsp6001_controller_command(MX_CAMAC *crate, int command )
 }
 
 MX_EXPORT mx_status_type
-mxi_dsp6001_camac( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, int32_t *data, int *Q, int *X)
+mxi_dsp6001_camac( MX_CAMAC *crate, long slot, long subaddress,
+		long function_code, int32_t *data, int *Q, int *X)
 {
 	MX_RECORD *portio_record;
 	MX_DSP6001 *dsp6001;
 	unsigned long base_address;
-	int crate_number, X_temp;
+	long crate_number;
 	uint8_t data_byte;
 	int32_t data_value;
+	int X_temp;
 
 	dsp6001 = (MX_DSP6001 *) crate->record->record_type_struct;
 

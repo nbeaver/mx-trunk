@@ -522,7 +522,8 @@ mxd_icplus_aout_open( MX_RECORD *record )
 		 * the primary QBPM record.
 		 */
 
-		aoutput->raw_value.double_value = icplus->default_averaging;
+		aoutput->raw_value.double_value =
+				(double) icplus->default_averaging;
 
 		aoutput->value = aoutput->offset + aoutput->scale
 					* aoutput->raw_value.double_value;

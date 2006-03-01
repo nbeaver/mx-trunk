@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,8 +24,8 @@ typedef struct {
 
 	MX_RECORD *rs232_record;
 
-	int num_cameras;
-	int last_camera_number;
+	long num_cameras;
+	long last_camera_number;
 } MX_PANASONIC_KX_DP702;
 
 #define MXI_PANASONIC_KX_DP702_STANDARD_FIELDS \
@@ -44,13 +44,13 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_panasonic_kx_dp702_rfield_def_ptr;
 
 MX_API mx_status_type
 mxi_panasonic_kx_dp702_cmd( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			size_t command_length );
 
 MX_API mx_status_type
 mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *panasonic_kx_dp702,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			size_t command_length,
 			unsigned char *response,

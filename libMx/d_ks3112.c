@@ -202,7 +202,8 @@ mxd_ks3112_open( MX_RECORD *record )
 	"MX_ANALOG_OUTPUT pointer for record '%s' is NULL.", record->name);
 	}
 
-	dac->value = dac->offset + dac->scale * dac->raw_value.long_value;
+	dac->value = dac->offset
+			+ dac->scale * (double) dac->raw_value.long_value;
 
 	mx_status = mxd_ks3112_write( dac );
 

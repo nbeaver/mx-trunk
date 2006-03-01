@@ -214,7 +214,7 @@ mxd_modbus_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_bits = modbus_dinput->num_bits;
+	num_bits = (int) modbus_dinput->num_bits;
 
 	if ( num_bits > 32 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -387,7 +387,7 @@ mxd_modbus_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_bits = modbus_doutput->num_bits;
+	num_bits = (int) modbus_doutput->num_bits;
 
 	if ( num_bits > 32 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,

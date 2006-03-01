@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -33,14 +33,16 @@ typedef struct {
 			      * to this motor.
 			      */
 
-	int axis_id;
+	long axis_id;
 
-	int busy;
-	int positive_limit_hit;
-	int negative_limit_hit;
+	mx_bool_type busy;
+	mx_bool_type positive_limit_hit;
+	mx_bool_type negative_limit_hit;
 
+#if 0
 	int position_test_result_flag;
 	int generate_position_test_error_message;
+#endif
 
 	/* The fields below refer to position values for the currently
 	 * selected axis id and _not_ to the table as a whole.
@@ -69,27 +71,27 @@ MX_API_PRIVATE mx_status_type mx_table_get_pointers( MX_RECORD *table_record,
 		const char *calling_fname );
 
 MX_API mx_status_type mx_table_is_busy( MX_RECORD *table_record,
-					int axis_id, int *busy );
+					long axis_id, mx_bool_type *busy );
 
 MX_API mx_status_type mx_table_soft_abort( MX_RECORD *table_record,
-						int axis_id );
+						long axis_id );
 
 MX_API mx_status_type mx_table_immediate_abort( MX_RECORD *table_record,
-						int axis_id );
+						long axis_id );
 
 MX_API mx_status_type mx_table_move_absolute( MX_RECORD *table_record,
-					int axis_id, double destination );
+					long axis_id, double destination );
 
 MX_API mx_status_type mx_table_get_position( MX_RECORD *table_record,
-					int axis_id, double *position );
+					long axis_id, double *position );
 
 MX_API mx_status_type mx_table_set_position( MX_RECORD *table_record,
-					int axis_id, double set_position );
+					long axis_id, double set_position );
 
 MX_API mx_status_type mx_table_positive_limit_hit( MX_RECORD *table_record,
-					int axis_id, int *limit_hit );
+					long axis_id, mx_bool_type *limit_hit );
 
 MX_API mx_status_type mx_table_negative_limit_hit( MX_RECORD *table_record,
-					int axis_id, int *limit_hit );
+					long axis_id, mx_bool_type *limit_hit );
 
 #endif /* __MX_TABLE_H__ */

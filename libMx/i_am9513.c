@@ -82,7 +82,7 @@ mxi_am9513_get_pointers( MX_RECORD *record,
 			MX_AM9513 **am9513,
 			const char *calling_fname )
 {
-	const char fname[] = "mxi_am9513_get_pointers()";
+	static const char fname[] = "mxi_am9513_get_pointers()";
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -109,9 +109,9 @@ mxi_am9513_get_pointers( MX_RECORD *record,
 /*=== Public functions ===*/
 
 MX_EXPORT uint8_t
-mxi_am9513_inp8( MX_AM9513 *am9513, int port_number )
+mxi_am9513_inp8( MX_AM9513 *am9513, long port_number )
 {
-	const char fname[] = "mxi_am9513_inp8()";
+	static const char fname[] = "mxi_am9513_inp8()";
 
 	uint8_t result;
 	unsigned long port_address;
@@ -138,9 +138,9 @@ mxi_am9513_inp8( MX_AM9513 *am9513, int port_number )
 }
 
 MX_EXPORT uint16_t
-mxi_am9513_inp16( MX_AM9513 *am9513, int port_number )
+mxi_am9513_inp16( MX_AM9513 *am9513, long port_number )
 {
-	const char fname[] = "mxi_am9513_inp16()";
+	static const char fname[] = "mxi_am9513_inp16()";
 
 	uint16_t result;
 	unsigned long port_address;
@@ -177,10 +177,10 @@ mxi_am9513_inp16( MX_AM9513 *am9513, int port_number )
 }
 
 MX_EXPORT void
-mxi_am9513_outp8( MX_AM9513 *am9513, int port_number,
+mxi_am9513_outp8( MX_AM9513 *am9513, long port_number,
 				uint8_t byte_value )
 {
-	const char fname[] = "mxi_am9513_outp8()";
+	static const char fname[] = "mxi_am9513_outp8()";
 
 	unsigned long port_address;
 
@@ -206,10 +206,10 @@ mxi_am9513_outp8( MX_AM9513 *am9513, int port_number,
 }
 
 MX_EXPORT void
-mxi_am9513_outp16( MX_AM9513 *am9513, int port_number,
+mxi_am9513_outp16( MX_AM9513 *am9513, long port_number,
 				uint16_t word_value )
 {
-	const char fname[] = "mxi_am9513_outp16()";
+	static const char fname[] = "mxi_am9513_outp16()";
 
 	unsigned long port_address;
 
@@ -256,7 +256,7 @@ mxi_am9513_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxi_am9513_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxi_am9513_create_record_structures()";
+	static const char fname[] = "mxi_am9513_create_record_structures()";
 
 	MX_GENERIC *generic;
 	MX_AM9513 *am9513;
@@ -323,7 +323,7 @@ mxi_am9513_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_am9513_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxi_am9513_print_structure()";
+	static const char fname[] = "mxi_am9513_print_structure()";
 
 	MX_AM9513 *am9513;
 	MX_RECORD *this_record;
@@ -390,7 +390,7 @@ mxi_am9513_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_am9513_open( MX_RECORD *record )
 {
-	const char fname[] = "mxi_am9513_open()";
+	static const char fname[] = "mxi_am9513_open()";
 
 	MX_AM9513 *am9513;
 	uint16_t master_mode_register;
@@ -502,7 +502,7 @@ mxi_am9513_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_am9513_close( MX_RECORD *record )
 {
-	const char fname[] = "mxi_am9513_close()";
+	static const char fname[] = "mxi_am9513_close()";
 
 	MX_AM9513 *am9513;
 	mx_status_type mx_status;
@@ -540,7 +540,7 @@ mxi_am9513_grab_counters( MX_RECORD *record,
 		long num_counters,
 		MX_INTERFACE *am9513_interface_array )
 {
-	const char fname[] = "mxi_am9513_grab_counters()";
+	static const char fname[] = "mxi_am9513_grab_counters()";
 
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
@@ -596,7 +596,7 @@ mxi_am9513_release_counters( MX_RECORD *record,
 		long num_counters,
 		MX_INTERFACE *am9513_interface_array )
 {
-	const char fname[] = "mxi_am9513_release_counters()";
+	static const char fname[] = "mxi_am9513_release_counters()";
 
 	MX_RECORD *this_record;
 	MX_AM9513 *this_am9513;
@@ -707,11 +707,11 @@ mxi_am9513_dump( MX_AM9513 *am9513, int do_inquire )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_get_counter_mode_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_get_counter_mode_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 1;
+	cmd = (uint8_t) counter + 1;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -722,11 +722,11 @@ mxi_am9513_get_counter_mode_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_set_counter_mode_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_set_counter_mode_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 1;
+	cmd = (uint8_t) counter + 1;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -737,11 +737,11 @@ mxi_am9513_set_counter_mode_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_get_load_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_get_load_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 9;
+	cmd = (uint8_t) counter + 9;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -752,11 +752,11 @@ mxi_am9513_get_load_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_set_load_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_set_load_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 9;
+	cmd = (uint8_t) counter + 9;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -767,7 +767,7 @@ mxi_am9513_set_load_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_load_counter_from_load_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_load_counter_from_load_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
@@ -779,7 +779,7 @@ mxi_am9513_load_counter_from_load_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_load_counter( MX_AM9513 *am9513, int counter )
+mxi_am9513_load_counter( MX_AM9513 *am9513, long counter )
 {
 	mx_status_type mx_status;
 
@@ -795,11 +795,11 @@ mxi_am9513_load_counter( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_get_hold_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_get_hold_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 0x11;
+	cmd = (uint8_t) counter + 0x11;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -810,11 +810,11 @@ mxi_am9513_get_hold_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_set_hold_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_set_hold_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 0x11;
+	cmd = (uint8_t) counter + 0x11;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -825,7 +825,7 @@ mxi_am9513_set_hold_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_save_counter_to_hold_register( MX_AM9513 *am9513, int counter )
+mxi_am9513_save_counter_to_hold_register( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
@@ -837,7 +837,7 @@ mxi_am9513_save_counter_to_hold_register( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_read_counter( MX_AM9513 *am9513, int counter )
+mxi_am9513_read_counter( MX_AM9513 *am9513, long counter )
 {
 	mx_status_type mx_status;
 
@@ -852,11 +852,11 @@ mxi_am9513_read_counter( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_set_tc( MX_AM9513 *am9513, int counter )
+mxi_am9513_set_tc( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 0xe9;
+	cmd = (uint8_t) counter + 0xe9;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -864,11 +864,11 @@ mxi_am9513_set_tc( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_clear_tc( MX_AM9513 *am9513, int counter )
+mxi_am9513_clear_tc( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
-	cmd = counter + 0xe1;
+	cmd = (uint8_t) counter + 0xe1;
 
 	mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, cmd );
 
@@ -876,7 +876,7 @@ mxi_am9513_clear_tc( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_arm_counter( MX_AM9513 *am9513, int counter )
+mxi_am9513_arm_counter( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 
@@ -888,7 +888,7 @@ mxi_am9513_arm_counter( MX_AM9513 *am9513, int counter )
 }
 
 MX_EXPORT mx_status_type
-mxi_am9513_disarm_counter( MX_AM9513 *am9513, int counter )
+mxi_am9513_disarm_counter( MX_AM9513 *am9513, long counter )
 {
 	uint8_t cmd;
 

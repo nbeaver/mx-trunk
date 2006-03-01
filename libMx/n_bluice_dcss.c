@@ -1187,7 +1187,8 @@ mxn_bluice_dcss_server_open( MX_RECORD *record )
 	char session_id[MXU_AUTHENTICATION_DATA_LENGTH+1];
 	char client_type_response[CLIENT_TYPE_RESPONSE_LENGTH+1];
 	char *display_name_ptr;
-	int i, num_retries, num_bytes_available, num_items, need_authentication;
+	int i, num_retries, num_items, need_authentication;
+	long num_bytes_available;
 	unsigned long wait_ms, flags;
 	long actual_data_length;
 	mx_status_type mx_status;

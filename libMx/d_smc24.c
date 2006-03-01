@@ -639,7 +639,7 @@ mxd_smc24_update_position( MX_MOTOR *motor )
 			software_encoder_position = 0;
 		} else {
 			software_encoder_position = (int32_t)
-				( motor->raw_position.stepper
+				( ((double) motor->raw_position.stepper)
 				  / smc24->motor_steps_per_encoder_tick );
 		}
 

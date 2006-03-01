@@ -286,7 +286,8 @@ mxi_sis3807_open( MX_RECORD *record )
 
 	for ( i = 0; i < sis3807->num_channels; i++ ) {
 
-		preset_register = sis3807->base_address + 0x40 + 0x4 * i;
+		preset_register =
+			(uint32_t) ( sis3807->base_address + 0x40 + 0x4 * i );
 
 		mx_status = mx_vme_out32( sis3807->vme_record,
 				sis3807->crate_number,
@@ -335,7 +336,7 @@ mxi_sis3807_open( MX_RECORD *record )
 					sis3807->crate_number,
 					sis3807->address_mode,
 			sis3807->base_address + MX_SIS3807_OUTPUT_INVERT_REG,
-					sis3807->output_invert_register );
+				(uint32_t) sis3807->output_invert_register );
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )

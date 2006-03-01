@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -384,7 +384,7 @@ mxd_pfcu_shutter_timer_set_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_pfcu_shutter_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
-		int mode;
+		long mode;
 
 		mode = timer->mode;
 		timer->mode = MXCM_PRESET_MODE;

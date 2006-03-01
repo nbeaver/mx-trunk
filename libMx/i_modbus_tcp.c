@@ -428,7 +428,7 @@ mxi_modbus_tcp_receive_response( MX_MODBUS *modbus )
 			modbus->response_buffer_length );
 #endif
 
-		length = modbus->response_buffer_length + 1;
+		length = (uint16_t) modbus->response_buffer_length + 1;
 	}
 
 	if ( (length < 1) || (length > (MXU_MODBUS_TCP_ADU_LENGTH+1)) ) {

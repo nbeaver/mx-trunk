@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -186,7 +186,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 	MX_INTERFACE *interface;
 	char command[80];
 	char response[160];
-	int i, j, max_channels, module_type, num_items, channel_type;
+	long i, j, max_channels, module_type, num_items, channel_type;
 	long dimension_array[2];
 	size_t size_array[2];
 	size_t length;
@@ -289,20 +289,20 @@ mxi_keithley2700_open( MX_RECORD *record )
 	 * channels in the Keithley2700.
 	 */
 
-	keithley2700->module_type = (int *) malloc( keithley2700->num_slots
-							* sizeof(int) );
+	keithley2700->module_type = (long *) malloc( keithley2700->num_slots
+							* sizeof(long) );
 	
-	if ( keithley2700->module_type == (int *) NULL ) {
+	if ( keithley2700->module_type == (long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %d element array "
 		"of Keithley 2700 'module_type' values for record '%s'.",
 			keithley2700->num_slots, record->name );
 	}
 
-	keithley2700->num_channels = (int *) malloc( keithley2700->num_slots
-							* sizeof(int) );
+	keithley2700->num_channels = (long *) malloc( keithley2700->num_slots
+							* sizeof(long) );
 	
-	if ( keithley2700->num_channels == (int *) NULL ) {
+	if ( keithley2700->num_channels == (long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %d element array "
 		"of Keithley 2700 'num_channels' values for record '%s'.",
@@ -326,7 +326,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 		if ( strncmp( ptr, "NONE", 4 ) == 0 ) {
 			module_type = MXT_KEITHLEY2700_INVALID;
 		} else {
-			num_items = sscanf( ptr, "%d", &module_type );
+			num_items = sscanf( ptr, "%ld", &module_type );
 
 			if ( num_items != 1 ) {
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
@@ -375,13 +375,13 @@ mxi_keithley2700_open( MX_RECORD *record )
 	dimension_array[0] = keithley2700->num_slots;
 	dimension_array[1] = max_channels;
 
-	size_array[0] = sizeof(int);
-	size_array[1] = sizeof(int *);
+	size_array[0] = sizeof(long);
+	size_array[1] = sizeof(long *);
 
-	keithley2700->channel_type = (int **)
+	keithley2700->channel_type = (long **)
 			mx_allocate_array( 2, dimension_array, size_array );
 
-	if ( keithley2700->channel_type == (int **) NULL ) {
+	if ( keithley2700->channel_type == (long **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %d by %d element array "
 		"of Keithley 2700 'channel_type's for record '%s'.",
@@ -392,7 +392,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 
 	for ( i = 0; i < keithley2700->num_slots; i++ ) {
 		for ( j = 0; j < keithley2700->num_channels[i]; j++ ) {
-			sprintf( command, "SENS:FUNC? (@%d%02d)", i+1, j+1 );
+			sprintf( command, "SENS:FUNC? (@%ld%02ld)", i+1, j+1 );
 
 			mx_status = mxi_keithley_command( record, interface,
 					command, response, sizeof(response),

@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -225,7 +225,7 @@ mxi_pdi45_open( MX_RECORD *record )
 
 			/* Are we in two step mode or four step mode? */
 
-			length = strlen( response );
+			length = (int) strlen( response );
 
 			switch( length ) {
 			case 13:
@@ -469,7 +469,7 @@ mxi_pdi45_checksum( MX_PDI45 *pdi45, char *command, char *checksum )
 {
 	int i, length, value;
 
-	length = strlen( command );
+	length = (int) strlen( command );
 
 	/* Add up the character values. */
 
@@ -505,7 +505,7 @@ mxi_pdi45_check_checksum( char *response )
 			response );
 	}
 
-	num_chars = strlen( response );
+	num_chars = (int) strlen( response );
 
 	if ( response[num_chars - 1] == '\r' ) {
 		response[num_chars - 1] = '\0';

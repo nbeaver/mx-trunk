@@ -273,7 +273,8 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[80];
 	char response[80];
 	char *ptr;
-	int num_items, channel_number;
+	int num_items;
+	long channel_number;
 	mx_status_type mx_status;
 
 	/* Supppress bogus GCC 4 uninitialized variable warnings. */
@@ -384,7 +385,8 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char command[80];
 	char response[80];
 	char *ptr;
-	int num_items, channel_number;
+	int num_items;
+	long channel_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_dout_get_pointers( doutput,
@@ -446,7 +448,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_PICOMOTOR_DOUTPUT *picomotor_doutput;
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[80];
-	int channel_number;
+	long channel_number;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_dout_get_pointers( doutput,
@@ -459,7 +461,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if (channel_number < 0) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Channel number %d used by digital output record '%s' is less than "
+	"Channel number %ld used by digital output record '%s' is less than "
 	"the minimum value of 0.", channel_number, doutput->record->name );
 	}
 
@@ -467,7 +469,7 @@ mxd_picomotor_dout_write( MX_DIGITAL_OUTPUT *doutput )
 		doutput->value = 1;
 	}
 
-	sprintf( command, "OUT %s %d=%lu",
+	sprintf( command, "OUT %s %ld=%lu",
 			picomotor_doutput->driver_name,
 			channel_number, doutput->value );
 

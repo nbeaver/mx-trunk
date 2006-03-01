@@ -219,13 +219,13 @@ mxd_stp100_motor_finish_record_initialization( MX_RECORD *record )
 	case -5:
 	case -6:
 	case -8:
-		if ( abs( stp100_motor->negative_limit_switch_pin )
-			== abs( stp100_motor->positive_limit_switch_pin ) )
+		if (abs( (int) stp100_motor->negative_limit_switch_pin )
+			== abs( (int) stp100_motor->positive_limit_switch_pin ))
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"The positive and negative limit switches "
 				"are assigned to the same pin number %d.",
-				abs( stp100_motor->negative_limit_switch_pin ));
+			abs( (int) stp100_motor->negative_limit_switch_pin ));
 		}
 		break;
 	case 0:

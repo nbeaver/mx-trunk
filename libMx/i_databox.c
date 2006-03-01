@@ -446,7 +446,7 @@ mxi_databox_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_databox_command( MX_DATABOX *databox,
-		char *command, char *response, size_t response_buffer_length,
+		char *command, char *response, int response_buffer_length,
 		int debug_flag )
 {
 	mx_status_type mx_status;

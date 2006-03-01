@@ -754,7 +754,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 	MX_SR570 *sr570;
 	char command[80];
 	int bias_voltage_setting, three_db_point_setting;
-	int mantissa, exponent, saved_integer;
+	int mantissa, exponent;
+	long saved_integer;
 	double saved_double;
 	mx_status_type mx_status;
 
@@ -772,7 +773,8 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 
 	switch( amplifier->parameter_type ) {
 	case MXLV_SR570_BIAS_VOLTAGE:
-		bias_voltage_setting = mx_round( 1000.0 * sr570->bias_voltage );
+		bias_voltage_setting = 
+			(int) mx_round( 1000.0 * sr570->bias_voltage );
 
 		if ( abs( bias_voltage_setting ) > 5000 ) {
 			saved_double = sr570->bias_voltage;

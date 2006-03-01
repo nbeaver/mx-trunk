@@ -24,7 +24,7 @@
 
 mx_status_type
 motor_move_report_function( int flags,
-				int num_motors,
+				long num_motors,
 				MX_RECORD **motor_record )
 {
 	const char fname[] = "motor_move_report_function()";

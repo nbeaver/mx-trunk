@@ -105,7 +105,7 @@ mxi_modbus_serial_rtu_get_pointers( MX_MODBUS *modbus,
 
 static void
 mxi_modbus_serial_rtu_compute_crc( uint8_t *message_ptr,
-				int data_length,
+				unsigned long data_length,
 				uint8_t *crc_low_byte,
 				uint8_t *crc_high_byte )
 {

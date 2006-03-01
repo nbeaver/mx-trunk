@@ -346,7 +346,7 @@ mxi_sony_visca_handle_error( MX_SONY_VISCA *sony_visca,
 
 MX_EXPORT mx_status_type
 mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
-			int camera_number,
+			long camera_number,
 			unsigned char *command,
 			unsigned char *response,
 			size_t max_response_length,
@@ -361,7 +361,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	char *command_ptr;
 	size_t num_response_bytes, bytes_read;
 	int num_command_body_bytes, more_message_to_read, exit_loop;
-	int encoded_camera_number, received_camera_number;
+	long encoded_camera_number, received_camera_number;
 	unsigned long i, num_bytes_available, wait_ms, max_attempts;
 	mx_status_type mx_status;
 
@@ -388,7 +388,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 	/* If requested, display the command to the user. */
 
 	snprintf( sent_visca_ascii, sizeof(sent_visca_ascii),
-			"%#x ", encoded_camera_number );
+			"%#lx ", encoded_camera_number );
 
 	for ( i = 0; i < num_command_body_bytes; i++ ) {
 		snprintf( hex_buffer, sizeof(hex_buffer),

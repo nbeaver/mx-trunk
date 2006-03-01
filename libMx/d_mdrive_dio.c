@@ -271,7 +271,7 @@ mxd_mdrive_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[80];
 	char response[80];
 	int num_items, port_status;
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -378,7 +378,7 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_MDRIVE_DOUTPUT *mdrive_doutput;
 	MX_MDRIVE *mdrive;
 	char command[80];
-	int port_number;
+	long port_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */

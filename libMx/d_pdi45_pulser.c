@@ -203,7 +203,8 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 	MX_PDI45 *pdi45;
 	char command[80];
 	char response[80];
-	int num_items, pulser_on, hex_value;
+	int num_items, pulser_on;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_pulser_get_pointers( pulse_generator,
@@ -220,7 +221,7 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 1, "%1X%4X", &pulser_on, &hex_value );
+	num_items = sscanf( response + 1, "%1X%4lX", &pulser_on, &hex_value );
 
 	if ( num_items != 2 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -299,7 +300,8 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	MX_PDI45 *pdi45;
 	char command[80];
 	char response[80];
-	int num_items, hex_value;
+	int num_items;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_pulser_get_pointers( pulse_generator,
@@ -326,7 +328,7 @@ mxd_pdi45_pulser_get_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		num_items = sscanf( response + 2, "%4X", &hex_value );
+		num_items = sscanf( response + 2, "%4lX", &hex_value );
 
 		if ( num_items != 1 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -354,7 +356,7 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	MX_PDI45_PULSER *pdi45_pulser;
 	MX_PDI45 *pdi45;
 	char command[80];
-	int hex_value;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_pulser_get_pointers( pulse_generator,
@@ -389,10 +391,10 @@ mxd_pdi45_pulser_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 		hex_value = mx_round( 3703703.7037
 				* pulse_generator->pulse_width );
 
-		MX_DEBUG(-2,("%s: pulse width hex_value = %#x",
+		MX_DEBUG(-2,("%s: pulse width hex_value = %#lx",
 			fname, hex_value));
 
-		sprintf( command, "00*100%02X%04X",
+		sprintf( command, "00*100%02X%04lX",
 			1 << ( pdi45_pulser->line_number ), hex_value );
 
 		mx_status = mxi_pdi45_command( pdi45, command, NULL, 0 );

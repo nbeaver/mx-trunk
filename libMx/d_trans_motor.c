@@ -839,7 +839,7 @@ mxd_trans_motor_constant_velocity_move( MX_MOTOR *motor )
 	MX_RECORD *child_motor_record;
 	MX_TRANSLATION_MOTOR *translation_motor;
 	long i, num_motors;
-	int direction;
+	long direction;
 	mx_status_type status;
 
 	status = mxd_trans_motor_get_pointers( motor,

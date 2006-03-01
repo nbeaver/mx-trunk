@@ -263,7 +263,8 @@ mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_PDI45_DINPUT *pdi45_dinput;
 	MX_PDI45 *pdi45;
 	char response[80];
-	int num_items, hex_value;
+	int num_items;
+	long hex_value;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -283,7 +284,7 @@ mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 3, "%2x", &hex_value );
+	num_items = sscanf( response + 3, "%2lx", &hex_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -362,7 +363,8 @@ mxd_pdi45_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	MX_PDI45_DOUTPUT *pdi45_doutput;
 	MX_PDI45 *pdi45;
 	char response[80];
-	int num_items, hex_value;
+	int num_items;
+	long hex_value;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pdi45_dout_get_pointers( doutput,
@@ -377,7 +379,7 @@ mxd_pdi45_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_items = sscanf( response + 3, "%2x", &hex_value );
+	num_items = sscanf( response + 3, "%2lx", &hex_value );
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

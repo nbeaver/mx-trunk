@@ -283,7 +283,8 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 	MX_MCS_SCALER *mcs_scaler;
 	MX_RECORD *scaler_mcs_record;
 	MX_MCS *scaler_mcs;
-	int i, j, valid_type, not_yet_recorded;
+	long i, j;
+	mx_bool_type valid_type, not_yet_recorded;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -328,10 +329,10 @@ mxd_scaler_function_mcs_open( MX_RECORD *record )
 			scaler_function_mcs->num_scalers );
 	}
 
-	scaler_function_mcs->scaler_index_array = (int *)
-	    malloc( scaler_function_mcs->num_scalers * sizeof(int) );
+	scaler_function_mcs->scaler_index_array = (long *)
+	    malloc( scaler_function_mcs->num_scalers * sizeof(long) );
 
-	if ( scaler_function_mcs->scaler_index_array == (int *) NULL ) {
+	if ( scaler_function_mcs->scaler_index_array == (long *) NULL ) {
 		mx_free( scaler_function_mcs->scaler_mcs_record_array );
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 "Ran out of memory trying to allocate an %ld element integer array.",
@@ -642,7 +643,7 @@ mxd_scaler_function_mcs_read_scaler( MX_MCS *mcs )
 	MX_MCS *scaler_mcs;
 	long i, j, long_value;
 	long *data_ptr;
-	int scaler_index;
+	long scaler_index;
 
 	long num_scalers;
 	MX_RECORD **scaler_record_array;

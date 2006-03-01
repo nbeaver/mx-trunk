@@ -367,7 +367,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	MX_RS232 *rs232;
 	char c, termchar, response_status;
 	char *termarray;
-	int i, num_terminator_chars, num_terminator_chars_seen;
+	long i, num_terminator_chars, num_terminator_chars_seen;
 	int no_status_char;
 	mx_status_type mx_status;
 

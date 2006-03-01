@@ -161,7 +161,7 @@ mxd_wago750_modbus_aout_read( MX_ANALOG_OUTPUT *aoutput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	num_bits = modbus_aoutput->num_bits;
+	num_bits = (int) modbus_aoutput->num_bits;
 
 	if ( num_bits > 32 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,

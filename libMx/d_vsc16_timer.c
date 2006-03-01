@@ -181,7 +181,7 @@ mxd_vsc16_timer_open( MX_RECORD *record )
 	MX_TIMER *timer;
 	MX_VSC16_TIMER *vsc16_timer;
 	MX_VSC16 *vsc16;
-	int counter_number;
+	long counter_number;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -260,7 +260,7 @@ mxd_vsc16_timer_start( MX_TIMER *timer )
 	MX_RECORD *vme_record;
 	uint32_t preset;
 	unsigned long crate, base, preset_address;
-	int counter_index;
+	long counter_index;
 	double seconds;
 	mx_status_type mx_status;
 
@@ -280,7 +280,7 @@ mxd_vsc16_timer_start( MX_TIMER *timer )
 
 	seconds = timer->value;
 
-	preset = mx_round( seconds * vsc16_timer->clock_frequency );
+	preset = (uint32_t) mx_round( seconds * vsc16_timer->clock_frequency );
 
 	preset_address = base + MX_VSC16_PRESET_BASE + 4 * counter_index;
 

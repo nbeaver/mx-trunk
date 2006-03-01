@@ -332,7 +332,8 @@ mxd_sis3801_open( MX_RECORD *record )
 
 	/* Set the control input mode. */
 
-	control_register = ( sis3801->control_input_mode & 0x3 ) << 2;
+	control_register =
+		(uint32_t) ( ( sis3801->control_input_mode & 0x3 ) << 2 );
 
 	mx_status = mx_vme_out32( sis3801->vme_record,
 				sis3801->crate_number,
@@ -520,8 +521,8 @@ mxd_sis3801_start( MX_MCS *mcs )
 
 			clock_frequency = mx_divide_safely( 1.0, pulse_period );
 
-			prescale_factor = mx_round( clock_frequency
-						* mcs->measurement_time );
+			prescale_factor = (uint32_t)
+			    mx_round( clock_frequency * mcs->measurement_time );
 #if MXD_SIS3801_DEBUG
 			MX_DEBUG(-2,
   ("%s: Using pulse generator, pulse_period = %g, clock = %g, prescale = %lu",
@@ -565,7 +566,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 			}
 			break;
 		default:
-			prescale_factor = mcs->external_prescale;
+			prescale_factor = (uint32_t) mcs->external_prescale;
 			break;
 		}
 
@@ -585,7 +586,8 @@ mxd_sis3801_start( MX_MCS *mcs )
 	} else {
 		/* Use internal clock. */
 
-		prescale_factor = mx_round( MX_SIS3801_10MHZ_INTERNAL_CLOCK
+		prescale_factor = (uint32_t)
+				mx_round( MX_SIS3801_10MHZ_INTERNAL_CLOCK
 					* mcs->measurement_time );
 
 #if MXD_SIS3801_DEBUG

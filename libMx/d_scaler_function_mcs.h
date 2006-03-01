@@ -27,7 +27,7 @@ typedef struct {
 
 	long num_scalers;
 	MX_RECORD **scaler_mcs_record_array;
-	int *scaler_index_array;
+	long *scaler_index_array;
 
 	long num_mcs;
 	MX_RECORD **mcs_record_array;

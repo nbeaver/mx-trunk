@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -92,10 +92,10 @@ MX_API mx_status_type mx_amplifier_set_time_constant(
 			MX_RECORD *amplifier_record, double time_constant );
 
 MX_API mx_status_type mx_amplifier_get_parameter( MX_RECORD *amplifier_record,
-							int parameter_type );
+							long parameter_type );
 
 MX_API mx_status_type mx_amplifier_set_parameter( MX_RECORD *amplifier_record,
-							int parameter_type );
+							long parameter_type );
 
 MX_API mx_status_type mx_amplifier_default_get_parameter_handler(
 						MX_AMPLIFIER *amplifier );

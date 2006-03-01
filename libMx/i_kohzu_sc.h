@@ -38,9 +38,9 @@ typedef struct {
 
 	MX_INTERFACE port_interface;
 
-	int num_axes;
-	int controller_type;
-	int firmware_version;
+	long num_axes;
+	long controller_type;
+	long firmware_version;
 
 	MX_RECORD *motor_array[MX_MAX_KOHZU_SC_AXES];
 
@@ -90,7 +90,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_kohzu_sc_rfield_def_ptr;
 
 MX_API mx_status_type mxi_kohzu_sc_command(
 		MX_KOHZU_SC *kohzu_sc, char *command,
-		char *response, size_t max_response_length,
+		char *response, int max_response_length,
 		int debug_flag );
 
 MX_API mx_status_type mxi_kohzu_sc_multiaxis_move(
@@ -101,7 +101,7 @@ MX_API mx_status_type mxi_kohzu_sc_multiaxis_move(
 MX_API mx_status_type mxi_kohzu_sc_select_token( char *response_buffer,
 					unsigned int token_number,
 					char *token_buffer,
-					size_t max_token_length );
+					int max_token_length );
 
 #endif /* __I_KOHZU_SC_H__ */
 

@@ -16,7 +16,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -636,7 +636,7 @@ mxd_xafswn_motor_find_home_position( MX_MOTOR *motor )
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	int direction;
+	long direction;
 	mx_status_type status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {

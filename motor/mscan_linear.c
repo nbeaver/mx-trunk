@@ -95,7 +95,7 @@ motor_setup_linear_scan_parameters(
 		return FAILURE;
 	}
 
-	default_precision = list_head_struct->default_precision;
+	default_precision = (int) list_head_struct->default_precision;
 
 	/* Get the scan type. */
 

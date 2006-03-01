@@ -540,7 +540,7 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 					saved_errno, strerror( saved_errno ) );
 			}
 
-			num_chars = read( tty->file_handle, &c_temp, 1 );
+			num_chars = (int) read( tty->file_handle, &c_temp, 1 );
 
 			result = fcntl( tty->file_handle, F_SETFL,
 					(long) saved_flags );
@@ -553,11 +553,11 @@ mxi_tty_getchar( MX_RS232 *rs232, char *c )
 					saved_errno, strerror( saved_errno ) );
 			}
 		} else {
-			num_chars = read( tty->file_handle, &c_temp, 1 );
+			num_chars = (int) read( tty->file_handle, &c_temp, 1 );
 		}
 	} else {
 
-		num_chars = read( tty->file_handle, &c_temp, 1 );
+		num_chars = (int) read( tty->file_handle, &c_temp, 1 );
 	}
 
 	/* === Mask the character to the appropriate number of bits. === */
@@ -610,7 +610,7 @@ mxi_tty_putchar( MX_RS232 *rs232, char c )
 			"Non-blocking TTY I/O not yet implemented.");
 	} else {
 
-		num_chars = write( tty->file_handle, &c, 1 );
+		num_chars = (int) write( tty->file_handle, &c, 1 );
 	}
 
 	if ( num_chars != 1 ) {

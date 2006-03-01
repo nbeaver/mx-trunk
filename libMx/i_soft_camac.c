@@ -122,7 +122,7 @@ mxi_scamac_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_get_lam_status( MX_CAMAC *crate, int *lam_n )
+mxi_scamac_get_lam_status( MX_CAMAC *crate, long *lam_n )
 {
 	*lam_n = 0;
 
@@ -130,14 +130,14 @@ mxi_scamac_get_lam_status( MX_CAMAC *crate, int *lam_n )
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_controller_command( MX_CAMAC *crate, int command )
+mxi_scamac_controller_command( MX_CAMAC *crate, long command )
 {
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
-		int function_code, int32_t *data, int *Q, int *X)
+mxi_scamac_camac( MX_CAMAC *crate, long slot, long subaddress,
+		long function_code, int32_t *data, int *Q, int *X)
 {
 	static const char fname[] = "mxi_scamac_camac()";
 
@@ -174,7 +174,7 @@ mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
 	if ( (scamac->logfile) != NULL ) {
 		if ( function_code >= 16 && function_code <= 23 ) {
 			fprintf(scamac->logfile,
-				"camac: %s, %d, %d, %d, %lu (0x%lx)\n",
+				"camac: %s, %ld, %ld, %ld, %lu (0x%lx)\n",
 				crate->record->name, slot, subaddress,
 				function_code, (unsigned long) *data,
 				(unsigned long) *data);
@@ -182,7 +182,7 @@ mxi_scamac_camac( MX_CAMAC *crate, int slot, int subaddress,
 			fflush(scamac->logfile);
 		} else {
 			fprintf(scamac->logfile,
-				"camac: %s, %d, %d, %d\n",
+				"camac: %s, %ld, %ld, %ld\n",
 				crate->record->name, slot, subaddress,
 				function_code);
 

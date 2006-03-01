@@ -383,13 +383,13 @@ mxd_mca_timer_set_mode( MX_TIMER *timer )
 	static const char fname[] = "mxd_mca_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
-		int mode;
+		long mode;
 
 		mode = timer->mode;
 		timer->mode = MXCM_PRESET_MODE;
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Timer mode %d is illegal for MCA timer '%s'",
+		"Timer mode %ld is illegal for MCA timer '%s'",
 			mode, timer->record->name );
 	}
 

@@ -182,7 +182,7 @@ mxd_kohzu_sc_finish_record_initialization( MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_KOHZU_SC *kohzu_sc;
 	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
-	int i;
+	long i;
 	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;

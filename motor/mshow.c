@@ -760,7 +760,7 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 
 				typename = driver->name;
 
-				length = strlen( typename );
+				length = (int) strlen( typename );
 
 				for ( i = 0; i < length; i++ ) {
 					c = (int) typename[i];
@@ -807,7 +807,8 @@ motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
 	char *data_ptr, *ptr, *ptr_i, *ptr_j;
 	char **ptr2;
 	void *array_ptr;
-	int i, j, status, loop_max, i_loop_max, j_loop_max;
+	int i, j, status;
+	long loop_max, i_loop_max, j_loop_max;
 
 	num_dimensions = field->num_dimensions;
 	dimension = field->dimension;

@@ -281,7 +281,7 @@ MX_EXPORT mx_status_type
 mxi_iseries_command( MX_ISERIES *iseries,
 			char command_prefix,
 			unsigned long command_index,
-			int num_command_bytes,
+			long num_command_bytes,
 			double command_value,
 			double *response_value,
 			int precision,
@@ -351,7 +351,7 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					iseries->bus_address,
 					command_prefix,
 					command_index,
-					2 * num_command_bytes,
+					2 * (int) num_command_bytes,
 					mx_round( command_value ) );
 				}
 			} else {
@@ -380,7 +380,7 @@ mxi_iseries_command( MX_ISERIES *iseries,
 					iseries->recognition_character,
 					command_prefix,
 					command_index,
-					2 * num_command_bytes,
+					2 * (int) num_command_bytes,
 					mx_round( command_value ) );
 				}
 			} else {

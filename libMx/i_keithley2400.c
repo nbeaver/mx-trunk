@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -333,7 +333,7 @@ mxi_keithley2400_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_keithley2400_get_measurement_type( MX_KEITHLEY2400 *keithley2400,
 					MX_INTERFACE *interface,
-					int *measurement_type,
+					long *measurement_type,
 					int debug_flag )
 {
 	static const char fname[] = "mxi_keithley2400_get_measurement_type()";
@@ -368,7 +368,7 @@ mxi_keithley2400_get_measurement_type( MX_KEITHLEY2400 *keithley2400,
 
 	keithley2400->last_measurement_type = measurement_type_value;
 
-	if ( measurement_type != (int *) NULL ) {
+	if ( measurement_type != (long *) NULL ) {
 		*measurement_type = measurement_type_value;
 	}
 
@@ -378,7 +378,7 @@ mxi_keithley2400_get_measurement_type( MX_KEITHLEY2400 *keithley2400,
 MX_EXPORT mx_status_type
 mxi_keithley2400_set_measurement_type( MX_KEITHLEY2400 *keithley2400,
 					MX_INTERFACE *interface,
-					int measurement_type,
+					long measurement_type,
 					int debug_flag )
 {
 	static const char fname[] = "mxi_keithley2400_set_measurement_type()";
@@ -417,7 +417,7 @@ mxi_keithley2400_set_measurement_type( MX_KEITHLEY2400 *keithley2400,
 MX_EXPORT mx_status_type
 mxi_keithley2400_get_source_type( MX_KEITHLEY2400 *keithley2400,
 					MX_INTERFACE *interface,
-					int *source_type,
+					long *source_type,
 					int debug_flag )
 {
 	static const char fname[] = "mxi_keithley2400_get_source_type()";
@@ -452,7 +452,7 @@ mxi_keithley2400_get_source_type( MX_KEITHLEY2400 *keithley2400,
 
 	keithley2400->last_source_type = source_type_value;
 
-	if ( source_type != (int *) NULL ) {
+	if ( source_type != (long *) NULL ) {
 		*source_type = source_type_value;
 	}
 
@@ -462,7 +462,7 @@ mxi_keithley2400_get_source_type( MX_KEITHLEY2400 *keithley2400,
 MX_EXPORT mx_status_type
 mxi_keithley2400_set_source_type( MX_KEITHLEY2400 *keithley2400,
 					MX_INTERFACE *interface,
-					int source_type,
+					long source_type,
 					int debug_flag )
 {
 	static const char fname[] = "mxi_keithley2400_set_source_type()";

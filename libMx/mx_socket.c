@@ -131,7 +131,7 @@ mx_gethostname( char *name, size_t maximum_length )
 
 MX_EXPORT mx_status_type
 mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
-		char *hostname, int port_number,
+		char *hostname, long port_number,
 		unsigned long socket_flags,
 		size_t buffer_size )
 {
@@ -259,7 +259,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 
 MX_EXPORT mx_status_type
 mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
-				int port_number,
+				long port_number,
 				unsigned long socket_flags,
 				size_t buffer_size )
 {

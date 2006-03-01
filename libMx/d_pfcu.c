@@ -110,7 +110,7 @@ mxd_pfcu_get_pointers( MX_RELAY *relay,
 MX_EXPORT mx_status_type
 mxd_pfcu_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_pfcu_create_record_structures()";
+        static const char fname[] = "mxd_pfcu_create_record_structures()";
 
         MX_RELAY *relay;
         MX_PFCU_RELAY *pfcu_relay;
@@ -146,7 +146,7 @@ mxd_pfcu_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pfcu_relay_command( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_pfcu_relay_command()";
+	static const char fname[] = "mxd_pfcu_relay_command()";
 
 	MX_PFCU_RELAY *pfcu_relay;
 	MX_PFCU *pfcu;
@@ -204,12 +204,12 @@ mxd_pfcu_relay_command( MX_RELAY *relay )
 MX_EXPORT mx_status_type
 mxd_pfcu_get_relay_status( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_pfcu_get_relay_status()";
+	static const char fname[] = "mxd_pfcu_get_relay_status()";
 
 	MX_PFCU_RELAY *pfcu_relay;
 	MX_PFCU *pfcu;
 	char response[40];
-	int i;
+	long i;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pfcu_get_pointers( relay, &pfcu_relay, &pfcu, fname );

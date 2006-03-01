@@ -108,7 +108,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxi_databox_rfield_def_ptr;
 
 MX_API mx_status_type mxi_databox_command(
 	MX_DATABOX *databox,
-	char *command, char *response, size_t response_buffer_length,
+	char *command, char *response, int response_buffer_length,
 	int debug_flag );
 
 MX_API mx_status_type mxi_databox_putline(

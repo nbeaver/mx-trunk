@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -54,7 +54,7 @@ MX_API mx_status_type mxi_iseries_open( MX_RECORD *record );
 MX_API mx_status_type mxi_iseries_command( MX_ISERIES *iseries,
 					char command_prefix,
 					unsigned long command_index,
-					int num_command_bytes,
+					long num_command_bytes,
 					double command_value,
 					double *response_value,
 					int precision,

@@ -108,8 +108,8 @@ typedef struct {
 	unsigned long max_discarded_words;
 	unsigned long delay_milliseconds;
 
-	int controller_initialized;
-	int home_search_in_progress;
+	mx_bool_type controller_initialized;
+	long home_search_in_progress;
 
 	MX_RECORD *motor_array[MX_PCSTEP_NUM_MOTORS];
 } MX_PCSTEP;

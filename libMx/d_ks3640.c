@@ -295,7 +295,7 @@ mxd_ks3640_get_overflow_status( MX_ENCODER *encoder )
 	MX_KS3640 *ks3640;
 	int32_t data, status_bits;
 	int32_t underflow_set_temp, overflow_set_temp;
-	int N, A;
+	long N, A;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 
@@ -365,7 +365,7 @@ mxd_ks3640_reset_overflow_status( MX_ENCODER *encoder )
 
 	MX_KS3640 *ks3640;
 	int32_t data;
-	int N, A;
+	long N, A;
 	int camac_Q, camac_X;
 	mx_status_type mx_status;
 

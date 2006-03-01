@@ -73,7 +73,8 @@ motor_ccd_fn( int argc, char *argv[] )
 	MX_CCD *ccd;
 	char *endptr;
 	double counting_time;
-	int status, x_size, y_size, destination;
+	int status, destination;
+	long x_size, y_size;
 	size_t length;
 	unsigned long ccd_status;
 	mx_status_type mx_status;
@@ -488,7 +489,7 @@ motor_ccd_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output,
-				"CCD '%s' frame size is %d by %d\n",
+				"CCD '%s' frame size is %ld by %ld\n",
 				ccd_record->name, x_size, y_size );
 		} else
 		if ( strncmp( "bin_size", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -509,7 +510,7 @@ motor_ccd_fn( int argc, char *argv[] )
 				return FAILURE;
 
 			fprintf( output,
-				"CCD '%s' bin size is %d by %d\n",
+				"CCD '%s' bin size is %ld by %ld\n",
 				ccd_record->name, x_size, y_size );
 		} else
 		if ( strncmp( "header", argv[4], strlen(argv[4]) ) == 0 ) {

@@ -892,7 +892,7 @@ mxd_pmac_cs_axis_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length < MX_PMAC_CS_NUM_STATUS_CHARACTERS ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

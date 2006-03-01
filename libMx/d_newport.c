@@ -573,7 +573,7 @@ mxd_newport_motor_is_busy( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length <= 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -898,7 +898,7 @@ mxd_newport_positive_limit_hit( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		length = strlen( response );
+		length = (int) strlen( response );
 
 		if ( length <= 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -1018,7 +1018,7 @@ mxd_newport_negative_limit_hit( MX_MOTOR *motor )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		length = strlen( response );
+		length = (int) strlen( response );
 
 		if ( length <= 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,

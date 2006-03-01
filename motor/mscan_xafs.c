@@ -127,7 +127,7 @@ motor_setup_xafs_scan_parameters(
 	scan_class = MXS_XAFS_SCAN;
 	scan_type = MXS_XAF_STANDARD;
 
-	string_length = strlen(record_description_buffer);
+	string_length = (int) strlen(record_description_buffer);
 
 	if ( input_devices_string != NULL ) {
 		strlcat( record_description_buffer,
@@ -169,14 +169,14 @@ motor_setup_xafs_scan_parameters(
 		if ( status != SUCCESS )
 			return status;
 
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 
 		ptr = record_description_buffer + string_length;
 
 		snprintf( ptr, record_description_buffer_length - string_length,
 			"%g preset_time ", scan_settling_time );
 
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 
 		if ( old_scan == NULL ) {
 			strlcpy( old_timer_name, "timer1",
@@ -230,7 +230,7 @@ motor_setup_xafs_scan_parameters(
 			return FAILURE;
 		}
 
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 
 		ptr = record_description_buffer + string_length;
 
@@ -290,7 +290,7 @@ motor_setup_xafs_scan_parameters(
 	num_regions = num_energy_regions + num_k_regions;
 	num_boundaries = num_regions + 1;
 
-	string_length = strlen(record_description_buffer);
+	string_length = (int) strlen(record_description_buffer);
 	ptr = record_description_buffer + string_length;
 
 	snprintf( ptr, record_description_buffer_length - string_length,
@@ -481,21 +481,21 @@ motor_setup_xafs_scan_parameters(
 	}
 
 	for ( i = 0; i < num_boundaries; i++ ) {
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
 		snprintf( ptr, record_description_buffer_length - string_length,
 			"%g ", region_boundary[i] );
 	}
 	for ( i = 0; i < num_regions; i++ ) {
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
 		snprintf( ptr, record_description_buffer_length - string_length,
 			"%g ", region_step_size[i] );
 	}
 	for ( i = 0; i < num_regions; i++ ) {
-		string_length = strlen(record_description_buffer);
+		string_length = (int) strlen(record_description_buffer);
 		ptr = record_description_buffer + string_length;
 
 		snprintf( ptr, record_description_buffer_length - string_length,

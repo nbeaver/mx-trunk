@@ -250,7 +250,7 @@ mx_amplifier_set_time_constant( MX_RECORD *amplifier_record,
 /*-----------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_amplifier_get_parameter( MX_RECORD *amplifier_record, int parameter_type )
+mx_amplifier_get_parameter( MX_RECORD *amplifier_record, long parameter_type )
 {
 	static const char fname[] = "mx_amplifier_get_parameter()";
 
@@ -281,7 +281,7 @@ mx_amplifier_get_parameter( MX_RECORD *amplifier_record, int parameter_type )
 }
 
 MX_EXPORT mx_status_type
-mx_amplifier_set_parameter( MX_RECORD *amplifier_record, int parameter_type )
+mx_amplifier_set_parameter( MX_RECORD *amplifier_record, long parameter_type )
 {
 	static const char fname[] = "mx_amplifier_set_parameter()";
 

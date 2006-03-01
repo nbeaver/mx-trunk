@@ -269,8 +269,7 @@ mxd_mclennan_din_read( MX_DIGITAL_INPUT *dinput )
 	MX_MCLENNAN *mclennan;
 	char response[80];
 	char input_char;
-	int offset;
-	long port_number;
+	long port_number, offset;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -390,7 +389,7 @@ mxd_mclennan_dout_write( MX_DIGITAL_OUTPUT *doutput )
 	MX_MCLENNAN_DOUTPUT *mclennan_doutput;
 	MX_MCLENNAN *mclennan;
 	char command[80];
-	int i, j, num_output_ports;
+	long i, j, num_output_ports;
 	long port_number;
 	mx_status_type mx_status;
 

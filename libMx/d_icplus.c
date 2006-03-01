@@ -417,7 +417,8 @@ mxd_icplus_get_gain( MX_AMPLIFIER *amplifier )
 	MX_ICPLUS *icplus;
 	char command[40];
 	char response[40];
-	int exponent, num_items;
+	int num_items;
+	long exponent;
 	mx_status_type mx_status;
 
 	if ( amplifier == ( MX_AMPLIFIER *) NULL ) {

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -140,7 +140,7 @@ mxd_keithley2700_amp_get_pointers( MX_AMPLIFIER *amplifier,
 		}
 	}
 
-	if ( keithley2700_ptr->channel_type == (int **) NULL ) {
+	if ( keithley2700_ptr->channel_type == (long **) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The channel_type array for Keithley 2700 '%s' "
 		"used by record '%s' has not been set up.",
@@ -294,7 +294,7 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 	char command[80];
 	char response[80];
 	int num_items, fast_mode;
-	int slot, channel, channel_type;
+	long slot, channel, channel_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2700_amp_get_pointers( amplifier,
@@ -325,7 +325,7 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 
 	switch( channel_type ) {
 	case MXT_KEITHLEY2700_DCV:
-		sprintf( command, "SENSE:VOLT:DC:RANG? (@%d%02d)",
+		sprintf( command, "SENSE:VOLT:DC:RANG? (@%ld%02ld)",
 						slot, channel );
 		break;
 	default:
@@ -362,7 +362,7 @@ mxd_keithley2700_amp_set_gain( MX_AMPLIFIER *amplifier )
 	MX_KEITHLEY2700 *keithley2700;
 	MX_INTERFACE *interface;
 	char command[80];
-	int slot, channel, channel_type;
+	long slot, channel, channel_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2700_amp_get_pointers( amplifier,
@@ -383,32 +383,32 @@ mxd_keithley2700_amp_set_gain( MX_AMPLIFIER *amplifier )
 
 	switch( channel_type ) {
 	case MXT_KEITHLEY2700_DCV:
-		sprintf( command, "SENSE:VOLT:DC:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:VOLT:DC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_ACV:
-		sprintf( command, "SENSE:VOLT:AC:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:VOLT:AC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_DCI:
-		sprintf( command, "SENSE:CURR:DC:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:CURR:DC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_ACI:
-		sprintf( command, "SENSE:CURR:AC:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:CURR:AC:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_OHMS_2:
-		sprintf( command, "SENSE:RES:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:RES:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	case MXT_KEITHLEY2700_OHMS_4:
-		sprintf( command, "SENSE:FRES:RANG %g, (@%d%02d)",
+		sprintf( command, "SENSE:FRES:RANG %g, (@%ld%02ld)",
 				amplifier->gain, slot, channel );
 		break;
 	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal channel type %d for Keithley 2700 amplifier '%s'.",
+		"Illegal channel type %ld for Keithley 2700 amplifier '%s'.",
 			channel_type, amplifier->record->name );
 	}
 

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,13 +51,13 @@ typedef struct {
 	MX_RECORD *rs232_record;
 	char axis_name;
 
-	int io_setup[ MXD_MDRIVE_NUM_IO_POINTS ];
+	long io_setup[ MXD_MDRIVE_NUM_IO_POINTS ];
 
-	int negative_limit_switch;
-	int positive_limit_switch;
-	int home_switch;
+	long negative_limit_switch;
+	long positive_limit_switch;
+	long home_switch;
 
-	int num_write_terminator_chars;
+	long num_write_terminator_chars;
 } MX_MDRIVE;
 
 /* Define all of the interface functions. */

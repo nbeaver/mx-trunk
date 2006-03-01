@@ -142,7 +142,7 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 	MX_PHIDGET_OLD_STEPPER_CONTROLLER *phidget_old_stepper_controller;
 	MX_RECORD *usb_record;
 	MX_USB_DEVICE *usb_device, *usb_bootloader_device;
-	int num_bytes_written;
+	int num_bytes_written, order_number;
 	mx_status_type mx_status;
 
 	/* Suppress bogus GCC 4 uninitialized variable warnings. */
@@ -163,6 +163,8 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 
 	phidget_old_stepper_controller->usb_device = NULL;
 
+	order_number = (int) phidget_old_stepper_controller->order_number;
+
 	/* See if the firmware has already been uploaded by checking for the
 	 * presence of the primary device (product ID 0x0046).
 	 */
@@ -170,7 +172,7 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 	mx_status = mx_usb_find_device_by_order( usb_record, &usb_device,
 				MX_PHIDGET_OLD_STEPPER_VENDOR_ID,
 				MX_PHIDGET_OLD_STEPPER_PRODUCT_ID,
-				phidget_old_stepper_controller->order_number,
+				order_number,
 				1, 0, 0, TRUE );
 
 	/* If we found the primary device, we are done now. */
@@ -204,7 +206,7 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 				&usb_bootloader_device,
 				MX_PHIDGET_OLD_STEPPER_VENDOR_ID,
 				MX_PHIDGET_OLD_STEPPER_BOOTLOADER_PRODUCT_ID,
-				phidget_old_stepper_controller->order_number,
+				order_number,
 				1, 0, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -249,10 +251,10 @@ mxi_phidget_old_stepper_open( MX_RECORD *record )
 	/* Now look for the primary device again. */
 
 	mx_status = mx_usb_find_device_by_order( usb_record, &usb_device,
-				MX_PHIDGET_OLD_STEPPER_VENDOR_ID,
-				MX_PHIDGET_OLD_STEPPER_PRODUCT_ID,
-				phidget_old_stepper_controller->order_number,
-				1, 0, 0, FALSE );
+			MX_PHIDGET_OLD_STEPPER_VENDOR_ID,
+			MX_PHIDGET_OLD_STEPPER_PRODUCT_ID,
+			order_number,
+			1, 0, 0, FALSE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

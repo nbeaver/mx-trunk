@@ -120,14 +120,14 @@ typedef struct {
 	double input_count_rate;
 	double output_count_rate;
 
-	uint32_t num_fast_peaks;
-	uint32_t num_events;
-	uint32_t num_underflows;
-	uint32_t num_overflows;
+	unsigned long num_fast_peaks;
+	unsigned long num_events;
+	unsigned long num_underflows;
+	unsigned long num_overflows;
 
-	uint32_t old_preset_type;
-	uint32_t old_preset_high_order;
-	uint32_t old_preset_low_order;
+	unsigned long old_preset_type;
+	unsigned long old_preset_high_order;
+	unsigned long old_preset_low_order;
 
 	mx_status_type (*is_busy)( MX_MCA *mca,
 					mx_bool_type *busy_flag,
@@ -135,17 +135,17 @@ typedef struct {
 
 	mx_status_type (*read_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					uint32_t *value_ptr,
+					unsigned long *value_ptr,
 					int debug_flag );
 
 	mx_status_type (*write_parameter)( MX_MCA *mca,
 					char *parameter_name,
-					uint32_t value,
+					unsigned long value,
 					int debug_flag );
 
 	mx_status_type (*write_parameter_to_all_channels)( MX_MCA *mca,
 					char *parameter_name,
-					uint32_t value,
+					unsigned long value,
 					int debug_flag );
 
 	mx_status_type (*start_run)( MX_MCA *mca,

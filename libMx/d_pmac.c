@@ -415,7 +415,7 @@ mxd_pmac_configure_position_registers( MX_PMAC *pmac,
 {
 	char command[40];
 	char *ptr;
-	int num;
+	long num;
 	size_t length, buffer_left;
 	mx_status_type mx_status;
 
@@ -434,10 +434,10 @@ mxd_pmac_configure_position_registers( MX_PMAC *pmac,
 
 	if ( pmac->pmac_type & MX_PMAC_TYPE_TURBO ) {
 		snprintf( ptr, buffer_left,
-			"M%d64->D:$%XC", num, 4 + 8 * num );
+			"M%ld64->D:$%lXC", num, 4 + 8 * num );
 	} else {
 		snprintf( ptr, buffer_left,
-			"M%d64->D:$%X", num, 192 * (num - 1) + 2067 );
+			"M%ld64->D:$%lX", num, 192 * (num - 1) + 2067 );
 	}
 
 	mx_status = mxi_pmac_command( pmac, command, NULL, 0, PMAC_DEBUG );
@@ -1029,7 +1029,7 @@ mxd_pmac_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	length = strlen( response );
+	length = (int) strlen( response );
 
 	if ( length < MX_PMAC_NUM_STATUS_CHARACTERS ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

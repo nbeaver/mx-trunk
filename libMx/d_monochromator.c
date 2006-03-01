@@ -687,7 +687,7 @@ mxd_monochromator_print_motor_structure( FILE *file, MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_MONOCHROMATOR *monochromator;
 	double position, move_deadband, speed;
-	int i, num_dependencies;
+	long i, num_dependencies;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {

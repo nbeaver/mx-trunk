@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -557,7 +557,7 @@ mxi_kohzu_sc_handle_error( MX_KOHZU_SC *kohzu_sc, char *response_buffer )
 
 MX_EXPORT mx_status_type
 mxi_kohzu_sc_command( MX_KOHZU_SC *kohzu_sc, char *command,
-		char *response, size_t max_response_length,
+		char *response, int max_response_length,
 		int debug_flag )
 {
 	static const char fname[] = "mxi_kohzu_sc_command()";
@@ -713,8 +713,7 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 	MX_MOTOR *motor;
 	MX_KOHZU_SC_MOTOR *kohzu_sc_motor;
 	double destination;
-	long target_position;
-	int axis;
+	long axis, target_position;
 	unsigned long i;
 	char command[MXU_KOHZU_SC_MAX_COMMAND_LENGTH+1];
 	char buffer[80];
@@ -782,7 +781,7 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 		MX_DEBUG(-2, ("%s: axis = %d, target_position = %ld",
 			fname, axis, target_position ));
 
-		sprintf( buffer, "%d/%ld/", axis, target_position );
+		sprintf( buffer, "%ld/%ld/", axis, target_position );
 
 		strcat( command, buffer );
 	}
@@ -807,7 +806,7 @@ MX_EXPORT mx_status_type
 mxi_kohzu_sc_select_token( char *response_buffer,
 				unsigned int token_number,
 				char *token_buffer,
-				size_t max_token_length )
+				int max_token_length )
 {
 	static const char fname[] = "mxi_kohzu_sc_select_token()";
 
@@ -850,9 +849,9 @@ mxi_kohzu_sc_select_token( char *response_buffer,
 	ptr_end = strchr( ptr, '\t' );
 
 	if ( ptr_end == (char *) NULL ) {
-		token_length = strlen( ptr );
+		token_length = (int) strlen( ptr );
 	} else {
-		token_length = ptr_end - ptr;
+		token_length = (int) (ptr_end - ptr);
 	}
 
 	MX_DEBUG( 2,("%s: ptr = %p, ptr_end = %p, token_length = %u",

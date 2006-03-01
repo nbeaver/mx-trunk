@@ -930,7 +930,7 @@ motor_expand_pathname( char *filename, int max_filename_length )
 		return FAILURE;
 	}
 
-	string_length = strlen( buffer );
+	string_length = (int) strlen( buffer );
 
 	if ( string_length + 1 >= (2 * MXU_FILENAME_LENGTH) ) {
 		fprintf( output,
@@ -957,8 +957,8 @@ motor_expand_pathname( char *filename, int max_filename_length )
 	}
 #endif
 
-	string_length = strlen( buffer );
-	filename_length = strlen( filename_ptr );
+	string_length   = (int) strlen( buffer );
+	filename_length = (int) strlen( filename_ptr );
 
 	if ( (string_length + filename_length) > 2 * MXU_FILENAME_LENGTH ) {
 		fprintf( output,

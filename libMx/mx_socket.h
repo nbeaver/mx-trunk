@@ -167,12 +167,12 @@ MX_API mx_status_type mx_gethostname( char *name, size_t maximum_length );
 
 MX_API mx_status_type mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 						char *hostname,
-						int port_number,
+						long port_number,
 						unsigned long socket_flags,
 						size_t buffer_size );
 
 MX_API mx_status_type mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
-						int port_number,
+						long port_number,
 						unsigned long socket_flags,
 						size_t buffer_size );
 

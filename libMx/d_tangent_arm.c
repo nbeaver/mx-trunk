@@ -171,7 +171,7 @@ mxd_tangent_arm_get_pointers( MX_MOTOR *motor,
 {
 	MX_TANGENT_ARM *tangent_arm_ptr;
 
-	const char fname[] = "mxd_tangent_arm_get_pointers()";
+	static const char fname[] = "mxd_tangent_arm_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -214,7 +214,7 @@ mxd_tangent_arm_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_tangent_arm_create_record_structures()";
+	static const char fname[] = "mxd_tangent_arm_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_TANGENT_ARM *tangent_arm;
@@ -293,7 +293,7 @@ mxd_tangent_arm_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_tangent_arm_print_motor_structure()";
+	static const char fname[] = "mxd_tangent_arm_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_TANGENT_ARM *tangent_arm;
@@ -397,7 +397,7 @@ mxd_tangent_arm_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_motor_is_busy()";
+	static const char fname[] = "mxd_tangent_arm_motor_is_busy()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -420,7 +420,7 @@ mxd_tangent_arm_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_move_absolute()";
+	static const char fname[] = "mxd_tangent_arm_move_absolute()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -466,7 +466,7 @@ mxd_tangent_arm_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_get_position()";
+	static const char fname[] = "mxd_tangent_arm_get_position()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -498,7 +498,7 @@ mxd_tangent_arm_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_set_position()";
+	static const char fname[] = "mxd_tangent_arm_set_position()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -603,7 +603,7 @@ mxd_tangent_arm_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_soft_abort()";
+	static const char fname[] = "mxd_tangent_arm_soft_abort()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -623,7 +623,7 @@ mxd_tangent_arm_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_immediate_abort()";
+	static const char fname[] = "mxd_tangent_arm_immediate_abort()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -643,7 +643,7 @@ mxd_tangent_arm_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_positive_limit_hit()";
+	static const char fname[] = "mxd_tangent_arm_positive_limit_hit()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -672,7 +672,7 @@ mxd_tangent_arm_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_negative_limit_hit()";
+	static const char fname[] = "mxd_tangent_arm_negative_limit_hit()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -701,11 +701,11 @@ mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_find_home_position()";
+	static const char fname[] = "mxd_tangent_arm_find_home_position()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
-	int direction;
+	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
@@ -728,11 +728,11 @@ mxd_tangent_arm_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_constant_velocity_move()";
+	static const char fname[] = "mxd_tangent_arm_constant_velocity_move()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
-	int direction;
+	long direction;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
@@ -755,7 +755,7 @@ mxd_tangent_arm_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_get_parameter()";
+	static const char fname[] = "mxd_tangent_arm_get_parameter()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -910,7 +910,7 @@ mxd_tangent_arm_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_tangent_arm_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_tangent_arm_set_parameter()";
+	static const char fname[] = "mxd_tangent_arm_set_parameter()";
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
@@ -984,7 +984,7 @@ mxd_tangent_arm_convert_angle_to_moving_motor_position( MX_MOTOR *motor,
 					double angle,
 					double *moving_motor_position )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_tangent_arm_convert_angle_to_moving_motor_position()";
 
 	double moving_motor_angle, moving_motor_ratio, angle_offset;
@@ -1039,7 +1039,7 @@ mxd_tangent_arm_convert_moving_motor_position_to_angle( MX_MOTOR *motor,
 					double moving_motor_position,
 					double *angle )
 {
-	const char fname[] = 
+	static const char fname[] = 
 		"mxd_tangent_arm_convert_moving_motor_position_to_angle()";
 
 	double moving_motor_angle;
@@ -1095,7 +1095,7 @@ mxd_tangent_arm_get_angle_offset_value(
 		MX_TANGENT_ARM *tangent_arm,
 		double *angle_offset_value )
 {
-	const char fname[] = "mxd_tangent_arm_get_angle_offset()";
+	static const char fname[] = "mxd_tangent_arm_get_angle_offset()";
 
 	MX_RECORD *angle_offset_record;
 	mx_status_type mx_status;
@@ -1161,7 +1161,7 @@ mxd_tangent_arm_set_angle_offset_value(
 		MX_TANGENT_ARM *tangent_arm,
 		double angle_offset_value )
 {
-	const char fname[] = "mxd_tangent_arm_set_angle_offset()";
+	static const char fname[] = "mxd_tangent_arm_set_angle_offset()";
 
 	MX_RECORD *angle_offset_record;
 	mx_status_type mx_status;

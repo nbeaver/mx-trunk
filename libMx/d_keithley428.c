@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define KEITHLEY428_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,8 +66,6 @@ long mxd_keithley428_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxd_keithley428_rfield_def_ptr
 			= &mxd_keithley428_record_field_defaults[0];
-
-#define KEITHLEY428_DEBUG	FALSE
 
 /* A private function for the use of the driver. */
 
@@ -441,7 +441,7 @@ mxd_keithley428_set_gain( MX_AMPLIFIER *amplifier )
 
 	exponent = log10( requested_gain );
 
-	gain_setting = mx_round( exponent );
+	gain_setting = (int) mx_round( exponent );
 
 	rounded_requested_gain = pow( 10.0, (double) gain_setting );
 

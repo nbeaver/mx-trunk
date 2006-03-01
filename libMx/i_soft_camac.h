@@ -23,11 +23,11 @@ MX_API mx_status_type mxi_scamac_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_scamac_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxi_scamac_get_lam_status( MX_CAMAC *crate, int *lam_n );
+MX_API mx_status_type mxi_scamac_get_lam_status( MX_CAMAC *crate, long *lam_n );
 MX_API mx_status_type mxi_scamac_controller_command( MX_CAMAC *crate,
-								int command );
+								long command );
 MX_API mx_status_type mxi_scamac_camac( MX_CAMAC *crate,
-		int slot, int subaddress, int function_code,
+		long slot, long subaddress, long function_code,
 		int32_t *data, int *Q, int *X );
 
 typedef struct {

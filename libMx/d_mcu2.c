@@ -854,7 +854,7 @@ mxd_mcu2_get_status( MX_MOTOR *motor )
 
 	ptr++;
 
-	status_length = strlen( ptr );
+	status_length = (int) strlen( ptr );
 
 	if ( status_length != 5 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,

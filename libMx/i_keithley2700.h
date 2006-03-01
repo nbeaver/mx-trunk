@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,11 +22,11 @@ typedef struct {
 
 	MX_INTERFACE port_interface;
 
-	int num_slots;
+	long num_slots;
 
-	int *module_type;
-	int *num_channels;
-	int **channel_type;
+	long *module_type;
+	long *num_channels;
+	long **channel_type;
 } MX_KEITHLEY2700;
 
 /* 'channel_type' values for the MX_KEITHLEY2700 structure. */

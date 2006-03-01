@@ -121,7 +121,7 @@ mxd_sercat_als_robot_relay_command( MX_SAMPLE_CHANGER *changer,
 
 	unsigned long i, max_attempts, wait_ms;
 	double timeout;
-	int relay_status;
+	long relay_status;
 	unsigned long total_delay;
 	mx_status_type mx_status;
 

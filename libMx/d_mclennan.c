@@ -1190,7 +1190,7 @@ static mx_status_type
 mxd_mclennan_parse_pm600_status( MX_MOTOR *motor,
 				MX_MCLENNAN *mclennan,
 				char *response,
-				size_t max_response_length )
+				long max_response_length )
 {
 	char *ptr;
 	int i, c, length;
@@ -1276,7 +1276,7 @@ mxd_mclennan_parse_pm600_status( MX_MOTOR *motor,
 		 * string to lower case.
 		 */
 
-		length = strlen(ptr);
+		length = (int) strlen(ptr);
 
 		for ( i = 0; i < length; i++ ) {
 			c = (int) ptr[i];
@@ -1482,15 +1482,15 @@ mxd_mclennan_get_status( MX_MOTOR *motor )
 
 MX_EXPORT mx_status_type
 mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
-		int response_buffer_length, int debug_flag )
+		long response_buffer_length, int debug_flag )
 {
 	static const char fname[] = "mxd_mclennan_command()";
 
 	char prefix[20], local_response_buffer[100];
 	char *ptr, *response_ptr;
 	int response_prefix, prefix_separator;
-	int buffer_length, prefix_length, chars_to_copy;
-	int command_length, response_length;
+	long buffer_length, prefix_length, chars_to_copy;
+	long command_length, response_length;
 	mx_status_type mx_status;
 
 	if ( mclennan == (MX_MCLENNAN *) NULL ) {
@@ -1511,9 +1511,9 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 					prefix, command));
 	}
 
-	prefix_length = strlen( prefix );
+	prefix_length = (int) strlen( prefix );
 
-	command_length = prefix_length + strlen( command );
+	command_length = prefix_length + (int) strlen( command );
 
 	mx_status = mx_rs232_write( mclennan->rs232_record,
 				prefix, prefix_length,
@@ -1557,7 +1557,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 
 	/* Delete any trailing line terminators. */
 
-	response_length = strlen( response_ptr );
+	response_length = (int) strlen( response_ptr );
 
 	if ( response_ptr[response_length - 1] == MX_LF ) {
 		response_ptr[ response_length - 1 ] = '\0';
@@ -1648,7 +1648,7 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 	 */
 
 	if ( response != NULL ) {
-		chars_to_copy = strlen( ptr );
+		chars_to_copy = (int) strlen( ptr );
 
 		if ( chars_to_copy > response_buffer_length - 1 ) {
 			chars_to_copy = response_buffer_length - 1;

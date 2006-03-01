@@ -213,7 +213,7 @@ motor_copy_scan_record( MX_RECORD *old_scan_record,
 	strlcpy( new_scan_description, old_scan_description,
 			sizeof(new_scan_description) );
 
-	new_scan_name_length = strlen( new_scan_name );
+	new_scan_name_length = (int) strlen( new_scan_name );
 
 	if ( new_scan_name_length > MXU_RECORD_NAME_LENGTH ) {
 		new_scan_name_length = MXU_RECORD_NAME_LENGTH;

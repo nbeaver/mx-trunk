@@ -516,8 +516,8 @@ mxd_panther_read_parms_from_hardware( MX_RECORD *record )
 		 * does not start with the letter 's'.
 		 */
 
-		length2 = strlen( response[2] );
-		length3 = strlen( response[3] );
+		length2 = (int) strlen( response[2] );
+		length3 = (int) strlen( response[3] );
 
 		if ( length2 > 0 && length3 > 0 && response[3][0] != 's' ) {
 
@@ -759,7 +759,8 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 	int i;
 	int num_items;
 	int update_encoder_resolution;
-	int old_encoder_resolution, limit_polarity;
+	int old_encoder_resolution;
+	long limit_polarity;
 	unsigned long num_input_bytes_available;
 	mx_status_type status;
 
@@ -919,7 +920,7 @@ mxd_panther_write_parms_to_hardware( MX_RECORD *record )
 		limit_polarity = 0;
 	}
 
-	sprintf( command, "l %d", limit_polarity );
+	sprintf( command, "l %ld", limit_polarity );
 
 	status = mxd_panther_putline( panther, command, TRUE, PANTHER_DEBUG );
 
@@ -1912,7 +1913,7 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 		raw_speed = mx_round( motor->raw_speed );
 
 		if ( ( raw_speed < MX_PANTHER_MOTOR_MINIMUM_SPEED )
-		  || ( raw_speed > motor->raw_maximum_speed ) )
+		  || ( ((double) raw_speed) > motor->raw_maximum_speed ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Requested raw speed of %ld steps/sec is outside "
@@ -1928,7 +1929,7 @@ mxd_panther_set_parameter( MX_MOTOR *motor )
 		raw_base_speed = mx_round( motor->raw_base_speed );
 
 		if ( ( raw_base_speed < MX_PANTHER_MOTOR_MINIMUM_SPEED )
-		  || ( raw_base_speed > motor->raw_speed ) )
+		  || ( ((double) raw_base_speed) > motor->raw_speed ) )
 		{
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"Requested raw base speed of %ld steps/sec is outside "

@@ -472,7 +472,7 @@ mxi_micro488ex_read( MX_GPIB *gpib,
 
 	MX_MICRO488EX *micro488ex;
 	int debug;
-	unsigned int micro488ex_flags;
+	unsigned long micro488ex_flags;
 	char command[20];
 	mx_status_type mx_status;
 

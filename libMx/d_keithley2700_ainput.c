@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -136,7 +136,7 @@ mxd_keithley2700_ainput_get_pointers( MX_ANALOG_INPUT *ainput,
 		}
 	}
 
-	if ( keithley2700_ptr->channel_type == (int **) NULL ) {
+	if ( keithley2700_ptr->channel_type == (long **) NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
 		"The channel_type array for Keithley 2700 '%s' "
 		"used by record '%s' has not been set up.",
@@ -288,7 +288,8 @@ mxd_keithley2700_ainput_read( MX_ANALOG_INPUT *ainput )
 	MX_INTERFACE *interface;
 	char command[80];
 	char response[80];
-	int num_items, slot, channel, channel_type;
+	int num_items;
+	long slot, channel, channel_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_keithley2700_ainput_get_pointers( ainput,
@@ -308,7 +309,7 @@ mxd_keithley2700_ainput_read( MX_ANALOG_INPUT *ainput )
 	 * selects the channel for reading.
 	 */
 
-	sprintf( command, "ROUT:CLOS (@%d%02d)", slot, channel );
+	sprintf( command, "ROUT:CLOS (@%ld%02ld)", slot, channel );
 
 	mx_status = mxi_keithley_command( ainput->record, interface, command,
 					NULL, 0, KEITHLEY2700_AINPUT_DEBUG );

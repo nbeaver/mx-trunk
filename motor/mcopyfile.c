@@ -66,13 +66,14 @@ motor_copy_file( char *source_filename, char *destination_filename )
 	}
 
 	for (;;) {
-		chars_read = fread( buffer, 1, sizeof buffer, source_file );
+		chars_read = (int) fread( buffer,
+					1, sizeof buffer, source_file );
 
 		if ( chars_read <= 0 ) {
 			break;		/* exit the for(;;) loop */
 		}
 
-		chars_written = fwrite( buffer,
+		chars_written = (int) fwrite( buffer,
 					1, chars_read, destination_file );
 
 		if ( chars_written <= 0 ) {

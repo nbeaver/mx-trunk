@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -199,7 +199,7 @@ mxi_spec_command_getline( MX_RS232 *rs232,
 		return mx_status;
 
 	mx_status = mx_spec_receive_response_line( spec_server->record,
-						buffer, max_bytes_to_read );
+					buffer, (long) max_bytes_to_read );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -254,7 +254,7 @@ mxi_spec_command_num_input_bytes_available( MX_RS232 *rs232 )
 
 	MX_SPEC_COMMAND *spec_command;
 	MX_SPEC_SERVER *spec_server;
-	int num_input_bytes_available;
+	long num_input_bytes_available;
 	mx_status_type mx_status;
 
 	mx_status = mxi_spec_command_get_pointers( rs232,

@@ -1087,7 +1087,7 @@ mxd_pm304_command( MX_PM304 *pm304, char *command, char *response,
 		MX_DEBUG(-2, ("%s: command = '%s%s'", fname, prefix, command));
 	}
 
-	prefix_length = strlen(prefix);
+	prefix_length = (int) strlen(prefix);
 
 #if PM304_DEBUG_TIMING
 	MX_HRT_RS232_START_COMMAND( command_timing, 1 + strlen(command) );
@@ -1170,7 +1170,7 @@ mxd_pm304_command( MX_PM304 *pm304, char *command, char *response,
 
 	/* Now strip off the prefix. */
 
-	body_length = strlen(response) - prefix_length - 1;
+	body_length = (int) strlen(response) - prefix_length - 1;
 
 	if ( body_length <= 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
