@@ -49,7 +49,7 @@ MX_API mx_status_type mxd_kohzu_sc_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_kohzu_sc_simultaneous_start( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
-						int flags );
+						unsigned long flags );
 MX_API mx_status_type mxd_kohzu_sc_get_status( MX_MOTOR *motor );
 
 MX_API mx_status_type mxd_kohzu_sc_enable_continuous_mode(

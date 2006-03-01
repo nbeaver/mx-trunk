@@ -295,7 +295,8 @@ mxd_slit_motor_move_absolute( MX_MOTOR *motor )
 	double new_positive_motor_position, old_positive_motor_position;
 	double new_position_array[2];
 	double slit_position_difference;
-	long slit_flags, move_flags;
+	long slit_flags;
+	int move_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_slit_motor_get_pointers( motor, &slit_motor,

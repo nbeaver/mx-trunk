@@ -245,7 +245,7 @@ extern int motor_setup_quick_scan_parameters( char *scan_name,
 				char *datafile_and_plot_parameters_string );
 
 extern mx_status_type motor_move_report_function(
-			int flags, long num_motors, MX_RECORD **motor_record );
+	unsigned long flags, long num_motors, MX_RECORD **motor_record );
 
 extern mx_status_type motor_copy_file( char *source_filename,
 			char *destination_filename );

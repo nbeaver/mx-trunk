@@ -1802,7 +1802,7 @@ MX_EXPORT mx_status_type
 mxd_compumotor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *position_array,
-				int flags )
+				unsigned long flags )
 {
 	static const char fname[] = "mxd_compumotor_simultaneous_start()";
 

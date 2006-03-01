@@ -338,7 +338,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, subclass), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "motor_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "motor_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, motor_flags), \
 	{0}, NULL, MXFF_NO_NEXT_EVENT_TIME_UPDATE}, \
   \
@@ -601,12 +601,13 @@ typedef struct {
 	mx_status_type ( *simultaneous_start )( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
-						int flags );
+						unsigned long flags );
 	mx_status_type ( *get_status )( MX_MOTOR *motor );
 	mx_status_type ( *get_extended_status )( MX_MOTOR *motor );
 } MX_MOTOR_FUNCTION_LIST;
 
-typedef mx_status_type (*MX_MOTOR_MOVE_REPORT_FUNCTION)(int, long, MX_RECORD **);
+typedef mx_status_type
+	(*MX_MOTOR_MOVE_REPORT_FUNCTION)(unsigned long, long, MX_RECORD **);
 
 /* ============== Public functions and symbols . ================= */
 
@@ -649,36 +650,36 @@ MX_API mx_status_type mx_motor_move_relative_with_report(
 			MX_RECORD *motor_record,
 			double relative_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			unsigned long flags);
 
 MX_API mx_status_type mx_motor_move_absolute_with_report(
 			MX_RECORD *motor_record,
 			double position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			unsigned long flags);
 
 MX_API mx_status_type mx_motor_array_move_absolute_with_report(
 			long num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags );
+			unsigned long flags );
 
 MX_API mx_status_type mx_motor_array_internal_move_with_report(
 			long num_motor_records,
 			MX_RECORD **motor_record_array,
 			double *position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags );
+			unsigned long flags );
 
 MX_API mx_status_type mx_wait_for_motor_stop(
 			MX_RECORD *motor_record,
-			int flags );
+			unsigned long flags );
 
 MX_API mx_status_type mx_wait_for_motor_array_stop(
 			long num_motor_records,
 			MX_RECORD **motor_record_array,
-			int flags );
+			unsigned long flags );
 
 MX_API mx_status_type mx_motor_internal_move_absolute( MX_RECORD *motor_record,
 							double destination );
@@ -848,13 +849,13 @@ MX_API mx_status_type mx_motor_move_relative_steps_with_report(
 			MX_RECORD *motor_record,
 			long motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			unsigned long flags);
 
 MX_API mx_status_type mx_motor_move_absolute_steps_with_report(
 			MX_RECORD *motor_record,
 			long motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			unsigned long flags);
 
 MX_API mx_status_type mx_motor_get_position_steps(
 				MX_RECORD *motor_record, long *motor_steps );
@@ -875,7 +876,7 @@ MX_API mx_status_type mx_motor_move_absolute_analog_with_report(
 			MX_RECORD *motor_record,
 			double motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags);
+			unsigned long flags);
 
 MX_API mx_status_type mx_motor_get_position_analog(
 				MX_RECORD *motor_record, double *position );

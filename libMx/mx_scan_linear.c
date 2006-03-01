@@ -50,7 +50,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		mx_status_type (*move_special_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *,
 					long, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long)
 		);
 
 /*=========*/
@@ -592,9 +593,10 @@ mxs_linear_scan_execute_scan_body( MX_SCAN *scan )
 	mx_status_type (*compute_motor_positions_fptr)
 					( MX_SCAN *, MX_LINEAR_SCAN * );
 	mx_status_type (*move_special_fptr)
-					(MX_SCAN *, MX_LINEAR_SCAN *,
+					( MX_SCAN *, MX_LINEAR_SCAN *,
 					long, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int);
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long );
 	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
@@ -656,9 +658,10 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		mx_status_type (*compute_motor_positions_fptr)
 					(MX_SCAN *, MX_LINEAR_SCAN *),
 		mx_status_type (*move_special_fptr)
-					(MX_SCAN *, MX_LINEAR_SCAN *,
+					( MX_SCAN *, MX_LINEAR_SCAN *,
 					long, MX_RECORD **, double *,
-					MX_MOTOR_MOVE_REPORT_FUNCTION, int)
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long )
 		)
 {
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";

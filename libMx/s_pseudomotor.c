@@ -180,7 +180,7 @@ mxs_pseudomotor_scan_motor_record_array_move_special(
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				int flags )
+				unsigned long flags )
 {
 	static const char fname[]
 		= "mxs_pseudomotor_scan_motor_record_array_move_special()";

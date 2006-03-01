@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2004 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -795,7 +795,8 @@ mxd_linear_function_move_absolute( MX_MOTOR *motor )
 	double *real_motor_scale, *real_motor_offset;
 	double *real_variable_scale, *real_variable_offset;
 	double *motor_move_fraction, *variable_move_fraction;
-	long i, num_motors, num_variables, linear_flags, move_flags;
+	int move_flags;
+	long i, num_motors, num_variables, linear_flags;
 	double new_pseudomotor_position, old_pseudomotor_position;
 	double pseudomotor_difference, motor_position_difference;
 	double variable_value_difference;

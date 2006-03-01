@@ -49,7 +49,7 @@ MX_API mx_status_type mxd_pmac_set_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_pmac_simultaneous_start( long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
-						int flags );
+						unsigned long flags );
 MX_API mx_status_type mxd_pmac_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_record_function_list;

@@ -438,7 +438,8 @@ mxd_trans_motor_move_absolute( MX_MOTOR *motor )
 	MX_RECORD **motor_record_array;
 	MX_RECORD *child_motor_record;
 	double *position_array;
-	long i, num_motors, trans_flags, move_flags;
+	long i, num_motors, trans_flags;
+	int move_flags;
 	double new_translation_position;
 	double old_translation_position;
 	double translation_position_difference;

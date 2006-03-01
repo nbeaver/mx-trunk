@@ -49,7 +49,7 @@ typedef struct {
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				int flags );
+				unsigned long flags );
 } MX_LINEAR_SCAN_FUNCTION_LIST;
 
 MX_API_PRIVATE mx_status_type mxs_linear_scan_initialize_type( long );

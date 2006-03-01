@@ -59,7 +59,7 @@ MX_API mx_status_type mxd_pmac_cs_axis_simultaneous_start(
 						long num_motor_records,
 						MX_RECORD **motor_record_array,
 						double *position_array,
-						int flags );
+						unsigned long flags );
 MX_API mx_status_type mxd_pmac_cs_axis_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_pmac_cs_axis_record_function_list;

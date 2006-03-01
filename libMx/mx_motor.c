@@ -377,7 +377,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_relative_with_report(MX_RECORD *motor_record,
 			double relative_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			unsigned long flags)
 {
 	double current_position, new_position;
 	mx_status_type status;
@@ -399,7 +399,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_with_report(MX_RECORD *motor_record,
 			double destination,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			unsigned long flags)
 {
 	static const char fname[] = "mx_motor_move_absolute_with_report()";
 
@@ -448,14 +448,15 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags )
+			unsigned long flags )
 {
 	static const char fname[] =
 			"mx_motor_array_move_absolute_with_report()";
 
 	MX_MOTOR *motor;
-	int i, modified_flags, result_flag;
-	int do_backlash, individual_backlash_needed;
+	unsigned long modified_flags;
+	long i;
+	int do_backlash, individual_backlash_needed, result_flag;
 	double backlash, backlash_position;
 	double present_position, relative_motion;
 	mx_status_type status;
@@ -579,7 +580,7 @@ mx_motor_array_internal_move_with_report( long num_motors,
 			MX_RECORD **motor_record_array,
 			double *motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags )
+			unsigned long flags )
 {
 	static const char fname[]
 		= "mx_motor_array_internal_move_with_report()";
@@ -587,10 +588,9 @@ mx_motor_array_internal_move_with_report( long num_motors,
 	MX_RECORD *first_motor_record;
 	MX_MOTOR_FUNCTION_LIST *flist;
 	mx_status_type (*simultaneous_start_fn)(
-					long, MX_RECORD **, double *, int );
+				long, MX_RECORD **, double *, unsigned long );
 	mx_status_type status;
-	int move_report_flag, modified_flags;
-	int wait_flag;
+	unsigned long move_report_flag, modified_flags, wait_flag;
 	int i, j;
 
 	MX_DEBUG( 2,
@@ -699,7 +699,7 @@ mx_motor_array_internal_move_with_report( long num_motors,
 }
 
 MX_EXPORT mx_status_type
-mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
+mx_wait_for_motor_stop( MX_RECORD *motor_record, unsigned long flags )
 {
 	static const char fname[] = "mx_wait_for_motor_stop()";
 
@@ -851,7 +851,7 @@ mx_wait_for_motor_stop( MX_RECORD *motor_record, int flags )
 MX_EXPORT mx_status_type
 mx_wait_for_motor_array_stop( long num_motor_records,
 			MX_RECORD **motor_record_array,
-			int flags )
+			unsigned long flags )
 {
 	static const char fname[] = "mx_wait_for_motor_array_stop()";
 
@@ -4006,7 +4006,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_relative_steps_with_report(MX_RECORD *motor_record,
 			long relative_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			unsigned long flags)
 {
 	long current_position, new_position;
 	mx_status_type status;
@@ -4028,7 +4028,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 			long motor_steps,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			unsigned long flags)
 {
 	static const char fname[]
 			= "mx_motor_move_absolute_steps_with_report()";
@@ -4389,7 +4389,7 @@ MX_EXPORT mx_status_type
 mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			double motor_position,
 			MX_MOTOR_MOVE_REPORT_FUNCTION move_report_fn,
-			int flags)
+			unsigned long flags)
 {
 	static const char fname[]
 		= "mx_motor_move_absolute_analog_with_report()";

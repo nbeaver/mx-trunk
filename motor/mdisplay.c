@@ -23,11 +23,11 @@
 #define MAX_MOTORS	10
 
 mx_status_type
-motor_move_report_function( int flags,
+motor_move_report_function( unsigned long flags,
 				long num_motors,
 				MX_RECORD **motor_record )
 {
-	const char fname[] = "motor_move_report_function()";
+	static const char fname[] = "motor_move_report_function()";
 
 	MX_MOTOR *motor;
 	unsigned long *motor_status;

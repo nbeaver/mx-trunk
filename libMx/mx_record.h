@@ -258,7 +258,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \
-  {-1, -1, "record_processing_flags", MXFT_ULONG, NULL, 0, {0}, \
+  {-1, -1, "record_processing_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, record_processing_flags), \
 	{0}, NULL, (MXFF_READ_ONLY | MXFF_NO_NEXT_EVENT_TIME_UPDATE) }, \
   \

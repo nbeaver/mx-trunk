@@ -44,7 +44,7 @@ MX_API mx_status_type mxs_slit_scan_motor_record_array_move_special(
 				MX_RECORD **motor_record_array,
 				double *position,
 				MX_MOTOR_MOVE_REPORT_FUNCTION fptr,
-				int flags );
+				unsigned long flags );
 
 MX_API mx_status_type mxs_slit_scan_prepare_for_scan_start( MX_SCAN *scan );
 

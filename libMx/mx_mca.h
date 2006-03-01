@@ -40,7 +40,7 @@ typedef struct {
 
 	double start_with_preset[2];
 
-	long mca_flags;
+	unsigned long mca_flags;
 
 	long maximum_num_rois;
 	long current_num_rois;
@@ -183,7 +183,7 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, start_with_preset), \
 	{sizeof(double)}, NULL, 0}, \
   \
-  {-1, -1, "mca_flags", MXFT_LONG, NULL, 0, {0}, \
+  {-1, -1, "mca_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MCA, mca_flags), \
 	{0}, NULL, 0}, \
   \
