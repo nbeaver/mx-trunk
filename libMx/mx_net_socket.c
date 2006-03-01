@@ -89,7 +89,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	 */
 
 	for ( i = 0; i < MX_NETWORK_HEADER_LENGTH_VALUE; i++ ) {
-		header[i] = htonl( 0L );
+		header[i] = mx_htonl( 0L );
 	}
 
 	/* If requested, compute the timeout time for this message. */
@@ -209,9 +209,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		}
 	}
 
-	magic_value    = ntohl( header[ MX_NETWORK_MAGIC ] );
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	magic_value    = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 
 #if 0
 	MX_DEBUG(-2,("%s: magic_value    = %#lx", fname, magic_value));
@@ -365,9 +365,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	header = buffer;
 	ptr = buffer;
 
-	magic_value    = ntohl( header[ MX_NETWORK_MAGIC ] );
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	magic_value    = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 
 #if 0
 	MX_DEBUG(-2,("%s: magic_value    = %#lx", fname, magic_value));
@@ -375,9 +375,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
 
 	MX_DEBUG(-2,("%s: message type   = %ld", fname, 
-				ntohl( header[MX_NETWORK_MESSAGE_TYPE] ) ));
+				mx_ntohl( header[MX_NETWORK_MESSAGE_TYPE] ) ));
 	MX_DEBUG(-2,("%s: status code    = %ld", fname,
-				ntohl( header[MX_NETWORK_STATUS_CODE] ) ));
+				mx_ntohl( header[MX_NETWORK_STATUS_CODE] ) ));
 #endif
 
 	bytes_left = header_length + message_length;
@@ -556,18 +556,15 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	strcpy( message, error_message.message );
 
-	header[ MX_NETWORK_MAGIC ] = (uint32_t) htonl( MX_NETWORK_MAGIC_VALUE );
+	header[ MX_NETWORK_MAGIC ] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
-	header[ MX_NETWORK_HEADER_LENGTH ] = (uint32_t) htonl( header_length );
+	header[ MX_NETWORK_HEADER_LENGTH ] = mx_htonl( header_length );
 
-	header[ MX_NETWORK_MESSAGE_LENGTH ] = (uint32_t)
-					htonl( message_length );
+	header[ MX_NETWORK_MESSAGE_LENGTH ] = mx_htonl( message_length );
 
-	header[ MX_NETWORK_STATUS_CODE ] = (uint32_t)
-					htonl( error_message.code );
+	header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( error_message.code );
 
-	header[ MX_NETWORK_MESSAGE_TYPE ] = (uint32_t)
-					htonl( return_message_type );
+	header[ MX_NETWORK_MESSAGE_TYPE ] = mx_htonl( return_message_type );
 
 	/* Send back the error message. */
 

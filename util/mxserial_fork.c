@@ -306,7 +306,7 @@ main( int argc, char *argv[] )
 						default_display_precision );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+		exit( (int) mx_status.code );
 
 	/* Find the serial port record. */
 
@@ -314,7 +314,7 @@ main( int argc, char *argv[] )
 						server_record, port_name );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+		exit( (int) mx_status.code );
 
 	/* From now on, the child sends characters to the serial port,
 	 * while the parent receives characters from the serial port.
@@ -408,7 +408,7 @@ mxser_connect_to_mx_server( MX_RECORD **record_list,
 	mx_status = mx_open_hardware( *server_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+		exit( (int) mx_status.code );
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -312,11 +312,11 @@ mx_network_display_message_buffer( void *buffer_ptr )
 	buffer = buffer_ptr;
 	header = buffer_ptr;
 
-	magic_number   = ntohl( header[ MX_NETWORK_MAGIC ] );
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code    = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	magic_number   = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	message = buffer + header_length;
 
@@ -963,10 +963,10 @@ mx_get_field_array( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -977,7 +977,7 @@ mx_get_field_array( MX_RECORD *server_record,
 		/* Use ASCII record field name */
 
 		header[MX_NETWORK_MESSAGE_TYPE]
-				= htonl( MX_NETMSG_GET_ARRAY_BY_NAME );
+				= mx_htonl( MX_NETMSG_GET_ARRAY_BY_NAME );
 
 		strlcpy( message, remote_record_field_name,
 				MXU_RECORD_FIELD_NAME_LENGTH );
@@ -988,15 +988,15 @@ mx_get_field_array( MX_RECORD *server_record,
 		/* Use binary network handle */
 
 		header[MX_NETWORK_MESSAGE_TYPE]
-				= htonl( MX_NETMSG_GET_ARRAY_BY_HANDLE );
+				= mx_htonl( MX_NETMSG_GET_ARRAY_BY_HANDLE );
 
-		uint32_message[0] = (uint32_t) htonl( nf->record_handle );
-		uint32_message[1] = (uint32_t) htonl( nf->field_handle );
+		uint32_message[0] = mx_htonl( nf->record_handle );
+		uint32_message[1] = mx_htonl( nf->field_handle );
 
 		message_length = 2 * sizeof( uint32_t );
 	}
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 #if NETWORK_DEBUG
 	mx_network_display_message_buffer( buffer );
@@ -1035,10 +1035,10 @@ mx_get_field_array( MX_RECORD *server_record,
 	mx_network_display_message_buffer( buffer );
 #endif
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code    = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) ) {
 
@@ -1277,10 +1277,10 @@ mx_put_field_array( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -1291,7 +1291,7 @@ mx_put_field_array( MX_RECORD *server_record,
 		/* Use ASCII record field name */
 
 		header[MX_NETWORK_MESSAGE_TYPE]
-				= htonl( MX_NETMSG_PUT_ARRAY_BY_NAME );
+				= mx_htonl( MX_NETMSG_PUT_ARRAY_BY_NAME );
 
 		sprintf( message, "%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
 				remote_record_field_name );
@@ -1302,10 +1302,10 @@ mx_put_field_array( MX_RECORD *server_record,
 		/* Use binary network handle */
 
 		header[MX_NETWORK_MESSAGE_TYPE]
-				= htonl( MX_NETMSG_PUT_ARRAY_BY_HANDLE );
+				= mx_htonl( MX_NETMSG_PUT_ARRAY_BY_HANDLE );
 
-		uint32_message[0] = (uint32_t) htonl( nf->record_handle );
-		uint32_message[1] = (uint32_t) htonl( nf->field_handle );
+		uint32_message[0] = mx_htonl( nf->record_handle );
+		uint32_message[1] = mx_htonl( nf->field_handle );
 
 		message_length = 2 * sizeof( uint32_t );
 	}
@@ -1427,7 +1427,7 @@ mx_put_field_array( MX_RECORD *server_record,
 			server->data_format );
 	}
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 	message_length += MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -1472,10 +1472,10 @@ mx_put_field_array( MX_RECORD *server_record,
 	mx_network_display_message_buffer( buffer );
 #endif
 
-        header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-        message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-        message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-        status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+        header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+        message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+        message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+        status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
         if ( message_type != mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) ) {
 
@@ -1564,11 +1564,11 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = htonl( MX_NETMSG_GET_NETWORK_HANDLE );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_NETWORK_HANDLE );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -1578,7 +1578,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	message_length = (uint32_t) ( strlen( message ) + 1 );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1603,10 +1603,10 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type
 		!= mx_server_response( MX_NETMSG_GET_NETWORK_HANDLE ) )
@@ -1673,10 +1673,10 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	message_uint32_array = header + header_length_in_32bit_words;
 
 	nf->record_handle = 
-		(long) ntohl( (unsigned long) message_uint32_array[0] );
+		(long) mx_ntohl( (unsigned long) message_uint32_array[0] );
 
 	nf->field_handle  = 
-		(long) ntohl( (unsigned long) message_uint32_array[1] );
+		(long) mx_ntohl( (unsigned long) message_uint32_array[1] );
 
 #if NETWORK_DEBUG_TIMING
 	MX_DEBUG(-2,
@@ -1743,11 +1743,11 @@ mx_get_field_type( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = htonl( MX_NETMSG_GET_FIELD_TYPE );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_FIELD_TYPE );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -1756,7 +1756,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	message_length = (uint32_t) ( strlen( message ) + 1 );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1781,10 +1781,10 @@ mx_get_field_type( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_GET_FIELD_TYPE ) ) {
 
@@ -1824,9 +1824,9 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	message_uint32_array = header + header_length_in_32bit_words;
 
-	*datatype = (long) ntohl( (unsigned long) message_uint32_array[0] );
+	*datatype = (long) mx_ntohl( (unsigned long) message_uint32_array[0] );
 	*num_dimensions
-		= (long) ntohl( (unsigned long) message_uint32_array[1] );
+		= (long) mx_ntohl( (unsigned long) message_uint32_array[1] );
 
 	expected_message_length = (uint32_t)
 				( sizeof(long) * ( (*num_dimensions) + 2 ) );
@@ -1842,11 +1842,11 @@ mx_get_field_type( MX_RECORD *server_record,
 	}
 	if ( max_dimensions <= 0 ) {
 		dimension_array[0] = (long)
-			ntohl( (unsigned long) message_uint32_array[2] );
+			mx_ntohl( (unsigned long) message_uint32_array[2] );
 	}
 	for ( i = 0; i < max_dimensions; i++ ) {
 		dimension_array[i] = (long)
-			ntohl( (unsigned long) message_uint32_array[i+2] );
+			mx_ntohl( (unsigned long) message_uint32_array[i+2] );
 	}
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1920,11 +1920,11 @@ mx_set_client_info( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = htonl( MX_NETMSG_SET_CLIENT_INFO );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_CLIENT_INFO );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 
@@ -1946,7 +1946,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	message_length = (uint32_t) ( strlen( message ) + 1 );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( message_length );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1971,10 +1971,10 @@ mx_set_client_info( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_SET_CLIENT_INFO ) ) {
 
@@ -2053,18 +2053,18 @@ mx_network_get_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = htonl( MX_NETMSG_GET_OPTION );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_OPTION );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
 
-	uint32_message[0] = (uint32_t) htonl( option_number );
+	uint32_message[0] = mx_htonl( option_number );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( sizeof(uint32_t) );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2089,10 +2089,10 @@ mx_network_get_option( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_GET_OPTION ) ) {
 
@@ -2148,7 +2148,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	uint32_message = header + header_length_in_32bit_words;
 
-	*option_value = ntohl( uint32_message[0] );
+	*option_value = mx_ntohl( uint32_message[0] );
 
 	MX_DEBUG( 2,("%s invoked, *option_value = '%#lx'",
 			fname, *option_value));
@@ -2201,19 +2201,19 @@ mx_network_set_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->uint32_buffer[0]);
 	buffer = &(aligned_buffer->char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = htonl( MX_NETMSG_SET_OPTION );
-	header[MX_NETWORK_STATUS_CODE] = htonl( MXE_SUCCESS );
+				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_OPTION );
+	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
 	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
 	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
 
-	uint32_message[0] = (uint32_t) htonl( option_number );
-	uint32_message[1] = (uint32_t) htonl( option_value );
+	uint32_message[0] = mx_htonl( option_number );
+	uint32_message[1] = mx_htonl( option_value );
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = htonl( 2 * sizeof(uint32_t) );
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 2 * sizeof(uint32_t) );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2238,10 +2238,10 @@ mx_network_set_option( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code = ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 	if ( message_type != mx_server_response( MX_NETMSG_SET_OPTION ) ) {
 

@@ -190,6 +190,8 @@ typedef struct {
 #define MX_NETWORK_OPTION_NATIVE_DATAFMT	2
 #define MX_NETWORK_OPTION_64BIT_LONG		3
 
+/*---*/
+
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 				unsigned long buffer_length, void *buffer );
 

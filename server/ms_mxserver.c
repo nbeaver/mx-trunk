@@ -92,7 +92,7 @@ mxsrv_get_returning_message_type( uint32_t message_type )
 {
 	uint32_t i, returning_message_type;
 
-	static long message_pairs[][2] = {
+	static uint32_t message_pairs[][2] = {
 
 {MX_NETMSG_GET_ARRAY_BY_NAME, mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME)},
 {MX_NETMSG_PUT_ARRAY_BY_NAME, mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME)},
@@ -127,7 +127,7 @@ mx_status_type
 mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
-	int i;
+	long i;
 
 	i = socket_handler->handler_array_index;
 
@@ -714,7 +714,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	char *ptr, *message, *value_ptr;
 	uint32_t *uint32_message_body;
 	int saved_errno;
-	long bytes_left, bytes_received, initial_recv_length;
+	int bytes_left, bytes_received, initial_recv_length;
 	uint32_t magic_value, header_length, message_length;
 	uint32_t message_type, returned_message_type;
 	mx_status_type mx_status, mx_status2;
@@ -828,10 +828,10 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	}
 #endif
 
-	magic_value    = ntohl( header[ MX_NETWORK_MAGIC ] );
-        header_length  = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-        message_length = ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	magic_value    = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
+        header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+        message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 
 #if NETWORK_DEBUG_VERBOSE
         MX_DEBUG(-2,("%s: magic_value    = %lx", fname, magic_value));
@@ -874,8 +874,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	ptr = receive_buffer + initial_recv_length;
 
-        bytes_left = (long)
-		(header_length + message_length - initial_recv_length);
+        bytes_left = header_length + message_length - initial_recv_length;
 
         while( bytes_left > 0 ) {
                 bytes_received = recv( client_socket->socket_fd,
@@ -1112,9 +1111,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		uint32_message_body = header + MX_NETWORK_NUM_HEADER_VALUES;
 
-		record_handle = (long) ntohl( uint32_message_body[0] );
+		record_handle = (long) mx_ntohl( uint32_message_body[0] );
 
-		field_handle = (long) ntohl( uint32_message_body[1] );
+		field_handle = (long) mx_ntohl( uint32_message_body[1] );
 
 #if NETWORK_DEBUG_HANDLES
 		MX_DEBUG(-2,("%s: requested network field (%ld,%ld)",
@@ -1435,7 +1434,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 
 	header = (uint32_t *) queued_event->event_data;
 
-	message_type = ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	message_type = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 
 	/* Handle the request. */
 
@@ -1452,7 +1451,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 		break;
 	case MX_NETMSG_PUT_ARRAY_BY_NAME:
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-		header_length = ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+		header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 
 		value_ptr = message_buffer + header_length;
 
@@ -1678,7 +1677,7 @@ mxsrv_handle_get_array( MX_SOCKET_HANDLER *socket_handler,
 
 	/* Fill in the header of the message to be sent back to the client. */
 
-	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = htonl(mx_status.code);
+	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl(mx_status.code);
 
         if ( mx_status.code != MXE_SUCCESS ) {
 		*send_buffer_message = '\0';
@@ -1691,16 +1690,16 @@ mxsrv_handle_get_array( MX_SOCKET_HANDLER *socket_handler,
 	}
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) );
+		= mx_htonl( mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( send_buffer_message_actual_length );
+				= mx_htonl( send_buffer_message_actual_length );
 
 	/* Send the string description back to the client. */
 
@@ -1878,13 +1877,13 @@ mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
 		receive_buffer_header = (uint32_t *) receive_buffer;
 
 		receive_buffer_header_length
-		  = ntohl( receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ] );
+		  = mx_ntohl( receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ] );
 
 		receive_buffer_message = ((char *)receive_buffer)
 						+ receive_buffer_header_length;
 
 		receive_buffer_message_length
-		  = ntohl( receive_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] );
+		  = mx_ntohl( receive_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] );
 
 		value_buffer = (char *) value_buffer_ptr;
 
@@ -2065,7 +2064,8 @@ mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
         if ( mx_status.code == MXE_SUCCESS ) {
 		send_buffer_message_length = 1;
 	} else {
-		send_buffer_message_length = 1 + strlen(mx_status.message);
+		send_buffer_message_length = (uint32_t)
+			( 1 + strlen(mx_status.message) );
 	}
 
 	send_buffer = (char *) receive_buffer;
@@ -2074,7 +2074,7 @@ mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
 
 	send_buffer_message = send_buffer + send_buffer_header_length;
 
-	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = htonl(mx_status.code);
+	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl(mx_status.code);
 
         if ( mx_status.code == MXE_SUCCESS ) {
 		strcpy( send_buffer_message, "" );
@@ -2083,16 +2083,16 @@ mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
 	}
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) );
+		= mx_htonl( mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( send_buffer_message_length );
+				= mx_htonl( send_buffer_message_length );
 
 	/* Send the string description back to the client. */
 
@@ -2243,23 +2243,23 @@ mxsrv_handle_get_network_handle( MX_SOCKET_HANDLER *socket_handler,
 	/* Construct the message header. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-		= htonl( MX_NETWORK_MAGIC_VALUE );
+		= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE) );
+		= mx_htonl( mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-		= htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+		= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-		= htonl( 2 * sizeof( uint32_t ) );
+		= mx_htonl( 2 * sizeof( uint32_t ) );
 
-	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = htonl( MXE_SUCCESS );
+	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( MXE_SUCCESS );
 
 	/* Construct the message body. */
 
-	send_buffer_message[0] = htonl( record_handle );
-	send_buffer_message[1] = htonl( field_handle );
+	send_buffer_message[0] = mx_htonl( record_handle );
+	send_buffer_message[1] = mx_htonl( field_handle );
 
 #if NETWORK_DEBUG_VERBOSE
 	mx_network_display_message_buffer( send_buffer );
@@ -2307,8 +2307,8 @@ mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
 
 	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
 
-	send_buffer_message_length = sizeof(uint32_t)
-		* ( 2 + field->num_dimensions );
+	send_buffer_message_length = (uint32_t)
+		( sizeof(uint32_t) * ( 2 + field->num_dimensions ) );
 
 	/* Ensure that we can always assign a value to the first element
 	 * of the dimension array.
@@ -2328,29 +2328,29 @@ mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_GET_FIELD_TYPE) );
+		= mx_htonl( mx_server_response(MX_NETMSG_GET_FIELD_TYPE) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( send_buffer_message_length );
+				= mx_htonl( send_buffer_message_length );
 
-	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = htonl( MXE_SUCCESS );
+	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( MXE_SUCCESS );
 
 	/* Construct the body of the message. */
 
-	send_buffer_message[0] = htonl( field->datatype );
-	send_buffer_message[1] = htonl( field->num_dimensions );
+	send_buffer_message[0] = mx_htonl( field->datatype );
+	send_buffer_message[1] = mx_htonl( field->num_dimensions );
 
 	if ( field->num_dimensions <= 0 ) {
-		send_buffer_message[2] = htonl( 0L );
+		send_buffer_message[2] = mx_htonl( 0L );
 	} else {
 		for ( i = 0; i < field->num_dimensions; i++ ) {
-			send_buffer_message[i+2] = htonl(field->dimension[i]);
+			send_buffer_message[i+2] = mx_htonl(field->dimension[i]);
 		}
 	}
 
@@ -2511,18 +2511,18 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_SET_CLIENT_INFO) );
+		= mx_htonl( mx_server_response(MX_NETMSG_SET_CLIENT_INFO) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( send_buffer_message_length );
+				= mx_htonl( send_buffer_message_length );
 
-	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = htonl( MXE_SUCCESS );
+	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( MXE_SUCCESS );
 
 	/* Construct an empty body for the message. */
 
@@ -2567,7 +2567,7 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 
 	option_array = (uint32_t *) message;
 
-	option_number = ntohl( option_array[0] );
+	option_number = mx_ntohl( option_array[0] );
 
 	MX_DEBUG( 2,("%s: option_number = %#lx",
 		fname, (unsigned long) option_number));
@@ -2578,10 +2578,10 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 
 	switch( option_number ) {
 	case MX_NETWORK_OPTION_DATAFMT:
-		option_value = socket_handler->data_format;
+		option_value = (uint32_t) socket_handler->data_format;
 		break;
 	case MX_NETWORK_OPTION_NATIVE_DATAFMT:
-		option_value = mx_native_data_format();
+		option_value = (uint32_t) mx_native_data_format();
 		break;
 	case MX_NETWORK_OPTION_64BIT_LONG:
 
@@ -2618,24 +2618,24 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_GET_OPTION) );
+		= mx_htonl( mx_server_response(MX_NETMSG_GET_OPTION) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	/* Construct the body of the message. */
 
 	if ( illegal_option_number == FALSE ) {
-		send_buffer_message[0] = htonl( option_value );
+		send_buffer_message[0] = mx_htonl( option_value );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( sizeof(uint32_t) );
+				= mx_htonl( sizeof(uint32_t) );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= htonl( MXE_SUCCESS );
+				= mx_htonl( MXE_SUCCESS );
 	} else {
 		char *error_message;
 
@@ -2645,10 +2645,10 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 					(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( strlen(error_message) + 1 );
+				= mx_htonl( strlen(error_message) + 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= htonl( MXE_ILLEGAL_ARGUMENT );
+				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	}
 
 #if NETWORK_DEBUG_VERBOSE
@@ -2690,8 +2690,8 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 
 	option_array = (uint32_t *) message;
 
-	option_number = ntohl( option_array[0] );
-	option_value = ntohl( option_array[1] );
+	option_number = mx_ntohl( option_array[0] );
+	option_value = mx_ntohl( option_array[1] );
 
 	MX_DEBUG( 2,("%s: option_number = %#lx, option_value = %#lx", fname,
 		(unsigned long) option_number,
@@ -2746,13 +2746,13 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 	/* Construct the header of the message. */
 
 	send_buffer_header[ MX_NETWORK_MAGIC ]
-				= htonl( MX_NETWORK_MAGIC_VALUE );
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= htonl( mx_server_response(MX_NETMSG_SET_OPTION) );
+		= mx_htonl( mx_server_response(MX_NETMSG_SET_OPTION) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-				= htonl( send_buffer_header_length );
+				= mx_htonl( send_buffer_header_length );
 
 	/* Construct the body of the message. */
 
@@ -2762,10 +2762,10 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 				(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( strlen(send_buffer_char_message) + 1 );
+				= mx_htonl( strlen(send_buffer_char_message) + 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= htonl( MXE_ILLEGAL_ARGUMENT );
+				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	} else
 	if ( illegal_option_value ) {
 		sprintf( send_buffer_char_message,
@@ -2774,17 +2774,17 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 					(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= htonl( strlen(send_buffer_char_message) + 1 );
+				= mx_htonl( strlen(send_buffer_char_message) + 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= htonl( MXE_ILLEGAL_ARGUMENT );
+				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	} else {
 		send_buffer_char_message[0] = '\0';
 
-		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] = htonl( 1 );
+		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] = mx_htonl( 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= htonl( MXE_SUCCESS );
+				= mx_htonl( MXE_SUCCESS );
 	}
 
 #if NETWORK_DEBUG_VERBOSE

@@ -477,7 +477,7 @@ show_field( MX_DRIVER *driver,
 {
 	unsigned long i;
 	long dimension, num_dimensions;
-	int field_is_varargs;
+	long field_is_varargs;
 
 	field_is_varargs = ( field_defaults->flags & MXFF_VARARGS );
 

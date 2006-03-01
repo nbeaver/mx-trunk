@@ -47,13 +47,13 @@
 
 #include <limits.h>
 
-/* WARNING: The test using UINT_MAX is not foolproof.  When porting to
+/* WARNING: The test using ULONG_MAX is not foolproof.  When porting to
  * a new platform, you must verify that this check does the right thing.
  * This should only be an issue if you are on a machine where 'int'
  * does _not_ use the native word size.
  */
 
-#if ( UINT_MAX == 4294967295U )
+#if ( ULONG_MAX == 4294967295U )
 #  define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
 #else
 #  define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64

@@ -69,6 +69,8 @@
 #  include <sys/un.h>
 #endif
 
+#include "mx_stdint.h"
+
 /* Define primary socket data structures. */
 
 /* ..._FD means 'file descriptor' in case you were wondering. */
@@ -141,6 +143,20 @@ typedef struct {
 
 #else
 #  define mx_socklen_t		int
+#endif
+
+/* Macros for use with MX network headers. */
+
+#if ( defined(OS_IRIX) && (MX_WORDSIZE == 64) )
+
+#  define mx_htonl(x)	((uint32_t) htonl(x))
+#  define mx_ntohl(x)	ntohl(x)
+
+#else
+
+#  define mx_htonl(x)	htonl(x)
+#  define mx_ntohl(x)	ntohl(x)
+
 #endif
 
 /* The following are flags for the various mx_..._socket_open_as_...()

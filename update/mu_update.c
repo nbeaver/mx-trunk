@@ -394,7 +394,7 @@ main( int argc, char *argv[] )
 						default_display_precision );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+		exit( (int) mx_status.code );
 
 	/* Construct the update list data structure. */
 
@@ -403,7 +403,7 @@ main( int argc, char *argv[] )
 				record_list );
 
 	if ( mx_status.code != MXE_SUCCESS )
-		exit( mx_status.code );
+		exit( (int) mx_status.code );
 
 #if 0
 	/* Print out the list of records in the generated record list. */
@@ -467,7 +467,7 @@ main( int argc, char *argv[] )
 			&update_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
-			exit(mx_status.code);
+			exit( (int) mx_status.code );
 	}
 
 	/* If we are _only_ restoring, then we are done. */
@@ -485,13 +485,13 @@ main( int argc, char *argv[] )
 		mx_status = mxupd_poll_update_list( &update_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
-			exit(mx_status.code);
+			exit( (int) mx_status.code );
 
 		mx_status = mxupd_save_fields_to_autosave_file(
 					autosave1_filename, &update_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
-			exit(mx_status.code);
+			exit( (int) mx_status.code );
 
 		mxupd_quiet_exit = TRUE;
 		exit(0);
@@ -520,7 +520,7 @@ main( int argc, char *argv[] )
 					autosave_filename, &update_list );
 
 			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
-				exit( mx_status.code );
+				exit( (int) mx_status.code );
 
 			if ( autosave_filename == autosave1_filename ) {
 				autosave_filename = autosave2_filename;
@@ -550,7 +550,7 @@ main( int argc, char *argv[] )
 			mx_status = mxupd_poll_update_list( &update_list );
 
 			if ( mx_status.code == MXE_NETWORK_CONNECTION_LOST )
-				exit( mx_status.code );
+				exit( (int) mx_status.code );
 
 			next_event_time = mx_add_clock_ticks(
 						next_event_time,
@@ -613,7 +613,7 @@ mxupd_create_empty_mx_database( MX_RECORD **record_list,
 static mx_status_type
 mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 				char *network_field_id,
-				int record_number,
+				long record_number,
 				MX_RECORD **created_record,
 				char *record_name,
 				size_t max_record_name_length,
@@ -714,7 +714,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 	/* Create an MX database record of class 'net_variable' */
 
 	snprintf( description, sizeof(description),
-		"record%d variable net_variable ", record_number );
+		"record%ld variable net_variable ", record_number );
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -826,7 +826,7 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 static mx_status_type
 mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *epics_pv_name,
-				int record_number,
+				long record_number,
 				MX_RECORD **created_record,
 				char *record_name,
 				size_t max_record_name_length,
@@ -846,7 +846,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 static mx_status_type
 mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 				char *epics_pv_name,
-				int record_number,
+				long record_number,
 				MX_RECORD **created_record,
 				char *record_name,
 				size_t max_record_name_length,
