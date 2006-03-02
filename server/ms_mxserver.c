@@ -2762,22 +2762,30 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 				(unsigned long) option_number );
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= mx_htonl( strlen(send_buffer_char_message) + 1 );
+			= mx_htonl( strlen(send_buffer_char_message) + 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
 				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	} else
 	if ( illegal_option_value ) {
-		sprintf( send_buffer_char_message,
+		switch( option_number ) {
+		case MX_NETWORK_OPTION_64BIT_LONG:
+			sprintf( send_buffer_char_message,
+				"This server does not support the 64-bit longs "
+				"option, since it is not a 64-bit computer." );
+			break;
+		default:
+			sprintf( send_buffer_char_message,
 				"Illegal option value %#lx for option %#lx",
 					(unsigned long) option_value,
 					(unsigned long) option_number );
+		}
 
 		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
-				= mx_htonl( strlen(send_buffer_char_message) + 1 );
+			= mx_htonl( strlen(send_buffer_char_message) + 1 );
 
 		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
-				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
+			= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	} else {
 		send_buffer_char_message[0] = '\0';
 

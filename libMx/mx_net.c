@@ -2476,8 +2476,8 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 	MX_DEBUG(-2,("%s: requesting 64-bit longs for server '%s'",
 		fname, server_record->name ));
 
-#if 0 && ( MX_WORDSIZE != 64 )
-	server->truncate_64bit_longs = TRUE;
+#if ( MX_WORDSIZE != 64 )
+	server->truncate_64bit_longs = FALSE;
 
 	return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The client computer is not a 64-bit computer, so it "

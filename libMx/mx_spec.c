@@ -215,13 +215,13 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 		*spec_datatype = message_header.type;
 	}
 	if ( spec_array_data_rows != NULL ) {
-		*spec_array_data_rows = message_header.rows;
+		*spec_array_data_rows = (long) message_header.rows;
 	}
 	if ( spec_array_data_cols != NULL ) {
-		*spec_array_data_cols = message_header.cols;
+		*spec_array_data_cols = (long) message_header.cols;
 	}
 	if ( spec_data_length != NULL ) {
-		*spec_data_length = message_header.len;
+		*spec_data_length = (long) message_header.len;
 	}
 	if ( spec_property_name != NULL ) {
 		strlcpy( spec_property_name,

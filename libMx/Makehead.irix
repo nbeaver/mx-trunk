@@ -6,13 +6,13 @@
 #          for SGI Irix.
 #
 # Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+# the definitions of INCLUDES, LIB_DIRS, LIBRARIES, and USE_64_BITS.
 #
 
 #
 # If you wish to compile a 64-bit version of MX, uncomment the following line.
 #
-USE_64_BITS = -64
+#USE_64_BITS = -64
 
 #
 INCLUDES	= $(MX_INCLUDES) $(READLINE_INCLUDES)
