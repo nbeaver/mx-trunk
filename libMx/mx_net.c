@@ -2508,12 +2508,12 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 		return mx_status;
 	}
 
-#endif  /* MX_WORDSIZE == 64 */
-
 	MX_DEBUG(-2,("%s: server->truncate_64bit_longs = %d",
 		fname, server->truncate_64bit_longs));
 
 	return MX_SUCCESSFUL_RESULT;
+
+#endif  /* MX_WORDSIZE == 64 */
 }
 
 /* ====================================================================== */
