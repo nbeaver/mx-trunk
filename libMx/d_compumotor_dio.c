@@ -395,7 +395,7 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 	char command[80];
 	char response[200];
 	int num_items;
-	size_t i, j;
+	long i, j;
 	unsigned long controller_type;
 	mx_status_type mx_status;
 
@@ -471,7 +471,7 @@ mxd_compumotor_din_read( MX_DIGITAL_INPUT *dinput )
 				break;
 			default:
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"Character %d in response '%s' is not a '0' "
+				"Character %ld in response '%s' is not a '0' "
 				"or '1'.  Instead it is a '%c' character.",
 					j, response, response[j] );
 				break;
@@ -618,7 +618,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 	char command[80];
 	char response[200];
 	int num_items;
-	size_t i, j;
+	long i, j;
 	unsigned long controller_type;
 	mx_status_type mx_status;
 
@@ -695,7 +695,7 @@ mxd_compumotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 				break;
 			default:
 				return mx_error( MXE_UNPARSEABLE_STRING, fname,
-				"Character %d in response '%s' is not a '0' "
+				"Character %ld in response '%s' is not a '0' "
 				"or '1'.  Instead it is a '%c' character.",
 					j, response, response[j] );
 				break;
