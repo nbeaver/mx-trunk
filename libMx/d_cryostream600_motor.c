@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2005 Illinois Institute of Technology
+ * Copyright 2002-2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -934,7 +934,7 @@ mxd_cryostream600_motor_parse_response(
 	if ( debug_flag ) {
 		for ( i = 0; i < cryostream600_motor->num_tokens_returned; i++ )
 		{
-			MX_DEBUG(-2,("%s: token_array[%d] = '%s'",
+			MX_DEBUG(-2,("%s: token_array[%ld] = '%s'",
 				fname, i, token_array[i]));
 		}
 	}

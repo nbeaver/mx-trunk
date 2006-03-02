@@ -293,7 +293,7 @@ mxd_pdi45_din_read( MX_DIGITAL_INPUT *dinput )
 			response, pdi45->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: hex_value = %#02X", fname, hex_value));
+	MX_DEBUG(-2,("%s: hex_value = %#02lX", fname, hex_value));
 
 	hex_value &= ( 1 << (pdi45_dinput->line_number) );
 
@@ -388,7 +388,7 @@ mxd_pdi45_dout_read( MX_DIGITAL_OUTPUT *doutput )
 			response, pdi45->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: hex_value = %#02X", fname, hex_value));
+	MX_DEBUG(-2,("%s: hex_value = %#02lX", fname, hex_value));
 
 	hex_value &= ( 1 << (pdi45_doutput->line_number) );
 

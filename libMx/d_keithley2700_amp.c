@@ -330,7 +330,7 @@ mxd_keithley2700_amp_get_gain( MX_AMPLIFIER *amplifier )
 		break;
 	default:
 		mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal channel type %d for Keithley 2700 amplifier '%s'.",
+		"Illegal channel type %ld for Keithley 2700 amplifier '%s'.",
 			channel_type, amplifier->record->name );
 	}
 

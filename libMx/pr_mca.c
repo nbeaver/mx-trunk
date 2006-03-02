@@ -188,7 +188,7 @@ mx_mca_process_function( void *record_ptr,
 			preset_value = mca->start_with_preset[1];
 
 			MX_DEBUG( 2,
-		("%s: START_WITH_PRESET: mca '%s', type = %d, value = %g",
+		("%s: START_WITH_PRESET: mca '%s', type = %ld, value = %g",
 			fname, record->name, preset_type, preset_value));
 
 			status = mx_mca_start_with_preset( record,

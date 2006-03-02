@@ -463,7 +463,7 @@ mxd_auto_network_change_control( MX_AUTOSCALE *autoscale )
 
 	change_control = autoscale->change_control;
 
-	MX_DEBUG( 2,("%s: control = '%s', change_control = %d",
+	MX_DEBUG( 2,("%s: control = '%s', change_control = %ld",
 			fname, autoscale->control_record->name,
 			change_control));
 

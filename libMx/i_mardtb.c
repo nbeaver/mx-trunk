@@ -559,7 +559,7 @@ mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
 		return mx_error_quiet( MXE_NOT_READY, fname,
 		"MarDTB motor '%s' belonging to MarDTB '%s' "
 		"is currently in motion, "
-		"so we cannot read the value of parameter %d",
+		"so we cannot read the value of parameter %ld",
 			mardtb->currently_active_record->name,
 			mardtb->record->name,
 			parameter_number );
@@ -600,7 +600,7 @@ mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
 
 	if ( num_items != 1 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"MarDTB parameter %d value not found in response '%s' "
+		"MarDTB parameter %ld value not found in response '%s' "
 		"for MarDTB '%s'.", parameter_number,
 			response, mardtb->record->name );
 	}

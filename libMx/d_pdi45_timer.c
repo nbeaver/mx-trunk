@@ -275,7 +275,7 @@ mxd_pdi45_timer_is_busy( MX_TIMER *timer )
 			response, command, timer->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: timer_on = %d, hex_value = %#04x",
+	MX_DEBUG(-2,("%s: timer_on = %d, hex_value = %#04lX",
 		fname, timer_on, hex_value ));
 
 	if ( timer_on ) {

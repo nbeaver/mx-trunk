@@ -229,7 +229,7 @@ mxd_pdi45_pulser_is_busy( MX_PULSE_GENERATOR *pulse_generator )
 			response, command, pulse_generator->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: pulser_on = %d, hex_value = %#04X",
+	MX_DEBUG(-2,("%s: pulser_on = %d, hex_value = %#04lX",
 		fname, pulser_on, hex_value ));
 
 	if ( pulser_on ) {

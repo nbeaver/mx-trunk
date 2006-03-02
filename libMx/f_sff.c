@@ -64,7 +64,7 @@ static mx_status_type mxdf_sff_handle_special_token(
 MX_EXPORT mx_status_type
 mxdf_sff_open( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_sff_open()";
+	static const char fname[] = "mxdf_sff_open()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	int saved_errno;
@@ -112,7 +112,7 @@ mxdf_sff_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_sff_close( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_sff_close()";
+	static const char fname[] = "mxdf_sff_close()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	int status, saved_errno;
@@ -178,7 +178,7 @@ mxdf_sff_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_sff_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_sff_add_measurement_to_datafile()";
+	static const char fname[] = "mxdf_sff_add_measurement_to_datafile()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	MX_RECORD **motor_record_array;
@@ -340,7 +340,7 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mxdf_sff_add_array_to_datafile()";
+	static const char fname[] = "mxdf_sff_add_array_to_datafile()";
 
 	MX_DATAFILE_SFF *sff_file_struct;
 	MX_SCAN *scan;
@@ -469,7 +469,7 @@ mxdf_sff_add_array_to_datafile( MX_DATAFILE *datafile,
 static mx_status_type
 mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 {
-	const char fname[] = "mxdf_sff_write_header()";
+	static const char fname[] = "mxdf_sff_write_header()";
 
 	MX_RECORD *record_list, *record;
 	MX_DATAFILE_SFF *sff_file_struct;
@@ -597,7 +597,7 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 	}
 	CHECK_FPRINTF_STATUS;
 
-	MX_DEBUG( 2,("%s: num_lines = %d", fname, num_lines));
+	MX_DEBUG( 2,("%s: num_lines = %ld", fname, num_lines));
 
 	/* Now write out the main part of the header. */
 
@@ -613,7 +613,7 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 
 		token_ptr = ptr + num_matched;
 
-		MX_DEBUG( 2,("%s: num_matched = %d, token_ptr = %p",
+		MX_DEBUG( 2,("%s: num_matched = %ld, token_ptr = %p",
 			fname, num_matched, token_ptr));
 
 		MX_DEBUG( 2,("%s: token_ptr = '%s'", fname, token_ptr));
@@ -637,7 +637,7 @@ mxdf_sff_write_header( MX_DATAFILE *datafile, int header_type )
 		num_not_matched =
 			(long) strcspn(token_ptr, MX_SFF_TOKEN_SEPARATORS);
 
-		MX_DEBUG( 2,("%s: num_not_matched = %d",
+		MX_DEBUG( 2,("%s: num_not_matched = %ld",
 					fname, num_not_matched));
 
 		if ( num_not_matched == 0 ) {
@@ -695,7 +695,7 @@ static mx_status_type
 mxdf_sff_write_token_value( MX_DATAFILE *datafile,
 		FILE *output_file, char *token, MX_RECORD *record_list )
 {
-	const char fname[] = "mxdf_sff_write_token_value()";
+	static const char fname[] = "mxdf_sff_write_token_value()";
 
 	mx_status_type mx_status;
 	MX_RECORD *record;
@@ -797,7 +797,7 @@ static mx_status_type
 mxdf_sff_handle_special_token( MX_DATAFILE *datafile,
 		FILE *output_file, char *token, MX_RECORD *record_list )
 {
-	const char fname[] = "mxdf_sff_handle_special_token()";
+	static const char fname[] = "mxdf_sff_handle_special_token()";
 
 	MX_SCAN *scan;
 	MX_RECORD_FIELD *record_field;

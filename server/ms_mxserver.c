@@ -136,7 +136,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	}
 
 	if ( i >= 0 ) {
-		mx_info("Client %d (socket %d) disconnected.",
+		mx_info("Client %ld (socket %d) disconnected.",
 			i, socket_handler->synchronous_socket->socket_fd);
 	}
 

@@ -644,7 +644,7 @@ mxd_am9513_scaler_read( MX_SCALER *scaler )
 
 		hold_register = this_am9513->hold_register[n];
 
-		MX_DEBUG( 2,("%s: counter[%d] hold_register = %hu",
+		MX_DEBUG( 2,("%s: counter[%ld] hold_register = %hu",
 				fname, n, hold_register ));
 
 		scaler_value = 65536L * scaler_value + hold_register;

@@ -834,7 +834,7 @@ mxi_vp9000_putline( MX_VP9000 *vp9000, long controller_number,
 
 	if ((vp9000->active_controller != 0) || (vp9000->active_motor != 0)) {
 		return mx_error( MXE_NOT_READY, fname,
-"VP9000 interface '%s', controller %d, motor %d is currently moving.  "
+"VP9000 interface '%s', controller %ld, motor %ld is currently moving.  "
 "New commands cannot be sent until this motor stops moving.",
 		vp9000->record->name, vp9000->active_controller,
 		vp9000->active_motor );

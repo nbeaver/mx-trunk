@@ -293,7 +293,7 @@ mxi_kohzu_sc_resynchronize( MX_RECORD *record )
 
 	kohzu_sc->controller_type = mx_string_to_long( token );
 
-	MX_DEBUG( 2,("%s: token = '%s', kohzu_sc->controller_type = %d",
+	MX_DEBUG( 2,("%s: token = '%s', kohzu_sc->controller_type = %ld",
 		fname, token, kohzu_sc->controller_type));
 
 	switch( kohzu_sc->controller_type ) {
@@ -307,8 +307,9 @@ mxi_kohzu_sc_resynchronize( MX_RECORD *record )
 		kohzu_sc->num_axes = 8;
 		break;
 	default:
-		mx_warning( "Unrecognized model number %d seen for Kohzu SC-x00"
-			" controller '%s' in response to an IDN command.  "
+		mx_warning(
+			"Unrecognized model number %ld seen for Kohzu SC-x00 "
+			"controller '%s' in response to an IDN command.  "
 			"IDN response was '%s'.  We assume this controller "
 			"has at least 8 motor axes.",
 				kohzu_sc->controller_type,
@@ -326,7 +327,7 @@ mxi_kohzu_sc_resynchronize( MX_RECORD *record )
 
 	kohzu_sc->firmware_version = mx_string_to_long( token );
 
-	MX_DEBUG( 2,("%s: token = '%s', kohzu_sc->firmware_version = %d",
+	MX_DEBUG( 2,("%s: token = '%s', kohzu_sc->firmware_version = %ld",
 		fname, token, kohzu_sc->firmware_version));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -730,7 +731,7 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The requested Kohzu SC-x00 '%s' multiaxis move wanted "
 		"to move %lu axes, but the controller itself only has "
-		"%d axes.", kohzu_sc->record->name, num_motors,
+		"%ld axes.", kohzu_sc->record->name, num_motors,
 			kohzu_sc->num_axes );
 	}
 
@@ -773,12 +774,12 @@ mxi_kohzu_sc_multiaxis_move( MX_KOHZU_SC *kohzu_sc,
 		destination = mx_divide_safely( motor_position_array[i],
 						motor->scale );
 
-		MX_DEBUG(-2, ("%s: axis = %d, destination = %g",
+		MX_DEBUG(-2, ("%s: axis = %ld, destination = %g",
 			fname, axis, destination ));
 
 		target_position = mx_round( destination );
 
-		MX_DEBUG(-2, ("%s: axis = %d, target_position = %ld",
+		MX_DEBUG(-2, ("%s: axis = %ld, target_position = %ld",
 			fname, axis, target_position ));
 
 		sprintf( buffer, "%ld/%ld/", axis, target_position );

@@ -192,17 +192,17 @@ mxi_scamac_camac( MX_CAMAC *crate, long slot, long subaddress,
 
 	if ( slot < 1 || slot > 24 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal CAMAC slot number = %d", slot);
+			"Illegal CAMAC slot number = %ld", slot);
 	}
 
 	if ( subaddress < 0 || subaddress > 15 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal CAMAC subaddress number = %d", subaddress);
+			"Illegal CAMAC subaddress number = %ld", subaddress);
 	}
 
 	if ( function_code < 0 || function_code > 31 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal CAMAC function code = %d", function_code);
+			"Illegal CAMAC function code = %ld", function_code);
 	}
 
 	/* For CAMAC read operations, always return 1. */

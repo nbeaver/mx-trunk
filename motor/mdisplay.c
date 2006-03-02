@@ -50,7 +50,7 @@ motor_move_report_function( unsigned long flags,
 		motor_bypass_limit_switch = FALSE;
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Invoked with an invalid number of motors = %d", num_motors );
+		"Invoked with an invalid number of motors = %ld", num_motors );
 	}
 
 	motor_status = (unsigned long *) malloc(
@@ -60,7 +60,7 @@ motor_move_report_function( unsigned long flags,
 		motor_bypass_limit_switch = FALSE;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"%s: Ran out of memory allocating a %d element motor status array.",
+	"%s: Ran out of memory allocating a %ld element motor status array.",
 			fname, num_motors );
 	}
 

@@ -660,6 +660,11 @@ mxserver_main( int argc, char *argv[] )
 	mx_info("Server '%s' (%s), process id %lu",
 		server_hostname, os_version_string, mx_process_id() );
 
+#if 1
+	MX_DEBUG(-2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",
+		fname, MX_WORDSIZE, MX_PROGRAM_MODEL));
+#endif
+
 	/* Read the database description file and add the records therein
 	 * to the record list.
 	 */

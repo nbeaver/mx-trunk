@@ -525,7 +525,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The dewar positioner '%s' cannot be moved, since "
 			"the small vertical slide '%s' reports an "
-			"illegal relay status %d.",
+			"illegal relay status %ld.",
 			motor->record->name, 
 			als_dewar_positioner->small_slide_record->name,
 			small_slide_status );
@@ -534,7 +534,7 @@ mxd_als_dewar_positioner_move_absolute( MX_MOTOR *motor )
 			return mx_error( MXE_PERMISSION_DENIED, fname,
 			"The dewar positioner '%s' cannot be moved, since "
 			"the large vertical slide '%s' reports an "
-			"illegal relay status %d.",
+			"illegal relay status %ld.",
 			motor->record->name, 
 			als_dewar_positioner->vertical_slide_record->name,
 			vertical_slide_status );

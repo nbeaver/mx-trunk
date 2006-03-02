@@ -310,7 +310,7 @@ mxfh_autoscale_reset( MX_MEASUREMENT_FAULT *fault_handler )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	MX_DEBUG( 2,("%s: sending %d.",
+	MX_DEBUG( 2,("%s: sending %ld.",
 			fname, autoscale_fault_struct->change_request ));
 
 	mx_status = mx_autoscale_change_control(

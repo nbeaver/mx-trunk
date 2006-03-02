@@ -203,7 +203,8 @@ mxd_vsc16_timer_open( MX_RECORD *record )
 
         if ( counter_number < 1 || counter_number > vsc16->num_counters ) {
                 return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-        "VSC16 counter number %d for timer '%s' is out of allowed range 1-%lu",
+        		"VSC16 counter number %ld for timer '%s' is outside "
+			"the allowed range of 1-%lu",
                         counter_number, record->name, vsc16->num_counters );
         }
 

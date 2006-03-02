@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -166,7 +166,7 @@ mxd_adc_table_construct_table_subset( MX_TABLE *table,
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal axis_id value %d passed for ADC table '%s'.",
+		"Illegal axis_id value %ld passed for ADC table '%s'.",
 			table->axis_id, table->record->name );
 	}
 
@@ -855,7 +855,7 @@ mxd_adc_table_move_absolute( MX_TABLE *table )
 		break;
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal axis_id %d was specified.", table->axis_id );
+		"Illegal axis_id %ld was specified.", table->axis_id );
 	}
 
 	/* Check to see if any of the new destinations would exceed
@@ -1036,7 +1036,7 @@ mxd_adc_table_get_position( MX_TABLE *table )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal axis_id %d was specified.", table->axis_id );
+		"Illegal axis_id %ld was specified.", table->axis_id );
 	}
 
 	return status;
@@ -1059,7 +1059,7 @@ mxd_adc_table_set_position( MX_TABLE *table )
 	new_set_position = table->set_position;
 
 	MX_DEBUG(-2,
-		("%s: Would redefine table '%s' axis %d position to %g here.",
+		("%s: Would redefine table '%s' axis %ld position to %g here.",
 		fname, table->record->name,
 		table->axis_id, new_set_position));
 

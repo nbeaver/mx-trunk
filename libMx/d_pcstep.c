@@ -646,7 +646,7 @@ mxd_pcstep_move_absolute( MX_MOTOR *motor )
 	if ( pcstep->home_search_in_progress != 0 ) {
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"Cannot perform a move command for motor '%s' since a home search is "
-	"currently in progress for axis %d of controller '%s'.",
+	"currently in progress for axis %ld of controller '%s'.",
 			motor->record->name,
 			pcstep->home_search_in_progress,
 			pcstep->record->name );
@@ -836,7 +836,7 @@ mxd_pcstep_set_position( MX_MOTOR *motor )
 	if ( pcstep->home_search_in_progress != 0 ) {
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"Cannot redefine the position of motor '%s' since a home search is "
-	"currently in progress for axis %d of controller '%s'.",
+	"currently in progress for axis %ld of controller '%s'.",
 			motor->record->name,
 			pcstep->home_search_in_progress,
 			pcstep->record->name );
@@ -1034,7 +1034,7 @@ mxd_pcstep_find_home_position( MX_MOTOR *motor )
 	if ( pcstep->home_search_in_progress != 0 ) {
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"Cannot perform a home search on motor '%s' since a home search is "
-	"already in progress for axis %d of controller '%s'.",
+	"already in progress for axis %ld of controller '%s'.",
 			motor->record->name,
 			pcstep->home_search_in_progress,
 			pcstep->record->name );
@@ -1081,7 +1081,7 @@ mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 	if ( pcstep->home_search_in_progress != 0 ) {
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"Cannot change the speed of motor '%s' since a home search is "
-	"currently in progress for axis %d of controller '%s'.",
+	"currently in progress for axis %ld of controller '%s'.",
 			motor->record->name,
 			pcstep->home_search_in_progress,
 			pcstep->record->name );
@@ -1245,7 +1245,7 @@ mxd_pcstep_set_parameter( MX_MOTOR *motor )
 	if ( pcstep->home_search_in_progress != 0 ) {
 		return mx_error( MXE_PERMISSION_DENIED, fname,
 	"Cannot set motor parameters for motor '%s' since a home search is "
-	"currently in progress for axis %d of controller '%s'.",
+	"currently in progress for axis %ld of controller '%s'.",
 			motor->record->name,
 			pcstep->home_search_in_progress,
 			pcstep->record->name );

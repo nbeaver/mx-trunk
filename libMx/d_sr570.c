@@ -830,7 +830,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 			sr570->filter_type = sr570->old_filter_type;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested filter type %d for amplifier '%s' is outside "
+	"The requested filter type %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 5.",
 				saved_integer,
 				amplifier->record->name );
@@ -989,7 +989,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 			sr570->gain_mode = sr570->old_gain_mode;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested gain mode %d for amplifier '%s' is outside "
+	"The requested gain mode %ld for amplifier '%s' is outside "
 	"the allowed range of 0 to 2.",
 				saved_integer,
 				amplifier->record->name );
@@ -1018,7 +1018,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 			sr570->invert_signal = sr570->old_invert_signal;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested invert signal value %d for amplifier '%s' is "
+	"The requested invert signal value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
 				saved_integer,
 				amplifier->record->name );
@@ -1045,7 +1045,7 @@ mxd_sr570_set_parameter( MX_AMPLIFIER *amplifier )
 			sr570->blank_output = sr570->old_blank_output;
 
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"The requested blank output value %d for amplifier '%s' is "
+	"The requested blank output value %ld for amplifier '%s' is "
 	"not one of the allowed values, namely, 0 or 1.",
 				saved_integer,
 				amplifier->record->name );

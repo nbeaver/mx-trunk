@@ -289,7 +289,7 @@ mxd_mdrive_din_read( MX_DIGITAL_INPUT *dinput )
 
 	if ((port_number < 1) || (port_number > 4)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital input record '%s' is outside "
+	"Port number %ld used by digital input record '%s' is outside "
 	"the legal range of 1 to 4.", port_number,
 			dinput->record->name );
 	}
@@ -396,7 +396,7 @@ mxd_mdrive_dout_write( MX_DIGITAL_OUTPUT *doutput )
 
 	if ((port_number < 1) || (port_number > 4)) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital output record '%s' is outside "
+	"Port number %ld used by digital output record '%s' is outside "
 	"the legal range of 1 to 4.", port_number,
 			doutput->record->name );
 	}

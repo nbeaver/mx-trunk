@@ -390,7 +390,7 @@ mxd_pfcu_shutter_timer_set_mode( MX_TIMER *timer )
 		timer->mode = MXCM_PRESET_MODE;
 
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Timer mode %d is illegal for MCA timer '%s'",
+		"Timer mode %ld is illegal for PFCU shutter timer '%s'",
 			mode, timer->record->name );
 	}
 

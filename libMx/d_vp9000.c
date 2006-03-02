@@ -778,7 +778,7 @@ mxd_vp9000_set_position( MX_MOTOR *motor )
 	if ((vp9000->active_controller != 0) || (vp9000->active_motor != 0)) {
 		return mx_error( MXE_NOT_READY, fname,
 			"Cannot set the motor position to zero for motor '%s' "
-			"while controller %d, motor %d "
+			"while controller %ld, motor %ld "
 			"for interface '%s' is in motion.",
 				motor->record->name,
 				vp9000->active_controller,

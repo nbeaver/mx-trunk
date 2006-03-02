@@ -156,7 +156,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	}
 	if ( port_number <= 0 || port_number > 65535 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d given as an argument.", port_number );
+		"Illegal port number %ld given as an argument.", port_number );
 	}
 
 	if ( mx_sockets_are_initialized == FALSE ) {
@@ -220,12 +220,12 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	if ( saved_errno != 0 ) {
 		if ( socket_flags & MXF_SOCKET_QUIET_CONNECTION ) {
 			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
-"connect() to host '%s', port %d failed.  Errno = %d.  Error string = '%s'.",
+"connect() to host '%s', port %ld failed.  Errno = %d.  Error string = '%s'.",
 				hostname, port_number,
 				saved_errno, error_string );
 		} else {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"connect() to host '%s', port %d failed.  Errno = %d.  Error string = '%s'.",
+"connect() to host '%s', port %ld failed.  Errno = %d.  Error string = '%s'.",
 				hostname, port_number,
 				saved_errno, error_string );
 		}
@@ -245,7 +245,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 
 		if ( saved_errno != 0 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Attempt to disable the Nagle algorithm for host '%s', port %d failed.  "
+"Attempt to disable the Nagle algorithm for host '%s', port %ld failed.  "
 "Errno = %d.  Error string = '%s'.",
 				hostname, port_number,
 				saved_errno, error_string );
@@ -270,7 +270,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	char *error_string;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s: port_number = %d, socket_flags = %#lx",
+	MX_DEBUG( 2,("%s: port_number = %ld, socket_flags = %#lx",
 			fname, port_number, socket_flags ));
 
 	if ( server_socket == NULL ) {
@@ -279,7 +279,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 	}
 	if ( port_number <= 0 || port_number > 65535 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d given as an argument.", port_number );
+		"Illegal port number %ld given as an argument.", port_number );
 	}
 
 	if ( mx_sockets_are_initialized == FALSE ) {
@@ -330,7 +330,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( saved_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Attempt to set SO_REUSEADDR option for server socket for port %d failed.  "
+"Attempt to set SO_REUSEADDR option for server socket for port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
 			port_number, saved_errno, error_string );
 	}
@@ -352,7 +352,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( saved_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Attempt to bind server socket to port %d failed.  "
+			"Attempt to bind server socket to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
 			port_number, saved_errno, error_string );
 	}
@@ -366,7 +366,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( saved_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Attempt to listen for connections to port %d failed.  "
+		"Attempt to listen for connections to port %ld failed.  "
 			"Errno = %d.  Error string = '%s'.",
 			port_number, saved_errno, error_string );
 	}
@@ -399,7 +399,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 		if ( saved_errno != 0 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Attempt to disable the Nagle algorithm for port %d failed.  "
+		"Attempt to disable the Nagle algorithm for port %ld failed.  "
 		"Errno = %d.  Error string = '%s'.",
 				port_number, saved_errno, error_string );
 		}

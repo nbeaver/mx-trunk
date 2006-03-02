@@ -398,7 +398,7 @@ mxi_keithley2400_set_measurement_type( MX_KEITHLEY2400 *keithley2400,
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported measurement type %d for record '%s'",
+		"Unsupported measurement type %ld for record '%s'",
 			measurement_type, keithley2400->record->name );
 	}
 
@@ -482,7 +482,7 @@ mxi_keithley2400_set_source_type( MX_KEITHLEY2400 *keithley2400,
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported source type %d for record '%s'",
+		"Unsupported source type %ld for record '%s'",
 			source_type, keithley2400->record->name );
 	}
 

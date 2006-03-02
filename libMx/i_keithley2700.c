@@ -294,7 +294,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 	
 	if ( keithley2700->module_type == (long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %d element array "
+		"Ran out of memory trying to allocate a %ld element array "
 		"of Keithley 2700 'module_type' values for record '%s'.",
 			keithley2700->num_slots, record->name );
 	}
@@ -304,7 +304,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 	
 	if ( keithley2700->num_channels == (long *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %d element array "
+		"Ran out of memory trying to allocate a %ld element array "
 		"of Keithley 2700 'num_channels' values for record '%s'.",
 			keithley2700->num_slots, record->name );
 	}
@@ -331,7 +331,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 			if ( num_items != 1 ) {
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 				"Could not find a module type at pointer '%s' "
-				"for slot %d in the response to " "an '*OPT?' "
+				"for slot %ld in the response to " "an '*OPT?' "
 				"command sent to Keithley 2700 '%s'.  "
 				"Response = '%s'",
 					ptr, i+1, record->name, response );
@@ -344,13 +344,13 @@ mxi_keithley2700_open( MX_RECORD *record )
 		if (( ptr == NULL ) && ( i != (keithley2700->num_slots - 1) )) {
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Could not find the comma at the start of the "
-			"slot %d's module type.  Response = '%s'.",
+			"slot %ld's module type.  Response = '%s'.",
 				i+1, response);
 		}
 
 		ptr++;
 
-		MX_DEBUG( 2,("%s: module_type[%d] = %d",
+		MX_DEBUG( 2,("%s: module_type[%ld] = %ld",
 			fname, i, keithley2700->module_type[i]));
 
 		switch( module_type ) {
@@ -383,8 +383,8 @@ mxi_keithley2700_open( MX_RECORD *record )
 
 	if ( keithley2700->channel_type == (long **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Ran out of memory trying to allocate a %d by %d element array "
-		"of Keithley 2700 'channel_type's for record '%s'.",
+		"Ran out of memory trying to allocate a %ld by %ld element "
+		"array of Keithley 2700 'channel_type's for record '%s'.",
 			keithley2700->num_slots, max_channels, record->name );
 	}
 
@@ -453,7 +453,7 @@ mxi_keithley2700_open( MX_RECORD *record )
 			} else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Unrecognized measurement type '%s' found for "
-			"slot %d, channel %d in Keithley 2700 '%s'.",
+			"slot %ld, channel %ld in Keithley 2700 '%s'.",
 					ptr, i+1, j+1, record->name );
 			}
 

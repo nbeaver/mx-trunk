@@ -231,7 +231,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	if ( message_header.len > maximum_data_length ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The message data size of %u bytes from Spec server '%s' "
-		"is larger than the maximum length %u specified for "
+		"is larger than the maximum length %lu specified for "
 		"this call.", message_header.len,
 			spec_server_record->name,
 			maximum_data_length );

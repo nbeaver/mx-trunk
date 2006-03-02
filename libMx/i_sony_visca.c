@@ -150,7 +150,7 @@ mxi_sony_visca_open( MX_RECORD *record )
 	if ( sony_visca->num_cameras > 7 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Sony VISCA interface '%s' reported that it has "
-			"%d cameras which is more than the maximum of 7.",
+			"%ld cameras which is more than the maximum of 7.",
 				sony_visca->record->name,
 				sony_visca->num_cameras );
 	}
@@ -484,9 +484,9 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 
 			if (received_camera_number != camera_number) {
 				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
-				"The camera number %d in the message received "
+				"The camera number %ld in the message received "
 				"from RS-232 port '%s' does not match the "
-				"expected camera number %d.",
+				"expected camera number %ld.",
 					received_camera_number,
 					sony_visca->record->name,
 					camera_number );

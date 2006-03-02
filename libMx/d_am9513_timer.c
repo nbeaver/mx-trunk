@@ -710,7 +710,7 @@ mxd_am9513_timer_stop( MX_TIMER *timer )
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal frequency divider found in counter mode register %#hx "
-		"for counter '%s:%d' in timer '%s'",
+		"for counter '%s:%ld' in timer '%s'",
 				counter_mode_register,
 				this_record->name, n,
 				timer->record->name );

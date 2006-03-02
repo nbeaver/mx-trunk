@@ -461,7 +461,7 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 	double present_position, relative_motion;
 	mx_status_type status;
 
-	MX_DEBUG( 2,("%s: *** flags = %#x ***", fname, flags));
+	MX_DEBUG( 2,("%s: *** flags = %#lx ***", fname, flags));
 
 	/* See if any of the requested moves will exceed a software limit. */
 
@@ -594,7 +594,7 @@ mx_motor_array_internal_move_with_report( long num_motors,
 	int i, j;
 
 	MX_DEBUG( 2,
-		("%s invoked.  flags = %#x, move_report_fn = %p",
+		("%s invoked.  flags = %#lx, move_report_fn = %p",
 		fname, flags, move_report_fn));
 
 	move_report_flag = flags & MXF_MTR_SHOW_MOVE;

@@ -41,22 +41,35 @@
 
 /*---*/
 
-/* Determine the native programming model. */
+/***** Determine the native programming model. *****/
 
 /* FIXME: We have to include a real implementation here. */
 
 #include <limits.h>
 
-/* WARNING: The test using ULONG_MAX is not foolproof.  When porting to
- * a new platform, you must verify that this check does the right thing.
- * This should only be an issue if you are on a machine where 'int'
- * does _not_ use the native word size.
- */
+#if defined(OS_IRIX)
 
-#if ( ULONG_MAX == 4294967295U )
-#  define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+#  if (_MIPS_SZLONG == 32)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+
+#  elif (_MIPS_SZLONG == 64)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+#  else
+#     error "Unexpected value for _MIPS_SZLONG"
+#  endif
+
 #else
-#  define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+   /* All other cases. */
+
+   /* WARNING: The test using ULONG_MAX is not foolproof.  When porting to
+   * a new platform, you must verify that this check does the right thing.
+   */
+
+#  if ( ULONG_MAX == 4294967295U )
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+#  else
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+#  endif
 #endif
 
 #define MX_WORDSIZE	( MX_PROGRAM_MODEL & ~0xf )

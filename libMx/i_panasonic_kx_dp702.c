@@ -153,7 +153,7 @@ mxi_panasonic_kx_dp702_open( MX_RECORD *record )
 	if ( kx_dp702->num_cameras > 255 ) {
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Panasonic PTZ interface '%s' reported that it has "
-			"%d cameras which is more than the maximum of 255.",
+			"%ld cameras which is more than the maximum of 255.",
 				kx_dp702->record->name, kx_dp702->num_cameras );
 	}
 

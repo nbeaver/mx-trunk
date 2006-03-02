@@ -123,7 +123,7 @@ mxi_am9513_inp8( MX_AM9513 *am9513, long port_number )
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d for Am9513 record '%s'",
+		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
 		return (-1);
 	}
@@ -152,7 +152,7 @@ mxi_am9513_inp16( MX_AM9513 *am9513, long port_number )
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d for Am9513 record '%s'",
+		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
 		return (-1);
 	}
@@ -191,7 +191,7 @@ mxi_am9513_outp8( MX_AM9513 *am9513, long port_number,
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d for Am9513 record '%s'",
+		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
 		return;
 	}
@@ -220,7 +220,7 @@ mxi_am9513_outp16( MX_AM9513 *am9513, long port_number,
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal port number %d for Am9513 record '%s'",
+		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
 		return;
 	}

@@ -292,7 +292,7 @@ mxd_picomotor_din_read( MX_DIGITAL_INPUT *dinput )
 
 	if ( (channel_number < 0) || (channel_number > 9 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital input record '%s' is outside "
+	"Port number %ld used by digital input record '%s' is outside "
 	"the legal range of 0 to 9.", channel_number,
 			dinput->record->name );
 	}
@@ -399,7 +399,7 @@ mxd_picomotor_dout_read( MX_DIGITAL_OUTPUT *doutput )
 
 	if ( (channel_number < 0) || (channel_number > 9 ) ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"Port number %d used by digital output record '%s' is outside "
+	"Port number %ld used by digital output record '%s' is outside "
 	"the legal range of 0 to 9.", channel_number,
 			doutput->record->name );
 	}
