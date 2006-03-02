@@ -242,6 +242,15 @@ mxn_tcpip_server_open( MX_RECORD *record )
 
 	}
 
+	/* Warn about the use of an obsolete test flag. */
+
+	if ( flags & 0x10000000 ) {
+		mx_warning(
+		"Flag 0x10000000 for setting non-blocking I/O for server '%s' "
+		"is obsolete.  Non-blocking I/O is now the default.",
+			network_server->record->name );
+	}
+
 	/* Set the socket to non-blocking mode if desired. */
 
 	if ( flags & MXF_NETWORK_SERVER_BLOCKING_IO ) {

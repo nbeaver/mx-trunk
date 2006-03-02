@@ -2473,6 +2473,9 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 			server_record->name );
 	}
 
+	MX_DEBUG(-2,("%s: requesting 64-bit longs for server '%s'",
+		fname, server_record->name ));
+
 #if 0 && ( MX_WORDSIZE != 64 )
 	server->truncate_64bit_longs = TRUE;
 
@@ -2506,6 +2509,9 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 	}
 
 #endif  /* MX_WORDSIZE == 64 */
+
+	MX_DEBUG(-2,("%s: server->truncate_64bit_longs = %d",
+		fname, server->truncate_64bit_longs));
 
 	return MX_SUCCESSFUL_RESULT;
 }
