@@ -2485,6 +2485,8 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 
 #else   /* MX_WORDSIZE == 64 */
 
+	server->truncate_64bit_longs = TRUE;
+
 	switch( server->data_format ) {
 	case MX_NETWORK_DATAFMT_RAW:
 		/* This is the only supported case. */
