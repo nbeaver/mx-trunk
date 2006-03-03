@@ -6,8 +6,13 @@
 #          for Solaris.
 #
 # Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+# the definitions of INCLUDES, LIB_DIRS, LIBRARIES, and USE_64_BITS.
 #
+
+#
+# If you wish to compile a 64-bit version of MX, uncomment the following line.
+#
+USE_64_BITS = -xarch=generic64
 
 #
 INCLUDES	= $(MX_INCLUDES)
@@ -70,7 +75,7 @@ CC		= /opt/SUNWspro/bin/cc
 CFLAGS		= -g -KPIC -errwarn=%all $(INCLUDES) -DOS_SOLARIS \
 				-D_POSIX_PER_PROCESS_TIMER_SOURCE \
 				-D_POSIX_THREAD_SEMANTICS \
-				$(EXTRA_FLAGS) -DDEBUG
+				$(EXTRA_FLAGS) -DDEBUG $(USE_64_BITS)
 
 CFLAGS_EPICS	= $(CFLAGS)
 

@@ -2485,6 +2485,32 @@ mx_network_request_64bit_longs( MX_RECORD *server_record )
 
 #else   /* MX_WORDSIZE == 64 */
 
+	switch( server->data_format ) {
+	case MX_NETWORK_DATAFMT_RAW:
+		/* This is the only supported case. */
+
+		break;
+	case MX_NETWORK_DATAFMT_XDR:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Network communication with server '%s' is using XDR data "
+		"format which does not support 64-bit network longs.",
+			server_record->name );
+
+	case MX_NETWORK_DATAFMT_ASCII:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Network communication with server '%s' is using ASCII data "
+		"format which does not support 64-bit network longs.",
+			server_record->name );
+
+	default:
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"The network communication data structures for server '%s' "
+		"claim that they are using unrecognized data format %lu.  "
+		"This should _never_ happen and should be reported to "
+		"the software developers for MX.",
+			server_record->name, server->data_format );
+	}
+
 	if ( server->remote_mx_version < 1002000 ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"The remote server cannot support 64-bit network longs since "

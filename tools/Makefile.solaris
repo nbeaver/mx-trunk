@@ -2,17 +2,23 @@
 # tools/Makefile.solaris
 #
 
+all: unix/src/editline/libedit.a
+
+include ../libMx/Makehead.solaris
+
+CC = /opt/SUNWspro/bin/cc $(USE_64_BITS)
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
-EDITLINE_CC = /opt/SUNWspro/bin/cc
+EDITLINE_CC = "$(CC)"
 EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
 EDITLINE_RANLIB = ranlib
 
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
 
-all:
+unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 mx_clean:

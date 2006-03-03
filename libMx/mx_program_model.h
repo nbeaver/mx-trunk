@@ -43,11 +43,22 @@
 
 /***** Determine the native programming model. *****/
 
-/* FIXME: We have to include a real implementation here. */
-
 #include <limits.h>
 
-#if defined(OS_IRIX)
+#if defined(OS_SOLARIS)
+
+#  include <sys/types.h>
+
+#  if defined(_ILP32)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+
+#  elif defined(_LP64)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+#  else
+#     error "Neither _ILP32 nor _LP64 are defined for Solaris!"
+#  endif
+
+#elif defined(OS_IRIX)
 
 #  if (_MIPS_SZLONG == 32)
 #     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
