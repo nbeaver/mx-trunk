@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -42,7 +42,7 @@ MX_RECORD_FIELD_DEFAULTS *mxr_list_head_rfield_def_ptr
 MX_EXPORT mx_status_type
 mxr_create_list_head( MX_RECORD *record )
 {
-	const char fname[] = "mxr_create_list_head()";
+	static const char fname[] = "mxr_create_list_head()";
 
 	MX_LIST_HEAD *list_head_struct;
 	MX_RECORD_FIELD *record_field_array;
@@ -50,12 +50,14 @@ mxr_create_list_head( MX_RECORD *record )
 	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
 	void *field_data_ptr;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record->mx_superclass = MXR_LIST_HEAD;
 	record->mx_class = 0;
 	record->mx_type = 0;
-	strncpy(record->name, "mx_database", MXU_RECORD_NAME_LENGTH);
+
+	strlcpy( record->name, "mx_database", MXU_RECORD_NAME_LENGTH );
+
 	record->record_flags = MXF_REC_INITIALIZED | MXF_REC_ENABLED;
 	record->record_function_list = &mxr_list_head_record_function_list;
 
@@ -100,19 +102,19 @@ mxr_create_list_head( MX_RECORD *record )
 
 		record_field_defaults = &mxr_list_head_record_field_defaults[i];
 
-		status = mx_copy_defaults_to_record_field(
+		mx_status = mx_copy_defaults_to_record_field(
 				record_field, record_field_defaults );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Construct a pointer to the field data. */
 
-		status = mx_construct_ptr_to_field_data(
+		mx_status = mx_construct_ptr_to_field_data(
 			record, record_field_defaults, &field_data_ptr );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		record_field->data_pointer = field_data_ptr;
 	}
@@ -140,9 +142,11 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->mx_version += MX_MINOR_VERSION * 1000L;
 	list_head_struct->mx_version += MX_UPDATE_VERSION;
 
+	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
+
 	(void) mx_username( list_head_struct->username, MXU_USERNAME_LENGTH );
 
-	strcpy( list_head_struct->program_name, "" );
+	strlcpy( list_head_struct->program_name, "", MXU_PROGRAM_NAME_LENGTH );
 
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.

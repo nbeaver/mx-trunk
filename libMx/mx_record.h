@@ -390,6 +390,7 @@ typedef struct {
 	long server_protocols_active;
 	void *handle_table;
 	void *application_ptr;
+	char hostname[ MXU_HOSTNAME_LENGTH + 1 ];
 	char username[ MXU_USERNAME_LENGTH + 1 ];
 	char program_name[ MXU_PROGRAM_NAME_LENGTH + 1 ];
 } MX_LIST_HEAD;

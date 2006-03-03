@@ -281,7 +281,6 @@ mxserver_main( int argc, char *argv[] )
 	char mx_connection_acl_filename[MXU_FILENAME_LENGTH+1];
 	char mx_stderr_destination_filename[MXU_FILENAME_LENGTH+1];
 	char server_pathname[MXU_FILENAME_LENGTH+1];
-	char server_hostname[MXU_HOSTNAME_LENGTH+1];
 	char os_version_string[40];
 	char ident_string[80];
 	int i, debug_level, start_debugger, saved_errno;
@@ -644,10 +643,11 @@ mxserver_main( int argc, char *argv[] )
 	 * for the server.
 	 */
 
-	mx_status = mx_gethostname(server_hostname, sizeof(server_hostname)-1);
+	mx_status = mx_gethostname( list_head_struct->hostname,
+					MXU_HOSTNAME_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		strlcpy( server_hostname,
+		strlcpy( list_head_struct->hostname,
 			"unknown hostname", MXU_HOSTNAME_LENGTH );
 	}
 
@@ -658,7 +658,7 @@ mxserver_main( int argc, char *argv[] )
 		exit( mx_status.code );
 
 	mx_info("Server '%s' (%s), process id %lu",
-		server_hostname, os_version_string, mx_process_id() );
+	    list_head_struct->hostname, os_version_string, mx_process_id() );
 
 #if 1
 	MX_DEBUG(-2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",

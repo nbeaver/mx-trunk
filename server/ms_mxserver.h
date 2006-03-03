@@ -84,15 +84,18 @@ extern mx_status_type mxsrv_mx_client_socket_process_event(
 			MX_EVENT_HANDLER *event_handler );
 
 extern mx_status_type mxsrv_mx_client_socket_proc_queued_event(
+			MX_RECORD *record_list,
 			MX_QUEUED_EVENT *queued_event );
 
 extern mx_status_type mxsrv_handle_get_array(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
 			void *received_message_ptr );
 
 extern mx_status_type mxsrv_handle_put_array(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
@@ -100,27 +103,32 @@ extern mx_status_type mxsrv_handle_put_array(
 			void *received_value_ptr );
 
 extern mx_status_type mxsrv_handle_get_network_handle(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field );
 
 extern mx_status_type mxsrv_handle_get_field_type(
+			MX_RECORD *record_list,
 			MX_SOCKET *mx_socket,
 			MX_RECORD_FIELD *record_field,
 			void *message,
 			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_set_client_info(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
 			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_get_option(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
 			uint32_t message_length );
 
 extern mx_status_type mxsrv_handle_set_option(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
 			uint32_t message_length );

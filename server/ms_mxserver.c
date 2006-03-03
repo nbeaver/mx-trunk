@@ -760,6 +760,13 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
                         "MX_EVENT_HANDLER pointer passed was NULL." );
         }
 
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		    "The MX_LIST_HEAD pointer for the MX database is NULL." );
+	}
+
 	/* Try to read the beginning of the header of the incoming message. */
 
 	header = socket_handler->message_buffer->uint32_buffer;
@@ -1078,8 +1085,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 			if ( record == (MX_RECORD *) NULL ) {
 				mx_status = mx_error( MXE_NOT_FOUND, fname,
-				"This server has no record named '%s'.",
-					record_name );
+				"Server '%s' has no record named '%s'.",
+					list_head->hostname, record_name );
 
 				break;	/* Exit the do...while(0) loop. */
 			}
@@ -1091,15 +1098,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		break;
 
 	case MXS_START_RECORD_FIELD_HANDLE:
-		list_head = mx_get_record_list_head_struct( record_list );
-
-		if ( list_head == NULL ) {
-			mx_status = mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		    "The MX_LIST_HEAD pointer for the MX database is NULL." );
-
-			break;	/* Exit the switch() statement. */
-		}
-
 		handle_table = (MX_HANDLE_TABLE *) list_head->handle_table;
 
 		if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
@@ -1279,7 +1277,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	switch ( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-		mx_status = mxsrv_handle_get_array( socket_handler,
+		mx_status = mxsrv_handle_get_array( record_list, socket_handler,
 						record, record_field,
 						receive_buffer );
 
@@ -1296,31 +1294,35 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
 		}
 
-		mx_status = mxsrv_handle_put_array( socket_handler,
+		mx_status = mxsrv_handle_put_array( record_list, socket_handler,
 						record, record_field,
-						receive_buffer,
-						value_ptr );
+						receive_buffer, value_ptr );
 
 		update_next_event_time = TRUE;
 		break;
 	case MX_NETMSG_GET_NETWORK_HANDLE:
-		mx_status = mxsrv_handle_get_network_handle( socket_handler,
+		mx_status = mxsrv_handle_get_network_handle( record_list,
+						socket_handler,
 						record, record_field );
 		break;
 	case MX_NETMSG_GET_FIELD_TYPE:
-		mx_status = mxsrv_handle_get_field_type( client_socket,
-					record_field, message, message_length );
+		mx_status = mxsrv_handle_get_field_type( record_list,
+						client_socket, record_field,
+						message, message_length );
 		break;
 	case MX_NETMSG_SET_CLIENT_INFO:
-		mx_status = mxsrv_handle_set_client_info( socket_handler,
+		mx_status = mxsrv_handle_set_client_info( record_list,
+						socket_handler,
 						message, message_length );
 		break;
 	case MX_NETMSG_GET_OPTION:
-		mx_status = mxsrv_handle_get_option( socket_handler,
+		mx_status = mxsrv_handle_get_option( record_list,
+						socket_handler,
 						message, message_length );
 		break;
 	case MX_NETMSG_SET_OPTION:
-		mx_status = mxsrv_handle_set_option( socket_handler,
+		mx_status = mxsrv_handle_set_option(
+						record_list, socket_handler,
 						message, message_length );
 		break;
 	default:
@@ -1394,12 +1396,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 }
 
 mx_status_type
-mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
+mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
+					MX_QUEUED_EVENT *queued_event )
 {
 	static const char fname[] =
 			"mxsrv_mx_client_socket_proc_queued_event()";
 
-	MX_RECORD *record_list;
 	MX_SOCKET_HANDLER *socket_handler;
 	char *message_buffer, *value_ptr;
 	uint32_t *header;
@@ -1413,7 +1415,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 		"MX_QUEUED_EVENT structure pointer passed is NULL." );
 	}
 
-	record_list = queued_event->record->list_head;
 	socket_handler = queued_event->socket_handler;
 
 #if NETWORK_DEBUG_VERBOSE
@@ -1443,7 +1444,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 	switch ( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
-		mx_status = mxsrv_handle_get_array( socket_handler,
+		mx_status = mxsrv_handle_get_array( record_list,
+						socket_handler,
 						queued_event->record,
 						queued_event->record_field,
 						queued_event->event_data );
@@ -1462,7 +1464,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 			value_ptr += MXU_RECORD_FIELD_NAME_LENGTH;
 		}
 
-		mx_status = mxsrv_handle_put_array( socket_handler,
+		mx_status = mxsrv_handle_put_array( record_list,
+						socket_handler,
 						queued_event->record,
 						queued_event->record_field,
 						message_buffer,
@@ -1492,7 +1495,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_QUEUED_EVENT *queued_event )
 }
 
 mx_status_type
-mxsrv_handle_get_array( MX_SOCKET_HANDLER *socket_handler,
+mxsrv_handle_get_array( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
 			void *received_buffer )
@@ -1788,7 +1792,8 @@ mxsrv_handle_get_array( MX_SOCKET_HANDLER *socket_handler,
 }
 
 mx_status_type
-mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
+mxsrv_handle_put_array( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
 			void *receive_buffer,
@@ -2139,7 +2144,8 @@ mxsrv_handle_put_array( MX_SOCKET_HANDLER *socket_handler,
 }
 
 mx_status_type
-mxsrv_handle_get_network_handle( MX_SOCKET_HANDLER *socket_handler,
+mxsrv_handle_get_network_handle( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER *socket_handler,
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field )
 {
@@ -2281,8 +2287,11 @@ mxsrv_handle_get_network_handle( MX_SOCKET_HANDLER *socket_handler,
 }
 
 mx_status_type
-mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
-				void *message, uint32_t message_length )
+mxsrv_handle_get_field_type( MX_RECORD *record_list,
+				MX_SOCKET *mx_socket,
+				MX_RECORD_FIELD *field,
+				void *message,
+				uint32_t message_length )
 {
 	static const char fname[] = "mxsrv_handle_get_field_type()";
 
@@ -2376,8 +2385,10 @@ mxsrv_handle_get_field_type( MX_SOCKET *mx_socket, MX_RECORD_FIELD *field,
 }
 
 mx_status_type
-mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler, 
-				void *message, uint32_t message_length )
+mxsrv_handle_set_client_info( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER *socket_handler, 
+				void *message,
+				uint32_t message_length )
 {
 	static const char fname[] = "mxsrv_handle_set_client_info()";
 
@@ -2550,7 +2561,8 @@ mxsrv_handle_set_client_info( MX_SOCKET_HANDLER *socket_handler,
 }
 
 mx_status_type
-mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
+mxsrv_handle_get_option( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
 			uint32_t message_length )
 {
@@ -2673,12 +2685,14 @@ mxsrv_handle_get_option( MX_SOCKET_HANDLER *socket_handler,
 }
 
 mx_status_type
-mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
+mxsrv_handle_set_option( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
 			void *message,
 			uint32_t message_length )
 {
 	static const char fname[] = "mxsrv_handle_set_option()";
 
+	MX_LIST_HEAD *list_head;
 	char location[ sizeof(fname) + 40 ];
 	char *send_buffer, *send_buffer_char_message;
 	uint32_t *send_buffer_header;
@@ -2770,9 +2784,20 @@ mxsrv_handle_set_option( MX_SOCKET_HANDLER *socket_handler,
 	if ( illegal_option_value ) {
 		switch( option_number ) {
 		case MX_NETWORK_OPTION_64BIT_LONG:
+			list_head = mx_get_record_list_head_struct(
+						record_list );
+
+			if ( list_head == NULL ) {
+				mx_info(
+				"Exiting due to corrupt list head record." );
+
+				exit( MXE_CORRUPT_DATA_STRUCTURE );
+			}
+
 			sprintf( send_buffer_char_message,
-				"This server does not support the 64-bit longs "
-				"option, since it is not a 64-bit computer." );
+				"Server '%s' does not support the 64-bit longs "
+				"option, since it is not a 64-bit computer.",
+					list_head->hostname );
 			break;
 		default:
 			sprintf( send_buffer_char_message,

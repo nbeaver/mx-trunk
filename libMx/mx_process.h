@@ -87,16 +87,19 @@ struct mx_event_handler_type {
 	char name[MXU_RECORD_NAME_LENGTH + 1];
 	void *type_struct;
 
-	mx_status_type ( *init )(MX_RECORD *record_list,
+	mx_status_type ( *init )(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER_LIST *socket_handler_list,
 			struct mx_event_handler_type *event_handler);
 
-	mx_status_type ( *process_event )(MX_RECORD *record_list,
+	mx_status_type ( *process_event )(
+			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_SOCKET_HANDLER_LIST *socket_handler_list,
 			struct mx_event_handler_type *event_handler);
 
 	mx_status_type ( *process_queued_event )(
+			MX_RECORD *record_list,
 			MX_QUEUED_EVENT *queued_event);
 };
 

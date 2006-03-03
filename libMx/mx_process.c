@@ -499,7 +499,8 @@ mx_process_queued_event( MX_RECORD *record,
 	MX_QUEUED_EVENT *queued_event;
 	MX_EVENT_HANDLER *event_handler;
 	MX_EVENT_TIME_MANAGER *event_time_manager;
-	mx_status_type ( *process_queued_event_fn ) (MX_QUEUED_EVENT *);
+	mx_status_type ( *process_queued_event_fn )(MX_RECORD *,
+							MX_QUEUED_EVENT *);
 	int process_event, comparison;
 	mx_status_type mx_status;
 
@@ -569,7 +570,8 @@ mx_process_queued_event( MX_RECORD *record,
 
 		/* Invoke the event type specific processing function. */
 
-		(void) ( *process_queued_event_fn ) ( queued_event );
+		(void) ( *process_queued_event_fn ) (
+					record->list_head, queued_event );
 
 		/* If an event time manager is in use, compute the time
 		 * of the next allowed event.
