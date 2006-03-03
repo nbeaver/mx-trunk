@@ -163,7 +163,7 @@ mx_scaler_clear( MX_RECORD *scaler_record )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_overflow_set( MX_RECORD *scaler_record, int *overflow_set )
+mx_scaler_overflow_set( MX_RECORD *scaler_record, mx_bool_type *overflow_set )
 {
 	static const char fname[] = "mx_scaler_overflow_set()";
 
@@ -360,7 +360,7 @@ mx_scaler_read_raw( MX_RECORD *scaler_record, long *value )
 }
 
 MX_EXPORT mx_status_type
-mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy )
+mx_scaler_is_busy( MX_RECORD *scaler_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_scaler_is_busy()";
 

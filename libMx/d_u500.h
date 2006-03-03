@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *u500_record;
-	int board_number;
+	long board_number;
 	char axis_name;
 	double default_speed;
 
@@ -59,7 +59,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_u500_rfield_def_ptr;
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_MOTOR, u500_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "board_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "board_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500_MOTOR, board_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

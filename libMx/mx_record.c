@@ -45,7 +45,7 @@ static mx_status_type mx_delete_placeholder_handler( MX_RECORD *record,
 
 /* === */
 
-MX_EXPORT int
+MX_EXPORT mx_bool_type
 mx_verify_driver_type( MX_RECORD *record, long mx_superclass,
 				long mx_class, long mx_type )
 {
@@ -1430,7 +1430,8 @@ mx_write_database_file( MX_RECORD *record_list, char *filename,
 }
 
 MX_EXPORT mx_status_type
-mx_initialize_hardware( MX_RECORD *record_list_head, int inithw_flags )
+mx_initialize_hardware( MX_RECORD *record_list_head,
+			unsigned long inithw_flags )
 {
 	static const char fname[] = "mx_initialize_hardware()";
 
@@ -2009,7 +2010,7 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_add_parent_dependency(MX_RECORD *current_record,
-		int add_child_pointer_in_parent,
+		mx_bool_type add_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
 	static const char fname[] = "mx_add_parent_dependency()";
@@ -2147,7 +2148,7 @@ mx_add_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_parent_dependency(MX_RECORD *current_record,
-		int delete_child_pointer_in_parent,
+		mx_bool_type delete_child_pointer_in_parent,
 		MX_RECORD *parent_record )
 {
 	static const char fname[] = "mx_delete_parent_dependency()";
@@ -2314,7 +2315,7 @@ mx_delete_parent_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_add_child_dependency(MX_RECORD *current_record,
-		int add_parent_pointer_in_child,
+		mx_bool_type add_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
 	static const char fname[] = "mx_add_child_dependency()";
@@ -2444,7 +2445,7 @@ mx_add_child_dependency(MX_RECORD *current_record,
 
 MX_EXPORT mx_status_type
 mx_delete_child_dependency(MX_RECORD *current_record,
-		int delete_parent_pointer_in_child,
+		mx_bool_type delete_parent_pointer_in_child,
 		MX_RECORD *child_record )
 {
 	static const char fname[] = "mx_delete_child_dependency()";
@@ -2698,7 +2699,7 @@ mx_set_field_application_ptr( MX_RECORD_FIELD *record_field,
  */
 
 MX_EXPORT mx_status_type
-mx_get_fast_mode( MX_RECORD *record, int *mode_flag )
+mx_get_fast_mode( MX_RECORD *record, mx_bool_type *mode_flag )
 {
 	static const char fname[] = "mx_get_fast_mode()";
 

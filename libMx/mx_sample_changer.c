@@ -586,7 +586,7 @@ mx_sample_changer_get_status( MX_RECORD *record, unsigned long *changer_status )
 }
 
 MX_EXPORT mx_status_type
-mx_sample_changer_is_busy( MX_RECORD *record, int *busy )
+mx_sample_changer_is_busy( MX_RECORD *record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_sample_changer_is_busy()";
 

@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,7 @@
 typedef struct {
 	MX_RECORD *record;
 	long num_boards;
-	int *board_type;
+	long *board_type;
 	char **firmware_filename;
 	char **parameter_filename;
 	char **calibration_filename;
@@ -57,14 +57,14 @@ typedef struct {
 	short wapi_version[2];
 
 	char program_name[ MXU_U500_PROGRAM_NAME_LENGTH+1 ];
-	int program_number;
+	long program_number;
 	char load_program[ MXU_FILENAME_LENGTH+1 ];
-	int unload_program;
-	int run_program;
-	int stop_program;
-	int fault_acknowledge;
+	long unload_program;
+	long run_program;
+	long stop_program;
+	long fault_acknowledge;
 
-	int current_board_number;
+	long current_board_number;
 } MX_U500;
 
 #define MXLV_U500_PROGRAM_NAME		8000
@@ -80,7 +80,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, num_boards), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "board_type", MXFT_INT, NULL, 1, {MXU_VARARGS_LENGTH}, \
+  {-1, -1, "board_type", MXFT_LONG, NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, board_type), \
 	{sizeof(int)}, NULL, MXFF_VARARGS}, \
   \
@@ -125,7 +125,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, program_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_U500_PROGRAM_NUMBER, -1, "program_number", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_U500_PROGRAM_NUMBER, -1, "program_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, program_number), \
 	{0}, NULL, 0}, \
   \
@@ -134,20 +134,20 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, load_program), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_U500_UNLOAD_PROGRAM, -1, "unload_program", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_U500_UNLOAD_PROGRAM, -1, "unload_program", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, unload_program), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_U500_RUN_PROGRAM, -1, "run_program", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_U500_RUN_PROGRAM, -1, "run_program", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, run_program), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_U500_STOP_PROGRAM, -1, "stop_program", MXFT_INT, NULL, 0, {0}, \
+  {MXLV_U500_STOP_PROGRAM, -1, "stop_program", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, stop_program), \
 	{0}, NULL, 0}, \
   \
   {MXLV_U500_FAULT_ACKNOWLEDGE, -1, "fault_acknowledge", \
-					MXFT_INT, NULL, 0, {0}, \
+					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_U500, fault_acknowledge), \
 	{0}, NULL, 0}
 

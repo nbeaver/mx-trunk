@@ -16,7 +16,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003 Illinois Institute of Technology
+ * Copyright 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -30,11 +30,12 @@
 #  define MX_DATAFMT_NATIVE	MX_DATAFMT_LITTLE_ENDIAN
 #endif
 
-/* XDR_FREE is not implemented. */
+/* XDR_FREE is listed, but not really implemented. */
 
 enum xdr_op {
 	XDR_ENCODE = 0,
-	XDR_DECODE = 1
+	XDR_DECODE = 1,
+	XDR_FREE   = 2
 };
 
 typedef int bool_t;

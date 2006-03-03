@@ -202,7 +202,7 @@ mx_motor_get_pointers( MX_RECORD *motor_record,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_motor_is_busy( MX_RECORD *motor_record, int *busy )
+mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_motor_is_busy()";
 
@@ -1188,7 +1188,7 @@ mx_motor_set_position( MX_RECORD *motor_record, double set_position )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_positive_limit_hit( MX_RECORD *motor_record, int *limit_hit )
+mx_motor_positive_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 {
 	static const char fname[] = "mx_motor_positive_limit_hit()";
 
@@ -1265,7 +1265,7 @@ mx_motor_positive_limit_hit( MX_RECORD *motor_record, int *limit_hit )
 }
 
 MX_EXPORT mx_status_type
-mx_motor_negative_limit_hit( MX_RECORD *motor_record, int *limit_hit )
+mx_motor_negative_limit_hit( MX_RECORD *motor_record, mx_bool_type *limit_hit )
 {
 	static const char fname[] = "mx_motor_negative_limit_hit()";
 
@@ -2885,7 +2885,7 @@ mx_motor_restore_speed( MX_RECORD *motor_record )
 
 MX_EXPORT mx_status_type
 mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
-					int *synchronous_motion_mode )
+					mx_bool_type *synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_get_synchronous_motion_mode()";
 
@@ -2921,7 +2921,7 @@ mx_motor_get_synchronous_motion_mode( MX_RECORD *motor_record,
 
 MX_EXPORT mx_status_type
 mx_motor_set_synchronous_motion_mode( MX_RECORD *motor_record,
-					int synchronous_motion_mode )
+					mx_bool_type synchronous_motion_mode )
 {
 	static const char fname[] = "mx_motor_set_synchronous_motion_mode()";
 
@@ -3406,7 +3406,7 @@ mx_motor_set_gain( MX_RECORD *motor_record, int gain_type, double gain )
 
 MX_EXPORT mx_status_type
 mx_motor_home_search_succeeded( MX_RECORD *motor_record,
-				int *home_search_succeeded )
+				mx_bool_type *home_search_succeeded )
 {
 	static const char fname[] = "mx_motor_is_at_home_switch()";
 

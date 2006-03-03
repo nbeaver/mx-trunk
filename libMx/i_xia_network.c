@@ -439,7 +439,7 @@ mxi_xia_network_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_xia_network_is_busy( MX_MCA *mca,
-			int *busy_flag,
+			mx_bool_type *busy_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_is_busy()";
@@ -639,7 +639,7 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_network_start_run( MX_MCA *mca,
-			int clear_flag,
+			mx_bool_type clear_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_network_start_run()";

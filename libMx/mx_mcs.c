@@ -443,7 +443,7 @@ mx_mcs_clear( MX_RECORD *mcs_record )
 }
 
 MX_EXPORT mx_status_type
-mx_mcs_is_busy( MX_RECORD *mcs_record, int *busy )
+mx_mcs_is_busy( MX_RECORD *mcs_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_mcs_is_busy()";
 
@@ -729,7 +729,7 @@ mx_mcs_set_mode( MX_RECORD *mcs_record, long mode )
 
 MX_EXPORT mx_status_type
 mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
-					int *external_channel_advance )
+					mx_bool_type *external_channel_advance )
 {
 	static const char fname[] = "mx_mcs_get_external_channel_advance()";
 
@@ -763,7 +763,7 @@ mx_mcs_get_external_channel_advance( MX_RECORD *mcs_record,
 
 MX_EXPORT mx_status_type
 mx_mcs_set_external_channel_advance( MX_RECORD *mcs_record,
-					int external_channel_advance )
+					mx_bool_type external_channel_advance )
 {
 	static const char fname[] = "mx_mcs_set_external_channel_advance()";
 

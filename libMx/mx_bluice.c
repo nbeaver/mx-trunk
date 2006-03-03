@@ -743,7 +743,7 @@ mx_bluice_wait_for_device_pointer_initialization(
 
 MX_EXPORT mx_status_type
 mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
-				int *master_flag )
+				mx_bool_type *master_flag )
 {
 	static const char fname[] = "mx_bluice_is_master()";
 
@@ -808,7 +808,7 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 
 MX_API mx_status_type
 mx_bluice_take_master( MX_BLUICE_SERVER *bluice_server,
-			int take_master )
+			mx_bool_type take_master )
 {
 	static const char fname[] = "mx_bluice_take_master()";
 
@@ -1684,7 +1684,7 @@ mx_bluice_configure_string( MX_BLUICE_SERVER *bluice_server,
 MX_EXPORT mx_status_type
 mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 				char *status_message,
-				int move_in_progress )
+				mx_bool_type move_in_progress )
 {
 	static const char fname[] = "mx_bluice_update_motion_status()";
 

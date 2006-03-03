@@ -19,12 +19,22 @@
 #ifndef __XDR_HYPER_H__
 #define __XDR_HYPER_H__
 
+#if defined(OS_WIN32)
+#  include "xdr.h"
+#else
+#  include <rpc/types.h>
+#  include <rpc/xdr.h>
+#endif
+
 #define xdr_hyper		mx_xdr_hyper
 #define xdr_u_hyper		mx_xdr_u_hyper
 
-#if defined(OS_QNX)
-typedef long long		quad_t;
-typedef unsigned long long	u_quad_t;
+#if defined(OS_WIN32)
+   typedef __int64		quad_t;
+   typedef unsigned __int64	u_quad_t;
+#elif defined(OS_QNX)
+   typedef long long		quad_t;
+   typedef unsigned long long	u_quad_t;
 #endif
 
 MX_API bool_t mx_xdr_hyper( XDR *xdrs, quad_t *quad_ptr );

@@ -33,7 +33,7 @@ mx_convert_varargs_cookie_to_value(
 		long varargs_cookie,
 		long *returned_value )
 {
-	const char fname[] = "mx_convert_varargs_cookie_to_value()";
+	static const char fname[] = "mx_convert_varargs_cookie_to_value()";
 
 	MX_RECORD_FIELD *record_field_array, *field;
 	long num_record_fields;
@@ -166,7 +166,7 @@ mx_construct_varargs_cookie(
 		long array_in_field_index,
 		long *returned_varargs_cookie )
 {
-	const char fname[] = "mx_construct_varargs_cookie()";
+	static const char fname[] = "mx_construct_varargs_cookie()";
 
 	long temp_value;
 
@@ -201,9 +201,9 @@ mx_construct_varargs_cookie(
 
 MX_EXPORT mx_status_type
 mx_replace_varargs_cookies_with_values( MX_RECORD *record,
-		long field_index, int allow_forward_references )
+		long field_index, mx_bool_type allow_forward_references )
 {
-	const char fname[] = "mx_replace_varargs_cookies_with_values()";
+	static const char fname[] = "mx_replace_varargs_cookies_with_values()";
 
 	MX_RECORD_FIELD *field_array;
 	MX_RECORD_FIELD *field;
@@ -213,7 +213,7 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 	long varargs_cookie, referenced_field_index;
 	long old_num_dimensions, new_num_dimensions;
 	long i, *temp_ptr;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -280,11 +280,11 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 		MX_DEBUG( 8,("%s: referenced_field_index = %ld",
 			fname, referenced_field_index ));
 
-		status = mx_convert_varargs_cookie_to_value(
+		mx_status = mx_convert_varargs_cookie_to_value(
 			record, varargs_cookie, &new_num_dimensions );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/*
@@ -395,12 +395,12 @@ mx_replace_varargs_cookies_with_values( MX_RECORD *record,
 						referenced_field_index );
 				}
 			}
-			status = mx_convert_varargs_cookie_to_value(
+			mx_status = mx_convert_varargs_cookie_to_value(
 				record, varargs_cookie,
 				&(field->dimension[i]) );
 	
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 

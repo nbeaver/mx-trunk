@@ -108,7 +108,7 @@ mx_timer_finish_record_initialization( MX_RECORD *timer_record )
 }
 
 MX_EXPORT mx_status_type
-mx_timer_is_busy( MX_RECORD *timer_record, int *busy )
+mx_timer_is_busy( MX_RECORD *timer_record, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_timer_is_busy()";
 

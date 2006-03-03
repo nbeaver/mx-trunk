@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2000 Illinois Institute of Technology
+ * Copyright 1999-2000, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,7 @@
 
 typedef struct {
 	MX_RECORD *umcbi_record;
-	int detector_number;
+	long detector_number;
 	MX_UMCBI_DETECTOR *detector;
 } MX_TRUMP_MCA;
 
@@ -32,7 +32,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, umcbi_record ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "detector_number", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "detector_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof( MX_TRUMP_MCA, detector_number ), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 

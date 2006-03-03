@@ -648,7 +648,7 @@ mxi_am9513_release_counters( MX_RECORD *record,
 }
 
 MX_EXPORT char *
-mxi_am9513_dump( MX_AM9513 *am9513, int do_inquire )
+mxi_am9513_dump( MX_AM9513 *am9513, mx_bool_type do_inquire )
 {
 	static char returned_buffer[1000];
 	char buffer[80];

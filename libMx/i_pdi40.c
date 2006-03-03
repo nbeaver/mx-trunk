@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -510,7 +510,7 @@ mxi_pdi40_putc( MX_PDI40 *pdi40, char c, int debug_flag )
  */
 
 MX_EXPORT mx_status_type
-mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, int *a_motor_is_busy )
+mxi_pdi40_is_any_motor_busy( MX_PDI40 *pdi40, mx_bool_type *a_motor_is_busy )
 {
 	const char fname[] = "mxi_pdi40_is_any_motor_busy()";
 

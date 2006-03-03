@@ -134,7 +134,8 @@ MX_API mx_status_type mx_scaler_read( MX_RECORD *scaler_record, long *value );
 MX_API mx_status_type mx_scaler_read_raw( MX_RECORD *scaler_record,
 							long *value );
 
-MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record, int *busy );
+MX_API mx_status_type mx_scaler_is_busy( MX_RECORD *scaler_record,
+						mx_bool_type *busy );
 
 MX_API mx_status_type mx_scaler_start( MX_RECORD *scaler_record,
 						long preset_count );

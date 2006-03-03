@@ -465,7 +465,7 @@ mxi_mardtb_command( MX_MARDTB *mardtb,
 
 MX_EXPORT mx_status_type
 mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
-					int *move_in_progress )
+					mx_bool_type *move_in_progress )
 {
 	static const char fname[] = "mxi_mardtb_check_for_move_in_progress()";
 

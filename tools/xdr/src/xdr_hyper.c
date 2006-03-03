@@ -18,17 +18,15 @@
 
 #include <stdio.h>
 #include <limits.h>
-#include <rpc/types.h>
-#include <rpc/xdr.h>
 
 #include "mx_util.h"
-#if 0
-#include "mx_stdint.h"
-#include "mx_bit.h"
 #include "mx_socket.h"
-#endif
-
 #include "xdr_hyper.h"
+
+#if defined(OS_WIN32)
+#  define XDR_GETLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
+#  define XDR_PUTLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
+#endif  /* OS_WIN32 */
 
 MX_EXPORT bool_t
 mx_xdr_hyper( XDR *xdrs, quad_t *quad_ptr )

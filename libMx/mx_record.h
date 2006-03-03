@@ -446,7 +446,7 @@ MX_API MX_RECORD      *mx_initialize_record_list( void );
 MX_API mx_status_type  mx_initialize_drivers( void );
 
 MX_API mx_status_type  mx_initialize_hardware( MX_RECORD *record_list,
-						mx_bool_type trace_flag );
+						unsigned long inithw_flags );
 
 MX_API mx_status_type  mx_shutdown_hardware( MX_RECORD *record_list );
 

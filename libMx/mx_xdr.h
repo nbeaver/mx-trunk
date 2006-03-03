@@ -19,6 +19,7 @@
 
 #if defined(OS_WIN32) || defined(OS_DJGPP)
 #   include "../tools/xdr/src/xdr.h"
+#   include "../tools/xdr/src/xdr_hyper.h"
 
 #elif defined(OS_VMS)
 #   include <tcpip$rpcxdr.h>

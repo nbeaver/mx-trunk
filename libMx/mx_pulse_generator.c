@@ -136,7 +136,8 @@ mx_pulse_generator_initialize( MX_RECORD *record )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record, int *busy )
+mx_pulse_generator_is_busy( MX_RECORD *pulse_generator_record,
+				mx_bool_type *busy )
 {
 	static const char fname[] = "mx_pulse_generator_is_busy()";
 
