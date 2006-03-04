@@ -1075,7 +1075,7 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		MX_DEBUG( 2,("%s: command = '%s'", fname, command));
 
 		MX_DEBUG( 2,
-		("%s: i = %lu, will_be_moved = %ld, destination[%lu] = %.5f",
+		("%s: i = %lu, will_be_moved = %d, destination[%lu] = %.5f",
 			fname, i, will_be_moved[i], i, destination[i]));
 
 		length = strlen( command );

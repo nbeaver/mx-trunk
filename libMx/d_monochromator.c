@@ -220,7 +220,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 
 	*enable_status = *( int * ) pointer_to_value;
 
-	MX_DEBUG( 2,("%s: '%s' enable status = %ld",
+	MX_DEBUG( 2,("%s: '%s' enable status = %d",
 		fname, list_record->name, *enable_status));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -423,7 +423,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 
-		MX_DEBUG( 2,("%s: monochromator->speed_changed[%ld] = %ld",
+		MX_DEBUG( 2,("%s: monochromator->speed_changed[%ld] = %d",
 			fname, i, monochromator->speed_changed[i]));
 
 		if ( monochromator->speed_changed[i] ) {
