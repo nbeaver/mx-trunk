@@ -806,7 +806,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 		dcb.ByteSize = rs232->word_size;
 	} else {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM word size = %d for WIN32COM '%s'.", 
+		"Unsupported WIN32COM word size = %ld for WIN32COM '%s'.", 
 		rs232->word_size, rs232->record->name);
 	}
 
@@ -841,7 +841,7 @@ win32com_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported WIN32COM stop bits = %d for WIN32COM '%s'.", 
+		"Unsupported WIN32COM stop bits = %ld for WIN32COM '%s'.", 
 		rs232->stop_bits, rs232->record->name);
 
 		break;

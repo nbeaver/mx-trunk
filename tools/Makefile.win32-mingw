@@ -1,5 +1,5 @@
 
-all: xdr.o getopt.o strlcpy.o strlcat.o mxgnuplt.exe
+all: xdr.o xdr_hyper.o getopt.o strlcpy.o strlcat.o mxgnuplt.exe
 
 include ../libMx/Makehead.win32-mingw
 
@@ -7,6 +7,11 @@ xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
 		-Ixdr/src -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
 		xdr/src/xdr.c -o xdr.o
+
+xdr_hyper.o: xdr/src/xdr.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
+		-Ixdr/src -I../libMx -DOS_WIN32 -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c -o xdr_hyper.o
 
 getopt.o: generic/src/getopt.c
 	gcc -c $(RUN_TIME_LIBRARY_FLAGS) \
