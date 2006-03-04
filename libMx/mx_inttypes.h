@@ -94,7 +94,7 @@
 #define SCNx64	"llx"
 
 /*=======================================================================*/
-#elif defined(OS_WIN32) && defined(_MSC_VER)
+#elif defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
 
 #define PRId8	"hd"
 #define PRIu8	"hu"

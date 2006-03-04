@@ -29,12 +29,9 @@
  *
  * FIXME:   This file should not need to exist.
  *
- * FIXME:   This file does not really work yet and has been disabled in
- *          the makefile.
- *
  *------------------------------------------------------------------------
  *
- * Copyright 2005 Illinois Institute of Technology
+ * Copyright 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
