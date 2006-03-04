@@ -401,7 +401,7 @@ mxd_tangent_arm_motor_is_busy( MX_MOTOR *motor )
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
@@ -647,7 +647,7 @@ mxd_tangent_arm_positive_limit_hit( MX_MOTOR *motor )
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
-	int limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,
@@ -676,7 +676,7 @@ mxd_tangent_arm_negative_limit_hit( MX_MOTOR *motor )
 
 	MX_TANGENT_ARM *tangent_arm;
 	MX_RECORD *moving_motor_record;
-	int limit_hit;
+	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_tangent_arm_get_pointers( motor,

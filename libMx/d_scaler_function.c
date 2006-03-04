@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2002-2005 Illinois Institute of Technology
+ * Copyright 2002-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,7 +70,7 @@ mxd_scaler_function_get_pointers( MX_SCALER *scaler,
 			MX_SCALER_FUNCTION **scaler_function,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_scaler_function_get_pointers()";
+	static const char fname[] = "mxd_scaler_function_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -101,7 +101,7 @@ mxd_scaler_function_get_pointers( MX_SCALER *scaler,
 MX_EXPORT mx_status_type
 mxd_scaler_function_initialize_type( long type )
 {
-        const char fname[] = "mxs_scaler_function_initialize_type()";
+        static const char fname[] = "mxs_scaler_function_initialize_type()";
 
         const char field_name[NUM_SCALER_FUNCTION_FIELDS]
 					[MXU_FIELD_NAME_LENGTH+1]
@@ -184,7 +184,7 @@ mxd_scaler_function_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_scaler_function_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_create_record_structures()";
+	static const char fname[] = "mxd_scaler_function_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_SCALER_FUNCTION *scaler_function;
@@ -222,7 +222,7 @@ mxd_scaler_function_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_scaler_function_finish_record_initialization()";
 
 	MX_RECORD **record_array;
@@ -510,7 +510,7 @@ mxd_scaler_function_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_scaler_function_print_scaler_structure()";
+	static const char fname[] = "mxd_scaler_function_print_scaler_structure()";
 
 	MX_SCALER *scaler;
 	MX_SCALER_FUNCTION *scaler_function;
@@ -606,7 +606,7 @@ mxd_scaler_function_print_scaler_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_scaler_function_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_clear()";
+	static const char fname[] = "mxd_scaler_function_clear()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
@@ -644,13 +644,13 @@ mxd_scaler_function_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_overflow_set()";
+	static const char fname[] = "mxd_scaler_function_overflow_set()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
 	MX_RECORD *child_scaler_record;
 	long i, num_scalers;
-	int overflow_set;
+	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
 	mx_status = mxd_scaler_function_get_pointers( scaler,
@@ -690,7 +690,7 @@ mxd_scaler_function_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_read()";
+	static const char fname[] = "mxd_scaler_function_read()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD *child_record;
@@ -776,13 +776,13 @@ mxd_scaler_function_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_is_busy()";
+	static const char fname[] = "mxd_scaler_function_is_busy()";
 
 	MX_SCALER_FUNCTION *scaler_function;
 	MX_RECORD **scaler_record_array;
 	MX_RECORD *child_scaler_record;
 	long i, num_scalers;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_scaler_function_get_pointers( scaler,
@@ -837,7 +837,7 @@ mxd_scaler_function_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_scaler_function_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_scaler_function_set_parameter()";
+	static const char fname[] = "mxd_scaler_function_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

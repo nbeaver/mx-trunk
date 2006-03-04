@@ -95,7 +95,7 @@ mxd_aps_18id_motor_get_pointers( MX_MOTOR *motor,
 				MX_RECORD **bragg_motor_record,
 				MX_RECORD **tune_motor_record )
 {
-	const char fname[] = "mxd_aps_18id_motor_find_home_position()";
+	static const char fname[] = "mxd_aps_18id_motor_find_home_position()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor_ptr;
 
@@ -151,7 +151,7 @@ mxd_aps_18id_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_aps_18id_motor_create_record_structures()";
+	static const char fname[] = "mxd_aps_18id_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
@@ -191,17 +191,17 @@ mxd_aps_18id_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] ="mxd_aps_18id_motor_finish_record_initialization()";
+	static const char fname[] ="mxd_aps_18id_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -251,12 +251,12 @@ mxd_aps_18id_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_aps_18id_motor_print_motor_structure()";
+	static const char fname[] = "mxd_aps_18id_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -319,9 +319,9 @@ mxd_aps_18id_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  d spacing                      = %s\n",
 				aps_18id_motor->d_spacing_record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -371,16 +371,16 @@ mxd_aps_18id_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_motor_is_busy()";
+	static const char fname[] = "mxd_aps_18id_motor_motor_is_busy()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *gap_energy_motor_record;
-	int busy;
+	mx_bool_type busy;
 	long gap_linked;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -406,12 +406,12 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_is_busy( bragg_motor_record, &busy );
+	mx_status = mx_motor_is_busy( bragg_motor_record, &busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG( 2,("%s: bragg_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: bragg_motor_record  busy = %d", fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -430,12 +430,12 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_is_busy( tune_motor_record, &busy );
+	mx_status = mx_motor_is_busy( tune_motor_record, &busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -453,12 +453,13 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_is_busy( piezo_left_motor_record, &busy );
+	mx_status = mx_motor_is_busy( piezo_left_motor_record, &busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	MX_DEBUG( 2,("%s: piezo_left_motor_record  busy = %d", fname, busy));
+	MX_DEBUG( 2,("%s: piezo_left_motor_record  busy = %d",
+				fname, (int) busy));
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -474,12 +475,12 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 	 * linked to theta motions.
 	 */
 
-	status = mx_get_long_variable_by_name( bragg_motor_record->list_head,
+	mx_status = mx_get_long_variable_by_name( bragg_motor_record->list_head,
 				aps_18id_motor->gap_linked_record->name,
 				&gap_linked );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( gap_linked != 0 ) {
 		gap_energy_motor_record =
@@ -491,20 +492,21 @@ mxd_aps_18id_motor_motor_is_busy( MX_MOTOR *motor )
 				motor->record->name );
 		}
 
-		status = mx_motor_is_busy( gap_energy_motor_record, &busy );
+		mx_status = mx_motor_is_busy( gap_energy_motor_record, &busy );
 
-		MX_DEBUG( 2,("%s: tune_motor_record  busy = %d", fname, busy));
+		MX_DEBUG( 2,("%s: tune_motor_record  busy = %d",
+				fname, (int) busy));
 	}
 
 	motor->busy = busy;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_move_absolute()";
+	static const char fname[] = "mxd_aps_18id_motor_move_absolute()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *list_head;
@@ -534,8 +536,8 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	double settling_time, integration_time, remaining_time;
 	long bpm_top_value, bpm_bottom_value;
 	double ruler;
-	mx_status_type status;
-	int busy;
+	mx_status_type mx_status;
+	mx_bool_type busy;
 	
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -580,12 +582,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 * moved together with bragg during a scan.  
 	 */
 
-	status = mx_get_long_variable_by_name( list_head,
+	mx_status = mx_get_long_variable_by_name( list_head,
 				aps_18id_motor->trolleyY_linked_record->name,
 				&trolleyY_linked );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( trolleyY_linked == FALSE) {
 		num_motors--;
@@ -607,12 +609,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		
 	 /* Next we do TrolleyX  */
 
-	status = mx_get_long_variable_by_name( list_head,
+	mx_status = mx_get_long_variable_by_name( list_head,
 				aps_18id_motor->trolleyX_linked_record->name,
 				&trolleyX_linked );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( trolleyX_linked == FALSE) {
 		num_motors--;
@@ -633,12 +635,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 	/*  Now we do gap  */
 
-	status = mx_get_long_variable_by_name( list_head,
+	mx_status = mx_get_long_variable_by_name( list_head,
 				aps_18id_motor->gap_linked_record->name,
 				&gap_linked );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 
 	if ( gap_linked == FALSE ) {
@@ -659,12 +661,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Next to last is tune  */
 
-	status = mx_get_long_variable_by_name( list_head,
+	mx_status = mx_get_long_variable_by_name( list_head,
 			aps_18id_motor->tune_linked_record->name,
 			&tune_linked );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( tune_linked == FALSE ) {
 		num_motors--;
@@ -683,7 +685,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	
 	/* piezo motors are the last  */
 
-	status = mx_get_long_variable_by_name( list_head,
+	mx_status = mx_get_long_variable_by_name( list_head,
 			aps_18id_motor->piezo_enable_record->name,
 			&piezo_enable );
 
@@ -711,12 +713,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 * units of electron volts. Remember that bragg is in angles.  
 	 */
 
-	status = mx_get_double_variable_by_name( list_head,
+	mx_status = mx_get_double_variable_by_name( list_head,
 			aps_18id_motor->d_spacing_record->name,
 			&d_spacing );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	angle_in_radians = bragg * (aps_18id_motor->angle_scale);
 
@@ -747,11 +749,11 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	 * one dimensional array of doubles.
 	 */
 
-	status = mx_find_record_field( aps_18id_motor->tune_parameters_record,
+	mx_status = mx_find_record_field( aps_18id_motor->tune_parameters_record,
 				"value", &value_field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_parameters = value_field->dimension[0];
 
@@ -785,23 +787,23 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 		/* Get the fitting function type. */
 
-		status = mx_get_long_variable_by_name( list_head,
+		mx_status = mx_get_long_variable_by_name( list_head,
 				aps_18id_motor->tune_linked_record->name,
 				&tune_linked );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Get the tune motion parameters.  They should be in a 
 		 * one dimensional array of doubles.
 		 */
 
-		status = mx_find_record_field(
+		mx_status = mx_find_record_field(
 				aps_18id_motor->tune_parameters_record,
 					"value", &value_field );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		num_parameters = value_field->dimension[0];
 
@@ -812,11 +814,11 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 		tune_motor_record = motor_record_array[ tune_motor_index ];
 
-		status = mx_motor_get_position(
+		mx_status = mx_motor_get_position(
 				tune_motor_record, &tune_old_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Evaluate the function using the values in 'parameter_array'.
 		 */
@@ -846,12 +848,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	if ( gap_linked ) {
 		/* Get the requested offset for the undulator gap. */
 
-		status = mx_get_double_variable_by_name( list_head,
+		mx_status = mx_get_double_variable_by_name( list_head,
 				aps_18id_motor->gap_offset_record->name,
 				&gap_offset );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		new_gap_energy = mono_energy + gap_offset;
 
@@ -859,12 +861,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		 * that we want to use.
 		 */
 
-		status = mx_get_long_variable_by_name( list_head,
+		mx_status = mx_get_long_variable_by_name( list_head,
 				aps_18id_motor->gap_harmonic_record->name,
 				&gap_harmonic );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( gap_harmonic <= 0 ) {
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -880,19 +882,19 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 	/********************** Now move the motors. **********************/
 
-	status = mx_motor_array_move_absolute( num_motors,
+	mx_status = mx_motor_array_move_absolute( num_motors,
 		motor_record_array, position_array, 0 );
 		
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 		
 	/* making sure trolley motors are moved too */
 
-	status = mx_set_long_variable(
+	mx_status = mx_set_long_variable(
 			aps_18id_motor->trolley_setup_record, 1L );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The last thing we need to do is to feed back using piezo/tune
 	 * if needed
@@ -904,12 +906,12 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		 * dimensional array of doubles.
 		 */
 	
-		status = mx_find_record_field(
+		mx_status = mx_find_record_field(
 				aps_18id_motor->piezo_parameters_record,
 					"value", &value_field );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		num_parameters = value_field->dimension[0];
 
@@ -918,17 +920,17 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 
 		/* Get the current position of piezo. */
 
-		status = mx_motor_get_position( piezo_left_motor_record,
+		mx_status = mx_motor_get_position( piezo_left_motor_record,
 						&piezo_left_old_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_get_position( piezo_right_motor_record,
+		mx_status = mx_motor_get_position( piezo_right_motor_record,
 						&piezo_right_old_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Evaluate the function using the values in 'parameter_array'.
 		 */
@@ -975,7 +977,7 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 		/* Wait for the settling time  */
 		
 		settling_time = 0.01;
-		status = mx_timer_start( timer_record, settling_time );
+		mx_status = mx_timer_start( timer_record, settling_time );
 		
 		/* Wait for the settling time to be over */
 	
@@ -990,9 +992,9 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 				"Measurement time was interrupted. ");
 			}
 			
-			status = mx_timer_is_busy( timer_record, &busy );
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			mx_status = mx_timer_is_busy( timer_record, &busy );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 				
 			mx_msleep(1);	/* Wait at least 1 millisecond. */
 		}
@@ -1001,10 +1003,10 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 	
 		integration_time = 1.0;
 
-		status = mx_timer_start( timer_record, integration_time );
+		mx_status = mx_timer_start( timer_record, integration_time );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		
 		/* Wait for the measurement to finish  */
 	
@@ -1019,26 +1021,26 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 				"Measurement time was interrupted. ");
 			}
 			
-			status = mx_timer_is_busy( timer_record, &busy );
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			mx_status = mx_timer_is_busy( timer_record, &busy );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 				
 			mx_msleep(1);	/* Wait at least 1 millisecond. */
 		}
 		
 		/* Read the scalers  */
 		
-		status = mx_scaler_read( bpm_top_scaler_record,
+		mx_status = mx_scaler_read( bpm_top_scaler_record,
 						&bpm_top_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		
-		status = mx_scaler_read( bpm_bottom_scaler_record,
+		mx_status = mx_scaler_read( bpm_bottom_scaler_record,
 						&bpm_bottom_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		
 		ruler = mx_divide_safely(
 				(double) (bpm_top_value - bpm_bottom_value),
@@ -1052,14 +1054,14 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			piezo_right = ruler * piezo_scale
 						+ piezo_right_old_position;
 		
-			status = mx_motor_move_absolute(
+			mx_status = mx_motor_move_absolute(
 					piezo_left_motor_record,
 					piezo_left, 0 );
 		
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		
-			status = mx_motor_move_absolute(
+			mx_status = mx_motor_move_absolute(
 					piezo_right_motor_record,
 					piezo_right, 0 );
 		} else
@@ -1080,15 +1082,15 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 			    }
 			}
 
-			status = mx_motor_get_position( tune_motor_record,
+			mx_status = mx_motor_get_position( tune_motor_record,
 							&tune_old_position );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			tune = ruler * piezo_scale + tune_old_position;
 
-			status = mx_motor_move_absolute( tune_motor_record,
+			mx_status = mx_motor_move_absolute( tune_motor_record,
 								tune, 0);
 		} else {
 			/* We use Trolley Y to feedback the height of the beam.
@@ -1104,32 +1106,32 @@ mxd_aps_18id_motor_move_absolute( MX_MOTOR *motor )
 					motor->record->name );
 			}
 
-			status = mx_motor_get_position( trolleyY_motor_record,
+			mx_status = mx_motor_get_position( trolleyY_motor_record,
 							&trolleyY);
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			trolleyY = ruler * piezo_scale
 				/ ( 2 * cos( angle_in_radians )) + trolleyY;
 		}
 
-		status = mx_motor_move_absolute( trolleyY_motor_record,
+		mx_status = mx_motor_move_absolute( trolleyY_motor_record,
 							trolleyY, 0 );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_get_position()";
+	static const char fname[] = "mxd_aps_18id_motor_get_position()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	double bragg;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1153,10 +1155,10 @@ mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_get_position( bragg_motor_record, &bragg );
+	mx_status = mx_motor_get_position( bragg_motor_record, &bragg );
 	
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Since bragg pseudo motor uses the real Bragg motor, both use
 	 * degrees as units, there is no conversion needed.
@@ -1172,12 +1174,12 @@ mxd_aps_18id_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_set_position()";
+	static const char fname[] = "mxd_aps_18id_motor_set_position()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	double bragg;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1207,15 +1209,15 @@ mxd_aps_18id_motor_set_position( MX_MOTOR *motor )
 	* no convertion needed here.
 	*/
 	 			
-	status = mx_motor_set_position( bragg_motor_record, bragg );
+	mx_status = mx_motor_set_position( bragg_motor_record, bragg );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_soft_abort()";
+	static const char fname[] = "mxd_aps_18id_motor_soft_abort()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
@@ -1314,7 +1316,7 @@ mxd_aps_18id_motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_immediate_abort()";
+	static const char fname[] = "mxd_aps_18id_motor_immediate_abort()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
@@ -1322,7 +1324,7 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 	MX_RECORD *trolleyX_motor_record;
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *gap_energy_motor_record;
-	mx_status_type status[5];
+	mx_status_type mx_status[5];
 	int i;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
@@ -1379,28 +1381,28 @@ mxd_aps_18id_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status[0] = mx_motor_immediate_abort( bragg_motor_record );
+	mx_status[0] = mx_motor_immediate_abort( bragg_motor_record );
 
-	status[1] = mx_motor_immediate_abort( trolleyY_motor_record );
+	mx_status[1] = mx_motor_immediate_abort( trolleyY_motor_record );
 
-	status[2] = mx_motor_immediate_abort( trolleyX_motor_record );
+	mx_status[2] = mx_motor_immediate_abort( trolleyX_motor_record );
 
-	status[3] = mx_motor_immediate_abort( tune_motor_record );
+	mx_status[3] = mx_motor_immediate_abort( tune_motor_record );
 
-	status[4] = mx_motor_immediate_abort( gap_energy_motor_record );
+	mx_status[4] = mx_motor_immediate_abort( gap_energy_motor_record );
 
 
 	for ( i = 1; i < 5; i++ ) {
-		if ( status[i].code != MXE_SUCCESS ) 
-			return status[i];
+		if ( mx_status[i].code != MXE_SUCCESS ) 
+			return mx_status[i];
 	}
-	return status[4];
+	return mx_status[4];
 }
 
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_aps_18id_motor_positive_limit_hit()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
@@ -1409,8 +1411,8 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *piezo_right_motor_record;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1476,11 +1478,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 
 	/* Check bragg motor   */
 	
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				bragg_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1490,11 +1492,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 	
 	/* Check trolleyY motor   */
 	
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				trolleyY_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1504,11 +1506,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 	
 	/* Check trolleyX motor   */
 	
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				trolleyX_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1518,11 +1520,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 	
 	/* Check tune motor   */
 	
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				tune_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1532,11 +1534,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 
 	/* Check piezo motors   */
 	
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				piezo_left_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1544,11 +1546,11 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				piezo_right_motor_record, &limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -1564,7 +1566,7 @@ mxd_aps_18id_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_aps_18id_motor_negative_limit_hit()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
@@ -1573,8 +1575,8 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 	MX_RECORD *tune_motor_record;
 	MX_RECORD *piezo_left_motor_record;
 	MX_RECORD *piezo_right_motor_record;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1638,11 +1640,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_negative_limit_hit( bragg_motor_record,
+	mx_status = mx_motor_negative_limit_hit( bragg_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1652,11 +1654,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 	
 		/* Check trolleyY motor   */
 	
-	status = mx_motor_negative_limit_hit( trolleyY_motor_record,
+	mx_status = mx_motor_negative_limit_hit( trolleyY_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1666,11 +1668,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 	
 	/* Check trolleyX motor   */
 	
-	status = mx_motor_negative_limit_hit( trolleyX_motor_record,
+	mx_status = mx_motor_negative_limit_hit( trolleyX_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1680,11 +1682,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 	
 	/* Check tune motor   */
 	
-	status = mx_motor_negative_limit_hit( tune_motor_record,
+	mx_status = mx_motor_negative_limit_hit( tune_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1694,11 +1696,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 
 	/* Check piezo motors   */
 	
-	status = mx_motor_negative_limit_hit( piezo_left_motor_record,
+	mx_status = mx_motor_negative_limit_hit( piezo_left_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1706,11 +1708,11 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_motor_negative_limit_hit( piezo_right_motor_record,
+	mx_status = mx_motor_negative_limit_hit( piezo_right_motor_record,
 						&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -1726,13 +1728,13 @@ mxd_aps_18id_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_find_home_position()";
+	static const char fname[] = "mxd_aps_18id_motor_find_home_position()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	MX_RECORD *tune_motor_record;
 	long direction;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -1766,22 +1768,22 @@ mxd_aps_18id_motor_find_home_position( MX_MOTOR *motor )
 
 	direction = motor->home_search;
 
-	status = mx_motor_find_home_position( bragg_motor_record,
+	mx_status = mx_motor_find_home_position( bragg_motor_record,
 							direction );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_find_home_position( tune_motor_record,
+	mx_status = mx_motor_find_home_position( tune_motor_record,
 							- direction );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_aps_18id_motor_constant_velocity_move()";
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 	"Constant velocity moves are not yet implemented for motor '%s'.",
@@ -1791,70 +1793,70 @@ mxd_aps_18id_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_get_parameter()";
+	static const char fname[] = "mxd_aps_18id_motor_get_parameter()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	double double_value;
 	double start_position, end_position;
 	double real_start_position, real_end_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
+	mx_status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
 						&bragg_motor_record, NULL );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		status = mx_motor_get_speed( bragg_motor_record,
+		mx_status = mx_motor_get_speed( bragg_motor_record,
 							&double_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_speed = double_value;
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		status = mx_motor_get_base_speed( bragg_motor_record,
+		mx_status = mx_motor_get_base_speed( bragg_motor_record,
 							&double_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_base_speed = double_value;
 		break;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
-		status = mx_motor_get_maximum_speed( bragg_motor_record,
+		mx_status = mx_motor_get_maximum_speed( bragg_motor_record,
 							&double_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_maximum_speed = double_value;
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
-		status = mx_motor_get_acceleration_time(
+		mx_status = mx_motor_get_acceleration_time(
 						bragg_motor_record,
 						&double_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->acceleration_time = double_value;
 		break;
 
 	case MXLV_MTR_ACCELERATION_DISTANCE:
-		status = mx_motor_get_acceleration_distance(
+		mx_status = mx_motor_get_acceleration_distance(
 						bragg_motor_record,
 						&double_value );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->acceleration_distance = double_value;
 		break;
@@ -1863,15 +1865,15 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 		start_position = motor->raw_compute_extended_scan_range[0];
 		end_position = motor->raw_compute_extended_scan_range[1];
 
-		status = mx_motor_compute_extended_scan_range(
+		mx_status = mx_motor_compute_extended_scan_range(
 						bragg_motor_record,
 						start_position,
 						end_position,
 						&real_start_position,
 						&real_end_position );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_compute_extended_scan_range[2] = real_start_position;
 		motor->raw_compute_extended_scan_range[3] = real_end_position;
@@ -1904,41 +1906,41 @@ mxd_aps_18id_motor_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aps_18id_motor_set_parameter()";
+	static const char fname[] = "mxd_aps_18id_motor_set_parameter()";
 
 	MX_APS_18ID_MOTOR *aps_18id_motor;
 	MX_RECORD *bragg_motor_record;
 	double start_position, end_position, time_for_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
+	mx_status = mxd_aps_18id_motor_get_pointers( motor, &aps_18id_motor,
 						&bragg_motor_record, NULL );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		status = mx_motor_set_speed( bragg_motor_record,
+		mx_status = mx_motor_set_speed( bragg_motor_record,
 						motor->raw_speed );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		status = mx_motor_set_base_speed( bragg_motor_record,
+		mx_status = mx_motor_set_base_speed( bragg_motor_record,
 						motor->raw_base_speed );
 		break;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
-		status = mx_motor_set_maximum_speed( bragg_motor_record,
+		mx_status = mx_motor_set_maximum_speed( bragg_motor_record,
 						motor->raw_maximum_speed );
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		status = mx_motor_save_speed( bragg_motor_record );
+		mx_status = mx_motor_save_speed( bragg_motor_record );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		status = mx_motor_restore_speed( bragg_motor_record );
+		mx_status = mx_motor_restore_speed( bragg_motor_record );
 		break;
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
@@ -1946,7 +1948,7 @@ mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 		end_position = motor->raw_speed_choice_parameters[1];
 		time_for_move = motor->raw_speed_choice_parameters[2];
 
-		status = mx_motor_set_speed_between_positions(
+		mx_status = mx_motor_set_speed_between_positions(
 						bragg_motor_record,
 						start_position,
 						end_position,
@@ -1964,6 +1966,6 @@ mxd_aps_18id_motor_set_parameter( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	return status;
+	return mx_status;
 }
 

@@ -84,7 +84,7 @@ mxd_table_motor_get_pointers( MX_MOTOR *motor,
 			MX_TABLE_MOTOR **table_motor,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_table_motor_get_pointers()";
+	static const char fname[] = "mxd_table_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -140,7 +140,7 @@ mxd_table_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_table_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_table_motor_create_record_structures()";
+	static const char fname[] = "mxd_table_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
@@ -180,21 +180,21 @@ mxd_table_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_table_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_table_motor_finish_record_initialization()";
+	static const char fname[] = "mxd_table_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"MX_RECORD pointer passed is NULL." );
 	}
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -249,12 +249,12 @@ mxd_table_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_table_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_table_motor_print_motor_structure()";
+	static const char fname[] = "mxd_table_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -286,10 +286,10 @@ mxd_table_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  axis id        = %ld\n",
 					table_motor->axis_id );
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "  position       = %g %s (%g)\n",
 		motor->position, motor->units, motor->raw_position.analog );
@@ -348,11 +348,11 @@ mxd_table_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_table_motor_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_table_motor_resynchronize()";
+	static const char fname[] = "mxd_table_motor_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_TABLE_MOTOR *table_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -362,198 +362,198 @@ mxd_table_motor_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_resynchronize_record( table_motor->table_record );
+	mx_status = mx_resynchronize_record( table_motor->table_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_motor_is_busy()";
+	static const char fname[] = "mxd_table_motor_motor_is_busy()";
 
 	MX_TABLE_MOTOR *table_motor;
-	int busy;
-	mx_status_type status;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		motor->busy = FALSE;
 
-		return status;
+		return mx_status;
 	}
 
-	status = mx_table_is_busy( table_motor->table_record,
+	mx_status = mx_table_is_busy( table_motor->table_record,
 				table_motor->axis_id, &busy );
 
 	motor->busy = busy;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_move_absolute()";
+	static const char fname[] = "mxd_table_motor_move_absolute()";
 
 	MX_TABLE_MOTOR *table_motor;
 	double new_destination;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	new_destination = motor->raw_destination.analog;
 
-	status = mx_table_move_absolute( table_motor->table_record,
+	mx_status = mx_table_move_absolute( table_motor->table_record,
 					table_motor->axis_id,
 					new_destination );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_get_position()";
+	static const char fname[] = "mxd_table_motor_get_position()";
 
 	MX_TABLE_MOTOR *table_motor;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_table_get_position( table_motor->table_record,
+	mx_status = mx_table_get_position( table_motor->table_record,
 					table_motor->axis_id,
 					&position );
 
 	motor->raw_position.analog = position;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_set_position()";
+	static const char fname[] = "mxd_table_motor_set_position()";
 
 	MX_TABLE_MOTOR *table_motor;
 	double new_set_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	new_set_position = motor->raw_set_position.analog;
 
-	status = mx_table_set_position( table_motor->table_record,
+	mx_status = mx_table_set_position( table_motor->table_record,
 					table_motor->axis_id,
 					new_set_position );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_soft_abort()";
+	static const char fname[] = "mxd_table_motor_soft_abort()";
 
 	MX_TABLE_MOTOR *table_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_table_soft_abort( table_motor->table_record,
+	mx_status = mx_table_soft_abort( table_motor->table_record,
 					table_motor->axis_id );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_immediate_abort()";
+	static const char fname[] = "mxd_table_motor_immediate_abort()";
 
 	MX_TABLE_MOTOR *table_motor;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_table_immediate_abort( table_motor->table_record,
+	mx_status = mx_table_immediate_abort( table_motor->table_record,
 					table_motor->axis_id );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_table_motor_positive_limit_hit()";
 
 	MX_TABLE_MOTOR *table_motor;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_table_positive_limit_hit( table_motor->table_record,
+	mx_status = mx_table_positive_limit_hit( table_motor->table_record,
 						table_motor->axis_id,
 						&limit_hit );
 
 	motor->positive_limit_hit = limit_hit;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_table_motor_negative_limit_hit()";
 
 	MX_TABLE_MOTOR *table_motor;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
+	mx_status = mxd_table_motor_get_pointers(motor, &table_motor, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_table_negative_limit_hit( table_motor->table_record,
+	mx_status = mx_table_negative_limit_hit( table_motor->table_record,
 						table_motor->axis_id,
 						&limit_hit );
 
 	motor->negative_limit_hit = limit_hit;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_table_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_find_home_position()";
+	static const char fname[] = "mxd_table_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Home searches are not supported for table pseudomotor '%s'.",
@@ -563,7 +563,7 @@ mxd_table_motor_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_table_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_table_motor_constant_velocity_move()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Constant velocity moves are not supported for table pseudomotor '%s'.",
@@ -573,7 +573,7 @@ mxd_table_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_table_motor_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_get_parameter()";
+	static const char fname[] = "mxd_table_motor_get_parameter()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Getting motor parameters is not supported for table pseudomotor '%s'.",
@@ -583,7 +583,7 @@ mxd_table_motor_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_table_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_table_motor_set_parameter()";
+	static const char fname[] = "mxd_table_motor_set_parameter()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"Setting motor parameters is not supported for table pseudomotor '%s'.",

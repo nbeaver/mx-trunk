@@ -576,7 +576,7 @@ mxd_scaler_function_mcs_busy( MX_MCS *mcs )
 	MX_SCALER_FUNCTION_MCS *scaler_function_mcs;
 	MX_RECORD *mcs_record;
 	long i;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_scaler_function_mcs_get_pointers( mcs,

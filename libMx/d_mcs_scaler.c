@@ -302,7 +302,7 @@ mxd_mcs_scaler_read( MX_SCALER *scaler )
 	MX_MCS *mcs;
 	MX_RECORD *timer_record;
 	long scaler_index, offset;
-	int fast_mode;
+	mx_bool_type fast_mode;
 	double dark_current, last_measurement_time;
 	mx_status_type mx_status;
 
@@ -450,7 +450,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mcs_scaler_is_busy()";
 
 	MX_MCS_SCALER *mcs_scaler;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mcs_scaler_get_pointers( scaler,
@@ -466,7 +466,7 @@ mxd_mcs_scaler_is_busy( MX_SCALER *scaler )
 
 	scaler->busy = busy;
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
 
 	return mx_status;
 }

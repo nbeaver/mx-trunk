@@ -219,7 +219,7 @@ mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 	MX_MOTOR *motor;
 	MX_SEGMENTED_MOVE *segmented_move;
 	double position, move_deadband, speed;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -252,10 +252,10 @@ mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 					segmented_move->segment_length,
 					motor->units );
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "  position          = %g %s (%g)\n",
 		motor->position, motor->units, motor->raw_position.analog );
@@ -284,9 +284,9 @@ mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 		move_deadband, motor->units,
 		motor->raw_move_deadband.analog );
 
-	status = mx_motor_get_speed( record, &speed );
+	mx_status = mx_motor_get_speed( record, &speed );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to get the speed of motor '%s'",
 			record->name );
@@ -329,7 +329,7 @@ mxd_segmented_move_resynchronize( MX_RECORD *record )
 
 	MX_MOTOR *motor;
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -339,17 +339,17 @@ mxd_segmented_move_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		motor->busy = FALSE;
 
-		return status;
+		return mx_status;
 	}
 
-	status = mx_resynchronize_record( segmented_move->real_motor_record );
+	mx_status = mx_resynchronize_record( segmented_move->real_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -358,18 +358,18 @@ mxd_segmented_move_motor_is_busy( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_motor_is_busy()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	int busy;
-	mx_status_type status;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		motor->busy = FALSE;
 
-		return status;
+		return mx_status;
 	}
 
-	status = mx_motor_is_busy( segmented_move->real_motor_record, &busy );
+	mx_status = mx_motor_is_busy( segmented_move->real_motor_record, &busy );
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -378,7 +378,7 @@ mxd_segmented_move_motor_is_busy( MX_MOTOR *motor )
 	}
 
 	MX_DEBUG( 2,("%s: busy = %d, more_segments_needed = %d",
-		fname, motor->busy, segmented_move->more_segments_needed));
+		fname, (int)motor->busy, segmented_move->more_segments_needed));
 
 	if ( ( motor->busy == FALSE )
 	  && ( segmented_move->more_segments_needed == TRUE ) )
@@ -389,10 +389,10 @@ mxd_segmented_move_motor_is_busy( MX_MOTOR *motor )
 
 		motor->busy = TRUE;
 
-		status = mxd_segmented_move_move_absolute( motor );
+		mx_status = mxd_segmented_move_move_absolute( motor );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -403,20 +403,20 @@ mxd_segmented_move_move_absolute( MX_MOTOR *motor )
 	MX_SEGMENTED_MOVE *segmented_move;
 	double destination, segment_destination;
 	double current_position, relative_distance;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	destination = motor->raw_destination.analog;
 
-	status = mx_motor_get_position( segmented_move->real_motor_record,
+	mx_status = mx_motor_get_position( segmented_move->real_motor_record,
 						&current_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( segmented_move->more_segments_needed == FALSE ) {
 		segmented_move->final_destination = destination;
@@ -458,10 +458,10 @@ mxd_segmented_move_move_absolute( MX_MOTOR *motor )
 	 * you should specify a backlash correction for this pseudomotor.
 	 */
 
-	status = mx_motor_move_absolute( segmented_move->real_motor_record,
+	mx_status = mx_motor_move_absolute( segmented_move->real_motor_record,
 				segment_destination,
 				MXF_MTR_NOWAIT | MXF_MTR_IGNORE_BACKLASH );
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -471,19 +471,19 @@ mxd_segmented_move_get_position( MX_MOTOR *motor )
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	double position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_position( segmented_move->real_motor_record,
+	mx_status = mx_motor_get_position( segmented_move->real_motor_record,
 							&position );
 
 	motor->raw_position.analog = position;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -493,18 +493,18 @@ mxd_segmented_move_set_position( MX_MOTOR *motor )
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	double new_set_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	new_set_position = motor->raw_set_position.analog;
 
-	status = mx_motor_set_position( segmented_move->real_motor_record,
+	mx_status = mx_motor_set_position( segmented_move->real_motor_record,
 						new_set_position );
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -513,18 +513,18 @@ mxd_segmented_move_soft_abort( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_soft_abort()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	segmented_move->more_segments_needed = FALSE;
 
-	status = mx_motor_soft_abort( segmented_move->real_motor_record );
+	mx_status = mx_motor_soft_abort( segmented_move->real_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -533,18 +533,18 @@ mxd_segmented_move_immediate_abort( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_immediate_abort()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	segmented_move->more_segments_needed = FALSE;
 
-	status = mx_motor_immediate_abort( segmented_move->real_motor_record );
+	mx_status = mx_motor_immediate_abort( segmented_move->real_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -553,15 +553,15 @@ mxd_segmented_move_positive_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_positive_limit_hit()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_positive_limit_hit(segmented_move->real_motor_record,
+	mx_status = mx_motor_positive_limit_hit(segmented_move->real_motor_record,
 						&limit_hit );
 
 	motor->positive_limit_hit = limit_hit;
@@ -570,7 +570,7 @@ mxd_segmented_move_positive_limit_hit( MX_MOTOR *motor )
 		segmented_move->more_segments_needed = FALSE;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -579,15 +579,15 @@ mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_negative_limit_hit()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_negative_limit_hit(segmented_move->real_motor_record,
+	mx_status = mx_motor_negative_limit_hit(segmented_move->real_motor_record,
 						&limit_hit );
 
 	motor->negative_limit_hit = limit_hit;
@@ -596,7 +596,7 @@ mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor )
 		segmented_move->more_segments_needed = FALSE;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -605,16 +605,16 @@ mxd_segmented_move_find_home_position( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_find_home_position()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_find_home_position( segmented_move->real_motor_record,
+	mx_status = mx_motor_find_home_position( segmented_move->real_motor_record,
 						motor->home_search );
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -623,17 +623,17 @@ mxd_segmented_move_constant_velocity_move( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_constant_velocity_move()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_constant_velocity_move(
+	mx_status = mx_motor_constant_velocity_move(
 					segmented_move->real_motor_record,
 					motor->constant_velocity_move );
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -642,12 +642,12 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_get_parameter()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
@@ -657,48 +657,48 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		status = mx_motor_get_speed( segmented_move->real_motor_record,
+		mx_status = mx_motor_get_speed( segmented_move->real_motor_record,
 						&(motor->raw_speed) );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		status = mx_motor_get_base_speed(
+		mx_status = mx_motor_get_base_speed(
 					segmented_move->real_motor_record,
 					&(motor->raw_base_speed) );
 		break;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
-		status = mx_motor_get_maximum_speed(
+		mx_status = mx_motor_get_maximum_speed(
 					segmented_move->real_motor_record,
 					&(motor->raw_maximum_speed) );
 		break;
 
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
-		status = mx_motor_get_synchronous_motion_mode(
+		mx_status = mx_motor_get_synchronous_motion_mode(
 					segmented_move->real_motor_record,
 					&(motor->synchronous_motion_mode) );
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		status = mx_motor_get_raw_acceleration_parameters(
+		mx_status = mx_motor_get_raw_acceleration_parameters(
 					segmented_move->real_motor_record,
 					motor->raw_acceleration_parameters );
 		break;
 
 	case MXLV_MTR_ACCELERATION_DISTANCE:
-		status = mx_motor_get_acceleration_distance(
+		mx_status = mx_motor_get_acceleration_distance(
 					segmented_move->real_motor_record,
 					&(motor->acceleration_distance) );
 		break;
 
 	case MXLV_MTR_ACCELERATION_TIME:
-		status = mx_motor_get_acceleration_time(
+		mx_status = mx_motor_get_acceleration_time(
 					segmented_move->real_motor_record,
 					&(motor->acceleration_time) );
 		break;
 
 	case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
-		status = mx_motor_compute_extended_scan_range(
+		mx_status = mx_motor_compute_extended_scan_range(
 				segmented_move->real_motor_record,
 				motor->raw_compute_extended_scan_range[0],
 				motor->raw_compute_extended_scan_range[1],
@@ -707,7 +707,7 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
-		status =
+		mx_status =
 		    mx_motor_compute_pseudomotor_position_from_real_position(
 				segmented_move->real_motor_record,
 				motor->compute_pseudomotor_position[0],
@@ -716,7 +716,7 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_COMPUTE_REAL_POSITION:
-		status =
+		mx_status =
 		    mx_motor_compute_real_position_from_pseudomotor_position(
 				segmented_move->real_motor_record,
 				motor->compute_real_position[0],
@@ -730,7 +730,7 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 			motor->parameter_type );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -739,12 +739,12 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 	const char fname[] = "mxd_segmented_move_set_parameter()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s' for parameter type '%s' (%ld).",
 		fname, motor->record->name,
@@ -754,30 +754,30 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 
 	switch ( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		status = mx_motor_set_speed( segmented_move->real_motor_record,
+		mx_status = mx_motor_set_speed( segmented_move->real_motor_record,
 						motor->raw_speed );
 		break;
 
 	case MXLV_MTR_BASE_SPEED:
-		status = mx_motor_set_base_speed(
+		mx_status = mx_motor_set_base_speed(
 					segmented_move->real_motor_record,
 					motor->raw_base_speed );
 		break;
 
 	case MXLV_MTR_MAXIMUM_SPEED:
-		status = mx_motor_set_maximum_speed(
+		mx_status = mx_motor_set_maximum_speed(
 					segmented_move->real_motor_record,
 					motor->raw_maximum_speed );
 		break;
 
 	case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-		status = mx_motor_set_raw_acceleration_parameters(
+		mx_status = mx_motor_set_raw_acceleration_parameters(
 					segmented_move->real_motor_record,
 					motor->raw_acceleration_parameters );
 		break;
 
 	case MXLV_MTR_SPEED_CHOICE_PARAMETERS:
-		status = mx_motor_set_speed_between_positions(
+		mx_status = mx_motor_set_speed_between_positions(
 					segmented_move->real_motor_record,
 					motor->raw_speed_choice_parameters[0],
 					motor->raw_speed_choice_parameters[1],
@@ -785,17 +785,17 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_SAVE_SPEED:
-		status = mx_motor_save_speed(
+		mx_status = mx_motor_save_speed(
 					segmented_move->real_motor_record );
 		break;
 
 	case MXLV_MTR_RESTORE_SPEED:
-		status = mx_motor_restore_speed(
+		mx_status = mx_motor_restore_speed(
 					segmented_move->real_motor_record );
 		break;
 
 	case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
-		status = mx_motor_set_synchronous_motion_mode(
+		mx_status = mx_motor_set_synchronous_motion_mode(
 					segmented_move->real_motor_record,
 					motor->synchronous_motion_mode );
 		break;
@@ -806,6 +806,6 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 			motor->parameter_type );
 	}
 
-	return status;
+	return mx_status;
 }
 

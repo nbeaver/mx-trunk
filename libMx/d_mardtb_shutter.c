@@ -144,7 +144,7 @@ mxd_mardtb_shutter_relay_command( MX_RELAY *relay )
 	MX_MARDTB_SHUTTER *mardtb_shutter;
 	MX_MARDTB *mardtb;
 	char command[40];
-	int move_in_progress;
+	mx_bool_type move_in_progress;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mardtb_get_pointers( relay,

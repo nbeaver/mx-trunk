@@ -257,7 +257,7 @@ mxd_mca_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_mca_timer_is_busy()";
 
 	MX_MCA_TIMER *mca_timer;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_timer_get_pointers( timer, &mca_timer, fname );

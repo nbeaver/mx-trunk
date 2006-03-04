@@ -1289,7 +1289,7 @@ mxd_xia_dxp_open( MX_RECORD *record )
 			xia_dxp_mca->record->name,
 			xia_dxp_mca->firmware_code_variant,
 			xia_dxp_mca->firmware_code_revision,
-			xia_dxp_mca->hardware_scas_are_enabled );
+			(int) xia_dxp_mca->hardware_scas_are_enabled );
 	}
 
 	/* Initialize the range of bin numbers used by the MCA
@@ -1458,8 +1458,9 @@ mxd_xia_dxp_open( MX_RECORD *record )
 			struct timespec expected_timeout_timespec;
 			double initial_clock_tick_estimate;
 			double preset_seconds, actual_seconds, ratio;
-			int busy, compare_status;
+			int compare_status;
 			long integer_ratio;
+			mx_bool_type busy;
 
 			MX_DEBUG( 2,(
 			  "%s: calibrating preset MCA clock ticks.", fname));
@@ -2041,7 +2042,7 @@ mxd_xia_dxp_busy( MX_MCA *mca )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s: mca->busy = %d", fname, mca->busy));
+	MX_DEBUG( 2,("%s: mca->busy = %d", fname, (int) mca->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2271,8 +2272,8 @@ mxd_xia_dxp_default_get_mx_parameter( MX_MCA *mca )
 
 		MX_DEBUG( 2,
 		("%s: new_statistics_available = %d, mca->busy = %d",
-			fname, xia_dxp_mca->new_statistics_available,
-			mca->busy ));
+			fname, (int) xia_dxp_mca->new_statistics_available,
+			(int) mca->busy ));
 
 		break;
 	default:

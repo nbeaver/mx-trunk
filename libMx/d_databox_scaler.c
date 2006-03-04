@@ -484,7 +484,7 @@ mxd_databox_scaler_is_busy( MX_SCALER *scaler )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, scaler->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) scaler->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }

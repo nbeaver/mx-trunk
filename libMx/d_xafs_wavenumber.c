@@ -88,7 +88,7 @@ mxd_xafswn_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_xafswn_motor_create_record_structures()";
+	static const char fname[] = "mxd_xafswn_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_XAFS_WAVENUMBER_MOTOR *xafswn_motor;
@@ -132,12 +132,12 @@ mxd_xafswn_motor_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -168,12 +168,12 @@ mxd_xafswn_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_xafswn_motor_print_structure()";
+	static const char fname[] = "mxd_xafswn_motor_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -201,9 +201,9 @@ mxd_xafswn_motor_print_structure( FILE *file, MX_RECORD *record )
 
 	fprintf(file,"  name                     = %s\n", record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -273,12 +273,12 @@ mxd_xafswn_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_motor_is_busy()";
+	static const char fname[] = "mxd_xafswn_motor_motor_is_busy()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	int busy;
-	mx_status_type status;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -302,22 +302,22 @@ mxd_xafswn_motor_motor_is_busy( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_is_busy( energy_motor_record, &busy );
+	mx_status = mx_motor_is_busy( energy_motor_record, &busy );
 
 	motor->busy = busy;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_move_absolute()";
+	static const char fname[] = "mxd_xafswn_motor_move_absolute()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
 	double energy, edge_energy, xafs_wavenumber;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -343,30 +343,30 @@ mxd_xafswn_motor_move_absolute( MX_MOTOR *motor )
 
 	xafs_wavenumber = motor->raw_destination.analog;
 
-	status = mxd_xafswn_motor_get_edge_energy(
+	mx_status = mxd_xafswn_motor_get_edge_energy(
 				xafs_wavenumber_motor, &edge_energy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	energy = edge_energy + MX_HBAR_SQUARED_OVER_2M_ELECTRON *
 				xafs_wavenumber * xafs_wavenumber;
 
-	status = mx_motor_move_absolute( energy_motor_record, energy, 0 );
+	mx_status = mx_motor_move_absolute( energy_motor_record, energy, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_get_position()";
+	static const char fname[] = "mxd_xafswn_motor_get_position()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
 	double energy, edge_energy;
 	double xafs_wavenumber, sqrt_argument;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -390,16 +390,16 @@ mxd_xafswn_motor_get_position( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mxd_xafswn_motor_get_edge_energy(
+	mx_status = mxd_xafswn_motor_get_edge_energy(
 				xafs_wavenumber_motor, &edge_energy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_get_position( energy_motor_record, &energy );
+	mx_status = mx_motor_get_position( energy_motor_record, &energy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sqrt_argument = (energy - edge_energy)
 				/ MX_HBAR_SQUARED_OVER_2M_ELECTRON;
@@ -418,12 +418,12 @@ mxd_xafswn_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_set_position()";
+	static const char fname[] = "mxd_xafswn_motor_set_position()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
 	double energy, edge_energy, xafs_wavenumber;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -449,28 +449,28 @@ mxd_xafswn_motor_set_position( MX_MOTOR *motor )
 
 	xafs_wavenumber = motor->raw_set_position.analog;
 
-	status = mxd_xafswn_motor_get_edge_energy(
+	mx_status = mxd_xafswn_motor_get_edge_energy(
 					xafs_wavenumber_motor, &edge_energy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	energy = edge_energy + MX_HBAR_SQUARED_OVER_2M_ELECTRON *
 				xafs_wavenumber * xafs_wavenumber;
 
-	status = mx_motor_set_position( energy_motor_record, energy );
+	mx_status = mx_motor_set_position( energy_motor_record, energy );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_soft_abort()";
+	static const char fname[] = "mxd_xafswn_motor_soft_abort()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -494,19 +494,19 @@ mxd_xafswn_motor_soft_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_soft_abort( energy_motor_record );
+	mx_status = mx_motor_soft_abort( energy_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_immediate_abort()";
+	static const char fname[] = "mxd_xafswn_motor_immediate_abort()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -530,20 +530,20 @@ mxd_xafswn_motor_immediate_abort( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_immediate_abort( energy_motor_record );
+	mx_status = mx_motor_immediate_abort( energy_motor_record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_xafswn_motor_positive_limit_hit()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	int energy_limit_hit;
-	mx_status_type status;
+	mx_bool_type energy_limit_hit;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -567,11 +567,11 @@ mxd_xafswn_motor_positive_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				energy_motor_record, &energy_limit_hit);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( energy_limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -585,12 +585,12 @@ mxd_xafswn_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_xafswn_motor_negative_limit_hit()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
-	int energy_limit_hit;
-	mx_status_type status;
+	mx_bool_type energy_limit_hit;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -614,11 +614,11 @@ mxd_xafswn_motor_negative_limit_hit( MX_MOTOR *motor )
 			motor->record->name );
 	}
 
-	status = mx_motor_negative_limit_hit(
+	mx_status = mx_motor_negative_limit_hit(
 				energy_motor_record, &energy_limit_hit);
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( energy_limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -632,12 +632,12 @@ mxd_xafswn_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_xafswn_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_xafswn_motor_find_home_position()";
+	static const char fname[] = "mxd_xafswn_motor_find_home_position()";
 
 	MX_XAFS_WAVENUMBER_MOTOR *xafs_wavenumber_motor;
 	MX_RECORD *energy_motor_record;
 	long direction;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -663,10 +663,10 @@ mxd_xafswn_motor_find_home_position( MX_MOTOR *motor )
 
 	direction = motor->home_search;
 
-	status = mx_motor_find_home_position( energy_motor_record,
+	mx_status = mx_motor_find_home_position( energy_motor_record,
 							direction );
 
-	return status;
+	return mx_status;
 }
 
 /*************************************************************************/
@@ -683,13 +683,13 @@ mxd_xafswn_motor_get_edge_energy(
 	double *edge_energy )
 {
 	MX_RECORD *record_list_head;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record_list_head = xafs_wavenumber_motor->record->list_head;
 
-	status = mx_get_double_variable_by_name( record_list_head,
+	mx_status = mx_get_double_variable_by_name( record_list_head,
 			"edge_energy", edge_energy );
 
-	return status;
+	return mx_status;
 }
 

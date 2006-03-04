@@ -476,7 +476,7 @@ mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_MARDTB pointer passed is NULL." );
 	}
-	if ( move_in_progress == (int *) NULL ) {
+	if ( move_in_progress == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The move_in_progress pointer passed is NULL." );
 	}
@@ -484,7 +484,7 @@ mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
 	if ( mardtb->currently_active_record == NULL ) {
 		MX_DEBUG( 2,("%s: No move was already in progress.", fname));
 		MX_DEBUG( 2,("%s: *move_in_progress = %d",
-					fname, *move_in_progress));
+					fname, (int) *move_in_progress));
 
 		*move_in_progress = FALSE;
 
@@ -520,7 +520,8 @@ mxi_mardtb_check_for_move_in_progress( MX_MARDTB *mardtb,
 		*move_in_progress = TRUE;
 	}
 
-	MX_DEBUG( 2,("%s: *move_in_progress = %d", fname, *move_in_progress));
+	MX_DEBUG( 2,("%s: *move_in_progress = %d",
+			fname, (int) *move_in_progress));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -546,8 +547,9 @@ mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
 	char command[80];
 	char response[80];
 	char *hex_value_ptr;
-	int move_in_progress, num_items;
+	int num_items;
 	unsigned long use_three_parameter_status_dump;
+	mx_bool_type move_in_progress;
 	mx_status_type mx_status;
 
 	mx_status = mxi_mardtb_check_for_move_in_progress( mardtb,

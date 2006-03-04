@@ -22,6 +22,8 @@
  *
  */
 
+#define PANTHER_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -63,8 +65,6 @@ MX_MOTOR_FUNCTION_LIST mxd_panther_motor_function_list = {
 	mxd_panther_get_parameter,
 	mxd_panther_set_parameter
 };
-
-#define PANTHER_DEBUG	FALSE
 
 MX_RECORD_FIELD_DEFAULTS mxd_panther_hi_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
@@ -1607,7 +1607,7 @@ mxd_panther_soft_abort( MX_MOTOR *motor )
 
 	MX_PANTHER *panther;
 	char response[10];
-	int busy;
+	mx_bool_type busy;
 	mx_status_type status;
 
 	status = mxd_panther_get_pointers( motor, &panther, fname );

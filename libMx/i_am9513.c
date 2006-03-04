@@ -655,7 +655,7 @@ mxi_am9513_dump( MX_AM9513 *am9513, mx_bool_type do_inquire )
 	int i;
 
 	sprintf( returned_buffer, "am9513 = %p, do_inquire = %d\n",
-					am9513, do_inquire );
+					am9513, (int) do_inquire );
 
 	if ( do_inquire ) {
 		mxi_am9513_outp8( am9513, MX_AM9513_CMD_REGISTER, 0x17 );

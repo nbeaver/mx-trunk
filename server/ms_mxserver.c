@@ -2737,7 +2737,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 
 		MX_DEBUG(-2,("%s: option_value = %d, truncate_64bit_longs = %d",
 			fname, option_value,
-			socket_handler->truncate_64bit_longs ));
+			(int) socket_handler->truncate_64bit_longs ));
 		break;
 	default:
 		illegal_option_number = TRUE;

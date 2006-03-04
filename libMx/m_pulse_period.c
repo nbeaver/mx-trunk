@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002 Illinois Institute of Technology
+ * Copyright 2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -51,7 +51,7 @@ mxm_preset_pulse_period_configure( MX_MEASUREMENT *measurement )
 	double pulse_period;
 	char format_buffer[20];
 	int i, num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -121,11 +121,11 @@ mxm_preset_pulse_period_configure( MX_MEASUREMENT *measurement )
 	 * in pulse mode already.
 	 */
 
-	status = mx_pulse_generator_set_mode( pulse_generator_record,
+	mx_status = mx_pulse_generator_set_mode( pulse_generator_record,
 						MXF_PGN_PULSE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the scalers and timers to counter mode. */
 
@@ -137,21 +137,21 @@ mxm_preset_pulse_period_configure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
-			status = mx_scaler_set_mode( input_device_record,
+			mx_status = mx_scaler_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		case MXC_TIMER:
-			status = mx_timer_set_mode( input_device_record,
+			mx_status = mx_timer_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -167,7 +167,7 @@ mxm_preset_pulse_period_deconfigure( MX_MEASUREMENT *measurement )
 	MX_RECORD *pulse_generator_record;
 	MX_RECORD *input_device_record;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -205,23 +205,23 @@ mxm_preset_pulse_period_deconfigure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
-			status = mx_scaler_set_mode( input_device_record,
+			mx_status = mx_scaler_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		case MXC_PULSE_GENERATOR:
 			if ( input_device_record != pulse_generator_record ) {
-				status = mx_timer_set_mode( input_device_record,
+				mx_status = mx_timer_set_mode( input_device_record,
 							MXCM_PRESET_MODE );
 			}
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	if ( preset_pulse_period_struct != NULL ) {
@@ -270,8 +270,9 @@ mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	MX_SCAN *scan;
 	MX_RECORD *pulse_generator_record;
-	int busy, interrupt;
-	mx_status_type status;
+	int interrupt;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -307,36 +308,37 @@ mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Clear the input devices. */
 
-	status = mx_clear_scan_input_devices( scan );
+	mx_status = mx_clear_scan_input_devices( scan );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Configure the pulse generator pulse period and number of pulses.
 	 * The pulse width and the pulse delay are left alone.
 	 */
 
-	status = mx_pulse_generator_set_pulse_period( pulse_generator_record,
+	mx_status = mx_pulse_generator_set_pulse_period( pulse_generator_record,
 				preset_pulse_period_struct->pulse_period );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* This function is intended for use by step scans, so we set the
 	 * number of pulses to 1.
 	 */
 
-	status = mx_pulse_generator_set_num_pulses( pulse_generator_record, 1 );
+	mx_status = mx_pulse_generator_set_num_pulses(
+						pulse_generator_record, 1 );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Start the measurement. */
 
-	status = mx_pulse_generator_start( pulse_generator_record );
+	mx_status = mx_pulse_generator_start( pulse_generator_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Wait for the measurement to be over. */
 
@@ -363,11 +365,11 @@ mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
 			"Measurement was interrupted.");
 		}
 
-		status = mx_pulse_generator_is_busy( pulse_generator_record,
+		mx_status = mx_pulse_generator_is_busy( pulse_generator_record,
 							&busy );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_msleep(1);	/* Wait at least 1 millisecond. */
 	}

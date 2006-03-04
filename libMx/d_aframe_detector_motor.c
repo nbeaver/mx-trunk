@@ -56,7 +56,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2002-2003 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -148,7 +148,7 @@ mxd_aframe_det_motor_get_pointers( MX_MOTOR *motor,
 			MX_AFRAME_DETECTOR_MOTOR **aframe_detector_motor,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_aframe_det_motor_get_pointers()";
+	static const char fname[] = "mxd_aframe_det_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -183,7 +183,7 @@ mxd_aframe_det_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_aframe_det_motor_create_record_structures()";
+	static const char fname[] = "mxd_aframe_det_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
@@ -226,7 +226,7 @@ mxd_aframe_det_motor_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_aframe_det_motor_finish_record_initialization()";
 
 	MX_MOTOR *motor;
@@ -273,7 +273,7 @@ mxd_aframe_det_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_aframe_det_motor_print_motor_structure()";
+	static const char fname[] = "mxd_aframe_det_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
@@ -409,10 +409,10 @@ mxd_aframe_det_motor_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_is_busy()";
+	static const char fname[] = "mxd_aframe_det_motor_is_busy()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -470,7 +470,7 @@ mxd_aframe_det_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_move_absolute()";
+	static const char fname[] = "mxd_aframe_det_motor_move_absolute()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	double new_dv_downstream_position, new_dv_upstream_position;
@@ -534,7 +534,7 @@ mxd_aframe_det_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_get_position()";
+	static const char fname[] = "mxd_aframe_det_motor_get_position()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	double raw_position;
@@ -567,7 +567,7 @@ mxd_aframe_det_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_set_position()";
+	static const char fname[] = "mxd_aframe_det_motor_set_position()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	double new_dv_downstream_position, new_dv_upstream_position;
@@ -631,7 +631,7 @@ mxd_aframe_det_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_soft_abort()";
+	static const char fname[] = "mxd_aframe_det_motor_soft_abort()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_status_type mx_status, abort_status;
@@ -665,7 +665,7 @@ mxd_aframe_det_motor_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_immediate_abort()";
+	static const char fname[] = "mxd_aframe_det_motor_immediate_abort()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
 	mx_status_type mx_status, abort_status;
@@ -700,10 +700,10 @@ mxd_aframe_det_motor_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_aframe_det_motor_positive_limit_hit()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	int positive_limit_hit;
+	mx_bool_type positive_limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -762,10 +762,10 @@ mxd_aframe_det_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_aframe_det_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_aframe_det_motor_negative_limit_hit()";
 
 	MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor;
-	int negative_limit_hit;
+	mx_bool_type negative_limit_hit;
 	mx_status_type mx_status;
 
 	mx_status = mxd_aframe_det_motor_get_pointers( motor,
@@ -839,9 +839,9 @@ static mx_status_type
 mxd_aframe_det_motor_get_real_positions(
 			MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor )
 {
-	const char fname[] = "mxd_aframe_det_motor_get_real_positions()";
+	static const char fname[] = "mxd_aframe_det_motor_get_real_positions()";
 
-	int fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_fast_mode( aframe_detector_motor->record,
@@ -908,7 +908,7 @@ mxd_aframe_det_motor_compute_pseudomotor_position(
 			MX_AFRAME_DETECTOR_MOTOR *aframe_detector_motor,
 			double *position )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_aframe_det_motor_compute_pseudomotor_position()";
 
 	double dv_downstream, dv_upstream, dh;
@@ -966,7 +966,7 @@ mxd_aframe_det_motor_compute_new_real_positions(
 			double *new_dv_upstream,
 			double *new_dh )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_aframe_det_motor_compute_new_real_positions()";
 
 	double dv_downstream, dv_upstream, dh, A_value;

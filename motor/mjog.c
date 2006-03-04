@@ -31,8 +31,9 @@ motor_mjog_fn( int argc, char *argv[] )
 	MX_MOTOR *motor;
 	char *motor_name;
 	int c;
-	int exit_loop, first_time, busy;
+	int exit_loop, first_time;
 	long naptime, timeout;
+	mx_bool_type busy;
 
 	int use_steps, move_motor;
 	long steps, relative_steps, jog_step_size;

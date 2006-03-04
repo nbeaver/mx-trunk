@@ -164,9 +164,10 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 
 	MX_DEBUG( 2,
 	("%s: new_data_available = %d, new_statistics_available = %d",
-	fname, mca->new_data_available, xia_dxp_mca->new_statistics_available));
+		fname, (int) mca->new_data_available,
+		(int) xia_dxp_mca->new_statistics_available));
 
-	MX_DEBUG( 2,("%s: mca->busy = %d", fname, mca->busy));
+	MX_DEBUG( 2,("%s: mca->busy = %d", fname, (int) mca->busy));
 
 	/**** Handle the different value types. ****/
 
@@ -347,7 +348,7 @@ mxd_xia_dxp_input_read( MX_ANALOG_INPUT *analog_input )
 		analog_input->raw_value.double_value ));
 
 	MX_DEBUG( 2, ("%s: (AFTER) new_statistics_available = %d",
-			fname, xia_dxp_mca->new_statistics_available));
+			fname, (int) xia_dxp_mca->new_statistics_available));
 
 	return mx_status;
 }

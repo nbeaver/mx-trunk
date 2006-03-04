@@ -34,8 +34,6 @@ INCLUDES	= $(MX_INCLUDES)
 LIB_DIRS	= -L$(MX_LIB_DIR) $(WATT32_LIB_DIRS)
 LIBRARIES	= $(WATT32_LIBRARIES) -lreadline -lm
 
-EXTRA_LIB_OBJS	= ../tools/xdr.o
-
 WATT32_DIR	= c:/watt32
 #WATT32_DIR	= c:/users/lavender/watt32
 
@@ -103,6 +101,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 #----
 
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
+MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 
 #
 #---------------------------------------------------

@@ -20,11 +20,7 @@
 
 #include "mxconfig.h"
 
-#if HAVE_ORTEC_UMCBI
-
-#ifndef OS_WIN32
-#error "This driver is only supported under Win32 (Windows NT/95/98)."
-#endif
+#if HAVE_ORTEC_UMCBI && defined(OS_WIN32)
 
 #include <windows.h>
 

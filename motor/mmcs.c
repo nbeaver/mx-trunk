@@ -62,7 +62,8 @@ motor_mcs_fn( int argc, char *argv[] )
 	unsigned long i, j, channel, measurement, num_scalers, num_measurements;
 	long *scaler_data;
 	long **mcs_data;
-	int busy, status;
+	int status;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[] =

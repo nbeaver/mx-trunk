@@ -388,9 +388,10 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 	char response[100];
 	char statusword[80];
 	char *ptr;
-	int num_items, move_in_progress, old_motor_is_busy;
+	int num_items;
 	int locno, stop_curr, oper_mode;  /* I am not sure what these do. */
 	long motor_position;
+	mx_bool_type move_in_progress, old_motor_is_busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mardtb_motor_get_pointers( motor, &mardtb_motor,
@@ -400,7 +401,7 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 		return mx_status;
 
 	MX_DEBUG( 2,("%s invoked for motor '%s'", fname, motor->record->name));
-	MX_DEBUG( 2,("%s: motor->busy = %d", fname, motor->busy));
+	MX_DEBUG( 2,("%s: motor->busy = %d", fname, (int) motor->busy));
 
 	old_motor_is_busy = motor->busy;
 
@@ -426,7 +427,8 @@ mxd_mardtb_motor_get_extended_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: move_in_progress = %d", fname, move_in_progress));
+	MX_DEBUG( 2,("%s: move_in_progress = %d",
+		fname, (int) move_in_progress));
 
 	if ( move_in_progress ) {
 

@@ -78,7 +78,7 @@ mxd_theta_2theta_motor_get_pointers( MX_MOTOR *motor,
 			MX_THETA_2THETA_MOTOR **theta_2theta_motor,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_theta_2theta_motor_get_pointers()";
+	static const char fname[] = "mxd_theta_2theta_motor_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,7 +113,7 @@ mxd_theta_2theta_motor_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] =
+	static const char fname[] =
 		"mxd_theta_2theta_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
@@ -158,12 +158,12 @@ mxd_theta_2theta_motor_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
 
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mx_motor_finish_record_initialization( record );
+	mx_status = mx_motor_finish_record_initialization( record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor = (MX_MOTOR *) record->record_class_struct;
 
@@ -194,12 +194,12 @@ mxd_theta_2theta_motor_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_theta_2theta_motor_print_motor_structure()";
+	static const char fname[] = "mxd_theta_2theta_motor_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double position, move_deadband;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -231,9 +231,9 @@ mxd_theta_2theta_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  2 theta motor   = %s\n",
 			theta_2theta_motor->two_theta_motor_record->name);
 
-	status = mx_motor_get_position( record, &position );
+	mx_status = mx_motor_get_position( record, &position );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 			"Unable to read position of motor '%s'",
 			record->name );
@@ -287,25 +287,25 @@ mxd_theta_2theta_motor_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_motor_is_busy()";
+	static const char fname[] = "mxd_theta_2theta_motor_motor_is_busy()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	int busy;
-	mx_status_type status;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->busy = FALSE;
 
-	status = mx_motor_is_busy( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_is_busy( theta_2theta_motor->theta_motor_record,
 					&busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -313,11 +313,11 @@ mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_motor_is_busy( theta_2theta_motor->two_theta_motor_record,
+	mx_status = mx_motor_is_busy( theta_2theta_motor->two_theta_motor_record,
 					&busy );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( busy ) {
 		motor->busy = TRUE;
@@ -329,36 +329,36 @@ mxd_theta_2theta_motor_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_move_absolute()";
+	static const char fname[] = "mxd_theta_2theta_motor_move_absolute()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed, two_theta_speed;
 	double theta_destination, two_theta_destination;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the speed of the theta motor and set the speed of
 	 * the 2theta motor based on that.
 	 */
 
-	status = mx_motor_get_speed( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_get_speed( theta_2theta_motor->theta_motor_record,
 					&theta_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	two_theta_speed = 2.0 * theta_speed;
 
-	status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
+	mx_status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
 					two_theta_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Compute the requested destination for the 2theta motor. */
 
@@ -368,25 +368,25 @@ mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 
 	/* Now start the commanded move for the two motors. */
 
-	status = mx_motor_move_absolute( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_move_absolute( theta_2theta_motor->theta_motor_record,
 						theta_destination,
 						MXF_MTR_NOWAIT );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_move_absolute(
+	mx_status = mx_motor_move_absolute(
 				theta_2theta_motor->two_theta_motor_record,
 						two_theta_destination,
 						MXF_MTR_NOWAIT );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		/* Abort the theta move which is already in progress. */
 
 		(void) mx_motor_soft_abort(
 				theta_2theta_motor->theta_motor_record );
 
-		return status;
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -395,25 +395,25 @@ mxd_theta_2theta_motor_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_get_position()";
+	static const char fname[] = "mxd_theta_2theta_motor_get_position()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_motor_position;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The reported position depends only on the theta position. */
 
-	status = mx_motor_get_position( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_get_position( theta_2theta_motor->theta_motor_record,
 						&theta_motor_position );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->raw_position.analog = theta_motor_position;
 
@@ -423,7 +423,7 @@ mxd_theta_2theta_motor_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_set_position()";
+	static const char fname[] = "mxd_theta_2theta_motor_set_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 	"'set position' is not valid for a theta-2 theta motor." );
@@ -432,86 +432,86 @@ mxd_theta_2theta_motor_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_soft_abort()";
+	static const char fname[] = "mxd_theta_2theta_motor_soft_abort()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	mx_status_type status, status2;
+	mx_status_type mx_status, mx_status2;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_soft_abort( 
+	mx_status = mx_motor_soft_abort( 
 			theta_2theta_motor->theta_motor_record );
 
 	/* Perform the soft abort for 2theta even if the abort for theta
 	 * failed.
 	 */
 
-	status2 = mx_motor_soft_abort(
+	mx_status2 = mx_motor_soft_abort(
 			theta_2theta_motor->two_theta_motor_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	return status2;
+	return mx_status2;
 }
 
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_immediate_abort()";
+	static const char fname[] = "mxd_theta_2theta_motor_immediate_abort()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	mx_status_type status, status2;
+	mx_status_type mx_status, mx_status2;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_immediate_abort( 
+	mx_status = mx_motor_immediate_abort( 
 			theta_2theta_motor->theta_motor_record );
 
 	/* Perform the immediate abort for 2theta even if the abort for theta
 	 * failed.
 	 */
 
-	status2 = mx_motor_immediate_abort(
+	mx_status2 = mx_motor_immediate_abort(
 			theta_2theta_motor->two_theta_motor_record );
 
-	if ( status2.code != MXE_SUCCESS )
-		return status2;
+	if ( mx_status2.code != MXE_SUCCESS )
+		return mx_status2;
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_positive_limit_hit()";
+	static const char fname[] = "mxd_theta_2theta_motor_positive_limit_hit()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->positive_limit_hit = FALSE;
 
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				theta_2theta_motor->theta_motor_record,
 				&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -519,12 +519,12 @@ mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_motor_positive_limit_hit(
+	mx_status = mx_motor_positive_limit_hit(
 				theta_2theta_motor->two_theta_motor_record,
 				&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->positive_limit_hit = TRUE;
@@ -536,26 +536,26 @@ mxd_theta_2theta_motor_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_negative_limit_hit()";
+	static const char fname[] = "mxd_theta_2theta_motor_negative_limit_hit()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
-	int limit_hit;
-	mx_status_type status;
+	mx_bool_type limit_hit;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	motor->negative_limit_hit = FALSE;
 
-	status = mx_motor_negative_limit_hit(
+	mx_status = mx_motor_negative_limit_hit(
 				theta_2theta_motor->theta_motor_record,
 				&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -563,12 +563,12 @@ mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	status = mx_motor_negative_limit_hit(
+	mx_status = mx_motor_negative_limit_hit(
 				theta_2theta_motor->two_theta_motor_record,
 				&limit_hit );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( limit_hit ) {
 		motor->negative_limit_hit = TRUE;
@@ -580,7 +580,7 @@ mxd_theta_2theta_motor_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_find_home_position()";
+	static const char fname[] = "mxd_theta_2theta_motor_find_home_position()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
 "A home search for a theta-2 theta motor is not allowed.  Motor name = '%s'",
@@ -590,56 +590,56 @@ mxd_theta_2theta_motor_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_constant_velocity_move()";
+	static const char fname[] = "mxd_theta_2theta_motor_constant_velocity_move()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed, two_theta_speed;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Get the speed of the theta motor and set the speed of
 	 * the 2theta motor based on that.
 	 */
 
-	status = mx_motor_get_speed( theta_2theta_motor->theta_motor_record,
+	mx_status = mx_motor_get_speed( theta_2theta_motor->theta_motor_record,
 					&theta_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	two_theta_speed = 2.0 * theta_speed;
 
-	status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
+	mx_status = mx_motor_set_speed( theta_2theta_motor->two_theta_motor_record,
 					two_theta_speed );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now start the commanded move for the two motors. */
 
-	status = mx_motor_constant_velocity_move(
+	mx_status = mx_motor_constant_velocity_move(
 			theta_2theta_motor->theta_motor_record,
 			motor->constant_velocity_move );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_motor_constant_velocity_move(
+	mx_status = mx_motor_constant_velocity_move(
 			theta_2theta_motor->two_theta_motor_record,
 			motor->constant_velocity_move );
 
-	if ( status.code != MXE_SUCCESS ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		/* Abort the theta move which is already in progress. */
 
 		(void) mx_motor_soft_abort(
 				theta_2theta_motor->theta_motor_record );
 
-		return status;
+		return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -648,28 +648,28 @@ mxd_theta_2theta_motor_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_get_parameter()";
+	static const char fname[] = "mxd_theta_2theta_motor_get_parameter()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
 
 		/* Report back the speed for theta. */
 
-		status = mx_motor_get_speed(
+		mx_status = mx_motor_get_speed(
 				theta_2theta_motor->theta_motor_record,
 				&theta_speed );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		motor->raw_speed = theta_speed;
 
@@ -685,17 +685,17 @@ mxd_theta_2theta_motor_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_theta_2theta_motor_set_parameter()";
+	static const char fname[] = "mxd_theta_2theta_motor_set_parameter()";
 
 	MX_THETA_2THETA_MOTOR *theta_2theta_motor;
 	double theta_speed, two_theta_speed;
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_theta_2theta_motor_get_pointers( motor,
+	mx_status = mxd_theta_2theta_motor_get_pointers( motor,
 						&theta_2theta_motor, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( motor->parameter_type == MXLV_MTR_SPEED ) {
 
@@ -703,19 +703,19 @@ mxd_theta_2theta_motor_set_parameter( MX_MOTOR *motor )
 
 		two_theta_speed = 2.0 * theta_speed;
 
-		status = mx_motor_set_speed(
+		mx_status = mx_motor_set_speed(
 				theta_2theta_motor->theta_motor_record,
 				theta_speed );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-		status = mx_motor_set_speed(
+		mx_status = mx_motor_set_speed(
 				theta_2theta_motor->two_theta_motor_record,
 				two_theta_speed );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type %ld is not supported by this driver.",

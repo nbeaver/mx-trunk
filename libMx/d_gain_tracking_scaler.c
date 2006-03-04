@@ -281,7 +281,7 @@ mxd_gain_tracking_scaler_overflow_set( MX_SCALER *scaler )
 	const char fname[] = "mxd_gain_tracking_scaler_overflow_set()";
 
 	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
-	int overflow_set;
+	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gain_tracking_scaler_get_pointers(
@@ -343,7 +343,7 @@ mxd_gain_tracking_scaler_is_busy( MX_SCALER *scaler )
 	const char fname[] = "mxd_gain_tracking_scaler_is_busy()";
 
 	MX_GAIN_TRACKING_SCALER *gain_tracking_scaler;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_gain_tracking_scaler_get_pointers(

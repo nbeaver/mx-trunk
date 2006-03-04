@@ -341,7 +341,7 @@ mxd_wavenumber_motor_get_d_spacing( MX_MOTOR *motor,
 				MX_WAVENUMBER_MOTOR *wavenumber_motor,
 				double *d_spacing )
 {
-	int fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type status;
 
 	status = mx_get_fast_mode( motor->record, &fast_mode );

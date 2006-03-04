@@ -73,7 +73,7 @@ mxd_autoscale_scaler_get_pointers( MX_SCALER *scaler,
 			MX_AUTOSCALE **autoscale,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_autoscale_scaler_get_pointers()";
+	static const char fname[] = "mxd_autoscale_scaler_get_pointers()";
 
 	MX_RECORD *record, *autoscale_record;
 	MX_AUTOSCALE_SCALER *auto_scaler_ptr;
@@ -139,7 +139,7 @@ mxd_autoscale_scaler_initialize_type( long type )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_autoscale_scaler_create_record_structures()";
+	static const char fname[] = "mxd_autoscale_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_AUTOSCALE_SCALER *auto_scaler;
@@ -176,7 +176,7 @@ mxd_autoscale_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_autoscale_scaler_finish_record_initialization()";
 
 	MX_SCALER *scaler;
@@ -265,7 +265,7 @@ mxd_autoscale_scaler_close( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_clear()";
+	static const char fname[] = "mxd_autoscale_scaler_clear()";
 
 	MX_AUTOSCALE *autoscale;
 	mx_status_type mx_status;
@@ -285,10 +285,10 @@ mxd_autoscale_scaler_clear( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_overflow_set( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_overflow_set()";
+	static const char fname[] = "mxd_autoscale_scaler_overflow_set()";
 
 	MX_AUTOSCALE *autoscale;
-	int overflow_set;
+	mx_bool_type overflow_set;
 	mx_status_type mx_status;
 
 	mx_status = mxd_autoscale_scaler_get_pointers( scaler, NULL,
@@ -312,7 +312,7 @@ mxd_autoscale_scaler_overflow_set( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_read()";
+	static const char fname[] = "mxd_autoscale_scaler_read()";
 
 	MX_AUTOSCALE *autoscale;
 	MX_AUTOSCALE_SCALER *auto_scaler;
@@ -368,10 +368,10 @@ mxd_autoscale_scaler_read( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_is_busy( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_is_busy()";
+	static const char fname[] = "mxd_autoscale_scaler_is_busy()";
 
 	MX_AUTOSCALE *autoscale;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_autoscale_scaler_get_pointers( scaler, NULL,
@@ -390,7 +390,7 @@ mxd_autoscale_scaler_is_busy( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_start( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_start()";
+	static const char fname[] = "mxd_autoscale_scaler_start()";
 
 	MX_AUTOSCALE *autoscale;
 	mx_status_type mx_status;
@@ -410,7 +410,7 @@ mxd_autoscale_scaler_start( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_stop( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_stop()";
+	static const char fname[] = "mxd_autoscale_scaler_stop()";
 
 	MX_AUTOSCALE *autoscale;
 	long value;
@@ -432,7 +432,7 @@ mxd_autoscale_scaler_stop( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_get_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_get_parameter()";
+	static const char fname[] = "mxd_autoscale_scaler_get_parameter()";
 
 	MX_AUTOSCALE *autoscale;
 	long mode;
@@ -468,7 +468,7 @@ mxd_autoscale_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_autoscale_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_autoscale_scaler_set_parameter()";
+	static const char fname[] = "mxd_autoscale_scaler_set_parameter()";
 
 	MX_AUTOSCALE *autoscale;
 	mx_status_type mx_status;

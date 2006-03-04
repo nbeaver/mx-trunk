@@ -204,7 +204,8 @@ mxi_aps_adcmod2_open( MX_RECORD *record )
 		aps_adcmod2->use_udelay = FALSE;
 	}
 
-	MX_DEBUG( 2,("%s: use_udelay = %d", fname, aps_adcmod2->use_udelay));
+	MX_DEBUG( 2,("%s: use_udelay = %d",
+		fname, (int) aps_adcmod2->use_udelay));
 
 	/* --- */
 

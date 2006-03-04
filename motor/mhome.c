@@ -26,9 +26,10 @@ motor_home_fn( int argc, char *argv[] )
 
 	MX_RECORD *record;
 	char *endptr;
-	int direction, busy, home_search_succeeded, limit_hit;
+	int direction;
 	double position;
 	unsigned long motor_status;
+	mx_bool_type busy, home_search_succeeded, limit_hit;
 	mx_status_type mx_status;
 
 	static char usage[] =
@@ -97,7 +98,7 @@ motor_home_fn( int argc, char *argv[] )
 			break;		/* Exit the for(;;) loop. */
 		}
 
-		busy = (int) (motor_status & MXSF_MTR_IS_BUSY);
+		busy = (mx_bool_type) (motor_status & MXSF_MTR_IS_BUSY);
 
 		if ( busy == FALSE ) {
 

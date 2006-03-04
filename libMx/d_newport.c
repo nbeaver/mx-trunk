@@ -471,7 +471,7 @@ mxd_newport_open( MX_RECORD *record )
 		}
 
 		MX_DEBUG( 2,("%s: hardware_limits_active_high = %d",
-		fname, newport_motor->hardware_limits_active_high ));
+		fname, (int) newport_motor->hardware_limits_active_high ));
 	}
 
 	/* If this is an ESP series motor, send an MO command to turn on

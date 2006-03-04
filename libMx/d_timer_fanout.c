@@ -271,7 +271,7 @@ mxd_timer_fanout_is_busy( MX_TIMER *timer )
 	MX_TIMER_FANOUT *timer_fanout;
 	MX_RECORD *child_timer_record;
 	long i;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_timer_fanout_get_pointers(timer, &timer_fanout, fname);

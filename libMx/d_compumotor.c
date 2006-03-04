@@ -1697,7 +1697,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		snprintf( command, sizeof(command), "%ld_!%ldDRIVE%d",
 					compumotor->controller_number,
 					compumotor->axis_number,
-					motor->axis_enable );
+					(int) motor->axis_enable );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1710,7 +1710,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		snprintf( command, sizeof(command), "%ld_!%ldDRIVE%d",
 					compumotor->controller_number,
 					compumotor->axis_number,
-					motor->closed_loop );
+					(int) motor->closed_loop );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );
@@ -1723,7 +1723,7 @@ mxd_compumotor_set_parameter( MX_MOTOR *motor )
 		snprintf( command, sizeof(command), "%ld_!%ldDRIVE%d",
 					compumotor->controller_number,
 					compumotor->axis_number,
-					motor->fault_reset );
+					(int) motor->fault_reset );
 
 		mx_status = mxi_compumotor_command( compumotor_interface,
 				command, NULL, 0, COMPUMOTOR_DEBUG );

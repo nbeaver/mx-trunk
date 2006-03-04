@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@ MX_MEASUREMENT_FUNCTION_LIST mxm_preset_time_function_list = {
 MX_EXPORT mx_status_type
 mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_time_configure()";
+	static const char fname[] = "mxm_preset_time_configure()";
 
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_SCAN *scan;
@@ -50,7 +50,7 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 	double integration_time;
 	char format_buffer[20];
 	int i, num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -113,19 +113,19 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 
 	/* Set the timer to preset mode. */
 
-	status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
+	mx_status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Make sure all other devices that can affect the gate signal
 	 * are set to counter mode.
 	 */
 
-	status = mx_timer_set_modes_of_associated_counters( timer_record );
+	mx_status = mx_timer_set_modes_of_associated_counters( timer_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the rest of the scalers and timers to counter mode. */
 
@@ -137,24 +137,24 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
-			status = mx_scaler_set_mode( input_device_record,
+			mx_status = mx_scaler_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		case MXC_TIMER:
 			if ( input_device_record != timer_record ) {
 
-				status = mx_timer_set_mode(input_device_record,
+				mx_status = mx_timer_set_mode(input_device_record,
 							MXCM_COUNTER_MODE );
 			}
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -163,14 +163,14 @@ mxm_preset_time_configure( MX_MEASUREMENT *measurement )
 MX_EXPORT mx_status_type
 mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_time_deconfigure()";
+	static const char fname[] = "mxm_preset_time_deconfigure()";
 
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_SCAN *scan;
 	MX_RECORD *timer_record;
 	MX_RECORD *input_device_record;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -197,19 +197,19 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 
 	/* Restore the timer back to preset mode. */
 
-	status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
+	mx_status = mx_timer_set_mode( timer_record, MXCM_PRESET_MODE );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Set the modes of any assocated timers to preset mode and the modes
 	 * of any associated scalers to count mode.
 	 */
 
-	status = mx_timer_set_modes_of_associated_counters( timer_record );
+	mx_status = mx_timer_set_modes_of_associated_counters( timer_record );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Restore other timers to preset mode 
 	 * and other scalers to counter mode.
@@ -223,23 +223,23 @@ mxm_preset_time_deconfigure( MX_MEASUREMENT *measurement )
 			continue;	/* Skip this record. */
 		}
 
-		status = MX_SUCCESSFUL_RESULT;
+		mx_status = MX_SUCCESSFUL_RESULT;
 
 		switch( input_device_record->mx_class ) {
 		case MXC_SCALER:
-			status = mx_scaler_set_mode( input_device_record,
+			mx_status = mx_scaler_set_mode( input_device_record,
 							MXCM_COUNTER_MODE );
 			break;
 		case MXC_TIMER:
 			if ( input_device_record != timer_record ) {
-				status = mx_timer_set_mode(input_device_record,
+				mx_status = mx_timer_set_mode(input_device_record,
 							MXCM_PRESET_MODE );
 			}
 			break;
 		}
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	if ( preset_time_struct != NULL ) {
@@ -283,14 +283,15 @@ mxm_preset_time_postslice_processing( MX_MEASUREMENT *measurement )
 MX_EXPORT mx_status_type
 mxm_preset_time_measure_data( MX_MEASUREMENT *measurement )
 {
-	const char fname[] = "mxm_preset_time_measure_data()";
+	static const char fname[] = "mxm_preset_time_measure_data()";
 
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_SCAN *scan;
 	MX_RECORD *timer_record;
 	double remaining_time;
-	int busy, interrupt;
-	mx_status_type status;
+	int interrupt;
+	mx_bool_type busy;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -323,18 +324,18 @@ mxm_preset_time_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Clear the input devices. */
 
-	status = mx_clear_scan_input_devices( scan );
+	mx_status = mx_clear_scan_input_devices( scan );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Start the measurement. */
 
-	status = mx_timer_start( timer_record,
+	mx_status = mx_timer_start( timer_record,
 					preset_time_struct->integration_time );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Wait for the measurement to be over. */
 
@@ -361,10 +362,10 @@ mxm_preset_time_measure_data( MX_MEASUREMENT *measurement )
 			"Measurement integration time was interrupted.");
 		}
 
-		status = mx_timer_is_busy( timer_record, &busy );
+		mx_status = mx_timer_is_busy( timer_record, &busy );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_msleep(1);	/* Wait at least 1 millisecond. */
 	}

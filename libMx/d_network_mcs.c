@@ -830,7 +830,7 @@ mxd_network_mcs_set_parameter( MX_MCS *mcs )
 		external_channel_advance = mcs->external_channel_advance;
 
 		MX_DEBUG( 2,("%s: sending %d to '%s'",
-				fname, external_channel_advance,
+				fname, (int) external_channel_advance,
 			network_mcs->external_channel_advance_nf.nfname ));
 
 		mx_status = mx_put( &(network_mcs->external_channel_advance_nf),

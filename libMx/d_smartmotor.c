@@ -988,10 +988,10 @@ mxd_smartmotor_check_home_search_status( MX_MOTOR *motor,
 		motor->record->name, motor->home_search));
 
 	MX_DEBUG( 2,("motor '%s': historical_left_limit = %d",
-		motor->record->name, smartmotor->historical_left_limit));
+		motor->record->name, (int) smartmotor->historical_left_limit));
 
 	MX_DEBUG( 2,("motor '%s': historical_right_limit = %d",
-		motor->record->name, smartmotor->historical_right_limit));
+		motor->record->name, (int) smartmotor->historical_right_limit));
 
 	/* Make various tests to see if the home search has succeeded. */
 

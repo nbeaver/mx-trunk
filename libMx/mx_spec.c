@@ -828,7 +828,7 @@ mx_spec_put_number( MX_RECORD *spec_server_record,
 		sprintf( string_buffer, "%hu", *((unsigned short *) value));
 		break;
 	case MXFT_BOOL:
-		sprintf( string_buffer, "%d", *((mx_bool_type *) value));
+		sprintf( string_buffer, "%d", (int) *((mx_bool_type *) value));
 		break;
 	case MXFT_LONG:
 		sprintf( string_buffer, "%ld", *((long *) value));

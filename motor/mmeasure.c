@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -564,7 +564,7 @@ motor_measure_device_offsets( long num_devices,
 	MX_ANALOG_INPUT *ainput;
 	double value, seconds_left;
 	long i, n, long_value;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	/* First, zero the device value array. */

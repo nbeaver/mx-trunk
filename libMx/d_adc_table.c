@@ -442,7 +442,8 @@ mxd_adc_table_is_busy( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, busy, num_motors;
+	int i, num_motors;
+	mx_bool_type busy;
 	mx_status_type status;
 
 	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
@@ -1150,7 +1151,8 @@ mxd_adc_table_positive_limit_hit( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, limit_hit, num_motors;
+	int i, num_motors;
+	mx_bool_type limit_hit;
 	mx_status_type status;
 
 	status = mxd_adc_table_get_pointers(table, &adc_table, fname);
@@ -1193,7 +1195,8 @@ mxd_adc_table_negative_limit_hit( MX_TABLE *table )
 	MX_ADC_TABLE *adc_table;
 	MX_RECORD *subset_array[ MX_ADC_TABLE_NUM_MOTORS ];
 	MX_RECORD *motor_record;
-	int i, limit_hit, num_motors;
+	int i, num_motors;
+	mx_bool_type limit_hit;
 	mx_status_type status;
 
 	status = mxd_adc_table_get_pointers(table, &adc_table, fname);

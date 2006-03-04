@@ -337,7 +337,7 @@ mxd_soft_mcs_busy( MX_MCS *mcs )
 	}
 
 	MX_DEBUG( 2,("%s: MCS '%s', busy = %d, time = (%lu,%lu)",
-		fname, mcs->record->name, mcs->busy,
+		fname, mcs->record->name, (int) mcs->busy,
 		current_time_in_clock_ticks.high_order,
 		(unsigned long) current_time_in_clock_ticks.low_order ));
 

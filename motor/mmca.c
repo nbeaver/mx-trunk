@@ -43,12 +43,13 @@ motor_mca_fn( int argc, char *argv[] )
 	char *endptr;
 	size_t length;
 	double counting_time;
-	int busy, status, os_status, saved_errno, use_real_time;
+	int status, os_status, saved_errno, use_real_time;
 	unsigned long i, roi_number;
 	unsigned long *channel_array;
 	unsigned long roi[2], roi_integral, num_channels;
 	unsigned long channel_number, channel_value;
 	double real_time, live_time, icr, ocr;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[]

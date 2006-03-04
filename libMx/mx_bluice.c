@@ -755,7 +755,7 @@ mx_bluice_is_master( MX_BLUICE_SERVER *bluice_server,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_BLUICE_SERVER pointer passed is NULL." );
 	}
-	if ( master_flag == (int *) NULL ) {
+	if ( master_flag == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The 'master_flag' argument passed is NULL." );
 	}
@@ -854,7 +854,7 @@ mx_bluice_check_for_master( MX_BLUICE_SERVER *bluice_server )
 	static const char fname[] = "mx_bluice_check_for_master()";
 
 	MX_BLUICE_DCSS_SERVER *bluice_dcss_server;
-	int master_flag;
+	mx_bool_type master_flag;
 	unsigned long i, wait_ms, max_attempts, auto_take_master;
 	mx_status_type mx_status;
 

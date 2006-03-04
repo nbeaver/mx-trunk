@@ -306,7 +306,7 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 		timer->busy = TRUE;
 	}
 
-	MX_DEBUG( 2,("%s: timer->busy = %d", fname, timer->busy));
+	MX_DEBUG( 2,("%s: timer->busy = %d", fname, (int) timer->busy));
 
 	return status;
 }

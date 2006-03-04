@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -645,7 +645,7 @@ msdos_fossil_write_parms( MX_RS232 *rs232 )
 	case 5:
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported RS-232 word size = %d for FOSSIL port '%s'.", 
+		"Unsupported RS-232 word size = %ld for FOSSIL port '%s'.", 
 		rs232->word_size, record_name);
 
 		break;
@@ -686,7 +686,7 @@ msdos_fossil_write_parms( MX_RS232 *rs232 )
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Unsupported RS-232 stop bits = %d for FOSSIL port '%s'.", 
+		"Unsupported RS-232 stop bits = %ld for FOSSIL port '%s'.", 
 		rs232->stop_bits, record_name);
 
 		break;

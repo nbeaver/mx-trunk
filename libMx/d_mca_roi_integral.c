@@ -266,7 +266,7 @@ mxd_mca_roi_integral_is_busy( MX_SCALER *scaler )
 	static const char fname[] = "mxd_mca_roi_integral_is_busy()";
 
 	MX_MCA_ROI_INTEGRAL *mca_roi_integral;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_mca_roi_integral_get_pointers(

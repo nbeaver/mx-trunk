@@ -15,7 +15,7 @@ EDITLINE_MAKECMD = \
 all: xdr_hyper.o strlcpy.o strlcat.o
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
-xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr_hyper.h
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
 	gcc -c $(CFLAGS) -I../libMx -DOS_QNX \
 		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
 

@@ -34,10 +34,11 @@ motor_count_fn( int argc, char *argv[] )
 	MX_RECORD *input_device;
 	MX_RECORD *timer_record;
 	MX_RECORD_FIELD *value_field;
-	int i, j, num_input_devices, entries_to_skip, busy;
+	int i, j, num_input_devices, entries_to_skip;
 	double counting_time, remaining_time, double_value;
 	unsigned long ulong_value;
 	long long_value;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[] =

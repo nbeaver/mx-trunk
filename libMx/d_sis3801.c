@@ -435,7 +435,7 @@ mxd_sis3801_start( MX_MCS *mcs )
 	double total_measurement_time, maximum_measurement_time;
 	double pulse_period, clock_frequency;
 	uint32_t prescale_factor, control_register;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_sis3801_get_pointers( mcs, &sis3801, fname );

@@ -853,7 +853,7 @@ mxd_databox_mcs_busy( MX_MCS *mcs )
 	databox_mcs->buffer_index = 0;
 	databox_mcs->buffer_status = MXF_DATABOX_MCS_BUFFER_IS_FILLING;
 
-	MX_DEBUG( 2,("%s complete. busy = %d", fname, mcs->busy));
+	MX_DEBUG( 2,("%s complete. busy = %d", fname, (int) mcs->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }

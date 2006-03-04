@@ -1,9 +1,13 @@
-all: xdr.o strlcpy.o strlcat.o
+all: xdr.o xdr_hyper.o strlcpy.o strlcat.o
 
 include ../libMx/Makehead.djgpp
 
 xdr.o: xdr/src/xdr.c xdr/src/xdr.h
 	gcc -c $(CFLAGS) -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ xdr/src/xdr.c 
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c 
 
 strlcpy.o: generic/src/strlcpy.c
 	gcc -c $(CFLAGS) -I../libMx -DOS_DJGPP -D__MX_LIBRARY__ \

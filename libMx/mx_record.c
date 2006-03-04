@@ -1983,8 +1983,8 @@ mx_record_array_dependency_handler( MX_RECORD *record,
 		= (MX_RECORD_ARRAY_DEPENDENCY_STRUCT *) dependency_struct_ptr;
 
 	MX_DEBUG( 8,("%s: add_dependency = %d, dependency_is_to_parent = %d",
-		fname, dependency_struct->add_dependency,
-		dependency_struct->dependency_is_to_parent));
+		fname, (int) dependency_struct->add_dependency,
+		(int) dependency_struct->dependency_is_to_parent));
 
 	if ( dependency_struct->add_dependency ) {
 		if ( dependency_struct->dependency_is_to_parent ) {

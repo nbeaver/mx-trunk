@@ -431,7 +431,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (before read) mca->new_data_available = %d, mca->busy = %d",
-		fname, mca->new_data_available, mca->busy));
+		fname, (int) mca->new_data_available, (int) mca->busy));
 
 	if ( read_new_data ) {
 
@@ -447,7 +447,7 @@ mx_mca_read( MX_RECORD *mca_record,
 
 	MX_DEBUG( 2,
 	("%s: (after read) mca->new_data_available = %d, mca->busy = %d",
-		fname, mca->new_data_available, mca->busy));
+		fname, (int) mca->new_data_available, (int) mca->busy));
 
 	if ( num_channels != NULL ) {
 		*num_channels = mca->current_num_channels;

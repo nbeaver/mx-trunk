@@ -184,7 +184,7 @@ mxd_ks3640_finish_record_initialization( MX_RECORD *record )
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "Illegal value %d for 32 bit hardware modification field.  Must be 0 or 1.",
-			ks3640->use_32bit_mod );
+			(int) ks3640->use_32bit_mod );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

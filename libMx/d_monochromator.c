@@ -165,13 +165,13 @@ mxd_monochromator_get_pointers( MX_MOTOR *motor,
 "list_array pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_change_permitted == (int *) NULL ){
+	if ( (*monochromator)->speed_change_permitted == (mx_bool_type *) NULL){
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"speed_change_permitted pointer for monochromator record '%s' "
 		"passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
 	}
-	if ( (*monochromator)->speed_changed == (int *) NULL ) {
+	if ( (*monochromator)->speed_changed == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "speed_changed pointer for monochromator record '%s' passed by '%s' is NULL.",
 			motor->record->name, calling_fname );
@@ -188,7 +188,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 	MX_RECORD **record_array;
 	MX_RECORD *enable_status_record;
 	void *pointer_to_value;
-	int fast_mode;
+	mx_bool_type fast_mode;
 	mx_status_type mx_status;
 
 	mx_status = mx_get_variable_pointer( list_record, &pointer_to_value );
@@ -220,7 +220,7 @@ mxd_monochromator_get_enable_status( MX_RECORD *list_record,
 
 	*enable_status = *( int * ) pointer_to_value;
 
-	MX_DEBUG( 2,("%s: '%s' enable status = %d",
+	MX_DEBUG( 2,("%s: '%s' enable status = %ld",
 		fname, list_record->name, *enable_status));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -423,7 +423,7 @@ mxd_monochromator_restore_speeds( MX_MOTOR *motor )
 
 	for ( i = 0; i < monochromator->num_dependencies; i++ ) {
 
-		MX_DEBUG( 2,("%s: monochromator->speed_changed[%ld] = %d",
+		MX_DEBUG( 2,("%s: monochromator->speed_changed[%ld] = %ld",
 			fname, i, monochromator->speed_changed[i]));
 
 		if ( monochromator->speed_changed[i] ) {
@@ -951,7 +951,7 @@ mxd_monochromator_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG( 2,("%s: ***** Now starting the move.", fname));
 
 	MX_DEBUG( 2,("%s: motor->synchronous_motion_mode = %d",
-			fname, motor->synchronous_motion_mode));
+			fname, (int) motor->synchronous_motion_mode));
 
 	monochromator->move_in_progress = TRUE;
 

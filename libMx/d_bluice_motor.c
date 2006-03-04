@@ -670,11 +670,11 @@ mxd_bluice_motor_set_parameter( MX_MOTOR *motor )
 		foreign_motor->u.motor.speed,
 		foreign_motor->u.motor.acceleration_time,
 		foreign_motor->u.motor.backlash,
-		foreign_motor->u.motor.lower_limit_on,
-		foreign_motor->u.motor.upper_limit_on,
-		foreign_motor->u.motor.motor_lock_on,
-		foreign_motor->u.motor.backlash_on,
-		foreign_motor->u.motor.reverse_on );
+		(int) foreign_motor->u.motor.lower_limit_on,
+		(int) foreign_motor->u.motor.upper_limit_on,
+		(int) foreign_motor->u.motor.motor_lock_on,
+		(int) foreign_motor->u.motor.backlash_on,
+		(int) foreign_motor->u.motor.reverse_on );
 
 	mx_status = mx_bluice_check_for_master( bluice_server );
 

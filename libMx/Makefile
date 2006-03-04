@@ -144,8 +144,9 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_soft_camac.c i_soft_rs232.c i_sony_visca.c i_spec_command.c \
 	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
 	i_u500.c i_uglide.c i_umcbi.c i_vme58.c i_vms_terminal.c \
-	i_vp9000.c i_vxworks_rs232.c i_vxworks_vme.c \
-	i_vsc16.c i_vxi_memacc.c i_wago750_serial.c i_win32_com.c \
+	i_vp9000.c i_vsc16.c i_vxi_memacc.c \
+	i_vxworks_rs232.c i_vxworks_vme.c \
+	i_wago750_serial.c i_win32_com.c \
 	i_xia_handel.c i_xia_network.c i_xia_xerxes.c \
 	n_bluice_dcss.c n_spec.c n_tcpip.c n_unix.c \
 	u_xia_dxp.c v_aps_topup.c \

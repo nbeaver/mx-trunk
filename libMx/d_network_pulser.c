@@ -263,7 +263,7 @@ mxd_network_pulser_print_structure( FILE *file, MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	fprintf(file, "  busy                 = %d\n", busy );
+	fprintf(file, "  busy                 = %d\n", (int) busy );
 
 	return MX_SUCCESSFUL_RESULT;
 }

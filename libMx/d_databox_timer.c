@@ -294,7 +294,7 @@ mxd_databox_timer_is_busy( MX_TIMER *timer )
 			return mx_status;
 	}
 
-	MX_DEBUG( 2,("%s complete.  busy = %d", fname, timer->busy));
+	MX_DEBUG( 2,("%s complete.  busy = %d", fname, (int) timer->busy));
 
 	return MX_SUCCESSFUL_RESULT;
 }

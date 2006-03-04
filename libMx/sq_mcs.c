@@ -2486,7 +2486,7 @@ mxs_mcs_quick_scan_execute_scan_body( MX_SCAN *scan )
 	MX_MCS_QUICK_SCAN *mcs_quick_scan;
 	MX_MEASUREMENT_PRESET_TIME *preset_time_struct;
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
-	int busy;
+	mx_bool_type busy;
 	long i;
 	unsigned long measurement_milliseconds;
 #if 1

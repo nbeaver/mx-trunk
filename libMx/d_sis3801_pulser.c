@@ -352,7 +352,8 @@ mxd_sis3801_pulser_busy( MX_PULSE_GENERATOR *pulse_generator )
 	if ( pulse_generator->busy == FALSE ) {
 		MX_DEBUG( 2,
 	("%s: busy = %d, current_time = (%lu,%lu), finish_time = (%lu,%lu)",
-		fname, pulse_generator->busy, current_time.high_order,
+		fname, (int) pulse_generator->busy,
+		current_time.high_order,
 		(unsigned long) current_time.low_order,
 		sis3801_pulser->finish_time.high_order,
 		(unsigned long) sis3801_pulser->finish_time.low_order));

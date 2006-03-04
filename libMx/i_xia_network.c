@@ -660,7 +660,7 @@ mxi_xia_network_start_run( MX_MCA *mca,
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: Record '%s', clear_flag = %d.",
-				fname, mca->record->name, clear_flag));
+				fname, mca->record->name, (int) clear_flag));
 	}
 
 	dimension_array[0] = 2;

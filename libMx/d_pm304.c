@@ -677,7 +677,7 @@ mxd_pm304_soft_abort( MX_MOTOR *motor )
 
 	MX_PM304 *pm304;
 	char command[40];
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pm304_get_pointers( motor, &pm304, fname );
