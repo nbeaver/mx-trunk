@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,10 +24,9 @@
 #include <ioLib.h>
 #include <sioLib.h>
 
-#include "mx_unistd.h"
-
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_rs232.h"
 #include "i_vxworks_rs232.h"
 

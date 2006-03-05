@@ -9,7 +9,7 @@ include ../libMx/Makehead.vxworks
 XCC = $(CC) -fno-builtin -nostdinc -DCPU=$(WIND_CPU) -I$(WIND_BASE)/target/h
 
 getopt.o:
-	$(XCC) -c generic/src/getopt.c
+	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/getopt.c
 
 strlcpy.o: generic/src/strlcpy.c
 	$(XCC) -c -I../libMx -DOS_VXWORKS -D__MX_LIBRARY__ generic/src/strlcpy.c
