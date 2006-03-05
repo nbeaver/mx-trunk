@@ -6,6 +6,14 @@
 #
 #    make -f [.scripts]Makefile.vms
 #
+# This makefile has been designed to work with the version of 'make' found at 
+#
+#    http://h71000.www7.hp.com/freeware/freeware50/gnumake/
+#
+# WARNING: Not all versions of 'make' for VMS are equivalent.  In particular,
+# this makefile does not work with the default version of 'make' installed on
+# the HP TestDrive OpenVMS systems.
+#
 #---------------------------------------------------------------------------
 
 MX_ARCH = vms
