@@ -24,7 +24,7 @@
 /* The non-standard build targets are listed first. */
 
 /*=======================================================================*/
-#if defined(OS_DJGPP)
+#if defined(OS_DJGPP) || defined(OS_RTEMS)
 
 #define PRId8	"hhd"
 #define PRIu8	"hhu"
@@ -143,7 +143,7 @@
 
    /* Some build targets do not define all of the macros. */
 
-#  if defined(OS_HPUX) && !defined(SCNd8)
+#  if ( defined(OS_HPUX) && !defined(SCNd8) )
 
 #     define SCNd8	"hhd"
 #     define SCNu8	"hhu"
@@ -156,6 +156,7 @@
 #     define SCNd64	"lld"
 #     define SCNu64	"llu"
 #     define SCNx64	"llx"
+
 #  endif
 
 #endif

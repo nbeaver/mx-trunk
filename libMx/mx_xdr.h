@@ -21,6 +21,9 @@
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"
 
+#elif defined(OS_RTEMS)
+#   include "../tools/xdr/src/xdr_hyper.h"
+
 #elif defined(OS_VMS)
 #   include <tcpip$rpcxdr.h>
 
@@ -39,9 +42,8 @@
 #      define xdr_uint32_t	xdr_u_int
 #      define xdr_int64_t	xdr_hyper
 #      define xdr_uint64_t	xdr_u_hyper
-#   endif
 
-#   if defined(OS_CYGWIN)
+#   elif defined(OS_CYGWIN)
 #      define xdr_int8_t	xdr_char
 #      define xdr_uint8_t	xdr_u_char
 #      define xdr_int16_t	xdr_short
@@ -53,6 +55,7 @@
 
 #      define xdr_hyper		xdr_int64_t
 #      define xdr_u_hyper	xdr_u_int64_t
+
 #   endif
 
 #   include <limits.h>
