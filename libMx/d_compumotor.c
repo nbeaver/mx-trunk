@@ -720,7 +720,7 @@ mxd_compumotor_motor_is_busy( MX_MOTOR *motor )
 
 	length = strlen( response );
 
-	if ( length <= 0 ) {
+	if ( length == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Zero length response to motor status command.");
 	}
@@ -1048,7 +1048,7 @@ mxd_compumotor_positive_limit_hit( MX_MOTOR *motor )
 
 	length = strlen( response );
 
-	if ( length <= 0 ) {
+	if ( length == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Zero length response to motor status command.");
 	}
@@ -1100,7 +1100,7 @@ mxd_compumotor_negative_limit_hit( MX_MOTOR *motor )
 
 	length = strlen( response );
 
-	if ( length <= 0 ) {
+	if ( length == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Zero length response to motor status command.");
 	}
@@ -1923,7 +1923,7 @@ mxd_compumotor_get_status( MX_MOTOR *motor )
 
 	length = strlen( response );
 
-	if ( length <= 0 ) {
+	if ( length == 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"Zero length response to motor status command.");
 	}

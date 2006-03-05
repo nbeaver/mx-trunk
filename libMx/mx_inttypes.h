@@ -59,50 +59,15 @@
 #define SCNx64	"llx"
 
 /*=======================================================================*/
-#elif defined(OS_IRIX)
+#elif defined(OS_IRIX) || defined(OS_VXWORKS) || defined(OS_VMS)
 
 #define PRId8	"hd"
 #define PRIu8	"hu"
 #define PRIx8	"hx"
 
-#define SCNd8	"!unsupported"
-#define SCNu8	"!unsupported"
-#define SCNx8	"!unsupported"
-
-#define PRId16	"hd"
-#define PRIu16	"hu"
-#define PRIx16	"hx"
-
-#define SCNd16	"hd"
-#define SCNu16	"hu"
-#define SCNx16	"hx"
-
-#define PRId32	"d"
-#define PRIu32	"u"
-#define PRIx32	"x"
-
-#define SCNd32	"d"
-#define SCNu32	"u"
-#define SCNx32	"x"
-
-#define PRId64	"lld"
-#define PRIu64  "llu"
-#define PRIx64  "llx"
-
-#define SCNd64	"lld"
-#define SCNu64	"llu"
-#define SCNx64	"llx"
-
-/*=======================================================================*/
-#elif defined(OS_VXWORKS)
-
-#define PRId8	"hd"
-#define PRIu8	"hu"
-#define PRIx8	"hx"
-
-#define SCNd8	"dunsupported"
-#define SCNu8	"dunsupported"
-#define SCNx8	"dunsupported"
+#define SCNd8	"uunsupported"
+#define SCNu8	"uunsupported"
+#define SCNx8	"uunsupported"
 
 #define PRId16	"hd"
 #define PRIu16	"hu"

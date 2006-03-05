@@ -30,7 +30,7 @@
 
 /* However, some operating systems do not define 'struct timespec'. */
 
-#if defined( OS_WIN32 ) || defined( OS_VMS )
+#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
 struct timespec {
 	time_t tv_sec;	  /* seconds */
 	long   tv_nsec;   /* nanoseconds */
