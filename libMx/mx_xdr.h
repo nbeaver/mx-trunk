@@ -50,6 +50,9 @@
 #      define xdr_uint32_t	xdr_u_int
 #      define xdr_int64_t	xdr_int64_t
 #      define xdr_uint64_t	xdr_u_int64_t
+
+#      define xdr_hyper		xdr_int64_t
+#      define xdr_u_hyper	xdr_u_int64_t
 #   endif
 
 #   include <limits.h>

@@ -696,7 +696,7 @@ motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
 
 	switch( field_type ) {
 	case MXFT_BOOL:
-		fprintf( output, "%d", *((mx_bool_type *) data_ptr) );
+		fprintf( output, "%d", (int) *((mx_bool_type *) data_ptr) );
 		break;
 	case MXFT_STRING:
 		fprintf( output, "\"%s\"", (char *) data_ptr );

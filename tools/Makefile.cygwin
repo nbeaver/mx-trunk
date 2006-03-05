@@ -1,4 +1,15 @@
-all:
+#
+# tools/Makefile.cygwin
+#
+
+all:  xdr_hyper.o
+
+include ../libMx/Makehead.cygwin
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_CYGWIN \
+		-D__MX_LIBRARY__ xdr/src/xdr_hyper.c
 
 mx_clean:
+	-rm xdr_hyper.o
 

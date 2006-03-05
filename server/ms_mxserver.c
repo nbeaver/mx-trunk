@@ -2736,7 +2736,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 #endif /* MX_WORDSIZE == 64 */
 
 		MX_DEBUG(-2,("%s: option_value = %d, truncate_64bit_longs = %d",
-			fname, option_value,
+			fname, (int) option_value,
 			(int) socket_handler->truncate_64bit_longs ));
 		break;
 	default:
