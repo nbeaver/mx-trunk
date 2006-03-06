@@ -246,8 +246,8 @@ mxd_xia_dxp_create_record_structures( MX_RECORD *record )
 
 	xia_dxp_mca->mca_record_array_index = -1;
 
-	xia_dxp_mca->firmware_code_variant = -1;
-	xia_dxp_mca->firmware_code_revision = -1;
+	xia_dxp_mca->firmware_code_variant = (unsigned long) -1;
+	xia_dxp_mca->firmware_code_revision = (unsigned long) -1;
 	xia_dxp_mca->hardware_scas_are_enabled = FALSE;
 
 	for ( i = 0; i < MX_XIA_DXP_MCA_MAX_SCAS; i++ ) {

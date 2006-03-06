@@ -1330,12 +1330,16 @@ mx_parse_command_line( char *command_line,
 		}
 	}
 
-#if !defined(OS_SOLARIS)
-
 	/* It should not be possible for us to get here. */
 
-	errno = ERANGE;
+#if defined(OS_SOLARIS)
+	/* Do nothing */
 
+#elif ( defined(OS_HPUX) && defined(__ia64) )
+	/* Do nothing */
+
+#else
+	errno = ERANGE;
 	return (-1);
 #endif
 }

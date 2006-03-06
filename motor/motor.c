@@ -522,7 +522,8 @@ motor_main( int argc, char *argv[] )
 		}
 	}
 
-#if defined(__SUNPRO_C)
+#if defined(__SUNPRO_C) || ( defined(OS_HPUX) && defined(__ia64) )
+
 	/* The Sparcworks C compiler emits a warning if we have 
 	 * unreachable code like below.
 	 */

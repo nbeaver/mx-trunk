@@ -195,7 +195,7 @@ motor_scan_pause_request_handler( MX_SCAN *scan )
 		}
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }

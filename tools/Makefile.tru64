@@ -1,32 +1,31 @@
 #
-# tools/Makefile.linux
+# tools/Makefile.tru64
 #
+
+all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
+
+include ../libMx/Makehead.tru64
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
-EDITLINE_GCCWARN = -Wall -Wshadow -Wpointer-arith -Wwrite-strings \
-		-Wunused -Wcomment -Wswitch
-
-EDITLINE_CC = "gcc $(EDITLINE_GCCWARN)"
-EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -O -g"
+EDITLINE_CC = "$(CC)"
+EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
 EDITLINE_RANLIB = ranlib
 
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
-
-all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_clean:
 	-rm *.o
 	( cd unix/src/editline ; make clean )
 
 strlcpy.o: generic/src/strlcpy.c
-	$(CC) -c -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
+	$(CC) -c -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
 		generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(CC) -c -fPIC -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
+	$(CC) -c -I../libMx -DOS_LINUX -D__MX_LIBRARY__ \
 		generic/src/strlcat.c
 
 unix/src/editline/libedit.a:

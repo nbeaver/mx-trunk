@@ -487,7 +487,7 @@ mxser_receive_characters_from_the_server( MX_RECORD *port_record,
 		fflush( to_user );
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }
@@ -557,7 +557,7 @@ mxser_send_characters_to_the_server( MX_RECORD *port_record,
 		mx_msleep(1);
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }

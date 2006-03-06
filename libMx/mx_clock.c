@@ -91,7 +91,7 @@ mx_current_cpu_tick( void )
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
     || defined(OS_HPUX) || defined(OS_DJGPP) || defined(OS_MACOSX) \
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
-    || defined(OS_VMS)
+    || defined(OS_TRU64) || defined(OS_VMS)
 
 	struct tms buf;
 
@@ -227,7 +227,8 @@ mx_clock_ticks_per_second( void )
 
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
     || defined(OS_HPUX) || defined(OS_VMS) || defined(OS_MACOSX) \
-    || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX)
+    || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
+    || defined(OS_TRU64)
 
 	clock_ticks_per_second = (double) CLK_TCK;
 

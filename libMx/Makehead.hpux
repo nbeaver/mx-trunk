@@ -6,18 +6,23 @@
 #          for HP/UX.
 #
 # Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
+# the definitions of INCLUDES, LIB_DIRS, LIBRARIES, and USE_64_BITS.
 #
+
+#
+# If you wish to compile a 64-bit version of MX, uncomment the following line.
+#
+#USE_64_BITS = +DD64
 
 #
 INCLUDES	= $(MX_INCLUDES)
 #
 
 LIB_DIRS	= -L$(MX_LIB_DIR)
-LIBRARIES	= -lm -lcl -lrpcsvc
+LIBRARIES	= -lrt -lm -lcl -lrpcsvc
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EPICS_LIB_DIRS)
-#LIBRARIES	= $(EPICS_LIBRARIES) -lm -lcl
+#LIBRARIES	= $(EPICS_LIBRARIES) -lrt -lm -lcl -lrpcsvc
 
 #
 # Motor will be linked with the bundled copy of 'editline' if you use the
@@ -58,8 +63,9 @@ EPICS_LIBRARIES = -lca -lCom
 #
 CC		= cc
 
-CFLAGS		= +We -Ae -z +Z -g $(INCLUDES) -DOS_HPUX \
-			-D_XOPEN_SOURCE_EXTENDED=1 $(EXTRA_FLAGS) -DDEBUG
+CFLAGS		= +We +W2550 -Ae -z +Z -g $(INCLUDES) -DOS_HPUX \
+			-D_XOPEN_SOURCE_EXTENDED=1 $(EXTRA_FLAGS) \
+			-DDEBUG $(USE_64_BITS)
 
 CFLAGS_EPICS	= $(CFLAGS)
 

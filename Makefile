@@ -16,6 +16,7 @@
 #   rtems         - Compile for i386/m68k/powerpc under RTEMS 4.6.5
 #   solaris       - Compile for Sun Sparc under Solaris 10
 #   solaris-gcc   - Compile for Sun Sparc under Solaris 8 or 10 using GCC
+#   tru64         - Compile for HP Tru64 Unix 5.1b
 #   vms           - Compile for OpenVMS 7.3.1
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7

@@ -751,7 +751,7 @@ mxd_mclennan_parse_qa_response( MX_MOTOR *motor, MX_MCLENNAN *mclennan )
 	 * 'Auto Execute', then we are probably doomed.
 	 */
 
-	while (1) {
+	for (;;) {
 		mx_status = mx_rs232_getline( mclennan->rs232_record,
 			response, sizeof(response), NULL, MCLENNAN_DEBUG );
 
@@ -759,7 +759,7 @@ mxd_mclennan_parse_qa_response( MX_MOTOR *motor, MX_MCLENNAN *mclennan )
 			return mx_status;
 
 		if ( strncmp( response, "Auto Execute", 12 ) == 0 ) {
-			break;		/* Exit the while() loop. */
+			break;		/* Exit the for(;;) loop. */
 		} else
 		if ( strncmp( response, "Slew Speed", 10 ) == 0 ) {
 			ptr = strchr( response, '=' );
@@ -966,7 +966,6 @@ mxd_mclennan_get_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_get_parameter_handler( motor );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1144,7 +1143,6 @@ mxd_mclennan_set_parameter( MX_MOTOR *motor )
 
 	default:
 		return mx_motor_default_set_parameter_handler( motor );
-		break;
 	}
 	return mx_status;
 }
@@ -1601,7 +1599,6 @@ mxd_mclennan_command( MX_MCLENNAN *mclennan, char *command, char *response,
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unsupported Mclennan controller type %ld for motor '%s'",
 			mclennan->controller_type, mclennan->record->name );
-		break;
 	}
 
 	ptr = strchr( response_ptr, prefix_separator );

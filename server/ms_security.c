@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -221,7 +221,8 @@ mx_status_type
 mxsrv_check_socket_connection_acl_permissions( MX_RECORD *record_list,
 		char *client_address_string, int *connection_allowed )
 {
-	static const char fname[] = "mxsrv_check_socket_connection_acl_permissions()";
+	static const char fname[]
+		= "mxsrv_check_socket_connection_acl_permissions()";
 
 	MX_LIST_HEAD *list_head;
 	MXSRV_CONNECTION_ACL *connection_acl;
@@ -315,7 +316,7 @@ mxsrv_get_client_hostname( char *client_address_string,
 #if defined(OS_VMS)
 	if ( client_in_addr.ul == 0xffffffff ) {
 #else
-	if ( client_in_addr.ul == (-1) ) {
+	if ( client_in_addr.ul == (unsigned long) (-1) ) {
 #endif
 
 		sprintf( client_hostname,

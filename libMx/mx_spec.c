@@ -115,8 +115,8 @@ mx_spec_send_message( MX_RECORD *spec_server_record,
 
 	message_header_size = sizeof(struct svr_head);
 
-	message_header.magic = SV_SPEC_MAGIC;
-	message_header.vers = SV_VERSION;
+	message_header.magic = (int) SV_SPEC_MAGIC;
+	message_header.vers = (int) SV_VERSION;
 	message_header.size = (unsigned) message_header_size;
 	message_header.sn = 0;
 	message_header.sec = 0;

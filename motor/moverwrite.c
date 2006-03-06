@@ -304,7 +304,7 @@ motor_check_for_datafile_name_collision( MX_SCAN *scan )
 		}
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return SUCCESS;
 #endif
 }

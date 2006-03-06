@@ -503,7 +503,7 @@ main( int argc, char *argv[] )
 
 	mx_info("%s: Starting update loop.", fname);
 
-	while(1) {
+	for(;;) {
 		current_time = mx_current_clock_tick();
 
 		/* Check to see if it is time to rewrite an autosave file. */
@@ -557,6 +557,10 @@ main( int argc, char *argv[] )
 						event_interval );
 		}
 	}
+
+#if ( defined(OS_HPUX) && !defined(__ia64) )
+	return 0;
+#endif
 }
 
 mx_status_type
@@ -758,7 +762,6 @@ mxupd_add_mx_variable_to_database( MX_RECORD *record_list,
 			"Remote record field '%s.%s' is of type %ld "
 			"which is not supported by this program.",
 			record_name, field_name, datatype );
-		break;
 	}
 
 	string_length = strlen(description);

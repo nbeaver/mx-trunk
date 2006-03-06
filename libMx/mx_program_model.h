@@ -69,6 +69,14 @@
 #     error "Unexpected value for _MIPS_SZLONG"
 #  endif
 
+#elif defined(OS_HPUX)
+
+#  if defined(__LP64__)
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_LP64
+#  else
+#     define MX_PROGRAM_MODEL    MX_PROGRAM_MODEL_ILP32
+#  endif
+
 #elif defined(OS_VMS)
 
 #  if defined(__VAX)

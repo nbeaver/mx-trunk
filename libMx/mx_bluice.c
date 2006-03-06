@@ -1689,7 +1689,7 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 	static const char fname[] = "mx_bluice_update_motion_status()";
 
 	MX_BLUICE_FOREIGN_DEVICE *foreign_motor;
-	char *ptr, *token_ptr, *motor_name, *status_ptr;
+	char *ptr, *token_ptr, *motor_name;
 	double motor_position;
 	mx_status_type mx_status;
 	long mx_status_code;
@@ -1736,19 +1736,23 @@ mx_bluice_update_motion_status( MX_BLUICE_SERVER *bluice_server,
 
 	motor_position = atof( token_ptr );
 
-	/* Was there any trailing status information? */
-
-	status_ptr = mx_string_split( &ptr, "{}" );
-
 #if BLUICE_DEBUG_MOTION
-	if ( status_ptr == NULL ) {
-		MX_DEBUG(-2,
+	{
+		char *status_ptr;
+
+		/* Was there any trailing status information? */
+
+		status_ptr = mx_string_split( &ptr, "{}" );
+
+		if ( status_ptr == NULL ) {
+			MX_DEBUG(-2,
 		("%s: motor '%s', move_in_progress = %d, position = %g",
 			fname, motor_name, move_in_progress, motor_position));
-	} else {
-		MX_DEBUG(-2,
+		} else {
+			MX_DEBUG(-2,
 	 ("%s: motor '%s', move_in_progress = %d, position = %g, status = '%s'",
 	      fname, motor_name, move_in_progress, motor_position, status_ptr));
+		}
 	}
 #endif
 

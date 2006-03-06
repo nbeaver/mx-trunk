@@ -464,7 +464,7 @@ mxi_pcstep_get_status_word( MX_PCSTEP *pcstep )
 	if ( pcstep == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 			"NULL pcstep pointer passed." );
-		return (-1);
+		return (uint16_t) (-1);
 	}
 
 	port_address = pcstep->base_address + 6;

@@ -1105,7 +1105,7 @@ mxd_pcstep_constant_velocity_move( MX_MOTOR *motor )
 	if ( motor->constant_velocity_move >= 0 ) {
 		direction = 1;
 	} else {
-		direction = -1;
+		direction = (uint32_t) -1;
 	}
 
 	mx_status = mxi_pcstep_command( pcstep,

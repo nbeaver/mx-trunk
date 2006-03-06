@@ -1331,7 +1331,9 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
  * to the total number of realtime signals for the process.
  */
 
-#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_VXWORKS)
+#if defined(OS_SOLARIS) || defined(OS_IRIX) || defined(OS_TRU64) \
+	|| defined(OS_VXWORKS)
+
 #   define MX_SIGEV_TYPE	SIGEV_SIGNAL
 #else
 #   define MX_SIGEV_TYPE	SIGEV_THREAD

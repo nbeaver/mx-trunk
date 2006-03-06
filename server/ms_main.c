@@ -1005,7 +1005,7 @@ mxserver_main( int argc, char *argv[] )
 		} while ( current_record != mx_record_list );
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return 0;
 #endif
 }

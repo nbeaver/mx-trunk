@@ -1326,7 +1326,8 @@ static int mx_use_posix_named_semaphores   = FALSE;
 #endif
 
 #if _SEM_SEMUN_UNDEFINED || defined(OS_SOLARIS) || defined(OS_CYGWIN) \
-	|| defined(OS_HPUX) || defined(OS_QNX) || defined(__NetBSD_Version__)
+	|| defined(OS_HPUX) || defined(OS_TRU64) || defined(OS_QNX) \
+	|| defined(__NetBSD_Version__)
 
 /* I wonder what possible advantage there is to making this
  * union definition optional?

@@ -350,7 +350,8 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
  */
 
 #if defined(OS_IRIX)
-#  define inet_ntoa my_inet_ntoa
+
+#  define inet_ntoa(x)	my_inet_ntoa(x)
 
 #  define MY_INET_NTOA_LENGTH	(12+3)
 
@@ -375,14 +376,10 @@ my_inet_ntoa( struct in_addr in )
 
 	address_value /= 256L;
 
-	nibble1 = address_value;
+	nibble1 = address_value % 256L;
 
-	if ( nibble1 >= 256L ) {
-		sprintf( address, "-1.-1.-1.-1" );
-	}
-
-	sprintf( address, "%lu.%lu.%lu.%lu",
-		nibble1, nibble2, nibble3, nibble4 );
+	snprintf( address, sizeof(address), "%lu.%lu.%lu.%lu",
+				nibble1, nibble2, nibble3, nibble4 );
 
 	return &(address[0]);
 }
@@ -536,7 +533,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	new_socket_handler->program_name[0] = '\0';
 
-	new_socket_handler->process_id = -1;
+	new_socket_handler->process_id = (unsigned long) -1;
 
 	new_socket_handler->data_format = list_head->default_data_format;
 
@@ -571,6 +568,23 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	switch( socket_type ) {
 	case MXF_SRV_TCP_SERVER_TYPE:
+
+		/* Did accept() return a valid address? */
+
+
+#if ( defined(OS_HPUX) && defined(__LP64__) )
+
+		if ( tcp_client_address.sin_addr.s_addr == 0 ) {
+			mx_warning(
+		"accept() returned a host address of 0 for the new client "
+		"socket.  This problem seems to be specific to 64-bit compiled "
+		"code on HP-UX.\nAt present the only 'solutions' are:\n\n"
+		"  1. Use the 32-bit compiler for your server (recommended).\n"
+		"  2. Add 0.0.0.0 to your server ACL file (I really "
+		"do _not_ recommend this).\n" );
+		}
+
+#endif
 
 		/* Convert the host address of the socket to standard
 		 * numbers-and-dots notation.

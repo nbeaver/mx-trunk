@@ -806,7 +806,6 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_STRING:
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"MX does not support 0-dimensional strings." );
-			break;
 		case MXFT_CHAR:
 		case MXFT_UCHAR:
 		case MXFT_SHORT:
@@ -1022,14 +1021,14 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	size_t first_dimension_size, last_dimension_size;
 	size_t last_dimension_native_size_in_bytes;
 	size_t last_dimension_xdr_size_in_bytes;
-	size_t native_data_size, native_array_size, native_subarray_size;
+	size_t native_array_size, native_subarray_size;
 	size_t xdr_data_size, xdr_array_size, xdr_subarray_size;
 	size_t buffer_left, remainder;
 	unsigned long xdr_buffer_address, address_remainder;
 	long i, n;
 	int xdr_status;
 	u_int num_array_elements;
-	int return_structure_name, structure_name_length;
+	int return_structure_name;
 	enum xdr_op operation;
 	mx_status_type mx_status;
 
@@ -1088,7 +1087,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			"Writing to an MXFT_RECORD field is not allowed." );
 		}
 
-		structure_name_length = MXU_RECORD_NAME_LENGTH + 1;
 		return_structure_name = TRUE;
 		break;
 	case MXFT_RECORDTYPE:
@@ -1097,7 +1095,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			"Writing to an MXFT_RECORDTYPE field is not allowed." );
 		}
 
-		structure_name_length = MXU_DRIVER_NAME_LENGTH + 1;
 		return_structure_name = TRUE;
 		break;
 	case MXFT_INTERFACE:
@@ -1106,11 +1103,9 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			"Writing to an MXFT_INTERFACE field is not allowed." );
 		}
 
-		structure_name_length = MXU_INTERFACE_NAME_LENGTH + 1;
 		return_structure_name = TRUE;
 		break;
 	default:
-		structure_name_length = 0;
 		return_structure_name = FALSE;
 		break;
 	}
@@ -1131,8 +1126,6 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 	if ( num_dimensions == 0 ) {
 
 		/* Handling scalars takes a bit more effort. */
-
-		native_data_size = mxp_scalar_element_size(mx_datatype, FALSE);
 
 		xdr_data_size = mxp_xdr_scalar_element_size( mx_datatype );
 

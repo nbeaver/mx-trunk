@@ -1436,7 +1436,7 @@ mx_get_process_meminfo( unsigned long process_id,
 /***************************************************************************/
 
 #elif defined( OS_BSD ) || defined( OS_HPUX ) || defined( OS_QNX ) \
-	|| defined( OS_CYGWIN ) || defined( OS_DJGPP )
+	|| defined( OS_TRU64 ) || defined( OS_CYGWIN ) || defined( OS_DJGPP )
 
 #include <sys/types.h>
 #include <sys/time.h>

@@ -220,7 +220,7 @@ mxn_bluice_dcss_monitor_thread( MX_THREAD *thread, void *args )
 		mx_status = mx_thread_check_for_stop_request( thread );
 	}
 
-#if defined(OS_HPUX)
+#if ( defined(OS_HPUX) && !defined(__ia64) )
 	return MX_SUCCESSFUL_RESULT;
 #endif
 

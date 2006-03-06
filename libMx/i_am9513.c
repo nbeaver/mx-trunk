@@ -119,13 +119,13 @@ mxi_am9513_inp8( MX_AM9513 *am9513, long port_number )
 	if ( am9513 == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 			"NULL am9513 pointer passed." );
-		return (-1);
+		return (uint8_t) (-1);
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
-		return (-1);
+		return (uint8_t) (-1);
 	}
 
 	port_address = am9513->base_address + port_number;
@@ -148,13 +148,13 @@ mxi_am9513_inp16( MX_AM9513 *am9513, long port_number )
 	if ( am9513 == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 			"NULL am9513 pointer passed." );
-		return (-1);
+		return (uint16_t) (-1);
 	}
 	if ( port_number < 0 || port_number > 1 ) {
 		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal port number %ld for Am9513 record '%s'",
 				port_number, am9513->record->name );
-		return (-1);
+		return (uint16_t) (-1);
 	}
 
 	port_address = am9513->base_address + port_number;

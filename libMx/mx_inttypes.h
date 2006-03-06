@@ -143,11 +143,7 @@
 
    /* Some build targets do not define all of the macros. */
 
-#  if ( defined(OS_HPUX) && !defined(SCNd8) )
-
-#     define SCNd8	"hhd"
-#     define SCNu8	"hhu"
-#     define SCNx8	"hhx"
+#  if ( defined(OS_HPUX) && !defined(__LP64__) )
 
 #     define PRId64	"lld"
 #     define PRIu64	"llu"
