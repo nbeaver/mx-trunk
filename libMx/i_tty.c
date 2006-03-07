@@ -45,7 +45,7 @@
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
 	|| defined(OS_SUNOS4) || defined(OS_AIX) || defined(OS_HPUX) \
 	|| defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_CYGWIN) \
-	|| defined(OS_QNX) || defined(OS_RTEMS)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_TRU64)
 #    define USE_POSIX_TERMIOS	TRUE
 #  else
 #    error "No Unix TTY handling interface has been defined."

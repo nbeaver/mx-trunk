@@ -313,9 +313,9 @@ mx_epics.$(OBJ): mx_epics.c
 	$(COMPILE) $(CFLAGS_MX_EPICS) $(EPICS_INCLUDES) mx_epics.c
 
 mx_interval_timer.$(OBJ): mx_interval_timer.c
-	$(COMPILE) $(CFLAGS_MX_EPICS) $(EPICS_INCLUDES) mx_interval_timer.c
+	$(COMPILE) $(CFLAGS) mx_interval_timer.c
 
-mx_key.$(OBJ): mx_key.c mxconfig.h mx_util.c
+mx_key.$(OBJ): mx_key.c mxconfig.h
 
 mx_list_head.$(OBJ): Makefile.version mx_list_head.c
 	$(COMPILE) $(CFLAGS_MX_VERS) mx_list_head.c

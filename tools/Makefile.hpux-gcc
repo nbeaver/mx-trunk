@@ -1,17 +1,19 @@
 #
-# tools/Makefile.tru64
+# tools/Makefile.hpux-gcc
 #
 
-all:  strlcpy.o strlcat.o unix/src/editline/libedit.a
+all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
-include ../libMx/Makehead.tru64
+include ../libMx/Makehead.hpux-gcc
+
+CC = gcc -fPIC $(USE_64_BITS)
 
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
 EDITLINE_CC = "$(CC)"
 EDITLINE_CFLAGS = "$(EDITLINE_DEFS) -g"
-EDITLINE_RANLIB = ranlib
+EDITLINE_RANLIB = touch
 
 EDITLINE_MAKECMD = \
   make CC=$(EDITLINE_CC) CFLAGS=$(EDITLINE_CFLAGS) RANLIB=$(EDITLINE_RANLIB)
@@ -21,13 +23,11 @@ mx_clean:
 	( cd unix/src/editline ; make clean )
 
 strlcpy.o: generic/src/strlcpy.c
-	$(CC) -c -I../libMx -DOS_TRU64 -D__MX_LIBRARY__ \
-		generic/src/strlcpy.c
+	$(CC) -c -I../libMx -DOS_HPUX -D__MX_LIBRARY__ generic/src/strlcpy.c
 
 strlcat.o: generic/src/strlcat.c
-	$(CC) -c -I../libMx -DOS_TRU64 -D__MX_LIBRARY__ \
-		generic/src/strlcat.c
+	$(CC) -c -I../libMx -DOS_HPUX -D__MX_LIBRARY__ generic/src/strlcat.c
 
 unix/src/editline/libedit.a:
 	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
-
+	

@@ -1306,6 +1306,10 @@ static int mx_use_posix_named_semaphores   = FALSE;
 
 #if 1
 
+#if defined(OS_HPUX) && defined(__ia64) && defined(__GNUC__)
+   typedef int32_t cid_t;
+#endif
+
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/ipc.h>

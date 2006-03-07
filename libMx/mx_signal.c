@@ -49,8 +49,7 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if (defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )) \
-	|| defined( OS_CYGWIN )
+#if defined( _POSIX_REALTIME_SIGNALS ) || defined( OS_CYGWIN )
 
 #define MX_NUM_SIGNALS	SIGRTMAX
 
@@ -413,7 +412,7 @@ mx_signal_free( int signal_number )
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested signal number %d is outside "
 		"the allowed range of %d to %d.", signal_number,
-						1, MX_NUM_SIGNALS );
+						1, (int) MX_NUM_SIGNALS );
 	}
 
 	status = mx_mutex_lock( mx_signal_mutex );

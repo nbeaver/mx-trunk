@@ -6,18 +6,21 @@
 #   cygwin        - Compile for Cygwin 1.5.x
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3
 #   hpux          - Compile for HP 9000/8xx under HP-UX 11v2
+#   hpux-gcc      - Compile for HP 9000/8xx under HP-UX 11v2 using GCC
 #   irix          - Compile for SGI under Irix 6.3 or 6.5
 #   irix-gcc      - Compile for SGI under Irix 6.5 using GCC
-#   linux         - Compile for i386/m68k/sparc under Linux 2.2, 2.4, or 2.6
+#   linux         - Compile for i386/m68k/alpha/ia64
+#						under Linux 2.2, 2.4, or 2.6
 #   linux-icc     - Compile for i386 under Linux 2.4 or 2.6
-#                                                 using Intel C++ 7.1 or 9.0
-#   macosx        - Compile for PPC Macintosh under MacOS X
+#						using Intel C++ 7.1 or 9.0
+#   macosx        - Compile for powerpc under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
 #   rtems         - Compile for i386/m68k/powerpc under RTEMS 4.6.5
-#   solaris       - Compile for Sun Sparc under Solaris 10
-#   solaris-gcc   - Compile for Sun Sparc under Solaris 8 or 10 using GCC
-#   tru64         - Compile for HP Tru64 Unix 5.1b
-#   vms           - Compile for OpenVMS 7.3.1
+#   solaris       - Compile for sparc under Solaris 10
+#   solaris-gcc   - Compile for sparc under Solaris 8 or 10 using GCC
+#   tru64         - Compile for alpha under HP Tru64 Unix 5.1b
+#   tru64-gcc     - Compile for alpha under HP Tru64 Unix 5.1b using GCC
+#   vms           - Compile for alpha/vax under OpenVMS 7.3.1 or 8.2
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1

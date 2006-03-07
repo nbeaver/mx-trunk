@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for HP Tru64 Unix (formerly Digital Unix or OSF1).
+#          for HP Tru64 Unix (formerly Digital Unix or OSF1) using GCC.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
@@ -37,16 +37,29 @@ READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
 #
 
 #
-# Alpha with Compaq C V6.5-207 on HP Tru64 Unix V5.1B
+# gcc specific flags
 #
-CC		= cc -pthread
-CFLAGS		= -g $(INCLUDES) -DOS_TRU64 \
+GCCFLAGS = -Wall -Werror \
+-Wstrict-prototypes \
+-Wpointer-arith \
+-Wcast-align \
+-Wcast-qual \
+-Wshadow \
+-Wmissing-prototypes \
+-Wnested-externs \
+-Winline
+
+#
+# Alpha with GCC 3.3 on HP Tru64 Unix V5.1B
+#
+CC		= gcc -pthread
+CFLAGS		= -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_TRU64 \
 				$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS)
 
 # Special cases for individual files.
 
-CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
+CFLAGS_MX_EPICS	= $(CFLAGS_EPICS)
 
 CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
@@ -56,7 +69,7 @@ CFLAGS_MAKEDEPEND = $(CFLAGS) $(READLINE_INCLUDES)
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= cc -pthread -M $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
+MAKEDEPEND	= gcc -pthread -MM $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 
@@ -105,8 +118,8 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) libMx.so $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	ld -shared -expect_unresolved '*' \
-		-o $(MX_LIBRARY_NAME) $(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
+	gcc -shared -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES)
 	ln -s $(MX_LIBRARY_NAME) libMx.so
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)

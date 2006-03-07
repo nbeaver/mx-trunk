@@ -129,7 +129,7 @@ mx_initialize_runtime( void )
 	signal( SIGPIPE, SIG_IGN );
 #endif
 
-#if defined( _POSIX_REALTIME_SIGNALS ) && ( _POSIX_REALTIME_SIGNALS >= 0 )
+#if defined( _POSIX_REALTIME_SIGNALS )
 	mx_status = mx_signal_initialize();
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -501,7 +501,7 @@ mx_kill_process( unsigned long process_id )
 MX_EXPORT char *
 mx_username( char *buffer, size_t max_buffer_length )
 {
-#if defined( OS_WIN32 ) || defined( OS_LINUX ) || defined( OS_HPUX )
+#if defined( OS_WIN32 ) || defined( OS_LINUX ) || defined( OS_TRU64 )
 	static const char fname[] = "mx_username()";
 #endif
 
@@ -521,9 +521,9 @@ mx_username( char *buffer, size_t max_buffer_length )
 	 * extend getpwuid().
 	 */
 
-#if defined( OS_LINUX )
+#if defined( OS_LINUX ) || defined( OS_TRU64 )
 	{
-		char scratch_buffer[ 512 ];
+		char scratch_buffer[ 1024 ];
 		struct passwd pw_buffer, *pw;
 		uid_t uid;
 		int status, saved_errno;
@@ -532,9 +532,11 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 		uid = getuid();
 
-#if defined( OS_LINUX )
+#if defined( OS_LINUX ) || defined( OS_TRU64 )
+
 		status = getpwuid_r( uid, &pw_buffer, scratch_buffer,
 					sizeof(scratch_buffer), &pw );
+
 #elif defined( OS_SOLARIS )
 		/* FIXME: This doesn't work for some reason. */
 
@@ -882,14 +884,10 @@ mx_get_max_file_descriptors( void )
 {
 	int result;
 
-	/* This operation varies from OS to OS, so I will fill this in as time
-	 * goes on.
-	 */
-
 #if defined( OS_LINUX ) || defined( OS_SOLARIS ) || defined( OS_IRIX ) \
 	|| defined( OS_HPUX ) || defined( OS_SUNOS4 ) || defined( OS_MACOSX ) \
 	|| defined( OS_BSD ) || defined( OS_QNX ) || defined( OS_CYGWIN ) \
-	|| defined( OS_DJGPP ) || defined( OS_VMS )
+	|| defined( OS_DJGPP ) || defined( OS_VMS ) || defined( OS_TRU64 )
 
 	result = getdtablesize();
 

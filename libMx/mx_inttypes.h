@@ -94,6 +94,41 @@
 #define SCNx64	"llx"
 
 /*=======================================================================*/
+#elif defined(OS_TRU64)
+
+#define PRId8	"hd"
+#define PRIu8	"hu"
+#define PRIx8	"hx"
+
+#define SCNd8	"uunsupported"
+#define SCNu8	"uunsupported"
+#define SCNx8	"uunsupported"
+
+#define PRId16	"hd"
+#define PRIu16	"hu"
+#define PRIx16	"hx"
+
+#define SCNd16	"hd"
+#define SCNu16	"hu"
+#define SCNx16	"hx"
+
+#define PRId32	"d"
+#define PRIu32	"u"
+#define PRIx32	"x"
+
+#define SCNd32	"d"
+#define SCNu32	"u"
+#define SCNx32	"x"
+
+#define PRId64	"ld"
+#define PRIu64  "lu"
+#define PRIx64  "lx"
+
+#define SCNd64	"ld"
+#define SCNu64	"lu"
+#define SCNx64	"lx"
+
+/*=======================================================================*/
 #elif defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
 
 #define PRId8	"hd"
