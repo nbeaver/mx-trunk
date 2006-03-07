@@ -361,7 +361,7 @@ mxp_scalar_element_size( long mx_datatype,
 	default:              element_size = 0;                           break;
 	}
 
-#if 1
+#if 0
 	if ( truncate_64bit_longs ) {
 		MX_DEBUG(-2,
 	    ("mxp_scaler_element_size(): mx_datatype = %ld, element_size = %ld",
@@ -379,8 +379,10 @@ mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
 	uint32_t *uint32_ptr;
 	size_t i;
 
+#if 0
 	MX_DEBUG(-2,("mx_copy_32bits_to_64bits: num_elements = %ld",
 		(long) num_elements ));
+#endif
 
 	uint64_ptr = destination;
 	uint32_ptr = source;
@@ -399,8 +401,10 @@ mx_copy_64bits_to_32bits( void *destination, void *source, size_t num_elements )
 	uint32_t *uint32_ptr;
 	size_t i;
 
+#if 0
 	MX_DEBUG(-2,("mx_copy_64bits_to_32bits: num_elements = %ld",
 		(long) num_elements ));
+#endif
 
 	uint32_ptr = destination;
 	uint64_ptr = source;

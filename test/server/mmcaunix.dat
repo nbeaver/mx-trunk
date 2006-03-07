@@ -1,5 +1,5 @@
-17id   server network unix_server "" "" 0x0 ./mytest.socket
-mca1   device mca network_mca "" "" 8192 1 4 17id mca1
+10id   server network unix_server "" "" 0x0 ./mytest.socket
+mca1   device mca network_mca "" "" 8192 1 4 10id mca1
 if     device scaler mca_channel "" "" 0 0 0x1 timer1 mca1 100
 iref   device scaler mca_channel "" "" 0 0 0x1 timer1 mca1 200
 iroi   device scaler mca_roi_integral "" "" 0 0 0x1 timer1 mca1 0

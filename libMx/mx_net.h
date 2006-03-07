@@ -102,7 +102,30 @@ typedef struct {
   \
   {-1, -1, "timeout", MXFT_DOUBLE, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, timeout), \
-	{0}, NULL, 0 }
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "remote_mx_version", MXFT_ULONG, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, remote_mx_version), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "data_format", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, offsetof(MX_NETWORK_SERVER, data_format), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "server_supports_network_handles", MXFT_BOOL, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, server_supports_network_handles), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "network_handles_are_valid", MXFT_BOOL, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, network_handles_are_valid), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "truncate_64bit_longs", MXFT_BOOL, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
+	{0}, NULL, MXFF_READ_ONLY }
 
 /* Values for the server_flags field. */
 
