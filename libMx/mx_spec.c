@@ -205,7 +205,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 	"The message header size %u for the header sent by Spec server '%s' "
 	"does not match the expected value of %lu.",
 			message_header.size, spec_server_record->name,
-			expected_message_header_size );
+			(unsigned long) expected_message_header_size );
 	}
 
 	if ( spec_command_code != NULL ) {
@@ -234,7 +234,7 @@ mx_spec_receive_message( MX_RECORD *spec_server_record,
 		"is larger than the maximum length %lu specified for "
 		"this call.", message_header.len,
 			spec_server_record->name,
-			maximum_data_length );
+			(unsigned long) maximum_data_length );
 	}
 
 	/* Now receive the data for the message. */

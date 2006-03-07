@@ -12,7 +12,7 @@
 #   linux         - Compile for i386/m68k/alpha/ia64
 #						under Linux 2.2, 2.4, or 2.6
 #   linux-icc     - Compile for i386 under Linux 2.4 or 2.6
-#						using Intel C++ 7.1 or 9.0
+#						using Intel C++ 9.0
 #   macosx        - Compile for powerpc under MacOS X
 #   qnx           - Compile for i386 under QNX Neutrino 6.3
 #   rtems         - Compile for i386/m68k/powerpc under RTEMS 4.6.5

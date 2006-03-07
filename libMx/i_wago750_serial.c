@@ -1269,7 +1269,7 @@ mxi_wago750_serial_num_input_bytes_available( MX_RS232 *rs232 )
 
 	num_bytes_in_buffer = wago750_serial->num_input_bytes_in_buffer;
 
-	MX_WAGO_DEBUG(("%s: byte_index = %ld, num_bytes_in_buffer = %ld",
+	MX_WAGO_DEBUG(("%s: byte_index = %lu, num_bytes_in_buffer = %lu",
 		fname, byte_index, num_bytes_in_buffer));
 
 	if ( byte_index < num_bytes_in_buffer ) {

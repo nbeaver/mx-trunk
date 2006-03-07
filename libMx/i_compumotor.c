@@ -1045,16 +1045,16 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 
 		axis = compumotor->axis_number;
 
-		MX_DEBUG( 2,("%s: motor_record_array[%lu] = %p",
+		MX_DEBUG( 2,("%s: motor_record_array[%ld] = %p",
 				fname, i, motor_record_array[i]));
 
-		MX_DEBUG( 2,("%s: motor_record_array[%lu] = '%s'",
+		MX_DEBUG( 2,("%s: motor_record_array[%ld] = '%s'",
 				fname, i, motor_record_array[i]->name));
 
 		motor = (MX_MOTOR *)
 				motor_record_array[i]->record_class_struct;
 
-		MX_DEBUG( 2,("%s: motor_position_array[%lu] = %g, scale = %g",
+		MX_DEBUG( 2,("%s: motor_position_array[%ld] = %g, scale = %g",
 			fname, i, motor_position_array[i], motor->scale ));
 
 		destination[axis-1] = mx_divide_safely( motor_position_array[i],
@@ -1075,7 +1075,7 @@ mxi_compumotor_multiaxis_move( MX_COMPUMOTOR_INTERFACE *compumotor_interface,
 		MX_DEBUG( 2,("%s: command = '%s'", fname, command));
 
 		MX_DEBUG( 2,
-		("%s: i = %lu, will_be_moved = %d, destination[%lu] = %.5f",
+		("%s: i = %ld, will_be_moved = %d, destination[%ld] = %.5f",
 			fname, i, (int) will_be_moved[i], i, destination[i]));
 
 		length = strlen( command );
