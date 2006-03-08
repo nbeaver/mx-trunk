@@ -17,7 +17,7 @@
 #ifndef __MX_XDR_H__
 #define __MX_XDR_H__
 
-#if defined(OS_WIN32) || defined(OS_DJGPP)
+#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"
 

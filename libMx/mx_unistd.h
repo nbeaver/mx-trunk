@@ -41,7 +41,9 @@ extern int access( char *pathname, int mode );
 #if defined(OS_CYGWIN)
 #  include <getopt.h>
 #else
-#  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS)
+#  if defined(OS_WIN32) || defined(OS_SUNOS4) || defined(OS_VXWORKS) \
+	|| defined(OS_ECOS)
+
       MX_API int getopt(int argc, char *argv[], char *optstring);
 
 #     if !defined(__MX_LIBRARY__)

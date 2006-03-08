@@ -779,6 +779,8 @@ mx_mutex_create( MX_MUTEX **mutex )
 				status, strerror( status ) );
 	}
 	
+#if !defined( OS_ECOS )		/* I hate people with agendas to push. */
+
 	status = pthread_mutexattr_settype( &p_mutex_attr,
 					PTHREAD_MUTEX_RECURSIVE );
 
@@ -796,6 +798,8 @@ mx_mutex_create( MX_MUTEX **mutex )
 			"Error message = '%s'.",
 				status, strerror( status ) );
 	}
+
+#endif /* ! OS_ECOS */
 
 	/* Create the mutex. */
 

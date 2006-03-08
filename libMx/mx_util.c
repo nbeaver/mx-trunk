@@ -229,8 +229,12 @@ mx_copy_file( char *existing_filename, char *new_filename, int new_file_mode )
 
 #if defined( OS_WIN32 )
 	file_blocksize = 4096;	/* FIXME: This is just a guess. */
+
 #elif defined( OS_VMS )
 	file_blocksize = 512;	/* FIXME: Is this correct for all VMS disks? */
+
+#elif defined( OS_ECOS )
+	file_blocksize = 512;	/* FIXME: This is just a guess. */
 #else
 	file_blocksize = stat_struct.st_blksize;
 #endif
@@ -679,6 +683,10 @@ mx_username( char *buffer, size_t max_buffer_length )
 
 	strlcpy( ptr, "vxworks", max_buffer_length );
 
+#elif defined( OS_ECOS )
+
+	strlcpy( ptr, "ecos", max_buffer_length );
+
 #else
 
 #error mx_username() has not been implemented for this platform.
@@ -894,6 +902,10 @@ mx_get_max_file_descriptors( void )
 #elif defined( OS_WIN32 )
 
 	result = FD_SETSIZE;
+
+#elif defined( OS_ECOS )
+
+	result = CYGNUM_FILEIO_NFD;
 
 #elif defined( OS_RTEMS ) || defined( OS_VXWORKS )
 

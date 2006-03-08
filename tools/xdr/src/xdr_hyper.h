@@ -19,7 +19,7 @@
 #ifndef __XDR_HYPER_H__
 #define __XDR_HYPER_H__
 
-#if defined(OS_WIN32) || defined(OS_DJGPP)
+#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
 #  include "xdr.h"
 #else
 #  include <rpc/types.h>

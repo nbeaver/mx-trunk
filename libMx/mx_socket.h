@@ -35,6 +35,11 @@
 
 #  include "vms_twg.h"		/* For WIN/TCP from The Wollogong Group. */
 
+#elif defined( OS_ECOS )
+
+#  include <network.h>
+#  include <arpa/inet.h>
+
 #else
 
 #  if defined( OS_VXWORKS )
@@ -78,7 +83,8 @@
 /* ===== Unix BSD sockets support ===== */
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_VMS ) \
- || defined( OS_DJGPP ) || defined( OS_RTEMS ) || defined( OS_VXWORKS )
+ || defined( OS_DJGPP ) || defined( OS_RTEMS ) || defined( OS_VXWORKS ) \
+ || defined( OS_ECOS )
 
 #  define MX_SOCKET_FD			int
 #  define MX_INVALID_SOCKET_FD		(-1)

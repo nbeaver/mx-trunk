@@ -585,7 +585,8 @@ mx_key_getline( char *buffer, size_t max_buffer_length )
 
 /************************** Unix **************************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS) \
+	|| defined(OS_ECOS)
 
 /* Do we use new-style (termios) or old-style (termio) terminal controls? */
 

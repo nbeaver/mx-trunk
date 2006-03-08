@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#ifndef OS_WIN32
+#if !defined(OS_WIN32) && !defined(OS_ECOS)
 #include <sys/times.h>
 #endif
 

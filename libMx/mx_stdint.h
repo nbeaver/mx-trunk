@@ -24,11 +24,7 @@
 /* The non-standard build targets are listed first. */
 
 /*=======================================================================*/
-
-#if 0
-
-/*=======================================================================*/
-#elif ( defined(OS_DJGPP) && (DJGPP >= 2) && (DJGPP_MINOR < 4) )
+#if ( defined(OS_DJGPP) && (DJGPP >= 2) && (DJGPP_MINOR < 4) )
 
 /* The following two blocks of conditionals are to avoid conflicting with
  * equivalent definitions in the sys/wtypes.h include file of Watt32.
@@ -90,6 +86,11 @@ typedef unsigned long long	uint64_t;
 
 typedef int64_t			intmax_t;
 typedef uint64_t		uintmax_t;
+
+/*=======================================================================*/
+#elif defined(OS_ECOS)
+
+#include <machine/types.h>
 
 /*=======================================================================*/
 #elif defined(OS_IRIX) || defined(OS_HPUX) || defined(OS_VMS) \

@@ -24,7 +24,7 @@
 /* The non-standard build targets are listed first. */
 
 /*=======================================================================*/
-#if defined(OS_DJGPP) || defined(OS_RTEMS)
+#if defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_ECOS)
 
 #define PRId8	"hhd"
 #define PRIu8	"hhu"

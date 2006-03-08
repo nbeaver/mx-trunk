@@ -719,7 +719,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	/* Open a connetion to plotgnu. */
 
-#if defined(OS_VXWORKS)
+#if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	fprintf( output,
 	 "Plotting with Gnuplot is not supported for this operating system.\n");
 	return FAILURE;
@@ -777,7 +777,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 
 	mx_msleep(500);
 
-#if !defined(OS_VXWORKS)
+#if !defined(OS_VXWORKS) && !defined(OS_RTEMS) && !defined(OS_ECOS)
 	status = pclose( plotgnu_pipe );
 #endif
 
@@ -822,7 +822,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	/* Open a connetion to plotgnu. */
 
-#if defined(OS_VXWORKS)
+#if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	fprintf( output,
 	 "Plotting with Gnuplot is not supported for this operating system.\n");
 	return FAILURE;
@@ -893,7 +893,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 
 	mx_msleep(500);
 
-#if !defined(OS_VXWORKS)
+#if !defined(OS_VXWORKS) && !defined(OS_RTEMS) && !defined(OS_ECOS)
 	status = pclose( plotgnu_pipe );
 #endif
 

@@ -5,6 +5,8 @@
 #          dependent features of the MX makefiles.  This version is customized
 #          for eCos.
 #
+# Warning: This build target does not actually work yet.
+#
 
 ECOS_TOP_DIR	= /home/lavender/ecos
 
@@ -82,14 +84,13 @@ endif
 #-Wnested-externs \
 #-Winline
 #
-GCCFLAGS = -Wall
+GCCFLAGS = -Wall -Werror
 
 #  eCos with GCC
 #
 CFLAGS		= -g $(GCCFLAGS) -ffunction-sections -fdata-sections \
 				-I$(PKG_INSTALL_DIR)/include \
-				$(INCLUDES) -DOS_ECOS \
-				-D_KERNEL -D__ECOS \
+				$(INCLUDES) -DOS_ECOS -D__ECOS \
 				$(EXTRA_FLAGS) -DDEBUG \
 				$(BSP_FLAGS)
 
@@ -124,6 +125,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
+MX_LIB_OBJS += ../tools/getopt.o
 MX_LIB_OBJS += ../tools/strlcpy.o ../tools/strlcat.o
 MX_LIB_OBJS += ../tools/xdr.o ../tools/xdr_hyper.o
 
@@ -204,6 +206,10 @@ motor_install:
 SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
+	$(CC) -nostartfiles -L$(PKG_INSTALL_DIR)/lib \
+		-Wl,--gc-sections -Wl,--Map -Wl,server.map \
+		-o $(SERVER_NAME) $(SERVER_OBJS) $(MX_LIBRARY_PATH) \
+		-Ttarget.ld -nostdlib
 
 server_install:
 	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin

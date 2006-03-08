@@ -43,7 +43,8 @@
 
 #elif defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
 	|| defined(OS_HPUX) || defined(OS_BSD) || defined(OS_QNX) \
-	|| defined(OS_TRU64) || defined(OS_RTEMS) || defined(OS_VXWORKS)
+	|| defined(OS_TRU64) || defined(OS_RTEMS) || defined(OS_VXWORKS) \
+	|| defined(OS_ECOS)
 
 #  define MX_SLEEP_TYPE        USE_NANOSLEEP_MX_SLEEP
 

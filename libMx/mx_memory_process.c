@@ -1519,7 +1519,7 @@ mx_get_process_meminfo( unsigned long process_id,
 
 /***************************************************************************/
 
-#elif defined( OS_RTEMS ) || defined( OS_VXWORKS )
+#elif defined( OS_RTEMS ) || defined( OS_VXWORKS ) || defined( OS_ECOS )
 
 MX_EXPORT mx_status_type
 mx_get_process_meminfo( unsigned long process_id,

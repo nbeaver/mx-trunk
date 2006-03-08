@@ -58,7 +58,8 @@
 
 /* Do we have scatter-gather I/O available via readv() and writev()? */
 
-#if defined( OS_WIN32 ) || defined( OS_DJGPP ) || defined( OS_RTEMS )
+#if defined( OS_WIN32 ) || defined( OS_DJGPP ) || defined( OS_RTEMS ) \
+	|| defined( OS_ECOS )
 #  define HAVE_READV_WRITEV		0
 #else
 #  define HAVE_READV_WRITEV		1

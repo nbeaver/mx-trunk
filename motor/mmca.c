@@ -816,7 +816,7 @@ motor_mca_read( MX_RECORD *mca_record, MX_MCA *mca )
 #define pclose _pclose
 #endif
 
-#if defined(OS_VXWORKS)
+#if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 
 static int
 motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )

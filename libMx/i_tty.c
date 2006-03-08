@@ -20,7 +20,8 @@
 
 #include "mx_osdef.h"
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_RTEMS)
+#if defined(OS_UNIX) || defined(OS_CYGWIN) \
+	|| defined(OS_RTEMS) || defined(OS_ECOS)
 
 #include <stdlib.h>
 #include <string.h>
@@ -45,7 +46,8 @@
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
 	|| defined(OS_SUNOS4) || defined(OS_AIX) || defined(OS_HPUX) \
 	|| defined(OS_MACOSX) || defined(OS_BSD) || defined(OS_CYGWIN) \
-	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_TRU64)
+	|| defined(OS_QNX) || defined(OS_RTEMS) || defined(OS_TRU64) \
+	|| defined(OS_ECOS)
 #    define USE_POSIX_TERMIOS	TRUE
 #  else
 #    error "No Unix TTY handling interface has been defined."

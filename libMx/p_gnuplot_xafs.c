@@ -110,7 +110,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 
 	/* Try to open the pipe to 'plotgnu' */
 
-#if defined(OS_VXWORKS)
+#if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	return mx_error( MXE_UNSUPPORTED, fname,
 	  "Plotting with Gnuplot is not supported for this operating system." );
 #else
@@ -193,7 +193,7 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 		"An attempt to send the 'exit' command to 'gnuplot' failed." );
 	}
 
-#if defined(OS_VXWORKS)
+#if defined(OS_VXWORKS) || defined(OS_RTEMS) || defined(OS_ECOS)
 	status = EOF;
 #else
 	status = pclose( gnuxafs_data->pipe );

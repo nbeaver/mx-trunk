@@ -423,7 +423,7 @@ mx_get_os_version( int *os_major, int *os_minor, int *os_update )
 /*------------------------------------------------------------------------*/
 
 #elif defined( OS_UNIX ) || defined( OS_CYGWIN ) || defined( OS_DJGPP ) \
-	|| defined( OS_RTEMS )
+	|| defined( OS_RTEMS ) || defined( OS_ECOS )
 
 #include <sys/utsname.h>
 

@@ -56,8 +56,12 @@ static int mx_sockets_are_initialized = FALSE;
 #if defined( OS_WIN32 )
    static mx_status_type mx_winsock_initialize( void );
    static char * mx_winsock_strerror( int winsock_errno );
+
 #elif defined( OS_DJGPP )
    static mx_status_type mx_watt32_initialize( void );
+
+#elif defined( OS_ECOS )
+   static mx_status_type mx_ecos_net_initialize( void );
 #endif
 
 MX_EXPORT mx_status_type
@@ -70,8 +74,12 @@ mx_socket_initialize( void )
 
 #if defined( OS_WIN32 )
 	mx_status = mx_winsock_initialize();
+
 #elif defined( OS_DJGPP )
 	mx_status = mx_watt32_initialize();
+
+#elif defined( OS_ECOS )
+	mx_status = mx_ecos_net_initialize();
 #else
 	mx_sockets_are_initialized = TRUE;
 
@@ -84,8 +92,8 @@ mx_socket_initialize( void )
 /********************************************************************/
 
 #if defined( OS_UNIX ) || defined( OS_WIN32 ) || defined( OS_CYGWIN ) \
-	|| defined( OS_RTEMS ) || defined( OS_VXWORKS ) || defined( OS_VMS ) \
-	|| defined( OS_DJGPP )
+	|| defined( OS_RTEMS ) || defined( OS_VXWORKS ) \
+	|| defined( OS_VMS ) || defined( OS_DJGPP )
 
 MX_EXPORT mx_status_type
 mx_gethostname( char *name, size_t maximum_length )
@@ -117,6 +125,16 @@ mx_gethostname( char *name, size_t maximum_length )
 	"errno = %d, error message = '%s'",
 			saved_errno, mx_socket_strerror( saved_errno ) );
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#elif defined( OS_ECOS )
+
+MX_EXPORT mx_status_type
+mx_gethostname( char *name, size_t maximum_length )
+{
+	strlcpy( name, "eCos", maximum_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -233,6 +251,11 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 
 	if ( socket_flags & MXF_SOCKET_DISABLE_NAGLE_ALGORITHM ) {
 
+#if defined(OS_ECOS)
+		mx_warning(
+		"Disabling the Nagle algorithm on eCos is not supported." );
+#else
+
 		int flag = 1;
 
 		status = setsockopt( (*client_socket)->socket_fd,
@@ -250,6 +273,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 				hostname, port_number,
 				saved_errno, error_string );
 		}
+#endif
 	}
 
 	MX_DEBUG( 2,("Leaving %s.", fname));
@@ -387,6 +411,11 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 
 	if ( socket_flags & MXF_SOCKET_DISABLE_NAGLE_ALGORITHM ) {
 
+#if defined(OS_ECOS)
+		mx_warning(
+		"Disabling the Nagle algorithm on eCos is not supported." );
+#else
+
 		int flag = 1;
 
 		status = setsockopt( (*server_socket)->socket_fd,
@@ -403,6 +432,7 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 		"Errno = %d.  Error string = '%s'.",
 				port_number, saved_errno, error_string );
 		}
+#endif
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1054,10 +1084,12 @@ mx_socket_get_inet_address( char *hostname, unsigned long *inet_address )
 					"The host name '%s' was not found.",
 					hostname );
 
+#ifdef NO_ADDRESS
 			case NO_ADDRESS:
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "The requested domain name '%s' is valid, but does not have an IP address.",
 					hostname );
+#endif
 
 			case NO_RECOVERY:
 				return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -1735,6 +1767,20 @@ mx_watt32_initialize( void )
 }
 
 #endif /* OS_DJGPP */
+
+/********** eCos specific support **********/
+
+#if defined( OS_ECOS )
+
+static mx_status_type
+mx_ecos_net_initialize( void )
+{
+	init_all_network_interfaces();
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif /* OS_ECOS */
 
 #endif /* HAVE_TCPIP */
 

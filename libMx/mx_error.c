@@ -338,15 +338,21 @@ mx_errno_to_mx_status_code( int errno_value ) {
 	case EIO:
 		mx_status_code = MXE_INTERFACE_IO_ERROR;
 		break;
+#ifdef E2BIG
 	case E2BIG:
+#endif
+#ifdef ECHILD
 	case ECHILD:
+#endif
 	case EDOM:
 	case ERANGE:
 		mx_status_code = MXE_WOULD_EXCEED_LIMIT;
 		break;
+#ifdef ENOEXEC
 	case ENOEXEC:
 		mx_status_code = MXE_INITIALIZATION_ERROR;
 		break;
+#endif
 	case EBADF:
 		mx_status_code = MXE_FILE_IO_ERROR;
 		break;
@@ -356,7 +362,9 @@ mx_errno_to_mx_status_code( int errno_value ) {
 	case ENOMEM:
 		mx_status_code = MXE_OUT_OF_MEMORY;
 		break;
+#ifdef EFAULT
 	case EFAULT:
+#endif
 	case ENOTDIR:
 	case EISDIR:
 	case EINVAL:
@@ -376,7 +384,9 @@ mx_errno_to_mx_status_code( int errno_value ) {
 	case EMFILE:
 	case EFBIG:
 	case ENOSPC:
+#ifdef EMLINK
 	case EMLINK:
+#endif
 		mx_status_code = MXE_LIMIT_WAS_EXCEEDED;
 		break;
 	case EROFS:

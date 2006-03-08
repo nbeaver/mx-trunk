@@ -20,7 +20,7 @@
 #include <errno.h>
 #include <math.h>
 
-#if !defined(OS_WIN32)
+#if !defined(OS_WIN32) && !defined(OS_ECOS)
 #include <sys/times.h>
 #endif
 
@@ -37,11 +37,11 @@
 #endif
 
 #if defined(OS_RTEMS)
-#if 0
-#define USE_POSIX_CLOCKS
-#else
 #include <rtems.h>
 #endif
+
+#if defined(OS_ECOS)
+#define USE_POSIX_CLOCKS
 #endif
 
 #include "mx_constants.h"

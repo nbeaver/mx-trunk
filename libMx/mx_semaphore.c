@@ -1262,7 +1262,7 @@ mx_semaphore_get_value( MX_SEMAPHORE *semaphore,
 
 /*********************** Unix and Posix systems **********************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ECOS)
 
 /* NOTE:  On some platforms, such as Linux and MacOS X, it is necessary
  * to include support for both System V and Posix semaphores.  The reason
@@ -1290,7 +1290,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 static int mx_use_posix_unnamed_semaphores = FALSE;
 static int mx_use_posix_named_semaphores   = TRUE;
 
-#elif defined(OS_IRIX) || defined(OS_QNX)
+#elif defined(OS_IRIX) || defined(OS_QNX) || defined(OS_ECOS)
 
 static int mx_use_posix_unnamed_semaphores = TRUE;
 static int mx_use_posix_named_semaphores   = TRUE;
@@ -1304,7 +1304,7 @@ static int mx_use_posix_named_semaphores   = FALSE;
 
 /*======================= System V Semaphores ======================*/
 
-#if 1
+#if !defined(OS_ECOS)
 
 #if defined(OS_HPUX) && defined(__ia64) && defined(__GNUC__)
    typedef int32_t cid_t;

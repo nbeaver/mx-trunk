@@ -23,7 +23,7 @@
 #include "mx_socket.h"
 #include "xdr_hyper.h"
 
-#if defined(OS_WIN32) || defined(OS_DJGPP)
+#if defined(OS_WIN32) || defined(OS_DJGPP) || defined(OS_ECOS)
 #  define XDR_GETLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
 #  define XDR_PUTLONG( xdrs, long_ptr )    mx_xdr_long( xdrs, long_ptr )
 #endif  /* OS_WIN32 */
