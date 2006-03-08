@@ -109,7 +109,7 @@
  * operating systems, they do not.
  */
 
-#if defined(OS_RTEMS) || defined(OS_VXWORKS)
+#if defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(OS_ECOS)
 #  define HAVE_MAIN_ROUTINE		0
 #else
 #  define HAVE_MAIN_ROUTINE		1

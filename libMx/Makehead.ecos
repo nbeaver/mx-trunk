@@ -190,11 +190,14 @@ library_install:
 
 MOTOR_NAME	= motor.exe
 
-$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+$(MOTOR_NAME): mecos.o $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) -nostartfiles -L$(PKG_INSTALL_DIR)/lib \
 		-Wl,--gc-sections -Wl,--Map -Wl,motor.map \
-		-o $(MOTOR_NAME) $(MOTOR_OBJS) $(MX_LIBRARY_PATH) \
+		-o $(MOTOR_NAME) mecos.o $(MOTOR_OBJS) $(MX_LIBRARY_PATH) \
 		-Ttarget.ld -nostdlib
+
+mecos.o: mecos.c
+	$(COMPILE) $(CFLAGS) mecos.c
 
 motor_install:
 	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
@@ -205,11 +208,14 @@ motor_install:
 
 SERVER_NAME	= mxserver.exe
 
-$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
+$(SERVER_NAME): ms_ecos.o $(SERVER_OBJS) $(MX_LIBRARY_PATH) $(LINK_FILES)
 	$(CC) -nostartfiles -L$(PKG_INSTALL_DIR)/lib \
 		-Wl,--gc-sections -Wl,--Map -Wl,server.map \
-		-o $(SERVER_NAME) $(SERVER_OBJS) $(MX_LIBRARY_PATH) \
+		-o $(SERVER_NAME) ms_ecos.o $(SERVER_OBJS) $(MX_LIBRARY_PATH) \
 		-Ttarget.ld -nostdlib
+
+ms_ecos.o: ms_ecos.c
+	$(COMPILE) $(CFLAGS) ms_ecos.c
 
 server_install:
 	install -m 755 $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
