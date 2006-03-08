@@ -1,0 +1,22 @@
+all: xdr.o xdr_hyper.o strlcpy.o strlcat.o
+
+include ../libMx/Makehead.ecos
+
+xdr.o: xdr/src/xdr.c xdr/src/xdr.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_ECOS -D__MX_LIBRARY__ xdr/src/xdr.c 
+
+xdr_hyper.o: xdr/src/xdr_hyper.c xdr/src/xdr.h xdr/src/xdr_hyper.h
+	gcc -c $(CFLAGS) -I../libMx -DOS_ECOS -D__MX_LIBRARY__ \
+		xdr/src/xdr_hyper.c 
+
+strlcpy.o: generic/src/strlcpy.c
+	gcc -c $(CFLAGS) -I../libMx -DOS_ECOS -D__MX_LIBRARY__ \
+		generic/src/strlcpy.c
+
+strlcat.o: generic/src/strlcat.c
+	gcc -c $(CFLAGS) -I../libMx -DOS_ECOS -D__MX_LIBRARY__ \
+		generic/src/strlcat.c
+
+mx_clean:
+	-rm *.o *.exe
+

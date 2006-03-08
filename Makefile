@@ -5,6 +5,7 @@
 #   bsd           - Compile for FreeBSD 5.4, NetBSD 2.x or 3.0, or OpenBSD 3.3
 #   cygwin        - Compile for Cygwin 1.5.x
 #   djgpp         - Compile for DOS extender with DJGPP 2.0.3
+#   ecos          - Compile for i386 under eCos 2.0
 #   hpux          - Compile for HP 9000/8xx under HP-UX 11v2
 #   hpux-gcc      - Compile for HP 9000/8xx under HP-UX 11v2 using GCC
 #   irix          - Compile for SGI under Irix 6.3 or 6.5
@@ -43,7 +44,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = solaris
+MX_ARCH = ecos
 
 MX_INSTALL_DIR = /opt/mx
 

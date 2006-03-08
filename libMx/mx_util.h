@@ -124,6 +124,10 @@
 #  include <limits.h>
 #  define MXU_FILENAME_LENGTH		PATH_MAX
 
+#elif defined( OS_ECOS )
+#  include <limits.h>
+#  define MXU_FILENAME_LENGTH		_POSIX_PATH_MAX
+
 #elif defined( OS_VMS )
 #  define MXU_FILENAME_LENGTH		255	/* According to comp.os.vms */
 
