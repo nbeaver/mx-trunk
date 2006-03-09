@@ -12,7 +12,7 @@
 #
 # If you wish to compile a 64-bit version of MX, uncomment the following line.
 #
-USE_64_BITS = -mlp64
+#USE_64_BITS = -mlp64
 
 #
 INCLUDES	= $(MX_INCLUDES)

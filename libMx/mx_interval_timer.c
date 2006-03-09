@@ -1944,7 +1944,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 	MX_POSIX_ITIMER_PRIVATE *posix_itimer_private;
 	struct itimerspec itimer_value;
 	int status, saved_errno;
-	unsigned long timer_ulong_seconds, timer_ulong_nsec;
+	time_t timer_seconds;
+	long   timer_nsec;
 	mx_status_type mx_status;
 
 	mx_status = mx_interval_timer_get_pointers( itimer,
@@ -1955,26 +1956,25 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	/* Convert the timer period to a struct timespec. */
 
-	timer_ulong_seconds = (unsigned long) timer_period_in_seconds;
+	timer_seconds = (time_t) timer_period_in_seconds;
 
-	timer_ulong_nsec = (unsigned long)
-				( 1.0e9 * ( timer_period_in_seconds
-					- (double) timer_ulong_seconds ) );
+	timer_nsec = (long) ( 1.0e9 * ( timer_period_in_seconds
+					- (double) timer_seconds ) );
 
 	/* The way we use the timer values depends on whether or not
 	 * we configure the timer as a one-shot timer or a periodic
 	 * timer.
 	 */
 
-	itimer_value.it_value.tv_sec  = timer_ulong_seconds;
-	itimer_value.it_value.tv_nsec = timer_ulong_nsec;
+	itimer_value.it_value.tv_sec  = timer_seconds;
+	itimer_value.it_value.tv_nsec = timer_nsec;
 
 	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
 		itimer_value.it_interval.tv_sec  = 0;
 		itimer_value.it_interval.tv_nsec = 0;
 	} else {
-		itimer_value.it_interval.tv_sec  = timer_ulong_seconds;
-		itimer_value.it_interval.tv_nsec = timer_ulong_nsec;
+		itimer_value.it_interval.tv_sec  = timer_seconds;
+		itimer_value.it_interval.tv_nsec = timer_nsec;
 	}
 
 	/* Set the timer period. */
