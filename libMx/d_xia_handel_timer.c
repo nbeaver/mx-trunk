@@ -32,9 +32,8 @@
 #include <handel_errors.h>
 #include <handel_generic.h>
 
-#include "mx_unistd.h"
-
 #include "mx_util.h"
+#include "mx_unistd.h"
 #include "mx_driver.h"
 #include "mx_measurement.h"
 #include "mx_hrt_debug.h"

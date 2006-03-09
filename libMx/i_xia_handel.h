@@ -56,7 +56,7 @@ typedef struct {
 	char save_filename[ MXU_FILENAME_LENGTH + 1 ];
 
 	long num_active_detector_channels;
-	int *active_detector_channel_array;
+	long *active_detector_channel_array;
 
 	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
@@ -108,7 +108,7 @@ typedef struct {
 		offsetof(MX_XIA_HANDEL, num_active_detector_channels ), \
 	{0}, NULL, MXFF_IN_DESCRIPTION }, \
   \
-  {-1, -1, "active_detector_channel_array", MXFT_INT, \
+  {-1, -1, "active_detector_channel_array", MXFT_LONG, \
 					NULL, 1, {MXU_VARARGS_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof( MX_XIA_HANDEL, active_detector_channel_array ), \
@@ -148,7 +148,7 @@ MX_API mx_status_type mxi_xia_handel_restore_configuration( MX_RECORD *record,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_handel_is_busy( MX_MCA *mca,
-					int *busy_flag,
+					mx_bool_type *busy_flag,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_handel_read_parameter( MX_MCA *mca,
@@ -168,7 +168,7 @@ MX_API mx_status_type mxi_xia_handel_write_parameter_to_all_channels(
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_handel_start_run( MX_MCA *mca,
-					int clear_flag,
+					mx_bool_type clear_flag,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_handel_stop_run( MX_MCA *mca,

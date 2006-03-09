@@ -402,7 +402,7 @@ mxi_xia_handel_load_config( MX_XIA_HANDEL *xia_handel )
 					mca_record->record_type_struct;
 
 				xia_dxp_mca->old_preset_type
-					= (uint32_t) MX_ULONG_MAX;
+					= (unsigned long) MX_ULONG_MAX;
 			}
 		}
 	}
@@ -413,14 +413,14 @@ mxi_xia_handel_load_config( MX_XIA_HANDEL *xia_handel )
 
 	for ( i = 0; i < xia_handel->num_active_detector_channels; i++ ) {
 		xia_status = xiaAddChannelSetElem(
-				MX_XIA_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
-				xia_handel->active_detector_channel_array[i] );
+			MX_XIA_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
+			(int) xia_handel->active_detector_channel_array[i] );
 
 		if ( xia_status != XIA_SUCCESS ) {
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 			"Unable to add detector channel %d to active "
 			"detector channel set %d.  Error code = %d, '%s'",
-			xia_handel->active_detector_channel_array[i],
+			(int) xia_handel->active_detector_channel_array[i],
 			MX_XIA_HANDEL_ACTIVE_DETECTOR_CHANNEL_SET,
 			xia_status, mxi_xia_handel_strerror( xia_status ) );
 		}
@@ -855,7 +855,7 @@ mxi_xia_handel_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_xia_handel_is_busy( MX_MCA *mca,
-			int *busy_flag,
+			mx_bool_type *busy_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_is_busy()";
@@ -919,7 +919,7 @@ mxi_xia_handel_is_busy( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_read_parameter( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t *value_ptr,
+			unsigned long *value_ptr,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_read_parameter()";
@@ -974,7 +974,7 @@ mxi_xia_handel_read_parameter( MX_MCA *mca,
 			mxi_xia_handel_strerror( xia_status ) );
 	}
 
-	*value_ptr = (uint32_t) short_value;
+	*value_ptr = (unsigned long) short_value;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: value = %lu", fname, *value_ptr));
@@ -986,7 +986,7 @@ mxi_xia_handel_read_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_write_parameter( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t value,
+			unsigned long value,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_write_parameter()";
@@ -1081,10 +1081,11 @@ mxi_xia_handel_write_parameter( MX_MCA *mca,
 MX_EXPORT mx_status_type
 mxi_xia_handel_write_parameter_to_all_channels( MX_MCA *mca,
 			char *parameter_name,
-			uint32_t value,
+			unsigned long value,
 			int debug_flag )
 {
-	static const char fname[] = "mxi_xia_handel_write_parameter_to_all_channels()";
+	static const char fname[] =
+		"mxi_xia_handel_write_parameter_to_all_channels()";
 
 	MX_XIA_DXP_MCA *xia_dxp_mca;
 	MX_XIA_HANDEL *xia_handel;
@@ -1200,7 +1201,7 @@ mxi_xia_handel_write_parameter_to_all_channels( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_handel_start_run( MX_MCA *mca,
-			int clear_flag,
+			mx_bool_type clear_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_handel_start_run()";
@@ -1223,7 +1224,7 @@ mxi_xia_handel_start_run( MX_MCA *mca,
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: Record '%s', clear_flag = %d.",
-				fname, mca->record->name, clear_flag));
+				fname, mca->record->name, (int) clear_flag));
 	}
 
 	mxi_xia_handel_set_data_available_flags( xia_handel, TRUE );
@@ -1382,7 +1383,7 @@ mxi_xia_handel_get_time( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
 {
 	char parameter_name[80];
 	double local_clock_ticks;
-	uint32_t value;
+	unsigned long value;
 	mx_status_type mx_status;
 
 	local_clock_ticks = 0.0;
@@ -1436,11 +1437,11 @@ mxi_xia_handel_get_time( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
 
 static mx_status_type
 mxi_xia_handel_get_32bit_value( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
-				char *name, uint32_t *value,
+				char *name, unsigned long *value,
 				int debug_flag )
 {
 	char parameter_name[80];
-	uint32_t local_value;
+	unsigned long local_value;
 	int i;
 	mx_status_type mx_status;
 
@@ -1459,6 +1460,9 @@ mxi_xia_handel_get_32bit_value( MX_MCA *mca, MX_XIA_DXP_MCA *xia_dxp_mca,
 
 		(*value) += local_value;
 	}
+
+	*value &= 0xffffffff;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

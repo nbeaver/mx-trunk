@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -18,8 +18,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
+INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
@@ -48,10 +48,10 @@ LIBRARIES = $(WIN32_LIBS)
 # correctly, but then occasionally fail in mysterious ways.  Thus, it is
 # very important to get this right!
 
-RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
