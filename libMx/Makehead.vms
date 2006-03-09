@@ -3,7 +3,7 @@
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized
-#          for OpenVMS 7.3.1.
+#          for OpenVMS 7.3.1 and OpenVMS 8.2.
 #
 # Normally, the only things that end users may have to modify in this file are
 # the definitions of INCLUDES and LIBRARIES.

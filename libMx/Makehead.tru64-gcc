@@ -1,5 +1,5 @@
 #
-# Name:    Makehead.tru64
+# Name:    Makehead.tru64-gcc
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized

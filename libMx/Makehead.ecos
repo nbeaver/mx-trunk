@@ -14,7 +14,6 @@ ECOS_BSP	= i386_pc
 #ECOS_BSP	= linux
 
 PKG_INSTALL_DIR = /home/lavender/ecos/linux/ecos_install
-XCC             = i386-elf-gcc
 
 INCLUDES	= $(MX_INCLUDES)
 
