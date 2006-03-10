@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SONY_VISCA_PTZ_DEBUG	FALSE
+#define MXD_SONY_VISCA_PTZ_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

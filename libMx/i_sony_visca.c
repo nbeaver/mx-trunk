@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_SONY_VISCA_DEBUG	FALSE
+#define MXI_SONY_VISCA_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -156,7 +156,7 @@ mxi_sony_visca_open( MX_RECORD *record )
 	}
 
 #if MXI_SONY_VISCA_DEBUG
-	MX_DEBUG(-2,("%s: Sony VISCA interface '%s', %d cameras detected.",
+	MX_DEBUG(-2,("%s: Sony VISCA interface '%s', %ld cameras detected.",
 		fname, sony_visca->record->name, sony_visca->num_cameras ));
 #endif
 
@@ -449,7 +449,7 @@ mxi_sony_visca_cmd( MX_SONY_VISCA *sony_visca,
 			return mx_error( MXE_TIMED_OUT, fname,
 		    "Timed out after waiting %g seconds for a response from "
 		    "Sony Pan/Tilt/Zoom controller '%s' to the command %s.",
-				1000.0 * (double)( wait_ms * max_attempts ),
+				0.001 * (double)( wait_ms * max_attempts ),
 				sony_visca->record->name,
 				sent_visca_ascii );
 		}

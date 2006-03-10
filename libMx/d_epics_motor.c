@@ -785,7 +785,7 @@ MX_EXPORT mx_status_type
 mxd_epics_motor_simultaneous_start( long num_motor_records,
 				MX_RECORD **motor_record_array,
 				double *destination_array,
-				int flags )
+				unsigned long flags )
 {
 	const char fname[] = "mxd_epics_motor_simultaneous_start()";
 

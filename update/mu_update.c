@@ -921,7 +921,7 @@ mxupd_add_epics_variable_to_database( MX_RECORD *record_list,
 	/* Create an MX database record of class 'epics_variable' */
 
 	snprintf(description, sizeof(description),
-		"record%d variable epics_variable ", record_number);
+		"record%ld variable epics_variable ", record_number);
 
 	switch( epics_datatype ) {
 	case MX_CA_STRING:

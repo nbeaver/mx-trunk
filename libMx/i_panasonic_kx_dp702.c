@@ -315,7 +315,7 @@ mxi_panasonic_kx_dp702_raw_cmd( MX_PANASONIC_KX_DP702 *kx_dp702,
 			"Timed out after waiting %g seconds for a response "
 			"from Panasonic Pan/Tilt/Zoom controller '%s' to "
 			"the command %s.",
-				1000.0 * (double)( wait_ms * max_attempts ),
+				0.001 * (double)( wait_ms * max_attempts ),
 				kx_dp702->record->name, command_ascii );
 		}
 
