@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_SONY_VISCA_DEBUG	TRUE
+#define MXI_SONY_VISCA_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
