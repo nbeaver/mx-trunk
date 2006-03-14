@@ -286,6 +286,11 @@ mxd_mcs_scaler_clear( MX_SCALER *scaler )
 	MX_DEBUG( 2,("%s invoked for scaler '%s'",
 			fname, scaler->record->name));
 
+	mx_status = mx_mcs_set_num_measurements( mcs_scaler->mcs_record, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_mcs_clear( mcs_scaler->mcs_record );
 
 	MX_DEBUG( 2,("%s complete.", fname));
