@@ -1,5 +1,5 @@
 #
-# Name:    Makehead.hpux
+# Name:    Makehead.hpux-gcc
 #
 # Purpose: This file is used to customize operating system and installation
 #          dependent features of the MX makefiles.  This version is customized

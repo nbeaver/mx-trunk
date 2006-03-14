@@ -868,7 +868,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	MX_MOTOR *other_motor;
 	double new_set_position;
 	double other_motor_position;
-	char command[100];
+	char command[500];
 	char buffer[80];
 	unsigned long flags;
 	size_t i, j, num_axes;
