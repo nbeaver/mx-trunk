@@ -1,3 +1,268 @@
+Version 1.2.0 (03/17/06):
+	The focus of this release has been the addition of support for 64-bit
+	operating systems.  64-bit operation has been successfully tested
+	on the following platforms:
+
+	    alpha (Debian Linux 3.1, Tru64 Unix 5.1b, OpenVMS 8.2)
+	    amd64 (Red Hat Enterprise Linux 3, SuSE Enterprise Server 9.0)
+	    itanium (Debian Linux 3.1, Red Hat Enterprise Linux 4,
+	    		FreeBSD 6.0, HP-UX 11, OpenVMS 8.2)
+	    mips (Irix 6.5)
+	    parisc (HP-UX 11)
+	    sparc (Solaris 10)
+
+	Interoperability between 64-bit and 32-bit clients and servers
+	has also been successfully tested.  Please note that on platforms
+	that support both 32-bit and 64-bit executables, you must uncomment
+	the makefile macro USE_64_BITS in the appropriate Makehead.???
+	file in order to compile a 64-bit binary.
+
+	As part of this change, new MX data types have been added and
+	some old data types have been removed.
+
+	Data types added:
+	    MXFT_BOOL   - Intended for boolean values (TRUE/FALSE).
+	    MXFT_INT64
+	    MXFT_UINT64
+
+	Data types removed:
+	    MXFT_INT
+	    MXFT_UINT
+
+	For network communication, the old data types should be changed
+	to the new data types as follows:
+
+	    MXFT_INT  ----+---->  MXFT_BOOL  (for TRUE/FALSE values)
+	                  |
+	                  +---->  MXFT_LONG  (for all other 32-bit values)
+
+	    MXFT_UINT --------->  MXFT_ULONG
+
+	Similarly, for MX database files, the following changes should
+	be made:
+
+	    int  --------+---->  bool
+	                 |
+	                 +---->  long
+
+	    uint ------------->  ulong
+
+	    net_int  ----+---->  net_bool
+	                 |
+	                 +---->  net_long
+
+	    net_uint --------->  net_ulong
+
+	For example, a database definition like this
+
+id_ev_enabled variable net_variable net_int "" "" 10id id_ev_enabled.value 1 1 1
+
+	would be changed to look like this
+
+id_ev_enabled variable net_variable net_bool "" "" 10id id_ev_enabled.value 1 1 1
+
+	By contrast, a database definition like this
+
+id_ev_type variable inline int "" "" 1  1  3
+
+	should be changed to look like this
+
+id_ev_type variable inline long "" "" 1  1  3
+
+	The general pattern is that you should replace TRUE/FALSE variables
+	with 'bool' variables and everything else with 'long' variables.
+
+	One of the rationales for removing the old 'int' data types is
+	reduce ambiguity in the use of data types.  Traditionally, MX
+	programs have treated 'int' and 'long' types as more or less
+	equivalent.  On most 32-bit platforms, you can get away with
+	this.  However, on many 64-bit platforms this is no longer the
+	case and it was decided that the best way to reduce ambiguity
+	was to eliminate the 'int' datatypes altogether.  For this
+	release, MX assumes the following word sizes for integral data
+	types:
+	    char  - at least 8 bits long
+	    short - at least 16 bits long
+	    long  - at least 32 bits long
+	    int64 - at least 64 bits long
+
+	These definitions are compatible with the ANSI C standards up to
+	and including C99.  Note that ANSI C actually only guarantees
+	'int' to be at least 16 bits long.
+
+	For network communications via either RAW or XDR mode, the integral
+	data types are truncated to the minimum number of bytes shown above.
+	However, for RAW connections between 64-bit MX clients and 64-bit MX
+	servers that have the same byte order (big-endian vs. little-endian),
+	it is possible to configure the MX network connection to transmit
+	the full 64 bits of 64 bit longs by setting the 0x10000 flag in the
+	'server_flags' field of the server record in the client's database.
+	It might be possible to perform the same trick for XDR connections
+	by bending the rules of XDR communication, but that has not been done
+	for this release.
+
+	Please note that by a careful choice of numerical datatype
+	definitions, the modifications to MX network communication
+	have been done in such a way that 32-bit and 64-bit MX 1.2.0
+	clients and servers should be able to interoperate with old
+	32-bit MX clients and servers that used the 'int' datatypes.
+	This was mainly done by assigning MXFT_BOOL the same numerical
+	value as the old MXFT_INT definition.
+
+	New MX header files 'mx_stdint.h' and 'mx_inttypes.h' have been
+	added to provide support for the new fixed length data types
+	provided by the new C99 <stdint.h> and <inttypes.h> header files.
+	The reason for providing my own header files is to make sure that
+	the C99 definitions are available on MX build targets that do not
+	already provide such definitions.  For example, on Linux the
+	MX header files merely include the C99 header files, while for
+	Microsoft Visual C++, the MX header files explicitly supply the
+	missing definitions.  For now, "mx_stdint.h" is guaranteed to
+	provide definitions for
+	
+	    int8_t, uint8_t, int16_t, uint16_t, int32_t, uint32_t,
+	    int64_t, uint64_t, intmax_t, and uintmax_t.
+
+	The 'fast' and 'least' variants of these definitions are not 
+	currently implemented.  The "mx_inttypes.h" header provides 
+	definitions for the PRI series of printf() macros for 8, 16,
+	32, and 64 bit integral types.  The SCN series of scanf()
+	macros provides similar support for the 16, 32, and 64 bit
+	integral types.  Unfortunately, it appears that it is not possible
+	to provide support for the SCNd8, SCNu8, and SCNx8 macros on
+	some platforms since the underlying vscanf() implementation
+	only supports 8-bit types as ASCII characters rather as integers.
+
+	Added a new header file 'mx_program_model.h' that specifies the
+	integer programming model for the current platform.  The most common
+	programming models are ILP32 (32-bit ints, longs, and pointers)
+	supported by most 32-bit computers and LP64 (32-bit ints, 64-bit
+	longs and pointers) supported by most 64-bit computers except for
+	Microsoft's 64-bit versions of Windows.  The header file also
+	defines a macro called MX_WORDSIZE for those cases where all
+	you want to know is whether or not you are on a 32-bit or 64-bit
+	computer.
+
+	A new header file 'mx_xdr.h' has been added to manage the support
+	of XDR data types by MX.  In addition, the files 'xdr_hyper.c'
+	and 'xdr_hyper.h' have been added to the 'tools' directory to
+	provide support for the 64-bit 'hyper' XDR data type on platforms
+	that do not already provide such support directly.
+
+	The old header file 'mx_types.h' has been removed since its
+	functionality has been replaced by the new 'mx_stdint.h' 
+	header file.
+
+	The MX function API has been changed in a number of places to
+	replace 'int' function arguments with either 'mx_bool_type'
+	arguments or 'long' arguments.  This has required matching changes
+	in the MP and MxTcl packages for Python and Tcl.  The general
+	pattern has been to use 'mx_bool_type' for boolean values and
+	'long' for everything else.  The reason for inventing a new
+	type called 'mx_bool_type' rather than using the C99 'bool'
+	or '_Bool' types is that as far as I know the C99 standard makes
+	no promises as to how many bits there are in a 'bool' type, but
+	I need a consistent definition of the number of bits in order
+	to use them in network communication.  Thus, 'mx_bool_type'
+	has been defined to use a 32-bit integer type.  If anyone can
+	show me that the C99 standard _does_ guarantee that 'bool's are
+	32-bits or more, then I will be happy to replace 'mx_bool_type'
+	with the C99 'bool'.
+
+	Please note that for this release, we use 'long' and 'unsigned long'
+	for the data values provided by the digital I/O, stepper motor,
+	pulse generator, scaler, MCA, and MCS device classes.  This means
+	that you can only assume 32-bit precision in the values returned.
+	Since I have not yet run into a piece of hardware that supports
+	more than 32-bit values, I do not regard this as a significant
+	limitation.  If such a piece of hardware does appear, I will
+	reevaluate what to do then.
+
+	A large number of trivial changes to print and scanf format strings
+	have been made for the sake of 64-bit compatibility.
+
+	If you have any questions about the changes for 64-bit compatibility,
+	do not hesitate to contact me (William Lavender) about this.
+
+	*******************************************************************
+
+	In the meantime, a number of changes unrelated to the 64-bit
+	transition have also occurred:
+
+	The old, obsolete version of the "mxupdate" program that had
+	been kept around for backward compatibility has now been deleted.
+
+	Fixed an issue with "motor"'s "measure dark" command when used
+	with the "epics_mcs" driver.  It turns out that sometimes the
+	"measure dark" operation was using many more MCS measurements
+	than had actually been requested by the user.  For example, if
+	the user had just run a 3500 point MCS quick scan and then 
+	requested "motor" to perform a single point dark current measurement,
+	it turns out that "motor" was actually making a 3500 point dark
+	current measurement and then throwing away all but the first 
+	measurement.  Thus, the dark current measurement would take
+	3500 times longer than the user had expected.  This issue was
+	fixed by adding a call to mx_mcs_set_num_measurements() in the
+	clear() function of the 'mcs_scaler' driver.  This location
+	was chosen since it should have the least impact on the other
+	current MCS drivers.
+
+	Added code to the MX motor driver class and the "motor" program
+	to distinguish between between tripping hardware limits and
+	software limits in error reporting.  At present, the "epics_motor"
+	driver is the only driver taking advantage of this feature.
+	Usually, on an EPICS MEDM display, the distinction between the
+	two will be that tripping a hardware limit will display a red
+	error message which exceeding a software limit will display a
+	yellow error message.  Support for this distinction will be 
+	added as time permits to the drivers for motor controllers 
+	that make this distinction themselves.  Many motor controllers
+	only have support for hardware limits.
+
+	A variety of drivers have been updated to use the snprintf(), 
+	strlcpy(), and strlcat() functions instead of the older sprintf(),
+	strcpy(), strcat(), strncpy(), and strncat() functions.  This is
+	because the new functions do a better job of protecting against
+	buffer overruns.  snprintf() is widely available on most MX build
+	targest, but has been redefined as sprintf() on the small number
+	of MX build targets that do not support it.  strlcpy() and strlcat()
+	are less well know.  They are versions of the string functions for
+	which you always provide the full length of the buffer you are
+	copying to rather than expecting the programmer to provide a
+	potentially faulty calculation of the unused length left in the
+	buffer.  Since most platforms do not currently support strlcpy()
+	and strlcat(), versions derived from OpenBSD have been bundled
+	with MX in the 'tools' directory.
+
+	Added support for HP's Tru64 Unix operating system on 64-bit Alpha
+	based computers.
+
+	Updated support for the HP-UX operating system to HP-UX 11.
+
+	Added preliminary support for the eCos real time operating system.
+	This support has not yet been fully tested.
+
+	Support for the Intel compiler on Linux has been updated to Intel
+	C 9.0.
+
+	Increased the buffer size for 'set_position' commands in the
+	'compumotor' driver.  This was in response to reports of buffer
+	overruns at CAMD.  As it happens, the 'compumotor' driver is one
+	of the drivers that has been updated to use the snprintf(),
+	strlcpy(), and strlcat() functions, so this driver should be
+	relatively immune to buffer overruns in the future.
+
+	The Makefile for OpenVMS only works with some ports of Gnu make
+	and not others.  Some explanatory text has been added to that
+	makefile to indicate which version of Gnu make should be used.
+
+	The 'smartmotor_aout' driver was actually reading from the output
+	pin rather than writing to it.  This has been fixed.
+
+	Fixed a bug in the 'mc6821' digital I/O interface driver.  Until
+	now, the data direction for port B had incorrectly been set to the
+	data direction requested for port A.
+
 Version 1.1.1 (01/11/06):
 	A new build target 'win32-mingw' has been added for building MX
 	with the MinGW compiler on Win32.  This target has been tested

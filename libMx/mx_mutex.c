@@ -779,7 +779,11 @@ mx_mutex_create( MX_MUTEX **mutex )
 				status, strerror( status ) );
 	}
 	
-#if !defined( OS_ECOS )		/* I hate people with agendas to push. */
+#if defined( OS_ECOS )
+	/* FIXME: Need to include our own implementation of recursive
+	 * mutexes for platforms that do not support them.
+	 */
+#else
 
 	status = pthread_mutexattr_settype( &p_mutex_attr,
 					PTHREAD_MUTEX_RECURSIVE );
