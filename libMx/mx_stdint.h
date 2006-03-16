@@ -102,6 +102,21 @@ typedef uint64_t		uintmax_t;
 
 #  include <inttypes.h>
 
+#  if defined(OS_VMS) && defined(__VAX)
+
+      /* OpenVMS on Vax does not really have a 64-bit integer type, even
+       * though it provides a broken definition for int64_t and uint64_t.
+       * The following sleight of hand allows MX to compile on the Vax,
+       * but does not constitute real 64-bit support.
+       */
+
+      typedef int32_t   mx_vax_int64_t;    /* This is, of course, bogus. */
+      typedef uint32_t  mx_vax_uint64_t;
+
+#     define int64_t    mx_vax_int64_t
+#     define uint64_t   mx_vax_uint64_t
+#  endif
+
 /*=======================================================================*/
 #else
    /* Most build targets should be able to use a vendor provided <stdint.h>. */
