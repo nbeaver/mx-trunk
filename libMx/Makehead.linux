@@ -80,7 +80,7 @@ LIBRARIES	= -lpthread -lrt -lm
 # you should definitely leave this option alone.
 #
 
-MX_LINUX_BSP = default
+#MX_LINUX_BSP = default
 
 #--------
 
@@ -89,7 +89,7 @@ MX_LINUX_BSP = default
 # MVME162-532A VME system controller.
 #
 
-#MX_LINUX_BSP = mvme162
+MX_LINUX_BSP = mvme162
 
 # MX drivers to load for the MVME162.
 
