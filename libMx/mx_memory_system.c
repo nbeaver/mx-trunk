@@ -36,17 +36,13 @@ mx_display_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 		return;
 	}
 
-	mx_info("%s: total_bytes = %lu", fname,
-				(unsigned long) meminfo->total_bytes);
-	mx_info("%s: used_bytes = %lu", fname,
-				(unsigned long) meminfo->used_bytes);
-	mx_info("%s: free_bytes = %lu", fname,
-				(unsigned long) meminfo->free_bytes);
-	mx_info("%s: swap_bytes = %lu", fname,
-				(unsigned long) meminfo->swap_bytes);
-	mx_info("%s: swap_used_bytes = %lu", fname,
+	mx_info("  total_bytes = %lu", (unsigned long) meminfo->total_bytes);
+	mx_info("  used_bytes = %lu", (unsigned long) meminfo->used_bytes);
+	mx_info("  free_bytes = %lu", (unsigned long) meminfo->free_bytes);
+	mx_info("  swap_bytes = %lu", (unsigned long) meminfo->swap_bytes);
+	mx_info("  swap_used_bytes = %lu",
 				(unsigned long) meminfo->swap_used_bytes);
-	mx_info("%s: swap_free_bytes = %lu", fname,
+	mx_info("  swap_free_bytes = %lu",
 				(unsigned long) meminfo->swap_free_bytes);
 	return;
 }

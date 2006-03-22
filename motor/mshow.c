@@ -378,9 +378,9 @@ motor_show_records( long record_superclass, long record_class,
 	MX_RECORD *record;
 	MX_RECORD_FIELD *field;
 	MX_MOTOR *motor;
-	int status, display_record;
+	int display_record;
 	long i, field_type, num_dimensions, num_record_fields;
-	void *data_ptr, *value_ptr;
+	void *value_ptr;
 
 	/* Loop through all the device records looking for 
 	 * the requested record types.
@@ -463,21 +463,14 @@ motor_show_records( long record_superclass, long record_class,
 				|| ((field_type != MXFT_STRING)
 				&& (num_dimensions > 0)) ) {
 
-				status = motor_print_field_array( record,
-						&field[i], FALSE );
+				(void) mx_print_field_array( output,
+						record, &field[i], FALSE );
 			    } else {
-				data_ptr = field[i].data_pointer;
+			    	value_ptr =
+					mx_get_field_value_pointer( &field[i] );
 
-				if ( field[i].flags & MXFF_VARARGS ) {
-					value_ptr =
-				    mx_read_void_pointer_from_memory_location(
-						data_ptr );
-				} else {
-					value_ptr = data_ptr;
-				}
-
-			    	status = motor_print_field_data( record,
-					&field[i], value_ptr, FALSE );
+			    	(void) mx_print_field_value( output,
+					record, &field[i], value_ptr, FALSE );
 			    }
 			    fprintf( output, " " );
 			}
@@ -513,16 +506,11 @@ motor_show_record(
 	int show_all )
 {
 	MX_RECORD *record;
-	MX_RECORD_FIELD *field;
-	MX_RECORD_FUNCTION_LIST *flist;
-	mx_status_type ( *structure_fn ) ( FILE *, MX_RECORD * );
 	mx_status_type mx_status;
-	int status, show_field;
 	long record_superclass_match;
 	long record_class_match;
 	long record_type_match;
-	long i, mask, field_type, num_record_fields, num_dimensions;
-	void *data_ptr, *value_ptr;
+	unsigned long mask;
 
 	record = mx_get_record( motor_record_list, record_name );
 
@@ -562,421 +550,19 @@ motor_show_record(
 		return FAILURE;
 	}
 
-	/* Do we attempt to use the "print_structure" driver entry point? */
+	if ( show_all ) {
+		mask = MXFF_SHOW_ALL;
+	} else {
+		mask = MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY;
+	}
 
-	flist = record->record_function_list;
+	mx_status = mx_print_structure( output, record, mask );
 
-	if ( flist == (MX_RECORD_FUNCTION_LIST *) NULL ) {
-		fprintf( output, "(Record '%s' has a null function list)\n",
-			record->name );
-
+	if ( mx_status.code != MXE_SUCCESS ) {
 		return FAILURE;
-	}
-
-	structure_fn = flist->print_structure;
-
-	if ( structure_fn != NULL && show_all == FALSE ) {
-		mx_status = (*structure_fn)( output, record );
-
-		if ( mx_status.code == MXE_SUCCESS ) {
-			status = SUCCESS;
-		} else {
-			status = FAILURE;
-
-			fprintf(output,
-			"(Error while printing structure for record '%s')\n",
-					record->name);
-		}
 	} else {
-		/* Use new record field support. */
-
-		field = record->record_field_array;
-
-		if ( field == NULL ) {
-			if ( show_all ) {
-				fprintf( output,
-"Error: Cannot invoke 'showall' using an old style record.\n" );
-			} else {
-				fprintf( output,
-"Error: This is an old style record with a NULL 'print_structures'\n"
-"       function entry point.\n" );
-			}
-			return FAILURE;
-		}
-
-		/* Update the values in the record structures to be
-		 * consistent with the current hardware status.
-		 */
-
-		(void) mx_update_record_values( record );
-
-		/* Now go through all the record fields looking for
-		 * fields to display.
-		 */
-
-		num_record_fields = record->num_record_fields;
-
-		fprintf( output, "Record '%s':\n\n", record->name );
-
-		for ( i = 0; i < num_record_fields; i++ ) {
-
-			/* Show only field listed in the description unless
-			 * we were invoked by the "showall" command.
-			 */
-
-			if ( show_all ) {
-				show_field = TRUE;
-			} else {
-				mask = MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY;
-
-				if (field[i].flags & mask) {
-					show_field = TRUE;
-				} else {
-					show_field = FALSE;
-				}
-			}
-
-			if ( show_field ) {
-
-				field_type = field[i].datatype;
-				num_dimensions = field[i].num_dimensions;
-
-				fprintf( output, "  %*s = ",
-					-(MXU_FIELD_NAME_LENGTH + 1),
-					field[i].name );
-
-				/* Handle scalars and multidimensional
-				 * arrays separately.
-				 */
-
-				if ( (num_dimensions > 1)
-				  || ((field_type != MXFT_STRING)
-					&& (num_dimensions > 0)) ) {
-
-					status = motor_print_field_array(
-					    record, &field[i], TRUE );
-				} else {
-					data_ptr = field[i].data_pointer;
-
-					if ( field[i].flags & MXFF_VARARGS ) {
-						value_ptr =
-				    mx_read_void_pointer_from_memory_location(
-							data_ptr );
-					} else {
-						value_ptr = data_ptr;
-					}
-
-					status = motor_print_field_data(
-					  record, &field[i], value_ptr, TRUE);
-				}
-
-				fprintf( output, "\n" );
-			}
-		}
-		fprintf( output, "\n" );
-
-		status = SUCCESS;
-	}
-
-	return status;
-}
-
-int
-motor_print_field_data(MX_RECORD *record, MX_RECORD_FIELD *field,
-					void *data_ptr, int verbose)
-{
-	MX_RECORD *other_record;
-	MX_INTERFACE *interface;
-	MX_DRIVER *driver;
-	long field_type;
-	int c, i, length;
-	char *typename;
-
-	field_type = field->datatype;
-
-	switch( field_type ) {
-	case MXFT_BOOL:
-		fprintf( output, "%d", (int) *((mx_bool_type *) data_ptr) );
-		break;
-	case MXFT_STRING:
-		fprintf( output, "\"%s\"", (char *) data_ptr );
-		break;
-	case MXFT_CHAR:
-		fprintf( output, "'%c'", *((char *) data_ptr) );
-		break;
-	case MXFT_UCHAR:
-		fprintf( output, "'%c'", *((unsigned char *) data_ptr) );
-		break;
-	case MXFT_SHORT:
-		fprintf( output, "%hd", *((short *) data_ptr) );
-		break;
-	case MXFT_USHORT:
-		fprintf( output, "%hu", *((unsigned short *) data_ptr) );
-		break;
-	case MXFT_LONG:
-		fprintf( output, "%ld", *((long *) data_ptr) );
-		break;
-	case MXFT_ULONG:
-		fprintf( output, "%lu", *((unsigned long *) data_ptr) );
-		break;
-	case MXFT_INT64:
-		fprintf( output, "%" PRId64, *((int64_t *) data_ptr) );
-		break;
-	case MXFT_UINT64:
-		fprintf( output, "%" PRIu64, *((uint64_t *) data_ptr) );
-		break;
-	case MXFT_FLOAT:
-		fprintf( output, "%.*g", record->precision,
-						*((float *) data_ptr) );
-		break;
-	case MXFT_DOUBLE:
-		fprintf( output, "%.*g", record->precision,
-						*((double *) data_ptr) );
-		break;
-	case MXFT_HEX:
-		fprintf( output, "%#lx", *((unsigned long *) data_ptr) );
-		break;
-	case MXFT_RECORD:
-		other_record = (MX_RECORD *)
-			mx_read_void_pointer_from_memory_location( data_ptr );
-
-		if ( other_record == (MX_RECORD *) NULL ) {
-			fprintf( output, "NULL" );
-		} else {
-			fprintf( output, "%s", other_record->name );
-		}
-		break;
-	case MXFT_RECORDTYPE:
-		driver = (MX_DRIVER *) field->typeinfo;
-
-		if (driver == NULL) {
-			if ( verbose ) {
-				fprintf(output, "NULL type list");
-			} else {
-				fprintf(output, "NULL");
-			}
-		} else {
-			if ( strcmp( field->name, "type" ) == 0 ) {
-
-				typename = driver->name;
-
-				length = (int) strlen( typename );
-
-				for ( i = 0; i < length; i++ ) {
-					c = (int) typename[i];
-
-					if ( islower(c) ) {
-						c = toupper(c);
-					}
-					fputc( c, output );
-				}
-			} else {
-				fprintf(output, "%s", driver->name);
-			}
-		}
-		break;
-	case MXFT_INTERFACE:
-		interface = (MX_INTERFACE *) data_ptr;
-
-		fprintf( output, "%s:%s", interface->record->name,
-					interface->address_name );
-		break;
-	default:
-		if ( verbose ) {
-			fprintf( output,
-				"'Unknown field type %ld'", field_type );
-		} else {
-			fprintf( output, "??" );
-		}
-		break;
-	}
-
-	return SUCCESS;
-}
-
-#define MAX_ELEMENTS_SHOWN	8
-
-int
-motor_print_field_array(MX_RECORD *record, MX_RECORD_FIELD *field, int verbose)
-{
-	long num_dimensions, num_elements;
-	long i_elements, j_elements;
-	long *dimension;
-	size_t *data_element_size;
-	long field_type;
-	char *data_ptr, *ptr, *ptr_i, *ptr_j;
-	char **ptr2;
-	void *array_ptr;
-	int i, j, status;
-	long loop_max, i_loop_max, j_loop_max;
-
-	num_dimensions = field->num_dimensions;
-	dimension = field->dimension;
-	data_element_size = field->data_element_size;
-
-	field_type = field->datatype;
-	data_ptr = field->data_pointer;
-
-	if ( num_dimensions < 1 ) {
-		fprintf( output, "_not_an_array_" );
 		return SUCCESS;
 	}
-
-	array_ptr = mx_read_void_pointer_from_memory_location( data_ptr );
-
-	if ( field->flags & MXFF_VARARGS ) {
-		array_ptr = mx_read_void_pointer_from_memory_location(
-				data_ptr );
-	} else {
-		array_ptr = data_ptr;
-	}
-
-	/* The following is not necessarily an error.  For example, an
-	 * input_scan will have a NULL motor array.
-	 */
-
-	if ( array_ptr == NULL ) {
-		fprintf( output, "NULL" );
-		return SUCCESS;
-	}
-
-	if ( field_type == MXFT_STRING ) {
-		if ( num_dimensions == 1 ) {
-			status = motor_print_field_data( record, field,
-					array_ptr, verbose );
-		} else if ( num_dimensions == 2 ) {
-			num_elements = dimension[0];
-
-			if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
-				loop_max = MAX_ELEMENTS_SHOWN;
-			} else {
-				loop_max = num_elements;
-			}
-			ptr2 = (char **) array_ptr;
-
-			for ( i = 0; i < loop_max; i++ ) {
-				if ( i != 0 ) {
-					fprintf(output, ",");
-				}
-				status = motor_print_field_data(
-					record, field, ptr2[i], verbose );
-			}
-		} else {
-			fprintf( output, "array(" );
-			for ( i = 0; i < num_dimensions; i++ ) {
-				if ( i != 0 ) {
-					fprintf( output, "," );
-				}
-				fprintf( output, "%ld", dimension[i] );
-			}
-			fprintf( output, ")" );
-		}
-
-	} else {	/* Not a string (! MXFT_STRING) */
-
-		if ( num_dimensions == 1 ) {
-			num_elements = dimension[0];
-
-			if ( num_elements <= 0 ) {
-				if ( verbose ) {
-					fprintf(output, "'num_elements = %ld'",
-						num_elements);
-				} else {
-					fprintf(output, "?!");
-				}
-
-			} else if ( num_elements == 1 ) {
-				status = motor_print_field_data(
-					record, field, array_ptr, verbose );
-			} else {
-				if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
-					loop_max = MAX_ELEMENTS_SHOWN;
-				} else {
-					loop_max = num_elements;
-				}
-
-				fprintf(output, "(");
-
-				ptr = array_ptr;
-
-				for ( i = 0; i < loop_max; i++ ) {
-					if ( i != 0 ) {
-						fprintf(output, ",");
-					}
-					status = motor_print_field_data(
-						record, field, ptr, verbose );
-
-					ptr += data_element_size[0];
-				}
-				if ( num_elements > MAX_ELEMENTS_SHOWN ) {
-					fprintf( output, ",...)" );
-				} else {
-					fprintf( output, ")" );
-				}
-			}
-		} else if ( num_dimensions == 2 ) {
-			i_elements = dimension[0];
-			j_elements = dimension[1];
-
-			if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
-				i_loop_max = MAX_ELEMENTS_SHOWN;
-			} else {
-				i_loop_max = i_elements;
-			}
-			if ( j_elements >= MAX_ELEMENTS_SHOWN ) {
-				j_loop_max = MAX_ELEMENTS_SHOWN;
-			} else {
-				j_loop_max = j_elements;
-			}
-
-			fprintf(output, "(");
-
-			ptr_i = array_ptr;
-
-			for ( i = 0; i < i_loop_max; i++ ) {
-				if ( i != 0 ) {
-					fprintf(output, ",");
-				}
-				fprintf(output, "(");
-
-				ptr_j =
-			mx_read_void_pointer_from_memory_location(ptr_i);
-
-				for ( j = 0; j < j_loop_max; j++ ) {
-					if ( j != 0 ) {
-						fprintf(output, ",");
-					}
-					status = motor_print_field_data(
-						record, field, ptr_j, verbose);
-
-					ptr_j += data_element_size[0];
-				}
-				if ( j_elements > MAX_ELEMENTS_SHOWN ) {
-					fprintf(output, ",...)" );
-				} else {
-					fprintf(output, ")");
-				}
-
-				ptr_i += data_element_size[1];
-			}
-			if ( i_elements > MAX_ELEMENTS_SHOWN ) {
-				fprintf(output, ",...)" );
-			} else {
-				fprintf(output, ")");
-			}
-		} else {
-			fprintf( output, "array(" );
-			for ( i = 0; i < num_dimensions; i++ ) {
-				if ( i != 0 ) {
-					fprintf( output, "," );
-				}
-				fprintf( output, "%ld", dimension[i] );
-			}
-			fprintf( output, ")" );
-		}
-	}
-
-	return SUCCESS;
 }
 
 int

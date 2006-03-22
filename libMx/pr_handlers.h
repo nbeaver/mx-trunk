@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -87,6 +87,15 @@ extern mx_status_type mx_list_head_process_function(
 			void *record, void *record_field, int operation );
 
 extern mx_status_type mx_list_head_print_clients( MX_RECORD *record,
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_show_cpu_type( MX_RECORD *record,
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_show_process_memory( MX_RECORD *record,
+						MX_LIST_HEAD *list_head );
+
+extern mx_status_type mx_list_head_show_system_memory( MX_RECORD *record,
 						MX_LIST_HEAD *list_head );
 
 /*---*/

@@ -571,6 +571,11 @@ MX_API mx_status_type mx_get_os_version( int *os_major,
 					int *os_minor,
 					int *os_update );
 
+MX_API mx_status_type mx_get_cpu_architecture( char *architecture_type,
+					size_t max_architecture_type_length,
+					char *architecture_subtype,
+					size_t max_architecture_subtype_length);
+
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 

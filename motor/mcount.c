@@ -240,8 +240,8 @@ motor_count_fn( int argc, char *argv[] )
 						"value", &value_field );
 
 			if ( mx_status.code == MXE_SUCCESS ) {
-				(void) motor_print_field_array( input_device,
-						value_field, FALSE );
+				(void) mx_print_field_array( output,
+					input_device, value_field, FALSE );
 
 				fprintf( output, " " );
 			}

@@ -67,7 +67,7 @@ mx_record_process_function( void *record_ptr,
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FUNCTION_LIST *record_function_list;
 	mx_status_type ( *resynchronize_fn ) ( MX_RECORD * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
@@ -75,7 +75,7 @@ mx_record_process_function( void *record_ptr,
 	record_function_list = (MX_RECORD_FUNCTION_LIST *)
 					( record->record_function_list );
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
@@ -100,15 +100,16 @@ mx_record_process_function( void *record_ptr,
 
 			if ( resynchronize_fn == NULL ) {
 
-				status = mx_error( MXE_UNSUPPORTED, fname,
+				mx_status = mx_error( MXE_UNSUPPORTED, fname,
 			    "Resynchronize is not supported for record '%s'",
 					record->name );
 			} else {
-				status = ( *resynchronize_fn ) ( record );
+				mx_status = ( *resynchronize_fn ) ( record );
 			}
 			break;
 		case MXLV_REC_REPORT:
-			status = mx_print_structure( stderr, record );
+			mx_status = mx_print_structure( stderr, record,
+							record->report );
 
 			fflush(stderr);
 			break;
@@ -124,6 +125,6 @@ mx_record_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

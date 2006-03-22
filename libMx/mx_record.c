@@ -17,11 +17,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <signal.h>
 #include <errno.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
+#include "mx_inttypes.h"
 #include "mx_record.h"
 #include "mx_variable.h"
 #include "mx_driver.h"
@@ -1700,13 +1702,20 @@ mx_set_event_interval( MX_RECORD *record, double event_interval_in_seconds )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----------*/
+
 MX_EXPORT mx_status_type
-mx_print_structure( FILE *file, MX_RECORD *record )
+mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 {
 	static const char fname[] = "mx_print_structure()";
 
+	MX_RECORD_FIELD *field_array;
+	MX_RECORD_FIELD *field;
 	MX_RECORD_FUNCTION_LIST *fl_ptr;
 	mx_status_type (*fptr)( FILE *, MX_RECORD * );
+	unsigned long i, num_record_fields;
+	void *value_ptr;
+	mx_bool_type show_field;
 	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("mx_print_structure() invoked for record '%s'",
@@ -1722,26 +1731,403 @@ mx_print_structure( FILE *file, MX_RECORD *record )
 			"FILE pointer is NULL.");
 	}
 
-	fl_ptr = (MX_RECORD_FUNCTION_LIST *)(record->record_function_list);
+	field_array = record->record_field_array;
 
-	if ( fl_ptr == NULL ) {
+	if ( field_array == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"MX_RECORD_FUNCTION_LIST pointer is NULL." );
+		"record_field_array pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	fl_ptr = record->record_function_list;
+
+	if ( fl_ptr == (MX_RECORD_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_RECORD_FUNCTION_LIST pointer for record '%s' is NULL.",
+			record->name );
 	}
 
 	fptr = ( fl_ptr->print_structure );
 
-	if ( fptr == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"print_structure function pointer is NULL.");
+	if ( fptr != NULL ) {
+		/* If present, invoke the driver print structure handler. */
+
+		mx_status = (*fptr)( file, record );
+	} else {
+		/* Otherwise, generate a generic report. */
+
+		/* Update the values in the record structures to be
+		 * consistent with the current hardware status.
+		 */
+
+		(void) mx_update_record_values( record );
+
+		/* Now go through all the record fields looking for
+		 * fields to display
+		 */
+
+		num_record_fields = record->num_record_fields;
+
+		fprintf( file, "Record '%s':\n\n", record->name );
+
+		for ( i = 0; i < num_record_fields; i++ ) {
+
+			field = &field_array[i];
+
+			if ( field == (MX_RECORD_FIELD *) NULL ) {
+				fprintf( file,
+					"ERROR: Field %lu is NULL!!!\n", i );
+			}
+
+			if ( mask == MXFF_SHOW_ALL ) {
+				show_field = TRUE;
+			} else {
+				if ( field->flags & mask ) {
+					show_field = TRUE;
+				} else {
+					show_field = FALSE;
+				}
+			}
+
+			if ( show_field ) {
+
+				fprintf( file, "  %*s = ",
+					-(MXU_FIELD_NAME_LENGTH + 1),
+					field->name );
+
+				/* Handle scalars and multidimensional
+				 * arrays separately.
+				 */
+
+				if ( (field->num_dimensions > 1)
+				  || ((field->datatype != MXFT_STRING)
+				  	&& (field->num_dimensions > 0)) ) {
+
+					mx_status = mx_print_field_array( file,
+							record, field, TRUE );
+				} else {
+					value_ptr =
+					    mx_get_field_value_pointer( field );
+
+					mx_status = mx_print_field_value( file,
+					       record, field, value_ptr, TRUE );
+				}
+				fprintf( file, "\n" );
+			}
+		}
+
+		fprintf( file, "\n" );
 	}
-
-	/* Invoke the function. */
-
-	mx_status = (*fptr)( file, record );
 
 	return mx_status;
 }
+
+MX_EXPORT mx_status_type
+mx_print_field_value( FILE *file,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			void *value_ptr,
+			mx_bool_type verbose )
+{
+	MX_RECORD *other_record;
+	MX_INTERFACE *interface;
+	MX_DRIVER *driver;
+	long field_type;
+	int c, i, length;
+	char *typename;
+
+	field_type = field->datatype;
+
+	switch( field_type ) {
+	case MXFT_BOOL:
+		fprintf( file, "%d", (int) *((mx_bool_type *) value_ptr) );
+		break;
+	case MXFT_STRING:
+		fprintf( file, "\"%s\"", (char *) value_ptr );
+		break;
+	case MXFT_CHAR:
+		fprintf( file, "'%c'", *((char *) value_ptr) );
+		break;
+	case MXFT_UCHAR:
+		fprintf( file, "'%c'", *((unsigned char *) value_ptr) );
+		break;
+	case MXFT_SHORT:
+		fprintf( file, "%hd", *((short *) value_ptr) );
+		break;
+	case MXFT_USHORT:
+		fprintf( file, "%hu", *((unsigned short *) value_ptr) );
+		break;
+	case MXFT_LONG:
+		fprintf( file, "%ld", *((long *) value_ptr) );
+		break;
+	case MXFT_ULONG:
+		fprintf( file, "%lu", *((unsigned long *) value_ptr) );
+		break;
+	case MXFT_INT64:
+		fprintf( file, "%" PRId64, *((int64_t *) value_ptr) );
+		break;
+	case MXFT_UINT64:
+		fprintf( file, "%" PRIu64, *((uint64_t *) value_ptr) );
+		break;
+	case MXFT_FLOAT:
+		fprintf( file, "%.*g", record->precision,
+						*((float *) value_ptr) );
+		break;
+	case MXFT_DOUBLE:
+		fprintf( file, "%.*g", record->precision,
+						*((double *) value_ptr) );
+		break;
+	case MXFT_HEX:
+		fprintf( file, "%#lx", *((unsigned long *) value_ptr) );
+		break;
+	case MXFT_RECORD:
+		other_record = (MX_RECORD *)
+			mx_read_void_pointer_from_memory_location( value_ptr );
+
+		if ( other_record == (MX_RECORD *) NULL ) {
+			fprintf( file, "NULL" );
+		} else {
+			fprintf( file, "%s", other_record->name );
+		}
+		break;
+	case MXFT_RECORDTYPE:
+		driver = (MX_DRIVER *) field->typeinfo;
+
+		if (driver == NULL) {
+			if ( verbose ) {
+				fprintf(file, "NULL type list");
+			} else {
+				fprintf(file, "NULL");
+			}
+		} else {
+			if ( strcmp( field->name, "type" ) == 0 ) {
+
+				typename = driver->name;
+
+				length = (int) strlen( typename );
+
+				for ( i = 0; i < length; i++ ) {
+					c = (int) typename[i];
+
+					if ( islower(c) ) {
+						c = toupper(c);
+					}
+					fputc( c, file );
+				}
+			} else {
+				fprintf(file, "%s", driver->name);
+			}
+		}
+		break;
+	case MXFT_INTERFACE:
+		interface = (MX_INTERFACE *) value_ptr;
+
+		fprintf( file, "%s:%s", interface->record->name,
+					interface->address_name );
+		break;
+	default:
+		if ( verbose ) {
+			fprintf( file,
+				"'Unknown field type %ld'", field_type );
+		} else {
+			fprintf( file, "??" );
+		}
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#define MAX_ELEMENTS_SHOWN	8
+
+MX_EXPORT mx_status_type
+mx_print_field_array( FILE *file,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			mx_bool_type verbose )
+{
+	long num_dimensions, num_elements;
+	long i_elements, j_elements;
+	long *dimension;
+	size_t *data_element_size;
+	long field_type;
+	char *data_ptr, *ptr, *ptr_i, *ptr_j;
+	char **ptr2;
+	void *array_ptr;
+	int i, j;
+	long loop_max, i_loop_max, j_loop_max;
+	mx_status_type mx_status;
+
+	num_dimensions = field->num_dimensions;
+	dimension = field->dimension;
+	data_element_size = field->data_element_size;
+
+	field_type = field->datatype;
+	data_ptr = field->data_pointer;
+
+	if ( num_dimensions < 1 ) {
+		fprintf( file, "_not_an_array_" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	array_ptr = mx_read_void_pointer_from_memory_location( data_ptr );
+
+	if ( field->flags & MXFF_VARARGS ) {
+		array_ptr = mx_read_void_pointer_from_memory_location(
+				data_ptr );
+	} else {
+		array_ptr = data_ptr;
+	}
+
+	/* The following is not necessarily an error.  For example, an
+	 * input_scan will have a NULL motor array.
+	 */
+
+	if ( array_ptr == NULL ) {
+		fprintf( file, "NULL" );
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( field_type == MXFT_STRING ) {
+		if ( num_dimensions == 1 ) {
+			mx_status = mx_print_field_value( file, record, field,
+							array_ptr, verbose );
+		} else if ( num_dimensions == 2 ) {
+			num_elements = dimension[0];
+
+			if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
+				loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				loop_max = num_elements;
+			}
+			ptr2 = (char **) array_ptr;
+
+			for ( i = 0; i < loop_max; i++ ) {
+				if ( i != 0 ) {
+					fprintf(file, ",");
+				}
+				mx_status = mx_print_field_value( file,
+					record, field, ptr2[i], verbose );
+			}
+		} else {
+			fprintf( file, "array(" );
+			for ( i = 0; i < num_dimensions; i++ ) {
+				if ( i != 0 ) {
+					fprintf( file, "," );
+				}
+				fprintf( file, "%ld", dimension[i] );
+			}
+			fprintf( file, ")" );
+		}
+
+	} else {	/* Not a string (! MXFT_STRING) */
+
+		if ( num_dimensions == 1 ) {
+			num_elements = dimension[0];
+
+			if ( num_elements <= 0 ) {
+				if ( verbose ) {
+					fprintf(file, "'num_elements = %ld'",
+						num_elements);
+				} else {
+					fprintf(file, "?!");
+				}
+
+			} else if ( num_elements == 1 ) {
+				mx_status = mx_print_field_value( file,
+					record, field, array_ptr, verbose );
+			} else {
+				if ( num_elements >= MAX_ELEMENTS_SHOWN ) {
+					loop_max = MAX_ELEMENTS_SHOWN;
+				} else {
+					loop_max = num_elements;
+				}
+
+				fprintf(file, "(");
+
+				ptr = array_ptr;
+
+				for ( i = 0; i < loop_max; i++ ) {
+					if ( i != 0 ) {
+						fprintf(file, ",");
+					}
+					mx_status = mx_print_field_value( file,
+						record, field, ptr, verbose );
+
+					ptr += data_element_size[0];
+				}
+				if ( num_elements > MAX_ELEMENTS_SHOWN ) {
+					fprintf( file, ",...)" );
+				} else {
+					fprintf( file, ")" );
+				}
+			}
+		} else if ( num_dimensions == 2 ) {
+			i_elements = dimension[0];
+			j_elements = dimension[1];
+
+			if ( i_elements >= MAX_ELEMENTS_SHOWN ) {
+				i_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				i_loop_max = i_elements;
+			}
+			if ( j_elements >= MAX_ELEMENTS_SHOWN ) {
+				j_loop_max = MAX_ELEMENTS_SHOWN;
+			} else {
+				j_loop_max = j_elements;
+			}
+
+			fprintf(file, "(");
+
+			ptr_i = array_ptr;
+
+			for ( i = 0; i < i_loop_max; i++ ) {
+				if ( i != 0 ) {
+					fprintf(file, ",");
+				}
+				fprintf(file, "(");
+
+				ptr_j =
+			mx_read_void_pointer_from_memory_location(ptr_i);
+
+				for ( j = 0; j < j_loop_max; j++ ) {
+					if ( j != 0 ) {
+						fprintf(file, ",");
+					}
+					mx_status = mx_print_field_value( file,
+						record, field, ptr_j, verbose);
+
+					ptr_j += data_element_size[0];
+				}
+				if ( j_elements > MAX_ELEMENTS_SHOWN ) {
+					fprintf(file, ",...)" );
+				} else {
+					fprintf(file, ")");
+				}
+
+				ptr_i += data_element_size[1];
+			}
+			if ( i_elements > MAX_ELEMENTS_SHOWN ) {
+				fprintf(file, ",...)" );
+			} else {
+				fprintf(file, ")");
+			}
+		} else {
+			fprintf( file, "array(" );
+			for ( i = 0; i < num_dimensions; i++ ) {
+				if ( i != 0 ) {
+					fprintf( file, "," );
+				}
+				fprintf( file, "%ld", dimension[i] );
+			}
+			fprintf( file, ")" );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----------*/
 
 MX_EXPORT mx_status_type
 mx_read_parms_from_hardware( MX_RECORD *record )

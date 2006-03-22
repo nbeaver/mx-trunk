@@ -171,10 +171,6 @@ extern int motor_show_record( long superclass, long class, long type,
 				char *record_type_name, char *record_name,
 				int showall );
 extern int motor_show_field( char *fieldname );
-extern int motor_print_field_data( MX_RECORD *record, MX_RECORD_FIELD *field,
-				void *data_ptr, int verbose );
-extern int motor_print_field_array( MX_RECORD *record,
-				MX_RECORD_FIELD *field, int verbose );
 
 extern int motor_check_for_datafile_name_collision( MX_SCAN *scan );
 extern int motor_prompt_for_scan_header( MX_SCAN *scan );

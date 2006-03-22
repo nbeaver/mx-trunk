@@ -69,7 +69,8 @@
 #define MXF_REC_TYPE_STRUCT		4
 
 /* The following is the list of bitmasks that can be put in the "flags"
- * field of an MX_RECORD_FIELD structure.
+ * field of an MX_RECORD_FIELD structure.  These are also used as mask
+ * values for mx_print_structure().
  */
 
 #define MXFF_IN_DESCRIPTION		0x1
@@ -77,6 +78,10 @@
 #define MXFF_VARARGS			0x4
 #define MXFF_READ_ONLY			0x8
 #define MXFF_NO_NEXT_EVENT_TIME_UPDATE	0x10
+
+/* The following value is used only by mx_print_structure(). */
+
+#define MXFF_SHOW_ALL			(-1)
 
 typedef struct {
 	long label_value;
@@ -133,7 +138,7 @@ typedef struct mx_record_type {
 	long long_precision;
 	int precision;
 	mx_bool_type resynchronize;
-	mx_bool_type report;
+	unsigned long report;
 	unsigned long record_flags;
 	unsigned long record_processing_flags;
 	struct mx_record_type *list_head;
@@ -250,7 +255,7 @@ typedef struct {
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_REC_REPORT, -1, "report", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_REC_REPORT, -1, "report", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, report), \
 	{0}, NULL, 0}, \
   \
@@ -466,16 +471,29 @@ MX_API mx_status_type  mx_finish_database_initialization(
 				MX_RECORD *record_list );
 
 MX_API mx_status_type  mx_write_database_file( MX_RECORD *record_list,
-			char *filename,
-			long num_record_superclasses,
-			long *record_superclass_list );
+						char *filename,
+						long num_record_superclasses,
+						long *record_superclass_list );
 
 MX_API mx_status_type  mx_setup_database( MX_RECORD **record_list,
 						char *filename );
 
 /* --- */
 
-MX_API mx_status_type  mx_print_structure( FILE *file, MX_RECORD *record );
+MX_API mx_status_type  mx_print_structure( FILE *file,
+					MX_RECORD *record,
+					unsigned long mask );
+
+MX_API mx_status_type  mx_print_field_array( FILE *file,
+					MX_RECORD *record,
+					MX_RECORD_FIELD *field,
+					mx_bool_type verbose_flag );
+
+MX_API mx_status_type  mx_print_field_value( FILE *file,
+					MX_RECORD *record,
+					MX_RECORD_FIELD *field,
+					void *value_ptr,
+					mx_bool_type verbose_flag );
 
 MX_API mx_status_type  mx_read_parms_from_hardware( MX_RECORD *record );
 

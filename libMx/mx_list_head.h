@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -43,7 +43,7 @@
   \
   {-1, -1, "num_records", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \
-	{0}, NULL, 0}
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 

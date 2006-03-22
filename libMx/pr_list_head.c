@@ -22,6 +22,8 @@
 #include "mx_driver.h"
 #include "mx_socket.h"
 #include "mx_record.h"
+#include "mx_memory.h"
+#include "mx_bit.h"
 #include "mx_list_head.h"
 
 #include "mx_process.h"
@@ -82,21 +84,33 @@ mx_list_head_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_LHD_STATUS:
-			if ( list_head->is_server ) {
-				if ( (strcmp("clients", list_head->status) == 0)
-				  || (strcmp("users", list_head->status) == 0) )
-				{
+			if ( (strcmp("clients", list_head->status) == 0)
+			  || (strcmp("users", list_head->status) == 0) )
+			{
+			    if ( list_head->is_server ) {
 				    mx_status = mx_list_head_print_clients(
 						record, list_head );
-				} else {
-				    return mx_error( MXE_ILLEGAL_ARGUMENT,
+			    } else {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"This process is not currently functioning as an active MX server." );
+			    }
+			} else
+			if (strcmp("cpu_type", list_head->status) == 0) {
+				mx_status = mx_list_head_show_cpu_type(
+				    		record, list_head );
+			} else
+			if (strcmp("process_memory", list_head->status) == 0) {
+				mx_status = mx_list_head_show_process_memory(
+				    		record, list_head );
+			} else
+			if (strcmp("system_memory", list_head->status) == 0) {
+				mx_status = mx_list_head_show_system_memory(
+				    		record, list_head );
+			} else {
+				return mx_error( MXE_ILLEGAL_ARGUMENT,
 						fname,
 				    "Unrecognized database status request '%s'",
 				    		list_head->status );
-				}
-			} else {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-	"This process is not currently functioning as an active MX server." );
 			}
 			break;
 		default:
@@ -150,16 +164,142 @@ mx_list_head_print_clients( MX_RECORD *record, MX_LIST_HEAD *list_head )
 				continue;
 			}
 
-			mx_info( "%3d %3d   %s  %-16s %-8s %6lu %-8s", i,
+			mx_info( "%3d %3d   %s  %-16s %-8s %6ld %-8s", i,
 				socket_handler->synchronous_socket->socket_fd,
 				event_handler->name,
 				socket_handler->client_address_string,
 				socket_handler->username,
-				socket_handler->process_id,
+				(long) socket_handler->process_id,
 				socket_handler->program_name );
 
 		}
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_show_cpu_type( MX_RECORD *record, MX_LIST_HEAD *list_head )
+{
+	char architecture_type[80];
+	char architecture_subtype[80];
+	char buffer[80];
+	unsigned long byteorder;
+	mx_status_type mx_status;
+
+	mx_info( "Computer '%s':", list_head->hostname );
+
+	mx_status = mx_get_os_version_string( buffer, sizeof(buffer) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_info( "  OS version = '%s'", buffer );
+
+	mx_status = mx_get_cpu_architecture( architecture_type,
+					sizeof(architecture_type),
+					architecture_subtype,
+					sizeof(architecture_subtype) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( strlen(architecture_subtype) > 0 ) {
+		mx_info( "  CPU type = '%s', subtype = '%s'",
+			architecture_type, architecture_subtype );
+	} else {
+		mx_info( "  CPU type = '%s'", architecture_type );
+	}
+
+	byteorder = mx_native_byteorder();
+
+	switch( byteorder ) {
+	case MX_DATAFMT_BIG_ENDIAN:
+		snprintf( buffer, sizeof(buffer),
+			"  %d-bit big-endian computer", MX_WORDSIZE );
+		break;
+	case MX_DATAFMT_LITTLE_ENDIAN:
+		snprintf( buffer, sizeof(buffer),
+			"  %d-bit little-endian computer", MX_WORDSIZE );
+		break;
+	default:
+		snprintf( buffer, sizeof(buffer),
+			"  %d-bit unknown-endian computer", MX_WORDSIZE );
+		break;
+	}
+
+	mx_info( buffer );
+
+	switch( MX_PROGRAM_MODEL ) {
+	case MX_PROGRAM_MODEL_LP32:
+		mx_info(
+	"  Program model = LP32  (16-bit int, 32-bit long, 32-bit ptr)" );
+		break;
+	case MX_PROGRAM_MODEL_ILP32:
+		mx_info(
+	"  Program model = ILP32  (32-bit int, 32-bit long, 32-bit ptr)" );
+		break;
+	case MX_PROGRAM_MODEL_LLP64:
+		mx_info(
+	"  Program model = LLP64  (32-bit int, 32-bit long, 64-bit ptr)" );
+		break;
+	case MX_PROGRAM_MODEL_LP64:
+		mx_info(
+	"  Program model = LP64  (32-bit int, 64-bit long, 64-bit ptr)" );
+		break;
+	case MX_PROGRAM_MODEL_ILP64:
+		mx_info(
+	"  Program model = ILP64  (64-bit int, 64-bit long, 64-bit ptr)" );
+		break;
+	case MX_PROGRAM_MODEL_UNKNOWN:
+		mx_info( "  Program model = unknown" );
+		break;
+	default:
+		mx_info( "  Program model = %#x  (unrecognized value)",
+			MX_PROGRAM_MODEL );
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_show_process_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
+{
+	mx_status_type mx_status;
+
+	unsigned long process_id;
+	MX_PROCESS_MEMINFO meminfo;
+
+	process_id = mx_process_id();
+
+	mx_info( "Process %lu memory usage:", process_id );
+
+	mx_status = mx_get_process_meminfo( process_id, &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_display_process_meminfo( &meminfo );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_show_system_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
+{
+	mx_status_type mx_status;
+
+	MX_SYSTEM_MEMINFO meminfo;
+
+	mx_info( "Computer '%s' memory usage:", list_head->hostname );
+
+	mx_status = mx_get_system_meminfo( &meminfo );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_display_system_meminfo( &meminfo );
 
 	return MX_SUCCESSFUL_RESULT;
 }
