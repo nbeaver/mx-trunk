@@ -10,7 +10,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,7 +28,7 @@
 struct mx_interval_timer_struct {
 	int timer_type;
 	double timer_period;
-	int num_overruns;
+	unsigned long num_overruns;
 	void (*callback_function)( struct mx_interval_timer_struct *itimer,
 				void *callback_args );
 	void *callback_args;
