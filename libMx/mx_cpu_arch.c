@@ -1,5 +1,5 @@
 /*
- * Name:    mx_cpu_architecture.c
+ * Name:    mx_cpu_arch.c
  *
  * Purpose: Report the CPU architecture.
  *
@@ -54,15 +54,13 @@ mx_get_cpu_architecture( char *architecture_type,
 	MX_DEBUG(-2,("%s: machine = '%s'", fname, uname_struct.machine));
 #endif
 
-#if defined(OS_MACOSX)
 	if ( architecture_type != NULL ) {
 
-		/* This is the way the Darwin version of uname(1) does it. */
-#  if defined(__ppc__)
-		strlcpy( architecture_type, "powerpc",
-				max_architecture_type_length );
-#  elif defined(__i386__)
+#  if defined(__i386__)
 		strlcpy( architecture_type, "i386",
+				max_architecture_type_length );
+#  elif defined(__ppc__)
+		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
 #  else
 		strlcpy( architecture_type, "unknown",
@@ -75,8 +73,7 @@ mx_get_cpu_architecture( char *architecture_type,
 				max_architecture_subtype_length );
 	}
 
-#else	/* OS_LINUX */
-
+#if 0
 	if ( architecture_type != NULL ) {
 		strlcpy( architecture_type, uname_struct.machine, 
 				max_architecture_type_length );
