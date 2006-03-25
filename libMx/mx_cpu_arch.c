@@ -59,12 +59,13 @@ mx_get_cpu_architecture( char *architecture_type,
 #  if defined(__i386__)
 		strlcpy( architecture_type, "i386",
 				max_architecture_type_length );
-#  elif defined(__ppc__)
+
+#  elif defined(__powerpc__) || defined(__ppc__)
+
 		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
 #  else
-		strlcpy( architecture_type, "unknown",
-				max_architecture_type_length );
+#     error CPU architecture type not detected.
 #  endif
 	}
 
@@ -72,18 +73,6 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_subtype, uname_struct.machine,
 				max_architecture_subtype_length );
 	}
-
-#if 0
-	if ( architecture_type != NULL ) {
-		strlcpy( architecture_type, uname_struct.machine, 
-				max_architecture_type_length );
-	}
-
-	if ( architecture_subtype != NULL ) {
-		strlcpy( architecture_subtype, "",
-				max_architecture_subtype_length );
-	}
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
