@@ -24,7 +24,7 @@
 struct mx_virtual_timer_struct {
 	MX_INTERVAL_TIMER *master_timer;
 	int timer_type;
-	double timer_period;
+	struct timespec timer_period;
 	unsigned long num_overruns;
 	void (*callback_function)( struct mx_virtual_timer_struct *vtimer,
 				void *callback_args );
@@ -40,7 +40,8 @@ typedef void (MX_VIRTUAL_TIMER_CALLBACK)(
 /*----*/
 
 MX_API mx_status_type
-mx_virtual_timer_create_master( MX_INTERVAL_TIMER **master_timer );
+mx_virtual_timer_create_master( MX_INTERVAL_TIMER **master_timer,
+				double master_timer_period_in_seconds );
 
 MX_API mx_status_type
 mx_virtual_timer_destroy_master( MX_INTERVAL_TIMER *master_timer );
