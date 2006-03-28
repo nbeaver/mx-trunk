@@ -76,6 +76,11 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_type, "sparc",
 				max_architecture_type_length );
 
+#  elif defined(__x86_64__) || defined(__x86_64)
+
+		strlcpy( architecture_type, "x86_64",
+				max_architecture_type_length );
+
 #  else
 #     error CPU architecture type not detected.
 #  endif
