@@ -546,7 +546,9 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 
 	pagesize = getpagesize();
 
+#if 0
 	MX_DEBUG(-2,("%s: pagesize = %lu", fname, pagesize));
+#endif
 
 	(void) sysmp( MP_KERNADDR, MPSA_RMINFO, &rminfo_struct );
 
