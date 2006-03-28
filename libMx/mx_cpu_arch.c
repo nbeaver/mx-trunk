@@ -64,6 +64,9 @@ mx_get_cpu_architecture( char *architecture_type,
 
 		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
+#  elif defined(__mips)
+		strlcpy( architecture_type, "mips",
+				max_architecture_type_length );
 #  else
 #     error CPU architecture type not detected.
 #  endif

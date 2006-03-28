@@ -230,35 +230,33 @@ mx_list_head_show_cpu_type( MX_RECORD *record, MX_LIST_HEAD *list_head )
 
 	mx_info( buffer );
 
-	switch( MX_PROGRAM_MODEL ) {
-	case MX_PROGRAM_MODEL_LP32:
+#if ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP32 )
 		mx_info(
 	"  Program model = LP32  (16-bit int, 32-bit long, 32-bit ptr)" );
-		break;
-	case MX_PROGRAM_MODEL_ILP32:
+
+#elif ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_ILP32 )
 		mx_info(
 	"  Program model = ILP32  (32-bit int, 32-bit long, 32-bit ptr)" );
-		break;
-	case MX_PROGRAM_MODEL_LLP64:
+
+#elif ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LLP64 )
 		mx_info(
 	"  Program model = LLP64  (32-bit int, 32-bit long, 64-bit ptr)" );
-		break;
-	case MX_PROGRAM_MODEL_LP64:
+
+#elif ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_LP64 )
 		mx_info(
 	"  Program model = LP64  (32-bit int, 64-bit long, 64-bit ptr)" );
-		break;
-	case MX_PROGRAM_MODEL_ILP64:
+
+#elif ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_ILP64 )
 		mx_info(
 	"  Program model = ILP64  (64-bit int, 64-bit long, 64-bit ptr)" );
-		break;
-	case MX_PROGRAM_MODEL_UNKNOWN:
+
+#elif ( MX_PROGRAM_MODEL == MX_PROGRAM_MODEL_UNKNOWN )
 		mx_info( "  Program model = unknown" );
-		break;
-	default:
+
+#else
 		mx_info( "  Program model = %#x  (unrecognized value)",
 			MX_PROGRAM_MODEL );
-		break;
-	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
