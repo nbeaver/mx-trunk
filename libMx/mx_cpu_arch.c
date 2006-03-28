@@ -56,17 +56,26 @@ mx_get_cpu_architecture( char *architecture_type,
 
 	if ( architecture_type != NULL ) {
 
-#  if defined(__i386__)
+#  if defined(__i386__) || defined(__i386)
+
 		strlcpy( architecture_type, "i386",
+				max_architecture_type_length );
+
+#  elif defined(__mips)
+
+		strlcpy( architecture_type, "mips",
 				max_architecture_type_length );
 
 #  elif defined(__powerpc__) || defined(__ppc__)
 
 		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
-#  elif defined(__mips)
-		strlcpy( architecture_type, "mips",
+
+#  elif defined(__sparc)
+
+		strlcpy( architecture_type, "sparc",
 				max_architecture_type_length );
+
 #  else
 #     error CPU architecture type not detected.
 #  endif
