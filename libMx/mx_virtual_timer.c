@@ -17,6 +17,7 @@
 #define MX_VIRTUAL_TIMER_DEBUG		FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_hrt.h"
