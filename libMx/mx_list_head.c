@@ -148,6 +148,8 @@ mxr_create_list_head( MX_RECORD *record )
 
 	strlcpy( list_head_struct->program_name, "", MXU_PROGRAM_NAME_LENGTH );
 
+	strlcpy( list_head_struct->status, "", MXU_FIELD_NAME_LENGTH );
+
 	/* Since the list head record itself is a record, we initialize
 	 * the number of records to 1 rather than 0.
 	 */

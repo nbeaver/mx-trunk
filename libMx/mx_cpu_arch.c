@@ -18,10 +18,68 @@
 #include <errno.h>
 
 #include "mx_osdef.h"
-
 #include "mx_util.h"
 
-#if defined(OS_UNIX) || defined(OS_CYGWIN)
+/****************************************************************************/
+
+#if defined(OS_WIN32)
+
+#include <windows.h>
+
+MX_EXPORT mx_status_type
+mx_get_cpu_architecture( char *architecture_type,
+			size_t max_architecture_type_length,
+			char *architecture_subtype,
+			size_t max_architecture_subtype_length )
+{
+	static const char fname[] = "mx_get_cpu_architecture()";
+
+	SYSTEM_INFO sysinfo;
+
+	if ( architecture_type != NULL ) {
+		GetSystemInfo( &sysinfo );
+
+		switch( sysinfo.wProcessorArchitecture ) {
+		case PROCESSOR_ARCHITECTURE_INTEL:
+		case PROCESSOR_ARCHITECTURE_IA32_ON_WIN64:
+			strlcpy( architecture_type, "i386",
+				max_architecture_type_length );
+			break;
+
+		case PROCESSOR_ARCHITECTURE_AMD64:
+			strlcpy( architecture_type, "amd64",
+				max_architecture_type_length );
+			break;
+
+		case PROCESSOR_ARCHITECTURE_IA64:
+			strlcpy( architecture_type, "ia64",
+				max_architecture_type_length );
+			break;
+
+		case PROCESSOR_ARCHITECTURE_UNKNOWN:
+			strlcpy( architecture_type, "unknown",
+				max_architecture_type_length );
+			break;
+
+		default:
+			strlcpy( architecture_type, "illegal",
+				max_architecture_type_length );
+			break;
+
+		}
+	}
+
+	if ( architecture_subtype != NULL ) {
+		strlcpy( architecture_subtype, "",
+				max_architecture_subtype_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/****************************************************************************/
+
+#elif defined(OS_UNIX) || defined(OS_CYGWIN)
 
 #include <sys/utsname.h>
 
@@ -78,7 +136,7 @@ mx_get_cpu_architecture( char *architecture_type,
 
 #  elif defined(__x86_64__) || defined(__x86_64)
 
-		strlcpy( architecture_type, "x86_64",
+		strlcpy( architecture_type, "amd64",
 				max_architecture_type_length );
 
 #  else
