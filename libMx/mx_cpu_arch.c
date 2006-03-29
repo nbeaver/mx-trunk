@@ -32,8 +32,6 @@ mx_get_cpu_architecture( char *architecture_type,
 			char *architecture_subtype,
 			size_t max_architecture_subtype_length )
 {
-	static const char fname[] = "mx_get_cpu_architecture()";
-
 	SYSTEM_INFO sysinfo;
 
 	if ( architecture_type != NULL ) {
