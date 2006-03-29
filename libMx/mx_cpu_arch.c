@@ -40,16 +40,21 @@ mx_get_cpu_architecture( char *architecture_type,
 		GetSystemInfo( &sysinfo );
 
 		switch( sysinfo.wProcessorArchitecture ) {
-		case PROCESSOR_ARCHITECTURE_INTEL:
+
+#if defined( PROCESSOR_ARCHITECTURE_IA32_ON_WIN64 )
 		case PROCESSOR_ARCHITECTURE_IA32_ON_WIN64:
+#endif
+		case PROCESSOR_ARCHITECTURE_INTEL:
 			strlcpy( architecture_type, "i386",
 				max_architecture_type_length );
 			break;
 
+#if defined( PROCESSOR_ARCHITECTURE_AMD64 )
 		case PROCESSOR_ARCHITECTURE_AMD64:
 			strlcpy( architecture_type, "amd64",
 				max_architecture_type_length );
 			break;
+#endif
 
 		case PROCESSOR_ARCHITECTURE_IA64:
 			strlcpy( architecture_type, "ia64",
