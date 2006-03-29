@@ -21,7 +21,7 @@
 
 #include "mx_util.h"
 
-#if defined(OS_UNIX)
+#if defined(OS_UNIX) || defined(OS_CYGWIN)
 
 #include <sys/utsname.h>
 
