@@ -1315,7 +1315,8 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /*************************** POSIX realtime timers **************************/
 
-#elif defined(_POSIX_TIMERS) || defined(OS_IRIX) || defined(OS_VXWORKS)
+#elif ( defined(_POSIX_TIMERS) && !defined(OS_MACOSX) ) \
+	|| defined(OS_IRIX) || defined(OS_VXWORKS)
 
 #include <time.h>
 #include <signal.h>
