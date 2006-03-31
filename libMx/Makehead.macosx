@@ -140,15 +140,10 @@ MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME) $(MX_LIBRARY_STATIC_NAME)
 
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
-	libtool -dynamic -noall_load \
-			-undefined suppress -flat_namespace \
-			-o $(MX_LIBRARY_NAME) \
-			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) \
-			-lcc_dynamic
+	gcc -dynamiclib -o $(MX_LIBRARY_NAME) \
+			$(LIB_DIRS) $(MX_LIB_OBJS) $(LIBRARIES) 
 	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
 	ranlib $(MX_LIBRARY_STATIC_NAME)
-
-#	-read_only_relocs suppress
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
