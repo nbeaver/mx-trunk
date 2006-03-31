@@ -49,7 +49,8 @@
 
 /*--------------------------------------------------------------------------*/
 
-#if defined( _POSIX_REALTIME_SIGNALS ) || defined( OS_CYGWIN )
+#if ( defined( _POSIX_REALTIME_SIGNALS ) && !defined( OS_MACOSX ) ) \
+	|| defined( OS_CYGWIN )
 
 #define MX_NUM_SIGNALS	SIGRTMAX
 

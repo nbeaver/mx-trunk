@@ -771,11 +771,13 @@ mx_get_process_meminfo( unsigned long process_id,
 #elif defined(OS_MACOSX)
 
 #include <sys/sysctl.h>
+#include <mach/mach_port.h>
 #include <mach/mach_init.h>
 #include <mach/mach_host.h>
 #include <mach/mach_traps.h>
 #include <mach/message.h>
 #include <mach/shared_memory_server.h>
+#include <mach/task.h>
 #include <mach/task_info.h>
 #include <mach/vm_map.h>
 #include <malloc/malloc.h>
