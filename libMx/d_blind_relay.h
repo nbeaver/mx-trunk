@@ -54,28 +54,11 @@ typedef struct {
 
 /* Define all of the device functions. */
 
-MX_API mx_status_type mxd_blind_relay_initialize_type( long type );
-
 MX_API mx_status_type mxd_blind_relay_create_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxd_blind_relay_finish_record_initialization(
 							MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_delete_record( MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_print_structure( FILE *file,
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_read_parms_from_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_write_parms_to_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_open( MX_RECORD *record );
-
-MX_API mx_status_type mxd_blind_relay_close( MX_RECORD *record );
 
 MX_API mx_status_type mxd_blind_relay_relay_command( MX_RELAY *relay );
 

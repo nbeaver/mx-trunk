@@ -28,16 +28,9 @@
 /* Initialize the generic relay driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_generic_relay_record_function_list = {
-	mxd_generic_relay_initialize_type,
-	mxd_generic_relay_create_record_structures,
-	mxd_generic_relay_finish_record_initialization,
-	mxd_generic_relay_delete_record,
 	NULL,
-	mxd_generic_relay_read_parms_from_hardware,
-	mxd_generic_relay_write_parms_to_hardware,
-	mxd_generic_relay_open,
-	mxd_generic_relay_close,
-	NULL
+	mxd_generic_relay_create_record_structures,
+	mxd_generic_relay_finish_record_initialization
 };
 
 MX_RELAY_FUNCTION_LIST mxd_generic_relay_relay_function_list = {
@@ -61,15 +54,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_generic_relay_rfield_def_ptr
 /* ===== */
 
 MX_EXPORT mx_status_type
-mxd_generic_relay_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_generic_relay_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_generic_relay_create_record_structures()";
+        static const char fname[] =
+		"mxd_generic_relay_create_record_structures()";
 
         MX_RELAY *relay;
         MX_GENERIC_RELAY *generic_relay;
@@ -109,7 +97,7 @@ mxd_generic_relay_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_generic_relay_finish_record_initialization( MX_RECORD *record )
 {
-        const char fname[]
+        static const char fname[]
 		= "mxd_generic_relay_finish_record_initialization()";
 
         MX_GENERIC_RELAY *generic_relay;
@@ -158,58 +146,15 @@ mxd_generic_relay_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_generic_relay_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_generic_relay_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_generic_relay_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_generic_relay_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_generic_relay_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_generic_relay_relay_command( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_generic_relay_relay_command()";
+	static const char fname[] = "mxd_generic_relay_relay_command()";
 
 	MX_GENERIC_RELAY *generic_relay;
 	unsigned long requested_value,old_value, new_value;
 	unsigned long shifted_value, mask;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( relay == (MX_RELAY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -240,11 +185,11 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 
 	/* Get the current value of the output record. */
 
-	status = mx_digital_output_read( generic_relay->output_record,
+	mx_status = mx_digital_output_read( generic_relay->output_record,
 						&old_value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Compute the new value for the output record. */
 
@@ -279,11 +224,11 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 				relay->record->name, new_value,
 				generic_relay->output_record->name));
 
-	status = mx_digital_output_write( generic_relay->output_record,
+	mx_status = mx_digital_output_write( generic_relay->output_record,
 						new_value );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Wait for the settling time before returning.
 	 *
@@ -292,19 +237,19 @@ mxd_generic_relay_relay_command( MX_RELAY *relay )
 
 	mx_msleep( generic_relay->settling_time );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_generic_relay_get_relay_status( MX_RELAY *relay )
 {
-	const char fname[] = "mxd_generic_relay_get_relay_status()";
+	static const char fname[] = "mxd_generic_relay_get_relay_status()";
 
 	MX_GENERIC_RELAY *generic_relay;
 	unsigned long current_value, mask;
 	unsigned long closed_value, open_value;
 	int i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( relay == (MX_RELAY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -326,11 +271,11 @@ mxd_generic_relay_get_relay_status( MX_RELAY *relay )
 
 	switch( generic_relay->input_record->mx_class ) {
 	case MXC_DIGITAL_INPUT:
-		status = mx_digital_input_read( generic_relay->input_record,
+		mx_status = mx_digital_input_read( generic_relay->input_record,
 						&current_value );
 		break;
 	case MXC_DIGITAL_OUTPUT:
-		status = mx_digital_output_read( generic_relay->input_record,
+		mx_status = mx_digital_output_read( generic_relay->input_record,
 						&current_value );
 		break;
 	default:
@@ -341,8 +286,8 @@ mxd_generic_relay_get_relay_status( MX_RELAY *relay )
 			relay->record->name );
 	}
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( generic_relay->grelay_flags & MXF_GRELAY_INVERT_INPUT ) {
 		current_value = ~current_value;

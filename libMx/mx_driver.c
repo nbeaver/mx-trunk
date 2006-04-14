@@ -327,6 +327,7 @@
 #include "d_network_relay.h"
 #include "d_generic_relay.h"
 #include "d_blind_relay.h"
+#include "d_pulsed_relay.h"
 #include "d_pfcu.h"
 #include "d_mardtb_shutter.h"
 #include "d_bluice_shutter.h"
@@ -2868,6 +2869,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_blind_relay_relay_function_list,
 				&mxd_blind_relay_num_record_fields,
 				&mxd_blind_relay_rfield_def_ptr},
+
+{"pulsed_relay",    MXT_RLY_BLIND,     MXC_RELAY,          MXR_DEVICE,
+				&mxd_pulsed_relay_record_function_list,
+				NULL,
+				&mxd_pulsed_relay_relay_function_list,
+				&mxd_pulsed_relay_num_record_fields,
+				&mxd_pulsed_relay_rfield_def_ptr},
 
 {"pfcu_filter",    MXT_RLY_PFCU_FILTER, MXC_RELAY,        MXR_DEVICE,
 				&mxd_pfcu_record_function_list,

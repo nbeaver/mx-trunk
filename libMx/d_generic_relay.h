@@ -96,34 +96,15 @@ typedef struct {
 
 /* Define all of the device functions. */
 
-MX_API mx_status_type mxd_generic_relay_initialize_type( long type );
-
 MX_API mx_status_type mxd_generic_relay_create_record_structures(
 							MX_RECORD *record );
 
 MX_API mx_status_type mxd_generic_relay_finish_record_initialization(
 							MX_RECORD *record );
 
-MX_API mx_status_type mxd_generic_relay_delete_record( MX_RECORD *record );
+MX_API mx_status_type mxd_generic_relay_relay_command( MX_RELAY *relay );
 
-MX_API mx_status_type mxd_generic_relay_print_structure( FILE *file,
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_read_parms_from_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_write_parms_to_hardware(
-							MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_open( MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_close( MX_RECORD *record );
-
-MX_API mx_status_type mxd_generic_relay_relay_command(
-							MX_RELAY *relay );
-
-MX_API mx_status_type mxd_generic_relay_get_relay_status(
-							MX_RELAY *relay );
+MX_API mx_status_type mxd_generic_relay_get_relay_status( MX_RELAY *relay );
 
 extern MX_RECORD_FUNCTION_LIST mxd_generic_relay_record_function_list;
 extern MX_RELAY_FUNCTION_LIST mxd_generic_relay_relay_function_list;
