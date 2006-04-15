@@ -181,6 +181,11 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
 
+#  elif defined(__s390__)
+
+		strlcpy( architecture_type, "s390",
+				max_architecture_type_length );
+
 #  elif defined(__sparc__) || defined(__sparc)
 
 		strlcpy( architecture_type, "sparc",
