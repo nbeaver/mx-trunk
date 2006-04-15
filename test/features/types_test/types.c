@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 int
-main( int argc, char argv[] )
+main( int argc, char *argv[] )
 {
 	size_t sizeof_char, sizeof_short, sizeof_int, sizeof_long;
 	size_t sizeof_void_ptr, sizeof_float, sizeof_double;

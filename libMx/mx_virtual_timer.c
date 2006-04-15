@@ -5,7 +5,7 @@
  *
  * Author:  William Lavender
  *
- * WARNING: NOT YET FINISHED! (as of March 27, 2006)
+ * WARNING: NOT YET FINISHED! (as of April 14, 2006)
  *
  * Copyright 2006 Illinois Institute of Technology
  *
@@ -24,6 +24,9 @@
 #include "mx_mutex.h"
 #include "mx_virtual_timer.h"
 
+#define MXF_VTIMER_RELATIVE_TIME	1
+#define MXF_VTIMER_ABSOLUTE_TIME	2
+
 #define UNLOCK_EVENT_LIST(x) \
 		do {							\
 			long temp_status;				\
@@ -40,6 +43,7 @@
 struct mx_master_timer_event_struct {
 	MX_VIRTUAL_TIMER *vtimer;
 	struct timespec expiration_time;
+	struct mx_master_timer_event_struct *previous_event;
 	struct mx_master_timer_event_struct *next_event;
 };
 
@@ -101,35 +105,298 @@ mx_virtual_timer_get_pointers( MX_VIRTUAL_TIMER *vtimer,
 
 /* WARNING, WARNING, WARNING:
  *
- *    The following functions mx_master_timer_event_list_add_vtimer_event()
- *    and mx_master_timer_event_list_delete_vtimer_events() must be called
- *    with the event list mutex already LOCKED!!!!!!
+ *    The following functions from mx_add_vtimer_event() to
+ *    mx_delete_all_vtimer_events() must all be invoked with
+ *    with the event_list's mutex already LOCKED!!!
  */
 
 static mx_status_type
-mx_master_timer_event_list_add_vtimer_event(
-					MX_MASTER_TIMER_EVENT_LIST *event_list,
-					MX_VIRTUAL_TIMER *vtimer )
+mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
+			MX_VIRTUAL_TIMER *vtimer,
+			struct timespec timer_interval,
+			int interval_type )
 {
-	static const char fname[] =
-		"mx_master_timer_event_list_add_vtimer_event()";
+	static const char fname[] = "mx_add_vtimer_event()";
+
+	MX_MASTER_TIMER_EVENT *new_event;
+	MX_MASTER_TIMER_EVENT *previous_event, *current_event, *next_event;
+	int comparison;
 
 	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
+
+	if ( event_list == (MX_MASTER_TIMER_EVENT_LIST *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MASTER_TIMER_EVENT_LIST pointer passed was NULL." );
+	}
+
+	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_VIRTUAL_TIMER pointer passed was NULL." );
+	}
+
+	if ( (interval_type != MXF_VTIMER_ABSOLUTE_TIME)
+	  && (interval_type != MXF_VTIMER_RELATIVE_TIME) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested interval type %d is not one of the allowed "
+		"values of MXF_VTIMER_ABSOLUTE_TIME (%d) or "
+		"MXF_VTIMER_RELATIVE_TIME (%d).", interval_type,
+			MXF_VTIMER_ABSOLUTE_TIME, MXF_VTIMER_RELATIVE_TIME );
+	}
+
+	/* Create an event structure. */
+
+	new_event = (MX_MASTER_TIMER_EVENT *)
+			malloc( sizeof(MX_MASTER_TIMER_EVENT) );
+
+	if ( new_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+   "Ran out of memory trying to allocate an MX_MASTER_TIMER_EVENT structure." );
+   	}
+
+	new_event->vtimer = vtimer;
+
+	/* Compute the absolute time of the event we are adding. */
+
+	switch ( interval_type ) {
+	case MXF_VTIMER_ABSOLUTE_TIME:
+		new_event->expiration_time = timer_interval;
+		break;
+	case MXF_VTIMER_RELATIVE_TIME:
+		new_event->expiration_time = mx_add_high_resolution_times(
+				    mx_high_resolution_time(), timer_interval );
+		break;
+	}
+
+	/* If there are no events in the event list, add new_event as the
+	 * only event in the list.
+	 */
+
+	current_event = event_list->timer_event_list;
+
+	if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		new_event->previous_event = NULL;
+		new_event->next_event = NULL;
+
+		event_list->timer_event_list = new_event;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Find the correct place in the event list for this event. */
+
+	for (;;) {
+		comparison = mx_compare_high_resolution_times(
+					new_event->expiration_time,
+					current_event->expiration_time );
+
+		/* If the new event is scheduled to occur before the current
+		 * event, insert the new event here and then return.
+		 */
+
+		if ( comparison < 0 ) {
+			if ( current_event == event_list->timer_event_list ) {
+				new_event->previous_event = NULL;
+				new_event->next_event = current_event;
+
+				current_event->previous_event = new_event;
+				event_list->timer_event_list = new_event;
+			} else {
+				previous_event = current_event->previous_event;
+
+				new_event->previous_event = previous_event;
+				new_event->next_event = current_event;
+
+				current_event->previous_event = new_event;
+				previous_event->next_event = new_event;
+			}
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Proceed on to the next event in the list. */
+
+		next_event = current_event->next_event;
+
+		/* If we find that we are at the end of the list, append
+		 * the new event here.
+		 */
+
+		if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			new_event->next_event = NULL;
+			new_event->previous_event = current_event;
+			current_event->next_event = new_event;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Otherwise, we must keep going. */
+
+		current_event = next_event;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mx_master_timer_event_list_delete_vtimer_events(
-					MX_MASTER_TIMER_EVENT_LIST *event_list,
-					MX_VIRTUAL_TIMER *vtimer )
+mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
+			MX_VIRTUAL_TIMER *vtimer,
+			MX_MASTER_TIMER_EVENT *current_vtimer_event,
+			MX_MASTER_TIMER_EVENT **next_vtimer_event )
 {
-	static const char fname[] =
-		"mx_master_timer_event_list_delete_vtimer_events()";
+	static const char fname[] = "mx_get_next_vtimer_event()";
+
+	MX_MASTER_TIMER_EVENT *current_event, *next_event;
 
 	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
+
+	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_VIRTUAL_TIMER pointer passed was NULL." );
+	}
+
+	if ( next_vtimer_event == (MX_MASTER_TIMER_EVENT **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The next_vtimer_event pointer passed was NULL." );
+	}
+
+	if ( current_vtimer_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
+		current_event = current_vtimer_event;
+	} else {
+		/* Specify the first event in the event list. */
+
+		if ( event_list == (MX_MASTER_TIMER_EVENT_LIST *) NULL ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The event_list and the current_vtimer_event pointers "
+			"passed to this function cannot _both_ be NULL." );
+		}
+
+		current_event = event_list->timer_event_list;
+
+		if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			/* This event list does not have any events right now.*/
+
+			*next_vtimer_event = NULL;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	for (;;) {
+		next_event = current_event->next_event;
+
+		if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			/* This event list has no more events in it. */
+
+			*next_vtimer_event = NULL;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		if ( next_event->vtimer == vtimer ) {
+			/* We have a match, so return this event. */
+
+			*next_vtimer_event = next_event;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		current_event = next_event;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_delete_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
+			MX_MASTER_TIMER_EVENT *current_event )
+{
+	static const char fname[] = "mx_delete_vtimer_event()";
+
+	MX_MASTER_TIMER_EVENT *previous_event, *next_event;
+
+	MX_DEBUG(-2,("%s invoked for event list %p and event %p",
+		fname, event_list, current_event));
+
+	if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MASTER_TIMER_EVENT pointer passed was NULL." );
+	}
+
+	previous_event = current_event->previous_event;
+
+	next_event = current_event->next_event;
+
+	if ( current_event == event_list->timer_event_list ) {
+		event_list->timer_event_list = next_event;
+	}
+
+	if ( next_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
+		next_event->previous_event = previous_event;
+	}
+
+	if ( previous_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
+		previous_event->next_event = next_event;
+	}
+
+	mx_free( current_event );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
+				MX_VIRTUAL_TIMER *vtimer )
+{
+	static const char fname[] = "mx_delete_all_vtimer_events()";
+
+	MX_MASTER_TIMER_EVENT *current_event, *next_event;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
+		fname, event_list, vtimer));
+
+	/* Look for the first event in the linked list for this timer. */
+
+	mx_status = mx_get_next_vtimer_event( event_list, vtimer,
+						NULL, &next_event );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		/* There are no outstanding events for this timer,
+		 * so just return.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Loop through the event list looking for more events
+	 * for this vtimer.
+	 */
+
+	while ( next_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
+
+		/* Find the next event. */
+
+		current_event = next_event;
+
+		mx_status = mx_get_next_vtimer_event( event_list, vtimer,
+						current_event, &next_event );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Delete the current event from the event list. */
+
+		mx_status = mx_delete_vtimer_event( event_list, current_event );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -142,7 +409,12 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 	static const char fname[] = "mx_master_timer_callback_function()";
 
 	MX_MASTER_TIMER_EVENT_LIST *event_list;
+	MX_MASTER_TIMER_EVENT *current_event;
+	MX_VIRTUAL_TIMER *vtimer;
+	struct timespec current_time, expiration_time, new_expiration_time;
+	int comparison;
 	long lock_status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
 	MX_DEBUG(-2,("%s: args = %p", fname, args));
@@ -178,7 +450,92 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 		return;
 	}
 
-	/* FIXME: Insert event list processing here. */
+	/* Process and delete events in the event list that are before
+	 * or at the current time.
+	 */
+
+	current_time = mx_high_resolution_time();
+
+	for (;;) {
+		current_event = event_list->timer_event_list;
+
+		if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			/* We have reached the end of the event list. */
+
+			break;	/* Exit the for(;;) loop. */
+		}
+
+		expiration_time = current_event->expiration_time;
+
+		comparison = mx_compare_high_resolution_times(
+						current_time, expiration_time );
+
+		if ( comparison < 0 ) {
+			/* If this event is scheduled to happen in the future,
+			 * stop processing the event list at this point.
+			 */
+
+			break;	/* Exit the for(;;) loop. */
+		}
+
+		/* If the virtual timer is a periodic timer, then schedule
+		 * the next event.
+		 */
+
+		vtimer = current_event->vtimer;
+
+		if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_VIRTUAL_TIMER pointer for event %p is NULL.",
+				current_event );
+
+			break;	/* Exit the for(;;) loop. */
+		}
+
+		if ( vtimer->timer_type == MXIT_PERIODIC_TIMER ) {
+
+			/* Compute the new expiration time relative to the
+			 * old expiration time.  We do NOT do it relative to
+			 * the current time.
+			 */
+
+			new_expiration_time = mx_add_high_resolution_times(
+						expiration_time,
+						vtimer->timer_period );
+
+			mx_status = mx_add_vtimer_event( event_list,
+						vtimer,
+						new_expiration_time,
+						MXF_VTIMER_ABSOLUTE_TIME );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				break;	/* Exit the for(;;) loop. */
+			}
+		}
+		
+		/* Invoke the callback function if there is one. */
+
+		vtimer = current_event->vtimer;
+
+		if ( vtimer != (MX_VIRTUAL_TIMER *) NULL ) {
+
+			if ( vtimer->callback_function != NULL ) {
+
+				(vtimer->callback_function)( vtimer,
+							vtimer->callback_args );
+			}
+		}
+
+		/* We are done with this event, so delete it
+		 * from the event list.
+		 */
+
+		mx_status = mx_delete_vtimer_event( event_list, current_event );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			break;	/* Exit the for(;;) loop. */
+		}
+	}
 
 	/* We are done, so unlock the event list before returning. */
 
@@ -186,6 +543,8 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 	MX_DEBUG(-2,("%s: Unlocked the mutex for timer event list %p",
 			fname, event_list ));
+
+	return;
 }
 
 /*--------------------------------------------------------------------------*/
@@ -319,12 +678,21 @@ mx_virtual_timer_destroy( MX_VIRTUAL_TIMER *vtimer )
 {
 	static const char fname[] = "mx_virtual_timer_destroy()";
 
+	mx_status_type mx_status;
+
 	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_VIRTUAL_TIMER_POINTER passed was NULL." );
 	}
 
 	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+
+	mx_status = mx_virtual_timer_stop( vtimer, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_free( vtimer );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -335,12 +703,54 @@ mx_virtual_timer_is_busy( MX_VIRTUAL_TIMER *vtimer,
 {
 	static const char fname[] = "mx_virtual_timer_is_busy()";
 
-	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_VIRTUAL_TIMER_POINTER passed was NULL." );
-	}
+	MX_INTERVAL_TIMER *master_timer;
+	MX_MASTER_TIMER_EVENT_LIST *event_list;
+	MX_MASTER_TIMER_EVENT *next_event;
+	long lock_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_virtual_timer_get_pointers( vtimer,
+					&master_timer, &event_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+
+	/* Get exclusive access to the master timer event list. */
+
+	lock_status = mx_mutex_lock( event_list->mutex );
+
+	if ( lock_status != MXE_SUCCESS ) {
+		/* The mutex is not locked, so just return an error. */
+
+		return mx_error( lock_status, fname,
+			"Unable to lock the mutex for the event list of "
+			"master timer %p used by virtual timer %p",
+			master_timer, vtimer );
+	}
+
+	/* See if there are any scheduled events for this timer. */
+
+	mx_status = mx_get_next_vtimer_event( event_list, vtimer,
+						NULL, &next_event );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		UNLOCK_EVENT_LIST( event_list );
+		return mx_status;
+	}
+
+	/* If a next_event structure is returned, then the timer is still
+	 * busy.  Otherwise, it is not busy.
+	 */
+
+	if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		*busy = FALSE;
+	} else {
+		*busy = TRUE;
+	}
+
+	UNLOCK_EVENT_LIST( event_list );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -353,6 +763,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	MX_INTERVAL_TIMER *master_timer;
 	MX_MASTER_TIMER_EVENT_LIST *event_list;
+	struct timespec timer_period;
 	long lock_status;
 	mx_status_type mx_status;
 
@@ -370,8 +781,10 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	/* Save the timer period. */
 
-	vtimer->timer_period = mx_convert_seconds_to_high_resolution_time(
+	timer_period = mx_convert_seconds_to_high_resolution_time(
 					timer_period_in_seconds );
+
+	vtimer->timer_period = timer_period;
 
 	/* Get exclusive access to the master timer event list. */
 
@@ -394,8 +807,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	/* Get rid of any old events due to this virtual timer. */
 
-	mx_status = mx_master_timer_event_list_delete_vtimer_events(
-				event_list, vtimer );
+	mx_status = mx_delete_all_vtimer_events( event_list, vtimer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		UNLOCK_EVENT_LIST( event_list );
@@ -404,8 +816,8 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	/* Add a list entry for the next virtual timer event. */
 
-	mx_status = mx_master_timer_event_list_add_vtimer_event(
-				event_list, vtimer );
+	mx_status = mx_add_vtimer_event( event_list, vtimer, timer_period,
+					MXF_VTIMER_RELATIVE_TIME );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		UNLOCK_EVENT_LIST( event_list );
@@ -425,14 +837,20 @@ mx_virtual_timer_stop( MX_VIRTUAL_TIMER *vtimer,
 {
 	static const char fname[] = "mx_virtual_timer_stop()";
 
-	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_VIRTUAL_TIMER_POINTER passed was NULL." );
-	}
+	MX_MASTER_TIMER_EVENT_LIST *event_list;
+	mx_status_type mx_status;
+
+	mx_status = mx_virtual_timer_get_pointers( vtimer,
+					NULL, &event_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_delete_all_vtimer_events( event_list, vtimer );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -441,7 +859,72 @@ mx_virtual_timer_read( MX_VIRTUAL_TIMER *vtimer,
 {
 	static const char fname[] = "mx_virtual_timer_read()";
 
+	MX_INTERVAL_TIMER *master_timer;
+	MX_MASTER_TIMER_EVENT_LIST *event_list;
+	MX_MASTER_TIMER_EVENT *next_event;
+	struct timespec current_time, expiration_time, time_difference;
+	int comparison;
+	long lock_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_virtual_timer_get_pointers( vtimer,
+					&master_timer, &event_list, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+
+	/* Get exclusive access to the master timer event list. */
+
+	lock_status = mx_mutex_lock( event_list->mutex );
+
+	if ( lock_status != MXE_SUCCESS ) {
+		/* The mutex is not locked, so just return an error. */
+
+		return mx_error( lock_status, fname,
+			"Unable to lock the mutex for the event list of "
+			"master timer %p used by virtual timer %p",
+			master_timer, vtimer );
+	}
+
+	/* See if there are any scheduled events for this timer. */
+
+	mx_status = mx_get_next_vtimer_event( event_list, vtimer,
+						NULL, &next_event );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		UNLOCK_EVENT_LIST( event_list );
+		return mx_status;
+	}
+
+	/* If a next_event structure is returned, then the timer is still
+	 * busy, so we must extract the number of seconds until the next
+	 * expiration time.
+	 */
+
+	if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+		*seconds_till_expiration = 0.0;
+	} else {
+		current_time = mx_high_resolution_time();
+
+		expiration_time = next_event->expiration_time;
+
+		comparison = mx_compare_high_resolution_times(
+					current_time, expiration_time );
+
+		if ( comparison >= 0 ) {
+			*seconds_till_expiration = 0.0;
+		} else {
+			time_difference = mx_subtract_high_resolution_times(
+					expiration_time, current_time );
+
+			*seconds_till_expiration =
+		    mx_convert_high_resolution_time_to_seconds(time_difference);
+		}
+	}
+
+	UNLOCK_EVENT_LIST( event_list );
 
 	return MX_SUCCESSFUL_RESULT;
 }
