@@ -236,7 +236,9 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		current_event = next_event;
 	}
 
+#if 0
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 static mx_status_type
@@ -306,7 +308,9 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		current_event = next_event;
 	}
 
+#if 0
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 static mx_status_type
