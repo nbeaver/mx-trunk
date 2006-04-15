@@ -82,7 +82,8 @@ mx_get_cpu_architecture( char *architecture_type,
 
 /****************************************************************************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_ECOS)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) \
+	|| defined(OS_ECOS) || defined(OS_RTEMS)
 
 #include <sys/utsname.h>
 
