@@ -82,6 +82,49 @@ mx_get_cpu_architecture( char *architecture_type,
 
 /****************************************************************************/
 
+#elif defined(OS_VXWORKS)
+
+MX_EXPORT mx_status_type
+mx_get_cpu_architecture( char *architecture_type,
+			size_t max_architecture_type_length,
+			char *architecture_subtype,
+			size_t max_architecture_subtype_length )
+{
+	if ( architecture_type != NULL ) {
+
+#if ( CPU_FAMILY == ARM )
+	    strlcpy( architecture_type, "arm", max_architecture_type_length );
+#elif ( CPU_FAMILY == I80X86 ) || ( CPU_FAMILY == SIMNT )
+	    strlcpy( architecture_type, "i386", max_architecture_type_length );
+#elif ( CPU_FAMILY == I960 )
+	    strlcpy( architecture_type, "i960", max_architecture_type_length );
+#elif ( CPU_FAMILY == MC680X0 )
+	    strlcpy( architecture_type, "m68k", max_architecture_type_length );
+#elif ( CPU_FAMILY == MIPS )
+	    strlcpy( architecture_type, "mips", max_architecture_type_length );
+#elif ( CPU_FAMILY == SIMHPPA )
+	    strlcpy( architecture_type, "parisc", max_architecture_type_length);
+#elif ( CPU_FAMILY == PPC )
+	    strlcpy( architecture_type, "powerpc",
+	    			max_architecture_type_length );
+#elif ( CPU_FAMILY == SPARC ) \
+	|| ( CPU_FAMILY == SIMSPARCSUNOS ) || ( CPU_FAMILY == SIMSPARCSOLARIS )
+	    strlcpy( architecture_type, "sparc", max_architecture_type_length );
+#else
+#     error CPU architecture type not detected.
+#endif
+	}
+
+	if ( architecture_subtype != NULL ) {
+		strlcpy( architecture_subtype, "",
+				max_architecture_subtype_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/****************************************************************************/
+
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) \
 	|| defined(OS_ECOS) || defined(OS_RTEMS)
 
@@ -118,12 +161,17 @@ mx_get_cpu_architecture( char *architecture_type,
 
 	if ( architecture_type != NULL ) {
 
-#  if defined(__i386__) || defined(__i386)
+#  if defined(__x86_64__) || defined(__x86_64)
+
+		strlcpy( architecture_type, "amd64",
+				max_architecture_type_length );
+
+#  elif defined(__i386__) || defined(__i386)
 
 		strlcpy( architecture_type, "i386",
 				max_architecture_type_length );
 
-#  elif defined(__mips)
+#  elif defined(__mips__) || defined(__mips)
 
 		strlcpy( architecture_type, "mips",
 				max_architecture_type_length );
@@ -133,14 +181,9 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_type, "powerpc",
 				max_architecture_type_length );
 
-#  elif defined(__sparc)
+#  elif defined(__sparc__) || defined(__sparc)
 
 		strlcpy( architecture_type, "sparc",
-				max_architecture_type_length );
-
-#  elif defined(__x86_64__) || defined(__x86_64)
-
-		strlcpy( architecture_type, "amd64",
 				max_architecture_type_length );
 
 #  else
