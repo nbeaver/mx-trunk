@@ -324,6 +324,8 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 
 	if ( win32_mmtimer_private->timer_id == 0 ) {
 		*busy = FALSE;
+
+		itimer->timer_period = -1;
 	} else {
 		*busy = TRUE;
 	}
@@ -357,6 +359,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		"The MX_WIN32_MMTIMER_PRIVATE pointer for timer %p is NULL.",
 			itimer );
 	};
+
+	itimer->timer_period = timer_period_in_seconds;
 
 	if( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
 		timer_flags = TIME_ONESHOT;
@@ -444,6 +448,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 		"The MX_WIN32_MMTIMER_PRIVATE pointer for timer %p is NULL.",
 			itimer );
 	};
+
+	itimer->timer_period = -1;
 
 	if ( seconds_till_expiration != NULL ) {
 		mx_status = mx_interval_timer_read( itimer,
@@ -939,6 +945,8 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		*busy = TRUE;
 	} else {
 		*busy = FALSE;
+
+		itimer->timer_period = -1;
 	}
 
 #if MX_INTERVAL_TIMER_DEBUG
@@ -968,6 +976,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	itimer->timer_period = timer_period_in_seconds;
 
 	vms_itimer_private->timer_is_busy = FALSE;
 
@@ -1162,6 +1172,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 	if ( seconds_left != NULL ) {
 		(void) mx_interval_timer_read( itimer, seconds_left );
 	}
+
+	itimer->timer_period = -1;
 
 	/* Stop the timer.
 	 *
@@ -1929,6 +1941,8 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		*busy = TRUE;
 	} else {
 		*busy = FALSE;
+
+		itimer->timer_period = -1;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1954,6 +1968,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	itimer->timer_period = timer_period_in_seconds;
 
 	/* Convert the timer period to a struct timespec. */
 
@@ -2023,6 +2039,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	itimer->timer_period = -1;
 
 	/* Read the time left on the timer, if requested, but do not abort
 	 * if the attempt to read the timer value fails.
@@ -2336,6 +2354,8 @@ mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
 		*busy = TRUE;
 	} else {
 		*busy = FALSE;
+
+		itimer->timer_period = -1;
 	}
 
 	(void) mx_mutex_unlock( mx_setitimer_mutex );
@@ -2369,6 +2389,8 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		"The MX_SETITIMER_PRIVATE pointer for timer %p is NULL.",
 			itimer );
 	}
+
+	itimer->timer_period = timer_period_in_seconds;
 
 	/* Convert the timer period to a struct timespec. */
 
@@ -2467,6 +2489,8 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 
 	struct itimerval itimer_value;
 	int status, saved_errno;
+
+	itimer->timer_period = -1;
 
 	/* Read the time left on the timer, if requested, but do not abort
 	 * if the attempt to read the timer value fails.

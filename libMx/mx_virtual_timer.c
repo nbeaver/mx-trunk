@@ -287,20 +287,20 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 	}
 
 	for (;;) {
+		if ( current_event->vtimer == vtimer ) {
+			/* We have a match, so return this event. */
+
+			*next_vtimer_event = current_event;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
 		next_event = current_event->next_event;
 
 		if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
 			/* This event list has no more events in it. */
 
 			*next_vtimer_event = NULL;
-
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		if ( next_event->vtimer == vtimer ) {
-			/* We have a match, so return this event. */
-
-			*next_vtimer_event = next_event;
 
 			return MX_SUCCESSFUL_RESULT;
 		}

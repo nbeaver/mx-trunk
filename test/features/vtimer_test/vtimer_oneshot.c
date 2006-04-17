@@ -5,6 +5,9 @@
 #include "mx_util.h"
 #include "mx_virtual_timer.h"
 
+#define MASTER_TIME_INTERVAL	3.0
+#define VIRTUAL_TIME_INTERVAL	10.0
+
 static void
 callback_fn( MX_VIRTUAL_TIMER *vtimer, void *args )
 {
@@ -28,7 +31,8 @@ main( int argc, char *argv[] ) {
 
 	value = 7;
 
-	mx_status = mx_virtual_timer_create_master( &master_timer, 1.0 );
+	mx_status = mx_virtual_timer_create_master( &master_timer,
+							MASTER_TIME_INTERVAL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
@@ -41,7 +45,7 @@ main( int argc, char *argv[] ) {
 
 	MX_DEBUG(-2,("Starting test."));
 
-	mx_status = mx_virtual_timer_start( vtimer, 2.5 );
+	mx_status = mx_virtual_timer_start( vtimer, VIRTUAL_TIME_INTERVAL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
