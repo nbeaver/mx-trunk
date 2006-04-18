@@ -122,7 +122,7 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 	MX_MASTER_TIMER_EVENT *previous_event, *current_event, *next_event;
 	int comparison;
 
-	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
+	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
 
 	if ( event_list == (MX_MASTER_TIMER_EVENT_LIST *) NULL ) {
@@ -251,7 +251,7 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	MX_MASTER_TIMER_EVENT *current_event, *next_event;
 
-	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
+	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
 
 	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
@@ -321,7 +321,7 @@ mx_delete_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	MX_MASTER_TIMER_EVENT *previous_event, *next_event;
 
-	MX_DEBUG(-2,("%s invoked for event list %p and event %p",
+	MX_DEBUG( 2,("%s invoked for event list %p and event %p",
 		fname, event_list, current_event));
 
 	if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
@@ -359,7 +359,7 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 	MX_MASTER_TIMER_EVENT *current_event, *next_event;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
+	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
 
 	/* Look for the first event in the linked list for this timer. */
@@ -420,12 +420,12 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 	long lock_status;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: itimer = %p", fname, itimer));
-	MX_DEBUG(-2,("%s: args = %p", fname, args));
+	MX_DEBUG( 2,("%s: itimer = %p", fname, itimer));
+	MX_DEBUG( 2,("%s: args = %p", fname, args));
 
 	event_list = (MX_MASTER_TIMER_EVENT_LIST *) args;
 
-	MX_DEBUG(-2,("%s: num_timer_events = %lu",
+	MX_DEBUG( 2,("%s: num_timer_events = %lu",
 		fname, event_list->num_timer_events));
 
 	/* Attempt to lock the mutex for the timer event list. */
@@ -436,13 +436,13 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 	case MXE_SUCCESS:
 		/* We have acquired the mutex. */
 
-		MX_DEBUG(-2,("%s: Locked the mutex for timer event list %p",
+		MX_DEBUG( 2,("%s: Locked the mutex for timer event list %p",
 				fname, event_list));
 		break;
 	case MXE_NOT_AVAILABLE:
 		/* Somebody else has the mutex.  We will try again later. */
 
-		MX_DEBUG(-2,("%s: timer event list %p mutex is unavailable.",
+		MX_DEBUG( 2,("%s: timer event list %p mutex is unavailable.",
 				fname, event_list ));
 		return;
 	default:
@@ -545,7 +545,7 @@ mx_master_timer_callback_function( MX_INTERVAL_TIMER *itimer, void *args )
 
 	UNLOCK_EVENT_LIST(event_list);
 
-	MX_DEBUG(-2,("%s: Unlocked the mutex for timer event list %p",
+	MX_DEBUG( 2,("%s: Unlocked the mutex for timer event list %p",
 			fname, event_list ));
 
 	return;
@@ -562,7 +562,7 @@ mx_virtual_timer_create_master( MX_INTERVAL_TIMER **master_timer,
 	MX_MASTER_TIMER_EVENT_LIST *event_list;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( master_timer == (MX_INTERVAL_TIMER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -620,7 +620,7 @@ mx_virtual_timer_destroy_master( MX_INTERVAL_TIMER *master_timer )
 
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( master_timer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -646,7 +646,7 @@ mx_virtual_timer_create( MX_VIRTUAL_TIMER **vtimer,
 {
 	static const char fname[] = "mx_virtual_timer_create()";
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	if ( vtimer == (MX_VIRTUAL_TIMER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -689,7 +689,7 @@ mx_virtual_timer_destroy( MX_VIRTUAL_TIMER *vtimer )
 		"The MX_VIRTUAL_TIMER_POINTER passed was NULL." );
 	}
 
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	mx_status = mx_virtual_timer_stop( vtimer, NULL );
 
@@ -719,7 +719,7 @@ mx_virtual_timer_is_busy( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	/* Get exclusive access to the master timer event list. */
 
@@ -777,7 +777,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	/* We need to add a timer event to the timer event list managed
 	 * by the master timer that this virtual timer uses.
@@ -803,7 +803,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 			master_timer, vtimer );
 	}
 
-	MX_DEBUG(-2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
+	MX_DEBUG( 2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
 		fname, timer_period_in_seconds,
 		(long) vtimer->timer_period.tv_sec,
 		vtimer->timer_period.tv_nsec,
@@ -830,7 +830,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	UNLOCK_EVENT_LIST( event_list );
 
-	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG( 2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -850,7 +850,7 @@ mx_virtual_timer_stop( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	mx_status = mx_delete_all_vtimer_events( event_list, vtimer );
 
@@ -877,7 +877,7 @@ mx_virtual_timer_read( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	/* Get exclusive access to the master timer event list. */
 

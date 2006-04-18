@@ -1,8 +1,12 @@
 LIBMXDIR = ../../../libMx
 
-all: vtimer_oneshot vtimer_periodic
+all: vtimer_multi vtimer_oneshot vtimer_periodic
 
 include $(LIBMXDIR)/Makehead.$(MX_ARCH)
+
+vtimer_multi: vtimer_multi.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
+	$(CC) $(CFLAGS) $(EXEOUT)vtimer_multi$(DOTEXE) vtimer_multi.c \
+		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 vtimer_oneshot: vtimer_oneshot.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 	$(CC) $(CFLAGS) $(EXEOUT)vtimer_oneshot$(DOTEXE) vtimer_oneshot.c \
@@ -13,5 +17,6 @@ vtimer_periodic: vtimer_periodic.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 clean:
-	-$(RM) vtimer_oneshot vtimer_periodic *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) vtimer_multi vtimer_oneshot vtimer_periodic
+	-$(RM) *.o *.obj *.exe *.ilk *.pdb
 
