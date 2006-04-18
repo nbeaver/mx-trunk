@@ -107,7 +107,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PULSED_RELAY, open_idle_value),\
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \
-  {-1, -1, "pulse_time", MXFT_DOUBLE, NULL, 0, {0}, \
+  {-1, -1, "pulse_time", MXFT_ULONG, NULL, 0, {0}, \
   	MXF_REC_TYPE_STRUCT, offsetof(MX_PULSED_RELAY, pulse_time), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}
 
@@ -130,3 +130,4 @@ extern long mxd_pulsed_relay_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxd_pulsed_relay_rfield_def_ptr;
 
 #endif /* __D_PULSED_RELAY_H__ */
+
