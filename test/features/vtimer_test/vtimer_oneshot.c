@@ -5,8 +5,8 @@
 #include "mx_util.h"
 #include "mx_virtual_timer.h"
 
-#define MASTER_TIME_INTERVAL	3.0
-#define VIRTUAL_TIME_INTERVAL	10.0
+#define MASTER_TIME_INTERVAL	0.5
+#define VIRTUAL_TIME_INTERVAL	1.25
 
 static void
 callback_fn( MX_VIRTUAL_TIMER *vtimer, void *args )

@@ -747,7 +747,46 @@ mx_high_resolution_time_init( void )
 		fname, mx_hrt_counter_ticks_per_microsecond));
 
 	return;
+}
 
+#elif defined(__FreeBSD__)
+
+#include <errno.h>
+#include <sys/sysctl.h>
+
+MX_EXPORT void
+mx_high_resolution_time_init( void )
+{
+	static const char fname[] = "mx_high_resolution_time_init()";
+
+	unsigned long tsc_freq;
+	size_t length;
+	int status, saved_errno;
+
+	mx_high_resolution_time_init_invoked = TRUE;
+
+	length = sizeof(tsc_freq);
+
+	status = sysctlbyname("machdep.tsc_freq", &tsc_freq, &length, NULL, 0);
+
+	if ( status < 0 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to read the value of 'machdep.tsc_freq' "
+		"using sysctlbyname() failed.  Errno = %d, error = '%s'",
+			saved_errno, strerror(saved_errno) );
+		return;
+	}
+
+	MX_DEBUG(-2,("%s: tsc_freq = %lu", fname, tsc_freq));
+
+	mx_hrt_counter_ticks_per_microsecond = tsc_freq / 1000000LU;
+
+	MX_DEBUG(-2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
+		fname, mx_hrt_counter_ticks_per_microsecond));
+
+	return;
 }
 
 #else	/* not OS_LINUX */

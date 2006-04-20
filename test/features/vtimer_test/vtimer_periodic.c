@@ -3,18 +3,25 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
+#include "mx_hrt.h"
 #include "mx_key.h"
 #include "mx_virtual_timer.h"
 
 static void
 callback_fn( MX_VIRTUAL_TIMER *vtimer, void *args )
 {
+	struct timespec current_time;
 	int *value_ptr;
+
+	current_time = mx_high_resolution_time();
 
 	value_ptr = (int *) args;
 
-	MX_DEBUG(-2,("Callback: vtimer = %p, args = %p, *value_ptr = %d",
-		 	vtimer, args, *value_ptr));
+	MX_DEBUG(-2,
+("Callback: vtimer = %p, args = %p, *value_ptr = %d, current time = (%lu,%lu)",
+	 	vtimer, args, *value_ptr,
+		(unsigned long) current_time.tv_sec,
+		(unsigned long) current_time.tv_nsec));
 }
 
 int

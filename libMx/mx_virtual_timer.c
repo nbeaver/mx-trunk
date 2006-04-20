@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_VIRTUAL_TIMER_DEBUG		FALSE
+#define MX_VIRTUAL_TIMER_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -105,10 +105,57 @@ mx_virtual_timer_get_pointers( MX_VIRTUAL_TIMER *vtimer,
 
 /* WARNING, WARNING, WARNING:
  *
- *    The following functions from mx_add_vtimer_event() to
+ *    The following functions from mx_show_event_list() to
  *    mx_delete_all_vtimer_events() must all be invoked with
  *    with the event_list's mutex already LOCKED!!!
  */
+
+#if MX_VIRTUAL_TIMER_DEBUG
+
+static void
+mx_show_event_list( const char *calling_fname,
+		MX_MASTER_TIMER_EVENT_LIST *event_list )
+{
+	static const char fname[] = "mx_show_event_list()";
+
+	MX_MASTER_TIMER_EVENT *current_event;
+	unsigned long i;
+
+	MX_DEBUG(-2,("%s invoked for event_list = %p by %s",
+		fname, event_list, calling_fname));
+
+	if ( event_list == (MX_MASTER_TIMER_EVENT_LIST *) NULL ) {
+		return;
+	}
+
+	current_event = event_list->timer_event_list;
+
+	MX_DEBUG(-2,("Event list %p", event_list));
+	MX_DEBUG(-2,("------------------------------"));
+
+	if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+
+		MX_DEBUG(-2,("---> Event list is empty <---"));
+		return;
+	}
+
+	i = 0;
+
+	for (;;) {
+
+		MX_DEBUG(-2,("Event %lu = %p", i, current_event));
+
+		current_event = current_event->next_event;
+
+		if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			MX_DEBUG(-2,("---> End of event list <---"));
+			return;
+		}
+		i++;
+	}
+}
+
+#endif /* MX_VIRTUAL_TIMER_DEBUG */
 
 static mx_status_type
 mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
@@ -120,10 +167,13 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	MX_MASTER_TIMER_EVENT *new_event;
 	MX_MASTER_TIMER_EVENT *previous_event, *current_event, *next_event;
+	struct timespec current_time;
 	int comparison;
 
-	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
+#endif
 
 	if ( event_list == (MX_MASTER_TIMER_EVENT_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -159,15 +209,36 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	/* Compute the absolute time of the event we are adding. */
 
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: timer_interval = (%lu,%lu), interval_type = %d",
+		fname, (unsigned long) timer_interval.tv_sec,
+		(unsigned long) timer_interval.tv_nsec, interval_type));
+#endif
+
 	switch ( interval_type ) {
 	case MXF_VTIMER_ABSOLUTE_TIME:
 		new_event->expiration_time = timer_interval;
 		break;
 	case MXF_VTIMER_RELATIVE_TIME:
+		current_time = mx_high_resolution_time();
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: current_time = (%lu,%lu)",
+			fname, (unsigned long) current_time.tv_sec,
+			(unsigned long) current_time.tv_nsec));
+#endif
+
 		new_event->expiration_time = mx_add_high_resolution_times(
-				    mx_high_resolution_time(), timer_interval );
+				    current_time, timer_interval );
 		break;
 	}
+
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Created new_event = %p, expiration_time = (%lu,%lu)",
+		fname, new_event,
+		(unsigned long) new_event->expiration_time.tv_sec,
+		(unsigned long) new_event->expiration_time.tv_nsec));
+#endif
 
 	/* If there are no events in the event list, add new_event as the
 	 * only event in the list.
@@ -181,12 +252,25 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 		event_list->timer_event_list = new_event;
 
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: event %p is the only event in the list.",
+			fname, event_list->timer_event_list));
+
+		mx_show_event_list( fname, event_list );
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* Find the correct place in the event list for this event. */
 
 	for (;;) {
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Top of for(;;) loop, current_event = %p",
+			fname, current_event));
+#endif
+
 		comparison = mx_compare_high_resolution_times(
 					new_event->expiration_time,
 					current_event->expiration_time );
@@ -202,16 +286,37 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 				current_event->previous_event = new_event;
 				event_list->timer_event_list = new_event;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+				MX_DEBUG(-2,
+			("%s: Adding event %p to the start of the list."
+			" event_list->timer_event_list->next_event = %p",
+				    fname, event_list->timer_event_list,
+				    event_list->timer_event_list->next_event));
+#endif
 			} else {
 				previous_event = current_event->previous_event;
 
 				new_event->previous_event = previous_event;
 				new_event->next_event = current_event;
 
+#if MX_VIRTUAL_TIMER_DEBUG
+				MX_DEBUG(-2,
+			("%s: Adding event %p between events %p and %p",
+			fname, new_event, previous_event, current_event));
+#endif
+
 				current_event->previous_event = new_event;
 				previous_event->next_event = new_event;
-			}
 
+#if MX_VIRTUAL_TIMER_DEBUG
+				MX_DEBUG(-2,
+			("%s: previous_event->next_event = %p, "
+			"current_event->previous_event = %p",
+				fname, previous_event->next_event,
+				current_event->previous_event));
+#endif
+			}
 			return MX_SUCCESSFUL_RESULT;
 		}
 
@@ -227,6 +332,18 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 			new_event->next_event = NULL;
 			new_event->previous_event = current_event;
 			current_event->next_event = new_event;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+			MX_DEBUG(-2,
+			("%s: Appending event %p at the end of the list.  "
+			"current_event->next_event = %p, "
+			"new_event->previous_event = %p",
+				fname, new_event,
+				current_event->next_event,
+				new_event->previous_event));
+
+			mx_show_event_list( fname, event_list );
+#endif
 
 			return MX_SUCCESSFUL_RESULT;
 		}
@@ -249,10 +366,13 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 {
 	static const char fname[] = "mx_get_next_vtimer_event()";
 
-	MX_MASTER_TIMER_EVENT *current_event, *next_event;
+	MX_MASTER_TIMER_EVENT *current_event;
 
-	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
-		fname, event_list, vtimer));
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event list = %p", fname, event_list));
+	MX_DEBUG(-2,("%s: vtimer = %p, current_vtimer_event = %p",
+		fname, vtimer, current_vtimer_event));
+#endif
 
 	if ( vtimer == (MX_VIRTUAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -265,7 +385,7 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 	}
 
 	if ( current_vtimer_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
-		current_event = current_vtimer_event;
+		current_event = current_vtimer_event->next_event;
 	} else {
 		/* Specify the first event in the event list. */
 
@@ -282,30 +402,50 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 			*next_vtimer_event = NULL;
 
+#if MX_VIRTUAL_TIMER_DEBUG
+			MX_DEBUG(-2,
+			("%s: No events in this event list.", fname));
+#endif
+
 			return MX_SUCCESSFUL_RESULT;
 		}
 	}
 
 	for (;;) {
+
+		if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
+			/* This event list has no more events in it. */
+
+			*next_vtimer_event = NULL;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+			MX_DEBUG(-2,
+			("%s: No more events in this event list.", fname));
+#endif
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,
+		("%s: current_event = %p, current_event->vtimer = %p",
+			fname, current_event, current_event->vtimer));
+#endif
+
 		if ( current_event->vtimer == vtimer ) {
 			/* We have a match, so return this event. */
 
 			*next_vtimer_event = current_event;
 
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		next_event = current_event->next_event;
-
-		if ( next_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
-			/* This event list has no more events in it. */
-
-			*next_vtimer_event = NULL;
+#if MX_VIRTUAL_TIMER_DEBUG
+			MX_DEBUG(-2,("%s: FOUND ---> next_vtimer_event = %p",
+				fname, *next_vtimer_event));
+#endif
 
 			return MX_SUCCESSFUL_RESULT;
 		}
 
-		current_event = next_event;
+		current_event = current_event->next_event;
 	}
 
 #if 0
@@ -321,8 +461,10 @@ mx_delete_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	MX_MASTER_TIMER_EVENT *previous_event, *next_event;
 
-	MX_DEBUG( 2,("%s invoked for event list %p and event %p",
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for event list %p and event %p",
 		fname, event_list, current_event));
+#endif
 
 	if ( current_event == (MX_MASTER_TIMER_EVENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -333,19 +475,50 @@ mx_delete_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 	next_event = current_event->next_event;
 
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: previous_event = %p, next_event = %p",
+		fname, previous_event, next_event));
+#endif
+
 	if ( current_event == event_list->timer_event_list ) {
 		event_list->timer_event_list = next_event;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: current_event = %p is at the start of the "
+		"event list.  Set event list start to next event = %p",
+		fname, current_event, event_list->timer_event_list));
+#endif
 	}
 
 	if ( next_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
 		next_event->previous_event = previous_event;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Set next_event->previous_event to %p",
+			fname, next_event->previous_event));
+#endif
 	}
 
 	if ( previous_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
 		previous_event->next_event = next_event;
+
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: Set previous_event->next_event to %p",
+			fname, previous_event->next_event));
+#endif
 	}
 
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to free event %p", fname, current_event));
+#endif
+
 	mx_free( current_event );
+
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Finished freeing event", fname));
+
+	mx_show_event_list( fname, event_list );
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -354,13 +527,21 @@ static mx_status_type
 mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 				MX_VIRTUAL_TIMER *vtimer )
 {
+#if MX_VIRTUAL_TIMER_DEBUG
 	static const char fname[] = "mx_delete_all_vtimer_events()";
+#endif
 
 	MX_MASTER_TIMER_EVENT *current_event, *next_event;
+	unsigned long i;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked for event list %p and vtimer %p",
+#if MX_VIRTUAL_TIMER_DEBUG
+	MX_DEBUG(-2,("*****************************************************"));
+	MX_DEBUG(-2,("%s invoked for event list %p and vtimer %p",
 		fname, event_list, vtimer));
+
+	mx_show_event_list( fname, event_list );
+#endif
 
 	/* Look for the first event in the linked list for this timer. */
 
@@ -375,18 +556,28 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		 * so just return.
 		 */
 
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,
+		("%s: No events to delete for this vtimer.", fname));
+#endif
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* Loop through the event list looking for more events
-	 * for this vtimer.
-	 */
+	/* Loop through the event list looking for events for this vtimer. */
+
+	i = 0;
 
 	while ( next_event != (MX_MASTER_TIMER_EVENT *) NULL ) {
 
+		current_event = next_event;
+
 		/* Find the next event. */
 
-		current_event = next_event;
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: finding next event for event #%lu = %p",
+			fname, i, current_event));
+#endif
 
 		mx_status = mx_get_next_vtimer_event( event_list, vtimer,
 						current_event, &next_event );
@@ -396,10 +587,17 @@ mx_delete_all_vtimer_events( MX_MASTER_TIMER_EVENT_LIST *event_list,
 
 		/* Delete the current event from the event list. */
 
+#if MX_VIRTUAL_TIMER_DEBUG
+		MX_DEBUG(-2,("%s: deleting event #%lu = %p",
+			fname, i, current_event));
+#endif
+
 		mx_status = mx_delete_vtimer_event( event_list, current_event );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		i++;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
