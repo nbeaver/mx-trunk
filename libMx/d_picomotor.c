@@ -164,9 +164,9 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 		if ( motor_number != current_motor_number ) {
 
-			/* When the current motor number is changed, we must
-			 * update the 'base_position' fields for all of the
-			 * motors belonging to this driver.
+			/* When the current motor number is changed,
+			 * we must update the 'base_position' field
+			 * for the current motor.
 			 */
 
 #if 0
@@ -689,8 +689,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 		/* The Model 8753 _only_ reports relative positions,
 		 * namely, the number of pulses sent since the last
 		 * motion command.  Thus, we use the reported number
-		 * of motor steps as an offset from the position at
-		 * the start of the last move.
+		 * of motor steps as an offset from the base position.
 		 */
 
 		MX_DEBUG( 2,("%s: picomotor->base_position = %ld",
