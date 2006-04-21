@@ -70,7 +70,7 @@
  *
  */
 
-#define MX_INTERVAL_TIMER_DEBUG		FALSE
+#define MX_INTERVAL_TIMER_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +83,16 @@
 #include "mx_mutex.h"
 #include "mx_thread.h"
 #include "mx_interval_timer.h"
+
+#if defined( _POSIX_TIMERS )
+#  if ( _POSIX_TIMERS < 0 )
+#     define HAVE_POSIX_TIMERS	FALSE
+#  else
+#     define HAVE_POSIX_TIMERS	TRUE
+#  endif
+#else
+#  define HAVE_POSIX_TIMERS	FALSE
+#endif
 
 /******************** Microsoft Windows multimedia timers ********************/
 
@@ -275,7 +285,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
 	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
@@ -298,7 +308,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
 
@@ -349,7 +359,7 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
 	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
@@ -438,7 +448,7 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer,
 
 	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_INTERVAL_TIMER_POINTER passed was NULL." );
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
 	}
 
 	win32_mmtimer_private = (MX_WIN32_MMTIMER_PRIVATE *) itimer->private;
@@ -916,7 +926,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
 
@@ -1327,8 +1337,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /*************************** POSIX realtime timers **************************/
 
-#elif ( defined(_POSIX_TIMERS) && !defined(OS_MACOSX) ) \
-	|| defined(OS_IRIX) || defined(OS_VXWORKS)
+#elif HAVE_POSIX_TIMERS || defined(OS_IRIX) || defined(OS_VXWORKS)
 
 #include <time.h>
 #include <signal.h>
@@ -1893,7 +1902,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
 
@@ -2141,9 +2150,400 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ BSD style kqueue() timers ***********************/
+
+#elif defined( OS_BSD ) || defined( OS_MACOSX )
+
+#include <sys/types.h>
+#include <sys/event.h>
+#include <sys/time.h>
+#include <errno.h>
+
+typedef struct {
+	MX_THREAD *thread;
+	int kq;
+	int ident;
+	mx_bool_type busy;
+} MX_KQUEUE_ITIMER_PRIVATE;
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
+			MX_KQUEUE_ITIMER_PRIVATE **itimer_private,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_interval_timer_get_pointers()";
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	if ( itimer_private == (MX_KQUEUE_ITIMER_PRIVATE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_KQUEUE_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	*itimer_private = (MX_KQUEUE_ITIMER_PRIVATE *) itimer->private;
+
+	if ( (*itimer_private) == (MX_KQUEUE_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_KQUEUE_ITIMER_PRIVATE pointer for itimer %p is NULL.",
+			itimer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mx_interval_timer_thread()";
+
+	MX_INTERVAL_TIMER *itimer;
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	struct kevent event;
+	int num_events;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for thread %p, args %p.",
+		fname, thread, args));
+#endif
+
+	itimer = (MX_INTERVAL_TIMER *) args;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Loop forever. */
+
+	for (;;) {
+		/* Wait forever for an event. */
+
+		num_events = kevent( kqueue_itimer_private->kq,
+					NULL, 0, &event, 1, NULL );
+
+		MX_DEBUG(-2,("%s: kqueue() returned.  num_events = %d",
+			fname, num_events));
+
+		/* Did we get the event we were expecting? */
+
+		if ( (event.ident != kqueue_itimer_private->ident)
+		  || (event.filter != EVFILT_TIMER) )
+		{
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Unexpected event type seen.  "
+			"event.ident = %d, event.filter = %d instead of "
+			"the expected values of "
+			"event.ident = %d, event.filter = %d (EVFILT_TIMER).",
+				event.ident, event.filter,
+				kqueue_itimer_private->ident, EVFILT_TIMER );
+		} else {
+			/* Invoke the callback function. */
+
+			if ( itimer->callback_function != NULL ) {
+				itimer->callback_function( itimer,
+						itimer->callback_args );
+			}
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_API mx_status_type
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
+				void *callback_args )
+{
+	static const char fname[] = "mx_interval_timer_create()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	int saved_errno;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for BSD kqueue timers.", fname));
+	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
+	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
+	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
+
+	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	switch( timer_type ) {
+	case MXIT_ONE_SHOT_TIMER:
+	case MXIT_PERIODIC_TIMER:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Interval timer type %d is unsupported.", timer_type );
+		break;
+	}
+
+	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
+
+	if ( (*itimer) == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
+
+	kqueue_itimer_private = (MX_KQUEUE_ITIMER_PRIVATE *)
+				malloc( sizeof(MX_KQUEUE_ITIMER_PRIVATE) );
+
+	if ( kqueue_itimer_private == (MX_KQUEUE_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for a MX_KQUEUE_ITIMER_PRIVATE structure." );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: kqueue_itimer_private = %p",
+			fname, kqueue_itimer_private));
+#endif
+
+	(*itimer)->timer_type = timer_type;
+	(*itimer)->timer_period = -1.0;
+	(*itimer)->num_overruns = 0;
+	(*itimer)->callback_function = callback_function;
+	(*itimer)->callback_args = callback_args;
+	(*itimer)->private = kqueue_itimer_private;
+
+	/* Create the kqueue specific data structures. */
+
+	kqueue_itimer_private->kq = kqueue();
+
+	if ( kqueue_itimer_private->kq < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to create a BSD kqueue failed with "
+		"errno = %d, error = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	kqueue_itimer_private->ident = 1;
+
+	/* Create a thread to manage the kqueue. */
+
+	mx_status = mx_thread_create( &(kqueue_itimer_private->thread),
+					mx_interval_timer_thread,
+					itimer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
+{
+	static const char fname[] = "mx_interval_timer_destroy()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	double seconds_left;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_free( kqueue_itimer_private );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
+{
+	static const char fname[] = "mx_interval_timer_is_busy()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( busy != (mx_bool_type *) NULL ) {
+		*busy = kqueue_itimer_private->busy;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
+			double timer_period_in_seconds )
+{
+	static const char fname[] = "mx_interval_timer_start()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	struct kevent event;
+	int num_events, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	itimer->timer_period = timer_period_in_seconds;
+
+	/* Construct the kevent structure. */
+
+	event.ident = kqueue_itimer_private->ident;
+
+	event.filter = EVFILT_TIMER;
+
+	if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+		event.flags = EV_ADD | EV_ONESHOT;
+	} else {
+		event.flags = EV_ADD;
+	}
+
+	/* EVFILT_TIMER has no fflags. */
+
+	event.fflags = 0;
+
+	/* Don't need udata since the callback_function and callback_args
+	 * pointers in the MX_INTERVAL_TIMER structure already contain
+	 * everything we need.
+	 */
+
+	event.udata = NULL;
+
+	/* Convert the timer period to milliseconds. */
+
+	event.data = mx_round( 1000.0 * timer_period_in_seconds );
+
+	/* Add the kevent to the kqueue. */
+
+	kqueue_itimer_private->busy = TRUE;
+
+	num_events = kevent( kqueue_itimer_private->kq,
+				&event, 1, NULL, 0, NULL );
+
+	if ( num_events < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to add a timer event to the event queue failed.  "
+		"Errno = %d, error message = '%s'.",
+			saved_errno, strerror( saved_errno ) );
+	} else
+	if ( num_events != 1 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"%d events were added to the event queue rather than "
+		"the expected value of 1.", num_events );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
+{
+	static const char fname[] = "mx_interval_timer_stop()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	struct kevent event;
+	int num_events, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Construct the delete command for kqueue. */
+
+	event.ident  = kqueue_itimer_private->ident;
+	event.filter = EVFILT_TIMER;
+	event.flags  = EV_DELETE;
+	event.fflags = 0;
+	event.data   = 0;
+	event.udata  = NULL;
+
+	kqueue_itimer_private->busy = FALSE;
+
+	/* Delete the event from the kqueue. */
+
+	num_events = kevent( kqueue_itimer_private->kq,
+				&event, 1, NULL, 0, NULL );
+
+	if ( num_events < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to delete a timer event from the event "
+		"queue failed.  Errno = %d, error message = '%s'.",
+			saved_errno, strerror( saved_errno ) );
+	} else
+	if ( num_events != 1 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"%d events were processed by the event queue rather than "
+		"the expected value of 1.", num_events );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+			double *seconds_till_expiration )
+{
+	static const char fname[] = "mx_interval_timer_read()";
+
+	MX_KQUEUE_ITIMER_PRIVATE *kqueue_itimer_private;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&kqueue_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( seconds_till_expiration != (double *) NULL ) {
+		*seconds_till_expiration = 0.0;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_MACOSX ) || defined( OS_BSD ) || defined( OS_DJGPP )
+#elif defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
@@ -2334,7 +2734,7 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
-mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy )
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
 {
 	static const char fname[] = "mx_interval_timer_is_busy()";
 

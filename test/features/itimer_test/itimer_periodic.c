@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "mx_osdef.h"
+#include "mx_stdint.h"
 #include "mx_util.h"
 #include "mx_key.h"
 #include "mx_interval_timer.h"

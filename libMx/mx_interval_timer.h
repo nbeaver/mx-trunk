@@ -50,7 +50,7 @@ MX_API mx_status_type
 mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer );
 
 MX_API mx_status_type
-mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, int *busy );
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy );
 
 MX_API mx_status_type
 mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
