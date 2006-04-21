@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PICOMOTOR_AIO_DEBUG	FALSE
+#define MXD_PICOMOTOR_AIO_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

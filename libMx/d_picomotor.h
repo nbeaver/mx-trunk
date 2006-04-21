@@ -31,7 +31,6 @@ typedef struct {
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
 	long motor_number;
-	long driver_type;
 	unsigned long flags;
 
 	/* The following is only used by the Model 8753 which

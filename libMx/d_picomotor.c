@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PICOMOTOR_DEBUG	FALSE
+#define MXD_PICOMOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -329,6 +329,7 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_picomotor_open( MX_RECORD *record )
 {
+#if 0
 	static const char fname[] = "mxd_picomotor_open()";
 
 	MX_MOTOR *motor;
@@ -415,6 +416,7 @@ mxd_picomotor_open( MX_RECORD *record )
 	} else {
 		picomotor->position_at_start_of_last_move = -1;
 	}
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -457,6 +459,7 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	long position_change;
+	long driver_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -468,7 +471,10 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 	MX_DEBUG( 2,("****** %s invoked for motor '%s' ******", 
 		fname, motor->record->name));
 
-	switch( picomotor->driver_type ) {
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
+
+	switch( driver_type ) {
 	case MXF_PICOMOTOR_8753_DRIVER:
 		/* The Model 8753 _only_ supports relative moves
 		 * so we must compute the position difference between
@@ -535,6 +541,7 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	long motor_steps;
+	long driver_type;
 	int num_items;
 	char *ptr;
 	mx_status_type mx_status;
@@ -577,7 +584,10 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 		"Response seen = '%s'", command, response );
 	}
 
-	switch( picomotor->driver_type ) {
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
+
+	switch( driver_type ) {
 	case MXF_PICOMOTOR_8753_DRIVER:
 		/* The Model 8753 _only_ reports relative positions,
 		 * namely, the number of pulses sent since the last
@@ -620,6 +630,7 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[100];
 	long position_difference;
+	long driver_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -631,7 +642,10 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 	MX_DEBUG( 2,("!!!!!! %s invoked for motor '%s' !!!!!!", 
 		fname, motor->record->name));
 
-	if ( picomotor->driver_type == MXF_PICOMOTOR_8751_DRIVER ) {
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
+
+	if ( driver_type == MXF_PICOMOTOR_8751_DRIVER ) {
 
 		/* The Model 8751-C knows the absolute position
 		 * of the motor.
@@ -812,6 +826,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 	char *ptr;
 	int num_items;
 	unsigned long ulong_value;
+	long driver_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -825,6 +840,9 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -863,7 +881,7 @@ mxd_picomotor_get_parameter( MX_MOTOR *motor )
 		motor->raw_speed = (double) ulong_value;
 		break;
 	case MXLV_MTR_BASE_SPEED:
-		if ( picomotor->driver_type != MXF_PICOMOTOR_8753_DRIVER ) {
+		if ( driver_type != MXF_PICOMOTOR_8753_DRIVER ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Picomotor '%s' does not use a Model 8753 "
 			"open-loop driver, so querying the base speed "
@@ -966,6 +984,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	unsigned long ulong_value;
+	long driver_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -979,6 +998,9 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 		mx_get_field_label_string( motor->record,
 			motor->parameter_type ),
 		motor->parameter_type));
+
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
@@ -997,7 +1019,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 
 		break;
 	case MXLV_MTR_BASE_SPEED:
-		if ( picomotor->driver_type != MXF_PICOMOTOR_8753_DRIVER ) {
+		if ( driver_type != MXF_PICOMOTOR_8753_DRIVER ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Picomotor '%s' does not use a Model 8753 "
 			"open-loop driver, so setting the base speed "
@@ -1055,7 +1077,7 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 		break;
 
 	case MXLV_MTR_CLOSED_LOOP:
-		if ( picomotor->driver_type != MXF_PICOMOTOR_8751_DRIVER ) {
+		if ( driver_type != MXF_PICOMOTOR_8751_DRIVER ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Picomotor '%s' does not use a Model 8751 "
 			"closed-loop driver, so enabling and disabling "
@@ -1182,6 +1204,7 @@ mxd_picomotor_get_status( MX_MOTOR *motor )
 	char *ptr;
 	unsigned char status_byte;
 	int in_diagnostic_mode;
+	long driver_type;
 	mx_status_type mx_status;
 
 	mx_status = mxd_picomotor_get_pointers( motor, &picomotor,
@@ -1194,7 +1217,7 @@ mxd_picomotor_get_status( MX_MOTOR *motor )
 
 	mx_status = mxi_picomotor_command( picomotor_controller, command,
 			response, sizeof response,
-			MXD_PICOMOTOR_DEBUG | MXF_PICOMOTOR_NO_STATUS_CHAR );
+			MXD_PICOMOTOR_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1218,7 +1241,11 @@ mxd_picomotor_get_status( MX_MOTOR *motor )
 
 	motor->status = 0;
 
-	switch( picomotor->driver_type ) {
+	driver_type =
+	    picomotor_controller->driver_type[ picomotor->motor_number - 1 ];
+
+
+	switch( driver_type ) {
 	case MXF_PICOMOTOR_8751_DRIVER:
 		in_diagnostic_mode = FALSE;
 

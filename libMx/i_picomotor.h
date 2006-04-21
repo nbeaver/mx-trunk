@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,14 +23,14 @@
 
 /* Define the data structures used by a Picomotor interface. */
 
-#define MX_MAX_PICOMOTOR_AXES	8
+#define MX_MAX_PICOMOTOR_DRIVERS	31
 
 #define MXU_PICOMOTOR_MAX_COMMAND_LENGTH	200
 #define MXU_PICOMOTOR_DRIVER_NAME_LENGTH	4
 
-#define MXT_PICOMOTOR_UNKNOWN	0
-#define MXT_PICOMOTOR_8750	8750
-#define MXT_PICOMOTOR_8752	8752
+#define MXT_PICOMOTOR_UNKNOWN_DRIVER	0
+#define MXT_PICOMOTOR_8750_DRIVER	8750
+#define MXT_PICOMOTOR_8752_DRIVER	8752
 
 typedef struct {
 	MX_RECORD *record;
@@ -40,6 +40,8 @@ typedef struct {
 	int firmware_major_version;
 	int firmware_minor_version;
 	int firmware_revision;
+
+	long driver_type[MX_MAX_PICOMOTOR_DRIVERS];
 
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
@@ -90,10 +92,15 @@ MX_API mx_status_type mxi_picomotor_command(
 		char *response, size_t max_response_length,
 		int command_flags );
 
+MX_API mx_status_type mxi_picomotor_getline(
+		MX_PICOMOTOR_CONTROLLER *picomotor_controller,
+		char *response, size_t max_response_length,
+		int command_flags );
+
 /* Values for the command_flags argument to mxi_picomotor_command(). */
 
-#define MXF_PICOMOTOR_DEBUG		0x1
-#define MXF_PICOMOTOR_NO_STATUS_CHAR	0x2
+#define MXF_PICOMOTOR_DEBUG			0x1
+#define MXF_PICOMOTOR_TERMINATE_ON_STATUS_CHAR	0x2
 
 #endif /* __I_PICOMOTOR_H__ */
 

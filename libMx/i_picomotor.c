@@ -14,9 +14,11 @@
  *
  */
 
-#define MXI_PICOMOTOR_DEBUG		FALSE
+#define MXI_PICOMOTOR_DEBUG		TRUE
 
 #define MXI_PICOMOTOR_DEBUG_TIMING	FALSE
+
+#define MXI_PICOMOTOR_DEBUG_GETLINE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -160,7 +162,7 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char *response_ptr;
-	int num_items;
+	int i, num_items, raw_driver_type, flags;
 	mx_status_type mx_status;
 
 	mx_status = mxi_picomotor_get_pointers( record,
@@ -222,8 +224,79 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 			record->name, response );
 	}
 
+	/* Find out what kinds of drivers are used by this controller. */
+
+	mx_status = mxi_picomotor_command( picomotor_controller, "DRT", NULL, 0,
+					MXI_PICOMOTOR_DEBUG );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	raw_driver_type = -1;
+
+	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
+
+		/* Read out the response lines from the controller. */
+
+		if ( i == 0 ) {
+			flags = MXI_PICOMOTOR_DEBUG;
+		} else {
+			flags =
+		  MXI_PICOMOTOR_DEBUG | MXF_PICOMOTOR_TERMINATE_ON_STATUS_CHAR;
+		}
+
+		mx_status = mxi_picomotor_getline( picomotor_controller,
+					response, sizeof(response), flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PICOMOTOR_DEBUG
+		MX_DEBUG(-2,("%s: Line %d = '%s'", fname, i, response));
+#endif
+
+#if 0
+		ptr = strchr( response, '=' );
+
+		if ( ptr == (char *) NULL ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"No equals sign seen in response to command '%s' by "
+		"Picomotor '%s'.  Response = '%s'",
+			command, record->name, response );
+		}
+
+		ptr++;
+
+		num_items = sscanf( ptr, "%d", &raw_driver_type );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"No driver type seen in response to '%s' command.  "
+			"Response seen = '%s'", command, response );
+		}
+
+		switch( raw_driver_type ) {
+		case 1:
+			picomotor->driver_type = MXF_PICOMOTOR_8753_DRIVER;
+			break;
+		case 2:
+			picomotor->driver_type = MXF_PICOMOTOR_8751_DRIVER;
+			break;
+		default:
+			picomotor->driver_type = MXF_PICOMOTOR_UNKNOWN_DRIVER;
+
+			mx_warning( "Unrecognized driver type %d returned "
+			"for '%s' command sent to Picomotor controller '%s'.  "
+			"Response = '%s'.",
+			    raw_driver_type, command, record->name, response );
+			break;
+		}
+#endif
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
+
 
 MX_EXPORT mx_status_type
 mxi_picomotor_special_processing_setup( MX_RECORD *record )
@@ -364,11 +437,6 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	static const char fname[] = "mxi_picomotor_command()";
 
 	char response_buffer[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
-	MX_RS232 *rs232;
-	char c, termchar, response_status;
-	char *termarray;
-	long i, num_terminator_chars, num_terminator_chars_seen;
-	int no_status_char;
 	mx_status_type mx_status;
 
 #if MXI_PICOMOTOR_DEBUG_TIMING	
@@ -388,17 +456,6 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	if ( picomotor_controller->rs232_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The rs232_record pointer for record '%s' is NULL.",
-			picomotor_controller->record->name );
-	}
-
-	rs232 = (MX_RS232 *)
-		picomotor_controller->rs232_record->record_class_struct;
-
-	if ( rs232 == (MX_RS232 *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_RS232 pointer for RS232 record '%s' "
-		"used by '%s' is NULL.",
-			picomotor_controller->rs232_record->name,
 			picomotor_controller->record->name );
 	}
 
@@ -432,77 +489,9 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	response_buffer[0] = '\0';
 
 	if ( response != (char *) NULL ) {
-		/* The Picomotor controller transmits a character after the
-		 * line terminators that we need, but the 'tcp232' driver will
-		 * currently throw that character away if we use getline, so
-		 * we read it a character at a time instead.
-		 */
-
-		termarray = rs232->read_terminator_array;
-		num_terminator_chars = rs232->num_read_terminator_chars;
-
-		num_terminator_chars_seen = 0;
-
-		for ( i = 0; i < sizeof(response_buffer); i++ ) {
-	
-			if ( num_terminator_chars_seen >= num_terminator_chars )
-			{
-				break;		/* Exit the for() loop. */
-			}
-
-			mx_status = mx_rs232_getchar_with_timeout(
-				picomotor_controller->rs232_record,
-				&c, MXF_232_WAIT, 1.0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-#if 0
-			MX_DEBUG(-2,
-				("%s: char #%d = %#x '%c'", fname, i, c, c));
-#endif
-
-			termchar = termarray[ num_terminator_chars_seen ];
-
-			if ( c == termchar ) {
-				num_terminator_chars_seen++;
-
-				continue; /* Go to the top of the for() loop. */
-			}
-
-			response_buffer[i] = c;
-		}
-
-		if ( i >= sizeof(response_buffer) ) {
-			return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
-			"The number of characters in the response from "
-			"controller '%s' exceeded the response buffer "
-			"size of %lu",
-				picomotor_controller->record->name,
-				(unsigned long) sizeof(response_buffer) );
-		}
-
-		/* Null terminate the response. */
-
-		response_buffer[i - num_terminator_chars] = '\0';
-	}
-
-	/* At the end of the transaction, the controller transmits a
-	 * single character that specifies whether or not the command
-	 * succeeded.
-	 *
-	 * > means the command succeeded.
-	 * ? means the command did not succeed.
-	 */
-
-	no_status_char = command_flags & MXF_PICOMOTOR_NO_STATUS_CHAR;
-
-	if ( no_status_char == FALSE ) {
-
-		mx_status = mx_rs232_getchar_with_timeout(
-				picomotor_controller->rs232_record,
-				&response_status,
-				MXF_232_WAIT, 5.0 );
+		mx_status = mxi_picomotor_getline( picomotor_controller,
+				response_buffer, sizeof(response_buffer),
+				command_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -518,29 +507,6 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	MX_HRT_RS232_RESPONSE_RESULTS( response_timing, response_buffer, fname);
 #endif
-
-	/* Was there a warning or error in the response?  If so,
-	 * return an appropriate error to the caller.
-	 */
-
-	if ( no_status_char == FALSE ) {
-
-		switch( response_status ) {
-		case '>':
-			/* There was no error. */
-			break;
-		case '?':
-			return mxi_picomotor_handle_errors(picomotor_controller,
-					response_buffer, response_status );
-		default:
-			return mx_error( MXE_UNPARSEABLE_STRING, fname,
-			"The last character transmitted by the Picomotor "
-			"controller '%s' was not either '>' or '?'.  "
-			"Instead, it sent the character %#x '%c'.",
-				picomotor_controller->record->name,
-				response_status, response_status );
-		}
-	}
 
 	/* If the caller wanted a response, copy it from the
 	 * response buffer.
@@ -558,6 +524,143 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	}
 
 	MX_DEBUG( 2,("%s complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxi_picomotor_getline( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
+		char *response,
+		size_t max_response_length,
+		int command_flags )
+{
+	static const char fname[] = "mxi_picomotor_getline()";
+
+	MX_RS232 *rs232;
+	char c, termchar;
+	char *termarray;
+	long i, start_index, num_terminator_chars, num_terminator_chars_seen;
+	mx_status_type mx_status;
+
+#if MXI_PICOMOTOR_DEBUG_GETLINE
+	MX_DEBUG(-2,("%s: command_flags = %#x", fname, command_flags));
+#endif
+
+	rs232 = (MX_RS232 *)
+		picomotor_controller->rs232_record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RS232 pointer for RS232 record '%s' "
+		"used by '%s' is NULL.",
+			picomotor_controller->rs232_record->name,
+			picomotor_controller->record->name );
+	}
+
+	/*
+	 * At the beginning of each line, the controller may transmit
+	 * character that tells you whether the most recent command 
+	 * succeeded or not.
+	 *
+	 * > means the command succeeded.
+	 * ? means the command did not succeed.
+	 */
+
+	start_index = 0;
+
+	mx_status = mx_rs232_getchar_with_timeout(
+				picomotor_controller->rs232_record,
+				&c,
+				MXF_232_WAIT, 5.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Was there a warning or error in the response?  If so,
+	 * return an appropriate error to the caller.
+	 */
+
+	switch( c ) {
+	case '>':
+		/* There was no error. */
+#if MXI_PICOMOTOR_DEBUG_GETLINE
+		MX_DEBUG(-2,("%s: > character seen.", fname));
+#endif
+		if ( command_flags & MXF_PICOMOTOR_TERMINATE_ON_STATUS_CHAR ) {
+			return mx_error_quiet( MXE_END_OF_DATA, fname,
+				"No more output available." );
+		}
+		break;
+	case '?':
+		return mxi_picomotor_handle_errors( picomotor_controller,
+							response, c );
+	default:
+		/* The returned character was not a status character,
+		 * so we just copy it to the response buffer.
+		 */
+
+#if MXI_PICOMOTOR_DEBUG_GETLINE
+		MX_DEBUG(-2,("%s: char #0 = %#x '%c'", fname, c, c));
+#endif
+
+		if ( max_response_length > 1 ) {
+			response[0] = c;
+			start_index = 1;
+		}
+		break;
+	}
+
+	/* The Picomotor controller transmits a character after the
+	 * line terminators that we need, but the 'tcp232' driver will
+	 * currently throw that character away if we use getline, so
+	 * we read it a character at a time instead.
+	 */
+
+	termarray = rs232->read_terminator_array;
+	num_terminator_chars = rs232->num_read_terminator_chars;
+
+	num_terminator_chars_seen = 0;
+
+	for ( i = start_index; i < max_response_length; i++ ) {
+	
+		if ( num_terminator_chars_seen >= num_terminator_chars ) {
+			break;		/* Exit the for() loop. */
+		}
+
+		mx_status = mx_rs232_getchar_with_timeout(
+			picomotor_controller->rs232_record,
+			&c, MXF_232_WAIT, 1.0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXI_PICOMOTOR_DEBUG_GETLINE
+		MX_DEBUG(-2,("%s: char #%ld = %#x '%c'", fname, i, c, c));
+#endif
+
+		termchar = termarray[ num_terminator_chars_seen ];
+
+		if ( c == termchar ) {
+			num_terminator_chars_seen++;
+
+			continue; /* Go to the top of the for() loop. */
+		}
+
+		response[i] = c;
+	}
+
+	if ( i >= max_response_length ) {
+		return mx_error( MXE_LIMIT_WAS_EXCEEDED, fname,
+		"The number of characters in the response from "
+		"controller '%s' exceeded the response buffer "
+		"size of %lu",
+			picomotor_controller->record->name,
+			(unsigned long) max_response_length );
+	}
+
+	/* Null terminate the response. */
+
+	response[i - num_terminator_chars] = '\0';
 
 	return MX_SUCCESSFUL_RESULT;
 }
