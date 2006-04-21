@@ -747,7 +747,7 @@ mxi_picomotor_getline( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 		mx_status = mx_rs232_getchar_with_timeout(
 			picomotor_controller->rs232_record,
-			&c, MXF_232_WAIT, 1.0 );
+			&c, MXF_232_WAIT, 5.0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
