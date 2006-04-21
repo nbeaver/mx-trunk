@@ -30,11 +30,16 @@ typedef struct {
 	long motor_number;
 	unsigned long flags;
 
-	/* The following is only used by the Model 8753 which
-	 * does not report absolute positions.
+	/* For 8753 motors, the position of a motor is calculated as follows
+	 *
+	 *   reported_position = base_position + position_offset;
+	 *
+	 * where position_offset is the value reported by the controller.
+	 *
+	 * 8751 based motors do not use the 'base_position' field.
 	 */
 
-	long position_at_start_of_last_move;
+	long base_position;
 } MX_PICOMOTOR;
 
 MX_API mx_status_type mxd_picomotor_create_record_structures(
@@ -55,10 +60,6 @@ MX_API mx_status_type mxd_picomotor_find_home_position( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_constant_velocity_move( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_get_parameter( MX_MOTOR *motor );
 MX_API mx_status_type mxd_picomotor_set_parameter( MX_MOTOR *motor );
-MX_API mx_status_type mxd_picomotor_simultaneous_start( long num_motor_records,
-						MX_RECORD **motor_record_array,
-						double *position_array,
-						unsigned long flags );
 MX_API mx_status_type mxd_picomotor_get_status( MX_MOTOR *motor );
 
 extern MX_RECORD_FUNCTION_LIST mxd_picomotor_record_function_list;
@@ -84,6 +85,10 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_picomotor_rfield_def_ptr;
   \
   {-1, -1, "flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, flags), \
-	{0}, NULL, MXFF_IN_DESCRIPTION }
+	{0}, NULL, MXFF_IN_DESCRIPTION }, \
+  \
+  {-1, -1, "base_position", MXFT_LONG, NULL, 0, {0}, \
+  	MXF_REC_TYPE_STRUCT, offsetof(MX_PICOMOTOR, base_position), \
+	{0}, NULL, 0 }
 
 #endif /* __D_PICOMOTOR_H__ */

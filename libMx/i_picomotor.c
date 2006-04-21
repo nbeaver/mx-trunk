@@ -26,6 +26,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_hrt.h"
 #include "mx_rs232.h"
 #include "i_picomotor.h"
 
@@ -102,6 +103,7 @@ mxi_picomotor_create_record_structures( MX_RECORD *record )
 	static const char fname[] = "mxi_picomotor_create_record_structures()";
 
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	long i, j;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -122,6 +124,15 @@ mxi_picomotor_create_record_structures( MX_RECORD *record )
 
 	picomotor_controller->record = record;
 
+	picomotor_controller->minimum_time_between_commands
+		= mx_convert_seconds_to_high_resolution_time( 0.1 );
+
+	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
+		for ( j = 0; j < MX_MAX_PICOMOTORS_PER_DRIVER; j++ ) {
+			picomotor_controller->motor_record_array[i][j] = NULL;
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -138,6 +149,30 @@ mxi_picomotor_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0
+	{
+		MX_RECORD *motor_record;
+		int i, j;
+
+		for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
+			for ( j = 0; j < MX_MAX_PICOMOTORS_PER_DRIVER; j++ ) {
+				motor_record =
+				 picomotor_controller->motor_record_array[i][j];
+
+				if ( motor_record == NULL ) {
+					MX_DEBUG(-2,("%s: motor[%d][%d] = NULL",
+					    fname, i, j));
+				} else {
+					MX_DEBUG(-2,("%s: motor[%d][%d] = '%s'",
+					    fname, i, j, motor_record->name));
+				}
+			}
+		}
+	}
+#endif
+
+	picomotor_controller->next_command_time = mx_high_resolution_time();
 
 	mx_status = mx_rs232_verify_configuration(
 			picomotor_controller->rs232_record,
@@ -160,9 +195,11 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 	static const char fname[] = "mxi_picomotor_resynchronize()";
 
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
+	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char *response_ptr;
 	int i, num_items, driver_number, raw_driver_type, flags;
+	long current_motor_number;
 	mx_status_type mx_status;
 
 	mx_status = mxi_picomotor_get_pointers( record,
@@ -246,6 +283,10 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 		mx_status = mxi_picomotor_getline( picomotor_controller,
 					response, sizeof(response), flags );
 
+		if ( mx_status.code == MXE_END_OF_DATA ) {
+			break;		/* Exit the for() loop. */
+		}
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
@@ -262,7 +303,7 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 			"Response seen = '%s'", response );
 		}
 
-#if MXI_PICOMOTOR_DEBUG
+#if 0
 		MX_DEBUG(-2,("%s: driver_number = %d, raw_driver_type = %d",
 			fname, driver_number, raw_driver_type));
 #endif
@@ -296,17 +337,48 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 			    raw_driver_type, record->name, response );
 			break;
 		}
-#if MXI_PICOMOTOR_DEBUG
+#if 0
 		MX_DEBUG(-2,("%s: driver_number = %d, driver_type[%d] = %ld",
 			fname, driver_number, driver_number - 1,
 			picomotor_controller->driver_type[driver_number - 1]));
 #endif
 	}
 
-	/* Invalidate the 'current_motor_number' entries for all drivers. */
+	/* Set the 'current_motor_number' entries for all drivers. */
 
 	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
-		picomotor_controller->current_motor_number[i] = -1;
+
+		switch( picomotor_controller->driver_type[i] ) {
+		case MXT_PICOMOTOR_8753_DRIVER:
+			snprintf( command, sizeof(command),
+				"CHL A%d", i+1 );
+
+			mx_status = mxi_picomotor_command(
+				picomotor_controller,
+				command, response, sizeof(response),
+				MXI_PICOMOTOR_DEBUG );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			num_items = sscanf( response, "%ld",
+					    &current_motor_number );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+				"Cannot find the current motor number in the "
+				"response '%s' to command '%s' for "
+				"Picomotor interface '%s'.",
+					response, command, record->name );
+			}
+
+			picomotor_controller->current_motor_number[i]
+				= current_motor_number;
+			break;
+		default:
+			picomotor_controller->current_motor_number[i] = -1;
+			break;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -452,6 +524,8 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	static const char fname[] = "mxi_picomotor_command()";
 
 	char response_buffer[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
+	struct timespec current_time;
+	int comparison;
 	mx_status_type mx_status;
 
 #if MXI_PICOMOTOR_DEBUG_TIMING	
@@ -472,6 +546,28 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The rs232_record pointer for record '%s' is NULL.",
 			picomotor_controller->record->name );
+	}
+
+	/* The Picomotor controller does not like it if we send commands
+	 * to it too close together in time.  If we are trying to send a
+	 * command before 'next_command_time', wait until next_command_time
+	 * has arrived.
+	 */
+
+	for (;;) {
+		current_time = mx_high_resolution_time();
+
+		comparison = mx_compare_high_resolution_times(
+				picomotor_controller->next_command_time,
+				current_time );
+
+		if ( comparison <= 0 ) {
+			/* The 'next_command_time' has arrived, so break
+			 * out of the for(;;) loop.
+			 */
+
+			 break;
+		}
 	}
 
 	/* Send the command. */
@@ -537,6 +633,13 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 				picomotor_controller->record->name));
 		}
 	}
+
+	/* Calculate the next time that a command will be allowed. */
+
+	current_time = mx_high_resolution_time();
+
+	picomotor_controller->next_command_time = mx_add_high_resolution_times(
+	    current_time, picomotor_controller->minimum_time_between_commands );
 
 	MX_DEBUG( 2,("%s complete.", fname));
 

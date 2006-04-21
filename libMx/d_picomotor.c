@@ -54,7 +54,7 @@ MX_MOTOR_FUNCTION_LIST mxd_picomotor_motor_function_list = {
 	mxd_picomotor_constant_velocity_move,
 	mxd_picomotor_get_parameter,
 	mxd_picomotor_set_parameter,
-	mxd_picomotor_simultaneous_start,
+	NULL,
 	mxd_picomotor_get_status
 };
 
@@ -139,8 +139,12 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 {
 	static const char fname[] = "mxd_picomotor_motor_command()";
 
-	char buffer[40];
-	long driver_number, driver_type, current_motor_number;
+	MX_RECORD *current_motor_record;
+	MX_PICOMOTOR *current_picomotor;
+	char command_buffer[40], response_buffer[40];
+	long driver_number, driver_type, motor_number;
+	long current_motor_number, position_offset;
+	int num_items;
 	mx_status_type mx_status;
 
 	/* If the target is a Model 8753 open-loop driver, set the
@@ -149,28 +153,113 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	driver_number = picomotor->driver_number;
 
-	driver_type = picomotor_controller->driver_type[ driver_number - 1 ];
+	motor_number = picomotor->motor_number;
 
-	MX_DEBUG(-2,
-		("%s: picomotor '%s' driver_number = %ld, driver_type = %ld",
-		fname, picomotor->record->name, driver_number, driver_type));
+	driver_type = picomotor_controller->driver_type[ driver_number - 1 ];
 
 	if ( driver_type == MXT_PICOMOTOR_8753_DRIVER ) {
 
 		current_motor_number =
 		  picomotor_controller->current_motor_number[driver_number - 1];
 
-		MX_DEBUG(-2,("%s: OLD current_motor_number = %ld",
-			fname, current_motor_number));
+		if ( motor_number != current_motor_number ) {
 
-		if ( picomotor->motor_number != current_motor_number ) {
-			snprintf( buffer, sizeof(buffer),
+			/* When the current motor number is changed, we must
+			 * update the 'base_position' fields for all of the
+			 * motors belonging to this driver.
+			 */
+
+#if 0
+		    {
+		    	long j;
+
+			for ( j = 0; j < MX_MAX_PICOMOTORS_PER_DRIVER; j++ ) {
+			    current_motor_record =
+		picomotor_controller->motor_record_array[driver_number - 1][j];
+
+			    if ( current_motor_record == (MX_RECORD *) NULL ) {
+				    MX_DEBUG(-2,("%s: motor[%ld][%ld] = NULL",
+						fname, driver_number - 1, j ));
+			    } else {
+				    MX_DEBUG(-2,("%s: motor[%ld][%ld] = '%s'",
+					fname, driver_number - 1, j,
+					current_motor_record->name ));
+			    }
+			}
+		    }
+#endif
+			current_motor_record =
+			    picomotor_controller->motor_record_array
+				[driver_number - 1][current_motor_number];
+
+			if ( current_motor_record != (MX_RECORD *) NULL ) {
+
+				current_picomotor = (MX_PICOMOTOR *)
+				    current_motor_record->record_type_struct;
+
+				if (current_picomotor == (MX_PICOMOTOR *)NULL) {
+					return mx_error(
+					    MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The MX_PICOMOTOR pointer for Picomotor "
+				"record '%s' is NULL.",
+						current_motor_record->name );
+				}
+
+				MX_DEBUG( 2,("%s: OLD base_position = %ld",
+				    fname, current_picomotor->base_position));
+
+				/* Get the position offset of the current
+				 * motor record.
+				 */
+
+				snprintf(command_buffer, sizeof(command_buffer),
+					"POS %s", picomotor->driver_name );
+
+				mx_status = mxi_picomotor_command(
+					picomotor_controller, command_buffer,
+					response_buffer,sizeof(response_buffer),
+					debug_flag );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				num_items = sscanf( response_buffer, "A%*d=%ld",
+							&position_offset );
+
+				if ( num_items != 1 ) {
+					return mx_error(
+						MXE_INTERFACE_IO_ERROR, fname,
+				"Cannot find the motor position offset in "
+				"the response '%s' to command '%s' for "
+				"Picomotor controller '%s'.",
+					response_buffer, command_buffer,
+					picomotor_controller->record->name );
+				}
+
+				current_picomotor->base_position
+					+= position_offset;
+
+				MX_DEBUG( 2,
+		    ("%s: position_offset = %ld  ==>  NEW base_position = %ld",
+					fname, position_offset,
+					current_picomotor->base_position));
+
+				/* Add extra delay after getting
+				 * the motor offset.
+				 */
+
+				mx_msleep(200);
+			}
+
+			/* Send a command to change the current motor number. */
+
+			snprintf( command_buffer, sizeof(command_buffer),
 				"CHL %s=%ld",
 				picomotor->driver_name,
 				picomotor->motor_number );
 
 			mx_status = mxi_picomotor_command( picomotor_controller,
-					buffer, NULL, 0, debug_flag );
+					command_buffer, NULL, 0, debug_flag );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -178,10 +267,9 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		   picomotor_controller->current_motor_number[driver_number - 1]
 		   	= picomotor->motor_number;
 
-			MX_DEBUG(-2,("%s: NEW current_motor_number = %ld",
-				fname, picomotor->motor_number));
+			/* Add extra delay after setting the motor channel. */
 
-			mx_msleep(100);
+			mx_msleep(300);
 		}
 	}
 
@@ -279,12 +367,27 @@ mxd_picomotor_finish_record_initialization( MX_RECORD *record )
 	  || (picomotor->driver_number > MX_MAX_PICOMOTOR_DRIVERS ) )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested driver number %ld for driver '%s' is outside "
-		"the allowed range of 1 to %d.",
+		"The requested driver number %ld for driver '%s' "
+		"used by motor '%s' is outside the allowed range of 1 to %d.",
 			picomotor->driver_number,
 			picomotor->driver_name,
+			record->name,
 			MX_MAX_PICOMOTOR_DRIVERS );
 	}
+
+	if ( (picomotor->motor_number < 0)
+	  || (picomotor->motor_number > (MX_MAX_PICOMOTORS_PER_DRIVER - 1)) )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested motor number %ld for motor '%s' is outside "
+		"the allowed range of 0 to %d.",
+			picomotor->motor_number,
+			record->name,
+			MX_MAX_PICOMOTORS_PER_DRIVER - 1 );
+	}
+
+	picomotor_controller->motor_record_array
+	    [picomotor->driver_number - 1][picomotor->motor_number] = record;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -375,6 +478,9 @@ mxd_picomotor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  driver_type       = %ld\n",
 		picomotor_controller->driver_type[driver_number - 1] );
 
+	fprintf(file, "  base_position     = %ld\n",
+		picomotor->base_position);
+
 	fprintf(file, "\n");
 
 	return MX_SUCCESSFUL_RESULT;
@@ -412,9 +518,9 @@ mxd_picomotor_open( MX_RECORD *record )
 	driver_type = picomotor_controller->driver_type[ driver_number - 1 ];
 
 	if ( driver_type == MXT_PICOMOTOR_8753_DRIVER ) {
-		picomotor->position_at_start_of_last_move = 0;
+		picomotor->base_position = 0;
 	} else {
-		picomotor->position_at_start_of_last_move = -1;
+		picomotor->base_position = 0;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -498,26 +604,16 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 			fname, position_change));
 
 		snprintf( command, sizeof(command),
-			"REL %s %ld G",
+			"REL %s=%ld G",
 			picomotor->driver_name,
 			position_change );
 
-		/* Update picomotor->position_at_start_of_last_move by
-		 * setting it to what we think is the current position.
-		 */
-
-		picomotor->position_at_start_of_last_move
-				= motor->raw_position.stepper;
-
-		MX_DEBUG( 2,
-		("%s: NEW picomotor->position_at_start_of_last_move = %ld",
-		 	fname, picomotor->position_at_start_of_last_move));
 		break;
 	default:
 		/* For all others, use absolute positioning. */
 
 		snprintf( command, sizeof(command),
-			"ABS %s %ld G",
+			"ABS %s=%ld G",
 			picomotor->driver_name,
 			motor->raw_destination.stepper );
 	}
@@ -597,14 +693,13 @@ mxd_picomotor_get_position( MX_MOTOR *motor )
 		 * the start of the last move.
 		 */
 
-		MX_DEBUG( 2,
-		("%s: picomotor->position_at_start_of_last_move = %ld",
-		 	fname, picomotor->position_at_start_of_last_move));
+		MX_DEBUG( 2,("%s: picomotor->base_position = %ld",
+		 	fname, picomotor->base_position));
 
 		MX_DEBUG( 2,("%s: motor_steps = %ld", fname, motor_steps));
 
 		motor->raw_position.stepper =
-		    picomotor->position_at_start_of_last_move + motor_steps;
+				picomotor->base_position + motor_steps;
 
 		MX_DEBUG( 2,("%s: motor->raw_position.stepper = %ld",
 			fname, motor->raw_position.stepper));
@@ -658,9 +753,10 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 
 		mx_status = mxi_picomotor_command( picomotor_controller,
 				command, NULL, 0, MXD_PICOMOTOR_DEBUG );
+
 	} else {
 		/* For the 8753, all we can do is redefine the value
-		 * of picomotor->position_at_start_of_last_move.
+		 * of picomotor->base_position.
 		 */
 
 		mx_status = mxd_picomotor_get_position( motor );
@@ -680,20 +776,17 @@ mxd_picomotor_set_position( MX_MOTOR *motor )
 		MX_DEBUG( 2,("%s: position_difference = %ld",
 			fname, position_difference));
 
-		/* Increment the value of position_at_start_of_last_move
+		/* Increment the value of base_position
 		 * by the position difference.
 		 */
 
-		MX_DEBUG( 2,
-		("%s: OLD picomotor->position_at_start_of_last_move = %ld",
-		 	fname, picomotor->position_at_start_of_last_move));
+		MX_DEBUG( 2,("%s: OLD picomotor->base_position = %ld",
+		 	fname, picomotor->base_position));
 
-		picomotor->position_at_start_of_last_move
-			+= position_difference;
+		picomotor->base_position += position_difference;
 
-		MX_DEBUG( 2,
-		("%s: NEW picomotor->position_at_start_of_last_move = %ld",
-		 	fname, picomotor->position_at_start_of_last_move));
+		MX_DEBUG( 2,("%s: NEW picomotor->base_position = %ld",
+		 	fname, picomotor->base_position));
 	}
 
 	MX_DEBUG( 2,("!!!!!! %s complete for motor '%s' !!!!!!", 
@@ -1118,96 +1211,6 @@ mxd_picomotor_set_parameter( MX_MOTOR *motor )
 		return mx_motor_default_set_parameter_handler( motor );
 	}
 
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_picomotor_simultaneous_start( long num_motor_records,
-				MX_RECORD **motor_record_array,
-				double *position_array,
-				unsigned long flags )
-{
-	static const char fname[] = "mxd_picomotor_simultaneous_start()";
-
-	MX_RECORD *current_motor_record, *current_controller_record;
-	MX_MOTOR *current_motor;
-	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
-	MX_PICOMOTOR_CONTROLLER *current_picomotor_controller;
-	MX_PICOMOTOR *current_picomotor;
-	int i;
-	char command[80];
-
-	mx_status_type mx_status;
-
-	picomotor_controller = NULL;
-
-	for ( i = 0; i < num_motor_records; i++ ) {
-		current_motor_record = motor_record_array[i];
-
-		current_motor = (MX_MOTOR *)
-			current_motor_record->record_class_struct;
-
-		if ( current_motor_record->mx_type != MXT_MTR_PICOMOTOR ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"Cannot perform a simultaneous start since motors "
-			"'%s' and '%s' are not the same type of motors.",
-				motor_record_array[0]->name,
-				current_motor_record->name );
-		}
-
-		current_picomotor = (MX_PICOMOTOR *)
-				current_motor_record->record_type_struct;
-
-		current_controller_record
-			= current_picomotor->picomotor_controller_record;
-
-		current_picomotor_controller = (MX_PICOMOTOR_CONTROLLER *)
-			current_controller_record->record_type_struct;
-
-		if ( picomotor_controller == (MX_PICOMOTOR_CONTROLLER *) NULL )
-		{
-			picomotor_controller = current_picomotor_controller;
-		}
-
-		if ( picomotor_controller != current_picomotor_controller ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-		"Cannot perform a simultaneous start for motors '%s' and '%s' "
-		"since they are controlled by different Picomotor "
-		"interfaces, namely '%s' and '%s'.",
-				motor_record_array[0]->name,
-				current_motor_record->name,
-				picomotor_controller->record->name,
-				current_controller_record->name );
-		}
-	}
-
-	/* Start the move. */
-
-	for ( i = 0; i < num_motor_records; i++ ) {
-		current_motor_record = motor_record_array[i];
-
-		current_motor = (MX_MOTOR *)
-			current_motor_record->record_class_struct;
-
-		current_picomotor = (MX_PICOMOTOR *)
-				current_motor_record->record_type_struct;
-
-		snprintf( command, sizeof(command),
-				"ABS %s=%ld",
-				current_picomotor->driver_name,
-				current_motor->raw_destination.stepper );
-
-		mx_status = mxi_picomotor_command( picomotor_controller,
-					command, NULL, 0,
-					MXD_PICOMOTOR_DEBUG );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	mx_status = mxi_picomotor_command( picomotor_controller,
-					"GO", NULL, 0,
-					MXD_PICOMOTOR_DEBUG );
 	return mx_status;
 }
 

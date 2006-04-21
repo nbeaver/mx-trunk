@@ -24,6 +24,7 @@
 /* Define the data structures used by a Picomotor interface. */
 
 #define MX_MAX_PICOMOTOR_DRIVERS	31
+#define MX_MAX_PICOMOTORS_PER_DRIVER	3
 
 #define MXU_PICOMOTOR_MAX_COMMAND_LENGTH	200
 #define MXU_PICOMOTOR_DRIVER_NAME_LENGTH	4
@@ -45,8 +46,13 @@ typedef struct {
 	int firmware_minor_version;
 	int firmware_revision;
 
+	struct timespec minimum_time_between_commands;
+	struct timespec next_command_time;
+
 	long driver_type[MX_MAX_PICOMOTOR_DRIVERS];
 	long current_motor_number[MX_MAX_PICOMOTOR_DRIVERS];
+	MX_RECORD *motor_record_array
+		[MX_MAX_PICOMOTOR_DRIVERS][MX_MAX_PICOMOTORS_PER_DRIVER];
 
 	char command[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
