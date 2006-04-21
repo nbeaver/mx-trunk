@@ -1,3 +1,8 @@
 picomotor_port interface rs232 tcp232 "" "" 19200 8 N 1 N 0x0d0a 0x0d0a 1 0x0 199.190.250.202 23 0x0
 picomotor_ctlr interface generic picomotor_controller "" "" picomotor_port
-#m1             device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A1 0 0x0 
+ma1_0          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A1 0 0x0 
+ma1_1          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A1 1 0x0 
+ma1_2          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A1 2 0x0 
+ma2_0          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A2 0 0x0 
+ma2_1          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A2 1 0x0 
+ma2_2          device motor picomotor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picomotor_ctlr A2 2 0x0 

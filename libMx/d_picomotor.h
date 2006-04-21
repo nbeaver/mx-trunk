@@ -17,19 +17,16 @@
 #ifndef __D_PICOMOTOR_H__
 #define __D_PICOMOTOR_H__
 
-/* Values for the driver_type variable. */
-
-#define MXF_PICOMOTOR_UNKNOWN_DRIVER		0
-#define MXF_PICOMOTOR_8751_DRIVER		8751
-#define MXF_PICOMOTOR_8753_DRIVER		8753
-
 /* Values for the flags variable. */
 
 #define MXF_PICOMOTOR_HOME_TO_LIMIT_SWITCH	0x1
 
 typedef struct {
+	MX_RECORD *record;
+
 	MX_RECORD *picomotor_controller_record;
 	char driver_name[MXU_PICOMOTOR_DRIVER_NAME_LENGTH+1];
+	long driver_number;
 	long motor_number;
 	unsigned long flags;
 

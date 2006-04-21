@@ -162,7 +162,7 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 	MX_PICOMOTOR_CONTROLLER *picomotor_controller;
 	char response[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	char *response_ptr;
-	int i, num_items, raw_driver_type, flags;
+	int i, num_items, driver_number, raw_driver_type, flags;
 	mx_status_type mx_status;
 
 	mx_status = mxi_picomotor_get_pointers( record,
@@ -232,8 +232,6 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	raw_driver_type = -1;
-
 	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
 
 		/* Read out the response lines from the controller. */
@@ -255,43 +253,60 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 		MX_DEBUG(-2,("%s: Line %d = '%s'", fname, i, response));
 #endif
 
-#if 0
-		ptr = strchr( response, '=' );
+		num_items = sscanf( response, "A%d=%d",
+				&driver_number, &raw_driver_type );
 
-		if ( ptr == (char *) NULL ) {
+		if ( num_items != 2 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"No equals sign seen in response to command '%s' by "
-		"Picomotor '%s'.  Response = '%s'",
-			command, record->name, response );
+			"No driver type seen in response to 'DRT' command.  "
+			"Response seen = '%s'", response );
 		}
 
-		ptr++;
+#if MXI_PICOMOTOR_DEBUG
+		MX_DEBUG(-2,("%s: driver_number = %d, raw_driver_type = %d",
+			fname, driver_number, raw_driver_type));
+#endif
 
-		num_items = sscanf( ptr, "%d", &raw_driver_type );
-
-		if ( num_items != 1 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"No driver type seen in response to '%s' command.  "
-			"Response seen = '%s'", command, response );
+		if ( (driver_number < 1)
+		  || (driver_number > MX_MAX_PICOMOTOR_DRIVERS) )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"Driver number %d found in the response '%s' "
+			"to the 'DRT' command is outside the allowed "
+			"range of 1 to %d.",
+			driver_number, response, MX_MAX_PICOMOTOR_DRIVERS );
 		}
 
 		switch( raw_driver_type ) {
 		case 1:
-			picomotor->driver_type = MXF_PICOMOTOR_8753_DRIVER;
+			picomotor_controller->driver_type[driver_number - 1]
+					= MXT_PICOMOTOR_8753_DRIVER;
 			break;
 		case 2:
-			picomotor->driver_type = MXF_PICOMOTOR_8751_DRIVER;
+			picomotor_controller->driver_type[driver_number - 1]
+					= MXT_PICOMOTOR_8751_DRIVER;
 			break;
 		default:
-			picomotor->driver_type = MXF_PICOMOTOR_UNKNOWN_DRIVER;
+			picomotor_controller->driver_type[driver_number - 1]
+					= MXT_PICOMOTOR_UNKNOWN_DRIVER;
 
 			mx_warning( "Unrecognized driver type %d returned "
-			"for '%s' command sent to Picomotor controller '%s'.  "
+			"for 'DRT' command sent to Picomotor controller '%s'.  "
 			"Response = '%s'.",
-			    raw_driver_type, command, record->name, response );
+			    raw_driver_type, record->name, response );
 			break;
 		}
+#if MXI_PICOMOTOR_DEBUG
+		MX_DEBUG(-2,("%s: driver_number = %d, driver_type[%d] = %ld",
+			fname, driver_number, driver_number - 1,
+			picomotor_controller->driver_type[driver_number - 1]));
 #endif
+	}
+
+	/* Invalidate the 'current_motor_number' entries for all drivers. */
+
+	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
+		picomotor_controller->current_motor_number[i] = -1;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
