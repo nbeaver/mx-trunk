@@ -2460,11 +2460,6 @@ mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
 		"The attempt to add a timer event to the event queue failed.  "
 		"Errno = %d, error message = '%s'.",
 			saved_errno, strerror( saved_errno ) );
-	} else
-	if ( num_events != 1 ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"%d events were added to the event queue rather than "
-		"the expected value of 1.", num_events );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2509,11 +2504,6 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 		"The attempt to delete a timer event from the event "
 		"queue failed.  Errno = %d, error message = '%s'.",
 			saved_errno, strerror( saved_errno ) );
-	} else
-	if ( num_events != 1 ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"%d events were processed by the event queue rather than "
-		"the expected value of 1.", num_events );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
