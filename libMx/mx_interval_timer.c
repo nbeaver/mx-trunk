@@ -2255,6 +2255,12 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 						itimer->callback_args );
 			}
 		}
+
+		/* If this was a one-shot timer, mark the timer as not busy. */
+
+		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+			kqueue_itimer_private->busy = FALSE;
+		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -2346,7 +2352,7 @@ mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
 
 	mx_status = mx_thread_create( &(kqueue_itimer_private->thread),
 					mx_interval_timer_thread,
-					itimer );
+					*itimer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2499,6 +2505,14 @@ mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
 
 	if ( num_events < 0 ) {
 		saved_errno = errno;
+
+		if ( saved_errno == ENOENT ) {
+			/* If we get here, the event was already gone
+			 * by the time we tried to delete it.
+			 */
+
+			return MX_SUCCESSFUL_RESULT;
+		}
 
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
 		"The attempt to delete a timer event from the event "
