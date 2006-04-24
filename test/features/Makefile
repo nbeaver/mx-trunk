@@ -1,4 +1,4 @@
-MX_ARCH = bsd
+MX_ARCH = linux
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 

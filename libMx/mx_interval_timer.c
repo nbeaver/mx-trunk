@@ -2152,7 +2152,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style kqueue() timers ***********************/
 
-#elif defined( OS_BSD ) || defined( OS_MACOSX )
+#elif defined( OS_BSD )
 
 #include <sys/types.h>
 #include <sys/event.h>
@@ -2245,7 +2245,7 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 			"event.ident = %d, event.filter = %d instead of "
 			"the expected values of "
 			"event.ident = %d, event.filter = %d (EVFILT_TIMER).",
-				event.ident, event.filter,
+				(int) event.ident, event.filter,
 				kqueue_itimer_private->ident, EVFILT_TIMER );
 		} else {
 			/* Invoke the callback function. */
@@ -2547,7 +2547,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_DJGPP )
+#elif defined( OS_MACOSX ) || defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
