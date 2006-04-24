@@ -715,9 +715,10 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 
 #if defined(OS_LINUX)
 
-/* FIXME: For some future version of Linux, this will not be necessary.
- *        It might not be necessary now if you define USE_UNIX98, but I
- *        am not currently certain of all the consequences of doing that.
+/* FIXME: For some future version of Linux, explicitly providing these
+ *        definitions will not be necessary.  It might not be necessary
+ *        _now_ if you define USE_UNIX98, but I am not currently certain
+ *        of all the consequences and side effects of doing that.
  */
 
 extern int pthread_mutexattr_settype( pthread_mutexattr_t *, int );

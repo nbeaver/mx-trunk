@@ -70,7 +70,7 @@
  *
  */
 
-#define MX_INTERVAL_TIMER_DEBUG		TRUE
+#define MX_INTERVAL_TIMER_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2545,9 +2545,772 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ Mach-based MacOS X timers ***********************/
+
+#elif defined( OS_MACOSX )
+
+#include <pthread.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+
+typedef struct {
+	MX_THREAD *thread;
+
+	pthread_mutex_t mutex;
+	pthread_cond_t cond;
+
+	mx_bool_type busy;
+	mx_bool_type destroy_timer;
+
+	uint64_t absolute_timer_period;
+	uint64_t absolute_expiration_time;
+
+	uint64_t timebase_info_numerator;
+	uint64_t timebase_info_denominator;
+} MX_MACH_ITIMER_PRIVATE;
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_get_pointers( MX_INTERVAL_TIMER *itimer,
+			MX_MACH_ITIMER_PRIVATE **itimer_private,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_interval_timer_get_pointers()";
+
+	if ( itimer == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	if ( itimer_private == (MX_MACH_ITIMER_PRIVATE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MACH_IITIMER_PRIVATE pointer passed by '%s' is NULL.",
+			calling_fname );
+	}
+
+	*itimer_private = (MX_MACH_ITIMER_PRIVATE *) itimer->private;
+
+	if ( (*itimer_private) == (MX_MACH_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_MACH_ITIMER_PRIVATE pointer for itimer %p is NULL.",
+			itimer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mx_interval_timer_thread_destroy( MX_THREAD *thread,
+				MX_INTERVAL_TIMER *itimer,
+				MX_MACH_ITIMER_PRIVATE *mach_itimer_private )
+{
+	static const char fname[] = "mx_interval_timer_thread_destroy()";
+
+	int status, saved_errno;
+
+	MX_DEBUG(-2,("%s invoked for itimer %p", fname, itimer));
+
+	status = pthread_cond_destroy( &(mach_itimer_private->cond) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to destroy a Posix condition variable failed with "
+		"errno = %d, error = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	status = pthread_mutex_destroy( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to destroy a Posix mutex failed with "
+		"errno = %d, error = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	mx_free( mach_itimer_private );
+
+	mx_free( itimer );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+#define UNLOCK_MUTEX \
+    do { \
+	(void) pthread_mutex_unlock( &(mach_itimer_private->mutex) ); \
+    } while (0)
+
+static mx_status_type
+mx_interval_timer_thread( MX_THREAD *thread, void *args )
+{
+	static const char fname[] = "mx_interval_timer_thread()";
+
+	MX_INTERVAL_TIMER *itimer;
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	uint64_t absolute_expiration_time, next_expiration_time;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for thread %p, args %p.",
+		fname, thread, args));
+#endif
+
+	itimer = (MX_INTERVAL_TIMER *) args;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Lock the mutex before entering the infinite loop. */
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Loop forever. */
+
+	for (;;) {
+		/* At this point in the loop, the mutex should _already_
+		 * have been locked either before the start of the loop
+		 * or at the bottom of the previous pass through the loop.
+		 * The loop is structured this way to avoid extra locking
+		 * and unlocking of the mutex.
+		 */
+
+		if ( mach_itimer_private->destroy_timer ) {
+			UNLOCK_MUTEX;
+			return mx_interval_timer_thread_destroy(
+				thread, itimer, mach_itimer_private );
+		}
+
+		/* Wait forever in a condition variable for busy to be TRUE. */
+
+		while ( mach_itimer_private->busy == FALSE ) {
+
+			status = pthread_cond_wait(
+					&(mach_itimer_private->cond),
+					&(mach_itimer_private->mutex) );
+
+			if ( status != 0 ) {
+				saved_errno = errno;
+				UNLOCK_MUTEX;
+				return mx_error(
+					MXE_OPERATING_SYSTEM_ERROR, fname,
+					"An attempt to wait on the condition "
+					"variable for interval timer %p failed "
+					"with errno = %d, error = '%s'.",
+						itimer, saved_errno,
+						strerror(saved_errno) );
+			}
+
+			if ( mach_itimer_private->destroy_timer ) {
+				UNLOCK_MUTEX;
+				return mx_interval_timer_thread_destroy(
+					thread, itimer, mach_itimer_private );
+			}
+		}
+
+		/* If we get here, busy has been set to TRUE by
+		 * mx_interval_timer_start().   The first thing
+		 * we do is save a copy of the expiration time.
+		 */
+
+		absolute_expiration_time
+			= mach_itimer_private->absolute_expiration_time;
+
+		/* Next, we unlock the mutex. */
+
+		status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An attempt to unlock the mutex for interval timer %p "
+			"failed with errno = %d, error = '%s'.",
+				itimer, saved_errno, strerror(saved_errno) );
+		}
+
+		/* Since another thread has requested that the timer start,
+		 * we wait here until the expiration time for the timer
+		 * using the Mach function mach_wait_until().
+		 */
+
+		mach_wait_until( absolute_expiration_time );
+
+		/* The expiration time has arrived, so invoke
+		 * the callback_function.
+		 */
+
+		if ( itimer->callback_function != NULL ) {
+			itimer->callback_function( itimer,
+						itimer->callback_args );
+		}
+
+		/* Relock the mutex so that we can modify the contents
+		 * of 'mach_itimer_private'.
+		 */
+
+		status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+		if ( status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"An attempt to lock the mutex for interval timer %p "
+			"failed with errno = %d, error = '%s'.",
+				itimer, saved_errno, strerror(saved_errno) );
+		}
+
+		if ( itimer->timer_type == MXIT_ONE_SHOT_TIMER ) {
+
+			/* If this was a one-shot timer, mark the timer
+			 * as not busy.
+			 */
+
+			mach_itimer_private->busy = FALSE;
+		} else {
+			/* If this is a periodic timer, we must compute
+			 * and save the time of the next expiration.
+			 */
+
+			next_expiration_time = absolute_expiration_time
+				+ mach_itimer_private->absolute_timer_period;
+
+			mach_itimer_private->absolute_expiration_time
+				= next_expiration_time;
+		}
+
+		/* Leave the mutex locked since it will be unlocked near
+		 * the top of the next pass through the for(;;) loop.
+		 */
+
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_API mx_status_type
+mx_interval_timer_create( MX_INTERVAL_TIMER **itimer,
+				int timer_type,
+				MX_INTERVAL_TIMER_CALLBACK *callback_function,
+				void *callback_args )
+{
+	static const char fname[] = "mx_interval_timer_create()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	struct mach_timebase_info timebase_info;
+
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s invoked for BSD mach timers.", fname));
+	MX_DEBUG(-2,("%s: timer_type = %d", fname, timer_type));
+	MX_DEBUG(-2,("%s: callback_function = %p", fname, callback_function));
+	MX_DEBUG(-2,("%s: callback_args = %p", fname, callback_args));
+#endif
+
+	if ( itimer == (MX_INTERVAL_TIMER **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_INTERVAL_TIMER pointer passed was NULL." );
+	}
+
+	switch( timer_type ) {
+	case MXIT_ONE_SHOT_TIMER:
+	case MXIT_PERIODIC_TIMER:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Interval timer type %d is unsupported.", timer_type );
+		break;
+	}
+
+	*itimer = (MX_INTERVAL_TIMER *) malloc( sizeof(MX_INTERVAL_TIMER) );
+
+	if ( (*itimer) == (MX_INTERVAL_TIMER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for an MX_INTERVAL_TIMER structure.");
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: *itimer = %p", fname, *itimer));
+#endif
+
+	mach_itimer_private = (MX_MACH_ITIMER_PRIVATE *)
+				malloc( sizeof(MX_MACH_ITIMER_PRIVATE) );
+
+	if ( mach_itimer_private == (MX_MACH_ITIMER_PRIVATE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Unable to allocate memory for a MX_MACH_ITIMER_PRIVATE structure." );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: mach_itimer_private = %p",
+			fname, mach_itimer_private));
+#endif
+
+	(*itimer)->timer_type = timer_type;
+	(*itimer)->timer_period = -1.0;
+	(*itimer)->num_overruns = 0;
+	(*itimer)->callback_function = callback_function;
+	(*itimer)->callback_args = callback_args;
+	(*itimer)->private = mach_itimer_private;
+
+	/* Initialize the MacOS X specific data structures. */
+
+	mach_itimer_private->busy          = FALSE;
+	mach_itimer_private->destroy_timer = FALSE;
+
+	(void) mach_timebase_info( &timebase_info );
+
+	mach_itimer_private->timebase_info_numerator
+				= (uint64_t) timebase_info.numer;
+
+	mach_itimer_private->timebase_info_denominator
+				= (uint64_t) timebase_info.denom;
+
+	status = pthread_mutex_init( &(mach_itimer_private->mutex), NULL );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to create a Posix mutex failed with "
+		"errno = %d, error = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	status = pthread_cond_init( &(mach_itimer_private->cond), NULL );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to create a Posix condition variable failed with "
+		"errno = %d, error = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Create a thread to manage the Mach timer. */
+
+	mx_status = mx_thread_create( &(mach_itimer_private->thread),
+					mx_interval_timer_thread,
+					*itimer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
+{
+	static const char fname[] = "mx_interval_timer_destroy()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	double seconds_left;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_interval_timer_stop( itimer, &seconds_left );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* It is not safe for us to destroy the contents of
+	 * 'mach_itimer_private' ourselves since the interval
+	 * timer thread is still using them.  Instead, we tell
+	 * the interval timer thread to do the destruction
+	 * itself.
+	 */
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to request destruction of interval timer %p",
+		fname, itimer));
+#endif
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	mach_itimer_private->destroy_timer = TRUE;
+
+	status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to unlock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Finished requesting destruction of interval timer %p",
+		fname, itimer));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_is_busy( MX_INTERVAL_TIMER *itimer, mx_bool_type *busy )
+{
+	static const char fname[] = "mx_interval_timer_is_busy()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( busy == (mx_bool_type *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+#if 0 && MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to request busy status for interval timer %p",
+		fname, itimer));
+#endif
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	*busy = mach_itimer_private->busy;
+
+	status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to unlock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+#if 0 && MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,
+	("%s: Finished requesting busy status for interval timer %p",
+		fname, itimer));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_start( MX_INTERVAL_TIMER *itimer,
+			double timer_period_in_seconds )
+{
+	static const char fname[] = "mx_interval_timer_start()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	uint64_t timer_period_in_nanoseconds, absolute_timer_period;
+	uint64_t absolute_current_time, absolute_expiration_time;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to start interval timer %p for %g seconds",
+		fname, itimer, timer_period_in_seconds));
+#endif
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Compute the absolute timer period and the first expiration time. */
+
+	absolute_current_time = mach_absolute_time();
+
+	itimer->timer_period = timer_period_in_seconds;
+
+	timer_period_in_nanoseconds
+		= (uint64_t) ( 1.0e9 * timer_period_in_seconds );
+
+	absolute_timer_period = timer_period_in_nanoseconds
+			* mach_itimer_private->timebase_info_denominator
+				/ mach_itimer_private->timebase_info_numerator;
+
+	absolute_expiration_time
+		= absolute_current_time + absolute_timer_period;
+
+	mach_itimer_private->absolute_timer_period = absolute_timer_period;
+	mach_itimer_private->absolute_expiration_time
+						= absolute_expiration_time;
+
+	/* Mark the timer as busy. */
+
+	mach_itimer_private->busy = TRUE;
+
+	status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to unlock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Wake up the interval timer thread. */
+
+	status = pthread_cond_signal( &(mach_itimer_private->cond) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to wake up the timer thread for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Finished starting interval timer %p", fname, itimer));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_stop( MX_INTERVAL_TIMER *itimer, double *seconds_left )
+{
+	static const char fname[] = "mx_interval_timer_stop()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	uint64_t absolute_current_time, absolute_expiration_time;
+	uint64_t absolute_time_left, time_left_in_nanoseconds;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to stop interval timer %p",
+		fname, itimer));
+#endif
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Find out how much time was left on the timer. */
+
+	if ( seconds_left != (double *) NULL ) {
+		absolute_expiration_time
+			= mach_itimer_private->absolute_expiration_time;
+
+		absolute_current_time = mach_absolute_time();
+
+		if ( absolute_current_time >= absolute_expiration_time ) {
+			*seconds_left = 0.0;
+		} else {
+			absolute_time_left
+			    = absolute_expiration_time - absolute_current_time;
+
+			time_left_in_nanoseconds = absolute_time_left
+			    * mach_itimer_private->timebase_info_numerator
+			       / mach_itimer_private->timebase_info_denominator;
+
+			*seconds_left
+				= 1.0e-9 * (double) time_left_in_nanoseconds;
+		}
+	}
+
+	/* Stop the timer by setting busy to FALSE. */
+
+	mach_itimer_private->busy = FALSE;
+
+	status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to unlock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Wake up the interval timer thread. */
+
+	status = pthread_cond_signal( &(mach_itimer_private->cond) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to wake up the timer thread for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Finished stopping interval timer %p",
+		fname, itimer));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
+			double *seconds_till_expiration )
+{
+	static const char fname[] = "mx_interval_timer_read()";
+
+	MX_MACH_ITIMER_PRIVATE *mach_itimer_private;
+	uint64_t absolute_current_time, absolute_expiration_time;
+	uint64_t absolute_time_left, time_left_in_nanoseconds;
+	int status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_interval_timer_get_pointers( itimer,
+					&mach_itimer_private, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( seconds_till_expiration == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The seconds_till_expiration pointer passed was NULL." );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: About to read interval timer %p",
+		fname, itimer));
+#endif
+
+	status = pthread_mutex_lock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to lock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+	/* Find out how much time was left on the timer. */
+
+	absolute_expiration_time
+		= mach_itimer_private->absolute_expiration_time;
+
+	absolute_current_time = mach_absolute_time();
+
+	if ( absolute_current_time >= absolute_expiration_time ) {
+		*seconds_till_expiration = 0.0;
+	} else {
+		absolute_time_left
+			    = absolute_expiration_time - absolute_current_time;
+
+		time_left_in_nanoseconds = absolute_time_left
+			* mach_itimer_private->timebase_info_numerator
+			    / mach_itimer_private->timebase_info_denominator;
+
+		*seconds_till_expiration
+			= 1.0e-9 * (double) time_left_in_nanoseconds;
+	}
+
+	status = pthread_mutex_unlock( &(mach_itimer_private->mutex) );
+
+	if ( status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"An attempt to unlock the mutex for interval timer %p "
+		"failed with errno = %d, error = '%s'.",
+			itimer, saved_errno, strerror(saved_errno) );
+	}
+
+#if MX_INTERVAL_TIMER_DEBUG
+	MX_DEBUG(-2,("%s: Read interval timer %p, seconds_till_expiration = %g",
+		fname, itimer, *seconds_till_expiration));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_MACOSX ) || defined( OS_DJGPP )
+#elif defined( OS_DJGPP )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
