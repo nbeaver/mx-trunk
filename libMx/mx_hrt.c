@@ -779,11 +779,11 @@ mx_high_resolution_time_init( void )
 		return;
 	}
 
-	MX_DEBUG(-2,("%s: tsc_freq = %lu", fname, tsc_freq));
+	MX_DEBUG( 2,("%s: tsc_freq = %lu", fname, tsc_freq));
 
 	mx_hrt_counter_ticks_per_microsecond = tsc_freq / 1000000LU;
 
-	MX_DEBUG(-2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
+	MX_DEBUG( 2,("%s: mx_hrt_counter_ticks_per_microsecond = %g",
 		fname, mx_hrt_counter_ticks_per_microsecond));
 
 	return;

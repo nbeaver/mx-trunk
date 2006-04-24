@@ -302,6 +302,8 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 
 	mx_free( win32_mmtimer_private );
 
+	mx_free( itimer );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2232,8 +2234,10 @@ mx_interval_timer_thread( MX_THREAD *thread, void *args )
 		num_events = kevent( kqueue_itimer_private->kq,
 					NULL, 0, &event, 1, NULL );
 
+#if MX_INTERVAL_TIMER_DEBUG
 		MX_DEBUG(-2,("%s: kqueue() returned.  num_events = %d",
 			fname, num_events));
+#endif
 
 		/* Did we get the event we were expecting? */
 
@@ -2380,7 +2384,11 @@ mx_interval_timer_destroy( MX_INTERVAL_TIMER *itimer )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	close( kqueue_itimer_private->kq );
+
 	mx_free( kqueue_itimer_private );
+
+	mx_free( itimer );
 
 	return MX_SUCCESSFUL_RESULT;
 }
