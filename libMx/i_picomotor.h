@@ -18,8 +18,8 @@
 #define __I_PICOMOTOR_H__
 
 #include "mx_record.h"
-
 #include "mx_motor.h"
+#include "mx_hrt.h"
 
 /* Define the data structures used by a Picomotor interface. */
 
