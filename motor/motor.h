@@ -157,7 +157,6 @@ extern int motor_init( char *motor_savefile_name, int num_savefiles,
 
 extern int motor_exit_save_dialog( void );
 
-extern char *motor_get_startup_filename( void );
 extern int motor_expand_pathname( char *filename, int max_filename_length );
 extern int motor_exec_script( char *script_name, int verbose_flag );
 extern int motor_exec_common( char *script_name, int verbose_flag );

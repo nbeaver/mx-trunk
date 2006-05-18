@@ -9,40 +9,13 @@
 #          or http://cygwin.com/
 #
 # Normally, the only things that end users may have to modify in this file are
-# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.  If you want to speed
-# up the build by linking everything statically, you may want to set the
-# BUILD_LIBMX_DLL variable to 'no'.
+# the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
 INCLUDES	= $(MX_INCLUDES)
 #
 LIB_DIRS	= -L$(MX_LIB_DIR)
 LIBRARIES	= -lrpclib
-
-#
-# Currently I build libMx.dll and its export library libMx.dll.a using
-# the Cygwin 'dllwrap' utility.  Unfortunately, generating the export
-# library takes a very long time, sometimes over 10 minutes, since libMx
-# has so many symbols.  Most of this time is taken up by 'dlltool' which
-# has to create around 4000 temporary files with names like ds0432.o, etc.
-# in order to create the export library libMx.dll.a.  Thus, when you are
-# debugging libMx on Cygwin, you probably want to set BUILD_LIBMX_DLL
-# to 'no' while debugging and only set it to 'yes' when you are doing
-# your final build.  However, this is still better than trying to use
-# a libMx.def file which would have so many entries and change so often
-# that it would be almost impossible to maintain.
-#
-# Theoretically, Cygwin's __attribute__((dllexport)) feature might be
-# a way to cut down on the build time in analogy to the way that the
-# Visual C++ _declspec(dllexport) feature does.  Unfortunately, so far
-# any attempt to build libMx.dll.a seems to require the 10 minute wait
-# to create all the ds*.o files even if you are using the dllexport
-# attribute.  Probably I do not understand how to correctly use this
-# feature yet, so if somebody can make this work, I would be interested
-# in hearing about it.
-#
-
-BUILD_LIBMX_DLL = yes
 
 #
 #========================================================================
@@ -137,13 +110,8 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	ar rcs libMx.a $(MX_LIB_OBJS)
 	ranlib libMx.a
-#
-#  The following, if enabled, takes a very long time to complete.
-#
-ifeq ($(BUILD_LIBMX_DLL),yes)
 	dllwrap --verbose -o libMx.dll --export-all-symbols \
 		--output-lib libMx.dll.a $(MX_LIB_OBJS) $(LIBRARIES)
-endif
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -163,31 +131,24 @@ library_install:
 	install -m 755 ../plotgnu/showdata $(MX_INSTALL_DIR)/bin/showdata.pl
 	install -m 755 ../plotgnu/showplot $(MX_INSTALL_DIR)/bin/showplot.pl
 	install -m 755 ../plotgnu/plot2ps $(MX_INSTALL_DIR)/bin/plot2ps.pl
-ifeq ($(BUILD_LIBMX_DLL),yes)
 	install -m 755 libMx.dll $(MX_INSTALL_DIR)/bin
 	install -m 644 libMx.dll.a $(MX_INSTALL_DIR)/lib
-endif
 
 #
 #---------------------------------------------------
 #
-MOTOR_NAME 	= motor.static
-MOTOR_NAME2	= motor.shared
+MOTOR_NAME 	= motor
+MOTOR_NAME2	= motor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME) $(MOTOR_OBJS) \
 			$(LIB_DIRS) ../libMx/libMx.a $(LIBRARIES) -lreadline
-ifeq ($(BUILD_LIBMX_DLL),yes)
 	$(CC) $(CFLAGS) -o $(MOTOR_NAME2) $(MOTOR_OBJS) \
 			$(LIB_DIRS) -lMx $(LIBRARIES) -lreadline
-endif
 
 motor_install:
-ifeq ($(BUILD_LIBMX_DLL),yes)
-	install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin
-endif
 	install -m 755 $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
-	install -m 755 ../scripts/motor $(MX_INSTALL_DIR)/bin
+	install -m 755 $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin
 
 #
 #---------------------------------------------------

@@ -171,7 +171,7 @@ library_install:
 #
 #---------------------------------------------------
 #
-MOTOR_NAME	= motorbin.exe
+MOTOR_NAME	= motor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	$(CC) -v -lv -M -e$(MOTOR_NAME) \
@@ -180,7 +180,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
-	cp ../scripts/motor.bat $(MX_INSTALL_DIR)/bin
 
 #
 #---------------------------------------------------

@@ -185,7 +185,7 @@ library_install:
 #
 #---------------------------------------------------
 #
-MOTOR_NAME	= motor.shared
+MOTOR_NAME	= motor
 MOTOR_NAME2	= motor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
@@ -200,7 +200,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 motor_install:
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O $(MOTOR_NAME)
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O $(MOTOR_NAME2)
-	install -F $(MX_INSTALL_DIR)/bin -m 755 -O -src ../scripts/motor motor
 	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
 					-src ../scripts/motor_xterm motor_xterm
 #

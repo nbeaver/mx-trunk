@@ -6,5 +6,5 @@ LD_LIBRARY_PATH="../../libMx:/usr/local/epics/extensions/lib/Linux:/usr/local/ep
 
 export MXDIR LD_LIBRARY_PATH
 
-../../motor/motor.shared -F /home/lavender/test/motor.dat -s ./scannew.dat $*
+../../motor/motor.static -F /home/lavender/test/motor.dat -s ./scannew.dat $*
 

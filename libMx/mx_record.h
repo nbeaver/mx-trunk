@@ -763,3 +763,4 @@ MX_API mx_status_type  mx_set_fast_mode( MX_RECORD *record_list,
 						mx_bool_type mode_flag );
 
 #endif /* __MX_RECORD_H__ */
+

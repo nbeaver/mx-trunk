@@ -30,6 +30,7 @@
 #include "mx_log.h"
 #include "mx_version.h"
 #include "mx_key.h"
+#include "mx_cfn.h"
 
 /* Global variables. */
 
@@ -38,6 +39,7 @@ MX_RECORD *motor_record_list;
 char motor_savefile[MXU_FILENAME_LENGTH + 1];
 char scan_savefile[MXU_FILENAME_LENGTH + 1];
 char global_motorrc[MXU_FILENAME_LENGTH + 1];
+char user_motorrc[MXU_FILENAME_LENGTH + 1];
 
 COMMAND command_list[] = {
 	{ motor_stop_fn,    1, "abort"         },     /* alias for 'stop' */
@@ -142,7 +144,6 @@ motor_main( int argc, char *argv[] )
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
-	char *startup_filename;
 
 	static char
 	    scan_savefile_array[ MAX_SCAN_SAVEFILES ][ MXU_FILENAME_LENGTH+1 ];
@@ -172,11 +173,19 @@ motor_main( int argc, char *argv[] )
 	unbuffered_io = FALSE;
 	init_hw_flags = FALSE;
 
-	strlcpy( motor_savefile, DEFAULT_MOTOR_SAVEFILE, MXU_FILENAME_LENGTH );
-	strlcpy( scan_savefile,  DEFAULT_SCAN_SAVEFILE,  MXU_FILENAME_LENGTH );
-	strlcpy( global_motorrc, GLOBAL_MOTOR_STARTUP,   MXU_FILENAME_LENGTH );
+	mx_construct_config_filename( "motor.dat",
+				motor_savefile, MXU_FILENAME_LENGTH );
 
-	allow_motor_database_updates = TRUE;
+	mx_construct_scan_filename( "scan.dat",
+				scan_savefile, MXU_FILENAME_LENGTH );
+
+	mx_construct_config_filename( "startup/motor.startup",
+				global_motorrc, MXU_FILENAME_LENGTH );
+
+	mx_construct_user_filename( "motor.startup",
+				user_motorrc, MXU_FILENAME_LENGTH );
+
+	allow_motor_database_updates = FALSE;
 	allow_scan_database_updates = TRUE;
 	motor_has_unsaved_scans = FALSE;
 	motor_exit_save_policy = EXIT_WITH_PROMPT;
@@ -294,6 +303,13 @@ motor_main( int argc, char *argv[] )
 
 	fprintf(output, "\nMX version %s\n", mx_get_version_string() );
 
+	/* Filenames specified on the command line may have been relative
+	 * pathnames rather than absolute pathnames.  Just in case this
+	 * has happened, we send the filenames through the filename
+	 * construction functions again.
+	 */
+
+#if 0
 	/* Convert the save file names to absolute pathnames so that
 	 * things like the 'cd' command do not cause us to write our
 	 * save files in the wrong place.
@@ -316,8 +332,9 @@ motor_main( int argc, char *argv[] )
 			scan_savefile);
 		exit(1);
 	}
+#endif
 
-#if 0
+#if 1
 	fprintf( output, "motor savefile = '%s'\n", motor_savefile );
 	fprintf( output, "scan savefile  = '%s'\n", scan_savefile );
 	fprintf( output, "global motorrc = '%s'\n", global_motorrc );
@@ -388,19 +405,17 @@ motor_main( int argc, char *argv[] )
 
 		/* Run the per user startup script if any. */
 
-		startup_filename = motor_get_startup_filename();
-
-		if ( startup_filename != NULL ) {
-			status = access( startup_filename, R_OK );
+		if ( strlen(user_motorrc) > 0 ) {
+			status = access( user_motorrc, R_OK );
 
 			if ( status == 0 ) {
 				status = motor_exec_script(
-						startup_filename, FALSE );
+						user_motorrc, FALSE );
 
 				if ( status != SUCCESS ) {
 					fprintf( stderr,
 			"Attempt to execute user startup file '%s' failed.\n",
-						startup_filename );
+						user_motorrc );
 					exit(1);
 				}
 			}
@@ -535,55 +550,6 @@ motor_main( int argc, char *argv[] )
 
 	return 0;
 #endif
-}
-
-char *
-motor_get_startup_filename( void )
-{
-	static char filename_buffer[100];
-	char *ptr;
-
-#if defined(OS_VXWORKS)
-	/* Real time kernels do not get per-user startup scripts. */
-
-	return NULL;
-#endif
-
-	filename_buffer[0] = '\0';
-
-#if defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP)
-
-	ptr = getenv("HOME");
-
-	if ( ptr != NULL ) {
-		strlcpy( filename_buffer, ptr, sizeof(filename_buffer) );
-	}
-
-	strlcat(filename_buffer, "/", sizeof(filename_buffer));
-
-	strlcat( filename_buffer, USER_MOTOR_STARTUP, sizeof(filename_buffer) );
-
-#elif defined(OS_MSDOS) || defined(OS_WIN32)
-
-	/* FIXME: The following is too simplistic. */
-
-	strlcpy( filename_buffer, "c:\\motor.ini", sizeof(filename_buffer) );
-
-#else
-	/* A fallback, if all else fails. */
-
-	strlcpy( filename_buffer, "motor.ini", sizeof(filename_buffer) );
-
-#endif /* Unix or MSDOS or Win32 or DJGPP */
-
-
-	ptr = &filename_buffer[0];
-
-#if 0
-	fprintf(output,"startup filename = '%s'\n", ptr);
-#endif
-
-	return ptr;
 }
 
 int

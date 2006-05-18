@@ -130,7 +130,7 @@ library_install:
 #---------------------------------------------------
 #
 
-MOTOR_NAME	= motorbin.exe
+MOTOR_NAME	= motor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	delete motor.olb;*

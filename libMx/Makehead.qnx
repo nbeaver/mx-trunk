@@ -159,7 +159,7 @@ library_install:
 #---------------------------------------------------
 #
 
-MOTOR_NAME	= motor.shared
+MOTOR_NAME	= motor
 MOTOR_NAME2	= motor.static
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
@@ -174,7 +174,6 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin 
 	cp $(MOTOR_NAME2) $(MX_INSTALL_DIR)/bin 
-	cp ../scripts/motor $(MX_INSTALL_DIR)/bin 
 	cp ../scripts/motor_xterm $(MX_INSTALL_DIR)/bin 
 
 #
