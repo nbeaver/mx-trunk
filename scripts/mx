@@ -22,7 +22,7 @@ MXLOG=${MXDIR}/log
 MXRUN=${MXDIR}/run
 MXSBIN=${MXDIR}/sbin
 
-MX_EPICS_CONFIG=${MXSBIN}/mx_epics_config
+MX_LOCAL_CONFIG=${MXSBIN}/mx_local_config
 
 START_MXSERVER=${MXSBIN}/startmxserver
 START_MXUPDATE=${MXSBIN}/startmxupdate
@@ -104,8 +104,8 @@ case $1 in
 		chown $MXUSER ${MXDIR}/log/*.log
 	fi
 
-	if [ -f $MX_EPICS_CONFIG ]; then
-		. $MX_EPICS_CONFIG
+	if [ -f $MX_LOCAL_CONFIG ]; then
+		. $MX_LOCAL_CONFIG
 	fi
 
 	if [ -x $START_MXSERVER ]; then

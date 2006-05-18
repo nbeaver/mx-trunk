@@ -610,6 +610,10 @@ mxd_hitachi_kp_d20_get_parameter( MX_PAN_TILT_ZOOM *ptz )
 #endif
 
 	switch( ptz->parameter_type ) {
+	case MXF_PTZ_PAN_POSITION:
+	case MXF_PTZ_TILT_POSITION:
+	case MXF_PTZ_FOCUS_POSITION:
+		break;
 	case MXF_PTZ_ZOOM_POSITION:
 		strlcpy( command, "38000000", sizeof(command) );
 		break;
