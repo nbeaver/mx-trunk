@@ -177,3 +177,49 @@ mx_info_default_entry_dialog_function( char *text_prompt, char *gui_prompt,
 	return;
 }
 
+/*--------------------------------------------------------------*/
+
+/* Informational messages during a scan are handled specially,
+ * since some applications may want to suppress them, but not
+ * suppress other messages.
+ */
+
+static int mx_scanlog_enabled = TRUE;
+
+MX_EXPORT void
+mx_scanlog_info( char *format, ... )
+{
+	va_list args;
+	char buffer[2500];
+
+	if ( mx_scanlog_enabled == FALSE )
+		return;
+
+	va_start(args, format);
+	vsnprintf(buffer, sizeof(buffer), format, args);
+	va_end(args);
+
+	/* Display the message. */
+
+	if ( mx_info_output_function != NULL ) {
+		(*mx_info_output_function)( buffer );
+	}
+	return;
+}
+
+MX_EXPORT void
+mx_set_scanlog_enable( int enable )
+{
+	if ( enable ) {
+		mx_scanlog_enabled = TRUE;
+	} else {
+		mx_scanlog_enabled = FALSE;
+	}
+}
+
+MX_EXPORT int
+mx_get_scanlog_enable( void )
+{
+	return mx_scanlog_enabled;
+}
+

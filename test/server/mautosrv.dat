@@ -1,7 +1,7 @@
-fault           variable inline int "" "" 1 1 0
-reset           variable inline int "" "" 1 1 0
-faultreset      variable inline int "" "" 1 1 0
-permit          variable inline int "" "" 1 1 0
+fault           variable inline long "" "" 1 1 0
+reset           variable inline long "" "" 1 1 0
+faultreset      variable inline long "" "" 1 1 0
+permit          variable inline long "" "" 1 1 0
 autoscale_I0    device autoscale autoscale_amp "" "" I0_real keithley1 timer1 1 5000 50000 100 1000
 autoscale_Ifilt device autoscale autoscale_filter "" "" Ifilt_real filters timer1 1 5000 50000 100 1000 0 0xff
 energy          device motor soft_motor "" "" 0 0 -1000000000 1000000000 0 -1 -1 0.001 0 eV 1000 0 500

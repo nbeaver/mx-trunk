@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_CFN_DEBUG	FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -138,7 +140,8 @@ mx_expand_filename_macros( char *original_filename,
 	static const char fname[] = "mx_expand_filename_macros()";
 
 	char macro_name[MXU_FILENAME_LENGTH+1];
-	char *macro_contents;
+	char macro_contents[MXU_FILENAME_LENGTH+1];
+	char *macro_ptr;
 	size_t i, j, original_length, name_length, macro_length;
 	int macro_state;
 	char c;
@@ -208,18 +211,42 @@ mx_expand_filename_macros( char *original_filename,
 				 * of the macro name.
 				 */
 
+#if MX_CFN_DEBUG
 				MX_DEBUG(-2,("%s: Detected macro '%s'",
 					fname, macro_name));
+#endif
 
-				macro_contents = getenv( macro_name );
+				macro_ptr = getenv( macro_name );
 
-				if ( macro_contents == NULL ) {
-					(void) mx_error( MXE_NOT_FOUND, fname,
-				"Environment variable '%s' in "
-				"unexpanded filename '%s' was not found.",
-						macro_name, original_filename );
+				if ( macro_ptr != NULL ) {
+					strlcpy( macro_contents, macro_ptr,
+						sizeof(macro_contents) );
+				} else {
+					/* The environment variable was not
+					 * found.  Supply a default value
+					 * for MXDIR if it was not found.
+					 * Otherwise, we return an error.
+					 */
 
-					return NULL;
+					if (strcmp(macro_name, "MXDIR") == 0) {
+						strlcpy( macro_contents,
+							MX_CFN_DEFAULT_MXDIR,
+							sizeof(macro_contents));
+#if MX_CFN_DEBUG
+						MX_DEBUG(-2,
+					("%s: Providing default MXDIR = '%s'.",
+						fname, MX_CFN_DEFAULT_MXDIR));
+#endif
+					} else {
+						(void) mx_error(
+							MXE_NOT_FOUND, fname,
+						"Environment variable '%s' in "
+						"unexpanded filename '%s' "
+						"was not found.", macro_name,
+							original_filename );
+
+						return NULL;
+					}
 				}
 
 				macro_length = strlen( macro_contents );
@@ -229,8 +256,10 @@ mx_expand_filename_macros( char *original_filename,
 
 				j += macro_length;
 
+#if MX_CFN_DEBUG
 				MX_DEBUG(-2,("%s: Macro '%s' = '%s'",
 					fname, macro_name, macro_contents));
+#endif
 
 				macro_state = MS_NOT_IN_MACRO;
 			}
@@ -266,7 +295,9 @@ mx_expand_filename_macros( char *original_filename,
 		}
 	}
 
+#if MX_CFN_DEBUG
 	MX_DEBUG(-2,("%s: new_filename = '%s'", fname, new_filename));
+#endif
 
 	return new_filename;
 }
@@ -301,9 +332,11 @@ mx_construct_control_system_filename( int filename_type,
 		"to fit even a 1 byte string into.", max_filename_length );
 	}
 
+#if MX_CFN_DEBUG
 	MX_DEBUG(-2,
 	("%s invoked for filename_type = %d, original_filename = '%s'",
 		fname, filename_type, original_filename));
+#endif
 
 	/* If the original filename already contains an absolute pathname,
 	 * then just return the original filename.
@@ -348,27 +381,41 @@ mx_construct_control_system_filename( int filename_type,
 	case MX_CFN_USER:
 		prefix = MX_CFN_USER_DIR;
 		break;
+	case MX_CFN_CWD:
+		prefix = MX_CFN_CWD_DIR;
+		break;
 	default:
 		prefix = "";
 		break;
 	}
 
-	snprintf( filename_buffer1, sizeof(filename_buffer1),
-		"%s/%s", prefix, original_filename );
+	if ( filename_type == MX_CFN_ABSOLUTE ) {
+		strlcpy( filename_buffer1, original_filename,
+				sizeof(filename_buffer1) );
+	} else {
+		snprintf( filename_buffer1, sizeof(filename_buffer1),
+			"%s/%s", prefix, original_filename );
+	}
 
+#if MX_CFN_DEBUG
 	MX_DEBUG(-2,("%s:   raw filename = '%s'", fname, filename_buffer1));
+#endif
 
 	mx_expand_filename_macros( filename_buffer1,
 			filename_buffer2, sizeof(filename_buffer2) );
 
+#if MX_CFN_DEBUG
 	MX_DEBUG(-2,("%s:   expanded filename = '%s'",
 			fname, filename_buffer2));
+#endif
 
 	mx_normalize_filename( filename_buffer2,
 			filename_buffer1, sizeof(filename_buffer1) );
 
+#if MX_CFN_DEBUG
 	MX_DEBUG(-2,("%s:   normalized filename = '%s'",
 			fname, filename_buffer1));
+#endif
 
 	strlcpy( new_filename, filename_buffer1, max_filename_length );
 

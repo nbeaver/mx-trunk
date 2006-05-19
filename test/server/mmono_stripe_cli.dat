@@ -13,18 +13,18 @@ d_spacing        variable inline double "" "" 1  1  1.9194
 # Theta dependency
 #
 theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
-theta_enabled    variable inline int "" "" 1 1 1
-theta_type       variable inline int "" "" 1 1 0
+theta_enabled    variable inline bool "" "" 1 1 1
+theta_type       variable inline long "" "" 1 1 0
 theta_records    variable inline record "" "" 1 1 theta_real
 #
 # Stripe dependency
 #
 stripe_list    variable inline record "" "" 1  4  stripe_enabled stripe_type dummy_params stripe_records  
-stripe_type    variable inline int "" "" 1  1  9  
-stripe_enabled variable net_variable net_int "" "" bmc73 stripe_enabled.value 1  1  1  
+stripe_type    variable inline long "" "" 1  1  9  
+stripe_enabled variable net_variable net_bool "" "" bmc73 stripe_enabled.value 1  1  1  
 stripe_records variable inline record "" "" 1  2  stripe_select stripe_params  
 stripe_params  variable net_variable net_double "" "" bmc73 stripe_params.value 2  2  2  5 23.5  23.0 38.0    
-##stripe_select  variable net_variable net_int "" "" bmc73 stripe_select.value 1 1 -1  
+##stripe_select  variable net_variable net_long "" "" bmc73 stripe_select.value 1 1 -1  
 stripe_select  variable calc position_select "" "" m_lane 2 25 0 1 1 -1  
 #
 dummy_params     variable inline double "" "" 1 1 0

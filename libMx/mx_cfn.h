@@ -32,6 +32,8 @@
 #define MX_CFN_STATE	8	/* state */
 #define MX_CFN_SCAN	9	/* $HOME */
 #define MX_CFN_USER	10	/* $HOME/.mx */
+#define MX_CFN_CWD	11	/* . */
+#define MX_CFN_ABSOLUTE	12	/* no default */
 
 MX_API char *mx_construct_control_system_filename( int filename_type,
 						char *original_filename,
@@ -77,6 +79,12 @@ MX_API char *mx_normalize_filename( char *original_filename,
 
 #define mx_construct_user_filename(o,n,s) \
     mx_construct_control_system_filename( MX_CFN_USER, (o), (n), (s) )
+
+#define mx_construct_cwd_filename(o,n,s) \
+    mx_construct_control_system_filename( MX_CFN_CWD, (o), (n), (s) )
+
+#define mx_construct_absolute_filename(o,n,s) \
+    mx_construct_control_system_filename( MX_CFN_ABSOLUTE, (o), (n), (s) )
 
 #endif /* __MX_CFN_H__ */
 

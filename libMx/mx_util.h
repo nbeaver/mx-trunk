@@ -478,6 +478,14 @@ MX_API void mx_set_info_entry_dialog_function(
 MX_API void mx_info_default_entry_dialog_function(
 					char *, char *, int, char *, size_t );
 
+/* Informational messages during a scan are handled specially, since some
+ * applications may want to suppress them, but not suppress other messages.
+ */
+
+MX_API void mx_scanlog_info( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
+
+MX_API void mx_set_scanlog_enable( int enable );
+MX_API int  mx_get_scanlog_enable( void );
 
 /* === Warning messages. === */
 

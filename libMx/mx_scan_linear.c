@@ -708,7 +708,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		("%s: At bottom level of independent variables.", fname ));
 
 		if ( scan->num_motors > 0 ) {
-			mx_info("Moving to start position for scan section.");
+			mx_scanlog_info(
+			"Moving to start position for scan section.");
 		}
 
 		for ( i = 0; i < num_dimension_steps; i++ ) {

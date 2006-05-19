@@ -570,7 +570,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 	/* Now step through all the positions in the position list. */
 
-	mx_info("Moving to start position.");
+	mx_scanlog_info("Moving to start position.");
 
 	for(;;) {
 		/* Get the next set of motor positions. */

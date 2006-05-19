@@ -17,10 +17,6 @@ short1  variable net_variable net_short "" "" serv short1.value 1 4 0 0 0 0
 short2  variable net_variable net_short "" "" serv short2.value 2 2 4 0 0 0 0 0 0 0 0
 ushort1 variable net_variable net_ushort "" "" serv ushort1.value 1 4 0 0 0 0
 ushort2 variable net_variable net_ushort "" "" serv ushort2.value 2 2 4 0 0 0 0 0 0 0 0
-int1    variable net_variable net_int "" "" serv int1.value 1 4 0 0 0 0
-int2    variable net_variable net_int "" "" serv int2.value 2 2 4 0 0 0 0 0 0 0 0
-uint1   variable net_variable net_uint "" "" serv uint1.value 1 4 0 0 0 0
-uint2   variable net_variable net_uint "" "" serv uint2.value 2 2 4 0 0 0 0 0 0 0 0
 long1   variable net_variable net_long "" "" serv long1.value 1 4 0 0 0 0
 long2   variable net_variable net_long "" "" serv long2.value 2 2 4 0 0 0 0 0 0 0 0
 ulong1  variable net_variable net_ulong "" "" serv ulong1.value 1 4 0 0 0 0

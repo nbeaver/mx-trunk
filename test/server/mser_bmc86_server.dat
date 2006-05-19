@@ -76,14 +76,14 @@ fs4              device digital_input pmac_dinput "" "" 0 pmac4 0 m7053
 d_spacing        variable inline       double "" "" 1  1  1.9201557
 beam_offset      variable inline       double "" "" 1  1  31000
 edge_energy      variable inline       double "" "" 1 1 8980
-y_trans_enabled  variable inline int "" "" 1 1 0
+y_trans_enabled  variable inline bool "" "" 1 1 0
 y_trans_params   variable inline double "" "" 1 4 15450 2.3578 1.4019 0.027499          
-z_trans_enabled  variable inline int "" "" 1 1 0
-focus_enabled    variable inline int "" "" 1 1 0
+z_trans_enabled  variable inline bool "" "" 1 1 0
+focus_enabled    variable inline bool "" "" 1 1 0
 focus_params     variable inline double "" "" 1 4 -572.78 0.29751  0 0
-roll_enabled     variable inline int "" "" 1 1 0
+roll_enabled     variable inline bool "" "" 1 1 0
 roll_params      variable inline double "" "" 1 4 -441.47 0.074788 -4.4723e-6 0
-m_h_enabled      variable inline int "" "" 1 1 0
+m_h_enabled      variable inline bool "" "" 1 1 0
 m_h_params       variable inline double "" "" 1 4 0 0 0 0
 g_hor_offset     variable inline double "" "" 1 1 110
 g_vert_offset    variable inline double "" "" 1 1 180

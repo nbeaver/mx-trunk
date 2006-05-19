@@ -14,10 +14,6 @@ short1  variable inline short "" "" 1 4 2 4 6 8
 short2  variable inline short "" "" 2 2 4 0 1 2 3 10 11 12 13
 ushort1 variable inline ushort "" "" 1 4 2 4 6 8
 ushort2 variable inline ushort "" "" 2 2 4 0 1 2 3 10 11 12 13
-int1    variable inline int "" "" 1 4 2 4 6 8
-int2    variable inline int "" "" 2 2 4 0 1 2 3 10 11 12 13
-uint1   variable inline uint "" "" 1 4 2 4 6 8
-uint2   variable inline uint "" "" 2 2 4 0 1 2 3 10 11 12 13
 long1   variable inline long "" "" 1 4 2 4 6 8
 long2   variable inline long "" "" 2 2 4 0 1 2 3 10 11 12 13
 ulong1  variable inline ulong "" "" 1 4 2 4 6 8

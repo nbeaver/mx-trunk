@@ -143,15 +143,15 @@ wavenumber       device motor wavenumber_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1
 k                device motor xafs_wavenumber "" "" 0 0 0 1e+08 0 -1 -1 1 0 A-1 energy
 e_minus_e0      device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 eV energy edge_energy
 theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
-theta_enabled    variable inline int "" "" 1 1 1
-theta_type       variable inline int "" "" 1 1 0
+theta_enabled    variable inline bool "" "" 1 1 1
+theta_type       variable inline long "" "" 1 1 0
 theta_records    variable inline record "" "" 1 1 theta_real
 id_ev_params     variable net_variable net_double "" "" id6 id_ev_params.value 1  2  1  100
 id_ev_harmonic   variable epics_variable epics_double "" "" ID22:HarmonicValue.VAL 1 1 1
 id_ev_list       variable inline       record     "" "" 1 4 id_ev_enabled id_ev_type id_ev_params id_ev_records    
-id_ev_type       variable inline int    "" "" 1 1 3
+id_ev_type       variable inline long    "" "" 1 1 3
 id_ev_records    variable inline record "" "" 1 2 id_ev d_spacing
-id_ev_enabled  variable net_variable net_int "" "" id6 id_ev_enabled.value 1 1 1 
+id_ev_enabled  variable net_variable net_bool "" "" id6 id_ev_enabled.value 1 1 1 
 dummy_params     variable inline double "" "" 1 1 0
 d_spacing        variable net_variable net_double "" "" id6 d_spacing.value 1  1  1.9201557  
 beam_offset      variable net_variable net_double "" "" id6 beam_offset.value 1  1  31000   

@@ -3,8 +3,8 @@
 edge_energy   variable net_variable net_double "" "" 10id edge_energy.value 1  1  11918
 d_spacing     variable net_variable net_double "" "" 10id d_spacing.value 1  1  3.135549
 theta_list    variable inline record "" "" 1  4  theta_enabled theta_type dummy_params theta_records
-theta_enabled variable inline int "" "" 1  1  1
-theta_type    variable inline int "" "" 1  1  0
+theta_enabled variable inline bool "" "" 1  1  1
+theta_type    variable inline long "" "" 1  1  0
 theta_records variable inline record "" "" 1  1  theta_real
 dummy_params  variable inline double "" "" 1  1  0
 theta_real    device motor network_motor "" "" 10 0 -1000 27000 0 -1 -1 1 0 deg 10id_mono1 theta_real

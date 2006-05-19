@@ -30,6 +30,9 @@
 #   define MX_CFN_STATE_DIR		"/var/state"
 #   define MX_CFN_SCAN_DIR		"${HOME}"
 #   define MX_CFN_USER_DIR		"${HOME}/.mx"
+#   define MX_CFN_CWD_DIR		"."
+
+#   define MX_CFN_DEFAULT_MXDIR		""
 
 #else
 #   define MX_CFN_PROGRAM_DIR		"${MXDIR}/bin"
@@ -42,6 +45,9 @@
 #   define MX_CFN_STATE_DIR		"${MXDIR}/state"
 #   define MX_CFN_SCAN_DIR		"${HOME}"
 #   define MX_CFN_USER_DIR		"${HOME}/.mx"
+#   define MX_CFN_CWD_DIR		"."
+
+#   define MX_CFN_DEFAULT_MXDIR		"/opt/mx"
 #endif
 
 #endif /* __MX_CFN_DEFAULTS_H__ */

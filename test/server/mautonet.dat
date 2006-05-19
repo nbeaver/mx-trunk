@@ -3,10 +3,10 @@ mx_scan_fault   variable inline string "" "" 2  4 40  autoscale:Ifilt autoscale:
 mx_scan_permit  variable inline string "" "" 2  1 40  simple:permit,1
 autoscale_I0    device autoscale autoscale_net "" "" I0_real keithley1 timer1 1 5000 50000 100 1000 serv1 autoscale_I0
 autoscale_Ifilt device autoscale autoscale_net "" "" Ifilt_real filters timer1 1 5000 50000 100 1000 serv1 autoscale_Ifilt
-fault           variable net_variable net_int "" "" serv1 fault.value 1  1  0
-reset           variable net_variable net_int "" "" serv1 reset.value 1  1  0
-faultreset      variable net_variable net_int "" "" serv1 faultreset.value 1  1  0
-permit          variable net_variable net_int "" "" serv1 permit.value 1  1  0
+fault           variable net_variable net_long "" "" serv1 fault.value 1  1  0
+reset           variable net_variable net_long "" "" serv1 reset.value 1  1  0
+faultreset      variable net_variable net_long "" "" serv1 faultreset.value 1  1  0
+permit          variable net_variable net_long "" "" serv1 permit.value 1  1  0
 energy          device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 eV serv1 energy
 smx             device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 um serv1 smx
 smy             device motor network_motor "" "" 0 0 -1e+09 1e+09 0 -1 -1 1 0 um serv1 smy

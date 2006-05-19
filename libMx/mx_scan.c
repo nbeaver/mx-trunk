@@ -1648,7 +1648,7 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 
 	/* Send the formatted progress string to the user. */
 
-	mx_info(buffer);
+	mx_scanlog_info(buffer);
 
 	return MX_SUCCESSFUL_RESULT;
 }

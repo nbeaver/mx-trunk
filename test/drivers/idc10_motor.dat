@@ -267,73 +267,73 @@ e_minus_e0      device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 eV energ
 # Theta dependency
 #
 theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
-theta_enabled    variable inline int "" "" 1 1 1
-theta_type       variable inline int "" "" 1 1 0
+theta_enabled    variable inline bool "" "" 1 1 1
+theta_type       variable inline long "" "" 1 1 0
 theta_records    variable inline record "" "" 1 1 theta_real
 #
 # Insertion device dependency
 #
 id_ev_params     variable net_variable net_double "" "" id6 id_ev_params.value 1  2  1  100
 id_ev_list       variable inline       record     "" "" 1 4 id_ev_enabled id_ev_type id_ev_params id_ev_records    
-id_ev_type       variable inline int    "" "" 1 1 3
+id_ev_type       variable inline long   "" "" 1 1 3
 id_ev_records    variable inline record "" "" 1 2 id_ev d_spacing
-id_ev_enabled  variable net_variable net_int "" "" id6 id_ev_enabled.value 1 1 1 
+id_ev_enabled  variable net_variable net_bool "" "" id6 id_ev_enabled.value 1 1 1 
 #
 # Bragg normal dependency
 #
-#y_trans_enabled  variable net_variable net_int "" "" id6 y_trans_enabled.value 1 1 1
+#y_trans_enabled  variable net_variable net_bool "" "" id6 y_trans_enabled.value 1 1 1
 #y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type dummy_params y_trans_records
-#y_trans_type     variable inline int "" "" 1 1 4
+#y_trans_type     variable inline long "" "" 1 1 4
 #y_trans_records  variable inline record "" "" 1 2 y_trans beam_offset
 #
 #Bragg normal polynomial dependency
 #
-y_trans_enabled  variable net_variable net_int "" "" id6 y_trans_enabled.value 1 1 1
+y_trans_enabled  variable net_variable net_bool "" "" id6 y_trans_enabled.value 1 1 1
 y_trans_params   variable net_variable net_double "" "" id6 y_trans_params.value 1 4 15450 2.3578 1.4019 0.027499
 y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type y_trans_params y_trans_records
-y_trans_type     variable inline int "" "" 1 1 2
+y_trans_type     variable inline long "" "" 1 1 2
 y_trans_records  variable inline record "" "" 1 1 y_trans
 #
 # Bragg parallel dependency
 #
-z_trans_enabled  variable net_variable net_int "" "" id6 z_trans_enabled.value 1 1 1
+z_trans_enabled  variable net_variable net_bool "" "" id6 z_trans_enabled.value 1 1 1
 z_trans_list     variable inline record "" "" 1 4 z_trans_enabled z_trans_type dummy_params z_trans_records
-z_trans_type     variable inline int "" "" 1 1 5
+z_trans_type     variable inline long "" "" 1 1 5
 z_trans_records  variable inline record "" "" 1 2 z_trans beam_offset
 #
 # Focus dependency
 #
-focus_enabled    variable net_variable net_int "" "" id6 focus_enabled.value 1 1 0
+focus_enabled    variable net_variable net_bool "" "" id6 focus_enabled.value 1 1 0
 focus_params     variable net_variable net_double "" "" id6 focus_params.value 1 4 -572.78 0.29751 0 0
 focus_list       variable inline record "" "" 1 4 focus_enabled focus_type focus_params focus_records
-focus_type       variable inline int "" "" 1 1 8
+focus_type       variable inline long "" "" 1 1 8
 focus_records    variable inline record "" "" 1 2 focus d_spacing
 #
 # Roll dependency
 #
-roll_enabled    variable net_variable net_int "" "" id6 roll_enabled.value 1 1 0
+roll_enabled    variable net_variable net_bool "" "" id6 roll_enabled.value 1 1 0
 roll_params     variable net_variable net_double "" "" id6 roll_params.value 1 4 -441.47 0.074788 -4.4723e-6 0
 roll_list       variable inline record "" "" 1 4 roll_enabled roll_type roll_params roll_records
-roll_type       variable inline int "" "" 1 1 8
+roll_type       variable inline long "" "" 1 1 8
 roll_records    variable inline record "" "" 1 2 roll d_spacing 
 #
 #mirror angle dependancy
 #
-m_angle_enabled    variable net_variable net_int "" "" id6 m_angle_enabled.value 1 1 0
+m_angle_enabled    variable net_variable net_bool "" "" id6 m_angle_enabled.value 1 1 0
 m_angle_params     variable net_variable net_double "" "" id6 m_angle_params.value 1 4 3.8699 -9.6318e-5 8.7427e-9 -2.8095e-13
 m_angle_list       variable inline record "" "" 1 4 m_angle_enabled m_angle_type m_angle_params m_angle_records
-m_angle_type       variable inline int "" "" 1 1 8
+m_angle_type       variable inline long "" "" 1 1 8
 m_angle_records    variable inline record "" "" 1 2 mirror_angle d_spacing
 #
 #mirror stripe dependency
 #
 stripe_list    variable inline record "" "" 1  4  stripe_enabled stripe_type dummy_params stripe_records  
-stripe_type    variable inline int "" "" 1  1  9  
-stripe_enabled variable net_variable net_int "" "" id6 stripe_enabled.value 1  1  0  
+stripe_type    variable inline long "" "" 1  1  9  
+stripe_enabled variable net_variable net_bool "" "" id6 stripe_enabled.value 1  1  0  
 stripe_records variable inline record "" "" 1  2  stripe_select stripe_params  
 stripe_params  variable net_variable net_double "" "" id6 stripe_params.value 2  2  2  5 23.5  23.0 38.0    
 #stripe_select  variable calc position_select "" "" m_lane 2 25 0 1 1 -1  
-stripe_select  variable net_variable net_int "" "" id2 stripe_select.value 1 1 -1  
+stripe_select  variable net_variable net_bool "" "" id2 stripe_select.value 1 1 -1  
 #
 dummy_params     variable inline double "" "" 1 1 0
 d_spacing        variable net_variable net_double "" "" id6 d_spacing.value 1  1  1.9194     

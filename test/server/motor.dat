@@ -235,54 +235,54 @@ e_minus_e0      device motor delta_motor "" "" 0 0 -1e8 1e8 0 -1 -1 1 0 eV energ
 # Theta dependency
 #
 theta_list       variable inline       record     "" "" 1 4 theta_enabled theta_type dummy_params theta_records
-theta_enabled    variable inline int "" "" 1 1 1
-theta_type       variable inline int "" "" 1 1 0
+theta_enabled    variable inline bool "" "" 1 1 1
+theta_type       variable inline long "" "" 1 1 0
 theta_records    variable inline record "" "" 1 1 theta_real
 #
 # Bragg normal dependency
 #
-y_trans_enabled  variable net_variable net_int "" "" bmc86 y_trans_enabled.value 1 1 1
+y_trans_enabled  variable net_variable net_bool "" "" bmc86 y_trans_enabled.value 1 1 1
 y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type dummy_params y_trans_records
-y_trans_type     variable inline int "" "" 1 1 4
+y_trans_type     variable inline long "" "" 1 1 4
 y_trans_records  variable inline record "" "" 1 2 y_trans beam_offset
 #
 #Bragg normal polynomial dependency
 #
-#y_trans_enabled  variable net_variable net_int "" "" bmc86 y_trans_enabled.value 1 1 1
+#y_trans_enabled  variable net_variable net_bool "" "" bmc86 y_trans_enabled.value 1 1 1
 #y_trans_params   variable net_variable net_double "" "" bmc86 y_trans_params.value 1 4 15450 2.3578 1.4019 0.027499
 #y_trans_list     variable inline record "" "" 1 4 y_trans_enabled y_trans_type y_trans_params y_trans_records
-#y_trans_type     variable inline int "" "" 1 1 2
+#y_trans_type     variable inline long "" "" 1 1 2
 #y_trans_records  variable inline record "" "" 1 1 y_trans
 #
 # Bragg parallel dependency
 #
-z_trans_enabled  variable net_variable net_int "" "" bmc86 z_trans_enabled.value 1 1 1
+z_trans_enabled  variable net_variable net_bool "" "" bmc86 z_trans_enabled.value 1 1 1
 z_trans_list     variable inline record "" "" 1 4 z_trans_enabled z_trans_type dummy_params z_trans_records
-z_trans_type     variable inline int "" "" 1 1 5
+z_trans_type     variable inline long "" "" 1 1 5
 z_trans_records  variable inline record "" "" 1 2 z_trans beam_offset
 #
 # Focus dependency
 #
-focus_enabled    variable net_variable net_int "" "" bmc86 focus_enabled.value 1 1 0
+focus_enabled    variable net_variable net_bool "" "" bmc86 focus_enabled.value 1 1 0
 focus_params     variable net_variable net_double "" "" bmc86 focus_params.value 1 4 -572.78 0.29751 0 0
 focus_list       variable inline record "" "" 1 4 focus_enabled focus_type focus_params focus_records
-focus_type       variable inline int "" "" 1 1 8
+focus_type       variable inline long "" "" 1 1 8
 focus_records    variable inline record "" "" 1 2 focus d_spacing
 #
 # Roll dependency
 #
-roll_enabled    variable net_variable net_int "" "" bmc86 roll_enabled.value 1 1 0
+roll_enabled    variable net_variable net_bool "" "" bmc86 roll_enabled.value 1 1 0
 roll_params     variable net_variable net_double "" "" bmc86 roll_params.value 1 4 -441.47 0.074788 -4.4723e-6 0
 roll_list       variable inline record "" "" 1 4 roll_enabled roll_type roll_params roll_records
-roll_type       variable inline int "" "" 1 1 8
+roll_type       variable inline long "" "" 1 1 8
 roll_records    variable inline record "" "" 1 2 roll d_spacing 
 #
 #mirror height dependancy
 #
-m_h_enabled    variable net_variable net_int "" "" bmc86 m_h_enabled.value 1 1 0
+m_h_enabled    variable net_variable net_bool "" "" bmc86 m_h_enabled.value 1 1 0
 m_h_params     variable net_variable net_double "" "" bmc86 m_h_params.value 1 4 5449.2 -750.49 34.165 -0.54352
 m_h_list       variable inline record "" "" 1 4 m_h_enabled m_h_type m_h_params m_h_records
-m_h_type       variable inline int "" "" 1 1 2
+m_h_type       variable inline long "" "" 1 1 2
 m_h_records    variable inline record "" "" 1 1 mirror_height
 #
 dummy_params     variable inline double "" "" 1 1 0

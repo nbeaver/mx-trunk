@@ -1,5 +1,5 @@
 10id_bugeye     server network tcpip_server "" "" 0x0 164.54.244.40 9727
-xia_mca_enable  variable net_variable net_int "" "" 10id_bugeye xia_mca_enable.value 1  16  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+xia_mca_enable  variable net_variable net_bool "" "" 10id_bugeye xia_mca_enable.value 1  16  1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
 xia             interface generic xia_network "" "" 10id_bugeye xia
 mcaxia0         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia0 -1 -1
 mcaxia1         device mca xia_dxp_mca "" "" 8192 16 16 xia mcaxia1 -1 -1

@@ -85,6 +85,8 @@ motor_show_fn( int argc, char *argv[] )
 "        show overwrite     -- show whether old datafiles are automatically\n"
 "                              overwritten\n"
 "        show plot          -- show current plot type\n"
+"        show scanlog       -- show whether scan progress messages are\n"
+"                              displayed\n"
 "        show version       -- show program version\n"
 "\n"
 "Commands to show record details:\n"
@@ -351,6 +353,14 @@ motor_show_fn( int argc, char *argv[] )
 
 		strlcpy( record_type_phrase, "a variable",
 					sizeof(record_type_phrase) );
+
+	} else if ( strncmp( "scanlog", argv[2], length ) == 0 ) {
+		if ( mx_get_scanlog_enable() ) {
+		    fprintf( output, "  scan log messages are on.\n");
+		} else {
+		    fprintf( output, "  scan log messages are off.\n");
+		}
+		return SUCCESS;
 
 	} else {
 		fprintf(output,"show: Unrecognized option '%s'\n\n", argv[2]);

@@ -4,6 +4,6 @@ pmac1       interface generic pmac "" "" rs232 pmac1_rs232 1
 theta_real  device motor pmac_motor "" "" 0   0     -10000000    10000000  0     -1   -1   4.592401e-5      0  deg     pmac1 0 21
 m_lane      device motor pmac_motor "" "" 0   0     -10000000    10000000  0     -1   -1   1.63416e-4  0 mm pmac1 0 22
 #
-stripe_enabled variable inline int "" "" 1  1  1  
+stripe_enabled variable inline bool "" "" 1  1  1  
 stripe_params  variable inline double "" "" 2  2  2  5 23.5  23.0 38.0    
 ##stripe_select  variable calc position_select "" "" m_lane 2 25 0 1 1 -1  

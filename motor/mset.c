@@ -87,6 +87,7 @@ motor_set_fn( int argc, char *argv[] )
 "        set header_prompt { on | off }\n"
 "        set overwrite { on | off }\n"
 "        set plot { on | off | nowait }\n"
+"        set scanlog { on | off }\n"
 "        set debug 'debug-value'";
 
 	if ( argc == 2 ) {
@@ -744,6 +745,40 @@ motor_set_fn( int argc, char *argv[] )
 
 			fprintf( output,
 		"Usage: 'set overwrite on' or 'set overwrite off'\n");
+
+			return FAILURE;
+		}
+
+	/* SET SCANLOG function. */
+
+	} else if ( strncmp( argv[2], "scanlog", length2 ) == 0 ) {
+
+		if ( argc <= 3 ) {
+			fprintf(output,
+		"Usage: 'set scanlog on' or 'set scanlog off'\n");
+
+			return FAILURE;
+		}
+
+		length3 = strlen( argv[3] );
+
+		if ( length3 <= 1 )
+			length3 = 2;
+
+		if ( strncmp( argv[3], "off", length3 ) == 0 ) {
+
+			mx_set_scanlog_enable( FALSE );
+
+		} else if ( strncmp( argv[3], "on", length3 ) == 0 ) {
+
+			mx_set_scanlog_enable( TRUE );
+
+		} else {
+			fprintf( output,
+			"%s: Illegal argument '%s'\n", cname, argv[3]);
+
+			fprintf( output,
+		"Usage: 'set scanlog on' or 'set scanlog off'\n");
 
 			return FAILURE;
 		}

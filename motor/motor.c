@@ -334,7 +334,7 @@ motor_main( int argc, char *argv[] )
 	}
 #endif
 
-#if 1
+#if 0
 	fprintf( output, "motor savefile = '%s'\n", motor_savefile );
 	fprintf( output, "scan savefile  = '%s'\n", scan_savefile );
 	fprintf( output, "global motorrc = '%s'\n", global_motorrc );

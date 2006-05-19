@@ -185,34 +185,66 @@ mxd_aps_gap_finish_record_initialization( MX_RECORD *record )
 	switch( aps_gap->motor_subtype ) {
 	case MXT_APS_GAP_MM:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-			"ID%02d:Gap.VAL", aps_gap->sector_number );
+			"ID%02dds:Gap.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-			"ID%02d:GapSet.VAL", aps_gap->sector_number );
+			"ID%02dds:GapSet.VAL", aps_gap->sector_number );
+		break;
+
+	case (-MXT_APS_GAP_MM):
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02dus:Gap.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02dus:GapSet.VAL", aps_gap->sector_number );
 		break;
 
 	case MXT_APS_GAP_KEV:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-			"ID%02d:Energy.VAL", aps_gap->sector_number );
+			"ID%02dds:Energy.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-			"ID%02d:EnergySet.VAL", aps_gap->sector_number);
+			"ID%02dds:EnergySet.VAL", aps_gap->sector_number);
+		break;
+
+	case (-MXT_APS_GAP_KEV):
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02dus:Energy.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02dus:EnergySet.VAL", aps_gap->sector_number);
 		break;
 
 	case MXT_APS_TAPER_MM:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-			"ID%02d:TaperGap.VAL", aps_gap->sector_number );
+			"ID%02dds:TaperGap.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-			"ID%02d:TaperGapSet.VAL", aps_gap->sector_number );
+			"ID%02dds:TaperGapSet.VAL", aps_gap->sector_number );
+		break;
+
+	case (-MXT_APS_TAPER_MM):
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02dus:TaperGap.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02dus:TaperGapSet.VAL", aps_gap->sector_number );
 		break;
 
 	case MXT_APS_TAPER_KEV:
 		mx_epics_pvname_init( &(aps_gap->position_pv),
-			"ID%02d:TaperEnergy.VAL", aps_gap->sector_number );
+			"ID%02dds:TaperEnergy.VAL", aps_gap->sector_number );
 
 		mx_epics_pvname_init( &(aps_gap->destination_pv),
-			"ID%02d:TaperEnergySet.VAL", aps_gap->sector_number);
+			"ID%02dds:TaperEnergySet.VAL", aps_gap->sector_number);
+		break;
+
+	case (-MXT_APS_TAPER_KEV):
+		mx_epics_pvname_init( &(aps_gap->position_pv),
+			"ID%02dus:TaperEnergy.VAL", aps_gap->sector_number );
+
+		mx_epics_pvname_init( &(aps_gap->destination_pv),
+			"ID%02dus:TaperEnergySet.VAL", aps_gap->sector_number);
 		break;
 
 	default:

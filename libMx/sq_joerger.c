@@ -723,7 +723,7 @@ mxs_joerger_quick_scan_prepare_for_scan_start( MX_SCAN *scan )
 
 	/* Send the motors to the start position for the scan. */
 
-	mx_info("Moving to start position.");
+	mx_scanlog_info("Moving to start position.");
 
 	mx_status = mx_motor_array_move_absolute(
 			scan->num_motors,
