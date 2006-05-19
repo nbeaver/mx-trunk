@@ -39,6 +39,15 @@
 MX_EXPORT mx_bool_type
 mx_is_absolute_filename( char *filename )
 {
+	static const char fname[] = "mx_is_absolute_filename()";
+
+	if ( filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename argument passed was NULL." );
+
+		return FALSE;
+	}
+
 	if ( filename[0] == '/' ) {
 		return TRUE;
 	} else {
@@ -56,6 +65,24 @@ mx_normalize_filename( char *original_filename,
 	mx_bool_type slash_seen;
 	size_t i, j, original_length;
 	char c;
+
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length <= 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %d is too short "
+		"to fit even a 1 byte string into.", max_filename_length );
+	}
 
 	/* For Posix filenames, all we do here is convert multiple '/'
 	 * characters in a row to just a single '/' character.
@@ -116,9 +143,29 @@ mx_expand_filename_macros( char *original_filename,
 	int macro_state;
 	char c;
 
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length <= 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %d is too short "
+		"to fit even a 1 byte string into.", max_filename_length );
+	}
+
 	macro_state = MS_NOT_IN_MACRO;
 
 	original_length = strlen( original_filename );
+
+	new_filename[0] = '\0';
 
 	for ( i = 0, j = 0; i < original_length; i++ ) {
 		c = original_filename[i];
@@ -235,6 +282,24 @@ mx_construct_control_system_filename( int filename_type,
 	char filename_buffer1[MXU_FILENAME_LENGTH+20];
 	char filename_buffer2[MXU_FILENAME_LENGTH+20];
 	char *prefix;
+
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length <= 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %d is too short "
+		"to fit even a 1 byte string into.", max_filename_length );
+	}
 
 	MX_DEBUG(-2,
 	("%s invoked for filename_type = %d, original_filename = '%s'",
