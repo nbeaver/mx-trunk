@@ -60,7 +60,8 @@ main( int argc, char *argv[] )
 	}
 
 	while (1) {
-		mx_status = mx_semaphore_get_value( semaphore, &current_value );
+		mx_status = mx_semaphore_get_value( semaphore,
+					(unsigned long*) &current_value );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			fprintf( stderr,
