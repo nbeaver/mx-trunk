@@ -278,6 +278,8 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	mx_status = mxi_picomotor_command( picomotor_controller,
 			command, response, max_response_length, debug_flag );
 
+	mx_msleep(100);
+
 	return mx_status;
 }
 
