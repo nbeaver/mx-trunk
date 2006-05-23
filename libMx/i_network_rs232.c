@@ -282,7 +282,7 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 	remote_mx_version = server->remote_mx_version;
 
-	MX_DEBUG(-2,("%s: Network RS-232 '%s', remote server version = %lu",
+	MX_DEBUG( 2,("%s: Network RS-232 '%s', remote server version = %lu",
 		fname, record->name, remote_mx_version));
 
 	if ( remote_mx_version >= MX_VERSION_GETCHAR_PUTCHAR_HAS_CHAR_TYPE ) {
@@ -291,7 +291,7 @@ mxi_network_rs232_open( MX_RECORD *record )
 		network_rs232->getchar_putchar_is_char = FALSE;
 	}
 
-	MX_DEBUG(-2,("%s: Network RS-232 '%s', getchar_putchar_is char = %d",
+	MX_DEBUG( 2,("%s: Network RS-232 '%s', getchar_putchar_is char = %d",
 		fname, record->name,
 		(int) network_rs232->getchar_putchar_is_char ));
 
