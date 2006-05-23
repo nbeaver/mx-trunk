@@ -238,6 +238,9 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 	MX_RS232 *rs232;
 	MX_NETWORK_RS232 *network_rs232;
+	MX_RECORD *server_record;
+	MX_NETWORK_SERVER *server;
+	unsigned long remote_mx_version;
 #if 0
 	long datatype, num_dimensions;
 	long dimension_array[1];
@@ -259,6 +262,38 @@ mxi_network_rs232_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	server_record = network_rs232->server_record;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The server_record pointer for network RS-232 record '%s' is NULL.",
+			record->name );
+	}
+
+	server = (MX_NETWORK_SERVER *) server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for server record '%s ' "
+		"used by network RS-232 record '%s' is NULL.",
+			server_record->name, record->name );
+	}
+
+	remote_mx_version = server->remote_mx_version;
+
+	MX_DEBUG(-2,("%s: Network RS-232 '%s', remote server version = %lu",
+		fname, record->name, remote_mx_version));
+
+	if ( remote_mx_version >= MX_VERSION_GETCHAR_PUTCHAR_HAS_CHAR_TYPE ) {
+		network_rs232->getchar_putchar_is_char = TRUE;
+	} else {
+		network_rs232->getchar_putchar_is_char = FALSE;
+	}
+
+	MX_DEBUG(-2,("%s: Network RS-232 '%s', getchar_putchar_is char = %d",
+		fname, record->name,
+		(int) network_rs232->getchar_putchar_is_char ));
 
 #if 1
 	/* FIXME: Buffered network RS-232 I/O is not really working yet, so we
@@ -459,6 +494,7 @@ mxi_network_rs232_getchar( MX_RS232 *rs232, char *c )
 	static const char fname[] = "mxi_network_rs232_getchar()";
 
 	MX_NETWORK_RS232 *network_rs232;
+	int int_c, datatype;
 	mx_status_type mx_status;
 
 	mx_status = mxi_network_rs232_get_pointers( rs232,
@@ -472,7 +508,19 @@ mxi_network_rs232_getchar( MX_RS232 *rs232, char *c )
 		"The character pointer 'c' passed is NULL." );
 	}
 
-	mx_status = mx_get( &(network_rs232->getchar_nf), MXFT_CHAR, c );
+	if ( network_rs232->getchar_putchar_is_char ) {
+		mx_status = mx_get( &(network_rs232->getchar_nf),
+							MXFT_CHAR, c );
+	} else {
+		/* MX 1.1.1 and before defined 'getchar' fields as MXFT_INT. */
+
+		datatype = 6;	/* MXFT_INT */
+
+		mx_status = mx_get( &(network_rs232->getchar_nf),
+							datatype, &int_c );
+
+		*c = (char) int_c;
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -490,6 +538,7 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 	static const char fname[] = "mxi_network_rs232_putchar()";
 
 	MX_NETWORK_RS232 *network_rs232;
+	int int_c, datatype;
 	mx_status_type mx_status;
 
 #if MXI_NETWORK_RS232_DEBUG
@@ -502,7 +551,19 @@ mxi_network_rs232_putchar( MX_RS232 *rs232, char c )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_put( &(network_rs232->putchar_nf), MXFT_CHAR, &c );
+	if ( network_rs232->getchar_putchar_is_char ) {
+		mx_status = mx_put( &(network_rs232->putchar_nf),
+							MXFT_CHAR, &c );
+	} else {
+		/* MX 1.1.1 and before defined 'putchar' fields as MXFT_INT. */
+
+		datatype = 6;	/* MXFT_INT */
+
+		int_c = (int) c;
+
+		mx_status = mx_put( &(network_rs232->putchar_nf),
+							datatype, &int_c );
+	}
 
 	return mx_status;
 }

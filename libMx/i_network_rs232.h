@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,11 +17,15 @@
 #ifndef __I_NETWORK_RS232_H__
 #define __I_NETWORK_RS232_H__
 
+#define MX_VERSION_GETCHAR_PUTCHAR_HAS_CHAR_TYPE	1002000UL
+
 /* Define the data structures used by a NETWORK_RS232 interface. */
 
 typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
+
+	mx_bool_type getchar_putchar_is_char;
 
 	long remote_read_buffer_length;
 	long remote_write_buffer_length;
