@@ -124,14 +124,20 @@ mxi_picomotor_create_record_structures( MX_RECORD *record )
 
 	picomotor_controller->record = record;
 
-	picomotor_controller->minimum_time_between_commands
-		= mx_convert_seconds_to_high_resolution_time( 0.1 );
-
 	for ( i = 0; i < MX_MAX_PICOMOTOR_DRIVERS; i++ ) {
 		for ( j = 0; j < MX_MAX_PICOMOTORS_PER_DRIVER; j++ ) {
 			picomotor_controller->motor_record_array[i][j] = NULL;
 		}
 	}
+
+	/* According to the vendor, Picomotor controllers do not like it
+	 * if you send a new command within 70 milliseconds of the last
+	 * command.
+	 */
+
+	picomotor_controller->minimum_time_between_commands
+		= mx_convert_seconds_to_high_resolution_time(
+			0.001 * (double) MX_MINIMUM_PICOMOTOR_COMMAND_INTERVAL);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -261,6 +267,8 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 			record->name, response );
 	}
 
+	mx_msleep( MX_MINIMUM_PICOMOTOR_COMMAND_INTERVAL );
+
 	/* Find out what kinds of drivers are used by this controller. */
 
 	mx_status = mxi_picomotor_command( picomotor_controller, "DRT", NULL, 0,
@@ -322,10 +330,18 @@ mxi_picomotor_resynchronize( MX_RECORD *record )
 		case 1:
 			picomotor_controller->driver_type[driver_number - 1]
 					= MXT_PICOMOTOR_8753_DRIVER;
+#if MXI_PICOMOTOR_DEBUG
+			MX_DEBUG(-2,("%s: Picomotor controller %d is an 8753",
+				fname, driver_number));
+#endif
 			break;
 		case 2:
 			picomotor_controller->driver_type[driver_number - 1]
 					= MXT_PICOMOTOR_8751_DRIVER;
+#if MXI_PICOMOTOR_DEBUG
+			MX_DEBUG(-2,("%s: Picomotor controller %d is an 8751",
+				fname, driver_number));
+#endif
 			break;
 		default:
 			picomotor_controller->driver_type[driver_number - 1]
@@ -525,7 +541,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	char response_buffer[MXU_PICOMOTOR_MAX_COMMAND_LENGTH+1];
 	struct timespec current_time;
-	int comparison;
+	int i, max_attempts, comparison;
 	mx_status_type mx_status;
 
 #if MXI_PICOMOTOR_DEBUG_TIMING	
@@ -570,54 +586,104 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		}
 	}
 
-	/* Send the command. */
+	/* How many times do we retry sending the command? */
 
-	if ( command_flags & MXF_PICOMOTOR_DEBUG ) {
-		MX_DEBUG(-2,("%s: sending '%s' to '%s'",
-			fname, command, picomotor_controller->record->name));
+	if ( command_flags & MXF_PICOMOTOR_NO_COMMAND_RETRY ) {
+		max_attempts = 1;
+	} else {
+		max_attempts = 5;
 	}
 
+	for ( i = 0; i < max_attempts; i++ ) {
+		/* Send the command. */
+
+		if ( command_flags & MXF_PICOMOTOR_DEBUG ) {
+			MX_DEBUG(-2,("%s: sending '%s' to '%s'",
+			fname, command, picomotor_controller->record->name));
+		}
+
 #if MXI_PICOMOTOR_DEBUG_TIMING	
-	MX_HRT_RS232_START_COMMAND( command_timing, 2 + strlen(command) );
+		MX_HRT_RS232_START_COMMAND( command_timing,
+						2 + strlen(command) );
 #endif
 
-	mx_status = mx_rs232_putline( picomotor_controller->rs232_record,
+		mx_status = mx_rs232_putline(
+					picomotor_controller->rs232_record,
 					command, NULL, 0 );
 
 #if MXI_PICOMOTOR_DEBUG_TIMING
-	MX_HRT_RS232_END_COMMAND( command_timing );
+		MX_HRT_RS232_END_COMMAND( command_timing );
 #endif
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Get the response, if one is expected. */
-
-#if MXI_PICOMOTOR_DEBUG_TIMING
-	MX_HRT_RS232_START_RESPONSE( response_timing, NULL );
-#endif
-
-	response_buffer[0] = '\0';
-
-	if ( response != (char *) NULL ) {
-		mx_status = mxi_picomotor_getline( picomotor_controller,
-				response_buffer, sizeof(response_buffer),
-				command_flags );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-	}
+
+		/* Get the response, if one is expected. */
+
+		response_buffer[0] = '\0';
+
+		if ( response == (char *) NULL ) {
 
 #if MXI_PICOMOTOR_DEBUG_TIMING
-	MX_HRT_RS232_END_RESPONSE( response_timing, strlen(response_buffer) );
-
-	MX_HRT_RS232_COMMAND_RESULTS( command_timing, command, fname );
-
-	MX_HRT_TIME_BETWEEN_MEASUREMENTS( command_timing,
-						response_timing, fname );
-
-	MX_HRT_RS232_RESPONSE_RESULTS( response_timing, response_buffer, fname);
+			MX_HRT_RS232_COMMAND_RESULTS( command_timing,
 #endif
+			/* No response is expected, so break out of
+			 * the command retry loop.
+			 */
+
+			break;
+		} else {
+
+#if MXI_PICOMOTOR_DEBUG_TIMING
+			MX_HRT_RS232_START_RESPONSE( response_timing, NULL );
+#endif
+			mx_status = mxi_picomotor_getline( picomotor_controller,
+				response_buffer, sizeof(response_buffer),
+				command_flags );
+
+#if MXI_PICOMOTOR_DEBUG_TIMING
+			MX_HRT_RS232_END_RESPONSE( response_timing,
+						strlen(response_buffer) );
+			MX_HRT_RS232_COMMAND_RESULTS( command_timing,
+							command, fname );
+			MX_HRT_TIME_BETWEEN_MEASUREMENTS( command_timing,
+							response_timing, fname);
+			MX_HRT_RS232_RESPONSE_RESULTS( response_timing,
+							response_buffer, fname);
+#endif
+			if ( mx_status.code == MXE_SUCCESS ) {
+				/* We successfully received a command response,
+				 * so break out of the for() loop.
+				 */
+
+				break;
+			} else
+			if ( mx_status.code == MXE_TIMED_OUT ) {
+				/* Did not receive a response. */
+
+				mx_warning(
+"No response received for the command '%s' to Picomotor controller '%s'."
+"  Attempting to retry the command.  Retry attempt %d.",
+					fname, command, i+1 );
+			} else {
+				/* For any other error, abort now. */
+
+				return mx_status;
+			}
+		}
+
+		mx_msleep( MX_MINIMUM_PICOMOTOR_COMMAND_INTERVAL );
+	}
+
+	/* Did we exceed the maximum number of retries? */
+
+	if ( i >= max_attempts ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unable to get a response from Picomotor controller '%s' "
+		"after %d attempts to send the command '%s'.",
+			picomotor_controller->record->name,
+			max_attempts, command );
+	}
 
 	/* If the caller wanted a response, copy it from the
 	 * response buffer.
@@ -689,7 +755,7 @@ mxi_picomotor_getline( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 	mx_status = mx_rs232_getchar_with_timeout(
 				picomotor_controller->rs232_record,
 				&c,
-				MXF_232_WAIT, 5.0 );
+				MXF_232_WAIT, 1.0 );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -747,7 +813,7 @@ mxi_picomotor_getline( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 		mx_status = mx_rs232_getchar_with_timeout(
 			picomotor_controller->rs232_record,
-			&c, MXF_232_WAIT, 5.0 );
+			&c, MXF_232_WAIT, 1.0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

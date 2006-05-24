@@ -243,12 +243,6 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		    ("%s: position_offset = %ld  ==>  NEW base_position = %ld",
 					fname, position_offset,
 					current_picomotor->base_position));
-
-				/* Add extra delay after getting
-				 * the motor offset.
-				 */
-
-				mx_msleep(200);
 			}
 
 			/* Send a command to change the current motor number. */
@@ -269,7 +263,7 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 			/* Add extra delay after setting the motor channel. */
 
-			mx_msleep(300);
+			mx_msleep(500);
 		}
 	}
 
@@ -277,8 +271,6 @@ mxd_picomotor_motor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 	mx_status = mxi_picomotor_command( picomotor_controller,
 			command, response, max_response_length, debug_flag );
-
-	mx_msleep(100);
 
 	return mx_status;
 }
@@ -610,6 +602,10 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 			picomotor->driver_name,
 			position_change );
 
+		picomotor->base_position = motor->raw_position.stepper;
+
+		MX_DEBUG( 2,("%s: picomotor->base_position = %ld",
+			fname, picomotor->base_position));
 		break;
 	default:
 		/* For all others, use absolute positioning. */
@@ -621,8 +617,12 @@ mxd_picomotor_move_absolute( MX_MOTOR *motor )
 	}
 
 	mx_status = mxd_picomotor_motor_command( picomotor_controller,
-					picomotor, command,
-					NULL, 0, MXD_PICOMOTOR_DEBUG );
+			picomotor, command, NULL, 0,
+			MXD_PICOMOTOR_DEBUG | MXF_PICOMOTOR_NO_COMMAND_RETRY );
+
+	/* Add an extra delay after a move command. */
+
+	mx_msleep(500);
 
 	MX_DEBUG( 2,("****** %s complete for motor '%s' ******", 
 		fname, motor->record->name));

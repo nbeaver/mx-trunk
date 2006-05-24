@@ -26,6 +26,12 @@
 #define MX_MAX_PICOMOTOR_DRIVERS	31
 #define MX_MAX_PICOMOTORS_PER_DRIVER	3
 
+/* According to the vendor, the minimum acceptable value for the following
+ * definition is 70 milliseconds.
+ */
+
+#define MX_MINIMUM_PICOMOTOR_COMMAND_INTERVAL	100	/* in milliseconds */
+
 #define MXU_PICOMOTOR_MAX_COMMAND_LENGTH	200
 #define MXU_PICOMOTOR_DRIVER_NAME_LENGTH	4
 
@@ -112,6 +118,7 @@ MX_API mx_status_type mxi_picomotor_getline(
 
 #define MXF_PICOMOTOR_DEBUG			0x1
 #define MXF_PICOMOTOR_TERMINATE_ON_STATUS_CHAR	0x2
+#define MXF_PICOMOTOR_NO_COMMAND_RETRY		0x4
 
 #endif /* __I_PICOMOTOR_H__ */
 
