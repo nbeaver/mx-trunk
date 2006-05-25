@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../update/mxupdate mpicomotor_update.dat mpicomotor_update.1 mpicomotor_update.2
+

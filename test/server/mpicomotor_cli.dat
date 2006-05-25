@@ -1,0 +1,7 @@
+picoserver server network tcp_server "" "" 0x0 localhost 9827
+ma1_0      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma1_0
+ma1_1      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma1_1
+ma1_2      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma1_2
+ma2_0      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma2_0
+ma2_1      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma2_1
+ma2_2      device motor network_motor "" "" 0 0 -20000000 20000000 0 -1 -1 1 0 steps picoserver ma2_2
