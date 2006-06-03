@@ -294,6 +294,7 @@
 #include "d_adsc_two_theta.h"
 #include "d_als_dewar_positioner.h"
 #include "d_record_field_motor.h"
+#include "d_gated_backlash.h"
 
 #include "d_aps_18id.h"
 
@@ -2189,6 +2190,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_als_dewar_positioner_motor_function_list,
 				&mxd_als_dewar_positioner_num_record_fields,
 				&mxd_als_dewar_positioner_rfield_def_ptr},
+
+{"gated_backlash",    MXT_MTR_GATED_BACKLASH, MXC_MOTOR,     MXR_DEVICE,
+				&mxd_gated_backlash_record_function_list,
+				NULL,
+				&mxd_gated_backlash_motor_function_list,
+				&mxd_gated_backlash_num_record_fields,
+				&mxd_gated_backlash_rfield_def_ptr},
 
 #if HAVE_EPICS
 {"aps_18id_motor", MXT_MTR_APS_18ID,     MXC_MOTOR,       MXR_DEVICE,

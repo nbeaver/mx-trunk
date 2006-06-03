@@ -28,15 +28,15 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_segmented_move_record_function_list = {
-	mxd_segmented_move_initialize_type,
+	NULL,
 	mxd_segmented_move_create_record_structures,
-	mxd_segmented_move_finish_record_initialization,
-	mxd_segmented_move_delete_record,
+	mx_motor_finish_record_initialization,
+	NULL,
 	mxd_segmented_move_print_motor_structure,
-	mxd_segmented_move_read_parms_from_hardware,
-	mxd_segmented_move_write_parms_to_hardware,
-	mxd_segmented_move_open,
-	mxd_segmented_move_close,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mxd_segmented_move_resynchronize
 };
@@ -74,52 +74,37 @@ MX_RECORD_FIELD_DEFAULTS *mxd_segmented_move_rfield_def_ptr
 
 /*=======================================================================*/
 
-/* This function is a utility function to consolidate all of the
- * pointer mangling that often has to happen at the beginning of an 
- * mxd_segmented_move_...  function.  The parameter 'calling_fname'
- * is passed so that error messages will appear with the name of
- * the calling function.
- */
-
 MX_EXPORT mx_status_type
 mxd_segmented_move_get_pointers( MX_MOTOR *motor,
 			MX_SEGMENTED_MOVE **segmented_move,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_segmented_move_get_pointers()";
+	static const char fname[] = "mxd_segmented_move_get_pointers()";
 
 	if ( motor == (MX_MOTOR *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The motor pointer passed by '%s' was NULL",
+			"The MX_MOTOR pointer passed by '%s' was NULL",
+			calling_fname );
+	}
+	if ( segmented_move == (MX_SEGMENTED_MOVE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_SEGMENTED_MOVE pointer passed by '%s' is NULL.",
 			calling_fname );
 	}
 
 	if ( motor->record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_RECORD pointer for motor pointer passed by '%s' is NULL.",
-			calling_fname );
+		"The MX_RECORD pointer for the MX_MOTOR pointer "
+		"passed by '%s' is NULL.", calling_fname );
 	}
 
-	if ( motor->record->mx_type != MXT_MTR_SEGMENTED_MOVE ) {
-		return mx_error( MXE_TYPE_MISMATCH, fname,
-	"The motor '%s' passed by '%s' is not a segmented move motor.  "
-	"(superclass = %ld, class = %ld, type = %ld)",
-			motor->record->name, calling_fname,
-			motor->record->mx_superclass,
-			motor->record->mx_class,
-			motor->record->mx_type );
-	}
+	*segmented_move = (MX_SEGMENTED_MOVE *)
+				motor->record->record_type_struct;
 
-	if ( segmented_move != (MX_SEGMENTED_MOVE **) NULL ) {
-
-		*segmented_move = (MX_SEGMENTED_MOVE *)
-				(motor->record->record_type_struct);
-
-		if ( *segmented_move == (MX_SEGMENTED_MOVE *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	if ( *segmented_move == (MX_SEGMENTED_MOVE *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 "The MX_SEGMENTED_MOVE pointer for motor record '%s' passed by '%s' is NULL",
 				motor->record->name, calling_fname );
-		}
 	}
 
 	if ( (*segmented_move)->real_motor_record == (MX_RECORD *) NULL ) {
@@ -134,15 +119,10 @@ mxd_segmented_move_get_pointers( MX_MOTOR *motor,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_segmented_move_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_segmented_move_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_segmented_move_create_record_structures()";
+	static const char fname[] =
+		"mxd_segmented_move_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_SEGMENTED_MOVE *segmented_move;
@@ -187,34 +167,10 @@ mxd_segmented_move_create_record_structures( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_segmented_move_finish_record_initialization( MX_RECORD *record )
-{
-	return mx_motor_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_segmented_move_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_segmented_move_print_motor_structure()";
+	static const char fname[]
+		= "mxd_segmented_move_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_SEGMENTED_MOVE *segmented_move;
@@ -226,21 +182,13 @@ mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 		"MX_RECORD pointer passed is NULL.");
 	}
 
-	motor = (MX_MOTOR *) (record->record_class_struct);
+	motor = (MX_MOTOR *) record->record_class_struct;
 
-	if ( motor == (MX_MOTOR *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_MOTOR pointer for record '%s' is NULL.",
-			record->name);
-	}
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
-	segmented_move = (MX_SEGMENTED_MOVE *) (record->record_type_struct);
-
-	if ( segmented_move == (MX_SEGMENTED_MOVE *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
-			"MX_SEGMENTED_MOVE pointer for record '%s' is NULL.",
-			record->name );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	fprintf(file, "MOTOR parameters for motor '%s':\n", record->name);
 	fprintf(file, "  Motor type        = SEGMENTED_MOVE.\n\n");
@@ -299,33 +247,9 @@ mxd_segmented_move_print_motor_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_segmented_move_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_segmented_move_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_segmented_move_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_segmented_move_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_segmented_move_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_segmented_move_resynchronize()";
+	static const char fname[] = "mxd_segmented_move_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_SEGMENTED_MOVE *segmented_move;
@@ -339,7 +263,8 @@ mxd_segmented_move_resynchronize( MX_RECORD *record )
 			record->name );
 	}
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		motor->busy = FALSE;
@@ -347,7 +272,8 @@ mxd_segmented_move_resynchronize( MX_RECORD *record )
 		return mx_status;
 	}
 
-	mx_status = mx_resynchronize_record( segmented_move->real_motor_record );
+	mx_status =
+		mx_resynchronize_record( segmented_move->real_motor_record );
 
 	return mx_status;
 }
@@ -355,13 +281,14 @@ mxd_segmented_move_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_segmented_move_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_motor_is_busy()";
+	static const char fname[] = "mxd_segmented_move_motor_is_busy()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_bool_type busy;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		motor->busy = FALSE;
@@ -398,14 +325,15 @@ mxd_segmented_move_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_move_absolute()";
+	static const char fname[] = "mxd_segmented_move_move_absolute()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	double destination, segment_destination;
 	double current_position, relative_distance;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -467,13 +395,14 @@ mxd_segmented_move_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_get_position()";
+	static const char fname[] = "mxd_segmented_move_get_position()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	double position;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -489,13 +418,14 @@ mxd_segmented_move_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_set_position()";
+	static const char fname[] = "mxd_segmented_move_set_position()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	double new_set_position;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -510,12 +440,13 @@ mxd_segmented_move_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_soft_abort()";
+	static const char fname[] = "mxd_segmented_move_soft_abort()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -530,19 +461,21 @@ mxd_segmented_move_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_immediate_abort()";
+	static const char fname[] = "mxd_segmented_move_immediate_abort()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	segmented_move->more_segments_needed = FALSE;
 
-	mx_status = mx_motor_immediate_abort( segmented_move->real_motor_record );
+	mx_status =
+		mx_motor_immediate_abort( segmented_move->real_motor_record );
 
 	return mx_status;
 }
@@ -550,18 +483,20 @@ mxd_segmented_move_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_positive_limit_hit()";
+	static const char fname[] = "mxd_segmented_move_positive_limit_hit()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_positive_limit_hit(segmented_move->real_motor_record,
+	mx_status =
+		mx_motor_positive_limit_hit( segmented_move->real_motor_record,
 						&limit_hit );
 
 	motor->positive_limit_hit = limit_hit;
@@ -576,18 +511,20 @@ mxd_segmented_move_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_negative_limit_hit()";
+	static const char fname[] = "mxd_segmented_move_negative_limit_hit()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_bool_type limit_hit;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_negative_limit_hit(segmented_move->real_motor_record,
+	mx_status =
+		mx_motor_negative_limit_hit( segmented_move->real_motor_record,
 						&limit_hit );
 
 	motor->negative_limit_hit = limit_hit;
@@ -602,17 +539,19 @@ mxd_segmented_move_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_find_home_position()";
+	static const char fname[] = "mxd_segmented_move_find_home_position()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_motor_find_home_position( segmented_move->real_motor_record,
+	mx_status =
+		mx_motor_find_home_position( segmented_move->real_motor_record,
 						motor->home_search );
 	return mx_status;
 }
@@ -620,12 +559,14 @@ mxd_segmented_move_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_constant_velocity_move()";
+	static const char fname[] =
+			"mxd_segmented_move_constant_velocity_move()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -639,12 +580,13 @@ mxd_segmented_move_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_get_parameter()";
+	static const char fname[] = "mxd_segmented_move_get_parameter()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -657,7 +599,8 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 
 	switch( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		mx_status = mx_motor_get_speed( segmented_move->real_motor_record,
+		mx_status =
+			mx_motor_get_speed( segmented_move->real_motor_record,
 						&(motor->raw_speed) );
 		break;
 
@@ -736,12 +679,13 @@ mxd_segmented_move_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_segmented_move_set_parameter()";
+	static const char fname[] = "mxd_segmented_move_set_parameter()";
 
 	MX_SEGMENTED_MOVE *segmented_move;
 	mx_status_type mx_status;
 
-	mx_status = mxd_segmented_move_get_pointers(motor, &segmented_move, fname);
+	mx_status = mxd_segmented_move_get_pointers( motor,
+						&segmented_move, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -754,7 +698,8 @@ mxd_segmented_move_set_parameter( MX_MOTOR *motor )
 
 	switch ( motor->parameter_type ) {
 	case MXLV_MTR_SPEED:
-		mx_status = mx_motor_set_speed( segmented_move->real_motor_record,
+		mx_status =
+			mx_motor_set_speed( segmented_move->real_motor_record,
 						motor->raw_speed );
 		break;
 

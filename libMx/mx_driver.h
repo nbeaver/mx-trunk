@@ -18,7 +18,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -454,6 +454,7 @@
 #define MXT_MTR_AFRAME_DETECTOR_MOTOR	55017
 #define MXT_MTR_ADSC_TWO_THETA		55018
 #define MXT_MTR_RECORD_FIELD		55019
+#define MXT_MTR_GATED_BACKLASH		55020
 
 #define MXT_MTR_APS_18ID		55102
 #define MXT_MTR_ALS_DEWAR_POSITIONER	55103

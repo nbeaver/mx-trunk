@@ -120,6 +120,8 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 
 	motor->real_motor_record = NULL;
 
+	motor->backlash_in_progress = FALSE;
+
 	/* If 'quick_scan_backlash_correction' is changed to be settable
 	 * in the database file, the following will have to be removed.
 	 */
@@ -266,6 +268,12 @@ mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 		}
 	}
 
+	if ( motor->backlash_in_progress ) {
+		if ( motor->busy == FALSE ) {
+			motor->backlash_in_progress = FALSE;
+		}
+	}
+
 	if ( busy != NULL ) {
 		*busy = motor->busy;
 	}
@@ -369,6 +377,48 @@ mx_motor_immediate_abort( MX_RECORD *motor_record )
 	status = ( *fptr ) ( motor );
 
 	return status;
+}
+
+/* -------------------------------------------- */
+
+static mx_status_type
+mx_motor_set_backlash_flags( long num_motors,
+				MX_RECORD **motor_record_array,
+				mx_bool_type flag_value )
+{
+	static const char fname[] = "mx_motor_set_backlash_flags()";
+
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
+	long i;
+
+	if ( motor_record_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The motor_record_array pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < num_motors; i++ ) {
+		motor_record = motor_record_array[i];
+
+		if ( motor_record == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"motor_record_array[%ld] is NULL.", i );
+		}
+
+		MX_DEBUG(-2,("%s: motor[%ld] = '%s', flag_value = %d",
+			fname, i, motor_record->name, (int) flag_value));
+
+		motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+		if ( motor == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"MX_MOTOR for motor_record_array[%ld] is NULL.", i );
+		}
+
+		motor->backlash_in_progress = flag_value;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* --- Move by engineering units functions. --- */
@@ -548,12 +598,18 @@ mx_motor_array_move_absolute_with_report( long num_motors,
 			MX_DEBUG( 2,
 			("%s: Backlash correction for move segment.", fname));
 
+			mx_motor_set_backlash_flags( num_motors,
+					motor_record_array, TRUE );
+
 			status = mx_motor_array_internal_move_with_report(
 					num_motors,
 					motor_record_array,
 					motor_position,
 					move_report_fn,
 					modified_flags );
+
+			mx_motor_set_backlash_flags( num_motors,
+					motor_record_array, FALSE );
 
 			if ( status.code != MXE_SUCCESS )
 				return status;
@@ -1595,6 +1651,12 @@ mx_motor_get_status( MX_RECORD *motor_record,
 		motor->status |= MXSF_MTR_ERROR;
 	}
 
+	if ( motor->backlash_in_progress ) {
+		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			motor->backlash_in_progress = FALSE;
+		}
+	}
+
 	if ( motor_status != NULL ) {
 		*motor_status = motor->status;
 	}
@@ -1657,8 +1719,14 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 			(void) mx_motor_set_traditional_status( motor );
 		}
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			if ( motor->backlash_in_progress ) {
+				if (( motor->status & MXSF_MTR_IS_BUSY ) == 0) {
+					motor->backlash_in_progress = FALSE;
+				}
+			}
 			return mx_status;
+		}
 
 		/* Get the motor position. */
 
@@ -1673,6 +1741,12 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 		}
 
 		mx_status = ( *get_position_fn ) ( motor );
+	}
+
+	if ( motor->backlash_in_progress ) {
+		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
+			motor->backlash_in_progress = FALSE;
+		}
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -4133,6 +4207,8 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 
 		if ( (flags & MXF_MTR_ONLY_CHECK_LIMITS) == 0 ) {
 
+			/* Do the backlash correction. */
+
 			/* Update destination. */
 
 			motor->destination = motor->offset
@@ -4142,10 +4218,15 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 
 			motor->raw_destination.stepper = backlash_position;
 
+			motor->backlash_in_progress = TRUE;
+
 			status = ( *fptr ) ( motor );
 
-			if ( status.code != MXE_SUCCESS )
+			if ( status.code != MXE_SUCCESS ) {
+				motor->backlash_in_progress = FALSE;
+
 				return status;
+			}
 
 			/* Leave now if we were not asked to wait for the
 			 * completion of the backlash correction.
@@ -4164,15 +4245,19 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 			if ( move_report_fn != NULL ) {
 				move_report_status = (*move_report_fn)
 						( flags, 1, &motor_record );
+
+				status = MX_SUCCESSFUL_RESULT;
 			} else {
 				move_report_status = MX_SUCCESSFUL_RESULT;
 
 				status = mx_wait_for_motor_stop(
 						motor_record, flags );
-
-				if ( status.code != MXE_SUCCESS )
-					return status;
 			}
+
+			motor->backlash_in_progress = FALSE;
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			/* Update copy of motor position in MOTOR structure. */
 
@@ -4525,6 +4610,8 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 		if ( (flags & MXF_MTR_ONLY_CHECK_LIMITS) == 0 ) {
 
+			/* Do the backlash_correction. */
+
 			/* Update the destination. */
 
 			motor->destination = motor->offset
@@ -4534,10 +4621,15 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 			motor->raw_destination.analog = backlash_position;
 
+			motor->backlash_in_progress = TRUE;
+
 			status = ( *fptr ) ( motor );
 
-			if ( status.code != MXE_SUCCESS )
+			if ( status.code != MXE_SUCCESS ) {
+				motor->backlash_in_progress = FALSE;
+
 				return status;
+			}
 
 			/* Leave now if we were not asked to wait for the
 			 * completion of the backlash correction.
@@ -4556,15 +4648,19 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 			if ( move_report_fn != NULL ) {
 				move_report_status = (*move_report_fn)
 						( flags, 1, &motor_record );
+
+				status = MX_SUCCESSFUL_RESULT;
 			} else {
 				move_report_status = MX_SUCCESSFUL_RESULT;
 
 				status = mx_wait_for_motor_stop(
 						motor_record, flags );
-
-				if ( status.code != MXE_SUCCESS )
-					return status;
 			}
+
+			motor->backlash_in_progress = FALSE;
+
+			if ( status.code != MXE_SUCCESS )
+				return status;
 
 			/* Update copy of motor position in MOTOR structure. */
 
