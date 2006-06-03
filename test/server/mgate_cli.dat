@@ -1,0 +1,11 @@
+serv       server network tcp_server "" "" 0x0 localhost 9827
+d_spacing  variable net_variable net_double "" "" serv d_spacing.value 1  1  3.13555
+dac1       device analog_output network_aoutput "" "" 0 1 0 V 0x0 serv dac1
+dout1      device digital_output network_doutput "" "" 0 serv dout1
+shutter    device relay network_relay "" "" serv shutter
+theta_real device motor network_motor "" "" 0 -5 -1e38 1e38 0 -1 -1 1 0 deg serv theta_real
+theta      device motor gated_backlash "" "" 0 -5 -1e38 1e38 0 -1 -1 1 0 deg theta_real shutter 1 0
+energy     device motor energy_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.01745329251994330
+I0         device scaler network_scaler "" "" 0 0 0 "" serv I0
+I          device scaler network_scaler "" "" 0 0 0 "" serv I
+timer1     device timer network_timer "" "" serv timer1

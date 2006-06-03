@@ -1,0 +1,9 @@
+d_spacing  variable inline double "" "" 1  1  3.13555
+dac1       device analog_output soft_aoutput "" "" 0 1 0 V 0x0
+dout1      device digital_output soft_doutput "" "" 0
+shutter    device relay blind_relay "" "" 0 dout1 0 2 0x2 0x0
+theta_real device motor soft_motor "" "" 0 0 -20000000 20000000 0 -1 -1 0.0001 0 deg 20000 0 10000
+energy     device motor energy_motor "" "" 0 0 0 1e+08 0 -1 -1 1 0 eV theta_real d_spacing 0.01745329251994330
+I0         device scaler soft_scaler "" "" 0 0 0 "" energy 101 ./i0.dat 0 
+I          device scaler soft_scaler "" "" 0 0 0 "" energy 101 ./i.dat 0 
+timer1     device timer soft_timer "" ""

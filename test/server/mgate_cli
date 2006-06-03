@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mgate_cli.dat -s ./sgate_cli.dat $*
+
