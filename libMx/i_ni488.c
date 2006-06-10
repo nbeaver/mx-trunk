@@ -566,6 +566,8 @@ mxi_ni488_open_device( MX_GPIB *gpib, long address )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	eos_value = 0;	/* Suppress GCC 4 uninitialized variable warning */
+
 #if MXI_NI488_DEBUG
 	MX_DEBUG(-2,("%s invoked for GPIB board %d, address %d.",
 		fname, ni488->board_number, address));
@@ -1294,7 +1296,7 @@ mxi_ni488_serial_poll( MX_GPIB *gpib, long address,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ibsta_value = ibrsp( dev, serial_poll_byte );
+	ibsta_value = ibrsp( dev, (char *) serial_poll_byte );
 
 	if ( ibsta_value & ERR ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
