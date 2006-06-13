@@ -724,7 +724,7 @@ motor_mcs_display_plot( MX_RECORD *mcs_record,
 	 "Plotting with Gnuplot is not supported for this operating system.\n");
 	return FAILURE;
 #else
-	plotgnu_pipe = popen( "perl -S -- plotgnu.pl", "w" );
+	plotgnu_pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 #endif
 
 	if ( plotgnu_pipe == NULL ) {
@@ -827,7 +827,7 @@ motor_mcs_display_all( MX_RECORD *mcs_record, MX_MCS *mcs )
 	 "Plotting with Gnuplot is not supported for this operating system.\n");
 	return FAILURE;
 #else
-	plotgnu_pipe = popen( "perl -S -- plotgnu.pl", "w" );
+	plotgnu_pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 #endif
 
 	if ( plotgnu_pipe == NULL ) {

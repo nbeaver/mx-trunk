@@ -114,7 +114,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 	return mx_error( MXE_UNSUPPORTED, fname,
 	  "Plotting with Gnuplot is not supported for this operating system." );
 #else
-	gnuxafs_data->pipe = popen( "perl -S -- plotgnu.pl", "w" );
+	gnuxafs_data->pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 #endif
 
 	if ( gnuxafs_data->pipe == NULL ) {

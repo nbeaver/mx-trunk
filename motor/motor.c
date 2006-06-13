@@ -140,7 +140,7 @@ motor_main( int argc, char *argv[] )
 	char *name;
 	int status, debug_level, unbuffered_io;
 	int init_hw_flags, start_debugger;
-	int run_startup_scripts;
+	int run_startup_scripts, ignore_scan_savefiles;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -195,6 +195,7 @@ motor_main( int argc, char *argv[] )
 	motor_default_precision = 8;
 
 	num_scan_savefiles = 0;
+	ignore_scan_savefiles = FALSE;
 
 	start_debugger = FALSE;
 
@@ -203,7 +204,7 @@ motor_main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:DF:f:Hg:iNnP:p:S:s:tu")) != -1 ) {
+	while ((c = getopt(argc, argv, "d:DF:f:Hg:iNnP:p:S:s:tuz")) != -1 ) {
 		switch (c) {
 		case 'd':
 			debug_level = atoi( optarg );
@@ -262,6 +263,9 @@ motor_main( int argc, char *argv[] )
 		case 'u':
 			unbuffered_io = TRUE;
 			break;
+		case 'z':
+			ignore_scan_savefiles = TRUE;
+			break;
 		case '?':
 			error_flag = TRUE;
 			break;
@@ -281,10 +285,19 @@ motor_main( int argc, char *argv[] )
 
 #endif /* HAVE_GETOPT */
 
-	if ( num_scan_savefiles > 0 ) {
-		strlcpy( scan_savefile,
-			scan_savefile_array[ num_scan_savefiles - 1 ],
-			MXU_FILENAME_LENGTH );
+	if ( ignore_scan_savefiles ) {
+		num_scan_savefiles = 0;
+	} else {
+		if ( num_scan_savefiles == 0 ) {
+			num_scan_savefiles = 1;
+
+			strlcpy( scan_savefile_array[0],
+				scan_savefile, MXU_FILENAME_LENGTH );
+		} else {
+			strlcpy( scan_savefile,
+				scan_savefile_array[ num_scan_savefiles - 1 ],
+				MXU_FILENAME_LENGTH );
+		}
 	}
 
 	if ( unbuffered_io ) {

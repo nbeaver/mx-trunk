@@ -34,7 +34,7 @@
  * If you do not know what it is, set HAVE_EPICS to 0.
  */
 
-#define HAVE_EPICS			1
+#define HAVE_EPICS			0
 
 /*****************************************************************************
  *
@@ -59,7 +59,7 @@
  * Warning: This driver has recently been revised and may not be fully working.
  */
 
-#define HAVE_LINUX_GPIB			1
+#define HAVE_LINUX_GPIB			0
 
 /*****************************************************************************
  *

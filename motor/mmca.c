@@ -866,7 +866,7 @@ motor_mca_display_plot( MX_RECORD *mca_record, MX_MCA *mca )
 
 	/* Open a connetion to plotgnu. */
 
-	plotgnu_pipe = popen( "perl -S -- plotgnu.pl", "w" );
+	plotgnu_pipe = popen( MXP_PLOTGNU_COMMAND, "w" );
 
 	if ( plotgnu_pipe == NULL ) {
 		(void) mx_error( MXE_IPC_IO_ERROR, fname,

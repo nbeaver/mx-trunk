@@ -39,6 +39,7 @@
 #include "mx_net.h"
 #include "mx_clock.h"
 #include "mx_hrt.h"
+#include "mx_cfn.h"
 #include "mx_log.h"
 #include "mx_syslog.h"
 
@@ -329,8 +330,13 @@ mxserver_main( int argc, char *argv[] )
 
 	mxsrv_setup_output_functions();
 
-	strcpy( mx_database_filename, "mxserver.dat" );
-	strcpy( mx_connection_acl_filename, "mxserver.acl" );
+	mx_construct_config_filename( "mxserver.dat",
+			mx_database_filename, MXU_FILENAME_LENGTH );
+	mx_construct_config_filename( "mxserver.acl",
+			mx_connection_acl_filename, MXU_FILENAME_LENGTH );
+
+	strlcpy( mx_stderr_destination_filename,
+					"", MXU_FILENAME_LENGTH );
 
 	debug_level = 0;
 

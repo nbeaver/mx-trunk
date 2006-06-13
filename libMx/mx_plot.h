@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -27,14 +27,18 @@
 #define MXP_GNUPLOT	3
 #define MXP_GNUXAFS	4
 
-#define MXU_PLOT_TYPE_NAME_LENGTH		20
+#define MXU_PLOT_TYPE_NAME_LENGTH	20
 
 #define MXU_PLOT_OPTIONS_LENGTH		80
 
 #define MXU_PLOT_DESCRIPTION_LENGTH \
 	( MXU_PLOT_TYPE_NAME_LENGTH + MXU_PLOT_OPTIONS_LENGTH + 1 )
 
-#define MXU_PLOT_ARGUMENTS_LENGTH		250
+#define MXU_PLOT_ARGUMENTS_LENGTH	250
+
+/* Default plotting command. */
+
+#define MXP_PLOTGNU_COMMAND	"perl -S -- plotgnu.pl"
 
 /* Plot enable flags */
 
