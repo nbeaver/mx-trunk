@@ -171,6 +171,11 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_type, "i386",
 				max_architecture_type_length );
 
+#  elif defined(__m68k__)
+
+		strlcpy( architecture_type, "m68k",
+				max_architecture_type_length );
+
 #  elif defined(__mips__) || defined(__mips)
 
 		strlcpy( architecture_type, "mips",
