@@ -1,0 +1,7 @@
+17id       server network tcpip_server "" "" localhost 9827
+d_spacing  variable net_variable net_double "" "" 17id d_spacing.value 1  1  3.13555
+theta      device motor network_motor "" "" 10 0 -100000 100000 0 -1 -1 1 0 deg 17id theta_real
+energy     device motor energy_motor "" "" 11385.576 0 0 1e+08 0 -1 -1 1 0 eV theta d_spacing 0.0174533
+Io         device scaler soft_scaler "" "" 0 0 1 energy timer1 101 i0.dat 0
+It         device scaler soft_scaler "" "" 0 0 1 energy timer1 101 it.dat 0
+timer1     device timer soft_timer "" ""

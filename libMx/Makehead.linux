@@ -240,8 +240,7 @@ CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 
 # Special cases for individual files.
 
-#CFLAGS_MX_CFN   = $(CFLAGS) -DHAVE_LSB
-CFLAGS_MX_CFN   = $(CFLAGS)
+#CFLAGS_MX_CFN   = -DHAVE_LSB
 
 CFLAGS_MX_EPICS = $(CFLAGS_EPICS) -Wno-cast-qual
 

@@ -82,8 +82,9 @@ mx_normalize_filename( char *original_filename,
 	}
 	if ( max_filename_length <= 0 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified maximum filename length of %d is too short "
-		"to fit even a 1 byte string into.", max_filename_length );
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
 	}
 
 	/* For Posix filenames, all we do here is convert multiple '/'
@@ -108,9 +109,10 @@ mx_normalize_filename( char *original_filename,
 			} else {
 				(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 				"Original filename '%s' is too long to fit "
-				"into the new filename buffer of %d bytes "
+				"into the new filename buffer of %ld bytes "
 				"after extra '/' characters are removed.",
-					original_filename, max_filename_length);
+					original_filename,
+					(long) max_filename_length);
 
 				return NULL;
 			}
@@ -160,8 +162,9 @@ mx_expand_filename_macros( char *original_filename,
 	}
 	if ( max_filename_length <= 0 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified maximum filename length of %d is too short "
-		"to fit even a 1 byte string into.", max_filename_length );
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
 	}
 
 	macro_state = MS_NOT_IN_MACRO;
@@ -279,8 +282,8 @@ mx_expand_filename_macros( char *original_filename,
 					"The expanded filename corresponding "
 					"to original filename '%s' is too long "
 					"to fit into the new filename buffer "
-					"of %d bytes.", original_filename,
-						max_filename_length );
+					"of %ld bytes.", original_filename,
+						(long) max_filename_length );
 
 					return NULL;
 				}
@@ -289,8 +292,9 @@ mx_expand_filename_macros( char *original_filename,
 		default:
 			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 				"Macro state %d for original filename '%s' is "
-				"illegal at i = %d, j = %d.",
-					macro_state, original_filename, i, j );
+				"illegal at i = %ld, j = %ld.",
+					macro_state, original_filename,
+					(long) i, (long) j );
 			break;
 		}
 	}
@@ -328,8 +332,9 @@ mx_construct_control_system_filename( int filename_type,
 	}
 	if ( max_filename_length <= 0 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified maximum filename length of %d is too short "
-		"to fit even a 1 byte string into.", max_filename_length );
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
 	}
 
 #if MX_CFN_DEBUG

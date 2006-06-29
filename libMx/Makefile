@@ -310,7 +310,7 @@ i_xia_xerxes.$(OBJ): i_xia_xerxes.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) i_xia_xerxes.c
 
 mx_cfn.$(OBJ): mx_cfn.c
-	$(COMPILE) $(CFLAGS_MX_CFN) mx_cfn.c
+	$(COMPILE) $(CFLAGS) $(CFLAGS_MX_CFN) mx_cfn.c
 
 mx_epics.$(OBJ): mx_epics.c
 	$(COMPILE) $(CFLAGS_MX_EPICS) $(EPICS_INCLUDES) mx_epics.c

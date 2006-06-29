@@ -1,0 +1,44 @@
+
+                    Example Application Programs for MX
+
+                           by William Lavender
+
+
+This package contains a set of four example application programs for MX.  Two
+of the examples are written in C and the other two are written in Tcl.
+
+To build the C examples, edit the file 'Makefile' to change the variable MXDIR
+so that it points to the installed location of MX, and then type 'make' at
+a shell prompt.  You will then have two executable programs named 'example1'
+and 'example2'.
+
+To run the Tcl examples, you must change the line near the top of each file
+that starts with 'set mxdir' to point to the installed location of MX.
+
+The example applications are designed to use one of two provided MX databases.
+The first database 'example_soft.dat' uses only software emulated devices.
+The second database 'example_net.dat' uses motors controlled by an MX server.
+Copy or symbolically link one of these files to the name 'example.dat'.
+
+example1.c
+	This C program is an example of how to initialize MX and then perform
+	simple motor, scaler, and timer operations.  These operations are used
+	to implement a simple step scan.
+
+example1.tcl
+	This is a version of example1 that is written in Tcl.
+
+example2.c
+	This C program implements a step scan by creating an MX scan record
+	and then executing the scan.  Using an MX scan record automatically
+	arranges for a graphical scan progress display to be displayed and
+	for the data to be recorded to a data file.
+
+example2.tcl
+	This is a version of example2 that is written in Tcl.
+
+Please note that the Tcl examples are run using a 'wish' style binary which
+requires a connection to an X server on Unix machines even though no windows
+are opened.  At some point the author will provide a 'tclsh' style binary for 
+MX Tcl that will lift this restriction.
+

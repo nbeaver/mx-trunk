@@ -18,6 +18,7 @@
 #define MXD_GATED_BACKLASH_DEBUG	FALSE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_driver.h"
