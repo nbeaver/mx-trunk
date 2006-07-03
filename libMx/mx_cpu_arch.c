@@ -125,6 +125,41 @@ mx_get_cpu_architecture( char *architecture_type,
 
 /****************************************************************************/
 
+#elif defined(OS_VMS)
+
+MX_EXPORT mx_status_type
+mx_get_cpu_architecture( char *architecture_type,
+			size_t max_architecture_type_length,
+			char *architecture_subtype,
+			size_t max_architecture_subtype_length )
+{
+	static const char fname[] = "mx_get_cpu_architecture()";
+
+	if ( architecture_type != NULL ) {
+#if defined(__alpha)
+		strlcpy( architecture_type, "alpha",
+				max_architecture_type_length );
+#elif defined(__ia64)
+		strlcpy( architecture_type, "ia64",
+				max_architecture_type_length );
+#elif defined(__vax)
+		strlcpy( architecture_type, "vax",
+				max_architecture_type_length );
+#else
+#     error CPU architecture type not detected.
+#endif
+	}
+
+	if ( architecture_subtype != NULL ) {
+		strlcpy( architecture_subtype, "",
+				max_architecture_subtype_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/****************************************************************************/
+
 #elif defined(OS_UNIX) || defined(OS_CYGWIN) \
 	|| defined(OS_ECOS) || defined(OS_RTEMS)
 
@@ -161,7 +196,12 @@ mx_get_cpu_architecture( char *architecture_type,
 
 	if ( architecture_type != NULL ) {
 
-#  if defined(__x86_64__) || defined(__x86_64)
+#  if defined(__alpha__) || defined(__alpha)
+
+		strlcpy( architecture_type, "alpha",
+				max_architecture_type_length );
+
+#  elif defined(__x86_64__) || defined(__x86_64)
 
 		strlcpy( architecture_type, "amd64",
 				max_architecture_type_length );
@@ -194,6 +234,11 @@ mx_get_cpu_architecture( char *architecture_type,
 #  elif defined(__sparc__) || defined(__sparc)
 
 		strlcpy( architecture_type, "sparc",
+				max_architecture_type_length );
+
+#  elif defined(__vax__) || defined(__vax)
+
+		strlcpy( architecture_type, "vax",
 				max_architecture_type_length );
 
 #  else

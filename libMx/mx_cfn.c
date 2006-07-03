@@ -26,13 +26,53 @@
 
 /*---*/
 
-#if defined(OS_VMS)
-
-#error VMS support not yet implemented.
-
-#elif defined(OS_WIN32) || defined(OS_DJGPP)
+#if defined(OS_WIN32) || defined(OS_DJGPP)
 
 #error Win32 support not yet implemented.
+
+#elif defined(OS_VMS)
+
+MX_EXPORT mx_bool_type
+mx_is_absolute_filename( char *filename )
+{
+	return TRUE;
+}
+
+MX_EXPORT char *
+mx_normalize_filename( char *original_filename,
+			char *new_filename,
+			size_t max_filename_length )
+{
+	static const char fname[] = "mx_normalize_filename()";
+
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length == 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
+	}
+
+	/* Currently, for this platform we do not perform any
+	 * real normalization.  This probably means that using
+	 * the default file locations will not work here.
+	 */
+
+	strlcpy( new_filename, original_filename, max_filename_length );
+
+	return new_filename;
+}
 
 #else
 
@@ -160,7 +200,7 @@ mx_expand_filename_macros( char *original_filename,
 
 		return NULL;
 	}
-	if ( max_filename_length <= 0 ) {
+	if ( max_filename_length == 0 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The specified maximum filename length of %ld is too short "
 		"to fit even a 1 byte string into.",
@@ -330,7 +370,7 @@ mx_construct_control_system_filename( int filename_type,
 
 		return NULL;
 	}
-	if ( max_filename_length <= 0 ) {
+	if ( max_filename_length == 0 ) {
 		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The specified maximum filename length of %ld is too short "
 		"to fit even a 1 byte string into.",

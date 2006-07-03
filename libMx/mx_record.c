@@ -1779,7 +1779,7 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 					"ERROR: Field %lu is NULL!!!\n", i );
 			}
 
-			if ( mask == MXFF_SHOW_ALL ) {
+			if ( mask == (unsigned long) MXFF_SHOW_ALL ) {
 				show_field = TRUE;
 			} else {
 				if ( field->flags & mask ) {
