@@ -484,7 +484,7 @@ MX_API void mx_info_default_entry_dialog_function(
 
 MX_API void mx_scanlog_info( char *format, ... ) MX_PRINTFLIKE( 1, 2 );
 
-MX_API void mx_set_scanlog_enable( int enable );
+MX_API void mx_set_scanlog_enable( int enable_flag );
 MX_API int  mx_get_scanlog_enable( void );
 
 /* === Warning messages. === */

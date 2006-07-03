@@ -26,7 +26,7 @@
 
 /*---*/
 
-#if defined(OS_WIN32) || defined(OS_DJGPP)
+#if defined(OS_WIN32)
 
 #error Win32 support not yet implemented.
 

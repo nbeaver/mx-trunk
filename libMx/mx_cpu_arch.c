@@ -160,7 +160,7 @@ mx_get_cpu_architecture( char *architecture_type,
 
 /****************************************************************************/
 
-#elif defined(OS_UNIX) || defined(OS_CYGWIN) \
+#elif defined(OS_UNIX) || defined(OS_CYGWIN) || defined(OS_DJGPP) \
 	|| defined(OS_ECOS) || defined(OS_RTEMS)
 
 #include <sys/utsname.h>
@@ -256,7 +256,7 @@ mx_get_cpu_architecture( char *architecture_type,
 
 #else
 
-#error Reporting the operating system version has not been implemented for this platform.
+#error Reporting the CPU architecture has not been implemented for this platform.
 
 #endif
 
