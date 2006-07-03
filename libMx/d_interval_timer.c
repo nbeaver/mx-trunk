@@ -241,7 +241,7 @@ mxd_interval_timer_is_busy( MX_TIMER *timer )
 	static const char fname[] = "mxd_interval_timer_is_busy()";
 
 	MX_INTERVAL_TIMER_DEVICE *itimer_device;
-	int busy;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_interval_timer_get_pointers( timer,

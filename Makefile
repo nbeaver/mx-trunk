@@ -44,7 +44,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = solaris
+MX_ARCH = vxworks
 
 #MX_INSTALL_DIR = /opt/mx
 
