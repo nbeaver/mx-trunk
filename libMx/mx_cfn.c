@@ -28,7 +28,100 @@
 
 #if defined(OS_WIN32)
 
-#error Win32 support not yet implemented.
+MX_EXPORT mx_bool_type
+mx_is_absolute_filename( char *filename )
+{
+	static const char fname[] = "mx_is_absolute_filename()";
+
+	size_t num_chars;
+
+	if ( filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename argument passed was NULL." );
+
+		return FALSE;
+	}
+
+	/* Does the filename begin with a drive letter? */
+
+	if ( filename[1] == ':' ) {
+
+		/* Is the first character a valid drive letter? */
+
+		num_chars = strcspn( filename,
+		    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" );
+
+		if ( num_chars != 0 ) {
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		    "Drive '%c:' in filename '%s' is not a valid drive letter.",
+				filename[0], filename );
+
+			return FALSE;
+		}
+
+		if ( ( filename[2] == '\\' ) || ( filename[2] == '/' ) ) {
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	} else {
+		if ( ( filename[0] == '\\' ) || ( filename[0] == '/' ) ) {
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	}
+
+	return FALSE;
+}
+
+MX_EXPORT char *
+mx_normalize_filename( char *original_filename,
+			char *new_filename,
+			size_t max_filename_length )
+{
+	static const char fname[] = "mx_normalize_filename()";
+
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length == 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
+	}
+
+#if 1
+	strlcpy( new_filename, original_filename, max_filename_length );
+#else
+	/* FIXME: Only partially implemented due to deadline. */
+
+	original_length = strlen(original_filename);
+
+	/* Does the original filename start with a drive letter? */
+
+	if ( original_filename[1] != ':' ) {
+	}
+
+	slash_seen = FALSE;
+	backslash_seen = FALSE;
+
+	for ( i = 0, j = 0; i < original_length; i++ ) {
+	}
+#endif
+
+	return new_filename;
+}
 
 #elif defined(OS_VMS)
 
