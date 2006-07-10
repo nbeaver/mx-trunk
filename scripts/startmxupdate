@@ -3,9 +3,6 @@
 if [ x$MXDIR = x ]; then
 	MXDIR=/opt/mx
 fi
-if [ x$MXPORT = x ]; then
-	MXPORT=9727
-fi
 
 MXUPDATE=${MXDIR}/sbin/mxupdate
 
@@ -34,7 +31,7 @@ if [ -x $MXUPDATE ]; then
 
 	echo $$ > ${MXDIR}/run/mxupdate.pid
 
-	exec $MXUPDATE $* localhost $MXPORT ${MXDIR}/etc/mxupdate.dat \
+	exec $MXUPDATE $* ${MXDIR}/etc/mxupdate.dat \
 		${MXDIR}/state/mxsave.1 ${MXDIR}/state/mxsave.2
 fi
 

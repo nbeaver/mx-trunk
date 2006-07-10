@@ -405,7 +405,7 @@ mx_motor_set_backlash_flags( long num_motors,
 				"motor_record_array[%ld] is NULL.", i );
 		}
 
-		MX_DEBUG(-2,("%s: motor[%ld] = '%s', flag_value = %d",
+		MX_DEBUG( 2,("%s: motor[%ld] = '%s', flag_value = %d",
 			fname, i, motor_record->name, (int) flag_value));
 
 		motor = (MX_MOTOR *) motor_record->record_class_struct;
