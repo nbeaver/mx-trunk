@@ -17,14 +17,6 @@
 #ifndef __MX_UTIL_H__
 #define __MX_UTIL_H__
 
-#if (_MSC_VER >= 1400)
-   /* FIXME: The following statement disables Visual C++ warning messages
-    *        about deprecated functions.  We should rewrite the code so
-    *        that we no longer need this some day.
-    */
-#  pragma warning( disable:4996 )
-#endif
-
 #include <string.h>	/* We get 'size_t' from here. */
 
 #include <time.h>	/* We get 'struct timespec' from here. */
@@ -79,6 +71,18 @@
  */
 
 #define MX_API_PRIVATE		MX_API
+
+/*------------------------------------------------------------------------*/
+
+#if (_MSC_VER >= 1400)		/* Visual C++ 2005 Express and above. */
+
+   /* FIXME: The following statement disables Visual C++ warning messages
+    *        about deprecated functions.  Someday we should rewrite the
+    *        code so that we no longer need this.
+    */
+
+#  pragma warning( disable:4996 )
+#endif
 
 /*------------------------------------------------------------------------*/
 
