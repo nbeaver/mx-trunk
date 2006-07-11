@@ -1400,7 +1400,7 @@ mx_free_pointer( void *pointer )
  */
 
 MX_EXPORT int
-snprintf( char *dest, size_t maxlen, const char *format, ... )
+mx_snprintf( char *dest, size_t maxlen, const char *format, ... )
 {
 	va_list args;
 	int result;
@@ -1419,7 +1419,7 @@ snprintf( char *dest, size_t maxlen, const char *format, ... )
 }
 
 MX_EXPORT int
-vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
+mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 {
 	int result;
 
@@ -1442,7 +1442,7 @@ vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
  */
 
 MX_EXPORT int
-snprintf( char *dest, size_t maxlen, const char *format, ... )
+mx_snprintf( char *dest, size_t maxlen, const char *format, ... )
 {
 	va_list args;
 	int result;
@@ -1457,7 +1457,7 @@ snprintf( char *dest, size_t maxlen, const char *format, ... )
 }
 
 MX_EXPORT int
-vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
+mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 {
 	return vsprintf( dest, format, args );
 }

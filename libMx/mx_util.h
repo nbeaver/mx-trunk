@@ -17,6 +17,14 @@
 #ifndef __MX_UTIL_H__
 #define __MX_UTIL_H__
 
+#if (_MSC_VER >= 1400)
+   /* FIXME: The following statement disables Visual C++ warning messages
+    *        about deprecated functions.  We should rewrite the code so
+    *        that we no longer need this some day.
+    */
+#  pragma warning( disable:4996 )
+#endif
+
 #include <string.h>	/* We get 'size_t' from here. */
 
 #include <time.h>	/* We get 'struct timespec' from here. */
@@ -370,9 +378,12 @@ MX_API int mx_free_pointer( void *pointer );
  * that that support them.
  */
 
-MX_API int snprintf( char *dest, size_t maxlen, const char *format, ... );
+#define snprintf	mx_snprintf
+#define vsnprintf	mx_vsnprintf
 
-MX_API int vsnprintf( char *dest, size_t maxlen, const char *format,
+MX_API int mx_snprintf( char *dest, size_t maxlen, const char *format, ... );
+
+MX_API int mx_vsnprintf( char *dest, size_t maxlen, const char *format,
 							va_list args );
 
 #endif
