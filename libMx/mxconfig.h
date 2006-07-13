@@ -187,7 +187,7 @@
  * interface software.
  */
 
-#define HAVE_ORTEC_UMCBI		0
+#define HAVE_ORTEC_UMCBI		1
 
 /*****************************************************************************
  *
@@ -198,7 +198,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			1
+#define HAVE_XIA_HANDEL			0
 
 /*****************************************************************************
  *

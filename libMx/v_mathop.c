@@ -549,7 +549,20 @@ mxv_mathop_get_value( MX_RECORD *record, double *value )
 			*value = (double) *(int64_t *) pointer_to_value;
 			break;
 		case MXFT_UINT64:
+
+#if ( defined(_MSC_VER) && (_MSC_VER < 1300) )
+			/* For Visual C++ 6.0 SP6 */
+			{
+				int64_t  temp64;
+
+				temp64 = (int64_t)
+						*(uint64_t *) pointer_to_value;
+
+				*value = (double) temp64;
+			}
+#else
 			*value = (double) *(uint64_t *) pointer_to_value;
+#endif
 			break;
 		case MXFT_FLOAT:
 			*value = (double) *(float *) pointer_to_value;
