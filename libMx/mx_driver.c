@@ -498,8 +498,11 @@
 #endif
 #if HAVE_XIA_HANDEL
 #include "i_xia_handel.h"
-#include "i_xia_xerxes.h"
 #include "d_xia_handel_timer.h"
+#endif
+
+#if HAVE_XIA_XERXES
+#include "i_xia_xerxes.h"
 #endif
 
 #if HAVE_TCPIP || HAVE_XIA_HANDEL
@@ -985,7 +988,9 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_xia_handel_num_record_fields,
 				&mxi_xia_handel_rfield_def_ptr},
+#endif /* HAVE_XIA_HANDEL */
 
+#if HAVE_XIA_XERXES
 {"xia_xerxes",     MXI_GEN_XIA_XERXES, MXI_GENERIC,       MXR_INTERFACE,
 				&mxi_xia_xerxes_record_function_list,
 				NULL,

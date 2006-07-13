@@ -24,7 +24,7 @@
 
 #include "mxconfig.h"
 
-#if HAVE_XIA_HANDEL
+#if HAVE_XIA_XERXES
 
 #include <stdlib.h>
 #include <fcntl.h>
@@ -2017,4 +2017,4 @@ mxi_xia_xerxes_process_function( void *record_ptr,
 	return mx_status;
 }
 
-#endif /* HAVE_XIA_HANDEL */
+#endif /* HAVE_XIA_XERXES */

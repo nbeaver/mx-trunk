@@ -21,6 +21,9 @@
 INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
+#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
+
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
 
@@ -111,13 +114,14 @@ UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 # WARNING: For current versions of Handel you must set the makefile variable
 #          RUN_TIME_LIBRARY_FLAGS to -MTd above.
 #
+XIA_HANDEL_DIR      = c:\\progra~1\\xia\\kepler-dev-tools-1_1_7\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0.6-1216\\handel
-XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
+#XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
 
 XIA_HANDEL_INCLUDES = -I$(XIA_HANDEL_DIR)\\inc -DIS_MX_DRIVER
 XIA_HANDEL_LIB_DIR  = $(XIA_HANDEL_DIR)\\lib
-XIA_HANDEL_LIBS     = $(XIA_HANDEL_LIB_DIR)\\handel.lib \
-			$(XIA_HANDEL_LIB_DIR)\\xerxes.lib \
+XIA_HANDEL_LIBS     = $(XIA_HANDEL_LIB_DIR)\\handel.lib
+XIA_XERXES_LIBS     = $(XIA_HANDEL_LIB_DIR)\\xerxes.lib \
 			$(XIA_HANDEL_LIB_DIR)\\md.lib
 
 #

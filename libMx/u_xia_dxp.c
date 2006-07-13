@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2004 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,7 +20,7 @@
 
 #include "mxconfig.h"
 
-#if HAVE_XIA_HANDEL
+#if HAVE_XIA_XERXES
 
 #include <xerxes_structures.h>
 #include <xerxes_errors.h>
@@ -39,4 +39,4 @@ mxu_xia_dxp_replace_output_functions( void )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* HAVE_XIA_HANDEL */
+#endif /* HAVE_XIA_XERXES */

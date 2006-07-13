@@ -194,11 +194,22 @@
  * X-ray Instrumentation Associates Handel library for their DXP series of
  * multichannel analyzer systems.  The driver is downloadable from the page
  * http://www.xia.com/DXP_Software.html.  At this time, the corresponding
- * MX drivers have been tested with the DXP-2X and the Saturn (DXP-X10P).
+ * MX drivers have been successfully tested with the XIA Saturn (DXP-X10P).
  *
  */
 
 #define HAVE_XIA_HANDEL			1
+
+/*****************************************************************************
+ *
+ * X-ray Instrumentation Associates Xerxes library.  This is a lower level
+ * XIA library that is invoked by Handel.  The HAVE_XIA_XERXES flag is
+ * used to specify whether or not the Xerxes headers and export libraries
+ * are available since not all Handel distributions include them.
+ *
+ */
+
+#define HAVE_XIA_XERXES			0
 
 #endif /* _MXCONFIG_H_ */
 

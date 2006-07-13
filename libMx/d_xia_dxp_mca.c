@@ -32,7 +32,7 @@
 #include "mxconfig.h"
 #include "mx_osdef.h"
 
-#if HAVE_TCPIP || HAVE_XIA_HANDEL
+#if HAVE_TCPIP || HAVE_XIA_HANDEL || HAVE_XIA_XERXES
 
 #include "mx_constants.h"
 #include "mx_util.h"
@@ -51,13 +51,19 @@
 #include <handel_errors.h>
 #include <handel_generic.h>
 
+#include "i_xia_handel.h"
+
+#endif /* HAVE_XIA_HANDEL */
+
+#if HAVE_XIA_XERXES
+
 #include <xerxes_errors.h>
 #include <xerxes_structures.h>
 #include <xerxes.h>
 
 #include "i_xia_xerxes.h"
-#include "i_xia_handel.h"
-#endif
+
+#endif /* HAVE_XIA_XERXES */
 
 #include "i_xia_network.h"
 #include "d_xia_dxp_mca.h"
@@ -520,7 +526,7 @@ mxd_xia_dxp_network_open( MX_MCA *mca,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if HAVE_XIA_HANDEL
+#if HAVE_XIA_XERXES
 
 /* The following routine does XerXes specific initialization. */
 
@@ -750,6 +756,10 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* HAVE_XIA_XERXES */
+
+#if HAVE_XIA_HANDEL
 
 /* The following routine does Handel specific initialization. */
 
@@ -1172,23 +1182,33 @@ mxd_xia_dxp_open( MX_RECORD *record )
 		display_config = xia_handel->handel_flags &
 			MXF_XIA_HANDEL_DISPLAY_CONFIGURATION_AT_STARTUP;
 		break;
+#else
+	case MXI_GEN_XIA_HANDEL:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"XIA Handel support is not compiled into this copy of MX.  "
+		"You will need to recompile MX including Handel support "
+		"to fix this." );
+
+#endif /* HAVE_XIA_HANDEL */
+
+#if HAVE_XIA_XERXES
 	case MXI_GEN_XIA_XERXES:
 		mx_status = mxd_xia_dxp_xerxes_open( mca,
 					xia_dxp_mca, xia_dxp_record );
 		break;
 #else
-	case MXI_GEN_XIA_HANDEL:
 	case MXI_GEN_XIA_XERXES:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"XIA Handel support is not compiled into this copy of MX.  "
-		"You will need to recompile MX including Handel support "
+		"XIA Xerxes support is not compiled into this copy of MX.  "
+		"You will need to recompile MX including Xerxes support "
 		"to fix this." );
-#endif
+
+#endif /* HAVE_XIA_XERXES */
 
 	default:
 		return mx_error( MXE_TYPE_MISMATCH, fname,
-		"The XIA DXP record '%s' for MCA '%s' is not a Xerxes or "
-		"an MDS interface record.", xia_dxp_record->name, record->name);
+		"The XIA DXP record '%s' for MCA '%s' is not a supported "
+		"record type.", xia_dxp_record->name, record->name);
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1595,6 +1615,8 @@ mxd_xia_dxp_close( MX_RECORD *record )
 
 #if HAVE_XIA_HANDEL
 	MX_XIA_HANDEL *xia_handel;
+#endif
+#if HAVE_XIA_XERXES
 	MX_XIA_XERXES *xia_xerxes;
 #endif
 
@@ -1647,11 +1669,12 @@ mxd_xia_dxp_close( MX_RECORD *record )
 "of type MXI_GEN_XIA_HANDEL.  However, XIA Handel support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
-#endif
+
+#endif /* HAVE_XIA_HANDEL */
 
 	case MXI_GEN_XIA_XERXES:
 
-#if HAVE_XIA_HANDEL
+#if HAVE_XIA_XERXES
 		xia_xerxes = (MX_XIA_XERXES *)
 					xia_dxp_record->record_type_struct;
 
@@ -1670,10 +1693,11 @@ mxd_xia_dxp_close( MX_RECORD *record )
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
-"of type MXI_GEN_XIA_XERXES.  However, XIA Handel support is not compiled "
+"of type MXI_GEN_XIA_XERXES.  However, XIA Xerxes support is not compiled "
 "into this copy of MX.  This should never happen and is definitely a program "
 "bug that should be reported.", record->name, xia_dxp_record->name );
-#endif
+
+#endif /* HAVE_XIA_XERXES */
 
 	default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -2389,6 +2413,8 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 
 #if HAVE_XIA_HANDEL
 	MX_XIA_HANDEL *xia_handel;
+#endif
+#if HAVE_XIA_XERXES
 	MX_XIA_XERXES *xia_xerxes;
 #endif
 
@@ -2435,7 +2461,9 @@ mxd_xia_dxp_get_mca_array( MX_RECORD *xia_dxp_record,
 		*num_mcas = xia_handel->num_mcas;
 		*mca_record_array = xia_handel->mca_record_array;
 		break;
+#endif
 
+#if HAVE_XIA_XERXES
 	case MXI_GEN_XIA_XERXES:
 		xia_xerxes = (MX_XIA_XERXES *)
 					xia_dxp_record->record_type_struct;
