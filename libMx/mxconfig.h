@@ -187,7 +187,7 @@
  * interface software.
  */
 
-#define HAVE_ORTEC_UMCBI		1
+#define HAVE_ORTEC_UMCBI		0
 
 /*****************************************************************************
  *
