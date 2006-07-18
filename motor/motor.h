@@ -72,32 +72,6 @@
 
 #endif
 
-/* Startup configuration file macros. */
-
-#if defined(OS_UNIX) || defined(OS_CYGWIN)
-#   define DEFAULT_MOTOR_SAVEFILE   "/opt/mx/etc/motor.dat"
-#   define DEFAULT_SCAN_SAVEFILE    "/opt/mx/etc/scan.dat"
-#   define GLOBAL_MOTOR_STARTUP	    "/opt/mx/etc/startup/motor.startup"
-#   define USER_MOTOR_STARTUP	    ".mx/motor.startup"
-
-#elif defined(OS_WIN32) || defined(OS_DJGPP)
-#   define DEFAULT_MOTOR_SAVEFILE   "c:\\opt\\mx\\etc\\motor.dat"
-#   define DEFAULT_SCAN_SAVEFILE    "c:\\opt\\mx\\etc\\scan.dat"
-#   define GLOBAL_MOTOR_STARTUP	    "c:\\opt\\mx\\etc\\startup\\motor.startup"
-#   define USER_MOTOR_STARTUP	    "motor.startup"
-
-#elif defined(OS_VMS)
-#   define DEFAULT_MOTOR_SAVEFILE   "sys$sysdevice:[opt.mx.etc]motor.dat"
-#   define DEFAULT_SCAN_SAVEFILE    "sys$sysdevice:[opt.mx.etc]scan.dat"
-#   define GLOBAL_MOTOR_STARTUP	    "sys$sysdevice:[opt.mx.etc.startup]motor.startup"
-#   define USER_MOTOR_STARTUP	    "sys$login:motor.startup"
-
-#else
-#   define DEFAULT_MOTOR_SAVEFILE   "motor.dat"
-#   define DEFAULT_SCAN_SAVEFILE    "scan.dat"
-#   define GLOBAL_MOTOR_STARTUP	    "motor.startup"
-#endif
-
 /* Just in case TRUE and FALSE are not defined. */
 
 #ifndef TRUE

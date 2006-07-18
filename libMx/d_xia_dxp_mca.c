@@ -1663,6 +1663,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 		if ( xia_dxp_mca->spectrum_array != NULL ) {
 			mx_free( xia_dxp_mca->spectrum_array );
 		}
+		break;
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "
@@ -1690,6 +1691,7 @@ mxd_xia_dxp_close( MX_RECORD *record )
 		if ( xia_dxp_mca->spectrum_array != NULL ) {
 			mx_free( xia_dxp_mca->spectrum_array );
 		}
+		break;
 #else
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 "You are trying to close MCA '%s' which uses XIA interface '%s' which is "

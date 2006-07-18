@@ -198,14 +198,14 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			0
+#define HAVE_XIA_HANDEL			1
 
 /*****************************************************************************
  *
  * X-ray Instrumentation Associates Xerxes library.  This is a lower level
  * XIA library that is invoked by Handel.  The HAVE_XIA_XERXES flag is
  * used to specify whether or not the Xerxes headers and export libraries
- * are available since not all Handel distributions include them.
+ * are available since not all modern Handel distributions include them.
  *
  */
 

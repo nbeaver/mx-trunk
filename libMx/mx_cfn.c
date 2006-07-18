@@ -28,6 +28,135 @@
 
 #if defined(OS_WIN32)
 
+static mx_bool_type mxp_home_variable_set = FALSE;
+
+#define MXP_SETUP_HOME_USING_ROOT_DIR	1
+#define MXP_SETUP_HOME_USING_HOMEPATH	2
+
+static mx_status_type
+mxp_setup_home_variable( void )
+{
+	static const char fname[] = "mxp_setup_home_variable()";
+
+	char zero_length_string[] = "";
+	char home[MXU_FILENAME_LENGTH+10];
+	char os_version_string[40];
+	char *home_ptr, *homepath_ptr, *homedrive_ptr, *homeshare_ptr;
+	size_t length;
+	int setup_type, status;
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked.", fname));
+
+	mxp_home_variable_set = TRUE;
+
+	/* First, see if the HOME variable already exists. */
+
+	home_ptr = getenv( "HOME" );
+
+	if ( home_ptr != NULL ) {
+		/* If the HOME variable already exists,
+		 * we do not need to do anything further.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* We use the OS version string here rather than the OS version number,
+	 * since the version number has a somewhat convoluted relationship to
+	 * the names that users know the operating systems by.
+	 */
+
+	mx_status = mx_get_os_version_string( os_version_string,
+						sizeof(os_version_string) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG( 2,("%s: os_version_string = '%s'", fname, os_version_string));
+
+	length = strlen( os_version_string );
+
+	if ( strncmp( os_version_string, "Windows Vista", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows Server 2003", length ) == 0 ){
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows XP", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows 2000", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows NT 4.0", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows NT 3.51", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_HOMEPATH;
+	} else
+	if ( strncmp( os_version_string, "Windows Me", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_ROOT_DIR;
+	} else
+	if ( strncmp( os_version_string, "Windows 98", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_ROOT_DIR;
+	} else
+	if ( strncmp( os_version_string, "Windows 95", length ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_ROOT_DIR;
+	} else {
+		setup_type = -1;
+	}
+
+	MX_DEBUG( 2,("%s: setup_type = %d", fname, setup_type ));
+
+	switch( setup_type ) {
+	case MXP_SETUP_HOME_USING_ROOT_DIR:
+		strlcpy( home, "HOME=c:/", sizeof(home) );
+		break;
+	case MXP_SETUP_HOME_USING_HOMEPATH:
+		homeshare_ptr = getenv( "HOMESHARE" );
+		homedrive_ptr = getenv( "HOMEDRIVE" );
+		homepath_ptr = getenv( "HOMEPATH" );
+
+		if ( homeshare_ptr == NULL ) {
+			homeshare_ptr = zero_length_string;
+
+			if ( homedrive_ptr == NULL ) {
+				homedrive_ptr = zero_length_string;
+			}
+		} else {
+			/* Do not use HOMEDRIVE if HOMESHARE is specified. */
+
+			homedrive_ptr = zero_length_string;
+		}
+
+		if ( homepath_ptr == NULL ) {
+			homepath_ptr = zero_length_string;
+		}
+
+		snprintf( home, sizeof(home), "HOME=%s%s%s",
+			homeshare_ptr, homedrive_ptr, homepath_ptr );
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Finding the user's home directory is not yet implemented "
+		"for '%s'.", os_version_string );
+	}
+
+	MX_DEBUG(-2,("%s: '%s'", fname, home));
+
+	status = _putenv( home );
+
+	if ( status != 0 ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to set the environment variable HOME to '%s'", home);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/***/
+
 MX_EXPORT mx_bool_type
 mx_is_absolute_filename( char *filename )
 {
@@ -299,6 +428,19 @@ mx_expand_filename_macros( char *original_filename,
 		"to fit even a 1 byte string into.",
 			(long) max_filename_length );
 	}
+
+#if defined(OS_WIN32)
+	{
+		mx_status_type mx_status;
+
+		if ( mxp_home_variable_set == FALSE ) {
+			mx_status = mxp_setup_home_variable();
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return NULL;
+		}
+	}
+#endif
 
 	macro_state = MS_NOT_IN_MACRO;
 

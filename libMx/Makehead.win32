@@ -18,8 +18,8 @@
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
+INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
@@ -33,8 +33,8 @@
 #INCLUDES = $(MX_INCLUDES) $(PMC_MCAPI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(PMC_MCAPI_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PMC_MCAPI_INCLUDES) \
 #		$(U500_INCLUDES) $(UMCBI_INCLUDES)
@@ -69,11 +69,11 @@ RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
-MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
-#MSDEV_DIR	= c:\\progra~1\\micros~4
+MSDEV_DIR	= c:\\progra~1\\micros~4
 
 #
 # If you are using a separately downloaded copy of the Win32 Platform SDK,
