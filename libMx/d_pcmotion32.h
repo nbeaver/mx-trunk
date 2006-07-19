@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,7 +25,7 @@
 
 typedef struct {
 	MX_RECORD *controller_record;
-	int axis_id;
+	long axis_id;
 
 	unsigned long default_speed;
 	unsigned long default_base_speed;
@@ -36,7 +36,6 @@ typedef struct {
 	unsigned short steps_per_revolution;
 } MX_PCMOTION32_MOTOR;
 
-MX_API mx_status_type mxd_pcmotion32_initialize_type( long type );
 MX_API mx_status_type mxd_pcmotion32_create_record_structures(
 						MX_RECORD *record );
 MX_API mx_status_type mxd_pcmotion32_finish_record_initialization(
@@ -44,12 +43,7 @@ MX_API mx_status_type mxd_pcmotion32_finish_record_initialization(
 MX_API mx_status_type mxd_pcmotion32_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_pcmotion32_print_structure( FILE *file,
 						MX_RECORD *record );
-MX_API mx_status_type mxd_pcmotion32_read_parms_from_hardware(
-						MX_RECORD *record );
-MX_API mx_status_type mxd_pcmotion32_write_parms_to_hardware(
-						MX_RECORD *record );
 MX_API mx_status_type mxd_pcmotion32_open( MX_RECORD *record );
-MX_API mx_status_type mxd_pcmotion32_close( MX_RECORD *record );
 MX_API mx_status_type mxd_pcmotion32_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_pcmotion32_motor_is_busy( MX_MOTOR *motor );
@@ -76,7 +70,7 @@ extern MX_RECORD_FIELD_DEFAULTS *mxd_pcmotion32_rfield_def_ptr;
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, controller_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "axis_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "axis_id", MXFT_LONG, NULL, 0, {0}, \
     MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32_MOTOR, axis_id), \
 	{0}, NULL, MXFF_IN_DESCRIPTION}, \
   \

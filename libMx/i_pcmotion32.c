@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -196,7 +196,7 @@ mxi_pcmotion32_open( MX_RECORD *record )
 	static const char fname[] = "mxi_pcmotion32_open()";
 
 	MX_PCMOTION32 *pcmotion32;
-	BYTE boardID;
+	BYTE boardID, board_type;
 	WORD limit_switch_polarity;
 	WORD enable_limit_switches;
 	int status;
@@ -208,6 +208,18 @@ mxi_pcmotion32_open( MX_RECORD *record )
 		return mx_status;
 
 	boardID = pcmotion32->board_id;
+
+	/* Verify that the board is there by asking for the board type. */
+
+	status = get_board_type( boardID, &board_type );
+
+	if ( status != 0 ) {
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Board %d for motor controller '%s' is not available.  "
+		"Reason = '%s'",
+			(int) boardID, record->name,
+			mxi_pcmotion32_strerror( status ) );
+	}
 
 	/* Set the polarity of the limit switches and home switches. */
 

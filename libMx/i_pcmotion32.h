@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -45,7 +45,7 @@
 typedef struct {
 	MX_RECORD *record;
 
-	int board_id;
+	long board_id;
 
 	unsigned long limit_switch_polarity;
 	unsigned long enable_limit_switches;
@@ -54,7 +54,7 @@ typedef struct {
 } MX_PCMOTION32;
 
 #define MXI_PCMOTION32_STANDARD_FIELDS \
-  {-1, -1, "board_id", MXFT_INT, NULL, 0, {0}, \
+  {-1, -1, "board_id", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCMOTION32, board_id), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \

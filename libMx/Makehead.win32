@@ -18,8 +18,8 @@
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
@@ -36,10 +36,10 @@ LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(UMCBI_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(UMCBI_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PMC_MCAPI_INCLUDES) \
-#		$(U500_INCLUDES) $(UMCBI_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PMC_MCAPI_LIBS) \
-#		$(U500_LIBS) $(UMCBI_LIBS)
+INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES) $(PCMOTION32_INCLUDES) \
+		 $(PMC_MCAPI_INCLUDES) $(U500_INCLUDES) $(UMCBI_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS) $(PCMOTION32_LIBS) \
+		$(PMC_MCAPI_LIBS) $(U500_LIBS) $(UMCBI_LIBS)
 
 # *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING *** WARNING ***
 #
@@ -51,10 +51,10 @@ LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 # correctly, but then occasionally fail in mysterious ways.  Thus, it is
 # very important to get this right!
 
-#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -68,12 +68,12 @@ RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 # below specified the progra~1\micros~1 directory.
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
-#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
-MSDEV_DIR	= c:\\progra~1\\micros~4
+#MSDEV_DIR	= c:\\progra~1\\micros~4
 
 #
 # If you are using a separately downloaded copy of the Win32 Platform SDK,
@@ -101,7 +101,7 @@ WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
 # Directory containing the EG&G Ortec UMCBI library and include file.
 #
 
-UMCBI_DIR	= c:\\Users\\Lavender\\ortec
+UMCBI_DIR	= c:\\Ortec
 UMCBI_INCLUDES	= -I$(UMCBI_DIR)\\lib
 UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 
@@ -160,9 +160,13 @@ DRIVERLINX_LIBS     = $(DRIVERLINX_DIR)\\API\\DLPORTIO.lib
 # ValueMotion series of motor controllers.
 #
 
-PCMOTION32_DIR      = c:\\nuLogic\\pcMotion
-PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\SUPPORT
-PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\SUPPORT\\Microsoft\\pcmotionMS.lib
+#PCMOTION32_DIR      = c:\\nuLogic\\pcMotion
+#PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\SUPPORT
+#PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\SUPPORT\\Microsoft\\pcmotionMS.lib
+
+PCMOTION32_DIR      = c:\\ValueMotion
+PCMOTION32_INCLUDES = -I$(PCMOTION32_DIR)\\Include
+PCMOTION32_LIBS     = $(PCMOTION32_DIR)\\lib\\Microsoft\\pcmotionMS.lib
 
 #
 # EPICS includes and libraries.

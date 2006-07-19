@@ -42,15 +42,15 @@
 /* ============ Motor channels ============ */
 
 MX_RECORD_FUNCTION_LIST mxd_pcmotion32_record_function_list = {
-	mxd_pcmotion32_initialize_type,
+	NULL,
 	mxd_pcmotion32_create_record_structures,
 	mxd_pcmotion32_finish_record_initialization,
 	mxd_pcmotion32_delete_record,
 	mxd_pcmotion32_print_structure,
-	mxd_pcmotion32_read_parms_from_hardware,
-	mxd_pcmotion32_write_parms_to_hardware,
+	NULL,
+	NULL,
 	mxd_pcmotion32_open,
-	mxd_pcmotion32_close,
+	NULL,
 	NULL,
 	mxd_pcmotion32_resynchronize
 };
@@ -94,7 +94,7 @@ mxd_pcmotion32_get_pointers( MX_MOTOR *motor,
 				MX_PCMOTION32 **pcmotion32,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_pcmotion32_get_pointers()";
+	static const char fname[] = "mxd_pcmotion32_get_pointers()";
 
 	MX_RECORD *pcmotion32_controller_record;
 
@@ -147,15 +147,9 @@ mxd_pcmotion32_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_pcmotion32_initialize_type( long type )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pcmotion32_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcmotion32_create_record_structures()";
+	static const char fname[] = "mxd_pcmotion32_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
@@ -196,7 +190,8 @@ mxd_pcmotion32_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcmotion32_finish_record_initialization()";
+	static const char fname[] =
+		"mxd_pcmotion32_finish_record_initialization()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -248,7 +243,7 @@ mxd_pcmotion32_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_delete_record( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcmotion32_delete_record()";
+	static const char fname[] = "mxd_pcmotion32_delete_record()";
 
 	MX_PCMOTION32 *pcmotion32;
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
@@ -307,7 +302,7 @@ mxd_pcmotion32_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_print_structure( FILE *file, MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcmotion32_print_structure()";
+	static const char fname[] = "mxd_pcmotion32_print_structure()";
 
 	MX_MOTOR *motor;
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
@@ -394,15 +389,9 @@ mxd_pcmotion32_print_structure( FILE *file, MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcmotion32_read_parms_from_hardware( MX_RECORD *record )
+mxd_pcmotion32_open( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pcmotion32_write_parms_to_hardware( MX_RECORD *record )
-{
-	const char fname[] = "mxd_pcmotion32_write_parms_to_hardware()";
+	static const char fname[] = "mxd_pcmotion32_open()";
 
 	MX_MOTOR *motor;
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
@@ -537,43 +526,9 @@ mxd_pcmotion32_write_parms_to_hardware( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pcmotion32_open( MX_RECORD *record )
-{
-	const char fname[] = "mxd_pcmotion32_open()";
-
-	MX_MOTOR *motor;
-	MX_PCMOTION32_MOTOR *pcmotion32_motor;
-	MX_PCMOTION32 *pcmotion32;
-	mx_status_type mx_status;
-
-	MX_DEBUG( 2, ("%s called.", fname));
-
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed is NULL." );
-	}
-
-	motor = (MX_MOTOR *) record->record_class_struct;
-
-	mx_status = mxd_pcmotion32_get_pointers( motor,
-					&pcmotion32_motor, &pcmotion32, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_pcmotion32_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pcmotion32_resynchronize( MX_RECORD *record )
 {
-	const char fname[] = "mxd_pcmotion32_resynchronize()";
+	static const char fname[] = "mxd_pcmotion32_resynchronize()";
 
 	MX_MOTOR *motor;
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
@@ -593,7 +548,12 @@ mxd_pcmotion32_resynchronize( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_pcmotion32_resynchronize( pcmotion32->record );
+	mx_status = mxi_pcmotion32_open( pcmotion32->record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pcmotion32_open( pcmotion32->record );
 
 	return mx_status;
 }
@@ -603,7 +563,7 @@ mxd_pcmotion32_resynchronize( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_motor_is_busy( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_motor_is_busy()";
+	static const char fname[] = "mxd_pcmotion32_motor_is_busy()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -649,7 +609,7 @@ mxd_pcmotion32_motor_is_busy( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_move_absolute( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_move_absolute()";
+	static const char fname[] = "mxd_pcmotion32_move_absolute()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -708,7 +668,7 @@ mxd_pcmotion32_move_absolute( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_get_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_get_position()";
+	static const char fname[] = "mxd_pcmotion32_get_position()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -742,7 +702,7 @@ mxd_pcmotion32_get_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_set_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_set_position()";
+	static const char fname[] = "mxd_pcmotion32_set_position()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -779,7 +739,7 @@ mxd_pcmotion32_set_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_soft_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_soft_abort()";
+	static const char fname[] = "mxd_pcmotion32_soft_abort()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -810,7 +770,7 @@ mxd_pcmotion32_soft_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_immediate_abort( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_immediate_abort()";
+	static const char fname[] = "mxd_pcmotion32_immediate_abort()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -841,7 +801,7 @@ mxd_pcmotion32_immediate_abort( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_positive_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_positive_limit_hit()";
+	static const char fname[] = "mxd_pcmotion32_positive_limit_hit()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -881,7 +841,7 @@ mxd_pcmotion32_positive_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_negative_limit_hit( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_negative_limit_hit()";
+	static const char fname[] = "mxd_pcmotion32_negative_limit_hit()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -921,7 +881,7 @@ mxd_pcmotion32_negative_limit_hit( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_find_home_position( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_find_home_position()";
+	static const char fname[] = "mxd_pcmotion32_find_home_position()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -959,7 +919,7 @@ mxd_pcmotion32_find_home_position( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_constant_velocity_move( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_constant_velocity_move()";
+	static const char fname[] = "mxd_pcmotion32_constant_velocity_move()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -1022,7 +982,7 @@ mxd_pcmotion32_constant_velocity_move( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_get_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_get_parameter()";
+	static const char fname[] = "mxd_pcmotion32_get_parameter()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;
@@ -1085,7 +1045,7 @@ mxd_pcmotion32_get_parameter( MX_MOTOR *motor )
 MX_EXPORT mx_status_type
 mxd_pcmotion32_set_parameter( MX_MOTOR *motor )
 {
-	const char fname[] = "mxd_pcmotion32_set_parameter()";
+	static const char fname[] = "mxd_pcmotion32_set_parameter()";
 
 	MX_PCMOTION32_MOTOR *pcmotion32_motor;
 	MX_PCMOTION32 *pcmotion32;

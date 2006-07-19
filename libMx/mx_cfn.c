@@ -143,7 +143,7 @@ mxp_setup_home_variable( void )
 		"for '%s'.", os_version_string );
 	}
 
-	MX_DEBUG(-2,("%s: '%s'", fname, home));
+	MX_DEBUG( 2,("%s: '%s'", fname, home));
 
 	status = _putenv( home );
 
