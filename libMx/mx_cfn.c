@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_CFN_DEBUG	FALSE
+#define MX_CFN_DEBUG			FALSE
+
+#define MX_DEBUG_SETUP_HOME_VARIABLE	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,8 +58,6 @@ mxp_setup_home_variable( void )
 	int setup_type, status;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	mxp_home_variable_set = TRUE;
 
 	/* First, see if the HOME variable already exists. */
@@ -68,6 +68,11 @@ mxp_setup_home_variable( void )
 		/* If the HOME variable already exists,
 		 * we do not need to do anything further.
 		 */
+
+#if MX_DEBUG_SETUP_HOME_VARIABLE
+		MX_DEBUG(-2,("%s: HOME variable already set to value '%s'",
+			fname, home_ptr));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -80,7 +85,9 @@ mxp_setup_home_variable( void )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_DEBUG_SETUP_HOME_VARIABLE
 	MX_DEBUG(-2,("%s: os_version_string = '%s'", fname, os_version_string));
+#endif
 
 	length = strlen( os_version_string );
 
@@ -117,7 +124,9 @@ mxp_setup_home_variable( void )
 		setup_type = -1;
 	}
 
+#if MX_DEBUG_SETUP_HOME_VARIABLE
 	MX_DEBUG(-2,("%s: setup_type = %d", fname, setup_type ));
+#endif
 
 	switch( setup_type ) {
 	case MXP_SETUP_HOME_USING_ROOT_DIR:
@@ -153,7 +162,9 @@ mxp_setup_home_variable( void )
 		"for '%s'.", os_version_string );
 	}
 
+#if MX_DEBUG_SETUP_HOME_VARIABLE
 	MX_DEBUG(-2,("%s: '%s'", fname, home));
+#endif
 
 	status = putenv( home );
 
@@ -346,7 +357,7 @@ mx_normalize_filename( char *original_filename,
 		/* Convert backslashes to forward slashes. */
 
 		if ( c == '\\' ) {
-			c = '/'
+			c = '/';
 		}
 #endif
 
