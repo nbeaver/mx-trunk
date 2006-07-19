@@ -24,9 +24,19 @@
 #include "mx_cfn.h"
 #include "mx_cfn_defaults.h"
 
-/*---*/
+#if defined(OS_WIN32) || defined(OS_DJGPP)
+#  define SETUP_HOME_VARIABLE	TRUE
+#else
+#  define SETUP_HOME_VARIABLE	FALSE
+#endif
 
 #if defined(OS_WIN32)
+#  define putenv	_putenv
+#endif
+
+/* Some platforms do not automatically set up a HOME variable. */
+
+#if SETUP_HOME_VARIABLE
 
 static mx_bool_type mxp_home_variable_set = FALSE;
 
@@ -46,7 +56,7 @@ mxp_setup_home_variable( void )
 	int setup_type, status;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s invoked.", fname));
 
 	mxp_home_variable_set = TRUE;
 
@@ -62,10 +72,7 @@ mxp_setup_home_variable( void )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/* We use the OS version string here rather than the OS version number,
-	 * since the version number has a somewhat convoluted relationship to
-	 * the names that users know the operating systems by.
-	 */
+	/* We do different things depending on the operating system version. */
 
 	mx_status = mx_get_os_version_string( os_version_string,
 						sizeof(os_version_string) );
@@ -73,7 +80,7 @@ mxp_setup_home_variable( void )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s: os_version_string = '%s'", fname, os_version_string));
+	MX_DEBUG(-2,("%s: os_version_string = '%s'", fname, os_version_string));
 
 	length = strlen( os_version_string );
 
@@ -107,7 +114,7 @@ mxp_setup_home_variable( void )
 		setup_type = -1;
 	}
 
-	MX_DEBUG( 2,("%s: setup_type = %d", fname, setup_type ));
+	MX_DEBUG(-2,("%s: setup_type = %d", fname, setup_type ));
 
 	switch( setup_type ) {
 	case MXP_SETUP_HOME_USING_ROOT_DIR:
@@ -143,9 +150,9 @@ mxp_setup_home_variable( void )
 		"for '%s'.", os_version_string );
 	}
 
-	MX_DEBUG( 2,("%s: '%s'", fname, home));
+	MX_DEBUG(-2,("%s: '%s'", fname, home));
 
-	status = _putenv( home );
+	status = putenv( home );
 
 	if ( status != 0 ) {
 		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
@@ -155,7 +162,13 @@ mxp_setup_home_variable( void )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/***/
+#endif /* SETUP_HOME_VARIABLE */
+
+/**** Platform dependent versions of mx_is_absolute_filename() ****/
+
+#if defined(OS_WIN32)
+
+/* Win32 filenames may or may not begin with a drive letter. */
 
 MX_EXPORT mx_bool_type
 mx_is_absolute_filename( char *filename )
@@ -204,55 +217,9 @@ mx_is_absolute_filename( char *filename )
 	return FALSE;
 }
 
-MX_EXPORT char *
-mx_normalize_filename( char *original_filename,
-			char *new_filename,
-			size_t max_filename_length )
-{
-	static const char fname[] = "mx_normalize_filename()";
-
-	if ( original_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'original_filename' argument is NULL." );
-
-		return NULL;
-	}
-	if ( new_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'new_filename' argument is NULL." );
-
-		return NULL;
-	}
-	if ( max_filename_length == 0 ) {
-		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified maximum filename length of %ld is too short "
-		"to fit even a 1 byte string into.",
-			(long) max_filename_length );
-	}
-
-#if 1
-	strlcpy( new_filename, original_filename, max_filename_length );
-#else
-	/* FIXME: Only partially implemented due to deadline. */
-
-	original_length = strlen(original_filename);
-
-	/* Does the original filename start with a drive letter? */
-
-	if ( original_filename[1] != ':' ) {
-	}
-
-	slash_seen = FALSE;
-	backslash_seen = FALSE;
-
-	for ( i = 0, j = 0; i < original_length; i++ ) {
-	}
-#endif
-
-	return new_filename;
-}
-
 #elif defined(OS_VMS)
+
+/* Ignore the issue and pretend that all filenames are absolute. */
 
 MX_EXPORT mx_bool_type
 mx_is_absolute_filename( char *filename )
@@ -260,45 +227,11 @@ mx_is_absolute_filename( char *filename )
 	return TRUE;
 }
 
-MX_EXPORT char *
-mx_normalize_filename( char *original_filename,
-			char *new_filename,
-			size_t max_filename_length )
-{
-	static const char fname[] = "mx_normalize_filename()";
-
-	if ( original_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'original_filename' argument is NULL." );
-
-		return NULL;
-	}
-	if ( new_filename == NULL ) {
-		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		"'new_filename' argument is NULL." );
-
-		return NULL;
-	}
-	if ( max_filename_length == 0 ) {
-		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The specified maximum filename length of %ld is too short "
-		"to fit even a 1 byte string into.",
-			(long) max_filename_length );
-	}
-
-	/* Currently, for this platform we do not perform any
-	 * real normalization.  This probably means that using
-	 * the default file locations will not work here.
-	 */
-
-	strlcpy( new_filename, original_filename, max_filename_length );
-
-	return new_filename;
-}
-
 #else
 
-/* Most other platforms can handle Posix style filenames. */
+/* On Posix-like systems, any filename beginning with '/' is assumed
+ * to be an absolute filename.
+ */
 
 MX_EXPORT mx_bool_type
 mx_is_absolute_filename( char *filename )
@@ -318,6 +251,52 @@ mx_is_absolute_filename( char *filename )
 		return FALSE;
 	}
 }
+
+#endif
+
+/**** Platform dependent versions of mx_normalize_filename() ****/
+
+#if defined(OS_VMS)
+
+/* Currently, for this platform we do not perform any
+ * real normalization.  This probably means that using
+ * the default file locations will not work here.
+ */
+
+MX_EXPORT char *
+mx_normalize_filename( char *original_filename,
+			char *new_filename,
+			size_t max_filename_length )
+{
+	static const char fname[] = "mx_normalize_filename()";
+
+	if ( original_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'original_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( new_filename == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"'new_filename' argument is NULL." );
+
+		return NULL;
+	}
+	if ( max_filename_length == 0 ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The specified maximum filename length of %ld is too short "
+		"to fit even a 1 byte string into.",
+			(long) max_filename_length );
+	}
+
+	strlcpy( new_filename, original_filename, max_filename_length );
+
+	return new_filename;
+}
+
+#else
+
+/* Posix and Win32 style normalization. */
 
 MX_EXPORT char *
 mx_normalize_filename( char *original_filename,
@@ -349,8 +328,8 @@ mx_normalize_filename( char *original_filename,
 			(long) max_filename_length );
 	}
 
-	/* For Posix filenames, all we do here is convert multiple '/'
-	 * characters in a row to just a single '/' character.
+	/* Convert multiple '/' characters in a row
+	 * to just a single '/' character.
 	 */
 	
 	original_length = strlen(original_filename);
@@ -359,6 +338,14 @@ mx_normalize_filename( char *original_filename,
 
 	for( i = 0, j = 0; i < original_length; i++ ) {
 		c = original_filename[i];
+
+#if defined(OS_WIN32)
+		/* Convert backslashes to forward slashes. */
+
+		if ( c == '\\' ) {
+			c = '/'
+		}
+#endif
 
 		if ( slash_seen && ( c == '/' ) ) {
 			/* Skip this character. */
@@ -429,7 +416,7 @@ mx_expand_filename_macros( char *original_filename,
 			(long) max_filename_length );
 	}
 
-#if defined(OS_WIN32)
+#if SETUP_HOME_VARIABLE
 	{
 		mx_status_type mx_status;
 
@@ -440,7 +427,7 @@ mx_expand_filename_macros( char *original_filename,
 				return NULL;
 		}
 	}
-#endif
+#endif /* SETUP_HOME_VARIABLE */
 
 	macro_state = MS_NOT_IN_MACRO;
 
