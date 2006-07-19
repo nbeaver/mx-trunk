@@ -110,6 +110,9 @@ mxp_setup_home_variable( void )
 	} else
 	if ( strncmp( os_version_string, "Windows 95", length ) == 0 ) {
 		setup_type = MXP_SETUP_HOME_USING_ROOT_DIR;
+	} else
+	if ( strncmp( os_version_string, "MS-DOS", 6 ) == 0 ) {
+		setup_type = MXP_SETUP_HOME_USING_ROOT_DIR;
 	} else {
 		setup_type = -1;
 	}
