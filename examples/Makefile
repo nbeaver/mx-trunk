@@ -1,35 +1,41 @@
+MX_ARCH = linux
 
-MXDIR = /opt/mx
+LIBMXDIR = ../libMx
 
-CC = gcc
+all: example1 example1_lowlevel example2 example3
 
-# The following EXTRA_LIBS variable is necessary for Solaris
-
-# EXTRA_LIBS = -lnsl -lsocket -lposix4
-
-all: example1 example2 example3
-
+include $(LIBMXDIR)/Makehead.$(MX_ARCH)
 
 example1: example1.o
-	$(CC) -o example1 example1.o -L$(MXDIR)/lib -lMx -lm $(EXTRA_LIBS)
+	$(CC) $(CFLAGS) -o example1 example1.o \
+			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 example1.o: example1.c
-	$(CC) -c -I$(MXDIR)/include example1.c
+	$(CC) $(CFLAGS) -c -I$(LIBMXDIR) example1.c
+
+example1_lowlevel: example1_lowlevel.o
+	$(CC) $(CFLAGS) -o example1_lowlevel example1_lowlevel.o \
+			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
+
+example1_lowlevel.o: example1_lowlevel.c
+	$(CC) $(CFLAGS) -c -I$(LIBMXDIR) example1_lowlevel.c
 
 example2: example2.o
-	$(CC) -o example2 example2.o -L$(MXDIR)/lib -lMx -lm $(EXTRA_LIBS)
+	$(CC) $(CFLAGS) -o example2 example2.o \
+			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 example2.o: example2.c
-	$(CC) -c -I$(MXDIR)/include example2.c
+	$(CC) $(CFLAGS) -c -I$(LIBMXDIR) example2.c
 
 example3: example3.o
-	$(CC) -o example3 example3.o -L$(MXDIR)/lib -lMx -lm $(EXTRA_LIBS)
+	$(CC) $(CFLAGS) -o example3 example3.o \
+			$(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 example3.o: example3.c
-	$(CC) -c -I$(MXDIR)/include example3.c
+	$(CC) $(CFLAGS) -c -I$(LIBMXDIR) example3.c
 
 clean:
-	-rm example1 example2 example3
+	-rm example1 example1_lowlevel example2 example3
 	-rm *.o
 	-rm *.out
 

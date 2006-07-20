@@ -475,8 +475,21 @@ MX_API mx_status_type  mx_write_database_file( MX_RECORD *record_list,
 						long num_record_superclasses,
 						long *record_superclass_list );
 
+/* Most MX clients and servers should invoke mx_setup_database() to
+ * initialize MX at program startup time.
+ */
+
 MX_API mx_status_type  mx_setup_database( MX_RECORD **record_list,
 						char *filename );
+
+/* If all you plan to do is make raw lowlevel mx_gets() and mx_puts() to
+ * a single MX server, then mx_connect_to_mx_server() is all you need.
+ * However, for most situations mx_setup_database() is a better choice.
+ */
+
+MX_API mx_status_type  mx_connect_to_mx_server( MX_RECORD **server_record,
+					char *server_name, int server_port,
+					int default_display_precision );
 
 /* --- */
 
