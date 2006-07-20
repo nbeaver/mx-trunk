@@ -65,7 +65,7 @@ mx_connect_to_mx_server( MX_RECORD **server_record,
 
 	/* Set the MX program name. */
 
-	strlcpy( list_head_struct->program_name, "MX client",
+	strlcpy( list_head_struct->program_name, "MX-client",
 				MXU_PROGRAM_NAME_LENGTH );
 
 	/* Create a record description for this server. */

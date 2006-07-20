@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../server/mxserver -p 9727 -f lowlevel_server.dat -C lowlevel_server.acl -S $*
+

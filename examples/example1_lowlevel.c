@@ -2,7 +2,9 @@
  * Name:    example1_lowlevel.c
  *
  * Purpose: This example performs a simple step scan using lowlevel
- *          mx_get() and mx_put() calls directly.
+ *          mx_get() and mx_put() calls directly.  You can use the
+ *          'lowlevel_server' script as a test server for this program
+ *          to connect to.
  *
  * Author:  William Lavender
  *
