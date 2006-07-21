@@ -32,7 +32,7 @@
 #  define SETUP_HOME_VARIABLE	FALSE
 #endif
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && defined(_MSC_VER)
 #  define putenv	_putenv
 #endif
 
