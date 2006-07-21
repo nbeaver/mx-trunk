@@ -1389,7 +1389,7 @@ mx_free_pointer( void *pointer )
 
 /* --- */
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) && defined(_MSC_VER)
 
 /* The Win32 functions _snprintf() and _vsnprintf() do not null terminate
  * the strings they return if the output was truncated.  This is inconsitent
