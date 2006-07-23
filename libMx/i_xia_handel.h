@@ -63,6 +63,8 @@ typedef struct {
 
 	unsigned long num_detectors;
 	unsigned long num_modules;
+
+	double last_measurement_interval;
 } MX_XIA_HANDEL;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */
@@ -124,7 +126,13 @@ typedef struct {
   \
   {-1, -1, "num_modules", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_HANDEL, num_modules ), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XIA_HANDEL, last_measurement_interval),\
 	{0}, NULL, 0 }
+
 
 MX_API mx_status_type mxi_xia_handel_initialize_type( long record_type );
 MX_API mx_status_type mxi_xia_handel_create_record_structures(

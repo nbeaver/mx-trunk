@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_XIA_NETWORK_DEBUG		FALSE
+#define MXI_XIA_NETWORK_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -138,6 +138,8 @@ mxi_xia_network_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	xia_network->record = record;
+
+	xia_network->last_measurement_interval = -1.0;
 
 	return MX_SUCCESSFUL_RESULT;
 }

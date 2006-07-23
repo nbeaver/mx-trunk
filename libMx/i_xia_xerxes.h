@@ -37,6 +37,8 @@ typedef struct {
 	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 	int *detector_channel_array;
+
+	double last_measurement_interval;
 } MX_XIA_XERXES;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */
@@ -70,6 +72,11 @@ typedef struct {
   \
   {-1, -1, "num_mcas", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_XERXES, num_mcas ), \
+	{0}, NULL, 0 }, \
+  \
+  {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XIA_XERXES, last_measurement_interval),\
 	{0}, NULL, 0 }
 
 MX_API mx_status_type mxi_xia_xerxes_create_record_structures( MX_RECORD *record );

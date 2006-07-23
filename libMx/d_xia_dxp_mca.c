@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_XIA_DXP_DEBUG		FALSE
+#define MXD_XIA_DXP_DEBUG		TRUE
 
 #define MXD_XIA_DXP_DEBUG_STATISTICS	FALSE
 
@@ -1738,6 +1738,15 @@ mxd_xia_dxp_start( MX_MCA *mca )
 	unsigned long xia_high_order, xia_low_order;
 	mx_status_type mx_status;
 
+	MX_RECORD *xia_dxp_record;
+	MX_XIA_NETWORK *xia_network;
+#if HAVE_XIA_HANDEL
+	MX_XIA_HANDEL *xia_handel;
+#endif
+#if HAVE_XIA_XERXES
+	MX_XIA_XERXES *xia_xerxes;
+#endif
+
 #if MXD_XIA_VERIFY_PRESETS
 	unsigned long returned_preset_type;
 	unsigned long returned_xia_high_order, returned_xia_low_order;
@@ -1775,6 +1784,42 @@ mxd_xia_dxp_start( MX_MCA *mca )
 	MX_DEBUG(-2,("%s: xia_preset_type = %lu", fname,
 					(unsigned long) xia_preset_type));
 #endif
+	/* Save the preset value. */
+
+	xia_dxp_record = xia_dxp_mca->xia_dxp_record;
+
+	switch( xia_dxp_record->mx_type ) {
+	case MXI_GEN_XIA_NETWORK:
+		xia_network = (MX_XIA_NETWORK *)
+					xia_dxp_record->record_type_struct;
+
+		xia_network->last_measurement_interval = preset_time;
+		break;
+
+#if HAVE_XIA_HANDEL
+	case MXI_GEN_XIA_HANDEL:
+		xia_handel = (MX_XIA_HANDEL *)
+					xia_dxp_record->record_type_struct;
+
+		xia_handel->last_measurement_interval = preset_time;
+		break;
+#endif
+
+#if HAVE_XIA_XERXES
+	case MXI_GEN_XIA_XERXES:
+		xia_xerxes = (MX_XIA_XERXES *)
+					xia_dxp_record->record_type_struct;
+
+		xia_xerxes->last_measurement_interval = preset_time;
+		break;
+#endif
+
+	default:
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"The XIA DXP record '%s' for MCA '%s' is not a supported "
+		"record type.", xia_dxp_record->name, mca->record->name);
+	}
+
 
 	/* Compute the time preset in XIA preset clock ticks. */
 

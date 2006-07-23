@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_XIA_DXP_SUM_DEBUG	FALSE
+#define MXD_XIA_DXP_SUM_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>

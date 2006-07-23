@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_XIA_XERXES_DEBUG		FALSE
+#define MXI_XIA_XERXES_DEBUG		TRUE
 
 #define MXI_XIA_XERXES_DEBUG_TIMING	FALSE
 
@@ -305,13 +305,16 @@ mxi_xia_xerxes_create_record_structures( MX_RECORD *record )
 
 	xia_xerxes->record = record;
 
+	xia_xerxes->last_measurement_interval = -1.0;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_xia_xerxes_finish_record_initialization()";
+	static const char fname[] =
+		"mxi_xia_xerxes_finish_record_initialization()";
 
 	MX_XIA_XERXES *xia_xerxes;
 

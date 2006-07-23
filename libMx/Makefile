@@ -125,7 +125,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
-	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c d_xia_handel_timer.c \
+	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c d_xia_dxp_timer.c \
+	d_xia_handel_timer.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c i_cm17a.c \
 	i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \

@@ -29,15 +29,9 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_mca_timer_record_function_list = {
-	mxd_mca_timer_initialize_type,
-	mxd_mca_timer_create_record_structures,
-	mxd_mca_timer_finish_record_initialization,
-	mxd_mca_timer_delete_record,
 	NULL,
-	mxd_mca_timer_read_parms_from_hardware,
-	mxd_mca_timer_write_parms_to_hardware,
-	mxd_mca_timer_open,
-	mxd_mca_timer_close
+	mxd_mca_timer_create_record_structures,
+	mx_timer_finish_record_initialization
 };
 
 MX_TIMER_FUNCTION_LIST mxd_mca_timer_timer_function_list = {
@@ -122,14 +116,6 @@ mxd_mca_timer_get_pointers( MX_TIMER *timer,
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
-mxd_mca_timer_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_mca_timer_create_record_structures( MX_RECORD *record )
 {
 	static const char fname[] = "mxd_mca_timer_create_record_structures()";
@@ -163,91 +149,9 @@ mxd_mca_timer_create_record_structures( MX_RECORD *record )
 
 	timer->record = record;
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_finish_record_initialization( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_mca_timer_finish_record_initialization()";
-
-	MX_TIMER *timer;
-	MX_MCA_TIMER *mca_timer;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
-
-	timer = (MX_TIMER *) record->record_class_struct;
-
-	if ( timer == (MX_TIMER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_TIMER pointer for record '%s' is NULL.",
-			record->name );
-	}
-
 	timer->mode = MXCM_PRESET_MODE;
-
-	mca_timer = (MX_MCA_TIMER *) record->record_type_struct;
-
-	if ( mca_timer == (MX_MCA_TIMER *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"MX_MCA_TIMER pointer for record '%s' is NULL.",
-			record->name );
-	}
-
 	mca_timer->preset_time = 0.0;
 
-	return mx_timer_finish_record_initialization( record );
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_delete_record( MX_RECORD *record )
-{
-	MX_MCA_TIMER *mca_timer;
-
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	mca_timer = (MX_MCA_TIMER *) record->record_type_struct;
-
-	if ( mca_timer != NULL ) {
-
-		free( mca_timer );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_mca_timer_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 

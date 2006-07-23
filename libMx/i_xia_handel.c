@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_XIA_HANDEL_DEBUG		FALSE
+#define MXI_XIA_HANDEL_DEBUG		TRUE
 
 #define MXI_XIA_HANDEL_DEBUG_TIMING	FALSE
 
@@ -232,6 +232,8 @@ mxi_xia_handel_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = NULL;
 
 	xia_handel->record = record;
+
+	xia_handel->last_measurement_interval = -1.0;
 
 	return MX_SUCCESSFUL_RESULT;
 }

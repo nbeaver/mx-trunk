@@ -27,6 +27,8 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	double last_measurement_interval;
+
 	unsigned long num_mcas;
 	MX_RECORD **mca_record_array;
 
@@ -73,7 +75,12 @@ typedef struct {
   {-1, -1, "remote_record_name", MXFT_STRING, \
 				NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_XIA_NETWORK, remote_record_name), \
-	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }, \
+  \
+  {-1, -1, "last_measurement_interval", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_XIA_NETWORK, last_measurement_interval),\
+	{0}, NULL, 0 }
 
 MX_API mx_status_type mxi_xia_network_create_record_structures(
 							MX_RECORD *record );

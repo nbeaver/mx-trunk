@@ -509,6 +509,7 @@
 #include "d_xia_dxp_mca.h"
 #include "d_xia_dxp_var.h"
 #include "d_xia_dxp_sum.h"
+#include "d_xia_dxp_timer.h"
 #endif
 
   /********************** Record Types **********************/
@@ -2812,6 +2813,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_xia_dxp_sum_analog_input_function_list,
 				&mxd_xia_dxp_sum_num_record_fields,
 				&mxd_xia_dxp_sum_rfield_def_ptr},
+
+{"xia_dxp_timer",  MXT_TIM_XIA_DXP,     MXC_TIMER,      MXR_DEVICE,
+				&mxd_xia_dxp_timer_record_function_list,
+				NULL,
+				&mxd_xia_dxp_timer_timer_function_list,
+				&mxd_xia_dxp_timer_num_record_fields,
+				&mxd_xia_dxp_timer_rfield_def_ptr},
 
 #endif /* HAVE_TCPIP || HAVE_XIA_HANDEL */
 
