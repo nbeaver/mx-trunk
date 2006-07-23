@@ -16,7 +16,7 @@
 
 #define MX_CFN_DEBUG			FALSE
 
-#define MX_DEBUG_SETUP_HOME_VARIABLE	TRUE
+#define MX_DEBUG_SETUP_HOME_VARIABLE	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

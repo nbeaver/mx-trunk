@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -21,8 +21,8 @@ LIBRARIES = $(WIN32_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
+INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
@@ -50,11 +50,14 @@ LIBRARIES = $(WIN32_LIBS)
 # However, it is also possible that the executables will seem to build
 # correctly, but then occasionally fail in mysterious ways.  Thus, it is
 # very important to get this right!
+#
+# Also, since MX uses threads in a number of places, -ML and -MLd are
+# not valid choices and must not be used.
 
-RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -68,12 +71,28 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # below specified the progra~1\micros~1 directory.
 #
 #MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
-MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
 #MSDEV_DIR	= c:\\progra~1\\micros~4
+
+#
+# If you are using the Win32 version of DUMA (duma.sourceforge.net)
+# uncomment the following lines.  Please note that DUMA is a fork of
+# Electric Fence which has been ported to Win32 (among other things).
+#
+# WARNING: Make sure that DUMA has been compiled with the same flags
+# (-MD, -MDd, -MT, or -MTd) as is being used to compile MX.  The default
+# configuration as delivered of DUMA uses -MLd.  -MLd is not supported
+# by MX, since the use of the -MLd flag breaks MX's support for threads.
+#
+
+#DUMA_DIR = c:\\opt\\duma_2_4_27-MTd
+#DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
+#DUMA_OPTS = /force $(DUMA_LIB)
 
 #
 # If you are using a separately downloaded copy of the Win32 Platform SDK,
@@ -114,8 +133,9 @@ UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 # WARNING: For current versions of Handel you must set the makefile variable
 #          RUN_TIME_LIBRARY_FLAGS to -MTd above.
 #
-XIA_HANDEL_DIR      = c:\\progra~1\\xia\\kepler-dev-tools-1_1_7\\handel
+#XIA_HANDEL_DIR      = c:\\progra~1\\xia\\kepler-dev-tools-1_1_7\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0.6-1216\\handel
+XIA_HANDEL_DIR      = c:\\opt\\handel-0.5.4\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
 
 XIA_HANDEL_INCLUDES = -I$(XIA_HANDEL_DIR)\\inc -DIS_MX_DRIVER
@@ -270,7 +290,7 @@ MX_LIBRARY_DELETE = $(RM) libMx.*
 $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	-$(MX_LIBRARY_DELETE)
 	link /dll /debug /nologo /out:libMx.dll /nodefaultlib:libc \
-			$(MX_LIB_OBJS) $(LIBRARIES)
+			$(DUMA_OPTS) $(MX_LIB_OBJS) $(LIBRARIES)
 
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
@@ -301,7 +321,7 @@ MOTOR_NAME	= motor.exe
 
 $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) \
-			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
@@ -313,7 +333,7 @@ SERVER_NAME	= mxserver.exe
 
 $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxserver.exe *.obj \
-			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
@@ -329,7 +349,7 @@ UPDATE_NAME	= mxupdate.exe
 
 $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxupdate.exe *.obj \
-			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
@@ -343,7 +363,7 @@ MXDRIVERINFO_NAME    = mxdriverinfo.exe
 
 $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxdriverinfo.exe *.obj \
-			/nodefaultlib:libc $(MX_LIBRARY_PATH) $(WIN32_LIBS)
+		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin

@@ -34,7 +34,7 @@ mxu_xia_dxp_replace_output_functions( void )
 {
 	static const char fname[] = "mxu_xia_dxp_replace_output_functions()";
 
-	MX_DEBUG(-2,("%s is not yet implemented.\n", fname));
+	MX_DEBUG( 2,("%s is not yet implemented.\n", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }

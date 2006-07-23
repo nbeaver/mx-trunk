@@ -92,7 +92,7 @@ MX_API mx_status_type mxi_xia_xerxes_restore_configuration( MX_RECORD *record,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_xerxes_is_busy( MX_MCA *mca,
-					int *busy_flag,
+					mx_bool_type *busy_flag,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_xerxes_read_parameter( MX_MCA *mca,
@@ -112,7 +112,7 @@ MX_API mx_status_type mxi_xia_xerxes_write_parameter_to_all_channels(
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_xerxes_start_run( MX_MCA *mca,
-					int clear_flag,
+					mx_bool_type clear_flag,
 					int debug_flag );
 
 MX_API mx_status_type mxi_xia_xerxes_stop_run( MX_MCA *mca,

@@ -26,6 +26,10 @@
 
 #if HAVE_XIA_XERXES
 
+#if defined(OS_WIN32)
+#include <windows.h>
+#endif
+
 #include <stdlib.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -153,9 +157,74 @@ static FILE *
 mxi_xia_xerxes_open_temporary_file( char *returned_temporary_name,
 				size_t maximum_name_length )
 {
+	static const char fname[] = "mxi_xia_xerxes_open_temporary_file()";
+
 	FILE *temp_file;
 	int temp_fd;
 
+#if defined(OS_WIN32)
+
+	char path_buffer[MXU_FILENAME_LENGTH + 1];
+	char message_buffer[100];
+	long path_length, last_error_code;
+	int status;
+
+	if ( maximum_name_length < MXU_FILENAME_LENGTH ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The returned temporary name buffer which was %ld "
+		"characters long must be at least %ld characters long.",
+			maximum_name_length, MXU_FILENAME_LENGTH );
+
+		return NULL;
+	}
+
+	/* Find the directory that temporary files are stored in. */
+
+	path_length = GetTempPath( maximum_name_length, path_buffer );
+
+	if ( path_length > maximum_name_length ) {
+		(void) mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The temporary file directory name of length %ld "
+		"that starts with '%s' "
+		"is too long to fit into the buffer of length %ld",
+			path_length, path_buffer, maximum_name_length );
+
+		return NULL;
+	} else
+	if ( path_length == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Error getting the Windows temporary file directory.  "
+		"Win32 error code = %ld, error message = '%s'",
+			last_error_code, message_buffer );
+
+		return NULL;
+	}
+
+	/* Now construct a temporary filename in that directory. */
+
+	status = GetTempFileName( path_buffer,
+			"XIA", 0, returned_temporary_name );
+
+	if ( status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		(void) mx_error( MXE_FILE_IO_ERROR, fname,
+		"Error constructing a Windows temporary filename.  "
+		"Win32 error code = %ld, error message = '%s'",
+			last_error_code, message_buffer );
+
+		return NULL;
+	}
+
+#else
 	if ( maximum_name_length < L_tmpnam ) {
 		errno = ENAMETOOLONG;
 
@@ -176,14 +245,15 @@ mxi_xia_xerxes_open_temporary_file( char *returned_temporary_name,
 
 		return NULL;
 	}
+#endif
 
 #if defined( OS_WIN32 )
 #   if defined( __BORLANDC__ )
 	temp_fd = _open( returned_temporary_name,
-			_O_CREAT | _O_TRUNC | _O_EXCL | _O_RDWR );
+			_O_TRUNC | _O_EXCL | _O_RDWR );
 #   else
 	temp_fd = _open( returned_temporary_name,
-			_O_CREAT | _O_TRUNC | _O_EXCL | _O_RDWR,
+			_O_TRUNC | _O_EXCL | _O_RDWR,
 			_S_IREAD | _S_IWRITE );
 #   endif
 #elif defined( OS_VXWORKS )
@@ -462,6 +532,48 @@ mxi_xia_xerxes_stop_run_and_wait( MX_XIA_XERXES *xia_xerxes, int debug_flag )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* mxi_xia_xerxes_delete_modules_file() deletes
+ * the specified temporary XIA modules file.
+ */
+
+static mx_status_type
+mxi_xia_xerxes_delete_modules_file( char *modules_filename )
+{
+	static const char fname[] = "mxi_xia_xerxes_delete_modules_file()";
+
+	int fileio_status, saved_errno;
+
+#if defined(OS_WIN32) && defined(_MSC_VER)
+
+	/* FIXME
+	 *
+	 * dxp_read_config() has a bug where it opens a configuration file
+	 * and never closes it.  In addition, it abandons the FILE pointer
+	 * so that nobody else can close it either.  This is, of course,
+	 * annoying since there is no straightforward way to deal with it.
+	 */
+
+#endif
+	/* Although the following will work on a Linux/Unix system as is,
+	 * it will not work on systems like Microsoft Windows if the file
+	 * is currently open.
+	 */
+
+	fileio_status = remove( modules_filename );
+
+	if ( fileio_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname, 
+		"The attempt to delete the temporary XIASYSTEMS.CFG "
+		"file '%s' failed.  This error is of minor significance "
+		"and does not affect the running of the MCA.  "
+		"Error code = %d, error status = '%s'.",
+			modules_filename, saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 /* mxi_xia_xerxes_read_config() either reads the xiasystems.cfg file specified
  * in the MX database or generates a temporary xiasystems.cfg style
@@ -474,8 +586,9 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 	static const char fname[] = "mxi_xia_xerxes_read_config()";
 
 	FILE *file;
-	char modules_filename[ MXU_FILENAME_LENGTH + 1 ];
-	int xia_status, fileio_status, saved_errno, use_temporary_file;
+	char modules_filename[MXU_FILENAME_LENGTH+1];
+	int xia_status, saved_errno, fileio_status, use_temporary_file;
+	mx_status_type mx_status;
 
 	if ( strlen( xia_xerxes->xiasystems_cfg ) <= 0 ) {
 		use_temporary_file = TRUE;
@@ -487,7 +600,7 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 		/* Open a temporary xiasystems.cfg style file. */
 
 		file = mxi_xia_xerxes_open_temporary_file( modules_filename,
-							MXU_FILENAME_LENGTH );
+						sizeof(modules_filename) );
 
 		if ( file == NULL ) {
 			saved_errno = errno;
@@ -515,7 +628,7 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 		}
 	}
 
-	MX_DEBUG(-2,("%s: Temporary XerXes module config file = '%s'.",
+	MX_DEBUG( 2,("%s: Temporary Xerxes module config file = '%s'.",
 		fname, modules_filename));
 
 	/* Write out the contents of the file. */
@@ -548,24 +661,9 @@ mxi_xia_xerxes_read_config( MX_XIA_XERXES *xia_xerxes )
 			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
 	}
 
-#if 1
 	if ( use_temporary_file ) {
-		/* Delete the temporary config file. */
-
-		fileio_status = remove( modules_filename );
-
-		if ( fileio_status != 0 ) {
-			saved_errno = errno;
-
-		(void) mx_error( MXE_FILE_IO_ERROR, fname, 
-		"The attempt to delete the temporary XIASYSTEMS.CFG "
-		"file '%s' failed.  This error is of minor significance "
-		"and does not affect the running of the MCA.  "
-		"Error code = %d, error status = '%s'.",
-			modules_filename, saved_errno, strerror(saved_errno) );
-		}
+	    mx_status = mxi_xia_xerxes_delete_modules_file(modules_filename);
 	}
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -597,8 +695,8 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 
 	/* Open the detector configuration file. */
 
-	MX_DEBUG(-4,("%s: Loading XerXes configuration '%s'.",
-		fname, xia_xerxes->config_filename));
+	mx_info("Loading Xerxes configuration file '%s'.",
+		xia_xerxes->config_filename);
 
 	max_attempts = 10;
 	wait_ms = 100;
@@ -631,7 +729,7 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 
 		if ( xia_status != DXP_SUCCESS ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Unable to open the XerXes detector configuration file '%s'.  "
+		"Unable to open the Xerxes detector configuration file '%s'.  "
 		"Error code = %d, '%s'",
 			xia_xerxes->config_filename,
 			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
@@ -661,7 +759,7 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 		default:
 			return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
 		"Unable to restore the detector configuration from "
-		"the XerXes configuration file '%s'.  "
+		"the Xerxes configuration file '%s'.  "
 		"Error code = %d, '%s'",
 			xia_xerxes->config_filename,
 			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
@@ -683,7 +781,7 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 
 		if ( xia_status != DXP_SUCCESS ) {
 			return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Unable to close the XerXes detector configuration file '%s'.  "
+		"Unable to close the Xerxes detector configuration file '%s'.  "
 		"Error code = %d, '%s'",
 			xia_xerxes->config_filename,
 			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
@@ -869,8 +967,8 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 	}
 
 
-	MX_DEBUG(-4,("%s: Successfully loaded XerXes configuration '%s'.",
-		fname, xia_xerxes->config_filename));
+	mx_info("Successfully loaded Xerxes configuration file '%s'.",
+			xia_xerxes->config_filename);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1011,7 +1109,7 @@ mxi_xia_xerxes_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_is_busy( MX_MCA *mca,
-			int *busy_flag,
+			mx_bool_type *busy_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_xerxes_is_busy()";
@@ -1353,7 +1451,7 @@ mxi_xia_xerxes_write_parameter_to_all_channels( MX_MCA *mca,
 
 MX_EXPORT mx_status_type
 mxi_xia_xerxes_start_run( MX_MCA *mca,
-			int clear_flag,
+			mx_bool_type clear_flag,
 			int debug_flag )
 {
 	static const char fname[] = "mxi_xia_xerxes_start_run()";
@@ -1513,10 +1611,6 @@ mxi_xia_xerxes_read_spectrum( MX_MCA *mca,
 	} else {
 		array_ptr = xia_dxp_mca->spectrum_array;
 	}
-
-#if 1
-	debug_flag = TRUE;
-#endif
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: reading out %ld channels from MCA '%s'.",
