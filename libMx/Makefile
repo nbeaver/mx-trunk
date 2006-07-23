@@ -262,6 +262,9 @@ d_xia_dxp_mca.$(OBJ): d_xia_dxp_mca.c
 d_xia_handel_timer.$(OBJ): d_xia_handel_timer.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_handel_timer.c
 
+d_xia_dxp_timer.$(OBJ): d_xia_dxp_timer.c
+	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_dxp_timer.c
+
 i_8255.$(OBJ): i_8255.c
 	$(COMPILE) $(CFLAGS) $(I8255_INCLUDES) i_8255.c
 
