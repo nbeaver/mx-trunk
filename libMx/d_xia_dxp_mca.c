@@ -16,7 +16,7 @@
  *
  */
 
-#define MXD_XIA_DXP_DEBUG		TRUE
+#define MXD_XIA_DXP_DEBUG		FALSE
 
 #define MXD_XIA_DXP_DEBUG_STATISTICS	FALSE
 
