@@ -42,7 +42,7 @@
 
 #define NETWORK_DEBUG		FALSE
 
-#define NETWORK_DEBUG_TIMING	FALSE
+#define NETWORK_DEBUG_TIMING	TRUE
 
 #if NETWORK_DEBUG_TIMING
 #include "mx_hrt_debug.h"
