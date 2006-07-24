@@ -15,9 +15,9 @@
  *
  */
 
-#define MXI_XIA_HANDEL_DEBUG		FALSE
+#define MXI_XIA_HANDEL_DEBUG		TRUE
 
-#define MXI_XIA_HANDEL_DEBUG_TIMING	FALSE
+#define MXI_XIA_HANDEL_DEBUG_TIMING	TRUE
 
 #include <stdio.h>
 #include <limits.h>

@@ -151,6 +151,23 @@ mxsrv_install_signal_and_exit_handlers( int sigint_displays_traceback )
 
 /*------------------------------------------------------------------*/
 
+/* FIXME: For some reason, with Visual C++ 6.0 under Windows 2000,
+ * output to stderr via 'output functions' seems to disappear without
+ * a trace if you run the Visual C++ program from a Cygwin session.
+ * On the other hand, output to stderr seems to work from high level
+ * routines such as main().  However, write()s to file descriptor 2
+ * seem to work in both cases.  I have no idea why it is working
+ * this way.  For reference, this occurred with Cygwin 1.5.20.
+ * 
+ * (WML - July 24, 2006 - at APS Sector 10-ID)
+ */
+
+#if defined(_MSC_VER)
+#  define MXSRV_USE_STDIO_OUTPUT	FALSE
+#else
+#  define MXSRV_USE_STDIO_OUTPUT	TRUE
+#endif
+
 static void
 mxsrv_print_timestamp( void )
 {
@@ -165,44 +182,56 @@ mxsrv_print_timestamp( void )
 	strftime( buffer, sizeof(buffer),
 			"%b %d %H:%M:%S ", current_time );
 
+#if MXSRV_USE_STDIO_OUTPUT
 	fputs( buffer, stderr );
+#else
+	write( 2, buffer, strlen(buffer) );
+#endif
 }
 
 static void
-mxsrv_info_output_function( char *string )
+mxsrv_output_function( char *string )
 {
 	mxsrv_print_timestamp();
+
+#if MXSRV_USE_STDIO_OUTPUT
 	fprintf( stderr, "%s\n", string );
+#else
+	{
+		static char n = '\n';
+
+		write( 2, string, strlen(string) );
+		write( 2, &n, 1 );
+	}
+#endif
 }
 
 static void
 mxsrv_warning_output_function( char *string )
 {
 	mxsrv_print_timestamp();
+
+#if MXSRV_USE_STDIO_OUTPUT
 	fprintf( stderr, "Warning: %s\n", string );
-}
+#else
+	{
+		static char warning[] = "Warning: ";
+		static char n = '\n';
 
-static void
-mxsrv_error_output_function( char *string )
-{
-	mxsrv_print_timestamp();
-	fprintf( stderr, "%s\n", string );
-}
-
-static void
-mxsrv_debug_output_function( char *string )
-{
-	mxsrv_print_timestamp();
-	fprintf( stderr, "%s\n", string );
+		write( 2, warning, strlen(warning) );
+		write( 2, string, strlen(string) );
+		write( 2, &n, 1 );
+	}
+#endif
 }
 
 static void
 mxsrv_setup_output_functions( void )
 {
-	mx_set_info_output_function( mxsrv_info_output_function );
+	mx_set_info_output_function( mxsrv_output_function );
 	mx_set_warning_output_function( mxsrv_warning_output_function );
-	mx_set_error_output_function( mxsrv_error_output_function );
-	mx_set_debug_output_function( mxsrv_debug_output_function );
+	mx_set_error_output_function( mxsrv_output_function );
+	mx_set_debug_output_function( mxsrv_output_function );
 }
 
 /*------------------------------------------------------------------*/
