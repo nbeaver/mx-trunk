@@ -16,7 +16,7 @@
  *
  */
 
-#define MXI_XIA_NETWORK_DEBUG		TRUE
+#define MXI_XIA_NETWORK_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
