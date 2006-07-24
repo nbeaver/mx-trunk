@@ -90,9 +90,9 @@ MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 # by MX, since the use of the -MLd flag breaks MX's support for threads.
 #
 
-DUMA_DIR = c:\\opt\\duma_2_4_27-MTd
-DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
-DUMA_OPTS = /force $(DUMA_LIB)
+#DUMA_DIR = c:\\opt\\duma_2_4_27-MTd
+#DUMA_LIB = $(DUMA_DIR)\\win32-msvc\\dumalib\\Debug\\dumalib.lib
+#DUMA_OPTS = /force $(DUMA_LIB)
 
 #
 # If you are using a separately downloaded copy of the Win32 Platform SDK,
