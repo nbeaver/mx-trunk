@@ -40,8 +40,8 @@ READLINE_LIBRARIES = ../tools/unix/src/editline/libedit.a
 # Alpha with Compaq C V6.5-207 on HP Tru64 Unix V5.1B
 #
 CC		= cc -pthread
-CFLAGS		= -g $(INCLUDES) -DOS_TRU64 \
-				$(EXTRA_FLAGS) -DDEBUG
+CFLAGS		= -g $(INCLUDES) -DOS_TRU64 -w2 \
+					$(EXTRA_FLAGS) -DDEBUG
 CFLAGS_EPICS	= $(CFLAGS)
 
 # Special cases for individual files.

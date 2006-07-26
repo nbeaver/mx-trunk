@@ -94,7 +94,8 @@
 #define SCNx64	"llx"
 
 /*=======================================================================*/
-#elif defined(OS_TRU64)
+#elif defined(OS_TRU64) && \
+    ( defined(__GNUC__) || (defined(__DECC_VER) && (__DECC_VER < 60590000)) )
 
 #define PRId8	"hd"
 #define PRIu8	"hu"

@@ -85,7 +85,11 @@
 #include "mx_interval_timer.h"
 
 #if defined( _POSIX_TIMERS )
-#  if ( _POSIX_TIMERS < 0 )
+
+#  if defined(OS_TRU64)
+#     define HAVE_POSIX_TIMERS	TRUE
+
+#  elif ( _POSIX_TIMERS < 0 )
 #     define HAVE_POSIX_TIMERS	FALSE
 #  else
 #     define HAVE_POSIX_TIMERS	TRUE

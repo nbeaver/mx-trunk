@@ -293,7 +293,6 @@ mxd_gated_backlash_open( MX_RECORD *record )
 		"The 'gate_record' for 'gated_backlash' record '%s' "
 		"must be a record of type 'analog_output', 'digital_output', "
 		"or 'relay'.", record->name );
-		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -364,7 +363,6 @@ mxd_gated_backlash_set_gate_value( MX_GATED_BACKLASH *gated_backlash,
 		"The 'gate_record' for 'gated_backlash' record '%s' "
 		"must be a record of type 'analog_output', 'digital_output', "
 		"or 'relay'.", gated_backlash->record->name );
-			break;
 	}
 
 	return mx_status;

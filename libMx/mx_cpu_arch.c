@@ -206,9 +206,19 @@ mx_get_cpu_architecture( char *architecture_type,
 		strlcpy( architecture_type, "amd64",
 				max_architecture_type_length );
 
+#  elif defined(__hppa__) || defined(__hppa)
+
+		strlcpy( architecture_type, "hppa",
+				max_architecture_type_length );
+
 #  elif defined(__i386__) || defined(__i386)
 
 		strlcpy( architecture_type, "i386",
+				max_architecture_type_length );
+
+#  elif defined(__ia64__) || defined(__ia64)
+
+		strlcpy( architecture_type, "ia64",
 				max_architecture_type_length );
 
 #  elif defined(__m68k__)

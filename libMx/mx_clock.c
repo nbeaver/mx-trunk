@@ -230,7 +230,11 @@ mx_clock_ticks_per_second( void )
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
     || defined(OS_TRU64)
 
+#  if defined(CLK_TCK)
 	clock_ticks_per_second = (double) CLK_TCK;
+#  else
+	clock_ticks_per_second = CLOCKS_PER_SEC;
+#  endif
 
 #elif defined(OS_DJGPP)
 

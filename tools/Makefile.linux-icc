@@ -2,6 +2,8 @@
 # tools/Makefile.linux-icc
 #
 
+CC = icc
+
 EDITLINE_DEFS = -DANSI_ARROWS -DHAVE_STDLIB -DHAVE_TCGETATTR -DHIDE \
 		-DUSE_DIRENT -DSYS_UNIX
 
@@ -17,6 +19,7 @@ EDITLINE_MAKECMD = \
 all: strlcpy.o strlcat.o unix/src/editline/libedit.a
 
 mx_clean:
+	-rm *.o
 	( cd unix/src/editline ; make clean )
 
 strlcpy.o: generic/src/strlcpy.c

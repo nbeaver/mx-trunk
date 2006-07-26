@@ -50,7 +50,10 @@
 /*--------------------------------------------------------------------------*/
 
 #if defined( _POSIX_REALTIME_SIGNALS )
-#  if ( _POSIX_REALTIME_SIGNALS < 0 )
+#  if defined(OS_TRU64)
+#     define HAVE_POSIX_REALTIME_SIGNALS	TRUE
+
+#  elif ( _POSIX_REALTIME_SIGNALS < 0 )
 #     define HAVE_POSIX_REALTIME_SIGNALS	FALSE
 #  else
 #     define HAVE_POSIX_REALTIME_SIGNALS	TRUE

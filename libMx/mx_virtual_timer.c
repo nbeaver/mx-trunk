@@ -5,8 +5,6 @@
  *
  * Author:  William Lavender
  *
- * WARNING: NOT YET FINISHED! (as of April 14, 2006)
- *
  * Copyright 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
@@ -353,7 +351,7 @@ mx_add_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		current_event = next_event;
 	}
 
-#if 0
+#if defined(OS_HPUX)
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }
@@ -448,7 +446,7 @@ mx_get_next_vtimer_event( MX_MASTER_TIMER_EVENT_LIST *event_list,
 		current_event = current_event->next_event;
 	}
 
-#if 0
+#if defined(OS_HPUX)
 	return MX_SUCCESSFUL_RESULT;
 #endif
 }
