@@ -186,7 +186,7 @@ mx_get_cpu_architecture( char *architecture_type,
 			saved_errno, strerror( saved_errno ) );
 	}
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: sysname = '%s'", fname, uname_struct.sysname));
 	MX_DEBUG(-2,("%s: nodename = '%s'", fname, uname_struct.nodename));
 	MX_DEBUG(-2,("%s: release = '%s'", fname, uname_struct.release));

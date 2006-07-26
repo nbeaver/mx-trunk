@@ -2561,6 +2561,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 #elif defined( OS_MACOSX )
 
+#include <errno.h>
 #include <pthread.h>
 #include <mach/mach.h>
 #include <mach/mach_time.h>
