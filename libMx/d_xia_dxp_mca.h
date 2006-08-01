@@ -187,10 +187,6 @@ typedef struct {
 	mx_status_type (*set_mx_parameter)( MX_MCA *mca );
 
 #if HAVE_XIA_HANDEL
-
-	unsigned short num_parameters;
-	unsigned short *parameter_array;
-
 	mx_bool_type use_mca_channel_array;
 
 	unsigned int num_spectrum_bins;

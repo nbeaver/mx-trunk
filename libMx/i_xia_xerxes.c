@@ -1624,21 +1624,10 @@ mxi_xia_xerxes_read_spectrum( MX_MCA *mca,
 	MX_HRT_START( measurement );
 #endif
 
-#if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
-
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
-				xia_dxp_mca->parameter_array,
-				xia_dxp_mca->xerxes_baseline_array,
+				NULL, NULL,
 				array_ptr );
-#else
-	xia_status = dxp_readout_detector_run(
-				&(xia_dxp_mca->detector_channel),
-				xia_dxp_mca->parameter_array,
-				xia_dxp_mca->baseline_array,
-				array_ptr );
-
-#endif
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1786,7 +1775,6 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 	MX_XIA_XERXES *xia_xerxes;
 	int xia_status;
 	unsigned long i;
-	unsigned long *array_ptr;
 	mx_status_type mx_status;
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
@@ -1799,15 +1787,9 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( xia_dxp_mca->use_mca_channel_array ) {
-		array_ptr = mca->channel_array;
-	} else {
-		array_ptr = xia_dxp_mca->spectrum_array;
-	}
-
 	if ( debug_flag ) {
-		MX_DEBUG(-2,("%s: reading out %ld channels from MCA '%s'.",
-			fname, mca->current_num_channels, mca->record->name));
+		MX_DEBUG(-2,("%s: reading out baseline array from MCA '%s'.",
+			fname, mca->record->name));
 	}
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
@@ -1818,16 +1800,16 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
-				xia_dxp_mca->parameter_array,
+				NULL,
 				xia_dxp_mca->xerxes_baseline_array,
-				array_ptr );
+				NULL );
 #else
 
 	xia_status = dxp_readout_detector_run(
 				&(xia_dxp_mca->detector_channel),
-				xia_dxp_mca->parameter_array,
+				NULL,
 				xia_dxp_mca->baseline_array,
-				array_ptr );
+				NULL );
 #endif
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
@@ -1843,14 +1825,6 @@ mxi_xia_xerxes_get_baseline_array( MX_MCA *mca,
 		"Error code = %d, '%s'", mca->record->name,
 			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
 	}
-
-#if 1
-	/* FIXME - For some reason the value in the last bin is always bad.
-	 * Thus, we set it to zero.  (W. Lavender)
-	 */
-
-	array_ptr[ mca->current_num_channels - 1 ] = 0;
-#endif
 
 #if XIA_HAVE_OLD_DXP_READOUT_DETECTOR_RUN
 

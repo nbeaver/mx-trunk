@@ -725,29 +725,6 @@ mxd_xia_dxp_xerxes_open( MX_MCA *mca,
 	}
 
 #endif
-
-	/* Allocate memory for the parameter array. */
-
-	xia_status = dxp_max_symbols( &(xia_dxp_mca->detector_channel),
-					&(xia_dxp_mca->num_parameters) );
-
-	if ( xia_status != DXP_SUCCESS ) {
-		return mx_error( MXE_INTERFACE_ACTION_FAILED, fname,
-		"Unable to get the number of parameters for MCA '%s'.  "
-		"Error code = %d, error status = '%s'",
-			mca->record->name,
-			xia_status, mxi_xia_xerxes_strerror( xia_status ) );
-	}
-
-	xia_dxp_mca->parameter_array = (unsigned short *)
-		malloc( xia_dxp_mca->num_parameters * sizeof(unsigned short) );
-
-	if ( xia_dxp_mca->parameter_array == (unsigned short *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Cannot allocated a DXP parameter array of %hu unsigned shorts",
-			xia_dxp_mca->num_parameters );
-	}
-
 	/* Xerxes does not have detector or modules aliases. */
 
 	xia_dxp_mca->detector_alias = NULL;
@@ -1102,14 +1079,6 @@ mxd_xia_dxp_handel_open( MX_MCA *mca,
 		"Cannot allocate a DXP baseline array of %u unsigned longs",
 			xia_dxp_mca->baseline_length );
 	}
-
-	/* Do not allocate memory for the parameter array since
-	 * Handel does not seem to have this feature.
-	 */
-
-	xia_dxp_mca->num_parameters = 0;
-
-	xia_dxp_mca->parameter_array = 0;
 
 #if MXD_XIA_DXP_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1654,9 +1623,6 @@ mxd_xia_dxp_close( MX_RECORD *record )
 		num_mcas = xia_handel->num_mcas;
 		mca_record_array = xia_handel->mca_record_array;
 
-		if ( xia_dxp_mca->parameter_array != NULL ) {
-			mx_free( xia_dxp_mca->parameter_array );
-		}
 		if ( xia_dxp_mca->baseline_array != NULL ) {
 			mx_free( xia_dxp_mca->baseline_array );
 		}
@@ -1682,9 +1648,6 @@ mxd_xia_dxp_close( MX_RECORD *record )
 		num_mcas = xia_xerxes->num_mcas;
 		mca_record_array = xia_xerxes->mca_record_array;
 
-		if ( xia_dxp_mca->parameter_array != NULL ) {
-			mx_free( xia_dxp_mca->parameter_array );
-		}
 		if ( xia_dxp_mca->baseline_array != NULL ) {
 			mx_free( xia_dxp_mca->baseline_array );
 		}
