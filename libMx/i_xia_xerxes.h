@@ -39,6 +39,12 @@ typedef struct {
 	int *detector_channel_array;
 
 	double last_measurement_interval;
+
+	/* 'run_in_progress' should only be cleared by
+	 * mxi_xia_xerxes_stop_run_and_wait().
+	 */
+
+	mx_bool_type run_in_progress;
 } MX_XIA_XERXES;
 
 #endif /* HAVE_XIA_HANDEL && IS_MX_DRIVER */

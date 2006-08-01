@@ -307,6 +307,8 @@ mxi_xia_xerxes_create_record_structures( MX_RECORD *record )
 
 	xia_xerxes->last_measurement_interval = -1.0;
 
+	xia_xerxes->run_in_progress = TRUE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -440,6 +442,16 @@ mxi_xia_xerxes_stop_run_and_wait( MX_XIA_XERXES *xia_xerxes, int debug_flag )
 			fname, xia_xerxes->record->name));
 	}
 
+	/* If we already know that a run is not in progress, we do not
+	 * need to stop it again.
+	 */
+
+#if 1
+	if ( xia_xerxes->run_in_progress == FALSE ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
+
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_START( total_measurement );
 #endif
@@ -524,6 +536,8 @@ mxi_xia_xerxes_stop_run_and_wait( MX_XIA_XERXES *xia_xerxes, int debug_flag )
 			0.001 * (double)( max_attempts * wait_ms ),
 			xia_xerxes->record->name );
 	}
+
+	xia_xerxes->run_in_progress = FALSE;
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_END( total_measurement );
@@ -911,6 +925,8 @@ mxi_xia_xerxes_restore_config( MX_XIA_XERXES *xia_xerxes )
 
 	gate = 1;
 	resume_flag = 0;
+
+	xia_xerxes->run_in_progress = TRUE;
 
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1491,6 +1507,8 @@ mxi_xia_xerxes_start_run( MX_MCA *mca,
 		resume_flag = 1;
 	}
 
+	xia_xerxes->run_in_progress = TRUE;
+
 #if MXI_XIA_XERXES_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -1538,6 +1556,8 @@ mxi_xia_xerxes_start_run( MX_MCA *mca,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		xia_xerxes->run_in_progress = TRUE;
 
 		xia_status = dxp_start_run( &gate, &resume_flag );
 
