@@ -1014,7 +1014,7 @@ mxd_xia_dxp_handel_open( MX_MCA *mca,
 	 * mca->channel_array already the right size?
 	 */
 
-	if ( ( sizeof(unsigned long) != 4 )
+	if ( ( sizeof(unsigned long) == 4 )
 	  && ( mca->maximum_num_channels >= xia_dxp_mca->num_spectrum_bins ) )
 	{
 		/* We do not need to allocate a spectrum array since
