@@ -1,3 +1,206 @@
+Version 1.3.0 (08/08/06):
+	This version of MX has added support for multiple virtual interval
+	timers that are layered on top of a single real interval timer.
+	The real interval timer is used to periodically update the state
+	of all its dependent virtual timers and to invoke the virtual timer
+	event handlers when necessary.  This feature was added to compensate
+	for the fact that most operating systems have a fairly small number
+	of real interval timers (sometimes only one).
+
+	MX can now successfully be compiled with Microsoft Visual C++
+	2005 Express.
+
+	Added interval timer support for BSD style kqueue() timers and 
+	Mach-based MacOS X timers using mach_wait_until().
+
+	New MX device drivers have been added:
+
+	    gated_backlash - This pseudomotor arranges for a gate signal
+	                   to be generated while a backlash correction
+			   is in progress.  The gate signal can be sent
+			   to an analog output, digital output, or relay
+			   record.  This also required the addition of a
+			   new MX_MOTOR field called 'backlash_in_progress'.
+
+	    pulsed_relay - This record is a variant of the generic relay
+	                   record that activates the relay for a specified
+			   length of time and then automatically deactivates
+			   the relay.  The activation time is implemented
+			   using software timing, so the actual activation
+			   time may be longer than what was requested.
+
+	    xia_dxp_timer - This record is an MCA timer record for XIA DXP
+	                   MCAs.  When asked for its "last measurement time",
+			   it reports a value stored in the XIA interface
+			   record rather than a value stored in the timer
+			   record itself.  This change ensures that all
+			   MCAs controlled by the same XIA interface will
+			   all report the same last measurement time.
+
+	For this version of MX, the example programs that were originally
+	distributed as a separate tar file examples.tar.gz have now been
+	folded into the main MX distribution in the subdirectory 'examples/'.
+
+	Added support for an MX local server configuration script that runs
+	when the server is started and provides for local customization of
+	the server's environment.  This script is normally found at the
+	location $(MXDIR)/etc/mx_local_config.  If this script is not
+	found, then it is ignored.
+
+	The 'aps_gap' pseudomotor driver for Advanced Photon Source insertion
+	devices has been updated to use the new nomenclature for EPICS
+	insertion device PVs.  Existing PVs such as ID10:GapSet.VAL have
+	been renamed to ID10ds:GapSet.VAL.  This change was made by the
+	APS to provide for undulator straight sections that have two 
+	insertion devices rather than one.  If a sector has two insertion
+	devices, the additional one will have a name like ID10us:GapSet.VAL.
+	In MX configuration files, use subtypes of 1 (mm), 2 (keV), 
+	3 (taper mm), and 4 (taper keV) for the downstream device and values
+	of -1, -2, -3, and -4 for the corresponding upstream device if any.
+
+	The 'picomotor' drivers for New Focus Picomotor controllers have
+	now been restructured to support multiple controllers at a time.
+	They have also been revised to include a command retry loop, since
+	there are some situations in which commands can get lost.
+
+	New options have been added to the mx_database.status field.  You
+	can now execute commands like the following:
+
+	    mxput server:mx_database.status cpu_type
+	        to get a description of the CPU architecture, word size,
+		endianess, etc. on the MX server log.
+
+	    mxput server:mx_database.status process_memory
+	        to get a description of the current memory usage of the
+		process executing the server on the server log.
+
+	    mxput server:mx_database.status system_memory
+	        to get a description of the total memory usage of the
+		computer that runs the server on the server log.
+
+	MX support for the XIA Xerxes libraries has been changed so that
+	calls to dxp_readout_detector_run() only readout the array that
+	is being used by the current operation of either reading a spectrum
+	or reading a baseline.  This eliminates a bit of unnecessary overhead.
+	In addition, the MX XIA Xerxes support now maintains its own flag
+	for whether or not a run should be in progress, so that calls to
+	mxi_xia_xerxes_stop_run_and_wait() will return immediately unless
+	this is the first call to the function since dxp_start_run() was
+	invoked.
+
+	Fixed a bug in the MX drivers for the XIA Xerxes and Handel libraries
+	that caused a buffer overrun crash if the number of spectrum bins
+	reported by the XIA firmware was smaller than the length of the
+	spectrum array allocated by MX.
+
+	A new define HAVE_XIA_XERXES has been added to libMx/mxconfig.h
+	in addition to the existing HAVE_XIA_HANDEL definition.  The two
+	definitions now separately describe whether or not the Xerxes or
+	the Handel APIs can be directly called.  This change reflects the
+	fact that some recent distributions of Handel do not provide .LIB
+	and header files for directly invoking Xerxes functions.
+
+	Revised temporary file handling in the 'xia_xerxes' driver so that
+	it uses GetTempPath() and GetTempFileName() to construct the name
+	of the temporary modules file.  This means that the temporary
+	files are no longer created in the 'C:\' directory, but instead
+	are created in a user specific directory.
+
+	The 'network_rs232' driver has been modified to check the version
+	of the remote MX server before doing I/O.  Current versions of MX
+	use the MXFT_CHAR datatype for 'getchar' and 'putchar', but versions
+	of MX prior to MX 1.2.0 used MXFT_INT for this.  The new fix ensures
+	that the MX 1.3.0 'network_rs232' driver can talk to RS-232 ports
+	controlled by both new and old MX servers.
+
+	Added support for the mx_scanlog_info(), mx_set_scanlog_enable(),
+	and mx_get_scanlog_enable() functions.  This allows MX scan progress
+	messages to be handled separately from other informational messages.
+	This was done for the sake of users that do not want to see the
+	scan progress messages, but do want to see other informational 
+	messages.  In addition, the 'motor' program now has two new commands,
+	namely, 'set scanlog on | off' and 'show scanlog' which are used
+	to turn on or off this feature.
+
+	In this version of MX, the old 'motor.shared' executable on Unix-like
+	systems has been renamed to 'motor' and the old 'motor' shell script
+	has been eliminated.  In addition, the defaults of the new version of
+	the 'motor' executable have been changed to match the defaults of the
+	old 'motor' shell script.  This change has been done for compatibility
+	with Debian's policy discouraging shell script wrappers.  For the
+	sake of uniformity, on Win32 and DOS platforms the old 'motorbin.exe'
+	program has been renamed to 'motor.exe' and the old 'motor.bat' batch
+	file has been eliminated.
+
+	A new set of functions for constructing MX control system filenames
+	has been added in 'libMx/mx_cfn.c'.  This set of functions makes it
+	easier to ensure that all control system filenames such as database
+	names, logfile names, etc. are accessed using standardized directory
+	locations.  The actual directory locations are specified in a header
+	file called 'libMx/mx_cfn_defaults.h'.  At present, MX can be 
+	configured to use one of two standard sets of directory locations.
+	The default set uses the traditional pattern of storing all 
+	system-wide files in subdirectories of the main $(MXDIR) directory
+	where MXDIR defaults to "/opt/mx".  The alternate set is designed
+	to be compatible with the Linux Standard Base directory layout as
+	is accessed by defining the HAVE_LSB macro at compile time.  The
+	original motivation of this addition is to make it easier to build
+	Debian packages of MX that conform to Debian standards.  'motor'
+	and 'mxserver' have been modified to use these functions when finding
+	their configuration files.
+
+	Added a new macro MXP_PLOTGNU_COMMAND for specifying the command
+	to be run when displaying two-dimensional plots.  This macro replaces
+	the explicit specifications of the command string that were previously
+	found in a variety of places in the code.
+
+	Added new mx_print_field_value() and mx_print_field_array() functions
+	used to provide a more general mechanism for displaying MX record
+	field values in application programs.
+
+	A new function mx_get_cpu_architecture() has been added that returns
+	two strings for an architecture type and an architecture subtype 
+	that describes the system that MX is running on.  This feature is
+	mainly designed for reporting purposes.
+
+	A new function mx_connect_to_mx_server() has been added for the use
+	of programs that only intend to do network MX gets and puts with a
+	single MX server without explicitly setting up an MX database.  Most
+	MX programs should not use this feature and should use a database
+	instead.
+
+	Added do-nothing stubs for MXF_PTZ_PAN_POSITION, MXF_PTZ_TILT_POSITION,
+	and MXF_PTZ_FOCUS_POSITION for the 'hitachi_kp_d20' pan/tilt/zoom
+	driver when invoked by the mx_ptz_get_pan(), mx_ptz_get_tilt(),
+	and mx_ptz_get_focus() functions.  In previous versions, such calls
+	for Hitachi KP-D20A/B cameras would return an error message.
+
+	Minor updates to the 'pcmotion32' series of drivers for National
+	Instruments ValueMotion motor controllers to make sure that they
+	compile with this version of MX.  Currently, I do not have access
+	to any of these controllers, so that is all I can do at this time.
+
+	Added support on the 'win32' build target for using the DUMA
+	malloc debugging package from http://duma.sourceforge.net/ with
+	the Microsoft Visual C++ compiler.  DUMA is a fork of the Electric
+	Fence debugging package from the Linux/Unix world that has been
+	ported to Win32.  It helps find memory overruns by deliberately
+	causing an exception when an application program writes beyond the
+	end of explicitly allocated buffers.
+	
+	WARNING: As delivered, DUMA is compiled with the -MLd flag to use
+	the single threaded static C runtime library.  MX cannot be compiled
+	with the -MLd flag, so you must recompile DUMA with one of the allowed
+	flag settings for MX, namely, -MD, -MDd, -MT, or MTd before linking
+	DUMA to MX libraries.
+
+	Makefiles for MacOS X have been changed to use 'gcc -dynamiclib'
+	when building libraries instead of calling 'libtool' directly.
+
+	Added FreeBSD specific support for getting the Pentium time stamp
+	counter frequency in the MX high resolution timer functions in
+	'libMx/mx_hrt.c'.
+
 Version 1.2.0 (03/17/06):
 	The focus of this release has been the addition of support for 64-bit
 	operating systems.  64-bit operation has been successfully tested

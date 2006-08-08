@@ -9,8 +9,8 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-#INCLUDES  = $(MX_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS)
+INCLUDES  = $(MX_INCLUDES)
+LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
@@ -21,8 +21,8 @@
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
@@ -54,10 +54,10 @@ LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
 # Also, since MX uses threads in a number of places, -ML and -MLd are
 # not valid choices and must not be used.
 
-#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -70,10 +70,10 @@ RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 # for Gnu Make MUST NOT contain any spaces in it.  That is why the example
 # below specified the progra~1\micros~1 directory.
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
-MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
+#MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3

@@ -18,11 +18,12 @@ if [ x$MXDIR = x ]; then
 fi
 
 MXBIN=${MXDIR}/bin
+MXETC=${MXDIR}/etc
 MXLOG=${MXDIR}/log
 MXRUN=${MXDIR}/run
 MXSBIN=${MXDIR}/sbin
 
-MX_LOCAL_CONFIG=${MXSBIN}/mx_local_config
+MX_LOCAL_CONFIG=${MXETC}/mx_local_config
 
 START_MXSERVER=${MXSBIN}/startmxserver
 START_MXUPDATE=${MXSBIN}/startmxupdate

@@ -24,7 +24,7 @@
 #define max(a,b) ((a) >= (b) ? (a) : (b))
 #endif
 
-#define GPIB_DEBUG		TRUE
+#define GPIB_DEBUG		FALSE
 
 #define GPIB_GETLINE_CMD	1
 #define GPIB_PUTLINE_CMD	2
