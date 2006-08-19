@@ -116,6 +116,12 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"ptz",            0, MXC_PAN_TILT_ZOOM,  MXR_DEVICE,
 				NULL, NULL, NULL, NULL, NULL},
+{"area_detector",  0, MXC_AREA_DETECTOR, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
+{"video_input",    0, MXC_VIDEO_INPUT, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
+{"video_output",   0, MXC_VIDEO_OUTPUT, MXR_DEVICE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ==================== Scan classes ==================== */
 

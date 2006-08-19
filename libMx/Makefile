@@ -13,8 +13,8 @@
 # List all of the source code files used to build libMx.
 #
 
-MX_CORE_SRCS = mx_amplifier.c \
-	mx_analog_input.c mx_analog_output.c mx_array.c mx_autoscale.c \
+MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
+	mx_area_detector.c mx_array.c mx_autoscale.c \
 	mx_bit.c mx_bluice.c mx_camac.c mx_ccd.c mx_cfn.c mx_clock.c \
 	mx_coprocess.c mx_cpu_arch.c mx_dead_reckoning.c mx_debug.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_driver_class.c \
