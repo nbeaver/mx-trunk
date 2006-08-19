@@ -38,6 +38,19 @@
 
 /*****************************************************************************
  *
+ * Win32 and Linux library for using EPIX, Inc. video imaging boards.
+ *
+ * Website: http://www.epixinc.com/
+ *
+ * Note: EPIX and EPICS have absolutely nothing in common.  The naming is
+ * just a coincidence.
+ *
+ */
+
+#define HAVE_EPIX_XCLIB			1
+
+/*****************************************************************************
+ *
  * Driver for National Intruments GPIB interface cards.
  *
  * The Linux version of this driver is downloadable from
@@ -55,8 +68,6 @@
  * the functions in the National Instruments driver.  Because of this,
  * setting both HAVE_NI488 and HAVE_LINUX_GPIB to 1 is not allowed since
  * this would lead to name conflicts at link time.
- *
- * Warning: This driver has recently been revised and may not be fully working.
  */
 
 #define HAVE_LINUX_GPIB			0
@@ -82,16 +93,6 @@
 
 #define HAVE_SIS3100			0
  
-/*****************************************************************************
- *
- * Driver for the National Intruments LabPC+ DAQ card under Linux 2.0 _only_.
- *
- * Available from the Linux Lab project (http://www.llp.fu-berlin.de/)
- * at http://www.llp.fu-berlin.de/pool/software/daq-driver/
- */
-
-#define HAVE_LABPC			0
-
 /*****************************************************************************
  *
  * Libusb is a low level library for accessing USB devices.  It is currently

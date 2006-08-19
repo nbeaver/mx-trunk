@@ -70,14 +70,14 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # for Gnu Make MUST NOT contain any spaces in it.  That is why the example
 # below specified the progra~1\micros~1 directory.
 #
-MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
-#MSDEV_DIR	= c:\\progra~1\\micros~4
+MSDEV_DIR	= c:\\progra~1\\micros~4
 
 #
 # If you are using the Win32 version of DUMA (duma.sourceforge.net)

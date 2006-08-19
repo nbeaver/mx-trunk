@@ -343,7 +343,6 @@
 
 #include "d_adc_table.h"
 #include "d_pdi40.h"
-#include "d_labpc.h"
 
 #include "d_aps_adcmod2_amplifier.h"
 #include "d_aps_adcmod2_ainput.h"
@@ -3103,36 +3102,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_panasonic_kx_dp702_ptz_function_list,
 				&mxd_panasonic_kx_dp702_num_record_fields,
 				&mxd_panasonic_kx_dp702_rfield_def_ptr},
-
-#if HAVE_LABPC
-#  ifdef OS_LINUX   /* The LabPC+ driver is only useable under Linux. */
-
-{"labpc_adc",      MXT_AIN_LABPC,     MXC_ANALOG_INPUT,   MXR_DEVICE,
-				&mxd_labpc_adc_record_function_list,
-				NULL,
-				&mxd_labpc_adc_analog_input_function_list,
-				&mxd_labpc_adc_num_record_fields,
-				&mxd_labpc_adc_rfield_def_ptr},
-{"labpc_dac",      MXT_AOU_LABPC,     MXC_ANALOG_OUTPUT,  MXR_DEVICE,
-				&mxd_labpc_dac_record_function_list,
-				NULL,
-				&mxd_labpc_dac_analog_output_function_list,
-				&mxd_labpc_dac_num_record_fields,
-				&mxd_labpc_dac_rfield_def_ptr},
-{"labpc_din",      MXT_DIN_LABPC,     MXC_DIGITAL_INPUT,  MXR_DEVICE,
-				&mxd_labpc_din_record_function_list,
-				NULL,
-				&mxd_labpc_din_digital_input_function_list,
-				&mxd_labpc_din_num_record_fields,
-				&mxd_labpc_din_rfield_def_ptr},
-{"labpc_dout",     MXT_DOU_LABPC,     MXC_DIGITAL_OUTPUT, MXR_DEVICE,
-				&mxd_labpc_dout_record_function_list,
-				NULL,
-				&mxd_labpc_dout_digital_output_function_list,
-				&mxd_labpc_dout_num_record_fields,
-				&mxd_labpc_dout_rfield_def_ptr},
-#  endif /* OS_LINUX */
-#endif /* HAVE_LABPC */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

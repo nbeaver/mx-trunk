@@ -105,6 +105,9 @@
 #define MXC_MULTICHANNEL_DIGITAL_INPUT	42
 #define MXC_MULTICHANNEL_DIGITAL_OUTPUT	43
 #define MXC_PAN_TILT_ZOOM		44
+#define MXC_VIDEO_INPUT			45
+#define MXC_VIDEO_OUTPUT		46
+#define MXC_AREA_DETECTOR		47
 
 /* --- Scan classes --- */
 
@@ -152,6 +155,7 @@
 #define MXI_232_VXWORKS			110
 #define MXI_232_WAGO750_SERIAL		111
 #define MXI_232_SPEC_COMMAND		112
+#define MXI_232_CAMERA_LINK		113
 
 #define MXI_GPIB_SOFTWARE		200
 #define MXI_GPIB_NI488			201
@@ -214,6 +218,7 @@
 #define MXI_GEN_CM17A			446
 #define MXI_GEN_SONY_VISCA		447
 #define MXI_GEN_PANASONIC_KX_DP702	448
+#define MXI_GEN_EPIX_XCLIB		449
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -239,7 +244,7 @@
 #define MXT_AIN_SOFTWARE		10000
 #define MXT_AIN_KS3512			10001
 #define MXT_AIN_PDI45			10002
-#define MXT_AIN_LABPC			10003
+
 #define MXT_AIN_EPICS			10004
 #define MXT_AIN_NETWORK			10005
 #define MXT_AIN_PMAC			10006
@@ -284,7 +289,7 @@
 #define MXT_AOU_SOFTWARE		20000
 #define MXT_AOU_KS3112			20001
 #define MXT_AOU_PDI45			20002
-#define MXT_AOU_LABPC			20003
+
 #define MXT_AOU_EPICS			20004
 #define MXT_AOU_NETWORK			20005
 #define MXT_AOU_PMAC			20006
@@ -314,7 +319,7 @@
 #define MXT_DIN_SOFTWARE		30000
 #define MXT_DIN_KS3063			30001
 #define MXT_DIN_PDI45			30002
-#define MXT_DIN_LABPC			30003
+
 #define MXT_DIN_EPICS			30004
 #define MXT_DIN_NETWORK			30005
 #define MXT_DIN_8255			30006
@@ -344,7 +349,7 @@
 #define MXT_DOU_SOFTWARE		40000
 #define MXT_DOU_KS3063			40001
 #define MXT_DOU_PDI45			40002
-#define MXT_DOU_LABPC			40003
+
 #define MXT_DOU_EPICS			40004
 #define MXT_DOU_NETWORK			40005
 #define MXT_DOU_8255			40006
@@ -622,6 +627,24 @@
 #define MXT_PTZ_HITACHI_KP_D20		210004
 #define MXT_PTZ_PANASONIC_KX_DP702	210005
 #define MXT_PTZ_CANON_VC_C4		210006
+
+/* --- Video input types --- */
+
+#define MXT_VIN_SOFTWARE		220001
+#define MXT_VIN_NETWORK			220002
+#define MXT_VIN_EPIX_XCLIB		220003
+
+/* --- Video output types --- */
+
+#define MXT_VOU_SOFTWARE		230001
+#define MXT_VOU_NETWORK			230002
+#define MXT_VOU_MX_WINDOW		230003
+
+/* --- Area detector types --- */
+
+#define MXT_AD_SOFTWARE			240001
+#define MXT_AD_NETWORK			240002
+#define MXT_AD_AVIEX			240003
 
 /* --- Scan types --- */
 

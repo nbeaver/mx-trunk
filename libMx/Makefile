@@ -78,7 +78,6 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_keithley2400_aoutput.c d_keithley2400_doutput.c \
 	d_keithley2700_ainput.c d_keithley2700_amp.c d_keithley428.c \
 	d_kohzu_sc.c d_ks3063.c d_ks3112.c d_ks3512.c d_ks3640.c \
-	d_labpc_adc.c d_labpc_dac.c d_labpc_din.c d_labpc_dout.c \
 	d_lakeshore330_motor.c d_linear_function.c d_linux_parport.c d_lpt.c \
 	d_mardtb_motor.c d_mardtb_shutter.c d_mardtb_status.c \
 	d_mca_alt_time.c d_mca_channel.c d_mca_roi_integral.c \
@@ -225,18 +224,6 @@ include Makefile.depend
 #
 # Now, list targets with non-standard rules or dependencies.
 #
-
-d_labpc_adc.$(OBJ): d_labpc_adc.c
-	$(COMPILE) $(CFLAGS) $(LABPC_INCLUDES) d_labpc_adc.c
-
-d_labpc_dac.$(OBJ): d_labpc_dac.c
-	$(COMPILE) $(CFLAGS) $(LABPC_INCLUDES) d_labpc_dac.c
-
-d_labpc_din.$(OBJ): d_labpc_din.c
-	$(COMPILE) $(CFLAGS) $(LABPC_INCLUDES) d_labpc_din.c
-
-d_labpc_dout.$(OBJ): d_labpc_dout.c
-	$(COMPILE) $(CFLAGS) $(LABPC_INCLUDES) d_labpc_dout.c
 
 d_pcmotion32.$(OBJ): d_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c
