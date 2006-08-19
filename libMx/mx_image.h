@@ -39,11 +39,11 @@ typedef struct {
 
 } MX_SEQUENCE_INFO;
 
-MX_API mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
-			MX_IMAGE_FRAME *old_frame );
+MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
+					MX_IMAGE_FRAME *old_frame );
 
-MX_API mx_copy_image_sequence( MX_IMAGE_SEQUENCE **new_sequence,
-				MX_IMAGE_SEQUENCE *old_sequence );
+MX_API mx_status_type mx_copy_image_sequence( MX_IMAGE_SEQUENCE **new_sequence,
+					MX_IMAGE_SEQUENCE *old_sequence );
 
 #endif /* __MX_IMAGE_H__ */
 
