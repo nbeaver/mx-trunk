@@ -14,6 +14,8 @@
  *
  */
 
+#define MXD_V4L2_INPUT_DEBUG	TRUE
+
 #include <stdio.h>
 
 #if defined(OS_LINUX)
@@ -165,6 +167,7 @@ mxd_v4l2_input_open( MX_RECORD *record )
 	struct v4l2_capability cap;
 	struct v4l2_input input;
 	int i, saved_errno, os_status;
+	long input_number;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -179,7 +182,9 @@ mxd_v4l2_input_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_V4L2_INPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
 
 	v4l2_input->fd = open(v4l2_input->device_name, O_RDWR | O_NONBLOCK, 0);
 
@@ -193,8 +198,10 @@ mxd_v4l2_input_open( MX_RECORD *record )
 			saved_errno, strerror(saved_errno) );
 	}
 
+#if MXD_V4L2_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: opened video device '%s'.",
 		fname, v4l2_input->device_name));
+#endif
 
 	/* Get the capabilities for this input. */
 
@@ -213,7 +220,7 @@ mxd_v4l2_input_open( MX_RECORD *record )
 
 			if ( os_status == 0 ) {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-				"Device '%s' used by record '%s' is a "
+				"Device '%s' ('%s') used by record '%s' is a "
 				"Video for Linux version 1 video input, "
 				"which is not supported by this driver.  "
 				"Only Video for Linux version 2 devices "
@@ -221,7 +228,8 @@ mxd_v4l2_input_open( MX_RECORD *record )
 				"If you get this message, you may need to "
 				"upgrade to the Linux 2.6 kernel or beyond "
 				"to get Video for Linux version 2.",
-					v4l2_input->device_name, record->name );
+					v4l2_input->device_name, cap1.name,
+					record->name );
 			} else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Device '%s' for record '%s' is not a video input.",
@@ -238,6 +246,56 @@ mxd_v4l2_input_open( MX_RECORD *record )
 		}
 	}
 
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: driver = '%s', card = '%s'",
+		fname, cap.driver, cap.card));
+
+	MX_DEBUG(-2,
+	("%s: bus_info = '%s', version = %lu, capabilities = %#lx",
+		fname, cap.bus_info,
+		(unsigned long) cap.version, (unsigned long) cap.capabilities));
+
+	/* Display the capabilities. */
+
+	fprintf(stderr,"%s: Capabilities: ", fname);
+
+	if ( cap.capabilities & V4L2_CAP_VIDEO_CAPTURE ) {
+		fprintf(stderr, "video_capture ");
+	}
+	if ( cap.capabilities & V4L2_CAP_VIDEO_OUTPUT ) {
+		fprintf(stderr, "video_output ");
+	}
+	if ( cap.capabilities & V4L2_CAP_VIDEO_OVERLAY ) {
+		fprintf(stderr, "video_overlay ");
+	}
+	if ( cap.capabilities & V4L2_CAP_VBI_CAPTURE ) {
+		fprintf(stderr, "vbi_capture ");
+	}
+	if ( cap.capabilities & V4L2_CAP_VBI_OUTPUT ) {
+		fprintf(stderr, "vbi_output ");
+	}
+	if ( cap.capabilities & V4L2_CAP_RDS_CAPTURE ) {
+		fprintf(stderr, "rds_capture ");
+	}
+	if ( cap.capabilities & V4L2_CAP_TUNER ) {
+		fprintf(stderr, "tuner ");
+	}
+	if ( cap.capabilities & V4L2_CAP_AUDIO ) {
+		fprintf(stderr, "audio ");
+	}
+	if ( cap.capabilities & V4L2_CAP_READWRITE ) {
+		fprintf(stderr, "readwrite ");
+	}
+	if ( cap.capabilities & V4L2_CAP_ASYNCIO ) {
+		fprintf(stderr, "asyncio ");
+	}
+	if ( cap.capabilities & V4L2_CAP_STREAMING ) {
+		fprintf(stderr, "streaming ");
+	}
+
+	fprintf(stderr,"\n");
+#endif
+
 	/* Enumerate the inputs. */
 
 	v4l2_input->num_inputs = 0;
@@ -252,6 +310,14 @@ mxd_v4l2_input_open( MX_RECORD *record )
 		if ( os_status == -1 ) {
 			saved_errno = errno;
 
+			if ( saved_errno == EINVAL ) {
+				/* We have reached the end of the list of
+				 * inputs, so break out of the for() loop.
+				 */
+
+				break;
+			}
+
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Error trying to enumerate input %d for "
 			"V4L2 video input device '%s' of record '%s'.  "
@@ -260,15 +326,51 @@ mxd_v4l2_input_open( MX_RECORD *record )
 				saved_errno, strerror(saved_errno) );
 		}
 
+#if MXD_V4L2_INPUT_DEBUG
 		MX_DEBUG(-2,("%s: Input %d name = '%s'",
 			fname, i, input.name));
+#endif
 
 		(v4l2_input->num_inputs)++;
 	}
 
-	MX_DEBUG(-2,("%s: %d video inputs for device '%s', record '%s'.",
-		fname, v4l2_input->num_inputs, v4l2_input->device_name,
-		record->name ));
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: %ld video inputs for device '%s'.",
+		fname, v4l2_input->num_inputs, v4l2_input->device_name ));
+#endif
+
+	/* Select the requested input. */
+
+	input_number = v4l2_input->input_number;
+
+	if (( input_number < 0 ) || ( input_number >= v4l2_input->num_inputs ))
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested input number %ld for V4L2 record '%s' "
+		"is outside the allowed range of 0 to %ld.",
+			input_number, record->name, v4l2_input->num_inputs - 1);
+	}
+
+	os_status = ioctl( v4l2_input->fd, VIDIOC_S_INPUT, &input_number );
+
+	if ( os_status == -1 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to select input %ld for V4L2 record '%s' failed.  "
+		"Errno = %d, error message = '%s'.",
+			input_number, record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: Input %ld selected for V4L2 record '%s'.",
+		fname, input_number, record->name ));
+#endif
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -24,7 +24,7 @@ typedef struct {
 	long input_number;
 
 	int fd;		/* File descriptor for the video device. */
-	int num_inputs;
+	long num_inputs;
 } MX_V4L2_INPUT;
 
 #define MXD_V4L2_INPUT_STANDARD_FIELDS \
