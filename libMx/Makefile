@@ -33,7 +33,8 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_signal.c mx_sleep.c mx_socket.c mx_spec.c mx_stack.c mx_syslog.c \
 	mx_table.c mx_test.c mx_thread.c mx_timer.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
-	mx_variable.c mx_vepics.c mx_version.c mx_vinline.c \
+	mx_variable.c mx_vepics.c mx_version.c \
+	mx_video_input.c mx_vinline.c \
 	mx_virtual_timer.c mx_vme.c mx_vnet.c mx_warning.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
 	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
@@ -120,8 +121,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_table_motor.c d_tangent_arm.c d_theta_2theta.c d_timer_fanout.c \
 	d_tpg262_pressure.c d_tracker_aio.c d_tracker_dio.c \
 	d_trans_motor.c d_trump.c \
-	d_u500.c d_udt_tramp.c d_uglide.c d_vme58.c d_vme_dio.c d_vp9000.c \
-	d_vsc16_scaler.c d_vsc16_timer.c \
+	d_u500.c d_udt_tramp.c d_uglide.c d_v4l2_input.c \
+	d_vme58.c d_vme_dio.c d_vp9000.c d_vsc16_scaler.c d_vsc16_timer.c \
 	d_wago750_modbus_aout.c d_wago750_modbus_dout.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
 	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c d_xia_dxp_timer.c \

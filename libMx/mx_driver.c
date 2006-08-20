@@ -26,6 +26,7 @@
 #include "mx_thread.h"
 #include "mx_mutex.h"
 #include "mx_semaphore.h"
+#include "mx_image.h"
 
 /* -- Include header files that define MX_XXX_FUNCTION_LIST structures. -- */
 
@@ -67,6 +68,7 @@
 #include "mx_sample_changer.h"
 #include "mx_mcai.h"
 #include "mx_ptz.h"
+#include "mx_video_input.h"
 
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -413,6 +415,8 @@
 #include "d_sony_visca_ptz.h"
 #include "d_hitachi_kp_d20.h"
 #include "d_panasonic_kx_dp702.h"
+
+#include "d_v4l2_input.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3102,6 +3106,15 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_panasonic_kx_dp702_ptz_function_list,
 				&mxd_panasonic_kx_dp702_num_record_fields,
 				&mxd_panasonic_kx_dp702_rfield_def_ptr},
+
+#if defined(OS_LINUX)
+{"v4l2_input",      MXT_VIN_V4L2,      MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_v4l2_input_record_function_list,
+				NULL,
+				NULL,
+				&mxd_v4l2_input_num_record_fields,
+				&mxd_v4l2_input_rfield_def_ptr},
+#endif /* OS_LINUX */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

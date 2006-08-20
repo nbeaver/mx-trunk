@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mv4l2_input.dat -s ./sv4l2_input.dat -i $*
+

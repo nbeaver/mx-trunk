@@ -45,5 +45,16 @@ MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
 MX_API mx_status_type mx_copy_image_sequence( MX_IMAGE_SEQUENCE **new_sequence,
 					MX_IMAGE_SEQUENCE *old_sequence );
 
+
+MX_API mx_status_type mx_read_image_file( MX_IMAGE_FRAME **frame,
+					unsigned long datafile_type,
+					void *datafile_args,
+					char *datafile_name );
+
+MX_API mx_status_type mx_write_image_file( MX_IMAGE_FRAME *frame,
+					unsigned long datafile_type,
+					void *datafile_args,
+					char *datafile_name );
+
 #endif /* __MX_IMAGE_H__ */
 

@@ -1,5 +1,5 @@
 /*
- * Name:    mx_area_detector.h
+ * Name:    mx_area_detector.c
  *
  * Purpose: Functions for communicating with area detectors.
  *

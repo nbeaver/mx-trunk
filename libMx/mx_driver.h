@@ -632,13 +632,15 @@
 
 #define MXT_VIN_SOFTWARE		220001
 #define MXT_VIN_NETWORK			220002
-#define MXT_VIN_EPIX_XCLIB		220003
+#define MXT_VIN_V4L2			220003
+#define MXT_VIN_EPIX_XCLIB		220004
 
 /* --- Video output types --- */
 
 #define MXT_VOU_SOFTWARE		230001
 #define MXT_VOU_NETWORK			230002
-#define MXT_VOU_MX_WINDOW		230003
+#define MXT_VOU_V4L2			230003
+#define MXT_VOU_MX_WINDOW		230004
 
 /* --- Area detector types --- */
 

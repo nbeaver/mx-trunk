@@ -107,15 +107,5 @@ MX_API mx_status_type mx_area_detector_correct_frame( MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *flood_field_frame );
 
 
-/*---*/
-
-MX_API mx_status_type mx_area_detector_read_image_file( MX_IMAGE_FRAME **frame,
-						unsigned long datafile_type,
-						char *datafile_name );
-
-MX_API mx_status_type mx_area_detector_write_image_file( MX_IMAGE_FRAME *frame,
-						unsigned long datafile_type,
-						char *datafile_name );
-
 #endif /* __MX_AREA_DETECTOR_H__ */
 
