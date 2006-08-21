@@ -18,6 +18,8 @@
 
 #include <stdio.h>
 
+#include "mxconfig.h"
+
 #if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
 
 #include <errno.h>
