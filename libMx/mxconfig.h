@@ -107,6 +107,16 @@
  
 /*****************************************************************************
  *
+ * Video4linux version 2 is a video input/output API for Linux.  All systems
+ * based on the Linux 2.6 kernel should have it.  Some, but not all, Linux 2.4
+ * systems have it as well.  Please note that this driver does not support 
+ * the obsolete Video4linux version 1 API.
+ */
+
+#define HAVE_VIDEO_4_LINUX_2		0
+
+/*****************************************************************************
+ *
  * Linux driver for performing hardware port I/O from user mode to
  * a restricted range of ports without requiring that the user mode
  * program be setuid root or setgid kmem.  The current version (2.0)

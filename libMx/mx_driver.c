@@ -3107,14 +3107,16 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_panasonic_kx_dp702_num_record_fields,
 				&mxd_panasonic_kx_dp702_rfield_def_ptr},
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
+
 {"v4l2_input",      MXT_VIN_V4L2,      MXC_VIDEO_INPUT,  MXR_DEVICE,
 				&mxd_v4l2_input_record_function_list,
 				NULL,
 				NULL,
 				&mxd_v4l2_input_num_record_fields,
 				&mxd_v4l2_input_rfield_def_ptr},
-#endif /* OS_LINUX */
+
+#endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

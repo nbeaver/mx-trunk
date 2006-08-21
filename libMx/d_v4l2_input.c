@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
 
 #include <errno.h>
 #include <time.h>
@@ -383,5 +383,5 @@ mxd_v4l2_input_close( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* OS_LINUX */
+#endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
 
