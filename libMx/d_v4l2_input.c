@@ -177,6 +177,8 @@ mxd_v4l2_input_open( MX_RECORD *record )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
+	v4l2_input = NULL;  /* Suppress GCC 4 uninitialized variable warning. */
+
 	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )

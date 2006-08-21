@@ -1,5 +1,5 @@
-inel       server network tcpip_server "" "" 0x0 inel 9827
-#inel       server network tcpip_server "" "" 0x0 216.47.138.17 9727
+#inel       server network tcpip_server "" "" 0x0 inel 9827
+inel       server network tcpip_server "" "" 0x0 216.47.138.17 9727
 energy     device motor soft_motor "" "" 80000000 0 0 2000000000 0 -1 -1 0.0001 0 eV 10000 0 5000
 mca1       device mca network_mca "" "" 8192 1 0 inel mca1
 I0         device scaler soft_scaler "" "" 157555 0 1 soft_timer energy 101 ../drivers/i0.dat 0
