@@ -20,7 +20,8 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_driver_class.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
-	mx_info.c mx_interval_timer.c mx_key.c mx_log.c mx_list_head.c \
+	mx_image.c mx_info.c mx_interval_timer.c mx_key.c \
+	mx_log.c mx_list_head.c \
 	mx_mca.c mx_mcai.c mx_mce.c mx_mcs.c \
 	mx_measurement.c mx_memory_process.c mx_memory_system.c \
 	mx_mfault.c mx_modbus.c mx_motor.c \
@@ -243,6 +244,9 @@ d_trump.$(OBJ): d_trump.c
 
 d_u500.$(OBJ): d_u500.c
 	$(COMPILE) $(CFLAGS) $(U500_INCLUDES) d_u500.c
+
+d_v4l2_input.$(OBJ): d_v4l2_input.c
+	$(COMPILE) $(CFLAGS) $(VIDEO_4_LINUX_2_FLAGS) d_v4l2_input.c
 
 d_xia_dxp_mca.$(OBJ): d_xia_dxp_mca.c
 	$(COMPILE) $(CFLAGS) $(XIA_HANDEL_INCLUDES) d_xia_dxp_mca.c

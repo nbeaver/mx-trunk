@@ -17,15 +17,27 @@
 #ifndef __D_V4L2_INPUT_H__
 #define __D_V4L2_INPUT_H__
 
+#if ( HAVE_VIDEO_4_LINUX_2 && IS_MX_DRIVER )
+
 typedef struct {
 	MX_RECORD *record;
 
 	char device_name[MXU_FILENAME_LENGTH+1];
 	long input_number;
 
+	struct v4l2_capability cap;
+
 	int fd;		/* File descriptor for the video device. */
 	long num_inputs;
+
+	mx_bool_type armed;
+
+	size_t frame_buffer_length;
+	void *frame_buffer;
 } MX_V4L2_INPUT;
+
+#endif /* HAVE_VIDEO_4_LINUX_2 && IS_MX_DRIVER */
+
 
 #define MXD_V4L2_INPUT_STANDARD_FIELDS \
   {-1, -1, "device_name", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
@@ -42,6 +54,13 @@ MX_API mx_status_type mxd_v4l2_input_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_v4l2_input_open( MX_RECORD *record );
 MX_API mx_status_type mxd_v4l2_input_close( MX_RECORD *record );
+
+MX_API mx_status_type mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput,
+						MX_IMAGE_FRAME **frame );
+MX_API mx_status_type mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput );
 
 extern MX_RECORD_FUNCTION_LIST mxd_v4l2_input_record_function_list;
 extern MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list;

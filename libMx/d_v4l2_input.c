@@ -22,6 +22,8 @@
 
 #if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
 
+#include <stdlib.h>
+#include <unistd.h>
 #include <errno.h>
 #include <time.h>
 #include <fcntl.h>
@@ -71,6 +73,13 @@ MX_RECORD_FUNCTION_LIST mxd_v4l2_input_record_function_list = {
 	NULL,
 	mxd_v4l2_input_open,
 	mxd_v4l2_input_close
+};
+
+MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
+	mxd_v4l2_input_arm,
+	mxd_v4l2_input_trigger,
+	mxd_v4l2_input_get_frame,
+	mxd_v4l2_input_get_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_v4l2_input_record_field_defaults[] = {
@@ -142,12 +151,19 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 
 	record->record_class_struct = vinput;
 	record->record_type_struct = v4l2_input;
-	record->class_specific_function_list = NULL;
+	record->class_specific_function_list = 
+			&mxd_v4l2_input_video_input_function_list;
 
 	vinput->record = record;
 	v4l2_input->record = record;
 
 	v4l2_input->fd = -1;
+	v4l2_input->num_inputs = -1;
+
+	v4l2_input->armed = FALSE;
+
+	v4l2_input->frame_buffer_length = 0;
+	v4l2_input->frame_buffer = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -166,8 +182,9 @@ mxd_v4l2_input_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	MX_V4L2_INPUT *v4l2_input;
 	struct video_capability cap1;
-	struct v4l2_capability cap;
 	struct v4l2_input input;
+	struct v4l2_cropcap cropcap;
+	struct v4l2_crop crop;
 	int i, saved_errno, os_status;
 	long input_number;
 	mx_status_type mx_status;
@@ -209,7 +226,7 @@ mxd_v4l2_input_open( MX_RECORD *record )
 
 	/* Get the capabilities for this input. */
 
-	os_status = ioctl( v4l2_input->fd, VIDIOC_QUERYCAP, &cap );
+	os_status = ioctl(v4l2_input->fd, VIDIOC_QUERYCAP, &(v4l2_input->cap));
 
 	if ( os_status == -1 ) {
 		saved_errno = errno;
@@ -252,48 +269,49 @@ mxd_v4l2_input_open( MX_RECORD *record )
 
 #if MXD_V4L2_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: driver = '%s', card = '%s'",
-		fname, cap.driver, cap.card));
+		fname, v4l2_input->cap.driver, v4l2_input->cap.card));
 
 	MX_DEBUG(-2,
 	("%s: bus_info = '%s', version = %lu, capabilities = %#lx",
-		fname, cap.bus_info,
-		(unsigned long) cap.version, (unsigned long) cap.capabilities));
+		fname, v4l2_input->cap.bus_info,
+		(unsigned long) v4l2_input->cap.version,
+		(unsigned long) v4l2_input->cap.capabilities));
 
 	/* Display the capabilities. */
 
 	fprintf(stderr,"%s: Capabilities: ", fname);
 
-	if ( cap.capabilities & V4L2_CAP_VIDEO_CAPTURE ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_VIDEO_CAPTURE ) {
 		fprintf(stderr, "video_capture ");
 	}
-	if ( cap.capabilities & V4L2_CAP_VIDEO_OUTPUT ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_VIDEO_OUTPUT ) {
 		fprintf(stderr, "video_output ");
 	}
-	if ( cap.capabilities & V4L2_CAP_VIDEO_OVERLAY ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_VIDEO_OVERLAY ) {
 		fprintf(stderr, "video_overlay ");
 	}
-	if ( cap.capabilities & V4L2_CAP_VBI_CAPTURE ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_VBI_CAPTURE ) {
 		fprintf(stderr, "vbi_capture ");
 	}
-	if ( cap.capabilities & V4L2_CAP_VBI_OUTPUT ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_VBI_OUTPUT ) {
 		fprintf(stderr, "vbi_output ");
 	}
-	if ( cap.capabilities & V4L2_CAP_RDS_CAPTURE ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_RDS_CAPTURE ) {
 		fprintf(stderr, "rds_capture ");
 	}
-	if ( cap.capabilities & V4L2_CAP_TUNER ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_TUNER ) {
 		fprintf(stderr, "tuner ");
 	}
-	if ( cap.capabilities & V4L2_CAP_AUDIO ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_AUDIO ) {
 		fprintf(stderr, "audio ");
 	}
-	if ( cap.capabilities & V4L2_CAP_READWRITE ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_READWRITE ) {
 		fprintf(stderr, "readwrite ");
 	}
-	if ( cap.capabilities & V4L2_CAP_ASYNCIO ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_ASYNCIO ) {
 		fprintf(stderr, "asyncio ");
 	}
-	if ( cap.capabilities & V4L2_CAP_STREAMING ) {
+	if ( v4l2_input->cap.capabilities & V4L2_CAP_STREAMING ) {
 		fprintf(stderr, "streaming ");
 	}
 
@@ -372,6 +390,49 @@ mxd_v4l2_input_open( MX_RECORD *record )
 		fname, input_number, record->name ));
 #endif
 
+	/* Change cropping settings to the defaults. */
+
+	memset( &cropcap, 0, sizeof(cropcap) );
+
+	cropcap.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+	(void) ioctl( v4l2_input->fd, VIDIOC_CROPCAP, &cropcap );
+
+	memset( &crop, 0, sizeof(crop) );
+
+	crop.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+	crop.c = cropcap.defrect;	/* reset to default */
+
+	os_status = ioctl( v4l2_input->fd, VIDIOC_S_CROP, &crop );
+
+	if ( os_status == -1 ) {
+		saved_errno = errno;
+
+		switch( saved_errno ) {
+		case EINVAL:
+			/* Cropping not supported. */
+			break;
+		default:
+			/* Ignore errors. */
+			break;
+		}
+	}
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: reset cropping to defaults.", fname));
+#endif
+
+	/* If no framesize was specified, initialize the current framesize 
+	 * from the hardware.
+	 */
+
+	if ( (vinput->framesize[0] < 0) || (vinput->framesize[1] < 0) ) {
+		mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 #if MXD_V4L2_INPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -382,6 +443,330 @@ mxd_v4l2_input_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_v4l2_input_close( MX_RECORD *record )
 {
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_arm()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	size_t new_length;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	v4l2_input->armed = FALSE;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+
+	/* For Video for Linux 2, we use the arm() routine to change the
+	 * length of the local frame buffer.
+	 *
+	 * First we compute the necessary length of the frame buffer.
+	 */
+
+	switch( vinput->image_format ) {
+	case MX_IMAGE_FORMAT_RGB565:
+		/* 16 bits (2 bytes) per pixel. */
+
+		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
+		break;
+	default:
+		v4l2_input->frame_buffer_length = 0;
+
+		if ( v4l2_input->frame_buffer != NULL ) {
+			free( v4l2_input->frame_buffer );
+		}
+
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for image format %ld is not yet implemented "
+		"for video input '%s'",
+			vinput->image_format, vinput->record->name );
+	}
+
+	if ( ( v4l2_input->frame_buffer_length == new_length )
+	  && ( v4l2_input->frame_buffer != NULL ) )
+	{
+		/* The frame buffer is already the correct length,
+		 * so just return.
+		 */
+
+		v4l2_input->armed = TRUE;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	v4l2_input->frame_buffer_length = new_length;
+
+	if ( v4l2_input->frame_buffer != NULL ) {
+		free( v4l2_input->frame_buffer );
+	}
+
+	v4l2_input->frame_buffer = malloc( new_length );
+
+	if ( v4l2_input->frame_buffer == NULL ) {
+		v4l2_input->frame_buffer_length = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte frame buffer "
+		"for video input '%s'.", (unsigned long) new_length,
+			vinput->record->name );
+	}
+
+	v4l2_input->armed = TRUE;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_trigger()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	size_t bytes_read;
+	int saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+		fname, vinput->record->name ));
+#endif
+	if ( v4l2_input->armed == FALSE ) {
+		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+		"Video input '%s' must be armed before it can be triggered.",
+			vinput->record->name );
+	}
+
+	v4l2_input->armed = FALSE;
+
+	bytes_read = read( v4l2_input->fd,
+			v4l2_input->frame_buffer,
+			v4l2_input->frame_buffer_length );
+
+	if ( bytes_read < 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error reading an image frame from video input '%s'.  "
+		"Errno = %d, error message = '%s'",
+			vinput->record->name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	if ( bytes_read < v4l2_input->frame_buffer_length ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Read %lu bytes from video input '%s' when we were "
+		"expecting to read %lu bytes.",
+			(unsigned long) bytes_read, vinput->record->name,
+			(unsigned long) v4l2_input->frame_buffer_length );
+	}
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: %lu bytes read from video input '%s'.",
+		fname, (unsigned long) v4l2_input->frame_buffer_length,
+		vinput->record->name ));
+#endif
+
+#if 1
+	{
+		int i, c;
+		char *ptr;
+
+		fprintf(stderr,"\n");
+
+		ptr = v4l2_input->frame_buffer;
+
+		for ( i = 0; i < 300; i++ ) {
+			c = (int)( *ptr );
+
+			fprintf(stderr, "%d ", c);
+
+			ptr++;
+		}
+		fprintf(stderr,"\n");
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
+{
+	static const char fname[] = "mxd_v4l2_input_get_frame()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	if ( ( v4l2_input->frame_buffer_length == 0 )
+	  || ( v4l2_input->frame_buffer == NULL ) )
+	{
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"No image frames have been taken yet for video input '%s'.",
+			vinput->record->name );
+	}
+
+	*frame = malloc( sizeof(MX_IMAGE_FRAME) );
+
+	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	  "Ran out of memory trying to allocate an MX_IMAGE_FRAME structure." );
+	}
+
+	(*frame)->image_type = MX_IMAGE_LOCAL_1D_ARRAY;
+	(*frame)->framesize[0] = vinput->framesize[0];
+	(*frame)->framesize[1] = vinput->framesize[1];
+	(*frame)->image_format = vinput->image_format;
+	(*frame)->pixel_order = vinput->pixel_order;
+
+	(*frame)->header_length = 0;
+	(*frame)->header_data = 0;
+
+	(*frame)->image_length = v4l2_input->frame_buffer_length;
+	(*frame)->image_data = v4l2_input->frame_buffer;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_get_parameter()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	struct v4l2_format format;
+	unsigned long pf;
+	char A, B, C, D;
+	int os_status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
+		fname, vinput->record->name, vinput->parameter_type));
+#endif
+
+	switch( vinput->parameter_type ) {
+	case MXLV_VIN_FRAMESIZE:
+	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_PIXEL_ORDER:
+
+		memset( &format, 0, sizeof(format) );
+
+		format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+		os_status = ioctl( v4l2_input->fd, VIDIOC_G_FMT, &format );
+
+		if ( os_status == -1 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to get the current video format for V4L2 "
+			"record '%s' failed.  "
+			"Errno = %d, error message = '%s'.",
+				vinput->record->name,
+				saved_errno, strerror(saved_errno) );
+		}
+#if MXD_V4L2_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: width = %lu, height = %lu", fname,
+			(unsigned long) format.fmt.pix.width,
+			(unsigned long) format.fmt.pix.height));
+		MX_DEBUG(-2,("%s: pixelformat = %lu", fname,
+			(unsigned long) format.fmt.pix.pixelformat));
+		MX_DEBUG(-2,("%s: field = %d",
+			fname, format.fmt.pix.field));
+#endif
+
+		vinput->framesize[0] = format.fmt.pix.width;
+		vinput->framesize[1] = format.fmt.pix.height;
+
+		/* Decode the pixel format using the algorithm from
+		 * the v4l2_fourcc() macro in <linux/videodev2.h>.
+		 */
+
+		pf = format.fmt.pix.pixelformat;
+
+		A = pf & 0xff;
+		B = (pf >> 8) & 0xff;
+		C = (pf >> 16) & 0xff;
+		D = (pf >> 24) & 0xff;
+
+#if MXD_V4L2_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: pixelformat = %c%c%c%c", fname, A, B, C, D));
+#endif
+		switch( format.fmt.pix.pixelformat ) {
+		case V4L2_PIX_FMT_RGB565:
+			vinput->image_format = MX_IMAGE_FORMAT_RGB565;
+			break;
+		default:
+			vinput->image_format = -1;
+
+			mx_warning(
+			"Support for image format %c%c%c%c used by "
+			"video input '%s' is not yet implemented.",
+				A, B, C, D, vinput->record->name );
+				
+			break;
+		}
+
+		/* Save the pixel order. */
+
+		switch( format.fmt.pix.field ) {
+		case V4L2_FIELD_NONE:
+		case V4L2_FIELD_INTERLACED:
+			vinput->pixel_order = MX_IMAGE_PIXEL_ORDER_STANDARD;
+			break;
+		default:
+			vinput->pixel_order = -1;
+
+			mx_warning(
+			"Support for pixel order %d used by "
+			"video input '%s' is not yet implemented.",
+				format.fmt.pix.field, vinput->record->name );
+				
+			break;
+		}
+
+		break;
+	default:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Parameter type %ld not yet implemented for record '%s'.",
+			vinput->parameter_type, vinput->record->name );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

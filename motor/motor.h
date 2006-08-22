@@ -121,6 +121,7 @@ extern int motor_stop_fn( int argc, char *argv[] );
 extern int motor_kill_fn( int argc, char *argv[] );
 extern int motor_system_fn( int argc, char *argv[] );
 extern int motor_take_fn( int argc, char *argv[] );
+extern int motor_vinput_fn( int argc, char *argv[] );
 extern int motor_writep_fn( int argc, char *argv[] );
 extern int motor_open_fn( int argc, char *argv[] );
 extern int motor_close_fn( int argc, char *argv[] );

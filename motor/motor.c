@@ -89,6 +89,8 @@ COMMAND command_list[] = {
 	{ motor_stop_fn,    3, "stop"          },
 	{ motor_system_fn,  2, "system"        },
 	{ motor_take_fn,    1, "take"          },
+	{ motor_vinput_fn,  3, "vinput"        },
+	{ motor_vinput_fn,  3, "video_input"   },
 	{ motor_writep_fn, 11, "writeparams"   },
 	{ motor_exec_fn,    1, "@"             },     /* alias for 'exec' */
 	{ motor_system_fn,  1, "!"             },     /* alias for 'system' */
