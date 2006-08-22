@@ -1,1 +1,1 @@
-video0  device video_input v4l2_input "" "" -1 -1 -1 -1 /dev/video0 1
+video0  device video_input v4l2_input "" "" 640 480 2 -1 /dev/video0 1

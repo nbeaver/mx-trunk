@@ -25,6 +25,7 @@
 /* Image format definitions */
 
 #define MX_IMAGE_FORMAT_RGB565		1
+#define MX_IMAGE_FORMAT_YUYV		2
 
 /* Pixel order definitions */
 
