@@ -114,8 +114,6 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	epix_status = pxd_PIXCIopen( NULL, NULL, epix_xclib->format_file );
 
-	MX_DEBUG(-2,("%s: epix_status = %d", fname, epix_status));
-
 	if ( epix_status < 0 ) {
 		pxd_mesgFaultText(-1, fault_message, sizeof(fault_message) );
 
@@ -133,6 +131,20 @@ mxi_epix_xclib_open( MX_RECORD *record )
 			epix_status, pxd_mesgErrorCode( epix_status ),
 			fault_message );
 	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	/* Display some statistics. */
+
+	MX_DEBUG(-2,("%s: Library Id = '%s'", fname, pxd_infoLibraryId() ));
+	MX_DEBUG(-2,("%s: Include Id = '%s'", fname, pxd_infoIncludeId() ));
+	MX_DEBUG(-2,("%s: Driver Id  = '%s'", fname, pxd_infoDriverId() ));
+	MX_DEBUG(-2,("%s: Image frame buffer memory size = %lu bytes",
+					fname, pxd_infoMemsize(-1) ));
+	MX_DEBUG(-2,("%s: Image frame buffers = %d",
+					fname, pxd_imageZdim() ));
+	MX_DEBUG(-2,("%s: Number of boards = %d",
+					fname, pxd_infoUnits() ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
