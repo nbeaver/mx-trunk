@@ -182,6 +182,7 @@
 #include "i_cm17a.h"
 #include "i_sony_visca.h"
 #include "i_panasonic_kx_dp702.h"
+#include "i_epix_xclib.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -964,6 +965,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxi_panasonic_kx_dp702_num_record_fields,
 				&mxi_panasonic_kx_dp702_rfield_def_ptr},
+
+{"epix_xclib",     MXI_GEN_EPIX_XCLIB,    MXI_GENERIC,       MXR_INTERFACE,
+				&mxi_epix_xclib_record_function_list,
+				NULL,
+				NULL,
+				&mxi_epix_xclib_num_record_fields,
+				&mxi_epix_xclib_rfield_def_ptr},
 
 #ifdef OS_LINUX
 

@@ -9,11 +9,14 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
+
+INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
@@ -196,6 +199,15 @@ EPICS_TOP	= c:\\users\\lavender\\epics\\R3.13.1
 EPICS_INCLUDES	= -I$(EPICS_TOP)\\base\\include
 EPICS_LIBS	= $(EPICS_TOP)\\base\\lib\\$(EPICS_ARCH)\\ca.lib \
 			$(EPICS_TOP)\\base\\lib\\$(EPICS_ARCH)\\Com.lib
+
+#
+# EPIX, Inc. XCLIB includes and libraries.
+#
+# Note: EPICS and EPIX are unrelated.  The names are just a coincidence.
+#
+EPIX_XCLIB_DIR      = c:\\XCLIB
+EPIX_XCLIB_INCLUDES = -I$(EPIX_XCLIB_DIR)
+EPIX_XCLIB_LIBS     = $(EPIX_XCLIB_DIR)\\XCLIBWNT.lib
 
 #
 #========================================================================

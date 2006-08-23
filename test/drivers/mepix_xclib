@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mepix_xclib.dat -s ./sepix_xclib.dat -i $*
+
