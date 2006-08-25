@@ -967,12 +967,14 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_panasonic_kx_dp702_num_record_fields,
 				&mxi_panasonic_kx_dp702_rfield_def_ptr},
 
+#if HAVE_EPIX_XCLIB
 {"epix_xclib",     MXI_GEN_EPIX_XCLIB,    MXI_GENERIC,       MXR_INTERFACE,
 				&mxi_epix_xclib_record_function_list,
 				NULL,
 				NULL,
 				&mxi_epix_xclib_num_record_fields,
 				&mxi_epix_xclib_rfield_def_ptr},
+#endif /* HAVE_EPIX_XCLIB */
 
 #ifdef OS_LINUX
 
