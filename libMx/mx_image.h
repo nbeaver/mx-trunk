@@ -27,6 +27,8 @@
 #define MX_IMAGE_FORMAT_RGB565		1
 #define MX_IMAGE_FORMAT_YUYV		2
 
+#define MX_IMAGE_FORMAT_GREY16		1600
+
 /* Pixel order definitions */
 
 #define MX_IMAGE_PIXEL_ORDER_STANDARD	1
@@ -34,6 +36,7 @@
 /* Datafile format definitions */
 
 #define MX_IMAGE_FILE_PNM		1
+#define MX_IMAGE_FILE_TIFF		2
 
 /*----*/
 
