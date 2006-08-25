@@ -70,6 +70,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_e662.c d_elapsed_time.c d_energy.c \
 	d_epics_aio.c d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
+	d_epix_xclib.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c d_ggcs.c \
 	d_gm10_scaler.c d_gm10_timer.c d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \
@@ -226,6 +227,9 @@ include Makefile.depend
 #
 # Now, list targets with non-standard rules or dependencies.
 #
+
+d_epix_xclib.$(OBJ): d_epix_xclib.c
+	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) d_epix_xclib.c
 
 d_pcmotion32.$(OBJ): d_pcmotion32.c
 	$(COMPILE) $(CFLAGS) $(PCMOTION32_INCLUDES) d_pcmotion32.c

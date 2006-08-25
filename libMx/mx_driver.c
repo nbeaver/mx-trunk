@@ -418,6 +418,7 @@
 #include "d_panasonic_kx_dp702.h"
 
 #include "d_v4l2_input.h"
+#include "d_epix_xclib.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -3125,6 +3126,17 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_v4l2_input_rfield_def_ptr},
 
 #endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
+
+#if HAVE_EPIX_XCLIB
+
+{"epix_xclib_video_input", MXT_VIN_EPIX_XCLIB, MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_epix_xclib_record_function_list,
+				NULL,
+				NULL,
+				&mxd_epix_xclib_num_record_fields,
+				&mxd_epix_xclib_rfield_def_ptr},
+
+#endif /* HAVE_EPIX_XCLIB */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

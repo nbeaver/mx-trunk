@@ -35,6 +35,11 @@ MX_API mx_status_type mxi_epix_xclib_create_record_structures(
 
 MX_API mx_status_type mxi_epix_xclib_open( MX_RECORD *record );
 
+MX_API char *mxi_epix_xclib_error_message( int unitmap,
+					int epix_status,
+					char *buffer,
+					size_t buffer_length );
+
 
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 
