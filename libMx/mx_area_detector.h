@@ -33,6 +33,10 @@ MX_API mx_status_type mx_area_detector_get_binsize( MX_RECORD *ad_record,
 						unsigned long *x_binsize,
 						unsigned long *y_binsize );
 
+MX_API mx_status_type mx_area_detector_set_binsize( MX_RECORD *ad_record,
+						unsigned long x_binsize,
+						unsigned long y_binsize );
+
 MX_API mx_status_type mx_area_detector_set_subframe_size( MX_RECORD *ad_record,
 						unsigned long num_lines );
 
