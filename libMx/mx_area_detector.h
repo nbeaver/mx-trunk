@@ -18,8 +18,7 @@
 #define __MX_AREA_DETECTOR_H__
 
 MX_API mx_status_type mx_area_detector_get_image_format( MX_RECORD *ad_record,
-					unsigned long *resolution_in_bits,
-					unsigned long *format );
+						unsigned long *format );
 
 MX_API mx_status_type mx_area_detector_get_framesize( MX_RECORD *ad_record,
 						unsigned long *x_framesize,
