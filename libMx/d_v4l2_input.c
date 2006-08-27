@@ -78,7 +78,12 @@ MX_RECORD_FUNCTION_LIST mxd_v4l2_input_record_function_list = {
 MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
 	mxd_v4l2_input_arm,
 	mxd_v4l2_input_trigger,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxd_v4l2_input_get_frame,
+	NULL,
 	mxd_v4l2_input_get_parameter,
 	mxd_v4l2_input_set_parameter,
 };
@@ -154,6 +159,8 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 	record->record_type_struct = v4l2_input;
 	record->class_specific_function_list = 
 			&mxd_v4l2_input_video_input_function_list;
+
+	memset( &(vinput->sequence_info), 0, sizeof(vinput->sequence_info) );
 
 	vinput->record = record;
 	v4l2_input->record = record;
@@ -500,12 +507,12 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	 */
 
 	switch( vinput->image_format ) {
-	case MX_IMAGE_FORMAT_RGB565:
+	case MXT_IMAGE_FORMAT_RGB565:
 		/* 16 bits (2 bytes) per pixel. */
 
 		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
 		break;
-	case MX_IMAGE_FORMAT_YUYV:
+	case MXT_IMAGE_FORMAT_YUYV:
 		/* 32 bits (4 bytes) for 2 pixels. */
 
 		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
@@ -749,7 +756,7 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	  "Ran out of memory trying to allocate an MX_IMAGE_FRAME structure." );
 	}
 
-	(*frame)->image_type = MX_IMAGE_LOCAL_1D_ARRAY;
+	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
 	(*frame)->framesize[0] = vinput->framesize[0];
 	(*frame)->framesize[1] = vinput->framesize[1];
 	(*frame)->image_format = vinput->image_format;
@@ -836,10 +843,10 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 		switch( format.fmt.pix.pixelformat ) {
 		case V4L2_PIX_FMT_RGB565:
-			vinput->image_format = MX_IMAGE_FORMAT_RGB565;
+			vinput->image_format = MXT_IMAGE_FORMAT_RGB565;
 			break;
 		case V4L2_PIX_FMT_YUYV:
-			vinput->image_format = MX_IMAGE_FORMAT_YUYV;
+			vinput->image_format = MXT_IMAGE_FORMAT_YUYV;
 			break;
 		default:
 			vinput->image_format = -1;
@@ -857,7 +864,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		switch( format.fmt.pix.field ) {
 		case V4L2_FIELD_NONE:
 		case V4L2_FIELD_INTERLACED:
-			vinput->pixel_order = MX_IMAGE_PIXEL_ORDER_STANDARD;
+			vinput->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
 			break;
 		default:
 			vinput->pixel_order = -1;
@@ -937,10 +944,10 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 		if ( vinput->parameter_type == MXLV_VIN_FORMAT ) {
 
 			switch( vinput->image_format ) {
-			case MX_IMAGE_FORMAT_RGB565:
+			case MXT_IMAGE_FORMAT_RGB565:
 			    format.fmt.pix.pixelformat = V4L2_PIX_FMT_RGB565;
 			    break;
-			case MX_IMAGE_FORMAT_YUYV:
+			case MXT_IMAGE_FORMAT_YUYV:
 			    format.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
 			    break;
 			default:

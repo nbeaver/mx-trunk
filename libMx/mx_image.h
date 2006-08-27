@@ -18,25 +18,34 @@
 #ifndef __MX_IMAGE_H__
 #define __MX_IMAGE_H__
 
-/* Image type definitions */
+/*---- Image type definitions ----*/
 
-#define MX_IMAGE_LOCAL_1D_ARRAY		1
+#define MXT_IMAGE_LOCAL_1D_ARRAY	1
 
-/* Image format definitions */
+/*---- Image format definitions ----*/
 
-#define MX_IMAGE_FORMAT_RGB565		1
-#define MX_IMAGE_FORMAT_YUYV		2
+#define MXT_IMAGE_FORMAT_RGB565		1
+#define MXT_IMAGE_FORMAT_YUYV		2
 
-#define MX_IMAGE_FORMAT_GREY16		1600
+#define MXT_IMAGE_FORMAT_GREY16		1600
 
-/* Pixel order definitions */
+/*---- Pixel order definitions ----*/
 
-#define MX_IMAGE_PIXEL_ORDER_STANDARD	1
+#define MXT_IMAGE_PIXEL_ORDER_STANDARD	1
 
-/* Datafile format definitions */
+/*---- Datafile format definitions ----*/
 
-#define MX_IMAGE_FILE_PNM		1
-#define MX_IMAGE_FILE_TIFF		2
+#define MXT_IMAGE_FILE_PNM		1
+#define MXT_IMAGE_FILE_TIFF		2
+
+/*---- Sequence type definitions ----*/
+
+#define MXT_SQ_MULTI			0x1000
+
+#define MXT_SQ_ONE_SHOT			0x1
+#define MXT_SQ_CONTINUOUS		0x2    /* Overwrites a single buffer. */
+
+#define MXT_SQ_CONTINUOUS_MULTI		( MXT_SQ_CONTINUOUS | MXT_SQ_MULTI )
 
 /*----*/
 
@@ -62,10 +71,12 @@ typedef struct {
 
 } MX_IMAGE_SEQUENCE;
 
+#define MXU_MAX_SEQUENCE_PARAMETERS	250
+
 typedef struct {
 	long sequence_type;
-	long num_parameters;
-	double *parameter_array;
+	long num_sequence_parameters;
+	double sequence_parameters[MXU_MAX_SEQUENCE_PARAMETERS];
 
 } MX_SEQUENCE_INFO;
 

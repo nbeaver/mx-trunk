@@ -119,7 +119,7 @@ mx_write_image_file( MX_IMAGE_FRAME *frame,
 	mx_status_type mx_status;
 
 	switch( datafile_type ) {
-	case MX_IMAGE_FILE_PNM:
+	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_write_pnm_image_file( frame, datafile_name );
 		break;
 	default:
@@ -168,11 +168,11 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		fname, (unsigned long) frame->image_length, frame->image_data));
 
 	switch( frame->image_format ) {
-	case MX_IMAGE_FORMAT_RGB565:
+	case MXT_IMAGE_FORMAT_RGB565:
 		rgb_pixel_fn = mxp_get_rgb565_pixel;
 		pixel_length = 2;			/* 2 bytes - 16 bits */
 		break;
-	case MX_IMAGE_FORMAT_YUYV:
+	case MXT_IMAGE_FORMAT_YUYV:
 		rgb_pixel_fn = mxp_get_yuyv_pixel;
 		pixel_length = 2;	/* 4 bytes per 2 pixels - 16 bits */
 		break;

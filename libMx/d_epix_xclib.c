@@ -51,7 +51,12 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
 MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_arm,
 	mxd_epix_xclib_trigger,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	mxd_epix_xclib_get_frame,
+	NULL,
 	mxd_epix_xclib_get_parameter,
 	mxd_epix_xclib_set_parameter,
 };
@@ -129,6 +134,8 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	record->record_type_struct = epix_xclib_vinput;
 	record->class_specific_function_list = 
 			&mxd_epix_xclib_video_input_function_list;
+
+	memset( &(vinput->sequence_info), 0, sizeof(vinput->sequence_info) );
 
 	vinput->record = record;
 	epix_xclib_vinput->record = record;
