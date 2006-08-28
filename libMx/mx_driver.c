@@ -69,6 +69,7 @@
 #include "mx_mcai.h"
 #include "mx_ptz.h"
 #include "mx_video_input.h"
+#include "mx_area_detector.h"
 
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
@@ -419,6 +420,8 @@
 
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
+
+#include "d_pccd_170170.h"
 
 #include "s_input.h"
 #include "s_motor.h"
@@ -975,6 +978,7 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_epix_xclib_num_record_fields,
 				&mxi_epix_xclib_rfield_def_ptr},
 #endif /* HAVE_EPIX_XCLIB */
+
 
 #ifdef OS_LINUX
 
@@ -3139,6 +3143,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epix_xclib_rfield_def_ptr},
 
 #endif /* HAVE_EPIX_XCLIB */
+
+{"pccd_170170",    MXT_AD_PCCD_170170, MXC_AREA_DETECTOR,  MXR_DEVICE,
+				&mxd_pccd_170170_record_function_list,
+				NULL,
+				NULL,
+				&mxd_pccd_170170_num_record_fields,
+				&mxd_pccd_170170_rfield_def_ptr},
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

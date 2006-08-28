@@ -96,7 +96,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
 	d_network_scaler.c d_network_timer.c d_newport.c \
 	d_ortec974_scaler.c d_ortec974_timer.c d_p6000a.c \
-	d_panasonic_kx_dp702.c d_panther.c d_pcmotion32.c d_pcstep.c \
+	d_panasonic_kx_dp702.c d_panther.c d_pccd_170170.c \
+	d_pcmotion32.c d_pcstep.c \
 	d_pdi40.c d_pdi45_aio.c d_pdi45_dio.c d_pdi45_pulser.c \
 	d_pdi45_scaler.c d_pdi45_timer.c \
 	d_pfcu.c d_pfcu_filter_summary.c d_pfcu_shutter_timer.c \

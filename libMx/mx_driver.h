@@ -646,7 +646,7 @@
 
 #define MXT_AD_SOFTWARE			240001
 #define MXT_AD_NETWORK			240002
-#define MXT_AD_AVIEX			240003
+#define MXT_AD_PCCD_170170		240003
 
 /* --- Scan types --- */
 
