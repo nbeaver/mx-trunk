@@ -13,8 +13,8 @@ INCLUDES	= $(MX_INCLUDES)
 
 #INCLUDES	= $(MX_INCLUDES) -I/usr/local/include
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
-LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(USER_LIB_DIRS)
+#LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR)
 #LIBRARIES	= -lpthread -lrt -lm
@@ -25,6 +25,9 @@ LIBRARIES	= $(USER_LIBRARIES) -lpthread -lrt -lm
 # The following is for use with mx_caserver.
 #
 #LIBRARIES	= $(EPICS_LIBRARIES) -lpthread -lrt -lrt -lstdc++ -lm 
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -lm
@@ -195,6 +198,13 @@ XIA_HANDEL_LIB_DIRS  = -L$(XIA_HANDEL_DIR)/lib
 XIA_HANDEL_LIBRARIES = -lhandel -lxerxes -lfdd -lmd
 
 #
+EPIX_XCLIB_DIR       = /usr/local/xclib
+EPIX_XCLIB_INCLUDES  = -I$(EPIX_XCLIB_DIR) -DIS_MX_DRIVER \
+				-Wno-strict-prototypes -Wno-unused-variable
+EPIX_XCLIB_LIB_DIRS  = -L$(EPIX_XCLIB_DIR)
+EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclibi86.a
+
+#
 # EPICS includes and libraries.
 #
 
@@ -257,9 +267,10 @@ CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 
 COMPILE		= $(CC) -c
 DEFINE		= -D
-MAKEDEPEND	= gcc -MM $(CFLAGS) $(READLINE_INCLUDES) \
-	$(EPICS_INCLUDES) $(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) \
-	$(ESONE_CAMAC_INCLUDES) $(XIA_HANDEL_INCLUDES) *.c > Makefile.depend
+MAKEDEPEND	= gcc -MM $(CFLAGS) -Wno-missing-include-dirs \
+	$(READLINE_INCLUDES) $(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
+	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
+	$(XIA_HANDEL_INCLUDES) *.c > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

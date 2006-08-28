@@ -112,9 +112,16 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 
+	MX_DEBUG(-2,("%s: MARKER 1", fname));
+
 	epix_status = pxd_PIXCIopen( NULL, NULL, epix_xclib->format_file );
 
+	MX_DEBUG(-2,("%s: MARKER 2", fname));
+
 	if ( epix_status < 0 ) {
+
+		MX_DEBUG(-2,("%s: MARKER 2.1", fname));
+
 		pxd_mesgFaultText(-1, fault_message, sizeof(fault_message) );
 
 		length = strlen(fault_message);
@@ -135,6 +142,8 @@ mxi_epix_xclib_open( MX_RECORD *record )
 #if MXI_EPIX_XCLIB_DEBUG
 	/* Display some statistics. */
 
+	MX_DEBUG(-2,("%s: MARKER 3", fname));
+
 	MX_DEBUG(-2,("%s: Library Id = '%s'", fname, pxd_infoLibraryId() ));
 	MX_DEBUG(-2,("%s: Include Id = '%s'", fname, pxd_infoIncludeId() ));
 	MX_DEBUG(-2,("%s: Driver Id  = '%s'", fname, pxd_infoDriverId() ));
@@ -144,6 +153,8 @@ mxi_epix_xclib_open( MX_RECORD *record )
 					fname, pxd_imageZdim() ));
 	MX_DEBUG(-2,("%s: Number of boards = %d",
 					fname, pxd_infoUnits() ));
+
+	MX_DEBUG(-2,("%s: MARKER 4", fname));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

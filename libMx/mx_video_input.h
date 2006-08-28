@@ -17,6 +17,10 @@
 #ifndef __MX_VIDEO_INPUT_H__
 #define __MX_VIDEO_INPUT_H__
 
+/* Status bit definitions for the 'status' field. */
+
+#define MXSF_VIN_IS_BUSY	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -27,6 +31,8 @@ typedef struct {
 	long pixel_order;
 
 	mx_bool_type external_trigger;
+	mx_bool_type busy;
+	unsigned long status;
 
 	MX_SEQUENCE_INFO sequence_info;
 } MX_VIDEO_INPUT;
@@ -35,9 +41,11 @@ typedef struct {
 #define MXLV_VIN_FORMAT				11002
 #define MXLV_VIN_PIXEL_ORDER			11003
 #define MXLV_VIN_EXTERNAL_TRIGGER		11004
-#define MXLV_VIN_SEQUENCE_TYPE			11005
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11006
-#define MXLV_VIN_SEQUENCE_PARAMETERS		11007
+#define MXLV_VIN_BUSY				11005
+#define MXLV_VIN_STATUS				11006
+#define MXLV_VIN_SEQUENCE_TYPE			11007
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11008
+#define MXLV_VIN_SEQUENCE_PARAMETERS		11009
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -54,6 +62,14 @@ typedef struct {
   \
   {MXLV_VIN_EXTERNAL_TRIGGER, -1, "external_trigger", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, external_trigger), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, busy), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, status), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \

@@ -40,12 +40,12 @@
 
 /*---- Sequence type definitions ----*/
 
-#define MXT_SQ_MULTI			0x1000
 
-#define MXT_SQ_ONE_SHOT			0x1
-#define MXT_SQ_CONTINUOUS		0x2    /* Overwrites a single buffer. */
+#define MXT_SQ_ONE_SHOT			1
+#define MXT_SQ_CONTINUOUS		2    /* Overwrites a single buffer. */
 
-#define MXT_SQ_CONTINUOUS_MULTI		( MXT_SQ_CONTINUOUS | MXT_SQ_MULTI )
+#define MXT_SQ_MULTI			3
+#define MXT_SQ_CONTINUOUS_MULTI		4
 
 /*----*/
 

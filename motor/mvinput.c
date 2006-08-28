@@ -97,7 +97,7 @@ motor_vinput_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		mx_status = mx_write_image_file( frame,
-						MX_IMAGE_FILE_PNM, NULL,
+						MXT_IMAGE_FILE_PNM, NULL,
 						filename );
 
 		if ( mx_status.code != MXE_SUCCESS )

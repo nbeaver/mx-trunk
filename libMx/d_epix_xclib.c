@@ -26,6 +26,7 @@
 #include "mx_record.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
+#include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
 
 #if defined(OS_WIN32)
@@ -51,12 +52,12 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
 MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_arm,
 	mxd_epix_xclib_trigger,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	mxd_epix_xclib_stop,
+	mxd_epix_xclib_abort,
+	mxd_epix_xclib_busy,
+	mxd_epix_xclib_get_status,
 	mxd_epix_xclib_get_frame,
-	NULL,
+	mxd_epix_xclib_get_sequence,
 	mxd_epix_xclib_get_parameter,
 	mxd_epix_xclib_set_parameter,
 };
@@ -177,6 +178,16 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib_vinput->unitmap = 1 << (epix_xclib_vinput->unit_number - 1);
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: board model = %d",
+		fname, pxd_infoModel( epix_xclib_vinput->unitmap ) ));
+
+	MX_DEBUG(-2,("%s: board submodel = %d",
+		fname, pxd_infoSubmodel( epix_xclib_vinput->unitmap ) ));
+
+	MX_DEBUG(-2,("%s: board memory = %lu",
+		fname, pxd_infoMemsize( epix_xclib_vinput->unitmap ) ));
+#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -210,6 +221,8 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
+	/* FIXME - Nothing here for now. */
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -219,6 +232,8 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_trigger()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_SEQUENCE_INFO *sq;
+	pxbuffer_t startbuf, endbuf, numbuf;
 	char error_message[80];
 	int epix_status;
 	mx_status_type mx_status;
@@ -234,14 +249,119 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	epix_status = pxd_doSnap( epix_xclib_vinput->unitmap, 1, 1000 );
+	sq = &(vinput->sequence_info);
 
-	if ( epix_status != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to take a frame with video input '%s' failed.  %s",
+	switch( sq->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 
-		    mxi_epix_xclib_error_message( epix_xclib_vinput->unitmap,
-		    epix_status, error_message, sizeof(error_message)) );
+		if ( epix_status != 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to take a frame with "
+			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+		}
+		break;
+	case MXT_SQ_CONTINUOUS:
+		epix_status = pxd_goLive( epix_xclib_vinput->unitmap, 1 );
+
+		if ( epix_status != 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to start continuous single frame "
+			"acquisition with video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+		}
+		break;
+
+	case MXT_SQ_MULTI:
+		if ( sq->num_sequence_parameters < 1 ) {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"The first sequence parameter of video input '%s' "
+			"for a sequence of type MXT_SQ_MULTI should be "
+			"the number of frames.  "
+			"However, the sequence says that it has %ld frames.",
+			    vinput->record->name, sq->num_sequence_parameters );
+				
+		}
+
+		numbuf = mx_round( sq->sequence_parameters[0] );
+
+		if ( numbuf > pxd_imageZdim() ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number of sequence frames (%ld) for "
+			"video input '%s' is larger than the maximum value "
+			"of %d.",
+			    numbuf, vinput->record->name, pxd_imageZdim());
+		}
+
+		startbuf = 1;
+		endbuf = startbuf + numbuf - 1;
+
+		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
+					startbuf, endbuf, 1, numbuf, 1 );
+
+		if ( epix_status != 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to start multi frame "
+			"acquisition with video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+		}
+		break;
+
+	case MXT_SQ_CONTINUOUS_MULTI:
+		if ( sq->num_sequence_parameters < 1 ) {
+			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+			"The first sequence parameter of video input '%s' "
+			"for a sequence of type MXT_SQ_CONTINUOUS_MULTI should "
+			"be the number of frames in the circular buffer.  "
+			"However, the sequence says that it has %ld frames.",
+			    vinput->record->name, sq->num_sequence_parameters );
+		}
+
+		endbuf = mx_round( sq->sequence_parameters[0] );
+
+		if ( endbuf > pxd_imageZdim() ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number of sequence frames (%ld) for "
+			"video input '%s' is larger than the maximum value "
+			"of %d.",
+			    endbuf, vinput->record->name, pxd_imageZdim());
+		}
+
+		startbuf = 1;
+
+		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
+					startbuf, endbuf, 1, 0, 1 );
+
+		if ( epix_status != 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) );
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to start continuous multi frame "
+			"acquisition with video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+		}
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Image sequence type %ld is not supported by "
+			"video input '%s'.",
+			sq->sequence_type, vinput->record->name );
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
@@ -250,6 +370,140 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_stop()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	char error_message[80];
+	int epix_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+						&epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	epix_status = pxd_goUnLive( epix_xclib_vinput->unitmap );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to stop taking frames for "
+			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_abort()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	char error_message[80];
+	int epix_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+						&epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	epix_status = pxd_goAbortLive( epix_xclib_vinput->unitmap );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to abort taking frames for "
+			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_busy()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	int busy;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+						&epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	busy = pxd_goneLive( epix_xclib_vinput->unitmap, 0 );
+
+	if ( busy ) {
+		vinput->busy = TRUE;
+
+		vinput->status |= MXSF_VIN_IS_BUSY;
+	} else {
+		vinput->busy = FALSE;
+
+		vinput->status &= ~MXSF_VIN_IS_BUSY;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_get_status()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	int busy;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+						&epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	mx_status = mxd_epix_xclib_busy( vinput );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -269,6 +523,34 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_get_sequence( MX_VIDEO_INPUT *vinput,
+				MX_IMAGE_SEQUENCE **sequence )
+{
+	static const char fname[] = "mxd_epix_xclib_get_sequence()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+						&epix_xclib_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG

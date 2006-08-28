@@ -78,12 +78,12 @@ MX_RECORD_FUNCTION_LIST mxd_v4l2_input_record_function_list = {
 MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
 	mxd_v4l2_input_arm,
 	mxd_v4l2_input_trigger,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	mxd_v4l2_input_stop,
+	mxd_v4l2_input_abort,
+	mxd_v4l2_input_busy,
+	mxd_v4l2_input_get_status,
 	mxd_v4l2_input_get_frame,
-	NULL,
+	mxd_v4l2_input_get_sequence,
 	mxd_v4l2_input_get_parameter,
 	mxd_v4l2_input_set_parameter,
 };
@@ -719,6 +719,100 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
+mxd_v4l2_input_stop( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_stop()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput,
+						&v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_abort( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_abort()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput,
+						&v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_busy( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_busy()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput,
+						&v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	vinput->busy = FALSE;
+
+	vinput->status = 0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_get_status( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_v4l2_input_get_status()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput,
+						&v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	mx_status = mxd_v4l2_input_busy( vinput );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mxd_v4l2_input_get_frame()";
@@ -767,6 +861,34 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 
 	(*frame)->image_length = v4l2_input->frame_buffer_length;
 	(*frame)->image_data = v4l2_input->frame_buffer;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_v4l2_input_get_sequence( MX_VIDEO_INPUT *vinput,
+				MX_IMAGE_SEQUENCE **sequence )
+{
+	static const char fname[] = "mxd_v4l2_input_get_sequence()";
+
+	MX_V4L2_INPUT *v4l2_input;
+	mx_status_type mx_status;
+
+	mx_status = mxd_v4l2_input_get_pointers( vinput,
+						&v4l2_input, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
+	}
+
+#if MXD_V4L2_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
