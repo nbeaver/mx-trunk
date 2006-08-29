@@ -110,6 +110,9 @@ MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
 MX_API mx_status_type mx_area_detector_get_image_format( MX_RECORD *ad_record,
 						long *format );
 
+MX_API mx_status_type mx_area_detector_set_image_format( MX_RECORD *ad_record,
+						long format );
+
 MX_API mx_status_type mx_area_detector_get_framesize( MX_RECORD *ad_record,
 						long *x_framesize,
 						long *y_framesize );
