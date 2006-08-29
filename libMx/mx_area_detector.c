@@ -38,7 +38,7 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 			calling_fname );
 	}
 
-	if ( record->mx_class != MXC_VIDEO_INPUT ) {
+	if ( record->mx_class != MXC_AREA_DETECTOR ) {
 		return mx_error( MXE_TYPE_MISMATCH, fname,
 		"The record '%s' passed by '%s' is not a area_detector.",
 			record->name, calling_fname );
@@ -359,10 +359,9 @@ mx_area_detector_set_sequence( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_external_trigger( MX_RECORD *record,
-					mx_bool_type trigger_value )
+mx_area_detector_set_trigger_mode( MX_RECORD *record, long trigger_mode )
 {
-	static const char fname[] = "mx_area_detector_set_external_trigger()";
+	static const char fname[] = "mx_area_detector_set_trigger_mode()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
@@ -377,12 +376,13 @@ mx_area_detector_set_external_trigger( MX_RECORD *record,
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_EXTERNAL_TRIGGER; 
+	ad->parameter_type = MXLV_AD_TRIGGER_MODE; 
 
-	ad->external_trigger = trigger_value;
+	ad->trigger_mode = trigger_mode;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -684,7 +684,6 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_FORMAT:
-	case MXLV_AD_PIXEL_ORDER:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETERS:
@@ -716,7 +715,6 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_FORMAT:
-	case MXLV_AD_PIXEL_ORDER:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETERS:

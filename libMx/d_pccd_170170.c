@@ -167,11 +167,17 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+	/* Set the video input's initial trigger mode (internal/external/etc) */
+
+	mx_status = mx_video_input_set_trigger_mode(
+					pccd_170170->video_input_record,
+					pccd_170170->initial_trigger_mode );
+
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -198,9 +204,9 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	/* FIXME - Nothing here for now. */
+	mx_status = mx_video_input_arm( pccd_170170->video_input_record );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -244,6 +250,11 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			sq->sequence_type, ad->record->name );
 	}
 
+	mx_status = mx_video_input_trigger( pccd_170170->video_input_record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: Successfully took frame using area detector '%s'.",
 		fname, ad->record->name ));
@@ -269,8 +280,9 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_stop( pccd_170170->video_input_record );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -290,8 +302,9 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -300,6 +313,7 @@ mxd_pccd_170170_busy( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_busy()";
 
 	MX_PCCD_170170 *pccd_170170;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -307,10 +321,17 @@ mxd_pccd_170170_busy( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if 0 && MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_is_busy(
+				pccd_170170->video_input_record, &busy );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->busy = busy;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -321,7 +342,6 @@ mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_get_status()";
 
 	MX_PCCD_170170 *pccd_170170;
-	int busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -361,8 +381,10 @@ mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad, MX_IMAGE_FRAME **frame )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_get_frame(
+				pccd_170170->video_input_record, frame );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -388,8 +410,10 @@ mxd_pccd_170170_get_sequence( MX_AREA_DETECTOR *ad,
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_get_sequence(
+				pccd_170170->video_input_record, sequence );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -411,10 +435,16 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 #endif
 
 	switch( ad->parameter_type ) {
+#if 0
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_FORMAT:
-
 		break;
+
+	case MXLV_AD_SEQUENCE_TYPE:
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_AD_SEQUENCE_PARAMETERS: 
+		break;
+#endif
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Parameter type %ld not yet implemented for record '%s'.",
@@ -443,16 +473,26 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 #endif
 
 	switch( ad->parameter_type ) {
+#if 0
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_FORMAT:
 
 		break;
+#endif
+
+	case MXLV_AD_SEQUENCE_TYPE:
+	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_AD_SEQUENCE_PARAMETERS: 
+		mx_status = mx_video_input_set_sequence(
+					pccd_170170->video_input_record,
+					&(ad->sequence_info) );
+		break; 
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Parameter type %ld not yet implemented for record '%s'.",
 			ad->parameter_type, ad->record->name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 

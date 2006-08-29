@@ -29,8 +29,8 @@ typedef struct {
 	long framesize[2];
 	long image_format;
 	long pixel_order;
+	long trigger_mode;
 
-	mx_bool_type external_trigger;
 	mx_bool_type busy;
 	unsigned long status;
 
@@ -40,7 +40,7 @@ typedef struct {
 #define MXLV_VIN_FRAMESIZE			11001
 #define MXLV_VIN_FORMAT				11002
 #define MXLV_VIN_PIXEL_ORDER			11003
-#define MXLV_VIN_EXTERNAL_TRIGGER		11004
+#define MXLV_VIN_TRIGGER_MODE			11004
 #define MXLV_VIN_BUSY				11005
 #define MXLV_VIN_STATUS				11006
 #define MXLV_VIN_SEQUENCE_TYPE			11007
@@ -60,8 +60,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, pixel_order), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {MXLV_VIN_EXTERNAL_TRIGGER, -1, "external_trigger", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, external_trigger), \
+  {MXLV_VIN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, trigger_mode), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
@@ -136,14 +136,8 @@ MX_API mx_status_type mx_video_input_set_continuous_mode(MX_RECORD *record,
 MX_API mx_status_type mx_video_input_set_sequence( MX_RECORD *record,
 					MX_SEQUENCE_INFO *sequence_info );
 
-MX_API mx_status_type mx_video_input_set_external_trigger( MX_RECORD *record,
-						mx_bool_type trigger_value );
-
-#define mx_video_input_enable_external_trigger(r) \
-		mx_video_input_set_external_trigger( (r), TRUE )
-
-#define mx_video_input_disable_external_trigger(r) \
-		mx_video_input_set_external_trigger( (r), FALSE )
+MX_API mx_status_type mx_video_input_set_trigger_mode( MX_RECORD *record,
+							long trigger_mode );
 
 MX_API mx_status_type mx_video_input_arm( MX_RECORD *record );
 

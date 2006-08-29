@@ -240,6 +240,8 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 
 	sq = &(vinput->sequence_info);
 
+	MX_DEBUG(-2,("%s: sq = %p", fname, sq));
+
 	sq->sequence_type = MXT_SQ_ONE_SHOT;
 
 	sq->num_sequence_parameters = 1;
@@ -357,10 +359,9 @@ mx_video_input_set_sequence( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_video_input_set_external_trigger( MX_RECORD *record,
-					mx_bool_type trigger_value )
+mx_video_input_set_trigger_mode( MX_RECORD *record, long trigger_mode )
 {
-	static const char fname[] = "mx_video_input_set_external_trigger()";
+	static const char fname[] = "mx_video_input_set_trigger_mode()";
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
@@ -378,9 +379,9 @@ mx_video_input_set_external_trigger( MX_RECORD *record,
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_EXTERNAL_TRIGGER; 
+	vinput->parameter_type = MXLV_VIN_TRIGGER_MODE; 
 
-	vinput->external_trigger = trigger_value;
+	vinput->trigger_mode = trigger_mode;
 
 	mx_status = (*set_parameter_fn)( vinput );
 

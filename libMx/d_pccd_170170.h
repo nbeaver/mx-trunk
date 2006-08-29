@@ -21,12 +21,17 @@ typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
+	unsigned long initial_trigger_mode;
 } MX_PCCD_170170;
 
 
 #define MXD_PCCD_170170_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, video_input_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, initial_trigger_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_pccd_170170_create_record_structures(

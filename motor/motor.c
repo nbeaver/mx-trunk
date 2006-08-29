@@ -43,6 +43,10 @@ char user_motorrc[MXU_FILENAME_LENGTH + 1];
 
 COMMAND command_list[] = {
 	{ motor_stop_fn,    1, "abort"         },     /* alias for 'stop' */
+	{ motor_area_detector_fn,
+			    2, "area_detector" },
+	{ motor_area_detector_fn,
+			    2, "ad"            }, /* alias for 'area_detector'*/
 	{ motor_ccd_fn,     2, "ccd"           },
 	{ motor_cd_fn,      2, "cd"            },
 	{ motor_sample_changer_fn,

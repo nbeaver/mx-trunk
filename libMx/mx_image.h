@@ -82,6 +82,14 @@ typedef struct {
 
 /*----*/
 
+/* Trigger modes for video inputs and area detectors. */
+
+#define MXT_IMAGE_NO_TRIGGER		0x0
+#define MXT_IMAGE_INTERNAL_TRIGGER	0x1
+#define MXT_IMAGE_EXTERNAL_TRIGGER	0x2
+
+/*----*/
+
 MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
 

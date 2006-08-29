@@ -37,5 +37,5 @@ mxgnuplt.exe: mxgnuplt.obj
 		$(MSDEV_DIR)\\lib\\user32.lib $(MSDEV_DIR)\\lib\\gdi32.lib
 
 mx_clean:
-	-rm *.obj *.exe
+	-rm *.obj *.exe *.manifest
 

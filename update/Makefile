@@ -48,6 +48,7 @@ mx_clean:
 	-$(RM) *.dbg
 	-$(RM) *.exe
 	-$(RM) *.ilk
+	-$(RM) *.manifest
 	-$(RM) *.map
 	-$(RM) *.pdb
 	-$(RM) *.tds

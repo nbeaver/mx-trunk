@@ -17,12 +17,22 @@
 #ifndef __D_EPIX_XCLIB_H__
 #define __D_EPIX_XCLIB_H__
 
+#define MX_EPIX_XCLIB_CC1	1
+#define MX_EPIX_XCLIB_CC2	2
+#define MX_EPIX_XCLIB_CC3	3
+#define MX_EPIX_XCLIB_CC4	4
+
 typedef struct {
 	MX_RECORD *record;
 
 	long unit_number;
 
 	long unitmap;
+
+#if USE_CLCCSE_REGISTER
+	mx_bool_type generate_cc1_pulse;
+#endif
+
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 
 

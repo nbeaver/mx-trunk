@@ -30,14 +30,17 @@ motor_vinput_fn( int argc, char *argv[] )
 	MX_VIDEO_INPUT *vinput;
 	MX_IMAGE_FRAME *frame;
 	char *filename;
+	unsigned long datafile_type;
 	int status;
+	double exposure_time;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	static char usage[]
-	= "Usage:  vinput 'vinput_name' snap 'filename'\n"
+= "Usage:  vinput 'vinput_name' snap 'exposure_time' 'file_format' 'filename'\n"
 	;
 
-	if ( argc < 5 ) {
+	if ( argc < 7 ) {
 		fprintf( output, "%s\n", usage );
 		return FAILURE;
 	}
@@ -72,7 +75,7 @@ motor_vinput_fn( int argc, char *argv[] )
 
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		if ( argc < 5 ) {
+		if ( argc < 7 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'snap' command\n",
 				cname );
@@ -81,23 +84,70 @@ motor_vinput_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		filename = argv[4];
+		exposure_time = atof( argv[4] );
+
+		if ( strcmp( argv[5], "pnm" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_PNM;
+		} else
+		if ( strcmp( argv[5], "tiff" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_TIFF;
+		} else {
+			fprintf( output,
+				"%s: Unrecognized datafile type '%s'\n",
+				cname, argv[5] );
+
+			return FAILURE;
+		}
+
+		filename = argv[6];
+
+		mx_status = mx_video_input_set_exposure_time( vinput_record,
+								exposure_time );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 
 		mx_status = mx_video_input_start( vinput_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		for(;;) {
+			mx_status = mx_video_input_is_busy(
+							vinput_record, &busy );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				(void) mx_video_input_stop( vinput_record );
+
+				fprintf( output,
+				"%s: The wait for video input '%s' "
+				"to finish was interrupted.\n",
+					cname, vinput_record->name );
+
+				return FAILURE;
+			}
+
+			if ( busy == FALSE ) {
+				break;		/* Exit the for(;;) loop. */
+			}
+
+			mx_msleep(10);
+		}
+
 		frame = NULL;
 
-		mx_status = mx_video_input_get_frame( vinput_record,
-							&frame );
+		mx_status = mx_video_input_get_frame( vinput_record, &frame );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
 		mx_status = mx_write_image_file( frame,
-						MXT_IMAGE_FILE_PNM, NULL,
+						datafile_type, NULL,
 						filename );
 
 		if ( mx_status.code != MXE_SUCCESS )

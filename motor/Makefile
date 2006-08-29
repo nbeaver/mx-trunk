@@ -13,7 +13,7 @@
 # List all of the source code files used to build motor.
 #
 
-MOTOR_SRCS = command.c mccd.c mcopy.c mcopyfile.c mcount.c \
+MOTOR_SRCS = command.c marea_detector.c mccd.c mcopy.c mcopyfile.c mcount.c \
 	mdelete.c mdialog.c mdisplay.c mexec.c mgpib.c mheader.c mhome.c \
 	minit.c mjog.c mkill.c mload.c mmca.c mmcs.c mmeasure.c mmodify.c \
 	mmove_absolute.c mmove_relative.c motor.c moverwrite.c \
@@ -66,6 +66,7 @@ mx_clean:
 	-$(RM) *.dbg
 	-$(RM) *.exe
 	-$(RM) *.ilk
+	-$(RM) *.manifest
 	-$(RM) *.map
 	-$(RM) *.num
 	-$(RM) *.nxe

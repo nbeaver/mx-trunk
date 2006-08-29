@@ -28,8 +28,8 @@ typedef struct {
 
 	long framesize[2];
 	long image_format;
+	long trigger_mode;
 
-	mx_bool_type external_trigger;
 	mx_bool_type busy;
 	unsigned long status;
 
@@ -38,11 +38,11 @@ typedef struct {
 
 #define MXLV_AD_FRAMESIZE			12001
 #define MXLV_AD_FORMAT				12002
-#define MXLV_AD_EXTERNAL_TRIGGER		12004
+#define MXLV_AD_TRIGGER_MODE			12004
 #define MXLV_AD_BUSY				12005
 #define MXLV_AD_STATUS				12006
 #define MXLV_AD_SEQUENCE_TYPE			12007
-#define MXLV_AD_NUM_SEQUENCE_PARAMETERS	12008
+#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12008
 #define MXLV_AD_SEQUENCE_PARAMETERS		12009
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
@@ -54,8 +54,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_format), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_EXTERNAL_TRIGGER, -1, "external_trigger", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, external_trigger), \
+  {MXLV_AD_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, trigger_mode), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
@@ -140,15 +140,8 @@ MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_sequence( MX_RECORD *ad_record,
 					MX_SEQUENCE_INFO *sequence_info );
 
-MX_API mx_status_type mx_area_detector_set_external_trigger(
-						MX_RECORD *ad_record,
-						mx_bool_type trigger_value );
-
-#define mx_area_detector_enable_external_trigger(r) \
-		mx_area_detector_set_external_trigger( (r), TRUE )
-
-#define mx_area_detector_disable_external_trigger(r) \
-		mx_area_detector_set_external_trigger( (r), FALSE )
+MX_API mx_status_type mx_area_detector_set_trigger_mode( MX_RECORD *ad_record,
+							long trigger_mode );
 
 MX_API mx_status_type mx_area_detector_arm( MX_RECORD *ad_record );
 
