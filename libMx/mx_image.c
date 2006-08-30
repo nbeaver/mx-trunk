@@ -181,7 +181,6 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	int pnm_type, saved_errno;
 	long i;
 	unsigned int maxint;
-	size_t pixel_length;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -279,12 +278,12 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 			if ( i < 50 ) {
 				MX_DEBUG(-2,
-				("%s: i = %lu, R = %lu, G = %lu, B = %lu",
+				("%s: i = %lu, R = %d, G = %d, B = %d",
 
 				fname, i, R, G, B));
 			}
 
-			fprintf( file, "%lu %lu %lu\n", R, G, B );
+			fprintf( file, "%d %d %d\n", R, G, B );
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:

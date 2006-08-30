@@ -626,6 +626,7 @@ mxi_picomotor_command( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 
 #if MXI_PICOMOTOR_DEBUG_TIMING
 			MX_HRT_RS232_COMMAND_RESULTS( command_timing,
+				command, fname );
 #endif
 			/* No response is expected, so break out of
 			 * the command retry loop.
