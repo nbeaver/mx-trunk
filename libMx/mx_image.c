@@ -22,24 +22,31 @@
 #include "mx_stdint.h"
 #include "mx_image.h"
 
+typedef struct {
+	int num_source_bytes;
+	int num_destination_bytes;
+	void (*converter_fn)( unsigned char *src, unsigned char *dest );
+
+} pixel_converter_t;
+
 static void
-mxp_get_rgb565_pixel( unsigned char *pixel_ptr,
-			unsigned long *R,
-			unsigned long *G,
-			unsigned long *B )
+mxp_rgb565_converter_fn( unsigned char *src, unsigned char *dest )
 {
 	uint16_t pixel_value;
 
-	pixel_value = *( (uint16_t *) pixel_ptr);
+	pixel_value = *( (uint16_t *) src);
 
 	/* FIXME: We must take care of byteorder issues here. */
 
-	*R = ( pixel_value >> 11 ) & 0x1f;
-	*G = ( pixel_value >> 5 ) & 0x3f;
-	*B = pixel_value & 0x1f;
+	dest[0] = ( pixel_value >> 11 ) & 0x1f;
+	dest[1] = ( pixel_value >> 5 ) & 0x3f;
+	dest[2] = pixel_value & 0x1f;
 
 	return;
 }
+
+static pixel_converter_t
+mxp_rgb565_converter = { 2, 3, mxp_rgb565_converter_fn };
 
 static long
 clamp( double x )
@@ -57,54 +64,81 @@ clamp( double x )
 	}
 }
 
-/* FIXME: The following treats the pixels as two independent bytes per pixel
- * rather than as a group of four bytes that generate two pixels.  The 
- * symptom of this is that the colormap in the generated image is wrong.
- */
-
 static void
-mxp_get_yuyv_pixel( unsigned char *pixel_ptr,
-			unsigned long *R,
-			unsigned long *G,
-			unsigned long *B )
+mxp_yuyv_converter_fn( unsigned char *src, unsigned char *dest )
 {
 	unsigned int Y0, Y1, Cb, Cr;
-	double R_temp, G_temp, B_temp;
-	double Y1_temp, Cb_temp, Cr_temp;
+	double Y0_temp, Y1_temp, Cb_temp, Cr_temp;
+	double R0_temp, G0_temp, B0_temp;
+	double R1_temp, G1_temp, B1_temp;
 
-	Y0 = pixel_ptr[0];
-	Cb = pixel_ptr[1];
-	Y1 = pixel_ptr[2];
-	Cr = pixel_ptr[3];
+	Y0 = src[0];
+	Cb = src[1];
+	Y1 = src[2];
+	Cr = src[3];
 
 #if 0
 	MX_DEBUG(-2,("Y0 = %u, Cb = %u, Y1 = %u, Cr = %u", Y0, Cb, Y1, Cr));
 #endif
 
+	Y0_temp = (255 / 219.0) * ((int)Y0 - 16);
 	Y1_temp = (255 / 219.0) * ((int)Y1 - 16);
 	Cb_temp = (255 / 224.0) * ((int)Cb - 128);
 	Cr_temp = (255 / 224.0) * ((int)Cr - 128);
 
 #if 0
-	MX_DEBUG(-2,("Y1_temp = %g, Cb_temp = %g, Cr_temp = %g",
-			Y1_temp, Cb_temp, Cr_temp));
+	MX_DEBUG(-2,("Y0_temp = %g, Y1_temp = %g, Cb_temp = %g, Cr_temp = %g",
+			Y0_temp, Y1_temp, Cb_temp, Cr_temp));
 #endif
 
-	R_temp = 1.0 * Y1_temp + 0     * Cb_temp + 1.402 * Cr_temp;
-	G_temp = 1.0 * Y1_temp - 0.344 * Cb_temp + 0.714 * Cr_temp;
-	B_temp = 1.0 * Y1_temp + 1.772 * Cb_temp + 0     * Cr_temp;
+	R0_temp = 1.0 * Y0_temp + 0     * Cb_temp + 1.402 * Cr_temp;
+	G0_temp = 1.0 * Y0_temp - 0.344 * Cb_temp + 0.714 * Cr_temp;
+	B0_temp = 1.0 * Y0_temp + 1.772 * Cb_temp + 0     * Cr_temp;
 
 #if 0
-	MX_DEBUG(-2,("R_temp = %g, G_temp = %g, B_temp = %g",
-		R_temp, G_temp, B_temp));
+	MX_DEBUG(-2,("R0_temp = %g, G0_temp = %g, B0_temp = %g",
+		R0_temp, G0_temp, B0_temp));
 #endif
 
-	*R = clamp( R_temp );
-	*G = clamp( G_temp );
-	*B = clamp( B_temp );
+
+	R1_temp = 1.0 * Y1_temp + 0     * Cb_temp + 1.402 * Cr_temp;
+	G1_temp = 1.0 * Y1_temp - 0.344 * Cb_temp + 0.714 * Cr_temp;
+	B1_temp = 1.0 * Y1_temp + 1.772 * Cb_temp + 0     * Cr_temp;
+
+#if 0
+	MX_DEBUG(-2,("R1_temp = %g, G1_temp = %g, B1_temp = %g",
+		R1_temp, G1_temp, B1_temp));
+#endif
+
+	dest[0] = clamp( R0_temp );
+	dest[1] = clamp( G0_temp );
+	dest[2] = clamp( B0_temp );
+	dest[3] = clamp( R1_temp );
+	dest[4] = clamp( G1_temp );
+	dest[5] = clamp( B1_temp );
 
 	return;
 }
+
+static pixel_converter_t
+mxp_yuyv_converter = { 4, 6, mxp_yuyv_converter_fn };
+
+/* FIXME - This is lame and very inefficient. */
+
+static void
+mxp_grey16_converter_fn( unsigned char *src, unsigned char *dest )
+{
+	uint16_t grey16, *dest16_ptr;
+
+	grey16 = *( (uint16_t *) src );
+
+	dest16_ptr = (uint16_t *) dest;
+
+	*dest16_ptr = grey16;
+}
+
+static pixel_converter_t
+mxp_grey16_converter = { 2, 2, mxp_grey16_converter_fn };
 
 /*----*/
 
@@ -137,12 +171,15 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	static const char fname[] = "mx_write_pnm_image_file()";
 
 	FILE *file;
-	void (*rgb_pixel_fn) ( unsigned char *,
-		unsigned long *, unsigned long *, unsigned long * );
-	unsigned char *ptr;
-	unsigned long R, G, B;
+	pixel_converter_t converter;
+	void (*converter_fn)( unsigned char *, unsigned char * );
+	int src_step, dest_step;
+	unsigned char *src;
+	unsigned char dest[10];
+	unsigned char R, G, B;
+	uint16_t grey16_pixel;
+	int pnm_type, saved_errno;
 	long i;
-	int saved_errno;
 	unsigned int maxint;
 	size_t pixel_length;
 
@@ -169,17 +206,35 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	switch( frame->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
-		rgb_pixel_fn = mxp_get_rgb565_pixel;
-		pixel_length = 2;			/* 2 bytes - 16 bits */
+		converter = mxp_rgb565_converter;
+		pnm_type = 3;
+		maxint = 255;
 		break;
 	case MXT_IMAGE_FORMAT_YUYV:
-		rgb_pixel_fn = mxp_get_yuyv_pixel;
-		pixel_length = 2;	/* 4 bytes per 2 pixels - 16 bits */
+		converter = mxp_yuyv_converter;
+		pnm_type = 3;
+		maxint = 255;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		converter = mxp_grey16_converter;
+		pnm_type = 2;
+		maxint = 65535;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld requested for datafile '%s'.",
 			frame->image_format, datafile_name );
+	}
+
+	src_step     = converter.num_source_bytes;
+	dest_step    = converter.num_destination_bytes;
+	converter_fn = converter.converter_fn;
+
+	if ( dest_step > sizeof(dest) ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"You must increase the size of the dest array "
+			"to %d and then recompile MX.",
+				dest_step );
 	}
 
 	file = fopen( datafile_name, "w" );
@@ -196,37 +251,71 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	/* Write the PPM header. */
 
-	maxint = 255;
-
-	fprintf( file, "P3\n" );
+	fprintf( file, "P%d\n", pnm_type );
 	fprintf( file, "# %s\n", datafile_name );
 	fprintf( file, "%lu %lu\n", frame->framesize[0], frame->framesize[1] );
 	fprintf( file, "%u\n", maxint );
 
 	/* Loop through the image file. */
 
-	ptr = frame->image_data;
+	src = frame->image_data;
 
-	for ( i = 0; i < frame->image_length; i += pixel_length ) {
+	for ( i = 0; i < frame->image_length; i += src_step ) {
 
 #if 0
 		if ( i >= 50 )
 			break;
 #endif
 
-		rgb_pixel_fn( ptr, &R, &G, &B );
+		converter_fn( &src[i], dest );
 
-		if ( i < 50 ) {
-			MX_DEBUG(-2,("%s: i = %lu, R = %lu, G = %lu, B = %lu",
-			fname, i, R, G, B));
+		switch( frame->image_format ) {
+
+		case MXT_IMAGE_FORMAT_RGB565:
+		case MXT_IMAGE_FORMAT_YUYV:
+			R = dest[0];
+			G = dest[1];
+			B = dest[2];
+
+			if ( i < 50 ) {
+				MX_DEBUG(-2,
+				("%s: i = %lu, R = %lu, G = %lu, B = %lu",
+
+				fname, i, R, G, B));
+			}
+
+			fprintf( file, "%lu %lu %lu\n", R, G, B );
+			break;
+
+		case MXT_IMAGE_FORMAT_GREY16:
+			grey16_pixel = *((uint16_t *) dest);
+
+			if ( i < 50 ) {
+				MX_DEBUG(-2,("%s: i = %lu, grey16 = %lu",
+					fname, i,
+					(unsigned long) grey16_pixel));
+			}
+
+			fprintf( file, "%lu ",
+					(unsigned long) grey16_pixel );
+
+			if ( ((i+1) % 5) == 0 ) {
+				fprintf( file, "\n" );
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Unsupported image format %ld requested "
+				"for datafile '%s'.",
+				frame->image_format, datafile_name );
 		}
-
-		fprintf( file, "%lu %lu %lu\n", R, G, B );
-
-		ptr += pixel_length;
 	}
 
 	fclose( file );
+
+	MX_DEBUG(-2,
+	("%s: PNM file '%s' successfully written.", fname, datafile_name ));
 
 	return MX_SUCCESSFUL_RESULT;
 }

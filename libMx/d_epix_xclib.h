@@ -22,6 +22,8 @@
 #define MX_EPIX_XCLIB_CC3	3
 #define MX_EPIX_XCLIB_CC4	4
 
+#if ( HAVE_EPIX_XCLIB && IS_MX_DRIVER )
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -35,6 +37,8 @@ typedef struct {
 
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 
+
+#endif /* HAVE_EPIX_XCLIB && IS_MX_DRIVER */
 
 #define MXD_EPIX_XCLIB_STANDARD_FIELDS \
   {-1, -1, "unit_number", MXFT_LONG, NULL, 0, {0}, \

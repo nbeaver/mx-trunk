@@ -14,6 +14,8 @@
  *
  */
 
+#define MAREA_DETECTOR_DEBUG_TIMING	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,6 +23,10 @@
 #include "mx_key.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
+
+#if MAREA_DETECTOR_DEBUG_TIMING
+#  include "mx_hrt_debug.h"
+#endif
 
 int
 motor_area_detector_fn( int argc, char *argv[] )
@@ -37,8 +43,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 	mx_status_type mx_status;
 
 	static char usage[]
-	= "Usage:  area_detector 'ad_name' snap 'filename'\n"
-	;
+		= "Usage:  area_detector 'ad_name' snap 'filename'\n";
+
+#if MAREA_DETECTOR_DEBUG_TIMING
+	MX_HRT_TIMING measurement1, measurement2;
+#endif
 
 	if ( argc < 5 ) {
 		fprintf( output, "%s\n", usage );
@@ -105,10 +114,21 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+#if MAREA_DETECTOR_DEBUG_TIMING
+		MX_HRT_START( measurement1 );
+#endif
+
 		mx_status = mx_area_detector_start( ad_record );
 
+#if MAREA_DETECTOR_DEBUG_TIMING
+		MX_HRT_END( measurement1 );
+#endif
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+#if MAREA_DETECTOR_DEBUG_TIMING
+		MX_HRT_START( measurement2 );
+#endif
 
 		for(;;) {
 			mx_status = mx_area_detector_is_busy(ad_record, &busy);
@@ -134,6 +154,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 			mx_msleep(10);
 		}
+#if MAREA_DETECTOR_DEBUG_TIMING
+		MX_HRT_END( measurement2 );
+
+		MX_HRT_RESULTS( measurement1, cname, "for Start" );
+		MX_HRT_RESULTS( measurement2, cname, "for Busy/Wait" );
+#endif
 
 		frame = NULL;
 

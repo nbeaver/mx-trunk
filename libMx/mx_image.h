@@ -27,7 +27,9 @@
 #define MXT_IMAGE_FORMAT_RGB565		1
 #define MXT_IMAGE_FORMAT_YUYV		2
 
-#define MXT_IMAGE_FORMAT_GREY16		1600
+#define MXT_IMAGE_FORMAT_RGB		1001
+#define MXT_IMAGE_FORMAT_GREY8		1002
+#define MXT_IMAGE_FORMAT_GREY16		1003
 
 /*---- Pixel order definitions ----*/
 

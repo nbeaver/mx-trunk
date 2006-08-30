@@ -526,6 +526,10 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 		mx_status = (*busy_fn)( ad );
 	}
 
+	if ( busy != NULL ) {
+		*busy = ad->busy;
+	}
+
 	return mx_status;
 }
 
@@ -550,6 +554,13 @@ mx_area_detector_get_status( MX_RECORD *record,
 
 	if ( get_status_fn != NULL ) {
 		mx_status = (*get_status_fn)( ad );
+	}
+
+	if ( last_frame_number != NULL ) {
+		*last_frame_number = 0;
+	}
+	if ( status_flags != NULL ) {
+		*status_flags = ad->status;
 	}
 
 	return mx_status;

@@ -1,9 +1,13 @@
 /*
  * Name:    d_epix_xclib.c
  *
- * Purpose: MX driver for Video4Linux2 video input.
+ * Purpose: MX driver for EPIX, Inc. video inputs via XCLIB.
  *
  * Author:  William Lavender
+ *
+ * WARNING: So far this driver has only been tested with PIXCI E4 cameras
+ *          using 16-bit greyscale pixels.  Use of other formats may require
+ *          updates to this driver.
  *
  *--------------------------------------------------------------------------
  *
@@ -14,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG	TRUE
+#define MXD_EPIX_XCLIB_DEBUG	FALSE
 
 #define USE_CLCCSE_REGISTER	TRUE
 
@@ -28,14 +32,15 @@
 #include "mx_record.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
-#include "i_epix_xclib.h"
-#include "d_epix_xclib.h"
 
 #if defined(OS_WIN32)
 #include <windows.h>
 #endif
 
 #include "xcliball.h"
+
+#include "i_epix_xclib.h"
+#include "d_epix_xclib.h"
 
 /*---*/
 
@@ -147,7 +152,9 @@ mxd_epix_xclib_camera_link_set_line( MX_VIDEO_INPUT *vinput,
 
 	CLCCSE = vidstate.xc.dxxformat->CLCCSE;
 
+#if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: Old CLCCSE = %#x", fname, CLCCSE));
+#endif
 
 	switch( line_state ) {
 	case 1:   /* High */
@@ -231,18 +238,29 @@ mxd_epix_xclib_camera_link_set_line( MX_VIDEO_INPUT *vinput,
 			vinput->record->name );
 	}
 
+#if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: New CLCCSE = %#x", fname, CLCCSE));
+#endif
 
 	vidstate.xc.dxxformat->CLCCSE = CLCCSE;
 
 	epix_status = xc->pxlib.defineState(
 				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
 
-	MX_DEBUG(-2,("%s: epix_status #1 = %d", fname, epix_status));
+	if ( epix_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in xc->pxlib.defineState() for record '%s'.  "
+		"Error code = %d", vinput->record->name, epix_status );
+	}
 
 	epix_status = pxd_xclibEscaped(0, 0, 0);
 
-	MX_DEBUG(-2,("%s: epix_status #2 = %d", fname, epix_status));
+	if ( epix_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in pxd_xclibEscaped() for record '%s'.  "
+		"Error code = %d", vinput->record->name, epix_status );
+	}
+
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -469,7 +487,9 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #if USE_CLCCSE_REGISTER
 	if ( epix_xclib_vinput->generate_cc1_pulse ) {
 
+#if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: CC1 pulse.", fname));
+#endif
 
 		/* Force CC1 high. */
 
@@ -490,6 +510,17 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: starting buffer count = %d",
+		fname, pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
+
+	MX_DEBUG(-2,("%s: video fields per frame = %lu",
+		fname, pxd_videoFieldsPerFrame() ));
+
+	MX_DEBUG(-2,("%s: video field count = %lu",
+		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
 	switch( sq->sequence_type ) {
@@ -606,7 +637,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: Successfully took frame using video input '%s'.",
+	MX_DEBUG(-2,("%s: Started taking a frame using video input '%s'.",
 		fname, vinput->record->name ));
 #endif
 
@@ -694,6 +725,7 @@ mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int busy;
+	pxbuffer_t last_buffer;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -715,7 +747,25 @@ mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: vinput->busy = %d", fname, vinput->busy ));
+	MX_DEBUG(-2,("%s: busy = %d, field count = %lu, last buffer = %d",
+		fname, vinput->busy,
+		pxd_videoFieldCount( epix_xclib_vinput->unitmap ),
+		pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
+#endif
+
+#if 0
+	if ( vinput->busy == FALSE ) {
+		char filename[] = "test.tiff";
+		int epix_status;
+
+		MX_DEBUG(-2,("%s: saving TIFF file '%s'", fname, filename));
+
+		epix_status = pxd_saveTiff( epix_xclib_vinput->unitmap,
+			filename, 1, 0, 0, -1, -1, 0, 0 );
+
+		MX_DEBUG(-2,("%s: saved TIFF file '%s', epix_status = %d",
+			fname, filename, epix_status));
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -751,7 +801,14 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mxd_epix_xclib_get_frame()";
 
+	char rgb_colorspace[] = "RGB";
+	char grey_colorspace[] = "Grey";
+
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	long image_format, bytes_per_image, words_to_read, result;
+	long x_framesize, y_framesize;
+	char *colorspace;
+	char error_message[80];
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -768,6 +825,172 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
+#endif
+
+	/* Get the image pixel format. */
+
+	mx_status = mx_video_input_get_image_format( vinput->record,
+							&image_format );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: image_format = %ld", fname, image_format));
+#endif
+
+	/* Get the dimensions of the image. */
+
+	mx_status = mx_video_input_get_framesize( vinput->record,
+						&x_framesize, &y_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Compute the number of bytes in the image. */
+
+	switch( image_format ) {
+	case MXT_IMAGE_FORMAT_RGB:
+		bytes_per_image = 3 * x_framesize * y_framesize;
+		colorspace = rgb_colorspace;
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY8:
+		bytes_per_image = x_framesize * y_framesize;
+		colorspace = grey_colorspace;
+		break;
+
+	case MXT_IMAGE_FORMAT_GREY16:
+		bytes_per_image = 2 * x_framesize * y_framesize;
+		colorspace = grey_colorspace;
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image format %ld for video input '%s'.",
+			image_format, vinput->record->name );
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: bytes_per_image = %ld", fname, bytes_per_image));
+#endif
+
+	/* At this point, we either reuse an existing MX_IMAGE_FRAME
+	 * or create a new one.
+	 */
+
+	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+
+		/* Allocate a new MX_IMAGE_FRAME. */
+
+		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
+
+		if ( (*frame) == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a new MX_IMAGE_FRAME structure." );
+		}
+
+		(*frame)->header_length = 0;
+		(*frame)->header_data = NULL;
+
+		(*frame)->image_length = 0;
+		(*frame)->image_data = NULL;
+	}
+
+	/* Fill in some parameters. */
+
+	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
+	(*frame)->framesize[0] = x_framesize;
+	(*frame)->framesize[1] = y_framesize;
+	(*frame)->image_format = image_format;
+
+	/* See if the image buffer is already big enough for the image. */
+
+	if ( ( (*frame)->image_data != NULL )
+	  && ( (*frame)->image_length >= bytes_per_image ) )
+	{
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+		("%s: The image buffer is already big enough.", fname));
+#endif
+	} else {
+		/* If not, then allocate a new one. */
+
+		if ( (*frame)->image_data != NULL ) {
+			free( (*frame)->image_data );
+		}
+
+		(*frame)->image_data = malloc( bytes_per_image );
+
+		if ( (*frame)->image_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Cannot allocate a %ld byte image buffer for "
+			"video input '%s'.",
+				bytes_per_image, vinput->record->name );
+		}
+
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
+#endif
+	}
+
+#if 1  /* FIXME!!! - This should not be present in the final version. */
+	memset( (*frame)->image_data, 0, 50 );
+#endif
+
+	(*frame)->image_length = bytes_per_image;
+
+	/* Now read the frame into the MX_IMAGE_FRAME structure. */
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: reading a %lu byte image frame.",
+				fname, (*frame)->image_length ));
+#endif
+
+	if ( image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+		words_to_read = ((*frame)->image_length) / 2;
+		
+		result = pxd_readushort( epix_xclib_vinput->unitmap, 1,
+				0, 0, -1, -1,
+				(*frame)->image_data, words_to_read,
+				colorspace );
+
+		if ( result >= 0 ) {
+			result = result * 2;
+		}
+	} else {
+		result = pxd_readuchar( epix_xclib_vinput->unitmap, 1,
+				0, 0, -1, -1,
+				(*frame)->image_data, (*frame)->image_length,
+				colorspace );
+	}
+
+	/* Was the read successful? */
+
+	if ( result < 0 ) {
+		mxi_epix_xclib_error_message( epix_xclib_vinput->unitmap,
+			result, error_message, sizeof(error_message) ); 
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"An error occurred while reading a %lu byte image frame "
+		"from video input '%s'.  Error = '%s'.",
+			(*frame)->image_length, vinput->record->name,
+			error_message );
+	} else
+	if ( result < (*frame)->image_length ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"Read only %ld bytes from video input '%s' when we were "
+		"expecting to read %lu bytes.",
+			result, vinput->record->name,
+			(*frame)->image_length );
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s: successfully read a %lu byte image frame from video input '%s'.",
+		fname, (*frame)->image_length, vinput->record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -807,6 +1030,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_get_parameter()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	int bits_per_component, components_per_pixel;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -821,14 +1045,69 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_FRAMESIZE:
-	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_PIXEL_ORDER:
 	case MXLV_VIN_TRIGGER_MODE:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETERS:
 
+		break;
+
+	case MXLV_VIN_FORMAT:
+		bits_per_component = pxd_imageBdim();
+		components_per_pixel = pxd_imageCdim();
+
+		if ( bits_per_component <= 8 ) {
+			switch( components_per_pixel ) {
+			case 1:
+			    vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
+			    break;
+			case 3:
+			    vinput->image_format = MXT_IMAGE_FORMAT_RGB;
+			    break;
+			default:
+			    return mx_error( MXE_UNSUPPORTED, fname,
+				"%d-bit video input '%s' reports an "
+				"unsupported number of pixel components (%d).",
+					bits_per_component,
+					vinput->record->name,
+					components_per_pixel );
+			}
+		} else
+		if ( bits_per_component <= 16 ) {
+			switch( components_per_pixel ) {
+			case 1:
+			    vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
+			    break;
+			default:
+			    return mx_error( MXE_UNSUPPORTED, fname,
+				"%d-bit video input '%s' reports an "
+				"unsupported number of pixel components (%d).",
+					bits_per_component,
+					vinput->record->name,
+					components_per_pixel );
+			}
+		} else {
+			return mx_error( MXE_UNSUPPORTED, fname,
+				"Video input '%s' reports an unsupported "
+				"number of bits per component (%d) "
+				"and components per pixel (%d).",
+					vinput->record->name,
+					bits_per_component,
+					components_per_pixel );
+		}
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,(
+		"%s: bits per component = %d, components per pixel = %d",
+			fname, bits_per_component, components_per_pixel));
+
+		MX_DEBUG(-2,("%s: video format = %ld", fname, vinput->image_format));
+#endif
+		break;
+
+	case MXLV_VIN_FRAMESIZE:
+		vinput->framesize[0] = pxd_imageXdim();
+		vinput->framesize[1] = pxd_imageYdim();
 		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -845,7 +1124,11 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_set_parameter()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	int epix_status;
 	mx_status_type mx_status;
+
+	struct xclibs *xc;
+	xclib_DeclareVidStateStructs(vidstate);
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
 						&epix_xclib_vinput, fname );
@@ -859,12 +1142,83 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_FRAMESIZE:
-	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_PIXEL_ORDER:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETERS:
+
+		break;
+
+	case MXLV_VIN_FORMAT:
+		(void) mxd_epix_xclib_get_parameter( vinput );
+
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Changing the video format for video input '%s' via "
+		"MX is not supported.  In order to change video formats, "
+		"you must create a new video configuration in the XCAP "
+		"program from EPIX, Inc.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_PIXEL_ORDER:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Changing the pixel order for video input '%s' "
+			"is not supported.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_FRAMESIZE:
+
+		/* Escape to the Structured Style Interface. */
+
+		xc = pxd_xclibEscape(0, 0, 0);
+
+		if ( xc == NULL ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The XCLIB library has not yet been initialized with "
+		"pxd_PIXCIopen() for video input '%s'.", vinput->record->name );
+		}
+
+		xclib_InitVidStateStructs(vidstate);
+
+		xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		/* Change the necessary parameters. */
+
+		vidstate.vidres->x.datsamples = vinput->framesize[0];
+		vidstate.vidres->x.vidsamples = vinput->framesize[0];
+		vidstate.vidres->x.setmidvidoffset = 0;
+		vidstate.vidres->x.vidoffset = 0;
+		vidstate.vidres->x.setmaxdatsamples = 0;
+		vidstate.vidres->x.setmaxvidsamples = 0;
+
+		vidstate.vidres->y.datsamples = vinput->framesize[1];
+		vidstate.vidres->y.vidsamples = vinput->framesize[1];
+		vidstate.vidres->y.setmidvidoffset = 0;
+		vidstate.vidres->y.vidoffset = 0;
+		vidstate.vidres->y.setmaxdatsamples = 0;
+		vidstate.vidres->y.setmaxvidsamples = 0;
+
+		vidstate.vidres->datfields = 1;
+		vidstate.vidres->setmaxdatfields = 0;
+
+		/* Leave the Structured Style Interface. */
+
+		epix_status = xc->pxlib.defineState(
+				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		if ( epix_status != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Error in xc->pxlib.defineState() for record '%s'.  "
+			"Error code = %d",
+				vinput->record->name, epix_status );
+		}
+
+		epix_status = pxd_xclibEscaped(0, 0, 0);
+
+		if ( epix_status != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Error in pxd_xclibEscaped() for record '%s'.  "
+			"Error code = %d",
+				vinput->record->name, epix_status );
+		}
 
 		break;
 
@@ -903,5 +1257,5 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* OS_LINUX && HAVE_VIDEO_4_LINUX_2 */
+#endif /* OS_LINUX && HAVE_EPIX_XCLIB */
 

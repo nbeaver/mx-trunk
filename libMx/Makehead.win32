@@ -206,7 +206,7 @@ EPICS_LIBS	= $(EPICS_TOP)\\base\\lib\\$(EPICS_ARCH)\\ca.lib \
 # Note: EPICS and EPIX are unrelated.  The names are just a coincidence.
 #
 EPIX_XCLIB_DIR      = c:\\XCLIB
-EPIX_XCLIB_INCLUDES = -I$(EPIX_XCLIB_DIR)
+EPIX_XCLIB_INCLUDES = -I$(EPIX_XCLIB_DIR) -DIS_MX_DRIVER
 EPIX_XCLIB_LIBS     = $(EPIX_XCLIB_DIR)\\XCLIBWNT.lib
 
 #

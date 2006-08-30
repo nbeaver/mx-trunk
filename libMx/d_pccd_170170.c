@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG	TRUE
+#define MXD_PCCD_170170_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -256,7 +256,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: Successfully took frame using area detector '%s'.",
+	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
 		fname, ad->record->name ));
 #endif
 

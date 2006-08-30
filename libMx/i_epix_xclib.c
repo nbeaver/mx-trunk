@@ -137,14 +137,28 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	/* Display some statistics. */
 
 	MX_DEBUG(-2,("%s: Library Id = '%s'", fname, pxd_infoLibraryId() ));
+
 	MX_DEBUG(-2,("%s: Include Id = '%s'", fname, pxd_infoIncludeId() ));
+
 	MX_DEBUG(-2,("%s: Driver Id  = '%s'", fname, pxd_infoDriverId() ));
+
 	MX_DEBUG(-2,("%s: Image frame buffer memory size = %lu bytes",
 					fname, pxd_infoMemsize(-1) ));
-	MX_DEBUG(-2,("%s: Image frame buffers = %d",
+
+	MX_DEBUG(-2,("%s: Number of boards = %d", fname, pxd_infoUnits() ));
+
+	MX_DEBUG(-2,("%s: Number of frame buffers per board= %d",
 					fname, pxd_imageZdim() ));
-	MX_DEBUG(-2,("%s: Number of boards = %d",
-					fname, pxd_infoUnits() ));
+
+	MX_DEBUG(-2,("%s: X dimension = %d, Y dimension = %d",
+				fname, pxd_imageXdim(), pxd_imageYdim() ));
+
+	MX_DEBUG(-2,("%s: %d bits per pixel component",
+					fname, pxd_imageBdim() ));
+
+	MX_DEBUG(-2,("%s: %d components per pixel", fname, pxd_imageCdim() ));
+
+	MX_DEBUG(-2,("%s: %d fields per frame buffer", fname, pxd_imageIdim()));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
