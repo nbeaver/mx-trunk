@@ -18,9 +18,9 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG	FALSE
+#define MXD_EPIX_XCLIB_DEBUG	TRUE
 
-#define USE_CLCCSE_REGISTER	TRUE
+#define USE_CLCCSE_REGISTER	FALSE
 
 #include <stdio.h>
 
@@ -300,10 +300,88 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 {
 	static const char fname[] = "mxd_epix_xclib_internal_trigger()";
 
+	unsigned int exsync_mode, princ_mode, mask;
+	unsigned int epcd, trigneg, exps, cnts, tis;
+	int epix_status;
+	char error_message[80];
+
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-			fname, vinput->record->name));
+	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
+			fname, vinput->record->name, (int) trigger_on ));
 #endif
+
+	exsync_mode = pxd_getExsyncMode( epix_xclib_vinput->unitmap );
+	
+	princ_mode  = pxd_getPrincMode( epix_xclib_vinput->unitmap );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: old exsync_mode = %#x, old princ_mode = %#x",
+		fname, exsync_mode, princ_mode));
+#endif
+
+	/* Construct the parts of the new PRINC mode. */
+
+	/* Mask off the bits used by this imaging board. */
+
+	mask = 0x397;	/* Bits 9-7, 4, 2-0 */
+
+	princ_mode &= ~mask;
+
+	/* Bits 9-7, EPCD, Exposure Pixel Clock Divide. */
+
+	epcd = 0x7 << 7;     /* Pixel clock divide by 512. */
+
+	princ_mode |= epcd;
+
+	/* Bit 4, TRIGNEG, Trigger Input Polarity Select. */
+
+	trigneg = 0x0 << 4;  /* Trigger on positive edge. */
+
+	princ_mode |= trigneg;
+
+	/* Bit 2, EXPS, EXSYNC Polarity Select. */
+
+	exps = 0x0 << 2;     /* Negative CC1 pulse. */
+
+	princ_mode |= exps;
+
+	/* Bit 1, CNTS, Continuous Select. */
+
+	cnts = 0x0 << 1;     /* One shot mode. */
+
+	princ_mode |= cnts;
+
+	/* Bit 0, TIS, Trigger Input Select. */
+
+	tis = 0x0;           /* Ignore external trigger. */
+
+	if ( ( tis != 0 ) & ( cnts == 0 ) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The combination of TIS=1 and CNTS=0 in the PRINC trigger "
+		"control register is not supported for video input '%s'.",
+			vinput->record->name );
+	}	
+
+	princ_mode |= tis;
+	
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: new exsync_mode = %#x, new princ_mode = %#x",
+		fname, exsync_mode, princ_mode));
+#endif
+
+	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
+						exsync_mode, princ_mode );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"pxd_setExsyncPrincMode( %#x, %#x, %#x ) failed.  %s",
+			epix_xclib_vinput->unitmap, exsync_mode, princ_mode,
+			error_message );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -320,8 +398,8 @@ mxd_epix_xclib_external_trigger( MX_VIDEO_INPUT *vinput,
 	static const char fname[] = "mxd_epix_xclib_external_trigger()";
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-			fname, vinput->record->name));
+	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
+			fname, vinput->record->name, (int) trigger_on ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -521,6 +599,22 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: video field count = %lu",
 		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
+#endif
+
+#if ( USE_CLCCSE_REGISTER == FALSE )
+	epix_status = pxd_setExsyncPrin( epix_xclib_vinput->unitmap,
+						65535, 65535 );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to send an EXSYNC pulse for "
+			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
 #endif
 
 	switch( sq->sequence_type ) {
