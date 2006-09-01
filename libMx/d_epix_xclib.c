@@ -20,7 +20,7 @@
 
 #define MXD_EPIX_XCLIB_DEBUG	TRUE
 
-#define USE_CLCCSE_REGISTER	FALSE
+#define USE_CLCCSE_REGISTER	TRUE
 
 #include <stdio.h>
 

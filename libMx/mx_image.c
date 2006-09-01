@@ -261,9 +261,11 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	for ( i = 0; i < frame->image_length; i += src_step ) {
 
-#if 0
-		if ( i >= 50 )
+#if 1
+		if ( i >= 50 ) {
+			MX_DEBUG(-2,("%s: aborting early", fname));
 			break;
+		}
 #endif
 
 		converter_fn( &src[i], dest );
