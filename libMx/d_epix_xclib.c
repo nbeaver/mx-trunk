@@ -28,6 +28,8 @@
 
 #if HAVE_EPIX_XCLIB
 
+#include <stdlib.h>
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_image.h"
@@ -142,8 +144,9 @@ mxd_epix_xclib_camera_link_set_line( MX_VIDEO_INPUT *vinput,
 
 	if ( xc == NULL ) {
 		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The XCLIB library has not yet been initialized with "
-		"pxd_PIXCIopen() for video input '%s'.", vinput->record->name );
+		"The XCLIB library has not yet been initialized "
+		"for video input '%s' with pxd_PIXCIopen().",
+			vinput->record->name );
 	}
 
 	xclib_InitVidStateStructs(vidstate);
@@ -591,10 +594,10 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: starting buffer count = %d",
-		fname, pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,
+		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
 
-	MX_DEBUG(-2,("%s: video fields per frame = %lu",
+	MX_DEBUG(-2,("%s: video fields per frame = %d",
 		fname, pxd_videoFieldsPerFrame() ));
 
 	MX_DEBUG(-2,("%s: video field count = %lu",
@@ -844,7 +847,7 @@ mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: busy = %d, field count = %lu, last buffer = %d",
 		fname, vinput->busy,
 		pxd_videoFieldCount( epix_xclib_vinput->unitmap ),
-		pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
+		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
 #endif
 
 #if 0
@@ -1040,7 +1043,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: reading a %lu byte image frame.",
-				fname, (*frame)->image_length ));
+			fname, (unsigned long) (*frame)->image_length ));
 #endif
 
 	if ( image_format == MXT_IMAGE_FORMAT_GREY16 ) {
@@ -1070,21 +1073,22 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"An error occurred while reading a %lu byte image frame "
 		"from video input '%s'.  Error = '%s'.",
-			(*frame)->image_length, vinput->record->name,
-			error_message );
+			(unsigned long) (*frame)->image_length,
+			vinput->record->name, error_message );
 	} else
 	if ( result < (*frame)->image_length ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"Read only %ld bytes from video input '%s' when we were "
 		"expecting to read %lu bytes.",
 			result, vinput->record->name,
-			(*frame)->image_length );
+			(unsigned long) (*frame)->image_length );
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,
 	("%s: successfully read a %lu byte image frame from video input '%s'.",
-		fname, (*frame)->image_length, vinput->record->name ));
+		fname, (unsigned long) (*frame)->image_length,
+		vinput->record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1266,8 +1270,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		if ( xc == NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The XCLIB library has not yet been initialized with "
-		"pxd_PIXCIopen() for video input '%s'.", vinput->record->name );
+			"The XCLIB library has not yet been initialized "
+			"for video input '%s' with pxd_PIXCIopen().",
+				vinput->record->name );
 		}
 
 		xclib_InitVidStateStructs(vidstate);

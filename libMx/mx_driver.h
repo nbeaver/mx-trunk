@@ -78,6 +78,7 @@
 #define MXI_MMIO			8
 #define MXI_MODBUS			9
 #define MXI_USB				10
+#define MXI_CAMERA_LINK			11
 
 /* --- Device classes --- */
 
@@ -238,6 +239,9 @@
 #define MXI_MOD_SERIAL_RTU		701
 
 #define MXI_USB_LIBUSB			800
+
+#define MXI_CL_MINIMAL			900
+#define MXI_CL_EPIX_XCLIB		901
 
 /* --- Analog input types --- */
 
@@ -632,15 +636,15 @@
 
 #define MXT_VIN_SOFTWARE		220001
 #define MXT_VIN_NETWORK			220002
-#define MXT_VIN_V4L2			220003
-#define MXT_VIN_EPIX_XCLIB		220004
+#define MXT_VIN_FILE			220003
+#define MXT_VIN_V4L2			220004
+#define MXT_VIN_EPIX_XCLIB		220005
 
 /* --- Video output types --- */
 
 #define MXT_VOU_SOFTWARE		230001
 #define MXT_VOU_NETWORK			230002
 #define MXT_VOU_V4L2			230003
-#define MXT_VOU_MX_WINDOW		230004
 
 /* --- Area detector types --- */
 

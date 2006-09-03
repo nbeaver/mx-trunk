@@ -65,6 +65,8 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"usb",            0, MXI_USB,            MXR_INTERFACE,
 				NULL, NULL, NULL, NULL, NULL},
+{"camera_link",    0, MXI_CAMERA_LINK,    MXR_INTERFACE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* =================== Device classes =================== */
 

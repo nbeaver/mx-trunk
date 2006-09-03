@@ -38,6 +38,7 @@
 #include "mx_vme.h"
 #include "mx_modbus.h"
 #include "mx_usb.h"
+#include "mx_camera_link.h"
 
 #if HAVE_TCPIP
 #include "mx_socket.h"
