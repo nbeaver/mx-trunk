@@ -144,6 +144,8 @@
 
 #include "i_modbus_serial_rtu.h"
 
+#include "i_epix_camera_link.h"
+
 #include "i_pdi40.h"
 #include "i_pdi45.h"
 #include "i_8255.h"
@@ -972,6 +974,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_panasonic_kx_dp702_rfield_def_ptr},
 
 #if HAVE_EPIX_XCLIB
+{"epix_camera_link", MXI_CL_EPIX_XCLIB,   MXI_CAMERA_LINK,  MXR_INTERFACE,
+				&mxi_epix_camera_link_record_function_list,
+				NULL,
+				NULL,
+				&mxi_epix_camera_link_num_record_fields,
+				&mxi_epix_camera_link_rfield_def_ptr},
 {"epix_xclib",     MXI_GEN_EPIX_XCLIB,    MXI_GENERIC,       MXR_INTERFACE,
 				&mxi_epix_xclib_record_function_list,
 				NULL,

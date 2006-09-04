@@ -27,30 +27,15 @@
 #  define HAVE_CAMERA_LINK	FALSE
 #endif
 
-#if HAVE_CAMERA_LINK
+#if HAVE_CAMERA_LINK && defined(IS_MX_DRIVER)
 
-/* Data types for Camera Link functions. */
+/* If your Camera Link based system does not include the standard
+ * Camera Link API, then include the following header file.
+ */
 
-#define hSerRef		void *
-#define INT32		int32_t
-#define UINT32		uint32_t
-#define INT8		char
-
-/* Status codes for Camera Link. */
-
-#define CL_ERR_NO_ERR			0
-#define CL_ERR_BUFFER_TOO_SMALL		(-10001)
-#define CL_ERR_MANU_DOES_NOT_EXIST	(-10002)
-#define CL_ERR_PORT_IN_USE		(-10003)
-#define CL_ERR_TIMEOUT			(-10004)
-#define CL_ERR_INVALID_INDEX		(-10005)
-#define CL_ERR_INVALID_REFERENCE	(-10006)
-#define CL_ERR_ERROR_NOT_FOUND		(-10007)
-#define CL_ERR_BAUD_RATE_NOT_SUPPORTED	(-10008)
-#define CL_ERR_OUT_OF_MEMORY		(-10009)
-
-#define CL_ERR_UNABLE_TO_LOAD_DLL	(-10098)
-#define CL_ERR_FUNCTION_NOT_FOUND	(-10099)
+#if 1
+#include "mx_camera_link_api.h"
+#endif
 
 /*------------------------------------------------------------------------*/
 
@@ -130,21 +115,21 @@ typedef struct {
 	 * I find surprising.
 	 */
 
-	mx_status_type ( *set_cc_signal ) ( MX_RECORD *cl_record,
+	mx_status_type ( *set_cc_signal ) ( MX_CAMERA_LINK *camera_link,
 					unsigned long cc_signal_number,
 					unsigned long cc_signal_value );
 } MX_CAMERA_LINK_API_LIST;
-
-#endif /* HAVE_CAMERA_LINK */
-
-/* ============== Interface function prototypes. ============== */
-
-/* NOTE: The following prototypes use MX style function signatures. */
 
 MX_API mx_status_type mx_camera_link_get_pointers( MX_RECORD *cl_record,
 		                        MX_CAMERA_LINK **camera_link,
 		                        MX_CAMERA_LINK_API_LIST **api_ptr,
 		                        const char *calling_fname );
+
+#endif /* HAVE_CAMERA_LINK && defined(IS_MX_DRIVER) */
+
+/* ============== Interface function prototypes. ============== */
+
+/* NOTE: The following prototypes use MX style function signatures. */
 
 MX_API mx_status_type mx_camera_link_open( MX_RECORD *cl_record );
 
@@ -163,7 +148,7 @@ MX_API mx_status_type mx_camera_link_get_manufacturer_info(
 						unsigned long *version );
 
 MX_API mx_status_type mx_camera_link_get_num_bytes_avail( MX_RECORD *cl_record,
-						unsigned long *num_bytes );
+						size_t *num_bytes );
 
 MX_API mx_status_type mx_camera_link_get_num_ports( unsigned long *num_ports );
 
@@ -185,6 +170,10 @@ MX_API mx_status_type mx_camera_link_get_serial_port_identifier(
 MX_API mx_status_type mx_camera_link_get_supported_baud_rates(
 						MX_RECORD *cl_record,
 						unsigned long *baud_rates );
+
+MX_API mx_status_type mx_camera_link_serial_close( MX_RECORD *cl_record );
+
+MX_API mx_status_type mx_camera_link_serial_init( MX_RECORD *cl_record );
 
 MX_API mx_status_type mx_camera_link_serial_read( MX_RECORD *cl_record,
 						char *buffer,

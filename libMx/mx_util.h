@@ -72,6 +72,14 @@
 
 #define MX_API_PRIVATE		MX_API
 
+/*-----*/
+
+#if defined(OS_WIN32)
+#   define MX_STDCALL	__stdcall
+#else
+#   define MX_STDCALL
+#endif
+
 /*------------------------------------------------------------------------*/
 
 #if (_MSC_VER >= 1400)		/* Visual C++ 2005 Express and above. */
