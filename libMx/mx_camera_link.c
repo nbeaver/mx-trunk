@@ -27,10 +27,7 @@
 #include "mx_driver.h"
 #include "mx_camera_link.h"
 
-MX_RECORD_FIELD_DEFAULTS mytest[] = {
-	MX_RECORD_STANDARD_FIELDS,
-	MX_CAMERA_LINK_STANDARD_FIELDS
-};
+#if HAVE_CAMERA_LINK
 
 MX_EXPORT mx_status_type
 mx_camera_link_get_pointers( MX_RECORD *cl_record,
@@ -564,4 +561,5 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#endif /* HAVE_CAMERA_LINK */
 
