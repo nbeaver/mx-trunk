@@ -967,6 +967,7 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 	int limit_hit;
 	long i, j, count;
 	unsigned long sleep_time;
+	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -1004,6 +1005,21 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 
 	sleep_time = mx_round( 1000.0 *
 			mx_quick_scan_get_measurement_time(quick_scan) );
+
+	/* Is fast mode already on?  If not, then arrange for it to be
+	 * turned on after the first measurement.
+	 */
+
+	mx_status = mx_get_fast_mode( scan->record, &fast_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( fast_mode ) {
+		start_fast_mode = FALSE;
+	} else {
+		start_fast_mode = TRUE;
+	}
 
 	/* Start the motors. */
 
@@ -1133,6 +1149,17 @@ mxs_joerger_quick_scan_execute_scan_body( MX_SCAN *scan )
 		}
 		fprintf(stderr, "\n" );
 #endif
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = mx_set_fast_mode( scan->record, TRUE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			start_fast_mode = FALSE;
+		}
+
 		/* Record the fact that we have completed the next measurement
 		 * and then wait for the requested dwell time.
 		 */

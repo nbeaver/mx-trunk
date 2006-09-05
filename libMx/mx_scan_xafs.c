@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -448,10 +448,7 @@ mxs_xafs_scan_prepare_for_scan_start( MX_SCAN *scan )
 	if ( status.code != MXE_SUCCESS )
 		return status;
 
-	/* Perform standard scan startup operations.
-	 *
-	 * Among other things, this turns on 'fast mode'.
-	 */
+	/* Perform standard scan startup operations. */
 
 	status = mx_standard_prepare_for_scan_start( scan );
 

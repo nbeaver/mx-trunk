@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -466,10 +466,7 @@ mxs_list_scan_prepare_for_scan_start( MX_SCAN *scan )
 			return mx_status;
 	}
 
-	/* Perform standard scan startup operations.
-	 *
-	 * Among other things, this turns on 'fast mode'.
-	 */
+	/* Perform standard scan startup operations. */
 
 	mx_status = mx_standard_prepare_for_scan_start( scan );
 
@@ -523,6 +520,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 	double x_motor_position;
 	long j, k;
 	int get_position;
+	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * );
 	mx_status_type (*get_next_measurement_parameters_fptr)
 						( MX_SCAN *, MX_LIST_SCAN * );
@@ -566,6 +564,21 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"'close_list' function pointer for scan record '%s' is NULL.",
 			scan->record->name );
+	}
+
+	/* Is fast mode already on?  If not, then arrange for it to be 
+	 * turned on after the first measurement.
+	 */
+
+	mx_status = mx_get_fast_mode( scan->record, &fast_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( fast_mode ) {
+		start_fast_mode = FALSE;
+	} else {
+		start_fast_mode = TRUE;
 	}
 
 	/* Now step through all the positions in the position list. */
@@ -801,6 +814,17 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = mx_set_fast_mode( scan->record, TRUE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			start_fast_mode = FALSE;
+		}
 	}
 
 	/* Close the position list without ignoring the returned status. */

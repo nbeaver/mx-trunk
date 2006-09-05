@@ -829,7 +829,7 @@ mx_standard_prepare_for_scan_start( MX_SCAN *scan )
 		return mx_status;
 
 	/* Make sure all of the dark current values are up to date
-	 * before turning on 'fast mode'.
+	 * before starting the scan.
 	 */
 
 	mx_status = mx_update_dark_currents( scan );
@@ -837,12 +837,19 @@ mx_standard_prepare_for_scan_start( MX_SCAN *scan )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0	/* The new policy is that fast mode should be turned on between
+	 * the first and second steps of a step scan, rather than before
+	 * the first step.  It should not be turned on for MCS quick
+	 * scans at all.
+	 */
+
 	/* ==== Put all MX servers into fast mode. ==== */
 
 	mx_status = mx_set_fast_mode( scan->record, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -877,7 +884,7 @@ mx_standard_cleanup_after_scan_end( MX_SCAN *scan )
 
 	datafile_close_status = mx_datafile_close( &(scan->datafile) );
 
-	/* Turn off fast mode in the MX servers. */
+	/* Turn off fast mode in the MX servers in case it was set. */
 
 	(void) mx_set_fast_mode( scan->record, FALSE );
 

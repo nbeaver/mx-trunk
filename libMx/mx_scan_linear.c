@@ -670,6 +670,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 	double x_motor_position;
 	long i, j, k, array_index, num_dimension_steps, new_dimension_level;
 	int get_position;
+	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type mx_status, mx_status2;
 
 	array_index = scan->num_independent_variables - dimension_level - 1;
@@ -703,6 +704,21 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		}
 	} else {
 		/** At bottom level of independent variables. **/
+
+		/* Is fast mode already on?  If not, then arrange for it
+		 * to be turned on after the first measurement.
+		 */
+
+		mx_status = mx_get_fast_mode( scan->record, &fast_mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( fast_mode ) {
+			start_fast_mode = FALSE;
+		} else {
+			start_fast_mode = TRUE;
+		}
 
 		MX_DEBUG( 2,
 		("%s: At bottom level of independent variables.", fname ));
@@ -961,6 +977,18 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			/* If needed, start fast mode. */
+
+			if ( start_fast_mode ) {
+				mx_status = 
+					mx_set_fast_mode( scan->record, TRUE);
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				start_fast_mode = FALSE;
+			}
 		}
 
 		(scan->plot.section_number)++;
