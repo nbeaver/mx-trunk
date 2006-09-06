@@ -23,9 +23,21 @@
 
 #if HAVE_EPIX_XCLIB
 #  define HAVE_CAMERA_LINK	TRUE
+
+   /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
+
+#  if defined(OS_WIN32)
+#     define MX_CLCALL		__cdecl
+#  else
+#     define MX_CLCALL
+#  endif
+
 #else
 #  define HAVE_CAMERA_LINK	FALSE
+#  define MX_CLCALL
 #endif
+
+/*---*/
 
 #if HAVE_CAMERA_LINK && defined(IS_MX_DRIVER)
 

@@ -24,6 +24,10 @@
 
 #include <stdlib.h>
 
+#if defined(OS_WIN32)
+#   include <windows.h>
+#endif
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
@@ -333,7 +337,7 @@ mxi_epix_camera_link_close( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-MX_EXPORT INT32 MX_STDCALL
+MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_get_num_bytes_avail( hSerRef serial_ref,
 					UINT32 *num_bytes )
 {
@@ -379,7 +383,7 @@ mxi_epix_camera_link_get_num_bytes_avail( hSerRef serial_ref,
 	return CL_ERR_NO_ERR;
 }
 
-MX_EXPORT void MX_STDCALL
+MX_EXPORT void MX_CLCALL
 mxi_epix_camera_link_serial_close( hSerRef serial_ref )
 {
 	static const char fname[] = "mxi_epix_camera_link_serial_close()";
@@ -407,7 +411,7 @@ mxi_epix_camera_link_serial_close( hSerRef serial_ref )
 	return;
 }
 
-MX_EXPORT INT32 MX_STDCALL
+MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_serial_init( UINT32 serial_index, hSerRef *serial_ref_ptr )
 {
 	static const char fname[] = "mxi_epix_camera_link_serial_init()";
@@ -486,7 +490,7 @@ mxi_epix_camera_link_serial_init( UINT32 serial_index, hSerRef *serial_ref_ptr )
 	return CL_ERR_INVALID_INDEX;
 }
 
-MX_EXPORT INT32 MX_STDCALL
+MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 				UINT32 *num_bytes, UINT32 serial_timeout )
 {
@@ -629,7 +633,7 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 	return CL_ERR_NO_ERR;
 }
 
-MX_EXPORT INT32 MX_STDCALL
+MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 				UINT32 *num_bytes, UINT32 serial_timeout )
 {
@@ -763,7 +767,7 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 	return CL_ERR_NO_ERR;
 }
 
-MX_EXPORT INT32 MX_STDCALL
+MX_EXPORT INT32 MX_CLCALL
 mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 {
 	static const char fname[] = "mxi_epix_camera_link_set_baud_rate()";

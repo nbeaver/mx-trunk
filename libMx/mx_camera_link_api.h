@@ -43,31 +43,31 @@
 
 /* Camera Link function prototypes. */
 
-MX_API INT32 MX_STDCALL clFlushPort( hSerRef serialRef );
-MX_API INT32 MX_STDCALL clGetErrorText( const INT8* manuName, INT32 errorCode,
+MX_API INT32 MX_CLCALL clFlushPort( hSerRef serialRef );
+MX_API INT32 MX_CLCALL clGetErrorText( const INT8* manuName, INT32 errorCode,
 				INT8 *errorText, UINT32 *errorTextSize );
-MX_API INT32 MX_STDCALL clGetManufacturerInfo( INT8 *ManufacturerName,
+MX_API INT32 MX_CLCALL clGetManufacturerInfo( INT8 *ManufacturerName,
 				UINT32 *bufferSize, UINT32 *version );
-MX_API INT32 MX_STDCALL clGetNumBytesAvail( hSerRef serialRef,
+MX_API INT32 MX_CLCALL clGetNumBytesAvail( hSerRef serialRef,
 				UINT32 *numBytes );
-MX_API INT32 MX_STDCALL clGetNumPorts( UINT32 *numPorts );
-MX_API INT32 MX_STDCALL clGetNumSerialPorts( UINT32 *numSerialPorts );
-MX_API INT32 MX_STDCALL clGetPortInfo( UINT32 serialIndex,
+MX_API INT32 MX_CLCALL clGetNumPorts( UINT32 *numPorts );
+MX_API INT32 MX_CLCALL clGetNumSerialPorts( UINT32 *numSerialPorts );
+MX_API INT32 MX_CLCALL clGetPortInfo( UINT32 serialIndex,
 				INT8 *manufacturerName, UINT32 *nameBytes,
 				INT8 *portID, UINT32 *IDBytes,
 				UINT32 *version );
-MX_API INT32 MX_STDCALL clGetSerialPortIdentifier( UINT32 serialIndex,
+MX_API INT32 MX_CLCALL clGetSerialPortIdentifier( UINT32 serialIndex,
 				INT8 *portID, UINT32 *bufferSize );
-MX_API INT32 MX_STDCALL clGetSupportedBaudRates( hSerRef serialRef,
+MX_API INT32 MX_CLCALL clGetSupportedBaudRates( hSerRef serialRef,
 				UINT32 *baudRates );
-MX_API void  MX_STDCALL clSerialClose( hSerRef serialRef );
-MX_API INT32 MX_STDCALL clSerialInit( UINT32 serialIndex,
+MX_API void  MX_CLCALL clSerialClose( hSerRef serialRef );
+MX_API INT32 MX_CLCALL clSerialInit( UINT32 serialIndex,
 				hSerRef *serialRefPtr );
-MX_API INT32 MX_STDCALL clSerialRead( hSerRef serialRef, INT8 *buffer,
+MX_API INT32 MX_CLCALL clSerialRead( hSerRef serialRef, INT8 *buffer,
 				UINT32 *numBytes, UINT32 SerialTimeout );
-MX_API INT32 MX_STDCALL clSerialWrite( hSerRef serialRef, INT8 *buffer,
+MX_API INT32 MX_CLCALL clSerialWrite( hSerRef serialRef, INT8 *buffer,
 				UINT32 *numBytes, UINT32 SerialTimeout );
-MX_API INT32 MX_STDCALL clSetBaudRate( hSerRef serialRef, UINT32 baudRate );
+MX_API INT32 MX_CLCALL clSetBaudRate( hSerRef serialRef, UINT32 baudRate );
 
 #endif /* __MX_CAMERA_LINK_API_H__ */
 
