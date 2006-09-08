@@ -3166,12 +3166,16 @@ MX_DRIVER mx_type_list[] = {
 
 #endif /* HAVE_EPIX_XCLIB */
 
+#if HAVE_CAMERA_LINK
+
 {"pccd_170170",    MXT_AD_PCCD_170170, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_pccd_170170_record_function_list,
 				NULL,
 				NULL,
 				&mxd_pccd_170170_num_record_fields,
 				&mxd_pccd_170170_rfield_def_ptr},
+
+#endif /* HAVE_CAMERA_LINK */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

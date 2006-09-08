@@ -29,6 +29,8 @@
 
 /*---*/
 
+#if HAVE_CAMERA_LINK
+
 MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	NULL,
 	mxd_pccd_170170_create_record_structures,
@@ -701,4 +703,6 @@ mxd_pccd_170170_read_adc( MX_PCCD_170170 *pccd_170170,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* HAVE_CAMERA_LINK */
 
