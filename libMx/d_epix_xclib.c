@@ -970,6 +970,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: bytes_per_image = %ld", fname, bytes_per_image));
+
+	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
 #endif
 
 	/* At this point, we either reuse an existing MX_IMAGE_FRAME
@@ -978,6 +980,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 
 	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
 
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
+#endif
 		/* Allocate a new MX_IMAGE_FRAME. */
 
 		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
@@ -1004,6 +1009,13 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 
 	/* See if the image buffer is already big enough for the image. */
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
+		fname, (*frame)->image_data));
+	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_image = %lu",
+		fname, (*frame)->image_length, bytes_per_image));
+#endif
+
 	if ( ( (*frame)->image_data != NULL )
 	  && ( (*frame)->image_length >= bytes_per_image ) )
 	{
@@ -1012,6 +1024,11 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 		("%s: The image buffer is already big enough.", fname));
 #endif
 	} else {
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
+			fname, bytes_per_image));
+#endif
 		/* If not, then allocate a new one. */
 
 		if ( (*frame)->image_data != NULL ) {

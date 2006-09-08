@@ -114,6 +114,10 @@
 #include "i_vxworks_rs232.h"
 #endif
 
+#if HAVE_CAMERA_LINK
+#include "i_camera_link_rs232.h"
+#endif
+
 #if HAVE_TCPIP
 #include "i_tcp232.h"
 #include "i_modbus_tcp.h"
@@ -632,6 +636,15 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_vxworks_rs232_num_record_fields,
 				&mxi_vxworks_rs232_rfield_def_ptr},
 #endif /* OS_VXWORKS */
+
+#if HAVE_CAMERA_LINK
+{"camera_link_rs232", MXI_232_CAMERA_LINK, MXI_RS232,    MXR_INTERFACE,
+				&mxi_camera_link_rs232_record_function_list,
+				NULL,
+				&mxi_camera_link_rs232_rs232_function_list,
+				&mxi_camera_link_rs232_num_record_fields,
+				&mxi_camera_link_rs232_rfield_def_ptr},
+#endif
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,

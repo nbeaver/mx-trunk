@@ -539,6 +539,11 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 		bytes_available =
 		   pxd_serialRead(port->epix_camera_link->unitmap, 0, NULL, 0);
 
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+		MX_DEBUG(-2,("%s: bytes_available = %ld",
+			fname, bytes_available));
+#endif
+
 		if ( bytes_available < 0 ) {
 			mxi_epix_xclib_error_message(
 				port->epix_camera_link->unitmap,
@@ -576,9 +581,14 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 		/* Read as many characters as we can.*/
 
 		if ( bytes_to_read > 0 ) {
-			bytes_read = pxd_serialWrite(
+			bytes_read = pxd_serialRead(
 					port->epix_camera_link->unitmap, 0,
 					read_ptr, bytes_to_read );
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+			MX_DEBUG(-2,("%s: pxd_serialRead() bytes_read = %ld",
+				fname, bytes_read));
+#endif
 
 			if ( bytes_read < 0 ) {
 				mxi_epix_xclib_error_message(
@@ -593,6 +603,17 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 
 				return CL_ERR_ERROR_NOT_FOUND;
 			}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+			{
+				int i;
+
+				for ( i = 0; i < bytes_read; i++ ) {
+					MX_DEBUG(-2,("%s: read_ptr[%d] = %#x",
+						fname, i, read_ptr[i]));
+				}
+			}
+#endif
 
 			bytes_left -= bytes_read;
 
@@ -655,7 +676,17 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 	port = serial_ref;
 
 #if MXI_EPIX_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+	MX_DEBUG(-2,
+		("%s invoked for record '%s'.", fname, port->record->name));
+
+	{
+		int i;
+
+		for ( i = 0; i < *num_bytes; i++ ) {
+			MX_DEBUG(-2,("%s: buffer[%d] = %#x",
+				fname, i, buffer[i]));
+		}
+	}
 #endif
 
 	/* Compute the timeout time in high resolution time units. */
@@ -679,8 +710,14 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 	for (;;) {
 		/* How many bytes can be written without blocking? */
 
-		transmit_buffer_available_space =
-		   pxd_serialWrite(port->epix_camera_link->unitmap, 0, NULL, 0);
+		transmit_buffer_available_space = pxd_serialWrite(
+					port->epix_camera_link->unitmap,
+					0, NULL, 0);
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+		MX_DEBUG(-2,("%s: transmit_buffer_available_space = %ld",
+			fname, transmit_buffer_available_space));
+#endif
 
 		if ( transmit_buffer_available_space < 0 ) {
 			mxi_epix_xclib_error_message(
@@ -714,6 +751,10 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 					port->epix_camera_link->unitmap, 0,
 					write_ptr, bytes_to_write );
 
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+			MX_DEBUG(-2,("%s: pxd_serialWrite() epix_status = %d",
+				fname, epix_status));
+#endif
 			if ( epix_status < 0 ) {
 				mxi_epix_xclib_error_message(
 				port->epix_camera_link->unitmap, epix_status,

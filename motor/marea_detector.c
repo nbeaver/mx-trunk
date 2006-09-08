@@ -43,7 +43,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	mx_status_type mx_status;
 
 	static char usage[]
-		= "Usage:  area_detector 'ad_name' snap 'filename'\n";
+= "Usage:  area_detector 'ad_name' snap 'exposure_time' 'format' 'filename'\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2;
@@ -176,6 +176,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		if ( frame->header_data != NULL ) {
+			free( frame->header_data );
+		}
+		if ( frame->image_data != NULL ) {
+			free( frame->image_data );
+		}
 		free( frame );
 	} else {
 		/* Unrecognized command. */

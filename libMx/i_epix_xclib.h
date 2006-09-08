@@ -40,7 +40,6 @@ MX_API char *mxi_epix_xclib_error_message( int unitmap,
 					char *buffer,
 					size_t buffer_length );
 
-
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 
 extern long mxi_epix_xclib_num_record_fields;

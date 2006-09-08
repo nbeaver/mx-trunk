@@ -848,7 +848,8 @@ mx_rs232_putline( MX_RECORD *record,
 
 	MX_RS232 *rs232;
 	MX_RS232_FUNCTION_LIST *fl_ptr;
-	mx_status_type (*fptr)( MX_RS232 *, char *, size_t * );
+	mx_status_type (*putline_fn)( MX_RS232 *, char *, size_t * );
+	mx_status_type (*write_fn)( MX_RS232 *, char *, size_t, size_t * );
 	char *array;
 	int i, length, buffered_io;
 	char c;
@@ -871,15 +872,54 @@ mx_rs232_putline( MX_RECORD *record,
 
 	rs232->transfer_flags = transfer_flags;
 
-	/* Does this driver have a putline function? */
+	/* Does this driver have a putline or a write function? */
 
-	fptr = fl_ptr->putline;
+	putline_fn = fl_ptr->putline;
+	write_fn   = fl_ptr->write;
 
-	if ( buffered_io && ( fptr != NULL ) ) {
+	if ( buffered_io && ( putline_fn != NULL ) ) {
 
-		/* If so, invoke it. */
+		/* If it has putline, invoke it. */
 
-		mx_status = (*fptr)( rs232, buffer, bytes_written );
+		mx_status = (*putline_fn)( rs232, buffer, bytes_written );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+	} else
+	if ( buffered_io && ( write_fn != NULL ) ) {
+
+		size_t written_1, written_2;
+
+		/* If it has write, use that to send the buffer. */
+
+		length = strlen( buffer );
+
+		mx_status = (*write_fn)( rs232, buffer, length, &written_1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If the port has write terminator characters,
+		 * send those as well.
+		 */
+
+		written_2 = 0;
+
+		if ( rs232->num_write_terminator_chars > 0 ) {
+
+			mx_status = (*write_fn)( rs232,
+					rs232->write_terminator_array,
+					rs232->num_write_terminator_chars,
+					&written_2 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( bytes_written != NULL ) {
+			*bytes_written = written_1 + written_2;
+		}
 
 	} else {
 		/* Otherwise, handle output a character at a time. */
@@ -923,6 +963,7 @@ mx_rs232_putline( MX_RECORD *record,
 				return mx_status;
 		}
 	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
