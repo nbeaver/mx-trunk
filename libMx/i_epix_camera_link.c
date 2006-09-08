@@ -182,6 +182,10 @@ mxi_epix_camera_link_open( MX_RECORD *record )
 	int i, num_ports;
 	mx_status_type mx_status;
 
+	/* Suppress GCC 4 uninitialized variable warning. */
+
+	epix_camera_link = NULL;
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );

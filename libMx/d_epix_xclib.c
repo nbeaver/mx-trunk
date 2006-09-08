@@ -1013,7 +1013,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
 		fname, (*frame)->image_data));
 	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_image = %lu",
-		fname, (*frame)->image_length, bytes_per_image));
+	    fname, (unsigned long) (*frame)->image_length, bytes_per_image));
 #endif
 
 	if ( ( (*frame)->image_data != NULL )

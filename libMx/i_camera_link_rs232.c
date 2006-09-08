@@ -134,7 +134,8 @@ mxi_camera_link_rs232_create_record_structures( MX_RECORD *record )
 		"Can't allocate memory for MX_RS232 structure." );
 	}
 
-	camera_link_rs232 = (MX_CAMERA_LINK_RS232 *) malloc( sizeof(MX_CAMERA_LINK_RS232) );
+	camera_link_rs232 =
+		(MX_CAMERA_LINK_RS232 *) malloc( sizeof(MX_CAMERA_LINK_RS232) );
 
 	if ( camera_link_rs232 == (MX_CAMERA_LINK_RS232 *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -159,7 +160,6 @@ mxi_camera_link_rs232_finish_record_initialization( MX_RECORD *record )
 	static const char fname[] =
 		"mxi_camera_link_rs232_finish_record_initialization()";
 
-	MX_RS232 *rs232;
 	mx_status_type status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
@@ -308,7 +308,8 @@ mxi_camera_link_rs232_read( MX_RS232 *rs232,
 	}
 
 #if MXI_CAMERA_LINK_RS232_DEBUG
-	MX_DEBUG(-2,("%s: max_bytes_to_read = %lu", fname, max_bytes_to_read));
+	MX_DEBUG(-2,("%s: max_bytes_to_read = %lu",
+		fname, (unsigned long) max_bytes_to_read));
 #endif
 
 	cl_buffer_size = max_bytes_to_read;

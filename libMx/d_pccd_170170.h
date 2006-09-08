@@ -62,8 +62,8 @@ MX_API mx_status_type mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mxd_pccd_170170_camera_link_command(
 					MX_PCCD_170170 *pccd_170170,
-					unsigned char *command,
-					unsigned char *response,
+					char *command,
+					char *response,
 					size_t max_response_length,
 					int debug_flag );
 

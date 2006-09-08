@@ -17,6 +17,7 @@
 #define MXD_PCCD_170170_DEBUG	TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -499,8 +500,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 MX_EXPORT mx_status_type
 mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
-					unsigned char *command,
-					unsigned char *response,
+					char *command,
+					char *response,
 					size_t max_response_length,
 					int debug_flag )
 {
@@ -528,7 +529,8 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The requested response buffer length %lu for record '%s' "
 		"is too short to hold a minimum length response.",
-			max_response_length, pccd_170170->record->name );
+			(unsigned long) max_response_length,
+			pccd_170170->record->name );
 	}
 
 	camera_link_record = pccd_170170->camera_link_record;
@@ -586,7 +588,7 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 {
 	static const char fname[] = "mxd_pccd_170170_read_register()";
 
-	unsigned char command[10], response[10];
+	char command[10], response[10];
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
@@ -628,7 +630,7 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 {
 	static const char fname[] = "mxd_pccd_170170_write_register()";
 
-	unsigned char command[10], response[10];
+	char command[10], response[10];
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
@@ -665,7 +667,7 @@ mxd_pccd_170170_read_adc( MX_PCCD_170170 *pccd_170170,
 {
 	static const char fname[] = "mxd_pccd_170170_read_adc()";
 
-	unsigned char command[10], response[10];
+	char command[10], response[10];
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
