@@ -157,7 +157,8 @@ mx_area_detector_get_framesize( MX_RECORD *record,
 	get_parameter_fn = flist->get_parameter;
 
 	if ( get_parameter_fn == NULL ) {
-		get_parameter_fn = mx_area_detector_default_get_parameter_handler;
+		get_parameter_fn = 
+			mx_area_detector_default_get_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_FRAMESIZE;
@@ -197,7 +198,8 @@ mx_area_detector_set_framesize( MX_RECORD *record,
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn = 
+			mx_area_detector_default_set_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_FRAMESIZE;
@@ -218,7 +220,7 @@ mx_area_detector_set_exposure_time( MX_RECORD *record, double exposure_time )
 	static const char fname[] = "mx_area_detector_set_exposure_time()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
@@ -231,24 +233,25 @@ mx_area_detector_set_exposure_time( MX_RECORD *record, double exposure_time )
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn = 
+			mx_area_detector_default_set_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
 
 	/* Save the parameters, which will be used the next time that
-	 * the video input "arms".
+	 * the area detector "arms".
 	 */
 
-	sq = &(ad->sequence_info);
+	sp = &(ad->sequence_parameters);
 
-	sq->sequence_type = MXT_SQ_ONE_SHOT;
+	sp->sequence_type = MXT_SQ_ONE_SHOT;
 
-	sq->num_sequence_parameters = 1;
+	sp->num_parameters = 1;
 
-	sq->sequence_parameters[0] = exposure_time;
+	sp->parameter_array[0] = exposure_time;
 
-	sq->sequence_parameters[1] = 0;
+	sp->parameter_array[1] = 0;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -261,7 +264,7 @@ mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
 	static const char fname[] = "mx_area_detector_set_continuous_mode()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
@@ -274,24 +277,25 @@ mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn = 
+			mx_area_detector_default_set_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
 
 	/* Save the parameters, which will be used the next time that
-	 * the video input "arms".
+	 * the area detector "arms".
 	 */
 
-	sq = &(ad->sequence_info);
+	sp = &(ad->sequence_parameters);
 
-	sq->sequence_type = MXT_SQ_CONTINUOUS;
+	sp->sequence_type = MXT_SQ_CONTINUOUS;
 
-	sq->num_sequence_parameters = 1;
+	sp->num_parameters = 1;
 
-	sq->sequence_parameters[0] = exposure_time;
+	sp->parameter_array[0] = exposure_time;
 
-	sq->sequence_parameters[1] = 0;
+	sp->parameter_array[1] = 0;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -299,21 +303,22 @@ mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_sequence( MX_RECORD *record,
-			MX_SEQUENCE_INFO *sequence_info )
+mx_area_detector_set_sequence_parameters( MX_RECORD *record,
+			MX_SEQUENCE_PARAMETERS *sequence_parameters )
 {
-	static const char fname[] = "mx_area_detector_set_continuous_mode()";
+	static const char fname[] =
+			"mx_area_detector_set_sequence_parameters()";
 
 	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
 	long num_parameters;
 	mx_status_type mx_status;
 
-	if ( sequence_info == (MX_SEQUENCE_INFO *) NULL ) {
+	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SEQUENCE_INFO pointer passed was NULL." );
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
 	}
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -324,20 +329,21 @@ mx_area_detector_set_sequence( MX_RECORD *record,
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
 
 	/* Save the parameters, which will be used the next time that
-	 * the video input "arms".
+	 * the area detector "arms".
 	 */
 
-	sq = &(ad->sequence_info);
+	sp = &(ad->sequence_parameters);
 
-	sq->sequence_type = sequence_info->sequence_type;
+	sp->sequence_type = sequence_parameters->sequence_type;
 
-	num_parameters = sequence_info->num_sequence_parameters;
+	num_parameters = sequence_parameters->num_parameters;
 
 	if ( num_parameters > MXU_MAX_SEQUENCE_PARAMETERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -348,9 +354,9 @@ mx_area_detector_set_sequence( MX_RECORD *record,
 			MXU_MAX_SEQUENCE_PARAMETERS );
 	}
 
-	sq->num_sequence_parameters = num_parameters;
+	sp->num_parameters = num_parameters;
 
-	memcpy( sq->sequence_parameters, sequence_info->sequence_parameters,
+	memcpy( sp->parameter_array, sequence_parameters->parameter_array,
 			num_parameters * sizeof(double) );
 
 	mx_status = (*set_parameter_fn)( ad );
@@ -635,7 +641,8 @@ mx_area_detector_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
 					long frame_number,
 					MX_IMAGE_FRAME **image_frame )
 {
-	static const char fname[] = "mx_area_detector_get_frame_from_sequence()";
+	static const char fname[] =
+			"mx_area_detector_get_frame_from_sequence()";
 
 	if ( frame_number < ( - image_sequence->num_frames ) ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,

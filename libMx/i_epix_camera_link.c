@@ -66,9 +66,7 @@ MX_CAMERA_LINK_API_LIST mxi_epix_camera_link_api_list = {
 	mxi_epix_camera_link_serial_read,
 	mxi_epix_camera_link_serial_write,
 	mxi_epix_camera_link_set_baud_rate,
-#if 0
-	mxi_epix_camera_link_set_cc_signal
-#endif
+	mxi_epix_camera_link_set_cc_line
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_epix_camera_link_record_field_defaults[] = {
@@ -821,7 +819,8 @@ mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 	int epix_status;
 	char error_message[80];
 
-	if ( serial_ref == NULL ) { return CL_ERR_INVALID_REFERENCE;
+	if ( serial_ref == NULL ) {
+		return CL_ERR_INVALID_REFERENCE;
 	}
 
 	port = serial_ref;
@@ -858,6 +857,178 @@ mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 
 		return CL_ERR_ERROR_NOT_FOUND;
 	}
+
+	return CL_ERR_NO_ERR;
+}
+
+MX_EXPORT INT32 MX_CLCALL
+mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
+					UINT32 cc_line_number,
+					UINT32 cc_line_state )
+{
+	static const char fname[] = "mxi_epix_camera_link_set_cc_line()";
+
+	char error_message[80];
+
+	MX_EPIX_CAMERA_LINK_PORT *port;
+	uint16 CLCCSE;
+	int epix_status;
+
+	struct xclibs *xc;
+	xclib_DeclareVidStateStructs(vidstate);
+
+	if ( serial_ref == NULL ) {
+		return CL_ERR_INVALID_REFERENCE;
+	}
+
+	port = serial_ref;
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: cc_line_number = %d, cc_line_state = %d",
+			fname, cc_line_number, cc_line_state));
+#endif
+
+	xc = pxd_xclibEscape(0, 0, 0);
+
+	if ( xc == NULL ) {
+		(void) mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The XCLIB library has not yet been initialized "
+		"for Camera Link interface '%s' with pxd_PIXCIopen().",
+			port->record->name );
+
+		return CL_ERR_ERROR_NOT_FOUND;
+	}
+
+	xclib_InitVidStateStructs(vidstate);
+
+	xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+	CLCCSE = vidstate.xc.dxxformat->CLCCSE;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: Old CLCCSE = %#x", fname, CLCCSE));
+#endif
+
+	switch( cc_line_state ) {
+	case 1:   /* High */
+
+		switch( cc_line_number ) {
+		case MX_CAMERA_LINK_CC1:
+			/* CC1 is controlled by bits 0 to 3. */
+
+			/* CLCCSE &= 0xfff0; */
+			CLCCSE |= 0x0001;
+			break;
+
+		case MX_CAMERA_LINK_CC2:
+			/* CC2 is controlled by bits 4 to 7. */
+
+			CLCCSE &= 0xff0f;
+			CLCCSE |= 0x0010;
+			break;
+
+		case MX_CAMERA_LINK_CC3:
+			/* CC3 is controlled by bits 8 to 11. */
+
+			CLCCSE &= 0xf0ff;
+			CLCCSE |= 0x0100;
+			break;
+
+		case MX_CAMERA_LINK_CC4:
+			/* CC4 is controlled by bits 12 to 15. */
+
+			CLCCSE &= 0x0fff;
+			CLCCSE |= 0x1000;
+			break;
+
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal Camera Link line %d was requested "
+			"for Camera Link interface '%s'.", cc_line_number,
+				port->record->name );
+
+			return CL_ERR_INVALID_INDEX;
+		}
+		break;
+
+	case 0:   /* Low */
+
+		switch( cc_line_number ) {
+		case MX_CAMERA_LINK_CC1:
+			/* CC1 is controlled by bits 0 to 3. */
+
+			CLCCSE &= 0xfff0;
+			break;
+
+		case MX_CAMERA_LINK_CC2:
+			/* CC2 is controlled by bits 4 to 7. */
+
+			CLCCSE &= 0xff0f;
+			break;
+
+		case MX_CAMERA_LINK_CC3:
+			/* CC3 is controlled by bits 8 to 11. */
+
+			CLCCSE &= 0xf0ff;
+			break;
+
+		case MX_CAMERA_LINK_CC4:
+			/* CC4 is controlled by bits 12 to 15. */
+
+			CLCCSE &= 0x0fff;
+			break;
+
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal Camera Link line %d was requested "
+			"for Camera Link interface '%s'.", cc_line_number,
+				port->record->name );
+
+			return CL_ERR_INVALID_INDEX;
+		}
+		break;
+
+	default:
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal line state %d was requested for Camera Link line CC%d "
+		"of Camera Link interface '%s'.",
+			cc_line_state, cc_line_number,
+			port->record->name );
+
+		return CL_ERR_ERROR_NOT_FOUND;
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: New CLCCSE = %#x", fname, CLCCSE));
+#endif
+
+	vidstate.xc.dxxformat->CLCCSE = CLCCSE;
+
+	epix_status = xc->pxlib.defineState(
+				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+	if ( epix_status != 0 ) {
+		(void) mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in xc->pxlib.defineState() for record '%s'.  "
+		"Error code = %d", port->record->name, epix_status );
+
+		return CL_ERR_ERROR_NOT_FOUND;
+	}
+
+	epix_status = pxd_xclibEscaped(0, 0, 0);
+
+	if ( epix_status != 0 ) {
+		(void) mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in pxd_xclibEscaped() for record '%s'.  "
+		"Error code = %d", port->record->name, epix_status );
+
+		return CL_ERR_ERROR_NOT_FOUND;
+	}
+
 
 	return CL_ERR_NO_ERR;
 }

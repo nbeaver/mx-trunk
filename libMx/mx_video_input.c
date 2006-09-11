@@ -216,7 +216,7 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 	static const char fname[] = "mx_video_input_set_exposure_time()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
@@ -238,17 +238,17 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 	 * the video input "arms".
 	 */
 
-	sq = &(vinput->sequence_info);
+	sp = &(vinput->sequence_parameters);
 
-	MX_DEBUG(-2,("%s: sq = %p", fname, sq));
+	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 
-	sq->sequence_type = MXT_SQ_ONE_SHOT;
+	sp->sequence_type = MXT_SQ_ONE_SHOT;
 
-	sq->num_sequence_parameters = 1;
+	sp->num_parameters = 1;
 
-	sq->sequence_parameters[0] = exposure_time;
+	sp->parameter_array[0] = exposure_time;
 
-	sq->sequence_parameters[1] = 0;
+	sp->parameter_array[1] = 0;
 
 	mx_status = (*set_parameter_fn)( vinput );
 
@@ -261,7 +261,7 @@ mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
 	static const char fname[] = "mx_video_input_set_continuous_mode()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
@@ -283,15 +283,15 @@ mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
 	 * the video input "arms".
 	 */
 
-	sq = &(vinput->sequence_info);
+	sp = &(vinput->sequence_parameters);
 
-	sq->sequence_type = MXT_SQ_CONTINUOUS;
+	sp->sequence_type = MXT_SQ_CONTINUOUS;
 
-	sq->num_sequence_parameters = 1;
+	sp->num_parameters = 1;
 
-	sq->sequence_parameters[0] = exposure_time;
+	sp->parameter_array[0] = exposure_time;
 
-	sq->sequence_parameters[1] = 0;
+	sp->parameter_array[1] = 0;
 
 	mx_status = (*set_parameter_fn)( vinput );
 
@@ -299,19 +299,19 @@ mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
 }
 
 MX_EXPORT mx_status_type
-mx_video_input_set_sequence( MX_RECORD *record,
-			MX_SEQUENCE_INFO *sequence_info )
+mx_video_input_set_sequence_parameters( MX_RECORD *record,
+			MX_SEQUENCE_PARAMETERS *sequence_parameters )
 {
-	static const char fname[] = "mx_video_input_set_continuous_mode()";
+	static const char fname[] = "mx_video_input_set_sequence_parameters()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
 	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
 	long num_parameters;
 	mx_status_type mx_status;
 
-	if ( sequence_info == (MX_SEQUENCE_INFO *) NULL ) {
+	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SEQUENCE_INFO pointer passed was NULL." );
 	}
@@ -333,11 +333,11 @@ mx_video_input_set_sequence( MX_RECORD *record,
 	 * the video input "arms".
 	 */
 
-	sq = &(vinput->sequence_info);
+	sp = &(vinput->sequence_parameters);
 
-	sq->sequence_type = sequence_info->sequence_type;
+	sp->sequence_type = sequence_parameters->sequence_type;
 
-	num_parameters = sequence_info->num_sequence_parameters;
+	num_parameters = sequence_parameters->num_parameters;
 
 	if ( num_parameters > MXU_MAX_SEQUENCE_PARAMETERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -348,9 +348,9 @@ mx_video_input_set_sequence( MX_RECORD *record,
 			MXU_MAX_SEQUENCE_PARAMETERS );
 	}
 
-	sq->num_sequence_parameters = num_parameters;
+	sp->num_parameters = num_parameters;
 
-	memcpy( sq->sequence_parameters, sequence_info->sequence_parameters,
+	memcpy( sp->parameter_array, sequence_parameters->parameter_array,
 			num_parameters * sizeof(double) );
 
 	mx_status = (*set_parameter_fn)( vinput );

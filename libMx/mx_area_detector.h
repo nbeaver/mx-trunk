@@ -33,7 +33,7 @@ typedef struct {
 	mx_bool_type busy;
 	unsigned long status;
 
-	MX_SEQUENCE_INFO sequence_info;
+	MX_SEQUENCE_PARAMETERS sequence_parameters;
 } MX_AREA_DETECTOR;
 
 #define MXLV_AD_FRAMESIZE			12001
@@ -68,19 +68,19 @@ typedef struct {
   \
   {MXLV_AD_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, sequence_info.sequence_type), \
+		offsetof(MX_AREA_DETECTOR, sequence_parameters.sequence_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_NUM_SEQUENCE_PARAMETERS, -1, "num_sequence_parameters", \
+  {MXLV_AD_NUM_SEQUENCE_PARAMETERS, -1, "num_parameters", \
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-	    offsetof(MX_AREA_DETECTOR, sequence_info.num_sequence_parameters), \
+	    offsetof(MX_AREA_DETECTOR, sequence_parameters.num_parameters), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_SEQUENCE_PARAMETERS, -1, "sequence_parameters", \
+  {MXLV_AD_SEQUENCE_PARAMETERS, -1, "parameter_array", \
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, sequence_info.sequence_parameters), \
+	    offsetof(MX_AREA_DETECTOR, sequence_parameters.parameter_array), \
 	{0}, NULL, 0}
 
 
@@ -140,8 +140,9 @@ MX_API mx_status_type mx_area_detector_set_exposure_time( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
 							double exposure_time );
 
-MX_API mx_status_type mx_area_detector_set_sequence( MX_RECORD *ad_record,
-					MX_SEQUENCE_INFO *sequence_info );
+MX_API mx_status_type mx_area_detector_set_sequence_parameters(
+				MX_RECORD *ad_record,
+				MX_SEQUENCE_PARAMETERS *sequence_parameters );
 
 MX_API mx_status_type mx_area_detector_set_trigger_mode( MX_RECORD *ad_record,
 							long trigger_mode );

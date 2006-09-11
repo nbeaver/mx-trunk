@@ -17,32 +17,36 @@
 #ifndef __D_EPIX_XCLIB_H__
 #define __D_EPIX_XCLIB_H__
 
-#define MX_EPIX_XCLIB_CC1	1
-#define MX_EPIX_XCLIB_CC2	2
-#define MX_EPIX_XCLIB_CC3	3
-#define MX_EPIX_XCLIB_CC4	4
+/* Flag values for the 'epix_xclib_flags' field. */
 
-#if ( HAVE_EPIX_XCLIB && IS_MX_DRIVER )
+#define MXF_USE_CLCCSE_REGISTER    0x1
 
 typedef struct {
 	MX_RECORD *record;
 
 	long unit_number;
+	MX_RECORD *camera_link_record;
+	unsigned long epix_xclib_flags;
 
 	long unitmap;
-
-#if USE_CLCCSE_REGISTER
 	mx_bool_type generate_cc1_pulse;
-#endif
 
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 
 
-#endif /* HAVE_EPIX_XCLIB && IS_MX_DRIVER */
-
 #define MXD_EPIX_XCLIB_STANDARD_FIELDS \
   {-1, -1, "unit_number", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, unit_number), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "camera_link_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, camera_link_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "epix_xclib_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, epix_xclib_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_epix_xclib_create_record_structures(

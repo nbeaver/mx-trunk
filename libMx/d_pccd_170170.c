@@ -131,7 +131,8 @@ mxd_pccd_170170_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = 
 			&mxd_pccd_170170_function_list;
 
-	memset( &(ad->sequence_info), 0, sizeof(ad->sequence_info) );
+	memset( &(ad->sequence_parameters),
+			0, sizeof(ad->sequence_parameters) );
 
 	ad->record = record;
 	pccd_170170->record = record;
@@ -219,7 +220,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_trigger()";
 
 	MX_PCCD_170170 *pccd_170170;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -232,9 +233,9 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	sq = &(ad->sequence_info);
+	sp = &(ad->sequence_parameters);
 
-	switch( sq->sequence_type ) {
+	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		break;
 
@@ -251,7 +252,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
 			"area detector '%s'.",
-			sq->sequence_type, ad->record->name );
+			sp->sequence_type, ad->record->name );
 	}
 
 	mx_status = mx_video_input_trigger( pccd_170170->video_input_record );
@@ -487,9 +488,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETERS: 
-		mx_status = mx_video_input_set_sequence(
+		mx_status = mx_video_input_set_sequence_parameters(
 					pccd_170170->video_input_record,
-					&(ad->sequence_info) );
+					&(ad->sequence_parameters) );
 		break; 
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

@@ -34,7 +34,7 @@ typedef struct {
 	mx_bool_type busy;
 	unsigned long status;
 
-	MX_SEQUENCE_INFO sequence_info;
+	MX_SEQUENCE_PARAMETERS sequence_parameters;
 } MX_VIDEO_INPUT;
 
 #define MXLV_VIN_FRAMESIZE			11001
@@ -74,19 +74,19 @@ typedef struct {
   \
   {MXLV_VIN_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_VIDEO_INPUT, sequence_info.sequence_type), \
+		offsetof(MX_VIDEO_INPUT, sequence_parameters.sequence_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_VIN_NUM_SEQUENCE_PARAMETERS, -1, "num_sequence_parameters", \
+  {MXLV_VIN_NUM_SEQUENCE_PARAMETERS, -1, "num_parameters", \
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-	    offsetof(MX_VIDEO_INPUT, sequence_info.num_sequence_parameters), \
+	    offsetof(MX_VIDEO_INPUT, sequence_parameters.num_parameters), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_VIN_SEQUENCE_PARAMETERS, -1, "sequence_parameters", \
+  {MXLV_VIN_SEQUENCE_PARAMETERS, -1, "parameter_array", \
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_VIDEO_INPUT, sequence_info.sequence_parameters), \
+		offsetof(MX_VIDEO_INPUT, sequence_parameters.parameter_array), \
 	{0}, NULL, 0}
 
 typedef struct {
@@ -133,8 +133,9 @@ MX_API mx_status_type mx_video_input_set_exposure_time( MX_RECORD *record,
 MX_API mx_status_type mx_video_input_set_continuous_mode(MX_RECORD *record,
 							double exposure_time );
 
-MX_API mx_status_type mx_video_input_set_sequence( MX_RECORD *record,
-					MX_SEQUENCE_INFO *sequence_info );
+MX_API mx_status_type mx_video_input_set_sequence_parameters(
+				MX_RECORD *record,
+				MX_SEQUENCE_PARAMETERS *sequence_parameters );
 
 MX_API mx_status_type mx_video_input_set_trigger_mode( MX_RECORD *record,
 							long trigger_mode );

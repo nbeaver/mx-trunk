@@ -20,8 +20,6 @@
 
 #define MXD_EPIX_XCLIB_DEBUG	TRUE
 
-#define USE_CLCCSE_REGISTER	TRUE
-
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -30,14 +28,15 @@
 
 #include <stdlib.h>
 
-#include "mx_util.h"
-#include "mx_record.h"
-#include "mx_image.h"
-#include "mx_video_input.h"
-
 #if defined(OS_WIN32)
 #include <windows.h>
 #endif
+
+#include "mx_util.h"
+#include "mx_record.h"
+#include "mx_image.h"
+#include "mx_camera_link.h"
+#include "mx_video_input.h"
 
 #include "xcliball.h"
 
@@ -117,185 +116,6 @@ mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
 
 /*---*/
 
-#if USE_CLCCSE_REGISTER
-
-static mx_status_type
-mxd_epix_xclib_camera_link_set_line( MX_VIDEO_INPUT *vinput,
-				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
-				int camera_line, int line_state )
-{
-	static const char fname[] = "mxd_epix_xclib_camera_set_line()";
-
-	uint16 CLCCSE;
-	int epix_status;
-
-	struct xclibs *xc;
-	xclib_DeclareVidStateStructs(vidstate);
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-			fname, vinput->record->name));
-
-	MX_DEBUG(-2,("%s: camera_line = %d, line_state = %d",
-			fname, camera_line, line_state));
-#endif
-
-	xc = pxd_xclibEscape(0, 0, 0);
-
-	if ( xc == NULL ) {
-		return mx_error( MXE_INITIALIZATION_ERROR, fname,
-		"The XCLIB library has not yet been initialized "
-		"for video input '%s' with pxd_PIXCIopen().",
-			vinput->record->name );
-	}
-
-	xclib_InitVidStateStructs(vidstate);
-
-	xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
-
-	CLCCSE = vidstate.xc.dxxformat->CLCCSE;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: Old CLCCSE = %#x", fname, CLCCSE));
-#endif
-
-	switch( line_state ) {
-	case 1:   /* High */
-
-		switch( camera_line ) {
-		case MX_EPIX_XCLIB_CC1:
-			/* CC1 is controlled by bits 0 to 3. */
-
-			/* CLCCSE &= 0xfff0; */
-			CLCCSE |= 0x0001;
-			break;
-
-		case MX_EPIX_XCLIB_CC2:
-			/* CC2 is controlled by bits 4 to 7. */
-
-			CLCCSE &= 0xff0f;
-			CLCCSE |= 0x0010;
-			break;
-
-		case MX_EPIX_XCLIB_CC3:
-			/* CC3 is controlled by bits 8 to 11. */
-
-			CLCCSE &= 0xf0ff;
-			CLCCSE |= 0x0100;
-			break;
-
-		case MX_EPIX_XCLIB_CC4:
-			/* CC4 is controlled by bits 12 to 15. */
-
-			CLCCSE &= 0x0fff;
-			CLCCSE |= 0x1000;
-			break;
-
-		default:
-			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal Camera Link line %d was requested "
-			"for video input '%s'.", camera_line,
-				vinput->record->name );
-		}
-		break;
-
-	case 0:   /* Low */
-
-		switch( camera_line ) {
-		case MX_EPIX_XCLIB_CC1:
-			/* CC1 is controlled by bits 0 to 3. */
-
-			CLCCSE &= 0xfff0;
-			break;
-
-		case MX_EPIX_XCLIB_CC2:
-			/* CC2 is controlled by bits 4 to 7. */
-
-			CLCCSE &= 0xff0f;
-			break;
-
-		case MX_EPIX_XCLIB_CC3:
-			/* CC3 is controlled by bits 8 to 11. */
-
-			CLCCSE &= 0xf0ff;
-			break;
-
-		case MX_EPIX_XCLIB_CC4:
-			/* CC4 is controlled by bits 12 to 15. */
-
-			CLCCSE &= 0x0fff;
-			break;
-
-		default:
-			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"Illegal Camera Link line %d was requested "
-			"for video input '%s'.", camera_line,
-				vinput->record->name );
-		}
-		break;
-
-	default:
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal line state %d was requested for Camera Link line %d "
-		"of video input '%s'.", line_state, camera_line,
-			vinput->record->name );
-	}
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: New CLCCSE = %#x", fname, CLCCSE));
-#endif
-
-	vidstate.xc.dxxformat->CLCCSE = CLCCSE;
-
-	epix_status = xc->pxlib.defineState(
-				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
-
-	if ( epix_status != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Error in xc->pxlib.defineState() for record '%s'.  "
-		"Error code = %d", vinput->record->name, epix_status );
-	}
-
-	epix_status = pxd_xclibEscaped(0, 0, 0);
-
-	if ( epix_status != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Error in pxd_xclibEscaped() for record '%s'.  "
-		"Error code = %d", vinput->record->name, epix_status );
-	}
-
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
-				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
-				mx_bool_type trigger_on )
-{
-	static const char fname[] = "mxd_epix_xclib_internal_trigger()";
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-			fname, vinput->record->name));
-#endif
-
-	epix_xclib_vinput->generate_cc1_pulse = trigger_on;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: generate_cc1_pulse = %d",
-			fname, epix_xclib_vinput->generate_cc1_pulse));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*...*/
-
-#else /* not USE_CLCCSE_REGISTER */
-
-/*...*/
-
 static mx_status_type
 mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
@@ -306,12 +126,35 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 	unsigned int exsync_mode, princ_mode, mask;
 	unsigned int epcd, trigneg, exps, cnts, tis;
 	int epix_status;
+	unsigned long flags;
 	char error_message[80];
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
 			fname, vinput->record->name, (int) trigger_on ));
 #endif
+
+	flags = epix_xclib_vinput->epix_xclib_flags;
+
+	if ( flags & MXF_USE_CLCCSE_REGISTER ) {
+
+		/* If we are using direct manipulation of the CLCCSE register
+		 * to generate a CC1 pulse, then just save the trigger_on
+		 * value and return.
+		 */
+
+		epix_xclib_vinput->generate_cc1_pulse = trigger_on;
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: generate_cc1_pulse = %d",
+			fname, epix_xclib_vinput->generate_cc1_pulse));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, setup the EXSYNC and PRINC registers for automatic
+	 * CC1 pulse generation.
+	 */
 
 	exsync_mode = pxd_getExsyncMode( epix_xclib_vinput->unitmap );
 	
@@ -389,8 +232,6 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* not USE_CLCCSE_REGISTER */
-
 /*---*/
 
 static mx_status_type
@@ -438,16 +279,15 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = 
 			&mxd_epix_xclib_video_input_function_list;
 
-	memset( &(vinput->sequence_info), 0, sizeof(vinput->sequence_info) );
+	memset( &(vinput->sequence_parameters),
+			0, sizeof(vinput->sequence_parameters) );
 
 	vinput->record = record;
 	epix_xclib_vinput->record = record;
 
 	vinput->trigger_mode = 0;
 
-#if USE_CLCCSE_REGISTER
 	epix_xclib_vinput->generate_cc1_pulse = FALSE;
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -540,10 +380,11 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_trigger()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	MX_SEQUENCE_INFO *sq;
+	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
 	char error_message[80];
 	int epix_status;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -557,41 +398,58 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	sq = &(vinput->sequence_info);
+	sp = &(vinput->sequence_parameters);
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: sq = %p", fname, sq));
+	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 
-	MX_DEBUG(-2,("%s: sq->sequence_type = %ld", fname, sq->sequence_type));
+	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
-#if USE_CLCCSE_REGISTER
-	if ( epix_xclib_vinput->generate_cc1_pulse ) {
+	flags = epix_xclib_vinput->epix_xclib_flags;
+
+	if ( flags & MXF_USE_CLCCSE_REGISTER ) {
+
+		/* If we are supposed to generate CC1 pulses by directly
+		 * writing to the CLCCSE register, then generate the CC1
+		 * pulse now.
+		 */
+
+		if ( epix_xclib_vinput->generate_cc1_pulse ) {
 
 #if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: CC1 pulse.", fname));
+			MX_DEBUG(-2,("%s: Generating CC1 pulse.", fname));
 #endif
+			mx_status = mx_camera_link_pulse_cc_line(
+				epix_xclib_vinput->camera_link_record,
+						MX_CAMERA_LINK_CC1, 1, 0 );
 
-		/* Force CC1 high. */
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
-		mx_status = mxd_epix_xclib_camera_link_set_line(
-						vinput, epix_xclib_vinput, 
-						MX_EPIX_XCLIB_CC1, 1 );
+	} else {
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		/* If we want automatic CC1 pulse generation, we program
+		 * the EXSYNC and PRIN registers to have the EPIX imaging
+		 * board automatically generate the CC1 pulse before a
+		 * frame is captured.
+		 */
 
+		epix_status = pxd_setExsyncPrin( epix_xclib_vinput->unitmap,
+							100, 100 );
 
-		/* Force CC1 low. */
+		if ( epix_status != 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) );
 
-		mx_status = mxd_epix_xclib_camera_link_set_line(
-						vinput, epix_xclib_vinput, 
-						MX_EPIX_XCLIB_CC1, 0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+				"The attempt to send an EXSYNC pulse for "
+				"video input '%s' failed.  %s",
+					vinput->record->name, error_message );
+		}
 	}
-#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,
@@ -604,23 +462,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
-#if ( USE_CLCCSE_REGISTER == FALSE )
-	epix_status = pxd_setExsyncPrin( epix_xclib_vinput->unitmap,
-						65535, 65535 );
-
-	if ( epix_status != 0 ) {
-		mxi_epix_xclib_error_message(
-			epix_xclib_vinput->unitmap, epix_status,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to send an EXSYNC pulse for "
-			"video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-	}
-#endif
-
-	switch( sq->sequence_type ) {
+	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 
@@ -651,17 +493,17 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_MULTI:
-		if ( sq->num_sequence_parameters < 1 ) {
+		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "
 			"for a sequence of type MXT_SQ_MULTI should be "
 			"the number of frames.  "
 			"However, the sequence says that it has %ld frames.",
-			    vinput->record->name, sq->num_sequence_parameters );
+			    vinput->record->name, sp->num_parameters );
 				
 		}
 
-		numbuf = mx_round( sq->sequence_parameters[0] );
+		numbuf = mx_round( sp->parameter_array[0] );
 
 		if ( numbuf > pxd_imageZdim() ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -690,16 +532,16 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_CONTINUOUS_MULTI:
-		if ( sq->num_sequence_parameters < 1 ) {
+		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "
 			"for a sequence of type MXT_SQ_CONTINUOUS_MULTI should "
 			"be the number of frames in the circular buffer.  "
 			"However, the sequence says that it has %ld frames.",
-			    vinput->record->name, sq->num_sequence_parameters );
+			    vinput->record->name, sp->num_parameters );
 		}
 
-		endbuf = mx_round( sq->sequence_parameters[0] );
+		endbuf = mx_round( sp->parameter_array[0] );
 
 		if ( endbuf > pxd_imageZdim() ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
@@ -730,7 +572,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
 			"video input '%s'.",
-			sq->sequence_type, vinput->record->name );
+			sp->sequence_type, vinput->record->name );
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG

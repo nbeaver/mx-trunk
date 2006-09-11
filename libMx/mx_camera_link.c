@@ -561,5 +561,110 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+
+MX_EXPORT mx_status_type
+mx_camera_link_set_cc_line( MX_RECORD *cl_record,
+				unsigned long cc_line_number,
+				unsigned long cc_line_state )
+{
+	static const char fname[] = "mx_camera_link_set_cc_line()";
+
+	MX_CAMERA_LINK *camera_link;
+	MX_CAMERA_LINK_API_LIST *api_ptr;
+	INT32 ( *set_cc_line_fn ) ( hSerRef, UINT32, UINT32 );
+	INT32 cl_status;
+	mx_status_type mx_status;
+
+	mx_status = mx_camera_link_get_pointers( cl_record,
+						&camera_link, &api_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+
+	set_cc_line_fn = api_ptr->set_cc_line;
+
+	if ( set_cc_line_fn == NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+	    "Setting CC Camera Link lines is not supported for record '%s'.",
+			cl_record->name );
+	}
+
+	camera_link->cc_line_number = cc_line_number;
+	camera_link->cc_line_state  = cc_line_state;
+
+	cl_status = (*set_cc_line_fn)( camera_link->serial_ref,
+					cc_line_number, cc_line_state );
+
+	switch( cl_status ) {
+	case CL_ERR_NO_ERR:	/* Success. */
+		break;
+
+	case CL_ERR_INVALID_REFERENCE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Serial reference %p requested for Camera Link record '%s' "
+		"is invalid.", camera_link->serial_ref, cl_record->name );
+		break;
+	default:
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Unexpected error code %d returned for the attempt "
+		"to set CC%lu to %lu for Camera Link record '%s'.",
+			cl_status, cc_line_number, cc_line_state,
+			cl_record->name );
+		break;
+	}
+
+	MX_DEBUG(-2,("%s: Camera Link record '%s' CC%lu set to %lu.",
+		fname, cl_record->name, cc_line_number, cc_line_state));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_camera_link_pulse_cc_line( MX_RECORD *cl_record,
+				unsigned long cc_line_number,
+				long polarity,
+				unsigned long pulse_duration_in_microseconds )
+{
+	static const char fname[] = "mx_camera_link_pulse_cc_line()";
+
+	MX_CAMERA_LINK *camera_link;
+	MX_CAMERA_LINK_API_LIST *api_ptr;
+	unsigned long first_state, second_state;
+	mx_status_type mx_status;
+
+	mx_status = mx_camera_link_get_pointers( cl_record,
+						&camera_link, &api_ptr, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+
+	if ( polarity >= 0 ) {
+		first_state  = 1;
+		second_state = 0;
+	} else {
+		first_state  = 0;
+		second_state = 1;
+	}
+
+	mx_status = mx_camera_link_set_cc_line( cl_record,
+					cc_line_number, first_state );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( pulse_duration_in_microseconds > 0 ) {
+		mx_udelay( pulse_duration_in_microseconds );
+	}
+
+	mx_status = mx_camera_link_set_cc_line( cl_record,
+					cc_line_number, second_state );
+
+	return mx_status;
+}
+
 #endif /* HAVE_CAMERA_LINK */
 

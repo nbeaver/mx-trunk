@@ -51,6 +51,13 @@
 
 /*------------------------------------------------------------------------*/
 
+/* Camera Link CC line number macros. */
+
+#define MX_CAMERA_LINK_CC1	1
+#define MX_CAMERA_LINK_CC2	2
+#define MX_CAMERA_LINK_CC3	3
+#define MX_CAMERA_LINK_CC4	4
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -59,6 +66,9 @@ typedef struct {
 	long baud_rate;
 	double timeout;
 	unsigned long serial_index;
+
+	unsigned long cc_line_number;
+	unsigned long cc_line_state;
 } MX_CAMERA_LINK;
 
 #define MX_CAMERA_LINK_STANDARD_FIELDS \
@@ -127,9 +137,9 @@ typedef struct {
 	 * I find surprising.
 	 */
 
-	mx_status_type ( *set_cc_signal ) ( MX_CAMERA_LINK *camera_link,
-					unsigned long cc_signal_number,
-					unsigned long cc_signal_value );
+	INT32 ( *set_cc_line ) ( hSerRef serial_ref,
+					UINT32 cc_line_number,
+					UINT32 cc_line_state );
 } MX_CAMERA_LINK_API_LIST;
 
 MX_API mx_status_type mx_camera_link_get_pointers( MX_RECORD *cl_record,
@@ -200,9 +210,14 @@ MX_API mx_status_type mx_camera_link_serial_write( MX_RECORD *cl_record,
 MX_API mx_status_type mx_camera_link_set_baud_rate( MX_RECORD *cl_record,
 						unsigned long baud_rate );
 
-MX_API mx_status_type mx_camera_link_set_cc_signal( MX_RECORD *cl_record,
-						unsigned long cc_signal_number,
-						unsigned long cc_signal_value );
+MX_API mx_status_type mx_camera_link_set_cc_line( MX_RECORD *cl_record,
+						unsigned long cc_line_number,
+						unsigned long cc_line_state );
+
+MX_API mx_status_type mx_camera_link_pulse_cc_line( MX_RECORD *cl_record,
+				unsigned long cc_line_number,
+				long polarity,
+				unsigned long pulse_duration_in_microseconds );
 
 #endif /* __MX_CAMERA_LINK_H__ */
 

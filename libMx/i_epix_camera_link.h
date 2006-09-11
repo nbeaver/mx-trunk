@@ -69,10 +69,9 @@ MX_API INT32 MX_CLCALL mxi_epix_camera_link_serial_write( hSerRef serial_ref,
 MX_API INT32 MX_CLCALL mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref,
 							UINT32 baud_rate );
 
-MX_API mx_status_type mxi_epix_camera_link_set_cc_signal(
-						MX_CAMERA_LINK *camera_link,
-						unsigned long cc_signal_number,
-						unsigned long cc_signal_value );
+MX_API INT32 MX_CLCALL mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
+							UINT32 cc_line_number,
+							UINT32 cc_line_state );
 
 #endif /* IS_MX_DRIVER */
 

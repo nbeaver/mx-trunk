@@ -77,10 +77,10 @@ typedef struct {
 
 typedef struct {
 	long sequence_type;
-	long num_sequence_parameters;
-	double sequence_parameters[MXU_MAX_SEQUENCE_PARAMETERS];
+	long num_parameters;
+	double parameter_array[MXU_MAX_SEQUENCE_PARAMETERS];
 
-} MX_SEQUENCE_INFO;
+} MX_SEQUENCE_PARAMETERS;
 
 /*----*/
 
