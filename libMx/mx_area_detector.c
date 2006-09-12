@@ -237,7 +237,7 @@ mx_area_detector_set_exposure_time( MX_RECORD *record, double exposure_time )
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
+	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the area detector "arms".
@@ -281,7 +281,7 @@ mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
+	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the area detector "arms".
@@ -333,7 +333,7 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETERS;
+	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the area detector "arms".
@@ -704,7 +704,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_FORMAT:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETERS:
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -735,7 +735,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_FORMAT:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETERS:
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

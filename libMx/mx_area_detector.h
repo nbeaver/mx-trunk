@@ -43,7 +43,7 @@ typedef struct {
 #define MXLV_AD_STATUS				12006
 #define MXLV_AD_SEQUENCE_TYPE			12007
 #define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12008
-#define MXLV_AD_SEQUENCE_PARAMETERS		12009
+#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12009
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -71,13 +71,13 @@ typedef struct {
 		offsetof(MX_AREA_DETECTOR, sequence_parameters.sequence_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_NUM_SEQUENCE_PARAMETERS, -1, "num_parameters", \
+  {MXLV_AD_NUM_SEQUENCE_PARAMETERS, -1, "num_sequence_parameters", \
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 	    offsetof(MX_AREA_DETECTOR, sequence_parameters.num_parameters), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_SEQUENCE_PARAMETERS, -1, "parameter_array", \
+  {MXLV_AD_SEQUENCE_PARAMETER_ARRAY, -1, "sequence_parameter_array", \
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
 	    offsetof(MX_AREA_DETECTOR, sequence_parameters.parameter_array), \

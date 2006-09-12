@@ -45,7 +45,7 @@ typedef struct {
 #define MXLV_VIN_STATUS				11006
 #define MXLV_VIN_SEQUENCE_TYPE			11007
 #define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11008
-#define MXLV_VIN_SEQUENCE_PARAMETERS		11009
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11009
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -77,13 +77,13 @@ typedef struct {
 		offsetof(MX_VIDEO_INPUT, sequence_parameters.sequence_type), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_VIN_NUM_SEQUENCE_PARAMETERS, -1, "num_parameters", \
+  {MXLV_VIN_NUM_SEQUENCE_PARAMETERS, -1, "num_sequence_parameters", \
 						MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 	    offsetof(MX_VIDEO_INPUT, sequence_parameters.num_parameters), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_VIN_SEQUENCE_PARAMETERS, -1, "parameter_array", \
+  {MXLV_VIN_SEQUENCE_PARAMETER_ARRAY, -1, "sequence_parameter_array", \
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_VIDEO_INPUT, sequence_parameters.parameter_array), \

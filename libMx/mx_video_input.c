@@ -232,7 +232,7 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETERS;
+	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the video input "arms".
@@ -277,7 +277,7 @@ mx_video_input_set_continuous_mode( MX_RECORD *record, double exposure_time )
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETERS;
+	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the video input "arms".
@@ -327,7 +327,7 @@ mx_video_input_set_sequence_parameters( MX_RECORD *record,
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETERS;
+	vinput->parameter_type = MXLV_VIN_SEQUENCE_PARAMETER_ARRAY;
 
 	/* Save the parameters, which will be used the next time that
 	 * the video input "arms".
@@ -697,7 +697,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_PIXEL_ORDER:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_VIN_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -729,7 +729,7 @@ mx_video_input_default_set_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_PIXEL_ORDER:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_VIN_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

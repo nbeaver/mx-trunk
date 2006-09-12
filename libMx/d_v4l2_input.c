@@ -917,6 +917,11 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_SEQUENCE_TYPE:
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_PIXEL_ORDER:
@@ -1031,6 +1036,11 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_SEQUENCE_TYPE:
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_PIXEL_ORDER:

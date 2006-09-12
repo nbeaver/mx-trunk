@@ -230,9 +230,15 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			frame->image_format, datafile_name );
 	}
 
+	MX_DEBUG(-2,("%s: pnm_type = %d, maxint = %d",
+		fname, pnm_type, maxint));
+
 	src_step     = converter.num_source_bytes;
 	dest_step    = converter.num_destination_bytes;
 	converter_fn = converter.converter_fn;
+
+	MX_DEBUG(-2,("%s: src_step = %d, dest_step = %d, converter_fn = %p",
+		fname, src_step, dest_step, converter_fn));
 
 	if ( dest_step > sizeof(dest) ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -266,7 +272,7 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	for ( i = 0; i < frame->image_length; i += src_step ) {
 
-#if 1
+#if 0
 		if ( i >= 50 ) {
 			MX_DEBUG(-2,("%s: aborting early", fname));
 			break;
@@ -278,10 +284,45 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		switch( frame->image_format ) {
 
 		case MXT_IMAGE_FORMAT_RGB565:
-		case MXT_IMAGE_FORMAT_YUYV:
 			R = dest[0];
 			G = dest[1];
 			B = dest[2];
+
+			if ( i < 50 ) {
+				MX_DEBUG(-2,
+				("%s: i = %lu, R = %d, G = %d, B = %d",
+
+				fname, i, R, G, B));
+			}
+
+			fprintf( file, "%d %d %d\n", R, G, B );
+			break;
+
+		case MXT_IMAGE_FORMAT_YUYV:
+			/* For YUYV, the pixels are produced in
+			 * groups of 2.
+			 */
+
+			/* Get the first pixel. */
+
+			R = dest[0];
+			G = dest[1];
+			B = dest[2];
+
+			if ( i < 50 ) {
+				MX_DEBUG(-2,
+				("%s: i = %lu, R = %d, G = %d, B = %d",
+
+				fname, i, R, G, B));
+			}
+
+			fprintf( file, "%d %d %d\n", R, G, B );
+
+			/* Get the second pixel. */
+
+			R = dest[3];
+			G = dest[4];
+			B = dest[5];
 
 			if ( i < 50 ) {
 				MX_DEBUG(-2,
