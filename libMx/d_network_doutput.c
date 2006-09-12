@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -86,7 +86,7 @@ mxd_network_doutput_get_pointers( MX_DIGITAL_OUTPUT *doutput,
 MX_EXPORT mx_status_type
 mxd_network_doutput_create_record_structures( MX_RECORD *record )
 {
-        const char fname[] = "mxd_network_doutput_create_record_structures()";
+        static const char fname[] = "mxd_network_doutput_create_record_structures()";
 
         MX_DIGITAL_OUTPUT *digital_output;
         MX_NETWORK_DOUTPUT *network_doutput;
@@ -154,7 +154,7 @@ mxd_network_doutput_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_network_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_network_doutput_read()";
+	static const char fname[] = "mxd_network_doutput_read()";
 
 	MX_NETWORK_DOUTPUT *network_doutput;
 	unsigned long value;
@@ -176,7 +176,7 @@ mxd_network_doutput_read( MX_DIGITAL_OUTPUT *doutput )
 MX_EXPORT mx_status_type
 mxd_network_doutput_write( MX_DIGITAL_OUTPUT *doutput )
 {
-	const char fname[] = "mxd_network_doutput_write()";
+	static const char fname[] = "mxd_network_doutput_write()";
 
 	MX_NETWORK_DOUTPUT *network_doutput;
 	unsigned long value;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -151,7 +151,7 @@ mxd_network_dinput_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_network_dinput_read( MX_DIGITAL_INPUT *dinput )
 {
-	const char fname[] = "mxd_network_dinput_read()";
+	static const char fname[] = "mxd_network_dinput_read()";
 
 	MX_NETWORK_DINPUT *network_dinput;
 	unsigned long value;

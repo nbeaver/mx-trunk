@@ -487,7 +487,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_AD_SEQUENCE_PARAMETERS: 
+	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		mx_status = mx_video_input_set_sequence_parameters(
 					pccd_170170->video_input_record,
 					&(ad->sequence_parameters) );

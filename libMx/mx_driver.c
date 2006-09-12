@@ -425,6 +425,7 @@
 #include "d_hitachi_kp_d20.h"
 #include "d_panasonic_kx_dp702.h"
 
+#include "d_network_vinput.h"
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
 
@@ -2659,6 +2660,15 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_soft_amplifier_num_record_fields,
 				&mxd_soft_amplifier_rfield_def_ptr},
 
+{"network_amplifier", MXT_AMP_NETWORK, MXC_AMPLIFIER,      MXR_DEVICE,
+				&mxd_network_amplifier_record_function_list,
+				NULL,
+				&mxd_network_amplifier_amplifier_function_list,
+				&mxd_network_amplifier_num_record_fields,
+				&mxd_network_amplifier_rfield_def_ptr},
+
+/* The old name for network_amplifier. */
+
 {"net_amplifier",  MXT_AMP_NETWORK,   MXC_AMPLIFIER,      MXR_DEVICE,
 				&mxd_network_amplifier_record_function_list,
 				NULL,
@@ -3143,6 +3153,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_panasonic_kx_dp702_ptz_function_list,
 				&mxd_panasonic_kx_dp702_num_record_fields,
 				&mxd_panasonic_kx_dp702_rfield_def_ptr},
+
+{"network_vinput",  MXT_VIN_NETWORK,      MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_network_vinput_record_function_list,
+				NULL,
+				NULL,
+				&mxd_network_vinput_num_record_fields,
+				&mxd_network_vinput_rfield_def_ptr},
 
 #if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
 
