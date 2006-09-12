@@ -160,7 +160,8 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 	record->class_specific_function_list = 
 			&mxd_v4l2_input_video_input_function_list;
 
-	memset( &(vinput->sequence_info), 0, sizeof(vinput->sequence_info) );
+	memset( &(vinput->sequence_parameters),
+			0, sizeof(vinput->sequence_parameters) );
 
 	vinput->record = record;
 	v4l2_input->record = record;

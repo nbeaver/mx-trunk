@@ -224,7 +224,7 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 			error_message, sizeof(error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"pxd_setExsyncPrincMode( %#x, %#x, %#x ) failed.  %s",
+		"pxd_setExsyncPrincMode( %#lx, %#x, %#x ) failed.  %s",
 			epix_xclib_vinput->unitmap, exsync_mode, princ_mode,
 			error_message );
 	}
