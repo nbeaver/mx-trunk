@@ -120,6 +120,7 @@ mx_signal_initialize( void )
 			switch( saved_errno ) {
 			case EINVAL:
 			case ENOSYS:
+			case ENOENT:
 #if defined(OS_IRIX)
 			case 0:
 #endif
