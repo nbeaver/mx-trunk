@@ -68,6 +68,26 @@ mx_video_input_get_pointers( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_video_input_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mx_video_input_finish_record_initialization()";
+
+	MX_VIDEO_INPUT *vinput;
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get_image_format_type_from_name(
+			vinput->image_format_name, &(vinput->image_format) );
+
+	return mx_status;
+}
+
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type

@@ -417,6 +417,16 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
 
 #endif
 
+/* Case insensitive string comparisons. */
+
+#if defined(_MSC_VER) || defined(__BORLANDC__) || defined(OS_DJGPP)
+#  define mx_strcasecmp   stricmp
+#  define mx_strncasecmp  strnicmp
+#else
+#  define mx_strcasecmp   strcasecmp
+#  define mx_strncasecmp  strncasecmp
+#endif
+
 /* == Debugging functions. == */
 
 /* Note that in any call to MX_DEBUG(), _all_ the arguments together 

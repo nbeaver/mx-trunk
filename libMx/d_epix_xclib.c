@@ -295,7 +295,7 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_epix_xclib_finish_record_initialization( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
+	return mx_video_input_finish_record_initialization( record );
 }
 
 MX_EXPORT mx_status_type

@@ -23,6 +23,20 @@ typedef struct {
 	MX_RECORD *server_record;
 	char remote_record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 
+	MX_NETWORK_FIELD abort_nf;
+	MX_NETWORK_FIELD arm_nf;
+	MX_NETWORK_FIELD busy_nf;
+	MX_NETWORK_FIELD framesize_nf;
+	MX_NETWORK_FIELD image_format_name_nf;
+	MX_NETWORK_FIELD image_format_nf;
+	MX_NETWORK_FIELD pixel_order_nf;
+	MX_NETWORK_FIELD status_nf;
+	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD trigger_nf;
+
+	MX_NETWORK_FIELD sequence_type_nf;
+	MX_NETWORK_FIELD num_sequence_parameters_nf;
+	MX_NETWORK_FIELD sequence_parameter_array_nf;
 } MX_NETWORK_VINPUT;
 
 

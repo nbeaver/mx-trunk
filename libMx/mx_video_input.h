@@ -27,10 +27,15 @@ typedef struct {
 	long parameter_type;
 
 	long framesize[2];
+	char image_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long image_format;
 	long pixel_order;
 	long trigger_mode;
 
+	mx_bool_type arm;
+	mx_bool_type trigger;
+	mx_bool_type stop;
+	mx_bool_type abort;
 	mx_bool_type busy;
 	unsigned long status;
 
@@ -38,23 +43,33 @@ typedef struct {
 } MX_VIDEO_INPUT;
 
 #define MXLV_VIN_FRAMESIZE			11001
-#define MXLV_VIN_FORMAT				11002
-#define MXLV_VIN_PIXEL_ORDER			11003
-#define MXLV_VIN_TRIGGER_MODE			11004
-#define MXLV_VIN_BUSY				11005
-#define MXLV_VIN_STATUS				11006
-#define MXLV_VIN_SEQUENCE_TYPE			11007
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11008
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11009
+#define MXLV_VIN_FORMAT_NAME			11002
+#define MXLV_VIN_FORMAT				11003
+#define MXLV_VIN_PIXEL_ORDER			11004
+#define MXLV_VIN_TRIGGER_MODE			11005
+#define MXLV_VIN_ARM				11006
+#define MXLV_VIN_TRIGGER			11007
+#define MXLV_VIN_STOP				11008
+#define MXLV_VIN_ABORT				11009
+#define MXLV_VIN_BUSY				11010
+#define MXLV_VIN_STATUS				11011
+#define MXLV_VIN_SEQUENCE_TYPE			11012
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11013
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11014
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, framesize), \
 	{sizeof(long)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
+  {MXLV_VIN_FORMAT_NAME, -1, "image_format_name", MXFT_STRING, \
+		NULL, 1, {MXU_IMAGE_FORMAT_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, image_format_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
   {MXLV_VIN_FORMAT, -1, "image_format", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, image_format), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+	{0}, NULL, 0}, \
   \
   {MXLV_VIN_PIXEL_ORDER, -1, "pixel_order", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, pixel_order), \
@@ -62,6 +77,22 @@ typedef struct {
   \
   {MXLV_VIN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, trigger_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, arm), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_TRIGGER, -1, "trigger", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, trigger), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_STOP, -1, "stop", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, stop), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_ABORT, -1, "abort", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, abort), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
@@ -108,6 +139,9 @@ MX_API mx_status_type mx_video_input_get_pointers( MX_RECORD *record,
 					MX_VIDEO_INPUT **vinput,
 				MX_VIDEO_INPUT_FUNCTION_LIST **flist_ptr,
 					const char *calling_fname );
+
+MX_API mx_status_type mx_video_input_finish_record_initialization(
+						MX_RECORD *record );
 
 /*---*/
 

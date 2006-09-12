@@ -143,6 +143,96 @@ mxp_grey16_converter = { 2, 2, mxp_grey16_converter_fn };
 
 /*----*/
 
+typedef struct {
+	char name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
+	long type;
+} MX_IMAGE_FORMAT_ENTRY;
+
+static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
+{
+	{"default", MXT_IMAGE_FORMAT_DEFAULT},
+
+	{"rgb565",  MXT_IMAGE_FORMAT_RGB565},
+	{"yuyv",    MXT_IMAGE_FORMAT_YUYV},
+
+	{"rgb",     MXT_IMAGE_FORMAT_RGB},
+	{"grey8",   MXT_IMAGE_FORMAT_GREY8},
+	{"grey16",  MXT_IMAGE_FORMAT_GREY16},
+
+	{"gray8",   MXT_IMAGE_FORMAT_GREY8},
+	{"gray16",  MXT_IMAGE_FORMAT_GREY16},
+};
+
+static size_t mxp_image_format_table_length
+	= sizeof(mxp_image_format_table) / sizeof(mxp_image_format_table[0]);
+
+MX_EXPORT mx_status_type
+mx_get_image_format_type_from_name( char *name, long *type )
+{
+	static const char fname[] = "mx_get_image_format_type_from_name()";
+
+	MX_IMAGE_FORMAT_ENTRY *entry;
+	long i;
+
+	if ( name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image format name pointer passed was NULL." );
+	}
+	if ( type == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image format type pointer passed was NULL." );
+	}
+
+	if ( strlen(name) == 0 ) {
+		*type = MXT_IMAGE_FORMAT_DEFAULT;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	for ( i = 0; i < mxp_image_format_table_length; i++ ) {
+		entry = &mxp_image_format_table[i];
+
+		if ( mx_strcasecmp( entry->name, name ) == 0 ) {
+			*type = entry->type;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Image format type '%s' is not currently supported by MX.", name );
+}
+
+MX_EXPORT mx_status_type
+mx_get_image_format_name_from_type( long type,
+				char *name, size_t max_name_length )
+{
+	static const char fname[] = "mx_get_image_format_name_from_type()";
+
+	MX_IMAGE_FORMAT_ENTRY *entry;
+	long i;
+
+	if ( name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image format name pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < mxp_image_format_table_length; i++ ) {
+		entry = &mxp_image_format_table[i];
+
+		if ( entry->type == type ) {
+			strlcpy( name, entry->name, max_name_length );
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+	}
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Image format type %ld is not currently supported by MX.", type );
+}
+
+/*----*/
+
 MX_EXPORT mx_status_type
 mx_write_image_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,

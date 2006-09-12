@@ -143,13 +143,8 @@ mxd_network_vinput_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_network_vinput_open( MX_RECORD *record )
-{
-	static const char fname[] = "mxd_network_vinput_open()";
+	static const char fname[] =
+		"mxd_network_vinput_finish_record_initialization()";
 
 	MX_VIDEO_INPUT *vinput;
 	MX_NETWORK_VINPUT *network_vinput;
@@ -171,6 +166,144 @@ mxd_network_vinput_open( MX_RECORD *record )
 #if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	mx_status = mx_video_input_finish_record_initialization( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_network_field_init( &(network_vinput->abort_nf),
+			network_vinput->server_record,
+			"%s.abort", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->arm_nf),
+			network_vinput->server_record,
+			"%s.arm", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->busy_nf),
+			network_vinput->server_record,
+			"%s.busy", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->framesize_nf),
+			network_vinput->server_record,
+			"%s.framesize", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->image_format_name_nf),
+			network_vinput->server_record,
+		"%s.image_format_name", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->image_format_nf),
+			network_vinput->server_record,
+			"%s.image_format", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->pixel_order_nf),
+			network_vinput->server_record,
+			"%s.pixel_order", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->status_nf),
+			network_vinput->server_record,
+			"%s.status", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->stop_nf),
+			network_vinput->server_record,
+			"%s.stop", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->trigger_nf),
+			network_vinput->server_record,
+			"%s.trigger", network_vinput->remote_record_name );
+
+	/*---*/
+
+	mx_network_field_init( &(network_vinput->sequence_type_nf),
+			network_vinput->server_record,
+		"%s.sequence_type", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->num_sequence_parameters_nf),
+			network_vinput->server_record,
+			"%s.num_sequence_parameters",
+				network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->sequence_parameter_array_nf),
+			network_vinput->server_record,
+			"%s.sequence_parameter_array",
+				network_vinput->remote_record_name );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_vinput_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_network_vinput_open()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_NETWORK_VINPUT *network_vinput;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_network_vinput_get_pointers( vinput,
+						&network_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	/* Get the image framesize from the server. */
+
+	dimension[0] = 2;
+
+	mx_status = mx_get_array( &(network_vinput->framesize_nf),
+				MXFT_LONG, 1, dimension,
+				vinput->framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: record '%s', framesize = (%ld, %ld)",
+	    fname, record->name, vinput->framesize[0], vinput->framesize[1]));
+
+	/* Get the image format name from the server. */
+
+	dimension[0] = MXU_IMAGE_FORMAT_NAME_LENGTH;
+
+	mx_status = mx_get_array( &(network_vinput->image_format_name_nf),
+				MXFT_STRING, 1, dimension,
+				vinput->image_format_name );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update the image format type. */
+
+	mx_status = mx_get_image_format_type_from_name(
+					vinput->image_format_name,
+					&(vinput->image_format) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_VINPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: record '%s', image format name = '%s', image format = %ld",
+		fname, record->name, vinput->image_format_name,
+		vinput->image_format));
+#endif
+
+	/* Get the pixel order. */
+
+	mx_status = mx_get( &(network_vinput->pixel_order_nf),
+				MXFT_LONG, &(vinput->pixel_order) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -204,9 +337,10 @@ mxd_network_vinput_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	/* FIXME - Nothing here for now. */
+	mx_status = mx_put( &(network_vinput->arm_nf),
+				MXFT_BOOL, &(vinput->arm) );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -215,7 +349,6 @@ mxd_network_vinput_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_network_vinput_trigger()";
 
 	MX_NETWORK_VINPUT *network_vinput;
-	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
@@ -229,113 +362,10 @@ mxd_network_vinput_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	sp = &(vinput->sequence_parameters);
+	mx_status = mx_put( &(network_vinput->trigger_nf),
+				MXFT_BOOL, &(vinput->trigger) );
 
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
-
-	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
-#endif
-
-	switch( sp->sequence_type ) {
-	case MXT_SQ_ONE_SHOT:
-		break;
-	case MXT_SQ_CONTINUOUS:
-		break;
-
-	case MXT_SQ_MULTI:
-		if ( sp->num_parameters < 1 ) {
-			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-			"The first sequence parameter of video input '%s' "
-			"for a sequence of type MXT_SQ_MULTI should be "
-			"the number of frames.  "
-			"However, the sequence says that it has %ld frames.",
-			    vinput->record->name, sp->num_parameters );
-				
-		}
-
-#if 0
-		numbuf = mx_round( sp->parameter_array[0] );
-
-		if ( numbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    numbuf, vinput->record->name, pxd_imageZdim());
-		}
-
-		startbuf = 1;
-		endbuf = startbuf + numbuf - 1;
-
-		epix_status = pxd_goLiveSeq( network_vinput->unitmap,
-					startbuf, endbuf, 1, numbuf, 1 );
-
-		if ( epix_status != 0 ) {
-			mxi_network_vinput_error_message(
-				network_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) );
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start multi frame "
-			"acquisition with video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-		}
-#endif
-		break;
-
-	case MXT_SQ_CONTINUOUS_MULTI:
-		if ( sp->num_parameters < 1 ) {
-			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-			"The first sequence parameter of video input '%s' "
-			"for a sequence of type MXT_SQ_CONTINUOUS_MULTI should "
-			"be the number of frames in the circular buffer.  "
-			"However, the sequence says that it has %ld frames.",
-			    vinput->record->name, sp->num_parameters );
-		}
-
-#if 0
-		endbuf = mx_round( sp->parameter_array[0] );
-
-		if ( endbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    endbuf, vinput->record->name, pxd_imageZdim());
-		}
-
-		startbuf = 1;
-
-		epix_status = pxd_goLiveSeq( network_vinput->unitmap,
-					startbuf, endbuf, 1, 0, 1 );
-
-		if ( epix_status != 0 ) {
-			mxi_network_vinput_error_message(
-				network_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) );
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start continuous multi frame "
-			"acquisition with video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-		}
-#endif
-		break;
-
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Image sequence type %ld is not supported by "
-			"video input '%s'.",
-			sp->sequence_type, vinput->record->name );
-	}
-
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: Started taking a frame using video input '%s'.",
-		fname, vinput->record->name ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -357,7 +387,10 @@ mxd_network_vinput_stop( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_put( &(network_vinput->stop_nf),
+				MXFT_BOOL, &(vinput->stop) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -379,7 +412,10 @@ mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_put( &(network_vinput->abort_nf),
+				MXFT_BOOL, &(vinput->abort) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -396,7 +432,15 @@ mxd_network_vinput_busy( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_get( &(network_vinput->busy_nf),
+				MXFT_BOOL, &(vinput->busy) );
+
+#if MXD_NETWORK_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: video input '%s', busy = %d",
+		fname, vinput->record->name, (int) vinput->busy ));
+#endif
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -418,7 +462,8 @@ mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	mx_status = mxd_network_vinput_busy( vinput );
+	mx_status = mx_get( &(network_vinput->status_nf),
+				MXFT_HEX, &(vinput->status) );
 
 	return mx_status;
 }
