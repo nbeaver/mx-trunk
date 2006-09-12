@@ -20,6 +20,7 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 
 typedef struct {
@@ -32,15 +33,19 @@ typedef struct {
 static void
 mxp_rgb565_converter_fn( unsigned char *src, unsigned char *dest )
 {
-	uint16_t pixel_value;
+	unsigned char byte0, byte1;
 
-	pixel_value = *( (uint16_t *) src);
+	byte0 = src[0];
+	byte1 = src[1];
 
-	/* FIXME: We must take care of byteorder issues here. */
+	/* Red */
+	dest[0]  = byte0 & 0x1f;
 
-	dest[0] = ( pixel_value >> 11 ) & 0x1f;
-	dest[1] = ( pixel_value >> 5 ) & 0x3f;
-	dest[2] = pixel_value & 0x1f;
+	/* Green */
+	dest[1]  = (( byte0 >> 5 ) & 0x7) | (( byte1 & 0x7 ) << 3);
+
+	/* Blue */
+	dest[2]  = ( byte1 >> 3 ) & 0x1f;
 
 	return;
 }
@@ -123,18 +128,14 @@ mxp_yuyv_converter_fn( unsigned char *src, unsigned char *dest )
 static pixel_converter_t
 mxp_yuyv_converter = { 4, 6, mxp_yuyv_converter_fn };
 
-/* FIXME - This is lame and very inefficient. */
+/* FIXME - mxp_grey16_converter_fn() is lame and very inefficient. */
 
 static void
 mxp_grey16_converter_fn( unsigned char *src, unsigned char *dest )
 {
-	uint16_t grey16, *dest16_ptr;
+	/* Move two bytes from the source to the destination. */
 
-	grey16 = *( (uint16_t *) src );
-
-	dest16_ptr = (uint16_t *) dest;
-
-	*dest16_ptr = grey16;
+	memcpy( dest, src, 2 );
 }
 
 static pixel_converter_t
@@ -177,8 +178,10 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	unsigned char *src;
 	unsigned char dest[10];
 	unsigned char R, G, B;
+	unsigned char byte0, byte1;
 	uint16_t grey16_pixel;
 	int pnm_type, saved_errno;
+	unsigned long byteorder;
 	long i;
 	unsigned int maxint;
 
@@ -202,6 +205,8 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		fname, frame->image_format, frame->pixel_order));
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
+
+	byteorder = mx_native_byteorder();
 
 	switch( frame->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
@@ -289,7 +294,14 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
-			grey16_pixel = *((uint16_t *) dest);
+			byte0 = dest[0];
+			byte1 = dest[1];
+
+			if ( byteorder == MX_DATAFMT_BIG_ENDIAN ) {
+				grey16_pixel = ( byte0 << 8 ) | byte1;
+			} else {
+				grey16_pixel = byte0 | ( byte1 << 8 );
+			}
 
 			if ( i < 50 ) {
 				MX_DEBUG(-2,("%s: i = %lu, grey16 = %lu",
