@@ -469,13 +469,13 @@ mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
+mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput,
+				MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mxd_network_vinput_get_frame()";
 
 	MX_NETWORK_VINPUT *network_vinput;
-	long image_format, bytes_per_image, words_to_read;
-	long x_framesize, y_framesize;
+	long words_to_read;
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
@@ -494,143 +494,14 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 		fname, vinput->record->name ));
 #endif
 
-	/* Get the image pixel format. */
-
-	mx_status = mx_video_input_get_image_format( vinput->record,
-							&image_format );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: image_format = %ld", fname, image_format));
-#endif
-
-	/* Get the dimensions of the image. */
-
-	mx_status = mx_video_input_get_framesize( vinput->record,
-						&x_framesize, &y_framesize );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Compute the number of bytes in the image. */
-
-	switch( image_format ) {
-	case MXT_IMAGE_FORMAT_RGB:
-		bytes_per_image = 3 * x_framesize * y_framesize;
-		break;
-
-	case MXT_IMAGE_FORMAT_GREY8:
-		bytes_per_image = x_framesize * y_framesize;
-		break;
-
-	case MXT_IMAGE_FORMAT_GREY16:
-		bytes_per_image = 2 * x_framesize * y_framesize;
-		break;
-
-	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Unsupported image format %ld for video input '%s'.",
-			image_format, vinput->record->name );
-	}
-
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: bytes_per_image = %ld", fname, bytes_per_image));
-
-	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
-#endif
-
-	/* At this point, we either reuse an existing MX_IMAGE_FRAME
-	 * or create a new one.
-	 */
-
-	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
-
-#if MXD_NETWORK_VINPUT_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
-#endif
-		/* Allocate a new MX_IMAGE_FRAME. */
-
-		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
-
-		if ( (*frame) == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate "
-			"a new MX_IMAGE_FRAME structure." );
-		}
-
-		(*frame)->header_length = 0;
-		(*frame)->header_data = NULL;
-
-		(*frame)->image_length = 0;
-		(*frame)->image_data = NULL;
-	}
-
-	/* Fill in some parameters. */
-
-	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
-	(*frame)->framesize[0] = x_framesize;
-	(*frame)->framesize[1] = y_framesize;
-	(*frame)->image_format = image_format;
-
-	/* See if the image buffer is already big enough for the image. */
-
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
-		fname, (*frame)->image_data));
-	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_image = %lu",
-	    fname, (unsigned long) (*frame)->image_length, bytes_per_image));
-#endif
-
-	if ( ( (*frame)->image_data != NULL )
-	  && ( (*frame)->image_length >= bytes_per_image ) )
-	{
-#if MXD_NETWORK_VINPUT_DEBUG
-		MX_DEBUG(-2,
-		("%s: The image buffer is already big enough.", fname));
-#endif
-	} else {
-
-#if MXD_NETWORK_VINPUT_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
-			fname, bytes_per_image));
-#endif
-		/* If not, then allocate a new one. */
-
-		if ( (*frame)->image_data != NULL ) {
-			free( (*frame)->image_data );
-		}
-
-		(*frame)->image_data = malloc( bytes_per_image );
-
-		if ( (*frame)->image_data == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Cannot allocate a %ld byte image buffer for "
-			"video input '%s'.",
-				bytes_per_image, vinput->record->name );
-		}
-
-
-#if MXD_NETWORK_VINPUT_DEBUG
-		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
-#endif
-	}
-
-#if 1  /* FIXME!!! - This should not be present in the final version. */
-	memset( (*frame)->image_data, 0, 50 );
-#endif
-
-	(*frame)->image_length = bytes_per_image;
-
-	/* Now read the frame into the MX_IMAGE_FRAME structure. */
+	/* Read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: reading a %lu byte image frame.",
 			fname, (unsigned long) (*frame)->image_length ));
 #endif
 
-	if ( image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
 		words_to_read = ((*frame)->image_length) / 2;
 		
 #if 0

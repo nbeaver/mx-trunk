@@ -385,9 +385,13 @@ mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad, MX_IMAGE_FRAME **frame )
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
+
+	MX_DEBUG(-2,
+	("%s: FIXME FIXME FIXME - make get_frame match the video input class.",
+		fname ));
 #endif
 	mx_status = mx_video_input_get_frame(
-				pccd_170170->video_input_record, frame );
+				pccd_170170->video_input_record, 0, frame );
 
 	return mx_status;
 }

@@ -142,7 +142,8 @@ motor_vinput_fn( int argc, char *argv[] )
 
 		frame = NULL;
 
-		mx_status = mx_video_input_get_frame( vinput_record, &frame );
+		mx_status = mx_video_input_get_frame( vinput_record,
+							-1, &frame );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

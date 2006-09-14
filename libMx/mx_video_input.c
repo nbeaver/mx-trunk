@@ -14,7 +14,10 @@
  *
  */
 
+#define MX_VIDEO_INPUT_DEBUG	TRUE
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -228,6 +231,41 @@ mx_video_input_set_framesize( MX_RECORD *record,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_video_input_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
+{
+	static const char fname[] = "mx_video_input_get_bytes_per_frame()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BYTES_PER_FRAME;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_per_frame != NULL ) {
+		*bytes_per_frame = vinput->bytes_per_frame;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -429,6 +467,32 @@ mx_video_input_arm( MX_RECORD *record )
 		mx_status = (*arm_fn)( vinput );
 	}
 
+	/* Compute image frame parameters for later use. */
+
+	mx_status = mx_video_input_get_image_format( vinput->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_framesize( vinput->record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( vinput->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_format = %ld, framesize = (%ld,%ld), bytes_per_frame = %ld",
+		fname, vinput->image_format,
+		vinput->framesize[0],
+		vinput->framesize[1],
+		vinput->bytes_per_frame));
+#endif
+
 	return mx_status;
 }
 
@@ -588,7 +652,9 @@ mx_video_input_get_status( MX_RECORD *record,
 /*---*/
 
 MX_EXPORT mx_status_type
-mx_video_input_get_frame( MX_RECORD *record, MX_IMAGE_FRAME **frame )
+mx_video_input_get_frame( MX_RECORD *record,
+			long frame_number,
+			MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mx_video_input_get_frame()";
 
@@ -602,6 +668,8 @@ mx_video_input_get_frame( MX_RECORD *record, MX_IMAGE_FRAME **frame )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Does this driver implement a get_frame function? */
+
 	get_frame_fn = flist->get_frame;
 
 	if ( get_frame_fn == NULL ) {
@@ -611,6 +679,94 @@ mx_video_input_get_frame( MX_RECORD *record, MX_IMAGE_FRAME **frame )
 		"been implemented for the driver for record '%s'.",
 			record->name );
 	}
+
+#if MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
+#endif
+
+	/* We either reuse an existing MX_IMAGE_FRAME or create a new one. */
+
+	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+
+#if MX_VIDEO_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
+#endif
+		/* Allocate a new MX_IMAGE_FRAME. */
+
+		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
+
+		if ( (*frame) == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a new MX_IMAGE_FRAME structure." );
+		}
+
+		(*frame)->header_length = 0;
+		(*frame)->header_data = NULL;
+
+		(*frame)->image_length = 0;
+		(*frame)->image_data = NULL;
+	}
+
+	/* Fill in some parameters. */
+
+	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
+	(*frame)->framesize[0] = vinput->framesize[0];
+	(*frame)->framesize[1] = vinput->framesize[1];
+	(*frame)->image_format = vinput->image_format;
+
+	/* See if the image buffer is already big enough for the image. */
+
+#if MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
+		fname, (*frame)->image_data));
+	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_frame = %lu",
+		fname, (unsigned long) (*frame)->image_length,
+		vinput->bytes_per_frame));
+#endif
+
+	if ( ( (*frame)->image_data != NULL )
+	  && ( (*frame)->image_length >= vinput->bytes_per_frame ) )
+	{
+#if MX_VIDEO_INPUT_DEBUG
+		MX_DEBUG(-2,
+		("%s: The image buffer is already big enough.", fname));
+#endif
+	} else {
+
+#if MX_VIDEO_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
+			fname, vinput->bytes_per_frame));
+#endif
+		/* If not, then allocate a new one. */
+
+		if ( (*frame)->image_data != NULL ) {
+			free( (*frame)->image_data );
+		}
+
+		(*frame)->image_data = malloc( vinput->bytes_per_frame );
+
+		if ( (*frame)->image_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Cannot allocate a %ld byte image buffer for "
+			"video input '%s'.",
+				vinput->bytes_per_frame, vinput->record->name );
+		}
+
+#if MX_VIDEO_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
+#endif
+	}
+
+#if 1  /* FIXME!!! - This should not be present in the final version. */
+	memset( (*frame)->image_data, 0, 50 );
+#endif
+
+	(*frame)->image_length = vinput->bytes_per_frame;
+
+	/* Now get the actual frame. */
+
+	vinput->frame_number = frame_number;
 
 	mx_status = (*get_frame_fn)( vinput, frame );
 

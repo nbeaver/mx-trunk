@@ -163,6 +163,8 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 	memset( &(vinput->sequence_parameters),
 			0, sizeof(vinput->sequence_parameters) );
 
+	vinput->bytes_per_frame = 0;
+
 	vinput->record = record;
 	v4l2_input->record = record;
 
@@ -171,7 +173,6 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 
 	v4l2_input->armed = FALSE;
 
-	v4l2_input->frame_buffer_length = 0;
 	v4l2_input->frame_buffer = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -519,7 +520,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
 		break;
 	default:
-		v4l2_input->frame_buffer_length = 0;
+		vinput->bytes_per_frame = 0;
 
 		if ( v4l2_input->frame_buffer != NULL ) {
 			free( v4l2_input->frame_buffer );
@@ -531,7 +532,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 			vinput->image_format, vinput->record->name );
 	}
 
-	if ( ( v4l2_input->frame_buffer_length == new_length )
+	if ( ( vinput->bytes_per_frame == new_length )
 	  && ( v4l2_input->frame_buffer != NULL ) )
 	{
 		/* The frame buffer is already the correct length,
@@ -543,7 +544,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	v4l2_input->frame_buffer_length = new_length;
+	vinput->bytes_per_frame = new_length;
 
 	if ( v4l2_input->frame_buffer != NULL ) {
 		free( v4l2_input->frame_buffer );
@@ -552,7 +553,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	v4l2_input->frame_buffer = malloc( new_length );
 
 	if ( v4l2_input->frame_buffer == NULL ) {
-		v4l2_input->frame_buffer_length = 0;
+		vinput->bytes_per_frame = 0;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 		"Ran out of memory trying to allocate a %lu byte frame buffer "
@@ -649,7 +650,7 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 
 		result = read( v4l2_input->fd,
 				v4l2_input->frame_buffer,
-				v4l2_input->frame_buffer_length );
+				vinput->bytes_per_frame );
 
 		saved_errno = errno;
 
@@ -690,9 +691,8 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 
 #if MXD_V4L2_INPUT_DEBUG
-	MX_DEBUG(-2,("%s: %lu bytes read from video input '%s'.",
-		fname, (unsigned long) v4l2_input->frame_buffer_length,
-		vinput->record->name ));
+	MX_DEBUG(-2,("%s: %ld bytes read from video input '%s'.",
+		fname, vinput->bytes_per_frame, vinput->record->name ));
 #endif
 
 #if 1
@@ -836,7 +836,7 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 		fname, vinput->record->name ));
 #endif
 
-	if ( ( v4l2_input->frame_buffer_length == 0 )
+	if ( ( vinput->bytes_per_frame == 0 )
 	  || ( v4l2_input->frame_buffer == NULL ) )
 	{
 		return mx_error( MXE_NOT_AVAILABLE, fname,
@@ -860,7 +860,7 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	(*frame)->header_length = 0;
 	(*frame)->header_data = 0;
 
-	(*frame)->image_length = v4l2_input->frame_buffer_length;
+	(*frame)->image_length = vinput->bytes_per_frame;
 	(*frame)->image_data = v4l2_input->frame_buffer;
 
 	return MX_SUCCESSFUL_RESULT;

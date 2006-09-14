@@ -32,7 +32,6 @@ typedef struct {
 
 	mx_bool_type armed;
 
-	size_t frame_buffer_length;
 	void *frame_buffer;
 } MX_V4L2_INPUT;
 

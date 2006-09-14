@@ -25,12 +25,14 @@ typedef struct {
 	MX_RECORD *record;
 
 	long parameter_type;
+	long frame_number;
 
 	long framesize[2];
 	char image_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long image_format;
 	long pixel_order;
 	long trigger_mode;
+	long bytes_per_frame;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -40,6 +42,8 @@ typedef struct {
 	unsigned long status;
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
+
+	long get_frame;
 } MX_VIDEO_INPUT;
 
 #define MXLV_VIN_FRAMESIZE			11001
@@ -47,15 +51,16 @@ typedef struct {
 #define MXLV_VIN_FORMAT				11003
 #define MXLV_VIN_PIXEL_ORDER			11004
 #define MXLV_VIN_TRIGGER_MODE			11005
-#define MXLV_VIN_ARM				11006
-#define MXLV_VIN_TRIGGER			11007
-#define MXLV_VIN_STOP				11008
-#define MXLV_VIN_ABORT				11009
-#define MXLV_VIN_BUSY				11010
-#define MXLV_VIN_STATUS				11011
-#define MXLV_VIN_SEQUENCE_TYPE			11012
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11013
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11014
+#define MXLV_VIN_BYTES_PER_FRAME		11006
+#define MXLV_VIN_ARM				11007
+#define MXLV_VIN_TRIGGER			11008
+#define MXLV_VIN_STOP				11009
+#define MXLV_VIN_ABORT				11010
+#define MXLV_VIN_BUSY				11011
+#define MXLV_VIN_STATUS				11012
+#define MXLV_VIN_SEQUENCE_TYPE			11013
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11014
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11015
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -77,6 +82,10 @@ typedef struct {
   \
   {MXLV_VIN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, trigger_mode), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_BYTES_PER_FRAME, -1, "bytes_per_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, bytes_per_frame), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
@@ -146,19 +155,21 @@ MX_API mx_status_type mx_video_input_finish_record_initialization(
 /*---*/
 
 MX_API mx_status_type mx_video_input_get_image_format( MX_RECORD *record,
-						long *format );
+							long *format );
 
 MX_API mx_status_type mx_video_input_set_image_format( MX_RECORD *record,
-						long format );
+							long format );
 
 MX_API mx_status_type mx_video_input_get_framesize( MX_RECORD *record,
-						long *x_framesize,
-						long *y_framesize );
+							long *x_framesize,
+							long *y_framesize );
 
 MX_API mx_status_type mx_video_input_set_framesize( MX_RECORD *record,
-						long x_framesize,
-						long y_framesize );
+							long x_framesize,
+							long y_framesize );
 
+MX_API mx_status_type mx_video_input_get_bytes_per_frame( MX_RECORD *record,
+							long *bytes_per_frame );
 /*---*/
 
 MX_API mx_status_type mx_video_input_set_exposure_time( MX_RECORD *record,
@@ -194,6 +205,7 @@ MX_API mx_status_type mx_video_input_get_status( MX_RECORD *record,
 /*---*/
 
 MX_API mx_status_type mx_video_input_get_frame( MX_RECORD *record,
+						long frame_number,
 						MX_IMAGE_FRAME **frame );
 
 MX_API mx_status_type mx_video_input_get_sequence( MX_RECORD *record,

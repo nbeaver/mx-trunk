@@ -285,6 +285,7 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	vinput->record = record;
 	epix_xclib_vinput->record = record;
 
+	vinput->bytes_per_frame = 0;
 	vinput->trigger_mode = 0;
 
 	epix_xclib_vinput->generate_cc1_pulse = FALSE;
@@ -369,7 +370,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	/* FIXME - Nothing here for now. */
+	/* Nothing needed here. */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -736,7 +737,8 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
+mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
+			MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mxd_epix_xclib_get_frame()";
 
@@ -744,8 +746,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	char grey_colorspace[] = "Grey";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	long image_format, bytes_per_image, words_to_read, result;
-	long x_framesize, y_framesize;
+	pxbuffer_t epix_frame_number;
+	long words_to_read, result;
 	char *colorspace;
 	char error_message[80];
 	mx_status_type mx_status;
@@ -766,149 +768,68 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 		fname, vinput->record->name ));
 #endif
 
-	/* Get the image pixel format. */
+	/* Get the colorspace string for this frame. */
 
-	mx_status = mx_video_input_get_image_format( vinput->record,
-							&image_format );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: image_format = %ld", fname, image_format));
-#endif
-
-	/* Get the dimensions of the image. */
-
-	mx_status = mx_video_input_get_framesize( vinput->record,
-						&x_framesize, &y_framesize );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Compute the number of bytes in the image. */
-
-	switch( image_format ) {
+	switch( vinput->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB:
-		bytes_per_image = 3 * x_framesize * y_framesize;
 		colorspace = rgb_colorspace;
 		break;
 
 	case MXT_IMAGE_FORMAT_GREY8:
-		bytes_per_image = x_framesize * y_framesize;
 		colorspace = grey_colorspace;
 		break;
 
 	case MXT_IMAGE_FORMAT_GREY16:
-		bytes_per_image = 2 * x_framesize * y_framesize;
 		colorspace = grey_colorspace;
 		break;
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld for video input '%s'.",
-			image_format, vinput->record->name );
+			vinput->image_format, vinput->record->name );
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: bytes_per_image = %ld", fname, bytes_per_image));
+	/* Which frame are we trying to read? */
 
-	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
-#endif
+	if ( vinput->frame_number >= pxd_imageZdim() ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested frame number %ld for record '%s' is larger "
+		"than the maximum allowed frame number of %d.",
+			vinput->frame_number, vinput->record->name,
+			pxd_imageZdim() - 1 );
+	} else
+	if ( vinput->frame_number >= 0 ) {
+		epix_frame_number = vinput->frame_number + 1;
+	} else
+	if ( vinput->frame_number == (-1) ) {
+		/* Frame number -1 means return the most recently
+		 * acquired frame.
+		 */
 
-	/* At this point, we either reuse an existing MX_IMAGE_FRAME
-	 * or create a new one.
-	 */
+		epix_frame_number =
+			pxd_capturedBuffer( epix_xclib_vinput->unitmap );
 
-	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
-#endif
-		/* Allocate a new MX_IMAGE_FRAME. */
-
-		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
-
-		if ( (*frame) == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate "
-			"a new MX_IMAGE_FRAME structure." );
-		}
-
-		(*frame)->header_length = 0;
-		(*frame)->header_data = NULL;
-
-		(*frame)->image_length = 0;
-		(*frame)->image_data = NULL;
-	}
-
-	/* Fill in some parameters. */
-
-	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
-	(*frame)->framesize[0] = x_framesize;
-	(*frame)->framesize[1] = y_framesize;
-	(*frame)->image_format = image_format;
-
-	/* See if the image buffer is already big enough for the image. */
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
-		fname, (*frame)->image_data));
-	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_image = %lu",
-	    fname, (unsigned long) (*frame)->image_length, bytes_per_image));
-#endif
-
-	if ( ( (*frame)->image_data != NULL )
-	  && ( (*frame)->image_length >= bytes_per_image ) )
-	{
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,
-		("%s: The image buffer is already big enough.", fname));
-#endif
+		vinput->frame_number = epix_frame_number - 1;
 	} else {
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
-			fname, bytes_per_image));
-#endif
-		/* If not, then allocate a new one. */
-
-		if ( (*frame)->image_data != NULL ) {
-			free( (*frame)->image_data );
-		}
-
-		(*frame)->image_data = malloc( bytes_per_image );
-
-		if ( (*frame)->image_data == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Cannot allocate a %ld byte image buffer for "
-			"video input '%s'.",
-				bytes_per_image, vinput->record->name );
-		}
-
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
-#endif
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Frame number %ld for record '%s' is an illegal frame number.",
+			vinput->frame_number, vinput->record->name );
 	}
 
-#if 1  /* FIXME!!! - This should not be present in the final version. */
-	memset( (*frame)->image_data, 0, 50 );
-#endif
-
-	(*frame)->image_length = bytes_per_image;
-
-	/* Now read the frame into the MX_IMAGE_FRAME structure. */
+	/* Read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: reading a %lu byte image frame.",
-			fname, (unsigned long) (*frame)->image_length ));
+	MX_DEBUG(-2,
+	("%s: reading a %lu byte image frame from EPIX frame number %ld.",
+			fname, (unsigned long) (*frame)->image_length,
+			(long) epix_frame_number ));
 #endif
 
-	if ( image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
 		words_to_read = ((*frame)->image_length) / 2;
 		
-		result = pxd_readushort( epix_xclib_vinput->unitmap, 1,
+		result = pxd_readushort( epix_xclib_vinput->unitmap,
+				epix_frame_number,
 				0, 0, -1, -1,
 				(*frame)->image_data, words_to_read,
 				colorspace );
@@ -917,7 +838,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 			result = result * 2;
 		}
 	} else {
-		result = pxd_readuchar( epix_xclib_vinput->unitmap, 1,
+		result = pxd_readuchar( epix_xclib_vinput->unitmap,
+				epix_frame_number,
 				0, 0, -1, -1,
 				(*frame)->image_data, (*frame)->image_length,
 				colorspace );
@@ -1008,6 +930,30 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
 
+		break;
+
+	case MXLV_VIN_BYTES_PER_FRAME:
+		switch( vinput->image_format ) {
+		case MXT_IMAGE_FORMAT_RGB:
+			vinput->bytes_per_frame =
+				3 * vinput->framesize[0] * vinput->framesize[1];
+			break;
+	
+		case MXT_IMAGE_FORMAT_GREY8:
+			vinput->bytes_per_frame =
+				vinput->framesize[0] * vinput->framesize[1];
+			break;
+	
+		case MXT_IMAGE_FORMAT_GREY16:
+			vinput->bytes_per_frame =
+				2 * vinput->framesize[0] * vinput->framesize[1];
+			break;
+	
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported image format %ld for video input '%s'.",
+				vinput->image_format, vinput->record->name );
+		}
 		break;
 
 	case MXLV_VIN_FORMAT:
