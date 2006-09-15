@@ -62,10 +62,7 @@ MX_API mx_status_type mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
-						MX_IMAGE_FRAME **frame );
-MX_API mx_status_type mxd_epix_xclib_get_sequence( MX_VIDEO_INPUT *vinput,
-						MX_IMAGE_SEQUENCE **sequence );
+MX_API mx_status_type mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput );
 

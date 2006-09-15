@@ -83,7 +83,11 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
 	mxd_v4l2_input_busy,
 	mxd_v4l2_input_get_status,
 	mxd_v4l2_input_get_frame,
+#if 0
 	mxd_v4l2_input_get_sequence,
+#else
+	NULL,
+#endif
 	mxd_v4l2_input_get_parameter,
 	mxd_v4l2_input_set_parameter,
 };
@@ -173,7 +177,7 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 
 	v4l2_input->armed = FALSE;
 
-	v4l2_input->frame_buffer = NULL;
+	v4l2_input->v4l2_frame_buffer = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -522,8 +526,8 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	default:
 		vinput->bytes_per_frame = 0;
 
-		if ( v4l2_input->frame_buffer != NULL ) {
-			free( v4l2_input->frame_buffer );
+		if ( v4l2_input->v4l2_frame_buffer != NULL ) {
+			free( v4l2_input->v4l2_frame_buffer );
 		}
 
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -533,7 +537,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	}
 
 	if ( ( vinput->bytes_per_frame == new_length )
-	  && ( v4l2_input->frame_buffer != NULL ) )
+	  && ( v4l2_input->v4l2_frame_buffer != NULL ) )
 	{
 		/* The frame buffer is already the correct length,
 		 * so just return.
@@ -546,13 +550,13 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 
 	vinput->bytes_per_frame = new_length;
 
-	if ( v4l2_input->frame_buffer != NULL ) {
-		free( v4l2_input->frame_buffer );
+	if ( v4l2_input->v4l2_frame_buffer != NULL ) {
+		free( v4l2_input->v4l2_frame_buffer );
 	}
 
-	v4l2_input->frame_buffer = malloc( new_length );
+	v4l2_input->v4l2_frame_buffer = malloc( new_length );
 
-	if ( v4l2_input->frame_buffer == NULL ) {
+	if ( v4l2_input->v4l2_frame_buffer == NULL ) {
 		vinput->bytes_per_frame = 0;
 
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -649,7 +653,7 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 		errno = 0;
 
 		result = read( v4l2_input->fd,
-				v4l2_input->frame_buffer,
+				v4l2_input->v4l2_frame_buffer,
 				vinput->bytes_per_frame );
 
 		saved_errno = errno;
@@ -703,7 +707,7 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 
 		fprintf(stderr,"\n");
 
-		ptr = v4l2_input->frame_buffer;
+		ptr = v4l2_input->v4l2_frame_buffer;
 
 		for ( i = 0; i < 300; i++ ) {
 			c = (unsigned int)( *ptr );
@@ -814,11 +818,12 @@ mxd_v4l2_input_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
+mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_v4l2_input_get_frame()";
 
 	MX_V4L2_INPUT *v4l2_input;
+	MX_IMAGE_FRAME *frame;
 	mx_status_type mx_status;
 
 	mx_status = mxd_v4l2_input_get_pointers( vinput, &v4l2_input, fname );
@@ -826,7 +831,9 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+	frame = vinput->frame;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
@@ -837,59 +844,18 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput, MX_IMAGE_FRAME **frame )
 #endif
 
 	if ( ( vinput->bytes_per_frame == 0 )
-	  || ( v4l2_input->frame_buffer == NULL ) )
+	  || ( v4l2_input->v4l2_frame_buffer == NULL ) )
 	{
 		return mx_error( MXE_NOT_AVAILABLE, fname,
 		"No image frames have been taken yet for video input '%s'.",
 			vinput->record->name );
 	}
 
-	*frame = malloc( sizeof(MX_IMAGE_FRAME) );
+	frame->header_length = 0;
+	frame->header_data = 0;
 
-	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	  "Ran out of memory trying to allocate an MX_IMAGE_FRAME structure." );
-	}
-
-	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
-	(*frame)->framesize[0] = vinput->framesize[0];
-	(*frame)->framesize[1] = vinput->framesize[1];
-	(*frame)->image_format = vinput->image_format;
-	(*frame)->pixel_order = vinput->pixel_order;
-
-	(*frame)->header_length = 0;
-	(*frame)->header_data = 0;
-
-	(*frame)->image_length = vinput->bytes_per_frame;
-	(*frame)->image_data = v4l2_input->frame_buffer;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_v4l2_input_get_sequence( MX_VIDEO_INPUT *vinput,
-				MX_IMAGE_SEQUENCE **sequence )
-{
-	static const char fname[] = "mxd_v4l2_input_get_sequence()";
-
-	MX_V4L2_INPUT *v4l2_input;
-	mx_status_type mx_status;
-
-	mx_status = mxd_v4l2_input_get_pointers( vinput,
-						&v4l2_input, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
-	}
-
-#if MXD_V4L2_INPUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
-#endif
+	frame->image_length = vinput->bytes_per_frame;
+	frame->image_data = v4l2_input->v4l2_frame_buffer;
 
 	return MX_SUCCESSFUL_RESULT;
 }

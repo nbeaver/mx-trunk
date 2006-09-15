@@ -26,6 +26,7 @@ typedef struct {
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
+	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
@@ -33,10 +34,14 @@ typedef struct {
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD trigger_nf;
+	MX_NETWORK_FIELD trigger_mode_nf;
 
 	MX_NETWORK_FIELD sequence_type_nf;
 	MX_NETWORK_FIELD num_sequence_parameters_nf;
 	MX_NETWORK_FIELD sequence_parameter_array_nf;
+
+	MX_NETWORK_FIELD get_frame_nf;
+	MX_NETWORK_FIELD frame_buffer_nf;
 } MX_NETWORK_VINPUT;
 
 
@@ -63,12 +68,9 @@ MX_API mx_status_type mxd_network_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_busy( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput,
-						MX_IMAGE_FRAME **frame );
-MX_API mx_status_type mxd_network_vinput_get_sequence( MX_VIDEO_INPUT *vinput,
-						MX_IMAGE_SEQUENCE **sequence );
-MX_API mx_status_type mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_network_vinput_get_parameter(MX_VIDEO_INPUT *vinput);
+MX_API mx_status_type mxd_network_vinput_set_parameter(MX_VIDEO_INPUT *vinput);
 
 extern MX_RECORD_FUNCTION_LIST mxd_network_vinput_record_function_list;
 extern MX_VIDEO_INPUT_FUNCTION_LIST mxd_network_vinput_video_function_list;

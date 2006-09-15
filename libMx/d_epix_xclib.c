@@ -65,7 +65,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_busy,
 	mxd_epix_xclib_get_status,
 	mxd_epix_xclib_get_frame,
-	mxd_epix_xclib_get_sequence,
+	NULL,
 	mxd_epix_xclib_get_parameter,
 	mxd_epix_xclib_set_parameter,
 };
@@ -737,8 +737,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
-			MX_IMAGE_FRAME **frame )
+mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_epix_xclib_get_frame()";
 
@@ -746,6 +745,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
 	char grey_colorspace[] = "Grey";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_IMAGE_FRAME *frame;
 	pxbuffer_t epix_frame_number;
 	long words_to_read, result;
 	char *colorspace;
@@ -758,7 +758,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+	frame = vinput->frame;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
@@ -821,17 +823,17 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,
 	("%s: reading a %lu byte image frame from EPIX frame number %ld.",
-			fname, (unsigned long) (*frame)->image_length,
+			fname, (unsigned long) frame->image_length,
 			(long) epix_frame_number ));
 #endif
 
 	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
-		words_to_read = ((*frame)->image_length) / 2;
+		words_to_read = (frame->image_length) / 2;
 		
 		result = pxd_readushort( epix_xclib_vinput->unitmap,
 				epix_frame_number,
 				0, 0, -1, -1,
-				(*frame)->image_data, words_to_read,
+				frame->image_data, words_to_read,
 				colorspace );
 
 		if ( result >= 0 ) {
@@ -841,7 +843,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
 		result = pxd_readuchar( epix_xclib_vinput->unitmap,
 				epix_frame_number,
 				0, 0, -1, -1,
-				(*frame)->image_data, (*frame)->image_length,
+				frame->image_data, frame->image_length,
 				colorspace );
 	}
 
@@ -854,50 +856,22 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput,
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 		"An error occurred while reading a %lu byte image frame "
 		"from video input '%s'.  Error = '%s'.",
-			(unsigned long) (*frame)->image_length,
+			(unsigned long) frame->image_length,
 			vinput->record->name, error_message );
 	} else
-	if ( result < (*frame)->image_length ) {
+	if ( result < frame->image_length ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"Read only %ld bytes from video input '%s' when we were "
 		"expecting to read %lu bytes.",
 			result, vinput->record->name,
-			(unsigned long) (*frame)->image_length );
+			(unsigned long) frame->image_length );
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,
 	("%s: successfully read a %lu byte image frame from video input '%s'.",
-		fname, (unsigned long) (*frame)->image_length,
+		fname, (unsigned long) frame->image_length,
 		vinput->record->name ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_epix_xclib_get_sequence( MX_VIDEO_INPUT *vinput,
-				MX_IMAGE_SEQUENCE **sequence )
-{
-	static const char fname[] = "mxd_epix_xclib_get_sequence()";
-
-	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	mx_status_type mx_status;
-
-	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
-	}
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

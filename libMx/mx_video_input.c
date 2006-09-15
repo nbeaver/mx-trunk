@@ -85,6 +85,9 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	vinput->frame = NULL;
+	vinput->frame_buffer = NULL;
+
 	mx_status = mx_get_image_format_type_from_name(
 			vinput->image_format_name, &(vinput->image_format) );
 
@@ -660,7 +663,7 @@ mx_video_input_get_frame( MX_RECORD *record,
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
-	mx_status_type ( *get_frame_fn ) (MX_VIDEO_INPUT *, MX_IMAGE_FRAME **);
+	mx_status_type ( *get_frame_fn ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
@@ -714,6 +717,7 @@ mx_video_input_get_frame( MX_RECORD *record,
 	(*frame)->framesize[0] = vinput->framesize[0];
 	(*frame)->framesize[1] = vinput->framesize[1];
 	(*frame)->image_format = vinput->image_format;
+	(*frame)->pixel_order = vinput->pixel_order;
 
 	/* See if the image buffer is already big enough for the image. */
 
@@ -768,7 +772,9 @@ mx_video_input_get_frame( MX_RECORD *record,
 
 	vinput->frame_number = frame_number;
 
-	mx_status = (*get_frame_fn)( vinput, frame );
+	vinput->frame = *frame;
+
+	mx_status = (*get_frame_fn)( vinput );
 
 	return mx_status;
 }

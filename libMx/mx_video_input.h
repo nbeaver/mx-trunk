@@ -43,7 +43,20 @@ typedef struct {
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
 
+	/* Note: The get_frame() method expects to read the new frame
+	 * into the 'frame' MX_IMAGE_FRAME structure.
+	 */
+
 	long get_frame;
+	MX_IMAGE_FRAME *frame;
+
+	/* 'frame_buffer' is used to provide a place for MX event handlers
+	 * to find the contents of the most recently taken frame.  It must
+	 * only be modified by mx_video_input_process_function() in
+	 * libMx/pr_video_input.c.  No other functions should modify it.
+	 */
+
+	char *frame_buffer;
 } MX_VIDEO_INPUT;
 
 #define MXLV_VIN_FRAMESIZE			11001
@@ -61,6 +74,8 @@ typedef struct {
 #define MXLV_VIN_SEQUENCE_TYPE			11013
 #define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11014
 #define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11015
+#define MXLV_VIN_GET_FRAME			11016
+#define MXLV_VIN_FRAME_BUFFER			11017
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -127,7 +142,15 @@ typedef struct {
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_VIDEO_INPUT, sequence_parameters.parameter_array), \
-	{0}, NULL, 0}
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_GET_FRAME, -1, "get_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, get_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_FRAME_BUFFER, -1, "frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, frame_buffer), \
+	{0}, NULL, MXFF_READ_ONLY}
 
 typedef struct {
 	mx_status_type ( *arm ) ( MX_VIDEO_INPUT *vinput );
@@ -136,8 +159,7 @@ typedef struct {
 	mx_status_type ( *abort ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *busy ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_status ) ( MX_VIDEO_INPUT *vinput );
-	mx_status_type ( *get_frame ) ( MX_VIDEO_INPUT *vinput,
-					MX_IMAGE_FRAME **frame );
+	mx_status_type ( *get_frame ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_sequence ) ( MX_VIDEO_INPUT *vinput,
 					MX_IMAGE_SEQUENCE **sequence );
 	mx_status_type ( *get_parameter ) ( MX_VIDEO_INPUT *vinput );

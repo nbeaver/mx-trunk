@@ -49,7 +49,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_network_vinput_video_input_function_list = {
 	mxd_network_vinput_busy,
 	mxd_network_vinput_get_status,
 	mxd_network_vinput_get_frame,
-	mxd_network_vinput_get_sequence,
+	NULL,
 	mxd_network_vinput_get_parameter,
 	mxd_network_vinput_set_parameter,
 };
@@ -183,6 +183,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.busy", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->bytes_per_frame_nf),
+			network_vinput->server_record,
+		"%s.bytes_per_frame", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->framesize_nf),
 			network_vinput->server_record,
 			"%s.framesize", network_vinput->remote_record_name );
@@ -210,6 +214,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->trigger_nf),
 			network_vinput->server_record,
 			"%s.trigger", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->trigger_mode_nf),
+			network_vinput->server_record,
+			"%s.trigger_mode", network_vinput->remote_record_name );
 
 	/*---*/
 
@@ -469,13 +477,13 @@ mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput,
-				MX_IMAGE_FRAME **frame )
+mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_network_vinput_get_frame()";
 
 	MX_NETWORK_VINPUT *network_vinput;
-	long words_to_read;
+	MX_IMAGE_FRAME *frame;
+	long dimension[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
@@ -484,7 +492,9 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+	frame = vinput->frame;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
@@ -494,70 +504,44 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput,
 		fname, vinput->record->name ));
 #endif
 
-	/* Read the frame into the MX_IMAGE_FRAME structure. */
+	/* Tell the server to prepare the frame for being read. */
 
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: reading a %lu byte image frame.",
-			fname, (unsigned long) (*frame)->image_length ));
-#endif
-
-	if ( vinput->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
-		words_to_read = ((*frame)->image_length) / 2;
-		
-#if 0
-		result = pxd_readushort( network_vinput->unitmap, 1,
-				0, 0, -1, -1,
-				(*frame)->image_data, words_to_read,
-				colorspace );
-
-		if ( result >= 0 ) {
-			result = result * 2;
-		}
-#endif
-	} else {
-#if 0
-		result = pxd_readuchar( network_vinput->unitmap, 1,
-				0, 0, -1, -1,
-				(*frame)->image_data, (*frame)->image_length,
-				colorspace );
-#endif
-	}
-
-	/* Was the read successful? */
-
-#if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,
-	("%s: successfully read a %lu byte image frame from video input '%s'.",
-		fname, (unsigned long) (*frame)->image_length,
-		vinput->record->name ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_network_vinput_get_sequence( MX_VIDEO_INPUT *vinput,
-				MX_IMAGE_SEQUENCE **sequence )
-{
-	static const char fname[] = "mxd_network_vinput_get_sequence()";
-
-	MX_NETWORK_VINPUT *network_vinput;
-	mx_status_type mx_status;
-
-	mx_status = mxd_network_vinput_get_pointers( vinput,
-						&network_vinput, fname );
+	mx_status = mx_put( &(network_vinput->get_frame_nf),
+				MXFT_LONG, &(vinput->frame_number) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
-	}
+	/* Ask for the size of the image. */
+
+	mx_status = mx_get( &(network_vinput->bytes_per_frame_nf),
+				MXFT_LONG, &(vinput->bytes_per_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	frame->image_length = vinput->bytes_per_frame;
+
+	/* Now read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: reading a %ld byte image frame.",
+			fname, (long) frame->image_length ));
+#endif
+
+	dimension[0] = frame->image_length;
+
+	mx_status = mx_get_array( &(network_vinput->frame_buffer_nf),
+			MXFT_CHAR, 1, dimension, &(frame->image_data) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_VINPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: successfully read a %lu byte image frame from video input '%s'.",
+		fname, (unsigned long) frame->image_length,
+		vinput->record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -569,6 +553,7 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_network_vinput_get_parameter()";
 
 	MX_NETWORK_VINPUT *network_vinput;
+	long dimension[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
@@ -583,80 +568,84 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_PIXEL_ORDER:
-	case MXLV_VIN_TRIGGER_MODE:
-	case MXLV_VIN_SEQUENCE_TYPE:
-	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_VIN_FRAMESIZE:
+		dimension[0] = 2;
 
+		mx_status = mx_get_array( &(network_vinput->framesize_nf),
+				MXFT_LONG, 1, dimension, &(vinput->framesize) );
 		break;
 
 	case MXLV_VIN_FORMAT:
-#if 0
-		bits_per_component = pxd_imageBdim();
-		components_per_pixel = pxd_imageCdim();
+	case MXLV_VIN_FORMAT_NAME:
+		mx_status = mx_get( &(network_vinput->image_format_nf),
+					MXFT_LONG, &(vinput->image_format) );
 
-		if ( bits_per_component <= 8 ) {
-			switch( components_per_pixel ) {
-			case 1:
-			    vinput->image_format = MXT_IMAGE_FORMAT_GREY8;
-			    break;
-			case 3:
-			    vinput->image_format = MXT_IMAGE_FORMAT_RGB;
-			    break;
-			default:
-			    return mx_error( MXE_UNSUPPORTED, fname,
-				"%d-bit video input '%s' reports an "
-				"unsupported number of pixel components (%d).",
-					bits_per_component,
-					vinput->record->name,
-					components_per_pixel );
-			}
-		} else
-		if ( bits_per_component <= 16 ) {
-			switch( components_per_pixel ) {
-			case 1:
-			    vinput->image_format = MXT_IMAGE_FORMAT_GREY16;
-			    break;
-			default:
-			    return mx_error( MXE_UNSUPPORTED, fname,
-				"%d-bit video input '%s' reports an "
-				"unsupported number of pixel components (%d).",
-					bits_per_component,
-					vinput->record->name,
-					components_per_pixel );
-			}
-		} else {
-			return mx_error( MXE_UNSUPPORTED, fname,
-				"Video input '%s' reports an unsupported "
-				"number of bits per component (%d) "
-				"and components per pixel (%d).",
-					vinput->record->name,
-					bits_per_component,
-					components_per_pixel );
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
+		mx_status = mx_get_image_format_name_from_type(
+				vinput->image_format, vinput->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
 #if MXD_NETWORK_VINPUT_DEBUG
-		MX_DEBUG(-2,
-		("%s: video format = %ld", fname, vinput->image_format));
-#endif
-
+		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
+		    fname, vinput->image_format, vinput->image_format_name));
 #endif
 		break;
 
-	case MXLV_VIN_FRAMESIZE:
-#if 0
-		vinput->framesize[0] = pxd_imageXdim();
-		vinput->framesize[1] = pxd_imageYdim();
-#endif
+	case MXLV_VIN_PIXEL_ORDER:
+		mx_status = mx_get( &(network_vinput->pixel_order_nf),
+					MXFT_LONG, &(vinput->pixel_order) );
+		break;
+
+	case MXLV_VIN_TRIGGER_MODE:
+		mx_status = mx_get( &(network_vinput->trigger_mode_nf),
+					MXFT_LONG, &(vinput->trigger_mode) );
+		break;
+
+	case MXLV_VIN_BYTES_PER_FRAME:
+		mx_status = mx_get( &(network_vinput->bytes_per_frame_nf),
+					MXFT_LONG, &(vinput->bytes_per_frame) );
+		break;
+
+	case MXLV_VIN_BUSY:
+		mx_status = mx_get( &(network_vinput->busy_nf),
+					MXFT_BOOL, &(vinput->busy) );
+		break;
+
+	case MXLV_VIN_STATUS:
+		mx_status = mx_get( &(network_vinput->status_nf),
+					MXFT_HEX, &(vinput->status) );
+		break;
+
+	case MXLV_VIN_SEQUENCE_TYPE:
+		mx_status = mx_get( &(network_vinput->sequence_type_nf),
+		    MXFT_LONG, &(vinput->sequence_parameters.sequence_type) );
+
+		break;
+
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		mx_status = mx_get(
+				&(network_vinput->num_sequence_parameters_nf),
+		    MXFT_LONG, &(vinput->sequence_parameters.num_parameters) );
+				
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		dimension[0] = vinput->sequence_parameters.num_parameters;
+
+		mx_status = mx_get_array(
+				&(network_vinput->sequence_parameter_array_nf),
+				MXFT_DOUBLE, 1, dimension,
+				&(vinput->sequence_parameters.parameter_array));
 		break;
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		mx_status =
+			mx_video_input_default_get_parameter_handler( vinput );
+		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -665,6 +654,7 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_network_vinput_set_parameter()";
 
 	MX_NETWORK_VINPUT *network_vinput;
+	long dimension[1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_network_vinput_get_pointers( vinput,
@@ -679,20 +669,19 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_SEQUENCE_TYPE:
-	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
-	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_VIN_FRAMESIZE:
 
+		dimension[0] = 2;
+
+		mx_status = mx_put_array( &(network_vinput->framesize_nf),
+				MXFT_LONG, 1, dimension, &(vinput->framesize) );
 		break;
 
 	case MXLV_VIN_FORMAT:
-		(void) mxd_network_vinput_get_parameter( vinput );
-
+	case MXLV_VIN_FORMAT_NAME:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Changing the video format for video input '%s' via "
-		"MX is not supported.  In order to change video formats, "
-		"you must create a new video configuration in the XCAP "
-		"program from EPIX, Inc.", vinput->record->name );
+			"Changing the image format is not supported for "
+			"video input '%s'.", vinput->record->name );
 		break;
 
 	case MXLV_VIN_PIXEL_ORDER:
@@ -701,99 +690,45 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 			"is not supported.", vinput->record->name );
 		break;
 
-	case MXLV_VIN_FRAMESIZE:
-
-#if 0
-		/* Escape to the Structured Style Interface. */
-
-		xc = pxd_xclibEscape(0, 0, 0);
-
-		if ( xc == NULL ) {
-			return mx_error( MXE_INITIALIZATION_ERROR, fname,
-			"The XCLIB library has not yet been initialized "
-			"for video input '%s' with pxd_PIXCIopen().",
-				vinput->record->name );
-		}
-
-		xclib_InitVidStateStructs(vidstate);
-
-		xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
-
-		/* Change the necessary parameters. */
-
-		vidstate.vidres->x.datsamples = vinput->framesize[0];
-		vidstate.vidres->x.vidsamples = vinput->framesize[0];
-		vidstate.vidres->x.setmidvidoffset = 0;
-		vidstate.vidres->x.vidoffset = 0;
-		vidstate.vidres->x.setmaxdatsamples = 0;
-		vidstate.vidres->x.setmaxvidsamples = 0;
-
-		vidstate.vidres->y.datsamples = vinput->framesize[1];
-		vidstate.vidres->y.vidsamples = vinput->framesize[1];
-		vidstate.vidres->y.setmidvidoffset = 0;
-		vidstate.vidres->y.vidoffset = 0;
-		vidstate.vidres->y.setmaxdatsamples = 0;
-		vidstate.vidres->y.setmaxvidsamples = 0;
-
-		vidstate.vidres->datfields = 1;
-		vidstate.vidres->setmaxdatfields = 0;
-
-		/* Leave the Structured Style Interface. */
-
-		epix_status = xc->pxlib.defineState(
-				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
-
-		if ( epix_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Error in xc->pxlib.defineState() for record '%s'.  "
-			"Error code = %d",
-				vinput->record->name, epix_status );
-		}
-
-		epix_status = pxd_xclibEscaped(0, 0, 0);
-
-		if ( epix_status != 0 ) {
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"Error in pxd_xclibEscaped() for record '%s'.  "
-			"Error code = %d",
-				vinput->record->name, epix_status );
-		}
-
-#endif
+	case MXLV_VIN_TRIGGER_MODE:
+		mx_status = mx_put( &(network_vinput->trigger_mode_nf),
+				MXFT_LONG, &(vinput->trigger_mode) );
 		break;
 
-	case MXLV_VIN_TRIGGER_MODE:
-#if 0
-		if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
+	case MXLV_VIN_BYTES_PER_FRAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Directly changing the number of bytes per frame "
+			"for video input '%s' is not supported.",
+				vinput->record->name );
+		break;
 
-			mx_status = mxd_network_vinput_internal_trigger(
-					vinput, network_vinput, TRUE );
-		} else {
-			mx_status = mxd_network_vinput_internal_trigger(
-					vinput, network_vinput, FALSE );
-		}
+	case MXLV_VIN_SEQUENCE_TYPE:
+		mx_status = mx_put( &(network_vinput->sequence_type_nf),
+		    MXFT_LONG, &(vinput->sequence_parameters.sequence_type) );
 
+		break;
+
+	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
+	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		mx_status = mx_put(
+				&(network_vinput->num_sequence_parameters_nf),
+		    MXFT_LONG, &(vinput->sequence_parameters.num_parameters) );
+				
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
+		dimension[0] = vinput->sequence_parameters.num_parameters;
 
-			mx_status = mxd_network_vinput_external_trigger(
-					vinput, network_vinput, TRUE );
-		} else {
-			mx_status = mxd_network_vinput_external_trigger(
-					vinput, network_vinput, FALSE );
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-#endif
+		mx_status = mx_put_array(
+				&(network_vinput->sequence_parameter_array_nf),
+				MXFT_DOUBLE, 1, dimension,
+				&(vinput->sequence_parameters.parameter_array));
 		break;
 
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		mx_status =
+			mx_video_input_default_set_parameter_handler( vinput );
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
