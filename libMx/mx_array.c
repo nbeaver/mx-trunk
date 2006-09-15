@@ -774,7 +774,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 			num_dimensions );
 	}
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: *** array_pointer = %p", fname, array_pointer));
 	MX_DEBUG(-2,("%s: mx_datatype = %ld", fname, mx_datatype));
 	MX_DEBUG(-2,("%s: num_dimensions = %ld", fname, num_dimensions));
@@ -800,7 +800,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 				(long) source_buffer_length );
 		}
 
-#if 0
+#if 1
 		MX_DEBUG(-2,
 	("%s: num_dimensions = 0, mx_datatype = %ld, bytes_to_copy = %d",
 			fname, mx_datatype, bytes_to_copy));
@@ -853,6 +853,15 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 		bytes_to_copy = source_buffer_length;
 
+#if 1
+		MX_DEBUG(-2,
+	("%s: num_dimensions = 1, dimension_array[0] = %ld, mx_datatype = %ld", 
+	     		fname, dimension_array[0], mx_datatype));
+
+		MX_DEBUG(-2,("%s: #1 array_size = %ld, bytes_to_copy = %ld",
+			fname, (long) array_size, (long) bytes_to_copy));
+#endif
+
 		if ( mx_datatype == MXFT_STRING ) {
 			bytes_to_copy++;
 		}
@@ -860,6 +869,11 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		if ( bytes_to_copy > array_size ) {
 			bytes_to_copy = array_size;
 		}
+
+#if 1
+		MX_DEBUG(-2,("%s: #2 array_size = %ld, bytes_to_copy = %ld",
+			fname, (long) array_size, (long) bytes_to_copy));
+#endif
 
 		switch( mx_datatype ) {
 		case MXFT_STRING:
@@ -876,6 +890,30 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 		case MXFT_UINT64:
 		case MXFT_FLOAT:
 		case MXFT_DOUBLE:
+#if 1
+			{
+				char *dest_ptr, *src_ptr;
+				long bytes;
+
+				dest_ptr = array_pointer;
+				src_ptr = source_buffer;
+				bytes = bytes_to_copy;
+
+				MX_DEBUG(-2,
+				("%s: #1 about to read dest_ptr[%ld]",
+					fname, bytes - 1));
+				MX_DEBUG(-2,("%s: #1 dest_ptr[%ld] = %d",
+					fname, bytes - 1,
+					dest_ptr[bytes-1] ));
+
+				MX_DEBUG(-2,
+				("%s: #1 about to read src_ptr[%ld]",
+					fname, bytes - 1));
+				MX_DEBUG(-2,("%s: #1 src_ptr[%ld] = %d",
+					fname, bytes - 1,
+					src_ptr[bytes-1] ));
+			}
+#endif
 			memcpy( array_pointer, source_buffer, bytes_to_copy );
 			break;
 
@@ -886,6 +924,28 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 				mx_copy_32bits_to_64bits( array_pointer,
 					source_buffer, dimension_array[0] );
 			} else {
+#if 1
+				char *dest_ptr, *src_ptr;
+				long bytes;
+
+				dest_ptr = array_pointer;
+				src_ptr = source_buffer;
+				bytes = bytes_to_copy;
+
+				MX_DEBUG(-2,
+				("%s: #2 about to read dest_ptr[%ld]",
+					fname, bytes - 1));
+				MX_DEBUG(-2,("%s: #2 dest_ptr[%ld] = %d",
+					fname, bytes - 1,
+					dest_ptr[bytes-1] ));
+
+				MX_DEBUG(-2,
+				("%s: #2 about to read src_ptr[%ld]",
+					fname, bytes - 1));
+				MX_DEBUG(-2,("%s: #2 src_ptr[%ld] = %d",
+					fname, bytes - 1,
+					src_ptr[bytes-1] ));
+#endif
 				memcpy( array_pointer,
 					source_buffer, bytes_to_copy );
 			}

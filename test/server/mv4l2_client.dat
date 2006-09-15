@@ -1,2 +1,2 @@
-s1      server network tcp_server "" "" 0x0 localhost 9827
+s1      server network tcp_server "" "" 0x20000000 localhost 9827
 video0  device video_input network_vinput "" "" -1 -1 "" -1 s1 video0

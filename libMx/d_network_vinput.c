@@ -535,12 +535,27 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 #if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: reading a %ld byte image frame.",
 			fname, (long) frame->image_length ));
+
+	{
+		char *image_data;
+		long image_length;
+
+		image_data = frame->image_data;
+		image_length = frame->image_length;
+
+		MX_DEBUG(-2,("%s: about to read image_data[%ld]",
+				fname, image_length - 1));
+
+		MX_DEBUG(-2,("%s: image_data[%ld] = %u",
+			fname, image_length - 1,
+			image_data[ image_length - 1 ] ));
+	}
 #endif
 
 	dimension[0] = frame->image_length;
 
 	mx_status = mx_get_array( &(network_vinput->frame_buffer_nf),
-			MXFT_CHAR, 1, dimension, &(frame->image_data) );
+			MXFT_CHAR, 1, dimension, frame->image_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

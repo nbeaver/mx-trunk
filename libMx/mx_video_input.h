@@ -150,7 +150,7 @@ typedef struct {
   \
   {MXLV_VIN_FRAME_BUFFER, -1, "frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, frame_buffer), \
-	{0}, NULL, MXFF_READ_ONLY}
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}
 
 typedef struct {
 	mx_status_type ( *arm ) ( MX_VIDEO_INPUT *vinput );

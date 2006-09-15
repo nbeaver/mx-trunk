@@ -913,7 +913,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		MX_DEBUG(-2,("%s: width = %lu, height = %lu", fname,
 			(unsigned long) format.fmt.pix.width,
 			(unsigned long) format.fmt.pix.height));
-		MX_DEBUG(-2,("%s: pixelformat = %lu", fname,
+		MX_DEBUG(-2,("%s: pixelformat = %#lx", fname,
 			(unsigned long) format.fmt.pix.pixelformat));
 		MX_DEBUG(-2,("%s: field = %d",
 			fname, format.fmt.pix.field));
