@@ -27,6 +27,87 @@
 #include "mx_process.h"
 #include "pr_handlers.h"
 
+static mx_status_type
+mxp_video_input_get_frame_handler( MX_RECORD *record,
+				MX_RECORD_FIELD *record_field,
+				MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxp_video_input_get_frame_handler()";
+
+	MX_IMAGE_FRAME *frame;
+	MX_RECORD_FIELD *frame_buffer_field;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
+			fname, record->name, record_field->name));
+
+	/* Tell it to read in the frame. */
+
+	mx_status = mx_video_input_get_frame( record, vinput->get_frame,
+						&(vinput->frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the frame buffer pointer to point to the buffer in the frame
+	 * that we just read in.
+	 */
+
+	frame = vinput->frame;
+
+	vinput->frame_buffer = frame->image_data;
+
+	MX_DEBUG(-2,("%s: bytes_per_frame = %ld, frame_buffer = %p",
+		fname, vinput->bytes_per_frame, vinput->frame_buffer));
+
+#if 1
+	{
+		int i;
+		unsigned char c;
+
+		for ( i = 0; i < 10; i++ ) {
+			c = vinput->frame_buffer[i];
+
+			MX_DEBUG(-2,("%s: frame_buffer[%d] = %u", fname, i, c));
+		}
+	}
+#endif
+
+	/* Modify the 'frame_buffer' record field to have the correct number
+	 * of array elements.
+	 */
+
+	mx_status = mx_find_record_field( record,
+			"frame_buffer", &frame_buffer_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( frame_buffer_field->num_dimensions != 1 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The '%s' field for record '%s' has an incorrect "
+		"number of dimensions (%ld).  It should be 1.",
+			frame_buffer_field->name, record->name,
+			frame_buffer_field->num_dimensions );
+	}
+
+	MX_DEBUG(-2,
+	("%s: OLD frame buffer, num_dimensions = %ld, dimension[0] = %ld",
+	 	fname, frame_buffer_field->num_dimensions,
+		frame_buffer_field->dimension[0]));
+
+	frame_buffer_field->dimension[0] = vinput->bytes_per_frame;
+
+	MX_DEBUG(-2,
+	("%s: NEW frame buffer, num_dimensions = %ld, dimension[0] = %ld",
+	 	fname, frame_buffer_field->num_dimensions,
+		frame_buffer_field->dimension[0]));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
 mx_status_type
 mx_setup_video_input_process_functions( MX_RECORD *record )
 {
@@ -51,6 +132,8 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_FORMAT:
 		case MXLV_VIN_FRAMESIZE:
+		case MXLV_VIN_FRAME_BUFFER:
+		case MXLV_VIN_GET_FRAME:
 		case MXLV_VIN_STATUS:
 		case MXLV_VIN_STOP:
 		case MXLV_VIN_TRIGGER:
@@ -72,12 +155,12 @@ mx_video_input_process_function( void *record_ptr,
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_VIDEO_INPUT *video_input;
+	MX_VIDEO_INPUT *vinput;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	video_input = (MX_VIDEO_INPUT *) (record->record_class_struct);
+	vinput = (MX_VIDEO_INPUT *) (record->record_class_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -102,6 +185,13 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_get_framesize( record,
 								NULL, NULL );
 			break;
+		case MXLV_VIN_FRAME_BUFFER:
+			if ( vinput->frame_buffer == NULL ) {
+				return mx_error(MXE_INITIALIZATION_ERROR, fname,
+			"Video input '%s' has not yet taken its first frame.",
+					record->name );
+			}
+			break;
 		case MXLV_VIN_STATUS:
 			mx_status = mx_video_input_get_status( record,
 								NULL, NULL );
@@ -123,12 +213,16 @@ mx_video_input_process_function( void *record_ptr,
 			break;
 		case MXLV_VIN_FORMAT:
 			mx_status = mx_video_input_set_image_format( record,
-						video_input->image_format );
+						vinput->image_format );
 			break;
 		case MXLV_VIN_FRAMESIZE:
 			mx_status = mx_video_input_set_framesize( record,
-						video_input->framesize[0],
-						video_input->framesize[1] );
+						vinput->framesize[0],
+						vinput->framesize[1] );
+		case MXLV_VIN_GET_FRAME:
+			mx_status = mxp_video_input_get_frame_handler(
+					record, record_field, vinput );
+			break;
 		case MXLV_VIN_STOP:
 			mx_status = mx_video_input_stop( record );
 			break;

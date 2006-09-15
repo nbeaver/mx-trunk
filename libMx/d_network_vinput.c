@@ -191,6 +191,14 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.framesize", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->frame_buffer_nf),
+			network_vinput->server_record,
+			"%s.frame_buffer", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->get_frame_nf),
+			network_vinput->server_record,
+			"%s.get_frame", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->image_format_name_nf),
 			network_vinput->server_record,
 		"%s.image_format_name", network_vinput->remote_record_name );
@@ -542,6 +550,20 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	("%s: successfully read a %lu byte image frame from video input '%s'.",
 		fname, (unsigned long) frame->image_length,
 		vinput->record->name ));
+
+	{
+		int i;
+		unsigned char c;
+		unsigned char *frame_buffer;
+
+		frame_buffer = frame->image_data;
+
+		for ( i = 0; i < 10; i++ ) {
+			c = frame_buffer[i];
+
+			MX_DEBUG(-2,("%s: frame_buffer[%d] = %u", fname, i, c));
+		}
+	}
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
