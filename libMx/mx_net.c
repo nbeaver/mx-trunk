@@ -653,34 +653,6 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 	int new_handle_needed;
 	mx_status_type mx_status;
 
-#if 1
-	if ( (num_dimensions == 1) && ( datatype == MXFT_CHAR ) ) {
-		long local_array_size;
-		char *dest_ptr;
-
-		MX_DEBUG(-2,("%s: MARKER #1", fname));
-		MX_DEBUG(-2,("%s: datatype = %ld", fname, datatype));
-		MX_DEBUG(-2,("%s: num_dimensions = %ld",
-					fname, num_dimensions));
-		MX_DEBUG(-2,("%s: dimension[0] = %ld", fname, dimension[0]));
-
-		local_array_size = dimension[0] * 1;
-
-		MX_DEBUG(-2,("%s: local_array_size = %ld",
-			fname, local_array_size));
-
-		dest_ptr = value_ptr;
-
-		MX_DEBUG(-2,("%s: dest_ptr = %p", fname, dest_ptr));
-
-		MX_DEBUG(-2,("%s: About to read dest_ptr[%ld]",
-			fname, local_array_size - 1));
-		MX_DEBUG(-2,("%s: dest_ptr[%ld] = %u",
-			fname, local_array_size - 1,
-			dest_ptr[local_array_size-1] ));
-	}
-#endif
-
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
@@ -697,35 +669,6 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-
-#if 1
-	if ( (num_dimensions == 1) && ( datatype == MXFT_CHAR ) ) {
-		long local_array_size;
-		char *dest_ptr;
-
-		MX_DEBUG(-2,("%s: MARKER #2", fname));
-		MX_DEBUG(-2,("%s: nf name = '%s'", fname, nf->nfname));
-		MX_DEBUG(-2,("%s: datatype = %ld", fname, datatype));
-		MX_DEBUG(-2,("%s: num_dimensions = %ld",
-					fname, num_dimensions));
-		MX_DEBUG(-2,("%s: dimension[0] = %ld", fname, dimension[0]));
-
-		local_array_size = dimension[0] * 1;
-
-		MX_DEBUG(-2,("%s: local_array_size = %ld",
-			fname, local_array_size));
-
-		dest_ptr = value_ptr;
-
-		MX_DEBUG(-2,("%s: dest_ptr = %p", fname, dest_ptr));
-
-		MX_DEBUG(-2,("%s: About to read dest_ptr[%ld]",
-			fname, local_array_size - 1));
-		MX_DEBUG(-2,("%s: dest_ptr[%ld] = %u",
-			fname, local_array_size - 1,
-			dest_ptr[local_array_size-1] ));
-	}
-#endif
 
 	mx_status = mx_internal_get_array( NULL, NULL, nf,
 					datatype, num_dimensions, dimension,
@@ -818,32 +761,6 @@ mx_internal_get_array( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if 1
-	if (num_dimensions == 1) {
-		long local_array_size;
-		char *dest_ptr;
-
-		MX_DEBUG(-2,
-		("%s: dimension_array[0] = %ld, data_element_size[0] = %ld",
-			fname, dimension_array[0], (long)data_element_size[0]));
-
-		local_array_size = dimension_array[0] * data_element_size[0];
-
-		MX_DEBUG(-2,("%s: local_array_size = %ld",
-			fname, local_array_size));
-
-		dest_ptr = value_ptr;
-
-		MX_DEBUG(-2,("%s: dest_ptr = %p", fname, dest_ptr));
-
-		MX_DEBUG(-2,("%s: About to read dest_ptr[%ld]",
-			fname, local_array_size - 1));
-		MX_DEBUG(-2,("%s: dest_ptr[%ld] = %u",
-			fname, local_array_size - 1,
-			dest_ptr[local_array_size-1] ));
-	}
-#endif
 
 	/* Send the request to the server. */
 
