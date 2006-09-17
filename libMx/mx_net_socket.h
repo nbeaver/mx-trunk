@@ -8,7 +8,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,6 @@
 
 MX_API mx_status_type mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 						double timeout,
-						unsigned long buffer_length,
 						void *buffer );
 
 MX_API mx_status_type mx_network_socket_send_message( MX_SOCKET *mx_socket,

@@ -51,14 +51,130 @@
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_network_receive_message( MX_RECORD *server_record,
-				unsigned long buffer_length, void *buffer )
+mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
+				size_t initial_length )
+{
+	static const char fname[] = "mx_allocate_network_buffer()";
+
+	MX_DEBUG(-2,("%s invoked for an initial length of %lu",
+		fname, (unsigned long) initial_length ));
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+	}
+
+	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER_FOO) );
+
+	if ( (*message_buffer) == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate an "
+			"MX_NETWORK_MESSAGE_BUFFER_FOO structure." );
+	}
+
+	(*message_buffer)->u.uint32_buffer = malloc( initial_length );
+
+	if ( (*message_buffer)->u.uint32_buffer == (uint32_t *) NULL ) {
+
+		free( *message_buffer );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %lu byte "
+		"network message buffer.", (unsigned long) initial_length );
+	}
+
+	(*message_buffer)->buffer_length = initial_length;
+
+	MX_DEBUG(-2,
+	("%s: *message_buffer = %p, u.uint32_buffer = %p, length = %lu",
+	 	fname, *message_buffer, (*message_buffer)->u.uint32_buffer,
+		(unsigned long) (*message_buffer)->buffer_length));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
+					size_t new_length )
+{
+	static const char fname[] = "mx_reallocate_network_buffer()";
+
+	size_t old_length;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+	}
+
+	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The buffer array pointer for network message buffer %p is NULL.",
+	    		message_buffer );
+	}
+
+	old_length = message_buffer->buffer_length;
+
+	MX_DEBUG(-2,("%s will change the length of network message buffer %p "
+		"from %lu bytes to %lu bytes.", fname, message_buffer,
+			(unsigned long) old_length,
+			(unsigned long) new_length ));
+
+	message_buffer->u.uint32_buffer =
+		realloc( message_buffer->u.uint32_buffer, new_length );
+
+	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
+
+		message_buffer->buffer_length = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to change network message buffer %p "
+		"from %lu bytes long to %lu bytes long.  The length of the "
+		"buffer has been set to zero.", message_buffer,
+			(unsigned long) old_length,
+			(unsigned long) new_length );
+	}
+
+	message_buffer->buffer_length = new_length;
+
+	MX_DEBUG(-2,
+	("%s: message_buffer = %p, u.uint32_buffer = %p, length = %lu",
+	 	fname, message_buffer, message_buffer->u.uint32_buffer,
+		(unsigned long) message_buffer->buffer_length));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT void
+mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+{
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+		return;
+	}
+
+	MX_DEBUG(-2,("mx_free_network_buffer(): message_buffer = %p, "
+		"u.uint32_buffer = %p, length = %lu",
+	 	message_buffer, message_buffer->u.uint32_buffer,
+		(unsigned long) message_buffer->buffer_length));
+
+	if ( message_buffer->u.uint32_buffer != NULL ) {
+		free( message_buffer->u.uint32_buffer );
+	}
+
+	free( message_buffer );
+
+	return;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_receive_message( MX_RECORD *server_record, void *buffer )
 {
 	static const char fname[] = "mx_network_receive_message()";
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, unsigned long, void * );
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, void * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -96,7 +212,9 @@ mx_network_receive_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
-	mx_status = ( *fptr ) ( server, buffer_length, buffer );
+	MX_DEBUG(-2,("%s: buffer = %p", fname, buffer));
+
+	mx_status = ( *fptr ) ( server, buffer );
 
 	return mx_status;
 }
@@ -886,7 +1004,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer;
 	char *message;
@@ -960,8 +1078,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -999,22 +1117,21 @@ mx_get_field_array( MX_RECORD *server_record,
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 #if NETWORK_DEBUG
-	mx_network_display_message_buffer( buffer );
+	mx_network_display_message_buffer( aligned_buffer );
 #endif
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************* Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1206,7 +1323,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer;
 	char *message, *ptr;
@@ -1274,8 +1391,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -1315,7 +1432,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_DEBUG( 2,("%s: message = %p, ptr = %p, message_length = %lu",
 		fname, message, ptr, (unsigned long) message_length));
 
-	buffer_left = MX_NETWORK_MAXIMUM_MESSAGE_SIZE
+	buffer_left = aligned_buffer->buffer_length
 			- MX_NETWORK_HEADER_LENGTH_VALUE - message_length;
 
 	/* Construct the data to send. */
@@ -1335,12 +1452,12 @@ mx_put_field_array( MX_RECORD *server_record,
 		  || ((datatype == MXFT_STRING) && (num_dimensions == 1)) )
 		{
 			mx_status = (*token_constructor) ( value_ptr, ptr,
-			    MX_NETWORK_MAXIMUM_MESSAGE_SIZE - ( ptr - buffer ),
+			    aligned_buffer->buffer_length - ( ptr - buffer ),
 			    NULL, local_field );
 		} else {
 			mx_status = mx_create_array_description( value_ptr, 
 			    local_field->num_dimensions - 1, ptr,
-			    MX_NETWORK_MAXIMUM_MESSAGE_SIZE - ( ptr - buffer ),
+			    aligned_buffer->buffer_length - ( ptr - buffer ),
 			    NULL, local_field, token_constructor );
 		}
 
@@ -1434,7 +1551,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
 #if NETWORK_DEBUG
-	mx_network_display_message_buffer( buffer );
+	mx_network_display_message_buffer( aligned_buffer );
 #endif
 
 #if NETWORK_DEBUG_TIMING
@@ -1443,15 +1560,14 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	/*************** Send the message. **************/
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************** Wait for the response. ************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1518,7 +1634,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	static const char fname[] = "mx_network_field_connect()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -1561,8 +1677,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -1584,7 +1700,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( nf->server_record, buffer );
+	mx_status = mx_network_send_message( nf->server_record, aligned_buffer);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1592,7 +1708,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	/************** Wait for the response. **************/
 
 	mx_status = mx_network_receive_message( nf->server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+						aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1701,7 +1817,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	static const char fname[] = "mx_get_field_type()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -1740,8 +1856,8 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -1762,15 +1878,14 @@ mx_get_field_type( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1868,7 +1983,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	static const char fname[] = "mx_set_client_info()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message, *ptr;
 	uint32_t header_length, message_length;
@@ -1917,8 +2032,8 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -1952,15 +2067,14 @@ mx_set_client_info( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2014,7 +2128,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_get_option()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
 	uint32_t header_length, message_length;
@@ -2050,8 +2164,8 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -2070,15 +2184,14 @@ mx_network_get_option( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2166,7 +2279,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_set_option()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
 	uint32_t header_length, message_length;
@@ -2198,8 +2311,8 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->uint32_buffer[0]);
-	buffer = &(aligned_buffer->char_buffer[0]);
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
@@ -2219,15 +2332,14 @@ mx_network_set_option( MX_RECORD *server_record,
 	MX_HRT_START( measurement );
 #endif
 
-	mx_status = mx_network_send_message( server_record, buffer );
+	mx_status = mx_network_send_message( server_record, aligned_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record,
-				MX_NETWORK_MAXIMUM_MESSAGE_SIZE, buffer );
+	mx_status = mx_network_receive_message( server_record, aligned_buffer );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );

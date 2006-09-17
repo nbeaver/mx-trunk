@@ -31,25 +31,32 @@
 #define MX_NETWORK_HEADER_LENGTH_VALUE	\
 	( MX_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
 
-/*
- * Maximum size of an MX network message.  This limit needs to be eliminated,
- * but for now we are stuck with it.
- */
+/* Initial size of an MX network message buffer. */
 
-#define MX_NETWORK_MAXIMUM_MESSAGE_SIZE  163840L
+#define MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	163840
 
 /*
  * Define the data type that contains MX network messages.
  *
- * The following union is defined so that the address of the first byte
- * will be correctly aligned on a 32-bit word boundary for those computer 
- * architectures that require such things.
+ * The union in the following data structure is defined so that the address
+ * of the first byte will be correctly aligned on a 32-bit word boundary for
+ * those computer architectures that require such things.
  */
 
+#if 0
 typedef union {
 	uint32_t uint32_buffer[MX_NETWORK_HEADER_LENGTH_VALUE];
 	char     char_buffer[MX_NETWORK_MAXIMUM_MESSAGE_SIZE];
 } MX_NETWORK_MESSAGE_BUFFER;
+#endif
+
+typedef struct {
+	union {
+		uint32_t *uint32_buffer;
+		char     *char_buffer;
+	} u;
+	size_t buffer_length;
+} MX_NETWORK_MESSAGE_BUFFER_FOO;
 
 /*
  * MX network server data structures.
@@ -68,7 +75,7 @@ typedef struct {
 	unsigned long server_flags;
 	double timeout;			/* in seconds */
 
-	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
 	unsigned long remote_mx_version;
 	unsigned long data_format;
 
@@ -86,7 +93,6 @@ typedef struct mx_network_field_type MX_NETWORK_FIELD;
 
 typedef struct {
 	mx_status_type ( *receive_message ) ( MX_NETWORK_SERVER *server,
-						unsigned long buffer_length,
 						void *buffer );
 	mx_status_type ( *send_message ) ( MX_NETWORK_SERVER *server,
 						void *buffer );
@@ -215,11 +221,22 @@ typedef struct {
 
 /*---*/
 
+MX_API mx_status_type mx_allocate_network_buffer(
+				MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
+				size_t initial_length );
+
+MX_API mx_status_type mx_reallocate_network_buffer(
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
+				size_t new_length );
+
+MX_API void mx_free_network_buffer(
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer);
+
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
-				unsigned long buffer_length, void *buffer );
+							void *buffer );
 
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
-					void *buffer );
+							void *buffer );
 
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,
 						int *connection_is_up );

@@ -547,16 +547,15 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	/* Allocate memory for the message buffer. */
 
-	new_socket_handler->message_buffer = (MX_NETWORK_MESSAGE_BUFFER *)
-				malloc( sizeof( MX_NETWORK_MESSAGE_BUFFER ) );
+	mx_status = mx_allocate_network_buffer(
+			&(new_socket_handler->message_buffer),
+			MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
-	if ( new_socket_handler->message_buffer == NULL ) {
+	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( client_socket );
 		mx_free( new_socket_handler );
 
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-"Ran out of memory trying to allocate MX_NETWORK_MESSAGE_BUFFER for socket %d.",
-			client_socket->socket_fd );
+		return mx_status;
 	}
 
 	new_socket_handler->synchronous_socket = client_socket;
@@ -729,7 +728,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	uint32_t *uint32_message_body;
 	int saved_errno;
 	int bytes_left, bytes_received, initial_recv_length;
-	uint32_t magic_value, header_length, message_length;
+	uint32_t magic_value, header_length, message_length, total_length;
 	uint32_t message_type, returned_message_type;
 	mx_status_type mx_status, mx_status2;
 
@@ -783,9 +782,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	/* Try to read the beginning of the header of the incoming message. */
 
-	header = socket_handler->message_buffer->uint32_buffer;
+	header = socket_handler->message_buffer->u.uint32_buffer;
 
-	ptr = ( char * ) header;
+	ptr = socket_handler->message_buffer->u.char_buffer;
 
 	initial_recv_length = 4 * sizeof( uint32_t );
 
@@ -868,28 +867,32 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		(unsigned long) magic_value );
         }
 
-	/* Allocate a buffer to write the message to.
-	 *
-	 * The one extra byte is so that a '\0' byte can be placed at
-	 * the end of the receive buffer for the sake of network commands
-	 * that pass their message bodies as strings.
+	/* If the message is too long to fit into the current buffer,
+	 * increase the size of the buffer.
 	 */
 
-	if ( header_length + message_length
-				> MX_NETWORK_MAXIMUM_MESSAGE_SIZE )
-	{
-		(void) mxsrv_free_client_socket_handler(
-					socket_handler, socket_handler_list );
+	total_length = header_length + message_length;
 
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Requested client message length of %lu bytes for socket %d is too long "
-"to fit in the server's buffer of %ld bytes.",
-			(unsigned long) (header_length + message_length),
-			client_socket->socket_fd,
-			MX_NETWORK_MAXIMUM_MESSAGE_SIZE );
+	if ( total_length > socket_handler->message_buffer->buffer_length ) {
+
+		MX_DEBUG(-2,
+		("%s: Increasing buffer length from %lu to %lu", fname,
+		  (unsigned long) socket_handler->message_buffer->buffer_length,
+	   		(unsigned long) total_length ));
+
+		mx_status = mx_reallocate_network_buffer(
+					socket_handler->message_buffer,
+					total_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Update the header pointer. */
+
+		header = socket_handler->message_buffer->u.uint32_buffer;
 	}
 
-	receive_buffer = socket_handler->message_buffer->char_buffer;
+	receive_buffer = socket_handler->message_buffer->u.char_buffer;
 
         /* Receive the rest of the data. */
 
@@ -1513,10 +1516,11 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			void *received_buffer )
+			void *received_buffer_ptr )
 {
 	static const char fname[] = "mxsrv_handle_get_array()";
 
+	MX_NETWORK_MESSAGE_BUFFER_FOO *received_buffer;
 	char location[ sizeof(fname) + 40 ];
 	char *send_buffer, *send_buffer_message;
 	uint32_t *send_buffer_header;
@@ -1536,6 +1540,11 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	MX_HRT_START( measurement );
 #endif
+
+	received_buffer = received_buffer_ptr;
+
+	MX_DEBUG(-2,("%s: received_buffer = %p, header = %p",
+		fname, received_buffer, received_buffer->u.uint32_buffer));
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -1563,14 +1572,14 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
 
-	send_buffer_message_length = MX_NETWORK_MAXIMUM_MESSAGE_SIZE
+	send_buffer_message_length = received_buffer->buffer_length
 					- MX_NETWORK_HEADER_LENGTH_VALUE;
 
 	send_buffer_message_actual_length = 0;
 
-	send_buffer = (char *) received_buffer;
+	send_buffer = received_buffer->u.char_buffer;
 
-	send_buffer_header = (uint32_t *) received_buffer;
+	send_buffer_header = received_buffer->u.uint32_buffer;;
 
 	send_buffer_message = send_buffer + send_buffer_header_length;
 

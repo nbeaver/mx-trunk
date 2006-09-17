@@ -47,7 +47,7 @@ typedef struct {
 	MX_SOCKET *callback_socket;
 	long handler_array_index;
 	struct mx_event_handler_type *event_handler;
-	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
 	char client_address_string[MXU_ADDRESS_STRING_LENGTH + 1];
 	char username[MXU_USERNAME_LENGTH + 1];
 	char program_name[MXU_PROGRAM_NAME_LENGTH + 1];

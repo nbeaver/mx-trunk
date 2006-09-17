@@ -73,6 +73,7 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 
 	MX_NETWORK_SERVER *network_server;
 	MX_TCPIP_SERVER *tcpip_server;
+	mx_status_type mx_status;
 
 	/* Allocate memory for the necessary structures. */
 
@@ -103,15 +104,16 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 
 	network_server->record = record;
 
-	network_server->message_buffer = ( MX_NETWORK_MESSAGE_BUFFER * )
-		malloc( sizeof( MX_NETWORK_MESSAGE_BUFFER ) );
+	mx_status = mx_allocate_network_buffer(
+			&(network_server->message_buffer),
+			MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
-	if ( network_server->message_buffer
-			== (MX_NETWORK_MESSAGE_BUFFER *) NULL )
-	{
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_NETWORK_MESSAGE_BUFFER union." );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: message_buffer = %p, header = %p",
+		fname, network_server->message_buffer,
+		network_server->message_buffer->u.uint32_buffer));
 
 	network_server->network_field_array_block_size = 100L;
 	network_server->num_network_fields = 0;
@@ -156,7 +158,7 @@ mxn_tcpip_server_delete_record( MX_RECORD *record )
 
 	if ( network_server != NULL ) {
 		if ( network_server->message_buffer != NULL ) {
-			free( network_server->message_buffer );
+			mx_free_network_buffer(network_server->message_buffer);
 
 			network_server->message_buffer = NULL;
 		}
@@ -363,8 +365,8 @@ mxn_tcpip_server_resynchronize( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxn_tcpip_server_receive_message(MX_NETWORK_SERVER *network_server,
-				unsigned long buffer_length, void *buffer)
+mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
+					void *buffer )
 {
 	static const char fname[] = "mxn_tcpip_server_receive_message()";
 
@@ -381,9 +383,10 @@ mxn_tcpip_server_receive_message(MX_NETWORK_SERVER *network_server,
 			network_server->record->name );
 	}
 
+	MX_DEBUG(-2,("%s: buffer = %p", fname, buffer));
+
 	mx_status = mx_network_socket_receive_message( tcpip_server->socket,
-						network_server->timeout,
-						buffer_length, buffer );
+					network_server->timeout, buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s from server '%s'",
@@ -409,7 +412,7 @@ mxn_tcpip_server_receive_message(MX_NETWORK_SERVER *network_server,
 }
 
 MX_EXPORT mx_status_type
-mxn_tcpip_server_send_message(MX_NETWORK_SERVER *network_server, void *buffer)
+mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server, void *buffer )
 {
 	static const char fname[] = "mxn_tcpip_server_send_message()";
 

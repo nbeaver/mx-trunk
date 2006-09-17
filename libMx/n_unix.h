@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,6 @@ MX_API mx_status_type mxn_unix_server_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxn_unix_server_receive_message(
 					MX_NETWORK_SERVER *network_server,
-					unsigned long buffer_length,
 					void *buffer );
 
 MX_API mx_status_type mxn_unix_server_send_message(

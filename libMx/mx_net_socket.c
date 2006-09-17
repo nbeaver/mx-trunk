@@ -43,8 +43,7 @@
 MX_EXPORT mx_status_type
 mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 					double timeout,
-					unsigned long buffer_length,
-					void *buffer )
+					void *buffer_foo )
 {
 	const char fname[] = "mx_network_socket_receive_message()";
 
@@ -53,7 +52,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	int i, bytes_left, bytes_received, initial_recv_length;
-	uint32_t magic_value, header_length, message_length;
+	uint32_t magic_value, header_length, message_length, total_length;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
+	mx_status_type mx_status;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
@@ -70,19 +71,26 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( buffer == NULL ) {
+	if ( buffer_foo == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The buffer pointer passed was NULL." );
 	}
 
-	if ( buffer_length < MX_NETWORK_HEADER_LENGTH_VALUE + 1 ) {
+	message_buffer = buffer_foo;
+
+	if ( message_buffer->buffer_length
+				< MX_NETWORK_HEADER_LENGTH_VALUE + 1 )
+	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "TCP/IP receive buffer length (%lu) is too short.  Minimum allowed = %ld",
-			buffer_length,
+			(unsigned long) message_buffer->buffer_length,
 			(long) MX_NETWORK_HEADER_LENGTH_VALUE + 1L );
 	}
 
-	header = buffer;
+	header = message_buffer->u.uint32_buffer;
+
+	MX_DEBUG(-2,("%s: message_buffer = %p, header = %p",
+		fname, message_buffer, header));
 
 	/* Overwrite the header, just to make sure nothing is left over
 	 * from a previous call to mx_network_socket_receive_message().
@@ -111,7 +119,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	 * out how long the rest of the message is.
 	 */
 
-	ptr = buffer;
+	ptr = message_buffer->u.char_buffer;
 
 	initial_recv_length = 3 * sizeof( uint32_t );
 
@@ -225,9 +233,36 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			(unsigned long) magic_value );
 	}
 
+	/* If the message is too long to fit into the current buffer,
+	 * increase the size of the buffer.
+	 */
+
+	total_length = header_length + message_length;
+
+	if ( total_length > message_buffer->buffer_length ) {
+
+		MX_DEBUG(-2,("%s: Increasing buffer length from %lu to %lu",
+			fname, (unsigned long)message_buffer->buffer_length,
+			(unsigned long) total_length ));
+
+		mx_status = mx_reallocate_network_buffer( message_buffer,
+								total_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Update some pointers. */
+
+		header = message_buffer->u.uint32_buffer;
+
+		ptr = message_buffer->u.char_buffer;
+
+		ptr += initial_recv_length;
+	}
+
 	/* Receive the rest of the data. */
 
-	bytes_left = header_length + message_length - initial_recv_length;
+	bytes_left = total_length - initial_recv_length;
 
 #if MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 	n = -1;

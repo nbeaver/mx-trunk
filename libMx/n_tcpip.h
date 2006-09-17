@@ -42,7 +42,6 @@ MX_API mx_status_type mxn_tcpip_server_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxn_tcpip_server_receive_message(
 					MX_NETWORK_SERVER *network_server,
-					unsigned long buffer_length,
 					void *buffer );
 
 MX_API mx_status_type mxn_tcpip_server_send_message(
