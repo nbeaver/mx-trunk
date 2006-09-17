@@ -26,14 +26,23 @@
 
 /* Current size of an MX network header. */
 
-#define MX_NETWORK_NUM_HEADER_VALUES	5
+#define MXU_NETWORK_NUM_HEADER_VALUES	5
 
-#define MX_NETWORK_HEADER_LENGTH_VALUE	\
-	( MX_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
+#define MXU_NETWORK_HEADER_LENGTH \
+	( MXU_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
 
 /* Initial size of an MX network message buffer. */
 
-#define MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	163840
+#if 1
+#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	163840 
+#else
+#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	100
+#endif
+
+/* Minimum allowed size of an MX network message_buffer. */
+
+#define MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH \
+	(MXU_NETWORK_HEADER_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 1)
 
 /*
  * Define the data type that contains MX network messages.
@@ -43,14 +52,7 @@
  * those computer architectures that require such things.
  */
 
-#if 0
-typedef union {
-	uint32_t uint32_buffer[MX_NETWORK_HEADER_LENGTH_VALUE];
-	char     char_buffer[MX_NETWORK_MAXIMUM_MESSAGE_SIZE];
-} MX_NETWORK_MESSAGE_BUFFER;
-#endif
-
-typedef struct {
+typedef struct mx_network_message_buffer {
 	union {
 		uint32_t *uint32_buffer;
 		char     *char_buffer;
@@ -93,9 +95,11 @@ typedef struct mx_network_field_type MX_NETWORK_FIELD;
 
 typedef struct {
 	mx_status_type ( *receive_message ) ( MX_NETWORK_SERVER *server,
-						void *buffer );
+					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+
 	mx_status_type ( *send_message ) ( MX_NETWORK_SERVER *server,
-						void *buffer );
+					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+
 	mx_status_type ( *connection_is_up ) ( MX_NETWORK_SERVER *server,
 						int *connection_is_up );
 	mx_status_type ( *reconnect_if_down ) ( MX_NETWORK_SERVER *server );
@@ -233,10 +237,10 @@ MX_API void mx_free_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer);
 
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
-							void *buffer );
+					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
 
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
-							void *buffer );
+					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
 
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,
 						int *connection_is_up );
@@ -246,7 +250,8 @@ MX_API mx_status_type mx_network_reconnect_if_down( MX_RECORD *server_record );
 MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
 
-MX_API void mx_network_display_message_buffer( void *buffer );
+MX_API void mx_network_display_message_buffer(
+					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
 
 /*---*/
 

@@ -39,12 +39,12 @@ MX_API mx_status_type mxn_unix_server_close( MX_RECORD *record );
 MX_API mx_status_type mxn_unix_server_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxn_unix_server_receive_message(
-					MX_NETWORK_SERVER *network_server,
-					void *buffer );
+				MX_NETWORK_SERVER *network_server,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
 
 MX_API mx_status_type mxn_unix_server_send_message(
-					MX_NETWORK_SERVER *network_server,
-					void *buffer );
+				MX_NETWORK_SERVER *network_server,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
 
 MX_API mx_status_type mxn_unix_server_connection_is_up(
 					MX_NETWORK_SERVER *network_server,

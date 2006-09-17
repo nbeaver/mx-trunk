@@ -200,7 +200,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	int i, socket_type, max_sockets, handler_array_size;
 	mx_status_type mx_status;
 
-	MX_DEBUG(1,("%s invoked.", fname));
+	MX_DEBUG(-1,("%s invoked.", fname));
 
 	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -417,7 +417,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	mx_socklen_t unix_client_address_size = sizeof( struct sockaddr_un );
 #endif
 
-	MX_DEBUG(1,("%s invoked.", fname));
+	MX_DEBUG(-1,("%s invoked.", fname));
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -549,7 +549,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	mx_status = mx_allocate_network_buffer(
 			&(new_socket_handler->message_buffer),
-			MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( client_socket );
@@ -711,7 +711,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_mx_client_socket_process_event()";
 
 	uint32_t *header;
-	char *receive_buffer;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *received_message;
 
 	int see_if_we_need_to_queue_this_event, update_next_event_time;
 	int queue_a_message, value_at_message_start;
@@ -722,9 +722,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	MX_HANDLE_TABLE *handle_table;
 	long record_handle, field_handle;
 	MX_SOCKET *client_socket;
-	void *event_data, *record_ptr;
+	void *record_ptr;
 
-	char *ptr, *message, *value_ptr;
+	char *ptr, *message_ptr, *value_ptr;
 	uint32_t *uint32_message_body;
 	int saved_errno;
 	int bytes_left, bytes_received, initial_recv_length;
@@ -750,7 +750,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	client_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(1,("%s invoked for socket handler %ld.", fname,
+	MX_DEBUG(-1,("%s invoked for socket handler %ld.", fname,
 				socket_handler->handler_array_index));
 
 #if NETWORK_DEBUG_VERBOSE
@@ -782,9 +782,10 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	/* Try to read the beginning of the header of the incoming message. */
 
-	header = socket_handler->message_buffer->u.uint32_buffer;
+	received_message = socket_handler->message_buffer;
 
-	ptr = socket_handler->message_buffer->u.char_buffer;
+	header = received_message->u.uint32_buffer;
+	ptr    = received_message->u.char_buffer;
 
 	initial_recv_length = 4 * sizeof( uint32_t );
 
@@ -836,7 +837,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		unsigned char c;
 
 		for ( i = 0; i < initial_recv_length; i++ ) {
-			c = (socket_handler->message_buffer->buffer)[i];
+			c = (received_message->buffer)[i];
 
 			if ( isprint(c) ) {
 				MX_DEBUG(-2,("buffer[%ld] = %02x (%c)",
@@ -859,7 +860,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
         MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
 #endif
 
-        MX_DEBUG(1,("%s: message_type   = %ld", fname, (long) message_type));
+        MX_DEBUG(-1,("%s: message_type   = %ld", fname, (long) message_type));
 
         if ( magic_value != MX_NETWORK_MAGIC_VALUE ) {
                 return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -873,11 +874,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	total_length = header_length + message_length;
 
-	if ( total_length > socket_handler->message_buffer->buffer_length ) {
+	if ( total_length > received_message->buffer_length ) {
 
 		MX_DEBUG(-2,
 		("%s: Increasing buffer length from %lu to %lu", fname,
-		  (unsigned long) socket_handler->message_buffer->buffer_length,
+		  (unsigned long) received_message->buffer_length,
 	   		(unsigned long) total_length ));
 
 		mx_status = mx_reallocate_network_buffer(
@@ -887,18 +888,20 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Update the header pointer. */
+		/* Update local pointers. */
 
-		header = socket_handler->message_buffer->u.uint32_buffer;
+		received_message = socket_handler->message_buffer;
+
+		header = received_message->u.uint32_buffer;
 	}
-
-	receive_buffer = socket_handler->message_buffer->u.char_buffer;
 
         /* Receive the rest of the data. */
 
-	ptr = receive_buffer + initial_recv_length;
+	ptr  = received_message->u.char_buffer;
 
-        bytes_left = header_length + message_length - initial_recv_length;
+	ptr += initial_recv_length;
+
+        bytes_left = total_length - initial_recv_length;
 
         while( bytes_left > 0 ) {
                 bytes_received = recv( client_socket->socket_fd,
@@ -931,13 +934,15 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
                 }
         }
 
-	message = receive_buffer + header_length;
+	message_ptr  = received_message->u.char_buffer;
+
+	message_ptr += header_length;
 
 	/* Ensure that a '\0' byte is placed after the end of the
 	 * message field.
 	 */
 
-	message[ message_length ] = '\0';
+	message_ptr[ message_length ] = '\0';
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
@@ -945,8 +950,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		long i;
 
 		for ( i = 0; i < message_length; i++ ) {
-			MX_DEBUG(-2,("message[%ld] = %x '%c'",
-				i, message[i], message[i]));
+			MX_DEBUG(-2,("message_ptr[%ld] = %x '%c'",
+				i, message_ptr[i], message_ptr[i]));
 		}
 	}
 #endif
@@ -986,21 +991,28 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			break;
 		default:
 			sprintf( message_type_string,
-				"Unknown message type %#lx", message_type );
+				"Unknown message type %#lx",
+				(unsigned long) message_type );
 		}
 
-		sprintf( text_buffer, "%s: (%s) message = '",
+		buffer_left = sizeof(text_buffer) - 6;
+#if 1
+		snprintf( text_buffer, buffer_left, "%s: (%s)",
+			fname, message_type_string );
+#else
+		snprintf( text_buffer, buffer_left, "%s: (%s) message = '",
 			fname, message_type_string );
 
 		buffer_left = sizeof(text_buffer) - strlen(text_buffer) - 6;
 
-		strncat( text_buffer, message, buffer_left );
+		strlcat( text_buffer, message, buffer_left );
 
 		if ( message_length > buffer_left ) {
 			strcat( text_buffer, "***'" );
 		} else {
 			strcat( text_buffer, "'" );
 		}
+#endif
 
 		MX_DEBUG(-2,("%s", text_buffer));
 	}
@@ -1077,15 +1089,15 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		do {
 			/* Which record and field does this correspond to? */
 
-			record_name = message;
+			record_name = message_ptr;
 
-			ptr = strchr( message, '.' );
+			ptr = strchr( message_ptr, '.' );
 
 			if ( ptr == NULL ) {
 				mx_status = mx_error(
 				MXE_ILLEGAL_ARGUMENT, fname,
 				"No period found in record field name '%s'.",
-					message );
+					message_ptr );
 
 				break;	/* Exit the do...while(0) loop. */
 			}
@@ -1124,7 +1136,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			break;	/* Exit the switch() statement. */
 		}
 
-		uint32_message_body = header + MX_NETWORK_NUM_HEADER_VALUES;
+		uint32_message_body = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 		record_handle = (long) mx_ntohl( uint32_message_body[0] );
 
@@ -1245,13 +1257,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 #if NETWORK_DEBUG_TIMING
 		MX_HRT_START( queue_measurement );
 #endif
-
-		event_data = (void *) receive_buffer;
-
 		/* Queue the event. */
 
 		mx_status = mx_add_queued_event( socket_handler,
-					record, record_field, event_data );
+					record, record_field,
+					MXQ_NETWORK_MESSAGE,
+					received_message );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			returned_message_type
@@ -1296,13 +1307,15 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 		mx_status = mxsrv_handle_get_array( record_list, socket_handler,
 						record, record_field,
-						receive_buffer );
+						received_message );
 
 		update_next_event_time = TRUE;
 		break;
 	case MX_NETMSG_PUT_ARRAY_BY_NAME:
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-		value_ptr = receive_buffer + header_length;
+		value_ptr  = received_message->u.char_buffer;
+
+		value_ptr += header_length;
 
 		if ( message_type == MX_NETMSG_PUT_ARRAY_BY_HANDLE ) {
 
@@ -1313,7 +1326,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		mx_status = mxsrv_handle_put_array( record_list, socket_handler,
 						record, record_field,
-						receive_buffer, value_ptr );
+						received_message, value_ptr );
 
 		update_next_event_time = TRUE;
 		break;
@@ -1325,22 +1338,22 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	case MX_NETMSG_GET_FIELD_TYPE:
 		mx_status = mxsrv_handle_get_field_type( record_list,
 						client_socket, record_field,
-						message, message_length );
+						received_message );
 		break;
 	case MX_NETMSG_SET_CLIENT_INFO:
 		mx_status = mxsrv_handle_set_client_info( record_list,
 						socket_handler,
-						message, message_length );
+						received_message );
 		break;
 	case MX_NETMSG_GET_OPTION:
 		mx_status = mxsrv_handle_get_option( record_list,
 						socket_handler,
-						message, message_length );
+						received_message );
 		break;
 	case MX_NETMSG_SET_OPTION:
 		mx_status = mxsrv_handle_set_option(
 						record_list, socket_handler,
-						message, message_length );
+						received_message );
 		break;
 	default:
 		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -1419,13 +1432,14 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	static const char fname[] =
 			"mxsrv_mx_client_socket_proc_queued_event()";
 
+	MX_NETWORK_MESSAGE_BUFFER_FOO *queued_message;
 	MX_SOCKET_HANDLER *socket_handler;
-	char *message_buffer, *value_ptr;
+	char *value_ptr;
 	uint32_t *header;
 	uint32_t message_type, header_length;
 	mx_status_type mx_status;
 
-	MX_DEBUG(1,("%s invoked.", fname));
+	MX_DEBUG(-1,("%s invoked.", fname));
 
 	if ( queued_event == (MX_QUEUED_EVENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1445,10 +1459,16 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
 #endif
+	if ( queued_event->event_type != MXQ_NETWORK_MESSAGE ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Queued event type %ld is not supported by this function.",
+			queued_event->event_type );
+	}
 
 	value_ptr = NULL;
 
-	message_buffer = (char *) queued_event->event_data;
+	queued_message = 
+		(MX_NETWORK_MESSAGE_BUFFER_FOO *) queued_event->event_data;
 
 	header = (uint32_t *) queued_event->event_data;
 
@@ -1472,7 +1492,9 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
 		header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 
-		value_ptr = message_buffer + header_length;
+		value_ptr  = queued_message->u.char_buffer;
+
+		value_ptr += header_length;
 
 		if ( message_type == MX_NETMSG_PUT_ARRAY_BY_HANDLE ) {
 
@@ -1485,15 +1507,19 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 						socket_handler,
 						queued_event->record,
 						queued_event->record_field,
-						message_buffer,
+						queued_message,
 						value_ptr );
 
 		break;
 	default:
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		mx_status = mx_error( MXE_NETWORK_IO_ERROR, fname,
 			"Illegal client message type %ld",
 			(long) message_type );
 	}
+
+	/* Now that we are done with it, discard the queued message. */
+
+	mx_free_network_buffer( queued_message );
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %d",
@@ -1516,14 +1542,13 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			void *received_buffer_ptr )
+			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_array()";
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *received_buffer;
 	char location[ sizeof(fname) + 40 ];
-	char *send_buffer, *send_buffer_message;
 	uint32_t *send_buffer_header;
+	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;
 	long send_buffer_message_actual_length;
 	size_t num_bytes_copied;
@@ -1541,16 +1566,14 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	MX_HRT_START( measurement );
 #endif
 
-	received_buffer = received_buffer_ptr;
-
-	MX_DEBUG(-2,("%s: received_buffer = %p, header = %p",
-		fname, received_buffer, received_buffer->u.uint32_buffer));
+	MX_DEBUG(-2,("%s: network_message = %p, header = %p",
+		fname, network_message, network_message->u.uint32_buffer));
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(1,("***** %s invoked for socket %d *****",
+	MX_DEBUG(-1,("***** %s invoked for socket %d *****",
 				fname, mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
@@ -1570,18 +1593,17 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	/* Construct the response header. */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
-	send_buffer_message_length = received_buffer->buffer_length
-					- MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_message_length = network_message->buffer_length
+					- MXU_NETWORK_HEADER_LENGTH;
 
 	send_buffer_message_actual_length = 0;
 
-	send_buffer = received_buffer->u.char_buffer;
+	send_buffer_header = network_message->u.uint32_buffer;;
 
-	send_buffer_header = received_buffer->u.uint32_buffer;;
-
-	send_buffer_message = send_buffer + send_buffer_header_length;
+	send_buffer_message  = network_message->u.char_buffer;
+	send_buffer_message += send_buffer_header_length;
 
 #if NETWORK_DEBUG_TIMING_VERBOSE
 	MX_HRT_END( measurement );
@@ -1738,7 +1760,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		long i, length;
 		long max_length = 20;
 
-		switch( data_format ) {
+		switch( socket_handler->data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 			sprintf( text_buffer,
 				"%s: sending response = '", fname );
@@ -1777,7 +1799,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		default:
 			sprintf( text_buffer,
 				"%s: sending response in data format %lu.",
-				fname, data_format );
+				fname, socket_handler->data_format );
 			break;
 		}
 
@@ -1793,7 +1815,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
-							-1.0, send_buffer );
+						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -1802,7 +1824,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(1,("***** %s successful *****", fname));
+	MX_DEBUG(-1,("***** %s successful *****", fname));
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1819,7 +1841,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			void *receive_buffer,
+			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message,
 			void *value_buffer_ptr )
 {
 	static const char fname[] = "mxsrv_handle_put_array()";
@@ -1830,7 +1852,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	uint32_t receive_buffer_header_length;
 	uint32_t receive_buffer_message_length;
 
-	char *send_buffer, *send_buffer_message, *value_buffer;
+	char *send_buffer_message, *value_buffer;
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length, send_buffer_message_length;
 
@@ -1858,7 +1880,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(1,("***** %s invoked for socket %d *****",
+	MX_DEBUG(-1,("***** %s invoked for socket %d *****",
 		fname, mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
@@ -1902,16 +1924,16 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		/* Get a pointer to the start of the value string. */
 
-		receive_buffer_header = (uint32_t *) receive_buffer;
+		receive_buffer_header = network_message->u.uint32_buffer;
 
-		receive_buffer_header_length
-		  = mx_ntohl( receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ] );
+		receive_buffer_header_length =
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ]);
 
-		receive_buffer_message = ((char *)receive_buffer)
-						+ receive_buffer_header_length;
+		receive_buffer_message  = network_message->u.char_buffer;
+		receive_buffer_message += receive_buffer_header_length;
 
-		receive_buffer_message_length
-		  = mx_ntohl( receive_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] );
+		receive_buffer_message_length = 
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]);
 
 		value_buffer = (char *) value_buffer_ptr;
 
@@ -2087,7 +2109,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
         if ( mx_status.code == MXE_SUCCESS ) {
 		send_buffer_message_length = 1;
@@ -2096,11 +2118,10 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			( 1 + strlen(mx_status.message) );
 	}
 
-	send_buffer = (char *) receive_buffer;
+	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_header = (uint32_t *) receive_buffer;
-
-	send_buffer_message = send_buffer + send_buffer_header_length;
+	send_buffer_message  = network_message->u.char_buffer;
+	send_buffer_message += send_buffer_header_length;
 
 	send_buffer_header[ MX_NETWORK_STATUS_CODE ] = mx_htonl(mx_status.code);
 
@@ -2145,7 +2166,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
-							-1.0, send_buffer );
+						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2154,7 +2175,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(1,("***** %s successful *****", fname));
+	MX_DEBUG(-1,("***** %s successful *****", fname));
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2177,7 +2198,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	char location[ sizeof(fname) + 40 ];
 	MX_LIST_HEAD *list_head_struct;
 	MX_HANDLE_TABLE *handle_table;
-	uint32_t send_buffer[ MX_NETWORK_NUM_HEADER_VALUES + 2 ];
+	MX_NETWORK_MESSAGE_BUFFER_FOO *network_message;
 	uint32_t *send_buffer_header, *send_buffer_message;
 
 	long record_handle;
@@ -2265,9 +2286,11 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 	/* Construct the message to be sent back to the client. */
 
-	send_buffer_header = send_buffer;
+	network_message = socket_handler->message_buffer;
 
-	send_buffer_message = send_buffer_header + MX_NETWORK_NUM_HEADER_VALUES;
+	send_buffer_header = network_message->u.uint32_buffer;
+
+	send_buffer_message = send_buffer_header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	/* Construct the message header. */
 
@@ -2278,7 +2301,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		= mx_htonl( mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-		= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+		= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 		= mx_htonl( 2 * sizeof( uint32_t ) );
@@ -2297,7 +2320,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	/* Send the record field handle back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, -1.0, send_buffer );
+		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2313,31 +2336,28 @@ mx_status_type
 mxsrv_handle_get_field_type( MX_RECORD *record_list,
 				MX_SOCKET *mx_socket,
 				MX_RECORD_FIELD *field,
-				void *message,
-				uint32_t message_length )
+				MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_field_type()";
 
 	char location[ sizeof(fname) + 40 ];
-	char *send_buffer, *message_ptr;
 	uint32_t *send_buffer_header, *send_buffer_message;
 	uint32_t i, send_buffer_header_length, send_buffer_message_length;
 	mx_status_type mx_status;
 
-	message_ptr = (char *) message;
-
-	MX_DEBUG(1,("%s for '%s', message_length = %ld",
-			fname, message_ptr, (long) message_length));
-	MX_DEBUG(1,("%s: field->datatype = %ld, field->num_dimensions = %ld",
+	MX_DEBUG(-1,("%s for %p, message_length = %lu",
+			fname, network_message,
+			(unsigned long) network_message->buffer_length ));
+	MX_DEBUG(-1,("%s: field->datatype = %ld, field->num_dimensions = %ld",
 			fname, field->datatype, field->num_dimensions));
-	MX_DEBUG(1,("%s: field->dimension[0] = %ld",
+	MX_DEBUG(-1,("%s: field->dimension[0] = %ld",
 			fname, field->dimension[0]));
 
 	/* Allocate a buffer to construct the message to be sent
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
 	send_buffer_message_length = (uint32_t)
 		( sizeof(uint32_t) * ( 2 + field->num_dimensions ) );
@@ -2350,9 +2370,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		send_buffer_message_length = 3 * sizeof(uint32_t);
 	}
 
-	send_buffer = (char *) message;
-
-	send_buffer_header = (uint32_t *) message;
+	send_buffer_header = network_message->u.uint32_buffer;
 
 	send_buffer_message = send_buffer_header
 		+ ( send_buffer_header_length / sizeof(uint32_t) );
@@ -2382,7 +2400,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		send_buffer_message[2] = mx_htonl( 0L );
 	} else {
 		for ( i = 0; i < field->num_dimensions; i++ ) {
-			send_buffer_message[i+2] = mx_htonl(field->dimension[i]);
+		    send_buffer_message[i+2] = mx_htonl(field->dimension[i]);
 		}
 	}
 
@@ -2393,7 +2411,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	/* Send the field type information back to the client. */
 
 	mx_status = mx_network_socket_send_message( mx_socket,
-							-1.0, send_buffer );
+						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2402,7 +2420,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(1,("***** %s successful *****", fname));
+	MX_DEBUG(-1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2410,8 +2428,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_set_client_info( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler, 
-				void *message,
-				uint32_t message_length )
+				MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
 {
 	static const char fname[] = "mxsrv_handle_set_client_info()";
 
@@ -2420,15 +2437,17 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length, send_buffer_message_length;
 	char *send_buffer_message;
-	char *send_buffer, *message_string;
+	char *message_string;
 	char *ptr, *ptr2, *endptr;
 	size_t length;
 	mx_status_type mx_status;
 
-	message_string = (char *) message;
+	message_string  = network_message->u.char_buffer;
+	message_string += MXU_NETWORK_HEADER_LENGTH;
 
-	MX_DEBUG( 1,("%s for '%s', message_length = %ld",
-		fname, message_string, (long) message_length));
+	MX_DEBUG(-1,("%s for '%s', message_length = %lu",
+		fname, message_string,
+		(unsigned long) network_message->buffer_length ));
 
 	/* The do...while(0) loop below is just a trick to make it easy
 	 * to jump to the end of this block of code.
@@ -2531,16 +2550,14 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
 	send_buffer_message_length = 1;
 
-	send_buffer = (char *) message;
+	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_header = (uint32_t *) message;
-
-	send_buffer_message = (char *) ( send_buffer_header
-		+ ( send_buffer_header_length / sizeof(uint32_t) ) );
+	send_buffer_message  = network_message->u.char_buffer;
+	send_buffer_message += send_buffer_header_length;
 
 	/* Construct the header of the message. */
 
@@ -2560,16 +2577,16 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 
 	/* Construct an empty body for the message. */
 
-	strcpy( send_buffer_message, "" );
+	send_buffer_message[0] = '\0';
 
 #if NETWORK_DEBUG_VERBOSE
-	mx_network_display_message_buffer( send_buffer );
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	/* Send the success message back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, -1.0, send_buffer );
+		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2578,7 +2595,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(1,("***** %s successful *****", fname));
+	MX_DEBUG(-1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2586,13 +2603,11 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_get_option( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			void *message,
-			uint32_t message_length )
+			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_option()";
 
 	char location[ sizeof(fname) + 40 ];
-	char *send_buffer;
 	uint32_t *send_buffer_header, *send_buffer_message;
 	uint32_t send_buffer_header_length;
 	uint32_t *option_array;
@@ -2600,11 +2615,12 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	int illegal_option_number;
 	mx_status_type mx_status;
 
-	option_array = (uint32_t *) message;
+	option_array  = network_message->u.uint32_buffer;
+	option_array += MXU_NETWORK_NUM_HEADER_VALUES;
 
 	option_number = mx_ntohl( option_array[0] );
 
-	MX_DEBUG( 2,("%s: option_number = %#lx",
+	MX_DEBUG(-2,("%s: option_number = %#lx",
 		fname, (unsigned long) option_number));
 
 	/* Get the requested option value. */
@@ -2641,14 +2657,11 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
-	send_buffer = (char *) message;
+	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_header = (uint32_t *) message;
-
-	send_buffer_message = send_buffer_header
-		+ ( send_buffer_header_length / sizeof(uint32_t) );
+	send_buffer_message = send_buffer_header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	/* Construct the header of the message. */
 
@@ -2693,7 +2706,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, -1.0, send_buffer );
+		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",
@@ -2710,14 +2723,13 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_set_option( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			void *message,
-			uint32_t message_length )
+			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
 {
 	static const char fname[] = "mxsrv_handle_set_option()";
 
 	MX_LIST_HEAD *list_head;
 	char location[ sizeof(fname) + 40 ];
-	char *send_buffer, *send_buffer_char_message;
+	char *send_buffer_char_message;
 	uint32_t *send_buffer_header;
 	uint32_t send_buffer_header_length;
 	uint32_t *option_array;
@@ -2725,12 +2737,13 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	int illegal_option_number, illegal_option_value;
 	mx_status_type mx_status;
 
-	option_array = (uint32_t *) message;
+	option_array  = network_message->u.uint32_buffer;
+	option_array += MXU_NETWORK_NUM_HEADER_VALUES;
 
 	option_number = mx_ntohl( option_array[0] );
 	option_value = mx_ntohl( option_array[1] );
 
-	MX_DEBUG( 2,("%s: option_number = %#lx, option_value = %#lx", fname,
+	MX_DEBUG(-2,("%s: option_number = %#lx, option_value = %#lx", fname,
 		(unsigned long) option_number,
 		(unsigned long) option_value));
 
@@ -2771,14 +2784,12 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
 
-	send_buffer = (char *) message;
+	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_header = (uint32_t *) message;
-
-	send_buffer_char_message = (char *) ( send_buffer_header
-		+ ( send_buffer_header_length / sizeof(uint32_t) ) );
+	send_buffer_char_message  = network_message->u.char_buffer;
+	send_buffer_char_message += send_buffer_header_length;
 
 	/* Construct the header of the message. */
 
@@ -2844,13 +2855,13 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_VERBOSE
-	mx_network_display_message_buffer( send_buffer );
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	/* Send the option information back to the client. */
 
 	mx_status = mx_network_socket_send_message(
-			socket_handler->synchronous_socket, -1.0, send_buffer );
+		socket_handler->synchronous_socket, -1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to client socket %d",

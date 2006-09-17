@@ -26,8 +26,8 @@
 #include "mx_stdint.h"
 #include "mx_record.h"
 #include "mx_socket.h"
-#include "mx_net_socket.h"
 #include "mx_net.h"
+#include "mx_net_socket.h"
 #include "n_tcpip.h"
 
 MX_RECORD_FUNCTION_LIST mxn_tcpip_server_record_function_list = {
@@ -106,14 +106,10 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 
 	mx_status = mx_allocate_network_buffer(
 			&(network_server->message_buffer),
-			MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	MX_DEBUG(-2,("%s: message_buffer = %p, header = %p",
-		fname, network_server->message_buffer,
-		network_server->message_buffer->u.uint32_buffer));
 
 	network_server->network_field_array_block_size = 100L;
 	network_server->num_network_fields = 0;
@@ -366,7 +362,7 @@ mxn_tcpip_server_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
-					void *buffer )
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mxn_tcpip_server_receive_message()";
 
@@ -383,10 +379,8 @@ mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
 			network_server->record->name );
 	}
 
-	MX_DEBUG(-2,("%s: buffer = %p", fname, buffer));
-
 	mx_status = mx_network_socket_receive_message( tcpip_server->socket,
-					network_server->timeout, buffer );
+				      network_server->timeout, message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s from server '%s'",
@@ -412,7 +406,8 @@ mxn_tcpip_server_receive_message( MX_NETWORK_SERVER *network_server,
 }
 
 MX_EXPORT mx_status_type
-mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server, void *buffer )
+mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mxn_tcpip_server_send_message()";
 
@@ -431,7 +426,7 @@ mxn_tcpip_server_send_message( MX_NETWORK_SERVER *network_server, void *buffer )
 
 	mx_status = mx_network_socket_send_message( tcpip_server->socket,
 						network_server->timeout,
-						buffer );
+						message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to server '%s'",

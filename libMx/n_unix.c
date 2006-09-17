@@ -25,8 +25,8 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_socket.h"
-#include "mx_net_socket.h"
 #include "mx_net.h"
+#include "mx_net_socket.h"
 #include "n_unix.h"
 
 MX_RECORD_FUNCTION_LIST mxn_unix_server_record_function_list = {
@@ -105,7 +105,7 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 
 	mx_status = mx_allocate_network_buffer(
 			&(network_server->message_buffer),
-			MX_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -364,7 +364,7 @@ mxn_unix_server_resynchronize( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mxn_unix_server_receive_message( MX_NETWORK_SERVER *network_server,
-				void *buffer )
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mxn_unix_server_receive_message()";
 
@@ -382,7 +382,7 @@ mxn_unix_server_receive_message( MX_NETWORK_SERVER *network_server,
 	}
 
 	mx_status = mx_network_socket_receive_message( unix_server->socket,
-					network_server->timeout, buffer );
+				      network_server->timeout, message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s from server '%s'",
@@ -408,7 +408,8 @@ mxn_unix_server_receive_message( MX_NETWORK_SERVER *network_server,
 }
 
 MX_EXPORT mx_status_type
-mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server, void *buffer)
+mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mxn_unix_server_send_message()";
 
@@ -427,7 +428,7 @@ mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server, void *buffer)
 
 	mx_status = mx_network_socket_send_message( unix_server->socket,
 							network_server->timeout,
-							buffer );
+							message_buffer );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		sprintf( location, "%s to server '%s'",

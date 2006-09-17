@@ -42,18 +42,18 @@
 
 MX_EXPORT mx_status_type
 mx_network_socket_receive_message( MX_SOCKET *mx_socket,
-					double timeout,
-					void *buffer_foo )
+				double timeout,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
-	const char fname[] = "mx_network_socket_receive_message()";
+	static const char fname[] = "mx_network_socket_receive_message()";
 
 	uint32_t *header;
 	char *ptr;
 	int saved_errno, use_non_blocking_mode, comparison;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
-	int i, bytes_left, bytes_received, initial_recv_length;
+	int i, bytes_received, initial_recv_length;
+	uint32_t bytes_left;
 	uint32_t magic_value, header_length, message_length, total_length;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
 	mx_status_type mx_status;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
@@ -71,32 +71,27 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( buffer_foo == NULL ) {
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The buffer pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
 	}
 
-	message_buffer = buffer_foo;
-
 	if ( message_buffer->buffer_length
-				< MX_NETWORK_HEADER_LENGTH_VALUE + 1 )
+				< MXU_NETWORK_HEADER_LENGTH + 1 )
 	{
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 "TCP/IP receive buffer length (%lu) is too short.  Minimum allowed = %ld",
 			(unsigned long) message_buffer->buffer_length,
-			(long) MX_NETWORK_HEADER_LENGTH_VALUE + 1L );
+			(long) MXU_NETWORK_HEADER_LENGTH + 1L );
 	}
 
 	header = message_buffer->u.uint32_buffer;
-
-	MX_DEBUG(-2,("%s: message_buffer = %p, header = %p",
-		fname, message_buffer, header));
 
 	/* Overwrite the header, just to make sure nothing is left over
 	 * from a previous call to mx_network_socket_receive_message().
 	 */
 
-	for ( i = 0; i < MX_NETWORK_HEADER_LENGTH_VALUE; i++ ) {
+	for ( i = 0; i < MXU_NETWORK_NUM_HEADER_VALUES; i++ ) {
 		header[i] = mx_htonl( 0L );
 	}
 
@@ -239,11 +234,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	total_length = header_length + message_length;
 
-	if ( total_length > message_buffer->buffer_length ) {
+#if 0
+	MX_DEBUG(-2,("%s: #1 message_buffer = %p, header = %p, ptr = %p",
+		fname, message_buffer, header, ptr));
+#endif
 
-		MX_DEBUG(-2,("%s: Increasing buffer length from %lu to %lu",
-			fname, (unsigned long)message_buffer->buffer_length,
-			(unsigned long) total_length ));
+	if ( total_length > message_buffer->buffer_length ) {
 
 		mx_status = mx_reallocate_network_buffer( message_buffer,
 								total_length );
@@ -259,6 +255,11 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 		ptr += initial_recv_length;
 	}
+
+#if 0
+	MX_DEBUG(-2,("%s: #2 message_buffer = %p, header = %p, ptr = %p",
+		fname, message_buffer, header, ptr));
+#endif
 
 	/* Receive the rest of the data. */
 
@@ -366,9 +367,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 MX_EXPORT mx_status_type
 mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				double timeout,
-				void *buffer )
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
-	const char fname[] = "mx_network_socket_send_message()";
+	static const char fname[] = "mx_network_socket_send_message()";
 
 	uint32_t *header;
 	char *ptr;
@@ -392,13 +393,13 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( buffer == NULL ) {
+	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The buffer pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
 	}
 
-	header = buffer;
-	ptr = buffer;
+	header = message_buffer->u.uint32_buffer;
+	ptr    = message_buffer->u.char_buffer;
 
 	magic_value    = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
@@ -553,43 +554,36 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 			long return_message_type,
 			mx_status_type error_message )
 {
-	const char fname[] = "mx_network_socket_send_error_message()";
+	static const char fname[] = "mx_network_socket_send_error_message()";
 
-	void *malloc_ptr;
-	char *send_buffer, *message;
+	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
 	uint32_t *header;
-	uint32_t header_length, message_length;
-	mx_status_type status;
+	char     *ptr;
+	uint32_t header_length, message_length, total_length;
+	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-	header_length = MX_NETWORK_HEADER_LENGTH_VALUE;
+	header_length = MXU_NETWORK_HEADER_LENGTH;
 
 	message_length = (uint32_t) ( 1 + strlen( error_message.message ) );
 
-	/* The output of malloc() is assigned to a void pointer here
-	 * because assigning it to a char pointer and then casting
-	 * that to an uint32_t pointer below results in a warning
-	 * message under GCC 2.8.1.
-	 */
+	total_length = header_length + message_length;
 
-	malloc_ptr = malloc( header_length + message_length );
+	mx_status = mx_allocate_network_buffer( &message_buffer, total_length );
 
-	if ( malloc_ptr == NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-	"Ran out of memory allocating send buffer for MX error message.");
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	send_buffer = (char *) malloc_ptr;
+	header = message_buffer->u.uint32_buffer;
+	ptr    = message_buffer->u.char_buffer;
 
-	header = (uint32_t *) malloc_ptr;
+	ptr   += header_length;
 
-	message = send_buffer + header_length;
-
-	strcpy( message, error_message.message );
+	strlcpy( ptr, error_message.message, message_length );
 
 	header[ MX_NETWORK_MAGIC ] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
@@ -603,11 +597,17 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	/* Send back the error message. */
 
-	status = mx_network_socket_send_message( mx_socket, 0, send_buffer );
+	mx_status = mx_network_socket_send_message(
+				mx_socket, 0, message_buffer );
 
-	free(send_buffer);
+	/* FIXME: When we start using message queues, we will need to
+	 * change this so that it is no longer necessary to immediately
+	 * free the buffer.
+	 */
 
-	return status;
+	mx_free_network_buffer( message_buffer );
+
+	return mx_status;
 }
 
 #endif /* HAVE_TCPIP */

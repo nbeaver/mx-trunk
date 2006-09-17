@@ -64,6 +64,14 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
 	}
 
+	if ( initial_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested initial buffer length of %lu is smaller than "
+		"the minimum allowed value of %d.",
+			(unsigned long) initial_length,
+			MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+	}
+
 	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER_FOO) );
 
 	if ( (*message_buffer) == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
@@ -85,10 +93,14 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 
 	(*message_buffer)->buffer_length = initial_length;
 
+#if 0
 	MX_DEBUG(-2,
-	("%s: *message_buffer = %p, u.uint32_buffer = %p, length = %lu",
-	 	fname, *message_buffer, (*message_buffer)->u.uint32_buffer,
+("%s: *message_buffer = %p, uint32_buffer = %p, char_buffer = %p, length = %lu",
+	 	fname, *message_buffer,
+		(*message_buffer)->u.uint32_buffer,
+		(*message_buffer)->u.char_buffer,
 		(unsigned long) (*message_buffer)->buffer_length));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -100,10 +112,20 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	static const char fname[] = "mx_reallocate_network_buffer()";
 
 	size_t old_length;
+	int i;
+	uint32_t *header;
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+	}
+
+	if ( new_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested new buffer length of %lu is smaller than "
+		"the minimum allowed value of %d.",
+			(unsigned long) new_length,
+			MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
 	}
 
 	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
@@ -119,8 +141,23 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 			(unsigned long) old_length,
 			(unsigned long) new_length ));
 
+	header = message_buffer->u.uint32_buffer;
+
+	MX_DEBUG(-2,("%s: #1 header = %p", fname, header));
+
+	for ( i = 0; i < 5; i++ ) {
+		MX_DEBUG(-2,("%s: header[%d] = %lu",
+			fname, i, (unsigned long) header[i]));
+	}
+
+	MX_DEBUG(-2,("%s: BEFORE realloc(), uint32_buffer = %p", fname,
+				message_buffer->u.uint32_buffer));
+
 	message_buffer->u.uint32_buffer =
 		realloc( message_buffer->u.uint32_buffer, new_length );
+
+	MX_DEBUG(-2,("%s: AFTER realloc(), uint32_buffer = %p", fname,
+				message_buffer->u.uint32_buffer));
 
 	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
 
@@ -135,6 +172,15 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	}
 
 	message_buffer->buffer_length = new_length;
+
+	header = message_buffer->u.uint32_buffer;
+
+	MX_DEBUG(-2,("%s: #2 header = %p", fname, header));
+
+	for ( i = 0; i < 5; i++ ) {
+		MX_DEBUG(-2,("%s: header[%d] = %lu",
+			fname, i, (unsigned long) header[i]));
+	}
 
 	MX_DEBUG(-2,
 	("%s: message_buffer = %p, u.uint32_buffer = %p, length = %lu",
@@ -168,22 +214,24 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_network_receive_message( MX_RECORD *server_record, void *buffer )
+mx_network_receive_message( MX_RECORD *server_record,
+			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mx_network_receive_message()";
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, void * );
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
+				MX_NETWORK_MESSAGE_BUFFER_FOO * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"Record pointer passed was NULL." );
 	}
-	if ( buffer == NULL ) {
+	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"Message buffer pointer passed for record '%s' was NULL.",
+    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed for record '%s' was NULL.",
 			server_record->name );
 	}
 
@@ -212,30 +260,30 @@ mx_network_receive_message( MX_RECORD *server_record, void *buffer )
 			server_record->name );
 	}
 
-	MX_DEBUG(-2,("%s: buffer = %p", fname, buffer));
-
-	mx_status = ( *fptr ) ( server, buffer );
+	mx_status = ( *fptr ) ( server, message_buffer );
 
 	return mx_status;
 }
 
 MX_EXPORT mx_status_type
-mx_network_send_message( MX_RECORD *server_record, void *buffer )
+mx_network_send_message( MX_RECORD *server_record,
+			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mx_network_send_message()";
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, void * );
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
+				MX_NETWORK_MESSAGE_BUFFER_FOO * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"Record pointer passed was NULL." );
 	}
-	if ( buffer == NULL ) {
+	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"Message buffer pointer passed for record '%s' was NULL.",
+    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed for record '%s' was NULL.",
 			server_record->name );
 	}
 
@@ -264,7 +312,7 @@ mx_network_send_message( MX_RECORD *server_record, void *buffer )
 			server_record->name );
 	}
 
-	mx_status = ( *fptr ) ( server, buffer );
+	mx_status = ( *fptr ) ( server, message_buffer );
 
 	return mx_status;
 }
@@ -410,7 +458,8 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 }
 
 MX_EXPORT void
-mx_network_display_message_buffer( void *buffer_ptr )
+mx_network_display_message_buffer(
+			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 {
 	static const char fname[] = "mx_network_display_message_buffer()";
 
@@ -421,14 +470,14 @@ mx_network_display_message_buffer( void *buffer_ptr )
 	unsigned long i;
 	unsigned char c;
 
-	if ( buffer_ptr == NULL ) {
+	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-			"Buffer pointer passed was NULL." );
+		    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
 		return;
 	}
 
-	buffer = buffer_ptr;
-	header = buffer_ptr;
+	buffer = message_buffer->u.char_buffer;
+	header = message_buffer->u.uint32_buffer;
 
 	magic_number   = mx_ntohl( header[ MX_NETWORK_MAGIC ] );
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
@@ -461,7 +510,7 @@ mx_network_display_message_buffer( void *buffer_ptr )
 			buffer[i+0], buffer[i+1],
 			buffer[i+2], buffer[i+3] );
 
-	if ( header_length < MX_NETWORK_HEADER_LENGTH_VALUE ) {
+	if ( header_length < MXU_NETWORK_HEADER_LENGTH ) {
 		mx_info( "*** Header length %lu was unexpectedly short. ***",
 			(unsigned long) header_length );
 		return;
@@ -496,7 +545,7 @@ mx_network_display_message_buffer( void *buffer_ptr )
 
 	/* Remaining part of header. */
 
-	if ( header_length > MX_NETWORK_HEADER_LENGTH_VALUE ) {
+	if ( header_length > MXU_NETWORK_HEADER_LENGTH ) {
 		mx_info( "Remaining header bytes:" );
 
 		for ( i += sizeof( uint32_t ); i < header_length; i++ ) {
@@ -1083,19 +1132,21 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
 
-	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
+	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+
+	MX_DEBUG(-2,("%s: use_network_handles = %d",
+		fname, use_network_handles));
 
 	if ( use_network_handles == FALSE ) {
 
 		/* Use ASCII record field name */
 
-		header[MX_NETWORK_MESSAGE_TYPE]
-				= mx_htonl( MX_NETMSG_GET_ARRAY_BY_NAME );
+		message_type = MX_NETMSG_GET_ARRAY_BY_NAME;
 
 		strlcpy( message, remote_record_field_name,
 				MXU_RECORD_FIELD_NAME_LENGTH );
@@ -1105,14 +1156,19 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		/* Use binary network handle */
 
-		header[MX_NETWORK_MESSAGE_TYPE]
-				= mx_htonl( MX_NETMSG_GET_ARRAY_BY_HANDLE );
+		message_type = MX_NETMSG_GET_ARRAY_BY_HANDLE;
 
 		uint32_message[0] = mx_htonl( nf->record_handle );
 		uint32_message[1] = mx_htonl( nf->field_handle );
 
 		message_length = 2 * sizeof( uint32_t );
 	}
+
+	MX_DEBUG(-2,("*********************"));
+	MX_DEBUG(-2,("%s: message_type = %#lx",
+		fname, (unsigned long) message_type));
+
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
@@ -1148,14 +1204,40 @@ mx_get_field_array( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
 #if NETWORK_DEBUG
-	mx_network_display_message_buffer( buffer );
+	mx_network_display_message_buffer( aligned_buffer );
 #endif
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+#if 1
+	if ( nf != NULL ) {
+		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
+			fname, nf, nf->server_record->name, nf->nfname));
+	} else {
+		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
+			fname, nf, server_record->name,
+			remote_record_field_name));
+	}
+
+	MX_DEBUG(-2,("%s: header_length = %lu, message_length = %lu, "
+		"message_type = %#lx, status_code = %lu", fname,
+		(unsigned long) header_length,
+		(unsigned long) message_length,
+		(unsigned long) message_type,
+		(unsigned long) status_code));
+#endif
 
 	if ( message_type != mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) ) {
 
@@ -1185,6 +1267,8 @@ mx_get_field_array( MX_RECORD *server_record,
 "Message type for response was not MX_NETMSG_GET_ARRAY_ASCII_RESPONSE.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
+
+	MX_DEBUG(-2,("%s: MESSAGE TYPE IS OK.", fname));
 
 	message = buffer + header_length;
 
@@ -1396,19 +1480,18 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
 
-	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
+	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	if ( use_network_handles == FALSE ) {
 
 		/* Use ASCII record field name */
 
-		header[MX_NETWORK_MESSAGE_TYPE]
-				= mx_htonl( MX_NETMSG_PUT_ARRAY_BY_NAME );
+		message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
 
 		sprintf( message, "%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
 				remote_record_field_name );
@@ -1418,8 +1501,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		/* Use binary network handle */
 
-		header[MX_NETWORK_MESSAGE_TYPE]
-				= mx_htonl( MX_NETMSG_PUT_ARRAY_BY_HANDLE );
+		message_type = MX_NETMSG_PUT_ARRAY_BY_HANDLE;
 
 		uint32_message[0] = mx_htonl( nf->record_handle );
 		uint32_message[1] = mx_htonl( nf->field_handle );
@@ -1427,13 +1509,19 @@ mx_put_field_array( MX_RECORD *server_record,
 		message_length = 2 * sizeof( uint32_t );
 	}
 
+	MX_DEBUG(-2,("*********************"));
+	MX_DEBUG(-2,("%s: message_type = %#lx",
+		fname, (unsigned long) message_type));
+
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
+
 	ptr = message + message_length;
 
 	MX_DEBUG( 2,("%s: message = %p, ptr = %p, message_length = %lu",
 		fname, message, ptr, (unsigned long) message_length));
 
 	buffer_left = aligned_buffer->buffer_length
-			- MX_NETWORK_HEADER_LENGTH_VALUE - message_length;
+			- MXU_NETWORK_HEADER_LENGTH - message_length;
 
 	/* Construct the data to send. */
 
@@ -1546,7 +1634,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	message_length += MX_NETWORK_HEADER_LENGTH_VALUE;
+	message_length += MXU_NETWORK_HEADER_LENGTH;
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
@@ -1584,6 +1672,14 @@ mx_put_field_array( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
 #if NETWORK_DEBUG
 	mx_network_display_message_buffer( buffer );
 #endif
@@ -1592,6 +1688,24 @@ mx_put_field_array( MX_RECORD *server_record,
         message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
         message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
         status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+#if 1
+	if ( nf != NULL ) {
+		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
+			fname, nf, nf->server_record->name, nf->nfname));
+	} else {
+		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
+			fname, nf, server_record->name,
+			remote_record_field_name));
+	}
+
+	MX_DEBUG(-2,("%s: header_length = %lu, message_length = %lu, "
+		"message_type = %#lx, status_code = %lu", fname,
+		(unsigned long) header_length,
+		(unsigned long) message_length,
+		(unsigned long) message_type,
+		(unsigned long) status_code));
+#endif
 
         if ( message_type != mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) ) {
 
@@ -1682,11 +1796,12 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_NETWORK_HANDLE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
+	header[MX_NETWORK_MESSAGE_TYPE]
+				= mx_htonl( MX_NETMSG_GET_NETWORK_HANDLE );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
 
 	/* Copy the network field name to the outgoing message buffer. */
 
@@ -1718,6 +1833,14 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
@@ -1861,11 +1984,11 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_FIELD_TYPE );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
 
 	strlcpy( message, remote_record_field_name,
 					MXU_RECORD_FIELD_NAME_LENGTH );
@@ -1895,6 +2018,14 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
@@ -2037,11 +2168,11 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_CLIENT_INFO );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
 
 	strlcpy( message, username, MXU_USERNAME_LENGTH );
 
@@ -2084,6 +2215,14 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
@@ -2169,12 +2308,12 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_OPTION );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
-	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	uint32_message[0] = mx_htonl( option_number );
 
@@ -2201,6 +2340,14 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
@@ -2316,12 +2463,12 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MX_NETWORK_HEADER_LENGTH_VALUE );
+				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_OPTION );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MX_NETWORK_HEADER_LENGTH_VALUE;
-	uint32_message = header + MX_NETWORK_NUM_HEADER_VALUES;
+	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	uint32_message[0] = mx_htonl( option_number );
 	uint32_message[1] = mx_htonl( option_value );
@@ -2349,6 +2496,14 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_receive_message().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
 
 	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
 	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );

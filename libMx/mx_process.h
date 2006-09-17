@@ -72,10 +72,15 @@ typedef struct {
 	MX_SOCKET_HANDLER **array;
 } MX_SOCKET_HANDLER_LIST;
 
+/* Define values for the 'event_type' member of MX_QUEUED_EVENT. */
+
+#define MXQ_NETWORK_MESSAGE	1
+
 struct mx_queued_event_type {
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
+	long event_type;
 	void *event_data;
 	struct mx_queued_event_type *next_event;
 };
@@ -104,11 +109,6 @@ struct mx_event_handler_type {
 };
 
 typedef struct mx_event_handler_type MX_EVENT_HANDLER;
-
-#if 0
-MX_API MX_EVENT_HANDLER mx_event_handler_list[];
-MX_API int mx_num_event_handlers;
-#endif
 
 /*---*/
 
@@ -168,6 +168,7 @@ MX_API mx_status_type mx_add_queued_event(
 				MX_SOCKET_HANDLER *socket_handler,
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
+				long event_type,
 				void *event_data );
 
 MX_API mx_status_type mx_process_queued_event(

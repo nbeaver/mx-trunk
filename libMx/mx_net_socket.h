@@ -19,13 +19,15 @@
 #define __MX_NET_SOCKET_H__
 
 
-MX_API mx_status_type mx_network_socket_receive_message( MX_SOCKET *mx_socket,
-						double timeout,
-						void *buffer );
+MX_API mx_status_type mx_network_socket_receive_message(
+				MX_SOCKET *mx_socket,
+				double timeout, 
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
 
-MX_API mx_status_type mx_network_socket_send_message( MX_SOCKET *mx_socket,
-						double timeout,
-						void *buffer );
+MX_API mx_status_type mx_network_socket_send_message(
+				MX_SOCKET *mx_socket,
+				double timeout,
+				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
 
 MX_API mx_status_type mx_network_socket_send_error_message(MX_SOCKET *mx_socket,
 						long return_message_type,

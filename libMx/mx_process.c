@@ -438,6 +438,7 @@ MX_EXPORT mx_status_type
 mx_add_queued_event( MX_SOCKET_HANDLER *socket_handler,
 		MX_RECORD *record,
 		MX_RECORD_FIELD *record_field,
+		long event_type,
 		void *event_data )
 {
 	static const char fname[] = "mx_add_queued_event()";
@@ -472,6 +473,7 @@ mx_add_queued_event( MX_SOCKET_HANDLER *socket_handler,
 	event->socket_handler = socket_handler;
 	event->record = record;
 	event->record_field = record_field;
+	event->event_type = event_type;
 	event->event_data = event_data;
 	event->next_event = NULL;
 
