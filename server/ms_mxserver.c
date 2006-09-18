@@ -860,7 +860,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
         MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
 #endif
 
-        MX_DEBUG(-1,("%s: message_type   = %ld", fname, (long) message_type));
+        MX_DEBUG(-1,("%s: message_type   = %#lx",
+		fname, (unsigned long) message_type));
 
         if ( magic_value != MX_NETWORK_MAGIC_VALUE ) {
                 return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1551,7 +1552,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;
 	long send_buffer_message_actual_length;
-	size_t num_bytes_copied;
+	size_t num_bytes;
 
 	MX_SOCKET *mx_socket;
 	void *pointer_to_value;
@@ -1615,10 +1616,22 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 
+	    int i, max_attempts;
+
+	    /* Loop until the output buffer is large enough for the data
+	     * that we want to send or until some other error occurs.
+	     */
+
+	    max_attempts = 10;
+
+	    for ( i = 0; i < max_attempts; i++ ) {
+
+		size_t current_length, new_length;
+
 		switch( socket_handler->data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 
-		        /* Return the data in ASCII MX database format. */
+		        /* Use ASCII MX database format. */
 
 		        mx_status = mx_get_token_constructor(
 				record_field->datatype, &token_constructor );
@@ -1648,27 +1661,20 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 			send_buffer_message_actual_length
 				= (long) strlen( send_buffer_message ) + 1;
+
+			/* ASCII data transfers do not currently support
+			 * dynamically resizing network buffers, so we return
+			 * instead if we get an MXE_WOULD_EXCEED_LIMIT status
+			 * code.
+			 */
+
+			num_bytes = 0;
+
+			if ( mx_status.code == MXE_WOULD_EXCEED_LIMIT )
+				return mx_status;
 			break;
 
 		case MX_NETWORK_DATAFMT_RAW:
-#if 0
-			MX_DEBUG(-2,("%s: pointer_to_value = %p",
-					fname, pointer_to_value));
-			MX_DEBUG(-2,("%s: record_field->datatype = %ld",
-					fname, record_field->datatype));
-			MX_DEBUG(-2,("%s: record_field->num_dimensions = %ld",
-					fname, record_field->num_dimensions));
-			MX_DEBUG(-2,("%s: record_field->dimension = %p",
-					fname, record_field->dimension));
-			MX_DEBUG(-2,("%s: record_field->data_element_size = %p",
-					fname,record_field->data_element_size));
-			MX_DEBUG(-2,("%s: send_buffer_message = %p",
-					fname, send_buffer_message));
-			MX_DEBUG(-2,("%s: send_buffer_message_length = %ld",
-				fname, (long) send_buffer_message_length));
-			MX_DEBUG(-2,("%s: &num_bytes_copied = %p",
-					fname, &num_bytes_copied));
-#endif
 
 			mx_status = mx_copy_array_to_buffer(
 					pointer_to_value,
@@ -1679,11 +1685,10 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 					record_field->data_element_size,
 					send_buffer_message,
 					send_buffer_message_length,
-					&num_bytes_copied,
+					&num_bytes,
 					socket_handler->truncate_64bit_longs );
 
-			send_buffer_message_actual_length =
-						(long) num_bytes_copied;
+			send_buffer_message_actual_length = (long) num_bytes;
 			break;
 
 		case MX_NETWORK_DATAFMT_XDR:
@@ -1698,10 +1703,9 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 					record_field->data_element_size,
 					send_buffer_message,
 					send_buffer_message_length,
-					&num_bytes_copied );
+					&num_bytes );
 
-			send_buffer_message_actual_length =
-					(long) num_bytes_copied;
+			send_buffer_message_actual_length = (long) num_bytes;
 #else
 			mx_status = mx_error( MXE_UNSUPPORTED, fname,
 				"XDR network data format is not supported "
@@ -1714,6 +1718,41 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		    "Unrecognized network data format type %lu was requested.",
 		    		socket_handler->data_format );
 		}
+
+		/* If we succeeded or if some error other than
+		 * MXE_WOULD_EXCEED_LIMIT occurred, break out
+		 * of the for(;;) loop.
+		 */
+
+		if ( mx_status.code != MXE_WOULD_EXCEED_LIMIT ){
+			break;
+		}
+
+		/* The data does not fit into our existing buffer, so we must
+		 * try to make the buffer larger.  In this case, the variable
+		 * 'num_bytes' actually tells you how many bytes would not
+		 * fit in the existing buffer.
+		 */
+
+		current_length = network_message->buffer_length;
+
+		new_length = current_length + num_bytes;
+
+		mx_status = mx_reallocate_network_buffer(
+						network_message, new_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Update some values. */
+
+		send_buffer_header = network_message->u.uint32_buffer;;
+
+		send_buffer_message = network_message->u.char_buffer
+						+ send_buffer_header_length;
+
+		send_buffer_message_length += num_bytes;
+	    }
 	}
 
 #if NETWORK_DEBUG_TIMING_VERBOSE
@@ -1723,6 +1762,12 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	"#5 after constructing response for '%s.%s'",
 		record->name, record_field->name );
 #endif
+	/* Make sure these pointers are up to date. */
+
+	send_buffer_header = network_message->u.uint32_buffer;;
+
+	send_buffer_message  = network_message->u.char_buffer;
+	send_buffer_message += send_buffer_header_length;
 
 	/* Fill in the header of the message to be sent back to the client. */
 
