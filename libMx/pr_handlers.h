@@ -41,6 +41,14 @@ extern mx_status_type mx_analog_output_process_function(
 
 /*---*/
 
+extern mx_status_type mx_setup_area_detector_process_functions(
+					MX_RECORD *record_list );
+
+extern mx_status_type mx_area_detector_process_function(
+			void *record, void *record_field, int operation );
+
+/*---*/
+
 extern mx_status_type mx_setup_autoscale_process_functions(
 					MX_RECORD *record_list );
 

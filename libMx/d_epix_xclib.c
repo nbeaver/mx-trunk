@@ -931,6 +931,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
 		bits_per_component = pxd_imageBdim();
 		components_per_pixel = pxd_imageCdim();
 
@@ -973,12 +974,22 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 					bits_per_component,
 					components_per_pixel );
 		}
+
+		mx_status = mx_get_image_format_name_from_type(
+				vinput->image_format, vinput->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 #if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,(
 		"%s: bits per component = %d, components per pixel = %d",
 			fname, bits_per_component, components_per_pixel));
 
-		MX_DEBUG(-2,("%s: video format = %ld", fname, vinput->image_format));
+		MX_DEBUG(-2,("%s: video format = %ld '%s'",
+		    fname, vinput->image_format, vinput->image_format_name));
+		 	
 #endif
 		break;
 
@@ -1026,6 +1037,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
 		(void) mxd_epix_xclib_get_parameter( vinput );
 
 		return mx_error( MXE_UNSUPPORTED, fname,

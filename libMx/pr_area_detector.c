@@ -1,7 +1,7 @@
 /*
- * Name:    pr_video_input.c
+ * Name:    pr_area_detector.c
  *
- * Purpose: Functions used to process MX video input record events.
+ * Purpose: Functions used to process MX area detector record events.
  *
  * Author:  William Lavender
  *
@@ -21,18 +21,18 @@
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_image.h"
-#include "mx_video_input.h"
+#include "mx_area_detector.h"
 #include "mx_socket.h"
 
 #include "mx_process.h"
 #include "pr_handlers.h"
 
 static mx_status_type
-mxp_video_input_get_frame_handler( MX_RECORD *record,
+mxp_area_detector_get_frame_handler( MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
-				MX_VIDEO_INPUT *vinput )
+				MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxp_video_input_get_frame_handler()";
+	static const char fname[] = "mxp_area_detector_get_frame_handler()";
 
 	MX_IMAGE_FRAME *frame;
 	MX_RECORD_FIELD *frame_buffer_field;
@@ -43,8 +43,8 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 
 	/* Tell it to read in the frame. */
 
-	mx_status = mx_video_input_get_frame( record, vinput->get_frame,
-						&(vinput->frame) );
+	mx_status = mx_area_detector_get_frame( record, ad->get_frame,
+						&(ad->frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -53,12 +53,12 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 	 * that we just read in.
 	 */
 
-	frame = vinput->frame;
+	frame = ad->frame;
 
-	vinput->frame_buffer = frame->image_data;
+	ad->frame_buffer = frame->image_data;
 
 	MX_DEBUG(-2,("%s: bytes_per_frame = %ld, frame_buffer = %p",
-		fname, vinput->bytes_per_frame, vinput->frame_buffer));
+		fname, ad->bytes_per_frame, ad->frame_buffer));
 
 #if 1
 	{
@@ -66,7 +66,7 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 		unsigned char c;
 
 		for ( i = 0; i < 10; i++ ) {
-			c = vinput->frame_buffer[i];
+			c = ad->frame_buffer[i];
 
 			MX_DEBUG(-2,("%s: frame_buffer[%d] = %u", fname, i, c));
 		}
@@ -96,7 +96,7 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 	 	fname, frame_buffer_field->num_dimensions,
 		frame_buffer_field->dimension[0]));
 
-	frame_buffer_field->dimension[0] = vinput->bytes_per_frame;
+	frame_buffer_field->dimension[0] = ad->bytes_per_frame;
 
 	MX_DEBUG(-2,
 	("%s: NEW frame buffer, num_dimensions = %ld, dimension[0] = %ld",
@@ -109,9 +109,9 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 /*----*/
 
 mx_status_type
-mx_setup_video_input_process_functions( MX_RECORD *record )
+mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
-	static const char fname[] = "mx_setup_video_input_process_functions()";
+	static const char fname[] = "mx_setup_area_detector_process_functions()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -126,20 +126,20 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
-		case MXLV_VIN_ABORT:
-		case MXLV_VIN_ARM:
-		case MXLV_VIN_BUSY:
-		case MXLV_VIN_BYTES_PER_FRAME:
-		case MXLV_VIN_FORMAT:
-		case MXLV_VIN_FORMAT_NAME:
-		case MXLV_VIN_FRAMESIZE:
-		case MXLV_VIN_FRAME_BUFFER:
-		case MXLV_VIN_GET_FRAME:
-		case MXLV_VIN_STATUS:
-		case MXLV_VIN_STOP:
-		case MXLV_VIN_TRIGGER:
+		case MXLV_AD_ABORT:
+		case MXLV_AD_ARM:
+		case MXLV_AD_BUSY:
+		case MXLV_AD_BYTES_PER_FRAME:
+		case MXLV_AD_FORMAT:
+		case MXLV_AD_FORMAT_NAME:
+		case MXLV_AD_FRAMESIZE:
+		case MXLV_AD_FRAME_BUFFER:
+		case MXLV_AD_GET_FRAME:
+		case MXLV_AD_STATUS:
+		case MXLV_AD_STOP:
+		case MXLV_AD_TRIGGER:
 			record_field->process_function
-					= mx_video_input_process_function;
+					= mx_area_detector_process_function;
 			break;
 		default:
 			break;
@@ -149,19 +149,19 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 }
 
 mx_status_type
-mx_video_input_process_function( void *record_ptr,
+mx_area_detector_process_function( void *record_ptr,
 			void *record_field_ptr, int operation )
 {
-	static const char fname[] = "mx_video_input_process_function()";
+	static const char fname[] = "mx_area_detector_process_function()";
 
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
-	MX_VIDEO_INPUT *vinput;
+	MX_AREA_DETECTOR *ad;
 	mx_status_type mx_status;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	vinput = (MX_VIDEO_INPUT *) (record->record_class_struct);
+	ad = (MX_AREA_DETECTOR *) (record->record_class_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -171,38 +171,38 @@ mx_video_input_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
-		case MXLV_VIN_BUSY:
-			mx_status = mx_video_input_is_busy( record, NULL );
+		case MXLV_AD_BUSY:
+			mx_status = mx_area_detector_is_busy( record, NULL );
 			break;
-		case MXLV_VIN_BYTES_PER_FRAME:
-			mx_status = mx_video_input_get_bytes_per_frame(
+		case MXLV_AD_BYTES_PER_FRAME:
+			mx_status = mx_area_detector_get_bytes_per_frame(
 								record, NULL );
 			break;
-		case MXLV_VIN_FORMAT:
-		case MXLV_VIN_FORMAT_NAME:
+		case MXLV_AD_FORMAT:
+		case MXLV_AD_FORMAT_NAME:
 			mx_status = 
-				mx_video_input_get_image_format( record, NULL );
+			   mx_area_detector_get_image_format( record, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			mx_status = mx_get_image_format_name_from_type(
-				vinput->image_format, vinput->image_format_name,
+				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 			break;
-		case MXLV_VIN_FRAMESIZE:
-			mx_status = mx_video_input_get_framesize( record,
+		case MXLV_AD_FRAMESIZE:
+			mx_status = mx_area_detector_get_framesize( record,
 								NULL, NULL );
 			break;
-		case MXLV_VIN_FRAME_BUFFER:
-			if ( vinput->frame_buffer == NULL ) {
+		case MXLV_AD_FRAME_BUFFER:
+			if ( ad->frame_buffer == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
-			"Video input '%s' has not yet taken its first frame.",
+			"area detector '%s' has not yet taken its first frame.",
 					record->name );
 			}
 			break;
-		case MXLV_VIN_STATUS:
-			mx_status = mx_video_input_get_status( record,
+		case MXLV_AD_STATUS:
+			mx_status = mx_area_detector_get_status( record,
 								NULL, NULL );
 			break;
 		default:
@@ -214,38 +214,38 @@ mx_video_input_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
-		case MXLV_VIN_ABORT:
-			mx_status = mx_video_input_abort( record );
+		case MXLV_AD_ABORT:
+			mx_status = mx_area_detector_abort( record );
 			break;
-		case MXLV_VIN_ARM:
-			mx_status = mx_video_input_arm( record );
+		case MXLV_AD_ARM:
+			mx_status = mx_area_detector_arm( record );
 			break;
-		case MXLV_VIN_FORMAT_NAME:
+		case MXLV_AD_FORMAT_NAME:
 			mx_status = mx_get_image_format_type_from_name(
-					vinput->image_format_name,
-					&(vinput->image_format) );
+					ad->image_format_name,
+					&(ad->image_format) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			/* Fall through to the next case. */
-		case MXLV_VIN_FORMAT:
-			mx_status = mx_video_input_set_image_format( record,
-						vinput->image_format );
+		case MXLV_AD_FORMAT:
+			mx_status = mx_area_detector_set_image_format( record,
+						ad->image_format );
 			break;
-		case MXLV_VIN_FRAMESIZE:
-			mx_status = mx_video_input_set_framesize( record,
-						vinput->framesize[0],
-						vinput->framesize[1] );
-		case MXLV_VIN_GET_FRAME:
-			mx_status = mxp_video_input_get_frame_handler(
-					record, record_field, vinput );
+		case MXLV_AD_FRAMESIZE:
+			mx_status = mx_area_detector_set_framesize( record,
+						ad->framesize[0],
+						ad->framesize[1] );
+		case MXLV_AD_GET_FRAME:
+			mx_status = mxp_area_detector_get_frame_handler(
+					record, record_field, ad );
 			break;
-		case MXLV_VIN_STOP:
-			mx_status = mx_video_input_stop( record );
+		case MXLV_AD_STOP:
+			mx_status = mx_area_detector_stop( record );
 			break;
-		case MXLV_VIN_TRIGGER:
-			mx_status = mx_video_input_trigger( record );
+		case MXLV_AD_TRIGGER:
+			mx_status = mx_area_detector_trigger( record );
 			break;
 		default:
 			MX_DEBUG(-1,(

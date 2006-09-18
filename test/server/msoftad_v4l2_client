@@ -1,0 +1,5 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./msoftad_v4l2_client.dat \
+	-s ./ssoftad_v4l2_client.dat -i $*
+

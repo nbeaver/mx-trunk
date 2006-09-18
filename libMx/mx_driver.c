@@ -429,6 +429,8 @@
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
 
+#include "d_soft_area_detector.h"
+#include "d_network_area_detector.h"
 #include "d_pccd_170170.h"
 
 #include "s_input.h"
@@ -3182,6 +3184,20 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epix_xclib_rfield_def_ptr},
 
 #endif /* HAVE_EPIX_XCLIB */
+
+{"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_soft_area_detector_record_function_list,
+				NULL,
+				NULL,
+				&mxd_soft_area_detector_num_record_fields,
+				&mxd_soft_area_detector_rfield_def_ptr},
+
+{"network_area_detector",  MXT_AD_NETWORK,   MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_network_area_detector_record_function_list,
+				NULL,
+				NULL,
+				&mxd_network_area_detector_num_record_fields,
+				&mxd_network_area_detector_rfield_def_ptr},
 
 #if HAVE_CAMERA_LINK
 

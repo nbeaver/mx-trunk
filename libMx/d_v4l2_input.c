@@ -883,7 +883,6 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_BYTES_PER_FRAME:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
@@ -891,7 +890,9 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
+	case MXLV_VIN_FORMAT_NAME:
 	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTES_PER_FRAME:
 
 		memset( &format, 0, sizeof(format) );
 
@@ -939,12 +940,19 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		switch( format.fmt.pix.pixelformat ) {
 		case V4L2_PIX_FMT_RGB565:
 			vinput->image_format = MXT_IMAGE_FORMAT_RGB565;
+
+			vinput->bytes_per_frame =
+				3 * vinput->framesize[0] * vinput->framesize[1];
 			break;
 		case V4L2_PIX_FMT_YUYV:
 			vinput->image_format = MXT_IMAGE_FORMAT_YUYV;
+
+			vinput->bytes_per_frame =
+				3 * vinput->framesize[0] * vinput->framesize[1];
 			break;
 		default:
 			vinput->image_format = -1;
+			vinput->bytes_per_frame = 0;
 
 			mx_warning(
 			"Support for image format %c%c%c%c used by "
@@ -953,6 +961,13 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 				
 			break;
 		}
+
+		mx_status = mx_get_image_format_name_from_type(
+				vinput->image_format, vinput->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Save the pixel order. */
 
@@ -1006,6 +1021,11 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
+
+	case MXLV_VIN_TRIGGER_MODE:
+		MX_DEBUG(-2,("%s: Trigger mode set to %ld for record '%s'.",
+			fname, vinput->trigger_mode, vinput->record->name));
 		break;
 
 	case MXLV_VIN_FRAMESIZE:

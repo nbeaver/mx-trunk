@@ -38,7 +38,8 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_variable.c mx_vepics.c mx_version.c \
 	mx_video_input.c mx_vinline.c \
 	mx_virtual_timer.c mx_vme.c mx_vnet.c mx_warning.c \
-	pr_amplifier.c pr_analog_input.c pr_analog_output.c pr_autoscale.c \
+	pr_amplifier.c pr_analog_input.c pr_analog_output.c \
+	pr_area_detector.c pr_autoscale.c \
 	pr_ccd.c pr_digital_input.c pr_digital_output.c pr_gpib.c \
 	pr_list_head.c pr_mca.c pr_mce.c pr_mcs.c \
 	pr_motor.c pr_ptz.c pr_pulser.c pr_record.c \
@@ -91,7 +92,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_mcu2.c d_mdrive.c d_mdrive_aio.c d_mdrive_dio.c d_mmc32.c \
 	d_modbus_aio.c d_modbus_dio.c d_monochromator.c \
 	d_net_amplifier.c d_net_sample_changer.c \
-	d_network_ainput.c d_network_aoutput.c \
+	d_network_ainput.c d_network_aoutput.c d_network_area_detector.c \
 	d_network_ccd.c d_network_dinput.c d_network_doutput.c \
 	d_network_mca.c d_network_mce.c d_network_mcs.c d_network_motor.c \
 	d_network_ptz.c d_network_pulser.c d_network_relay.c d_network_sca.c \
@@ -116,8 +117,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_si9650_motor.c d_si9650_status.c \
 	d_sis3801.c d_sis3801_pulser.c d_sis3807.c d_slit_motor.c \
 	d_smartmotor.c d_smartmotor_aio.c d_smartmotor_dio.c \
-	d_smc24.c d_soft_amplifier.c \
-	d_soft_ainput.c d_soft_aoutput.c d_soft_dinput.c d_soft_doutput.c \
+	d_smc24.c d_soft_amplifier.c d_soft_ainput.c d_soft_aoutput.c \
+	d_soft_area_detector.c d_soft_dinput.c d_soft_doutput.c \
 	d_soft_mca.c d_soft_mcs.c d_soft_motor.c d_soft_ptz.c \
 	d_soft_sample_changer.c d_soft_sca.c d_soft_scaler.c d_soft_timer.c \
 	d_sony_visca_ptz.c d_spec_motor.c d_spec_scaler.c d_spec_timer.c \

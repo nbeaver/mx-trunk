@@ -14,7 +14,10 @@
  *
  */
 
+#define MX_AREA_DETECTOR_DEBUG    TRUE
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -67,6 +70,29 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_finish_record_initialization( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mx_area_detector_finish_record_initialization()";
+
+	MX_AREA_DETECTOR *ad;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->frame = NULL;
+	ad->frame_buffer = NULL;
+
+	mx_status = mx_get_image_format_type_from_name(
+			ad->image_format_name, &(ad->image_format) );
+
+	return mx_status;
 }
 
 /*=======================================================================*/
@@ -125,7 +151,8 @@ mx_area_detector_set_image_format( MX_RECORD *record, long format )
 	set_parameter_fn = flist->set_parameter;
 
 	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = mx_area_detector_default_set_parameter_handler;
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
 	}
 
 	ad->parameter_type = MXLV_AD_FORMAT;
@@ -210,6 +237,42 @@ mx_area_detector_set_framesize( MX_RECORD *record,
 	mx_status = (*set_parameter_fn)( ad );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
+{
+	static const char fname[] = "mx_area_detector_get_bytes_per_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_BYTES_PER_FRAME;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_per_frame != NULL ) {
+		*bytes_per_frame = ad->bytes_per_frame;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -416,6 +479,32 @@ mx_area_detector_arm( MX_RECORD *record )
 		mx_status = (*arm_fn)( ad );
 	}
 
+	/* Compute image frame parameters for later use. */
+
+	mx_status = mx_area_detector_get_image_format( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_framesize( ad->record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_format = %ld, framesize = (%ld,%ld), bytes_per_frame = %ld",
+		fname, ad->image_format,
+		ad->framesize[0],
+		ad->framesize[1],
+		ad->bytes_per_frame));
+#endif
+
 	return mx_status;
 }
 
@@ -575,19 +664,23 @@ mx_area_detector_get_status( MX_RECORD *record,
 /*---*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_frame( MX_RECORD *record, MX_IMAGE_FRAME **frame )
+mx_area_detector_get_frame( MX_RECORD *record,
+			long frame_number,
+			MX_IMAGE_FRAME **frame )
 {
 	static const char fname[] = "mx_area_detector_get_frame()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *get_frame_fn ) (MX_AREA_DETECTOR *, MX_IMAGE_FRAME **);
+	mx_status_type ( *get_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Does this driver implement a get_frame function? */
 
 	get_frame_fn = flist->get_frame;
 
@@ -599,7 +692,98 @@ mx_area_detector_get_frame( MX_RECORD *record, MX_IMAGE_FRAME **frame )
 			record->name );
 	}
 
-	mx_status = (*get_frame_fn)( ad, frame );
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: *frame = %p", fname, *frame));
+#endif
+
+	/* We either reuse an existing MX_IMAGE_FRAME or create a new one. */
+
+	if ( (*frame) == (MX_IMAGE_FRAME *) NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new MX_IMAGE_FRAME.", fname));
+#endif
+		/* Allocate a new MX_IMAGE_FRAME. */
+
+		*frame = malloc( sizeof(MX_IMAGE_FRAME) );
+
+		if ( (*frame) == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a new MX_IMAGE_FRAME structure." );
+		}
+
+		(*frame)->header_length = 0;
+		(*frame)->header_data = NULL;
+
+		(*frame)->image_length = 0;
+		(*frame)->image_data = NULL;
+	}
+
+	/* Fill in some parameters. */
+
+	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
+	(*frame)->framesize[0] = ad->framesize[0];
+	(*frame)->framesize[1] = ad->framesize[1];
+	(*frame)->image_format = ad->image_format;
+	(*frame)->pixel_order = ad->pixel_order;
+
+	/* See if the image buffer is already big enough for the image. */
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",
+		fname, (*frame)->image_data));
+	MX_DEBUG(-2,("%s: (*frame)->image_length = %lu, bytes_per_frame = %lu",
+		fname, (unsigned long) (*frame)->image_length,
+		ad->bytes_per_frame));
+#endif
+
+	if ( ( (*frame)->image_data != NULL )
+	  && ( (*frame)->image_length >= ad->bytes_per_frame ) )
+	{
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: The image buffer is already big enough.", fname));
+#endif
+	} else {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
+			fname, ad->bytes_per_frame));
+#endif
+		/* If not, then allocate a new one. */
+
+		if ( (*frame)->image_data != NULL ) {
+			free( (*frame)->image_data );
+		}
+
+		(*frame)->image_data = malloc( ad->bytes_per_frame );
+
+		if ( (*frame)->image_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Cannot allocate a %ld byte image buffer for "
+			"area detector '%s'.",
+				ad->bytes_per_frame, ad->record->name );
+		}
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
+#endif
+	}
+
+#if 1  /* FIXME!!! - This should not be present in the final version. */
+	memset( (*frame)->image_data, 0, 50 );
+#endif
+
+	(*frame)->image_length = ad->bytes_per_frame;
+
+	/* Now get the actual frame. */
+
+	ad->frame_number = frame_number;
+
+	ad->frame = *frame;
+
+	mx_status = (*get_frame_fn)( ad );
 
 	return mx_status;
 }
