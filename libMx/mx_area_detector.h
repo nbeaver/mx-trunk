@@ -81,7 +81,7 @@ typedef struct {
 			MXFT_DOUBLE, NULL, 1, {MXU_MAX_SEQUENCE_PARAMETERS}, \
 	MXF_REC_CLASS_STRUCT, \
 	    offsetof(MX_AREA_DETECTOR, sequence_parameters.parameter_array), \
-	{0}, NULL, 0}
+	{sizeof(double)}, NULL, 0}
 
 
 typedef struct {

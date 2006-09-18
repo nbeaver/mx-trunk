@@ -1317,6 +1317,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		if ( direction == MX_XDR_ENCODE ) {
 			if ( xdr_array_size > xdr_buffer_length ) {
+#if 0
 				mx_warning(
 			"The 1-dimensional XDR array of size %ld bytes was "
 			"truncated to fit into the buffer length of %ld bytes.",
@@ -1324,6 +1325,18 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					(long) xdr_buffer_length );
 
 				xdr_array_size = xdr_buffer_length;
+#else
+				if ( num_bytes_copied != NULL ) {
+					*num_bytes_copied =
+					    xdr_array_size - xdr_buffer_length;
+				}
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The 1-dimensional array of size %ld bytes is "
+				"too large to fit into the destination buffer "
+				"of %ld bytes.",
+					(long) xdr_array_size,
+					(long) xdr_buffer_length );
+#endif
 			}
 		}
 
@@ -1465,6 +1478,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 	if ( direction == MX_XDR_ENCODE ) {
 		if ( xdr_array_size > xdr_buffer_length ) {
+#if 0
 			mx_warning(
 			"The %ld-dimensional XDR array of size %ld bytes was "
 			"truncated to %ld bytes.",
@@ -1473,6 +1487,19 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 				(long) xdr_buffer_length );
 
 			xdr_array_size = xdr_buffer_length;
+#else
+			if ( num_bytes_copied != NULL ) {
+				*num_bytes_copied =
+					xdr_array_size - xdr_buffer_length;
+			}
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The %ld-dimensional array of size %ld bytes is "
+			"too large to fit into the destination buffer "
+			"of %ld bytes.",
+				num_dimensions,
+				(long) xdr_array_size,
+				(long) xdr_buffer_length );
+#endif
 		}
 	}
 

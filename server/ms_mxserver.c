@@ -200,7 +200,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	int i, socket_type, max_sockets, handler_array_size;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-1,("%s invoked.", fname));
+	MX_DEBUG( 1,("%s invoked.", fname));
 
 	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -417,7 +417,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 	mx_socklen_t unix_client_address_size = sizeof( struct sockaddr_un );
 #endif
 
-	MX_DEBUG(-1,("%s invoked.", fname));
+	MX_DEBUG( 1,("%s invoked.", fname));
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -750,7 +750,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	client_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(-1,("%s invoked for socket handler %ld.", fname,
+	MX_DEBUG( 1,("%s invoked for socket handler %ld.", fname,
 				socket_handler->handler_array_index));
 
 #if NETWORK_DEBUG_VERBOSE
@@ -860,7 +860,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
         MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
 #endif
 
-        MX_DEBUG(-1,("%s: message_type   = %#lx",
+        MX_DEBUG( 1,("%s: message_type   = %#lx",
 		fname, (unsigned long) message_type));
 
         if ( magic_value != MX_NETWORK_MAGIC_VALUE ) {
@@ -877,7 +877,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	if ( total_length > received_message->buffer_length ) {
 
-		MX_DEBUG(-2,
+		MX_DEBUG( 2,
 		("%s: Increasing buffer length from %lu to %lu", fname,
 		  (unsigned long) received_message->buffer_length,
 	   		(unsigned long) total_length ));
@@ -1015,7 +1015,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		}
 #endif
 
-		MX_DEBUG(-2,("%s", text_buffer));
+		MX_DEBUG( 2,("%s", text_buffer));
 	}
 #endif
 
@@ -1440,7 +1440,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	uint32_t message_type, header_length;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-1,("%s invoked.", fname));
+	MX_DEBUG( 1,("%s invoked.", fname));
 
 	if ( queued_event == (MX_QUEUED_EVENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1567,14 +1567,11 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	MX_HRT_START( measurement );
 #endif
 
-	MX_DEBUG(-2,("%s: network_message = %p, header = %p",
-		fname, network_message, network_message->u.uint32_buffer));
-
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(-1,("***** %s invoked for socket %d *****",
+	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
 				fname, mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
@@ -1721,7 +1718,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 		/* If we succeeded or if some error other than
 		 * MXE_WOULD_EXCEED_LIMIT occurred, break out
-		 * of the for(;;) loop.
+		 * of the for(i) loop.
 		 */
 
 		if ( mx_status.code != MXE_WOULD_EXCEED_LIMIT ){
@@ -1752,6 +1749,14 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 						+ send_buffer_header_length;
 
 		send_buffer_message_length += num_bytes;
+	    }
+
+	    if ( i >= max_attempts ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"%d attempts to increase the network buffer size "
+			"for record field '%s.%s' failed.  "
+			"You should never see this error.",
+			    max_attempts, record->name, record_field->name );
 	    }
 	}
 
@@ -1869,7 +1874,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(-1,("***** %s successful *****", fname));
+	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -1925,7 +1930,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	mx_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG(-1,("***** %s invoked for socket %d *****",
+	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
 		fname, mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
@@ -2220,7 +2225,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(-1,("***** %s successful *****", fname));
+	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -2246,6 +2251,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	MX_NETWORK_MESSAGE_BUFFER_FOO *network_message;
 	uint32_t *send_buffer_header, *send_buffer_message;
 
+	long i;
 	long record_handle;
 	long field_handle;
 	mx_status_type mx_status;
@@ -2328,6 +2334,17 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		fname, record->name, record_field->name,
 		record_handle, field_handle ));
 #endif
+	/* Check for 0 in data_element_size array elements.  This is
+	 * a common error in setting up new record field definitions.
+	 */
+
+	for ( i = 0; i < record_field->num_dimensions; i++ ) {
+		if ( record_field->data_element_size[i] == 0 ) {
+			mx_warning("data_element_size[%ld] for record field "
+			"'%s.%s' is 0.  Fixing this will require "
+			"recompiling MX.", i, record->name, record_field->name);
+		}
+	}
 
 	/* Construct the message to be sent back to the client. */
 
@@ -2390,12 +2407,12 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	uint32_t i, send_buffer_header_length, send_buffer_message_length;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-1,("%s for %p, message_length = %lu",
+	MX_DEBUG( 1,("%s for %p, message_length = %lu",
 			fname, network_message,
 			(unsigned long) network_message->buffer_length ));
-	MX_DEBUG(-1,("%s: field->datatype = %ld, field->num_dimensions = %ld",
+	MX_DEBUG( 1,("%s: field->datatype = %ld, field->num_dimensions = %ld",
 			fname, field->datatype, field->num_dimensions));
-	MX_DEBUG(-1,("%s: field->dimension[0] = %ld",
+	MX_DEBUG( 1,("%s: field->dimension[0] = %ld",
 			fname, field->dimension[0]));
 
 	/* Allocate a buffer to construct the message to be sent
@@ -2465,7 +2482,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(-1,("***** %s successful *****", fname));
+	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2490,7 +2507,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	message_string  = network_message->u.char_buffer;
 	message_string += MXU_NETWORK_HEADER_LENGTH;
 
-	MX_DEBUG(-1,("%s for '%s', message_length = %lu",
+	MX_DEBUG( 1,("%s for '%s', message_length = %lu",
 		fname, message_string,
 		(unsigned long) network_message->buffer_length ));
 
@@ -2640,7 +2657,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		return mx_error( mx_status.code, location, mx_status.message );
 	}
 
-	MX_DEBUG(-1,("***** %s successful *****", fname));
+	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2665,7 +2682,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 
 	option_number = mx_ntohl( option_array[0] );
 
-	MX_DEBUG(-2,("%s: option_number = %#lx",
+	MX_DEBUG( 2,("%s: option_number = %#lx",
 		fname, (unsigned long) option_number));
 
 	/* Get the requested option value. */
@@ -2788,7 +2805,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	option_number = mx_ntohl( option_array[0] );
 	option_value = mx_ntohl( option_array[1] );
 
-	MX_DEBUG(-2,("%s: option_number = %#lx, option_value = %#lx", fname,
+	MX_DEBUG( 2,("%s: option_number = %#lx, option_value = %#lx", fname,
 		(unsigned long) option_number,
 		(unsigned long) option_value));
 

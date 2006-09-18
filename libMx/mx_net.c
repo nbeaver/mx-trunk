@@ -112,8 +112,10 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	static const char fname[] = "mx_reallocate_network_buffer()";
 
 	size_t old_length;
-	int i;
 	uint32_t *header;
+#if 0
+	int i;
+#endif
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -143,6 +145,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 
 	header = message_buffer->u.uint32_buffer;
 
+#if 0
 	MX_DEBUG(-2,("%s: #1 header = %p", fname, header));
 
 	for ( i = 0; i < 5; i++ ) {
@@ -152,12 +155,15 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 
 	MX_DEBUG(-2,("%s: BEFORE realloc(), uint32_buffer = %p", fname,
 				message_buffer->u.uint32_buffer));
+#endif
 
 	message_buffer->u.uint32_buffer =
 		realloc( message_buffer->u.uint32_buffer, new_length );
 
+#if 0
 	MX_DEBUG(-2,("%s: AFTER realloc(), uint32_buffer = %p", fname,
 				message_buffer->u.uint32_buffer));
+#endif
 
 	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
 
@@ -175,6 +181,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 
 	header = message_buffer->u.uint32_buffer;
 
+#if 0
 	MX_DEBUG(-2,("%s: #2 header = %p", fname, header));
 
 	for ( i = 0; i < 5; i++ ) {
@@ -186,6 +193,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	("%s: message_buffer = %p, u.uint32_buffer = %p, length = %lu",
 	 	fname, message_buffer, message_buffer->u.uint32_buffer,
 		(unsigned long) message_buffer->buffer_length));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1139,9 +1147,6 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
-	MX_DEBUG(-2,("%s: use_network_handles = %d",
-		fname, use_network_handles));
-
 	if ( use_network_handles == FALSE ) {
 
 		/* Use ASCII record field name */
@@ -1163,10 +1168,6 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		message_length = 2 * sizeof( uint32_t );
 	}
-
-	MX_DEBUG(-2,("*********************"));
-	MX_DEBUG(-2,("%s: message_type = %#lx",
-		fname, (unsigned long) message_type));
 
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
 
@@ -1221,7 +1222,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-#if 1
+#if 0
 	if ( nf != NULL ) {
 		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
 			fname, nf, nf->server_record->name, nf->nfname));
@@ -1267,8 +1268,6 @@ mx_get_field_array( MX_RECORD *server_record,
 "Message type for response was not MX_NETMSG_GET_ARRAY_ASCII_RESPONSE.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-	MX_DEBUG(-2,("%s: MESSAGE TYPE IS OK.", fname));
 
 	message = buffer + header_length;
 
@@ -1409,11 +1408,13 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
 	uint32_t *header, *uint32_message;
-	char *buffer;
-	char *message, *ptr;
-	unsigned long i, ptr_address, remainder_value, gap_size;
-	uint32_t header_length, message_length, message_type, status_code;
-	size_t buffer_left, num_bytes_copied;
+	char *message, *ptr, *name_ptr;
+	unsigned long i, j, max_attempts;
+	unsigned long ptr_address, remainder_value, gap_size;
+	uint32_t header_length, message_length, saved_message_length;
+	uint32_t message_type, status_code;
+	size_t buffer_left, num_bytes;
+	size_t current_length, new_length;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -1475,17 +1476,15 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	aligned_buffer = server->message_buffer;
 
-	header = &(aligned_buffer->u.uint32_buffer[0]);
-	buffer = &(aligned_buffer->u.char_buffer[0]);
+	header  = aligned_buffer->u.uint32_buffer;
+	message = aligned_buffer->u.char_buffer + MXU_NETWORK_HEADER_LENGTH;
+
+	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH]
 				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
 	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
-
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
-
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
 
 	if ( use_network_handles == FALSE ) {
 
@@ -1509,10 +1508,6 @@ mx_put_field_array( MX_RECORD *server_record,
 		message_length = 2 * sizeof( uint32_t );
 	}
 
-	MX_DEBUG(-2,("*********************"));
-	MX_DEBUG(-2,("%s: message_type = %#lx",
-		fname, (unsigned long) message_type));
-
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
 
 	ptr = message + message_length;
@@ -1523,10 +1518,19 @@ mx_put_field_array( MX_RECORD *server_record,
 	buffer_left = aligned_buffer->buffer_length
 			- MXU_NETWORK_HEADER_LENGTH - message_length;
 
-	/* Construct the data to send. */
+	/* Construct the data to send.   We use a retry loop here in case
+	 * we need to increase the size of the network buffer to make the
+	 * message fit.
+	 */
 
-	switch( server->data_format ) {
-	case MX_NETWORK_DATAFMT_ASCII:
+	max_attempts = 10;
+
+	for ( i = 0; i < max_attempts; i++ ) {
+
+	    saved_message_length = message_length;
+
+	    switch( server->data_format ) {
+	    case MX_NETWORK_DATAFMT_ASCII:
 
 		/* Send the data using the ASCII MX database format. */
 
@@ -1540,12 +1544,14 @@ mx_put_field_array( MX_RECORD *server_record,
 		  || ((datatype == MXFT_STRING) && (num_dimensions == 1)) )
 		{
 			mx_status = (*token_constructor) ( value_ptr, ptr,
-			    aligned_buffer->buffer_length - ( ptr - buffer ),
+			    aligned_buffer->buffer_length -
+			    	( ptr - aligned_buffer->u.char_buffer ),
 			    NULL, local_field );
 		} else {
 			mx_status = mx_create_array_description( value_ptr, 
 			    local_field->num_dimensions - 1, ptr,
-			    aligned_buffer->buffer_length - ( ptr - buffer ),
+			    aligned_buffer->buffer_length -
+			    	( ptr - aligned_buffer->u.char_buffer ),
 			    NULL, local_field, token_constructor );
 		}
 
@@ -1556,15 +1562,24 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		message_length += 1 + strlen( ptr );
 
+		/* ASCII data transfers do not currently support dynamically
+		 * resizing network buffers, so we return instead if we get
+		 * an MXE_WOULD_EXCEED_LIMIT status code.
+		 */
+
+		num_bytes = 0;
+
+		if ( mx_status.code == MXE_WOULD_EXCEED_LIMIT )
+			return mx_status;
 		break;
 
-	case MX_NETWORK_DATAFMT_RAW:
+	    case MX_NETWORK_DATAFMT_RAW:
 		mx_status = mx_copy_array_to_buffer( value_ptr,
 				array_is_dynamically_allocated,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
-				&num_bytes_copied,
+				&num_bytes,
 				server->truncate_64bit_longs );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
@@ -1573,10 +1588,10 @@ mx_put_field_array( MX_RECORD *server_record,
 				remote_record_field_name, server_record->name );
 		}
 
-		message_length += num_bytes_copied;
+		message_length += num_bytes;
 		break;
 
-	case MX_NETWORK_DATAFMT_XDR:
+	    case MX_NETWORK_DATAFMT_XDR:
 #if HAVE_XDR
 		/* The XDR data pointer 'ptr' must be aligned on a 4 byte
 		 * address boundary for XDR data conversion to work correctly
@@ -1593,8 +1608,8 @@ mx_put_field_array( MX_RECORD *server_record,
 		if ( remainder_value != 0 ) {
 			gap_size = 4 - remainder_value;
 
-			for ( i = 0; i < gap_size; i++ ) {
-				ptr[i] = '\0';
+			for ( j = 0; j < gap_size; j++ ) {
+				ptr[j] = '\0';
 			}
 
 			ptr += gap_size;
@@ -1610,7 +1625,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				datatype, num_dimensions,
 				dimension_array, data_element_size_array,
 				ptr, buffer_left,
-				&num_bytes_copied );
+				&num_bytes );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			(void) mx_error( mx_status.code, fname,
@@ -1618,7 +1633,7 @@ mx_put_field_array( MX_RECORD *server_record,
 				remote_record_field_name, server_record->name );
 		}
 
-		message_length += num_bytes_copied;
+		message_length += num_bytes;
 #else
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"XDR network data format is not supported "
@@ -1626,10 +1641,62 @@ mx_put_field_array( MX_RECORD *server_record,
 #endif
 		break;
 
-	default:
+	    default:
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Unrecognized network data format type %lu was requested.",
 			server->data_format );
+	    }
+
+	    /* If we succeeded or if some error other than 
+	     * MXE_WOULD_EXCEED_LIMIT occurred, break out
+	     * of the for(i) loop.
+	     */
+
+	    if ( mx_status.code != MXE_WOULD_EXCEED_LIMIT ) {
+		break;
+	    }
+
+	    /* The data does not fit into our existing buffer, so we must
+	     * try to make the buffer larger.  In this case, the variable
+	     * 'num_bytes' actually tells you how many bytes would not fit
+	     * in the existing buffer.
+	     */
+
+	    current_length = aligned_buffer->buffer_length;
+
+	    new_length = current_length + num_bytes;
+
+	    mx_status = mx_reallocate_network_buffer(
+			    		aligned_buffer, new_length );
+
+	    if ( mx_status.code != MXE_SUCCESS )
+		    return mx_status;
+
+	    /* Update some values that reallocation will have changed. */
+
+	    header  = aligned_buffer->u.uint32_buffer;
+	    message = aligned_buffer->u.char_buffer + MXU_NETWORK_HEADER_LENGTH;
+
+	    /* Revert back to the buffer location before the failed copy. */
+
+	    message_length = saved_message_length;
+
+	    ptr         = message + message_length;
+	    buffer_left = aligned_buffer->buffer_length
+		    		- MXU_NETWORK_HEADER_LENGTH - message_length;
+	}
+
+	if ( i >= max_attempts ) {
+		if ( nf == NULL ) {
+			name_ptr = remote_record_field_name;
+		} else {
+			name_ptr = nf->nfname;
+		}
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+		"%lu attempts to increase the network buffer size for "
+		"record field '%s' failed.  "
+		"You should never see this error.",
+			max_attempts, name_ptr );
 	}
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
@@ -1677,11 +1744,10 @@ mx_put_field_array( MX_RECORD *server_record,
 	 * in mx_network_receive_message().
 	 */
 
-	header = &(aligned_buffer->u.uint32_buffer[0]);
-	buffer = &(aligned_buffer->u.char_buffer[0]);
+	header = aligned_buffer->u.uint32_buffer;
 
 #if NETWORK_DEBUG
-	mx_network_display_message_buffer( buffer );
+	mx_network_display_message_buffer( aligned_buffer );
 #endif
 
         header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
@@ -1689,7 +1755,7 @@ mx_put_field_array( MX_RECORD *server_record,
         message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
         status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-#if 1
+#if 0
 	if ( nf != NULL ) {
 		MX_DEBUG(-2,("%s: nf = %p, server = '%s', field = '%s'",
 			fname, nf, nf->server_record->name, nf->nfname));
@@ -1722,7 +1788,7 @@ mx_put_field_array( MX_RECORD *server_record,
 "Instead it was of type = %#lx", (unsigned long) message_type );
         }
 
-        message = buffer + header_length;
+        message = aligned_buffer->u.char_buffer + header_length;
 
         /* If the remote command failed, the message field will include
          * the text of the error message rather than the array data

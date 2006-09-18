@@ -1,4 +1,3 @@
-#s1      server network tcp_server "" "" 0x20000000 localhost 9827
-s1      server network tcp_server "" "" 0x20000400 localhost 9827
+s1      server network tcp_server "" "" 0x20000000 localhost 9827
 video0  device video_input network_vinput "" "" -1 -1 "" -1 s1 video0
 testvar variable net_variable net_long "" "" s1 testvar.value 1 1 0

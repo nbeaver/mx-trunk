@@ -33,10 +33,10 @@
 
 /* Initial size of an MX network message buffer. */
 
-#if 1
+#if 0
 #  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	163840 
 #else
-#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	100
+#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	70
 #endif
 
 /* Minimum allowed size of an MX network message_buffer. */
