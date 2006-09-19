@@ -738,6 +738,17 @@ mx_area_detector_get_frame( MX_RECORD *record,
 		ad->bytes_per_frame));
 #endif
 
+	/* Setup the image data buffer. */
+
+	if ( ((*frame)->image_length == 0) && (ad->bytes_per_frame == 0)) {
+
+		/* Zero length image buffers are not allowed. */
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+	"Area detector '%s' attempted to create a zero length image buffer.",
+			record->name );
+
+	} else
 	if ( ( (*frame)->image_data != NULL )
 	  && ( (*frame)->image_length >= ad->bytes_per_frame ) )
 	{

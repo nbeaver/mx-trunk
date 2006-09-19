@@ -472,7 +472,7 @@ mx_network_display_message_buffer(
 	static const char fname[] = "mx_network_display_message_buffer()";
 
 	uint32_t *header;
-	unsigned char *buffer, *message;
+	char *buffer, *message;
 	uint32_t magic_number, header_length, message_length;
 	uint32_t message_type, status_code;
 	unsigned long i;

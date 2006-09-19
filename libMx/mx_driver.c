@@ -425,6 +425,7 @@
 #include "d_hitachi_kp_d20.h"
 #include "d_panasonic_kx_dp702.h"
 
+#include "d_soft_vinput.h"
 #include "d_network_vinput.h"
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
@@ -3156,6 +3157,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_panasonic_kx_dp702_num_record_fields,
 				&mxd_panasonic_kx_dp702_rfield_def_ptr},
 
+{"soft_vinput",     MXT_VIN_SOFTWARE,     MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_soft_vinput_record_function_list,
+				NULL,
+				NULL,
+				&mxd_soft_vinput_num_record_fields,
+				&mxd_soft_vinput_rfield_def_ptr},
+
 {"network_vinput",  MXT_VIN_NETWORK,      MXC_VIDEO_INPUT,  MXR_DEVICE,
 				&mxd_network_vinput_record_function_list,
 				NULL,
@@ -3185,14 +3193,14 @@ MX_DRIVER mx_type_list[] = {
 
 #endif /* HAVE_EPIX_XCLIB */
 
-{"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_VIDEO_INPUT,  MXR_DEVICE,
+{"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_soft_area_detector_record_function_list,
 				NULL,
 				NULL,
 				&mxd_soft_area_detector_num_record_fields,
 				&mxd_soft_area_detector_rfield_def_ptr},
 
-{"network_area_detector",  MXT_AD_NETWORK,   MXC_VIDEO_INPUT,  MXR_DEVICE,
+{"network_area_detector",  MXT_AD_NETWORK,   MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_network_area_detector_record_function_list,
 				NULL,
 				NULL,
