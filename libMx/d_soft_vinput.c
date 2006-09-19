@@ -510,8 +510,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 			ptr8 = frame->image_data;
 
-			for ( i = 0; i < i_max; i++ ) {
-			    for ( j = 0; j < j_max; j++ ) {
+			for ( i = 0; i <= i_max; i++ ) {
+			    for ( j = 0; j <= j_max; j++ ) {
 
 				R = ( cxr1 * j + cxr0 ) * ( cyr1 * i + cyr0 );
 				G = ( cxg1 * j + cxg0 ) * ( cyg1 * i + cyg0 );
@@ -551,8 +551,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 			ptr8 = frame->image_data;
 
-			for ( i = 0; i < i_max; i++ ) {
-			    for ( j = 0; j < j_max; j++ ) {
+			for ( i = 0; i <= i_max; i++ ) {
+			    for ( j = 0; j <= j_max; j++ ) {
 
 				*ptr8 = ( cx1 * j + cx0 ) * ( cy1 * i + cy0 );
 
@@ -586,12 +586,32 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			    break;
 			}
 
+#if 0
+			if ( soft_vinput->counter == 0 ) {
+				MX_DEBUG(-2,("%s: j_max = %ld, i_max = %ld",
+					fname, j_max, i_max));
+				MX_DEBUG(-2,("%s: x_max = %g, y_max = %g",
+					fname, x_max, y_max));
+				MX_DEBUG(-2,("%s: max_value = %g",
+					fname, max_value));
+				MX_DEBUG(-2,("%s: cx1 = %g, cx0 = %g",
+					fname, cx1, cx0));
+				MX_DEBUG(-2,("%s: cy1 = %g, cy0 = %g",
+					fname, cy1, cy0));
+			}
+#endif
+
 			ptr16 = frame->image_data;
 
-			for ( i = 0; i < i_max; i++ ) {
-			    for ( j = 0; j < j_max; j++ ) {
+			for ( i = 0; i <= i_max; i++ ) {
+			    for ( j = 0; j <= j_max; j++ ) {
 
 				*ptr16 = ( cx1 * j + cx0 ) * ( cy1 * i + cy0 );
+
+#if 0
+				MX_DEBUG(-2,("%s: ptr16[%ld][%ld] = %d",
+					fname, j, i, *ptr16));
+#endif
 
 				ptr16++;
 			    }
@@ -609,6 +629,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		"Unsupported image type %lu requested for video input '%s'.",
 			soft_vinput->image_type, vinput->record->name );
 	}
+
+	soft_vinput->counter++;
 				
 #if MXD_SOFT_VINPUT_DEBUG
 	MX_DEBUG(-2,

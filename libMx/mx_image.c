@@ -128,7 +128,29 @@ mxp_yuyv_converter_fn( unsigned char *src, unsigned char *dest )
 static pixel_converter_t
 mxp_yuyv_converter = { 4, 6, mxp_yuyv_converter_fn };
 
-/* FIXME - mxp_grey16_converter_fn() is lame and very inefficient. */
+/* FIXME - The following converters are lame and inefficient. */
+
+static void
+mxp_rgb_converter_fn( unsigned char *src, unsigned char *dest )
+{
+	/* Move three bytes from the source to the destination. */
+
+	memcpy( dest, src, 3 );
+}
+
+static pixel_converter_t
+mxp_rgb_converter = { 3, 3, mxp_rgb_converter_fn };
+
+static void
+mxp_grey8_converter_fn( unsigned char *src, unsigned char *dest )
+{
+	/* Move one byte from the source to the destination. */
+
+	*dest = *src;
+}
+
+static pixel_converter_t
+mxp_grey8_converter = { 1, 1, mxp_grey8_converter_fn };
 
 static void
 mxp_grey16_converter_fn( unsigned char *src, unsigned char *dest )
@@ -150,17 +172,17 @@ typedef struct {
 
 static MX_IMAGE_FORMAT_ENTRY mxp_image_format_table[] =
 {
-	{"default", MXT_IMAGE_FORMAT_DEFAULT},
+	{"DEFAULT", MXT_IMAGE_FORMAT_DEFAULT},
 
-	{"rgb565",  MXT_IMAGE_FORMAT_RGB565},
-	{"yuyv",    MXT_IMAGE_FORMAT_YUYV},
+	{"RGB565",  MXT_IMAGE_FORMAT_RGB565},
+	{"YUYV",    MXT_IMAGE_FORMAT_YUYV},
 
-	{"rgb",     MXT_IMAGE_FORMAT_RGB},
-	{"grey8",   MXT_IMAGE_FORMAT_GREY8},
-	{"grey16",  MXT_IMAGE_FORMAT_GREY16},
+	{"RGB",     MXT_IMAGE_FORMAT_RGB},
+	{"GREY8",   MXT_IMAGE_FORMAT_GREY8},
+	{"GREY16",  MXT_IMAGE_FORMAT_GREY16},
 
-	{"gray8",   MXT_IMAGE_FORMAT_GREY8},
-	{"gray16",  MXT_IMAGE_FORMAT_GREY16},
+	{"GRAY8",   MXT_IMAGE_FORMAT_GREY8},
+	{"GRAY16",  MXT_IMAGE_FORMAT_GREY16},
 };
 
 static size_t mxp_image_format_table_length
@@ -309,6 +331,17 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		pnm_type = 3;
 		maxint = 255;
 		break;
+
+	case MXT_IMAGE_FORMAT_RGB:
+		converter = mxp_rgb_converter;
+		pnm_type = 3;
+		maxint = 255;
+		break;
+	case MXT_IMAGE_FORMAT_GREY8:
+		converter = mxp_grey8_converter;
+		pnm_type = 2;
+		maxint = 255;
+		break;
 	case MXT_IMAGE_FORMAT_GREY16:
 		converter = mxp_grey16_converter;
 		pnm_type = 2;
@@ -374,6 +407,7 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		switch( frame->image_format ) {
 
 		case MXT_IMAGE_FORMAT_RGB565:
+		case MXT_IMAGE_FORMAT_RGB:
 			R = dest[0];
 			G = dest[1];
 			B = dest[2];
@@ -422,6 +456,20 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			}
 
 			fprintf( file, "%d %d %d\n", R, G, B );
+			break;
+
+		case MXT_IMAGE_FORMAT_GREY8:
+			if ( i < 50 ) {
+				MX_DEBUG(-2,("%s: i = %lu, grey8 = %lu",
+					fname, i,
+					(unsigned long) dest[0]));
+			}
+
+			fprintf( file, "%lu ", (unsigned long) dest[0] );
+
+			if ( ((i+1) % 5) == 0 ) {
+				fprintf( file, "\n" );
+			}
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
