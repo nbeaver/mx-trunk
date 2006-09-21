@@ -67,9 +67,9 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 	if ( initial_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested initial buffer length of %lu is smaller than "
-		"the minimum allowed value of %d.",
-			(unsigned long) initial_length,
-			MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+		"the minimum allowed value of %lu.",
+		(unsigned long) initial_length,
+		(unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
 	}
 
 	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER_FOO) );
@@ -125,9 +125,9 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	if ( new_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested new buffer length of %lu is smaller than "
-		"the minimum allowed value of %d.",
-			(unsigned long) new_length,
-			MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+		"the minimum allowed value of %lu.",
+		(unsigned long) new_length,
+		(unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
 	}
 
 	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
