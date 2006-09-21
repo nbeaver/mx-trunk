@@ -27,7 +27,9 @@ typedef struct {
 	long parameter_type;
 	long frame_number;
 
+	long maximum_framesize[2];
 	long framesize[2];
+	long binsize[2];
 	char image_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long image_format;
 	long pixel_order;
@@ -40,6 +42,14 @@ typedef struct {
 	mx_bool_type abort;
 	mx_bool_type busy;
 	unsigned long status;
+
+	long maximum_num_rois;
+	long current_num_rois;
+	unsigned long **roi_array;
+
+	unsigned long roi_number;
+	unsigned long roi[4];
+	long roi_bytes_per_frame;
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
 
@@ -57,29 +67,55 @@ typedef struct {
 	 */
 
 	char *frame_buffer;
+
+	/* The following are the analogous data structures for ROI frames. */
+
+	long get_roi_frame;
+	MX_IMAGE_FRAME *roi_frame;
+
+	char *roi_frame_buffer;
 } MX_AREA_DETECTOR;
 
-#define MXLV_AD_FRAMESIZE			12001
-#define MXLV_AD_FORMAT_NAME			12002
-#define MXLV_AD_FORMAT				12003
-#define MXLV_AD_PIXEL_ORDER			12004
-#define MXLV_AD_TRIGGER_MODE			12005
-#define MXLV_AD_BYTES_PER_FRAME			12006
-#define MXLV_AD_ARM				12007
-#define MXLV_AD_TRIGGER				12008
-#define MXLV_AD_STOP				12009
-#define MXLV_AD_ABORT				12010
-#define MXLV_AD_BUSY				12011
-#define MXLV_AD_STATUS				12012
-#define MXLV_AD_SEQUENCE_TYPE			12013
-#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12014
-#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12015
-#define MXLV_AD_GET_FRAME			12016
-#define MXLV_AD_FRAME_BUFFER			12017
+#define MXLV_AD_MAXIMUM_FRAMESIZE		12001
+#define MXLV_AD_FRAMESIZE			12002
+#define MXLV_AD_BINSIZE				12003
+#define MXLV_AD_FORMAT_NAME			12004
+#define MXLV_AD_FORMAT				12005
+#define MXLV_AD_PIXEL_ORDER			12006
+#define MXLV_AD_TRIGGER_MODE			12007
+#define MXLV_AD_BYTES_PER_FRAME			12008
+#define MXLV_AD_ARM				12009
+#define MXLV_AD_TRIGGER				12010
+#define MXLV_AD_STOP				12011
+#define MXLV_AD_ABORT				12012
+#define MXLV_AD_BUSY				12013
+#define MXLV_AD_STATUS				12014
+#define MXLV_AD_MAXIMUM_NUM_ROIS		12014
+#define MXLV_AD_CURRENT_NUM_ROIS		12015
+#define MXLV_AD_ROI_ARRAY			12016
+#define MXLV_AD_ROI_NUMBER			12017
+#define MXLV_AD_ROI				12018
+#define MXLV_AD_ROI_BYTES_PER_FRAME		12019
+#define MXLV_AD_SEQUENCE_TYPE			12020
+#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12021
+#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12022
+#define MXLV_AD_GET_FRAME			12023
+#define MXLV_AD_FRAME_BUFFER			12024
+#define MXLV_AD_GET_ROI_FRAME			12025
+#define MXLV_AD_ROI_FRAME_BUFFER		12026
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
+  {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
+					MXFT_LONG, NULL, 1, {2}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, maximum_framesize), \
+	{sizeof(long)}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_AD_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, framesize), \
+	{sizeof(long)}, NULL, 0}, \
+  \
+  {MXLV_AD_BINSIZE, -1, "binsize", MXFT_LONG, NULL, 1, {2}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, binsize), \
 	{sizeof(long)}, NULL, 0}, \
   \
   {MXLV_AD_FORMAT_NAME, -1, "image_format_name", MXFT_STRING, \
@@ -127,6 +163,35 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, status), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_MAXIMUM_NUM_ROIS, -1, "maximum_num_rois", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, maximum_num_rois), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY | MXFF_READ_ONLY)}, \
+  \
+  {MXLV_AD_CURRENT_NUM_ROIS, -1, "current_num_rois", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, current_num_rois), \
+	{0}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_AD_ROI_ARRAY, -1, "roi_array", \
+			MXFT_ULONG, NULL, 2, {MXU_VARARGS_LENGTH, 4}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, roi_array), \
+	{sizeof(unsigned long), sizeof(unsigned long *)}, \
+					NULL, MXFF_VARARGS}, \
+  \
+  {MXLV_AD_ROI_NUMBER, -1, "roi_number", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, roi_number), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_ROI, -1, "roi", MXFT_ULONG, NULL, 1, {4}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, roi), \
+	{sizeof(unsigned long)}, NULL, MXFF_IN_SUMMARY}, \
+  \
+  {MXLV_AD_ROI_BYTES_PER_FRAME, -1, "roi_bytes_per_frame", \
+					MXFT_LONG, NULL, 1, {4}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, roi_bytes_per_frame), \
+	{sizeof(unsigned long)}, NULL, MXFF_IN_SUMMARY}, \
+  \
   {MXLV_AD_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_AREA_DETECTOR, sequence_parameters.sequence_type), \
@@ -150,6 +215,14 @@ typedef struct {
   \
   {MXLV_AD_FRAME_BUFFER, -1, "frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_buffer), \
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_AD_GET_ROI_FRAME, -1, "get_roi_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, get_roi_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_ROI_FRAME_BUFFER, -1, "roi_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, roi_frame_buffer), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}
 
 typedef struct {
@@ -162,6 +235,7 @@ typedef struct {
         mx_status_type ( *get_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_sequence ) ( MX_AREA_DETECTOR *ad,
                                         MX_IMAGE_SEQUENCE **sequence );
+        mx_status_type ( *get_roi_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
@@ -183,6 +257,11 @@ MX_API mx_status_type mx_area_detector_get_image_format( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_image_format( MX_RECORD *ad_record,
 						long format );
 
+MX_API mx_status_type mx_area_detector_get_maximum_framesize(
+						MX_RECORD *ad_record,
+						long *maximum_x_framesize,
+						long *maximum_y_framesize );
+
 MX_API mx_status_type mx_area_detector_get_framesize( MX_RECORD *ad_record,
 						long *x_framesize,
 						long *y_framesize );
@@ -190,9 +269,6 @@ MX_API mx_status_type mx_area_detector_get_framesize( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_framesize( MX_RECORD *ad_record,
 						long x_framesize,
 						long y_framesize );
-
-MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
-						long *bytes_per_frame );
 
 MX_API mx_status_type mx_area_detector_get_binsize( MX_RECORD *ad_record,
 						long *x_binsize,
@@ -218,6 +294,9 @@ MX_API mx_status_type mx_area_detector_set_roi( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_set_subframe_size( MX_RECORD *ad_record,
 						long num_lines );
+
+MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
+						long *bytes_per_frame );
 
 /*---*/
 
@@ -264,6 +343,11 @@ MX_API mx_status_type mx_area_detector_get_frame_from_sequence(
 						MX_IMAGE_SEQUENCE *sequence,
 						long frame_number,
 						MX_IMAGE_FRAME **image_frame );
+
+MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
+						MX_IMAGE_FRAME *frame,
+						long roi_number,
+						MX_IMAGE_FRAME **roi_frame );
 
 MX_API mx_status_type mx_area_detector_read_1d_pixel_array(
 						MX_IMAGE_FRAME *frame,

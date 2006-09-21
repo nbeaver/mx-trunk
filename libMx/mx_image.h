@@ -58,6 +58,7 @@ typedef struct {
 	long framesize[2];
 	long image_format;
 	long pixel_order;
+	long bytes_per_pixel;
 
 	size_t header_length;
 	void *header_data;

@@ -50,6 +50,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_network_area_detector_area_detector_function_
 	mxd_network_area_detector_get_status,
 	mxd_network_area_detector_get_frame,
 	NULL,
+	mxd_network_area_detector_get_roi_frame,
 	mxd_network_area_detector_get_parameter,
 	mxd_network_area_detector_set_parameter,
 };
@@ -187,6 +188,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.bytes_per_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->current_num_rois_nf),
+		network_area_detector->server_record,
+	    "%s.current_num_rois", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->framesize_nf),
 		network_area_detector->server_record,
 		"%s.framesize", network_area_detector->remote_record_name );
@@ -199,6 +204,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.get_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->get_roi_frame_nf),
+		network_area_detector->server_record,
+		"%s.get_roi_frame", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->image_format_name_nf),
 		network_area_detector->server_record,
 	    "%s.image_format_name", network_area_detector->remote_record_name );
@@ -207,9 +216,29 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.image_format", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->maximum_num_rois_nf),
+		network_area_detector->server_record,
+	    "%s.maximum_num_rois", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->pixel_order_nf),
 		network_area_detector->server_record,
 		"%s.pixel_order", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->roi_nf),
+		network_area_detector->server_record,
+		"%s.roi", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->roi_array_nf),
+		network_area_detector->server_record,
+		"%s.roi_array", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->roi_frame_buffer_nf),
+		network_area_detector->server_record,
+	    "%s.roi_frame_buffer", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->roi_number_nf),
+		network_area_detector->server_record,
+		"%s.roi_number", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->status_nf),
 		network_area_detector->server_record,
@@ -564,7 +593,7 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
-	("%s: successfully read a %lu byte image frame from area detector '%s'.",
+    ("%s: successfully read a %lu byte image frame from area detector '%s'.",
 		fname, (unsigned long) frame->image_length,
 		ad->record->name ));
 
@@ -574,6 +603,106 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 		unsigned char *frame_buffer;
 
 		frame_buffer = frame->image_data;
+
+		for ( i = 0; i < 10; i++ ) {
+			c = frame_buffer[i];
+
+			MX_DEBUG(-2,("%s: frame_buffer[%d] = %u", fname, i, c));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_network_area_detector_get_roi_frame()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	MX_IMAGE_FRAME *roi_frame;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	roi_frame = ad->roi_frame;
+
+	if ( roi_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The ROI MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+
+	/* Tell the server to prepare the frame for being read. */
+
+	mx_status = mx_put( &(network_area_detector->get_roi_frame_nf),
+				MXFT_LONG, &(ad->roi_number) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the size of the ROI image. */
+
+	mx_status = mx_get( &(network_area_detector->roi_bytes_per_frame_nf),
+				MXFT_LONG, &(ad->roi_bytes_per_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	roi_frame->image_length = ad->roi_bytes_per_frame;
+
+	/* Now read the ROI frame into the MX_IMAGE_FRAME structure. */
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: reading a %ld byte ROI image frame.",
+			fname, (long) roi_frame->image_length ));
+
+	{
+		char *image_data;
+		long image_length;
+
+		image_data = roi_frame->image_data;
+		image_length = roi_frame->image_length;
+
+		MX_DEBUG(-2,("%s: about to read image_data[%ld]",
+				fname, image_length - 1));
+
+		MX_DEBUG(-2,("%s: image_data[%ld] = %u",
+			fname, image_length - 1,
+			image_data[ image_length - 1 ] ));
+	}
+#endif
+
+	dimension[0] = roi_frame->image_length;
+
+	mx_status = mx_get_array( &(network_area_detector->roi_frame_buffer_nf),
+			MXFT_CHAR, 1, dimension, roi_frame->image_data );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+   ("%s: successfully read a %lu byte ROI image frame from area detector '%s'.",
+		fname, (unsigned long) roi_frame->image_length,
+		ad->record->name ));
+
+	{
+		int i;
+		unsigned char c;
+		unsigned char *frame_buffer;
+
+		frame_buffer = roi_frame->image_data;
 
 		for ( i = 0; i < 10; i++ ) {
 			c = frame_buffer[i];
@@ -666,8 +795,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		mx_status = mx_get(
-				&(network_area_detector->num_sequence_parameters_nf),
-		    MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
+			&(network_area_detector->num_sequence_parameters_nf),
+			MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
 				
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -675,9 +804,9 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		dimension[0] = ad->sequence_parameters.num_parameters;
 
 		mx_status = mx_get_array(
-				&(network_area_detector->sequence_parameter_array_nf),
-				MXFT_DOUBLE, 1, dimension,
-				&(ad->sequence_parameters.parameter_array));
+			&(network_area_detector->sequence_parameter_array_nf),
+			MXFT_DOUBLE, 1, dimension,
+			&(ad->sequence_parameters.parameter_array));
 		break;
 	default:
 		mx_status =
@@ -713,7 +842,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		dimension[0] = 2;
 
-		mx_status = mx_put_array( &(network_area_detector->framesize_nf),
+		mx_status = mx_put_array(&(network_area_detector->framesize_nf),
 				MXFT_LONG, 1, dimension, &(ad->framesize) );
 		break;
 
@@ -751,8 +880,8 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 		mx_status = mx_put(
-				&(network_area_detector->num_sequence_parameters_nf),
-		    MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
+			&(network_area_detector->num_sequence_parameters_nf),
+			MXFT_LONG, &(ad->sequence_parameters.num_parameters) );
 				
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -760,9 +889,9 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		dimension[0] = ad->sequence_parameters.num_parameters;
 
 		mx_status = mx_put_array(
-				&(network_area_detector->sequence_parameter_array_nf),
-				MXFT_DOUBLE, 1, dimension,
-				&(ad->sequence_parameters.parameter_array));
+			&(network_area_detector->sequence_parameter_array_nf),
+			MXFT_DOUBLE, 1, dimension,
+			&(ad->sequence_parameters.parameter_array));
 		break;
 
 	default:

@@ -660,7 +660,7 @@ motor_mca_fn( int argc, char *argv[] )
 			if ( *endptr != '\0' ) {
 				fprintf( output,
 		"%s: Non-numeric characters found in ROI end value '%s'\n",
-					cname, argv[6] );
+					cname, argv[7] );
 
 				return FAILURE;
 			}

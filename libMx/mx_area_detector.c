@@ -165,6 +165,47 @@ mx_area_detector_set_image_format( MX_RECORD *record, long format )
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_maximum_framesize( MX_RECORD *record,
+				long *maximum_x_framesize,
+				long *maximum_y_framesize )
+{
+	static const char fname[] = "mx_area_detector_get_maximum_framesize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = 
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_MAXIMUM_FRAMESIZE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( maximum_x_framesize != NULL ) {
+		*maximum_x_framesize = ad->maximum_framesize[0];
+	}
+	if ( maximum_y_framesize != NULL ) {
+		*maximum_y_framesize = ad->maximum_framesize[1];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_framesize( MX_RECORD *record,
 				long *x_framesize,
 				long *y_framesize )
@@ -233,6 +274,174 @@ mx_area_detector_set_framesize( MX_RECORD *record,
 
 	ad->framesize[0] = x_framesize;
 	ad->framesize[1] = y_framesize;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_binsize( MX_RECORD *record,
+				long *x_binsize,
+				long *y_binsize )
+{
+	static const char fname[] = "mx_area_detector_get_binsize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = 
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( x_binsize != NULL ) {
+		*x_binsize = ad->binsize[0];
+	}
+	if ( y_binsize != NULL ) {
+		*y_binsize = ad->binsize[1];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_binsize( MX_RECORD *record,
+				long x_binsize,
+				long y_binsize )
+{
+	static const char fname[] = "mx_area_detector_set_binsize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = 
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	ad->binsize[0] = x_binsize;
+	ad->binsize[1] = y_binsize;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_roi( MX_RECORD *record,
+				long roi_number,
+				long *x_minimum,
+				long *x_maximum,
+				long *y_minimum,
+				long *y_maximum )
+{
+	static const char fname[] = "mx_area_detector_get_roi()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = 
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->roi_number = roi_number;
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( x_minimum != NULL ) {
+		*x_minimum = ad->roi[0];
+	}
+	if ( x_maximum != NULL ) {
+		*x_maximum = ad->roi[1];
+	}
+	if ( y_minimum != NULL ) {
+		*y_minimum = ad->roi[2];
+	}
+	if ( y_maximum != NULL ) {
+		*y_maximum = ad->roi[3];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_roi( MX_RECORD *record,
+				long roi_number,
+				long x_minimum,
+				long x_maximum,
+				long y_minimum,
+				long y_maximum )
+{
+	static const char fname[] = "mx_area_detector_set_roi()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = 
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->roi_number = roi_number;
+
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
+
+	ad->roi[0] = x_minimum;
+	ad->roi[1] = x_maximum;
+	ad->roi[2] = y_minimum;
+	ad->roi[3] = y_maximum;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -864,6 +1073,197 @@ mx_area_detector_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
 	*image_frame = &(image_sequence->frame_array[ frame_number ]);
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_roi_frame( MX_RECORD *record,
+			MX_IMAGE_FRAME *image_frame,
+			long roi_number,
+			MX_IMAGE_FRAME **roi_frame )
+{
+	static const char fname[] = "mx_area_detector_get_roi_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_roi_frame_fn ) ( MX_AREA_DETECTOR * );
+	unsigned long image_bytes_per_row;
+	unsigned long roi_bytes_per_frame, roi_bytes_per_row;
+	unsigned long x_min, y_min, y, x_offset;
+	char *roi_row_ptr, *image_row_ptr, *roi_data_ptr, *image_data_ptr;
+	char *image_row_data_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If no image frame pointer is supplied, use the default one. */
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+
+		if ( ad->frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_NULL_ARGUMENT, fname,
+			"No MX_IMAGE_FRAME pointer was supplied." );
+		} else {
+			image_frame = ad->frame;
+		}
+	}
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: image_frame = %p, *roi_frame = %p",
+		fname, image_frame, *roi_frame));
+#endif
+
+	/* We either reuse an existing MX_IMAGE_FRAME or create a new one. */
+
+	if ( (*roi_frame) == (MX_IMAGE_FRAME *) NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new ROI MX_IMAGE_FRAME.",fname));
+#endif
+		/* Allocate a new MX_IMAGE_FRAME. */
+
+		*roi_frame = malloc( sizeof(MX_IMAGE_FRAME) );
+
+		if ( (*roi_frame) == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"a new ROI MX_IMAGE_FRAME structure." );
+		}
+
+		(*roi_frame)->header_length = 0;
+		(*roi_frame)->header_data = NULL;
+
+		(*roi_frame)->image_length = 0;
+		(*roi_frame)->image_data = NULL;
+	}
+
+	/* Fill in some parameters. */
+
+	(*roi_frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
+	(*roi_frame)->framesize[0] = ad->roi[1] - ad->roi[0] + 1;
+	(*roi_frame)->framesize[1] = ad->roi[3] - ad->roi[2] + 1;
+	(*roi_frame)->image_format = image_frame->image_format;
+	(*roi_frame)->pixel_order = image_frame->pixel_order;
+
+	roi_bytes_per_frame =
+		(*roi_frame)->framesize[0] * (*roi_frame)->framesize[1]
+			* image_frame->bytes_per_pixel;
+
+	/* See if the image buffer is already big enough for the image. */
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: (*roi_frame)->image_data = %p",
+		fname, (*roi_frame)->image_data));
+	MX_DEBUG(-2,
+	("%s: (*roi_frame)->image_length = %lu, bytes_per_frame = %lu",
+		fname, (unsigned long) (*roi_frame)->image_length,
+		ad->bytes_per_frame));
+#endif
+
+	/* Setup the image data buffer. */
+
+	if ( ((*roi_frame)->image_length == 0) && (roi_bytes_per_frame == 0)) {
+
+		/* Zero length image buffers are not allowed. */
+
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+    "Area detector '%s' attempted to create a zero length ROI image buffer.",
+			record->name );
+
+	} else
+	if ( ( (*roi_frame)->image_data != NULL )
+	  && ( (*roi_frame)->image_length >= roi_bytes_per_frame ) )
+	{
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: The image buffer is already big enough.", fname));
+#endif
+	} else {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
+			fname, roi_bytes_per_frame));
+#endif
+		/* If not, then allocate a new one. */
+
+		if ( (*roi_frame)->image_data != NULL ) {
+			free( (*roi_frame)->image_data );
+		}
+
+		(*roi_frame)->image_data = malloc( roi_bytes_per_frame );
+
+		if ( (*roi_frame)->image_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Cannot allocate a %ld byte ROI image buffer for "
+			"area detector '%s'.",
+				roi_bytes_per_frame, ad->record->name );
+		}
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
+#endif
+	}
+
+#if 1  /* FIXME!!! - This should not be present in the final version. */
+	memset( (*roi_frame)->image_data, 0, 50 );
+#endif
+
+	(*roi_frame)->image_length = roi_bytes_per_frame;
+
+	ad->roi_number = roi_number;
+
+	ad->roi_frame = *roi_frame;
+
+	/* If the driver has a get_roi_frame method, invoke it. */
+
+	get_roi_frame_fn = flist->get_roi_frame;
+
+	if ( get_roi_frame_fn != NULL ) {
+		mx_status = (*get_roi_frame_fn)( ad );
+	} else {
+		/* Otherwise, we do the copy ourself. */
+
+		image_data_ptr = image_frame->image_data;
+		roi_data_ptr   = (*roi_frame)->image_data;
+
+		x_min = ad->roi[0];
+		y_min = ad->roi[2];
+
+		x_offset = x_min * image_frame->bytes_per_pixel;
+
+		image_bytes_per_row =
+		    image_frame->framesize[0] * image_frame->bytes_per_pixel;
+
+		roi_bytes_per_row =
+		    (*roi_frame)->framesize[0] * (*roi_frame)->bytes_per_pixel;
+
+		for ( y = 0; y < (*roi_frame)->framesize[1]; y++ ) {
+
+			/* Construct the address of the first pixel
+			 * for this row in the original image frame.
+			 */
+
+			image_row_ptr = image_data_ptr
+				+ image_bytes_per_row * ( y + y_min );
+
+			roi_row_ptr = roi_data_ptr + roi_bytes_per_row * y;
+
+			/* Next construct a pointer to the start of the
+			 * image data to be copied.
+			 */
+
+			image_row_data_ptr = image_row_ptr + x_offset;
+
+			/* Now we may copy the data for this row. */
+
+			memcpy( roi_row_ptr, image_row_data_ptr,
+						roi_bytes_per_row );
+		}
+	}
+
+	return mx_status;
 }
 
 #if 0

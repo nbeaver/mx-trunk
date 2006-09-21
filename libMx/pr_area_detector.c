@@ -111,7 +111,8 @@ mxp_area_detector_get_frame_handler( MX_RECORD *record,
 mx_status_type
 mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
-	static const char fname[] = "mx_setup_area_detector_process_functions()";
+	static const char fname[] =
+			"mx_setup_area_detector_process_functions()";
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
@@ -128,6 +129,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_AD_ABORT:
 		case MXLV_AD_ARM:
+		case MXLV_AD_BINSIZE:
 		case MXLV_AD_BUSY:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_FORMAT:
@@ -135,6 +137,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_FRAME_BUFFER:
 		case MXLV_AD_GET_FRAME:
+		case MXLV_AD_MAXIMUM_FRAMESIZE:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TRIGGER:
@@ -171,6 +174,10 @@ mx_area_detector_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_AD_BINSIZE:
+			mx_status = mx_area_detector_get_binsize( record,
+								NULL, NULL );
+			break;
 		case MXLV_AD_BUSY:
 			mx_status = mx_area_detector_is_busy( record, NULL );
 			break;
@@ -201,6 +208,10 @@ mx_area_detector_process_function( void *record_ptr,
 					record->name );
 			}
 			break;
+		case MXLV_AD_MAXIMUM_FRAMESIZE:
+			mx_status = mx_area_detector_get_maximum_framesize(
+							record, NULL, NULL );
+			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record,
 								NULL, NULL );
@@ -219,6 +230,11 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_ARM:
 			mx_status = mx_area_detector_arm( record );
+			break;
+		case MXLV_AD_BINSIZE:
+			mx_status = mx_area_detector_set_binsize( record,
+						ad->binsize[0],
+						ad->binsize[1] );
 			break;
 		case MXLV_AD_FORMAT_NAME:
 			mx_status = mx_get_image_format_type_from_name(

@@ -27,10 +27,16 @@ typedef struct {
 	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
+	MX_NETWORK_FIELD current_num_rois_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
+	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
+	MX_NETWORK_FIELD roi_nf;
+	MX_NETWORK_FIELD roi_array_nf;
+	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
+	MX_NETWORK_FIELD roi_number_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD trigger_nf;
@@ -42,6 +48,9 @@ typedef struct {
 
 	MX_NETWORK_FIELD get_frame_nf;
 	MX_NETWORK_FIELD frame_buffer_nf;
+
+	MX_NETWORK_FIELD get_roi_frame_nf;
+	MX_NETWORK_FIELD roi_frame_buffer_nf;
 } MX_NETWORK_AREA_DETECTOR;
 
 
@@ -69,6 +78,7 @@ MX_API mx_status_type mxd_network_area_detector_abort( MX_AREA_DETECTOR *vinput 
 MX_API mx_status_type mxd_network_area_detector_busy( MX_AREA_DETECTOR *vinput );
 MX_API mx_status_type mxd_network_area_detector_get_status( MX_AREA_DETECTOR *vinput );
 MX_API mx_status_type mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *vinput );
+MX_API mx_status_type mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *vinput );
 MX_API mx_status_type mxd_network_area_detector_get_parameter(MX_AREA_DETECTOR *vinput);
 MX_API mx_status_type mxd_network_area_detector_set_parameter(MX_AREA_DETECTOR *vinput);
 

@@ -52,6 +52,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_get_status,
 	mxd_pccd_170170_get_frame,
 	NULL,
+	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
 };
