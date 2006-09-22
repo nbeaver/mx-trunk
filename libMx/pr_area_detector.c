@@ -108,6 +108,89 @@ mxp_area_detector_get_frame_handler( MX_RECORD *record,
 
 /*----*/
 
+static mx_status_type
+mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
+				MX_RECORD_FIELD *record_field,
+				MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxp_area_detector_get_roi_frame_handler()";
+
+	MX_IMAGE_FRAME *roi_frame;
+	MX_RECORD_FIELD *roi_frame_buffer_field;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
+			fname, record->name, record_field->name));
+
+	/* Get the ROI frame from the full image frame. */
+
+	mx_status = mx_area_detector_get_roi_frame( record, ad->frame,
+						ad->get_roi_frame,
+						&(ad->roi_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the ROI frame buffer pointer to point to the buffer in
+	 * the ROI frame that we just copied in.
+	 */
+
+	roi_frame = ad->roi_frame;
+
+	ad->roi_frame_buffer = roi_frame->image_data;
+
+	MX_DEBUG(-2,("%s: roi_bytes_per_frame = %ld, roi_frame_buffer = %p",
+		fname, ad->roi_bytes_per_frame, ad->roi_frame_buffer));
+
+#if 1
+	{
+		int i;
+		unsigned char c;
+
+		for ( i = 0; i < 10; i++ ) {
+			c = ad->roi_frame_buffer[i];
+
+			MX_DEBUG(-2,
+			("%s: roi_frame_buffer[%d] = %u", fname, i, c));
+		}
+	}
+#endif
+
+	/* Modify the 'roi_frame_buffer' record field to have the
+	 * correct number of array elements.
+	 */
+
+	mx_status = mx_find_record_field( record,
+			"roi_frame_buffer", &roi_frame_buffer_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( roi_frame_buffer_field->num_dimensions != 1 ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The '%s' field for record '%s' has an incorrect "
+		"number of dimensions (%ld).  It should be 1.",
+			roi_frame_buffer_field->name, record->name,
+			roi_frame_buffer_field->num_dimensions );
+	}
+
+	MX_DEBUG(-2,
+	("%s: OLD ROI frame buffer, num_dimensions = %ld, dimension[0] = %ld",
+	 	fname, roi_frame_buffer_field->num_dimensions,
+		roi_frame_buffer_field->dimension[0]));
+
+	roi_frame_buffer_field->dimension[0] = ad->roi_bytes_per_frame;
+
+	MX_DEBUG(-2,
+	("%s: NEW ROI frame buffer, num_dimensions = %ld, dimension[0] = %ld",
+	 	fname, roi_frame_buffer_field->num_dimensions,
+		roi_frame_buffer_field->dimension[0]));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
 mx_status_type
 mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
@@ -132,12 +215,14 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_BINSIZE:
 		case MXLV_AD_BUSY:
 		case MXLV_AD_BYTES_PER_FRAME:
+		case MXLV_AD_BYTES_PER_PIXEL:
 		case MXLV_AD_FORMAT:
 		case MXLV_AD_FORMAT_NAME:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_FRAME_BUFFER:
 		case MXLV_AD_GET_FRAME:
-		case MXLV_AD_MAXIMUM_FRAMESIZE:
+		case MXLV_AD_GET_ROI_FRAME:
+		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TRIGGER:
@@ -185,6 +270,10 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_bytes_per_frame(
 								record, NULL );
 			break;
+		case MXLV_AD_BYTES_PER_PIXEL:
+			mx_status = mx_area_detector_get_bytes_per_pixel(
+								record, NULL );
+			break;
 		case MXLV_AD_FORMAT:
 		case MXLV_AD_FORMAT_NAME:
 			mx_status = 
@@ -204,13 +293,20 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_FRAME_BUFFER:
 			if ( ad->frame_buffer == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
-			"area detector '%s' has not yet taken its first frame.",
+			"Area detector '%s' has not yet taken its first frame.",
 					record->name );
 			}
 			break;
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
 			mx_status = mx_area_detector_get_maximum_framesize(
 							record, NULL, NULL );
+			break;
+		case MXLV_AD_ROI_FRAME_BUFFER:
+			if ( ad->roi_frame_buffer == NULL ) {
+				return mx_error(MXE_INITIALIZATION_ERROR, fname,
+		"Area detector '%s' has not yet initialized its first ROI.",
+					record->name );
+			}
 			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record,
@@ -255,6 +351,10 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->framesize[1] );
 		case MXLV_AD_GET_FRAME:
 			mx_status = mxp_area_detector_get_frame_handler(
+					record, record_field, ad );
+			break;
+		case MXLV_AD_GET_ROI_FRAME:
+			mx_status = mxp_area_detector_get_roi_frame_handler(
 					record, record_field, ad );
 			break;
 		case MXLV_AD_STOP:

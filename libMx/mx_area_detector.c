@@ -18,6 +18,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -68,6 +69,94 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 				record->name, calling_fname );
 		}
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_initialize_type( long record_type,
+			long *num_record_fields,
+			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+			long *maximum_num_rois_varargs_cookie )
+{
+	static const char fname[] = "mx_area_detector_initialize_type()";
+
+	MX_DRIVER *driver;
+	MX_RECORD_FIELD_DEFAULTS **record_field_defaults_ptr;
+	MX_RECORD_FIELD_DEFAULTS *field;
+	long referenced_field_index;
+	mx_status_type mx_status;
+
+	if ( num_record_fields == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"num_record_fields pointer passed was NULL." );
+	}
+	if ( record_field_defaults == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"record_field_defaults pointer passed was NULL." );
+	}
+	if ( maximum_num_rois_varargs_cookie == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	"maximum_num_rois_varargs_cookie pointer passed was NULL." );
+	}
+
+	driver = mx_get_driver_by_type( record_type );
+
+	if ( driver == (MX_DRIVER *) NULL ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Record type %ld not found.",
+			record_type );
+	}
+
+	record_field_defaults_ptr
+			= driver->record_field_defaults_ptr;
+
+	if (record_field_defaults_ptr == (MX_RECORD_FIELD_DEFAULTS **) NULL) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"'record_field_defaults_ptr' for record type '%s' is NULL.",
+			driver->name );
+	}
+
+	*record_field_defaults = *record_field_defaults_ptr;
+
+	if ( *record_field_defaults == (MX_RECORD_FIELD_DEFAULTS *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"'record_field_defaults_ptr' for record type '%s' is NULL.",
+			driver->name );
+	}
+
+	if ( driver->num_record_fields == (long *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"'num_record_fields' pointer for record type '%s' is NULL.",
+			driver->name );
+	}
+
+	*num_record_fields = *(driver->num_record_fields);
+
+	/*** Construct a varargs cookie for 'maximum_num_rois'. ***/
+
+	mx_status = mx_find_record_field_defaults_index(
+			*record_field_defaults, *num_record_fields,
+			"maximum_num_rois", &referenced_field_index );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_construct_varargs_cookie( referenced_field_index, 0,
+				maximum_num_rois_varargs_cookie );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* 'roi_array' depends on 'maximum_num_rois'. */
+
+	mx_status = mx_find_record_field_defaults( *record_field_defaults,
+			*num_record_fields, "roi_array", &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	field->dimension[0] = *maximum_num_rois_varargs_cookie;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -304,7 +393,7 @@ mx_area_detector_get_binsize( MX_RECORD *record,
 			mx_area_detector_default_get_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_FRAMESIZE;
+	ad->parameter_type = MXLV_AD_BINSIZE;
 
 	mx_status = (*get_parameter_fn)( ad );
 
@@ -345,7 +434,7 @@ mx_area_detector_set_binsize( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_FRAMESIZE;
+	ad->parameter_type = MXLV_AD_BINSIZE;
 
 	ad->binsize[0] = x_binsize;
 	ad->binsize[1] = y_binsize;
@@ -384,7 +473,7 @@ mx_area_detector_get_roi( MX_RECORD *record,
 
 	ad->roi_number = roi_number;
 
-	ad->parameter_type = MXLV_AD_FRAMESIZE;
+	ad->parameter_type = MXLV_AD_ROI;
 
 	mx_status = (*get_parameter_fn)( ad );
 
@@ -436,7 +525,7 @@ mx_area_detector_set_roi( MX_RECORD *record,
 
 	ad->roi_number = roi_number;
 
-	ad->parameter_type = MXLV_AD_FRAMESIZE;
+	ad->parameter_type = MXLV_AD_ROI;
 
 	ad->roi[0] = x_minimum;
 	ad->roi[1] = x_maximum;
@@ -479,6 +568,42 @@ mx_area_detector_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
 
 	if ( bytes_per_frame != NULL ) {
 		*bytes_per_frame = ad->bytes_per_frame;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_bytes_per_pixel(MX_RECORD *record, double *bytes_per_pixel)
+{
+	static const char fname[] = "mx_area_detector_get_bytes_per_pixel()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_BYTES_PER_PIXEL;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_per_pixel != NULL ) {
+		*bytes_per_pixel = ad->bytes_per_pixel;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1294,17 +1419,59 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_get_parameter_handler()";
 
+	double double_value;
+
 	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAMESIZE:
 	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
 	case MXLV_AD_FORMAT:
+	case MXLV_AD_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_AD_TRIGGER_MODE:
+	case MXLV_AD_BYTES_PER_PIXEL:
 
 		/* We just return the value that is already in the 
 		 * data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_BYTES_PER_FRAME:
+		double_value = ad->bytes_per_pixel
+		    * ((double) ad->framesize[0]) * ((double) ad->framesize[0]);
+
+		ad->bytes_per_frame = mx_round( ceil(double_value) );
+		break;
+
+	case MXLV_AD_ROI_NUMBER:
+		if ( (ad->roi_number < 0)
+		  || (ad->roi_number >= ad->maximum_num_rois) )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The ROI number %ld for area detector '%s' is "
+			"outside the range of allowed values (0-%ld).",
+				ad->roi_number, ad->record->name,
+				ad->maximum_num_rois - 1 );
+		}
+		break;
+
+	case MXLV_AD_ROI:
+		if ( (ad->roi_number < 0)
+		  || (ad->roi_number >= ad->maximum_num_rois) )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The ROI number %ld for area detector '%s' is "
+			"outside the range of allowed values (0-%ld).",
+				ad->roi_number, ad->record->name,
+				ad->maximum_num_rois - 1 );
+		}
+		ad->roi[0] = ad->roi_array[ ad->roi_number ][0];
+		ad->roi[1] = ad->roi_array[ ad->roi_number ][1];
+		ad->roi[2] = ad->roi_array[ ad->roi_number ][2];
+		ad->roi[3] = ad->roi_array[ ad->roi_number ][3];
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -1327,15 +1494,54 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
+	case MXLV_AD_BINSIZE:
 	case MXLV_AD_FORMAT:
+	case MXLV_AD_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+	case MXLV_AD_TRIGGER_MODE:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.
 		 */
 
+		break;
+
+	case MXLV_AD_ROI_NUMBER:
+		if ( (ad->roi_number < 0)
+		  || (ad->roi_number >= ad->maximum_num_rois) )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The ROI number %ld for area detector '%s' is "
+			"outside the range of allowed values (0-%ld).",
+				ad->roi_number, ad->record->name,
+				ad->maximum_num_rois - 1 );
+		}
+		break;
+
+	case MXLV_AD_ROI:
+		if ( (ad->roi_number < 0)
+		  || (ad->roi_number >= ad->maximum_num_rois) )
+		{
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The ROI number %ld for area detector '%s' is "
+			"outside the range of allowed values (0-%ld).",
+				ad->roi_number, ad->record->name,
+				ad->maximum_num_rois - 1 );
+		}
+		ad->roi_array[ ad->roi_number ][0] = ad->roi[0];
+		ad->roi_array[ ad->roi_number ][1] = ad->roi[1];
+		ad->roi_array[ ad->roi_number ][2] = ad->roi[2];
+		ad->roi_array[ ad->roi_number ][3] = ad->roi[3];
+		break;
+	case MXLV_AD_BYTES_PER_FRAME:
+	case MXLV_AD_BYTES_PER_PIXEL:
+	case MXLV_AD_MAXIMUM_FRAMESIZE:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Changing the parameter '%s' for record '%s' is not supported.",
+			mx_get_field_label_string( ad->record,
+				ad->parameter_type ), ad->record->name );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

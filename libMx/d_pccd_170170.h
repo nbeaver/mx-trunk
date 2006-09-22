@@ -39,6 +39,7 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, initial_trigger_mode), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
+MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );
 MX_API mx_status_type mxd_pccd_170170_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_finish_record_initialization(

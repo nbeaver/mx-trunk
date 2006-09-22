@@ -30,7 +30,7 @@
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list = {
-	NULL,
+	mxd_network_area_detector_initialize_type,
 	mxd_network_area_detector_create_record_structures,
 	mxd_network_area_detector_finish_record_initialization,
 	NULL,
@@ -41,7 +41,8 @@ MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list = {
 	mxd_network_area_detector_close
 };
 
-MX_AREA_DETECTOR_FUNCTION_LIST mxd_network_area_detector_area_detector_function_list = {
+MX_AREA_DETECTOR_FUNCTION_LIST
+mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_arm,
 	mxd_network_area_detector_trigger,
 	mxd_network_area_detector_stop,
@@ -100,6 +101,21 @@ mxd_network_area_detector_get_pointers( MX_AREA_DETECTOR *ad,
 }
 
 /*---*/
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_initialize_type( long record_type )
+{
+	MX_RECORD_FIELD_DEFAULTS *record_field_defaults;
+	long num_record_fields;
+	long maximum_num_rois_varargs_cookie;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_initialize_type( record_type,
+					&num_record_fields,
+					&record_field_defaults,
+					&maximum_num_rois_varargs_cookie );
+	return mx_status;
+}
 
 MX_EXPORT mx_status_type
 mxd_network_area_detector_create_record_structures( MX_RECORD *record )
@@ -180,6 +196,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.arm", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->binsize_nf),
+		network_area_detector->server_record,
+		"%s.binsize", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->busy_nf),
 		network_area_detector->server_record,
 		"%s.busy", network_area_detector->remote_record_name );
@@ -187,6 +207,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->bytes_per_frame_nf),
 		network_area_detector->server_record,
 	    "%s.bytes_per_frame", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->bytes_per_pixel_nf),
+		network_area_detector->server_record,
+	    "%s.bytes_per_pixel", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->current_num_rois_nf),
 		network_area_detector->server_record,
@@ -215,6 +239,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->image_format_nf),
 		network_area_detector->server_record,
 		"%s.image_format", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->maximum_framesize_nf),
+		network_area_detector->server_record,
+	    "%s.maximum_framesize", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->maximum_num_rois_nf),
 		network_area_detector->server_record,
@@ -303,6 +331,22 @@ mxd_network_area_detector_open( MX_RECORD *record )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* Get the maximum framesize from the server. */
+
+	dimension[0] = 2;
+
+	mx_status = mx_get_array(&(network_area_detector->maximum_framesize_nf),
+				MXFT_LONG, 1, dimension,
+				ad->maximum_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: record '%s', maximum_framesize = (%ld, %ld)",
+		fname, record->name,
+		ad->maximum_framesize[0],
+		ad->maximum_framesize[1]));
+
 	/* Get the image framesize from the server. */
 
 	dimension[0] = 2;
@@ -321,7 +365,7 @@ mxd_network_area_detector_open( MX_RECORD *record )
 
 	dimension[0] = MXU_IMAGE_FORMAT_NAME_LENGTH;
 
-	mx_status = mx_get_array( &(network_area_detector->image_format_name_nf),
+	mx_status = mx_get_array(&(network_area_detector->image_format_name_nf),
 				MXFT_STRING, 1, dimension,
 				ad->image_format_name );
 
@@ -348,6 +392,22 @@ mxd_network_area_detector_open( MX_RECORD *record )
 
 	mx_status = mx_get( &(network_area_detector->pixel_order_nf),
 				MXFT_LONG, &(ad->pixel_order) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the bytes per pixel. */
+
+	mx_status = mx_get( &(network_area_detector->bytes_per_pixel_nf),
+				MXFT_DOUBLE, &(ad->bytes_per_pixel) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the bytes per frame. */
+
+	mx_status = mx_get( &(network_area_detector->bytes_per_frame_nf),
+				MXFT_LONG, &(ad->bytes_per_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -736,11 +796,26 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 #endif
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAMESIZE:
+		dimension[0] = 2;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->maximum_framesize_nf),
+			MXFT_LONG, 1, dimension, &(ad->maximum_framesize) );
+		break;
+
 	case MXLV_AD_FRAMESIZE:
 		dimension[0] = 2;
 
-		mx_status = mx_get_array( &(network_area_detector->framesize_nf),
+		mx_status = mx_get_array(&(network_area_detector->framesize_nf),
 				MXFT_LONG, 1, dimension, &(ad->framesize) );
+		break;
+
+	case MXLV_AD_BINSIZE:
+		dimension[0] = 2;
+
+		mx_status = mx_get_array( &(network_area_detector->binsize_nf),
+				MXFT_LONG, 1, dimension, &(ad->binsize) );
 		break;
 
 	case MXLV_AD_FORMAT:
@@ -776,6 +851,12 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 					MXFT_LONG, &(ad->bytes_per_frame) );
 		break;
 
+	case MXLV_AD_BYTES_PER_PIXEL:
+		mx_status =
+			mx_get( &(network_area_detector->bytes_per_pixel_nf),
+					MXFT_DOUBLE, &(ad->bytes_per_pixel) );
+		break;
+
 	case MXLV_AD_BUSY:
 		mx_status = mx_get( &(network_area_detector->busy_nf),
 					MXFT_BOOL, &(ad->busy) );
@@ -807,6 +888,17 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->sequence_parameter_array_nf),
 			MXFT_DOUBLE, 1, dimension,
 			&(ad->sequence_parameters.parameter_array));
+		break;
+
+	case MXLV_AD_ROI_NUMBER:
+		mx_status = mx_get( &(network_area_detector->roi_number_nf),
+					MXFT_LONG, &(ad->roi_number) );
+		break;
+	case MXLV_AD_ROI:
+		dimension[0] = 4;
+
+		mx_status = mx_get_array( &(network_area_detector->roi_nf),
+				MXFT_LONG, 1, dimension, &(ad->roi) );
 		break;
 	default:
 		mx_status =
@@ -846,17 +938,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 				MXFT_LONG, 1, dimension, &(ad->framesize) );
 		break;
 
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the image format is not supported for "
-			"area detector '%s'.", ad->record->name );
-		break;
+	case MXLV_AD_BINSIZE:
+		dimension[0] = 2;
 
-	case MXLV_AD_PIXEL_ORDER:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the pixel order for area detector '%s' "
-			"is not supported.", ad->record->name );
+		mx_status = mx_put_array( &(network_area_detector->binsize_nf),
+				MXFT_LONG, 1, dimension, &(ad->binsize) );
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
@@ -864,11 +950,6 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 				MXFT_LONG, &(ad->trigger_mode) );
 		break;
 
-	case MXLV_AD_BYTES_PER_FRAME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Directly changing the number of bytes per frame "
-			"for area detector '%s' is not supported.",
-				ad->record->name );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -892,6 +973,27 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->sequence_parameter_array_nf),
 			MXFT_DOUBLE, 1, dimension,
 			&(ad->sequence_parameters.parameter_array));
+		break;
+
+	case MXLV_AD_ROI_NUMBER:
+		mx_status = mx_put( &(network_area_detector->roi_number_nf),
+					MXFT_LONG, &(ad->roi_number) );
+		break;
+	case MXLV_AD_ROI:
+		dimension[0] = 4;
+
+		mx_status = mx_put_array( &(network_area_detector->roi_nf),
+				MXFT_LONG, 1, dimension, &(ad->roi) );
+		break;
+	case MXLV_AD_FORMAT:
+	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_PIXEL_ORDER:
+	case MXLV_AD_BYTES_PER_FRAME:
+	case MXLV_AD_BYTES_PER_PIXEL:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Changing the parameter '%s' for area detector '%s' "
+		"is not supported.", mx_get_field_label_string( ad->record,
+			ad->parameter_type ), ad->record->name );
 		break;
 
 	default:

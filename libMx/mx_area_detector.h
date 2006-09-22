@@ -35,6 +35,7 @@ typedef struct {
 	long pixel_order;
 	long trigger_mode;
 	long bytes_per_frame;
+	double bytes_per_pixel;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -84,25 +85,26 @@ typedef struct {
 #define MXLV_AD_PIXEL_ORDER			12006
 #define MXLV_AD_TRIGGER_MODE			12007
 #define MXLV_AD_BYTES_PER_FRAME			12008
-#define MXLV_AD_ARM				12009
-#define MXLV_AD_TRIGGER				12010
-#define MXLV_AD_STOP				12011
-#define MXLV_AD_ABORT				12012
-#define MXLV_AD_BUSY				12013
-#define MXLV_AD_STATUS				12014
-#define MXLV_AD_MAXIMUM_NUM_ROIS		12014
-#define MXLV_AD_CURRENT_NUM_ROIS		12015
-#define MXLV_AD_ROI_ARRAY			12016
-#define MXLV_AD_ROI_NUMBER			12017
-#define MXLV_AD_ROI				12018
-#define MXLV_AD_ROI_BYTES_PER_FRAME		12019
-#define MXLV_AD_SEQUENCE_TYPE			12020
-#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12021
-#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12022
-#define MXLV_AD_GET_FRAME			12023
-#define MXLV_AD_FRAME_BUFFER			12024
-#define MXLV_AD_GET_ROI_FRAME			12025
-#define MXLV_AD_ROI_FRAME_BUFFER		12026
+#define MXLV_AD_BYTES_PER_PIXEL			12009
+#define MXLV_AD_ARM				12010
+#define MXLV_AD_TRIGGER				12011
+#define MXLV_AD_STOP				12012
+#define MXLV_AD_ABORT				12013
+#define MXLV_AD_BUSY				12014
+#define MXLV_AD_STATUS				12015
+#define MXLV_AD_MAXIMUM_NUM_ROIS		12016
+#define MXLV_AD_CURRENT_NUM_ROIS		12017
+#define MXLV_AD_ROI_ARRAY			12018
+#define MXLV_AD_ROI_NUMBER			12019
+#define MXLV_AD_ROI				12020
+#define MXLV_AD_ROI_BYTES_PER_FRAME		12021
+#define MXLV_AD_SEQUENCE_TYPE			12022
+#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12023
+#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12024
+#define MXLV_AD_GET_FRAME			12025
+#define MXLV_AD_FRAME_BUFFER			12026
+#define MXLV_AD_GET_ROI_FRAME			12027
+#define MXLV_AD_ROI_FRAME_BUFFER		12028
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -137,6 +139,10 @@ typedef struct {
   \
   {MXLV_AD_BYTES_PER_FRAME, -1, "bytes_per_frame", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bytes_per_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_BYTES_PER_PIXEL, -1, "bytes_per_pixel", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bytes_per_pixel), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
@@ -245,6 +251,12 @@ MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
                                 MX_AREA_DETECTOR_FUNCTION_LIST **flist_ptr,
                                         const char *calling_fname );
 
+MX_API mx_status_type mx_area_detector_initialize_type(
+			long record_type,
+			long *num_record_fields,
+			MX_RECORD_FIELD_DEFAULTS **record_field_defaults,
+			long *maximum_num_rois_varargs_cookie );
+
 MX_API mx_status_type mx_area_detector_finish_record_initialization(
 						MX_RECORD *record );
 
@@ -297,6 +309,9 @@ MX_API mx_status_type mx_area_detector_set_subframe_size( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
 						long *bytes_per_frame );
+
+MX_API mx_status_type mx_area_detector_get_bytes_per_pixel( MX_RECORD *record,
+						double *bytes_per_pixel );
 
 /*---*/
 

@@ -25,12 +25,15 @@ typedef struct {
 
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
+	MX_NETWORK_FIELD binsize_nf;
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
+	MX_NETWORK_FIELD bytes_per_pixel_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
+	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
 	MX_NETWORK_FIELD roi_nf;
@@ -64,6 +67,8 @@ typedef struct {
      MXF_REC_TYPE_STRUCT, offsetof(MX_NETWORK_AREA_DETECTOR, remote_record_name), \
 	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY) }
 
+MX_API mx_status_type mxd_network_area_detector_initialize_type(
+							long record_type );
 MX_API mx_status_type mxd_network_area_detector_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_network_area_detector_finish_record_initialization(
