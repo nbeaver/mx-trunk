@@ -286,6 +286,7 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	epix_xclib_vinput->record = record;
 
 	vinput->bytes_per_frame = 0;
+	vinput->bytes_per_pixel = 0;
 	vinput->trigger_mode = 0;
 
 	epix_xclib_vinput->generate_cc1_pulse = FALSE;
@@ -909,18 +910,14 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BYTES_PER_FRAME:
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
-			vinput->bytes_per_frame =
-				3 * vinput->framesize[0] * vinput->framesize[1];
+			vinput->bytes_per_pixel = 3;
 			break;
-	
 		case MXT_IMAGE_FORMAT_GREY8:
-			vinput->bytes_per_frame =
-				vinput->framesize[0] * vinput->framesize[1];
+			vinput->bytes_per_pixel = 1;
 			break;
 	
 		case MXT_IMAGE_FORMAT_GREY16:
-			vinput->bytes_per_frame =
-				2 * vinput->framesize[0] * vinput->framesize[1];
+			vinput->bytes_per_pixel = 2;
 			break;
 	
 		default:
@@ -928,6 +925,9 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 			"Unsupported image format %ld for video input '%s'.",
 				vinput->image_format, vinput->record->name );
 		}
+
+		vinput->bytes_per_frame = mx_round( vinput->bytes_per_pixel )
+				* vinput->framesize[0] * vinput->framesize[1];
 		break;
 
 	case MXLV_VIN_FORMAT:

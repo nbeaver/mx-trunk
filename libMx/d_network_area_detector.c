@@ -361,6 +361,20 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: record '%s', framesize = (%ld, %ld)",
 	    fname, record->name, ad->framesize[0], ad->framesize[1]));
 
+	/* Get the image binsize from the server. */
+
+	dimension[0] = 2;
+
+	mx_status = mx_get_array( &(network_area_detector->binsize_nf),
+				MXFT_LONG, 1, dimension,
+				ad->binsize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: record '%s', binsize = (%ld, %ld)",
+	    fname, record->name, ad->binsize[0], ad->binsize[1]));
+
 	/* Get the image format name from the server. */
 
 	dimension[0] = MXU_IMAGE_FORMAT_NAME_LENGTH;
@@ -611,6 +625,16 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Ask for the bytes per pixel of the image. */
+
+	mx_status = mx_get( &(network_area_detector->bytes_per_pixel_nf),
+				MXFT_DOUBLE, &(ad->bytes_per_pixel) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	frame->bytes_per_pixel = ad->bytes_per_pixel;
+
 	/* Ask for the size of the image. */
 
 	mx_status = mx_get( &(network_area_detector->bytes_per_frame_nf),
@@ -719,7 +743,8 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	roi_frame->image_length = ad->roi_bytes_per_frame;
+	roi_frame->bytes_per_pixel = ad->bytes_per_pixel;
+	roi_frame->image_length    = ad->roi_bytes_per_frame;
 
 	/* Now read the ROI frame into the MX_IMAGE_FRAME structure. */
 

@@ -208,24 +208,20 @@ mxd_soft_vinput_open( MX_RECORD *record )
 
 	soft_vinput->counter   = 0;
 
-	pixels_per_frame = vinput->framesize[0] * vinput->framesize[1];
-
 	switch( vinput->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
-		vinput->bytes_per_frame = 2 * pixels_per_frame;
-		break;
 	case MXT_IMAGE_FORMAT_YUYV:
-		vinput->bytes_per_frame = 2 * pixels_per_frame;
+		vinput->bytes_per_pixel = 2;
 		break;
 
 	case MXT_IMAGE_FORMAT_RGB:
-		vinput->bytes_per_frame = 3 * pixels_per_frame;
+		vinput->bytes_per_pixel = 3;
 		break;
 	case MXT_IMAGE_FORMAT_GREY8:
-		vinput->bytes_per_frame = pixels_per_frame;
+		vinput->bytes_per_pixel = 1;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
-		vinput->bytes_per_frame = 2 * pixels_per_frame;
+		vinput->bytes_per_pixel = 2;
 		break;
 
 	default:
@@ -235,6 +231,11 @@ mxd_soft_vinput_open( MX_RECORD *record )
 			vinput->image_format, vinput->image_format_name,
 			record->name );
 	}
+
+	pixels_per_frame = vinput->framesize[0] * vinput->framesize[1];
+
+	vinput->bytes_per_frame = pixels_per_frame
+					* mx_round( vinput->bytes_per_pixel );
 
 #if MXD_SOFT_VINPUT_DEBUG
 	MX_DEBUG(-2,
@@ -252,6 +253,9 @@ mxd_soft_vinput_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %ld",
 		fname, vinput->trigger_mode));
+
+	MX_DEBUG(-2,("%s: vinput->bytes_per_pixel = %g",
+		fname, vinput->bytes_per_pixel));
 
 	MX_DEBUG(-2,("%s: vinput->bytes_per_frame = %ld",
 		fname, vinput->bytes_per_frame));
@@ -445,7 +449,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Set the size of the image. */
 
-	frame->image_length = vinput->bytes_per_frame;
+	frame->bytes_per_pixel = vinput->bytes_per_pixel;
+	frame->image_length    = vinput->bytes_per_frame;
 
 	/* Generate the frame for the MX_IMAGE_FRAME structure. */
 
@@ -698,6 +703,9 @@ mxd_soft_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
+		break;
+
+	case MXLV_VIN_BYTES_PER_PIXEL:
 		break;
 
 	case MXLV_VIN_BUSY:

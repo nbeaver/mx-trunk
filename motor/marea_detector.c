@@ -54,6 +54,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 "        area_detector 'name' write roiframe 'file_format' 'filename'\n"
 "\n"
 "        area_detector 'name' set exposure_time 'time in seconds'\n"
+"        area_detector 'name' set continuous_mode 'time in seconds'\n"
+"        area_detector 'name' set geometrical_mode '\?\?\?\?'\n"
 "\n"
 "        area_detector 'name' get binsize\n"
 "        area_detector 'name' get bytes_per_frame\n"
@@ -80,7 +82,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
 #endif
 
-	if ( argc < 5 ) {
+	if ( argc < 4 ) {
 		fprintf( output, "%s\n", usage );
 		return FAILURE;
 	}
@@ -288,11 +290,27 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
 
+			if ( frame == NULL ) {
+				fprintf( output,
+		"%s: no area detector image frame has been taken yet.\n",
+					cname );
+
+				return FAILURE;
+			}
+
 			mx_status = mx_write_image_file( frame,
 						datafile_type, NULL,
 						filename );
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			if ( roi_frame == NULL ) {
+				fprintf( output,
+		"%s: no area detector ROI frame has been taken yet.\n",
+					cname );
+
+				return FAILURE;
+			}
 
 			mx_status = mx_write_image_file( roi_frame,
 						datafile_type, NULL,
@@ -374,6 +392,33 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
+
+			if ( argc != 6 ) {
+				fprintf( output,
+		"%s: wrong number of arguments to 'get frame' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			frame_number = strtol( argv[5], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+		"%s: Non-numeric characters found in frame number '%s'\n",
+					cname, argv[5] );
+
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_get_frame( ad_record,
+							frame_number, &frame );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
 		if ( strncmp( "bytes_per_frame",
 				argv[4], strlen(argv[4]) ) == 0 )
 		{
@@ -418,7 +463,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			fprintf( output, "Area detector '%s': busy = %d",
+			fprintf( output, "Area detector '%s': busy = %d\n",
 						ad_record->name, (int) busy );
 		} else
 		if ( strncmp( "framesize", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -477,33 +522,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "Area detector '%s' ROI %lu: Xmin = %lu, Xmax = %lu, Ymin = %lu, Ymax = %lu\n",
 				ad_record->name, roi_number,
 				x_min, x_max, y_min, y_max );
-		} else
-		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
 
-			if ( argc != 6 ) {
-				fprintf( output,
-		"%s: wrong number of arguments to 'get frame' command\n",
-					cname );
-
-				fprintf( output, "%s\n", usage );
-				return FAILURE;
-			}
-
-			frame_number = strtol( argv[5], &endptr, 0 );
-
-			if ( *endptr != '\0' ) {
-				fprintf( output,
-		"%s: Non-numeric characters found in frame number '%s'\n",
-					cname, argv[5] );
-
-				return FAILURE;
-			}
-
-			mx_status = mx_area_detector_get_frame( ad_record,
-							frame_number, &frame );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -532,7 +551,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
-
 		} else {
 			fprintf( output,
 				"%s: unknown get command argument '%s'\n",
@@ -624,6 +642,32 @@ motor_area_detector_fn( int argc, char *argv[] )
 						    ad_record, trigger_mode );
 
 			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp( "exposure_time", argv[4], strlen(argv[4])) == 0 ){
+
+			exposure_time = atof( argv[5] );
+
+			mx_status = mx_area_detector_set_exposure_time(
+						    ad_record, exposure_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp("continuous_mode", argv[4], strlen(argv[4])) == 0){
+
+			exposure_time = atof( argv[5] );
+
+			mx_status = mx_area_detector_set_continuous_mode(
+						    ad_record, exposure_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp("geometrical_mode", argv[4], strlen(argv[4])) == 0)
+		{
+			fprintf( stderr,
+			"%s: Geometrical mode not yet implemented.\n", cname );
 				return FAILURE;
 		} else
 		if ( strncmp( "roi", argv[4], strlen(argv[4]) ) == 0 ) {

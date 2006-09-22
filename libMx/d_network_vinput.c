@@ -187,6 +187,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 		"%s.bytes_per_frame", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->bytes_per_pixel_nf),
+			network_vinput->server_record,
+		"%s.bytes_per_pixel", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->framesize_nf),
 			network_vinput->server_record,
 			"%s.framesize", network_vinput->remote_record_name );
@@ -520,6 +524,16 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Ask for the number of bytes per pixel. */
+
+	mx_status = mx_get( &(network_vinput->bytes_per_pixel_nf),
+				MXFT_DOUBLE, &(vinput->bytes_per_pixel) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	frame->bytes_per_pixel = vinput->bytes_per_pixel;
+
 	/* Ask for the size of the image. */
 
 	mx_status = mx_get( &(network_vinput->bytes_per_frame_nf),
@@ -642,6 +656,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BYTES_PER_FRAME:
 		mx_status = mx_get( &(network_vinput->bytes_per_frame_nf),
 					MXFT_LONG, &(vinput->bytes_per_frame) );
+		break;
+
+	case MXLV_VIN_BYTES_PER_PIXEL:
+		mx_status = mx_get( &(network_vinput->bytes_per_pixel_nf),
+				    MXFT_DOUBLE, &(vinput->bytes_per_pixel) );
 		break;
 
 	case MXLV_VIN_BUSY:

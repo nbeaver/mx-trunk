@@ -33,6 +33,7 @@ typedef struct {
 	long pixel_order;
 	long trigger_mode;
 	long bytes_per_frame;
+	double bytes_per_pixel;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -65,17 +66,18 @@ typedef struct {
 #define MXLV_VIN_PIXEL_ORDER			11004
 #define MXLV_VIN_TRIGGER_MODE			11005
 #define MXLV_VIN_BYTES_PER_FRAME		11006
-#define MXLV_VIN_ARM				11007
-#define MXLV_VIN_TRIGGER			11008
-#define MXLV_VIN_STOP				11009
-#define MXLV_VIN_ABORT				11010
-#define MXLV_VIN_BUSY				11011
-#define MXLV_VIN_STATUS				11012
-#define MXLV_VIN_SEQUENCE_TYPE			11013
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11014
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11015
-#define MXLV_VIN_GET_FRAME			11016
-#define MXLV_VIN_FRAME_BUFFER			11017
+#define MXLV_VIN_BYTES_PER_PIXEL		11007
+#define MXLV_VIN_ARM				11008
+#define MXLV_VIN_TRIGGER			11009
+#define MXLV_VIN_STOP				11010
+#define MXLV_VIN_ABORT				11011
+#define MXLV_VIN_BUSY				11012
+#define MXLV_VIN_STATUS				11013
+#define MXLV_VIN_SEQUENCE_TYPE			11014
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11015
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11016
+#define MXLV_VIN_GET_FRAME			11017
+#define MXLV_VIN_FRAME_BUFFER			11018
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -101,6 +103,10 @@ typedef struct {
   \
   {MXLV_VIN_BYTES_PER_FRAME, -1, "bytes_per_frame", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, bytes_per_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_BYTES_PER_PIXEL, -1, "bytes_per_pixel", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, bytes_per_pixel), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
@@ -192,6 +198,9 @@ MX_API mx_status_type mx_video_input_set_framesize( MX_RECORD *record,
 
 MX_API mx_status_type mx_video_input_get_bytes_per_frame( MX_RECORD *record,
 							long *bytes_per_frame );
+
+MX_API mx_status_type mx_video_input_get_bytes_per_pixel( MX_RECORD *record,
+						      double *bytes_per_pixel );
 /*---*/
 
 MX_API mx_status_type mx_video_input_set_exposure_time( MX_RECORD *record,

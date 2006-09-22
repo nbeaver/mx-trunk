@@ -167,6 +167,7 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 	memset( &(vinput->sequence_parameters),
 			0, sizeof(vinput->sequence_parameters) );
 
+	vinput->bytes_per_pixel = 0;
 	vinput->bytes_per_frame = 0;
 
 	vinput->record = record;
@@ -491,6 +492,7 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_v4l2_input_arm()";
 
 	MX_V4L2_INPUT *v4l2_input;
+	long pixels_per_frame;
 	size_t new_length;
 	mx_status_type mx_status;
 
@@ -516,14 +518,15 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	case MXT_IMAGE_FORMAT_RGB565:
 		/* 16 bits (2 bytes) per pixel. */
 
-		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
+		vinput->bytes_per_pixel = 2;
 		break;
 	case MXT_IMAGE_FORMAT_YUYV:
 		/* 32 bits (4 bytes) for 2 pixels. */
 
-		new_length = 2 * vinput->framesize[0] * vinput->framesize[1];
+		vinput->bytes_per_pixel = 2;
 		break;
 	default:
+		vinput->bytes_per_pixel = 0;
 		vinput->bytes_per_frame = 0;
 
 		if ( v4l2_input->v4l2_frame_buffer != NULL ) {
@@ -535,6 +538,10 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 		"for video input '%s'",
 			vinput->image_format, vinput->record->name );
 	}
+
+	pixels_per_frame = vinput->framesize[0] * vinput->framesize[1];
+
+	new_length = pixels_per_frame * mx_round( vinput->bytes_per_pixel );
 
 	if ( ( vinput->bytes_per_frame == new_length )
 	  && ( v4l2_input->v4l2_frame_buffer != NULL ) )
@@ -854,8 +861,9 @@ mxd_v4l2_input_get_frame( MX_VIDEO_INPUT *vinput )
 	frame->header_length = 0;
 	frame->header_data = 0;
 
-	frame->image_length = vinput->bytes_per_frame;
-	frame->image_data = v4l2_input->v4l2_frame_buffer;
+	frame->bytes_per_pixel = vinput->bytes_per_pixel;
+	frame->image_length    = vinput->bytes_per_frame;
+	frame->image_data      = v4l2_input->v4l2_frame_buffer;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -869,6 +877,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 	struct v4l2_format format;
 	unsigned long pf;
 	char A, B, C, D;
+	long pixels_per_frame;
 	int os_status, saved_errno;
 	mx_status_type mx_status;
 
@@ -893,6 +902,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_FORMAT_NAME:
 	case MXLV_VIN_PIXEL_ORDER:
 	case MXLV_VIN_BYTES_PER_FRAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
 
 		memset( &format, 0, sizeof(format) );
 
@@ -940,18 +950,15 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		switch( format.fmt.pix.pixelformat ) {
 		case V4L2_PIX_FMT_RGB565:
 			vinput->image_format = MXT_IMAGE_FORMAT_RGB565;
-
-			vinput->bytes_per_frame =
-				3 * vinput->framesize[0] * vinput->framesize[1];
+			vinput->bytes_per_pixel = 3;
 			break;
 		case V4L2_PIX_FMT_YUYV:
 			vinput->image_format = MXT_IMAGE_FORMAT_YUYV;
-
-			vinput->bytes_per_frame =
-				3 * vinput->framesize[0] * vinput->framesize[1];
+			vinput->bytes_per_pixel = 3;
 			break;
 		default:
 			vinput->image_format = -1;
+			vinput->bytes_per_pixel = 0;
 			vinput->bytes_per_frame = 0;
 
 			mx_warning(
@@ -961,6 +968,11 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 				
 			break;
 		}
+
+		pixels_per_frame = vinput->framesize[0] * vinput->framesize[1];
+
+		vinput->bytes_per_frame = pixels_per_frame
+				* mx_round( vinput->bytes_per_pixel );
 
 		mx_status = mx_get_image_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,

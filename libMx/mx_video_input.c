@@ -68,6 +68,15 @@ mx_video_input_get_pointers( MX_RECORD *record,
 		}
 	}
 
+#if 1
+	if ( *vinput != NULL ) {
+		MX_DEBUG(-2,("*** %s: bytes_per_frame = %ld",
+			calling_fname, (*vinput)->bytes_per_frame));
+		MX_DEBUG(-2,("*** %s: bytes_per_pixel = %g",
+			calling_fname, (*vinput)->bytes_per_pixel));
+	}
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -264,6 +273,41 @@ mx_video_input_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
 
 	if ( bytes_per_frame != NULL ) {
 		*bytes_per_frame = vinput->bytes_per_frame;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_get_bytes_per_pixel( MX_RECORD *record, double *bytes_per_pixel )
+{
+	static const char fname[] = "mx_video_input_get_bytes_per_pixel()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BYTES_PER_PIXEL;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bytes_per_pixel != NULL ) {
+		*bytes_per_pixel = vinput->bytes_per_pixel;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -777,7 +821,8 @@ mx_video_input_get_frame( MX_RECORD *record,
 	memset( (*frame)->image_data, 0, 50 );
 #endif
 
-	(*frame)->image_length = vinput->bytes_per_frame;
+	(*frame)->bytes_per_pixel = vinput->bytes_per_pixel;
+	(*frame)->image_length    = vinput->bytes_per_frame;
 
 	/* Now get the actual frame. */
 

@@ -437,6 +437,9 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_BYTES_PER_FRAME:
 		ad->bytes_per_frame = 2 * ad->framesize[0] * ad->framesize[1];
 		break;
+	case MXLV_AD_BYTES_PER_PIXEL:
+		ad->bytes_per_pixel = 2;
+		break;
 	default:
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Parameter type %ld not yet implemented for record '%s'.",

@@ -70,6 +70,15 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 		}
 	}
 
+#if 1
+	if ( *ad != NULL ) {
+		MX_DEBUG(-2,("*** %s: bytes_per_frame = %ld",
+			calling_fname, (*ad)->bytes_per_frame));
+		MX_DEBUG(-2,("*** %s: bytes_per_pixel = %g",
+			calling_fname, (*ad)->bytes_per_pixel));
+	}
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -825,18 +834,22 @@ mx_area_detector_arm( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	mx_status = mx_area_detector_get_bytes_per_pixel( ad->record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_area_detector_get_bytes_per_frame( ad->record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 #if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,
-	("%s: image_format = %ld, framesize = (%ld,%ld), bytes_per_frame = %ld",
-		fname, ad->image_format,
-		ad->framesize[0],
-		ad->framesize[1],
-		ad->bytes_per_frame));
+	MX_DEBUG(-2,("%s: image_format = %ld, framesize = (%ld,%ld)",
+		fname, ad->image_format, ad->framesize[0], ad->framesize[1]));
+
+	MX_DEBUG(-2,("%s: bytes_per_pixel = %g, bytes_per_frame = %ld",
+		fname, ad->bytes_per_pixel, ad->bytes_per_frame));
 #endif
 
 	return mx_status;
@@ -1120,7 +1133,8 @@ mx_area_detector_get_frame( MX_RECORD *record,
 	memset( (*frame)->image_data, 0, 50 );
 #endif
 
-	(*frame)->image_length = ad->bytes_per_frame;
+	(*frame)->bytes_per_pixel = ad->bytes_per_pixel;
+	(*frame)->image_length    = ad->bytes_per_frame;
 
 	/* Now get the actual frame. */
 
@@ -1270,7 +1284,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	(*roi_frame)->framesize[0] = ad->roi[1] - ad->roi[0] + 1;
 	(*roi_frame)->framesize[1] = ad->roi[3] - ad->roi[2] + 1;
 	(*roi_frame)->image_format = image_frame->image_format;
-	(*roi_frame)->pixel_order = image_frame->pixel_order;
+	(*roi_frame)->pixel_order  = image_frame->pixel_order;
+	(*roi_frame)->bytes_per_pixel = image_frame->bytes_per_pixel;
 
 	roi_bytes_per_frame =
 		(*roi_frame)->framesize[0] * (*roi_frame)->framesize[1]
@@ -1335,7 +1350,8 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	memset( (*roi_frame)->image_data, 0, 50 );
 #endif
 
-	(*roi_frame)->image_length = roi_bytes_per_frame;
+	(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
+	(*roi_frame)->image_length    = roi_bytes_per_frame;
 
 	ad->roi_number = roi_number;
 
