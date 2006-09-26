@@ -833,7 +833,18 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 		int ioctl_type,
 		void *ioctl_value )
 {
+	static const char fname[] = "mx_socket_ioctl()";
+
 	int ioctl_status, socket_errno;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+
+		errno = EINVAL;
+
+		return -1;
+	}
 
 #if defined( OS_WIN32 )
 #   if defined(__BORLANDC__) || defined(__GNUC__)
@@ -865,12 +876,51 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 #endif
 
 MX_EXPORT mx_status_type
+mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
+				mx_bool_type *non_blocking_flag )
+{
+	static const char fname[] = "mx_socket_get_non_blocking_flag()";
+
+	int fcntl_flags, saved_errno;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+
+	fcntl_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
+
+	if ( fcntl_flags == (-1) ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"fcntl( %d, F_GETFD, 0 ) failed for socket %d.  "
+		"Errno = %d.  Error string = '%s'.",
+			mx_socket->socket_fd, mx_socket->socket_fd,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	if ( fcntl_flags & O_NONBLOCK ) {
+		*non_blocking_flag = TRUE;
+	} else {
+		*non_blocking_flag = FALSE;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
-				int non_blocking_flag )
+				mx_bool_type non_blocking_flag )
 {
 	static const char fname[] = "mx_socket_set_non_blocking_flag()";
 
 	int socket_errno, non_blocking;
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
 
 #if defined(OS_SOLARIS)
 	{

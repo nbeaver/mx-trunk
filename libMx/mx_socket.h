@@ -57,6 +57,7 @@
 
 #  include <time.h>
 #  include <netdb.h>
+#  include <fcntl.h>
 #  include <sys/types.h>
 #  include <sys/socket.h>
 #  include <sys/ioctl.h>
@@ -214,8 +215,11 @@ MX_API int mx_socket_ioctl( MX_SOCKET *mx_socket,
 					int ioctl_type,
 					void *ioctl_value );
 
+MX_API mx_status_type mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
+					mx_bool_type *non_blocking_flag );
+
 MX_API mx_status_type mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
-						int non_blocking_flag );
+					mx_bool_type non_blocking_flag );
 
 MX_API int  mx_socket_is_open( MX_SOCKET *mx_socket );
 

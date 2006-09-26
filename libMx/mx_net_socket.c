@@ -36,7 +36,7 @@
 #include "mx_net.h"
 #include "mx_net_socket.h"
 
-#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
+#if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE || MX_NET_SOCKET_DEBUG_IO_PERFORMANCE
 #include "mx_hrt_debug.h"
 #endif
 
@@ -49,7 +49,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 	uint32_t *header;
 	char *ptr;
-	int saved_errno, use_non_blocking_mode, comparison;
+	int saved_errno, comparison;
+	mx_bool_type is_non_blocking, no_timeout;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	int i, bytes_received, initial_recv_length;
 	uint32_t bytes_left;
@@ -95,12 +96,20 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		header[i] = mx_htonl( 0L );
 	}
 
+	/* Is this socket in non-blocking mode? */
+
+	mx_status = mx_socket_get_non_blocking_mode( mx_socket,
+							&is_non_blocking );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* If requested, compute the timeout time for this message. */
 
 	if ( timeout < 0.0 ) {
-		use_non_blocking_mode = FALSE;
+		no_timeout = TRUE;
 	} else {
-		use_non_blocking_mode = TRUE;
+		no_timeout = FALSE;
 
 		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
@@ -139,8 +148,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-	"First 3 longs: bytes_left = %ld, bytes_received = %ld, n = %ld",
-			bytes_left, bytes_received, n );
+	"First 3 longs: bytes_left = %ld, bytes_received = %d, n = %ld",
+			(long) bytes_left, bytes_received, n );
 #endif
 
 		switch( bytes_received ) {
@@ -165,7 +174,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( use_non_blocking_mode == FALSE ) {
+				if ( is_non_blocking == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -175,6 +184,16 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 						mx_socket->socket_fd );
 
 				} else {
+					if ( no_timeout ) {
+						/* In this case, we are never
+						 * supposed to time out, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					}
+
 					current_time = mx_current_clock_tick();
 
 					comparison = mx_compare_clock_ticks(
@@ -280,8 +299,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-	"Rest of measurement: bytes_left = %ld, bytes_received = %ld, n = %ld",
-			bytes_left, bytes_received, n );
+	"Rest of measurement: bytes_left = %ld, bytes_received = %d, n = %ld",
+			(long) bytes_left, bytes_received, n );
 #endif
 
 		switch( bytes_received ) {
@@ -306,7 +325,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( use_non_blocking_mode == FALSE ) {
+				if ( is_non_blocking == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -316,6 +335,16 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 						mx_socket->socket_fd );
 
 				} else {
+					if ( no_timeout ) {
+						/* In this case, we are never
+						 * supposed to time out, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					}
+
 					current_time = mx_current_clock_tick();
 
 					comparison = mx_compare_clock_ticks(
@@ -373,10 +402,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 	uint32_t *header;
 	char *ptr;
-	int saved_errno, use_non_blocking_mode, comparison;
+	int saved_errno, comparison;
+	mx_bool_type is_non_blocking, no_timeout;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
 	int bytes_left, bytes_sent;
 	uint32_t magic_value, header_length, message_length;
+	mx_status_type mx_status;
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_TIMING total_measurement;
@@ -436,12 +467,20 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
         }
 #endif   
 
+	/* Is this socket in non-blocking mode? */
+
+	mx_status = mx_socket_get_non_blocking_mode( mx_socket,
+							&is_non_blocking );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* If requested, compute the timeout time for this message. */
 
 	if ( timeout < 0.0 ) {
-		use_non_blocking_mode = FALSE;
+		no_timeout = TRUE;
 	} else {
-		use_non_blocking_mode = TRUE;
+		no_timeout = FALSE;
 
 		timeout_interval = mx_convert_seconds_to_clock_ticks( timeout );
 
@@ -472,8 +511,8 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		MX_HRT_END( io_measurement );
 
 		MX_HRT_RESULTS( io_measurement, fname,
-			"Sending: bytes_left = %ld, bytes_sent = %ld, n = %ld",
-			bytes_left, bytes_sent, n );
+			"Sending: bytes_left = %ld, bytes_sent = %d, n = %ld",
+			(long) bytes_left, bytes_sent, n );
 #endif
 
 		switch( bytes_sent ) {
@@ -493,7 +532,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( use_non_blocking_mode == FALSE ) {
+				if ( is_non_blocking == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to send() for MX socket %d returned an "
@@ -503,6 +542,16 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 						mx_socket->socket_fd );
 
 				} else {
+					if ( no_timeout ) {
+						/* In this case, we are never
+						 * supposed to time out, so
+						 * go back to the top of the
+						 * while() loop and try again.
+						 */
+
+						continue;
+					}
+
 					current_time = mx_current_clock_tick();
 
 					comparison = mx_compare_clock_ticks(
