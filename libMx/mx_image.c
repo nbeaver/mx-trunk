@@ -256,6 +256,86 @@ mx_get_image_format_name_from_type( long type,
 /*----*/
 
 MX_EXPORT mx_status_type
+mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
+				size_t *image_length,
+				void **image_data_pointer )
+{
+	static const char fname[] = "mx_image_get_image_data_pointer()";
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( image_length == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_length pointer passed was NULL." );
+	}
+	if ( image_data_pointer == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_data_pointer argument passed was NULL." );
+	}
+
+	if ( frame->image_type != MXT_IMAGE_LOCAL_1D_ARRAY ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"Image frame %p is not an image of type "
+		"MXT_IMAGE_LOCAL_1D_ARRAY (%d).  Instead, it is of type %ld, "
+		"which means that the actual image data is not stored in "
+		"this data structure.", frame, MXT_IMAGE_LOCAL_1D_ARRAY,
+			frame->image_type );
+	}
+
+	if ( frame->image_data == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image data has been read into image frame %p.", frame );
+	}
+
+	*image_length       = frame->image_length;
+	*image_data_pointer = frame->image_data;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
+				void *destination_pixel_array,
+				size_t max_array_bytes,
+				size_t *num_bytes_copied )
+{
+	static const char fname[] = "mx_image_copy_1d_pixel_array()";
+
+	void *image_data_pointer;
+	size_t image_length, bytes_to_copy;
+	mx_status_type mx_status;
+
+	mx_status = mx_image_get_image_data_pointer( frame,
+					&image_length, &image_data_pointer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( destination_pixel_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination_pixel_array pointer passed was NULL." );
+	}
+
+	if ( max_array_bytes >= image_length ) {
+		bytes_to_copy = image_length;
+	} else {
+		bytes_to_copy = max_array_bytes;
+	}
+
+	memcpy( destination_pixel_array, image_data_pointer, bytes_to_copy );
+
+	if ( num_bytes_copied != NULL ) {
+		*num_bytes_copied = bytes_to_copy;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
 mx_write_image_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,
 			void *datafile_args,

@@ -1027,6 +1027,11 @@ mx_area_detector_get_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
 	/* Does this driver implement a get_frame function? */
 
 	get_frame_fn = flist->get_frame;
@@ -1149,34 +1154,118 @@ mx_area_detector_get_frame( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_sequence( MX_RECORD *record,
+			long num_frames,
 			MX_IMAGE_SEQUENCE **sequence )
 {
 	static const char fname[] = "mx_area_detector_get_sequence()";
 
-	MX_AREA_DETECTOR *ad;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *get_sequence_fn ) (MX_AREA_DETECTOR *,
-						MX_IMAGE_SEQUENCE **);
+	long i, old_num_frames;
 	mx_status_type mx_status;
 
-	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	get_sequence_fn = flist->get_sequence;
-
-	if ( get_sequence_fn == NULL ) {
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Getting an MX_IMAGE_SEQUENCE structure for the most recently "
-		"taken sequence has not yet "
-		"been implemented for the driver for record '%s'.",
-			record->name );
+	if ( sequence == (MX_IMAGE_SEQUENCE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_SEQUENCE pointer passed was NULL." );
 	}
 
-	mx_status = (*get_sequence_fn)( ad, sequence );
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: *sequence = %p", fname, *sequence));
+#endif
 
-	return mx_status;
+	/* We either reuse an existing MX_IMAGE_SEQUENCE or create a new one. */
+
+	if ( (*sequence) == (MX_IMAGE_SEQUENCE *) NULL ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Allocating a new MX_IMAGE_SEQUENCE.", fname));
+#endif
+		/* Allocate a new MX_IMAGE_SEQUENCE. */
+
+		*sequence = malloc( sizeof(MX_IMAGE_SEQUENCE) );
+
+		if ( (*sequence) == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a new "
+			"MX_IMAGE_SEQUENCE structure." );
+		}
+
+		(*sequence)->num_frames  = 0;
+		(*sequence)->frame_array = NULL;
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: allocated new sequence.", fname));
+#endif
+	}
+
+	/* See if the frame array already has enough entries. */
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: (*sequence)->num_frames = %ld, (*sequence)->frame_array = %p",
+		fname, (*sequence)->num_frames, (*sequence)->frame_array));
+#endif
+
+	old_num_frames = (*sequence)->num_frames;
+
+	if ( (*sequence)->frame_array == NULL ) {
+		(*sequence)->frame_array =
+			malloc( num_frames * sizeof(MX_IMAGE_FRAME *) );
+
+		if ( (*sequence)->frame_array == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a %ld element "
+			"array of MX_IMAGE_FRAME structures.", num_frames );
+		}
+
+		(*sequence)->num_frames = num_frames;
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+		("%s: Allocated a new frame array with %ld elements.",
+			fname, num_frames));
+#endif
+	} else
+	if ( num_frames > old_num_frames ) {
+		(*sequence)->frame_array =
+				realloc( (*sequence)->frame_array,
+					num_frames * sizeof(MX_IMAGE_FRAME *) );
+
+		if ( (*sequence)->frame_array == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to increase the number of "
+			"MX_IMAGE_FRAMEs in MX_IMAGE_SEQUENCE %p "
+			"from %ld to %ld.",  *sequence,
+				old_num_frames, num_frames );
+		}
+
+		(*sequence)->num_frames = num_frames;
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Increased the size of the frame array "
+			"from %ld elements to %ld elements.",
+			fname, old_num_frames, num_frames));
+#endif
+	}
+
+	/* NULL out the pointers to any frame array members that did not
+	 * already exist.
+	 */
+
+	for ( i = old_num_frames; i < num_frames; i++ ) {
+		(*sequence)->frame_array[i] = NULL;
+	}
+
+	/* Update the contents of all of the image frames. */
+
+	for ( i = 0; i < num_frames; i++ ) {
+		mx_status = mx_area_detector_get_frame( record, i,
+					&( (*sequence)->frame_array[i] ) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1209,7 +1298,7 @@ mx_area_detector_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
 			image_sequence->num_frames ) ;
 	}
 
-	*image_frame = &(image_sequence->frame_array[ frame_number ]);
+	*image_frame = image_sequence->frame_array[ frame_number ];
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1406,28 +1495,6 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	return mx_status;
 }
-
-#if 0
-
-MX_EXPORT mx_status_type
-mx_area_detector_read_1d_pixel_array( MX_IMAGE_FRAME *frame,
-				long pixel_datatype,
-				void *destination_pixel_array,
-				size_t max_array_bytes,
-				size_t *num_bytes_copied )
-{
-}
-
-MX_EXPORT mx_status_type
-mx_area_detector_read_1d_pixel_sequence( MX_IMAGE_SEQUENCE *sequence,
-				long pixel_datatype,
-				void *destination_pixel_array,
-				size_t max_array_bytes,
-				size_t *num_bytes_copied )
-{
-}
-
-#endif
 
 MX_EXPORT mx_status_type
 mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )

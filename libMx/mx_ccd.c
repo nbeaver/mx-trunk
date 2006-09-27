@@ -5,6 +5,9 @@
  *
  * Author:  William Lavender
  *
+ * WARNING: The CCD class is obsolete and is scheduled to be replaced
+ *          by the new 'area_detector' class.
+ *
  *--------------------------------------------------------------------------
  *
  * Copyright 2003, 2005-2006 Illinois Institute of Technology

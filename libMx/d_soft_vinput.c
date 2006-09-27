@@ -50,7 +50,6 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_soft_vinput_video_input_function_list = {
 	mxd_soft_vinput_busy,
 	mxd_soft_vinput_get_status,
 	mxd_soft_vinput_get_frame,
-	NULL,
 	mxd_soft_vinput_get_parameter,
 	mxd_soft_vinput_set_parameter,
 };

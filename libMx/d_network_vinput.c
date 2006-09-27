@@ -49,7 +49,6 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_network_vinput_video_input_function_list = {
 	mxd_network_vinput_busy,
 	mxd_network_vinput_get_status,
 	mxd_network_vinput_get_frame,
-	NULL,
 	mxd_network_vinput_get_parameter,
 	mxd_network_vinput_set_parameter,
 };

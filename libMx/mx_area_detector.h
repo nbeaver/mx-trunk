@@ -239,8 +239,6 @@ typedef struct {
         mx_status_type ( *busy ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_status ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_frame ) ( MX_AREA_DETECTOR *ad );
-        mx_status_type ( *get_sequence ) ( MX_AREA_DETECTOR *ad,
-                                        MX_IMAGE_SEQUENCE **sequence );
         mx_status_type ( *get_roi_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
@@ -352,6 +350,7 @@ MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME **frame );
 
 MX_API mx_status_type mx_area_detector_get_sequence( MX_RECORD *ad_record,
+						long num_frames,
 						MX_IMAGE_SEQUENCE **sequence );
 
 MX_API mx_status_type mx_area_detector_get_frame_from_sequence(
@@ -363,20 +362,6 @@ MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME *frame,
 						long roi_number,
 						MX_IMAGE_FRAME **roi_frame );
-
-MX_API mx_status_type mx_area_detector_read_1d_pixel_array(
-						MX_IMAGE_FRAME *frame,
-						long pixel_datatype,
-						void *destination_pixel_array,
-						size_t max_array_bytes,
-						size_t *num_bytes_copied );
-
-MX_API mx_status_type mx_area_detector_read_1d_pixel_sequence(
-						MX_IMAGE_SEQUENCE *sequence,
-						long pixel_datatype,
-						void *destination_pixel_array,
-						size_t max_array_bytes,
-						size_t *num_bytes_copied );
 
 /*---*/
 

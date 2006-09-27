@@ -65,7 +65,6 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_busy,
 	mxd_epix_xclib_get_status,
 	mxd_epix_xclib_get_frame,
-	NULL,
 	mxd_epix_xclib_get_parameter,
 	mxd_epix_xclib_set_parameter,
 };

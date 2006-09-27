@@ -715,6 +715,11 @@ mx_video_input_get_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
 	/* Does this driver implement a get_frame function? */
 
 	get_frame_fn = flist->get_frame;
@@ -837,34 +842,21 @@ mx_video_input_get_frame( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_video_input_get_sequence( MX_RECORD *record,
-			MX_IMAGE_SEQUENCE **sequence )
+				long num_frames,
+				MX_IMAGE_SEQUENCE **sequence )
 {
 	static const char fname[] = "mx_video_input_get_sequence()";
 
 	MX_VIDEO_INPUT *vinput;
-	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
-	mx_status_type ( *get_sequence_fn ) (MX_VIDEO_INPUT *,
-						MX_IMAGE_SEQUENCE **);
 	mx_status_type mx_status;
 
-	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+	mx_status = mx_video_input_get_pointers(record, &vinput, NULL, fname);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	get_sequence_fn = flist->get_sequence;
-
-	if ( get_sequence_fn == NULL ) {
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Getting an MX_IMAGE_SEQUENCE structure for the most recently "
-		"taken sequence has not yet "
-		"been implemented for the driver for record '%s'.",
-			record->name );
-	}
-
-	mx_status = (*get_sequence_fn)( vinput, sequence );
-
-	return mx_status;
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Not yet implemented.");
 }
 
 MX_EXPORT mx_status_type
@@ -896,32 +888,10 @@ mx_video_input_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
 			image_sequence->num_frames ) ;
 	}
 
-	*image_frame = &(image_sequence->frame_array[ frame_number ]);
+	*image_frame = image_sequence->frame_array[ frame_number ];
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-#if 0
-
-MX_EXPORT mx_status_type
-mx_video_input_read_1d_pixel_array( MX_IMAGE_FRAME *frame,
-				long pixel_datatype,
-				void *destination_pixel_array,
-				size_t max_array_bytes,
-				size_t *num_bytes_copied )
-{
-}
-
-MX_EXPORT mx_status_type
-mx_video_input_read_1d_pixel_sequence( MX_IMAGE_SEQUENCE *sequence,
-				long pixel_datatype,
-				void *destination_pixel_array,
-				size_t max_array_bytes,
-				size_t *num_bytes_copied )
-{
-}
-
-#endif
 
 MX_EXPORT mx_status_type
 mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )

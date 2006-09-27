@@ -166,8 +166,6 @@ typedef struct {
 	mx_status_type ( *busy ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_status ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_frame ) ( MX_VIDEO_INPUT *vinput );
-	mx_status_type ( *get_sequence ) ( MX_VIDEO_INPUT *vinput,
-					MX_IMAGE_SEQUENCE **sequence );
 	mx_status_type ( *get_parameter ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *set_parameter ) ( MX_VIDEO_INPUT *vinput );
 } MX_VIDEO_INPUT_FUNCTION_LIST;
@@ -240,26 +238,13 @@ MX_API mx_status_type mx_video_input_get_frame( MX_RECORD *record,
 						MX_IMAGE_FRAME **frame );
 
 MX_API mx_status_type mx_video_input_get_sequence( MX_RECORD *record,
+						long num_frames,
 						MX_IMAGE_SEQUENCE **sequence );
 
 MX_API mx_status_type mx_video_input_get_frame_from_sequence(
 						MX_IMAGE_SEQUENCE *sequence,
 						long frame_number,
 						MX_IMAGE_FRAME **image_frame );
-
-MX_API mx_status_type mx_video_input_read_1d_pixel_array(
-						MX_IMAGE_FRAME *frame,
-						long pixel_datatype,
-						void *destination_pixel_array,
-						size_t max_array_bytes,
-						size_t *num_bytes_copied );
-
-MX_API mx_status_type mx_video_input_read_1d_pixel_sequence(
-						MX_IMAGE_SEQUENCE *sequence,
-						long pixel_datatype,
-						void *destination_pixel_array,
-						size_t max_array_bytes,
-						size_t *num_bytes_copied );
 
 MX_API mx_status_type mx_video_input_default_get_parameter_handler(
 						MX_VIDEO_INPUT *vinput );

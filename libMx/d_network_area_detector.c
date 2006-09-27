@@ -50,7 +50,6 @@ mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_busy,
 	mxd_network_area_detector_get_status,
 	mxd_network_area_detector_get_frame,
-	NULL,
 	mxd_network_area_detector_get_roi_frame,
 	mxd_network_area_detector_get_parameter,
 	mxd_network_area_detector_set_parameter,

@@ -83,11 +83,6 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
 	mxd_v4l2_input_busy,
 	mxd_v4l2_input_get_status,
 	mxd_v4l2_input_get_frame,
-#if 0
-	mxd_v4l2_input_get_sequence,
-#else
-	NULL,
-#endif
 	mxd_v4l2_input_get_parameter,
 	mxd_v4l2_input_set_parameter,
 };
