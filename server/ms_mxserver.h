@@ -92,14 +92,14 @@ extern mx_status_type mxsrv_handle_get_array(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 extern mx_status_type mxsrv_handle_put_array(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 			void *received_value_ptr );
 
 extern mx_status_type mxsrv_handle_get_network_handle(
@@ -112,22 +112,22 @@ extern mx_status_type mxsrv_handle_get_field_type(
 			MX_RECORD *record_list,
 			MX_SOCKET *mx_socket,
 			MX_RECORD_FIELD *record_field,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 extern mx_status_type mxsrv_handle_set_client_info(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 extern mx_status_type mxsrv_handle_get_option(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 extern mx_status_type mxsrv_handle_set_option(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer );
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 #if HAVE_UNIX_DOMAIN_SOCKETS
 

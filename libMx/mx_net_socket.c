@@ -43,7 +43,7 @@
 MX_EXPORT mx_status_type
 mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 				double timeout,
-				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+				MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_socket_receive_message()";
 
@@ -72,9 +72,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
 	if ( message_buffer->buffer_length
@@ -396,7 +396,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 MX_EXPORT mx_status_type
 mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				double timeout,
-				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+				MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_socket_send_message()";
 
@@ -426,7 +426,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 	}
 	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
 	header = message_buffer->u.uint32_buffer;
@@ -605,7 +605,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_network_socket_send_error_message()";
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t *header;
 	char     *ptr;
 	uint32_t header_length, message_length, total_length;

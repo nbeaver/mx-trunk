@@ -58,7 +58,7 @@ typedef struct mx_network_message_buffer {
 		char     *char_buffer;
 	} u;
 	size_t buffer_length;
-} MX_NETWORK_MESSAGE_BUFFER_FOO;
+} MX_NETWORK_MESSAGE_BUFFER;
 
 /*
  * MX network server data structures.
@@ -77,7 +77,7 @@ typedef struct {
 	unsigned long server_flags;
 	double timeout;			/* in seconds */
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long remote_mx_version;
 	unsigned long data_format;
 
@@ -95,10 +95,10 @@ typedef struct mx_network_field_type MX_NETWORK_FIELD;
 
 typedef struct {
 	mx_status_type ( *receive_message ) ( MX_NETWORK_SERVER *server,
-					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 	mx_status_type ( *send_message ) ( MX_NETWORK_SERVER *server,
-					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 	mx_status_type ( *connection_is_up ) ( MX_NETWORK_SERVER *server,
 						int *connection_is_up );
@@ -226,21 +226,21 @@ typedef struct {
 /*---*/
 
 MX_API mx_status_type mx_allocate_network_buffer(
-				MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
+				MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 				size_t initial_length );
 
 MX_API mx_status_type mx_reallocate_network_buffer(
-				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
+				MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				size_t new_length );
 
 MX_API void mx_free_network_buffer(
-				MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer);
+				MX_NETWORK_MESSAGE_BUFFER *message_buffer);
 
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
-					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
-					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,
 						int *connection_is_up );
@@ -251,7 +251,7 @@ MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
 
 MX_API void mx_network_display_message_buffer(
-					MX_NETWORK_MESSAGE_BUFFER_FOO *buffer );
+					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 /*---*/
 

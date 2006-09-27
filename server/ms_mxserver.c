@@ -711,7 +711,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_mx_client_socket_process_event()";
 
 	uint32_t *header;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *received_message;
+	MX_NETWORK_MESSAGE_BUFFER *received_message;
 
 	int see_if_we_need_to_queue_this_event, update_next_event_time;
 	int queue_a_message, value_at_message_start;
@@ -1433,7 +1433,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	static const char fname[] =
 			"mxsrv_mx_client_socket_proc_queued_event()";
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *queued_message;
+	MX_NETWORK_MESSAGE_BUFFER *queued_message;
 	MX_SOCKET_HANDLER *socket_handler;
 	char *value_ptr;
 	uint32_t *header;
@@ -1469,7 +1469,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	value_ptr = NULL;
 
 	queued_message = 
-		(MX_NETWORK_MESSAGE_BUFFER_FOO *) queued_event->event_data;
+		(MX_NETWORK_MESSAGE_BUFFER *) queued_event->event_data;
 
 	header = (uint32_t *) queued_event->event_data;
 
@@ -1543,7 +1543,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_array()";
 
@@ -1891,7 +1891,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message,
+			MX_NETWORK_MESSAGE_BUFFER *network_message,
 			void *value_buffer_ptr )
 {
 	static const char fname[] = "mxsrv_handle_put_array()";
@@ -2248,7 +2248,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	char location[ sizeof(fname) + 40 ];
 	MX_LIST_HEAD *list_head_struct;
 	MX_HANDLE_TABLE *handle_table;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *network_message;
+	MX_NETWORK_MESSAGE_BUFFER *network_message;
 	uint32_t *send_buffer_header, *send_buffer_message;
 
 	long i;
@@ -2398,7 +2398,7 @@ mx_status_type
 mxsrv_handle_get_field_type( MX_RECORD *record_list,
 				MX_SOCKET *mx_socket,
 				MX_RECORD_FIELD *field,
-				MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
+				MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_field_type()";
 
@@ -2490,7 +2490,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_set_client_info( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler, 
-				MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
+				MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_set_client_info()";
 
@@ -2665,7 +2665,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_get_option( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_get_option()";
 
@@ -2785,7 +2785,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 mx_status_type
 mxsrv_handle_set_option( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *network_message )
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
 	static const char fname[] = "mxsrv_handle_set_option()";
 

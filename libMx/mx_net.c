@@ -51,7 +51,7 @@
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
+mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 				size_t initial_length )
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
@@ -59,9 +59,9 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 	MX_DEBUG(-2,("%s invoked for an initial length of %lu",
 		fname, (unsigned long) initial_length ));
 
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO **) NULL ) {
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
 	if ( initial_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
@@ -72,12 +72,12 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 		(unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
 	}
 
-	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER_FOO) );
+	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER) );
 
-	if ( (*message_buffer) == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+	if ( (*message_buffer) == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
 			"Ran out of memory trying to allocate an "
-			"MX_NETWORK_MESSAGE_BUFFER_FOO structure." );
+			"MX_NETWORK_MESSAGE_BUFFER structure." );
 	}
 
 	(*message_buffer)->u.uint32_buffer = malloc( initial_length );
@@ -106,7 +106,7 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO **message_buffer,
 }
 
 MX_EXPORT mx_status_type
-mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
+mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 					size_t new_length )
 {
 	static const char fname[] = "mx_reallocate_network_buffer()";
@@ -117,9 +117,9 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 	int i;
 #endif
 
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
 	if ( new_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
@@ -199,9 +199,9 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer,
 }
 
 MX_EXPORT void
-mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER_FOO *) NULL ) {
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		return;
 	}
 
@@ -223,14 +223,14 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
 
 MX_EXPORT mx_status_type
 mx_network_receive_message( MX_RECORD *server_record,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_receive_message()";
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
-				MX_NETWORK_MESSAGE_BUFFER_FOO * );
+				MX_NETWORK_MESSAGE_BUFFER * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -239,7 +239,7 @@ mx_network_receive_message( MX_RECORD *server_record,
 	}
 	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed for record '%s' was NULL.",
+    "MX_NETWORK_MESSAGE_BUFFER pointer passed for record '%s' was NULL.",
 			server_record->name );
 	}
 
@@ -275,14 +275,14 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 MX_EXPORT mx_status_type
 mx_network_send_message( MX_RECORD *server_record,
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_send_message()";
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
-				MX_NETWORK_MESSAGE_BUFFER_FOO * );
+				MX_NETWORK_MESSAGE_BUFFER * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -291,7 +291,7 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 	if ( message_buffer == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed for record '%s' was NULL.",
+    "MX_NETWORK_MESSAGE_BUFFER pointer passed for record '%s' was NULL.",
 			server_record->name );
 	}
 
@@ -467,7 +467,7 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 
 MX_EXPORT void
 mx_network_display_message_buffer(
-			MX_NETWORK_MESSAGE_BUFFER_FOO *message_buffer )
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_display_message_buffer()";
 
@@ -480,7 +480,7 @@ mx_network_display_message_buffer(
 
 	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
-		    "MX_NETWORK_MESSAGE_BUFFER_FOO pointer passed was NULL." );
+		    "MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 		return;
 	}
 
@@ -1061,7 +1061,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer;
 	char *message;
@@ -1406,7 +1406,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	mx_bool_type array_is_dynamically_allocated;
 	mx_bool_type use_network_handles;
 
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *message, *ptr, *name_ptr;
 	unsigned long i, j, max_attempts;
@@ -1814,7 +1814,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	static const char fname[] = "mx_network_field_connect()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -2006,7 +2006,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	static const char fname[] = "mx_get_field_type()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message;
 	uint32_t *message_uint32_array;
@@ -2180,7 +2180,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	static const char fname[] = "mx_set_client_info()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header;
 	char *buffer, *message, *ptr;
 	uint32_t header_length, message_length;
@@ -2333,7 +2333,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_get_option()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
 	uint32_t header_length, message_length;
@@ -2492,7 +2492,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_set_option()";
 
 	MX_NETWORK_SERVER *server;
-	MX_NETWORK_MESSAGE_BUFFER_FOO *aligned_buffer;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
 	uint32_t *header, *uint32_message;
 	char *buffer, *message;
 	uint32_t header_length, message_length;
