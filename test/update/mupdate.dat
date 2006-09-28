@@ -2,5 +2,5 @@ mx localhost@9727:edge_energy.value    0x0
 mx d_spacing.value      0x0
 mx theta_real.position  0x1 theta_real.set_position
 epics wml:scaler1.FREQ  0x0
-epics wml:m1.RBV        0x0 wml:m1.VAL
+epics wml:test.AV       0x1 wml:test.BV
 epics_motor_position wml:m1.RBV 0x1
