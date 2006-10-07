@@ -46,9 +46,14 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 	mxd_soft_area_detector_trigger,
 	mxd_soft_area_detector_stop,
 	mxd_soft_area_detector_abort,
-	mxd_soft_area_detector_busy,
+	NULL,
 	mxd_soft_area_detector_get_status,
-	mxd_soft_area_detector_get_frame,
+	NULL,
+	mxd_soft_area_detector_readout_frame,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mxd_soft_area_detector_get_parameter,
 	mxd_soft_area_detector_set_parameter,
@@ -355,9 +360,9 @@ mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_area_detector_busy( MX_AREA_DETECTOR *ad )
+mxd_soft_area_detector_get_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_soft_area_detector_busy()";
+	static const char fname[] = "mxd_soft_area_detector_get_status()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_bool_type busy;
@@ -369,25 +374,30 @@ mxd_soft_area_detector_busy( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0 && MXD_SOFT_AREA_DETECTOR_DEBUG
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
 	mx_status = mx_video_input_is_busy(
 			soft_area_detector->video_input_record, &busy );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->busy = busy;
+	ad->status = 0;
+
+	if ( busy ) {
+		ad->status |= MXSF_AD_IS_BUSY;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_area_detector_get_status( MX_AREA_DETECTOR *ad )
+mxd_soft_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_soft_area_detector_get_status()";
+	static const char fname[] = "mxd_soft_area_detector_readout_frame()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	mx_status_type mx_status;
@@ -403,32 +413,9 @@ mxd_soft_area_detector_get_status( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-	mx_status = mxd_soft_area_detector_busy( ad );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_soft_area_detector_get_frame( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_soft_area_detector_get_frame()";
-
-	MX_SOFT_AREA_DETECTOR *soft_area_detector;
-	mx_status_type mx_status;
-
-	mx_status = mxd_soft_area_detector_get_pointers( ad,
-						&soft_area_detector, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
 	mx_status = mx_video_input_get_frame(
 		soft_area_detector->video_input_record,
-		ad->frame_number, &(ad->frame) );
+		ad->readout_frame, &(ad->image_frame) );
 
 	return mx_status;
 }
@@ -459,8 +446,8 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_video_input_get_framesize( video_input_record,
 				&(ad->framesize[0]), &(ad->framesize[1]) );
 		break;
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
 		mx_status = mx_video_input_get_image_format( video_input_record,
 						&(ad->image_format) );
 
@@ -587,8 +574,8 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 					&(ad->sequence_parameters) );
 		break; 
 
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Changing parameter '%s' for area detector '%s' is not supported.",
 			mx_get_field_label_string( ad->record,

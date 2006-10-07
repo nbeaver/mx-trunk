@@ -27,6 +27,8 @@
 #include "mx_process.h"
 #include "pr_handlers.h"
 
+#if 0 /* WML */
+
 static mx_status_type
 mxp_area_detector_get_frame_handler( MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
@@ -189,6 +191,8 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#endif /* WML */
+
 /*----*/
 
 mx_status_type
@@ -213,15 +217,16 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ABORT:
 		case MXLV_AD_ARM:
 		case MXLV_AD_BINSIZE:
-		case MXLV_AD_BUSY:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_BYTES_PER_PIXEL:
-		case MXLV_AD_FORMAT:
-		case MXLV_AD_FORMAT_NAME:
+		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
-		case MXLV_AD_FRAME_BUFFER:
-		case MXLV_AD_GET_FRAME:
+		case MXLV_AD_IMAGE_FORMAT:
+		case MXLV_AD_IMAGE_FORMAT_NAME:
+		case MXLV_AD_IMAGE_FRAME_BUFFER:
+		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_GET_ROI_FRAME:
+		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
@@ -263,9 +268,6 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_binsize( record,
 								NULL, NULL );
 			break;
-		case MXLV_AD_BUSY:
-			mx_status = mx_area_detector_is_busy( record, NULL );
-			break;
 		case MXLV_AD_BYTES_PER_FRAME:
 			mx_status = mx_area_detector_get_bytes_per_frame(
 								record, NULL );
@@ -274,8 +276,12 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_bytes_per_pixel(
 								record, NULL );
 			break;
-		case MXLV_AD_FORMAT:
-		case MXLV_AD_FORMAT_NAME:
+		case MXLV_AD_EXTENDED_STATUS:
+			mx_status = mx_area_detector_get_extended_status(
+							record, NULL, NULL );
+			break;
+		case MXLV_AD_IMAGE_FORMAT:
+		case MXLV_AD_IMAGE_FORMAT_NAME:
 			mx_status = 
 			   mx_area_detector_get_image_format( record, NULL );
 
@@ -290,12 +296,16 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_framesize( record,
 								NULL, NULL );
 			break;
-		case MXLV_AD_FRAME_BUFFER:
-			if ( ad->frame_buffer == NULL ) {
+		case MXLV_AD_IMAGE_FRAME_BUFFER:
+			if ( ad->image_frame_buffer == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
 			"Area detector '%s' has not yet taken its first frame.",
 					record->name );
 			}
+			break;
+		case MXLV_AD_LAST_FRAME_NUMBER:
+			mx_status = mx_area_detector_get_last_frame_number(
+								record, NULL );
 			break;
 		case MXLV_AD_MAXIMUM_FRAMESIZE:
 			mx_status = mx_area_detector_get_maximum_framesize(
@@ -309,8 +319,7 @@ mx_area_detector_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_AD_STATUS:
-			mx_status = mx_area_detector_get_status( record,
-								NULL, NULL );
+			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
 		default:
 			MX_DEBUG(-1,(
@@ -332,24 +341,25 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->binsize[0],
 						ad->binsize[1] );
 			break;
-		case MXLV_AD_FORMAT_NAME:
+		case MXLV_AD_FRAMESIZE:
+			mx_status = mx_area_detector_set_framesize( record,
+						ad->framesize[0],
+						ad->framesize[1] );
+			break;
+		case MXLV_AD_IMAGE_FORMAT_NAME:
 			mx_status = mx_get_image_format_type_from_name(
-					ad->image_format_name,
-					&(ad->image_format) );
+				ad->image_format_name, &(ad->image_format) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			/* Fall through to the next case. */
-		case MXLV_AD_FORMAT:
+		case MXLV_AD_IMAGE_FORMAT:
 			mx_status = mx_area_detector_set_image_format( record,
-						ad->image_format );
+							ad->image_format );
 			break;
-		case MXLV_AD_FRAMESIZE:
-			mx_status = mx_area_detector_set_framesize( record,
-						ad->framesize[0],
-						ad->framesize[1] );
-		case MXLV_AD_GET_FRAME:
+#if 0 /* WML */
+		case MXLV_AD_READOUT_FRAME:
 			mx_status = mxp_area_detector_get_frame_handler(
 					record, record_field, ad );
 			break;
@@ -357,6 +367,7 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mxp_area_detector_get_roi_frame_handler(
 					record, record_field, ad );
 			break;
+#endif /* WML */
 		case MXLV_AD_STOP:
 			mx_status = mx_area_detector_stop( record );
 			break;

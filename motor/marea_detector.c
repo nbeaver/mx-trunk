@@ -39,10 +39,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
 	char *filename, *endptr;
-	unsigned long datafile_type;
+	unsigned long datafile_type, correction_flags;
 	long frame_number, roi_number, x_min, x_max, y_min, y_max;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
-	long trigger_mode, bytes_per_frame;
+	long trigger_mode, bytes_per_frame, frame_type;
 	double exposure_time;
 	mx_bool_type busy;
 	mx_status_type mx_status;
@@ -76,7 +76,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 "        area_detector 'name' abort\n"
 "        area_detector 'name' get busy\n"
 "        area_detector 'name' get frame 'frame_number'\n"
-"        area_detector 'name' get roiframe 'roi_number'\n";
+"        area_detector 'name' get roiframe 'roi_number'\n"
+"\n"
+"        area_detector 'name' readout 'frame_number'\n"
+"        area_detector 'name' correct 'correction_flags'\n"
+"        area_detector 'name' transfer 'frame_type'\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
@@ -380,6 +384,79 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+	} else
+	if ( strncmp( "readout", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 5 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'readout' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		frame_number = strtol( argv[4], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+		"%s: Non-numeric characters found in frame number '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_area_detector_readout_frame(
+						ad_record, frame_number );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "correct", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 5 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'correct' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		correction_flags = mx_hex_string_to_unsigned_long( argv[4] );
+
+		mx_status = mx_area_detector_correct_frame(
+						ad_record, correction_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "transfer", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 5 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'transfer' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		frame_type = strtol( argv[4], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+		"%s: Non-numeric characters found in frame type '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_area_detector_transfer_frame( ad_record,
+							frame_type, &frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
 	} else
 	if ( strncmp( "get", argv[3], strlen(argv[3]) ) == 0 ) {
 

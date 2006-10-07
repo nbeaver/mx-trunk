@@ -50,9 +50,9 @@ MX_API mx_status_type mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_soft_area_detector_busy( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_get_status( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_soft_area_detector_get_frame( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_soft_area_detector_readout_frame(
+						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_get_parameter(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_set_parameter(

@@ -398,7 +398,7 @@ mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad )
 #endif
 	mx_status = mx_video_input_get_frame(
 			pccd_170170->video_input_record,
-			ad->frame_number, &(ad->frame) );
+			ad->frame_number, &(ad->image_frame) );
 
 	return mx_status;
 }

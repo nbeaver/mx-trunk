@@ -184,8 +184,26 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->frame = NULL;
-	ad->frame_buffer = NULL;
+	ad->roi_frame = NULL;
+	ad->roi_frame_buffer = NULL;
+
+	ad->image_frame = NULL;
+	ad->image_frame_buffer = NULL;
+
+	ad->frame_operation = 0;
+	ad->frame_filename[0] = '\0';
+
+	ad->mask_frame = NULL;
+	ad->mask_frame_buffer = NULL;
+
+	ad->bias_frame = NULL;
+	ad->bias_frame_buffer = NULL;
+
+	ad->dark_current_frame = NULL;
+	ad->dark_current_frame_buffer = NULL;
+
+	ad->flood_field_frame = NULL;
+	ad->flood_field_frame_buffer = NULL;
 
 	mx_status = mx_get_image_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
@@ -217,7 +235,7 @@ mx_area_detector_get_image_format( MX_RECORD *record, long *format )
 			mx_area_detector_default_get_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_FORMAT;
+	ad->parameter_type = MXLV_AD_IMAGE_FORMAT;
 
 	mx_status = (*get_parameter_fn)( ad );
 
@@ -253,7 +271,7 @@ mx_area_detector_set_image_format( MX_RECORD *record, long format )
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_FORMAT;
+	ad->parameter_type = MXLV_AD_IMAGE_FORMAT;
 
 	ad->image_format = format;
 
@@ -954,7 +972,7 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *busy_fn ) ( MX_AREA_DETECTOR * );
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -962,14 +980,46 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	busy_fn = flist->busy;
+	mx_status = mx_area_detector_get_status( record, &status_flags );
 
-	if ( busy_fn != NULL ) {
-		mx_status = (*busy_fn)( ad );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( busy != NULL ) {
-		*busy = ad->busy;
+		if ( ad->status & MXSF_AD_IS_BUSY ) {
+			*busy = TRUE;
+		} else {
+			*busy = FALSE;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_last_frame_number( MX_RECORD *record,
+			long *last_frame_number )
+{
+	static const char fname[] = "mx_area_detector_get_last_frame_number()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_last_frame_number_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_last_frame_number_fn = flist->get_last_frame_number;
+
+	if ( get_last_frame_number_fn != NULL ) {
+		mx_status = (*get_last_frame_number_fn)( ad );
+	}
+
+	if ( last_frame_number != NULL ) {
+		*last_frame_number = 0;
 	}
 
 	return mx_status;
@@ -977,7 +1027,6 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_status( MX_RECORD *record,
-			long *last_frame_number,
 			unsigned long *status_flags )
 {
 	static const char fname[] = "mx_area_detector_get_status()";
@@ -998,6 +1047,36 @@ mx_area_detector_get_status( MX_RECORD *record,
 		mx_status = (*get_status_fn)( ad );
 	}
 
+	if ( status_flags != NULL ) {
+		*status_flags = ad->status;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_extended_status( MX_RECORD *record,
+			long *last_frame_number,
+			unsigned long *status_flags )
+{
+	static const char fname[] = "mx_area_detector_get_extended_status()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_extended_status_fn = flist->get_extended_status;
+
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( ad );
+	}
+
 	if ( last_frame_number != NULL ) {
 		*last_frame_number = 0;
 	}
@@ -1008,7 +1087,93 @@ mx_area_detector_get_status( MX_RECORD *record,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
+{
+	static const char fname[] = "mx_area_detector_readout_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *readout_frame_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Does this driver implement a readout_frame function? */
+
+	readout_frame_fn = flist->readout_frame;
+
+	if ( readout_frame_fn == NULL ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+    "Reading out an image frame for record '%s' has not yet been implemented.",
+			record->name );
+	}
+
+	ad->frame_number  = frame_number;
+	ad->readout_frame = frame_number;
+
+	mx_status = (*readout_frame_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_correct_frame( MX_RECORD *record,
+				unsigned long correction_flags )
+{
+	static const char fname[] = "mx_area_detector_correct_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *correct_frame_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	correct_frame_fn = flist->correct_frame;
+
+	if ( correct_frame_fn == NULL ) {
+		correct_frame_fn = mx_area_detector_default_correct_frame;
+	}
+
+	ad->correction_flags = correction_flags;
+
+	mx_status = (*correct_frame_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_transfer_frame( MX_RECORD *record,
+				long frame_type,
+				MX_IMAGE_FRAME **image_frame )
+{
+	static const char fname[] = "mx_area_detector_transfer_frame()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Not yet implemented." );
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_frame( MX_RECORD *record,
+			long frame_number,
+			MX_IMAGE_FRAME **image_frame )
+{
+	static const char fname[] = "mx_area_detector_get_frame()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Not yet implemented." );
+}
+
 /*---*/
+
+#if 0  /* WML - Old version */
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_frame( MX_RECORD *record,
@@ -1145,12 +1310,14 @@ mx_area_detector_get_frame( MX_RECORD *record,
 
 	ad->frame_number = frame_number;
 
-	ad->frame = *frame;
+	ad->scratch_frame = *frame;
 
 	mx_status = (*get_frame_fn)( ad );
 
 	return mx_status;
 }
+
+#endif /* WML - Old version */
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_sequence( MX_RECORD *record,
@@ -1330,11 +1497,11 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 
-		if ( ad->frame == (MX_IMAGE_FRAME *) NULL ) {
+		if ( ad->image_frame == (MX_IMAGE_FRAME *) NULL ) {
 			return mx_error( MXE_NULL_ARGUMENT, fname,
 			"No MX_IMAGE_FRAME pointer was supplied." );
 		} else {
-			image_frame = ad->frame;
+			image_frame = ad->image_frame;
 		}
 	}
 
@@ -1497,6 +1664,91 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mx_area_detector_default_correct_frame()";
+
+	MX_IMAGE_FRAME *image_frame, *mask_frame, *bias_frame;
+	MX_IMAGE_FRAME *dark_current_frame, *flood_field_frame;
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	if ( ad == (MX_AREA_DETECTOR *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_AREA_DETECTOR pointer passed was NULL." );
+	}
+
+	image_frame = ad->image_frame;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+	    "Area detector '%s' has not yet read out its first image frame.",
+			ad->record->name );
+	}
+
+	/* Determine which corrections are to be applied. */
+
+	flags = ad->correction_flags;
+
+	MX_DEBUG(-2,("%s: record '%s', correction_flags = %#lx",
+		fname, ad->record->name, flags));
+
+	if ( (flags & MXT_AD_MASK_FRAME) == 0 ) {
+		mask_frame = NULL;
+	} else {
+		mask_frame = ad->mask_frame;
+
+		if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_NOT_READY, fname,
+			"No mask frame has been loaded for area detector '%s'.",
+				ad->record->name );
+		}
+	}
+
+	if ( (flags & MXT_AD_BIAS_FRAME) == 0 ) {
+		bias_frame = NULL;
+	} else {
+		bias_frame = ad->bias_frame;
+
+		if ( bias_frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_NOT_READY, fname,
+			"No bias frame has been loaded for area detector '%s'.",
+				ad->record->name );
+		}
+	}
+
+	if ( (flags & MXT_AD_DARK_CURRENT_FRAME) == 0 ) {
+		dark_current_frame = NULL;
+	} else {
+		dark_current_frame = ad->dark_current_frame;
+
+		if ( dark_current_frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_NOT_READY, fname,
+		"No dark current frame has been loaded for area detector '%s'.",
+				ad->record->name );
+		}
+	}
+
+	if ( (flags & MXT_AD_BIAS_FRAME) == 0 ) {
+		flood_field_frame = NULL;
+	} else {
+		flood_field_frame = ad->flood_field_frame;
+
+		if ( flood_field_frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_NOT_READY, fname,
+		"No flood field frame has been loaded for area detector '%s'.",
+				ad->record->name );
+		}
+	}
+
+	mx_status = mx_area_detector_frame_correction( ad->record,
+				image_frame, mask_frame, bias_frame,
+				dark_current_frame, flood_field_frame );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] =
@@ -1508,8 +1760,8 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
@@ -1578,8 +1830,8 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
@@ -1637,5 +1889,30 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_frame_correction( MX_RECORD *record,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *mask_frame,
+				MX_IMAGE_FRAME *bias_frame,
+				MX_IMAGE_FRAME *dark_current_frame,
+				MX_IMAGE_FRAME *flood_field_frame )
+{
+	static const char fname[] = "mx_area_detector_frame_correction()";
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, record->name ));
+
+	MX_DEBUG(-2,("%s: image_frame = %p", fname, image_frame));
+	MX_DEBUG(-2,("%s: mask_frame = %p", fname, mask_frame));
+	MX_DEBUG(-2,("%s: bias_frame = %p", fname, bias_frame));
+	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
+	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+				"Not yet implemented." );
 }
 

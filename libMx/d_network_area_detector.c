@@ -47,9 +47,14 @@ mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_trigger,
 	mxd_network_area_detector_stop,
 	mxd_network_area_detector_abort,
-	mxd_network_area_detector_busy,
+	mxd_network_area_detector_get_last_frame_number,
 	mxd_network_area_detector_get_status,
-	mxd_network_area_detector_get_frame,
+	mxd_network_area_detector_get_extended_status,
+	mxd_network_area_detector_readout_frame,
+	mxd_network_area_detector_correct_frame,
+	mxd_network_area_detector_transfer_frame,
+	mxd_network_area_detector_load_save_frame,
+	mxd_network_area_detector_load_save_frame,
 	mxd_network_area_detector_get_roi_frame,
 	mxd_network_area_detector_get_parameter,
 	mxd_network_area_detector_set_parameter,
@@ -63,7 +68,7 @@ MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_record_field_defaults[] = {
 
 long mxd_network_area_detector_num_record_fields
 		= sizeof( mxd_network_area_detector_record_field_defaults )
-			/ sizeof( mxd_network_area_detector_record_field_defaults[0] );
+		  / sizeof( mxd_network_area_detector_record_field_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxd_network_area_detector_rfield_def_ptr
 			= &mxd_network_area_detector_record_field_defaults[0];
@@ -199,10 +204,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.binsize", network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->busy_nf),
-		network_area_detector->server_record,
-		"%s.busy", network_area_detector->remote_record_name );
-
 	mx_network_field_init( &(network_area_detector->bytes_per_frame_nf),
 		network_area_detector->server_record,
 	    "%s.bytes_per_frame", network_area_detector->remote_record_name );
@@ -211,21 +212,33 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.bytes_per_pixel", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->correct_frame_nf),
+		network_area_detector->server_record,
+		"%s.correct_frame", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->correction_flags_nf),
+		network_area_detector->server_record,
+	    "%s.correction_flags", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->current_num_rois_nf),
 		network_area_detector->server_record,
 	    "%s.current_num_rois", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->extended_status_nf),
+		network_area_detector->server_record,
+	    "%s.extended_status", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->framesize_nf),
 		network_area_detector->server_record,
 		"%s.framesize", network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->frame_buffer_nf),
+	mx_network_field_init( &(network_area_detector->frame_filename_nf),
 		network_area_detector->server_record,
-		"%s.frame_buffer", network_area_detector->remote_record_name );
+	    "%s.frame_filename", network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->get_frame_nf),
+	mx_network_field_init( &(network_area_detector->frame_operation_nf),
 		network_area_detector->server_record,
-		"%s.get_frame", network_area_detector->remote_record_name );
+	    "%s.frame_operation", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->get_roi_frame_nf),
 		network_area_detector->server_record,
@@ -239,6 +252,15 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.image_format", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->image_frame_buffer_nf),
+		network_area_detector->server_record,
+	    "%s.image_frame_buffer", network_area_detector->remote_record_name);
+
+	mx_network_field_init( &(network_area_detector->last_frame_number_nf),
+		network_area_detector->server_record,
+		"%s.last_frame_number",
+				network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->maximum_framesize_nf),
 		network_area_detector->server_record,
 	    "%s.maximum_framesize", network_area_detector->remote_record_name );
@@ -250,6 +272,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->pixel_order_nf),
 		network_area_detector->server_record,
 		"%s.pixel_order", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->readout_frame_nf),
+		network_area_detector->server_record,
+		"%s.readout_frame", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->roi_nf),
 		network_area_detector->server_record,
@@ -274,6 +300,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->stop_nf),
 		network_area_detector->server_record,
 		"%s.stop", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->transfer_frame_nf),
+		network_area_detector->server_record,
+		"%s.transfer_frame", network_area_detector->remote_record_name);
 
 	mx_network_field_init( &(network_area_detector->trigger_nf),
 		network_area_detector->server_record,
@@ -539,9 +569,10 @@ mxd_network_area_detector_abort( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_area_detector_busy( MX_AREA_DETECTOR *ad )
+mxd_network_area_detector_get_last_frame_number( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_network_area_detector_busy()";
+	static const char fname[] =
+		"mxd_network_area_detector_get_last_frame_number()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector;
 	mx_status_type mx_status;
@@ -552,12 +583,12 @@ mxd_network_area_detector_busy( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_area_detector->busy_nf),
-				MXFT_BOOL, &(ad->busy) );
+	mx_status = mx_get( &(network_area_detector->last_frame_number_nf),
+				MXFT_BOOL, &(ad->last_frame_number) );
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: area detector '%s', busy = %d",
-		fname, ad->record->name, (int) ad->busy ));
+	MX_DEBUG(-2,("%s: area detector '%s', last_frame_number = %ld",
+		fname, ad->record->name, ad->last_frame_number ));
 #endif
 
 	return mx_status;
@@ -589,9 +620,116 @@ mxd_network_area_detector_get_status( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
+mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_network_area_detector_get_frame()";
+	static const char fname[] =
+			"mxd_network_area_detector_get_extended_status()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	long dimension[1];
+	int num_items;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+#endif
+	dimension[0] = MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH;
+
+	mx_status = mx_get_array( &(network_area_detector->extended_status_nf),
+			MXFT_STRING, 1, dimension, &(ad->extended_status) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	num_items = sscanf( ad->extended_status, "%ld %lx",
+				&(ad->last_frame_number), &(ad->status) );
+
+	if ( num_items != 2 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The string returned by server '%s' for record field '%s' "
+		"was not parseable as an extended status string.  "
+		"Returned string = '%s'",
+			network_area_detector->server_record->name,
+			"extended_status", ad->extended_status );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_readout_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_network_area_detector_readout_frame()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s', frame %ld.",
+		fname, ad->record->name, ad->readout_frame ));
+#endif
+	/* Tell the server to read out the frame from the imaging card
+	 * into the server's local frame buffer.
+	 */
+
+	mx_status = mx_put( &(network_area_detector->readout_frame_nf),
+				MXFT_LONG, &(ad->readout_frame) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_correct_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] = "mxd_network_area_detector_correct_frame()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+		("%s invoked for area detector '%s', correction_flags=%#lx.",
+		fname, ad->record->name, ad->correction_flags ));
+#endif
+	/* Update the list of corrections to be done. */
+
+	mx_status = mx_put( &(network_area_detector->correction_flags_nf),
+				MXFT_HEX, &(ad->correction_flags) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the server to perform the corrections. */
+
+	mx_status = mx_put( &(network_area_detector->correct_frame_nf),
+				MXFT_BOOL, &(ad->correct_frame) );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+			"mxd_network_area_detector_transfer_frame()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector;
 	MX_IMAGE_FRAME *frame;
@@ -604,7 +742,7 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	frame = ad->frame;
+	frame = ad->image_frame;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -615,15 +753,6 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-
-	/* Tell the server to prepare the frame for being read. */
-
-	mx_status = mx_put( &(network_area_detector->get_frame_nf),
-				MXFT_LONG, &(ad->frame_number) );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Ask for the bytes per pixel of the image. */
 
 	mx_status = mx_get( &(network_area_detector->bytes_per_pixel_nf),
@@ -668,7 +797,8 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = frame->image_length;
 
-	mx_status = mx_get_array( &(network_area_detector->frame_buffer_nf),
+	mx_status = mx_get_array(
+			&(network_area_detector->image_frame_buffer_nf),
 			MXFT_CHAR, 1, dimension, frame->image_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -696,6 +826,50 @@ mxd_network_area_detector_get_frame( MX_AREA_DETECTOR *ad )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/* The function mxd_network_area_detector_load_save_frame() actually handles
+ * both the loading and saving of image frames in the remote server, since
+ * the only difference between the two operations is the 'frame_operation'
+ * value sent to the server.
+ */
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_load_save_frame( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxd_network_area_detector_load_save_frame()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	long dimension[1];
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* NOTE: For a network_area_detector, the specified filename actually
+	 * refers to the remote server's filesystem.  
+	 */
+
+	/* Tell the server the name of the file to load the frame from. */
+
+	dimension[0] = MXU_FILENAME_LENGTH;
+
+	mx_status = mx_put_array( &(network_area_detector->frame_filename_nf),
+				MXFT_STRING, 1, dimension, ad->frame_filename );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the server, to load or save the frame. */
+
+	mx_status = mx_put( &(network_area_detector->frame_operation_nf),
+					MXFT_LONG, &(ad->frame_operation) );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -842,8 +1016,8 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 				MXFT_LONG, 1, dimension, &(ad->binsize) );
 		break;
 
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
 		mx_status = mx_get( &(network_area_detector->image_format_nf),
 					MXFT_LONG, &(ad->image_format) );
 
@@ -879,16 +1053,6 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status =
 			mx_get( &(network_area_detector->bytes_per_pixel_nf),
 					MXFT_DOUBLE, &(ad->bytes_per_pixel) );
-		break;
-
-	case MXLV_AD_BUSY:
-		mx_status = mx_get( &(network_area_detector->busy_nf),
-					MXFT_BOOL, &(ad->busy) );
-		break;
-
-	case MXLV_AD_STATUS:
-		mx_status = mx_get( &(network_area_detector->status_nf),
-					MXFT_HEX, &(ad->status) );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -1009,11 +1173,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_put_array( &(network_area_detector->roi_nf),
 				MXFT_LONG, 1, dimension, &(ad->roi) );
 		break;
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
-	case MXLV_AD_PIXEL_ORDER:
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+	case MXLV_AD_PIXEL_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Changing the parameter '%s' for area detector '%s' "
 		"is not supported.", mx_get_field_label_string( ad->record,
