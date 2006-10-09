@@ -18,6 +18,7 @@
 #define MXI_EPIX_XCLIB_DEBUG	TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mxconfig.h"
 

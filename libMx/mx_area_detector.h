@@ -23,17 +23,17 @@
 
 #define MXSF_AD_IS_BUSY		0x1
 
-/* Frame types for the 'correct_frame', 'transfer_frame', and
- * 'frame_operation' fields.
+/* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
+ * 'save_frame', and 'copy_frame' fields.
  */
 
-#define MXT_AD_IMAGE_FRAME		0x1
-#define MXT_AD_MASK_FRAME		0x2
-#define MXT_AD_BIAS_FRAME		0x4
-#define MXT_AD_DARK_CURRENT_FRAME	0x8
-#define MXT_AD_FLOOD_FIELD_FRAME	0x10
+#define MXFT_AD_IMAGE_FRAME		0x1
+#define MXFT_AD_MASK_FRAME		0x2
+#define MXFT_AD_BIAS_FRAME		0x4
+#define MXFT_AD_DARK_CURRENT_FRAME	0x8
+#define MXFT_AD_FLOOD_FIELD_FRAME	0x10
 
-#define MXT_AD_LOAD			0x10000000
+#define MXFT_AD_ALL			0xffffffff
 
 typedef struct {
 	MX_RECORD *record;
@@ -48,6 +48,7 @@ typedef struct {
 	long image_format;
 	long pixel_order;
 	long trigger_mode;
+	long header_length;
 	long bytes_per_frame;
 	double bytes_per_pixel;
 
@@ -113,14 +114,33 @@ typedef struct {
 
 	long transfer_frame;
 
-	/* 'frame_operation' is used to tell the software what kind of frame
-	 * to load or save.  'frame_filename' specifies the name of the
-	 * file to load or save.  The specified file _must_ be on the
-	 * computer that has the frame buffer.
+	/* 'frame_file_format' is the file format that is used for load and
+	 * save operations below.
 	 */
 
-	long frame_operation;
+	long frame_file_format;
+
+	/* 'load_frame' and 'save_frame' are used to tell the software
+	 * what kind of frame to load or save.  'frame_filename' specifies
+	 * the name of the file to load or save.  The specified file _must_
+	 * be on the computer that has the frame buffer.
+	 */
+
+	long load_frame;
+	long save_frame;
 	char frame_filename[MXU_FILENAME_LENGTH+1];
+
+	/* The following field is used to identify the source and destination
+	 * frames in a copy operation.  The valid values are found at the
+	 * top of this file and include MXFT_AD_IMAGE_FRAME, MXFT_AD_MASK_FRAME,
+	 * and so forth.
+	 */
+
+	long copy_frame[2];
+
+	/* The following are the image frames and frame buffer pointers
+	 * used for image correction.
+	 */
 
 	MX_IMAGE_FRAME *mask_frame;
 	char *mask_frame_buffer;
@@ -169,8 +189,11 @@ typedef struct {
 #define MXLV_AD_READOUT_FRAME			12028
 #define MXLV_AD_IMAGE_FRAME_BUFFER		12029
 #define MXLV_AD_CORRECT_FRAME			12030
-#define MXLV_AD_TRANSFER_FRAME			12031
-#define MXLV_AD_FRAME_OPERATION			12032
+#define MXLV_AD_CORRECTION_FLAGS		12031
+#define MXLV_AD_TRANSFER_FRAME			12032
+#define MXLV_AD_LOAD_FRAME			12033
+#define MXLV_AD_SAVE_FRAME			12034
+#define MXLV_AD_COPY_FRAME			12035
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -307,13 +330,21 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, correct_frame), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "correction_flags", MXFT_HEX, NULL, 0, {0}, \
+  {MXLV_AD_CORRECTION_FLAGS, -1, "correction_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, correction_flags), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_FRAME_OPERATION, -1, "frame_operation", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, correct_frame), \
+  {MXLV_AD_LOAD_FRAME, -1, "load_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, load_frame), \
 	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_SAVE_FRAME, -1, "save_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, save_frame), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_COPY_FRAME, -1, "copy_frame", MXFT_LONG, NULL, 1, {2}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
+	{sizeof(long)}, NULL, 0}, \
   \
   {-1, -1, "frame_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_filename),\
@@ -350,6 +381,7 @@ typedef struct {
 	mx_status_type ( *transfer_frame ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *load_frame ) ( MX_AREA_DETECTOR *ad );
 	mx_status_type ( *save_frame ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *copy_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_roi_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
@@ -422,6 +454,12 @@ MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
 MX_API mx_status_type mx_area_detector_get_bytes_per_pixel( MX_RECORD *record,
 						double *bytes_per_pixel );
 
+MX_API mx_status_type mx_area_detector_get_correction_flags( MX_RECORD *record,
+					unsigned long *correction_flags );
+
+MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
+					unsigned long correction_flags );
+
 /*---*/
 
 MX_API mx_status_type mx_area_detector_set_exposure_time( MX_RECORD *ad_record,
@@ -465,15 +503,16 @@ MX_API mx_status_type mx_area_detector_get_extended_status(
 						long *last_frame_number,
 						unsigned long *status_flags );
 
+MX_API mx_status_type mx_area_detector_setup_frame( MX_RECORD *ad_record,
+						MX_IMAGE_FRAME **frame );
+
 MX_API mx_status_type mx_area_detector_readout_frame( MX_RECORD *ad_record,
 						long frame_number );
 
-MX_API mx_status_type mx_area_detector_correct_frame( MX_RECORD *ad_record,
-						unsigned long correction_flags);
+MX_API mx_status_type mx_area_detector_correct_frame( MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_transfer_frame( MX_RECORD *ad_record,
-						long frame_type,
-						MX_IMAGE_FRAME **frame );
+						long frame_type );
 
 MX_API mx_status_type mx_area_detector_load_frame( MX_RECORD *ad_record,
 						long frame_type,
@@ -483,6 +522,9 @@ MX_API mx_status_type mx_area_detector_save_frame( MX_RECORD *ad_record,
 						long frame_type,
 						char *frame_filename );
 
+MX_API mx_status_type mx_area_detector_copy_frame( MX_RECORD *ad_record,
+						long source_frame_type,
+						long destination_frame_type );
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,
@@ -506,6 +548,18 @@ MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 /*---*/
 
 MX_API mx_status_type mx_area_detector_default_correct_frame(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_transfer_frame(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_load_frame(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_save_frame(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_copy_frame(
                                                 MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mx_area_detector_default_get_parameter_handler(

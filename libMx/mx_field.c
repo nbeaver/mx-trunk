@@ -537,6 +537,56 @@ mx_setup_typeinfo_for_record_type_fields( long num_record_fields,
 /*=====================================================================*/
 
 MX_EXPORT mx_status_type
+mx_set_1d_field_array_length( MX_RECORD_FIELD *field, unsigned long new_length )
+{
+	static const char fname[] = "mx_set_1d_field_array_length()";
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	if ( field->num_dimensions != 1 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record field '%s' is not a 1-dimensional record field.",
+			field->name );
+	}
+
+	if ( ( field->flags & MXFF_VARARGS ) == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Record field '%s' is not a varying length field.  "
+		"MXFF_VARARGS is not set.", field->name );
+	}
+
+	MX_DEBUG(-2,("%s: Field '%s', old length = %ld, new length = %ld",
+		fname, field->name, field->dimension[0], new_length ));
+
+	field->dimension[0] = new_length;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_set_1d_field_array_length_by_name( MX_RECORD *record,
+					char *field_name,
+					unsigned long new_length )
+{
+	MX_RECORD_FIELD *field;
+	mx_status_type mx_status;
+
+	mx_status = mx_find_record_field( record, field_name, &field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_set_1d_field_array_length( field, new_length );
+
+	return mx_status;
+}
+
+/*=====================================================================*/
+
+MX_EXPORT mx_status_type
 mx_create_record_from_description(
 		MX_RECORD *record_list,
 		char *description,

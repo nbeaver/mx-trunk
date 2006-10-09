@@ -258,7 +258,10 @@ GCCFLAGS = -Wall -Werror \
 # Intel x86/m68k/sparc with GCC under Linux.
 #
 CC		= gcc
-CFLAGS		= -g -O2 -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+#CFLAGS		= -g -O2 -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
+#				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
+
+CFLAGS		= -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 CFLAGS_EPICS	= $(CFLAGS) -Wno-strict-prototypes
 

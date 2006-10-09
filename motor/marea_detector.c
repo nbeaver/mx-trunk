@@ -406,6 +406,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		mx_status = mx_area_detector_setup_frame( ad_record, &frame );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 		mx_status = mx_area_detector_readout_frame(
 						ad_record, frame_number );
 
@@ -425,8 +430,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		correction_flags = mx_hex_string_to_unsigned_long( argv[4] );
 
-		mx_status = mx_area_detector_correct_frame(
-						ad_record, correction_flags );
+		mx_status = mx_area_detector_correct_frame( ad_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -453,7 +457,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		mx_status = mx_area_detector_transfer_frame( ad_record,
-							frame_type, &frame );
+								frame_type );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

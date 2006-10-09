@@ -101,11 +101,20 @@ MX_API mx_status_type mx_get_image_format_name_from_type( long type,
 							char *name,
 							size_t max_name_length);
 
+MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
+					long image_type,
+					long *framesize,
+					long image_format,
+					long pixel_order,
+					double bytes_per_pixel,
+					size_t header_length,
+					size_t image_length );
+
+MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
+					
+
 MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
-
-MX_API mx_status_type mx_copy_image_sequence( MX_IMAGE_SEQUENCE **new_sequence,
-					MX_IMAGE_SEQUENCE *old_sequence );
 
 MX_API mx_status_type mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 						size_t *image_length,

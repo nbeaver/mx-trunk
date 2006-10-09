@@ -48,9 +48,15 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_trigger,
 	mxd_pccd_170170_stop,
 	mxd_pccd_170170_abort,
-	mxd_pccd_170170_busy,
+	NULL,
 	mxd_pccd_170170_get_status,
-	mxd_pccd_170170_get_frame,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
@@ -328,40 +334,12 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_busy( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_pccd_170170_busy()";
-
-	MX_PCCD_170170 *pccd_170170;
-	mx_bool_type busy;
-	mx_status_type mx_status;
-
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 0 && MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
-#endif
-	mx_status = mx_video_input_is_busy(
-				pccd_170170->video_input_record, &busy );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	ad->busy = busy;
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_pccd_170170_get_status()";
 
 	MX_PCCD_170170 *pccd_170170;
+	mx_bool_type busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -373,10 +351,19 @@ mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	mx_status = mx_video_input_is_busy(
+				pccd_170170->video_input_record, &busy );
 
-	mx_status = mxd_pccd_170170_busy( ad );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	return mx_status;
+	ad->status = 0;
+
+	if ( busy ) {
+		ad->status |= MXSF_AD_IS_BUSY;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

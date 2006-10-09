@@ -55,6 +55,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	mxd_soft_area_detector_get_parameter,
 	mxd_soft_area_detector_set_parameter,
 };

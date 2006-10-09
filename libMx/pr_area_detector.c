@@ -27,40 +27,39 @@
 #include "mx_process.h"
 #include "pr_handlers.h"
 
-#if 0 /* WML */
-
 static mx_status_type
-mxp_area_detector_get_frame_handler( MX_RECORD *record,
-				MX_RECORD_FIELD *record_field,
-				MX_AREA_DETECTOR *ad )
+mxp_area_detector_readout_frame_handler( MX_RECORD *record,
+					MX_RECORD_FIELD *record_field,
+					MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxp_area_detector_get_frame_handler()";
+	static const char fname[] = "mxp_area_detector_readout_frame_handler()";
 
-	MX_IMAGE_FRAME *frame;
-	MX_RECORD_FIELD *frame_buffer_field;
+	MX_IMAGE_FRAME *image_frame;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
 			fname, record->name, record_field->name));
 
-	/* Tell it to read in the frame. */
-
-	mx_status = mx_area_detector_get_frame( record, ad->get_frame,
-						&(ad->frame) );
+	mx_status = mx_area_detector_setup_frame( record, &(ad->image_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Set the frame buffer pointer to point to the buffer in the frame
-	 * that we just read in.
+	mx_status = mx_area_detector_readout_frame( record, ad->readout_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the image_frame buffer pointer to point to the buffer in
+	 * the frame that we just read in.
 	 */
 
-	frame = ad->frame;
+	image_frame = ad->image_frame;
 
-	ad->frame_buffer = frame->image_data;
+	ad->image_frame_buffer = image_frame->image_data;
 
 	MX_DEBUG(-2,("%s: bytes_per_frame = %ld, frame_buffer = %p",
-		fname, ad->bytes_per_frame, ad->frame_buffer));
+		fname, ad->bytes_per_frame, ad->image_frame_buffer));
 
 #if 1
 	{
@@ -68,44 +67,22 @@ mxp_area_detector_get_frame_handler( MX_RECORD *record,
 		unsigned char c;
 
 		for ( i = 0; i < 10; i++ ) {
-			c = ad->frame_buffer[i];
+			c = ad->image_frame_buffer[i];
 
-			MX_DEBUG(-2,("%s: frame_buffer[%d] = %u", fname, i, c));
+			MX_DEBUG(-2,
+			("%s: image_frame_buffer[%d] = %u", fname, i, c));
 		}
 	}
 #endif
 
-	/* Modify the 'frame_buffer' record field to have the correct number
-	 * of array elements.
+	/* Modify the 'image_frame_buffer' record field to have
+	 * the correct number of array elements.
 	 */
 
-	mx_status = mx_find_record_field( record,
-			"frame_buffer", &frame_buffer_field );
+	mx_status = mx_set_1d_field_array_length_by_name( record,
+				"image_frame_buffer", ad->bytes_per_frame );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( frame_buffer_field->num_dimensions != 1 ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The '%s' field for record '%s' has an incorrect "
-		"number of dimensions (%ld).  It should be 1.",
-			frame_buffer_field->name, record->name,
-			frame_buffer_field->num_dimensions );
-	}
-
-	MX_DEBUG(-2,
-	("%s: OLD frame buffer, num_dimensions = %ld, dimension[0] = %ld",
-	 	fname, frame_buffer_field->num_dimensions,
-		frame_buffer_field->dimension[0]));
-
-	frame_buffer_field->dimension[0] = ad->bytes_per_frame;
-
-	MX_DEBUG(-2,
-	("%s: NEW frame buffer, num_dimensions = %ld, dimension[0] = %ld",
-	 	fname, frame_buffer_field->num_dimensions,
-		frame_buffer_field->dimension[0]));
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*----*/
@@ -118,7 +95,6 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	static const char fname[] = "mxp_area_detector_get_roi_frame_handler()";
 
 	MX_IMAGE_FRAME *roi_frame;
-	MX_RECORD_FIELD *roi_frame_buffer_field;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
@@ -126,7 +102,7 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 
 	/* Get the ROI frame from the full image frame. */
 
-	mx_status = mx_area_detector_get_roi_frame( record, ad->frame,
+	mx_status = mx_area_detector_get_roi_frame( record, ad->image_frame,
 						ad->get_roi_frame,
 						&(ad->roi_frame) );
 
@@ -162,36 +138,11 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	 * correct number of array elements.
 	 */
 
-	mx_status = mx_find_record_field( record,
-			"roi_frame_buffer", &roi_frame_buffer_field );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( roi_frame_buffer_field->num_dimensions != 1 ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The '%s' field for record '%s' has an incorrect "
-		"number of dimensions (%ld).  It should be 1.",
-			roi_frame_buffer_field->name, record->name,
-			roi_frame_buffer_field->num_dimensions );
-	}
-
-	MX_DEBUG(-2,
-	("%s: OLD ROI frame buffer, num_dimensions = %ld, dimension[0] = %ld",
-	 	fname, roi_frame_buffer_field->num_dimensions,
-		roi_frame_buffer_field->dimension[0]));
-
-	roi_frame_buffer_field->dimension[0] = ad->roi_bytes_per_frame;
-
-	MX_DEBUG(-2,
-	("%s: NEW ROI frame buffer, num_dimensions = %ld, dimension[0] = %ld",
-	 	fname, roi_frame_buffer_field->num_dimensions,
-		roi_frame_buffer_field->dimension[0]));
-
-	return MX_SUCCESSFUL_RESULT;
+	mx_status = mx_set_1d_field_array_length_by_name( record,
+						"roi_frame_buffer",
+						ad->roi_bytes_per_frame );
+	return mx_status;
 }
-
-#endif /* WML */
 
 /*----*/
 
@@ -219,17 +170,19 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_BINSIZE:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_BYTES_PER_PIXEL:
+		case MXLV_AD_CORRECT_FRAME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
+		case MXLV_AD_GET_ROI_FRAME:
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:
 		case MXLV_AD_IMAGE_FRAME_BUFFER:
-		case MXLV_AD_READOUT_FRAME:
-		case MXLV_AD_GET_ROI_FRAME:
 		case MXLV_AD_LAST_FRAME_NUMBER:
+		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
+		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
 			record_field->process_function
 					= mx_area_detector_process_function;
@@ -341,10 +294,17 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->binsize[0],
 						ad->binsize[1] );
 			break;
+		case MXLV_AD_CORRECT_FRAME:
+			mx_status = mx_area_detector_correct_frame( record );
+			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,
 						ad->framesize[0],
 						ad->framesize[1] );
+			break;
+		case MXLV_AD_GET_ROI_FRAME:
+			mx_status = mxp_area_detector_get_roi_frame_handler(
+					record, record_field, ad );
 			break;
 		case MXLV_AD_IMAGE_FORMAT_NAME:
 			mx_status = mx_get_image_format_type_from_name(
@@ -358,18 +318,14 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_set_image_format( record,
 							ad->image_format );
 			break;
-#if 0 /* WML */
 		case MXLV_AD_READOUT_FRAME:
-			mx_status = mxp_area_detector_get_frame_handler(
+			mx_status = mxp_area_detector_readout_frame_handler(
 					record, record_field, ad );
 			break;
-		case MXLV_AD_GET_ROI_FRAME:
-			mx_status = mxp_area_detector_get_roi_frame_handler(
-					record, record_field, ad );
-			break;
-#endif /* WML */
 		case MXLV_AD_STOP:
 			mx_status = mx_area_detector_stop( record );
+			break;
+		case MXLV_AD_TRANSFER_FRAME:
 			break;
 		case MXLV_AD_TRIGGER:
 			mx_status = mx_area_detector_trigger( record );

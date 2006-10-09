@@ -28,17 +28,18 @@ typedef struct {
 	MX_NETWORK_FIELD binsize_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
+	MX_NETWORK_FIELD copy_frame_nf;
 	MX_NETWORK_FIELD correct_frame_nf;
 	MX_NETWORK_FIELD correction_flags_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;
-	MX_NETWORK_FIELD frame_operation_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
 	MX_NETWORK_FIELD image_frame_buffer_nf;
 	MX_NETWORK_FIELD last_frame_number_nf;
+	MX_NETWORK_FIELD load_frame_nf;
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
@@ -47,6 +48,7 @@ typedef struct {
 	MX_NETWORK_FIELD roi_array_nf;
 	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
 	MX_NETWORK_FIELD roi_number_nf;
+	MX_NETWORK_FIELD save_frame_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;
@@ -99,7 +101,11 @@ MX_API mx_status_type mxd_network_area_detector_correct_frame(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_transfer_frame(
 							MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_network_area_detector_load_save_frame(
+MX_API mx_status_type mxd_network_area_detector_load_frame(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_network_area_detector_save_frame(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_network_area_detector_copy_frame(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_get_roi_frame(
 							MX_AREA_DETECTOR *ad );

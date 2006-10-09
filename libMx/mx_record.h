@@ -659,6 +659,13 @@ MX_API_PRIVATE mx_status_type  mx_setup_typeinfo_for_record_type_fields(
 		MX_RECORD_FIELD_DEFAULTS *record_field_defaults_for_type,
 		long mx_type, long mx_class, long mx_superclass );
 
+MX_API mx_status_type mx_set_1d_field_array_length( MX_RECORD_FIELD *field,
+							unsigned long length );
+
+MX_API mx_status_type mx_set_1d_field_array_length_by_name( MX_RECORD *record,
+							char *field_name,
+							unsigned long length );
+
 /* --- */
 
 MX_API_PRIVATE mx_status_type  mx_construct_placeholder_record(
