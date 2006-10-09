@@ -42,7 +42,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long datafile_type, correction_flags;
 	long frame_number, roi_number, x_min, x_max, y_min, y_max;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
-	long trigger_mode, bytes_per_frame, frame_type;
+	long trigger_mode, bytes_per_frame;
+	long frame_type, src_frame_type, dest_frame_type;
 	double exposure_time;
 	mx_bool_type busy;
 	mx_status_type mx_status;
@@ -79,8 +80,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 "        area_detector 'name' get roiframe 'roi_number'\n"
 "\n"
 "        area_detector 'name' readout 'frame_number'\n"
-"        area_detector 'name' correct 'correction_flags'\n"
-"        area_detector 'name' transfer 'frame_type'\n";
+"        area_detector 'name' correct\n"
+"        area_detector 'name' transfer 'frame_type'\n"
+"\n"
+"        area_detector 'name' loadframe 'frame_type' 'filename'\n"
+"        area_detector 'name' saveframe 'frame_type' 'filename'\n"
+"        area_detector 'name' copyframe 'src_frame_type' 'dest_frame_type'\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
@@ -458,6 +463,97 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		mx_status = mx_area_detector_transfer_frame( ad_record,
 								frame_type );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "loadframe", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 6 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'loadframe' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		frame_type = strtol( argv[4], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+		"%s: Non-numeric characters found in frame type '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_area_detector_load_frame( ad_record,
+						frame_type, argv[5] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "saveframe", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 6 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'saveframe' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		frame_type = strtol( argv[4], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+		"%s: Non-numeric characters found in frame type '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_area_detector_save_frame( ad_record,
+						frame_type, argv[5] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+	} else
+	if ( strncmp( "copyframe", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 6 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'copyframe' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		src_frame_type = strtol( argv[4], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+		"%s: Non-numeric characters found in source frame type '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		dest_frame_type = strtol( argv[5], &endptr, 0 );
+
+		if ( *endptr != '\0' ) {
+			fprintf( output,
+	"%s: Non-numeric characters found in destination frame type '%s'\n",
+				cname, argv[5] );
+
+			return FAILURE;
+		}
+
+		mx_status = mx_area_detector_copy_frame( ad_record,
+					src_frame_type, dest_frame_type );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

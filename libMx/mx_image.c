@@ -615,11 +615,20 @@ mx_read_image_file( MX_IMAGE_FRAME **frame_ptr,
 {
 	static const char fname[] = "mx_read_image_file()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-				"Not yet implemented." );
-}
+	mx_status_type mx_status;
 
-/*----*/
+	switch( datafile_type ) {
+	case MXT_IMAGE_FILE_PNM:
+		mx_status = mx_read_pnm_image_file( frame_ptr, datafile_name );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image file type %lu requested for datafile '%s'.",
+			datafile_type, datafile_name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_write_image_file( MX_IMAGE_FRAME *frame,
@@ -644,6 +653,297 @@ mx_write_image_file( MX_IMAGE_FRAME *frame,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+/*
+ * WARNING: mx_read_pnm_image_file() currently does not support arbitrary
+ * PNM files.  It only supports PNM files written by mx_write_pnm_image_file().
+ * This means that the file _must_ have the following format:
+ *
+ * Line 1: Contains either the string 'P5' or the string 'P6'.
+ * Line 2: Starts with a comment character '#' and is followed
+ *         by the original filename of the PNM file.
+ * Line 3: Contains the width followed by the height in ASCII.
+ * Line 4: Contains the maximum integer pixel value.  For greyscale
+ *         'P5' files, this can be either 255 or 65535.  For color
+ *         'P6' files, this must be 255.
+ * After line 4, the rest of the file is binary image data.  For 16-bit 
+ * greyscale images, the data are stored in big-endian order.
+ *
+ * Example 1: 24-bit RGB color
+ *
+ *    P6
+ *    # test1.pnm
+ *    1024 768
+ *    255
+ *    <binary image data>
+ *
+ * Example 2: 8-bit greyscale
+ *
+ *    P5
+ *    # test1.pnm
+ *    1024 768
+ *    255
+ *    <binary image data>
+ *
+ * Example 3: 16-bit greyscale
+ *
+ *    P5
+ *    # test1.pnm
+ *    1024 768
+ *    65535
+ *    <binary image data>
+ *
+ */
+
+MX_EXPORT mx_status_type
+mx_read_pnm_image_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_read_pnm_image_file()";
+
+	FILE *file;
+	char buffer[100];
+	char *ptr;
+	int saved_errno, num_items, pnm_type;
+	long framesize[2];
+	long maxint, bytes_per_pixel, bytes_per_frame, bytes_read, image_format;
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+
+	/* Figure out the size and format of the file from the PNM header. */
+
+	file = fopen( datafile_name, "rb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Cannot open PNM image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* The first line tells us what type of PNM file this is.
+	 * At present, we only support greyscale (P5, 8-bit or 16-bit)
+	 * and color (P6, RGB 24-bit).
+	 */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the first line of PNM image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	num_items = sscanf( buffer, "P%d", &pnm_type );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"File '%s' does not seem to be a PNM file, since the first "
+		"two bytes of the file are not the letter 'P' followed by "
+		"an integer.  Instead, the first line looks like this -> '%s'",
+			datafile_name, buffer );
+	}
+
+	MX_DEBUG(-2,("%s: PNM type = %d", fname, pnm_type));
+
+	if ( (pnm_type != 5) && (pnm_type != 6) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"PNM file format P%d used by image file '%s' is not supported."
+		"  The only PNM filetypes supported are the raw formats, "
+		"'P5' and 'P6'.", pnm_type, datafile_name );
+	}
+
+	/* The second line should be a comment and should be skipped. */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the second line of PNM image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	MX_DEBUG(-2,("%s: comment line = '%s'", fname, buffer));
+
+	/* The third line should contain the width and height. */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the third line of PNM image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	num_items = sscanf( buffer, "%ld %ld", &framesize[0], &framesize[1] );
+
+	if ( num_items != 2 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Did not find the width and height of PNM file '%s'.  "
+		"Instead, we saw this -> '%s'",
+			datafile_name, buffer );
+	}
+
+	MX_DEBUG(-2,("%s: framesize = (%ld,%ld)",
+		fname, framesize[0], framesize[1]));
+
+	/* The fourth line should contain the maximum integer value. */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the third line of PNM image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	num_items = sscanf( buffer, "%ld", &maxint );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Did not find the maximum integer value of PNM file '%s'.  "
+		"Instead, we saw this -> '%s'",
+			datafile_name, buffer );
+	}
+
+	MX_DEBUG(-2,("%s: maxint = %ld", fname, maxint));
+
+	switch( pnm_type ) {
+	case 5:
+		switch( maxint ) {
+		case 255:
+			image_format = MXT_IMAGE_FORMAT_GREY8;
+			bytes_per_pixel = 1;
+			break;
+
+		case 65535:
+			image_format = MXT_IMAGE_FORMAT_GREY16;
+			bytes_per_pixel = 2;
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Greyscale PNM file '%s' reports that its maximum "
+			"integer value is %lu.  The only supported values "
+			"are 255 and 65535.", datafile_name, maxint );
+		}
+		break;
+	case 6:
+		switch( maxint ) {
+		case 255:
+			image_format = MXT_IMAGE_FORMAT_RGB;
+			bytes_per_pixel = 3;
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Color PNM file '%s' reports that its maximum "
+			"integer value is %lu.  The only supported value "
+			"is 255.", datafile_name, maxint );
+		}
+	}
+
+	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
+
+	/* Change the size of the MX_IMAGE_FRAME to match the PNM file. */
+
+	mx_status = mx_image_alloc( frame,
+					MXT_IMAGE_LOCAL_1D_ARRAY,
+					framesize,
+					image_format,
+					MXT_IMAGE_PIXEL_ORDER_STANDARD,
+					(double) bytes_per_pixel,
+					0,
+					bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Read in the binary part of the image file. */
+
+	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+				bytes_per_frame, file );
+
+	if ( bytes_read < bytes_per_frame ) {
+		if ( feof(file) ) {
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"End of file at pixel %ld for PNM image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading pixel %ld "
+			"for PNM image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Only %ld image bytes were read from "
+			"PNM image file '%s' when %ld bytes were expected.",
+				bytes_read, datafile_name, bytes_per_frame );
+	}
+
+	/* Close the PNM image file. */
+
+	fclose( file );
+
+	/* 16-bit PNM files are stored in big-endian order.  Thus, if we are
+	 * are reading a 16-bit greyscale image on a little-endian computer,
+	 * we must byteswap the image data.
+	 */
+
+	if ( ( image_format == MXT_IMAGE_FORMAT_GREY16 )
+	  && ( mx_native_byteorder() == MX_DATAFMT_LITTLE_ENDIAN ) )
+	{
+		uint16_t *uint16_array;
+		long i, words_per_frame;
+
+		/* Byteswap the 16-bit integers. */
+
+		uint16_array = (*frame)->image_data;
+
+		words_per_frame = framesize[0] * framesize[1];
+
+		for ( i = 0; i < words_per_frame; i++ ) {
+			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+		}
+	}
+
+	/* We are done, so return. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_EXPORT mx_status_type
 mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 {
@@ -655,9 +955,7 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	int src_step, dest_step;
 	unsigned char *src;
 	unsigned char dest[10];
-	unsigned char R, G, B;
-	unsigned char byte0, byte1;
-	uint16_t grey16_pixel;
+	unsigned char byte0;
 	int pnm_type, saved_errno;
 	unsigned long byteorder;
 	long i;
@@ -689,28 +987,28 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	switch( frame->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
 		converter = mxp_rgb565_converter;
-		pnm_type = 3;
+		pnm_type = 6;
 		maxint = 255;
 		break;
 	case MXT_IMAGE_FORMAT_YUYV:
 		converter = mxp_yuyv_converter;
-		pnm_type = 3;
+		pnm_type = 6;
 		maxint = 255;
 		break;
 
 	case MXT_IMAGE_FORMAT_RGB:
 		converter = mxp_rgb_converter;
-		pnm_type = 3;
+		pnm_type = 6;
 		maxint = 255;
 		break;
 	case MXT_IMAGE_FORMAT_GREY8:
 		converter = mxp_grey8_converter;
-		pnm_type = 2;
+		pnm_type = 5;
 		maxint = 255;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
 		converter = mxp_grey16_converter;
-		pnm_type = 2;
+		pnm_type = 5;
 		maxint = 65535;
 		break;
 	default:
@@ -736,7 +1034,7 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 				dest_step );
 	}
 
-	file = fopen( datafile_name, "w" );
+	file = fopen( datafile_name, "wb" );
 
 	if ( file == NULL ) {
 		saved_errno = errno;
@@ -774,92 +1072,29 @@ mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 		case MXT_IMAGE_FORMAT_RGB565:
 		case MXT_IMAGE_FORMAT_RGB:
-			R = dest[0];
-			G = dest[1];
-			B = dest[2];
-
-			if ( i < 50 ) {
-				MX_DEBUG(-2,
-				("%s: i = %lu, R = %d, G = %d, B = %d",
-
-				fname, i, R, G, B));
-			}
-
-			fprintf( file, "%d %d %d\n", R, G, B );
-			break;
-
 		case MXT_IMAGE_FORMAT_YUYV:
-			/* For YUYV, the pixels are produced in
-			 * groups of 2.
-			 */
-
-			/* Get the first pixel. */
-
-			R = dest[0];
-			G = dest[1];
-			B = dest[2];
-
-			if ( i < 50 ) {
-				MX_DEBUG(-2,
-				("%s: i = %lu, R = %d, G = %d, B = %d",
-
-				fname, i, R, G, B));
-			}
-
-			fprintf( file, "%d %d %d\n", R, G, B );
-
-			/* Get the second pixel. */
-
-			R = dest[3];
-			G = dest[4];
-			B = dest[5];
-
-			if ( i < 50 ) {
-				MX_DEBUG(-2,
-				("%s: i = %lu, R = %d, G = %d, B = %d",
-
-				fname, i, R, G, B));
-			}
-
-			fprintf( file, "%d %d %d\n", R, G, B );
-			break;
-
 		case MXT_IMAGE_FORMAT_GREY8:
-			if ( i < 50 ) {
-				MX_DEBUG(-2,("%s: i = %lu, grey8 = %lu",
-					fname, i,
-					(unsigned long) dest[0]));
-			}
+			/* 8-bit formats can be written immediately. */
 
-			fprintf( file, "%lu ", (unsigned long) dest[0] );
-
-			if ( ((i+1) % 5) == 0 ) {
-				fprintf( file, "\n" );
-			}
+			fwrite( dest, sizeof(unsigned char), dest_step, file );
 			break;
 
 		case MXT_IMAGE_FORMAT_GREY16:
-			byte0 = dest[0];
-			byte1 = dest[1];
+			/* If we are on a big-endian machine, we can directly
+			 * write the bytes.  On a little-endian machine, we
+			 * byteswap to big-endian byte order before writing
+			 * out the bytes.
+			 */
 
-			if ( byteorder == MX_DATAFMT_BIG_ENDIAN ) {
-				grey16_pixel = ( byte0 << 8 ) | byte1;
-			} else {
-				grey16_pixel = byte0 | ( byte1 << 8 );
+			if ( byteorder == MX_DATAFMT_LITTLE_ENDIAN ) {
+				/* Swap the bytes. */
+
+				byte0   = dest[0];
+				dest[0] = dest[1];
+				dest[1] = byte0;
 			}
 
-			if ( i < 50 ) {
-				MX_DEBUG(-2,("%s: i = %lu, grey16 = %lu",
-					fname, i,
-					(unsigned long) grey16_pixel));
-			}
-
-			fprintf( file, "%lu ",
-					(unsigned long) grey16_pixel );
-
-			if ( ((i+1) % 5) == 0 ) {
-				fprintf( file, "\n" );
-			}
+			fwrite( dest, sizeof(unsigned char), dest_step, file );
 			break;
 
 		default:

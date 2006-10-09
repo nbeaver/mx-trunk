@@ -137,6 +137,9 @@ MX_API mx_status_type mx_write_image_file( MX_IMAGE_FRAME *frame,
 
 /*----*/
 
+MX_API mx_status_type mx_read_pnm_image_file( MX_IMAGE_FRAME **frame,
+						char *datafile_name );
+
 MX_API mx_status_type mx_write_pnm_image_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
 

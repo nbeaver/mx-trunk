@@ -144,15 +144,19 @@ typedef struct {
 
 	MX_IMAGE_FRAME *mask_frame;
 	char *mask_frame_buffer;
+	char mask_filename[MXU_FILENAME_LENGTH+1];
 
 	MX_IMAGE_FRAME *bias_frame;
 	char *bias_frame_buffer;
+	char bias_filename[MXU_FILENAME_LENGTH+1];
 
 	MX_IMAGE_FRAME *dark_current_frame;
 	char *dark_current_frame_buffer;
+	char dark_current_filename[MXU_FILENAME_LENGTH+1];
 
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
+	char flood_field_filename[MXU_FILENAME_LENGTH+1];
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -193,7 +197,13 @@ typedef struct {
 #define MXLV_AD_TRANSFER_FRAME			12032
 #define MXLV_AD_LOAD_FRAME			12033
 #define MXLV_AD_SAVE_FRAME			12034
-#define MXLV_AD_COPY_FRAME			12035
+#define MXLV_AD_FRAME_FILENAME			12035
+#define MXLV_AD_COPY_FRAME			12036
+
+#define MXLV_AD_MASK_FILENAME			12101
+#define MXLV_AD_BIAS_FILENAME			12102
+#define MXLV_AD_DARK_CURRENT_FILENAME		12103
+#define MXLV_AD_FLOOD_FIELD_FILENAME		12104
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -342,6 +352,11 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, save_frame), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_FRAME_FILENAME, -1, "frame_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_filename), \
+	{sizeof(char)}, NULL, 0}, \
+  \
   {MXLV_AD_COPY_FRAME, -1, "copy_frame", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
@@ -365,8 +380,31 @@ typedef struct {
   \
   {-1, -1, "flood_field_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_AREA_DETECTOR, flood_field_frame_buffer),\
+		offsetof(MX_AREA_DETECTOR, flood_field_frame_buffer), \
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}
+
+#define MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS \
+  {MXLV_AD_MASK_FILENAME, -1, "mask_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, mask_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AD_BIAS_FILENAME, -1, "bias_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AD_DARK_CURRENT_FILENAME, -1, "dark_current_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, dark_current_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {MXLV_AD_FLOOD_FIELD_FILENAME, -1, "flood_field_filename", MXFT_STRING, \
+					NULL, 1, {MXU_FILENAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, flood_field_filename), \
+	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}
 
 typedef struct {
         mx_status_type ( *arm ) ( MX_AREA_DETECTOR *ad );
@@ -399,6 +437,9 @@ MX_API mx_status_type mx_area_detector_initialize_type(
 			long *maximum_num_rois_varargs_cookie );
 
 MX_API mx_status_type mx_area_detector_finish_record_initialization(
+						MX_RECORD *record );
+
+MX_API mx_status_type mx_area_detector_load_correction_files(
 						MX_RECORD *record );
 
 /*---*/

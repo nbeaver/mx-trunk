@@ -170,16 +170,20 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_BINSIZE:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_BYTES_PER_PIXEL:
+		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
+		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_GET_ROI_FRAME:
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:
 		case MXLV_AD_IMAGE_FRAME_BUFFER:
 		case MXLV_AD_LAST_FRAME_NUMBER:
+		case MXLV_AD_LOAD_FRAME:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_ROI_FRAME_BUFFER:
+		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TRANSFER_FRAME:
@@ -294,6 +298,10 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->binsize[0],
 						ad->binsize[1] );
 			break;
+		case MXLV_AD_COPY_FRAME:
+			mx_status = mx_area_detector_copy_frame( record,
+					ad->copy_frame[0], ad->copy_frame[1] );
+			break;
 		case MXLV_AD_CORRECT_FRAME:
 			mx_status = mx_area_detector_correct_frame( record );
 			break;
@@ -302,6 +310,12 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->framesize[0],
 						ad->framesize[1] );
 			break;
+#if 1
+		case MXLV_AD_FRAME_FILENAME:
+			MX_DEBUG(-2,("%s: Frame filename = '%s'",
+				fname, ad->frame_filename));
+			break;
+#endif
 		case MXLV_AD_GET_ROI_FRAME:
 			mx_status = mxp_area_detector_get_roi_frame_handler(
 					record, record_field, ad );
@@ -318,9 +332,17 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_set_image_format( record,
 							ad->image_format );
 			break;
+		case MXLV_AD_LOAD_FRAME:
+			mx_status = mx_area_detector_load_frame( record,
+					ad->load_frame, ad->frame_filename );
+			break;
 		case MXLV_AD_READOUT_FRAME:
 			mx_status = mxp_area_detector_readout_frame_handler(
 					record, record_field, ad );
+			break;
+		case MXLV_AD_SAVE_FRAME:
+			mx_status = mx_area_detector_save_frame( record,
+					ad->save_frame, ad->frame_filename );
 			break;
 		case MXLV_AD_STOP:
 			mx_status = mx_area_detector_stop( record );

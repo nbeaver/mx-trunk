@@ -184,11 +184,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
-	ad->correction_flags = MXFT_AD_ALL;
-#else
 	ad->correction_flags = 0;
-#endif
 
 	ad->roi_frame = NULL;
 	ad->roi_frame_buffer = NULL;
@@ -200,20 +196,108 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->mask_frame = NULL;
 	ad->mask_frame_buffer = NULL;
+	ad->mask_filename[0] = '\0';
 
 	ad->bias_frame = NULL;
 	ad->bias_frame_buffer = NULL;
+	ad->bias_filename[0] = '\0';
 
 	ad->dark_current_frame = NULL;
 	ad->dark_current_frame_buffer = NULL;
+	ad->dark_current_filename[0] = '\0';
 
 	ad->flood_field_frame = NULL;
 	ad->flood_field_frame_buffer = NULL;
+	ad->flood_field_filename[0] = '\0';
 
 	mx_status = mx_get_image_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_load_correction_files( MX_RECORD *record )
+{
+	static const char fname[] = "mx_area_detector_load_correction_files()";
+
+	MX_AREA_DETECTOR *ad;
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, NULL, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name));
+
+	MX_DEBUG(-2,("%s: ad->image_format = %ld", fname, ad->image_format));
+	MX_DEBUG(-2,("%s: ad->framesize = (%ld,%ld)",
+		fname, ad->framesize[0], ad->framesize[1]));
+
+	ad->correction_flags = 0;
+
+	if ( strlen(ad->mask_filename) > 0 ) {
+		mx_status = mx_area_detector_load_frame( record,
+							MXFT_AD_MASK_FRAME,
+							ad->mask_filename );
+
+		if ( (mx_status.code != MXE_SUCCESS)
+		  && (mx_status.code != MXE_NOT_FOUND) )
+		{
+			return mx_status;
+		}
+
+		ad->correction_flags |= MXFT_AD_MASK_FRAME;
+	}
+
+	if ( strlen(ad->bias_filename) > 0 ) {
+		mx_status = mx_area_detector_load_frame( record,
+							MXFT_AD_BIAS_FRAME,
+							ad->bias_filename );
+
+		if ( (mx_status.code != MXE_SUCCESS)
+		  && (mx_status.code != MXE_NOT_FOUND) )
+		{
+			return mx_status;
+		}
+
+		ad->correction_flags |= MXFT_AD_BIAS_FRAME;
+	}
+
+	if ( strlen(ad->dark_current_filename) > 0 ) {
+		mx_status = mx_area_detector_load_frame( record,
+						MXFT_AD_DARK_CURRENT_FRAME,
+						ad->dark_current_filename );
+
+		if ( (mx_status.code != MXE_SUCCESS)
+		  && (mx_status.code != MXE_NOT_FOUND) )
+		{
+			return mx_status;
+		}
+
+		ad->correction_flags |= MXFT_AD_DARK_CURRENT_FRAME;
+	}
+
+	if ( strlen(ad->flood_field_filename) > 0 ) {
+		mx_status = mx_area_detector_load_frame( record,
+						MXFT_AD_FLOOD_FIELD_FRAME,
+						ad->flood_field_filename );
+
+		if ( (mx_status.code != MXE_SUCCESS)
+		  && (mx_status.code != MXE_NOT_FOUND) )
+		{
+			return mx_status;
+		}
+
+		ad->correction_flags |= MXFT_AD_FLOOD_FIELD_FRAME;
+	}
+
+	MX_DEBUG(-2,("%s complete for area detector '%s'.",
+		fname, ad->record->name));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*=======================================================================*/
@@ -1798,7 +1882,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,
 	("%s invoked for area detector '%s'.", fname, ad->record->name ));
 
-	MX_DEBUG(-2,("%s: load_frame = %ld, frame_filename = '%s'",
+	MX_DEBUG(-2,("%s: load_frame = %#lx, frame_filename = '%s'",
 		fname, ad->load_frame, ad->frame_filename));
 
 	switch( ad->load_frame ) {
@@ -1840,7 +1924,38 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 					ad->frame_file_format, NULL,
 					ad->frame_filename );
 	
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Does the frame we just loaded have the expected image format? */
+
+	if ( (*frame_ptr)->image_format != ad->image_format ) {
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"The image format %ld for file '%s' does not match "
+		"the expected image format %ld for area detector '%s'.",
+			(*frame_ptr)->image_format, ad->frame_filename,
+			ad->image_format, ad->record->name );
+	}
+
+	/* Does the frame we just loaded have the expected image dimensions? */
+
+	if ( ( (*frame_ptr)->framesize[0] != ad->framesize[0] )
+	  || ( (*frame_ptr)->framesize[1] != ad->framesize[1] ) )
+	{
+		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
+		"The dimensions (%ld,%ld) of image file '%s' do not match the "
+		"expected image dimensions (%ld,%ld) for area detector '%s.'",
+			(*frame_ptr)->framesize[0], (*frame_ptr)->framesize[1],
+			ad->frame_filename,
+			ad->framesize[0], ad->framesize[1],
+			ad->record->name );
+	}
+
+
+	MX_DEBUG(-2,("%s: frame file '%s' successfully loaded to %#lx",
+		fname, ad->frame_filename, ad->load_frame));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1890,7 +2005,13 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 					ad->frame_file_format, NULL,
 					ad->frame_filename );
 	
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: frame %#lx successfully saved to frame file '%s'.",
+		fname, ad->save_frame, ad->frame_filename));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -1962,7 +2083,13 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_copy_image_frame( dest_frame_ptr, src_frame );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: frame %#lx successfully copied to frame %#lx.",
+		fname, ad->copy_frame[0], ad->copy_frame[1]));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -2121,6 +2248,11 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	static const char fname[] = "mx_area_detector_frame_correction()";
 
 	MX_AREA_DETECTOR *ad;
+	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
+	uint16_t *dark_current_data_array, *flood_field_data_array;
+	long i;
+	uint16_t image_pixel, total_pixel_offset;
+	double flood_field_scale_factor;
 	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -2137,13 +2269,100 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_DEBUG(-2,("%s: dark_current_frame = %p", fname, dark_current_frame));
 	MX_DEBUG(-2,("%s: flood_field_frame = %p", fname, flood_field_frame));
 
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"No primary image frame was provided." );
+	}
+
 	if ( ad->correction_flags == 0 ) {
 		MX_DEBUG(-2,("%s: No corrections requested.", fname));
 
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-				"Not yet implemented." );
+	/* Area detector image correction is currently only supported
+	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
+	 */
+
+	if ( image_frame->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The primary image frame is not a 16-bit greyscale image." );
+	}
+
+	image_data_array = image_frame->image_data;
+
+	if ( mask_frame == NULL ) {
+		mask_data_array = NULL;
+	} else {
+		mask_data_array = mask_frame->image_data;
+	}
+
+	if ( bias_frame == NULL ) {
+		bias_data_array = NULL;
+	} else {
+		bias_data_array = bias_frame->image_data;
+	}
+
+	if ( dark_current_frame == NULL ) {
+		dark_current_data_array = NULL;
+	} else {
+		dark_current_data_array = dark_current_frame->image_data;
+	}
+
+	if ( flood_field_frame == NULL ) {
+		flood_field_data_array = NULL;
+	} else {
+		flood_field_data_array = flood_field_frame->image_data;
+	}
+
+	for ( i = 0; i < image_frame->image_length; i++ ) {
+
+		image_pixel = image_data_array[i];
+
+		if ( mask_data_array != NULL ) {
+			if ( mask_data_array[i] == 0 ) {
+
+				/* If the pixel is masked off, set the image
+				 * pixel to 0 and return to the top of the
+				 * loop for the next pixel.
+				 */
+
+				image_data_array[i] = 0;
+
+				/* Go back to the top of the for() loop. */
+
+				continue;
+			}
+		}
+
+		/* FIXME: The following formulas probably need to be fixed. */
+
+		total_pixel_offset = 0;
+
+		if ( bias_data_array != NULL ) {
+			total_pixel_offset += bias_data_array[i];
+		}
+		if ( dark_current_data_array != NULL ) {
+			total_pixel_offset += dark_current_data_array[i];
+		}
+
+		if ( image_pixel < total_pixel_offset ) {
+			image_pixel = 0;
+		} else {
+			image_pixel -= total_pixel_offset;
+		}
+
+		if ( flood_field_data_array != NULL ) {
+			flood_field_scale_factor =
+					(double) flood_field_data_array[i];
+
+			image_pixel = mx_round(
+			    flood_field_scale_factor * (double) image_pixel );
+		}
+
+		image_data_array[i] = image_pixel;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -63,6 +63,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 MX_RECORD_FIELD_DEFAULTS mxd_soft_area_detector_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
 	MXD_SOFT_AREA_DETECTOR_STANDARD_FIELDS
 };
 
@@ -194,6 +195,10 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	video_input_record = soft_area_detector->video_input_record;
 
+	/* FIXME: Need to change the file format. */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_PNM;
+
 	ad->binsize[0] = 1;
 	ad->binsize[1] = 1;
 
@@ -220,11 +225,21 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
 				soft_area_detector->initial_trigger_mode );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Load the image correction files. */
+
+	mx_status = mx_area_detector_load_correction_files( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
