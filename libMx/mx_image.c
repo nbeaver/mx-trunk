@@ -484,6 +484,32 @@ mx_image_free( MX_IMAGE_FRAME *frame )
 /*----*/
 
 MX_EXPORT mx_status_type
+mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
+				double *exposure_time )
+{
+	static const char fname[] = "mx_image_get_exposure_time()";
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+	if ( exposure_time == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The exposure_time pointer passed was NULL." );
+	}
+
+	/* FIXME - FIXME - FIXME */
+
+	/* This is a stub that will need to be filled in when we have
+	 * implemented real image file headers.
+	 */
+
+	*exposure_time = 1.0;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 				size_t *image_length,
 				void **image_data_pointer )

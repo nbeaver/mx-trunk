@@ -113,6 +113,9 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
 					
 
+MX_API mx_status_type mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
+						double *exposure_time );
+
 MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
 

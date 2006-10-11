@@ -150,9 +150,14 @@ typedef struct {
 	char *bias_frame_buffer;
 	char bias_filename[MXU_FILENAME_LENGTH+1];
 
+	mx_bool_type use_scaled_dark_current;
+	double dark_current_exposure_time;
+
 	MX_IMAGE_FRAME *dark_current_frame;
 	char *dark_current_frame_buffer;
 	char dark_current_filename[MXU_FILENAME_LENGTH+1];
+
+	double flood_field_average_intensity;
 
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
@@ -372,6 +377,16 @@ typedef struct {
   {-1, -1, "bias_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {-1, -1, "use_scaled_dark_current", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_AREA_DETECTOR, use_scaled_dark_current), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "dark_current_exposure_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, dark_current_exposure_time), \
+	{0}, NULL, 0}, \
   \
   {-1, -1, "dark_current_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, \
