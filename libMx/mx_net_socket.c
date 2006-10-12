@@ -15,9 +15,16 @@
  *
  */
 
-#define MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE	FALSE
+#define MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE		FALSE
 
-#define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE	FALSE
+#define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE		FALSE
+
+/* Oct. 11, 2006 - For now it is best to leave the following define
+ * set to TRUE, so that any such errors will not be hidden.  Currently,
+ * this seems to only be an issue on Solaris.  (W. Lavender)
+ */
+
+#define MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE	TRUE
 
 #include <stdio.h>
 
@@ -175,6 +182,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			case EWOULDBLOCK:
 #endif
 				if ( is_non_blocking == FALSE ) {
+
+#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
+
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -182,6 +192,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 				"even though we are in blocking mode.  "
 				"This should not happen.",
 						mx_socket->socket_fd );
+
+#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
 
 				} else {
 					if ( no_timeout ) {
@@ -326,6 +338,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			case EWOULDBLOCK:
 #endif
 				if ( is_non_blocking == FALSE ) {
+
+#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
+
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -333,6 +348,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 				"even though we are in blocking mode.  "
 				"This should not happen.",
 						mx_socket->socket_fd );
+
+#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
 
 				} else {
 					if ( no_timeout ) {
@@ -533,6 +550,9 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 			case EWOULDBLOCK:
 #endif
 				if ( is_non_blocking == FALSE ) {
+
+#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
+
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to send() for MX socket %d returned an "
@@ -540,6 +560,8 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 				"even though we are in blocking mode.  "
 				"This should not happen.",
 						mx_socket->socket_fd );
+
+#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
 
 				} else {
 					if ( no_timeout ) {

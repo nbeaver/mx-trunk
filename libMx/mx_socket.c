@@ -979,8 +979,13 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-#if defined(OS_SOLARIS)
+#if 1 && defined(OS_SOLARIS)
 	{
+		/* (WML - Oct. 11, 2006) - As of today, this problem
+		 * is still here.  In one test, using non-blocking I/O
+		 * caused the data transfer to be around 15 times slower.
+		 */
+
 		/* FIXME - FIXME - FIXME  (WML - Dec. 5, 2005)
 		 * For some reason, on Solaris 10, non-blocking socket I/O
 		 * seems to be very slow compared to blocking I/O.  However,
