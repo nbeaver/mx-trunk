@@ -113,6 +113,7 @@
 typedef struct {
 	MX_SOCKET_FD socket_fd;
 	unsigned long socket_flags;
+	mx_bool_type is_non_blocking;
 } MX_SOCKET;
 
 /* ***** Various define's ***** */

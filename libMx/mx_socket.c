@@ -220,6 +220,10 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			saved_errno, error_string );
 	}
 
+	/* Sockets start out in blocking mode. */
+
+	(*client_socket)->is_non_blocking = FALSE;
+
 	/* Save the socket flags argument. */
 
 	(*client_socket)->socket_flags = socket_flags;
@@ -337,6 +341,10 @@ mx_tcp_socket_open_as_server( MX_SOCKET **server_socket,
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, error_string );
 	}
+
+	/* Sockets start out in blocking mode. */
+
+	(*server_socket)->is_non_blocking = FALSE;
 
 	/* Save the socket flags argument. */
 
@@ -533,6 +541,14 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 			saved_errno, error_string );
 	}
 
+	/* Sockets start out in blocking mode. */
+
+	(*client_socket)->is_non_blocking = FALSE;
+
+	/* Save the socket flags argument. */
+
+	(*client_socket)->socket_flags = socket_flags;
+
 	/* Open the socket. */
 
 	MX_DEBUG( 2,("%s: About to invoke connect().",fname));
@@ -641,6 +657,10 @@ mx_unix_socket_open_as_server( MX_SOCKET **server_socket,
 			"Errno = %d.  Error string = '%s'.",
 			saved_errno, error_string );
 	}
+
+	/* Sockets start out in blocking mode. */
+
+	(*server_socket)->is_non_blocking = FALSE;
 
 	/* Save the socket flags argument. */
 
@@ -875,6 +895,34 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 #  include <sys/utsname.h>
 #endif
 
+#if defined(OS_WIN32)
+
+/* Win32 does not support F_GETFL for fcntl(), so we manually save a flag
+ * in mx_socket_set_non_blocking_mode() that we report back here.
+ */
+
+MX_EXPORT mx_status_type
+mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
+				mx_bool_type *non_blocking_flag )
+{
+	static const char fname[] = "mx_socket_get_non_blocking_flag()";
+
+	if ( mx_socket == (MX_SOCKET *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( non_blocking_flag == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The non_blocking_flag pointer passed was NULL." );
+	}
+
+	*non_blocking_flag = mx_socket->is_non_blocking;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#else /* not OS_WIN32 */
+
 MX_EXPORT mx_status_type
 mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 				mx_bool_type *non_blocking_flag )
@@ -886,6 +934,10 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_SOCKET pointer passed was NULL." );
+	}
+	if ( non_blocking_flag == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The non_blocking_flag pointer passed was NULL." );
 	}
 
 	fcntl_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
@@ -901,13 +953,18 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 	}
 
 	if ( fcntl_flags & O_NONBLOCK ) {
-		*non_blocking_flag = TRUE;
+		mx_socket->is_non_blocking = TRUE;
 	} else {
-		*non_blocking_flag = FALSE;
+		mx_socket->is_non_blocking = FALSE;
 	}
+
+	*non_blocking_flag = mx_socket->is_non_blocking;
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+#endif /* not OS_WIN32 */
+
 
 MX_EXPORT mx_status_type
 mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
@@ -959,8 +1016,12 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 
 	if ( non_blocking_flag ) {
 		non_blocking = 1;
+
+		mx_socket->is_non_blocking = TRUE;
 	} else {
 		non_blocking = 0;
+
+		mx_socket->is_non_blocking = FALSE;
 	}
 
 	socket_errno = mx_socket_ioctl( mx_socket, FIONBIO, &non_blocking );
