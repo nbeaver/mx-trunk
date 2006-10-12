@@ -865,6 +865,9 @@ mx_read_pnm_image_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	MX_DEBUG(-2,("%s: maxint = %ld", fname, maxint));
 
+	bytes_per_pixel = 0;
+	image_format = 0;
+
 	switch( pnm_type ) {
 	case 5:
 		switch( maxint ) {
