@@ -2053,7 +2053,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_read_image_file( frame_ptr,
-					ad->frame_file_format, NULL,
+					ad->frame_file_format,
 					ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )
@@ -2134,7 +2134,7 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 	}
 
 	mx_status = mx_write_image_file( frame,
-					ad->frame_file_format, NULL,
+					ad->frame_file_format,
 					ad->frame_filename );
 	
 	if ( mx_status.code != MXE_SUCCESS )

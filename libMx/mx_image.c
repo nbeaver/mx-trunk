@@ -636,7 +636,6 @@ mx_copy_image_frame( MX_IMAGE_FRAME **new_frame_ptr,
 MX_EXPORT mx_status_type
 mx_read_image_file( MX_IMAGE_FRAME **frame_ptr,
 			unsigned long datafile_type,
-			void *datafile_args,
 			char *datafile_name )
 {
 	static const char fname[] = "mx_read_image_file()";
@@ -659,7 +658,6 @@ mx_read_image_file( MX_IMAGE_FRAME **frame_ptr,
 MX_EXPORT mx_status_type
 mx_write_image_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,
-			void *datafile_args,
 			char *datafile_name )
 {
 	static const char fname[] = "mx_write_image_file()";

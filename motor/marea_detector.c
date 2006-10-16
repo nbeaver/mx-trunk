@@ -216,8 +216,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_START( measurement4 );
 #endif
 		mx_status = mx_write_image_file( frame,
-						datafile_type, NULL,
-						filename );
+						datafile_type, filename );
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement4 );
 #endif
@@ -308,8 +307,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_write_image_file( frame,
-						datafile_type, NULL,
-						filename );
+						datafile_type, filename );
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
 
@@ -322,8 +320,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_write_image_file( roi_frame,
-						datafile_type, NULL,
-						filename );
+						datafile_type, filename );
 		} else {
 			fprintf( output,
 			"%s: Illegal 'write' argument '%s'\n",

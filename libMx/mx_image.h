@@ -133,12 +133,10 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 
 MX_API mx_status_type mx_read_image_file( MX_IMAGE_FRAME **frame,
 					unsigned long datafile_type,
-					void *datafile_args,
 					char *datafile_name );
 
 MX_API mx_status_type mx_write_image_file( MX_IMAGE_FRAME *frame,
 					unsigned long datafile_type,
-					void *datafile_args,
 					char *datafile_name );
 
 /*----*/
