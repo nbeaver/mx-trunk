@@ -46,10 +46,11 @@
 
 
 #define MXT_SQ_ONE_SHOT			1
-#define MXT_SQ_CONTINUOUS		2    /* Overwrites a single buffer. */
-
+#define MXT_SQ_CONTINUOUS		2
 #define MXT_SQ_MULTIFRAME		3
 #define MXT_SQ_CIRCULAR_MULTIFRAME	4
+#define MXT_SQ_STROBE			5
+#define MXT_SQ_BULB			6
 
 #define MXT_SQ_GEOMETRICAL		101
 

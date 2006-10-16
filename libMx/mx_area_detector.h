@@ -539,6 +539,13 @@ MX_API mx_status_type mx_area_detector_set_circular_multiframe_mode(
 							double exposure_time,
 							double gap_time );
 
+MX_API mx_status_type mx_area_detector_set_strobe_mode( MX_RECORD *ad_record,
+							long num_frames,
+							double exposure_time );
+
+MX_API mx_status_type mx_area_detector_set_bulb_mode( MX_RECORD *ad_record,
+							long num_frames );
+
 MX_API mx_status_type mx_area_detector_set_geometrical_mode(
 						MX_RECORD *ad_record,
 						long num_frames,
