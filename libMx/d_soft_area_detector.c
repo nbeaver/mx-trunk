@@ -301,10 +301,10 @@ mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_CONTINUOUS:
 		break;
 
-	case MXT_SQ_MULTI:
+	case MXT_SQ_MULTIFRAME:
 		break;
 
-	case MXT_SQ_CONTINUOUS_MULTI:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		break;
 
 	default:

@@ -150,7 +150,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		filename = argv[6];
 
-		mx_status = mx_area_detector_set_exposure_time( ad_record,
+		mx_status = mx_area_detector_set_one_shot_mode( ad_record,
 								exposure_time );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -821,11 +821,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else
-		if ( strncmp( "exposure_time", argv[4], strlen(argv[4])) == 0 ){
+		if ( strncmp( "one_shot_mode", argv[4], strlen(argv[4])) == 0 ){
 
 			exposure_time = atof( argv[5] );
 
-			mx_status = mx_area_detector_set_exposure_time(
+			mx_status = mx_area_detector_set_one_shot_mode(
 						    ad_record, exposure_time );
 
 			if ( mx_status.code != MXE_SUCCESS )

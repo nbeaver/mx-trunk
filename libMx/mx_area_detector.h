@@ -518,8 +518,9 @@ MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_set_exposure_time( MX_RECORD *ad_record,
-							double exposure_time );
+MX_API mx_status_type mx_area_detector_set_sequence_parameters(
+				MX_RECORD *ad_record,
+				MX_SEQUENCE_PARAMETERS *sequence_parameters );
 
 MX_API mx_status_type mx_area_detector_set_one_shot_mode(MX_RECORD *ad_record,
 							double exposure_time );
@@ -527,12 +528,29 @@ MX_API mx_status_type mx_area_detector_set_one_shot_mode(MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
 							double exposure_time );
 
-MX_API mx_status_type mx_area_detector_set_sequence_parameters(
-				MX_RECORD *ad_record,
-				MX_SEQUENCE_PARAMETERS *sequence_parameters );
+MX_API mx_status_type mx_area_detector_set_multiframe_mode(MX_RECORD *ad_record,
+							long num_frames,
+							double exposure_time,
+							double gap_time );
+
+MX_API mx_status_type mx_area_detector_set_circular_multiframe_mode(
+							MX_RECORD *ad_record,
+							long num_frames,
+							double exposure_time,
+							double gap_time );
+
+MX_API mx_status_type mx_area_detector_set_geometrical_mode(
+						MX_RECORD *ad_record,
+						long num_frames,
+						double exposure_time,
+						double gap_time,
+						double exposure_multiplier,
+						double gap_multiplier );
 
 MX_API mx_status_type mx_area_detector_set_trigger_mode( MX_RECORD *ad_record,
 							long trigger_mode );
+
+/*---*/
 
 MX_API mx_status_type mx_area_detector_arm( MX_RECORD *ad_record );
 

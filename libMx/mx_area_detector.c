@@ -733,94 +733,6 @@ mx_area_detector_get_bytes_per_pixel(MX_RECORD *record, double *bytes_per_pixel)
 /*---*/
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_exposure_time( MX_RECORD *record, double exposure_time )
-{
-	static const char fname[] = "mx_area_detector_set_exposure_time()";
-
-	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_PARAMETERS *sp;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
-	mx_status_type mx_status;
-
-	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	set_parameter_fn = flist->set_parameter;
-
-	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = 
-			mx_area_detector_default_set_parameter_handler;
-	}
-
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
-
-	/* Save the parameters, which will be used the next time that
-	 * the area detector "arms".
-	 */
-
-	sp = &(ad->sequence_parameters);
-
-	sp->sequence_type = MXT_SQ_ONE_SHOT;
-
-	sp->num_parameters = 1;
-
-	sp->parameter_array[0] = exposure_time;
-
-	sp->parameter_array[1] = 0;
-
-	mx_status = (*set_parameter_fn)( ad );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
-{
-	static const char fname[] = "mx_area_detector_set_continuous_mode()";
-
-	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_PARAMETERS *sp;
-	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
-	mx_status_type mx_status;
-
-	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	set_parameter_fn = flist->set_parameter;
-
-	if ( set_parameter_fn == NULL ) {
-		set_parameter_fn = 
-			mx_area_detector_default_set_parameter_handler;
-	}
-
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
-
-	/* Save the parameters, which will be used the next time that
-	 * the area detector "arms".
-	 */
-
-	sp = &(ad->sequence_parameters);
-
-	sp->sequence_type = MXT_SQ_CONTINUOUS;
-
-	sp->num_parameters = 1;
-
-	sp->parameter_array[0] = exposure_time;
-
-	sp->parameter_array[1] = 0;
-
-	mx_status = (*set_parameter_fn)( ad );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
 mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 			MX_SEQUENCE_PARAMETERS *sequence_parameters )
 {
@@ -879,6 +791,100 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 
 	mx_status = (*set_parameter_fn)( ad );
 
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_one_shot_mode( MX_RECORD *record, double exposure_time )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_ONE_SHOT;
+	seq_params.num_parameters = 1;
+	seq_params.parameter_array[0] = exposure_time;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_continuous_mode( MX_RECORD *record, double exposure_time )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_CONTINUOUS;
+	seq_params.num_parameters = 1;
+	seq_params.parameter_array[0] = exposure_time;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_multiframe_mode( MX_RECORD *record,
+					long num_frames,
+					double exposure_time,
+					double gap_time )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_MULTIFRAME;
+	seq_params.num_parameters = 3;
+	seq_params.parameter_array[0] = num_frames;
+	seq_params.parameter_array[1] = exposure_time;
+	seq_params.parameter_array[2] = gap_time;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_circular_multiframe_mode( MX_RECORD *record,
+						long num_frames,
+						double exposure_time,
+						double gap_time )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_CIRCULAR_MULTIFRAME;
+	seq_params.num_parameters = 3;
+	seq_params.parameter_array[0] = num_frames;
+	seq_params.parameter_array[1] = exposure_time;
+	seq_params.parameter_array[2] = gap_time;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_geometrical_mode( MX_RECORD *record,
+					long num_frames,
+					double exposure_time,
+					double gap_time,
+					double exposure_multiplier,
+					double gap_multiplier )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_GEOMETRICAL;
+	seq_params.num_parameters = 5;
+	seq_params.parameter_array[0] = num_frames;
+	seq_params.parameter_array[1] = exposure_time;
+	seq_params.parameter_array[2] = gap_time;
+	seq_params.parameter_array[3] = exposure_multiplier;
+	seq_params.parameter_array[4] = gap_multiplier;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
 	return mx_status;
 }
 

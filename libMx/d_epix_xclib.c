@@ -493,7 +493,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		}
 		break;
 
-	case MXT_SQ_MULTI:
+	case MXT_SQ_MULTIFRAME:
 		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "
@@ -532,7 +532,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		}
 		break;
 
-	case MXT_SQ_CONTINUOUS_MULTI:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "
