@@ -215,7 +215,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_START( measurement4 );
 #endif
-		mx_status = mx_write_image_file( frame,
+		mx_status = mx_image_write_file( frame,
 						datafile_type, filename );
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement4 );
@@ -306,7 +306,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			mx_status = mx_write_image_file( frame,
+			mx_status = mx_image_write_file( frame,
 						datafile_type, filename );
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -319,7 +319,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			mx_status = mx_write_image_file( roi_frame,
+			mx_status = mx_image_write_file( roi_frame,
 						datafile_type, filename );
 		} else {
 			fprintf( output,

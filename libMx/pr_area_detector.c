@@ -245,7 +245,7 @@ mx_area_detector_process_function( void *record_ptr,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			mx_status = mx_get_image_format_name_from_type(
+			mx_status = mx_image_get_format_name_from_type(
 				ad->image_format, ad->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 			break;
@@ -321,7 +321,7 @@ mx_area_detector_process_function( void *record_ptr,
 					record, record_field, ad );
 			break;
 		case MXLV_AD_IMAGE_FORMAT_NAME:
-			mx_status = mx_get_image_format_type_from_name(
+			mx_status = mx_image_get_format_type_from_name(
 				ad->image_format_name, &(ad->image_format) );
 
 			if ( mx_status.code != MXE_SUCCESS )

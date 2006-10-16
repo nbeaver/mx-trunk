@@ -302,7 +302,7 @@ mxd_network_vinput_open( MX_RECORD *record )
 
 	/* Update the image format type. */
 
-	mx_status = mx_get_image_format_type_from_name(
+	mx_status = mx_image_get_format_type_from_name(
 					vinput->image_format_name,
 					&(vinput->image_format) );
 
@@ -633,7 +633,7 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		mx_status = mx_get_image_format_name_from_type(
+		mx_status = mx_image_get_format_name_from_type(
 				vinput->image_format, vinput->image_format_name,
 				MXU_IMAGE_FORMAT_NAME_LENGTH );
 #if MXD_NETWORK_VINPUT_DEBUG

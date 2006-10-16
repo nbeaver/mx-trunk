@@ -215,7 +215,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->flood_field_frame_buffer = NULL;
 	ad->flood_field_filename[0] = '\0';
 
-	mx_status = mx_get_image_format_type_from_name(
+	mx_status = mx_image_get_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
 
 	return mx_status;
@@ -2052,7 +2052,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_read_image_file( frame_ptr,
+	mx_status = mx_image_read_file( frame_ptr,
 					ad->frame_file_format,
 					ad->frame_filename );
 	
@@ -2133,7 +2133,7 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 		"for area detector '%s'.", ad->save_frame, ad->record->name );
 	}
 
-	mx_status = mx_write_image_file( frame,
+	mx_status = mx_image_write_file( frame,
 					ad->frame_file_format,
 					ad->frame_filename );
 	
@@ -2213,7 +2213,7 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	mx_status = mx_copy_image_frame( dest_frame_ptr, src_frame );
+	mx_status = mx_image_copy_frame( dest_frame_ptr, src_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

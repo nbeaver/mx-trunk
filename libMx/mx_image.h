@@ -97,10 +97,10 @@ typedef struct {
 
 /*----*/
 
-MX_API mx_status_type mx_get_image_format_type_from_name( char *name,
+MX_API mx_status_type mx_image_get_format_type_from_name( char *name,
 							long *type );
 
-MX_API mx_status_type mx_get_image_format_name_from_type( long type,
+MX_API mx_status_type mx_image_get_format_name_from_type( long type,
 							char *name,
 							size_t max_name_length);
 
@@ -119,7 +119,7 @@ MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
 MX_API mx_status_type mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 						double *exposure_time );
 
-MX_API mx_status_type mx_copy_image_frame( MX_IMAGE_FRAME **new_frame,
+MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
 
 MX_API mx_status_type mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
@@ -131,20 +131,20 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 						size_t max_array_bytes,
 						size_t *num_bytes_copied );
 
-MX_API mx_status_type mx_read_image_file( MX_IMAGE_FRAME **frame,
+MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 					unsigned long datafile_type,
 					char *datafile_name );
 
-MX_API mx_status_type mx_write_image_file( MX_IMAGE_FRAME *frame,
+MX_API mx_status_type mx_image_write_file( MX_IMAGE_FRAME *frame,
 					unsigned long datafile_type,
 					char *datafile_name );
 
 /*----*/
 
-MX_API mx_status_type mx_read_pnm_image_file( MX_IMAGE_FRAME **frame,
+MX_API mx_status_type mx_image_read_pnm_file( MX_IMAGE_FRAME **frame,
 						char *datafile_name );
 
-MX_API mx_status_type mx_write_pnm_image_file( MX_IMAGE_FRAME *frame,
+MX_API mx_status_type mx_image_write_pnm_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
 
 #endif /* __MX_IMAGE_H__ */

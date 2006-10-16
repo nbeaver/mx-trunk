@@ -97,7 +97,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
 
-	mx_status = mx_get_image_format_type_from_name(
+	mx_status = mx_image_get_format_type_from_name(
 			vinput->image_format_name, &(vinput->image_format) );
 
 	return mx_status;

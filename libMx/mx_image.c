@@ -192,9 +192,9 @@ static size_t mxp_image_format_table_length
 	= sizeof(mxp_image_format_table) / sizeof(mxp_image_format_table[0]);
 
 MX_EXPORT mx_status_type
-mx_get_image_format_type_from_name( char *name, long *type )
+mx_image_get_format_type_from_name( char *name, long *type )
 {
-	static const char fname[] = "mx_get_image_format_type_from_name()";
+	static const char fname[] = "mx_image_get_format_type_from_name()";
 
 	MX_IMAGE_FORMAT_ENTRY *entry;
 	long i;
@@ -229,10 +229,10 @@ mx_get_image_format_type_from_name( char *name, long *type )
 }
 
 MX_EXPORT mx_status_type
-mx_get_image_format_name_from_type( long type,
+mx_image_get_format_name_from_type( long type,
 				char *name, size_t max_name_length )
 {
-	static const char fname[] = "mx_get_image_format_name_from_type()";
+	static const char fname[] = "mx_image_get_format_name_from_type()";
 
 	MX_IMAGE_FORMAT_ENTRY *entry;
 	long i;
@@ -590,10 +590,10 @@ mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_copy_image_frame( MX_IMAGE_FRAME **new_frame_ptr,
+mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 			MX_IMAGE_FRAME *old_frame )
 {
-	static const char fname[] = "mx_copy_image_frame()";
+	static const char fname[] = "mx_image_copy_frame()";
 
 	mx_status_type mx_status;
 
@@ -634,17 +634,17 @@ mx_copy_image_frame( MX_IMAGE_FRAME **new_frame_ptr,
 /*----*/
 
 MX_EXPORT mx_status_type
-mx_read_image_file( MX_IMAGE_FRAME **frame_ptr,
+mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 			unsigned long datafile_type,
 			char *datafile_name )
 {
-	static const char fname[] = "mx_read_image_file()";
+	static const char fname[] = "mx_image_read_file()";
 
 	mx_status_type mx_status;
 
 	switch( datafile_type ) {
 	case MXT_IMAGE_FILE_PNM:
-		mx_status = mx_read_pnm_image_file( frame_ptr, datafile_name );
+		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -656,17 +656,17 @@ mx_read_image_file( MX_IMAGE_FRAME **frame_ptr,
 }
 
 MX_EXPORT mx_status_type
-mx_write_image_file( MX_IMAGE_FRAME *frame,
+mx_image_write_file( MX_IMAGE_FRAME *frame,
 			unsigned long datafile_type,
 			char *datafile_name )
 {
-	static const char fname[] = "mx_write_image_file()";
+	static const char fname[] = "mx_image_write_file()";
 
 	mx_status_type mx_status;
 
 	switch( datafile_type ) {
 	case MXT_IMAGE_FILE_PNM:
-		mx_status = mx_write_pnm_image_file( frame, datafile_name );
+		mx_status = mx_image_write_pnm_file( frame, datafile_name );
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -680,8 +680,8 @@ mx_write_image_file( MX_IMAGE_FRAME *frame,
 /*----*/
 
 /*
- * WARNING: mx_read_pnm_image_file() currently does not support arbitrary
- * PNM files.  It only supports PNM files written by mx_write_pnm_image_file().
+ * WARNING: mx_image_read_pnm_file() currently does not support arbitrary
+ * PNM files.  It only supports PNM files written by mx_image_write_pnm_file().
  * This means that the file _must_ have the following format:
  *
  * Line 1: Contains either the string 'P5' or the string 'P6'.
@@ -721,9 +721,9 @@ mx_write_image_file( MX_IMAGE_FRAME *frame,
  */
 
 MX_EXPORT mx_status_type
-mx_read_pnm_image_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 {
-	static const char fname[] = "mx_read_pnm_image_file()";
+	static const char fname[] = "mx_image_read_pnm_file()";
 
 	FILE *file;
 	char buffer[100];
@@ -972,9 +972,9 @@ mx_read_pnm_image_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 }
 
 MX_EXPORT mx_status_type
-mx_write_pnm_image_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 {
-	static const char fname[] = "mx_write_pnm_image_file()";
+	static const char fname[] = "mx_image_write_pnm_file()";
 
 	FILE *file;
 	pixel_converter_t converter;
