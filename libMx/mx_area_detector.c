@@ -70,7 +70,7 @@ mx_area_detector_get_pointers( MX_RECORD *record,
 		}
 	}
 
-#if 1
+#if 0
 	if ( *ad != NULL ) {
 		MX_DEBUG(-2,("*** %s: bytes_per_frame = %ld",
 			calling_fname, (*ad)->bytes_per_frame));
@@ -659,6 +659,73 @@ mx_area_detector_set_roi( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_subframe_size( MX_RECORD *record, long *num_columns )
+{
+	static const char fname[] = "mx_area_detector_get_subframe_size()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SUBFRAME_SIZE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_columns != NULL ) {
+		*num_columns = ad->subframe_size;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_subframe_size( MX_RECORD *record, long num_columns )
+{
+	static const char fname[] = "mx_area_detector_set_subframe_size()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SUBFRAME_SIZE;
+
+	ad->subframe_size = num_columns;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
 {
 	static const char fname[] = "mx_area_detector_get_bytes_per_frame()";
@@ -730,7 +797,202 @@ mx_area_detector_get_bytes_per_pixel(MX_RECORD *record, double *bytes_per_pixel)
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_API mx_status_type
+mx_area_detector_get_correction_flags( MX_RECORD *record,
+					unsigned long *correction_flags )
+{
+	static const char fname[] = "mx_area_detector_get_correction_flags()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_CORRECTION_FLAGS;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( correction_flags != NULL ) {
+		*correction_flags = ad->correction_flags;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_area_detector_set_correction_flags( MX_RECORD *record,
+					unsigned long correction_flags )
+{
+	static const char fname[] = "mx_area_detector_set_correction_flags()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type   = MXLV_AD_CORRECTION_FLAGS;
+	ad->correction_flags = correction_flags;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
 /*---*/
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_sequence_parameters( MX_RECORD *record,
+			MX_SEQUENCE_PARAMETERS *sequence_parameters )
+{
+	static const char fname[] =
+			"mx_area_detector_get_sequence_parameters()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	if ( sequence_parameters == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
+	}
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+	
+	if ( ad->sequence_parameters.num_parameters
+			> MXU_MAX_SEQUENCE_PARAMETERS )
+	{
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The number of sequence parameters %ld reported for "
+		"the sequence given to area detector record '%s' "
+		"is longer than the maximum allowed length of %d.",
+			ad->sequence_parameters.num_parameters, record->name,
+			MXU_MAX_SEQUENCE_PARAMETERS );
+	}
+
+	sequence_parameters->sequence_type =
+				ad->sequence_parameters.sequence_type;
+
+	sequence_parameters->num_parameters =
+				ad->sequence_parameters.num_parameters;
+
+	/* FIXME! - For an undetermined reason, the for() that follows
+	 * works, but the memcpy() does not.  Please show me the error
+	 * of my ways.
+	 */
+#if 0
+	memcpy( sequence_parameters->parameter_array,
+				ad->sequence_parameters.parameter_array,
+				ad->sequence_parameters.num_parameters );
+#else
+	{
+		long i;
+
+		for ( i = 0; i < ad->sequence_parameters.num_parameters; i++ ) {
+			sequence_parameters->parameter_array[i]
+				= ad->sequence_parameters.parameter_array[i];
+		}
+	}
+#endif
+
+	/* FIXME - The following is my attempt to debug the above issue. */
+
+#if 0
+	MX_DEBUG(-2,("%s: #1 &sequence_type = %p",
+		fname, &(ad->sequence_parameters.sequence_type) ));
+	MX_DEBUG(-2,("%s: #1 &num_parameters = %p",
+		fname, &(ad->sequence_parameters.num_parameters) ));
+	MX_DEBUG(-2,("%s: #1 parameter_array = %p",
+		fname, ad->sequence_parameters.parameter_array ));
+	MX_DEBUG(-2,("%s: #1 &parameter_array = %p",
+		fname, &(ad->sequence_parameters.parameter_array) ));
+	MX_DEBUG(-2,("%s: #1 &parameter_array[0] = %p",
+		fname, &(ad->sequence_parameters.parameter_array[0]) ));
+
+	MX_DEBUG(-2,("%s: #2 &sequence_type = %p",
+		fname, &(sequence_parameters->sequence_type) ));
+	MX_DEBUG(-2,("%s: #2 &num_parameters = %p",
+		fname, &(sequence_parameters->num_parameters) ));
+	MX_DEBUG(-2,("%s: #2 parameter_array = %p",
+		fname, sequence_parameters->parameter_array ));
+	MX_DEBUG(-2,("%s: #2 &parameter_array = %p",
+		fname, &(sequence_parameters->parameter_array) ));
+	MX_DEBUG(-2,("%s: #2 &parameter_array[0] = %p",
+		fname, &(sequence_parameters->parameter_array[0]) ));
+#endif
+
+#if 0 && MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: #1 sequence_type = %ld",
+		fname, ad->sequence_parameters.sequence_type));
+	MX_DEBUG(-2,("%s: #1 num_parameters = %ld",
+		fname, ad->sequence_parameters.num_parameters));
+	{
+		long i;
+		for ( i = 0; i < ad->sequence_parameters.num_parameters; i++ ) {
+			MX_DEBUG(-2,("%s: #1 parameter_array[%ld] = %g",
+			fname, i, ad->sequence_parameters.parameter_array[i]));
+		}
+	}
+
+	MX_DEBUG(-2,("%s: #2 sequence_type = %ld",
+		fname, sequence_parameters->sequence_type));
+	MX_DEBUG(-2,("%s: #2 num_parameters = %ld",
+		fname, sequence_parameters->num_parameters));
+	{
+		long i;
+		for ( i = 0; i < sequence_parameters->num_parameters; i++ ) {
+			MX_DEBUG(-2,("%s: #2 parameter_array[%ld] = %g",
+			fname, i, sequence_parameters->parameter_array[i]));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_area_detector_set_sequence_parameters( MX_RECORD *record,
@@ -778,7 +1040,7 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 	if ( num_parameters > MXU_MAX_SEQUENCE_PARAMETERS ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The number of sequence parameters %ld requested for "
-		"the sequence given to video input record '%s' "
+		"the sequence given to area detector record '%s' "
 		"is longer than the maximum allowed length of %d.",
 			num_parameters, record->name,
 			MXU_MAX_SEQUENCE_PARAMETERS );
@@ -873,7 +1135,7 @@ mx_area_detector_set_strobe_mode( MX_RECORD *record,
 	mx_status_type mx_status;
 
 	seq_params.sequence_type = MXT_SQ_STROBE;
-	seq_params.num_parameters = 3;
+	seq_params.num_parameters = 2;
 	seq_params.parameter_array[0] = num_frames;
 	seq_params.parameter_array[1] = exposure_time;
 
@@ -890,7 +1152,7 @@ mx_area_detector_set_bulb_mode( MX_RECORD *record,
 	mx_status_type mx_status;
 
 	seq_params.sequence_type = MXT_SQ_BULB;
-	seq_params.num_parameters = 3;
+	seq_params.num_parameters = 1;
 	seq_params.parameter_array[0] = num_frames;
 
 	mx_status = mx_area_detector_set_sequence_parameters( record,
@@ -919,6 +1181,42 @@ mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 
 	mx_status = mx_area_detector_set_sequence_parameters( record,
 								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_trigger_mode( MX_RECORD *record, long *trigger_mode )
+{
+	static const char fname[] = "mx_area_detector_get_trigger_mode()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_TRIGGER_MODE; 
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode != (long *) NULL ) {
+		*trigger_mode = ad->trigger_mode;
+	}
+
 	return mx_status;
 }
 
@@ -1672,41 +1970,6 @@ mx_area_detector_get_sequence( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
-					long frame_number,
-					MX_IMAGE_FRAME **image_frame )
-{
-	static const char fname[] =
-			"mx_area_detector_get_frame_from_sequence()";
-
-	if ( frame_number < ( - image_sequence->num_frames ) ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Since the image sequence only has %ld frames, "
-		"frame %ld would be before the first frame in the sequence.",
-			image_sequence->num_frames, frame_number );
-	} else
-	if ( frame_number < 0 ) {
-
-		/* -1 returns the last frame, -2 returns the second to last,
-		 * and so forth.
-		 */
-
-		frame_number = image_sequence->num_frames - ( - frame_number );
-	} else
-	if ( frame_number >= image_sequence->num_frames ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"Frame %ld would be beyond the last frame (%ld), "
-		"since the sequence only has %ld frames.",
-			frame_number, image_sequence->num_frames - 1,
-			image_sequence->num_frames ) ;
-	}
-
-	*image_frame = image_sequence->frame_array[ frame_number ];
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mx_area_detector_get_roi_frame( MX_RECORD *record,
 			MX_IMAGE_FRAME *image_frame,
 			long roi_number,
@@ -1842,8 +2105,15 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	memset( (*roi_frame)->image_data, 0, 50 );
 #endif
 
+	ad->roi_bytes_per_frame = roi_bytes_per_frame;
+
 	(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
-	(*roi_frame)->image_length    = roi_bytes_per_frame;
+	(*roi_frame)->image_length    = ad->roi_bytes_per_frame;
+
+	MX_DEBUG(-2,
+	("%s: ROI image_length = %ld, ad->roi_bytes_per_frame = %ld",
+	fname, (long) (*roi_frame)->image_length, ad->roi_bytes_per_frame));
+
 
 	ad->roi_number = roi_number;
 

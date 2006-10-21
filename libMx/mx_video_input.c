@@ -68,7 +68,7 @@ mx_video_input_get_pointers( MX_RECORD *record,
 		}
 	}
 
-#if 1
+#if 0
 	if ( *vinput != NULL ) {
 		MX_DEBUG(-2,("*** %s: bytes_per_frame = %ld",
 			calling_fname, (*vinput)->bytes_per_frame));

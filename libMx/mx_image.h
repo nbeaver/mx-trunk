@@ -115,12 +115,13 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );
 					
+MX_API mx_status_type mx_image_get_frame_from_sequence(
+					MX_IMAGE_SEQUENCE *sequence,
+					long frame_number,
+					MX_IMAGE_FRAME **image_frame );
 
 MX_API mx_status_type mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 						double *exposure_time );
-
-MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
-					MX_IMAGE_FRAME *old_frame );
 
 MX_API mx_status_type mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 						size_t *image_length,
@@ -130,6 +131,9 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 						void *destination_pixel_array,
 						size_t max_array_bytes,
 						size_t *num_bytes_copied );
+
+MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
+					MX_IMAGE_FRAME *old_frame );
 
 MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 					unsigned long datafile_type,

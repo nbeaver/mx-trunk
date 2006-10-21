@@ -62,6 +62,8 @@ typedef struct {
 	char extended_status
 		[ MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
+	long subframe_size;	/* Not all detectors support this. */
+
 	long maximum_num_rois;
 	long current_num_rois;
 	unsigned long **roi_array;
@@ -209,6 +211,8 @@ typedef struct {
 #define MXLV_AD_BIAS_FILENAME			12102
 #define MXLV_AD_DARK_CURRENT_FILENAME		12103
 #define MXLV_AD_FLOOD_FIELD_FILENAME		12104
+
+#define MXLV_AD_SUBFRAME_SIZE			12201
 
 #define MX_AREA_DETECTOR_STANDARD_FIELDS \
   {MXLV_AD_MAXIMUM_FRAMESIZE, -1, "maximum_framesize", \
@@ -501,8 +505,11 @@ MX_API mx_status_type mx_area_detector_set_roi( MX_RECORD *ad_record,
 						long y_minimum,
 						long y_maximum );
 
+MX_API mx_status_type mx_area_detector_get_subframe_size( MX_RECORD *ad_record,
+						long *num_columns );
+
 MX_API mx_status_type mx_area_detector_set_subframe_size( MX_RECORD *ad_record,
-						long num_lines );
+						long num_columns );
 
 MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
 						long *bytes_per_frame );
@@ -517,6 +524,10 @@ MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
 					unsigned long correction_flags );
 
 /*---*/
+
+MX_API mx_status_type mx_area_detector_get_sequence_parameters(
+				MX_RECORD *ad_record,
+				MX_SEQUENCE_PARAMETERS *sequence_parameters );
 
 MX_API mx_status_type mx_area_detector_set_sequence_parameters(
 				MX_RECORD *ad_record,
@@ -553,6 +564,9 @@ MX_API mx_status_type mx_area_detector_set_geometrical_mode(
 						double gap_time,
 						double exposure_multiplier,
 						double gap_multiplier );
+
+MX_API mx_status_type mx_area_detector_get_trigger_mode( MX_RECORD *ad_record,
+							long *trigger_mode );
 
 MX_API mx_status_type mx_area_detector_set_trigger_mode( MX_RECORD *ad_record,
 							long trigger_mode );
@@ -615,11 +629,6 @@ MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_get_sequence( MX_RECORD *ad_record,
 						long num_frames,
 						MX_IMAGE_SEQUENCE **sequence );
-
-MX_API mx_status_type mx_area_detector_get_frame_from_sequence(
-						MX_IMAGE_SEQUENCE *sequence,
-						long frame_number,
-						MX_IMAGE_FRAME **image_frame );
 
 MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME *frame,

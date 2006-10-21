@@ -188,6 +188,11 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_STOP:
 		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
+#if 1
+		case MXLV_AD_SEQUENCE_TYPE:
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+#endif
 			record_field->process_function
 					= mx_area_detector_process_function;
 			break;
@@ -278,6 +283,31 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
+#if 1
+		case MXLV_AD_SEQUENCE_TYPE:
+			MX_DEBUG(-2,("%s: sequence type = %ld",
+				fname, ad->sequence_parameters.sequence_type));
+			break;
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+			MX_DEBUG(-2,("%s: num_parameters = %ld",
+				fname, ad->sequence_parameters.num_parameters));
+			break;
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			{
+				long i;
+
+				for ( i = 0;
+				    i < ad->sequence_parameters.num_parameters;
+				    i++ )
+				{
+					MX_DEBUG(-2,
+					    ("%s: parameter_array[%ld] = %g",
+					    fname, i,
+				   ad->sequence_parameters.parameter_array[i]));
+				}
+			}
+			break;
+#endif
 		default:
 			MX_DEBUG(-1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -352,6 +382,31 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_TRIGGER:
 			mx_status = mx_area_detector_trigger( record );
 			break;
+#if 1
+		case MXLV_AD_SEQUENCE_TYPE:
+			MX_DEBUG(-2,("%s: sequence type = %ld",
+				fname, ad->sequence_parameters.sequence_type));
+			break;
+		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+			MX_DEBUG(-2,("%s: num_parameters = %ld",
+				fname, ad->sequence_parameters.num_parameters));
+			break;
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			{
+				long i;
+
+				for ( i = 0;
+				    i < ad->sequence_parameters.num_parameters;
+				    i++ )
+				{
+					MX_DEBUG(-2,
+					    ("%s: parameter_array[%ld] = %g",
+					    fname, i,
+				   ad->sequence_parameters.parameter_array[i]));
+				}
+			}
+			break;
+#endif
 		default:
 			MX_DEBUG(-1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",

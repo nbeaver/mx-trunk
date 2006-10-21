@@ -51,6 +51,7 @@ typedef struct {
 	MX_NETWORK_FIELD save_frame_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD subframe_size_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;

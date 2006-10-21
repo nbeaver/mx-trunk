@@ -484,6 +484,40 @@ mx_image_free( MX_IMAGE_FRAME *frame )
 /*----*/
 
 MX_EXPORT mx_status_type
+mx_image_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
+				long frame_number,
+				MX_IMAGE_FRAME **image_frame )
+{
+	static const char fname[] = "mx_image_get_frame_from_sequence()";
+
+	if ( frame_number < ( - image_sequence->num_frames ) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Since the image sequence only has %ld frames, "
+		"frame %ld would be before the first frame in the sequence.",
+			image_sequence->num_frames, frame_number );
+	} else
+	if ( frame_number < 0 ) {
+
+		/* -1 returns the last frame, -2 returns the second to last,
+		 * and so forth.
+		 */
+
+		frame_number = image_sequence->num_frames - ( - frame_number );
+	} else
+	if ( frame_number >= image_sequence->num_frames ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Frame %ld would be beyond the last frame (%ld), "
+		"since the sequence only has %ld frames.",
+			frame_number, image_sequence->num_frames - 1,
+			image_sequence->num_frames ) ;
+	}
+
+	*image_frame = image_sequence->frame_array[ frame_number ];
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 				double *exposure_time )
 {

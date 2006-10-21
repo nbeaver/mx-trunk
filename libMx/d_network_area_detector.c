@@ -290,6 +290,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.roi_array", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->roi_bytes_per_frame_nf),
+		network_area_detector->server_record,
+	  "%s.roi_bytes_per_frame", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->roi_frame_buffer_nf),
 		network_area_detector->server_record,
 	    "%s.roi_frame_buffer", network_area_detector->remote_record_name );
@@ -309,6 +313,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->stop_nf),
 		network_area_detector->server_record,
 		"%s.stop", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->subframe_size_nf),
+		network_area_detector->server_record,
+		"%s.subframe_size", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->transfer_frame_nf),
 		network_area_detector->server_record,
@@ -973,6 +981,14 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( ad->roi_bytes_per_frame <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The reported number of bytes per frame for ROI %ld is %ld "
+		"for area detector '%s'.  The minimum legal value is 1 byte.",
+			ad->roi_number, ad->roi_bytes_per_frame,
+			ad->record->name );
+	}
+
 	roi_frame->bytes_per_pixel = ad->bytes_per_pixel;
 	roi_frame->image_length    = ad->roi_bytes_per_frame;
 
@@ -1122,6 +1138,10 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_get( &(network_area_detector->sequence_type_nf),
 		    MXFT_LONG, &(ad->sequence_parameters.sequence_type) );
 
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: sequence type = %ld",
+			fname, ad->sequence_parameters.sequence_type));
+#endif
 		break;
 
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
@@ -1139,6 +1159,20 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->sequence_parameter_array_nf),
 			MXFT_DOUBLE, 1, dimension,
 			&(ad->sequence_parameters.parameter_array));
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: num parameters = %ld",
+			fname, ad->sequence_parameters.num_parameters));
+		{
+		    long i;
+
+		    for (i = 0; i < ad->sequence_parameters.num_parameters; i++)
+		    {
+		    	MX_DEBUG(-2,("%s:  parameter_array[%ld] = %g",
+			fname, i, ad->sequence_parameters.parameter_array[i]));
+		    }
+		}
+#endif
 		break;
 
 	case MXLV_AD_ROI_NUMBER:
@@ -1150,6 +1184,10 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_get_array( &(network_area_detector->roi_nf),
 				MXFT_LONG, 1, dimension, &(ad->roi) );
+		break;
+	case MXLV_AD_SUBFRAME_SIZE:
+		mx_status = mx_get( &(network_area_detector->subframe_size_nf),
+					MXFT_ULONG, &(ad->subframe_size) );
 		break;
 	default:
 		mx_status =
@@ -1239,6 +1277,10 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_put_array( &(network_area_detector->roi_nf),
 				MXFT_LONG, 1, dimension, &(ad->roi) );
+		break;
+	case MXLV_AD_SUBFRAME_SIZE:
+		mx_status = mx_put( &(network_area_detector->subframe_size_nf),
+					MXFT_ULONG, &(ad->subframe_size) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:
