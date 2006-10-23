@@ -59,6 +59,7 @@ mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_get_roi_frame,
 	mxd_network_area_detector_get_parameter,
 	mxd_network_area_detector_set_parameter,
+	mxd_network_area_detector_measure_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_record_field_defaults[] = {
@@ -225,6 +226,18 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.correction_flags", network_area_detector->remote_record_name );
 
+	mx_network_field_init(
+		&(network_area_detector->correction_measurement_time_nf),
+		network_area_detector->server_record,
+			"%s.correction_measurement_time",
+			network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->correction_measurement_type_nf),
+		network_area_detector->server_record,
+			"%s.correction_measurement_type",
+			network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->current_num_rois_nf),
 		network_area_detector->server_record,
 	    "%s.current_num_rois", network_area_detector->remote_record_name );
@@ -273,6 +286,12 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_area_detector->maximum_num_rois_nf),
 		network_area_detector->server_record,
 	    "%s.maximum_num_rois", network_area_detector->remote_record_name );
+
+	mx_network_field_init(
+		&(network_area_detector->num_correction_measurements_nf),
+		network_area_detector->server_record,
+			"%s.num_correction_measurements",
+			network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->pixel_order_nf),
 		network_area_detector->server_record,
@@ -1369,3 +1388,64 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mxd_network_area_detector_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxd_network_area_detector_measure_correction()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+	MX_DEBUG(-2,("%s: type = %ld, time = %g, num_measurements = %ld",
+		fname, ad->correction_measurement_type,
+		ad->correction_measurement_time,
+		ad->num_correction_measurements ));
+#endif
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Correction measurement type %ld is not supported "
+		"for area detector '%s'.",
+			ad->correction_measurement_type, ad->record->name );
+	}
+
+	/* Setting the measurement time and number of measurements
+	 * comes first.
+	 */
+
+	mx_status = mx_put(
+		&(network_area_detector->correction_measurement_time_nf),
+		MXFT_DOUBLE, &(ad->correction_measurement_time) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put(
+		&(network_area_detector->num_correction_measurements_nf),
+		MXFT_LONG, &(ad->num_correction_measurements) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now start the correction by setting the measurement type. */
+
+	mx_status = mx_put(
+		&(network_area_detector->correction_measurement_type_nf),
+		MXFT_LONG, &(ad->correction_measurement_type) );
+
+	return mx_status;
+}

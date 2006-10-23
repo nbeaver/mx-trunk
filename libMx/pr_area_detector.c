@@ -172,6 +172,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_BYTES_PER_PIXEL:
 		case MXLV_AD_COPY_FRAME:
 		case MXLV_AD_CORRECT_FRAME:
+		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 		case MXLV_AD_EXTENDED_STATUS:
 		case MXLV_AD_FRAMESIZE:
 		case MXLV_AD_FRAME_FILENAME:
@@ -353,6 +354,12 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_CORRECT_FRAME:
 			mx_status = mx_area_detector_correct_frame( record );
+			break;
+		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
+			mx_status = mx_area_detector_measure_correction_frame(
+					record, ad->correction_measurement_type,
+					ad->correction_measurement_time,
+					ad->num_correction_measurements );
 			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,

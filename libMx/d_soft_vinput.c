@@ -649,6 +649,9 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 		frame_buffer = frame->image_data;
 
+		MX_DEBUG(-2,("%s: frame = %p, frame_buffer = %p",
+			fname, frame, frame_buffer));
+
 		for ( n = 0; n < 10; n++ ) {
 			c = frame_buffer[n];
 

@@ -48,6 +48,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long i, last_frame_number, property_value;
 	unsigned long ad_status;
 	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
+	long correction_type, num_measurements;
+	double measurement_time;
 	double exposure_time, gap_time, exposure_multiplier, gap_multiplier;
 	double bytes_per_pixel;
 	mx_bool_type busy;
@@ -111,7 +113,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 "\n"
 "  area_detector 'name' load frame 'frame_type' 'filename'\n"
 "  area_detector 'name' save frame 'frame_type' 'filename'\n"
-"  area_detector 'name' copy frame 'src_frame_type' 'dest_frame_type'\n";
+"  area_detector 'name' copy frame 'src_frame_type' 'dest_frame_type'\n"
+"\n"
+"  area_detector 'name' measure dark_current 'measurement_time' '# measurements'\n"
+"  area_detector 'name' measure flood_field 'measurement_time' '# measurements'\n"
+"\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
@@ -488,7 +494,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( argc < 7 ) {
 			fprintf( output,
-			"%s: not enough arguments to 'loadframe' command\n",
+			"%s: not enough arguments to 'load frame' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
@@ -519,7 +525,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( argc < 7 ) {
 			fprintf( output,
-			"%s: not enough arguments to 'saveframe' command\n",
+			"%s: not enough arguments to 'save frame' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
@@ -550,7 +556,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( argc < 7 ) {
 			fprintf( output,
-			"%s: not enough arguments to 'copyframe' command\n",
+			"%s: not enough arguments to 'copy frame' command\n",
 				cname );
 
 			fprintf( output, "%s\n", usage );
@@ -587,6 +593,114 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 	} else
+	if ( strncmp( "measure", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 5 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'measure' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strncmp( "dark_current", argv[4], strlen(argv[4]) ) == 0 )
+		{
+			correction_type = MXFT_AD_DARK_CURRENT_FRAME;
+		} else
+		if ( strncmp( "flood_field", argv[4], strlen(argv[4]) ) == 0 )
+		{
+			correction_type = MXFT_AD_FLOOD_FIELD_FRAME;
+		} else {
+			fprintf( output,
+    "%s: unsupported correction type '%s' requested for 'measure' command.\n",
+    				cname, argv[4] );
+			return FAILURE;
+		}
+
+		if ( argc < 6 ) {
+			measurement_time = 1.0;
+		} else {
+			measurement_time = atof( argv[5] );
+		}
+
+		if ( argc < 7 ) {
+			num_measurements = 1;
+		} else {
+			num_measurements = strtol( argv[6], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+	"%s: Non-numeric characters found in destination frame type '%s'\n",
+				cname, argv[6] );
+
+				return FAILURE;
+			}
+		}
+
+		/* Start the correction measurement. */
+
+		mx_status = mx_area_detector_measure_correction_frame(
+			ad_record, correction_type,
+			measurement_time, num_measurements );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		/* Wait for the correction measurement to complete. */
+
+		switch( correction_type ) {
+		case MXFT_AD_DARK_CURRENT_FRAME:
+			fprintf( output,
+				"Starting dark current measurement:\n");
+			break;
+		case MXFT_AD_FLOOD_FIELD_FRAME:
+			fprintf( output,
+				"Starting flood field measurement:\n");
+			break;
+		}
+
+		fprintf( output,
+	"  measurement time per frame = %g, number of measurements = %ld\n",
+			measurement_time, num_measurements );
+
+		for(;;) {
+			mx_status = mx_area_detector_is_busy(ad_record, &busy);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				(void) mx_area_detector_stop( ad_record );
+
+				fprintf( output,
+				"%s: The wait for area detector '%s' "
+				"to finish was interrupted.\n",
+					cname, ad_record->name );
+
+				return FAILURE;
+			}
+
+			if ( busy == FALSE ) {
+				break;		/* Exit the for(;;) loop. */
+			}
+			mx_msleep(10);
+		}
+
+		switch( correction_type ) {
+		case MXFT_AD_DARK_CURRENT_FRAME:
+			fprintf( output,
+			  "Dark current measurement completed successfully.\n");
+			break;
+		case MXFT_AD_FLOOD_FIELD_FRAME:
+			fprintf( output,
+			  "Flood field measurement completed successfully.\n");
+			break;
+		}
+
+	} else
 	if ( strncmp( "get", argv[3], strlen(argv[3]) ) == 0 ) {
 
 		if ( argc < 5 ) {
@@ -613,8 +727,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
-		"%s: Non-numeric characters found in frame number '%s'\n",
-					cname, argv[5] );
+		"%s: Non-numeric characters found in frame number '%s'\n", cname, argv[5] );
 
 				return FAILURE;
 			}

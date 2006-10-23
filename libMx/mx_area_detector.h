@@ -141,6 +141,22 @@ typedef struct {
 
 	long copy_frame[2];
 
+	/* The following fields are used for getting and setting
+	 * detector property values, both as numbers and as strings.
+	 */
+
+	char property_name[MXU_AD_PROPERTY_NAME_LENGTH+1];
+	long property_value;
+	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
+
+	/* The following fields are used for measuring dark current and
+	 * flood field image frames.
+	 */
+
+	long correction_measurement_type;
+	double correction_measurement_time;
+	long num_correction_measurements;
+
 	/* The following are the image frames and frame buffer pointers
 	 * used for image correction.
 	 */
@@ -165,14 +181,6 @@ typedef struct {
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
 	char flood_field_filename[MXU_FILENAME_LENGTH+1];
-
-	/* The following fields are used for getting and setting
-	 * detector property values, both as numbers and as strings.
-	 */
-
-	char property_name[MXU_AD_PROPERTY_NAME_LENGTH+1];
-	long property_value;
-	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
 
 } MX_AREA_DETECTOR;
 
@@ -219,6 +227,9 @@ typedef struct {
 #define MXLV_AD_PROPERTY_NAME			12037
 #define MXLV_AD_PROPERTY_VALUE			12038
 #define MXLV_AD_PROPERTY_STRING			12039
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12040
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12041
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12042
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -397,6 +408,24 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_string), \
 	{sizeof(char)}, NULL, 0}, \
   \
+  {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
+  		"correction_measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_measurement_time), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_NUM_CORRECTION_MEASUREMENTS, -1, \
+  		"num_correction_measurements", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, num_correction_measurements), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_CORRECTION_MEASUREMENT_TYPE, -1, \
+  		"correction_measurement_type", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, correction_measurement_type), \
+	{0}, NULL, 0}, \
+  \
   {-1, -1, "frame_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_filename),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
@@ -469,6 +498,7 @@ typedef struct {
         mx_status_type ( *get_roi_frame ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *get_parameter ) ( MX_AREA_DETECTOR *ad );
         mx_status_type ( *set_parameter ) ( MX_AREA_DETECTOR *ad );
+	mx_status_type ( *measure_correction ) ( MX_AREA_DETECTOR *ad );
 } MX_AREA_DETECTOR_FUNCTION_LIST;
 
 MX_API mx_status_type mx_area_detector_get_pointers( MX_RECORD *record,
@@ -568,9 +598,21 @@ MX_API mx_status_type mx_area_detector_get_correction_flags( MX_RECORD *record,
 MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
 					unsigned long correction_flags );
 
-/* FIXME! */
-MX_API mx_status_type mx_area_detector_measure_dark_current( MX_RECORD *record );
-					
+MX_API mx_status_type mx_area_detector_measure_correction_frame(
+					MX_RECORD *record,
+					long correction_measurement_type,
+					double correction_measurement_time,
+					long num_correction_measurements );
+
+#define mx_area_detector_measure_dark_current_frame( r, t, n ) \
+	mx_area_detector_measure_correction_frame( (r), \
+						MXFT_AD_DARK_CURRENT_FRAME, \
+						(t), (n) )
+
+#define mx_area_detector_measure_flood_field_frame( r, t, n ) \
+	mx_area_detector_measure_correction_frame( (r), \
+						MXFT_AD_FLOOD_FIELD_FRAME, \
+						(t), (n) )
 
 /*---*/
 
@@ -705,6 +747,9 @@ MX_API mx_status_type mx_area_detector_default_get_parameter_handler(
                                                 MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mx_area_detector_default_set_parameter_handler(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_measure_correction(
                                                 MX_AREA_DETECTOR *ad );
 
 /*---*/

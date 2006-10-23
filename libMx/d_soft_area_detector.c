@@ -57,7 +57,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 	NULL,
 	NULL,
 	mxd_soft_area_detector_get_parameter,
-	mxd_soft_area_detector_set_parameter,
+	mxd_soft_area_detector_set_parameter
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_soft_area_detector_record_field_defaults[] = {

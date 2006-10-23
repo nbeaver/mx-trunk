@@ -23,6 +23,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_key.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
@@ -1108,6 +1109,41 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 	ad->correction_flags = correction_flags;
 
 	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_API mx_status_type
+mx_area_detector_measure_correction_frame( MX_RECORD *record,
+					long correction_measurement_type,
+					double correction_measurement_time,
+					long num_correction_measurements )
+{
+	static const char fname[] =
+		"mx_area_detector_measure_correction_frame()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *measure_correction_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	measure_correction_fn = flist->measure_correction;
+
+	if ( measure_correction_fn == NULL ) {
+		measure_correction_fn =
+			mx_area_detector_default_measure_correction;
+	}
+
+	ad->correction_measurement_type = correction_measurement_type;
+	ad->correction_measurement_time = correction_measurement_time;
+	ad->num_correction_measurements = num_correction_measurements;
+
+	mx_status = (*measure_correction_fn)( ad );
 
 	return mx_status;
 }
@@ -2923,6 +2959,213 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_measure_correction()";
+
+	MX_IMAGE_FRAME *dest_frame;
+	void *void_image_data_pointer;
+	uint16_t *src_array, *dest_array;
+	double *sum_array;
+	double exposure_time, temp_double;
+	long i, n, num_exposures, pixels_per_frame;
+	size_t image_length;
+	mx_bool_type busy;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	MX_DEBUG(-2,("%s: type = %ld, time = %g, num measurements = %ld",
+		fname, ad->correction_measurement_type,
+		ad->correction_measurement_time,
+		ad->num_correction_measurements ));
+
+	if ( ad->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The area detector is currently using an image format of %ld.  "
+		"At present, only GREY16 image format is supported.",
+			ad->image_format );
+	}
+
+	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
+
+	exposure_time = ad->correction_measurement_time;
+
+	num_exposures = ad->num_correction_measurements;
+
+	if ( num_exposures <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal number of exposures (%ld) requested for "
+		"area detector '%s'.  The minimum number of exposures "
+		"allowed is 1.",  num_exposures, ad->record->name );
+	}
+
+	/* The correction frames will originally be read into the image frame.
+	 * We must make sure that the image frame is big enough to hold
+	 * the image data.
+	 */
+
+	mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Make sure that the destination image frame is already big enough
+	 * to hold the image frame that we are going to put in it.
+	 */
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->dark_current_frame) );
+
+		dest_frame = ad->dark_current_frame;
+		break;
+	
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->flood_field_frame) );
+
+		dest_frame = ad->flood_field_frame;
+		break;
+
+	default:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+		"Correction measurement type %ld is not supported "
+		"for area detector '%s'.",
+			ad->correction_measurement_type, ad->record->name );
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get a pointer to the destination array. */
+
+	mx_status = mx_image_get_image_data_pointer( dest_frame,
+						&image_length,
+						&void_image_data_pointer );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	dest_array = void_image_data_pointer;
+
+	/* Allocate a double precision array to store intermediate sums. */
+
+	sum_array = calloc( pixels_per_frame, sizeof(double) );
+
+	if ( sum_array == (double *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate "
+		"a %ld element array of doubles.", pixels_per_frame );
+	}
+
+	/* Put the area detector in One-shot mode. */
+
+	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
+							exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Take the requested number of exposures and sum together
+	 * the pixels from each exposure.
+	 */
+
+	for ( n = 0; n < num_exposures; n++ ) {
+
+		MX_DEBUG(-2,("%s: Exposure %ld", fname, n));
+
+		/* Start the exposure. */
+
+		mx_status = mx_area_detector_start( ad->record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Wait for the exposure to end. */
+
+		for(;;) {
+			mx_status = mx_area_detector_is_busy(ad->record, &busy);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				MX_DEBUG(-2,("%s: INTERRUPTED", fname));
+
+#if 0
+				return mx_area_detector_stop( ad->record );
+#endif
+			}
+
+			if ( busy == FALSE ) {
+				break;		/* Exit the for(;;) loop. */
+			}
+			mx_msleep(10);
+		}
+
+		/* Readout the frame into ad->image_frame. */
+
+		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Get the image data pointer. */
+
+		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
+						&image_length,
+						&void_image_data_pointer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		src_array = void_image_data_pointer;
+
+		MX_DEBUG(-2,
+		("%s: image_frame = %p, image_data = %p, src_array = %p",
+			fname, ad->image_frame, ad->image_frame->image_data,
+			src_array));
+
+		/* Add the pixels in this image to the sum array. */
+
+		for ( i = 0; i < pixels_per_frame; i++ ) {
+			sum_array[i] += (double) src_array[i];
+		}
+
+#if 1
+		MX_DEBUG(-2,("%s: n = %ld", fname, n));
+
+		for ( i = 0; i < 10; i++ ) {
+			MX_DEBUG(-2,
+			(" src_array[%ld] = %ld, sum_array[%ld] = %g",
+			i, (long) src_array[i], i, sum_array[i]));
+		}
+#endif
+	}
+
+	MX_DEBUG(-2,("%s: Calculating normalized pixels.", fname));
+
+	/* Copy normalized pixels to the destination array. */
+
+	for ( i = 0; i < pixels_per_frame; i++ ) {
+		temp_double = sum_array[i] / num_exposures;
+
+		dest_array[i] = mx_round( temp_double );
+	}
+
+	MX_DEBUG(-2,("%s: correction measurement complete.", fname));
+	
 	return MX_SUCCESSFUL_RESULT;
 }
 
