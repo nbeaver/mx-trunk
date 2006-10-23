@@ -184,7 +184,18 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->correction_flags = 0;
+	ad->correction_flags = MXFT_AD_ALL;
+
+	ad->last_frame_number = -1;
+	ad->status = 0;
+	ad->extended_status[0] = '\0';
+
+	ad->current_num_rois = ad->maximum_num_rois;
+	ad->roi_number = 0;
+	ad->roi[0] = 0;
+	ad->roi[1] = 0;
+	ad->roi[2] = 0;
+	ad->roi[3] = 0;
 
 	ad->roi_frame = NULL;
 	ad->roi_frame_buffer = NULL;
@@ -896,6 +907,26 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 			mx_area_detector_default_get_parameter_handler;
 	}
 
+	/* Get the sequence type. */
+
+	ad->parameter_type = MXLV_AD_SEQUENCE_TYPE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the number of parameters. */
+
+	ad->parameter_type = MXLV_AD_NUM_SEQUENCE_PARAMETERS;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the parameter array. */
+
 	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
 
 	mx_status = (*get_parameter_fn)( ad );
@@ -920,7 +951,7 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 	sequence_parameters->num_parameters =
 				ad->sequence_parameters.num_parameters;
 
-	/* FIXME! - For an undetermined reason, the for() that follows
+	/* FIXME! - For some undetermined reason, the for() that follows
 	 * works, but the memcpy() does not.  Please show me the error
 	 * of my ways.
 	 */
@@ -935,58 +966,6 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 		for ( i = 0; i < ad->sequence_parameters.num_parameters; i++ ) {
 			sequence_parameters->parameter_array[i]
 				= ad->sequence_parameters.parameter_array[i];
-		}
-	}
-#endif
-
-	/* FIXME - The following is my attempt to debug the above issue. */
-
-#if 0
-	MX_DEBUG(-2,("%s: #1 &sequence_type = %p",
-		fname, &(ad->sequence_parameters.sequence_type) ));
-	MX_DEBUG(-2,("%s: #1 &num_parameters = %p",
-		fname, &(ad->sequence_parameters.num_parameters) ));
-	MX_DEBUG(-2,("%s: #1 parameter_array = %p",
-		fname, ad->sequence_parameters.parameter_array ));
-	MX_DEBUG(-2,("%s: #1 &parameter_array = %p",
-		fname, &(ad->sequence_parameters.parameter_array) ));
-	MX_DEBUG(-2,("%s: #1 &parameter_array[0] = %p",
-		fname, &(ad->sequence_parameters.parameter_array[0]) ));
-
-	MX_DEBUG(-2,("%s: #2 &sequence_type = %p",
-		fname, &(sequence_parameters->sequence_type) ));
-	MX_DEBUG(-2,("%s: #2 &num_parameters = %p",
-		fname, &(sequence_parameters->num_parameters) ));
-	MX_DEBUG(-2,("%s: #2 parameter_array = %p",
-		fname, sequence_parameters->parameter_array ));
-	MX_DEBUG(-2,("%s: #2 &parameter_array = %p",
-		fname, &(sequence_parameters->parameter_array) ));
-	MX_DEBUG(-2,("%s: #2 &parameter_array[0] = %p",
-		fname, &(sequence_parameters->parameter_array[0]) ));
-#endif
-
-#if 0 && MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: #1 sequence_type = %ld",
-		fname, ad->sequence_parameters.sequence_type));
-	MX_DEBUG(-2,("%s: #1 num_parameters = %ld",
-		fname, ad->sequence_parameters.num_parameters));
-	{
-		long i;
-		for ( i = 0; i < ad->sequence_parameters.num_parameters; i++ ) {
-			MX_DEBUG(-2,("%s: #1 parameter_array[%ld] = %g",
-			fname, i, ad->sequence_parameters.parameter_array[i]));
-		}
-	}
-
-	MX_DEBUG(-2,("%s: #2 sequence_type = %ld",
-		fname, sequence_parameters->sequence_type));
-	MX_DEBUG(-2,("%s: #2 num_parameters = %ld",
-		fname, sequence_parameters->num_parameters));
-	{
-		long i;
-		for ( i = 0; i < sequence_parameters->num_parameters; i++ ) {
-			MX_DEBUG(-2,("%s: #2 parameter_array[%ld] = %g",
-			fname, i, sequence_parameters->parameter_array[i]));
 		}
 	}
 #endif
@@ -1025,8 +1004,6 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
-
 	/* Save the parameters, which will be used the next time that
 	 * the area detector "arms".
 	 */
@@ -1050,6 +1027,28 @@ mx_area_detector_set_sequence_parameters( MX_RECORD *record,
 
 	memcpy( sp->parameter_array, sequence_parameters->parameter_array,
 			num_parameters * sizeof(double) );
+
+	/* Set the sequence type. */
+
+	ad->parameter_type = MXLV_AD_SEQUENCE_TYPE;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the number of parameters. */
+
+	ad->parameter_type = MXLV_AD_NUM_SEQUENCE_PARAMETERS;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the parameter array. */
+
+	ad->parameter_type = MXLV_AD_SEQUENCE_PARAMETER_ARRAY;
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -1437,6 +1436,7 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_last_frame_number_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -1445,13 +1445,26 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 		return mx_status;
 
 	get_last_frame_number_fn = flist->get_last_frame_number;
+	get_extended_status_fn   = flist->get_extended_status;
 
 	if ( get_last_frame_number_fn != NULL ) {
 		mx_status = (*get_last_frame_number_fn)( ad );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( ad );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the last frame number for area detector '%s' "
+		"is unsupported.", record->name );
 	}
 
+#if 0 && MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: last_frame_number = %ld",
+		fname, ad->last_frame_number));
+#endif
+
 	if ( last_frame_number != NULL ) {
-		*last_frame_number = 0;
+		*last_frame_number = ad->last_frame_number;
 	}
 
 	return mx_status;
@@ -1466,6 +1479,7 @@ mx_area_detector_get_status( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_status_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -1473,11 +1487,23 @@ mx_area_detector_get_status( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	get_status_fn = flist->get_status;
+	get_status_fn            = flist->get_status;
+	get_extended_status_fn   = flist->get_extended_status;
 
 	if ( get_status_fn != NULL ) {
 		mx_status = (*get_status_fn)( ad );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( ad );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the detector status for area detector '%s' "
+		"is unsupported.", record->name );
 	}
+
+#if 0 && MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: status = %#lx", fname, ad->status));
+#endif
 
 	if ( status_flags != NULL ) {
 		*status_flags = ad->status;
@@ -1495,6 +1521,8 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_last_frame_number_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *get_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
@@ -1503,14 +1531,39 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	get_extended_status_fn = flist->get_extended_status;
+	get_last_frame_number_fn = flist->get_last_frame_number;
+	get_status_fn            = flist->get_status;
+	get_extended_status_fn   = flist->get_extended_status;
 
 	if ( get_extended_status_fn != NULL ) {
 		mx_status = (*get_extended_status_fn)( ad );
+	} else {
+		if ( get_last_frame_number_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Getting the last frame number for area detector '%s' "
+			"is unsupported.", record->name );
+		}
+		if ( get_status_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Getting the detector status for area detector '%s' "
+			"is unsupported.", record->name );
+		}
+
+		mx_status = (*get_last_frame_number_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = (*get_status_fn)( ad );
 	}
 
+#if 0 && MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: last_frame_number = %ld, status = %#lx",
+		fname, ad->last_frame_number, ad->status));
+#endif
+
 	if ( last_frame_number != NULL ) {
-		*last_frame_number = 0;
+		*last_frame_number = ad->last_frame_number;
 	}
 	if ( status_flags != NULL ) {
 		*status_flags = ad->status;

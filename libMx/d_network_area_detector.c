@@ -665,6 +665,11 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 0 && MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: ad->extended_status = '%s'",
+		fname, ad->extended_status));
+#endif
+
 	num_items = sscanf( ad->extended_status, "%ld %lx",
 				&(ad->last_frame_number), &(ad->status) );
 
@@ -677,6 +682,10 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 			"extended_status", ad->extended_status );
 	}
 
+#if 0 && MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: last_frame_number = %ld, status = %#lx",
+		fname, ad->last_frame_number, ad->status));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1135,6 +1144,11 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: GET sequence_type = %ld",
+			fname, ad->sequence_parameters.sequence_type));
+#endif
 		mx_status = mx_get( &(network_area_detector->sequence_type_nf),
 		    MXFT_LONG, &(ad->sequence_parameters.sequence_type) );
 
@@ -1246,6 +1260,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: PUT sequence_type = %ld",
+			fname, ad->sequence_parameters.sequence_type));
+#endif
 		mx_status = mx_put( &(network_area_detector->sequence_type_nf),
 		    MXFT_LONG, &(ad->sequence_parameters.sequence_type) );
 

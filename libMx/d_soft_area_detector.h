@@ -23,6 +23,9 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	unsigned long initial_trigger_mode;
+
+	MX_CLOCK_TICK start_time;
+	mx_bool_type sequence_in_progress;
 } MX_SOFT_AREA_DETECTOR;
 
 
@@ -50,7 +53,8 @@ MX_API mx_status_type mxd_soft_area_detector_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_abort( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_soft_area_detector_get_status( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_soft_area_detector_get_extended_status(
+						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_readout_frame(
 						MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_soft_area_detector_get_parameter(

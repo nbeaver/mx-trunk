@@ -241,6 +241,13 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_EXTENDED_STATUS:
 			mx_status = mx_area_detector_get_extended_status(
 							record, NULL, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf(
+			    ad->extended_status, sizeof(ad->extended_status),
+			    "%ld %#lx", ad->last_frame_number, ad->status );
 			break;
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:
