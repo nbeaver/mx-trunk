@@ -316,6 +316,15 @@ mxd_keithley428_open( MX_RECORD *record )
 
 	mx_status = mxd_keithley428_set_time_constant( amplifier );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the firmware version for this Keithley. */
+
+	mx_status = mxd_keithley428_command( interface, "U4X",
+				keithley428->firmware_version,
+				MXU_KEITHLEY428_FIRMWARE_VERSION_LENGTH,
+				KEITHLEY428_DEBUG );
 	return mx_status;
 }
 
@@ -928,8 +937,10 @@ mxd_keithley428_command( MX_INTERFACE *interface, char *command,
 			}
 		}
 	}
-	return mx_error( MXE_FUNCTION_FAILED, fname,
-		"Incorrectly programmed error message handling function.  "
-		"Failed for command '%s'", command );
+	return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The command '%s' sent to the Keithley at GPIB address %ld "
+		"failed.  However, the U1 error status word returned was "
+		"unrecognizable.  U1 error status word = '%s'",
+			command, interface->address, error_status );
 }
 

@@ -45,8 +45,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
-	long i, last_frame_number;
+	long i, last_frame_number, property_value;
 	unsigned long ad_status;
+	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
 	double exposure_time, gap_time, exposure_multiplier, gap_multiplier;
 	double bytes_per_pixel;
 	mx_bool_type busy;
@@ -86,6 +87,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set trigger_mode 'trigger mode'\n"
 "  area_detector 'name' get correction_flags\n"
 "  area_detector 'name' set correction_flags 'correction flags'\n"
+"\n"
+"  area_detector 'name' get property_value 'property_name'\n"
+"  area_detector 'name' set property_value 'property_name' 'property_value'\n"
+"  area_detector 'name' get property_string 'property_name'\n"
+"  area_detector 'name' set property_string 'property_name' 'property_string'\n"
 "\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -765,6 +771,51 @@ motor_area_detector_fn( int argc, char *argv[] )
 				"Area detector '%s': correction flags = %#lx\n",
 				ad_record->name, correction_flags );
 		} else
+		if ( strncmp( "property_value",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 6 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'get property_value' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_get_property_value(
+					ad_record, argv[5], &property_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Area detector '%s': property '%s' value = %ld\n",
+				ad_record->name, argv[5], property_value );
+		} else
+		if ( strncmp( "property_string",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 6 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'get property_string' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_get_property_string(
+					ad_record, argv[5], property_string,
+					sizeof(property_string) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Area detector '%s': property '%s' string = '%s'\n",
+				ad_record->name, argv[5], property_string );
+		} else
 		if ( strncmp( "sequence_parameters",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
@@ -982,6 +1033,52 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			mx_status = mx_area_detector_set_correction_flags(
 					    ad_record, correction_flags );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp( "property_value",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 7 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'set property_value' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			property_value = strtol( argv[6], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+	"%s: Non-numeric characters found in the property value '%s'\n",
+					cname, argv[6] );
+
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_set_property_value(
+					ad_record, argv[5], property_value );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp( "property_string",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 7 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'set property_string' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_set_property_string(
+					ad_record, argv[5], argv[6] );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

@@ -17,7 +17,9 @@
 #ifndef __MX_AREA_DETECTOR_H__
 #define __MX_AREA_DETECTOR_H__
 
-#define MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH	40
+#define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
+#define MXU_AD_PROPERTY_NAME_LENGTH		40
+#define MXU_AD_PROPERTY_STRING_LENGTH		80
 
 /* Status bit definitions for the 'status' field. */
 
@@ -59,8 +61,7 @@ typedef struct {
 	mx_bool_type busy;
 	long last_frame_number;
 	unsigned long status;
-	char extended_status
-		[ MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH + 1 ];
+	char extended_status[ MXU_AD_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
 	long subframe_size;	/* Not all detectors support this. */
 
@@ -164,6 +165,15 @@ typedef struct {
 	MX_IMAGE_FRAME *flood_field_frame;
 	char *flood_field_frame_buffer;
 	char flood_field_filename[MXU_FILENAME_LENGTH+1];
+
+	/* The following fields are used for getting and setting
+	 * detector property values, both as numbers and as strings.
+	 */
+
+	char property_name[MXU_AD_PROPERTY_NAME_LENGTH+1];
+	long property_value;
+	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
+
 } MX_AREA_DETECTOR;
 
 /* Warning: Do not rely on the following numbers remaining the same
@@ -206,6 +216,9 @@ typedef struct {
 #define MXLV_AD_SAVE_FRAME			12034
 #define MXLV_AD_FRAME_FILENAME			12035
 #define MXLV_AD_COPY_FRAME			12036
+#define MXLV_AD_PROPERTY_NAME			12037
+#define MXLV_AD_PROPERTY_VALUE			12038
+#define MXLV_AD_PROPERTY_STRING			12039
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -278,7 +291,7 @@ typedef struct {
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_EXTENDED_STATUS, -1, "extended_status", MXFT_STRING, \
-		NULL, 1, {MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH}, \
+			NULL, 1, {MXU_AD_EXTENDED_STATUS_STRING_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, extended_status), \
 	{sizeof(char)}, NULL, MXFF_READ_ONLY}, \
   \
@@ -369,6 +382,20 @@ typedef struct {
   {MXLV_AD_COPY_FRAME, -1, "copy_frame", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
+  \
+  {MXLV_AD_PROPERTY_NAME, -1, "property_name", MXFT_STRING, \
+  				NULL, 1, {MXU_AD_PROPERTY_NAME_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_name), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_AD_PROPERTY_VALUE, -1, "property_value", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_value), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_PROPERTY_STRING, -1, "property_string", MXFT_STRING, \
+  				NULL, 1, {MXU_AD_PROPERTY_STRING_LENGTH}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_string), \
+	{sizeof(char)}, NULL, 0}, \
   \
   {-1, -1, "frame_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_filename),\
@@ -463,6 +490,24 @@ MX_API mx_status_type mx_area_detector_load_correction_files(
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_get_property_value( MX_RECORD *record,
+							char *property_name,
+							long *property_value );
+
+MX_API mx_status_type mx_area_detector_set_property_value( MX_RECORD *record,
+							char *property_name,
+							long property_value );
+
+MX_API mx_status_type mx_area_detector_get_property_string( MX_RECORD *record,
+							char *property_name,
+							char *property_string,
+						     size_t max_string_length );
+
+MX_API mx_status_type mx_area_detector_set_property_string( MX_RECORD *record,
+							char *property_name,
+							char *property_string );
+
+/*---*/
 
 MX_API mx_status_type mx_area_detector_get_image_format( MX_RECORD *ad_record,
 						long *format );
@@ -522,6 +567,10 @@ MX_API mx_status_type mx_area_detector_get_correction_flags( MX_RECORD *record,
 
 MX_API mx_status_type mx_area_detector_set_correction_flags( MX_RECORD *record,
 					unsigned long correction_flags );
+
+/* FIXME! */
+MX_API mx_status_type mx_area_detector_measure_dark_current( MX_RECORD *record );
+					
 
 /*---*/
 

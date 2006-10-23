@@ -181,6 +181,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FRAME_BUFFER:
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
+		case MXLV_AD_PROPERTY_STRING:
+		case MXLV_AD_PROPERTY_VALUE:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_SAVE_FRAME:
@@ -280,6 +282,16 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_maximum_framesize(
 							record, NULL, NULL );
 			break;
+		case MXLV_AD_PROPERTY_STRING:
+			mx_status = mx_area_detector_get_property_string(
+						record, ad->property_name,
+						NULL, 0 );
+			break;
+		case MXLV_AD_PROPERTY_VALUE:
+			mx_status = mx_area_detector_get_property_value(
+						record, ad->property_name,
+						NULL );
+			break;
 		case MXLV_AD_ROI_FRAME_BUFFER:
 			if ( ad->roi_frame_buffer == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
@@ -372,6 +384,16 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_LOAD_FRAME:
 			mx_status = mx_area_detector_load_frame( record,
 					ad->load_frame, ad->frame_filename );
+			break;
+		case MXLV_AD_PROPERTY_STRING:
+			mx_status = mx_area_detector_set_property_string(
+						record, ad->property_name,
+						ad->property_string );
+			break;
+		case MXLV_AD_PROPERTY_VALUE:
+			mx_status = mx_area_detector_set_property_value(
+						record, ad->property_name,
+						ad->property_value );
 			break;
 		case MXLV_AD_READOUT_FRAME:
 			mx_status = mxp_area_detector_readout_frame_handler(

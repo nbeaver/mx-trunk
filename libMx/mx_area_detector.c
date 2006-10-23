@@ -319,6 +319,242 @@ mx_area_detector_load_correction_files( MX_RECORD *record )
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_property_value( MX_RECORD *record,
+					char *property_name,
+					long *property_value )
+{
+	static const char fname[] = "mx_area_detector_get_property_value()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The property_name pointer passed was NULL." );
+	}
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	/* Set the property name first. */
+
+	strlcpy(ad->property_name, property_name, MXU_AD_PROPERTY_NAME_LENGTH);
+
+	ad->parameter_type = MXLV_AD_PROPERTY_NAME;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now read the property value. */
+
+	ad->parameter_type = MXLV_AD_PROPERTY_VALUE;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_value != NULL ) {
+		*property_value = ad->property_value;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_property_value( MX_RECORD *record,
+					char *property_name,
+					long property_value )
+{
+	static const char fname[] = "mx_area_detector_set_property_value()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The property_name pointer passed was NULL." );
+	}
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	/* Set the property name first. */
+
+	strlcpy(ad->property_name, property_name, MXU_AD_PROPERTY_NAME_LENGTH);
+
+	ad->parameter_type = MXLV_AD_PROPERTY_NAME;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now write the property value. */
+
+	ad->property_value = property_value;
+
+	ad->parameter_type = MXLV_AD_PROPERTY_VALUE;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_property_string( MX_RECORD *record,
+					char *property_name,
+					char *property_string,
+					size_t max_string_length )
+{
+	static const char fname[] = "mx_area_detector_get_property_string()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The property_name pointer passed was NULL." );
+	}
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	/* Set the property name first. */
+
+	strlcpy(ad->property_name, property_name, MXU_AD_PROPERTY_NAME_LENGTH);
+
+	ad->parameter_type = MXLV_AD_PROPERTY_NAME;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now read the property string. */
+
+	ad->parameter_type = MXLV_AD_PROPERTY_STRING;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_string != NULL ) {
+	    strlcpy( property_string, ad->property_string, max_string_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_property_string( MX_RECORD *record,
+					char *property_name,
+					char *property_string )
+{
+	static const char fname[] = "mx_area_detector_set_property_string()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( property_name == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The property_name pointer passed was NULL." );
+	}
+	if ( property_string == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The property_string pointer passed was NULL." );
+	}
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	/* Set the property name first. */
+
+	strlcpy(ad->property_name, property_name, MXU_AD_PROPERTY_NAME_LENGTH);
+
+	ad->parameter_type = MXLV_AD_PROPERTY_NAME;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Now write the property string. */
+
+	strlcpy( ad->property_string, property_string,
+			MXU_AD_PROPERTY_STRING_LENGTH );
+
+	ad->parameter_type = MXLV_AD_PROPERTY_STRING;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_image_format( MX_RECORD *record, long *format )
 {
 	static const char fname[] = "mx_area_detector_get_image_format()";
@@ -2610,7 +2846,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type '%s' (%ld) is not supported by the MX driver "
-		"for video input '%s'.",
+		"for area detector '%s'.",
 			mx_get_field_label_string( ad->record,
 						ad->parameter_type ),
 			ad->parameter_type,
@@ -2680,7 +2916,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type '%s' (%ld) is not supported by the MX driver "
-		"for video input '%s'.",
+		"for area detector '%s'.",
 			mx_get_field_label_string( ad->record,
 						ad->parameter_type ),
 			ad->parameter_type,

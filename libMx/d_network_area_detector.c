@@ -278,6 +278,18 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.pixel_order", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->property_name_nf),
+		network_area_detector->server_record,
+		"%s.property_name", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->property_string_nf),
+		network_area_detector->server_record,
+	    "%s.property_string", network_area_detector->remote_record_name );
+
+	mx_network_field_init( &(network_area_detector->property_value_nf),
+		network_area_detector->server_record,
+	    "%s.property_value", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->readout_frame_nf),
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
@@ -657,7 +669,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	dimension[0] = MXU_AREA_DETECTOR_EXTENDED_STATUS_STRING_LENGTH;
+	dimension[0] = MXU_AD_EXTENDED_STATUS_STRING_LENGTH;
 
 	mx_status = mx_get_array( &(network_area_detector->extended_status_nf),
 			MXFT_STRING, 1, dimension, &(ad->extended_status) );
@@ -1189,6 +1201,24 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 #endif
 		break;
 
+	case MXLV_AD_PROPERTY_NAME:
+		dimension[0] = MXU_AD_PROPERTY_NAME_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->property_name_nf),
+			MXFT_STRING, 1, dimension, &(ad->property_name) );
+		break;
+	case MXLV_AD_PROPERTY_STRING:
+		dimension[0] = MXU_AD_PROPERTY_STRING_LENGTH;
+
+		mx_status = mx_get_array(
+			&(network_area_detector->property_string_nf),
+			MXFT_STRING, 1, dimension, &(ad->property_string) );
+		break;
+	case MXLV_AD_PROPERTY_VALUE:
+		mx_status = mx_get( &(network_area_detector->property_value_nf),
+					MXFT_LONG, &(ad->property_value) );
+		break;
 	case MXLV_AD_ROI_NUMBER:
 		mx_status = mx_get( &(network_area_detector->roi_number_nf),
 					MXFT_LONG, &(ad->roi_number) );
@@ -1287,6 +1317,24 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(ad->sequence_parameters.parameter_array));
 		break;
 
+	case MXLV_AD_PROPERTY_NAME:
+		dimension[0] = MXU_AD_PROPERTY_NAME_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->property_name_nf),
+			MXFT_STRING, 1, dimension, &(ad->property_name) );
+		break;
+	case MXLV_AD_PROPERTY_STRING:
+		dimension[0] = MXU_AD_PROPERTY_STRING_LENGTH;
+
+		mx_status = mx_put_array(
+			&(network_area_detector->property_string_nf),
+			MXFT_STRING, 1, dimension, &(ad->property_string) );
+		break;
+	case MXLV_AD_PROPERTY_VALUE:
+		mx_status = mx_put( &(network_area_detector->property_value_nf),
+					MXFT_LONG, &(ad->property_value) );
+		break;
 	case MXLV_AD_ROI_NUMBER:
 		mx_status = mx_put( &(network_area_detector->roi_number_nf),
 					MXFT_LONG, &(ad->roi_number) );

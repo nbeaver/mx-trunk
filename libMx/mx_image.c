@@ -681,12 +681,12 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
 			datafile_type, datafile_name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -703,12 +703,12 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 		mx_status = mx_image_write_pnm_file( frame, datafile_name );
 		break;
 	default:
-		return mx_error( MXE_UNSUPPORTED, fname,
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
 			datafile_type, datafile_name );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*----*/
