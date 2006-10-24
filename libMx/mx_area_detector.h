@@ -230,6 +230,7 @@ typedef struct {
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12040
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12041
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12042
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12043
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -438,7 +439,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
-  {-1, -1, "use_scaled_dark_current", MXFT_BOOL, NULL, 0, {0}, \
+  {MXLV_AD_USE_SCALED_DARK_CURRENT, -1, "use_scaled_dark_current", \
+  						MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_AREA_DETECTOR, use_scaled_dark_current), \
 	{0}, NULL, 0}, \
@@ -613,6 +615,14 @@ MX_API mx_status_type mx_area_detector_measure_correction_frame(
 	mx_area_detector_measure_correction_frame( (r), \
 						MXFT_AD_FLOOD_FIELD_FRAME, \
 						(t), (n) )
+
+MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current(
+						MX_RECORD *ad_record,
+					mx_bool_type *use_scaled_dark_current );
+
+MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current(
+						MX_RECORD *ad_record,
+					mx_bool_type use_scaled_dark_current );
 
 /*---*/
 

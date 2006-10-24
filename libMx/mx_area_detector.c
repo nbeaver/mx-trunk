@@ -1148,6 +1148,76 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 	return mx_status;
 }
 
+MX_API mx_status_type
+mx_area_detector_get_use_scaled_dark_current( MX_RECORD *record,
+					mx_bool_type *use_scaled_dark_current )
+{
+	static const char fname[] =
+			"mx_area_detector_get_use_scaled_dark_current()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_USE_SCALED_DARK_CURRENT;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( use_scaled_dark_current != NULL ) {
+		*use_scaled_dark_current = ad->use_scaled_dark_current;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_API mx_status_type
+mx_area_detector_set_use_scaled_dark_current( MX_RECORD *record,
+					mx_bool_type use_scaled_dark_current )
+{
+	static const char fname[] =
+			"mx_area_detector_set_use_scaled_dark_current()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn =
+			mx_area_detector_default_set_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_USE_SCALED_DARK_CURRENT;
+	ad->use_scaled_dark_current = use_scaled_dark_current;
+
+	mx_status = (*set_parameter_fn)( ad );
+
+	return mx_status;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -3072,8 +3142,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
 							exposure_time );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code != MXE_SUCCESS ) {
+		free( sum_array );
 		return mx_status;
+	}
 
 	/* Take the requested number of exposures and sum together
 	 * the pixels from each exposure.
@@ -3087,23 +3159,27 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_area_detector_start( ad->record );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			free( sum_array );
 			return mx_status;
+		}
 
 		/* Wait for the exposure to end. */
 
 		for(;;) {
 			mx_status = mx_area_detector_is_busy(ad->record, &busy);
 
-			if ( mx_status.code != MXE_SUCCESS )
+			if ( mx_status.code != MXE_SUCCESS ) {
+				free( sum_array );
 				return mx_status;
+			}
 
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
 
 				MX_DEBUG(-2,("%s: INTERRUPTED", fname));
-
 #if 0
+				free( sum_array );
 				return mx_area_detector_stop( ad->record );
 #endif
 			}
@@ -3118,8 +3194,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			free( sum_array );
 			return mx_status;
+		}
 
 		/* Get the image data pointer. */
 
@@ -3127,8 +3205,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&image_length,
 						&void_image_data_pointer );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		if ( mx_status.code != MXE_SUCCESS ) {
+			free( sum_array );
 			return mx_status;
+		}
 
 		src_array = void_image_data_pointer;
 
@@ -3163,6 +3243,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		dest_array[i] = mx_round( temp_double );
 	}
+
+	free( sum_array );
 
 	MX_DEBUG(-2,("%s: correction measurement complete.", fname));
 	

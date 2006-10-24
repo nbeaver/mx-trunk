@@ -61,6 +61,7 @@ typedef struct {
 	MX_NETWORK_FIELD transfer_frame_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;
+	MX_NETWORK_FIELD use_scaled_dark_current_nf;
 
 	MX_NETWORK_FIELD sequence_type_nf;
 	MX_NETWORK_FIELD num_sequence_parameters_nf;

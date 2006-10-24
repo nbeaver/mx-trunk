@@ -361,6 +361,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.trigger_mode", network_area_detector->remote_record_name );
 
+	mx_network_field_init(
+			&(network_area_detector->use_scaled_dark_current_nf),
+		network_area_detector->server_record,
+      "%s.use_scaled_dark_current", network_area_detector->remote_record_name );
+
 	/*---*/
 
 	mx_network_field_init( &(network_area_detector->sequence_type_nf),
@@ -1252,6 +1257,11 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_get( &(network_area_detector->subframe_size_nf),
 					MXFT_ULONG, &(ad->subframe_size) );
 		break;
+	case MXLV_AD_USE_SCALED_DARK_CURRENT:
+		mx_status = mx_put(
+			&(network_area_detector->use_scaled_dark_current_nf),
+				MXFT_ULONG, &(ad->use_scaled_dark_current) );
+		break;
 	default:
 		mx_status =
 			mx_area_detector_default_get_parameter_handler( ad );
@@ -1367,6 +1377,11 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SUBFRAME_SIZE:
 		mx_status = mx_put( &(network_area_detector->subframe_size_nf),
 					MXFT_ULONG, &(ad->subframe_size) );
+		break;
+	case MXLV_AD_USE_SCALED_DARK_CURRENT:
+		mx_status = mx_put(
+			&(network_area_detector->use_scaled_dark_current_nf),
+				MXFT_ULONG, &(ad->use_scaled_dark_current) );
 		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:
