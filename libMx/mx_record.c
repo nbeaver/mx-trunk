@@ -853,6 +853,8 @@ mx_delete_record_class( MX_RECORD *record_list, long record_class )
 	return mx_status;
 }
 
+/* ========= */
+
 MX_EXPORT MX_RECORD *
 mx_initialize_record_list( void )
 {
@@ -1003,65 +1005,348 @@ mx_initialize_drivers( void )
 	return mx_status;
 }
 
+/* ========= */
+
+typedef struct {
+	mx_bool_type is_array;
+	long line_number;
+
+	FILE *file;
+	char *filename;
+
+	long num_lines;
+	long current_line;
+	char **array_ptr;
+} MXP_DB_SOURCE;
+
+static mx_status_type mx_setup_database_private(MX_RECORD **, MXP_DB_SOURCE *);
+
+static mx_status_type mx_read_database_private(MX_RECORD *,
+						MXP_DB_SOURCE *, unsigned long);
+
+/*
+ * mx_setup_database() is a simplified startup routine that performs
+ * many of the standard startup actions for you.  For many programs,
+ * calling mx_setup_database() should be all you need to do.
+ */
+
 MX_EXPORT mx_status_type
-mx_read_database_file( MX_RECORD *record_list_head,
+mx_setup_database( MX_RECORD **record_list, char *filename )
+{
+	static const char fname[] = "mx_setup_database()";
+
+	MXP_DB_SOURCE db_source;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record_list argument to this function was NULL." );
+	}
+	if ( filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename argument passed to this function is NULL." );
+	}
+
+	memset( &db_source, 0, sizeof(db_source) );
+
+	db_source.is_array = FALSE;
+	db_source.filename = filename;
+
+	mx_status = mx_setup_database_private( record_list, &db_source );
+
+	return mx_status;
+}
+
+/* Here is an alternate that gets the database records from an array. */
+
+MX_EXPORT mx_status_type
+mx_setup_database_from_array( MX_RECORD **record_list,
+				long num_descriptions,
+				char **description_array )
+{
+	static const char fname[] = "mx_setup_database_from_array()";
+
+	MXP_DB_SOURCE db_source;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record_list argument to this function was NULL." );
+	}
+	if ( description_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	"The description_array argument passed to this function is NULL." );
+	}
+
+	memset( &db_source, 0, sizeof(db_source) );
+
+	db_source.is_array = TRUE;
+	db_source.num_lines = num_descriptions;
+	db_source.array_ptr = description_array;
+
+	mx_status = mx_setup_database_private( record_list, &db_source );
+
+	return mx_status;
+}
+
+/* Here is the function that does the real work. */
+
+static mx_status_type
+mx_setup_database_private( MX_RECORD **record_list, MXP_DB_SOURCE *db_source )
+{
+	static const char fname[] = "mx_setup_database_private()";
+
+	mx_status_type mx_status;
+
+
+	/* Setup the parts of the MX runtime environment that do not
+	 * depend on the presence of an MX database.
+	 */
+
+	mx_status = mx_initialize_runtime();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize the MX device drivers. */
+
+	mx_status = mx_initialize_drivers();
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Create a new record list. */
+
+	*record_list = mx_initialize_record_list();
+
+	if ( *record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to create an MX record list." );
+	}
+
+	/* Read in the database and initialize the corresponding hardware. */
+
+	mx_status = mx_read_database_private( *record_list, db_source, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_finish_database_initialization( *record_list );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_initialize_hardware( *record_list, 0 );
+
+	return mx_status;
+}
+
+/* ========= */
+
+MX_EXPORT mx_status_type
+mx_read_database_file( MX_RECORD *record_list,
 			char *filename,
 			unsigned long flags )
 {
 	static const char fname[] = "mx_read_database_file()";
 
+	MXP_DB_SOURCE db_source;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record_list argument to this function was NULL." );
+	}
+	if ( filename == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename argument passed to this function is NULL." );
+	}
+
+	memset( &db_source, 0, sizeof(db_source) );
+
+	db_source.is_array = FALSE;
+	db_source.filename = filename;
+
+	mx_status = mx_read_database_private( record_list, &db_source, flags );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_read_database_from_array( MX_RECORD *record_list,
+			long num_description_lines,
+			char **description_array,
+			unsigned long flags )
+{
+	static const char fname[] = "mx_read_database_file()";
+
+	MXP_DB_SOURCE db_source;
+	mx_status_type mx_status;
+
+	if ( record_list == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The record_list argument to this function was NULL." );
+	}
+	if ( description_array == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+	"The description_array argument passed to this function is NULL." );
+	}
+
+	memset( &db_source, 0, sizeof(db_source) );
+
+	db_source.is_array = TRUE;
+	db_source.num_lines = num_description_lines;
+	db_source.array_ptr = description_array;
+
+	mx_status = mx_read_database_private( record_list, &db_source, flags );
+
+	return mx_status;
+}
+
+static mx_status_type
+mxp_readline_from_file( MXP_DB_SOURCE *db_source,
+			char *buffer, size_t buffer_length )
+{
+	static const char fname[] = "mxp_readline_from_file()";
+
+	int saved_errno, length;
+
+	fgets( buffer, buffer_length, db_source->file );
+
+	if ( feof( db_source->file ) ) {
+		fclose( db_source->file );
+
+		return mx_error_quiet( MXE_END_OF_DATA, fname,
+		"End of file at line %ld of file '%s'.",
+			db_source->line_number, db_source->filename );
+	}
+
+	if ( ferror( db_source->file ) ) {
+		saved_errno = errno;
+
+		fclose( db_source->file );
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Error at line %ld of file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+			db_source->line_number, db_source->filename,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Zap any trailing newline. */
+
+	length = strlen( buffer );
+
+	if ( buffer[ length - 1 ] == '\n' ) {
+		buffer[ length - 1 ] = '\0';
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxp_readline_from_array( MXP_DB_SOURCE *db_source,
+			char *buffer, size_t buffer_length )
+{
+	static const char fname[] = "mxp_readline_from_array()";
+
+	long i;
+
+	if ( db_source->current_line >= db_source->num_lines ) {
+		return mx_error_quiet( MXE_END_OF_DATA, fname,
+		"End of data at line %ld of the database array.",
+			db_source->line_number );
+	}
+
+	i = db_source->line_number;
+
+	strlcpy( buffer, db_source->array_ptr[i], sizeof(buffer) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mx_read_database_private( MX_RECORD *record_list_head,
+			MXP_DB_SOURCE *db_source,
+			unsigned long flags )
+{
+	static const char fname[] = "mx_read_database_private()";
+
+	mx_status_type (*mxp_readline)( MXP_DB_SOURCE *, char *, size_t );
 	MX_RECORD *created_record;
-	FILE *file;
 	char buffer[MXU_RECORD_DESCRIPTION_LENGTH+1];
-	int line_number, saved_errno;
-	size_t length;
+	int saved_errno;
 	MX_RECORD_FIELD_PARSE_STATUS parse_status;
 	char token[ MXU_FILENAME_LENGTH + 1 ];
 	mx_status_type mx_status;
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
-	/* See if we can open the input file. */
+	if ( db_source->is_array ) {
 
-	MX_DEBUG( 2, ( "mx_read_database_file() entered.  "
-		"Filename = '%s', record_list = 0x%p",
-		filename, record_list_head ) );
+		/* Is an array */
 
-	file = fopen( filename, "r" );
+		MX_DEBUG(-2,
+		("%s invoked, is_array = %d, num_lines = %ld, array_ptr = %p",
+			fname, db_source->is_array,
+			db_source->num_lines, db_source->array_ptr ));
 
-	if ( file == NULL ) {
-		saved_errno = errno;
+		mxp_readline = mxp_readline_from_array;
+	} else {
+		/* Is a file */
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-			"Cannot open MX database file '%s'.  "
-			"errno = %d, error message = '%s'.",
-			filename, saved_errno, strerror( saved_errno ) );
+		MX_DEBUG(-2,
+		("%s invoked, is_array = %d, filename = '%s'",
+			fname, db_source->is_array, db_source->filename ));
+
+		mxp_readline = mxp_readline_from_file;
+
+		/* See if we can open the input file. */
+
+		db_source->file = fopen( db_source->filename, "r" );
+
+		if ( db_source->file == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+				"Cannot open MX database file '%s'.  "
+				"errno = %d, error message = '%s'.",
+				db_source->filename,
+				saved_errno, strerror( saved_errno ) );
+		}
 	}
 
-	/* Try to read the first record in the file. */
+	/* Try to read the first line. */
 
-	fgets( buffer, sizeof buffer, file );
+	mx_status = (*mxp_readline)( db_source, buffer, sizeof(buffer) );
 
-	if ( feof(file) ) {
-		mx_info("WARNING: Save file '%s' is empty.", filename);
-		fclose( file );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		break;
+
+	case MXE_END_OF_DATA:
+		if ( db_source->is_array ) {
+			mx_info( "WARNING: The database array is empty." );
+		} else {
+			mx_info( "WARNING: Save file '%s' is empty.",
+						db_source->filename );
+
+			fclose( db_source->file );
+		}
 		return MX_SUCCESSFUL_RESULT;
+	default:
+		return mx_status;
 	}
 
 	/* Loop until all the database file lines have been read. */
 
-	line_number = 1;
+	db_source->line_number = 1;
 
 	for (;;) {
-		MX_DEBUG( 2, ("line %d: '%s'", line_number, buffer));
-
-		/* Zap any trailing newline. */
-
-		length = strlen( buffer );
-
-		if ( buffer[ length - 1 ] == '\n' ) {
-			buffer[ length - 1 ] = '\0';
-		}
+		MX_DEBUG(-2,("line %ld: '%s'", db_source->line_number, buffer));
 
 		/* Figure out what to do with this line. */
 
@@ -1107,7 +1392,7 @@ mx_read_database_file( MX_RECORD *record_list_head,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			MX_DEBUG( 2,("%s: Trying to read include file '%s'",
+			MX_DEBUG(-2,("%s: Trying to read include file '%s'",
 				fname, token));
 
 			/* Try to read the include file. */
@@ -1118,7 +1403,7 @@ mx_read_database_file( MX_RECORD *record_list_head,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			MX_DEBUG( 2,("%s: Successfully read include file '%s'",
+			MX_DEBUG(-2,("%s: Successfully read include file '%s'",
 				fname, token));
 		} else {
 			/* Otherwise, we assume this line is just a
@@ -1135,36 +1420,65 @@ mx_read_database_file( MX_RECORD *record_list_head,
 				return mx_status;
 
 			    } else {
-				if ( created_record == (MX_RECORD *) NULL ) {
-					mx_warning(
-				"Skipping unrecognizable line in file '%s'.",
-						filename );
-				} else {
-				    mx_warning(
-				"Deleting broken record '%s' from file '%s'.",
-					created_record->name, filename );
+				if ( db_source->is_array ) {
+
+				   /* Is array. */
+
+				   if ( created_record == (MX_RECORD *) NULL ) {
+				      mx_warning( "Skipping unrecognizable "
+				                "line %ld in array.",
+						db_source->line_number );
+				   } else {
+				      mx_warning( "Deleting broken record '%s' "
+				             "at line %ld from array.",
+					          created_record->name,
+					          db_source->line_number );
 
 				    (void) mx_delete_record( created_record );
+				   }
+
+				} else {
+				   /* Is file */
+
+				   if ( created_record == (MX_RECORD *) NULL ) {
+				      mx_warning( "Skipping unrecognizable "
+				                "line %ld in file '%s'.",
+						db_source->line_number,
+						db_source->filename );
+				   } else {
+				      mx_warning( "Deleting broken record '%s' "
+				             " at line %ld, from file '%s'.",
+					        created_record->name,
+						db_source->line_number,
+						db_source->filename );
+
+				    (void) mx_delete_record( created_record );
+				   }
 				}
 			    }
 			}
 		}
 
-		/* Get the next line from the save file. */
+		/* Get the next line. */
 
-		fgets( buffer, sizeof buffer, file );
+		mx_status = (*mxp_readline)( db_source, buffer, sizeof(buffer));
 
-		/* If we have reached the end of the file, we are done. */
+		if ( mx_status.code == MXE_END_OF_DATA ) {
 
-		if ( feof(file) ) {
-			MX_DEBUG( 2, ("End of save file reached!"));
-			break;		/* Exit the for() loop. */
+			/* If we have reached the last line, we are done. */
+
+			if ( db_source->is_array ) {
+				MX_DEBUG(-2,("End of array reached!"));
+			} else {
+				fclose( db_source->file );
+
+				MX_DEBUG(-2,("End of database file reached!"));
+			}
+			break;		/* Exit the for(;;) loop. */
 		}
 
-		line_number++;
+		db_source->line_number++;
 	}
-
-	fclose( file );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1569,72 +1883,6 @@ mx_shutdown_hardware( MX_RECORD *record_list_head )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-/* ========= */
-
-/*
- * mx_setup_database() is a simplified startup routine that performs
- * many of the standard startup actions for you.  For many programs,
- * calling mx_setup_database() should be all you need to do.
- */
-
-MX_EXPORT mx_status_type
-mx_setup_database( MX_RECORD **record_list, char *filename )
-{
-	static const char fname[] = "mx_setup_database()";
-
-	mx_status_type mx_status;
-
-	if ( record_list == (MX_RECORD **) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The record_list argument to this function was NULL." );
-	}
-	if ( filename == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The filename argument passed to this function is NULL." );
-	}
-
-	/* Setup the parts of the MX runtime environment that do not
-	 * depend on the presence of an MX database.
-	 */
-
-	mx_status = mx_initialize_runtime();
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Initialize the MX device drivers. */
-
-	mx_status = mx_initialize_drivers();
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Create a new record list. */
-
-	*record_list = mx_initialize_record_list();
-
-	if ( *record_list == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to create an MX record list." );
-	}
-
-	/* Read in the database and initialize the corresponding hardware. */
-
-	mx_status = mx_read_database_file( *record_list, filename, 0 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_finish_database_initialization( *record_list );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_initialize_hardware( *record_list, 0 );
-
-	return mx_status;
 }
 
 /* ========= */

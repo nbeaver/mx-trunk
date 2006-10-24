@@ -493,6 +493,20 @@ MX_API mx_status_type  mx_connect_to_mx_server( MX_RECORD **server_record,
 
 /* --- */
 
+/* These functions can be used to read the database description records
+ * from an array instead of a file.
+ */
+
+MX_API mx_status_type  mx_setup_database_from_array( MX_RECORD **record_list,
+						long num_descriptions,
+						char **description_array );
+
+MX_API mx_status_type  mx_read_database_from_array( MX_RECORD *record_list,
+						long num_descriptions,
+						char **description_array,
+						unsigned long flags );
+/* --- */
+
 MX_API mx_status_type  mx_print_structure( FILE *file,
 					MX_RECORD *record,
 					unsigned long mask );

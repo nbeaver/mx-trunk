@@ -28,6 +28,8 @@ motor_init( char *motor_savefile_name,
 		char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
 		int init_hw_flags )
 {
+	static const char fname[] = "motor_init()";
+
 	MX_LIST_HEAD *list_head_struct;
 	int i, status;
 	unsigned long flags;
@@ -96,7 +98,7 @@ motor_init( char *motor_savefile_name,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( output,
-		"motor_init: Attempt to initialize record types failed.\n");
+		"%s: Attempt to initialize record types failed.\n", fname);
 
 		exit(1);
 	}
@@ -107,7 +109,8 @@ motor_init( char *motor_savefile_name,
 
 	if ( motor_record_list == (MX_RECORD *) NULL ) {
 		fprintf( output,
-"motor_init: Out of memory allocating first record of the record list.\n" );
+	"%s: Out of memory allocating first record of the record list.\n",
+			fname );
 	}
 
 	/* Set the default display precision for floating point numbers. */
@@ -115,7 +118,7 @@ motor_init( char *motor_savefile_name,
 	list_head_struct = mx_get_record_list_head_struct( motor_record_list );
 
 	if ( list_head_struct == NULL ) {
-		fprintf( output, "motor_init: list_head_struct is NULL.\n" );
+		fprintf( output, "%s: list_head_struct is NULL.\n", fname );
 		exit(1);
 	}
 
@@ -130,8 +133,8 @@ motor_init( char *motor_savefile_name,
 						motor_savefile_name, 0 );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		fprintf( output,"motor_init: Can't load database file '%s'\n",
-			motor_savefile_name );
+		fprintf( output,"%s: Can't load database file '%s'\n",
+			fname, motor_savefile_name );
 		exit(1);
 	}
 
@@ -158,10 +161,18 @@ motor_init( char *motor_savefile_name,
 			mx_status = mx_read_database_file( motor_record_list,
 						scan_savefile_array[i], flags );
 
-			if ( mx_status.code != MXE_SUCCESS ) {
+			switch( mx_status.code ) {
+			case MXE_SUCCESS:
+				break;
+			case MXE_END_OF_DATA:
 				fprintf( output,
-				"motor_init: Can't load database file '%s'\n",
+				"Scan database '%s' is empty.\n",
 					scan_savefile_array[i] );
+				break;
+			default:
+				fprintf( output,
+				"%s: Cannot load scan database '%s'\n",
+					fname, scan_savefile_array[i] );
 				exit(1);
 			}
 		}
@@ -175,7 +186,7 @@ motor_init( char *motor_savefile_name,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( output,
-		"motor_init: Cannot complete database initialization.\n" );
+		"%s: Cannot complete database initialization.\n", fname );
 
 		return FAILURE;
 	}
@@ -190,7 +201,7 @@ motor_init( char *motor_savefile_name,
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		fprintf( output,
-		"motor_init: Cannot start MX logging.\n" );
+		"%s: Cannot start MX logging.\n", fname );
 		return FAILURE;
 	}
 
@@ -206,7 +217,7 @@ motor_init( char *motor_savefile_name,
 		return SUCCESS;
 	} else {
 		fprintf( output,
-		"motor_init: Cannot perform hardware initialization.\n" );
+		"%s: Cannot perform hardware initialization.\n", fname );
 		return FAILURE;
 	}
 }
