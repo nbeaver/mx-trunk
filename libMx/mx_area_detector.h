@@ -146,7 +146,8 @@ typedef struct {
 	 */
 
 	char property_name[MXU_AD_PROPERTY_NAME_LENGTH+1];
-	long property_value;
+	long property_long;
+	double property_double;
 	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
 
 	/* The following fields are used for measuring dark current and
@@ -225,12 +226,13 @@ typedef struct {
 #define MXLV_AD_FRAME_FILENAME			12035
 #define MXLV_AD_COPY_FRAME			12036
 #define MXLV_AD_PROPERTY_NAME			12037
-#define MXLV_AD_PROPERTY_VALUE			12038
-#define MXLV_AD_PROPERTY_STRING			12039
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12040
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12041
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12042
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12043
+#define MXLV_AD_PROPERTY_LONG			12038
+#define MXLV_AD_PROPERTY_DOUBLE			12039
+#define MXLV_AD_PROPERTY_STRING			12040
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12041
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12042
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12043
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12044
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -400,8 +402,12 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_name), \
 	{sizeof(char)}, NULL, 0}, \
   \
-  {MXLV_AD_PROPERTY_VALUE, -1, "property_value", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_value), \
+  {MXLV_AD_PROPERTY_LONG, -1, "property_long", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_long), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_PROPERTY_DOUBLE, -1, "property_double", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_double), \
 	{0}, NULL, 0}, \
   \
   {MXLV_AD_PROPERTY_STRING, -1, "property_string", MXFT_STRING, \
@@ -522,13 +528,21 @@ MX_API mx_status_type mx_area_detector_load_correction_files(
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_get_property_value( MX_RECORD *record,
+MX_API mx_status_type mx_area_detector_get_property_long( MX_RECORD *record,
 							char *property_name,
 							long *property_value );
 
-MX_API mx_status_type mx_area_detector_set_property_value( MX_RECORD *record,
+MX_API mx_status_type mx_area_detector_set_property_long( MX_RECORD *record,
 							char *property_name,
 							long property_value );
+
+MX_API mx_status_type mx_area_detector_get_property_double( MX_RECORD *record,
+							char *property_name,
+							double *property_value);
+
+MX_API mx_status_type mx_area_detector_set_property_double( MX_RECORD *record,
+							char *property_name,
+							double property_value );
 
 MX_API mx_status_type mx_area_detector_get_property_string( MX_RECORD *record,
 							char *property_name,
@@ -616,11 +630,11 @@ MX_API mx_status_type mx_area_detector_measure_correction_frame(
 						MXFT_AD_FLOOD_FIELD_FRAME, \
 						(t), (n) )
 
-MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current(
+MX_API mx_status_type mx_area_detector_get_use_scaled_dark_current_flag(
 						MX_RECORD *ad_record,
 					mx_bool_type *use_scaled_dark_current );
 
-MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current(
+MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
 						MX_RECORD *ad_record,
 					mx_bool_type use_scaled_dark_current );
 

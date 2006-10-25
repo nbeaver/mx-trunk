@@ -20,39 +20,39 @@
 
 /*---- Image type definitions ----*/
 
-#define MXT_IMAGE_LOCAL_1D_ARRAY	1
+#define MXT_IMAGE_LOCAL_1D_ARRAY		1
 
 /*---- Image format definitions ----*/
 
-#define MXT_IMAGE_FORMAT_DEFAULT	(-1)
+#define MXT_IMAGE_FORMAT_DEFAULT		(-1)
 
-#define MXT_IMAGE_FORMAT_RGB565		1
-#define MXT_IMAGE_FORMAT_YUYV		2
+#define MXT_IMAGE_FORMAT_RGB			1
+#define MXT_IMAGE_FORMAT_GREY8			2
+#define MXT_IMAGE_FORMAT_GREY16			3
 
-#define MXT_IMAGE_FORMAT_RGB		1001
-#define MXT_IMAGE_FORMAT_GREY8		1002
-#define MXT_IMAGE_FORMAT_GREY16		1003
+#define MXT_IMAGE_FORMAT_RGB565			1001
+#define MXT_IMAGE_FORMAT_YUYV			1002
 
 /*---- Pixel order definitions ----*/
 
-#define MXT_IMAGE_PIXEL_ORDER_STANDARD	1
+#define MXT_IMAGE_PIXEL_ORDER_STANDARD		1
 
 /*---- Datafile format definitions ----*/
 
-#define MXT_IMAGE_FILE_PNM		1
-#define MXT_IMAGE_FILE_TIFF		2
+#define MXT_IMAGE_FILE_PNM			1
+#define MXT_IMAGE_FILE_TIFF			2
 
 /*---- Sequence type definitions ----*/
 
 
-#define MXT_SQ_ONE_SHOT			1
-#define MXT_SQ_CONTINUOUS		2
-#define MXT_SQ_MULTIFRAME		3
-#define MXT_SQ_CIRCULAR_MULTIFRAME	4
-#define MXT_SQ_STROBE			5
-#define MXT_SQ_BULB			6
+#define MXT_SQ_ONE_SHOT				1
+#define MXT_SQ_CONTINUOUS			2
+#define MXT_SQ_MULTIFRAME			3
+#define MXT_SQ_CIRCULAR_MULTIFRAME		4
+#define MXT_SQ_STROBE				5
+#define MXT_SQ_BULB				6
 
-#define MXT_SQ_GEOMETRICAL		101
+#define MXT_SQ_GEOMETRICAL			101
 
 /*----*/
 

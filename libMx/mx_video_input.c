@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_VIDEO_INPUT_DEBUG	TRUE
+#define MX_VIDEO_INPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -345,7 +345,9 @@ mx_video_input_set_exposure_time( MX_RECORD *record, double exposure_time )
 
 	sp = &(vinput->sequence_parameters);
 
+#if MX_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
+#endif
 
 	sp->sequence_type = MXT_SQ_ONE_SHOT;
 

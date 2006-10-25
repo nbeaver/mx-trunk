@@ -500,7 +500,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 				*num_bytes_copied =
 				    bytes_to_copy - destination_buffer_length;
 			}
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			return mx_error_quiet( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The scaler of size %ld bytes is too large "
 			"to fit into the destination buffer of %ld bytes.",
 				(long) bytes_to_copy,
@@ -601,7 +601,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 				*num_bytes_copied =
 				    bytes_to_copy - destination_buffer_length;
 			}
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			return mx_error_quiet( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The 1-dimensional array of size %ld bytes is "
 			"too large to fit into the destination buffer "
 			"of %ld bytes.",
@@ -691,7 +691,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 			*num_bytes_copied =
 				array_size - destination_buffer_length;
 		}
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		return mx_error_quiet( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The %ld-dimensional array of size %ld bytes is "
 			"too large to fit into the destination buffer "
 			"of %ld bytes.",
@@ -1153,7 +1153,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					    xdr_data_size - xdr_buffer_length;
 				}
 
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				return mx_error_quiet(
+					MXE_WOULD_EXCEED_LIMIT, fname,
 			"The XDR scalar of size %ld bytes is too large "
 			"to fit into the destination buffer of %ld bytes.",
 					(long) xdr_data_size,
@@ -1167,7 +1168,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					    xdr_buffer_length - xdr_data_size;
 				}
 
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				return mx_error_quiet(
+					MXE_WOULD_EXCEED_LIMIT, fname,
 			"The source buffer of %ld bytes is too big to fit "
 			"into the XDR scalar of size %ld bytes.",
 					(long) xdr_buffer_length,
@@ -1330,7 +1332,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					*num_bytes_copied =
 					    xdr_array_size - xdr_buffer_length;
 				}
-				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				return mx_error_quiet(
+					MXE_WOULD_EXCEED_LIMIT, fname,
 				"The 1-dimensional array of size %ld bytes is "
 				"too large to fit into the destination buffer "
 				"of %ld bytes.",
@@ -1492,7 +1495,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 				*num_bytes_copied =
 					xdr_array_size - xdr_buffer_length;
 			}
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			return mx_error_quiet( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The %ld-dimensional array of size %ld bytes is "
 			"too large to fit into the destination buffer "
 			"of %ld bytes.",

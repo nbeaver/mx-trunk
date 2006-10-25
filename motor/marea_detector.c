@@ -14,7 +14,7 @@
  *
  */
 
-#define MAREA_DETECTOR_DEBUG_TIMING	TRUE
+#define MAREA_DETECTOR_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,8 +45,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
-	long i, last_frame_number, property_value;
+	long i, last_frame_number;
 	unsigned long ad_status;
+	double property_double;
+	long property_long;
 	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
 	long correction_type, num_measurements;
 	double measurement_time;
@@ -57,10 +59,24 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 	static char usage[] =
 "Usage:\n"
-"  area_detector 'name' snap 'exposure_time' 'file_format' 'filename'\n"
-"  area_detector 'name' take frame\n"
-"  area_detector 'name' write frame 'file_format' 'filename'\n"
-"  area_detector 'name' write roiframe 'file_format' 'filename'\n"
+"  area_detector 'name' get bytes_per_frame\n"
+"  area_detector 'name' get bytes_per_pixel\n"
+"  area_detector 'name' get format\n"
+"  area_detector 'name' get framesize\n"
+"  area_detector 'name' set framesize 'x_framesize' 'y_framesize'\n"
+"  area_detector 'name' get maximum_framesize\n"
+"\n"
+"  area_detector 'name' get trigger_mode\n"
+"  area_detector 'name' set trigger_mode 'trigger mode'\n"
+"  area_detector 'name' get correction_flags\n"
+"  area_detector 'name' set correction_flags 'correction flags'\n"
+"\n"
+"  area_detector 'name' get property_double 'property_name'\n"
+"  area_detector 'name' set property_double 'property_name' 'property_double'\n"
+"  area_detector 'name' get property_long 'property_name'\n"
+"  area_detector 'name' set property_long 'property_name' 'property_long'\n"
+"  area_detector 'name' get property_string 'property_name'\n"
+"  area_detector 'name' set property_string 'property_name' 'property_string'\n"
 "\n"
 "  area_detector 'name' get sequence_parameters\n"
 "  area_detector 'name' set one_shot_mode 'exposure time in seconds'\n"
@@ -74,26 +90,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 "          'exposure time' 'gap_time' 'exposure multiplier' 'gap multiplier'\n"
 "\n"
 "  area_detector 'name' get binsize\n"
-"  area_detector 'name' get bytes_per_frame\n"
-"  area_detector 'name' get bytes_per_pixel\n"
-"  area_detector 'name' get format\n"
-"  area_detector 'name' get framesize\n"
-"  area_detector 'name' get maximum_framesize\n"
-"  area_detector 'name' get roi 'roi_number'\n"
-"\n"
 "  area_detector 'name' set binsize 'x_binsize' 'y_binsize'\n"
-"  area_detector 'name' set framesize 'x_framesize' 'y_framesize'\n"
+"  area_detector 'name' get roi 'roi_number'\n"
 "  area_detector 'name' set roi 'roi_number' 'xmin' 'xmax' 'ymin' 'ymax'\n"
 "\n"
-"  area_detector 'name' get trigger_mode\n"
-"  area_detector 'name' set trigger_mode 'trigger mode'\n"
-"  area_detector 'name' get correction_flags\n"
-"  area_detector 'name' set correction_flags 'correction flags'\n"
-"\n"
-"  area_detector 'name' get property_value 'property_name'\n"
-"  area_detector 'name' set property_value 'property_name' 'property_value'\n"
-"  area_detector 'name' get property_string 'property_name'\n"
-"  area_detector 'name' set property_string 'property_name' 'property_string'\n"
+"  area_detector 'name' snap 'exposure_time' 'file_format' 'filename'\n"
+"  area_detector 'name' take frame\n"
+"  area_detector 'name' write frame 'file_format' 'filename'\n"
+"  area_detector 'name' write roiframe 'file_format' 'filename'\n"
 "\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -116,8 +120,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' copy frame 'src_frame_type' 'dest_frame_type'\n"
 "\n"
 "  area_detector 'name' measure dark_current 'measurement_time' '# measurements'\n"
-"  area_detector 'name' measure flood_field 'measurement_time' '# measurements'\n"
-"\n";
+"  area_detector 'name' measure flood_field 'measurement_time' '# measurements'\n";
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
@@ -188,6 +191,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_START( measurement1 );
 #endif
 
+		fprintf( output,
+		"Starting a %g second exposure for area detector '%s'.  ",
+			exposure_time, ad_record->name );
+
+		fflush( output );
+
 		mx_status = mx_area_detector_start( ad_record );
 
 #if MAREA_DETECTOR_DEBUG_TIMING
@@ -228,6 +237,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_END( measurement2 );
 #endif
 
+		fprintf( output,
+		"Exposure complete.\nNow transferring the frame.  " );
+
+		fflush( output );
+
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_START( measurement3 );
 #endif
@@ -239,6 +253,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 #endif
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		fprintf( output,
+		"Transfer complete.\nNow writing image file '%s'.\n",
+			filename );
+
+		fflush( output );
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_START( measurement4 );
@@ -258,6 +278,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_RESULTS( measurement3, cname, "for Get Frame" );
 		MX_HRT_RESULTS( measurement4, cname, "for Write Frame" );
 #endif
+		fprintf( output,
+			"Image file '%s' successfully written.\n", filename );
 	} else
 	if ( strncmp( "take", argv[3], strlen(argv[3]) ) == 0 ) {
 
@@ -640,15 +662,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		/* Start the correction measurement. */
 
-		mx_status = mx_area_detector_measure_correction_frame(
-			ad_record, correction_type,
-			measurement_time, num_measurements );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return FAILURE;
-
-		/* Wait for the correction measurement to complete. */
-
 		switch( correction_type ) {
 		case MXFT_AD_DARK_CURRENT_FRAME:
 			fprintf( output,
@@ -661,8 +674,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		fprintf( output,
-	"  measurement time per frame = %g, number of measurements = %ld\n",
+"  measurement time per frame = %g seconds, number of measurements = %ld\n",
 			measurement_time, num_measurements );
+
+		mx_status = mx_area_detector_measure_correction_frame(
+			ad_record, correction_type,
+			measurement_time, num_measurements );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		/* Wait for the correction measurement to complete. */
 
 		for(;;) {
 			mx_status = mx_area_detector_is_busy(ad_record, &busy);
@@ -884,27 +906,49 @@ motor_area_detector_fn( int argc, char *argv[] )
 				"Area detector '%s': correction flags = %#lx\n",
 				ad_record->name, correction_flags );
 		} else
-		if ( strncmp( "property_value",
+		if ( strncmp( "property_double",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'get property_value' command\n",
+	    "%s: wrong number of arguments to 'get property_double' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_get_property_value(
-					ad_record, argv[5], &property_value );
+			mx_status = mx_area_detector_get_property_double(
+					ad_record, argv[5], &property_double );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-			"Area detector '%s': property '%s' value = %ld\n",
-				ad_record->name, argv[5], property_value );
+			"Area detector '%s': property '%s' double value = %g\n",
+				ad_record->name, argv[5], property_double );
+		} else
+		if ( strncmp( "property_long",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 6 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'get property_long' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_get_property_long(
+					ad_record, argv[5], &property_long );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Area detector '%s': property '%s' long value = %ld\n",
+				ad_record->name, argv[5], property_long );
 		} else
 		if ( strncmp( "property_string",
 					argv[4], strlen(argv[4]) ) == 0 )
@@ -1150,30 +1194,50 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else
-		if ( strncmp( "property_value",
+		if ( strncmp( "property_double",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 7 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'set property_value' command\n",
+	    "%s: wrong number of arguments to 'set property_double' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			property_value = strtol( argv[6], &endptr, 0 );
+			property_double = atof( argv[6] );
+
+			mx_status = mx_area_detector_set_property_double(
+					ad_record, argv[5], property_double );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp( "property_long",
+					argv[4], strlen(argv[4]) ) == 0 )
+		{
+			if ( argc != 7 ) {
+				fprintf( output,
+	    "%s: wrong number of arguments to 'set property_long' command\n",
+					cname );
+
+				fprintf( output, "%s\n", usage );
+				return FAILURE;
+			}
+
+			property_long = strtol( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
-	"%s: Non-numeric characters found in the property value '%s'\n",
+	"%s: Non-numeric characters found in the long property value '%s'\n",
 					cname, argv[6] );
 
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_set_property_value(
-					ad_record, argv[5], property_value );
+			mx_status = mx_area_detector_set_property_long(
+					ad_record, argv[5], property_long );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

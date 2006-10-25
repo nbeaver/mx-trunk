@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_VINPUT_DEBUG	TRUE
+#define MXD_NETWORK_VINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -286,8 +286,10 @@ mxd_network_vinput_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_NETWORK_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: record '%s', framesize = (%ld, %ld)",
 	    fname, record->name, vinput->framesize[0], vinput->framesize[1]));
+#endif
 
 	/* Get the image format name from the server. */
 

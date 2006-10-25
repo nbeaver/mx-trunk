@@ -56,7 +56,7 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
 
-	MX_DEBUG(-2,("%s invoked for an initial length of %lu",
+	MX_DEBUG( 2,("%s invoked for an initial length of %lu",
 		fname, (unsigned long) initial_length ));
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER **) NULL ) {
@@ -138,7 +138,7 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 
 	old_length = message_buffer->buffer_length;
 
-	MX_DEBUG(-2,("%s will change the length of network message buffer %p "
+	MX_DEBUG( 2,("%s will change the length of network message buffer %p "
 		"from %lu bytes to %lu bytes.", fname, message_buffer,
 			(unsigned long) old_length,
 			(unsigned long) new_length ));
@@ -1352,7 +1352,17 @@ mx_get_field_array( MX_RECORD *server_record,
 				NULL,
 				server->truncate_64bit_longs );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
 			(void) mx_error( mx_status.code, fname,
 	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
 				remote_record_field_name, server_record->name );
@@ -1367,7 +1377,17 @@ mx_get_field_array( MX_RECORD *server_record,
 				dimension_array, data_element_size_array,
 				message, message_length, NULL );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
 			(void) mx_error( mx_status.code, fname,
 	"Buffer copy for MX_GET of parameter '%s' in server '%s' failed.",
 				remote_record_field_name, server_record->name );
@@ -1582,7 +1602,17 @@ mx_put_field_array( MX_RECORD *server_record,
 				&num_bytes,
 				server->truncate_64bit_longs );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
 			(void) mx_error( mx_status.code, fname,
 	"Buffer copy for MX_PUT of parameter '%s' in server '%s' failed.",
 				remote_record_field_name, server_record->name );
@@ -1627,7 +1657,17 @@ mx_put_field_array( MX_RECORD *server_record,
 				ptr, buffer_left,
 				&num_bytes );
 
-		if ( mx_status.code != MXE_SUCCESS ) {
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_WOULD_EXCEED_LIMIT:
+			break;
+		default:
+			/* Only display an error message here if the returned
+			 * error code was not MXE_WOULD_EXCEED_LIMIT, since
+			 * MXE_WOULD_EXCEED_LIMIT is used to request that the
+			 * network buffer be increased in size.
+			 */
+
 			(void) mx_error( mx_status.code, fname,
 	"Buffer copy for MX_PUT of parameter '%s' in server '%s' failed.",
 				remote_record_field_name, server_record->name );

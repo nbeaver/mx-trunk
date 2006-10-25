@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		TRUE
+#define MX_IMAGE_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -777,8 +777,10 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		"The datafile_name pointer passed was NULL." );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
+#endif
 
 	/* Figure out the size and format of the file from the PNM header. */
 
@@ -821,7 +823,9 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			datafile_name, buffer );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: PNM type = %d", fname, pnm_type));
+#endif
 
 	if ( (pnm_type != 5) && (pnm_type != 6) ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -844,7 +848,9 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			saved_errno, strerror(saved_errno) );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: comment line = '%s'", fname, buffer));
+#endif
 
 	/* The third line should contain the width and height. */
 
@@ -869,8 +875,10 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			datafile_name, buffer );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: framesize = (%ld,%ld)",
 		fname, framesize[0], framesize[1]));
+#endif
 
 	/* The fourth line should contain the maximum integer value. */
 
@@ -895,7 +903,9 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			datafile_name, buffer );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: maxint = %ld", fname, maxint));
+#endif
 
 	bytes_per_pixel = 0;
 	image_format = 0;
@@ -1032,6 +1042,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		"The datafile_name pointer passed was NULL." );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
 
@@ -1042,6 +1053,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 		fname, frame->image_format, frame->pixel_order));
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
+#endif
 
 	byteorder = mx_native_byteorder();
 
@@ -1078,15 +1090,19 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			frame->image_format, datafile_name );
 	}
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: pnm_type = %d, maxint = %d",
 		fname, pnm_type, maxint));
+#endif
 
 	src_step     = converter.num_source_bytes;
 	dest_step    = converter.num_destination_bytes;
 	converter_fn = converter.converter_fn;
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: src_step = %d, dest_step = %d, converter_fn = %p",
 		fname, src_step, dest_step, converter_fn));
+#endif
 
 	if ( dest_step > sizeof(dest) ) {
 		return mx_error( MXE_UNKNOWN_ERROR, fname,
@@ -1168,8 +1184,10 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	fclose( file );
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: PNM file '%s' successfully written.", fname, datafile_name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

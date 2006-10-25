@@ -1285,7 +1285,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 		/* Is an array */
 
-		MX_DEBUG(-2,
+		MX_DEBUG( 2,
 		("%s invoked, is_array = %d, num_lines = %ld, array_ptr = %p",
 			fname, db_source->is_array,
 			db_source->num_lines, db_source->array_ptr ));
@@ -1294,7 +1294,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 	} else {
 		/* Is a file */
 
-		MX_DEBUG(-2,
+		MX_DEBUG( 2,
 		("%s invoked, is_array = %d, filename = '%s'",
 			fname, db_source->is_array, db_source->filename ));
 
@@ -1332,8 +1332,6 @@ mx_read_database_private( MX_RECORD *record_list_head,
 		} else {
 			mx_info( "WARNING: Save file '%s' is empty.",
 						db_source->filename );
-
-			fclose( db_source->file );
 		}
 		return MX_SUCCESSFUL_RESULT;
 	default:
@@ -1345,7 +1343,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 	db_source->line_number = 1;
 
 	for (;;) {
-		MX_DEBUG(-2,("line %ld: '%s'", db_source->line_number, buffer));
+		MX_DEBUG( 2,("line %ld: '%s'", db_source->line_number, buffer));
 
 		/* Figure out what to do with this line. */
 
@@ -1391,7 +1389,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			MX_DEBUG(-2,("%s: Trying to read include file '%s'",
+			MX_DEBUG( 2,("%s: Trying to read include file '%s'",
 				fname, token));
 
 			/* Try to read the include file. */
@@ -1402,7 +1400,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			MX_DEBUG(-2,("%s: Successfully read include file '%s'",
+			MX_DEBUG( 2,("%s: Successfully read include file '%s'",
 				fname, token));
 		} else {
 			/* Otherwise, we assume this line is just a
@@ -1467,11 +1465,9 @@ mx_read_database_private( MX_RECORD *record_list_head,
 			/* If we have reached the last line, we are done. */
 
 			if ( db_source->is_array ) {
-				MX_DEBUG(-2,("End of array reached!"));
+				MX_DEBUG( 2,("End of array reached!"));
 			} else {
-				fclose( db_source->file );
-
-				MX_DEBUG(-2,("End of database file reached!"));
+				MX_DEBUG( 2,("End of database file reached!"));
 			}
 			break;		/* Exit the for(;;) loop. */
 		}

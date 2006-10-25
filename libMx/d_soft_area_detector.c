@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SOFT_AREA_DETECTOR_DEBUG	TRUE
+#define MXD_SOFT_AREA_DETECTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -709,18 +709,25 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_PROPERTY_NAME:
 		break;
+	case MXLV_AD_PROPERTY_DOUBLE:
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Returning value %g for property '%s'",
+			fname, ad->property_double, ad->property_name ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_LONG:
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Returning value %ld for property '%s'",
+			fname, ad->property_long, ad->property_name ));
+#endif
+		break;
 	case MXLV_AD_PROPERTY_STRING:
 
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Returning string '%s' for property '%s'",
 			fname, ad->property_string, ad->property_name ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_VALUE:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Returning value %ld for property '%s'",
-			fname, ad->property_value, ad->property_name ));
 #endif
 		break;
 	default:
@@ -826,18 +833,25 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_PROPERTY_NAME:
 		break;
+	case MXLV_AD_PROPERTY_DOUBLE:
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Setting property '%s' to %g",
+			fname, ad->property_name, ad->property_double ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_LONG:
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Setting property '%s' to %ld",
+			fname, ad->property_name, ad->property_long ));
+#endif
+		break;
 	case MXLV_AD_PROPERTY_STRING:
 
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Setting property '%s' to '%s'",
 			fname, ad->property_name, ad->property_string ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_VALUE:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to %ld",
-			fname, ad->property_name, ad->property_value ));
 #endif
 		break;
 

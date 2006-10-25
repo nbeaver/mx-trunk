@@ -38,7 +38,7 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 	MX_RECORD_FIELD *frame_buffer_field;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
+	MX_DEBUG( 2,("%s invoked for record '%s', field = '%s'",
 			fname, record->name, record_field->name));
 
 	/* Tell it to read in the frame. */
@@ -57,10 +57,10 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 
 	vinput->frame_buffer = frame->image_data;
 
-	MX_DEBUG(-2,("%s: bytes_per_frame = %ld, frame_buffer = %p",
+	MX_DEBUG( 2,("%s: bytes_per_frame = %ld, frame_buffer = %p",
 		fname, vinput->bytes_per_frame, vinput->frame_buffer));
 
-#if 1
+#if 0
 	{
 		int i;
 		unsigned char c;
@@ -91,14 +91,14 @@ mxp_video_input_get_frame_handler( MX_RECORD *record,
 			frame_buffer_field->num_dimensions );
 	}
 
-	MX_DEBUG(-2,
+	MX_DEBUG( 2,
 	("%s: OLD frame buffer, num_dimensions = %ld, dimension[0] = %ld",
 	 	fname, frame_buffer_field->num_dimensions,
 		frame_buffer_field->dimension[0]));
 
 	frame_buffer_field->dimension[0] = vinput->bytes_per_frame;
 
-	MX_DEBUG(-2,
+	MX_DEBUG( 2,
 	("%s: NEW frame buffer, num_dimensions = %ld, dimension[0] = %ld",
 	 	fname, frame_buffer_field->num_dimensions,
 		frame_buffer_field->dimension[0]));
@@ -117,7 +117,7 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG( 2,("%s invoked.", fname));
 
 	record_field_array = record->record_field_array;
 
@@ -166,7 +166,7 @@ mx_video_input_process_function( void *record_ptr,
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	MX_DEBUG(-2,("%s: record '%s', field = '%s', operation = %d",
+	MX_DEBUG( 2,("%s: record '%s', field = '%s', operation = %d",
 		fname, record->name, record_field->name, operation));
 
 	switch( operation ) {

@@ -558,7 +558,7 @@ mx_set_1d_field_array_length( MX_RECORD_FIELD *field, unsigned long new_length )
 		"MXFF_VARARGS is not set.", field->name );
 	}
 
-	MX_DEBUG(-2,("%s: Field '%s', old length = %ld, new length = %ld",
+	MX_DEBUG( 2,("%s: Field '%s', old length = %ld, new length = %ld",
 		fname, field->name, field->dimension[0], new_length ));
 
 	field->dimension[0] = new_length;

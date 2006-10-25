@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_V4L2_INPUT_DEBUG	TRUE
+#define MXD_V4L2_INPUT_DEBUG	FALSE
 
 #include <stdio.h>
 
@@ -1031,8 +1031,11 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
+
+#if MXD_V4L2_INPUT_DEBUG
 		MX_DEBUG(-2,("%s: Trigger mode set to %ld for record '%s'.",
 			fname, vinput->trigger_mode, vinput->record->name));
+#endif
 		break;
 
 	case MXLV_VIN_FRAMESIZE:
