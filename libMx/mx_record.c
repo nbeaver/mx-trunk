@@ -1015,7 +1015,6 @@ typedef struct {
 	char *filename;
 
 	long num_lines;
-	long current_line;
 	char **array_ptr;
 } MXP_DB_SOURCE;
 
@@ -1252,7 +1251,7 @@ mxp_readline_from_array( MXP_DB_SOURCE *db_source,
 
 	long i;
 
-	if ( db_source->current_line >= db_source->num_lines ) {
+	if ( db_source->line_number >= db_source->num_lines ) {
 		return mx_error_quiet( MXE_END_OF_DATA, fname,
 		"End of data at line %ld of the database array.",
 			db_source->line_number );
@@ -1260,7 +1259,7 @@ mxp_readline_from_array( MXP_DB_SOURCE *db_source,
 
 	i = db_source->line_number;
 
-	strlcpy( buffer, db_source->array_ptr[i], sizeof(buffer) );
+	strlcpy( buffer, db_source->array_ptr[i], buffer_length );
 
 	return MX_SUCCESSFUL_RESULT;
 }
