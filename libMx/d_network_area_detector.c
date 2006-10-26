@@ -1257,11 +1257,13 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->property_string_nf),
 			MXFT_STRING, 1, dimension, &(ad->property_string) );
 		break;
-	case MXLV_AD_ROI_NUMBER:
-		mx_status = mx_get( &(network_area_detector->roi_number_nf),
-					MXFT_LONG, &(ad->roi_number) );
-		break;
 	case MXLV_AD_ROI:
+		mx_status = mx_put( &(network_area_detector->roi_number_nf),
+					MXFT_LONG, &(ad->roi_number) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		dimension[0] = 4;
 
 		mx_status = mx_get_array( &(network_area_detector->roi_nf),
@@ -1382,11 +1384,13 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 			&(network_area_detector->property_string_nf),
 			MXFT_STRING, 1, dimension, &(ad->property_string) );
 		break;
-	case MXLV_AD_ROI_NUMBER:
+	case MXLV_AD_ROI:
 		mx_status = mx_put( &(network_area_detector->roi_number_nf),
 					MXFT_LONG, &(ad->roi_number) );
-		break;
-	case MXLV_AD_ROI:
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		dimension[0] = 4;
 
 		mx_status = mx_put_array( &(network_area_detector->roi_nf),

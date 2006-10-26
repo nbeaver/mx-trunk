@@ -14,6 +14,8 @@
  *
  */
 
+#define PR_AREA_DETECTOR_DEBUG	FALSE
+
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -100,6 +102,17 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	MX_DEBUG( 2,("%s invoked for record '%s', field = '%s'",
 			fname, record->name, record_field->name));
 
+	/* Check to see if a full image frame has been read from 
+	 * the camera hardware yet.
+	 */
+
+	if ( ad->image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"No image frame has been read from the camera hardware yet "
+		"for area detector '%s', so we are not yet ready to return "
+		"an ROI frame.", record->name );
+	}
+
 	/* Get the ROI frame from the full image frame. */
 
 	mx_status = mx_area_detector_get_roi_frame( record, ad->image_frame,
@@ -185,13 +198,16 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_PROPERTY_LONG:
 		case MXLV_AD_PROPERTY_STRING:
 		case MXLV_AD_READOUT_FRAME:
+		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
 		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
-#if 0
+
+#if PR_AREA_DETECTOR_DEBUG
+		case MXLV_AD_ROI_NUMBER:
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
@@ -218,14 +234,20 @@ mx_area_detector_process_function( void *record_ptr,
 	MX_AREA_DETECTOR *ad;
 	mx_status_type mx_status;
 
+#if PR_AREA_DETECTOR_DEBUG
+	unsigned long i;
+#endif
+
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
 	ad = (MX_AREA_DETECTOR *) (record->record_class_struct);
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	MX_DEBUG( 2,("%s: record '%s', field = '%s', operation = %d",
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: record '%s', field = '%s', operation = %d",
 		fname, record->name, record_field->name, operation));
+#endif
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
@@ -299,6 +321,16 @@ mx_area_detector_process_function( void *record_ptr,
 						record, ad->property_name,
 						NULL, 0 );
 			break;
+		case MXLV_AD_ROI:
+			mx_status = mx_area_detector_get_roi( record,
+							ad->roi_number, NULL );
+#if PR_AREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,("%s: get ROI(%lu) = (%lu,%lu,%lu,%lu)",
+				fname, ad->roi_number,
+				ad->roi[0], ad->roi[1],
+				ad->roi[2], ad->roi[3]));
+#endif
+			break;
 		case MXLV_AD_ROI_FRAME_BUFFER:
 			if ( ad->roi_frame_buffer == NULL ) {
 				return mx_error(MXE_INITIALIZATION_ERROR, fname,
@@ -309,7 +341,12 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
 			break;
-#if 0
+
+#if PR_AREA_DETECTOR_DEBUG
+		case MXLV_AD_ROI_NUMBER:
+			MX_DEBUG(-2,("%s: ROI number = %ld",
+				fname, ad->roi_number));
+			break;
 		case MXLV_AD_SEQUENCE_TYPE:
 			MX_DEBUG(-2,("%s: sequence type = %ld",
 				fname, ad->sequence_parameters.sequence_type));
@@ -319,18 +356,13 @@ mx_area_detector_process_function( void *record_ptr,
 				fname, ad->sequence_parameters.num_parameters));
 			break;
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			for ( i = 0;
+			    i < ad->sequence_parameters.num_parameters;
+			    i++ )
 			{
-				long i;
-
-				for ( i = 0;
-				    i < ad->sequence_parameters.num_parameters;
-				    i++ )
-				{
-					MX_DEBUG(-2,
-					    ("%s: parameter_array[%ld] = %g",
+				MX_DEBUG(-2,("%s: parameter_array[%lu] = %g",
 					    fname, i,
 				   ad->sequence_parameters.parameter_array[i]));
-				}
 			}
 			break;
 #endif
@@ -372,12 +404,6 @@ mx_area_detector_process_function( void *record_ptr,
 						ad->framesize[0],
 						ad->framesize[1] );
 			break;
-#if 0
-		case MXLV_AD_FRAME_FILENAME:
-			MX_DEBUG(-2,("%s: Frame filename = '%s'",
-				fname, ad->frame_filename));
-			break;
-#endif
 		case MXLV_AD_GET_ROI_FRAME:
 			mx_status = mxp_area_detector_get_roi_frame_handler(
 					record, record_field, ad );
@@ -413,6 +439,16 @@ mx_area_detector_process_function( void *record_ptr,
 						record, ad->property_name,
 						ad->property_string );
 			break;
+		case MXLV_AD_ROI:
+			mx_status = mx_area_detector_set_roi( record,
+						ad->roi_number, ad->roi );
+#if PR_AREA_DETECTOR_DEBUG
+			MX_DEBUG(-2,("%s: set ROI(%lu) = (%lu,%lu,%lu,%lu)",
+				fname, ad->roi_number,
+				ad->roi[0], ad->roi[1],
+				ad->roi[2], ad->roi[3]));
+#endif
+			break;
 		case MXLV_AD_READOUT_FRAME:
 			mx_status = mxp_area_detector_readout_frame_handler(
 					record, record_field, ad );
@@ -429,7 +465,16 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_TRIGGER:
 			mx_status = mx_area_detector_trigger( record );
 			break;
-#if 0
+
+#if PR_AREA_DETECTOR_DEBUG
+		case MXLV_AD_ROI_NUMBER:
+			MX_DEBUG(-2,("%s: ROI number = %ld",
+				fname, ad->roi_number));
+			break;
+		case MXLV_AD_FRAME_FILENAME:
+			MX_DEBUG(-2,("%s: Frame filename = '%s'",
+				fname, ad->frame_filename));
+			break;
 		case MXLV_AD_SEQUENCE_TYPE:
 			MX_DEBUG(-2,("%s: sequence type = %ld",
 				fname, ad->sequence_parameters.sequence_type));
@@ -439,18 +484,13 @@ mx_area_detector_process_function( void *record_ptr,
 				fname, ad->sequence_parameters.num_parameters));
 			break;
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+			for ( i = 0;
+			    i < ad->sequence_parameters.num_parameters;
+			    i++ )
 			{
-				long i;
-
-				for ( i = 0;
-				    i < ad->sequence_parameters.num_parameters;
-				    i++ )
-				{
-					MX_DEBUG(-2,
-					    ("%s: parameter_array[%ld] = %g",
+				MX_DEBUG(-2,("%s: parameter_array[%lu] = %g",
 					    fname, i,
 				   ad->sequence_parameters.parameter_array[i]));
-				}
 			}
 			break;
 #endif

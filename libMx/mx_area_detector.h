@@ -583,24 +583,18 @@ MX_API mx_status_type mx_area_detector_set_binsize( MX_RECORD *ad_record,
 						long y_binsize );
 
 MX_API mx_status_type mx_area_detector_get_roi( MX_RECORD *ad_record,
-						long roi_number,
-						long *x_minimum,
-						long *x_maximum,
-						long *y_minimum,
-						long *y_maximum );
+						unsigned long roi_number,
+						unsigned long *roi );
 
 MX_API mx_status_type mx_area_detector_set_roi( MX_RECORD *ad_record,
-						long roi_number,
-						long x_minimum,
-						long x_maximum,
-						long y_minimum,
-						long y_maximum );
+						unsigned long roi_number,
+						unsigned long *roi );
 
 MX_API mx_status_type mx_area_detector_get_subframe_size( MX_RECORD *ad_record,
-						long *num_columns );
+						unsigned long *num_columns );
 
 MX_API mx_status_type mx_area_detector_set_subframe_size( MX_RECORD *ad_record,
-						long num_columns );
+						unsigned long num_columns );
 
 MX_API mx_status_type mx_area_detector_get_bytes_per_frame( MX_RECORD *record,
 						long *bytes_per_frame );
@@ -747,7 +741,7 @@ MX_API mx_status_type mx_area_detector_get_sequence( MX_RECORD *ad_record,
 
 MX_API mx_status_type mx_area_detector_get_roi_frame( MX_RECORD *ad_record,
 						MX_IMAGE_FRAME *frame,
-						long roi_number,
+						unsigned long roi_number,
 						MX_IMAGE_FRAME **roi_frame );
 
 /*---*/

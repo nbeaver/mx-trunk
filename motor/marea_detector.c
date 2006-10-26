@@ -41,12 +41,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 	MX_SEQUENCE_PARAMETERS seq_params;
 	char *filename, *endptr;
 	unsigned long datafile_type, correction_flags;
-	long frame_number, roi_number, x_min, x_max, y_min, y_max;
+	long frame_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number;
-	unsigned long ad_status;
+	unsigned long ad_status, roi_number;
+	unsigned long roi[4];
 	double property_double;
 	long property_long;
 	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
@@ -1015,7 +1016,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_area_detector_get_roi( ad_record,
-				roi_number, &x_min, &x_max, &y_min, &y_max );
+							roi_number, roi );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
@@ -1023,7 +1024,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			fprintf( output,
 "Area detector '%s' ROI %lu: Xmin = %lu, Xmax = %lu, Ymin = %lu, Ymax = %lu\n",
 				ad_record->name, roi_number,
-				x_min, x_max, y_min, y_max );
+				roi[0], roi[1], roi[2], roi[3] );
 
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -1461,7 +1462,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			x_min = strtoul( argv[6], &endptr, 0 );
+			roi[0] = strtoul( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1471,7 +1472,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			x_max = strtoul( argv[7], &endptr, 0 );
+			roi[1] = strtoul( argv[7], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1481,7 +1482,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			y_min = strtoul( argv[8], &endptr, 0 );
+			roi[2] = strtoul( argv[8], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1491,7 +1492,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			y_max = strtoul( argv[9], &endptr, 0 );
+			roi[3] = strtoul( argv[9], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
@@ -1502,7 +1503,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_area_detector_set_roi( ad_record,
-				      roi_number, x_min, x_max, y_min, y_max );
+						      roi_number, roi );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

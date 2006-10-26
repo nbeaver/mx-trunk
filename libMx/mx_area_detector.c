@@ -940,11 +940,8 @@ mx_area_detector_set_binsize( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_roi( MX_RECORD *record,
-				long roi_number,
-				long *x_minimum,
-				long *x_maximum,
-				long *y_minimum,
-				long *y_maximum )
+				unsigned long roi_number,
+				unsigned long *roi )
 {
 	static const char fname[] = "mx_area_detector_get_roi()";
 
@@ -965,38 +962,52 @@ mx_area_detector_get_roi( MX_RECORD *record,
 			mx_area_detector_default_get_parameter_handler;
 	}
 
+	if ( roi_number >= ad->maximum_num_rois ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The ROI number %ld for area detector '%s' is "
+		"outside the range of allowed values (0-%ld).",
+			ad->roi_number, ad->record->name,
+			ad->maximum_num_rois - 1 );
+	}
+
 	ad->roi_number = roi_number;
 
 	ad->parameter_type = MXLV_AD_ROI;
 
 	mx_status = (*get_parameter_fn)( ad );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	ad->roi_array[ roi_number ][0] = ad->roi[0];
+	ad->roi_array[ roi_number ][1] = ad->roi[1];
+	ad->roi_array[ roi_number ][2] = ad->roi[2];
+	ad->roi_array[ roi_number ][3] = ad->roi[3];
 
-	if ( x_minimum != NULL ) {
-		*x_minimum = ad->roi[0];
-	}
-	if ( x_maximum != NULL ) {
-		*x_maximum = ad->roi[1];
-	}
-	if ( y_minimum != NULL ) {
-		*y_minimum = ad->roi[2];
-	}
-	if ( y_maximum != NULL ) {
-		*y_maximum = ad->roi[3];
+	if ( roi != NULL ) {
+		roi[0] = ad->roi[0];
+		roi[1] = ad->roi[1];
+		roi[2] = ad->roi[2];
+		roi[3] = ad->roi[3];
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( ad->roi[0] > ad->roi[1] ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"For area detector '%s', ROI %lu, the X minimum %lu is larger "
+		"than the X maximum %lu.",
+			record->name, roi_number, ad->roi[0], ad->roi[1] );
+	}
+	if ( ad->roi[2] > ad->roi[3] ) {
+		return mx_error( MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+		"For area detector '%s', ROI %lu, the Y minimum %lu is larger "
+		"than the Y maximum %lu.",
+			record->name, roi_number, ad->roi[2], ad->roi[3] );
+	}
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mx_area_detector_set_roi( MX_RECORD *record,
-				long roi_number,
-				long x_minimum,
-				long x_maximum,
-				long y_minimum,
-				long y_maximum )
+				unsigned long roi_number,
+				unsigned long *roi )
 {
 	static const char fname[] = "mx_area_detector_set_roi()";
 
@@ -1017,14 +1028,54 @@ mx_area_detector_set_roi( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
+	if ( roi_number >= ad->maximum_num_rois ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The ROI number %ld for area detector '%s' is "
+		"outside the range of allowed values (0-%ld).",
+			ad->roi_number, ad->record->name,
+			ad->maximum_num_rois - 1 );
+	}
+
+	if ( roi[1] >= ad->framesize[0] ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested X maximum %lu is outside the allowed "
+			"range of (0-%ld) for area detector '%s'.", roi[1],
+			ad->framesize[0] - 1, ad->record->name );
+	}
+	if ( roi[3] >= ad->framesize[1] ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested Y maximum %lu is outside the allowed "
+			"range of (0-%ld) for area detector '%s'.", roi[3],
+			ad->framesize[1] - 1, ad->record->name );
+	}
+	if ( roi[0] > roi[1] ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested X minimum %lu is larger than "
+			"the requested X maximum %lu for area detector '%s'.  "
+			"This is not allowed.",  roi[0], roi[1],
+			record->name );
+	}
+	if ( roi[2] > roi[3] ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The requested Y minimum %lu is larger than "
+			"the requested Y maximum %lu for area detector '%s'.  "
+			"This is not allowed.",  roi[2], roi[3],
+			record->name );
+	}
+
 	ad->roi_number = roi_number;
 
 	ad->parameter_type = MXLV_AD_ROI;
 
-	ad->roi[0] = x_minimum;
-	ad->roi[1] = x_maximum;
-	ad->roi[2] = y_minimum;
-	ad->roi[3] = y_maximum;
+	ad->roi_array[ roi_number ][0] = roi[0];
+	ad->roi_array[ roi_number ][1] = roi[1];
+	ad->roi_array[ roi_number ][2] = roi[2];
+	ad->roi_array[ roi_number ][3] = roi[3];
+
+	ad->roi[0] = roi[0];
+	ad->roi[1] = roi[1];
+	ad->roi[2] = roi[2];
+	ad->roi[3] = roi[3];
 
 	mx_status = (*set_parameter_fn)( ad );
 
@@ -1032,7 +1083,8 @@ mx_area_detector_set_roi( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_get_subframe_size( MX_RECORD *record, long *num_columns )
+mx_area_detector_get_subframe_size( MX_RECORD *record,
+				unsigned long *num_columns )
 {
 	static const char fname[] = "mx_area_detector_get_subframe_size()";
 
@@ -1068,7 +1120,8 @@ mx_area_detector_get_subframe_size( MX_RECORD *record, long *num_columns )
 }
 
 MX_EXPORT mx_status_type
-mx_area_detector_set_subframe_size( MX_RECORD *record, long num_columns )
+mx_area_detector_set_subframe_size( MX_RECORD *record,
+				unsigned long num_columns )
 {
 	static const char fname[] = "mx_area_detector_set_subframe_size()";
 
@@ -2496,7 +2549,7 @@ mx_area_detector_get_sequence( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_get_roi_frame( MX_RECORD *record,
 			MX_IMAGE_FRAME *image_frame,
-			long roi_number,
+			unsigned long roi_number,
 			MX_IMAGE_FRAME **roi_frame )
 {
 	static const char fname[] = "mx_area_detector_get_roi_frame()";
@@ -2516,15 +2569,46 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* If no image frame pointer is supplied, use the default one. */
+	/* See if the record has a 'get_roi_frame' function. */
+
+	get_roi_frame_fn = flist->get_roi_frame;
+
+	/* If no image frame pointer was supplied as a function argument,
+	 * then figure out what to do about this.
+	 */
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 
-		if ( ad->image_frame == (MX_IMAGE_FRAME *) NULL ) {
-			return mx_error( MXE_NULL_ARGUMENT, fname,
-			"No MX_IMAGE_FRAME pointer was supplied." );
+		if ( get_roi_frame_fn != NULL ) {
+			
+			/* If the driver for the record has a 'get_roi_frame'
+			 * function, then we assume that the driver function
+			 * will take care of fetching the ROI data for us.
+			 */
+
 		} else {
-			image_frame = ad->image_frame;
+			if ( ad->image_frame != (MX_IMAGE_FRAME *) NULL ) {
+
+				/* If the area detector record already has an
+				 * allocated image frame, then we will use that
+				 * frame as the source of the data.
+				 */
+
+				image_frame = ad->image_frame;
+			} else {
+				/* If we get here, then there is no identified
+				 * place to get an image frame from and we
+				 * must return an error.
+				 */
+
+				return mx_error(
+					MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+				"No method has been found for finding the ROI "
+				"data for record '%s'.  If you pass a non-NULL "
+				"image frame pointer or read a full image "
+				"frame, then this problem will go away.",
+						record->name );
+			}
 		}
 	}
 
@@ -2562,13 +2646,20 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	(*roi_frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
 	(*roi_frame)->framesize[0] = ad->roi[1] - ad->roi[0] + 1;
 	(*roi_frame)->framesize[1] = ad->roi[3] - ad->roi[2] + 1;
-	(*roi_frame)->image_format = image_frame->image_format;
-	(*roi_frame)->pixel_order  = image_frame->pixel_order;
-	(*roi_frame)->bytes_per_pixel = image_frame->bytes_per_pixel;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		(*roi_frame)->image_format = ad->image_format;
+		(*roi_frame)->pixel_order  = ad->pixel_order;
+		(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
+	} else {
+		(*roi_frame)->image_format = image_frame->image_format;
+		(*roi_frame)->pixel_order  = image_frame->pixel_order;
+		(*roi_frame)->bytes_per_pixel = image_frame->bytes_per_pixel;
+	}
 
 	roi_bytes_per_frame =
 		(*roi_frame)->framesize[0] * (*roi_frame)->framesize[1]
-			* image_frame->bytes_per_pixel;
+			* (*roi_frame)->bytes_per_pixel;
 
 	/* See if the image buffer is already big enough for the image. */
 
@@ -2646,12 +2737,26 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* If the driver has a get_roi_frame method, invoke it. */
 
-	get_roi_frame_fn = flist->get_roi_frame;
-
 	if ( get_roi_frame_fn != NULL ) {
 		mx_status = (*get_roi_frame_fn)( ad );
 	} else {
-		/* Otherwise, we do the copy ourself. */
+		/***********************************************
+		 * Otherwise, we do the ROI data copy ourself. *
+		 ***********************************************/
+
+		if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+
+			/* It should be impossible to get here with an
+			 * image_frame pointer equal to NULL, but we check
+			 * for this anyway in the interest of paranoia.
+			 */
+
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The image_frame pointer is NULL for "
+				"area detector '%s', although apparently "
+				"it was _not_ NULL earlier in the function.",
+					record->name );
+		}
 
 		image_data_ptr = image_frame->image_data;
 		roi_data_ptr   = (*roi_frame)->image_data;
@@ -3038,6 +3143,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_get_parameter_handler()";
 
+	unsigned long i;
 	double double_value;
 
 	switch( ad->parameter_type ) {
@@ -3051,6 +3157,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_AD_TRIGGER_MODE:
 	case MXLV_AD_BYTES_PER_PIXEL:
+	case MXLV_AD_ROI_NUMBER:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -3058,39 +3165,20 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 
 		break;
 
+	case MXLV_AD_ROI:
+		i = ad->roi_number;
+
+		ad->roi[0] = ad->roi_array[i][0];
+		ad->roi[1] = ad->roi_array[i][1];
+		ad->roi[2] = ad->roi_array[i][2];
+		ad->roi[3] = ad->roi_array[i][3];
+		break;
+
 	case MXLV_AD_BYTES_PER_FRAME:
 		double_value = ad->bytes_per_pixel
 		    * ((double) ad->framesize[0]) * ((double) ad->framesize[0]);
 
 		ad->bytes_per_frame = mx_round( ceil(double_value) );
-		break;
-
-	case MXLV_AD_ROI_NUMBER:
-		if ( (ad->roi_number < 0)
-		  || (ad->roi_number >= ad->maximum_num_rois) )
-		{
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The ROI number %ld for area detector '%s' is "
-			"outside the range of allowed values (0-%ld).",
-				ad->roi_number, ad->record->name,
-				ad->maximum_num_rois - 1 );
-		}
-		break;
-
-	case MXLV_AD_ROI:
-		if ( (ad->roi_number < 0)
-		  || (ad->roi_number >= ad->maximum_num_rois) )
-		{
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The ROI number %ld for area detector '%s' is "
-			"outside the range of allowed values (0-%ld).",
-				ad->roi_number, ad->record->name,
-				ad->maximum_num_rois - 1 );
-		}
-		ad->roi[0] = ad->roi_array[ ad->roi_number ][0];
-		ad->roi[1] = ad->roi_array[ ad->roi_number ][1];
-		ad->roi[2] = ad->roi_array[ ad->roi_number ][2];
-		ad->roi[3] = ad->roi_array[ ad->roi_number ][3];
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -3111,6 +3199,8 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_set_parameter_handler()";
 
+	unsigned long i;
+
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
@@ -3120,6 +3210,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_AD_TRIGGER_MODE:
+	case MXLV_AD_ROI_NUMBER:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.
@@ -3127,33 +3218,15 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 
 		break;
 
-	case MXLV_AD_ROI_NUMBER:
-		if ( (ad->roi_number < 0)
-		  || (ad->roi_number >= ad->maximum_num_rois) )
-		{
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The ROI number %ld for area detector '%s' is "
-			"outside the range of allowed values (0-%ld).",
-				ad->roi_number, ad->record->name,
-				ad->maximum_num_rois - 1 );
-		}
+	case MXLV_AD_ROI:
+		i = ad->roi_number;
+
+		ad->roi_array[i][0] = ad->roi[0];
+		ad->roi_array[i][1] = ad->roi[1];
+		ad->roi_array[i][2] = ad->roi[2];
+		ad->roi_array[i][3] = ad->roi[3];
 		break;
 
-	case MXLV_AD_ROI:
-		if ( (ad->roi_number < 0)
-		  || (ad->roi_number >= ad->maximum_num_rois) )
-		{
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The ROI number %ld for area detector '%s' is "
-			"outside the range of allowed values (0-%ld).",
-				ad->roi_number, ad->record->name,
-				ad->maximum_num_rois - 1 );
-		}
-		ad->roi_array[ ad->roi_number ][0] = ad->roi[0];
-		ad->roi_array[ ad->roi_number ][1] = ad->roi[1];
-		ad->roi_array[ ad->roi_number ][2] = ad->roi[2];
-		ad->roi_array[ ad->roi_number ][3] = ad->roi[3];
-		break;
 	case MXLV_AD_BYTES_PER_FRAME:
 	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
