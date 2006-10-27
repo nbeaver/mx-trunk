@@ -1287,7 +1287,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 		MX_DEBUG( 2,
 		("%s invoked, is_array = %d, num_lines = %ld, array_ptr = %p",
-			fname, db_source->is_array,
+			fname, (int) db_source->is_array,
 			db_source->num_lines, db_source->array_ptr ));
 
 		mxp_readline = mxp_readline_from_array;
@@ -1296,7 +1296,7 @@ mx_read_database_private( MX_RECORD *record_list_head,
 
 		MX_DEBUG( 2,
 		("%s invoked, is_array = %d, filename = '%s'",
-			fname, db_source->is_array, db_source->filename ));
+		    fname, (int) db_source->is_array, db_source->filename ));
 
 		mxp_readline = mxp_readline_from_file;
 
