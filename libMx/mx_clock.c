@@ -14,6 +14,10 @@
  *
  */
 
+#define MX_CLOCK_DEBUG				FALSE
+
+#define MX_CLOCK_DEBUG_CLOCK_RESOLUTION		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -86,6 +90,10 @@ static double posix_clock_ticks_per_nsec   = -1.0;
 static unsigned long
 mx_current_cpu_tick( void )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_current_cpu_tick()";
+#endif
+
 	unsigned long current_cpu_tick;
 
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
@@ -210,9 +218,9 @@ mx_current_cpu_tick( void )
 #error mx_current_cpu_tick() has not been defined for this operating system.
 #endif
 
-#if 0
-	MX_DEBUG(-2,("mx_current_cpu_tick(): current_cpu_tick = %ld",
-			(long) current_cpu_tick));
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s: current_cpu_tick = %ld",
+			fname, (long) current_cpu_tick));
 #endif
 
 	return current_cpu_tick;
@@ -223,6 +231,10 @@ mx_current_cpu_tick( void )
 MX_EXPORT double
 mx_clock_ticks_per_second( void )
 {
+#if MX_CLOCK_DEBUG || MX_CLOCK_DEBUG_CLOCK_RESOLUTION
+	static const char fname[] = "mx_clock_ticks_per_second()";
+#endif
+
 	double clock_ticks_per_second;
 
 #if defined(OS_LINUX) || defined(OS_SOLARIS) || defined(OS_IRIX) \
@@ -230,7 +242,9 @@ mx_clock_ticks_per_second( void )
     || defined(OS_BSD) || defined(OS_CYGWIN) || defined(OS_QNX) \
     || defined(OS_TRU64)
 
-#  if defined(CLK_TCK)
+#  if defined(_SC_CLK_TCK)
+	clock_ticks_per_second = (double) sysconf(_SC_CLK_TCK);
+#  elif defined(CLK_TCK)
 	clock_ticks_per_second = (double) CLK_TCK;
 #  else
 	clock_ticks_per_second = CLOCKS_PER_SEC;
@@ -296,6 +310,10 @@ mx_clock_ticks_per_second( void )
 #error mx_clock_ticks_per_second() has not been defined for this operating system.
 #endif
 
+#if MX_CLOCK_DEBUG || MX_CLOCK_DEBUG_CLOCK_RESOLUTION
+	MX_DEBUG(-2,("%s: clock_ticks_per_second = %g",
+		fname, clock_ticks_per_second ));
+#endif
 	return clock_ticks_per_second;
 }
 
@@ -320,6 +338,10 @@ mx_initialize_clock_ticks( void )
 MX_EXPORT MX_CLOCK_TICK
 mx_current_clock_tick( void )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_current_clock_tick()";
+#endif
+
 	MX_CLOCK_TICK current_clock_tick;
 
 	unsigned long current_cpu_tick, old_low_order;
@@ -374,12 +396,20 @@ mx_current_clock_tick( void )
 
 	mx_most_recent_clock_tick_value = current_clock_tick;
 
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s: current_clock_tick = (%lu,%lu)", fname,
+		current_clock_tick.high_order, current_clock_tick.low_order));
+#endif
 	return current_clock_tick;
 }
 
 MX_EXPORT MX_CLOCK_TICK
 mx_convert_seconds_to_clock_ticks( double seconds )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_convert_seconds_to_clock_ticks()";
+#endif
+
 	MX_CLOCK_TICK clock_tick_value;
 	double clock_ticks_as_double;
 
@@ -391,12 +421,22 @@ mx_convert_seconds_to_clock_ticks( double seconds )
 	clock_tick_value.low_order = (clock_t) ( clock_ticks_as_double
 	    - mx_clock_tick_divisor * (double) clock_tick_value.high_order );
 
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,
+	("%s: seconds = %g ---> clock_tick_value = (%lu,%lu)", fname, seconds,
+		clock_tick_value.high_order, clock_tick_value.low_order));
+#endif
+
 	return clock_tick_value;
 }
 
 MX_EXPORT double
 mx_convert_clock_ticks_to_seconds( MX_CLOCK_TICK clock_tick_value )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_convert_clock_ticks_to_seconds()";
+#endif
+
 	double clock_ticks_as_double, seconds;
 
 	clock_ticks_as_double = (double) clock_tick_value.low_order
@@ -404,12 +444,22 @@ mx_convert_clock_ticks_to_seconds( MX_CLOCK_TICK clock_tick_value )
 
 	seconds = clock_ticks_as_double / mx_clock_ticks_per_second();
 
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,
+	("%s: clock_tick_value = (%lu,%lu) ---> seconds = %g", fname,
+	    clock_tick_value.high_order, clock_tick_value.low_order, seconds));
+#endif
+
 	return seconds;
 }
 
 MX_EXPORT MX_CLOCK_TICK
 mx_add_clock_ticks( MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2 )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_add_clock_ticks()";
+#endif
+
 	MX_CLOCK_TICK result;
 	unsigned long H1, H2;
 	unsigned long L1, L2;
@@ -429,12 +479,23 @@ mx_add_clock_ticks( MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2 )
 	if ( L2 > MX_ULONG_MAX - L1 )
 		result.high_order ++;
 
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s: (%lu,%lu) + (%lu,%lu) ---> (%lu,%lu)", fname,
+		clock_tick_1.high_order, clock_tick_1.low_order,
+		clock_tick_2.high_order, clock_tick_2.low_order,
+		result.high_order, result.low_order ));
+#endif
+
 	return result;
 }
 
 MX_EXPORT MX_CLOCK_TICK
 mx_subtract_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_subtract_clock_ticks()";
+#endif
+
 	MX_CLOCK_TICK result;
 	unsigned long H1, H2;
 	unsigned long L1, L2;
@@ -454,14 +515,26 @@ mx_subtract_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 	if ( L1 < L2 )
 		result.high_order --;
 
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s: (%lu,%lu) - (%lu,%lu) ---> (%lu,%lu)", fname,
+		clock_tick_1.high_order, clock_tick_1.low_order,
+		clock_tick_2.high_order, clock_tick_2.low_order,
+		result.high_order, result.low_order ));
+#endif
+
 	return result;
 }
 
 MX_EXPORT int
 mx_compare_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_compare_clock_ticks()";
+#endif
+
 	unsigned long H1, H2;
 	unsigned long L1, L2;
+	int result;
 
 	H1 = clock_tick_1.high_order;
 	L1 = clock_tick_1.low_order;
@@ -477,24 +550,54 @@ mx_compare_clock_ticks(MX_CLOCK_TICK clock_tick_1, MX_CLOCK_TICK clock_tick_2)
 
 	} else {
 		if ( L1 < L2 ) {
-			return (-1);
+			result = -1;
 
 		} else if ( L1 > L2 ) {
-			return 1;
+			result = 1;
 
 		} else {
-			return 0;
+			result = 0;
 		}
 	}
+
+#if MX_CLOCK_DEBUG
+	{
+		char result_char;
+
+		if ( result > 0 ) {
+			result_char = '>';
+		} else
+		if ( result < 0 ) {
+			result_char = '<';
+		} else {
+			result_char = '=';
+		}
+
+		MX_DEBUG(-2,("%s: (%lu,%lu) %c (%lu,%lu)", fname,
+			clock_tick_1.high_order, clock_tick_1.low_order,
+			result_char,
+			clock_tick_2.high_order, clock_tick_2.low_order ));
+	}
+#endif
+
+	return result;
 }
 
 MX_EXPORT MX_CLOCK_TICK
 mx_set_clock_tick_to_zero( void )
 {
+#if MX_CLOCK_DEBUG
+	static const char fname[] = "mx_set_clock_tick_to_zero()";
+#endif
+
 	MX_CLOCK_TICK result;
 
 	result.low_order = 0;
 	result.high_order = 0;
+
+#if MX_CLOCK_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	return result;
 }
