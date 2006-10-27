@@ -3329,6 +3329,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		"Correction measurement type %ld is not supported "
 		"for area detector '%s'.",
 			ad->correction_measurement_type, ad->record->name );
+
+		dest_frame = NULL;
 	}
 
 	if ( mx_status.code != MXE_SUCCESS )
