@@ -51,6 +51,8 @@ motor_set_fn( int argc, char *argv[] )
 	MX_AUTOSCALE_SCALER *autoscale_scaler;
 	MX_RECORD *autoscale_record;
 
+	MX_LIST_HEAD *list_head;
+
 	char *record_name, *field_name, *ptr, *separator_found, *endptr;
 	void *pointer_to_value;
 	long i;
@@ -85,6 +87,7 @@ motor_set_fn( int argc, char *argv[] )
 "        set autosave { on | off }\n"
 "        set bypass_limit_switch { on | off }\n"
 "        set header_prompt { on | off }\n"
+"        set overlap ( none | all | some )\n"
 "        set overwrite { on | off }\n"
 "        set plot { on | off | nowait }\n"
 "        set scanlog { on | off }\n"
@@ -745,6 +748,52 @@ motor_set_fn( int argc, char *argv[] )
 
 			fprintf( output,
 		"Usage: 'set overwrite on' or 'set overwrite off'\n");
+
+			return FAILURE;
+		}
+
+	/* SET OVERLAP function. */
+
+	} else if ( strncmp( argv[2], "overlap", length2 ) == 0 ) {
+
+		if ( argc <= 3 ) {
+			fprintf(output,
+    "Usage: 'set overlap none' or 'set overlap all' or 'set overlap some'.\n" );
+
+			return FAILURE;
+		}
+
+		length3 = strlen( argv[3] );
+
+		list_head = mx_get_record_list_head_struct( motor_record_list );
+
+		if ( list_head == (MX_LIST_HEAD *) NULL ) {
+			fprintf( output,
+	"The MX_LIST_HEAD pointer is NULL.  This error should be reported.\n" );
+			return FAILURE;
+		}
+
+		if ( strncmp( argv[3], "none", length3 ) == 0 ) {
+
+			list_head->overlap_scan_motion
+				= MXF_SCAN_PROHIBIT_OVERLAPPED_MOTION;
+
+		} else if ( strncmp( argv[3], "all", length3 ) == 0 ) {
+
+			list_head->overlap_scan_motion
+				= MXF_SCAN_REQUIRE_OVERLAPPED_MOTION;
+
+		} else if ( strncmp( argv[3], "some", length3 ) == 0 ) {
+
+			list_head->overlap_scan_motion
+				= MXF_SCAN_ALLOW_OVERLAPPED_MOTION;
+
+		} else {
+			fprintf( output,
+			"%s: Illegal argument '%s'\n", cname, argv[3]);
+
+			fprintf( output,
+    "Usage: 'set overlap none' or 'set overlap all' or 'set overlap some'.\n" );
 
 			return FAILURE;
 		}

@@ -376,12 +376,15 @@ typedef struct {
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
+	MX_RECORD *list_head_record;
+
 	mx_bool_type list_is_active;
 	mx_bool_type fast_mode;
 	mx_bool_type allow_fast_mode;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
 	unsigned long num_records;
+	unsigned long overlap_scan_motion;
 
 	mx_bool_type is_server;
 	void *connection_acl;
