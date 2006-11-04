@@ -20,7 +20,6 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
-#include "mx_scan.h"
 #include "mx_list_head.h"
 
 MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list = {
@@ -76,8 +75,6 @@ mxr_create_list_head( MX_RECORD *record )
 	
 	record->record_superclass_struct = list_head_struct;
 
-	list_head_struct->list_head_record = record;
-
 	/* Allocate an array for the list head record fields. */
 
 	record->num_record_fields = mxr_list_head_num_record_fields;
@@ -127,8 +124,6 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->list_is_active = FALSE;
 	list_head_struct->fast_mode = FALSE;
 	list_head_struct->allow_fast_mode = TRUE;
-	list_head_struct->overlap_scan_motion
-				= MXF_SCAN_PROHIBIT_OVERLAPPED_MOTION;
 
 	list_head_struct->is_server = FALSE;
 	list_head_struct->connection_acl = NULL;

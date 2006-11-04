@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,23 +29,14 @@
 #include "mx_mfault.h"
 #include "mx_log.h"
 
-/* Values for scan->scan_flags */
+#define MXF_SHUTTER_IGNORE		0
+#define MXF_SHUTTER_OPEN_FOR_SCAN	1
+#define MXF_SHUTTER_OPEN_FOR_DATAPOINT	2
 
-#define MXF_SCAN_OVERLAP_MOTION			0x1
-
-/* Values for scan->shutter_policy */
-
-#define MXF_SCAN_SHUTTER_IGNORE			0
-#define MXF_SCAN_SHUTTER_OPEN_FOR_SCAN		1
-#define MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT	2
-
-/* Values for the 'overlapped_scan_motion' flag in the MX_LIST_HEAD structure.*/
-
-#define MXF_SCAN_PROHIBIT_OVERLAPPED_MOTION	0
-#define MXF_SCAN_REQUIRE_OVERLAPPED_MOTION	1
-#define MXF_SCAN_ALLOW_OVERLAPPED_MOTION	2
-
-/*---*/
+#if 0
+#define MXF_SCAN_ENABLE_STATUS		1
+#define MXF_SCAN_FAULT_STATUS		2
+#endif
 
 #define MX_SCAN_SHUTTER_POLICY_RECORD_NAME	"mx_scan_shutter"
 
@@ -169,9 +160,6 @@ MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
-
-MX_API mx_status_type mx_scan_get_overlapped_motion_flag( MX_SCAN *scan,
-					mx_bool_type *overlapped_motion_flag );
 
 #define MX_SCAN_STANDARD_FIELDS  \
   {-1, -1, "num_scans", MXFT_LONG, NULL, 0, {0}, \

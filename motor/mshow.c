@@ -69,8 +69,6 @@ motor_show_fn( int argc, char *argv[] )
 {
 	static const char cname[] = "show";
 
-	MX_LIST_HEAD *list_head;
-
 	char record_type_phrase[80];
 	char *match_string;
 	int multiple_records, enable_flag;
@@ -84,7 +82,6 @@ motor_show_fn( int argc, char *argv[] )
 "                           -- show if the next move will bypass automatic\n"
 "                              move abort on limits\n"
 "        show header_prompt -- show whether scan headers are prompted for\n"
-"        show overlap       -- show whether overlapped scan motion is allowed\n"
 "        show overwrite     -- show whether old datafiles are automatically\n"
 "                              overwritten\n"
 "        show plot          -- show current plot type\n"
@@ -195,31 +192,6 @@ motor_show_fn( int argc, char *argv[] )
 		    fprintf( output, "  data file overwriting is on.\n");
 		} else {
 		    fprintf( output, "  data file overwriting is off.\n");
-		}
-		return SUCCESS;
-
-	} else if ( strncmp( "overlap", argv[2], length ) == 0 ) {
-
-		list_head = mx_get_record_list_head_struct( motor_record_list );
-
-		if ( list_head == (MX_LIST_HEAD *) NULL ) {
-			return FAILURE;
-		}
-
-		switch( list_head->overlap_scan_motion ) {
-		case MXF_SCAN_PROHIBIT_OVERLAPPED_MOTION:
-		    fprintf( output, "  overlapped motion is none.\n" );
-		    break;
-		case MXF_SCAN_REQUIRE_OVERLAPPED_MOTION:
-		    fprintf( output, "  overlapped motion is all.\n" );
-		    break;
-		case MXF_SCAN_ALLOW_OVERLAPPED_MOTION:
-		    fprintf( output, "  overlapped motion is some.\n" );
-		    break;
-		default:
-		    fprintf( output, "  overlapped motion is %lu (ERROR)\n",
-		    		list_head->overlap_scan_motion );
-		    return FAILURE;
 		}
 		return SUCCESS;
 

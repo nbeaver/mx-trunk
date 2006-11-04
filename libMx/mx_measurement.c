@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2002, 2004-2005 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -394,7 +394,7 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Open the shutter if requested. */
 
-	if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT ) {
+	if ( scan->shutter_policy == MXF_SHUTTER_OPEN_FOR_DATAPOINT ) {
 		status = mx_relay_command( scan->shutter_record,
 							MXF_OPEN_RELAY );
 
@@ -421,7 +421,7 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Close the shutter if requested. */
 
-	if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT ) {
+	if ( scan->shutter_policy == MXF_SHUTTER_OPEN_FOR_DATAPOINT ) {
 		(void) mx_relay_command( scan->shutter_record,
 							MXF_CLOSE_RELAY );
 	}

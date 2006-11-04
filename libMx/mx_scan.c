@@ -621,7 +621,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		/*** Open the shutter if requested. ***/
 
-		if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_SCAN ) {
+		if ( scan->shutter_policy == MXF_SHUTTER_OPEN_FOR_SCAN ) {
 			mx_status = mx_relay_command( scan->shutter_record,
 						MXF_OPEN_RELAY );
 
@@ -646,7 +646,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		/*** Close the shutter now if requested. ***/
 
-		if ( scan->shutter_policy != MXF_SCAN_SHUTTER_IGNORE ) {
+		if ( scan->shutter_policy != MXF_SHUTTER_IGNORE ) {
 			(void) mx_relay_command( scan->shutter_record,
 						MXF_CLOSE_RELAY );
 		}
@@ -1032,7 +1032,7 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 					MX_SCAN_SHUTTER_POLICY_RECORD_NAME );
 
 	if ( shutter_policy_record == NULL ) {
-		scan->shutter_policy = MXF_SCAN_SHUTTER_IGNORE;
+		scan->shutter_policy = MXF_SHUTTER_IGNORE;
 		scan->shutter_record = NULL;
 	} else {
 		mx_status = mx_get_string_variable( shutter_policy_record,
@@ -1056,9 +1056,9 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 		/* Check that the shutter policy has a valid value. */
 
 		switch( scan->shutter_policy ) {
-		case MXF_SCAN_SHUTTER_IGNORE:
-		case MXF_SCAN_SHUTTER_OPEN_FOR_SCAN:
-		case MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT:
+		case MXF_SHUTTER_IGNORE:
+		case MXF_SHUTTER_OPEN_FOR_SCAN:
+		case MXF_SHUTTER_OPEN_FOR_DATAPOINT:
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -2676,71 +2676,5 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_scan_get_overlapped_motion_flag( MX_SCAN *scan,
-				mx_bool_type *overlapped_motion_flag )
-{
-	static const char fname[] = "mx_scan_get_overlapped_motion_flag()";
-
-	MX_LIST_HEAD *list_head;
-	mx_status_type mx_status;
-
-	if ( scan == (MX_SCAN *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SCAN pointer passed was NULL." );
-	}
-	if ( overlapped_motion_flag == (mx_bool_type *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The overlapped_motion_flag pointer passed was NULL." );
-	}
-
-	list_head = mx_get_record_list_head_struct( scan->record );
-
-	if ( list_head == (MX_LIST_HEAD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Could not find the MX_LIST_HEAD structure for the "
-		"current database.  This kind of error should be "
-		"reported to Bill Lavender." );
-	}
-
-	*overlapped_motion_flag = FALSE;
-
-	mx_status = MX_SUCCESSFUL_RESULT;
-
-	switch( list_head->overlap_scan_motion ) {
-	case MXF_SCAN_PROHIBIT_OVERLAPPED_MOTION:
-		*overlapped_motion_flag = FALSE;
-		break;
-
-	case MXF_SCAN_REQUIRE_OVERLAPPED_MOTION:
-		*overlapped_motion_flag = TRUE;
-		break;
-
-	case MXF_SCAN_ALLOW_OVERLAPPED_MOTION:
-		if ( scan->scan_flags & MXF_SCAN_OVERLAP_MOTION ) {
-			*overlapped_motion_flag = TRUE;
-		} else {
-			*overlapped_motion_flag = FALSE;
-		}
-		break;
-
-	default:
-		*overlapped_motion_flag = FALSE;
-
-		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The '%s.overlap_scan_motion' field is set to "
-			"an illegal value (%lu).  The allowed values are "
-			"0, 1, and 2.", list_head->list_head_record->name,
-				list_head->overlap_scan_motion );
-
-		break;
-	}
-
-	MX_DEBUG(-2,("%s: scan '%s', overlapped_motion_flag = %d",
-		fname, scan->record->name, (int) *overlapped_motion_flag ));
-
-	return mx_status;
 }
 

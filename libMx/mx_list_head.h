@@ -17,8 +17,6 @@
 #ifndef __MX_LIST_HEAD_H__
 #define __MX_LIST_HEAD_H__
 
-/* Label value for the list head record fields. */
-
 #define MXLV_LHD_STATUS		101
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
@@ -45,11 +43,7 @@
   \
   {-1, -1, "num_records", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, num_records), \
-	{0}, NULL, MXFF_READ_ONLY}, \
-  \
-  {-1, -1, "overlap_scan_motion", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, overlap_scan_motion),\
-	{0}, NULL, 0}
+	{0}, NULL, MXFF_READ_ONLY}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
@@ -62,4 +56,3 @@ extern long mxr_list_head_num_record_fields;
 extern MX_RECORD_FIELD_DEFAULTS *mxr_list_head_rfield_def_ptr;
 
 #endif /* __MX_LIST_HEAD_H__ */
-
