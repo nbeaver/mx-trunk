@@ -29,16 +29,31 @@
 #include "mx_mfault.h"
 #include "mx_log.h"
 
-#define MXF_SHUTTER_IGNORE		0
-#define MXF_SHUTTER_OPEN_FOR_SCAN	1
-#define MXF_SHUTTER_OPEN_FOR_DATAPOINT	2
+/* Values for scan->scan_flags */
 
-#if 0
-#define MXF_SCAN_ENABLE_STATUS		1
-#define MXF_SCAN_FAULT_STATUS		2
-#endif
+#define MXF_SCAN_EARLY_MOVE			0x1
+
+/* Values for scan->shutter_policy */
+
+#define MXF_SCAN_SHUTTER_IGNORE			0
+#define MXF_SCAN_SHUTTER_OPEN_FOR_SCAN		1
+#define MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT	2
 
 #define MX_SCAN_SHUTTER_POLICY_RECORD_NAME	"mx_scan_shutter"
+
+/* Values for scan early move policy */
+
+#define MXF_SCAN_PROHIBIT_EARLY_MOVE		0
+#define MXF_SCAN_REQUIRE_EARLY_MOVE		1
+#define MXF_SCAN_ALLOW_EARLY_MOVE		2
+
+#if 0   /* FIXME - When we get long variable names, change the name here. */
+#define MX_SCAN_EARLY_MOVE_RECORD_NAME		"mx_scan_early_move"
+#else
+#define MX_SCAN_EARLY_MOVE_RECORD_NAME		"mx_scan_early"
+#endif
+
+/*---*/
 
 #define MX_SCAN_PERMIT_HANDLER_LIST		"mx_scan_permit"
 #define MX_SCAN_FAULT_HANDLER_LIST		"mx_scan_fault"
@@ -160,6 +175,9 @@ MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
+
+MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
+						mx_bool_type *early_move_flag );
 
 #define MX_SCAN_STANDARD_FIELDS  \
   {-1, -1, "num_scans", MXFT_LONG, NULL, 0, {0}, \

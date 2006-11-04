@@ -621,7 +621,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		/*** Open the shutter if requested. ***/
 
-		if ( scan->shutter_policy == MXF_SHUTTER_OPEN_FOR_SCAN ) {
+		if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_SCAN ) {
 			mx_status = mx_relay_command( scan->shutter_record,
 						MXF_OPEN_RELAY );
 
@@ -646,7 +646,7 @@ mx_perform_scan( MX_RECORD *scan_record )
 
 		/*** Close the shutter now if requested. ***/
 
-		if ( scan->shutter_policy != MXF_SHUTTER_IGNORE ) {
+		if ( scan->shutter_policy != MXF_SCAN_SHUTTER_IGNORE ) {
 			(void) mx_relay_command( scan->shutter_record,
 						MXF_CLOSE_RELAY );
 		}
@@ -1032,7 +1032,7 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 					MX_SCAN_SHUTTER_POLICY_RECORD_NAME );
 
 	if ( shutter_policy_record == NULL ) {
-		scan->shutter_policy = MXF_SHUTTER_IGNORE;
+		scan->shutter_policy = MXF_SCAN_SHUTTER_IGNORE;
 		scan->shutter_record = NULL;
 	} else {
 		mx_status = mx_get_string_variable( shutter_policy_record,
@@ -1056,9 +1056,9 @@ mx_setup_scan_shutter( MX_SCAN *scan )
 		/* Check that the shutter policy has a valid value. */
 
 		switch( scan->shutter_policy ) {
-		case MXF_SHUTTER_IGNORE:
-		case MXF_SHUTTER_OPEN_FOR_SCAN:
-		case MXF_SHUTTER_OPEN_FOR_DATAPOINT:
+		case MXF_SCAN_SHUTTER_IGNORE:
+		case MXF_SCAN_SHUTTER_OPEN_FOR_SCAN:
+		case MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT:
 			break;
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -2676,5 +2676,80 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_scan_get_early_move_flag( MX_SCAN *scan, mx_bool_type *early_move_flag )
+{
+	static const char fname[] = "mx_scan_get_early_move_flag()";
+
+	MX_RECORD *early_move_record;
+	unsigned long early_move_policy;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+	if ( early_move_flag == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The early_move_flag pointer passed was NULL." );
+	}
+
+	early_move_record = mx_get_record( scan->record,
+					MX_SCAN_EARLY_MOVE_RECORD_NAME );
+
+	if ( early_move_record == (MX_RECORD *) NULL ) {
+
+		early_move_policy = MXF_SCAN_ALLOW_EARLY_MOVE;
+	} else {
+		if ( early_move_record->mx_superclass != MXR_VARIABLE ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"Record '%s' is not a variable record.",
+				early_move_record->name );
+		}
+
+		mx_status = mx_get_unsigned_long_variable( early_move_record,
+							&early_move_policy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	*early_move_flag = FALSE;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( early_move_policy ) {
+	case MXF_SCAN_PROHIBIT_EARLY_MOVE:
+		*early_move_flag = FALSE;
+		break;
+
+	case MXF_SCAN_REQUIRE_EARLY_MOVE:
+		*early_move_flag = TRUE;
+		break;
+
+	case MXF_SCAN_ALLOW_EARLY_MOVE:
+		if ( scan->scan_flags & MXF_SCAN_EARLY_MOVE ) {
+			*early_move_flag = TRUE;
+		} else {
+			*early_move_flag = FALSE;
+		}
+		break;
+
+	default:
+		*early_move_flag = FALSE;
+
+		mx_status = mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The '%s' record is set to an illegal value (%lu).  "
+			"The allowed values are 0, 1, and 2.",
+				early_move_record->name, early_move_policy );
+		break;
+	}
+
+	MX_DEBUG(-2,("%s: scan '%s', early_move_flag = %d",
+		fname, scan->record->name, (int) *early_move_flag ));
+
+	return mx_status;
 }
 
