@@ -653,6 +653,50 @@ mxs_linear_scan_cleanup_after_scan_end( MX_SCAN *scan )
 }
 
 static mx_status_type
+mxs_linear_scan_move_absolute(
+	MX_SCAN *scan,
+	MX_LINEAR_SCAN *linear_scan,
+	mx_status_type (*move_special_fptr)
+				( MX_SCAN *, MX_LINEAR_SCAN *,
+				long, MX_RECORD **, double *,
+				MX_MOTOR_MOVE_REPORT_FUNCTION,
+				unsigned long )
+	)
+{
+	mx_status_type mx_status;
+
+	/* If move_special_fptr is NULL, we just invoke
+	 * mx_motor_array_move_absolute directly.
+	 * Otherwise, the computed move must be
+	 * preprocessed by move_special_fptr before
+	 * the motors are moved.  See how slit scans
+	 * are implemented in 'libMx/s_slit.c' for
+	 * an example of this.
+	 */
+
+	if ( move_special_fptr == NULL ) {
+		if ( scan->num_motors > 0 ) {
+			mx_status = mx_motor_array_move_absolute_with_report(
+						scan->num_motors,
+						scan->motor_record_array,
+						scan->motor_position,
+						NULL,
+						MXF_MTR_SCAN_IN_PROGRESS );
+		}
+	} else {
+		mx_status = (*move_special_fptr) ( scan,
+						linear_scan,
+						scan->num_motors,
+						scan->motor_record_array,
+						scan->motor_position,
+						NULL,
+						MXF_MTR_SCAN_IN_PROGRESS );
+	}
+
+	return mx_status;
+}
+
+static mx_status_type
 mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		MX_LINEAR_SCAN *linear_scan,
 		long dimension_level,
@@ -742,35 +786,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 
 				/* Move to the computed motor positions. */
 
-				/* If move_special_fptr is NULL, we just invoke
-				 * mx_motor_array_move_absolute directly.
-				 * Otherwise, the computed move must be
-				 * preprocessed by move_special_fptr before
-				 * the motors are moved.  See how slit scans
-				 * are implemented in 'libMx/s_slit.c' for
-				 * an example of this.
-				 */
-
-				if ( move_special_fptr == NULL ) {
-					if ( scan->num_motors > 0 ) {
-						mx_status = 
-				    mx_motor_array_move_absolute_with_report(
-						scan->num_motors,
-						scan->motor_record_array,
-						scan->motor_position,
-						NULL,
-						MXF_MTR_SCAN_IN_PROGRESS );
-					}
-				} else {
-					mx_status = (*move_special_fptr)
-						( scan,
-						linear_scan,
-						scan->num_motors,
-						scan->motor_record_array,
-						scan->motor_position,
-						NULL,
-						MXF_MTR_SCAN_IN_PROGRESS );
-				}
+				mx_status = mxs_linear_scan_move_absolute(
+					scan, linear_scan, move_special_fptr );
 
 				if ( ( mx_status.code != MXE_SUCCESS )
 				  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
