@@ -516,12 +516,11 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 	MX_LIST_SCAN *list_scan;
 	MX_LIST_SCAN_FUNCTION_LIST *flist;
-	long j;
 	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * );
 	mx_status_type (*get_next_measurement_parameters_fptr)
 						( MX_SCAN *, MX_LIST_SCAN * );
-	mx_status_type mx_status, mx_status2;
+	mx_status_type mx_status;
 
 	if ( scan == (MX_SCAN *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -644,54 +643,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 			mx_status = mx_scan_handle_pause_request( scan );
 
-			switch( mx_status.code ) {
-			case MXE_SUCCESS:
-				mx_info("Retrying the last scan step.");
-
-				mx_status = mx_wait_for_motor_array_stop(
-					scan->num_motors,
-					scan->motor_record_array,
-					( MXF_MTR_SCAN_IN_PROGRESS
-						    | MXF_MTR_IGNORE_PAUSE ) );
-
-				if ( mx_status.code != MXE_SUCCESS ) {
-					CLOSE_POSITION_LIST;
-					return mx_status;
-				}
-
-				/* Back to the top of the do...while() loop.*/
-				break;
-			case MXE_STOP_REQUESTED:
-				CLOSE_POSITION_LIST;
-
-				mx_info(
-				"Waiting for the motors to stop moving.");
-
-				mx_status2 = mx_wait_for_motor_array_stop(
-					scan->num_motors,
-					scan->motor_record_array,
-					( MXF_MTR_SCAN_IN_PROGRESS
-						    | MXF_MTR_IGNORE_PAUSE ) );
-
-				if ( mx_status2.code != MXE_SUCCESS )
-					return mx_status2;
-
-				return mx_status;
-				break;
-			case MXE_INTERRUPTED:
-				mx_info( "Aborting current motor moves." );
-
-				for (j = 0; j < scan->num_motors; j++) {
-					(void) mx_motor_soft_abort(
-						   scan->motor_record_array[j]);
-				}
-				return mx_status;
-
-			case MXE_PAUSE_REQUESTED:
-				/* Ignore additional pause requests. */
-
-				break;
-			default:
+			if ( mx_status.code != MXE_SUCCESS ) {
 				CLOSE_POSITION_LIST;
 				return mx_status;
 			}

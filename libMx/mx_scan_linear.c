@@ -667,9 +667,9 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 {
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";
 
-	long i, j, array_index, num_dimension_steps, new_dimension_level;
+	long i, array_index, num_dimension_steps, new_dimension_level;
 	mx_bool_type fast_mode, start_fast_mode;
-	mx_status_type mx_status, mx_status2;
+	mx_status_type mx_status;
 
 	array_index = scan->num_independent_variables - dimension_level - 1;
 
@@ -808,53 +808,8 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 
 				mx_status = mx_scan_handle_pause_request(scan);
 
-				switch( mx_status.code ) {
-				case MXE_SUCCESS:
-					mx_info("Retrying the last scan step.");
-
-					mx_status = 
-					    mx_wait_for_motor_array_stop(
-						scan->num_motors,
-						scan->motor_record_array,
-						( MXF_MTR_SCAN_IN_PROGRESS
-						    | MXF_MTR_IGNORE_PAUSE ) );
-
-					if ( mx_status.code != MXE_SUCCESS )
-						return mx_status;
-					break;
-				case MXE_STOP_REQUESTED:
-					mx_info(
-				    "Waiting for the motors to stop moving.");
-
-					mx_status2 =
-					    mx_wait_for_motor_array_stop(
-						scan->num_motors,
-						scan->motor_record_array,
-						( MXF_MTR_SCAN_IN_PROGRESS
-						    | MXF_MTR_IGNORE_PAUSE ) );
-
-					if ( mx_status2.code != MXE_SUCCESS )
-						return mx_status2;
-
+				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
-					break;
-				case MXE_INTERRUPTED:
-					mx_info(
-					    "Aborting current motor moves.");
-
-					for (j = 0; j < scan->num_motors; j++)
-					{
-						(void) mx_motor_soft_abort(
-						   scan->motor_record_array[j]);
-					}
-					return mx_status;
-				case MXE_PAUSE_REQUESTED:
-					/* Ignore additional pause requests. */
-
-					break;
-				default:
-					return mx_status;
-				}
 
 			} while (1);	/** End of pause/abort retry loop. **/
 

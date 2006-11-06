@@ -1477,24 +1477,6 @@ mx_scan_handle_data_measurement( MX_SCAN *scan )
 
 /* --------------- */
 
-MX_EXPORT mx_status_type
-mx_scan_handle_pause_request( MX_SCAN *scan )
-{
-	static const char fname[] = "mx_scan_handle_pause_request()";
-
-	mx_status_type mx_status;
-
-	if ( mx_scan_pause_request_handler != NULL ) {
-
-		mx_status = ( *mx_scan_pause_request_handler )( scan );
-	} else {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-"The mx_scan_pause_request_handler pointer is NULL.  This shouldn't happen." );
-	}
-
-	return mx_status;
-}
-
 MX_EXPORT void
 mx_set_scan_pause_request_handler(
 	mx_status_type (*pause_request_handler)( MX_SCAN * ) )
@@ -1516,6 +1498,59 @@ mx_default_scan_pause_request_handler( MX_SCAN *scan )
 	MX_DEBUG(-2,("%s invoked.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_scan_handle_pause_request( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_handle_pause_request()";
+
+	long i;
+	mx_status_type mx_status, mx_status2;
+
+	if ( mx_scan_pause_request_handler != NULL ) {
+
+		mx_status = ( *mx_scan_pause_request_handler )( scan );
+	} else {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+"The mx_scan_pause_request_handler pointer is NULL.  This shouldn't happen." );
+	}
+
+	switch( mx_status.code ) {
+	case MXE_SUCCESS:
+		mx_info("Retrying the last scan step.");
+
+		mx_status = mx_wait_for_motor_array_stop(
+				scan->num_motors, scan->motor_record_array,
+			( MXF_MTR_SCAN_IN_PROGRESS | MXF_MTR_IGNORE_PAUSE ) );
+		break;
+	case MXE_STOP_REQUESTED:
+		mx_info( "Waiting for the motors to stop moving.");
+
+		mx_status2 = mx_wait_for_motor_array_stop(
+				scan->num_motors, scan->motor_record_array,
+			( MXF_MTR_SCAN_IN_PROGRESS | MXF_MTR_IGNORE_PAUSE ) );
+
+		if ( mx_status2.code != MXE_SUCCESS )
+			return mx_status2;
+		break;
+	case MXE_INTERRUPTED:
+		mx_info( "Aborting current motor moves.");
+
+		for ( i = 0; i < scan->num_motors; i++ ) {
+			(void) mx_motor_soft_abort(scan->motor_record_array[i]);
+		}
+		break;
+	case MXE_PAUSE_REQUESTED:
+		/* Ignore additional pause requests. */
+
+		mx_status = MX_SUCCESSFUL_RESULT;
+		break;
+	default:
+		break;
+	}
+
+	return mx_status;
 }
 
 /* --------------- */
