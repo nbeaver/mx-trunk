@@ -2679,6 +2679,82 @@ mx_scan_save_mca_measurements( MX_SCAN *scan, long num_mcas )
 }
 
 MX_EXPORT mx_status_type
+mx_scan_handle_alternate_x_motors( MX_SCAN *scan )
+{
+	MX_RECORD *x_motor_record;
+	double x_motor_position;
+	long i, j;
+	mx_bool_type get_position;
+	mx_status_type mx_status;
+
+	/* If alternate X axis motors have been specified,
+	 * get and save their current positions for use
+	 * by the datafile handling code.
+	 *
+	 * Note that x_position_array is an N by 1 array,
+	 * where N is the number of motors, since we only
+	 * handle one measurement at a time in step scans.
+	 */
+
+	for ( i = 0; i < scan->datafile.num_x_motors; i++ ) {
+
+		x_motor_record = scan->datafile.x_motor_array[i];
+
+		mx_status = mx_motor_get_position( x_motor_record,
+							&x_motor_position );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		scan->datafile.x_position_array[i][0] = x_motor_position;
+	}
+
+	/* Do the same thing for the plot data.
+	 *
+	 * The list of alternate X motors for the plot will
+	 * not necessarily be the same as the list for the
+	 * datafile, but we do not want to unnecessarily
+	 * read a motor position twice.
+	 */
+
+	for ( i = 0; i < scan->plot.num_x_motors; i++ ) {
+
+		x_motor_record = scan->plot.x_motor_array[i];
+
+		/* See if this motor's position was already
+		 * read by the datafile loop above.
+		 */
+
+		get_position = TRUE;
+
+		for ( j = 0; j < scan->datafile.num_x_motors; j++ ) {
+			if ( x_motor_record == scan->datafile.x_motor_array[j] )
+			{
+				scan->plot.x_position_array[i][0] =
+					scan->datafile.x_position_array[j][0];
+
+				get_position = FALSE;
+				break;	/* Exit the inner for() loop. */
+			}
+		}
+
+		/* If not, then we must read the position now. */
+
+		if ( get_position ) {
+			mx_status = mx_motor_get_position( x_motor_record,
+							&x_motor_position );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			scan->plot.x_position_array[i][0] = x_motor_position;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_scan_get_early_move_flag( MX_SCAN *scan, mx_bool_type *early_move_flag )
 {
 	static const char fname[] = "mx_scan_get_early_move_flag()";

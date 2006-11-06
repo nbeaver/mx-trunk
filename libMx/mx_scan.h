@@ -176,6 +176,8 @@ MX_API mx_status_type mx_scan_increment_measurement_number( MX_SCAN *scan );
 MX_API mx_status_type mx_scan_save_mca_measurements( MX_SCAN *scan,
 							long num_mcas );
 
+MX_API mx_status_type mx_scan_handle_alternate_x_motors( MX_SCAN *scan );
+
 MX_API mx_status_type mx_scan_get_early_move_flag( MX_SCAN *scan,
 						mx_bool_type *early_move_flag );
 

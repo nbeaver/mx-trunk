@@ -235,7 +235,8 @@ mxs_linear_scan_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxs_linear_scan_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxs_linear_scan_finish_record_initialization()";
+	static const char fname[] =
+		"mxs_linear_scan_finish_record_initialization()";
 
 	MX_SCAN *scan;
 	MX_LINEAR_SCAN_FUNCTION_LIST *flist;
@@ -666,10 +667,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 {
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";
 
-	MX_RECORD *x_motor_record;
-	double x_motor_position;
-	long i, j, k, array_index, num_dimension_steps, new_dimension_level;
-	int get_position;
+	long i, j, array_index, num_dimension_steps, new_dimension_level;
 	mx_bool_type fast_mode, start_fast_mode;
 	mx_status_type mx_status, mx_status2;
 
@@ -863,70 +861,12 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 			/* If alternate X axis motors have been specified,
 			 * get and save their current positions for use
 			 * by the datafile handling code.
-			 *
-			 * Note that x_position_array is an N by 1 array,
-			 * where N is the number of motors, since we only
-			 * handle one measurement at a time in step scans.
 			 */
 
-			for ( j = 0; j < scan->datafile.num_x_motors; j++ ) {
+			mx_status = mx_scan_handle_alternate_x_motors( scan );
 
-			    x_motor_record = scan->datafile.x_motor_array[j];
-
-			    mx_status = mx_motor_get_position( x_motor_record,
-							&x_motor_position );
-
-			    if ( mx_status.code != MXE_SUCCESS )
-				    return mx_status;
-
-			    scan->datafile.x_position_array[j][0]
-				    = x_motor_position;
-			}
-
-			/* Do the same thing for the plot data.
-			 *
-			 * The list of alternate X motors for the plot will
-			 * not necessarily be the same as the list for the
-			 * datafile, but we do not want to unnecessarily
-			 * read a motor position twice.
-			 */
-
-			for ( j = 0; j < scan->plot.num_x_motors; j++ ) {
-
-			    x_motor_record = scan->plot.x_motor_array[j];
-
-			    /* See if this motor's position was already
-			     * read by the datafile loop above.
-			     */
-
-			    get_position = TRUE;
-
-			    for ( k = 0; k < scan->datafile.num_x_motors; k++ )
-			    {
-				if ( x_motor_record ==
-					    scan->datafile.x_motor_array[j] )
-				{
-				    scan->plot.x_position_array[j][0] =
-					  scan->datafile.x_position_array[k][0];
-
-				    get_position = FALSE;
-				    break;	/* Exit the inner for() loop. */
-				}
-			    }
-
-			    /* If not, then we must read the position now. */
-
-			    if ( get_position ) {
-				mx_status = mx_motor_get_position(
-					x_motor_record, &x_motor_position );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				scan->plot.x_position_array[j][0]
-					= x_motor_position;
-			    }
-			}
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			/**** Write the result out to the datafile. ****/
 
