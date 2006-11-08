@@ -543,6 +543,13 @@ mxd_compumotor_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
+	/* Use the interface record's event time manager. */
+
+	record->event_time_manager =
+			compumotor_interface->record->event_time_manager;
+#endif
+
 	/* Tell the controller to use absolute positioning mode for
 	 * this motor.
 	 */

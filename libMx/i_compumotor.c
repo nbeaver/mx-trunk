@@ -225,6 +225,9 @@ mxi_compumotor_finish_record_initialization( MX_RECORD *record )
 
 	MX_COMPUMOTOR_INTERFACE *compumotor_interface;
 	long i, j, num_controllers;
+#if 0
+	mx_status_type mx_status;
+#endif
 
 	compumotor_interface = (MX_COMPUMOTOR_INTERFACE *)
 					record->record_type_struct;
@@ -261,6 +264,21 @@ mxi_compumotor_finish_record_initialization( MX_RECORD *record )
 			compumotor_interface->motor_array[i][j] = NULL;
 		}
 	}
+
+#if 0
+	record->event_time_manager = (MX_EVENT_TIME_MANAGER *)
+		malloc( sizeof( MX_EVENT_TIME_MANAGER ) );
+
+	if ( record->event_time_manager == (MX_EVENT_TIME_MANAGER *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+  "Ran out of memory trying to allocate an MX_EVENT_TIME_MANAGER structure." );
+	}
+
+	mx_status = mx_set_event_interval( record, 0.010 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

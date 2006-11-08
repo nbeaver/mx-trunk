@@ -356,6 +356,11 @@ mx_see_if_event_must_be_queued( MX_RECORD *record,
 	 * all events must be serviced immediately.
 	 */
 
+#if PROCESS_DEBUG_QUEUEING
+	MX_DEBUG(-2,("%s invoked for record field '%s.%s'.",
+		fname, record->name, record_field->name));
+#endif
+
 	event_time_manager = record->event_time_manager;
 
 	if ( event_time_manager == (MX_EVENT_TIME_MANAGER *) NULL ) {
@@ -380,7 +385,6 @@ mx_see_if_event_must_be_queued( MX_RECORD *record,
 	}
 
 #if PROCESS_DEBUG_QUEUEING
-
 	MX_DEBUG(-2,("%s: checking next allowed event time for '%s', '%s'",
 		fname, record->name, record_field->name));
 #endif

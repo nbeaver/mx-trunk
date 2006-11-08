@@ -452,7 +452,8 @@ mxd_compumotor_linear_delete_record( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_print_motor_structure( FILE *file, MX_RECORD *record )
 {
-	static const char fname[] = "mxd_compumotor_linear_print_motor_structure()";
+	static const char fname[] =
+			"mxd_compumotor_linear_print_motor_structure()";
 
 	MX_MOTOR *motor;
 	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
@@ -607,14 +608,46 @@ mxd_compumotor_linear_write_parms_to_hardware( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_open( MX_RECORD *record )
 {
+	static const char fname[] = "mxd_compumotor_linear_open()";
+
+	MX_MOTOR *motor;
+	MX_COMPUMOTOR_LINEAR_MOTOR *compumotor_linear_motor;
+	MX_RECORD *compumotor_interface_record;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed is NULL." );
+	}
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	mx_status = mxd_compumotor_linear_get_pointers( motor,
+					&compumotor_linear_motor, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	compumotor_interface_record
+		= compumotor_linear_motor->compumotor_interface_record;
+
+	if ( compumotor_interface_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"The compumotor_interface_record pointer for motor '%s' is NULL.",
+			motor->record->name );
+	}
+#if 1
+	/* Use the interface record's event time manager. */
+
+	record->event_time_manager =
+			compumotor_interface_record->event_time_manager;
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mxd_compumotor_linear_close( MX_RECORD *record )
 {
-	/* Nothing to do. */
-
 	return MX_SUCCESSFUL_RESULT;
 }
 

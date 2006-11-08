@@ -750,15 +750,16 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	client_socket = socket_handler->synchronous_socket;
 
-	MX_DEBUG( 1,("%s invoked for socket handler %ld.", fname,
-				socket_handler->handler_array_index));
-
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %d",
+	MX_DEBUG(-2,
+	  ("***************************************************************"));
+	MX_DEBUG(-2,("%s invoked for socket handler %ld.", fname,
+				socket_handler->handler_array_index));
+	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %d",
+	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
 				socket_handler->callback_socket));
-	MX_DEBUG(-2,("socket_handler->handler_array_index = %d",
+	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
@@ -831,7 +832,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		}
 	}
 
-#if NETWORK_DEBUG_VERBOSE
+#if 0 && NETWORK_DEBUG_VERBOSE
 	{
 		long i;
 		unsigned char c;
@@ -855,13 +856,18 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 
 #if NETWORK_DEBUG_VERBOSE
-        MX_DEBUG(-2,("%s: magic_value    = %lx", fname, magic_value));
-        MX_DEBUG(-2,("%s: header_length  = %ld", fname, header_length));
-        MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
-#endif
+        MX_DEBUG(-2,("%s: magic_value    = %lx",
+			fname, (unsigned long) magic_value));
 
-        MX_DEBUG( 1,("%s: message_type   = %#lx",
+        MX_DEBUG(-2,("%s: header_length  = %ld",
+			fname, (unsigned long) header_length));
+
+        MX_DEBUG(-2,("%s: message_length = %ld",
+			fname, (unsigned long) message_length));
+
+        MX_DEBUG(-2,("%s: message_type   = %#lx",
 		fname, (unsigned long) message_type));
+#endif
 
         if ( magic_value != MX_NETWORK_MAGIC_VALUE ) {
                 return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -946,7 +952,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	message_ptr[ message_length ] = '\0';
 
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("%s: message_length = %ld", fname, message_length));
+	MX_DEBUG(-2,("%s: message_length = %lu",
+			fname, (unsigned long) message_length));
 	{
 		long i;
 
@@ -1252,8 +1259,28 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	if ( queue_a_message ) {
 
-		MX_DEBUG( 2,("%s: *** queueing a message for '%s', '%s' ***",
-			fname, record->name, record_field->name));
+#if 1
+		{
+			uint32_t *header_ptr;
+			uint32_t raw_message_type, host_message_type;
+
+			header_ptr = (uint32_t *) received_message;
+
+			MX_DEBUG(-2,("%s: header_ptr = %p", fname, header_ptr));
+
+			if ( header_ptr != NULL ) {
+				raw_message_type =
+					header_ptr[MX_NETWORK_MESSAGE_TYPE];
+
+				host_message_type = mx_ntohl(raw_message_type);
+
+				MX_DEBUG(-2,
+		    ("%s: raw_message_type = %#lx, host_message_type = %#lx",
+					fname, (unsigned long)raw_message_type,
+					(unsigned long) host_message_type));
+			}
+		}
+#endif
 
 #if NETWORK_DEBUG_TIMING
 		MX_HRT_START( queue_measurement );
@@ -1367,11 +1394,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %d",
+	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %d",
+	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
 				socket_handler->callback_socket));
-	MX_DEBUG(-2,("socket_handler->handler_array_index = %d",
+	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
@@ -1451,11 +1478,11 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler = %p", socket_handler));
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %d",
+	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %d",
+	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
 				socket_handler->callback_socket));
-	MX_DEBUG(-2,("socket_handler->handler_array_index = %d",
+	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
@@ -1471,11 +1498,27 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	queued_message = 
 		(MX_NETWORK_MESSAGE_BUFFER *) queued_event->event_data;
 
-	header = (uint32_t *) queued_event->event_data;
+	header = queued_message->u.uint32_buffer;
 
 	message_type = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 
 	/* Handle the request. */
+
+#if NETWORK_DEBUG_VERBOSE
+	MX_DEBUG( 2,
+	("%s: queued_event->record = %p, queued_event->record_field = %p",
+		fname, queued_event->record, queued_event->record_field));
+
+	if ( (queued_event->record != NULL)
+	  && (queued_event->record_field != NULL ) )
+	{
+		MX_DEBUG(-2,("%s: record field = '%s.%s", fname,
+		queued_event->record->name, queued_event->record_field->name));
+	}
+
+	MX_DEBUG(-2,("%s: message_type = %#lx",
+			fname, (unsigned long) message_type));
+#endif
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
@@ -1514,7 +1557,7 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 		break;
 	default:
 		mx_status = mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Illegal client message type %ld",
+			"Illegal client message type %#lx",
 			(long) message_type );
 	}
 
@@ -1523,11 +1566,11 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	mx_free_network_buffer( queued_message );
 
 #if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("socket_handler->synchronous_socket = %d",
+	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
-	MX_DEBUG(-2,("socket_handler->callback_socket = %d",
+	MX_DEBUG(-2,("socket_handler->callback_socket = %p",
 				socket_handler->callback_socket));
-	MX_DEBUG(-2,("socket_handler->handler_array_index = %d",
+	MX_DEBUG(-2,("socket_handler->handler_array_index = %ld",
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
@@ -2018,7 +2061,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 			/* The data were sent in ASCII MX database format. */
 
-#if NETWORK_DEBUG_VERBOSE
+#if 0 && NETWORK_DEBUG_VERBOSE
 			MX_DEBUG(-2,("%s: value_string = '%s'",
 						fname, value_string));
 #endif
@@ -2375,7 +2418,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
 
-#if NETWORK_DEBUG_VERBOSE
+#if 0 && NETWORK_DEBUG_VERBOSE
 	mx_network_display_message_buffer( send_buffer );
 #endif
 
@@ -2466,7 +2509,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		}
 	}
 
-#if NETWORK_DEBUG_VERBOSE
+#if 0 && NETWORK_DEBUG_VERBOSE
 	mx_network_display_message_buffer( send_buffer );
 #endif
 
@@ -2761,7 +2804,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	}
 
-#if NETWORK_DEBUG_VERBOSE
+#if 0 && NETWORK_DEBUG_VERBOSE
 	mx_network_display_message_buffer( send_buffer );
 #endif
 

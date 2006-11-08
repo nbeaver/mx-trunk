@@ -346,6 +346,13 @@ mxd_compumotor_din_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if 1
+	/* Use the interface record's event time manager. */
+
+	record->event_time_manager =
+			compumotor_interface->record->event_time_manager;
+#endif
+
 	mx_status = mxi_compumotor_get_controller_index( compumotor_interface,
 				compumotor_dinput->controller_number,
 				&(compumotor_dinput->controller_index));
@@ -587,6 +594,13 @@ mxd_compumotor_dout_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 1
+	/* Use the interface record's event time manager. */
+
+	record->event_time_manager =
+			compumotor_interface->record->event_time_manager;
+#endif
 
 	mx_status = mxi_compumotor_get_controller_index( compumotor_interface,
 				compumotor_doutput->controller_number,
