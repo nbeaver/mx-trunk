@@ -752,7 +752,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,
-	  ("***************************************************************"));
+	  ("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for socket handler %ld.", fname,
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
@@ -1259,29 +1259,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	if ( queue_a_message ) {
 
-#if 1
-		{
-			uint32_t *header_ptr;
-			uint32_t raw_message_type, host_message_type;
-
-			header_ptr = (uint32_t *) received_message;
-
-			MX_DEBUG(-2,("%s: header_ptr = %p", fname, header_ptr));
-
-			if ( header_ptr != NULL ) {
-				raw_message_type =
-					header_ptr[MX_NETWORK_MESSAGE_TYPE];
-
-				host_message_type = mx_ntohl(raw_message_type);
-
-				MX_DEBUG(-2,
-		    ("%s: raw_message_type = %#lx, host_message_type = %#lx",
-					fname, (unsigned long)raw_message_type,
-					(unsigned long) host_message_type));
-			}
-		}
-#endif
-
 #if NETWORK_DEBUG_TIMING
 		MX_HRT_START( queue_measurement );
 #endif
@@ -1402,8 +1379,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 				socket_handler->handler_array_index));
 	MX_DEBUG(-2,("socket_handler->event_handler = %p",
 				socket_handler->event_handler));
-
-	MX_DEBUG(-2,("%s exiting.", fname));
 #endif
 
 #if NETWORK_DEBUG_TIMING
@@ -1439,9 +1414,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	}
 
 	if ( update_next_event_time ) {
-		MX_DEBUG( 2,
+
+#if NETWORK_DEBUG_VERBOSE
+		MX_DEBUG(-2,
 		("%s: updating next_allowed_event_time for '%s'",
 		 	fname, record->name));
+#endif
 
 		mx_status2 = mx_update_next_allowed_event_time( record,
 								record_field );
@@ -1450,6 +1428,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			return mx_status2;
 	}
 
+#if NETWORK_DEBUG_VERBOSE
+	MX_DEBUG(-2,("%s exiting.", fname));
+	MX_DEBUG(-2,
+	  ("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+#endif
 	return mx_status;
 }
 
@@ -1467,8 +1450,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	uint32_t message_type, header_length;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 1,("%s invoked.", fname));
-
 	if ( queued_event == (MX_QUEUED_EVENT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_QUEUED_EVENT structure pointer passed is NULL." );
@@ -1477,6 +1458,9 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 	socket_handler = queued_event->socket_handler;
 
 #if NETWORK_DEBUG_VERBOSE
+	MX_DEBUG(-2,
+	  ("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"));
+	MX_DEBUG(-2,("%s invoked.", fname));
 	MX_DEBUG(-2,("socket_handler = %p", socket_handler));
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));
@@ -1561,9 +1545,18 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 			(long) message_type );
 	}
 
+#if 1
+	/* NO.  DO NOT DO THIS!  The queued_message data structure belongs
+	 * to the socket handler for this socket.  If you free this structure,
+	 * then the next time you try to read from the socket, the recv()
+	 * will fail with EFAULT since you have freed the buffer it was
+	 * supposed to write to.   (WML - November 8, 2006)
+	 */
+#else
 	/* Now that we are done with it, discard the queued message. */
 
 	mx_free_network_buffer( queued_message );
+#endif
 
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
@@ -1576,6 +1569,8 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 				socket_handler->event_handler));
 
 	MX_DEBUG(-2,("%s exiting.", fname));
+	MX_DEBUG(-2,
+	  ("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"));
 #endif
 
 	return mx_status;
