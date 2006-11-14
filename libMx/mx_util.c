@@ -742,36 +742,43 @@ mx_standard_signal_error_handler( int signal_number )
 	switch ( signal_number ) {
 #ifdef SIGILL
 	case SIGILL:
-		strcpy( signal_name, "SIGILL (illegal instruction)" );
+		strlcpy( signal_name, "SIGILL (illegal instruction)",
+		  sizeof(signal_name) );
 		break;
 #endif
 #ifdef SIGTRAP
 	case SIGTRAP:
-		strcpy( signal_name, "SIGTRAP" );
+		strlcpy( signal_name, "SIGTRAP",
+		  sizeof(signal_name) );
 		break;
 #endif
 #ifdef SIGIOT
 	case SIGIOT:
-		strcpy( signal_name, "SIGIOT (I/O trap)" );
+		strlcpy( signal_name, "SIGIOT (I/O trap)",
+		  sizeof(signal_name) );
 		break;
 #endif
 #ifdef SIGBUS
 	case SIGBUS:
-		strcpy( signal_name, "SIGBUS (bus error)" );
+		strlcpy( signal_name, "SIGBUS (bus error)",
+		  sizeof(signal_name) );
 		break;
 #endif
 #ifdef SIGFPE
 	case SIGFPE:
-		strcpy( signal_name, "SIGFPE (floating point exception)" );
+		strlcpy( signal_name, "SIGFPE (floating point exception)",
+		  sizeof(signal_name) );
 		break;
 #endif
 #ifdef SIGSEGV
 	case SIGSEGV:
-		strcpy( signal_name, "SIGSEGV (segmentation violation)" );
+		strlcpy( signal_name, "SIGSEGV (segmentation violation)",
+		  sizeof(signal_name) );
 		break;
 #endif
 	default:
-		sprintf( signal_name, "%d", signal_number );
+		snprintf( signal_name, sizeof(signal_name),
+				"%d", signal_number );
 		break;
 	}
 
@@ -825,42 +832,147 @@ mx_force_core_dump( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined(OS_WIN32)
+
 MX_EXPORT void
 mx_start_debugger( char *command )
 {
-#if defined(OS_WIN32)
 	fprintf(stderr,
 	    "\nWarning: The Visual C++ debugger is being started.\n\n");
 	fflush(stderr);
 
 	DebugBreak();
 
+	return;
+}
+
 #elif defined(OS_LINUX)
+
+MX_EXPORT void
+mx_start_debugger( char *command )
+{
+	static const char fname[] = "mx_start_debugger()";
+
 	char command_line[80];
+	char *ptr;
 	unsigned long pid;
+	mx_bool_type x_windows_available;
+	mx_status_type mx_status;
+
+	static char unsafe_fmt[] =
+    "Unsafe command line '%s' requested for %s.  The command will be ignored.";
 
 	pid = mx_process_id();
 
-	/* If no command line is supplied, we supply a default one with gdb. */
+	/* We try several things in order here. */
+
+	/* If the command line pointer is NULL, see if we can use the contents
+	 * of the environment variable MX_DEBUGGER instead.
+	 */
 
 	if ( command == NULL ) {
-		sprintf( command_line, "gdb -p %lu", pid );
-	} else {
-		strncpy( command_line, command, sizeof(command_line)-1 );
+		command = getenv( "MX_DEBUGGER" );
 	}
 
-	fprintf(stderr,
-"\nWarning: The program is now waiting in an infinite loop for you to\n" );
-	fprintf(stderr,
-"         start debugging it with GDB via the command '%s'.\n\n",
-						command_line );
-	fprintf(stderr,
-"         After attaching, type the command 'set loop=0' to break out\n" );
-	fprintf(stderr,
-"         of the loop.\n\n" );
-	fprintf(stderr,
-"         Waiting...\n\n" );
+	/* If a command line has been specified, attempt to use it.  If the
+	 * format specifier %lu appears in the command line, it will be
+	 * replaced by the process id.
+	 */
 
+	if ( command != (char *) NULL ) {
+
+		/* Does the command line include any % characters? */
+
+		ptr = strchr( command, '%' );
+
+		if ( ptr == NULL ) {
+			strlcpy( command_line, command, sizeof(command_line) );
+		} else {
+			/* If so, then we must check to see if the command
+			 * line is safe to use as a format string.
+			 */
+
+			/* Does the command contain more than one % character?
+			 * If so, that is prohibited.
+			 */
+
+			if ( strchr( ptr+1, '%' ) != NULL ) {
+				mx_warning( unsafe_fmt, command, fname );
+				return;
+			}
+
+			/* Is the conversion specifier anything other than
+			 * '%lu'?.  If so, that is prohibited.
+			 */
+
+			if ( strncmp( ptr, "%lu", 3 ) != 0 ) {
+				mx_warning( unsafe_fmt, command, fname );
+				return;
+			}
+
+			/* The format string appears to be safe, so let's use
+			 * it to format the command to execute.
+			 */
+
+			snprintf( command_line, sizeof(command_line),
+						command, pid );
+		}
+	} else {
+		/* If no command line was specified, then we try several
+		 * commands in turn.
+		 */
+
+		command_line[0] = '\0';
+
+		if ( getenv("DISPLAY") != NULL ) {
+			x_windows_available = TRUE;
+		} else {
+			x_windows_available = FALSE;
+		}
+
+		if ( x_windows_available ) {
+			if ( mx_command_found( "ddd" ) ) {
+
+				snprintf( command_line, sizeof(command_line),
+					"ddd -p %lu", pid );
+			} else
+			if ( mx_command_found( "xterm" ) ) {
+
+				snprintf( command_line, sizeof(command_line),
+					"xterm -e gdb -p %lu", pid );
+			}
+		}
+
+		if ( command_line[0] == '\0' ) {
+			fprintf( stderr,
+"No suitable GUI debugger was found.  You will need to start GDB from\n"
+"another terminal window with the command 'gdb -p %lu'.\n", pid );
+		}
+	}
+
+	if ( command_line[0] == '\0' ) {
+		fprintf( stderr, "%s: No debugger found.\n", fname );
+
+		return;
+	} else {
+		fprintf( stderr,
+		"Warning: Starting a debugger using the command '%s'.\n",
+			command_line );
+
+		mx_status = mx_spawn( command_line, MXF_SPAWN_SUSPEND_PARENT );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return;
+	}
+
+#if 0
+	/* Pause here until we are told to continue. */
+
+	fprintf(stderr,
+"\nWarning: Process %lu is now waiting in an infinite loop for you to start\n"
+"         debugging it.  After attaching, type the command 'set loop=0'\n"
+"         to break out of the loop.  Waiting...\n\n",
+		mx_process_id() );
 
 	/* Synchronize with the debugger by waiting for the debugger
 	 * to reset the value of 'loop' to 0.
@@ -875,15 +987,24 @@ mx_start_debugger( char *command )
 			mx_msleep(1000);
 		}
 	}
+#endif
+
+	return;
+}
 
 #else
+
+MX_EXPORT void
+mx_start_debugger( char *command )
+{
 	fprintf(stderr, "\n"
 "Warning: Starting a debugger is not currently supported on this platform.\n"
 "         The request to start a debugger will be ignored.  Sorry...\n\n" );
 	fflush(stderr);
-#endif
 	return;
 }
+
+#endif
 
 /*-------------------------------------------------------------------------*/
 
@@ -1268,15 +1389,22 @@ mx_parse_command_line( char *command_line,
 				*argv = (char **) malloc( sizeof(char *) );
 			}
 
+#if 0
 			if ( *envc == 0 ) {
 				mx_warning(
 				"No environment variables were specified.");
 
 				*envp = (char **) malloc( sizeof(char *) );
 			}
+#endif
 
-			(*argv)[*argc] = NULL;
-			(*envp)[*envc] = NULL;
+			if ( *argv != NULL ) {
+				(*argv)[*argc] = NULL;
+			}
+
+			if ( *envp != NULL ) {
+				(*envp)[*envc] = NULL;
+			}
 
 			return 0;
 			break;

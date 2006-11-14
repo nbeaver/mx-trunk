@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -52,7 +52,7 @@ typedef struct {
 	mx_status_type ( *postscan_processing) ( MX_MEASUREMENT *measurement );
 	mx_status_type ( *preslice_processing) ( MX_MEASUREMENT *measurement );
 	mx_status_type ( *postslice_processing) ( MX_MEASUREMENT *measurement );
-	mx_status_type ( *measure_data ) ( MX_MEASUREMENT *measurement );
+	mx_status_type ( *acquire_data ) ( MX_MEASUREMENT *measurement );
 } MX_MEASUREMENT_FUNCTION_LIST;
 
 typedef struct {
@@ -89,7 +89,9 @@ MX_API mx_status_type mx_preslice_measurement_processing(
 MX_API mx_status_type mx_postslice_measurement_processing(
 					MX_MEASUREMENT *measurement );
 
-MX_API mx_status_type mx_measure_data( MX_MEASUREMENT *measurement );
+MX_API mx_status_type mx_acquire_data( MX_MEASUREMENT *measurement );
+
+MX_API mx_status_type mx_readout_data( MX_MEASUREMENT *measurement );
 
 MX_API mx_status_type mx_get_measurement_time( MX_MEASUREMENT *measurement,
 						double *measurement_time );

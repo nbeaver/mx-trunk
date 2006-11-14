@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,7 @@ MX_API mx_status_type mxm_preset_time_preslice_processing(
 					MX_MEASUREMENT *measurement );
 MX_API mx_status_type mxm_preset_time_postslice_processing(
 					MX_MEASUREMENT *measurement );
-MX_API mx_status_type mxm_preset_time_measure_data(
+MX_API mx_status_type mxm_preset_time_acquire_data(
 					MX_MEASUREMENT *measurement );
 
 extern MX_MEASUREMENT_FUNCTION_LIST mxm_preset_time_function_list;

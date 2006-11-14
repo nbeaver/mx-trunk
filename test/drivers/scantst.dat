@@ -34,3 +34,4 @@ mcs_scan                         scan quick_scan mcs_qscan "" "" 1 1 1  energy 2
 mylist                           scan list_scan file_list_scan "" "" 1 1 1  theta 2  I0 I  0 0 preset_time "0 timer1" sff mylist.out gnuplot $f[0] mylist.dat
 mylist_e0                        scan list_scan file_list_scan "" "" 1 1 1  e_minus_e0 2  I0 I  0 0 preset_time "0 timer1" sff mylist.out gnuplot $f[0] mylist_e0.dat
 mylist_var                       scan list_scan file_list_scan "" "" 1 1 1  theta 3  I0 I time  0 0 preset_time "0 timer1" sff mylist_var.out gnuplot $f[0] mylist_var.dat
+2dscan                           scan linear_scan motor_scan "" "" 1 2 2  hslit_center vslit_center 2  Io It  0 0 preset_time "1 timer1" sff 2dscan.004 gnuplot $f[0];$f[1]  -1 -0.5  0.5 0.1  5 11

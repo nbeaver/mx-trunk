@@ -469,7 +469,7 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 	double e_minus_e0_start, k_start_squared;
 	double energy_diff, nominal_measurement_time;
 	char *ptr;
-	size_t string_length, buffer_left;
+	size_t string_length;
 	long i, j, num_steps;
 	int num_items;
 	mx_status_type status;
@@ -493,31 +493,31 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 
 	for ( i = 0; i < xafs_scan->num_regions; i++ ) {
 
-		sprintf( record_description,
+		snprintf( record_description, sizeof(record_description),
 	"mx_xafstmp%ld scan linear_scan motor_scan \"\" \"\" 1 1 1 ", i );
 
-		string_length = strlen( record_description );
-		buffer_left = sizeof( record_description ) - string_length - 1;
-		ptr = record_description + string_length;
-
 		if ( i < xafs_scan->num_energy_regions ) {
-			strncat( ptr, "e_minus_e0 ", buffer_left );
+			strlcat( record_description, "e_minus_e0 ",
+					sizeof(record_description) );
 		} else {
-			strncat( ptr, "k ", buffer_left );
+			strlcat( record_description, "k ",
+					sizeof(record_description) );
 		}
 
 		string_length = strlen( record_description );
 		ptr = record_description + string_length;
 
-		sprintf( ptr, "%ld ", scan->num_input_devices );
+		snprintf( ptr, sizeof(record_description) - string_length,
+			"%ld ", scan->num_input_devices );
 
 		for ( j = 0; j < scan->num_input_devices; j++ ) {
 
 			string_length = strlen( record_description );
 			ptr = record_description + string_length;
 
-			sprintf( ptr, "%s ",
-					scan->input_device_array[j]->name );
+			snprintf( ptr,
+				sizeof(record_description) - string_length,
+				"%s ", scan->input_device_array[j]->name );
 		}
 
 		end_of_region = xafs_scan->region_boundary[i+1];
@@ -561,7 +561,8 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 
 		/* Get the timer name. */
 
-		sprintf( format_buffer, "%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
+		snprintf( format_buffer, sizeof(format_buffer),
+			"%%lg %%%ds", MXU_RECORD_NAME_LENGTH );
 
 		num_items = sscanf( scan->measurement_arguments, format_buffer,
 					&nominal_measurement_time, timer_name );
@@ -579,24 +580,9 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 		string_length = strlen( record_description );
 		ptr = record_description + string_length;
 
-#if 0
-		sprintf( ptr,
-    "0 %.*g preset_time \"%.*g %s\" child %s child \"%s\" %.*g %.*g %ld",
-			scan->record->precision,
-			scan->settling_time,
-			scan->record->precision,
-			xafs_scan->region_measurement_time[i],
-			timer_name,
-			scan->record->name,
-			scan->record->name,
-			scan->record->precision,
-			start_position,
-			scan->record->precision,
-			step_size,
-			num_steps );
-#else
-		sprintf( ptr,
-    "0 %.*g preset_time \"%.*g %s\" child:%s %s child:%s \"%s\" %.*g %.*g %ld",
+		snprintf( ptr, sizeof(record_description) - string_length,
+  "%#lx %.*g preset_time \"%.*g %s\" child:%s %s child:%s \"%s\" %.*g %.*g %ld",
+  			scan->scan_flags,
 			scan->record->precision,
 			scan->settling_time,
 			scan->record->precision,
@@ -611,7 +597,6 @@ mxs_xafs_scan_execute_scan_body( MX_SCAN *scan )
 			scan->record->precision,
 			step_size,
 			num_steps );
-#endif
 
 		/* Now create the scan record from the description that we
 		 * have just constructed.

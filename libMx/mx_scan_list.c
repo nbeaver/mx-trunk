@@ -516,7 +516,7 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 	MX_LIST_SCAN *list_scan;
 	MX_LIST_SCAN_FUNCTION_LIST *flist;
-	mx_bool_type fast_mode, start_fast_mode;
+	mx_bool_type fast_mode, start_fast_mode, early_move_flag;
 	mx_status_type (*close_list_fptr) ( MX_LIST_SCAN * );
 	mx_status_type (*get_next_measurement_parameters_fptr)
 						( MX_SCAN *, MX_LIST_SCAN * );
@@ -577,6 +577,17 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 		start_fast_mode = TRUE;
 	}
 
+	/* Have we been asked to start moving to the next measurement
+	 * position before the previous measurement is read out?
+	 */
+
+	mx_status = mx_scan_get_early_move_flag(scan, &early_move_flag);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: early_move_flag = %d", fname, (int) early_move_flag));
+
 	/* Now step through all the positions in the position list. */
 
 	mx_scanlog_info("Moving to start position.");
@@ -620,9 +631,11 @@ mxs_list_scan_execute_scan_body( MX_SCAN *scan )
 
 			if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
 				mx_status =
-				    mx_scan_handle_data_measurement( scan );
+				    mx_scan_acquire_and_readout_data( scan );
 
-				if ( mx_status.code != MXE_SUCCESS ) {
+				if ( ( mx_status.code != MXE_SUCCESS )
+				  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
+				{
 					CLOSE_POSITION_LIST;
 					return mx_status;
 				}

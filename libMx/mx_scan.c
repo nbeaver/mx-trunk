@@ -1370,19 +1370,97 @@ mx_scan_free_measurement_permit_and_fault_handlers( MX_SCAN *scan )
 /* --------------- */
 
 MX_EXPORT mx_status_type
-mx_scan_handle_data_measurement( MX_SCAN *scan )
+mx_scan_wait_for_all_permits( MX_SCAN *scan )
 {
-	static const char fname[] = "mx_scan_handle_data_measurement()";
+	static const char fname[] = "mx_scan_wait_for_all_permits()";
 
-	int fault_occurred, fault_status;
 	long i;
-	mx_status_type mx_status, measure_data_status;
+	mx_status_type mx_status;
 
-	measure_data_status = MX_SUCCESSFUL_RESULT;
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
 
-	/* Reset any faults that have occurred during the interval since
-	 * the last measurement.
-	 */
+	for ( i = 0; i < scan->num_measurement_permit_handlers; i++ ) {
+
+		mx_status = mx_measurement_permit_wait_for_permission(
+				scan->measurement_permit_handler_array[i] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Put in a tiny sleep between tests. */
+
+		mx_msleep(1);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_scan_check_for_all_faults( MX_SCAN *scan, mx_bool_type *fault_occurred )
+{
+	static const char fname[] = "mx_scan_check_for_all_faults()";
+
+	long i;
+	int fault_status;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
+	if ( fault_occurred == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The fault_occurred pointer passed was NULL." );
+	}
+
+	*fault_occurred = FALSE;
+
+	for ( i = 0; i < scan->num_measurement_fault_handlers; i++ ) {
+
+		mx_status = mx_measurement_fault_check_for_fault(
+			scan->measurement_fault_handler_array[i],
+			&fault_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( fault_status == TRUE ) {
+
+			*fault_occurred = TRUE;
+
+			/* If a measurement fault occurred, reset it.*/
+
+			mx_status = mx_measurement_fault_reset(
+			    scan->measurement_fault_handler_array[i],
+				MXMF_NONE );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Put in a tiny sleep between tests. */
+
+		mx_msleep(1);
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_scan_reset_all_faults( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_reset_all_faults()";
+
+	long i;
+	mx_status_type mx_status;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SCAN pointer passed was NULL." );
+	}
 
 	for ( i = 0; i < scan->num_measurement_fault_handlers; i++ ) {
 
@@ -1393,6 +1471,30 @@ mx_scan_handle_data_measurement( MX_SCAN *scan )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_acquire_and_readout_data( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_acquire_and_readout_data()";
+
+	mx_bool_type fault_occurred;
+	mx_status_type mx_status, acquire_data_status;
+
+	acquire_data_status = MX_SUCCESSFUL_RESULT;
+
+	/* Reset any faults that have occurred during the interval since
+	 * the last measurement.
+	 */
+
+	mx_status = mx_scan_reset_all_faults( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/*** Begin the measurement fault handling loop ***/
 
@@ -1411,57 +1513,27 @@ mx_scan_handle_data_measurement( MX_SCAN *scan )
 		 * that it is OK to take the measurement.
 		 */
 
-		for ( i = 0; i < scan->num_measurement_permit_handlers; i++ ) {
+		mx_status = mx_scan_wait_for_all_permits( scan );
 
-			mx_status = mx_measurement_permit_wait_for_permission(
-				scan->measurement_permit_handler_array[i] );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* Put in a tiny sleep between tests. */
-
-			mx_msleep(1);
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Perform the measurement. */
 
-		measure_data_status = mx_measure_data( &(scan->measurement) );
+		acquire_data_status = mx_acquire_data( &(scan->measurement) );
 
-		if ( measure_data_status.code != MXE_SUCCESS )
-			return measure_data_status;
+		if ( acquire_data_status.code != MXE_SUCCESS )
+			return acquire_data_status;
+
+		mx_status = mx_readout_data( &(scan->measurement) );
+			return mx_status;
 
 		/* Did something bad happen during the measurement? */
 
-		fault_occurred = FALSE;
+		mx_status = mx_scan_check_for_all_faults(scan, &fault_occurred);
 
-		for ( i = 0; i < scan->num_measurement_fault_handlers; i++ ) {
-
-			mx_status = mx_measurement_fault_check_for_fault(
-				scan->measurement_fault_handler_array[i],
-				&fault_status );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			if ( fault_status == TRUE ) {
-
-				fault_occurred = TRUE;
-
-				/* If a measurement fault occurred, reset it.*/
-
-				mx_status = mx_measurement_fault_reset(
-				    scan->measurement_fault_handler_array[i],
-					MXMF_NONE );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			}
-
-			/* Put in a tiny sleep between tests. */
-
-			mx_msleep(1);
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		MX_DEBUG( 2,("%s: end of fault_occurred loop.", fname ));
 
@@ -1472,7 +1544,48 @@ mx_scan_handle_data_measurement( MX_SCAN *scan )
 
 	}    /* End of measurement fault handling loop ***/
 
-	return measure_data_status;
+	return acquire_data_status;
+}
+
+/* --------------- */
+
+MX_EXPORT mx_status_type
+mx_scan_acquire_data( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_acquire_data()";
+
+	mx_status_type mx_status;
+
+	/* Reset any faults that have occurred during the interval since
+	 * the last measurement.
+	 */
+
+	mx_status = mx_scan_reset_all_faults( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* This version of the code does not and cannot have a fault loop. */
+
+	if ( mx_user_requested_interrupt() ) {
+		return mx_error( MXE_INTERRUPTED, fname,
+		"%s was interrupted.", fname );
+	}
+
+	/* Wait until all of the measurement permit handlers say
+	 * that it is OK to take the measurement.
+	 */
+
+	mx_status = mx_scan_wait_for_all_permits( scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Perform the measurement. */
+
+	mx_status = mx_acquire_data( &(scan->measurement) );
+
+	return mx_status;
 }
 
 /* --------------- */

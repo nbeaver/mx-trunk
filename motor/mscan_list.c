@@ -54,6 +54,7 @@ motor_setup_list_scan_parameters(
 	long scan_num_independent_variables;
 	long scan_num_motors;
 	long old_scan_num_motors;
+	unsigned long scan_flags;
 	int *motor_is_independent_variable;
 
 	char **motor_name_array;
@@ -297,10 +298,18 @@ motor_setup_list_scan_parameters(
 					record_description_buffer_length );
 	}
 
-	/* The after scan action is currently hardcoded as 0. */
+	/* Preserve the existing value of the 'scan_flags' field, if any. */
 
-	strlcat( record_description_buffer, "0 ",
-					record_description_buffer_length );
+	if ( old_scan == NULL ) {
+		scan_flags = 0;
+	} else {
+		scan_flags = old_scan->scan_flags;
+	}
+
+	snprintf( buffer, sizeof(buffer), "%#lx ", scan_flags );
+
+	strlcat( record_description_buffer, buffer,
+			record_description_buffer_length );
 
 	/* Prompt for the measurement parameters. */
 

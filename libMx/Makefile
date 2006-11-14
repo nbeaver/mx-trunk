@@ -32,7 +32,8 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_sample_changer.c mx_sca.c mx_scaler.c \
 	mx_scan.c mx_scan_linear.c mx_scan_list.c \
 	mx_scan_quick.c mx_scan_xafs.c mx_semaphore.c mx_server_connect.c \
-	mx_signal.c mx_sleep.c mx_socket.c mx_spec.c mx_stack.c mx_syslog.c \
+	mx_signal.c mx_sleep.c mx_socket.c mx_spawn.c \
+	mx_spec.c mx_stack.c mx_syslog.c \
 	mx_table.c mx_test.c mx_thread.c mx_timer.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
 	mx_variable.c mx_vepics.c mx_version.c \

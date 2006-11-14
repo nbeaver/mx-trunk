@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -32,7 +32,7 @@ MX_MEASUREMENT_FUNCTION_LIST mxm_none_function_list = {
 			mxm_none_postscan_processing,
 			mxm_none_preslice_processing,
 			mxm_none_postslice_processing,
-			mxm_none_measure_data,
+			mxm_none_acquire_data,
 };
 
 MX_EXPORT mx_status_type
@@ -74,7 +74,7 @@ mxm_none_postslice_processing( MX_MEASUREMENT *measurement )
 }
 
 MX_EXPORT mx_status_type
-mxm_none_measure_data( MX_MEASUREMENT *measurement )
+mxm_none_acquire_data( MX_MEASUREMENT *measurement )
 {
 	return MX_SUCCESSFUL_RESULT;
 }

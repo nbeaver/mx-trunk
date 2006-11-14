@@ -71,6 +71,7 @@ motor_setup_xafs_scan_parameters(
 	long num_regions, num_boundaries;
 	long num_energy_regions, num_k_regions;
 	long scan_num_scans;
+	unsigned long scan_flags;
 	double scan_settling_time;
 	double *region_boundary, *region_step_size, *region_measurement_time;
 
@@ -144,9 +145,17 @@ motor_setup_xafs_scan_parameters(
 				record_description_buffer_length );
 	}
 
-	/* The after scan action is currently hardcoded as 0. */
+	/* Preserve the existing value of the 'scan_flags' field, if any. */
 
-	strlcat( record_description_buffer, "0 ",
+	if ( old_scan == NULL ) {
+		scan_flags = 0;
+	} else {
+		scan_flags = old_scan->scan_flags;
+	}
+
+	snprintf( buffer, sizeof(buffer), "%#lx ", scan_flags );
+
+	strlcat( record_description_buffer, buffer,
 			record_description_buffer_length );
 
 	/* Prompt for the settling time. */

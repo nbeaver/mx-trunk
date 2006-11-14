@@ -30,6 +30,8 @@
 #include "mx_measurement.h"
 #include "command.h"
 
+#include "mx_poison.h"
+
 #ifndef SUCCESS
 #define INTERRUPTED 2
 #define SUCCESS     1

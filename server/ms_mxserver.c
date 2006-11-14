@@ -1545,19 +1545,6 @@ mxsrv_mx_client_socket_proc_queued_event( MX_RECORD *record_list,
 			(long) message_type );
 	}
 
-#if 1
-	/* NO.  DO NOT DO THIS!  The queued_message data structure belongs
-	 * to the socket handler for this socket.  If you free this structure,
-	 * then the next time you try to read from the socket, the recv()
-	 * will fail with EFAULT since you have freed the buffer it was
-	 * supposed to write to.   (WML - November 8, 2006)
-	 */
-#else
-	/* Now that we are done with it, discard the queued message. */
-
-	mx_free_network_buffer( queued_message );
-#endif
-
 #if NETWORK_DEBUG_VERBOSE
 	MX_DEBUG(-2,("socket_handler->synchronous_socket = %p",
 				socket_handler->synchronous_socket));

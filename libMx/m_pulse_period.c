@@ -35,7 +35,7 @@ MX_MEASUREMENT_FUNCTION_LIST mxm_preset_pulse_period_function_list = {
 			mxm_preset_pulse_period_postscan_processing,
 			mxm_preset_pulse_period_preslice_processing,
 			mxm_preset_pulse_period_postslice_processing,
-			mxm_preset_pulse_period_measure_data,
+			mxm_preset_pulse_period_acquire_data,
 };
 
 MX_EXPORT mx_status_type
@@ -263,9 +263,9 @@ mxm_preset_pulse_period_postslice_processing( MX_MEASUREMENT *measurement )
 }
 
 MX_EXPORT mx_status_type
-mxm_preset_pulse_period_measure_data( MX_MEASUREMENT *measurement )
+mxm_preset_pulse_period_acquire_data( MX_MEASUREMENT *measurement )
 {
-	static const char fname[] = "mxm_preset_pulse_period_measure_data()";
+	static const char fname[] = "mxm_preset_pulse_period_acquire_data()";
 
 	MX_MEASUREMENT_PRESET_PULSE_PERIOD *preset_pulse_period_struct;
 	MX_SCAN *scan;

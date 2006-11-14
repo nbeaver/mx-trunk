@@ -647,6 +647,19 @@ MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
 
 MX_API char *mx_string_split( char **string_ptr, const char *delim );
 
+/*------------------------------------------------------------------------*/
+
+/* Flags for mx_spawn() */
+
+#define MXF_SPAWN_SUSPEND_CHILD		0x1
+#define MXF_SPAWN_SUSPEND_PARENT	0x2
+
+MX_API mx_status_type mx_spawn( char *command_line, unsigned long flags );
+
+MX_API int mx_command_found( char *command_name );
+
+/*------------------------------------------------------------------------*/
+
 /* === Define error message numbers. === */
 
 #define MXE_SUCCESS				1000	/* No error. */

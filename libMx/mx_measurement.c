@@ -167,18 +167,18 @@ mx_configure_measurement_type( MX_MEASUREMENT *measurement )
 	MX_MEASUREMENT_TYPE_ENTRY *measurement_type_entry;
 	MX_MEASUREMENT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_MEASUREMENT pointer passed was NULL.");
 	}
 
-	status = mx_get_measurement_type_by_value( mx_measurement_type_list,
+	mx_status = mx_get_measurement_type_by_value( mx_measurement_type_list,
 				measurement->type, &measurement_type_entry );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( measurement_type_entry == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -211,9 +211,9 @@ mx_configure_measurement_type( MX_MEASUREMENT *measurement )
 			measurement_type_entry->name );
 	}
 
-	status = (*fptr) ( measurement );
+	mx_status = (*fptr) ( measurement );
 
-	return status;
+	return mx_status;
 }
 
 /* --------------- */
@@ -225,7 +225,7 @@ mx_deconfigure_measurement_type( MX_MEASUREMENT *measurement )
 
 	MX_MEASUREMENT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -250,9 +250,9 @@ mx_deconfigure_measurement_type( MX_MEASUREMENT *measurement )
 			measurement->typename );
 	}
 
-	status = (*fptr) ( measurement );
+	mx_status = (*fptr) ( measurement );
 
-	return status;
+	return mx_status;
 }
 
 /* --------------- */
@@ -264,7 +264,7 @@ mx_prescan_measurement_processing( MX_MEASUREMENT *measurement )
 
 	MX_MEASUREMENT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -289,9 +289,9 @@ mx_prescan_measurement_processing( MX_MEASUREMENT *measurement )
 			measurement->typename );
 	}
 
-	status = (*fptr) ( measurement );
+	mx_status = (*fptr) ( measurement );
 
-	return status;
+	return mx_status;
 }
 
 /* --------------- */
@@ -303,7 +303,7 @@ mx_postscan_measurement_processing( MX_MEASUREMENT *measurement )
 
 	MX_MEASUREMENT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT * );
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( measurement == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -328,31 +328,24 @@ mx_postscan_measurement_processing( MX_MEASUREMENT *measurement )
 			measurement->typename );
 	}
 
-	status = (*fptr) ( measurement );
+	mx_status = (*fptr) ( measurement );
 
-	return status;
+	return mx_status;
 }
 
 /* --------------- */
 
 MX_EXPORT mx_status_type
-mx_measure_data( MX_MEASUREMENT *measurement )
+mx_acquire_data( MX_MEASUREMENT *measurement )
 {
-	static const char fname[] = "mx_measure_data()";
+	static const char fname[] = "mx_acquire_data()";
 
 	MX_MEASUREMENT_FUNCTION_LIST *flist;
 	mx_status_type ( *fptr ) ( MX_MEASUREMENT * );
 
 	MX_SCAN *scan;
-	MX_RECORD **input_device_array;
-	MX_RECORD *input_device;
-	MX_SCALER *scaler;
 	unsigned long seconds, milliseconds;
-	double double_value;
-	long long_value;
-	unsigned long ulong_value;
-	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.",fname));
 
@@ -369,11 +362,11 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 	"MX_MEASUREMENT_FUNCTION_LIST pointer for measurement is NULL.");
 	}
 
-	fptr = flist->measure_data;
+	fptr = flist->acquire_data;
 
 	if ( fptr == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"measure_data function pointer for measurement is NULL.");
+		"acquire_data function pointer for measurement is NULL.");
 	}
 
 	scan = (MX_SCAN *) measurement->scan;
@@ -384,22 +377,14 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 			measurement );
 	}
 
-	input_device_array = scan->input_device_array;
-
-	if ( input_device_array == (MX_RECORD **) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"input_device_array pointer for scan record '%s' is NULL.",
-			scan->record->name );
-	}
-
 	/* Open the shutter if requested. */
 
 	if ( scan->shutter_policy == MXF_SCAN_SHUTTER_OPEN_FOR_DATAPOINT ) {
-		status = mx_relay_command( scan->shutter_record,
+		mx_status = mx_relay_command( scan->shutter_record,
 							MXF_OPEN_RELAY );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Wait for the settling time. */
@@ -417,7 +402,7 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 
 	/* Perform the measurement. */
 
-	status = (*fptr) ( measurement );
+	mx_status = (*fptr) ( measurement );
 
 	/* Close the shutter if requested. */
 
@@ -426,10 +411,39 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 							MXF_CLOSE_RELAY );
 	}
 
-	/* If the measurement failed, return the error to the caller. */
+	return mx_status;
+}
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+MX_EXPORT mx_status_type
+mx_readout_data( MX_MEASUREMENT *measurement )
+{
+	static const char fname[] = "mx_readout_data()";
+
+	MX_SCAN *scan;
+	MX_RECORD **input_device_array;
+	MX_RECORD *input_device;
+	MX_SCALER *scaler;
+	double double_value;
+	long long_value;
+	unsigned long ulong_value;
+	long i;
+	mx_status_type mx_status;
+
+	scan = (MX_SCAN *) measurement->scan;
+
+	if ( scan == (MX_SCAN *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_SCAN pointer for measurement pointer %p is NULL.",
+			measurement );
+	}
+
+	input_device_array = scan->input_device_array;
+
+	if ( input_device_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"input_device_array pointer for scan record '%s' is NULL.",
+			scan->record->name );
+	}
 
 	/* Read out and save the values from the input devices. */
 
@@ -438,55 +452,55 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 
 		switch ( input_device->mx_superclass ) {
 		case MXR_VARIABLE:
-			status = mx_receive_variable( input_device );
+			mx_status = mx_receive_variable( input_device );
 
-			if ( status.code != MXE_SUCCESS ) {
-				return status;
+			if ( mx_status.code != MXE_SUCCESS ) {
+				return mx_status;
 			}
 			break;
 
 		case MXR_DEVICE:
 			switch( input_device->mx_class ) {
 			case MXC_ANALOG_INPUT:
-				status = mx_analog_input_read(
+				mx_status = mx_analog_input_read(
 						input_device, &double_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_ANALOG_OUTPUT:
-				status = mx_analog_output_read(
+				mx_status = mx_analog_output_read(
 						input_device, &double_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_DIGITAL_INPUT:
-				status = mx_digital_input_read(
+				mx_status = mx_digital_input_read(
 						input_device, &ulong_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_DIGITAL_OUTPUT:
-				status = mx_digital_output_read(
+				mx_status = mx_digital_output_read(
 						input_device, &ulong_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_MOTOR:
-				status = mx_motor_get_position(
+				mx_status = mx_motor_get_position(
 						input_device, &double_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_SCALER:
-				status = mx_scaler_read(
+				mx_status = mx_scaler_read(
 						input_device, &long_value );
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				scaler = (MX_SCALER *)
 					(input_device->record_class_struct);
@@ -494,33 +508,33 @@ mx_measure_data( MX_MEASUREMENT *measurement )
 				scaler->value = long_value;
 				break;
 			case MXC_TIMER:
-				status = mx_timer_read(
+				mx_status = mx_timer_read(
 						input_device, &double_value );
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_AMPLIFIER:
-				status = mx_amplifier_get_gain(
+				mx_status = mx_amplifier_get_gain(
 						input_device, &double_value );
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_RELAY:
-				status = mx_get_relay_status(input_device,NULL);
+				mx_status = mx_get_relay_status(input_device,NULL);
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			case MXC_MULTICHANNEL_ANALYZER:
-				status = mx_mca_read(input_device, NULL, NULL);
+				mx_status = mx_mca_read(input_device, NULL, NULL);
 
-				if ( status.code != MXE_SUCCESS ) {
-					return status;
+				if ( mx_status.code != MXE_SUCCESS ) {
+					return mx_status;
 				}
 				break;
 			default:

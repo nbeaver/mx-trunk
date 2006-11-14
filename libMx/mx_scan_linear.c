@@ -54,6 +54,34 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 					unsigned long)
 		);
 
+static mx_status_type
+mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
+				MX_LINEAR_SCAN *linear_scan,
+				long array_index,
+				long num_dimension_steps,
+				mx_status_type (*compute_motor_positions_fptr)
+					(MX_SCAN *, MX_LINEAR_SCAN *),
+				mx_status_type (*move_special_fptr)
+					( MX_SCAN *, MX_LINEAR_SCAN *,
+					long, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long ),
+				mx_bool_type start_fast_mode );
+
+static mx_status_type
+mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
+				MX_LINEAR_SCAN *linear_scan,
+				long array_index,
+				long num_dimension_steps,
+				mx_status_type (*compute_motor_positions_fptr)
+					(MX_SCAN *, MX_LINEAR_SCAN *),
+				mx_status_type (*move_special_fptr)
+					( MX_SCAN *, MX_LINEAR_SCAN *,
+					long, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long ),
+				mx_bool_type start_fast_mode );
+
 /*=========*/
 
 #define NUM_LINEAR_SCAN_FIELDS	4
@@ -663,6 +691,7 @@ mxs_linear_scan_move_absolute(
 				unsigned long )
 	)
 {
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	/* If move_special_fptr is NULL, we just invoke
@@ -674,6 +703,8 @@ mxs_linear_scan_move_absolute(
 	 * an example of this.
 	 */
 
+	flags = MXF_MTR_NOWAIT | MXF_MTR_SCAN_IN_PROGRESS;
+
 	if ( move_special_fptr == NULL ) {
 		if ( scan->num_motors > 0 ) {
 			mx_status = mx_motor_array_move_absolute_with_report(
@@ -681,7 +712,7 @@ mxs_linear_scan_move_absolute(
 						scan->motor_record_array,
 						scan->motor_position,
 						NULL,
-						MXF_MTR_SCAN_IN_PROGRESS );
+						flags );
 		}
 	} else {
 		mx_status = (*move_special_fptr) ( scan,
@@ -690,7 +721,7 @@ mxs_linear_scan_move_absolute(
 						scan->motor_record_array,
 						scan->motor_position,
 						NULL,
-						MXF_MTR_SCAN_IN_PROGRESS );
+						flags );
 	}
 
 	return mx_status;
@@ -712,7 +743,7 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 	static const char fname[] = "mxs_linear_scan_execute_scan_level()";
 
 	long i, array_index, num_dimension_steps, new_dimension_level;
-	mx_bool_type fast_mode, start_fast_mode;
+	mx_bool_type fast_mode, start_fast_mode, early_move_flag;
 	mx_status_type mx_status;
 
 	array_index = scan->num_independent_variables - dimension_level - 1;
@@ -762,19 +793,297 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 			start_fast_mode = TRUE;
 		}
 
+		/* Have we been asked to start moving to the next measurement
+		 * position before the previous measurement is read out?
+		 */
+
+		mx_status = mx_scan_get_early_move_flag(scan, &early_move_flag);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG(-2,("%s: early_move_flag = %d",
+			fname, (int) early_move_flag ));
+
 		MX_DEBUG( 2,
 		("%s: At bottom level of independent variables.", fname ));
 
-		if ( scan->num_motors > 0 ) {
-			mx_scanlog_info(
-			"Moving to start position for scan section.");
+		if ( early_move_flag == FALSE ) {
+			mx_status = mxs_linear_scan_do_normal_scan(
+						scan,
+						linear_scan,
+						array_index,
+						num_dimension_steps,
+						compute_motor_positions_fptr,
+						move_special_fptr,
+						start_fast_mode );
+		} else {
+			mx_status = mxs_linear_scan_do_early_move_scan(
+						scan,
+						linear_scan,
+						array_index,
+						num_dimension_steps,
+						compute_motor_positions_fptr,
+						move_special_fptr,
+						start_fast_mode );
 		}
 
-		for ( i = 0; i < num_dimension_steps; i++ ) {
+		(scan->plot.section_number)++;
+	}
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
+				MX_LINEAR_SCAN *linear_scan,
+				long array_index,
+				long num_dimension_steps,
+				mx_status_type (*compute_motor_positions_fptr)
+					(MX_SCAN *, MX_LINEAR_SCAN *),
+				mx_status_type (*move_special_fptr)
+					( MX_SCAN *, MX_LINEAR_SCAN *,
+					long, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long ),
+				mx_bool_type start_fast_mode )
+{
+	long i;
+	mx_status_type mx_status;
+
+	if ( scan->num_motors > 0 ) {
+		mx_scanlog_info(
+		"Moving to start position for scan section.");
+	}
+
+	for ( i = 0; i < num_dimension_steps; i++ ) {
+
+		/* Compute the next set of motor positions. */
+
+		linear_scan->step_number[ array_index ] = i;
+
+		mx_status = (*compute_motor_positions_fptr)
+					( scan, linear_scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		do {		/** Pause/abort retry loop. **/
+
+			/* Move to the computed motor positions. */
+
+			mx_status = mxs_linear_scan_move_absolute(
+				scan, linear_scan, move_special_fptr );
+
+			if ( ( mx_status.code != MXE_SUCCESS )
+			  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
+			{
+				return mx_status;
+			}
+
+			/* Wait for the move to complete. */
+
+			mx_status = mx_wait_for_motor_array_stop(
+				scan->num_motors,
+				scan->motor_record_array,
+				MXF_MTR_SCAN_IN_PROGRESS );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Perform the measurement. */
+
+			if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
+
+			    mx_status =
+			       mx_scan_acquire_and_readout_data( scan );
+
+				if ( ( mx_status.code != MXE_SUCCESS )
+				  && ( mx_status.code !=
+						MXE_PAUSE_REQUESTED ) )
+				{
+					return mx_status;
+				}
+			}
+
+			/* If a pause has not been requested by the
+			 * user, exit the pause/abort retry loop.
+			 */
+
+			if ( mx_status.code == MXE_SUCCESS ) {
+				break;   /* Exit the do..while loop */
+			}
+
+			/* If we get here, the most recent status
+			 * code was MXE_PAUSE_REQUESTED, so invoke
+			 * a function to handle the pause request.
+			 */
+
+			mx_status = mx_scan_handle_pause_request(scan);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+		} while (1);	/** End of pause/abort retry loop. **/
+
+		/* If alternate X axis motors have been specified,
+		 * get and save their current positions for use
+		 * by the datafile handling code.
+		 */
+
+		mx_status = mx_scan_handle_alternate_x_motors( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/**** Write the result out to the datafile. ****/
+
+		mx_status = mx_add_measurement_to_datafile(
+						&(scan->datafile) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Report the progress of the scan back to the user. */
+
+		mx_status = mx_scan_display_scan_progress( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Finally, if enabled, add the measurement to the
+		 * running scan plot.
+		 */
+
+		if ( mx_plotting_is_enabled( scan->record ) ) {
+
+			if ( i == 0 ) {
+				/* Tell the plotting package that
+				 * this is a new section of the scan.
+				 */
+
+				mx_status = mx_plot_start_plot_section(
+						&(scan->plot) );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+
+			mx_status = mx_add_measurement_to_plot_buffer(
+						&(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_display_plot( &(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mx_scan_increment_measurement_number(scan);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = 
+				mx_set_fast_mode( scan->record, TRUE);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			start_fast_mode = FALSE;
+		}
+	}
+
+	return mx_status;
+}
+
+/*---*/
+
+static mx_status_type
+mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
+				MX_LINEAR_SCAN *linear_scan,
+				long array_index,
+				long num_dimension_steps,
+				mx_status_type (*compute_motor_positions_fptr)
+					(MX_SCAN *, MX_LINEAR_SCAN *),
+				mx_status_type (*move_special_fptr)
+					( MX_SCAN *, MX_LINEAR_SCAN *,
+					long, MX_RECORD **, double *,
+					MX_MOTOR_MOVE_REPORT_FUNCTION,
+					unsigned long ),
+				mx_bool_type start_fast_mode )
+{
+	long i;
+	mx_status_type mx_status;
+
+	if ( scan->num_motors > 0 ) {
+		mx_scanlog_info(
+		"Moving to start position for scan section.");
+	}
+
+	/* Get ready to move to the start position. */
+
+	linear_scan->step_number[ array_index ] = 0;
+
+	mx_status = (*compute_motor_positions_fptr)( scan, linear_scan );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Move to the start position. */
+
+	mx_status = mxs_linear_scan_move_absolute(
+			scan, linear_scan, move_special_fptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*** Now loop through the measurements. ***/
+
+	for ( i = 0; i < num_dimension_steps; i++ ) {
+
+		/* Wait for the motors to get to the next position. */
+
+		mx_status = mx_wait_for_motor_array_stop( scan->num_motors,
+						scan->motor_record_array,
+						MXF_MTR_SCAN_IN_PROGRESS );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If alternate X axis motors have been specified,
+		 * get and save their current positions for use
+		 * by the datafile handling code.
+		 */
+
+		mx_status = mx_scan_handle_alternate_x_motors( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Acquire data for the current measurement. */
+
+		mx_status = mx_scan_acquire_data( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If this is not the last step of the scan level, then
+		 * start the move to the next step position.  We do not
+		 * wait for the move to complete at this point.
+		 */
+
+		if ( i < (num_dimension_steps - 1) ) {
 
 			/* Compute the next set of motor positions. */
 
-			linear_scan->step_number[ array_index ] = i;
+			linear_scan->step_number[ array_index ] = i+1;
 
 			mx_status = (*compute_motor_positions_fptr)
 						( scan, linear_scan );
@@ -782,129 +1091,87 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			do {		/** Pause/abort retry loop. **/
+			/* Start the move to the computed motor positions. */
 
-				/* Move to the computed motor positions. */
-
-				mx_status = mxs_linear_scan_move_absolute(
+			mx_status = mxs_linear_scan_move_absolute(
 					scan, linear_scan, move_special_fptr );
 
-				if ( ( mx_status.code != MXE_SUCCESS )
-				  && ( mx_status.code != MXE_PAUSE_REQUESTED ) )
-				{
-					return mx_status;
-				}
-
-				/* Perform the measurement. */
-
-				if ( mx_status.code != MXE_PAUSE_REQUESTED ) {
-
-				    mx_status =
-					mx_scan_handle_data_measurement( scan );
-
-					if ( ( mx_status.code != MXE_SUCCESS )
-					  && ( mx_status.code !=
-							MXE_PAUSE_REQUESTED ) )
-					{
-						return mx_status;
-					}
-				}
-
-				/* If a pause has not been requested by the
-				 * user, exit the pause/abort retry loop.
-				 */
-
-				if ( mx_status.code == MXE_SUCCESS ) {
-					break;   /* Exit the do..while loop */
-				}
-
-				/* If we get here, the most recent status
-				 * code was MXE_PAUSE_REQUESTED, so invoke
-				 * a function to handle the pause request.
-				 */
-
-				mx_status = mx_scan_handle_pause_request(scan);
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-			} while (1);	/** End of pause/abort retry loop. **/
-
-			/* If alternate X axis motors have been specified,
-			 * get and save their current positions for use
-			 * by the datafile handling code.
-			 */
-
-			mx_status = mx_scan_handle_alternate_x_motors( scan );
-
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
-
-			/**** Write the result out to the datafile. ****/
-
-			mx_status = mx_add_measurement_to_datafile(
-							&(scan->datafile) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* Report the progress of the scan back to the user. */
-
-			mx_status = mx_scan_display_scan_progress( scan );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* Finally, if enabled, add the measurement to the
-			 * running scan plot.
-			 */
-
-			if ( mx_plotting_is_enabled( scan->record ) ) {
-
-				if ( i == 0 ) {
-					/* Tell the plotting package that
-					 * this is a new section of the scan.
-					 */
-
-					mx_status = mx_plot_start_plot_section(
-							&(scan->plot) );
-
-					if ( mx_status.code != MXE_SUCCESS )
-						return mx_status;
-				}
-
-				mx_status = mx_add_measurement_to_plot_buffer(
-							&(scan->plot) );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				mx_status = mx_display_plot( &(scan->plot) );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			}
-
-			mx_status = mx_scan_increment_measurement_number(scan);
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* If needed, start fast mode. */
-
-			if ( start_fast_mode ) {
-				mx_status = 
-					mx_set_fast_mode( scan->record, TRUE);
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-
-				start_fast_mode = FALSE;
-			}
 		}
 
-		(scan->plot.section_number)++;
+		/* Read out the acquired data while the motors are
+		 * moving to the next step position.
+		 */
+
+		mx_status = mx_readout_data( &(scan->measurement) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/**** Write the result out to the datafile. ****/
+
+		mx_status = mx_add_measurement_to_datafile(
+						&(scan->datafile) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Report the progress of the scan back to the user. */
+
+		mx_status = mx_scan_display_scan_progress( scan );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Finally, if enabled, add the measurement to the
+		 * running scan plot.
+		 */
+
+		if ( mx_plotting_is_enabled( scan->record ) ) {
+
+			if ( i == 0 ) {
+				/* Tell the plotting package that
+				 * this is a new section of the scan.
+				 */
+
+				mx_status = mx_plot_start_plot_section(
+						&(scan->plot) );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+
+			mx_status = mx_add_measurement_to_plot_buffer(
+						&(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mx_display_plot( &(scan->plot) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		mx_status = mx_scan_increment_measurement_number(scan);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If needed, start fast mode. */
+
+		if ( start_fast_mode ) {
+			mx_status = 
+				mx_set_fast_mode( scan->record, TRUE);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			start_fast_mode = FALSE;
+		}
 	}
-	return MX_SUCCESSFUL_RESULT;
+
+	return mx_status;
 }
 

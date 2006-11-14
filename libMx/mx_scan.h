@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2005 Illinois Institute of Technology
+ * Copyright 1999-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -127,7 +127,16 @@ MX_API mx_status_type mx_scan_save_speeds( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_restore_speeds( MX_SCAN *scan );
 
-MX_API mx_status_type mx_scan_handle_data_measurement( MX_SCAN *scan );
+MX_API mx_status_type mx_scan_wait_for_all_permits( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_check_for_all_faults( MX_SCAN *scan,
+						mx_bool_type *fault_occurred );
+
+MX_API mx_status_type mx_scan_reset_all_faults( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_acquire_and_readout_data( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_acquire_data( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_handle_pause_request( MX_SCAN *scan );
 
