@@ -66,6 +66,9 @@ hth2th                           device motor theta_2theta "" "" 0.626 0 -1e+09 
 q                                device motor q_motor "" "" 0.10880874 0 -100000 100000 0 -1 -1 1 0 A-1 hdelta lambda 0.01745329251994330
 I0                               device scaler soft_scaler "" "" 157555 0 0 timer1 energy 101 ./i0.dat 0 
 I                                device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I1                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I2                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
+I3                               device scaler soft_scaler "" "" 395527 0 0 timer1 energy 101 ./i.dat 0 
 timer1                           device timer soft_timer "" ""
 mca1                             device mca soft_mca "" "" 1024 4 8 channels.dat
 roi0                             device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 roi_integral 0

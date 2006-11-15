@@ -163,6 +163,101 @@ motor_setup_input_devices(
 	size_t input_devices_buffer_length,
 	MX_RECORD **first_input_device_record )
 {
+	char prompt[100];
+	char response[20];
+	int response_length, status;
+	mx_bool_type change_list, exit_loop;
+
+	/* If this is a new scan, unconditionally prompt for input devices. */
+
+	if ( old_scan == (MX_SCAN *) NULL ) {
+		status = motor_prompt_for_input_devices( old_scan,
+						scan_class, scan_type,
+						input_devices_buffer,
+						input_devices_buffer_length,
+						first_input_device_record );
+		return status;
+	}
+
+	/* If the old scan only has a small number of input devices,
+	 * unconditionally prompt for input devices.
+	 */
+
+	if ( old_scan->num_input_devices <= 4 ) {
+		status = motor_prompt_for_input_devices( old_scan,
+						scan_class, scan_type,
+						input_devices_buffer,
+						input_devices_buffer_length,
+						first_input_device_record );
+		return status;
+	}
+
+	/* Otherwise, we ask the user whether or not they want to modify
+	 * the list of input devices.
+	 */
+
+	change_list = FALSE;
+	exit_loop = FALSE;
+
+	snprintf( prompt, sizeof(prompt),
+	    "Do you want to change the current list of %ld input devices? ",
+			old_scan->num_input_devices );
+
+	while( exit_loop == FALSE ) {
+		response_length = sizeof(response) - 1;
+
+		status = motor_get_string( output, prompt,
+			"N", &response_length, response );
+
+		if ( status != SUCCESS )
+			return status;
+
+		switch( response[0] ) {
+		case 'Y':
+		case 'y':
+			change_list = TRUE;
+			exit_loop = TRUE;
+			break;
+		case 'N':
+		case 'n':
+			change_list = FALSE;
+			exit_loop = TRUE;
+			break;
+		default:
+			fprintf( output,
+				"\nPlease enter either Y or N.\n\n" );
+			break;
+		}
+	}
+
+	/* Call the requested function. */
+
+	if ( change_list ) {
+		status = motor_prompt_for_input_devices( old_scan,
+						scan_class, scan_type,
+						input_devices_buffer,
+						input_devices_buffer_length,
+						first_input_device_record );
+	} else {
+		status = motor_copy_input_devices( old_scan,
+						scan_class, scan_type,
+						input_devices_buffer,
+						input_devices_buffer_length,
+						first_input_device_record );
+	}
+
+	return status;
+}
+
+int
+motor_prompt_for_input_devices(
+	MX_SCAN *old_scan,
+	long scan_class,
+	long scan_type,
+	char *input_devices_buffer,
+	size_t input_devices_buffer_length,
+	MX_RECORD **first_input_device_record )
+{
 	MX_RECORD *record, *current_record, *list_head;
 	MX_RECORD **input_device_array;
 	static char buffer[ MXU_RECORD_DESCRIPTION_LENGTH + 1 ];
@@ -426,6 +521,91 @@ motor_setup_input_devices(
 #if 0
 	fprintf( output, "*** input_devices_buffer = '%s'\n\n",
 				input_devices_buffer );
+#endif
+
+	return SUCCESS;
+}
+
+int
+motor_copy_input_devices(
+	MX_SCAN *old_scan,
+	long scan_class,
+	long scan_type,
+	char *input_devices_buffer,
+	size_t input_devices_buffer_length,
+	MX_RECORD **first_input_device_record )
+{
+	static const char fname[] = "motor_copy_input_devices()";
+
+	MX_RECORD **input_device_array;
+	MX_RECORD *record;
+	long i;
+
+	fprintf( output, "The existing list of input devices will be used.\n" );
+
+	if ( old_scan == (MX_SCAN *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_SCAN pointer passed was NULL." );
+
+		return FAILURE;
+	}
+
+	input_device_array = old_scan->input_device_array;
+
+	if ( input_device_array == (MX_RECORD **) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	      "The input_device_array pointer for existing scan '%s' is NULL.",
+			old_scan->record->name );
+
+		return FAILURE;
+	}
+
+	if ( first_input_device_record != NULL ) {
+		if ( old_scan->num_input_devices < 1 ) {
+
+			/* This case should not happen, but we handle it
+			 * just in case it does somehow.
+			 */
+
+			*first_input_device_record = NULL;
+
+			strlcat( input_devices_buffer, "0 ",
+				input_devices_buffer_length );
+
+			return SUCCESS;
+		} else {
+			*first_input_device_record = input_device_array[0];
+		}
+	}
+
+	/* Format this part of the record description. */
+
+	snprintf( input_devices_buffer, input_devices_buffer_length,
+		"%ld ", old_scan->num_input_devices );
+
+	for ( i = 0; i < old_scan->num_input_devices; i++ ) {
+
+		/* Just copy the old device name to the new scan description. */
+
+		record = input_device_array[i];
+
+		if ( record == (MX_RECORD *) NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_RECORD pointer for input device %ld is NULL.",
+				i );
+
+			return FAILURE;
+		}
+
+		strlcat( input_devices_buffer, record->name,
+				input_devices_buffer_length );
+
+		strlcat( input_devices_buffer, " ",
+				input_devices_buffer_length );
+	}
+
+#if 0
+	fprintf( output, "Input devices buffer = '%s'\n", input_devices_buffer);
 #endif
 
 	return SUCCESS;

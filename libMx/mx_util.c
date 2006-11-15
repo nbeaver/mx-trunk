@@ -936,10 +936,10 @@ mx_start_debugger( char *command )
 			/* Look for an appropriate terminal emulator. */
 
 			if ( mx_command_found( "konsole" ) ) {
-				strlcpy( terminal, "konsole --vt_sz 80x40 -e",
+				strlcpy( terminal, "konsole --vt_sz 80x52 -e",
 					sizeof(terminal) );
 			} else {
-				strlcpy( terminal, "xterm -geometry 80x40 -e",
+				strlcpy( terminal, "xterm -geometry 80x52 -e",
 					sizeof(terminal) );
 			}
 
@@ -954,6 +954,11 @@ mx_start_debugger( char *command )
 
 				snprintf( command_line, sizeof(command_line),
 					"%s cgdb -p %lu", terminal, pid );
+			} else
+			if ( mx_command_found( "gdbtui" ) ) {
+
+				snprintf( command_line, sizeof(command_line),
+					"%s gdbtui -p %lu", terminal, pid );
 			} else
 			if ( mx_command_found( "gdb" ) ) {
 

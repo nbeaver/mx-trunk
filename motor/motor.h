@@ -165,6 +165,18 @@ extern int motor_setup_input_devices( MX_SCAN *old_scan,
 				size_t input_devices_buffer_length,
 				MX_RECORD **first_input_device_record );
 
+extern int motor_prompt_for_input_devices( MX_SCAN *old_scan,
+				long scan_class, long scan_type,
+				char *input_devices_buffer,
+				size_t input_devices_buffer_length,
+				MX_RECORD **first_input_device_record );
+
+extern int motor_copy_input_devices( MX_SCAN *old_scan,
+				long scan_class, long scan_type,
+				char *input_devices_buffer,
+				size_t input_devices_buffer_length,
+				MX_RECORD **first_input_device_record );
+
 extern int motor_setup_measurement_parameters( MX_SCAN *old_scan,
 				char *measurement_parameters_buffer,
 				size_t measurement_parameters_buffer_length,

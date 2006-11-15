@@ -171,8 +171,12 @@ motor_setup_fn( int argc, char *argv[] )
 				NULL, NULL, NULL );
 			break;
 		default:
+#if 0
 			fprintf(output, "%s: unrecognized scan class %ld.\n",
 				cname, scan_class);
+#else
+			fprintf(output, "\n");
+#endif
 			return FAILURE;
 		}
 

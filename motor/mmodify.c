@@ -157,8 +157,12 @@ motor_modify_fn( int argc, char *argv[] )
 				NULL, NULL, NULL );
 			break;
 		default:
+#if 0
 			fprintf(output, "%s: unrecognized scan class %ld.\n",
 				cname, record->mx_class);
+#else
+			fprintf(output, "\n");
+#endif
 			return FAILURE;
 		}
 
