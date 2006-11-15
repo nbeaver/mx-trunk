@@ -1526,6 +1526,8 @@ mx_scan_acquire_and_readout_data( MX_SCAN *scan )
 			return acquire_data_status;
 
 		mx_status = mx_readout_data( &(scan->measurement) );
+
+		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
 		/* Did something bad happen during the measurement? */

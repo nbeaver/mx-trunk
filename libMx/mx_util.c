@@ -846,7 +846,7 @@ mx_start_debugger( char *command )
 	return;
 }
 
-#elif defined(OS_LINUX)
+#elif defined(OS_LINUX) || defined(OS_SOLARIS)
 
 MX_EXPORT void
 mx_start_debugger( char *command )
@@ -856,14 +856,20 @@ mx_start_debugger( char *command )
 	char terminal[80];
 	char command_line[80];
 	char *ptr;
-	unsigned long pid;
-	mx_bool_type x_windows_available;
+	unsigned long pid, spawn_flags;
+	mx_bool_type x_windows_available, use_suspend;
 	mx_status_type mx_status;
 
 	static char unsafe_fmt[] =
     "Unsafe command line '%s' requested for %s.  The command will be ignored.";
 
 	pid = mx_process_id();
+
+#if defined(OS_SOLARIS)
+	use_suspend = FALSE;
+#else
+	use_suspend = TRUE;
+#endif
 
 	/* We try several things in order here. */
 
@@ -950,6 +956,13 @@ mx_start_debugger( char *command )
 				snprintf( command_line, sizeof(command_line),
 					"ddd -p %lu", pid );
 			} else
+#if defined(OS_SOLARIS)
+			if ( mx_command_found( "sunstudio" ) ) {
+
+				snprintf( command_line, sizeof(command_line),
+					"sunstudio -A %lu", pid );
+			} else
+#endif
 			if ( mx_command_found( "cgdb" ) ) {
 
 				snprintf( command_line, sizeof(command_line),
@@ -964,6 +977,11 @@ mx_start_debugger( char *command )
 
 				snprintf( command_line, sizeof(command_line),
 					"%s gdb -p %lu", terminal, pid );
+			} else
+			if ( mx_command_found( "dbx" ) ) {
+
+				snprintf( command_line, sizeof(command_line),
+					"%s dbx - %lu", terminal, pid );
 			}
 		}
 	}
@@ -976,42 +994,38 @@ mx_start_debugger( char *command )
 		"\nWarning: Starting a debugger using the command '%s'.\n",
 			command_line );
 
-		mx_status = mx_spawn( command_line, MXF_SPAWN_SUSPEND_PARENT );
-
-		/* If starting the debugger succeeded, then we can return now.*/
-
-		if ( mx_status.code == MXE_SUCCESS )
-			return;
-
-		/* Otherwise, try the backup strategy. */
-	}
-
-	/* If no suitable debugger is found, use the following code
-	 * as a backup.
-	 */
-
-	fprintf( stderr,
-"\n"
-"Warning: No suitable GUI debugger was found.  Process %lu is now waiting\n"
-"         in an infinite loop for you to start debugging it with a command\n"
-"         like 'gdb -p %lu'.  After attaching, type the command 'set loop=0'\n"
-"         in the mx_set_debugger() stack frame at the GDB prompt to break out\n"
-"         of the loop.  Waiting...\n\n",
-			mx_process_id(), mx_process_id() );
-
-	/* Synchronize with the debugger by waiting for the debugger
-	 * to reset the value of 'loop' to 0.
-	 */
-
-	{
-		volatile int loop;
-
-		loop = 1;
-
-		while ( loop ) {
-			mx_msleep(1000);
+		if ( use_suspend ) {
+			spawn_flags = MXF_SPAWN_SUSPEND_PARENT;
+		} else {
+			spawn_flags = 0;
 		}
+
+		mx_status = mx_spawn( command_line, spawn_flags );
+
+		/* See if starting the debugger succeeded. */
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+
+			/* If we did not do a suspend in mx_spawn(),
+			 * then we must wait for the debugger here.
+			 */
+
+			if ( use_suspend == FALSE ) {
+				mx_wait_for_debugger();
+			}
+			return;
+		}
+
+		/* If starting the debugger did not succeed,
+		 * try the backup strategy.
+		 */
 	}
+
+	/* If no suitable debugger was found, wait for the debugger here. */
+
+	fprintf( stderr, "\nWarning: No suitable GUI debugger was found.\n\n" );
+
+	mx_wait_for_debugger();
 
 	return;
 }
@@ -1029,6 +1043,50 @@ mx_start_debugger( char *command )
 }
 
 #endif
+
+MX_EXPORT void
+mx_wait_for_debugger( void )
+{
+	volatile int loop;
+	unsigned long pid;
+
+	pid = mx_process_id();
+
+	fprintf( stderr,
+"\n"
+"Process %lu is now waiting in an infinite loop for you to attach to it\n"
+"with a debugger.\n\n", pid );
+
+	fprintf( stderr,
+"If you are using GDB, follow this procedure:\n"
+"  1.  If not already attached, attach to the process with the command\n"
+"          'gdb -p %lu'\n"
+"  2.  Use the command 'finish' to run functions to completion.\n"
+"  3.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
+"      to break out of the loop.\n\n", pid );
+		
+	fprintf( stderr,
+"If you are using DBX, follow this procedure:\n"
+"  1.  If not already attached, attach to the process with the command\n"
+"          'dbx - %lu'\n"
+"  2.  Use the command 'step up' to run functions to completion.\n"
+"  3.  Type 'assign loop=0' in the mx_wait_for_debugger() stack frame\n"
+"      to break out of the loop.\n\n", pid );
+		
+	fprintf( stderr, "Waiting...\n\n" );
+
+	/* Synchronize with the debugger by waiting for the debugger
+	 * to reset the value of 'loop' to 0.
+	 */
+
+	loop = 1;
+
+	while ( loop ) {
+		mx_msleep(1000);
+	}
+
+	return;
+}
 
 /*-------------------------------------------------------------------------*/
 

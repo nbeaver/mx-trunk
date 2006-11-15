@@ -291,6 +291,8 @@ MX_API void mx_force_core_dump( void );
 
 MX_API void mx_start_debugger( char *command );
 
+MX_API void mx_wait_for_debugger( void );
+
 /*
  * mx_hex_char_to_unsigned_long() converts a hexadecimal character to an
  * unsigned long integer.  mx_hex_string_to_unsigned_long() does the same
