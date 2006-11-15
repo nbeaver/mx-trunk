@@ -853,6 +853,7 @@ mx_start_debugger( char *command )
 {
 	static const char fname[] = "mx_start_debugger()";
 
+	char terminal[80];
 	char command_line[80];
 	char *ptr;
 	unsigned long pid;
@@ -931,48 +932,67 @@ mx_start_debugger( char *command )
 		}
 
 		if ( x_windows_available ) {
+
+			/* Look for an appropriate terminal emulator. */
+
+			if ( mx_command_found( "konsole" ) ) {
+				strlcpy( terminal, "konsole --vt_sz 80x40 -e",
+					sizeof(terminal) );
+			} else {
+				strlcpy( terminal, "xterm -geometry 80x40 -e",
+					sizeof(terminal) );
+			}
+
+			/* Look for an appropriate debugger. */
+
 			if ( mx_command_found( "ddd" ) ) {
 
 				snprintf( command_line, sizeof(command_line),
 					"ddd -p %lu", pid );
 			} else
-			if ( mx_command_found( "xterm" ) ) {
+			if ( mx_command_found( "cgdb" ) ) {
 
 				snprintf( command_line, sizeof(command_line),
-					"xterm -e gdb -p %lu", pid );
-			}
-		}
+					"%s cgdb -p %lu", terminal, pid );
+			} else
+			if ( mx_command_found( "gdb" ) ) {
 
-		if ( command_line[0] == '\0' ) {
-			fprintf( stderr,
-"No suitable GUI debugger was found.  You will need to start GDB from\n"
-"another terminal window with the command 'gdb -p %lu'.\n", pid );
+				snprintf( command_line, sizeof(command_line),
+					"%s gdb -p %lu", terminal, pid );
+			}
 		}
 	}
 
-	if ( command_line[0] == '\0' ) {
-		fprintf( stderr, "%s: No debugger found.\n", fname );
+	if ( command_line[0] != '\0' ) {
 
-		return;
-	} else {
+		/* If a debugger has been found, start it. */
+
 		fprintf( stderr,
-		"Warning: Starting a debugger using the command '%s'.\n",
+		"\nWarning: Starting a debugger using the command '%s'.\n",
 			command_line );
 
 		mx_status = mx_spawn( command_line, MXF_SPAWN_SUSPEND_PARENT );
 
-		if ( mx_status.code != MXE_SUCCESS )
+		/* If starting the debugger succeeded, then we can return now.*/
+
+		if ( mx_status.code == MXE_SUCCESS )
 			return;
+
+		/* Otherwise, try the backup strategy. */
 	}
 
-#if 0
-	/* Pause here until we are told to continue. */
+	/* If no suitable debugger is found, use the following code
+	 * as a backup.
+	 */
 
-	fprintf(stderr,
-"\nWarning: Process %lu is now waiting in an infinite loop for you to start\n"
-"         debugging it.  After attaching, type the command 'set loop=0'\n"
-"         to break out of the loop.  Waiting...\n\n",
-		mx_process_id() );
+	fprintf( stderr,
+"\n"
+"Warning: No suitable GUI debugger was found.  Process %lu is now waiting\n"
+"         in an infinite loop for you to start debugging it with a command\n"
+"         like 'gdb -p %lu'.  After attaching, type the command 'set loop=0'\n"
+"         in the mx_set_debugger() stack frame at the GDB prompt to break out\n"
+"         of the loop.  Waiting...\n\n",
+			mx_process_id(), mx_process_id() );
 
 	/* Synchronize with the debugger by waiting for the debugger
 	 * to reset the value of 'loop' to 0.
@@ -987,7 +1007,6 @@ mx_start_debugger( char *command )
 			mx_msleep(1000);
 		}
 	}
-#endif
 
 	return;
 }
