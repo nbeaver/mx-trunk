@@ -789,6 +789,8 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 	MX_SCALER *scaler;
 	MX_ANALOG_INPUT *analog_input;
 	MX_SCAN *scan;
+	MX_RECORD *energy_motor_record;
+	MX_MOTOR *motor;
 	FILE *output_file;
 	double monochromator_energy;
 	double scaler_counts_per_second;
@@ -797,6 +799,7 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 	char buffer[80];
 	long i, num_mcas;
 	int status, saved_errno;
+	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -831,6 +834,11 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			datafile->filename );
 	}
 
+	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mx_get_measurement_time( &(scan->measurement),
 						&measurement_time );
 
@@ -847,9 +855,16 @@ mxdf_xafs_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 	/* Print out the current energy. */
 
-	mx_status = mx_motor_get_position(
-			xafs_file_struct->energy_motor_record,
-			&monochromator_energy );
+	energy_motor_record = xafs_file_struct->energy_motor_record;
+
+	if ( early_move_flag ) {
+		motor = (MX_MOTOR *) energy_motor_record->record_class_struct;
+
+		monochromator_energy = motor->old_destination;
+	} else {
+		mx_status = mx_motor_get_position( energy_motor_record,
+							&monochromator_energy );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,7 +38,7 @@ MX_DATAFILE_FUNCTION_LIST mxdf_child_datafile_function_list = {
 MX_EXPORT mx_status_type
 mxdf_child_open( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_child_open()";
+	static const char fname[] = "mxdf_child_open()";
 
 	MX_SCAN *child_scan, *parent_scan;
 	MX_RECORD *parent_scan_record_ptr;
@@ -149,7 +149,7 @@ mxdf_child_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_close( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_child_close()";
+	static const char fname[] = "mxdf_child_close()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 
@@ -187,7 +187,7 @@ mxdf_child_write_main_header( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_write_segment_header( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_child_write_segment_header()";
+	static const char fname[] = "mxdf_child_write_segment_header()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;
@@ -243,7 +243,7 @@ mxdf_child_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_child_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_child_add_measurement_to_datafile()";
+	static const char fname[] = "mxdf_child_add_measurement_to_datafile()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;
@@ -291,7 +291,7 @@ mxdf_child_add_array_to_datafile( MX_DATAFILE *datafile,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mxdf_child_add_array_to_datafile()";
+	static const char fname[] = "mxdf_child_add_array_to_datafile()";
 
 	MX_DATAFILE_CHILD *child_file_struct;
 	MX_DATAFILE_FUNCTION_LIST *parent_flist;

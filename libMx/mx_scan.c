@@ -1590,13 +1590,84 @@ mx_scan_acquire_data( MX_SCAN *scan )
 
 /* --------------- */
 
+/* After the last step of a scan with the 'early move' flag set, we must
+ * update the values of the motor->old_destination fields with the value
+ * from motor->destination so that the last step of the scan will have the
+ * correct value written to the data file and the plot.
+ */
+
+MX_EXPORT mx_status_type
+mx_scan_update_old_destinations( MX_SCAN *scan )
+{
+	static const char fname[] = "mx_scan_update_old_destinations()";
+
+	MX_RECORD **motor_record_array;
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
+	long i;
+	mx_bool_type early_move_flag;
+	mx_status_type mx_status;
+
+	/* It is an error to call this function if the early move flag
+	 * is not set.
+	 */
+
+	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( early_move_flag == FALSE ) {
+		return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+		"Scan '%s' attempted to update the old motor destination "
+		"values when the early move flag was not set.  "
+		"This is not allowed.",  scan->record->name );
+	}
+
+	motor_record_array = scan->motor_record_array;
+
+	if ( motor_record_array == (MX_RECORD **) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The motor_record_array pointer for scan '%s' is NULL.",
+			scan->record->name );
+	}
+
+	for ( i = 0; i < scan->num_motors; i++ ) {
+		if ( scan->motor_is_independent_variable[i] ) {
+			motor_record = motor_record_array[i];
+
+			if ( motor_record == (MX_RECORD *) NULL ) {
+				return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The MX_RECORD pointer for motor %ld used "
+				"by scan '%s' is NULL.", i, scan->record->name);
+			}
+
+			motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+			if ( motor == (MX_MOTOR *) NULL ) {
+				return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The MX_MOTOR pointer for motor '%s' used "
+				"by scan '%s' is NULL.",
+					motor_record->name, scan->record->name);
+			}
+
+			motor->old_destination = motor->destination;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* --------------- */
+
 MX_EXPORT void
 mx_set_scan_pause_request_handler(
 	mx_status_type (*pause_request_handler)( MX_SCAN * ) )
 {
 	if ( pause_request_handler == NULL ) {
-		mx_scan_pause_request_handler
-				= mx_default_scan_pause_request_handler;
+		mx_scan_pause_request_handler = mx_default_scan_pause_request_handler;
 	} else {
 		mx_scan_pause_request_handler = pause_request_handler;
 	}
@@ -1673,9 +1744,12 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 {
 	static const char fname[] = "mx_scan_display_scan_progress()";
 
+	MX_LINEAR_SCAN *linear_scan;
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device;
-	MX_LINEAR_SCAN *linear_scan;
+	MX_RECORD **motor_record_array;
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
 	double *motor_position;
 	double normalization;
 	long *motor_is_independent_variable;
@@ -1684,18 +1758,26 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 	char little_buffer[50];
 	size_t buffer_left, max_length, trailing_space;
 	long i, num_motors, num_input_devices;
+	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	num_motors = scan->num_motors;
 	motor_position = scan->motor_position;
 	motor_is_independent_variable = scan->motor_is_independent_variable;
+
+	num_motors = scan->num_motors;
+	motor_record_array = scan->motor_record_array;
 
 	num_input_devices = scan->num_input_devices;
 	input_device_array = scan->input_device_array;
 
 	strcpy(buffer, "");
+
+	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Leave extra space for the truncation marker at the end. */
 
@@ -1722,10 +1804,23 @@ mx_scan_display_scan_progress( MX_SCAN *scan )
 				buffer_left = max_length - strlen(buffer) - 1;
 
 				if ( motor_is_independent_variable[i] ) {
+
+				    if ( early_move_flag ) {
+				        motor_record = motor_record_array[i];
+
+				        motor = (MX_MOTOR *)
+					    motor_record->record_class_struct;
+
+					sprintf( little_buffer, " %-.3f",
+							motor->old_destination);
+					strncat( buffer, little_buffer,
+							buffer_left );
+				    } else {
 					sprintf( little_buffer, " %-.3f",
 							motor_position[i] );
 					strncat( buffer, little_buffer,
 							buffer_left );
+				    }
 				}
 			}
 		}
@@ -2971,7 +3066,7 @@ mx_scan_get_early_move_flag( MX_SCAN *scan, mx_bool_type *early_move_flag )
 		break;
 	}
 
-	MX_DEBUG(-2,("%s: scan '%s', early_move_flag = %d",
+	MX_DEBUG( 2,("%s: scan '%s', early_move_flag = %d",
 		fname, scan->record->name, (int) *early_move_flag ));
 
 	return mx_status;

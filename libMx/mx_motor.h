@@ -140,6 +140,8 @@ typedef struct {
 	char   units[ MXU_UNITS_NAME_LENGTH + 1 ];
 
 	double destination;
+	double old_destination;
+
 	double position;
 	double set_position;
 
@@ -357,6 +359,10 @@ typedef struct {
   \
   {MXLV_MTR_DESTINATION, -1, "destination", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, destination), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "old_destination", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, old_destination), \
 	{0}, NULL, 0}, \
   \
   {MXLV_MTR_POSITION, -1, "position", MXFT_DOUBLE, NULL, 0, {0}, \

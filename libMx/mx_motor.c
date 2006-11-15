@@ -107,8 +107,9 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 
 	/* Set some plausible initial values for parameters. */
 
-	motor->destination = motor->position;
-	motor->set_position = motor->position;
+	motor->destination     = motor->position;
+	motor->old_destination = motor->position;
+	motor->set_position    = motor->position;
 
 	motor->raw_saved_speed = motor->raw_speed;
 
@@ -643,6 +644,8 @@ mx_motor_array_internal_move_with_report( long num_motors,
 
 	MX_RECORD *first_motor_record;
 	MX_MOTOR_FUNCTION_LIST *flist;
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
 	mx_status_type (*simultaneous_start_fn)(
 				long, MX_RECORD **, double *, unsigned long );
 	mx_status_type status;
@@ -694,6 +697,35 @@ mx_motor_array_internal_move_with_report( long num_motors,
 				mx_get_driver_name( first_motor_record ),
 				first_motor_record->name );
 		}
+
+		/* If we get this far, save the old destinations for 
+		 * each motor.
+		 */
+
+		for ( i = 0; i < num_motors; i++ ) {
+			motor_record = motor_record_array[i];
+
+			if ( motor_record == (MX_RECORD *) NULL ) {
+				return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"Motor record %d for the requested "
+					"simultaneous start is NULL.", i );
+			}
+
+			motor = (MX_MOTOR *) motor_record->record_class_struct;
+
+			if ( motor == (MX_MOTOR *) NULL ) {
+				return mx_error(
+					MXE_CORRUPT_DATA_STRUCTURE, fname,
+					"The MX_MOTOR pointer for motor "
+					"record '%s' is NULL.",
+						motor_record->name );
+			}
+
+			motor->old_destination = motor->destination;
+		}
+
+		/* Execute the simultaneous start. */
 
 		status = (*simultaneous_start_fn)( num_motors,
 						motor_record_array,
@@ -1103,6 +1135,8 @@ mx_motor_internal_move_absolute( MX_RECORD *motor_record, double destination )
 			mx_get_driver_name( motor_record ),
 			motor_record->name );
 	}
+
+	motor->old_destination = motor->destination;
 
 	motor->destination = destination;
 
@@ -4114,7 +4148,7 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 	long position, backlash;
 	long relative_motion, backlash_position;
 	double dummy_position;
-	int mask, do_backlash;
+	int mask, test_mask, do_backlash;
 	mx_status_type status, move_report_status;
 
 	status = mx_motor_get_pointers( motor_record,
@@ -4150,6 +4184,14 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 
 	if ( labs( relative_motion ) < motor->raw_move_deadband.stepper ) {
 		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If a primary move will be done, save the old destination. */
+
+	test_mask = MXF_MTR_GO_TO_BACKLASH_POSITION | MXF_MTR_ONLY_CHECK_LIMITS;
+
+	if ( ( flags & test_mask ) == 0 ) {
+		motor->old_destination = motor->destination;
 	}
 
 	/* Do we need to do a backlash correction this time? */
@@ -4486,7 +4528,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 	double present_position, backlash;
 	double relative_motion, backlash_position;
 	double test_var, dummy_position;
-	int mask, do_backlash;
+	int mask, test_mask, do_backlash;
 	char units[80];
 	mx_status_type status, move_report_status;
 
@@ -4523,6 +4565,14 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 	if ( fabs( relative_motion ) < motor->raw_move_deadband.analog ) {
 		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If a primary move will be done, save the old destination. */
+
+	test_mask = MXF_MTR_GO_TO_BACKLASH_POSITION | MXF_MTR_ONLY_CHECK_LIMITS;
+
+	if ( ( flags & test_mask ) == 0 ) {
+		motor->old_destination = motor->destination;
 	}
 
 	/* Do we need to do a backlash correction this time? */

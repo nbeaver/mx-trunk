@@ -25,6 +25,8 @@
 #include "mx_scan.h"
 #include "mx_scan_linear.h"
 
+#include "mx_poison.h"
+
 MX_RECORD_FUNCTION_LIST mxs_linear_scan_record_function_list = {
 	mxs_linear_scan_initialize_type,
 	mxs_linear_scan_create_record_structures,
@@ -802,9 +804,6 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		MX_DEBUG(-2,("%s: early_move_flag = %d",
-			fname, (int) early_move_flag ));
-
 		MX_DEBUG( 2,
 		("%s: At bottom level of independent variables.", fname ));
 
@@ -1095,6 +1094,16 @@ mxs_linear_scan_do_early_move_scan( MX_SCAN *scan,
 
 			mx_status = mxs_linear_scan_move_absolute(
 					scan, linear_scan, move_special_fptr );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		} else {
+			/* If this _is_ the last step of the scan level, tell
+			 * the scan to update all of the 'old_destination"
+			 * fields of the independent motor records.
+			 */
+
+			mx_status = mx_scan_update_old_destinations( scan );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

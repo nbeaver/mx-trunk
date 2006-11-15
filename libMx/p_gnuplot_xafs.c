@@ -57,7 +57,7 @@ MX_PLOT_FUNCTION_LIST mxp_gnuxafs_function_list = {
 MX_EXPORT mx_status_type
 mxp_gnuxafs_open( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuxafs_open()";
+	static const char fname[] = "mxp_gnuxafs_open()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
@@ -169,7 +169,7 @@ mxp_gnuxafs_open( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_close( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuxafs_close()";
+	static const char fname[] = "mxp_gnuxafs_close()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	int status;
@@ -217,10 +217,13 @@ mxp_gnuxafs_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuxafs_add_measurement_to_plot_buffer()";
+	static const char fname[] =
+			"mxp_gnuxafs_add_measurement_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
+	MX_RECORD *energy_motor_record;
+	MX_MOTOR *motor;
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device;
 	MX_SCALER *scaler;
@@ -233,6 +236,7 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 	char buffer[80];
 	long i;
 	int status, saved_errno;
+	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -251,6 +255,11 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 		"Scan pointer for MX_PLOT pointer = %p was NULL.",
 			plot );
 	}
+
+	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	mx_status = mx_get_measurement_time( &(scan->measurement),
 						&measurement_time );
@@ -291,11 +300,19 @@ mxp_gnuxafs_add_measurement_to_plot_buffer( MX_PLOT *plot )
 
 	/* For XAFS scans, always plot 'energy' as the independent variable. */
 
-	mx_status = mx_motor_get_position( gnuxafs_data->energy_motor_record,
+	energy_motor_record = gnuxafs_data->energy_motor_record;
+
+	if ( early_move_flag ) {
+		motor = (MX_MOTOR *) energy_motor_record->record_class_struct;
+
+		monochromator_energy = motor->old_destination;
+	} else {
+		mx_status = mx_motor_get_position( energy_motor_record,
 						&monochromator_energy );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	status = fprintf(gnuxafs_data->pipe, "data %g",monochromator_energy);
 
@@ -358,7 +375,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mxp_gnuxafs_add_array_to_plot_buffer()";
+	static const char fname[] = "mxp_gnuxafs_add_array_to_plot_buffer()";
 
 	MX_SCAN *scan;
 	MX_PLOT_GNUXAFS *gnuxafs_data;
@@ -458,7 +475,7 @@ mxp_gnuxafs_add_array_to_plot_buffer( MX_PLOT *plot,
 MX_EXPORT mx_status_type
 mxp_gnuxafs_display_plot( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_gnuxafs_display_plot()";
+	static const char fname[] = "mxp_gnuxafs_display_plot()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	int status, saved_errno;
@@ -498,7 +515,7 @@ mxp_gnuxafs_display_plot( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	const char fname[] = "mxp_gnuxafs_set_x_range()";
+	static const char fname[] = "mxp_gnuxafs_set_x_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	MX_SCAN *scan;
@@ -538,7 +555,7 @@ mxp_gnuxafs_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 MX_EXPORT mx_status_type
 mxp_gnuxafs_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	const char fname[] = "mxp_gnuxafs_set_y_range()";
+	static const char fname[] = "mxp_gnuxafs_set_y_range()";
 
 	MX_PLOT_GNUXAFS *gnuxafs_data;
 	MX_SCAN *scan;

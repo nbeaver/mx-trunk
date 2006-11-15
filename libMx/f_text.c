@@ -46,7 +46,7 @@ MX_DATAFILE_FUNCTION_LIST mxdf_text_datafile_function_list = {
 MX_EXPORT mx_status_type
 mxdf_text_open( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_open()";
+	static const char fname[] = "mxdf_text_open()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	int saved_errno;
@@ -94,7 +94,7 @@ mxdf_text_open( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_text_close( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_close()";
+	static const char fname[] = "mxdf_text_close()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	int status, saved_errno;
@@ -166,10 +166,12 @@ mxdf_text_write_trailer( MX_DATAFILE *datafile )
 MX_EXPORT mx_status_type
 mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 {
-	const char fname[] = "mxdf_text_add_measurement_to_datafile()";
+	static const char fname[] = "mxdf_text_add_measurement_to_datafile()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	MX_RECORD **motor_record_array;
+	MX_RECORD *motor_record;
+	MX_MOTOR *motor;
 	MX_RECORD **input_device_array;
 	MX_RECORD *input_device;
 	MX_RECORD *x_motor_record;
@@ -179,6 +181,7 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 	long i, num_mcas;
 	double normalization;
 	int status, saved_errno;
+	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 2,("%s invoked.", fname));
@@ -213,6 +216,11 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 			datafile->filename );
 	}
 
+	mx_status = mx_scan_get_early_move_flag( scan, &early_move_flag );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	if ( scan->num_motors <= 0 ) {
 		motor_record_array = NULL;
 	} else {
@@ -241,11 +249,22 @@ mxdf_text_add_measurement_to_datafile( MX_DATAFILE *datafile )
 
 		for ( i = 0; i < scan->num_motors; i++ ) {
 			if ( (scan->motor_is_independent_variable)[i] ) {
-				status = fprintf( output_file, " %-10.*g",
-					motor_record_array[i]->precision,
-					(scan->motor_position)[i] );
 
-				CHECK_FPRINTF_STATUS;
+			    motor_record = motor_record_array[i];
+
+			    if ( early_move_flag ) {
+			        motor = (MX_MOTOR *)
+					motor_record->record_class_struct;
+
+				status = fprintf( output_file, " %-10.*g",
+					motor_record->precision,
+					motor->old_destination );
+			    } else {
+				status = fprintf( output_file, " %-10.*g",
+					motor_record->precision,
+					(scan->motor_position)[i] );
+			    }
+			    CHECK_FPRINTF_STATUS;
 			}
 		}
 	} else {
@@ -329,7 +348,7 @@ mxdf_text_add_array_to_datafile( MX_DATAFILE *datafile,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mxdf_text_add_array_to_datafile()";
+	static const char fname[] = "mxdf_text_add_array_to_datafile()";
 
 	MX_DATAFILE_TEXT *text_file_struct;
 	MX_SCAN *scan;

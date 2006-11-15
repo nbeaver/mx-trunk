@@ -39,7 +39,7 @@ MX_PLOT_FUNCTION_LIST mxp_child_function_list = {
 MX_EXPORT mx_status_type
 mxp_child_open( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_child_open()";
+	static const char fname[] = "mxp_child_open()";
 
 	MX_SCAN *child_scan, *parent_scan;
 	MX_RECORD *parent_scan_record_ptr;
@@ -165,7 +165,7 @@ mxp_child_open( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_child_close( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_child_close()";
+	static const char fname[] = "mxp_child_close()";
 
 	MX_PLOT_CHILD *child_file_struct;
 
@@ -195,7 +195,8 @@ mxp_child_close( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_child_add_measurement_to_plot_buffer( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_child_add_measurement_to_plot_buffer()";
+	static const char fname[] =
+			"mxp_child_add_measurement_to_plot_buffer()";
 
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
@@ -245,7 +246,7 @@ mxp_child_add_array_to_plot_buffer( MX_PLOT *plot,
 		long position_type, long num_positions, void *position_array,
 		long data_type, long num_data_points, void *data_array )
 {
-	const char fname[] = "mxp_child_add_array_to_plot_buffer()";
+	static const char fname[] = "mxp_child_add_array_to_plot_buffer()";
 
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
@@ -296,7 +297,7 @@ mxp_child_add_array_to_plot_buffer( MX_PLOT *plot,
 MX_EXPORT mx_status_type
 mxp_child_display_plot( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_child_display_plot()";
+	static const char fname[] = "mxp_child_display_plot()";
 
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
@@ -344,7 +345,7 @@ mxp_child_display_plot( MX_PLOT *plot )
 MX_EXPORT mx_status_type
 mxp_child_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 {
-	const char fname[] = "mxp_child_set_x_range()";
+	static const char fname[] = "mxp_child_set_x_range()";
 
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
@@ -393,7 +394,7 @@ mxp_child_set_x_range( MX_PLOT *plot, double x_min, double x_max )
 MX_EXPORT mx_status_type
 mxp_child_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 {
-	const char fname[] = "mxp_child_set_y_range()";
+	static const char fname[] = "mxp_child_set_y_range()";
 
 	MX_PLOT_CHILD *child_file_struct;
 	MX_PLOT_FUNCTION_LIST *parent_flist;
@@ -442,7 +443,7 @@ mxp_child_set_y_range( MX_PLOT *plot, double y_min, double y_max )
 MX_EXPORT mx_status_type
 mxp_child_start_plot_section( MX_PLOT *plot )
 {
-	const char fname[] = "mxp_child_start_plot_section()";
+	static const char fname[] = "mxp_child_start_plot_section()";
 
 	MX_PLOT *parent_plot;
 	MX_PLOT_CHILD *child_file_struct;

@@ -27,6 +27,8 @@
 #include "mx_scan_quick.h"
 #include "d_energy.h"
 
+#include "mx_poison.h"
+
 MX_EXPORT mx_status_type
 mx_quick_scan_initialize_type( long record_type )
 {

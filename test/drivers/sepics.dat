@@ -1,3 +1,4 @@
 testscan                         scan linear_scan motor_scan "" "" 1 1 1  m1 3  scaler2 scaler3 scaler4  0 0 preset_time "1 timer1" text junk.out none $f[0]  -5000  1000  11
 testlong                         scan linear_scan motor_scan "" "" 1 1 1  m1 3  scaler2 scaler3 scaler4  0 0 preset_time "1 timer1" text junk.out none $f[0]  -10000  100  201
 testm2                           scan linear_scan input_scan "" "" 1 1 0  1  m2  0 0 preset_time "1 timer2" text testm2.003 none $f[0]  0  1  100000
+testearly                        scan linear_scan motor_scan "" "" 1 1 1  m1 3  scaler2 scaler3 scaler4 0x1 0 preset_time "1 timer1" text junk.out none $f[0]  -5000  1000  11

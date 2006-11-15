@@ -1990,7 +1990,15 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 			record->name );
 	}
 
-	fptr = ( fl_ptr->print_structure );
+	fptr = fl_ptr->print_structure;
+
+	/* If the mask includes the MXFF_SHOW_ALL bit, we force the use
+	 * of the generic report.
+	 */
+
+	if ( mask & MXFF_SHOW_ALL ) {
+		fptr = NULL;
+	}
 
 	if ( fptr != NULL ) {
 		/* If present, invoke the driver print structure handler. */

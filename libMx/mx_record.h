@@ -81,7 +81,7 @@
 
 /* The following value is used only by mx_print_structure(). */
 
-#define MXFF_SHOW_ALL			(-1)
+#define MXFF_SHOW_ALL			0x80000000
 
 typedef struct {
 	long label_value;

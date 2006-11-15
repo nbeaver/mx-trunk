@@ -50,7 +50,7 @@
 #if 0   /* FIXME - When we get long variable names, change the name here. */
 #define MX_SCAN_EARLY_MOVE_RECORD_NAME		"mx_scan_early_move"
 #else
-#define MX_SCAN_EARLY_MOVE_RECORD_NAME		"mx_scan_early"
+#define MX_SCAN_EARLY_MOVE_RECORD_NAME		"scan_early_move"
 #endif
 
 /*---*/
@@ -137,6 +137,8 @@ MX_API mx_status_type mx_scan_reset_all_faults( MX_SCAN *scan );
 MX_API mx_status_type mx_scan_acquire_and_readout_data( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_acquire_data( MX_SCAN *scan );
+
+MX_API mx_status_type mx_scan_update_old_destinations( MX_SCAN *scan );
 
 MX_API mx_status_type mx_scan_handle_pause_request( MX_SCAN *scan );
 
