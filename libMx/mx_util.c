@@ -865,7 +865,7 @@ mx_start_debugger( char *command )
 
 	pid = mx_process_id();
 
-#if defined(OS_MACOSX) || defined(OS_SOLARIS)
+#if 1 || defined(OS_MACOSX) || defined(OS_SOLARIS)
 	use_suspend = FALSE;
 #else
 	use_suspend = TRUE;
@@ -1084,7 +1084,12 @@ mx_wait_for_debugger( void )
 	loop = 1;
 
 	while ( loop ) {
+
+#ifdef OS_LINUX
+		/* Do nothing. */
+#else
 		mx_msleep(1000);
+#endif
 	}
 
 	return;
