@@ -20,6 +20,7 @@
 
 #include "mx_osdef.h"
 
+#include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_unistd.h"
 
@@ -30,8 +31,6 @@
 #include <signal.h>
 #include <unistd.h>
 #include <errno.h>
-
-#include "mx_util.h"
 
 MX_EXPORT mx_status_type
 mx_spawn( char *command_line, unsigned long flags )
