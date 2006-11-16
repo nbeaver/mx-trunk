@@ -846,7 +846,7 @@ mx_start_debugger( char *command )
 	return;
 }
 
-#elif defined(OS_LINUX) || defined(OS_SOLARIS)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 
 MX_EXPORT void
 mx_start_debugger( char *command )
@@ -865,7 +865,7 @@ mx_start_debugger( char *command )
 
 	pid = mx_process_id();
 
-#if defined(OS_SOLARIS)
+#if defined(OS_MACOSX) || defined(OS_SOLARIS)
 	use_suspend = FALSE;
 #else
 	use_suspend = TRUE;
@@ -951,11 +951,13 @@ mx_start_debugger( char *command )
 
 			/* Look for an appropriate debugger. */
 
+#if defined(OS_LINUX)
 			if ( mx_command_found( "ddd" ) ) {
 
 				snprintf( command_line, sizeof(command_line),
 					"ddd -p %lu", pid );
 			} else
+#endif
 #if defined(OS_SOLARIS)
 			if ( mx_command_found( "sunstudio" ) ) {
 
