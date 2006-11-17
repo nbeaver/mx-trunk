@@ -51,8 +51,9 @@ MX_API mx_status_type mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad );
-MX_API mx_status_type mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pccd_170170_get_extended_status(
+						MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad );
 

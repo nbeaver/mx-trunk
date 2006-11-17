@@ -779,6 +779,16 @@ MX_API mx_status_type mx_area_detector_frame_correction( MX_RECORD *ad_record,
 					MX_IMAGE_FRAME *dark_current_frame,
 					MX_IMAGE_FRAME *flood_field_frame );
 
+/************************************************************************
+ * The following functions are intended for use only in device drivers. *
+ * They should not be called directly by application programs.          *
+ ************************************************************************/
+
+MX_API_PRIVATE mx_status_type mx_area_detector_compute_new_binning(
+						MX_AREA_DETECTOR *ad,
+						long parameter_type,
+						int num_allowed_binsizes,
+						long *allowed_binsize_array );
 
 #endif /* __MX_AREA_DETECTOR_H__ */
 

@@ -744,8 +744,6 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_soft_area_detector_set_parameter()";
 
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
-	double x_binsize, y_binsize, x_framesize, y_framesize;
-	int i;
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
@@ -766,55 +764,13 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
-		/* Compute the closest integer binsize. */
-
-		x_binsize = mx_divide_safely( ad->maximum_framesize[0],
-						ad->framesize[0] );
-
-		y_binsize = mx_divide_safely( ad->maximum_framesize[1],
-						ad->framesize[1] );
-
-		ad->binsize[0] = mx_round( x_binsize );
-		ad->binsize[1] = mx_round( y_binsize );
-
-		/* Fall through to the next case of changing the binsize. */
 	case MXLV_AD_BINSIZE:
-		for ( i = 0; i < num_allowed_binsizes; i++ ) {
-			if ( ad->binsize[0] == allowed_binsize[i] )
-				break;
-		}
-
-		if ( i >= num_allowed_binsizes ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The requested X binsize of %ld for area detector '%s' "
-			"is not supported.  The allowed binsizes are "
-			"1, 2, 4, 8, 16, 32, and 64.",
-				ad->binsize[0], ad->record->name );
-		}
-
-		for ( i = 0; i < num_allowed_binsizes; i++ ) {
-			if ( ad->binsize[1] == allowed_binsize[i] )
-				break;
-		}
-
-		if ( i >= num_allowed_binsizes ) {
-			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The requested Y binsize of %ld for area detector '%s' "
-			"is not supported.  The allowed binsizes are "
-			"1, 2, 4, 8, 16, 32, and 64.",
-				ad->binsize[1], ad->record->name );
-		}
-
-		/* Compute the framesize from the binsize. */
-
-		x_framesize = mx_divide_safely( ad->maximum_framesize[0],
-							ad->binsize[0] );
-
-		y_framesize = mx_divide_safely( ad->maximum_framesize[1],
-							ad->binsize[1] );
-
-		ad->framesize[0] = x_framesize;
-		ad->framesize[1] = y_framesize;
+		mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Tell the video input to change its framesize. */
 

@@ -1107,6 +1107,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			fprintf( output,
+		      "new binsize = (%ld, %ld), new framesize = (%ld, %ld)\n",
+				ad->binsize[0], ad->binsize[1],
+				ad->framesize[0], ad->framesize[1] );
 		} else
 		if ( strncmp( "framesize", argv[4], strlen(argv[4]) ) == 0 ) {
 			
@@ -1142,6 +1147,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			fprintf( output,
+		      "new binsize = (%ld, %ld), new framesize = (%ld, %ld)\n",
+				ad->binsize[0], ad->binsize[1],
+				ad->framesize[0], ad->framesize[1] );
 		} else
 		if ( strncmp( "trigger_mode", argv[4], strlen(argv[4]) ) == 0) {
 			

@@ -49,9 +49,9 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_stop,
 	mxd_pccd_170170_abort,
 	NULL,
-	mxd_pccd_170170_get_status,
 	NULL,
-	NULL,
+	mxd_pccd_170170_get_extended_status,
+	mxd_pccd_170170_readout_frame,
 	NULL,
 	NULL,
 	NULL,
@@ -174,6 +174,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	MX_AREA_DETECTOR *ad;
 	MX_PCCD_170170 *pccd_170170;
+	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -193,17 +194,53 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
 
+	video_input_record = pccd_170170->video_input_record;
+
+	/* FIXME: Need to change the file format. */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_PNM;
+
+	ad->binsize[0] = 1;
+	ad->binsize[1] = 1;
+
+	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
+	ad->sequence_parameters.num_parameters = 1;
+	ad->sequence_parameters.parameter_array[0] = 1.0;
+
+	/* Set the maximum framesize to the initial framesize of the
+	 * video input.
+	 */
+
+	mx_status = mx_video_input_get_framesize( video_input_record,
+					&(ad->maximum_framesize[0]),
+					&(ad->maximum_framesize[1]) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	ad->framesize[0] = ad->maximum_framesize[0];
+	ad->framesize[1] = ad->maximum_framesize[1];
+
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
-	mx_status = mx_video_input_set_trigger_mode(
-					pccd_170170->video_input_record,
-					pccd_170170->initial_trigger_mode );
+	mx_status = mx_video_input_set_trigger_mode( video_input_record,
+				pccd_170170->initial_trigger_mode );
 
-#if MXD_PCCD_170170_DEBUG
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Load the image correction files. */
+
+	mx_status = mx_area_detector_load_correction_files( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -229,7 +266,6 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-
 	mx_status = mx_video_input_arm( pccd_170170->video_input_record );
 
 	return mx_status;
@@ -258,14 +294,8 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-		break;
-
 	case MXT_SQ_CONTINUOUS:
-		break;
-
 	case MXT_SQ_MULTIFRAME:
-		break;
-
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		break;
 
@@ -334,12 +364,13 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
+mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_get_status()";
+	static const char fname[] = "mxd_pccd_170170_get_extended_status()";
 
 	MX_PCCD_170170 *pccd_170170;
-	mx_bool_type busy;
+	long last_frame_number;
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -351,15 +382,18 @@ mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_is_busy(
-				pccd_170170->video_input_record, &busy );
+	mx_status = mx_video_input_get_status( pccd_170170->video_input_record,
+						&last_frame_number,
+						&status_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad->last_frame_number = last_frame_number;
+
 	ad->status = 0;
 
-	if ( busy ) {
+	if ( status_flags & MXSF_VIN_IS_BUSY ) {
 		ad->status |= MXSF_AD_IS_BUSY;
 	}
 
@@ -367,9 +401,9 @@ mxd_pccd_170170_get_status( MX_AREA_DETECTOR *ad )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad )
+mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 {
-	static const char fname[] = "mxd_pccd_170170_get_frame()";
+	static const char fname[] = "mxd_pccd_170170_readout_frame()";
 
 	MX_PCCD_170170 *pccd_170170;
 	mx_status_type mx_status;
@@ -379,13 +413,14 @@ mxd_pccd_170170_get_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+
 	mx_status = mx_video_input_get_frame(
-			pccd_170170->video_input_record,
-			ad->frame_number, &(ad->image_frame) );
+		pccd_170170->video_input_record,
+		ad->readout_frame, &(ad->image_frame) );
 
 	return mx_status;
 }
@@ -396,6 +431,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_get_parameter()";
 
 	MX_PCCD_170170 *pccd_170170;
+	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -407,32 +443,70 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
 		fname, ad->record->name, ad->parameter_type));
 #endif
+	video_input_record = pccd_170170->video_input_record;
 
 	switch( ad->parameter_type ) {
-#if 0
 	case MXLV_AD_FRAMESIZE:
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+		mx_status = mx_video_input_get_framesize( video_input_record,
+				&(ad->framesize[0]), &(ad->framesize[1]) );
+		break;
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		mx_status = mx_video_input_get_image_format( video_input_record,
+						&(ad->image_format) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_image_get_format_name_from_type(
+				ad->image_format, ad->image_format_name,
+				MXU_IMAGE_FORMAT_NAME_LENGTH );
+		break;
+
+	case MXLV_AD_BYTES_PER_FRAME:
+		mx_status = mx_video_input_get_bytes_per_frame(
+				video_input_record, &(ad->bytes_per_frame) );
+		break;
+
+	case MXLV_AD_BYTES_PER_PIXEL:
+		mx_status = mx_video_input_get_bytes_per_pixel(
+				video_input_record, &(ad->bytes_per_pixel) );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		break;
-#endif
-	case MXLV_AD_BYTES_PER_FRAME:
-		ad->bytes_per_frame = 2 * ad->framesize[0] * ad->framesize[1];
+
+	case MXLV_AD_PROPERTY_NAME:
 		break;
-	case MXLV_AD_BYTES_PER_PIXEL:
-		ad->bytes_per_pixel = 2;
+	case MXLV_AD_PROPERTY_DOUBLE:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Returning value %g for property '%s'",
+			fname, ad->property_double, ad->property_name ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_LONG:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Returning value %ld for property '%s'",
+			fname, ad->property_long, ad->property_name ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_STRING:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Returning string '%s' for property '%s'",
+			fname, ad->property_string, ad->property_name ));
+#endif
 		break;
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			ad->parameter_type, ad->record->name );
+		mx_status = mx_area_detector_default_get_parameter_handler(ad);
+		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -443,6 +517,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	mx_status_type mx_status;
 
+	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
+
+	static int num_allowed_binsizes = sizeof( allowed_binsize )
+						/ sizeof( allowed_binsize[0] );
+
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -454,13 +533,21 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 #endif
 
 	switch( ad->parameter_type ) {
-#if 0
 	case MXLV_AD_FRAMESIZE:
-	case MXLV_AD_FORMAT:
-	case MXLV_AD_FORMAT_NAME:
+	case MXLV_AD_BINSIZE:
+		mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
+		/* Tell the video input to change its framesize. */
+
+		mx_status = mx_video_input_set_framesize(
+					pccd_170170->video_input_record,
+					ad->framesize[0], ad->framesize[1] );
 		break;
-#endif
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
@@ -469,10 +556,42 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record,
 					&(ad->sequence_parameters) );
 		break; 
+
+	case MXLV_AD_PROPERTY_NAME:
+		break;
+	case MXLV_AD_PROPERTY_DOUBLE:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Setting property '%s' to %g",
+			fname, ad->property_name, ad->property_double ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_LONG:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Setting property '%s' to %ld",
+			fname, ad->property_name, ad->property_long ));
+#endif
+		break;
+	case MXLV_AD_PROPERTY_STRING:
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: Setting property '%s' to '%s'",
+			fname, ad->property_name, ad->property_string ));
+#endif
+		break;
+
+	case MXLV_AD_IMAGE_FORMAT:
+	case MXLV_AD_IMAGE_FORMAT_NAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	"Changing parameter '%s' for area detector '%s' is not supported.",
+			mx_get_field_label_string( ad->record,
+				ad->parameter_type ), ad->record->name );
+		break;
+
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			ad->parameter_type, ad->record->name );
+		mx_status = mx_area_detector_default_set_parameter_handler(ad);
+		break;
 	}
 
 	return mx_status;

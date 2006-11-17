@@ -3660,3 +3660,130 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************************************************************
+ * The following functions are intended for use only in device drivers. *
+ * They should not be called directly by application programs.          *
+ ************************************************************************/
+
+static long
+mx_area_detector_compute_binsize( double original_binsize,
+				int num_allowed_binsizes,
+				long *allowed_binsize )
+{
+	int i, last;
+	long new_binsize, binsize_below, binsize_above;
+	double allowed_binsize_ratio, binsize_ratio;
+
+	MX_DEBUG( 2,("original_binsize = %g", original_binsize));
+
+	new_binsize = allowed_binsize[0];
+
+	last = num_allowed_binsizes - 1;
+
+	if ( original_binsize <= allowed_binsize[0] ) {
+			new_binsize = allowed_binsize[0];
+
+	} else
+	if ( original_binsize >= allowed_binsize[last] ) {
+			new_binsize = allowed_binsize[last];
+
+	} else {
+		for ( i = 1; i < num_allowed_binsizes; i++ ) {
+
+			MX_DEBUG( 2,("binsize[%d] = %ld, binsize[%d] = %ld",
+				i-1, allowed_binsize[i-1],
+				i, allowed_binsize[i]));
+
+			if ( original_binsize == (double) allowed_binsize[i] ) {
+				new_binsize = original_binsize;
+
+				MX_DEBUG( 2,("binsize match = %ld",
+					new_binsize));
+
+				break;		/* Exit the for() loop. */
+			}
+
+			if ( original_binsize < allowed_binsize[i] ) {
+
+				binsize_below = allowed_binsize[i-1];
+				binsize_above = allowed_binsize[i];
+
+				MX_DEBUG( 2,
+				("binsize_below = %ld, binsize_above = %ld",
+					binsize_below, binsize_above));
+
+				allowed_binsize_ratio = mx_divide_safely(
+					binsize_above, binsize_below );
+
+				binsize_ratio = mx_divide_safely(
+					original_binsize, binsize_below );
+				
+				MX_DEBUG( 2,
+			("allowed_binsize_ratio = %g, binsize_ratio = %g",
+					allowed_binsize_ratio, binsize_ratio));
+
+				if (binsize_ratio > sqrt(allowed_binsize_ratio))
+				{
+					new_binsize = binsize_above;
+				} else {
+					new_binsize = binsize_below;
+				}
+
+				break;		/* Exit the for() loop. */
+			}
+		}
+	}
+
+	MX_DEBUG( 2,("new_binsize = %ld", new_binsize));
+
+	return new_binsize;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_compute_new_binning( MX_AREA_DETECTOR *ad,
+				long parameter_type,
+				int num_allowed_binsizes,
+				long *allowed_binsize )
+{
+	static const char fname[] = "mx_area_detector_compute_new_binning()";
+
+	double x_binsize, y_binsize, x_framesize, y_framesize;
+
+	if ( parameter_type == MXLV_AD_FRAMESIZE ) {
+		x_binsize = mx_divide_safely( ad->maximum_framesize[0],
+						ad->framesize[0] );
+
+		y_binsize = mx_divide_safely( ad->maximum_framesize[1],
+						ad->framesize[1] );
+	} else
+	if ( parameter_type == MXLV_AD_BINSIZE ) {
+		x_binsize = ad->binsize[0];
+		y_binsize = ad->binsize[1];
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Parameter type %ld is not supported for area detector '%s'.",
+			parameter_type, ad->record->name );
+	}
+
+	/* Compute the new binsizes. */
+
+	ad->binsize[0] = mx_area_detector_compute_binsize( x_binsize,
+					num_allowed_binsizes, allowed_binsize );
+
+	ad->binsize[1] = mx_area_detector_compute_binsize( y_binsize,
+					num_allowed_binsizes, allowed_binsize );
+
+	/* Compute the matching frame sizes. */
+
+	x_framesize = mx_divide_safely( ad->maximum_framesize[0],
+						ad->binsize[0] );
+
+	y_framesize = mx_divide_safely( ad->maximum_framesize[1],
+						ad->binsize[1] );
+
+	ad->framesize[0] = x_framesize;
+	ad->framesize[1] = y_framesize;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+

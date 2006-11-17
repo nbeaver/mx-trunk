@@ -337,6 +337,35 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: board memory = %lu bytes",
 		fname, pxd_infoMemsize( epix_xclib_vinput->unitmap ) ));
 #endif
+	/* Initialize a bunch of driver parameters. */
+
+	vinput->parameter_type = -1;
+	vinput->frame_number   = -100;
+	vinput->get_frame      = -100;
+	vinput->frame          = NULL;
+	vinput->frame_buffer   = NULL;
+	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+
+	mx_status = mx_video_input_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_framesize( record, NULL, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -370,7 +399,9 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	/* Nothing needed here. */
+	MX_DEBUG(-2,
+	("%s: FIXME - For external triggers we enable the sequence here.",
+		fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -907,6 +938,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
+	case MXLV_VIN_BYTES_PER_PIXEL:
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
 			vinput->bytes_per_pixel = 3;
