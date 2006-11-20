@@ -466,6 +466,42 @@ mx_video_input_set_sequence_parameters( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_video_input_get_trigger_mode( MX_RECORD *record, long *trigger_mode )
+{
+	static const char fname[] = "mx_video_input_get_trigger_mode()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_TRIGGER_MODE; 
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( trigger_mode != (long *) NULL ) {
+		*trigger_mode = vinput->trigger_mode;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_video_input_set_trigger_mode( MX_RECORD *record, long trigger_mode )
 {
 	static const char fname[] = "mx_video_input_set_trigger_mode()";

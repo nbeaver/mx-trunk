@@ -1283,7 +1283,7 @@ mx_area_detector_set_correction_flags( MX_RECORD *record,
 			mx_area_detector_default_set_parameter_handler;
 	}
 
-	ad->parameter_type   = MXLV_AD_CORRECTION_FLAGS;
+	ad->parameter_type = MXLV_AD_CORRECTION_FLAGS;
 	ad->correction_flags = correction_flags;
 
 	mx_status = (*set_parameter_fn)( ad );
@@ -3158,6 +3158,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_TRIGGER_MODE:
 	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_ROI_NUMBER:
+	case MXLV_AD_CORRECTION_FLAGS:
 
 		/* We just return the value that is already in the 
 		 * data structure.
@@ -3211,6 +3212,7 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 	case MXLV_AD_TRIGGER_MODE:
 	case MXLV_AD_ROI_NUMBER:
+	case MXLV_AD_CORRECTION_FLAGS:
 
 		/* We do nothing but leave alone the value that is already
 		 * stored in the data structure.

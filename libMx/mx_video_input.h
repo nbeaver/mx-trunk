@@ -211,6 +211,9 @@ MX_API mx_status_type mx_video_input_set_sequence_parameters(
 				MX_RECORD *record,
 				MX_SEQUENCE_PARAMETERS *sequence_parameters );
 
+MX_API mx_status_type mx_video_input_get_trigger_mode( MX_RECORD *record,
+							long *trigger_mode );
+
 MX_API mx_status_type mx_video_input_set_trigger_mode( MX_RECORD *record,
 							long trigger_mode );
 

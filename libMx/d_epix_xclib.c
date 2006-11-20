@@ -116,11 +116,11 @@ mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
 /*---*/
 
 static mx_status_type
-mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
+mxd_epix_xclib_setup_internal_trigger( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
 				mx_bool_type trigger_on )
 {
-	static const char fname[] = "mxd_epix_xclib_internal_trigger()";
+	static const char fname[] = "mxd_epix_xclib_setup_internal_trigger()";
 
 	unsigned int exsync_mode, princ_mode, mask;
 	unsigned int epcd, trigneg, exps, cnts, tis;
@@ -135,6 +135,9 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 
 	flags = epix_xclib_vinput->epix_xclib_flags;
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: epix_xclib_flags = %#lx", fname, flags ));
+#endif
 	if ( flags & MXF_USE_CLCCSE_REGISTER ) {
 
 		/* If we are using direct manipulation of the CLCCSE register
@@ -234,16 +237,67 @@ mxd_epix_xclib_internal_trigger( MX_VIDEO_INPUT *vinput,
 /*---*/
 
 static mx_status_type
-mxd_epix_xclib_external_trigger( MX_VIDEO_INPUT *vinput,
+mxd_epix_xclib_setup_external_trigger( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
 				mx_bool_type trigger_on )
 {
-	static const char fname[] = "mxd_epix_xclib_external_trigger()";
+	static const char fname[] = "mxd_epix_xclib_setup_external_trigger()";
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
 			fname, vinput->record->name, (int) trigger_on ));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+static mx_status_type
+mxd_epix_xclib_set_ready_status( MX_VIDEO_INPUT *vinput,
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
+				mx_bool_type ready_for_trigger )
+{
+	static const char fname[] = "mxd_epix_xclib_set_ready_status()";
+
+	char error_message[80];
+	int output_value, epix_status;
+
+	/* General Purpose Output 1 is used to indicate the imaging board
+	 * is ready to be triggered.
+	 */
+
+	output_value = pxd_getGPOut( epix_xclib_vinput->unitmap, 0 );
+
+	if ( output_value < 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, output_value,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to read the status of the General "
+			"Purpose Outputs for video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
+	if ( ready_for_trigger ) {
+		output_value |= 0x1;
+	} else {
+		output_value &= ~0x1;
+	}
+
+	epix_status = pxd_setGPOut( epix_xclib_vinput->unitmap, output_value );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to set the value of the General "
+			"Purpose Output 1 for video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -386,6 +440,10 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_arm()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_SEQUENCE_PARAMETERS *sp;
+	pxbuffer_t startbuf, endbuf, numbuf;
+	char error_message[80];
+	int epix_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -399,11 +457,117 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	MX_DEBUG(-2,
-	("%s: FIXME - For external triggers we enable the sequence here.",
-		fname));
+	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
-	return MX_SUCCESSFUL_RESULT;
+		/* If external triggering is not enabled,
+		 * return without doing anything
+		 */
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+		("%s: external trigger disabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/*---*/
+
+	sp = &(vinput->sequence_parameters);
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
+
+	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
+#endif
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+		startbuf = 1;
+		endbuf = 1;
+		numbuf = 1;
+		break;
+
+	case MXT_SQ_CONTINUOUS:
+		startbuf = 1;
+		endbuf = 1;
+		numbuf = 0;
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		startbuf = 1;
+		numbuf = mx_round( sp->parameter_array[0] );
+
+		if ( numbuf > pxd_imageZdim() ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number of sequence frames (%ld) for "
+			"video input '%s' is larger than the maximum value "
+			"of %d.",
+			    numbuf, vinput->record->name, pxd_imageZdim());
+		}
+
+		endbuf = startbuf + numbuf - 1;
+		break;
+
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		startbuf = 1;
+		endbuf = mx_round( sp->parameter_array[0] );
+
+		if ( endbuf > pxd_imageZdim() ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number of sequence frames (%ld) for "
+			"video input '%s' is larger than the maximum value "
+			"of %d.",
+			    numbuf, vinput->record->name, pxd_imageZdim());
+		}
+
+		numbuf = 0;
+		break;
+
+	case MXT_SQ_STROBE:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Strobe sequences are not supported by video input '%s'.",
+			vinput->record->name );
+		break;
+
+	case MXT_SQ_BULB:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Bulb sequences are not supported by video input '%s'.",
+			vinput->record->name );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Image sequence type %ld is not supported by "
+			"video input '%s'.",
+			sp->sequence_type, vinput->record->name );
+	}
+
+	/* Enable the external trigger on General Purpose Input 1. */
+
+	epix_status = pxd_goLiveSeqTrig( epix_xclib_vinput->unitmap,
+		startbuf, endbuf, 1, numbuf, 1,
+		0, 0,                   /* reserved */
+		0x001, 3, 0,    /* Start trigger GP1, rising edge, no delay */
+		0, 0, 0, 0, 0, 0, 0,    /* reserved */
+		0, 0, 0,                /* No end trigger */
+		0, 0, 0, 0, 0, 0 );     /* yet more reserved */
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to enable the external trigger for "
+		"video input '%s' failed.  %s",
+			vinput->record->name, error_message );
+	}
+
+	mx_status = mxd_epix_xclib_set_ready_status( vinput,
+						epix_xclib_vinput, TRUE );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -429,6 +593,27 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
+
+		/* If internal triggering is not enabled,
+		 * return without doing anything
+		 */
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+		("%s: internal trigger disabled for video input '%s'",
+			fname, vinput->record->name));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* FIXME - If the video input is already acquiring data,
+	 * should we return without doing anything here?  This 
+	 * might happen if we enabled both external and internal
+	 * triggering.
+	 */
+
+	/*---*/
 
 	sp = &(vinput->sequence_parameters);
 
@@ -460,6 +645,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 				return mx_status;
 		}
 
+#if 0
 	} else {
 
 		/* If we want automatic CC1 pulse generation, we program
@@ -481,6 +667,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 				"video input '%s' failed.  %s",
 					vinput->record->name, error_message );
 		}
+#endif
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
@@ -496,6 +683,11 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: triggering one shot mode for vinput '%s'.",
+		fname, vinput->record->name ));
+#endif
 		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 
 		if ( epix_status != 0 ) {
@@ -510,6 +702,11 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		}
 		break;
 	case MXT_SQ_CONTINUOUS:
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: triggering continuous mode for vinput '%s'.",
+		fname, vinput->record->name ));
+#endif
 		epix_status = pxd_goLive( epix_xclib_vinput->unitmap, 1 );
 
 		if ( epix_status != 0 ) {
@@ -548,6 +745,12 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		startbuf = 1;
 		endbuf = startbuf + numbuf - 1;
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: triggering multiframe mode for vinput '%s'.",
+		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld, numbuf = %ld",
+		fname, startbuf, endbuf, numbuf));
+#endif
 		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 					startbuf, endbuf, 1, numbuf, 1 );
 
@@ -585,6 +788,12 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 		startbuf = 1;
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: triggering circular multiframe mode for vinput '%s'.",
+		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld",
+		fname, startbuf, endbuf));
+#endif
 		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 					startbuf, endbuf, 1, 0, 1 );
 
@@ -600,6 +809,10 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		}
 		break;
 
+	case MXT_SQ_STROBE:
+	case MXT_SQ_BULB:
+		/* These modes use external triggers, so we do nothing here. */
+		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
@@ -607,12 +820,14 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
+	mx_status = mxd_epix_xclib_set_ready_status( vinput,
+						epix_xclib_vinput, TRUE );
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: Started taking a frame using video input '%s'.",
+	MX_DEBUG(-2,("%s: Started taking frame(s) using video input '%s'.",
 		fname, vinput->record->name ));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -724,18 +939,14 @@ mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
 		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
 #endif
 
-#if 0
+#if 1
 	if ( vinput->busy == FALSE ) {
-		char filename[] = "test.tiff";
-		int epix_status;
+		mx_status = mxd_epix_xclib_set_ready_status( vinput,
+							epix_xclib_vinput,
+							FALSE );
 
-		MX_DEBUG(-2,("%s: saving TIFF file '%s'", fname, filename));
-
-		epix_status = pxd_saveTiff( epix_xclib_vinput->unitmap,
-			filename, 1, 0, 0, -1, -1, 0, 0 );
-
-		MX_DEBUG(-2,("%s: saved TIFF file '%s', epix_status = %d",
-			fname, filename, epix_status));
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 #endif
 
@@ -1086,6 +1297,11 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: setting '%s' framesize to (%lu, %lu)",
+			fname, vinput->record->name,
+			vinput->framesize[0], vinput->framesize[1]));
+#endif
 		/* Escape to the Structured Style Interface. */
 
 		xc = pxd_xclibEscape(0, 0, 0);
@@ -1141,15 +1357,19 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, epix_status );
 		}
 
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: finished setting '%s' framesize.",
+			fname, vinput->record->name));
+#endif
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
 		if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
 
-			mx_status = mxd_epix_xclib_internal_trigger(
+			mx_status = mxd_epix_xclib_setup_internal_trigger(
 					vinput, epix_xclib_vinput, TRUE );
 		} else {
-			mx_status = mxd_epix_xclib_internal_trigger(
+			mx_status = mxd_epix_xclib_setup_internal_trigger(
 					vinput, epix_xclib_vinput, FALSE );
 		}
 
@@ -1158,10 +1378,10 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
 
-			mx_status = mxd_epix_xclib_external_trigger(
+			mx_status = mxd_epix_xclib_setup_external_trigger(
 					vinput, epix_xclib_vinput, TRUE );
 		} else {
-			mx_status = mxd_epix_xclib_external_trigger(
+			mx_status = mxd_epix_xclib_setup_external_trigger(
 					vinput, epix_xclib_vinput, FALSE );
 		}
 

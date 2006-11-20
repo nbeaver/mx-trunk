@@ -2,5 +2,5 @@
 xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v4.fmt
 port  interface camera_link epix_camera_link "" "" 9600 0.5 1
 rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
-epix  device video_input epix_xclib_video_input "" "" 640 480 grey16 -1 1 port 0x1
+epix  device video_input epix_xclib_video_input "" "" 640 480 grey16 -1 1 port 0x0
 aviex device area_detector pccd_170170 "" "" 0 epix port 0x1

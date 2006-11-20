@@ -478,6 +478,11 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		break;
 
+	case MXLV_AD_TRIGGER_MODE:
+		mx_status = mx_video_input_get_trigger_mode(
+				video_input_record, &(ad->trigger_mode) );
+		break;
+
 	case MXLV_AD_PROPERTY_NAME:
 		break;
 	case MXLV_AD_PROPERTY_DOUBLE:
@@ -556,6 +561,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record,
 					&(ad->sequence_parameters) );
 		break; 
+
+	case MXLV_AD_TRIGGER_MODE:
+		mx_status = mx_video_input_set_trigger_mode(
+				pccd_170170->video_input_record,
+				ad->trigger_mode );
+		break;
 
 	case MXLV_AD_PROPERTY_NAME:
 		break;
