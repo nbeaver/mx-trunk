@@ -191,6 +191,7 @@
 #include "i_sony_visca.h"
 #include "i_panasonic_kx_dp702.h"
 #include "i_epix_xclib.h"
+#include "i_edt.h"
 
 #include "d_ks3512.h"
 #include "d_ks3112.h"
@@ -429,6 +430,7 @@
 #include "d_network_vinput.h"
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
+#include "d_edt.h"
 
 #include "d_soft_area_detector.h"
 #include "d_network_area_detector.h"
@@ -1004,6 +1006,15 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_epix_xclib_num_record_fields,
 				&mxi_epix_xclib_rfield_def_ptr},
 #endif /* HAVE_EPIX_XCLIB */
+
+#if HAVE_EDT
+{"edt",            MXI_GEN_EDT,           MXI_GENERIC,       MXR_INTERFACE,
+				&mxi_edt_record_function_list,
+				NULL,
+				NULL,
+				&mxi_edt_num_record_fields,
+				&mxi_edt_rfield_def_ptr},
+#endif /* HAVE_EDT */
 
 
 #ifdef OS_LINUX
@@ -3192,6 +3203,17 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_epix_xclib_rfield_def_ptr},
 
 #endif /* HAVE_EPIX_XCLIB */
+
+#if HAVE_EDT
+
+{"edt_video_input",        MXT_VIN_EDT,        MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_edt_record_function_list,
+				NULL,
+				NULL,
+				&mxd_edt_num_record_fields,
+				&mxd_edt_rfield_def_ptr},
+
+#endif /* HAVE_EDT */
 
 {"soft_area_detector",     MXT_AD_SOFTWARE,  MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_soft_area_detector_record_function_list,

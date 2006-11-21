@@ -51,6 +51,16 @@
 
 /*****************************************************************************
  *
+ * Win32, Linux, and Solaris library for using EDT video imaging boards.
+ *
+ * Website: http://www.edt.com/
+ *
+ */
+
+#define HAVE_EDT			1
+
+/*****************************************************************************
+ *
  * Driver for National Intruments GPIB interface cards.
  *
  * The Linux version of this driver is downloadable from

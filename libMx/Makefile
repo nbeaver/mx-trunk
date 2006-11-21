@@ -70,7 +70,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_d8.c d_dac_motor.c d_databox_mce.c d_databox_mcs.c d_databox_motor.c \
 	d_databox_scaler.c d_databox_timer.c \
 	d_delta_motor.c d_disabled_motor.c d_e500.c \
-	d_e662.c d_elapsed_time.c d_energy.c \
+	d_e662.c d_edt.c d_elapsed_time.c d_energy.c \
 	d_epics_aio.c d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
 	d_epix_xclib.c \
@@ -136,7 +136,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_xia_handel_timer.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
-	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \
+	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c i_edt.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_xclib.c \
 	i_esone_camac.c i_fossil.c i_ggcs.c i_hsc1.c \
@@ -235,6 +235,9 @@ include Makefile.depend
 # Now, list targets with non-standard rules or dependencies.
 #
 
+d_edt.$(OBJ): d_edt.c
+	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) d_edt.c
+
 d_epix_xclib.$(OBJ): d_epix_xclib.c
 	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) d_epix_xclib.c
 
@@ -276,6 +279,9 @@ i_am9513.$(OBJ): i_am9513.c
 
 i_driverlinx_portio.$(OBJ): i_driverlinx_portio.c
 	$(COMPILE) $(CFLAGS) $(DRIVERLINX_INCLUDES) i_driverlinx_portio.c
+
+i_edt.$(OBJ): i_edt.c
+	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt.c
 
 i_epix_camera_link.$(OBJ): i_epix_camera_link.c
 	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) i_epix_camera_link.c

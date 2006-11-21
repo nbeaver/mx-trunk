@@ -38,7 +38,9 @@
 
 /* Default plotting command. */
 
-#define MXP_PLOTGNU_COMMAND	"perl -S -- plotgnu.pl"
+#ifndef MXP_PLOTGNU_COMMAND
+#define  MXP_PLOTGNU_COMMAND	"perl -S -- plotgnu.pl"
+#endif
 
 /* Plot enable flags */
 

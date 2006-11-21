@@ -1398,5 +1398,5 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* OS_LINUX && HAVE_EPIX_XCLIB */
+#endif /* HAVE_EPIX_XCLIB */
 

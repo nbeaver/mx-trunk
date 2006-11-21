@@ -220,6 +220,7 @@
 #define MXI_GEN_SONY_VISCA		447
 #define MXI_GEN_PANASONIC_KX_DP702	448
 #define MXI_GEN_EPIX_XCLIB		449
+#define MXI_GEN_EDT			450
 
 #define MXI_PIO_PORTIO			500
 #define MXI_PIO_DOS			501
@@ -639,6 +640,7 @@
 #define MXT_VIN_FILE			220003
 #define MXT_VIN_V4L2			220004
 #define MXT_VIN_EPIX_XCLIB		220005
+#define MXT_VIN_EDT			220006
 
 /* --- Video output types --- */
 

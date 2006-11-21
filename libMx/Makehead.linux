@@ -29,8 +29,11 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
+
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
+#LIBRARIES	= $(EDT_LIBRARIES) -ldl -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -lm
@@ -49,6 +52,10 @@ LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(JORWAY_CAMAC_LIB_DIRS)
 #LIBRARIES	= $(JORWAY_CAMAC_LIBRARIES) -lpthread -lrt -lm
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EDT_LIB_DIRS)
+LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EDT_LIBRARIES) \
+						-ldl -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -lm
@@ -237,6 +244,13 @@ EPIX_XCLIB_LIB_DIRS  = -L$(EPIX_XCLIB_DIR)
 EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_i386.a
 
 #
+
+EDT_DIR		= /opt/EDTpdv
+EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
+EDT_LIB_DIRS	= -L$(EDT_DIR)
+EDT_LIBRARIES	= $(EDT_DIR)/libpdv.a
+
+#
 #========================================================================
 #
 # Generally, you should not have to modify anything after this point.
@@ -278,7 +292,8 @@ CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 MAKEDEPEND	= gcc -MM $(CFLAGS) \
-	$(READLINE_INCLUDES) $(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
+	$(READLINE_INCLUDES) $(EDT_INCLUDES) \
+	$(EPICS_INCLUDES) $(EPIX_XCLIB_INCLUDES) \
 	$(NI_VISA_INCLUDES) $(SIS3100_INCLUDES) $(ESONE_CAMAC_INCLUDES) \
 	$(XIA_HANDEL_INCLUDES) *.c > Makefile.depend
 
