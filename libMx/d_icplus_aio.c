@@ -494,7 +494,7 @@ mxd_icplus_aout_open( MX_RECORD *record )
 
 		snprintf( icplus_aoutput->output_command,
 			sizeof(icplus_aoutput->output_command),
-			":CONF%ld:VOLT?", icplus->address );
+			":CONF%ld:VOLT", icplus->address );
 
 		return MX_SUCCESSFUL_RESULT;
 	}

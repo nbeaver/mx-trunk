@@ -430,7 +430,7 @@ mxd_tracker_command( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_rs232_getline( rs232_record,
-					response, sizeof(response),
+					response, max_response_length,
 					NULL, MXD_TRACKER_AIO_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )

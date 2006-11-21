@@ -124,7 +124,7 @@ mxi_pfcu_open( MX_RECORD *record )
 	/* Check for a valid RS-232 configuration. */
 
 	mx_status = mx_rs232_verify_configuration( pfcu->rs232_record,
-			9600, 8, 'N', 1, 'N', 0x0d0a, 0x0d0a );
+			9600, 8, 'N', 1, 'N', 0x0d, 0x0d );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
