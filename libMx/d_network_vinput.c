@@ -190,6 +190,14 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 		"%s.bytes_per_pixel", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->camera_trigger_polarity_nf),
+			network_vinput->server_record,
+	    "%s.camera_trigger_polarity", network_vinput->remote_record_name);
+
+	mx_network_field_init( &(network_vinput->external_trigger_polarity_nf),
+			network_vinput->server_record,
+	    "%s.external_trigger_polarity", network_vinput->remote_record_name);
+
 	mx_network_field_init( &(network_vinput->framesize_nf),
 			network_vinput->server_record,
 			"%s.framesize", network_vinput->remote_record_name );
@@ -209,6 +217,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->image_format_nf),
 			network_vinput->server_record,
 			"%s.image_format", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->pixel_clock_frequency_nf),
+			network_vinput->server_record,
+	    "%s.pixel_clock_frequency", network_vinput->remote_record_name );
 
 	mx_network_field_init( &(network_vinput->pixel_order_nf),
 			network_vinput->server_record,
@@ -620,6 +632,18 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+		mx_status = 
+		    mx_get( &(network_vinput->camera_trigger_polarity_nf),
+				MXFT_LONG, &(vinput->camera_trigger_polarity) );
+		break;
+
+	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
+		mx_status = 
+		    mx_get( &(network_vinput->external_trigger_polarity_nf),
+			    MXFT_LONG, &(vinput->external_trigger_polarity) );
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 		dimension[0] = 2;
 
@@ -667,6 +691,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BUSY:
 		mx_status = mx_get( &(network_vinput->busy_nf),
 					MXFT_BOOL, &(vinput->busy) );
+		break;
+
+	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
+		mx_status = mx_get( &(network_vinput->pixel_clock_frequency_nf),
+				MXFT_DOUBLE, &(vinput->pixel_clock_frequency) );
 		break;
 
 	case MXLV_VIN_STATUS:
@@ -726,6 +755,18 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+		mx_status = 
+		    mx_put( &(network_vinput->camera_trigger_polarity_nf),
+				MXFT_LONG, &(vinput->camera_trigger_polarity) );
+		break;
+
+	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
+		mx_status = 
+		    mx_put( &(network_vinput->external_trigger_polarity_nf),
+			    MXFT_LONG, &(vinput->external_trigger_polarity) );
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 
 		dimension[0] = 2;
@@ -739,6 +780,11 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the image format is not supported for "
 			"video input '%s'.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
+		mx_status = mx_put( &(network_vinput->pixel_clock_frequency_nf),
+				MXFT_DOUBLE, &(vinput->pixel_clock_frequency) );
 		break;
 
 	case MXLV_VIN_PIXEL_ORDER:

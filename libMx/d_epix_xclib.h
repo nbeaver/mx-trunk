@@ -29,7 +29,7 @@ typedef struct {
 	unsigned long epix_xclib_flags;
 
 	long unitmap;
-	mx_bool_type generate_cc1_pulse;
+	double default_trigger_time;
 
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 

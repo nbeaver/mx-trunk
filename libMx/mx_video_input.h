@@ -21,6 +21,14 @@
 
 #define MXSF_VIN_IS_BUSY	0x1
 
+/* Definitions for 'external_trigger_polarity' and 'camera_trigger_polarity'. */
+
+#define MXF_VIN_TRIGGER_NONE		0
+#define MXF_VIN_TRIGGER_RISING		1
+#define MXF_VIN_TRIGGER_FALLING		2
+#define MXF_VIN_TRIGGER_HIGH		3
+#define MXF_VIN_TRIGGER_LOW		4
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -41,6 +49,10 @@ typedef struct {
 	mx_bool_type abort;
 	mx_bool_type busy;
 	unsigned long status;
+
+	double pixel_clock_frequency;		/* in pixels per second */
+	long external_trigger_polarity;
+	long camera_trigger_polarity;
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
 
@@ -73,11 +85,14 @@ typedef struct {
 #define MXLV_VIN_ABORT				11011
 #define MXLV_VIN_BUSY				11012
 #define MXLV_VIN_STATUS				11013
-#define MXLV_VIN_SEQUENCE_TYPE			11014
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11015
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11016
-#define MXLV_VIN_GET_FRAME			11017
-#define MXLV_VIN_FRAME_BUFFER			11018
+#define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11014
+#define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11015
+#define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11016
+#define MXLV_VIN_SEQUENCE_TYPE			11017
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11018
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11019
+#define MXLV_VIN_GET_FRAME			11020
+#define MXLV_VIN_FRAME_BUFFER			11021
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -131,6 +146,23 @@ typedef struct {
   \
   {MXLV_VIN_STATUS, -1, "status", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, status), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_PIXEL_CLOCK_FREQUENCY, -1, "pixel_clock_frequency", \
+					MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, pixel_clock_frequency), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_EXTERNAL_TRIGGER_POLARITY, -1, "external_trigger_polarity", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_VIDEO_INPUT, external_trigger_polarity), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_CAMERA_TRIGGER_POLARITY, -1, "camera_trigger_polarity", \
+					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+			offsetof(MX_VIDEO_INPUT, camera_trigger_polarity), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \
@@ -233,6 +265,32 @@ MX_API mx_status_type mx_video_input_is_busy( MX_RECORD *record,
 MX_API mx_status_type mx_video_input_get_status( MX_RECORD *record,
 						long *last_frame_number,
 						unsigned long *status_flags );
+
+/*---*/
+
+MX_API mx_status_type mx_video_input_get_pixel_clock_frequency(
+						MX_RECORD *record,
+						double *pixel_clock_frequency );
+
+MX_API mx_status_type mx_video_input_set_pixel_clock_frequency(
+						MX_RECORD *record,
+						double pixel_clock_frequency );
+
+MX_API mx_status_type mx_video_input_get_external_trigger_polarity(
+					MX_RECORD *record,
+					long *external_trigger_polarity );
+
+MX_API mx_status_type mx_video_input_set_external_trigger_polarity(
+					MX_RECORD *record,
+					long external_trigger_polarity );
+
+MX_API mx_status_type mx_video_input_get_camera_trigger_polarity(
+					MX_RECORD *record,
+					long *camera_trigger_polarity );
+
+MX_API mx_status_type mx_video_input_set_camera_trigger_polarity(
+					MX_RECORD *record,
+					long camera_trigger_polarity );
 
 /*---*/
 

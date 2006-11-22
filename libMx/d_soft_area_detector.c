@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_SOFT_AREA_DETECTOR_DEBUG	FALSE
+#define MXD_SOFT_AREA_DETECTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -394,7 +394,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK current_time, clock_tick_difference;
 	double seconds_difference;
 	long num_frames, last_frame_number;
-	double exposure_time, gap_time, gap_plus_exposure_time;
+	double exposure_time, frame_time;
 	long sequence_type, num_parameters;
 	double *parameter_array;
 	mx_status_type mx_status;
@@ -458,13 +458,13 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_CONTINUOUS:
 		num_frames    = 1;
 		exposure_time = parameter_array[0];
-		gap_time      = 0.0;
+		frame_time    = exposure_time;
 		break;
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		num_frames    = parameter_array[0];
 		exposure_time = parameter_array[1];
-		gap_time      = parameter_array[2];
+		frame_time    = parameter_array[2];
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -473,15 +473,9 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: num_frames = %ld, exposure_time = %g, gap_time = %g",
-		fname, num_frames, exposure_time, gap_time));
-#endif
-
-	gap_plus_exposure_time = gap_time + exposure_time;
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: gap_plus_exposure_time = %g",
-		fname, gap_plus_exposure_time));
+	MX_DEBUG(-2,
+	("%s: num_frames = %ld, exposure_time = %g, frame_time = %g",
+		fname, num_frames, exposure_time, frame_time));
 #endif
 
 	/* How long has it been since the trigger time? */
@@ -547,8 +541,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	/* Now we can calculate the nominal last frame number. */
 
-	last_frame_number =
-		(long) ( seconds_difference / gap_plus_exposure_time );
+	last_frame_number = (long) ( seconds_difference / frame_time );
 
 	/* What happens next depends on the type of sequence
 	 * we are running.

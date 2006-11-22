@@ -131,11 +131,14 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_BUSY:
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_BYTES_PER_PIXEL:
+		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 		case MXLV_VIN_FORMAT:
 		case MXLV_VIN_FORMAT_NAME:
 		case MXLV_VIN_FRAMESIZE:
 		case MXLV_VIN_FRAME_BUFFER:
 		case MXLV_VIN_GET_FRAME:
+		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 		case MXLV_VIN_STATUS:
 		case MXLV_VIN_STOP:
 		case MXLV_VIN_TRIGGER:
@@ -183,6 +186,14 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_get_bytes_per_pixel(
 								record, NULL );
 			break;
+		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+			mx_status = mx_video_input_get_camera_trigger_polarity(
+								record, NULL );
+			break;
+		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
+			mx_status =
+		  mx_video_input_get_external_trigger_polarity( record, NULL );
+			break;
 		case MXLV_VIN_FORMAT:
 		case MXLV_VIN_FORMAT_NAME:
 			mx_status = 
@@ -206,6 +217,10 @@ mx_video_input_process_function( void *record_ptr,
 					record->name );
 			}
 			break;
+		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
+			mx_status = mx_video_input_get_pixel_clock_frequency(
+								record, NULL );
+			break;
 		case MXLV_VIN_STATUS:
 			mx_status = mx_video_input_get_status( record,
 								NULL, NULL );
@@ -224,6 +239,15 @@ mx_video_input_process_function( void *record_ptr,
 			break;
 		case MXLV_VIN_ARM:
 			mx_status = mx_video_input_arm( record );
+			break;
+		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+			mx_status = mx_video_input_set_camera_trigger_polarity(
+				    record, vinput->camera_trigger_polarity );
+			break;
+		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
+			mx_status =
+			  mx_video_input_set_external_trigger_polarity( record,
+				vinput->external_trigger_polarity );
 			break;
 		case MXLV_VIN_FORMAT_NAME:
 			mx_status = mx_image_get_format_type_from_name(
@@ -245,6 +269,10 @@ mx_video_input_process_function( void *record_ptr,
 		case MXLV_VIN_GET_FRAME:
 			mx_status = mxp_video_input_get_frame_handler(
 					record, record_field, vinput );
+			break;
+		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
+			mx_status = mx_video_input_set_pixel_clock_frequency(
+					record, vinput->pixel_clock_frequency );
 			break;
 		case MXLV_VIN_STOP:
 			mx_status = mx_video_input_stop( record );

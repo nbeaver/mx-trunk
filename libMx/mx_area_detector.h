@@ -651,13 +651,13 @@ MX_API mx_status_type mx_area_detector_set_continuous_mode(MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_multiframe_mode(MX_RECORD *ad_record,
 							long num_frames,
 							double exposure_time,
-							double gap_time );
+							double frame_time );
 
 MX_API mx_status_type mx_area_detector_set_circular_multiframe_mode(
 							MX_RECORD *ad_record,
 							long num_frames,
 							double exposure_time,
-							double gap_time );
+							double frame_time );
 
 MX_API mx_status_type mx_area_detector_set_strobe_mode( MX_RECORD *ad_record,
 							long num_frames,

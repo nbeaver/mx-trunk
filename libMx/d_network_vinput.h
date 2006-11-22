@@ -28,9 +28,12 @@ typedef struct {
 	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
+	MX_NETWORK_FIELD camera_trigger_polarity_nf;
+	MX_NETWORK_FIELD external_trigger_polarity_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
+	MX_NETWORK_FIELD pixel_clock_frequency_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;

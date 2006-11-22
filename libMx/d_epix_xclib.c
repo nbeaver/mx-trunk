@@ -116,47 +116,33 @@ mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
 /*---*/
 
 static mx_status_type
-mxd_epix_xclib_setup_internal_trigger( MX_VIDEO_INPUT *vinput,
+mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
-				mx_bool_type trigger_on )
+				double trigger_time,
+				double frame_time,
+				mx_bool_type continuous_select,
+				mx_bool_type trigger_input_select )
 {
-	static const char fname[] = "mxd_epix_xclib_setup_internal_trigger()";
+	static const char fname[] = "mxd_epix_xclib_set_exsync_princ()";
 
 	unsigned int exsync_mode, princ_mode, mask;
 	unsigned int epcd, trigneg, exps, cnts, tis;
+	long pixel_clock_divisor;
 	int epix_status;
 	unsigned long flags;
 	char error_message[80];
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
-			fname, vinput->record->name, (int) trigger_on ));
+	MX_DEBUG(-2,("%s invoked for video input '%s'",
+			fname, vinput->record->name));
+	MX_DEBUG(-2,("%s: trigger_time = %g, frame_time = %g",
+			fname, trigger_time, frame_time));
+	MX_DEBUG(-2,("%s: continuous_select = %d, trigger_input_select = %d",
+			fname, (int) continuous_select,
+			(int) trigger_input_select));
 #endif
 
-	flags = epix_xclib_vinput->epix_xclib_flags;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: epix_xclib_flags = %#lx", fname, flags ));
-#endif
-	if ( flags & MXF_USE_CLCCSE_REGISTER ) {
-
-		/* If we are using direct manipulation of the CLCCSE register
-		 * to generate a CC1 pulse, then just save the trigger_on
-		 * value and return.
-		 */
-
-		epix_xclib_vinput->generate_cc1_pulse = trigger_on;
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: generate_cc1_pulse = %d",
-			fname, epix_xclib_vinput->generate_cc1_pulse));
-#endif
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* Otherwise, setup the EXSYNC and PRINC registers for automatic
-	 * CC1 pulse generation.
-	 */
+	/* Read the current values of the EXSYNC and PRINC registers. */
 
 	exsync_mode = pxd_getExsyncMode( epix_xclib_vinput->unitmap );
 	
@@ -181,27 +167,55 @@ mxd_epix_xclib_setup_internal_trigger( MX_VIDEO_INPUT *vinput,
 
 	princ_mode |= epcd;
 
+	pixel_clock_divisor = 512;
+
 	/* Bit 4, TRIGNEG, Trigger Input Polarity Select. */
 
-	trigneg = 0x0 << 4;  /* Trigger on positive edge. */
+	switch( vinput->external_trigger_polarity ) {
+	case MXF_VIN_TRIGGER_RISING:
+		trigneg = 0x0 << 4;  /* Trigger on rising edge. */
+		break;
+	case MXF_VIN_TRIGGER_FALLING:
+		trigneg = 0x1 << 4;  /* Trigger on falling edge. */
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"External trigger mode %ld is not supported for "
+		"EPIX video input '%s'.",
+			vinput->external_trigger_polarity,
+			vinput->record->name );
+	}
 
 	princ_mode |= trigneg;
 
 	/* Bit 2, EXPS, EXSYNC Polarity Select. */
 
-	exps = 0x0 << 2;     /* Negative CC1 pulse. */
+	switch( vinput->camera_trigger_polarity ) {
+	case MXF_VIN_TRIGGER_HIGH:
+		exps = 0x1 << 2;     /* Positive CC1 pulse. */
+		break;
+	case MXF_VIN_TRIGGER_LOW:
+		exps = 0x0 << 2;     /* Negative CC1 pulse. */
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Camera trigger mode %ld is not supported for "
+		"EPIX video input '%s'.",
+			vinput->camera_trigger_polarity,
+			vinput->record->name );
+	}
 
 	princ_mode |= exps;
 
 	/* Bit 1, CNTS, Continuous Select. */
 
-	cnts = 0x0 << 1;     /* One shot mode. */
+	cnts = (continuous_select & 0x1) << 1;
 
 	princ_mode |= cnts;
 
 	/* Bit 0, TIS, Trigger Input Select. */
 
-	tis = 0x0;           /* Ignore external trigger. */
+	tis = (trigger_input_select & 0x1);
 
 	if ( ( tis != 0 ) & ( cnts == 0 ) ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -230,23 +244,6 @@ mxd_epix_xclib_setup_internal_trigger( MX_VIDEO_INPUT *vinput,
 			epix_xclib_vinput->unitmap, exsync_mode, princ_mode,
 			error_message );
 	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
-
-static mx_status_type
-mxd_epix_xclib_setup_external_trigger( MX_VIDEO_INPUT *vinput,
-				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
-				mx_bool_type trigger_on )
-{
-	static const char fname[] = "mxd_epix_xclib_setup_external_trigger()";
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s', trigger_on = %d",
-			fname, vinput->record->name, (int) trigger_on ));
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -342,7 +339,13 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	vinput->bytes_per_pixel = 0;
 	vinput->trigger_mode = 0;
 
-	epix_xclib_vinput->generate_cc1_pulse = FALSE;
+	vinput->pixel_clock_frequency = 0.0;	/* in pixels/second */
+
+	vinput->external_trigger_polarity = MXF_VIN_TRIGGER_NONE;
+
+	vinput->camera_trigger_polarity = MXF_VIN_TRIGGER_NONE;
+
+	epix_xclib_vinput->default_trigger_time = 0.01;	/* in seconds */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -442,6 +445,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
+	double trigger_time, frame_time;
 	char error_message[80];
 	int epix_status;
 	mx_status_type mx_status;
@@ -471,7 +475,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	/*---*/
+	/* If we get here, external triggering has been selected. */
 
 	sp = &(vinput->sequence_parameters);
 
@@ -481,53 +485,51 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
+	/* Compute all of the parameters needed by the sequence.
+	 * Only one-shot and strobe sequences are supported
+	 * with external triggers.
+	 */
+
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 		startbuf = 1;
 		endbuf = 1;
 		numbuf = 1;
-		break;
 
-	case MXT_SQ_CONTINUOUS:
-		startbuf = 1;
-		endbuf = 1;
-		numbuf = 0;
-		break;
+		frame_time = sp->parameter_array[0];
 
-	case MXT_SQ_MULTIFRAME:
-		startbuf = 1;
-		numbuf = mx_round( sp->parameter_array[0] );
-
-		if ( numbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    numbuf, vinput->record->name, pxd_imageZdim());
-		}
-
-		endbuf = startbuf + numbuf - 1;
-		break;
-
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		startbuf = 1;
-		endbuf = mx_round( sp->parameter_array[0] );
-
-		if ( endbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    numbuf, vinput->record->name, pxd_imageZdim());
-		}
-
-		numbuf = 0;
+		trigger_time = epix_xclib_vinput->default_trigger_time;
 		break;
 
 	case MXT_SQ_STROBE:
+		startbuf = 1;
+		endbuf = mx_round( sp->parameter_array[0] );
+		numbuf = endbuf;
+
+		frame_time = sp->parameter_array[1];
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
+		break;
+
+	case MXT_SQ_CONTINUOUS:
 		return mx_error( MXE_UNSUPPORTED, fname,
-		"Strobe sequences are not supported by video input '%s'.",
-			vinput->record->name );
+			"Continuous sequences cannot be used with external "
+			"triggers for video input '%s'.",
+				vinput->record->name );
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Multiframe sequences cannot be used with external "
+			"triggers for video input '%s'.",
+				vinput->record->name );
+		break;
+
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Circular multiframe sequences cannot be used with external "
+			"triggers for video input '%s'.",
+				vinput->record->name );
 		break;
 
 	case MXT_SQ_BULB:
@@ -543,12 +545,24 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
-	/* Enable the external trigger on General Purpose Input 1. */
+	/* Configure the EXSYNC and PRINC registers with
+	 * continuous select (CNTS) and trigger input select (TIS)
+	 * both set to TRUE.
+	 */
+
+	mx_status = mxd_epix_xclib_set_exsync_princ( vinput, epix_xclib_vinput,
+							trigger_time,
+							frame_time,
+							TRUE, TRUE );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Enable the external trigger on General Purpose Trigger 1. */
 
 	epix_status = pxd_goLiveSeqTrig( epix_xclib_vinput->unitmap,
 		startbuf, endbuf, 1, numbuf, 1,
 		0, 0,                   /* reserved */
-		0x001, 3, 0,    /* Start trigger GP1, rising edge, no delay */
+		0x100, 3, 0,    /* Start GP trigger 1, rising edge, no delay */
 		0, 0, 0, 0, 0, 0, 0,    /* reserved */
 		0, 0, 0,                /* No end trigger */
 		0, 0, 0, 0, 0, 0 );     /* yet more reserved */
@@ -578,6 +592,8 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
+	double trigger_time, frame_time;
+	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
 	unsigned long flags;
@@ -625,51 +641,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	flags = epix_xclib_vinput->epix_xclib_flags;
 
-	if ( flags & MXF_USE_CLCCSE_REGISTER ) {
-
-		/* If we are supposed to generate CC1 pulses by directly
-		 * writing to the CLCCSE register, then generate the CC1
-		 * pulse now.
-		 */
-
-		if ( epix_xclib_vinput->generate_cc1_pulse ) {
-
-#if MXD_EPIX_XCLIB_DEBUG
-			MX_DEBUG(-2,("%s: Generating CC1 pulse.", fname));
-#endif
-			mx_status = mx_camera_link_pulse_cc_line(
-				epix_xclib_vinput->camera_link_record,
-						MX_CAMERA_LINK_CC1, 1, 0 );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-#if 0
-	} else {
-
-		/* If we want automatic CC1 pulse generation, we program
-		 * the EXSYNC and PRIN registers to have the EPIX imaging
-		 * board automatically generate the CC1 pulse before a
-		 * frame is captured.
-		 */
-
-		epix_status = pxd_setExsyncPrin( epix_xclib_vinput->unitmap,
-							100, 100 );
-
-		if ( epix_status != 0 ) {
-			mxi_epix_xclib_error_message(
-				epix_xclib_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) );
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-				"The attempt to send an EXSYNC pulse for "
-				"video input '%s' failed.  %s",
-					vinput->record->name, error_message );
-		}
-#endif
-	}
-
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,
 		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
@@ -680,6 +651,36 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: video field count = %lu",
 		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
+
+	/* Set the EXSYNC and PRINC register values needed. */
+
+	trigger_time = epix_xclib_vinput->default_trigger_time;
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+		frame_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		frame_time = sp->parameter_array[2];
+		break;
+	default:
+		frame_time = -1;
+		break;
+	}
+
+	if ( frame_time >= 0.0 ) {
+		mx_status = mxd_epix_xclib_set_exsync_princ(
+						vinput, epix_xclib_vinput,
+							trigger_time,
+							frame_time,
+							TRUE, FALSE );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Trigger the start of the sequence. */
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
@@ -722,31 +723,37 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "
-			"for a sequence of type MXT_SQ_MULTI should be "
+			"for a multiframe sequence should be "
 			"the number of frames.  "
 			"However, the sequence says that it has %ld frames.",
 			    vinput->record->name, sp->num_parameters );
 				
 		}
 
-		numbuf = mx_round( sp->parameter_array[0] );
+		startbuf = 1;
 
-		if ( numbuf > pxd_imageZdim() ) {
+		endbuf = mx_round( sp->parameter_array[0] );
+
+		if ( endbuf > pxd_imageZdim() ) {
 			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 			"The requested number of sequence frames (%ld) for "
 			"video input '%s' is larger than the maximum value "
 			"of %d.",
-			    numbuf, vinput->record->name, pxd_imageZdim());
+			    endbuf, vinput->record->name, pxd_imageZdim());
 		}
 
-		startbuf = 1;
-		endbuf = startbuf + numbuf - 1;
+		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+			numbuf = endbuf;
+		} else {
+			numbuf = 0;
+		}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: triggering multiframe mode for vinput '%s'.",
+	MX_DEBUG(-2,("%s: triggering multiframe sequence for vinput '%s'.",
 		fname, vinput->record->name ));
 	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld, numbuf = %ld",
 		fname, startbuf, endbuf, numbuf));
@@ -760,50 +767,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 				error_message, sizeof(error_message) );
 
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start multi frame "
-			"acquisition with video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-		}
-		break;
-
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		if ( sp->num_parameters < 1 ) {
-			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
-			"The first sequence parameter of video input '%s' "
-			"for a sequence of type MXT_SQ_CONTINUOUS_MULTI should "
-			"be the number of frames in the circular buffer.  "
-			"However, the sequence says that it has %ld frames.",
-			    vinput->record->name, sp->num_parameters );
-		}
-
-		endbuf = mx_round( sp->parameter_array[0] );
-
-		if ( endbuf > pxd_imageZdim() ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The requested number of sequence frames (%ld) for "
-			"video input '%s' is larger than the maximum value "
-			"of %d.",
-			    endbuf, vinput->record->name, pxd_imageZdim());
-		}
-
-		startbuf = 1;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: triggering circular multiframe mode for vinput '%s'.",
-		fname, vinput->record->name ));
-	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld",
-		fname, startbuf, endbuf));
-#endif
-		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-					startbuf, endbuf, 1, 0, 1 );
-
-		if ( epix_status != 0 ) {
-			mxi_epix_xclib_error_message(
-				epix_xclib_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) );
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start continuous multi frame "
+			"The attempt to start multiframe "
 			"acquisition with video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 		}
@@ -1240,9 +1204,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		vinput->framesize[1] = pxd_imageYdim();
 		break;
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		return mx_video_input_default_get_parameter_handler( vinput );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1364,35 +1326,10 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
-		if ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) {
-
-			mx_status = mxd_epix_xclib_setup_internal_trigger(
-					vinput, epix_xclib_vinput, TRUE );
-		} else {
-			mx_status = mxd_epix_xclib_setup_internal_trigger(
-					vinput, epix_xclib_vinput, FALSE );
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		if ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) {
-
-			mx_status = mxd_epix_xclib_setup_external_trigger(
-					vinput, epix_xclib_vinput, TRUE );
-		} else {
-			mx_status = mxd_epix_xclib_setup_external_trigger(
-					vinput, epix_xclib_vinput, FALSE );
-		}
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
 		break;
 
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		return mx_video_input_default_set_parameter_handler( vinput );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

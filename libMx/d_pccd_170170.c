@@ -221,6 +221,32 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	ad->framesize[0] = ad->maximum_framesize[0];
 	ad->framesize[1] = ad->maximum_framesize[1];
 
+	/* The pixel clock frequency is 60 MHz. */
+
+	mx_status = mx_video_input_set_pixel_clock_frequency(
+				video_input_record, 6.0e7 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the video input's external trigger to trigger on
+	 * the rising edge of the trigger pulse.
+	 */
+
+	mx_status = mx_video_input_set_external_trigger_polarity(
+				video_input_record, MXF_VIN_TRIGGER_RISING );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the video input to use negative Camera Link pulses. */
+
+	mx_status = mx_video_input_set_camera_trigger_polarity(
+				video_input_record, MXF_VIN_TRIGGER_LOW );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Set the video input's initial trigger mode (internal/external/etc) */
 
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
