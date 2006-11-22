@@ -19,7 +19,8 @@
 
 /* Flag values for the 'epix_xclib_flags' field. */
 
-#define MXF_USE_CLCCSE_REGISTER    0x1
+#define MXF_EPIX_USE_CLCCSE_REGISTER	0x1
+#define MXF_EPIX_BYTESWAP		0x2
 
 typedef struct {
 	MX_RECORD *record;

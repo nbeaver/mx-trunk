@@ -34,6 +34,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_camera_link.h"
 #include "mx_video_input.h"
@@ -954,9 +955,13 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	MX_IMAGE_FRAME *frame;
 	pxbuffer_t epix_frame_number;
 	long words_to_read, result;
+	unsigned long flags;
 	char *colorspace;
 	char error_message[80];
 	mx_status_type mx_status;
+
+	uint16_t *image_data16;
+	long i, num_image_words;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
 						&epix_xclib_vinput, fname );
@@ -1071,6 +1076,23 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 		"expecting to read %lu bytes.",
 			result, vinput->record->name,
 			(unsigned long) frame->image_length );
+	}
+
+	flags = epix_xclib_vinput->epix_xclib_flags;
+
+	if ( flags & MXF_EPIX_BYTESWAP ) {
+
+		image_data16 = frame->image_data;
+
+		num_image_words = frame->image_length / 2L;
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: byteswapping %ld word image.",
+			fname, num_image_words));
+#endif
+		for ( i = 0; i < num_image_words; i++ ) {
+			image_data16[i] = mx_16bit_byteswap( image_data16[i] );
+		}
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
