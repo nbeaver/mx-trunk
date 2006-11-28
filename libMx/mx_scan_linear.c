@@ -715,6 +715,8 @@ mxs_linear_scan_move_absolute(
 						scan->motor_position,
 						NULL,
 						flags );
+		} else {
+			mx_status = MX_SUCCESSFUL_RESULT;
 		}
 	} else {
 		mx_status = (*move_special_fptr) ( scan,
