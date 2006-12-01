@@ -738,6 +738,8 @@ mx_network_field_init( MX_NETWORK_FIELD *nf,
 	nf->record_handle = MX_ILLEGAL_HANDLE;
 	nf->field_handle = MX_ILLEGAL_HANDLE;
 
+	nf->application_ptr = NULL;
+
 	if ( nf->server_record != (MX_RECORD *) NULL ) {
 		/* Add this network field to the server's list of fields. */
 

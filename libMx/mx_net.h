@@ -69,6 +69,8 @@ struct mx_network_field_type {
 	MX_RECORD *server_record;
 	long record_handle;
 	long field_handle;
+
+	void *application_ptr;
 };
 
 typedef struct {
