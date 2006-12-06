@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003, 2005-2006 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -28,6 +28,14 @@ MX_API void *mx_read_void_pointer_from_memory_location(
 
 MX_API void mx_write_void_pointer_to_memory_location(
 					void *memory_location, void *ptr );
+
+MX_API mx_status_type mx_get_array_size( long num_dimensions,
+					long *dimension_array,
+					size_t *data_element_size_array,
+					size_t *array_size );
+
+MX_API size_t mx_get_scalar_element_size( long mx_datatype,
+					mx_bool_type truncate_64bit_longs );
 
 MX_API mx_status_type mx_copy_array_to_buffer( void *array_pointer,
 		mx_bool_type array_is_dynamically_allocated,

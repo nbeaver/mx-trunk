@@ -267,6 +267,8 @@ mx_free_array( void *array_pointer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------------------------------------------------------------*/
+
 /* The purpose of the following function is to interpret the value
  * stored at a memory location pointed to by a void * as if it were
  * itself an address.
@@ -320,8 +322,62 @@ mx_write_void_pointer_to_memory_location( void *memory_location, void *ptr )
 	return;
 }
 
-static size_t
-mxp_scalar_element_size( long mx_datatype,
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_get_array_size( long num_dimensions,
+		long *dimension_array,
+		size_t *data_element_size_array,
+		size_t *array_size )
+{
+	static const char fname[] = "mx_get_array_size()";
+
+	long i;
+	
+	if ( array_size == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The array_size pointer passed was NULL." );
+	}
+	if ( data_element_size_array == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The data_element_size_array pointer passed was NULL." );
+	}
+
+	if ( num_dimensions < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The num_dimensions argument specified (%ld) is illegal.  "
+		"The minimum number of allowed dimensions is 0.",
+			num_dimensions );
+	}
+
+	/* Handle scalars first, since scalars have 0 dimensions. */
+
+	if ( num_dimensions == 0 ) {
+		(*array_size) = data_element_size_array[0];
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Finally, handle arrays of 1 dimension or more. */
+
+	if ( dimension_array == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dimension_array pointer passed was NULL." );
+	}
+
+	(*array_size) = data_element_size_array[0];
+
+	for ( i = 0; i < num_dimensions; i++ ) {
+		(*array_size) *= dimension_array[i];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT size_t
+mx_get_scalar_element_size( long mx_datatype,
 			mx_bool_type truncate_64bit_longs )
 {
 	size_t element_size;
@@ -371,6 +427,8 @@ mxp_scalar_element_size( long mx_datatype,
 
 	return element_size;
 }
+
+/*---------------------------------------------------------------------------*/
 
 static void
 mx_copy_32bits_to_64bits( void *destination, void *source, size_t num_elements )
@@ -492,7 +550,7 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		/* Handling scalars takes a bit more effort. */
 
-		bytes_to_copy = mxp_scalar_element_size( mx_datatype,
+		bytes_to_copy = mx_get_scalar_element_size( mx_datatype,
 							truncate_64bit_longs );
 
 		if ( bytes_to_copy > destination_buffer_length ) {
@@ -800,7 +858,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 		/* Handling scalars takes a bit more effort. */
 
-		bytes_to_copy = mxp_scalar_element_size( mx_datatype,
+		bytes_to_copy = mx_get_scalar_element_size( mx_datatype,
 						truncate_64bit_longs );
 
 		if ( bytes_to_copy > source_buffer_length ) {
@@ -976,7 +1034,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 #if HAVE_XDR
 
 static size_t
-mxp_xdr_scalar_element_size( long mx_datatype ) {
+mxp_xdr_get_scalar_element_size( long mx_datatype ) {
+
 	size_t element_size, native_size;
 
 	switch( mx_datatype ) {
@@ -1002,7 +1061,7 @@ mxp_xdr_scalar_element_size( long mx_datatype ) {
 	case MXFT_RECORD:
 	case MXFT_RECORDTYPE:
 	case MXFT_INTERFACE:
-		native_size = mxp_scalar_element_size( mx_datatype, FALSE );
+		native_size = mx_get_scalar_element_size( mx_datatype, FALSE );
 
 		element_size = 4 * (native_size / 4);
 
@@ -1143,7 +1202,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		/* Handling scalars takes a bit more effort. */
 
-		xdr_data_size = mxp_xdr_scalar_element_size( mx_datatype );
+		xdr_data_size = mxp_xdr_get_scalar_element_size( mx_datatype );
 
 		if ( direction == MX_XDR_ENCODE ) {
 			if ( xdr_data_size > xdr_buffer_length ) {
@@ -1229,7 +1288,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_record->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
+		    (u_int) mx_get_scalar_element_size(mx_datatype, FALSE));
+
 			break;
 		case MXFT_RECORDTYPE:
 			mx_driver = (MX_DRIVER *) array_pointer;
@@ -1237,7 +1297,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_driver->name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
+		    (u_int) mx_get_scalar_element_size(mx_datatype, FALSE));
+
 			break;
 		case MXFT_INTERFACE:
 			mx_interface = (MX_INTERFACE *) array_pointer;
@@ -1245,7 +1306,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			ptr = mx_interface->address_name;
 
 			xdr_status = xdr_string( &xdrs, &ptr,
-			   (u_int) mxp_scalar_element_size(mx_datatype, FALSE));
+		    (u_int) mx_get_scalar_element_size(mx_datatype, FALSE));
+
 			break;
 
 		default:
@@ -1295,7 +1357,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					* data_element_size_array[0];
 
 		xdr_array_size = dimension_array[0] 
-				* mxp_xdr_scalar_element_size( mx_datatype );
+				* mxp_xdr_get_scalar_element_size(mx_datatype);
 
 		if ( mx_datatype == MXFT_STRING ) {
 			/* Add one byte for the string terminator. */
@@ -1427,10 +1489,10 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		/* This is a structure array. */
 
 		last_dimension_native_size_in_bytes = 
-				mxp_scalar_element_size( mx_datatype, FALSE );
+			mx_get_scalar_element_size( mx_datatype, FALSE );
 
 		last_dimension_xdr_size_in_bytes =
-				mxp_xdr_scalar_element_size( mx_datatype );
+				mxp_xdr_get_scalar_element_size( mx_datatype );
 	} else {
 		/* num_dimensions > 1 */
 
@@ -1438,7 +1500,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 						* data_element_size_array[0];
 
 		last_dimension_xdr_size_in_bytes = last_dimension_size
-				* mxp_xdr_scalar_element_size( mx_datatype );
+			* mxp_xdr_get_scalar_element_size( mx_datatype );
 	
 	}
 
