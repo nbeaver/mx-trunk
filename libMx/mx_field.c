@@ -1674,7 +1674,6 @@ mx_construct_interface_field( void *dataptr,
 static mx_status_type
 mx_compute_static_subarray_size( void *array_ptr,
 		long dimension_level,
-		MX_RECORD *record,
 		MX_RECORD_FIELD *field,
 		size_t *subarray_size )
 {
@@ -1684,11 +1683,10 @@ mx_compute_static_subarray_size( void *array_ptr,
 
 	num_dimensions = field->num_dimensions;
 
-#if 0
+#if 1
 	MX_DEBUG( 8,("%s: array_ptr = %p, dimension_level = %ld",
 		fname, array_ptr, dimension_level));
-	MX_DEBUG( 8,("%s: record = '%s', field = '%s'",
-		fname, record->name, field->name));
+	MX_DEBUG( 8,("%s: field = '%s'", fname, field->name));
 
 	for ( i = 0; i < num_dimensions; i++ ) {
 	    MX_DEBUG( 8,("%s: dimension[%ld] = %ld, element_size[%ld] = %ld",
@@ -1857,8 +1855,7 @@ mx_parse_array_description( void *array_ptr,
 
 		} else {
 			status = mx_compute_static_subarray_size( array_ptr,
-				dimension_level, record, field,
-				&subarray_size );
+				dimension_level, field, &subarray_size );
 
 			if ( status.code != MXE_SUCCESS )
 				return status;
@@ -2824,8 +2821,7 @@ mx_create_array_description( void *array_ptr,
 
 		} else {
 			status = mx_compute_static_subarray_size( array_ptr,
-				dimension_level, record, field,
-				&subarray_size );
+				dimension_level, field, &subarray_size );
 
 			if ( status.code != MXE_SUCCESS )
 				return status;
@@ -3437,10 +3433,12 @@ mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD_FIELD pointer passed is NULL." );
 	}
+#if 0
 	if ( dimension == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"dimension array pointer passed is NULL." );
 	}
+#endif
 	if ( data_element_size == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"data_element_size array pointer passed is NULL." );
@@ -3481,6 +3479,9 @@ mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 /* mx_traverse_field() is used to walk through all the array levels of
  * the data managed by an MX_RECORD_FIELD and apply a handler function
  * to the data at each level.
+ *
+ * Please note that the MX_RECORD pointer may be NULL under certain
+ * circumstances.  For example, the Python wrapper Mp does this.
  */
 
 MX_EXPORT mx_status_type
@@ -3531,8 +3532,8 @@ mx_traverse_field( MX_RECORD *record,
 
 	if ( dimension_level < 0 ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"Illegal number of dimensions %ld for field '%s' in record '%s'",
-			dimension_level, field->name, record->name );
+	"Illegal number of dimensions %ld for field '%s'",
+			dimension_level, field->name );
 	}
 
 	/* At some arbitrary level in traversing the field data, the
@@ -3559,8 +3560,7 @@ mx_traverse_field( MX_RECORD *record,
 	  || (( field->datatype == MXFT_STRING ) && ( dimension_level == 1 )))
 	{
 		MX_DEBUG( 4,("ROUTE *, ROUTE *, ROUTE *, ROUTE *, ROUTE *"));
-		MX_DEBUG( 4,("ROUTE *, record = '%s', field = '%s'",
-				record->name, field->name));
+		MX_DEBUG( 4,("ROUTE *, field = '%s'", field->name));
 
 		status = (*handler_fn)( record,
 				field,
@@ -3573,8 +3573,7 @@ mx_traverse_field( MX_RECORD *record,
 			return status;
 	} else {
 		MX_DEBUG( 4,("ROUTE 0, ROUTE 0, ROUTE 0, ROUTE 0, ROUTE 0"));
-		MX_DEBUG( 4,("ROUTE 0, record = '%s', field = '%s'",
-				record->name, field->name));
+		MX_DEBUG( 4,("ROUTE 0, field = '%s'", field->name));
 
 		status = (*handler_fn)( record,
 				field,
@@ -3627,9 +3626,8 @@ mx_traverse_field_array( MX_RECORD *record,
 	("====== mx_traverse_field_array(), dimension_level = %ld  ======",
 		dimension_level));
 
-	MX_DEBUG( 8,
-	("Record '%s', field '%s', dimension level = %ld, num_dimensions = %ld",
-		record->name, field->name, dimension_level,
+	MX_DEBUG( 8,("Field '%s', dimension level = %ld, num_dimensions = %ld",
+		field->name, dimension_level,
 		field->num_dimensions));
 
 	if ( field->flags & MXFF_VARARGS ) {
@@ -3757,8 +3755,7 @@ mx_traverse_field_array( MX_RECORD *record,
 			row_ptr_step_size = (long) dimension_element_size;
 		} else {
 			status = mx_compute_static_subarray_size( array_ptr,
-				dimension_level, record, field,
-				&subarray_size );
+				dimension_level, field, &subarray_size );
 
 			if ( status.code != MXE_SUCCESS )
 				return status;
@@ -3859,10 +3856,6 @@ mx_create_field_from_description( MX_RECORD *record,
 
 	static char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
 	if ( record_field == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD_FIELD pointer passed was NULL." );
@@ -3945,20 +3938,15 @@ mx_create_description_from_field( MX_RECORD *record,
 
 	MX_DEBUG( 2,("%s invoked.", fname));
 
-	MX_DEBUG( 2,("%s: record = %p, record_field = %p, buffer = %p",
-		fname, record, record_field, field_description_buffer));
+	MX_DEBUG( 2,("%s: record_field = %p, buffer = %p",
+		fname, record_field, field_description_buffer));
 
-	if ( record == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_RECORD pointer passed was NULL." );
-	}
 	if ( record_field == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
-	MX_DEBUG( 2,("%s: record '%s', field '%s': ",
-		fname, record->name, record_field->name ));
+	MX_DEBUG( 2,("%s: field '%s': ", fname, record_field->name ));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
 		pointer_to_value
