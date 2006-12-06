@@ -227,6 +227,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->flood_field_frame_buffer = NULL;
 	ad->flood_field_filename[0] = '\0';
 
+	strlcpy(ad->image_format_name, "DEFAULT", MXU_IMAGE_FORMAT_NAME_LENGTH);
+
 	mx_status = mx_image_get_format_type_from_name(
 			ad->image_format_name, &(ad->image_format) );
 
