@@ -932,7 +932,7 @@ mx_internal_get_array( MX_RECORD *server_record,
 	 * mx_get_field_array().
 	 */
 
-	mx_status = mx_construct_temp_record_field( &local_temp_record_field,
+	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
 			datatype, num_dimensions, dimension_array,
 			data_element_size, value_ptr );
 
@@ -990,7 +990,7 @@ mx_internal_put_array( MX_RECORD *server_record,
 	 * mx_put_field_array().
 	 */
 
-	mx_status = mx_construct_temp_record_field( &local_temp_record_field,
+	mx_status = mx_initialize_temp_record_field( &local_temp_record_field,
 			datatype, num_dimensions, dimension_array,
 			data_element_size, value_ptr );
 

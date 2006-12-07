@@ -3416,14 +3416,16 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 }
 
 MX_EXPORT mx_status_type
-mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
+mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 			long datatype,
 			long num_dimensions,
 			long *dimension,
 			size_t *data_element_size,
 			void *value_ptr )
 {
-	static const char fname[] = "mx_construct_temp_record_field()";
+	static const char fname[] = "mx_initialize_temp_record_field()";
+
+	static char temp_field_name[] = "temp_field";
 
 	size_t *sizeof_array;
 	long i;
@@ -3445,7 +3447,7 @@ mx_construct_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	}
 	temp_record_field->label_value = 0;
 	temp_record_field->field_number = 0;
-	temp_record_field->name = NULL;
+	temp_record_field->name = temp_field_name;
 	temp_record_field->datatype = datatype;
 	temp_record_field->typeinfo = NULL;
 	temp_record_field->num_dimensions = num_dimensions;

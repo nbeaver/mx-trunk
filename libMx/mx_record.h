@@ -697,7 +697,7 @@ MX_API mx_status_type  mx_get_datatype_sizeof_array( long datatype,
 
 /* --- */
 
-MX_API_PRIVATE mx_status_type  mx_construct_temp_record_field(
+MX_API_PRIVATE mx_status_type  mx_initialize_temp_record_field(
 					MX_RECORD_FIELD *temp_record_field,
 					long datatype,
 					long num_dimensions,
