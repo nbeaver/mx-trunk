@@ -3370,6 +3370,8 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 	static size_t float_sizeof[MXU_FIELD_MAX_DIMENSIONS] = MXA_FLOAT_SIZEOF;
 	static size_t double_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_DOUBLE_SIZEOF;
+	static size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_RECORD_SIZEOF;
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -3408,6 +3410,9 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		break;
 	case MXFT_DOUBLE:
 		*sizeof_array = double_sizeof;
+		break;
+	case MXFT_RECORD:
+		*sizeof_array = record_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
