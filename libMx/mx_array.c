@@ -28,6 +28,17 @@
 #  include "mx_xdr.h"
 #endif
 
+/*
+ * Re: definition of ADD_STRING_BYTE
+ *
+ * You should _not_ add an extra byte to string fields since it makes all
+ * of the length calculations more difficult.  In particular, it makes
+ * calculation of the string length in Python more awkward.  If you want
+ * an extra byte, make the original string buffer longer.
+ */
+
+#define ADD_STRING_BYTE    FALSE
+
 MX_EXPORT void *
 mx_allocate_array( long num_dimensions,
 		long *dimension_array,
@@ -650,9 +661,12 @@ mx_copy_array_to_buffer( void *array_pointer,
 
 		bytes_to_copy = dimension_array[0] * data_element_size_array[0];
 
+#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
+
 		if ( mx_datatype == MXFT_STRING ) {
 			bytes_to_copy++;
 		}
+#endif
 
 		if ( bytes_to_copy > destination_buffer_length ) {
 			if ( num_bytes_copied != NULL ) {
@@ -923,9 +937,12 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 		bytes_to_copy = source_buffer_length;
 
+#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
+
 		if ( mx_datatype == MXFT_STRING ) {
 			bytes_to_copy++;
 		}
+#endif
 
 		if ( bytes_to_copy > array_size ) {
 			bytes_to_copy = array_size;
@@ -988,7 +1005,7 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 
 	if ( array_size > source_buffer_length ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-			"The %ld-dimensional of size %ld bytes is larger "
+			"The %ld-dimensional array of size %ld bytes is larger "
 			"than the source buffer of %ld bytes.",
 				num_dimensions,
 				(long) array_size,
@@ -1359,6 +1376,8 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		xdr_array_size = dimension_array[0] 
 				* mxp_xdr_get_scalar_element_size(mx_datatype);
 
+#if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
+
 		if ( mx_datatype == MXFT_STRING ) {
 			/* Add one byte for the string terminator. */
 
@@ -1368,6 +1387,12 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 		} else {
 			num_array_elements = (u_int) (dimension_array[0]);
 		}
+
+#else /* not ADD_STRING_BYTE */
+
+		num_array_elements = (u_int) (dimension_array[0]);
+
+#endif /* not ADD_STRING_BYTE */
 
 		xdr_array_size += 4;   /* Add space for the length field. */
 
