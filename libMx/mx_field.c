@@ -3394,6 +3394,7 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		*sizeof_array = long_sizeof;
 		break;
 	case MXFT_ULONG:
+	case MXFT_HEX:
 		*sizeof_array = ulong_sizeof;
 		break;
 	case MXFT_INT64:
