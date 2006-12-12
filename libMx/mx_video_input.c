@@ -828,7 +828,7 @@ mx_video_input_get_external_trigger_polarity( MX_RECORD *record,
 		get_parameter_fn = mx_video_input_default_get_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_PIXEL_CLOCK_FREQUENCY;
+	vinput->parameter_type = MXLV_VIN_EXTERNAL_TRIGGER_POLARITY;
 
 	mx_status = (*get_parameter_fn)( vinput );
 
@@ -865,7 +865,7 @@ mx_video_input_set_external_trigger_polarity( MX_RECORD *record,
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_PIXEL_CLOCK_FREQUENCY;
+	vinput->parameter_type = MXLV_VIN_EXTERNAL_TRIGGER_POLARITY;
 
 	vinput->external_trigger_polarity = external_trigger_polarity;
 
@@ -897,7 +897,7 @@ mx_video_input_get_camera_trigger_polarity( MX_RECORD *record,
 		get_parameter_fn = mx_video_input_default_get_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_PIXEL_CLOCK_FREQUENCY;
+	vinput->parameter_type = MXLV_VIN_CAMERA_TRIGGER_POLARITY;
 
 	mx_status = (*get_parameter_fn)( vinput );
 
@@ -934,7 +934,7 @@ mx_video_input_set_camera_trigger_polarity( MX_RECORD *record,
 		set_parameter_fn = mx_video_input_default_set_parameter_handler;
 	}
 
-	vinput->parameter_type = MXLV_VIN_PIXEL_CLOCK_FREQUENCY;
+	vinput->parameter_type = MXLV_VIN_CAMERA_TRIGGER_POLARITY;
 
 	vinput->camera_trigger_polarity = camera_trigger_polarity;
 

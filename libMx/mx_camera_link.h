@@ -21,7 +21,7 @@
 
 /* Here we decide whether or not Camera Link is available on this platform. */
 
-#if HAVE_EPIX_XCLIB
+#if ( HAVE_EPIX_XCLIB || HAVE_EDT )
 #  define HAVE_CAMERA_LINK	TRUE
 
    /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */

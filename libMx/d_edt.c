@@ -161,7 +161,9 @@ mxd_edt_open( MX_RECORD *record )
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	MX_RECORD *edt_record;
 	MX_EDT *edt;
-	int edt_status;
+	uint_t reg_value;
+	unsigned int buffer_size;
+	int i, edt_status, timeout;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -197,6 +199,8 @@ mxd_edt_open( MX_RECORD *record )
 			edt_record->name, record->name );
 	}
 
+	/* Connect to the EDT imaging board. */
+
 	edt_vinput->pdv_p = pdv_open_channel( edt->device_name,
 					edt_vinput->unit_number,
 					edt_vinput->channel_number );
@@ -209,20 +213,121 @@ mxd_edt_open( MX_RECORD *record )
 	}
 
 #if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: EDT board id = %#x",
+		fname, edt_vinput->pdv_p->devid));
+
 	MX_DEBUG(-2,("%s: EDT camera type = '%s'.",
 		fname, pdv_get_cameratype( edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: EDT firmware revision = %#x",
+		fname, edt_reg_read( edt_vinput->pdv_p, PDV_REV ) ));
+
+	MX_DEBUG(-2,("%s: EDT data path register = %#x",
+		fname, edt_reg_read( edt_vinput->pdv_p, PDV_DATA_PATH ) ));
+
+	MX_DEBUG(-2,("%s: EDT utility register = %#x",
+		fname, edt_reg_read( edt_vinput->pdv_p, PDV_UTILITY ) ));
+
+	MX_DEBUG(-2,("%s: EDT utility 2 register = %#x",
+		fname, edt_reg_read( edt_vinput->pdv_p, PDV_UTIL2 ) ));
 #endif
+	/* Check to see if this is a Camera Link board. */
+
+	if ( edt_vinput->pdv_p->devid == PDVCL_ID ) {
+
+#if MXD_EDT_DEBUG
+		MX_DEBUG(-2,("%s: EDT board '%s' is a Camera Link board.",
+			fname, record->name ));
+#endif
+		/* If this is a Camera Link board, make sure that the
+		 * EXPOSE signal is tied to CC1.
+		 */
+
+		reg_value = edt_reg_read( edt_vinput->pdv_p, PDV_MODE_CNTL );
+
+#if MXD_EDT_DEBUG
+		MX_DEBUG(-2,("%s: Mode control register = %#x",
+			fname, reg_value));
+#endif
+
+
+		/* Check to see if we have been asked to invert
+		 * the EXPOSE signal to the camera.
+		 */
+
+#if MXD_EDT_DEBUG
+		MX_DEBUG(-2,("%s: Inverting EXPOSE signal for EDT board '%s'",
+				fname, record->name ));
+#endif
+		reg_value = edt_reg_read(edt_vinput->pdv_p, PDV_UTIL3 );
+
+#if MXD_EDT_DEBUG
+		MX_DEBUG(-2,("%s: Utility 3 register (before) = %#x",
+						fname, reg_value));
+#endif
+		reg_value &= ~0x1;    /* Mask off the low order PTRIGINV bit. */
+
+		if ( edt_vinput->edt_flags == MXF_EDT_INVERT_EXPOSE_SIGNAL ) {
+			reg_value |= 0x1;
+		}
+
+		edt_reg_write( edt_vinput->pdv_p, PDV_UTIL3, reg_value );
+
+#if MXD_EDT_DEBUG
+		MX_DEBUG(-2,("%s: Utility 3 register (after) = %#x",
+						fname, reg_value));
+#endif
+	}
+
+	/* Set timeout to 5 seconds. */
+
+	timeout = 5000;
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: Setting timeout to %d milliseconds",
+		fname, timeout));
+#endif
+
+	edt_status = pdv_set_timeout( edt_vinput->pdv_p, 5000 );
+
+	if ( edt_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to allocate %lu frame buffers for "
+			"EDT video input '%s' failed.  "
+			"Errno = %u, error = '%s'.",
+				edt_vinput->maximum_num_frames, record->name,
+				edt_errno(), strerror( edt_errno() ) );
+	}
+
 	/* Allocate frame buffer space. */
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: About to allocate %ld frames with pdv_multibuf()",
+		fname, edt_vinput->maximum_num_frames));
+#endif
 
 	edt_status = pdv_multibuf( edt_vinput->pdv_p,
 					edt_vinput->maximum_num_frames );
 
 	if ( edt_status != 0 ) {
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"The attempt to allocate %lu frame buffers for "
-		"EDT video input '%s' failed.  Errno = %u, error = '%s'.",
-			edt_vinput->maximum_num_frames, record->name,
-			edt_errno(), strerror( edt_errno() ) );
+		if ( edt_errno() == 0 ) {
+			mx_warning("edt_status = %d, but edt_errno() = %d",
+				edt_status, edt_errno() );
+		} else {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to allocate %lu frame buffers for "
+			"EDT video input '%s' failed.  "
+			"Errno = %u, error = '%s'.",
+				edt_vinput->maximum_num_frames, record->name,
+				edt_errno(), strerror( edt_errno() ) );
+		}
+	}
+
+	for ( i = 0; i < edt_vinput->maximum_num_frames; i++ ) {
+		buffer_size = edt_allocated_size( edt_vinput->pdv_p, i );
+
+		MX_DEBUG(-2,("%s: buffer[%d] allocated size = %u bytes.",
+			fname, i, buffer_size));
 	}
 
 	/* Initialize a bunch of driver parameters. */
@@ -479,6 +584,12 @@ mxd_edt_trigger( MX_VIDEO_INPUT *vinput )
 
 	milliseconds = mx_round( 1000.0 * exposure_time );
 
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,
+	("%s: Setting exposure to %u milliseconds using pdv_set_exposure()",
+		fname, milliseconds ));
+#endif
+
 	edt_status = pdv_set_exposure( edt_vinput->pdv_p, milliseconds );
 
 	if ( edt_status != 0 ) {
@@ -489,13 +600,17 @@ mxd_edt_trigger( MX_VIDEO_INPUT *vinput )
 			edt_errno(), strerror( edt_errno() ) );
 	}
 
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: About to trigger using pdv_start_images()", fname ));
+#endif
+
 	/* Start the actual data acquisition. */
 
 	pdv_start_images( edt_vinput->pdv_p, num_frames );
 
 #if MXD_EDT_DEBUG
-	MX_DEBUG(-2,("%s: Started taking frame(s) using video input '%s'.",
-		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: Started taking %d frame(s) using video input '%s'.",
+		fname, num_frames, vinput->record->name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -559,6 +674,14 @@ mxd_edt_busy( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: edt_done_count() = %ld",
+		fname, (long) edt_done_count(edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: EDT status register = %#x",
+		fname, edt_reg_read( edt_vinput->pdv_p, PDV_STAT ) ));
+#endif
+
 	busy = FALSE;		/* FIXME!!! */
 
 	if ( busy ) {
@@ -608,6 +731,7 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	MX_IMAGE_FRAME *frame;
+	unsigned char *image_data;
 	mx_status_type mx_status;
 
 	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
@@ -625,9 +749,33 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 #if MXD_EDT_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
+
+	MX_DEBUG(-2,("%s: pdv_get_timeout = %d",
+		fname, pdv_get_timeout(edt_vinput->pdv_p) ));
+
+	MX_DEBUG(-2,("%s: About to call pdv_wait_image()", fname));
 #endif
 
-	MX_DEBUG(-2,("%s: FIXME! - Frame readout not yet implemented.",fname));
+	image_data = pdv_wait_image( edt_vinput->pdv_p );
+
+	if ( image_data == NULL ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"No image data was returned by pdv_wait_image()");
+	}
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: Copying a %lu byte image frame.",
+			fname, (unsigned long) frame->image_length));
+#endif
+
+	memcpy( frame->image_data, image_data, frame->image_length );
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: Frame successfully copied.", fname));
+
+	MX_DEBUG(-2,("%s: edt_done_count() = %ld",
+		fname, (long) edt_done_count( edt_vinput->pdv_p ) ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -720,9 +868,7 @@ mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput )
 		vinput->framesize[1] = pdv_get_height( edt_vinput->pdv_p );
 		break;
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		return mx_video_input_default_get_parameter_handler( vinput );
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -793,9 +939,7 @@ mxd_edt_set_parameter( MX_VIDEO_INPUT *vinput )
 		break;
 
 	default:
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Parameter type %ld not yet implemented for record '%s'.",
-			vinput->parameter_type, vinput->record->name );
+		return mx_video_input_default_set_parameter_handler( vinput );
 	}
 
 	return MX_SUCCESSFUL_RESULT;

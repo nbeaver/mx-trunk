@@ -19,6 +19,8 @@
 
 /* Flag values for the 'edt_flags' field. */
 
+#define MXF_EDT_INVERT_EXPOSE_SIGNAL	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
