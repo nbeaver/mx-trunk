@@ -1,0 +1,4 @@
+@echo off
+
+..\..\motor\motor -F mpccd_170170_edt.dat -s spccd_170170.dat %1 %2 %3 %4 %5 %6 %7 %8 %9
+

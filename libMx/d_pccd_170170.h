@@ -17,14 +17,23 @@
 #ifndef __D_PCCD_170170_H__
 #define __D_PCCD_170170_H__
 
+/* Values for 'pccd_170170_flags'. */
+
+#define MXF_PCCD_170170_USE_SIMULATOR	0x1
+
 typedef struct {
 	MX_RECORD *record;
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *camera_link_record;
 	unsigned long initial_trigger_mode;
+	unsigned long pccd_170170_flags;
+
+	MX_IMAGE_FRAME *raw_frame;
 } MX_PCCD_170170;
 
+#define MXF_PCCD_170170_HORIZ_SCALE	4
+#define MXF_PCCD_170170_VERT_SCALE	4
 
 #define MXD_PCCD_170170_STANDARD_FIELDS \
   {-1, -1, "video_input_record", MXFT_RECORD, NULL, 0, {0}, \
@@ -37,6 +46,10 @@ typedef struct {
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, initial_trigger_mode), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "pccd_170170_flags", MXFT_HEX, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, pccd_170170_flags), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxd_pccd_170170_initialize_type( long record_type );
@@ -44,6 +57,7 @@ MX_API mx_status_type mxd_pccd_170170_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_finish_record_initialization(
 							MX_RECORD *record );
+MX_API mx_status_type mxd_pccd_170170_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_open( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_close( MX_RECORD *record );
 

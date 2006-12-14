@@ -447,6 +447,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
 	double trigger_time, frame_time;
+	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
 	mx_status_type mx_status;
@@ -546,15 +547,23 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
-	/* Configure the EXSYNC and PRINC registers with
-	 * continuous select (CNTS) and trigger input select (TIS)
-	 * both set to TRUE.
+	/* Configure the EXSYNC and PRINC registers with trigger input
+	 * select (TIS) set to TRUE for all sequence types.  Continuous
+	 * select (CNTS) is set to FALSE for one-shot mode and to TRUE
+	 * for all other modes.
 	 */
+
+	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+		continuous_select = FALSE;
+	} else {
+		continuous_select = TRUE;
+	}
 
 	mx_status = mxd_epix_xclib_set_exsync_princ( vinput, epix_xclib_vinput,
 							trigger_time,
 							frame_time,
-							TRUE, TRUE );
+							continuous_select,
+							TRUE );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
@@ -672,11 +681,24 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	}
 
 	if ( frame_time >= 0.0 ) {
+		/* Configure the EXSYNC and PRINC registers with trigger
+		 * input select (TIS) set to FALSE for all sequence types.
+		 * Continuous select (CNTS) is set to FALSE for one-shot
+		 * mode and to TRUE for all other modes.
+		 */
+
+		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+			continuous_select = FALSE;
+		} else {
+			continuous_select = TRUE;
+		}
+
 		mx_status = mxd_epix_xclib_set_exsync_princ(
 						vinput, epix_xclib_vinput,
 							trigger_time,
 							frame_time,
-							TRUE, FALSE );
+							continuous_select,
+							FALSE );
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}

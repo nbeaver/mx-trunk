@@ -249,7 +249,7 @@ typedef struct {
   \
   {MXLV_AD_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, framesize), \
-	{sizeof(long)}, NULL, 0}, \
+	{sizeof(long)}, NULL, MXFF_IN_SUMMARY}, \
   \
   {MXLV_AD_BINSIZE, -1, "binsize", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, binsize), \

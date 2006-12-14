@@ -35,7 +35,7 @@ MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	mxd_pccd_170170_initialize_type,
 	mxd_pccd_170170_create_record_structures,
 	mxd_pccd_170170_finish_record_initialization,
-	NULL,
+	mxd_pccd_170170_delete_record,
 	NULL,
 	NULL,
 	NULL,
@@ -106,6 +106,16 @@ mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxd_pccd_170170_descramble_image( MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *raw_frame )
+{
+	static const char fname[] = "mxd_pccd_170170_descramble_image()";
+
+	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Image descrambling is not yet implemented." );
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -168,13 +178,12 @@ mxd_pccd_170170_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_pccd_170170_open( MX_RECORD *record )
+mxd_pccd_170170_delete_record( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_pccd_170170_open()";
+	static const char fname[] = "mxd_pccd_170170_delete_record()";
 
 	MX_AREA_DETECTOR *ad;
 	MX_PCCD_170170 *pccd_170170;
-	MX_RECORD *video_input_record;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -184,8 +193,49 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
 
-	mx_status = mxd_pccd_170170_get_pointers( ad,
-						&pccd_170170, fname );
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( pccd_170170 != NULL ) {
+		if ( pccd_170170->raw_frame != NULL ) {
+			mx_free( pccd_170170->raw_frame );
+		}
+		mx_free( pccd_170170 );
+	}
+
+	if ( ad != NULL ) {
+		mx_free( ad );
+	}
+
+	if ( record != NULL ) {
+		mx_free( record );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pccd_170170_open( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_pccd_170170_open()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_PCCD_170170 *pccd_170170;
+	MX_RECORD *video_input_record;
+	long vinput_framesize[2];
+	unsigned long flags;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -193,6 +243,14 @@ mxd_pccd_170170_open( MX_RECORD *record )
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+
+	flags = pccd_170170->pccd_170170_flags;
+
+	if ( flags & MXF_PCCD_170170_USE_SIMULATOR ) {
+		mx_warning( "Area detector '%s' will use "
+				"a camera simulator instead of a real camera.",
+				record->name );
+	}
 
 	video_input_record = pccd_170170->video_input_record;
 
@@ -207,16 +265,34 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	ad->sequence_parameters.num_parameters = 1;
 	ad->sequence_parameters.parameter_array[0] = 1.0;
 
-	/* Set the maximum framesize to the initial framesize of the
-	 * video input.
+	/* Get the video input's current framesize, which will be used
+	 * to compute the area detector's maximum framesize.
 	 */
 
 	mx_status = mx_video_input_get_framesize( video_input_record,
-					&(ad->maximum_framesize[0]),
-					&(ad->maximum_framesize[1]) );
+					&vinput_framesize[0],
+					&vinput_framesize[1] );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* At maximum resolution, the Aviex camera is configured such that
+	 * each line contains 1024 groups of pixels, with 16 pixels per group.
+	 * There are a total of 1024 lines.  This means that at maximum
+	 * resolution, the video input is configured for a resolution
+	 * of 16384 by 1024.  However, we want this to appear to the user
+	 * to have a resolution of 4096 by 4096.  Thus we must rescale the
+	 * resolution as reported by the video card by multiplying and
+	 * dividing by appropriate factors of 4.
+	 */
+
+	ad->maximum_framesize[0] =
+		vinput_framesize[0] / MXF_PCCD_170170_HORIZ_SCALE;
+
+	ad->maximum_framesize[1] =
+		vinput_framesize[1] * MXF_PCCD_170170_VERT_SCALE;
+
+	/* Copy the maximum framesize to the current framesize. */
 
 	ad->framesize[0] = ad->maximum_framesize[0];
 	ad->framesize[1] = ad->maximum_framesize[1];
@@ -258,6 +334,58 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Load the image correction files. */
 
 	mx_status = mx_area_detector_load_correction_files( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize area detector parameters. */
+
+	ad->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	ad->header_length = 0;
+
+	mx_status = mx_area_detector_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Allocate space for a raw frame buffer.  This buffer will be used to
+	 * read in the raw pixels from the imaging board before descrambling.
+	 */
+
+#if 1
+	MX_DEBUG(-2,("%s: Before final call to mx_image_alloc()", fname));
+
+	MX_DEBUG(-2,("%s: &(pccd_170170->raw_frame) = %p",
+			fname, &(pccd_170170->raw_frame) ));
+
+	MX_DEBUG(-2,("%s: vinput_framesize = (%lu,%lu)",
+			fname, vinput_framesize[0], vinput_framesize[1]));
+
+	MX_DEBUG(-2,("%s: image_format = %ld", fname, ad->image_format ));
+	MX_DEBUG(-2,("%s: pixel_order = %ld", fname, ad->pixel_order ));
+	MX_DEBUG(-2,("%s: bytes_per_pixel = %g", fname, ad->bytes_per_pixel));
+	MX_DEBUG(-2,("%s: header_length = %ld", fname, ad->header_length));
+	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
+#endif
+
+	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
+					MXT_IMAGE_LOCAL_1D_ARRAY,
+					vinput_framesize,
+					ad->image_format,
+					ad->pixel_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -432,6 +560,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_readout_frame()";
 
 	MX_PCCD_170170 *pccd_170170;
+	unsigned long flags;
+	size_t bytes_to_copy, raw_frame_length, image_length;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -444,9 +574,55 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
+#if 0
 	mx_status = mx_video_input_get_frame(
 		pccd_170170->video_input_record,
 		ad->readout_frame, &(ad->image_frame) );
+#else
+	/* Read in the raw image frame. */
+
+	mx_status = mx_video_input_get_frame(
+		pccd_170170->video_input_record,
+		ad->readout_frame, &(pccd_170170->raw_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If required, we now descramble the image. */
+
+	flags = pccd_170170->pccd_170170_flags;
+
+	if ( flags & MXF_PCCD_170170_USE_SIMULATOR ) {
+		/* If we are using the camera simulator board, the data
+		 * stream coming in is not scrambled, so we just copy
+		 * directly from the raw frame to the image frame.
+		 */
+
+		raw_frame_length = pccd_170170->raw_frame->image_length;
+
+		image_length = ad->image_frame->image_length;
+
+		if ( raw_frame_length < image_length ) {
+			bytes_to_copy = raw_frame_length;
+		} else {
+			bytes_to_copy = image_length;
+		}
+
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,
+	    ("%s: Copying camera simulator image.  Image length = %lu bytes.",
+			fname, bytes_to_copy ));
+#endif
+		memcpy( ad->image_frame->image_data,
+			pccd_170170->raw_frame->image_data,
+			bytes_to_copy );
+	} else {
+		/* Descramble the image. */
+
+		mx_status = mxd_pccd_170170_descramble_image( ad->image_frame,
+						       pccd_170170->raw_frame );
+	}
+#endif
 
 	return mx_status;
 }
@@ -458,6 +634,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
+	long vinput_horiz_framesize, vinput_vert_framesize;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -474,7 +651,21 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 		mx_status = mx_video_input_get_framesize( video_input_record,
-				&(ad->framesize[0]), &(ad->framesize[1]) );
+			     &vinput_horiz_framesize, &vinput_vert_framesize );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* See the comments about the Aviex camera in the function
+		 * mxd_pccd_170170_open() for the explanation of where the
+		 * factors of 4 come from.
+		 */
+
+		ad->framesize[0] = 
+			vinput_horiz_framesize / MXF_PCCD_170170_HORIZ_SCALE;
+
+		ad->framesize[1] =
+			vinput_vert_framesize * MXF_PCCD_170170_VERT_SCALE;
 		break;
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
@@ -546,6 +737,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_set_parameter()";
 
 	MX_PCCD_170170 *pccd_170170;
+	long vinput_horiz_framesize, vinput_vert_framesize;
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
@@ -575,9 +767,21 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Tell the video input to change its framesize. */
 
+		/* See the comments about the Aviex camera in the function
+		 * mxd_pccd_170170_open() for the explanation of where the
+		 * factors of 4 come from.
+		 */
+
+		vinput_horiz_framesize =
+			ad->framesize[0] * MXF_PCCD_170170_HORIZ_SCALE;
+
+		vinput_vert_framesize =
+			ad->framesize[1] / MXF_PCCD_170170_VERT_SCALE;
+
 		mx_status = mx_video_input_set_framesize(
 					pccd_170170->video_input_record,
-					ad->framesize[0], ad->framesize[1] );
+					vinput_horiz_framesize,
+					vinput_vert_framesize );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

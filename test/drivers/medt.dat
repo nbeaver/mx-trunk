@@ -1,0 +1,2 @@
+edt   interface generic edt "" "" pdv
+video device video_input edt_video_input "" "" 4096 4096 grey16 -1 edt 0 1 0x1 4
