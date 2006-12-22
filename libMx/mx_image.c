@@ -303,11 +303,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			"a new MX_IMAGE_FRAME structure." );
 		}
 
-		(*frame)->header_length = 0;
-		(*frame)->header_data = NULL;
-
-		(*frame)->image_length = 0;
-		(*frame)->image_data = NULL;
+		memset( *frame, 0, sizeof(MX_IMAGE_FRAME) );
 	}
 
 	/* Fill in some parameters. */
@@ -454,7 +450,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 #endif
 	}
 
-#if 1  /* FIXME!!! - This should not be present in the final version. */
+#if 0  /* FIXME!!! - This should not be present in the final version. */
 	memset( (*frame)->image_data, 0, 50 );
 #endif
 
