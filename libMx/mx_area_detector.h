@@ -380,6 +380,10 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, correction_flags), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_TRANSFER_FRAME, -1, "transfer_frame", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, transfer_frame), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_AD_LOAD_FRAME, -1, "load_frame", MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, load_frame), \
 	{0}, NULL, 0}, \
@@ -727,8 +731,8 @@ MX_API mx_status_type mx_area_detector_save_frame( MX_RECORD *ad_record,
 						char *frame_filename );
 
 MX_API mx_status_type mx_area_detector_copy_frame( MX_RECORD *ad_record,
-						long source_frame_type,
-						long destination_frame_type );
+						long destination_frame_type,
+						long source_frame_type );
 /*---*/
 
 MX_API mx_status_type mx_area_detector_get_frame( MX_RECORD *ad_record,

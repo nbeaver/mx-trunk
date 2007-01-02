@@ -2372,8 +2372,8 @@ mx_area_detector_save_frame( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_area_detector_copy_frame( MX_RECORD *record,
-				long source_frame_type,
-				long destination_frame_type )
+				long destination_frame_type,
+				long source_frame_type )
 {
 	static const char fname[] = "mx_area_detector_copy_frame()";
 
@@ -2393,9 +2393,9 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 		copy_frame_fn = mx_area_detector_default_copy_frame;
 	}
 
-	ad->copy_frame[0] = source_frame_type & MXFT_AD_ALL;
+	ad->copy_frame[0] = destination_frame_type & MXFT_AD_ALL;
 
-	ad->copy_frame[1] = destination_frame_type & MXFT_AD_ALL;
+	ad->copy_frame[1] = source_frame_type & MXFT_AD_ALL;
 
 	mx_status = (*copy_frame_fn)( ad );
 
@@ -2893,6 +2893,9 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mx_area_detector_default_transfer_frame()";
 
+	MX_IMAGE_FRAME *destination_frame, *source_frame;
+	mx_status_type mx_status;
+
 	if ( ad->transfer_frame == MXFT_AD_IMAGE_FRAME ) {
 
 		/* The image frame should already be in the right place,
@@ -2902,9 +2905,37 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-			"Frame operation %#lx is not yet implemented.",
-			ad->transfer_frame );
+	destination_frame = ad->image_frame;
+
+	switch( ad->transfer_frame ) {
+	case MXFT_AD_MASK_FRAME:
+		source_frame = ad->mask_frame;
+		break;
+	case MXFT_AD_BIAS_FRAME:
+		source_frame = ad->bias_frame;
+		break;
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		source_frame = ad->dark_current_frame;
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		source_frame = ad->flood_field_frame;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Frame type %lx is not supported for frame transfer.",
+				ad->transfer_frame );
+		break;
+	}
+
+	if ( source_frame == NULL ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+"An image frame of type %#lx has not been configured for area detector '%s'.",
+			ad->transfer_frame, ad->record->name );
+	}
+
+	mx_status = mx_image_copy_frame( &destination_frame, source_frame );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

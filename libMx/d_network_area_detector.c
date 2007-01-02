@@ -816,6 +816,14 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Tell the server to copy the frame to the image frame buffer. */
+
+	mx_status = mx_put( &(network_area_detector->transfer_frame_nf),
+				MXFT_LONG, &(ad->transfer_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Ask for the bytes per pixel of the image. */
 
 	mx_status = mx_get( &(network_area_detector->bytes_per_pixel_nf),

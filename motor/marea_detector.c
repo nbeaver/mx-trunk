@@ -118,7 +118,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "\n"
 "  area_detector 'name' load frame 'frame_type' 'filename'\n"
 "  area_detector 'name' save frame 'frame_type' 'filename'\n"
-"  area_detector 'name' copy frame 'src_frame_type' 'dest_frame_type'\n"
+"  area_detector 'name' copy frame 'dest_frame_type' 'src_frame_type'\n"
 "\n"
 "  area_detector 'name' measure dark_current 'measurement_time' '# measurements'\n"
 "  area_detector 'name' measure flood_field 'measurement_time' '# measurements'\n";
@@ -590,28 +590,28 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		src_frame_type = strtol( argv[5], &endptr, 0 );
+		dest_frame_type = strtol( argv[5], &endptr, 0 );
 
 		if ( *endptr != '\0' ) {
 			fprintf( output,
-		"%s: Non-numeric characters found in source frame type '%s'\n",
+	"%s: Non-numeric characters found in destination frame type '%s'\n",
 				cname, argv[5] );
 
 			return FAILURE;
 		}
 
-		dest_frame_type = strtol( argv[6], &endptr, 0 );
+		src_frame_type = strtol( argv[6], &endptr, 0 );
 
 		if ( *endptr != '\0' ) {
 			fprintf( output,
-	"%s: Non-numeric characters found in destination frame type '%s'\n",
+		"%s: Non-numeric characters found in source frame type '%s'\n",
 				cname, argv[6] );
 
 			return FAILURE;
 		}
 
 		mx_status = mx_area_detector_copy_frame( ad_record,
-					src_frame_type, dest_frame_type );
+					dest_frame_type, src_frame_type );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
