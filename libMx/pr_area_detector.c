@@ -211,8 +211,8 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_FRAME_FILENAME:
 		case MXLV_AD_SEQUENCE_TYPE:
 		case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
-		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 #endif
+		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
 			record_field->process_function
 					= mx_area_detector_process_function;
 			break;
@@ -485,7 +485,9 @@ mx_area_detector_process_function( void *record_ptr,
 			MX_DEBUG(-2,("%s: num_parameters = %ld",
 				fname, ad->sequence_parameters.num_parameters));
 			break;
+#endif
 		case MXLV_AD_SEQUENCE_PARAMETER_ARRAY:
+#if PR_AREA_DETECTOR_DEBUG
 			for ( i = 0;
 			    i < ad->sequence_parameters.num_parameters;
 			    i++ )
@@ -494,8 +496,10 @@ mx_area_detector_process_function( void *record_ptr,
 					    fname, i,
 				   ad->sequence_parameters.parameter_array[i]));
 			}
-			break;
 #endif
+			mx_status = mx_area_detector_set_sequence_parameters(
+					record, &(ad->sequence_parameters) );
+			break;
 		default:
 			MX_DEBUG(-1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
