@@ -9,14 +9,14 @@
 # the definitions of INCLUDES, LIB_DIRS, and LIBRARIES.
 #
 
-INCLUDES  = $(MX_INCLUDES)
-LIBRARIES = $(WIN32_LIBS)
+#INCLUDES  = $(MX_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
+INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
@@ -77,7 +77,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
-MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
+#MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
@@ -112,7 +112,6 @@ RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
 INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
 LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
 MSDEV_DIR               = $(PLATFORM_SDK)
-LIBRARIES               = $(WIN32_LIBS)
 
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
@@ -120,6 +119,22 @@ LIBRARIES               = $(WIN32_LIBS)
 #
 WIN32_LIBS	= $(MSDEV_DIR)\\lib\\wsock32.lib $(MSDEV_DIR)\\lib\\winmm.lib \
         $(MSDEV_DIR)\\lib\\advapi32.lib
+
+#
+# Visual C++ 2005 and above use "manifest" files to find C runtime library DLLs.
+# It is possible to use a "manifest tool" program to embed the contents of
+# the manifest file back into the binary file.
+#
+# Since Cygwin comes with a completely unrelated program that is _also_ called
+# 'mt', we must specify the full pathname of the manifest tool to ensure that
+# we find the correct one.
+#
+# The following forest of backticks, backslashes, and double quotes should be
+# sufficient to ensure that the final pathname for 'mt' uses forward slashes
+# when handed to 'bash' by the Cygwin make program.
+#
+
+MSMANIFEST_TOOL = `echo "$(MSDEV_DIR)\\bin\\mt" | tr \\\\ / `
 
 #
 # Directory containing the EG&G Ortec UMCBI library and include file.
@@ -306,6 +321,14 @@ $(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
 	link /dll /debug /nologo /out:libMx.dll /nodefaultlib:libc \
 			$(DUMA_OPTS) $(MX_LIB_OBJS) $(LIBRARIES)
 
+	# For VC2005 or later, embed the manifest in the DLL.
+
+	if test -f libMx.dll.manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:libMx.dll\;2 \
+			-manifest libMx.dll.manifest $(EXTRA_MANIFESTS) ; \
+		rm -f libMx.dll.manifest; \
+	fi
+
 library_install:
 	-mkdir $(MX_INSTALL_DIR)/bin
 	-mkdir $(MX_INSTALL_DIR)/etc
@@ -319,7 +342,6 @@ library_install:
 	cp mx*.h $(MX_INSTALL_DIR)/include
 	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
 	cp libMx.dll $(MX_INSTALL_DIR)/bin
-	-cp libMx.dll.manifest $(MX_INSTALL_DIR)/bin
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
 	touch $(MX_INSTALL_DIR)/etc/scan.dat
 	cp ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
@@ -338,9 +360,16 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(MOTOR_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:$(MOTOR_NAME)\;1 \
+			-manifest $(MOTOR_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(MOTOR_NAME).manifest; \
+	fi
+
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
-	-cp $(MOTOR_NAME).manifest $(MX_INSTALL_DIR)/bin
 
 #
 #---------------------------------------------------
@@ -351,9 +380,16 @@ $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxserver.exe *.obj \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(SERVER_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:$(SERVER_NAME)\;1 \
+			-manifest $(SERVER_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(SERVER_NAME).manifest; \
+	fi
+
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
-	-cp $(SERVER_NAME).manifest $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/startmxserver.bat $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/mx.bat $(MX_INSTALL_DIR)/sbin
 	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
@@ -368,9 +404,16 @@ $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxupdate.exe *.obj \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(UPDATE_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo -outputresource:$(UPDATE_NAME)\;1 \
+			-manifest $(UPDATE_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(UPDATE_NAME).manifest; \
+	fi
+
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
-	-cp $(UPDATE_NAME).manifest $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/startmxupdate.bat $(MX_INSTALL_DIR)/sbin
 	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
 
@@ -383,7 +426,15 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 	link /debug /nologo /out:mxdriverinfo.exe *.obj \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
+	# For VC2005 or later, embed the manifest in the executable.
+
+	if test -f $(MXDRIVERINFO_NAME).manifest; then \
+		$(MSMANIFEST_TOOL) -nologo \
+				-outputresource:$(MXDRIVERINFO_NAME)\;1 \
+		  -manifest $(MXDRIVERINFO_NAME).manifest $(EXTRA_MANIFESTS) ; \
+		rm -f $(MXDRIVERINFO_NAME).manifest; \
+	fi
+
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
-	-cp $(MXDRIVERINFO_NAME).manifest $(MX_INSTALL_DIR)/bin
 
