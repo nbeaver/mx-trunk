@@ -417,6 +417,10 @@ mxd_network_area_detector_open( MX_RECORD *record )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* FIXME: We need to get the header length from the server. */
+
+	ad->header_length = 0;
+
 	/* Get the maximum framesize from the server. */
 
 	dimension[0] = 2;
