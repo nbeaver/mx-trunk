@@ -77,10 +77,11 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
+MSDEV_DIR	= c:\\progra~1\\micros~2\\vc
 #MSDEV_DIR	= c:\\progra~1\\devstudio\\vc
 #MSDEV_DIR	= c:\\msdev
 #MSDEV_DIR	= c:\\progra~1\\micros~3
-MSDEV_DIR	= c:\\progra~1\\micros~4
+#MSDEV_DIR	= c:\\progra~1\\micros~4
 
 #
 # If you are using the Win32 version of DUMA (duma.sourceforge.net)
@@ -105,12 +106,13 @@ MSDEV_DIR	= c:\\progra~1\\micros~4
 
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
+PLATFORM_SDK = c:\\progra~1\\micros~4
 #
-#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-#MSDEV_DIR               = $(PLATFORM_SDK)
-#LIBRARIES               = $(WIN32_LIBS)
+RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+MSDEV_DIR               = $(PLATFORM_SDK)
+LIBRARIES               = $(WIN32_LIBS)
 
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
@@ -317,6 +319,7 @@ library_install:
 	cp mx*.h $(MX_INSTALL_DIR)/include
 	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
 	cp libMx.dll $(MX_INSTALL_DIR)/bin
+	-cp libMx.dll.manifest $(MX_INSTALL_DIR)/bin
 	touch $(MX_INSTALL_DIR)/etc/motor.dat
 	touch $(MX_INSTALL_DIR)/etc/scan.dat
 	cp ../plotgnu/plotgnu.pl $(MX_INSTALL_DIR)/bin
@@ -337,6 +340,7 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+	-cp $(MOTOR_NAME).manifest $(MX_INSTALL_DIR)/bin
 
 #
 #---------------------------------------------------
@@ -349,6 +353,7 @@ $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+	-cp $(SERVER_NAME).manifest $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/startmxserver.bat $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/mx.bat $(MX_INSTALL_DIR)/sbin
 	touch $(MX_INSTALL_DIR)/etc/mxserver.dat
@@ -365,6 +370,7 @@ $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
+	-cp $(UPDATE_NAME).manifest $(MX_INSTALL_DIR)/sbin
 	cp ../scripts/startmxupdate.bat $(MX_INSTALL_DIR)/sbin
 	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
 
@@ -379,4 +385,5 @@ $(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
 
 util_install:
 	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+	-cp $(MXDRIVERINFO_NAME).manifest $(MX_INSTALL_DIR)/bin
 
