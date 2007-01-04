@@ -107,13 +107,255 @@ mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
 }
 
 static mx_status_type
-mxd_pccd_170170_descramble_image( MX_IMAGE_FRAME *image_frame,
+mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
+{
+	static const char fname[] = "mxd_pccd_170170_free_sector_array()";
+
+	uint16_t ***sector_array;
+	uint16_t **sector_array_row_ptr;
+
+	if ( sector_array_ptr == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The sector_array_ptr argument passed was NULL." );
+	}
+
+	sector_array = *sector_array_ptr;
+
+	if ( sector_array == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	sector_array_row_ptr = *sector_array;
+
+	if ( sector_array_row_ptr != NULL ) {
+		free( sector_array_row_ptr );
+	}
+
+	free( sector_array );
+
+	*sector_array_ptr = NULL;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
+					long sector_height,
+					long sector_width,
+					uint16_t *image_data )
+{
+	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
+
+	uint16_t ***sector_array;
+	uint16_t **sector_array_row_ptr;
+	long num_sector_rows, num_sector_columns, num_sectors;
+	long n, sector_row, row, sector_column;
+	long row_of_sectors_size, row_size;
+	long offset;
+
+	if ( sector_array_ptr == (uint16_t ****) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The sector_array_ptr argument passed was NULL." );
+	}
+	if ( image_data == (uint16_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The image_data pointer passed was NULL." );
+	}
+
+	num_sector_rows = 4;
+	num_sector_columns = 4;
+	num_sectors = num_sector_rows * num_sector_columns;
+
+	*sector_array_ptr = NULL;
+	
+	sector_array = malloc( num_sectors * sizeof(uint16_t **) );
+
+	if ( sector_array == (uint16_t ***) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element "
+		"sector array pointer.", num_sectors );
+	}
+
+	sector_array_row_ptr = 
+		malloc( num_sectors * sector_height * sizeof(uint16_t *) );
+
+	if ( sector_array_row_ptr == (uint16_t **) NULL ) {
+		free( sector_array );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %ld element array "
+		"of row pointers.", num_sectors * sector_height );
+	}
+
+	for ( n = 0; n < num_sectors; n++ ) {
+		sector_array[n] = sector_array_row_ptr
+			+ n * sector_height * sizeof(sector_array_row_ptr);
+	}
+
+	row_of_sectors_size = num_sector_columns * sector_height * sector_width;
+
+	row_size = num_sector_columns * sector_width;
+
+	for ( sector_row = 0; sector_row < num_sector_rows; sector_row++ ) {
+	    for ( row = 0; row < sector_width; row++ ) {
+		for ( sector_column = 0; sector_column < num_sector_columns;
+							sector_column++ )
+		{
+		    n = sector_column + 4 * sector_row;
+
+		    offset = sector_row * row_of_sectors_size
+				+ row * row_size
+				+ sector_column;
+
+		    sector_array[n][row] = image_data + offset;
+		}
+	    }
+	}
+
+	*sector_array_ptr = sector_array;
+
+	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+}
+
+static mx_status_type
+mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
+				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
 	static const char fname[] = "mxd_pccd_170170_descramble_image()";
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Image descrambling is not yet implemented." );
+	long bytes_to_copy, raw_length, image_length;
+	uint16_t *raw_frame_data;
+	uint16_t ***image_sector_array;
+	long i, j, i_framesize, j_framesize;
+	mx_status_type mx_status;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+	if ( raw_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The raw_frame pointer passed was NULL." );
+	}
+
+	image_length = image_frame->image_length;
+
+	raw_length = raw_frame->image_length;
+
+	if ( raw_length <= image_length ) {
+		bytes_to_copy = raw_length;
+	} else {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The raw frame of length %ld bytes is too long to fit "
+		"into the image frame of length %ld bytes.",
+			raw_length, image_length );
+	}
+
+	MX_DEBUG(-2,
+	("%s: image_length = %ld, raw_length = %ld, bytes_to_copy = %ld",
+		fname, image_length, raw_length, bytes_to_copy));
+
+	if ( (raw_frame->framesize[0] != image_frame->framesize[0])
+	  || (raw_frame->framesize[1] != image_frame->framesize[1]) )
+	{
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"The raw frame (%ld,%ld) and the image frame (%ld,%ld) have "
+		"different dimensions.  At present, I do not know what the "
+		"correct mapping is for this case.",
+			raw_frame->framesize[0], raw_frame->framesize[1],
+			image_frame->framesize[0], image_frame->framesize[1] );
+	}
+
+	/* For each frame, we overlay the frame with 16 sets of sector array
+	 * pointers so that we can treat each of the 16 sectors as independent
+	 * two dimensional arrays.
+	 */
+
+	i_framesize = raw_frame->framesize[0] / 4;
+	j_framesize = raw_frame->framesize[1] / 4;
+
+	/* If the framesize has changed since the last time we descrambled
+	 * a frame, we must create new sector arrays to point into the raw
+	 * frame data and the image frame data.
+	 *
+	 * If the framesize is the same, we just leave the existing sector
+	 * arrays as they are.
+	 */
+
+	if ( ( pccd_170170->old_framesize[0] != raw_frame->framesize[0] )
+	  || ( pccd_170170->old_framesize[1] != raw_frame->framesize[1] ) )
+	{
+		mx_status = mxd_pccd_170170_free_sector_array(
+					&(pccd_170170->image_sector_array) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_pccd_170170_alloc_sector_array(
+					&(pccd_170170->image_sector_array),
+					i_framesize, j_framesize,
+					image_frame->image_data );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	raw_frame_data = raw_frame->image_data;
+
+	MX_DEBUG(-2,("%s: raw_frame_data = %p, image_frame->image_data = %p",
+		fname, raw_frame_data, image_frame->image_data));
+
+	/* Copy and descramble the pixels from the raw frame
+	 * to the image frame.
+	 */
+
+	image_sector_array = pccd_170170->image_sector_array;
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j] = raw_frame_data[15];
+
+		image_sector_array[1][i_framesize-i-1][j] = raw_frame_data[14];
+
+		image_sector_array[2][i][j] = raw_frame_data[11];
+
+		image_sector_array[3][i_framesize-i-1][j] = raw_frame_data[10];
+
+		image_sector_array[4][i][j_framesize-j-1] = raw_frame_data[12];
+
+		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[13];
+
+		image_sector_array[6][i][j_framesize-j-1] = raw_frame_data[8];
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[9];
+
+		image_sector_array[8][i][j] = raw_frame_data[3];
+
+		image_sector_array[9][i_framesize-i-1][j] = raw_frame_data[2];
+
+		image_sector_array[10][i][j] = raw_frame_data[7];
+
+		image_sector_array[11][i_framesize-i-1][j] = raw_frame_data[6];
+
+		image_sector_array[12][i][j_framesize-j-1] = raw_frame_data[0];
+
+		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[1];
+
+		image_sector_array[14][i][j_framesize-j-1] = raw_frame_data[4];
+
+		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[5];
+	    }
+	}
+
+	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*---*/
@@ -390,6 +632,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	pccd_170170->old_framesize[0] = -1;
+	pccd_170170->old_framesize[1] = -1;
+
+	pccd_170170->image_sector_array = NULL;
+
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -619,8 +866,9 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* Descramble the image. */
 
-		mx_status = mxd_pccd_170170_descramble_image( ad->image_frame,
-						       pccd_170170->raw_frame );
+		mx_status = mxd_pccd_170170_descramble_image( pccd_170170,
+							ad->image_frame,
+							pccd_170170->raw_frame);
 	}
 #endif
 

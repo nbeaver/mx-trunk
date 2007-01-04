@@ -30,6 +30,10 @@ typedef struct {
 	unsigned long pccd_170170_flags;
 
 	MX_IMAGE_FRAME *raw_frame;
+
+	long old_framesize[2];
+
+	uint16_t ***image_sector_array;
 } MX_PCCD_170170;
 
 #define MXF_PCCD_170170_HORIZ_SCALE	4
