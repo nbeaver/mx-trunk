@@ -214,7 +214,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	*sector_array_ptr = sector_array;
 
-	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
