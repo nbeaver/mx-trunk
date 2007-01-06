@@ -929,7 +929,7 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_get_non_blocking_flag()";
 
-	int fcntl_flags, saved_errno;
+	int status, fd_flags, saved_errno;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -940,23 +940,38 @@ mx_socket_get_non_blocking_mode( MX_SOCKET *mx_socket,
 		"The non_blocking_flag pointer passed was NULL." );
 	}
 
-	fcntl_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
+#if defined(OS_VXWORKS)
+	status = ioctl( mx_socket->socket_fd, FIOGETFL, (int) &fd_flags );
 
-	if ( fcntl_flags == (-1) ) {
+	MX_DEBUG(-10,
+	("%s: FIXME! Verify that the fd_flags (%#x) returned by VxWorks "
+	"actually contains the non-blocking socket info that we need!",
+		fname, fd_flags ));
+#else
+	fd_flags = fcntl( mx_socket->socket_fd, F_GETFL, 0 );
+
+	status = fd_flags;
+#endif
+
+	if ( status == (-1) ) {
 		saved_errno = errno;
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"fcntl( %d, F_GETFD, 0 ) failed for socket %d.  "
-		"Errno = %d.  Error string = '%s'.",
-			mx_socket->socket_fd, mx_socket->socket_fd,
+		"The attempt to get the socket flags failed for socket %d.  "
+		"Errno = %d.  Error string = '%s'.", mx_socket->socket_fd,
 			saved_errno, strerror( saved_errno ) );
 	}
 
-	if ( fcntl_flags & O_NONBLOCK ) {
+	if ( fd_flags & O_NONBLOCK ) {
 		mx_socket->is_non_blocking = TRUE;
 	} else {
 		mx_socket->is_non_blocking = FALSE;
 	}
+
+#if defined(OS_VXWORKS)
+	MX_DEBUG(-10,("%s: mx_socket->is_non_blocking = %d",
+		fname, (int) mx_socket->is_non_blocking));
+#endif
 
 	*non_blocking_flag = mx_socket->is_non_blocking;
 

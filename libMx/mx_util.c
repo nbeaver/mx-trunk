@@ -157,6 +157,117 @@ mx_initialize_runtime( void )
 
 /*-------------------------------------------------------------------------*/
 
+#if defined( OS_VXWORKS )
+
+MX_EXPORT int
+mx_strcasecmp( const char *s1, const char *s2 )
+{
+	const char *ptr1, *ptr2;
+	char c1, c2;
+
+	if ( s1 == NULL ) {
+		if ( s2 == NULL ) {
+			return 0;
+		} else {
+			return (-1);
+		}
+	} else {
+		if ( s2 == NULL ) {
+			return 1;
+		}
+	}
+
+	for( ptr1 = s1, ptr2 = s2; ; ptr1++, ptr2++ ) {
+		c1 = *ptr1;
+		c2 = *ptr2;
+
+		if ( c1 == '\0' ) {
+			if ( c2 == '\0' ) {
+				return 0;
+			} else {
+				return (-1);
+			}
+		} else {
+			if ( c2 == '\0' ) {
+				return 1;
+			}
+		}
+
+		if ( isupper(c1) ) {
+			c1 = tolower(c1);
+		}
+		if ( isupper(c2) ) {
+			c2 = tolower(c2);
+		}
+
+		if ( c1 < c2 ) {
+			return (-1);
+		} else
+		if ( c1 > c2 ) {
+			return 1;
+		}
+	}
+
+	mx_warning("Broke out of for() loop in mx_strncasecmp()");
+}
+
+MX_EXPORT int
+mx_strncasecmp( const char *s1, const char *s2, size_t n )
+{
+	const char *ptr1, *ptr2;
+	char c1, c2;
+	size_t i;
+
+	if ( s1 == NULL ) {
+		if ( s2 == NULL ) {
+			return 0;
+		} else {
+			return (-1);
+		}
+	} else {
+		if ( s2 == NULL ) {
+			return 1;
+		}
+	}
+
+	for( i = 0, ptr1 = s1, ptr2 = s2; i < n ; i++, ptr1++, ptr2++ ) {
+		c1 = *ptr1;
+		c2 = *ptr2;
+
+		if ( c1 == '\0' ) {
+			if ( c2 == '\0' ) {
+				return 0;
+			} else {
+				return (-1);
+			}
+		} else {
+			if ( c2 == '\0' ) {
+				return 1;
+			}
+		}
+
+		if ( isupper(c1) ) {
+			c1 = tolower(c1);
+		}
+		if ( isupper(c2) ) {
+			c2 = tolower(c2);
+		}
+
+		if ( c1 < c2 ) {
+			return (-1);
+		} else
+		if ( c1 > c2 ) {
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+#endif /* OS_VXWORKS */
+
+/*-------------------------------------------------------------------------*/
+
 #if defined( OS_WIN32 ) && defined( __BORLANDC__ )
 
 	/* Borland C++ enables floating point exceptions that are not
