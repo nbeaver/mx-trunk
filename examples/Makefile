@@ -1,4 +1,4 @@
-MX_ARCH = vxworks
+MX_ARCH = linux
 
 LIBMXDIR = ../libMx
 
