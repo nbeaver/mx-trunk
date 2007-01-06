@@ -426,7 +426,8 @@ MX_API size_t strlcat( char *dest, const char *src, size_t maxlen );
    MX_API int mx_strcasecmp( const char *s1, const char *s2 );
    MX_API int mx_strncasecmp( const char *s1, const char *s2, size_t n );
 
-#elif defined(_MSC_VER) || defined(__BORLANDC__) || defined(OS_DJGPP)
+#elif defined(_MSC_VER) || defined(__BORLANDC__) || defined(OS_DJGPP) \
+	|| defined(OS_QNX)
 #  define mx_strcasecmp   stricmp
 #  define mx_strncasecmp  strnicmp
 
