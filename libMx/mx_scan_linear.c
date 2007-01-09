@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -857,6 +857,8 @@ mxs_linear_scan_do_normal_scan( MX_SCAN *scan,
 		mx_scanlog_info(
 		"Moving to start position for scan section.");
 	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	for ( i = 0; i < num_dimension_steps; i++ ) {
 
