@@ -895,7 +895,8 @@ mx_socket_ioctl( MX_SOCKET *mx_socket,
 #  include <sys/utsname.h>
 #endif
 
-#if defined(OS_WIN32)
+#if defined(OS_WIN32) \
+	|| ( defined(OS_VMS) && (__VMS_VER < 80200000) )
 
 /* Win32 does not support F_GETFL for fcntl(), so we manually save a flag
  * in mx_socket_set_non_blocking_mode() that we report back here.

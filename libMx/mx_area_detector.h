@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-7 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,8 @@
 
 #ifndef __MX_AREA_DETECTOR_H__
 #define __MX_AREA_DETECTOR_H__
+
+#include "mx_namefix.h"
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
 #define MXU_AD_PROPERTY_NAME_LENGTH		40

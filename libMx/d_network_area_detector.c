@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -62,18 +62,18 @@ mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_measure_correction
 };
 
-MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_record_field_defaults[] = {
+MX_RECORD_FIELD_DEFAULTS mxd_network_area_detector_rf_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
 	MXD_NETWORK_AREA_DETECTOR_STANDARD_FIELDS
 };
 
 long mxd_network_area_detector_num_record_fields
-		= sizeof( mxd_network_area_detector_record_field_defaults )
-		  / sizeof( mxd_network_area_detector_record_field_defaults[0]);
+		= sizeof( mxd_network_area_detector_rf_defaults )
+		  / sizeof( mxd_network_area_detector_rf_defaults[0]);
 
 MX_RECORD_FIELD_DEFAULTS *mxd_network_area_detector_rfield_def_ptr
-			= &mxd_network_area_detector_record_field_defaults[0];
+			= &mxd_network_area_detector_rf_defaults[0];
 
 /*---*/
 
