@@ -257,7 +257,7 @@ mx_get_system_meminfo( MX_SYSTEM_MEMINFO *meminfo )
 				GetProcAddress( hinst_kernel32,
 					TEXT("GlobalMemoryStatusEx") );
 
-			MX_DEBUG(-2,("%s: ptrGlobalMemoryStatusEx = %p",
+			MX_DEBUG( 2,("%s: ptrGlobalMemoryStatusEx = %p",
 				fname, ptrGlobalMemoryStatusEx));
 
 			if ( ptrGlobalMemoryStatusEx == NULL ) {

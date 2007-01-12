@@ -670,7 +670,7 @@ mxp_get_total_heap_size( MX_PROCESS_MEMINFO *meminfo )
 
 #if 1
 		MX_DEBUG(-2,
-	("meminfo: Heap %lu, heap_bytes = %lu, allocated_bytes = %lu",
+	("Heap %lu, heap_bytes = %lu, allocated_bytes = %lu",
 			i, (unsigned long) local_heap_bytes,
 			(unsigned long) local_allocated_bytes));
 #endif
