@@ -375,35 +375,54 @@ mx_usleep( unsigned long microseconds )
 #if (MX_SLEEP_TYPE == USE_VMS_MX_SLEEP)
 
 #include <lib$routines.h>
+#include <libwaitdef.h>
 
 MX_EXPORT void
 mx_sleep( unsigned long seconds )
 {
-	double wait_seconds;
+	float wait_seconds;
 
-	wait_seconds = (double) seconds;
+#ifdef __ia64
+	int float_type = LIB$K_IEEE_S;
+#else
+	int float_type = LIB$K_VAX_F;
+#endif
 
-	lib$wait( &wait_seconds );
+	wait_seconds = (float) seconds;
+
+	lib$wait( &wait_seconds, 0, &float_type );
 }
 
 MX_EXPORT void
 mx_msleep( unsigned long milliseconds )
 {
-	double wait_seconds;
+	float wait_seconds;
 
-	wait_seconds = 1.0e-3 * (double) milliseconds;
+#ifdef __ia64
+	int float_type = LIB$K_IEEE_S;
+#else
+	int float_type = LIB$K_VAX_F;
+#endif
 
-	lib$wait( &wait_seconds );
+	wait_seconds = 1.0e-3 * (float) milliseconds;
+
+	lib$wait( &wait_seconds, 0, &float_type );
 }
 
 MX_EXPORT void
 mx_usleep( unsigned long microseconds )
 {
-	double wait_seconds;
+	float wait_seconds;
 
-	wait_seconds = 1.0e-6 * (double) microseconds;
+#ifdef __ia64
+	int float_type = LIB$K_IEEE_S;
+#else
+	int float_type = LIB$K_VAX_F;
+#endif
 
-	lib$wait( &wait_seconds );
+	wait_seconds = 1.0e-6 * (float) microseconds;
+
+	lib$wait( &wait_seconds, 0, &float_type );
 }
 
 #endif /* USE_VMS_MX_SLEEP */

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,8 @@
 #define MX_DATAFMT_LITTLE_ENDIAN	0x2
 
 #define MX_DATAFMT_IEEE_FLOAT		0x100
-#define MX_DATAFMT_VAX_FLOAT		0x200
+#define MX_DATAFMT_VAX_D_FLOAT		0x200
+#define MX_DATAFMT_VAX_G_FLOAT		0x400
 
 #include "mx_program_model.h"
 

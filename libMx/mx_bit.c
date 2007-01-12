@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,7 +44,15 @@ mx_native_byteorder( void )
 MX_EXPORT unsigned long
 mx_native_float_format( void )
 {
-	return MX_DATAFMT_VAX_FLOAT;
+#if defined( __ia64 )
+	return MX_DATAFMT_IEEE_FLOAT;
+#elif defined( __alpha )
+	return MX_DATAFMT_VAX_G_FLOAT;
+#elif defined( __vax )
+	return MX_DATAFMT_VAX_D_FLOAT;
+#else
+#error Unrecognized VMS platform for mx_native_float_format().
+#endif
 }
 
 #else /* everything else */

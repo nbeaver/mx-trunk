@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -995,7 +995,15 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-#if 1 && defined(OS_SOLARIS)
+#if defined(OS_VMS)
+	/* FIXME: (WML - Jan. 12. 2006)
+	 *        For now we have disabled non-blocking mode on VMS.
+	 */
+
+	return MX_SUCCESSFUL_RESULT;
+#endif
+
+#if defined(OS_SOLARIS)
 	{
 		/* (WML - Oct. 11, 2006) - As of today, this problem
 		 * is still here.  In one test, using non-blocking I/O
