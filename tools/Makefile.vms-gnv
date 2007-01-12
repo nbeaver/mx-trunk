@@ -1,0 +1,16 @@
+CC = cc -c
+
+CFLAGS = -g -I../libMx -DOS_VMS -DDEBUG \
+	-msg_disable longextern -msg_error all -error_limit 10
+
+all: strlcpy.obj strlcat.obj
+
+mx_clean:
+	-rm *.obj
+
+strlcpy.obj: generic/src/strlcpy.c
+	$(CC) $(CFLAGS) generic/src/strlcpy.c -o strlcpy.obj
+
+strlcat.obj: generic/src/strlcat.c
+	$(CC) $(CFLAGS) generic/src/strlcat.c -o strlcat.obj
+

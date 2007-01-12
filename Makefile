@@ -22,6 +22,7 @@
 #   tru64         - Compile for alpha under HP Tru64 Unix 5.1b
 #   tru64-gcc     - Compile for alpha under HP Tru64 Unix 5.1b using GCC
 #   vms           - Compile for alpha/vax under OpenVMS 7.3.1 or 8.2
+#   vms-gnv       - Compile for ia64 under OpenVMS 8.3 using GNV 1.6-4
 #   vxworks       - Compile for VxWorks Tornado 2.0 using GCC
 #   win32         - Compile for Microsoft Win32 with Visual C++ 4, 5, 6, or 7
 #   win32-borland - Compile for Microsoft Win32 with Borland C++ Builder 5.5.1

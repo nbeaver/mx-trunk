@@ -1,0 +1,200 @@
+#
+# Name:    Makehead.vms-gnv
+#
+# Purpose: This file is used to customize operating system and installation
+#          dependent features of the MX makefiles.  This version is customized
+#          for OpenVMS 8.3.
+#
+#          This makefile is intended to be used inside the Unix-like
+#          GNV environment found at http://gnv.sourceforge.net/.
+#
+# Normally, the only things that end users may have to modify in this file are
+# the definitions of INCLUDES and LIBRARIES.
+#
+
+#
+INCLUDES	= $(MX_INCLUDES)
+
+LIBRARIES	= $(VMS_LIBRARIES)
+
+#
+#========================================================================
+#
+# Generally, you should not have to modify anything after this point if you
+# are using Compaq TCP/IP Services for OpenVMS.
+#
+# This code has not yet been tested with Multinet or other non-HP versions
+# of OpenVMS TCP/IP, so I don't know if it works with them as is.
+#
+
+VMS_LIBRARIES = TCPIP\$$RPC:TCPIP\$$RPCXDR.OLB/library, \
+	TCPIP\$$LIBRARY:TCPIP\$$LIB.OLB/library
+
+#
+# Setting GNV_SUFFIX_MODE to "vms" causes GNV to use .OBJ and .EXE for
+# object and executable filenames, rather than the Unix style filenames
+# that it uses by default.
+#
+
+#
+# HP C V7.2-022 on OpenVMS IA64 V8.3
+#
+CC		= cc -c
+
+CFLAGS		= -g $(INCLUDES) -DOS_VMS -DDEBUG \
+	-msg_disable longextern -msg_error all -error_limit 10
+
+CFLAGS_EPICS	= $(CFLAGS)
+
+# Special cases for individual files.
+
+CFLAGS_MX_EPICS = $(CFLAGS_EPICS)
+
+CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
+			-DMX_MINOR_VERSION=$(MX_MINOR_VERSION) \
+			-DMX_UPDATE_VERSION=$(MX_UPDATE_VERSION)
+
+CFLAGS_MAKEDEPEND = $(CFLAGS)
+
+COMPILE		= GNV_SUFFIX_MODE=vms cc -c
+DEFINE		= -D
+
+MAKEDEPEND_CLEAN = rm Makefile.depend
+
+MAKEDEPEND        = touch Makefile.depend
+
+##MAKEDEPEND      = cc -M $(CFLAGS_MAKEDEPEND) *.c > Makefile.depend
+
+# Setup default pattern rule for C files.
+
+%.obj : %.c
+	$(CC) $(CFLAGS) $< -o $@
+
+#
+#---------------------------------------------------
+#
+
+MX_LIB_SRCS = mx_driver.c $(MX_CORE_SRCS) $(MX_DRIVER_SRCS)
+
+#
+# See libMx/Makehead.irix for why this is here.
+#
+MX_LIB_OBJS       = $(MX_LIB_SRCS:.c=.obj)
+MOTOR_OBJS        = $(MOTOR_SRCS:.c=.obj)
+SERVER_OBJS       = $(SERVER_SRCS:.c=.obj)
+UPDATE_OBJS       = $(UPDATE_SRCS:.c=.obj)
+MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.obj)
+
+#----
+
+MX_LIB_OBJS += ../tools/strlcpy.obj ../tools/strlcat.obj
+
+#----
+# The comma and space variables are used below to convert the spaces
+# in lists of object files to commas.  The comma versions of the lists
+# can be used directly in DCL LINK commands.
+#
+comma := ,
+empty :=
+space := $(empty) $(empty)
+
+#----
+
+MOTOR_CM_OBJS        = $(subst $(space),$(comma),$(MOTOR_OBJS))
+SERVER_CM_OBJS       = $(subst $(space),$(comma),$(SERVER_OBJS))
+UPDATE_CM_OBJS       = $(subst $(space),$(comma),$(UPDATE_OBJS))
+MXDRIVERINFO_CM_OBJS = $(subst $(space),$(comma),$(MXDRIVERINFO_OBJS))
+
+#
+#---------------------------------------------------
+#
+
+RM		= rm
+MAKE		= make
+
+OBJ		= obj
+
+EXEOUT		=
+DOTEXE		= .exe
+
+#
+#---------------------------------------------------
+#
+MX_LIB_DIR	= ../libMx
+MX_INC_DIR	= $(MX_LIB_DIR)
+MX_INCLUDES	= -I$(MX_INC_DIR)
+
+MX_LIBRARY_PATH	= $(MX_LIB_DIR)/$(MX_LIBRARY_NAME)
+
+MX_LIBRARY_STATIC_NAME = libMx.olb
+
+MX_LIBRARY_NAME	= $(MX_LIBRARY_STATIC_NAME)
+
+MX_LIBRARY_DELETE = rm $(MX_LIBRARY_NAME)
+
+$(MX_LIBRARY_NAME): $(MX_LIB_OBJS)
+	-$(MX_LIBRARY_DELETE)
+	ar rc $(MX_LIBRARY_STATIC_NAME) $(MX_LIB_OBJS)
+
+library_install:
+	-mkdir $(MX_INSTALL_DIR)/bin
+	-mkdir $(MX_INSTALL_DIR)/etc
+	-mkdir $(MX_INSTALL_DIR)/include
+	-mkdir $(MX_INSTALL_DIR)/lib
+	-mkdir $(MX_INSTALL_DIR)/log
+	-mkdir $(MX_INSTALL_DIR)/run
+	-mkdir $(MX_INSTALL_DIR)/sbin
+	-mkdir $(MX_INSTALL_DIR)/state
+	cp mx*.h $(MX_INSTALL_DIR)/include
+	cp $(MX_LIBRARY_NAME) $(MX_INSTALL_DIR)/lib
+
+#
+#---------------------------------------------------
+#
+
+MOTOR_NAME	= motor.exe
+
+$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
+	dcl \
+"link /exe=motor.exe $(MOTOR_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
+
+
+motor_install:
+	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
+
+#
+#---------------------------------------------------
+#
+SERVER_NAME	= mxserver.exe
+
+$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
+	dcl \
+"link /exe=mxserver.exe $(SERVER_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
+
+server_install:
+	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
+
+#
+#---------------------------------------------------
+#
+UPDATE_NAME	= mxupdate.exe
+
+$(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
+	dcl \
+"link /exe=mxupdate.exe $(UPDATE_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
+
+update_install:
+	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin
+
+#
+#---------------------------------------------------
+#
+MXDRIVERINFO_NAME    = mxdriverinfo.exe
+
+$(MXDRIVERINFO_NAME): $(MXDRIVERINFO_OBJS) $(MX_LIBRARY_PATH)
+	dcl \
+"link /exe=mxdriverinfo.exe $(MXDRIVERINFO_CM_OBJS),[-.libMx]libMx.olb/lib,$(LIBRARIES)"
+
+util_install:
+	cp $(MXDRIVERINFO_NAME) $(MX_INSTALL_DIR)/bin
+
