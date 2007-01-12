@@ -996,8 +996,10 @@ mx_socket_set_non_blocking_mode( MX_SOCKET *mx_socket,
 	}
 
 #if defined(OS_VMS)
+
 	/* FIXME: (WML - Jan. 12. 2006)
-	 *        For now we have disabled non-blocking mode on VMS.
+	 *        For now we have disabled non-blocking mode on these platforms
+	 *        due to unfixed issues with their behavior.
 	 */
 
 	return MX_SUCCESSFUL_RESULT;

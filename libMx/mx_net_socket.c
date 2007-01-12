@@ -24,7 +24,7 @@
  * this seems to only be an issue on Solaris.  (W. Lavender)
  */
 
-#define MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE	TRUE
+#define MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE	FALSE
 
 #include <stdio.h>
 
@@ -181,10 +181,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( is_non_blocking == FALSE ) {
 
 #if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
-
+				if ( is_non_blocking == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -192,39 +191,37 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 				"even though we are in blocking mode.  "
 				"This should not happen.",
 						mx_socket->socket_fd );
-
+				}
 #endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
 
-				} else {
-					if ( no_timeout ) {
-						/* In this case, we are never
-						 * supposed to time out, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
+				if ( no_timeout ) {
+					/* In this case, we are never
+					 * supposed to time out, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-						continue;
-					}
+					continue;
+				}
 
-					current_time = mx_current_clock_tick();
+				current_time = mx_current_clock_tick();
 
-					comparison = mx_compare_clock_ticks(
+				comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
-					if ( comparison < 0 ) {
+				if ( comparison < 0 ) {
 
-						/* Have not timed out yet, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
+					/* Have not timed out yet, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-						continue;
-					} else {
-						return mx_error_quiet(
+					continue;
+				} else {
+					return mx_error_quiet(
 						MXE_TIMED_OUT, fname,
     "Timed out after waiting %g seconds to read from the MX network socket.",
 							timeout );
-					}
 				}
 				break;
 			default:
@@ -337,10 +334,9 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( is_non_blocking == FALSE ) {
 
 #if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
-
+				if ( is_non_blocking == FALSE ) {
 					return mx_error_quiet(
 					MXE_NETWORK_IO_ERROR, fname,
 				"A call to recv() for MX socket %d returned an "
@@ -349,38 +345,37 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 				"This should not happen.",
 						mx_socket->socket_fd );
 
+				}
 #endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
 
-				} else {
-					if ( no_timeout ) {
-						/* In this case, we are never
-						 * supposed to time out, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
+				if ( no_timeout ) {
+					/* In this case, we are never
+					 * supposed to time out, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-						continue;
-					}
+					continue;
+				}
 
-					current_time = mx_current_clock_tick();
+				current_time = mx_current_clock_tick();
 
-					comparison = mx_compare_clock_ticks(
+				comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
-					if ( comparison < 0 ) {
+				if ( comparison < 0 ) {
 
-						/* Have not timed out yet, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
+					/* Have not timed out yet, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-						continue;
-					} else {
-						return mx_error_quiet(
+					continue;
+				} else {
+					return mx_error_quiet(
 						MXE_TIMED_OUT, fname,
     "Timed out after waiting %g seconds to read from the MX network socket.",
 							timeout );
-					}
 				}
 				break;
 			default:
