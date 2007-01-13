@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -760,13 +760,11 @@ mxd_soft_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the image format is not supported for "
 			"video input '%s'.", vinput->record->name );
-		break;
 
 	case MXLV_VIN_PIXEL_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the pixel order for video input '%s' "
 			"is not supported.", vinput->record->name );
-		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
 		break;
@@ -776,7 +774,6 @@ mxd_soft_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Directly changing the number of bytes per frame "
 			"for video input '%s' is not supported.",
 				vinput->record->name );
-		break;
 
 	case MXLV_VIN_SEQUENCE_TYPE:
 		break;

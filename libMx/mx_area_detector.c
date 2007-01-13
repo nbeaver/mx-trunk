@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2924,7 +2924,6 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Frame type %lx is not supported for frame transfer.",
 				ad->transfer_frame );
-		break;
 	}
 
 	if ( source_frame == NULL ) {
@@ -2974,7 +2973,6 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported frame type %ld requested for area detector '%s'.",
 			ad->load_frame, ad->record->name );
-		break;
 	}
 
 	mx_status = mx_image_alloc( frame_ptr,
@@ -3064,7 +3062,6 @@ mx_area_detector_default_save_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported frame type %ld requested for area detector '%s'.",
 			ad->save_frame, ad->record->name );
-		break;
 	}
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -3125,7 +3122,6 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 	"Unsupported source frame type %ld requested for area detector '%s'.",
 			ad->copy_frame[0], ad->record->name );
-		break;
 	}
 
 	if ( src_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -3154,7 +3150,6 @@ mx_area_detector_default_copy_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_UNSUPPORTED, fname,
 "Unsupported destination frame type %ld requested for area detector '%s'.",
 			ad->copy_frame[1], ad->record->name );
-		break;
 	}
 
 	mx_status = mx_image_copy_frame( dest_frame_ptr, src_frame );
@@ -3269,7 +3264,6 @@ mx_area_detector_default_set_parameter_handler( MX_AREA_DETECTOR *ad )
 		"Changing the parameter '%s' for record '%s' is not supported.",
 			mx_get_field_label_string( ad->record,
 				ad->parameter_type ), ad->record->name );
-		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type '%s' (%ld) is not supported by the MX driver "

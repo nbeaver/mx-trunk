@@ -1426,8 +1426,6 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		"Changing the parameter '%s' for area detector '%s' "
 		"is not supported.", mx_get_field_label_string( ad->record,
 			ad->parameter_type ), ad->record->name );
-		break;
-
 	default:
 		mx_status =
 			mx_area_detector_default_set_parameter_handler( ad );

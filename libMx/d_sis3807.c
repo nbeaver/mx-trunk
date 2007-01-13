@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_stdint.h"
+#include "mx_constants.h"
 #include "mx_driver.h"
 #include "mx_clock.h"
 #include "mx_vme.h"
@@ -784,6 +785,8 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 	case MXLV_PGN_NUM_PULSES:
 		if ( sis3807->burst_register_available ) {
 
+#if ( TWO_TO_THE_32ND_POWER_MINUS_ONE < MX_ULONG_MAX )
+
 			if ( pulse_generator->num_pulses
 				> TWO_TO_THE_32ND_POWER_MINUS_ONE )
 			{
@@ -798,6 +801,8 @@ mxd_sis3807_set_parameter( MX_PULSE_GENERATOR *pulse_generator )
 					pulse_generator->record->name,
 					TWO_TO_THE_32ND_POWER_MINUS_ONE );
 			}
+
+#endif /* TWO_TO_THE_32ND_POWER_MINUS_ONE < MX_ULONG_MAX */
 
 			num_pulses = (uint32_t) pulse_generator->num_pulses;
 

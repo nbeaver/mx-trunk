@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -780,7 +780,6 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the image format is not supported for "
 			"video input '%s'.", vinput->record->name );
-		break;
 
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 		mx_status = mx_put( &(network_vinput->pixel_clock_frequency_nf),
@@ -791,7 +790,6 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the pixel order for video input '%s' "
 			"is not supported.", vinput->record->name );
-		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
 		mx_status = mx_put( &(network_vinput->trigger_mode_nf),
@@ -803,7 +801,6 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Directly changing the number of bytes per frame "
 			"for video input '%s' is not supported.",
 				vinput->record->name );
-		break;
 
 	case MXLV_VIN_SEQUENCE_TYPE:
 		mx_status = mx_put( &(network_vinput->sequence_type_nf),
