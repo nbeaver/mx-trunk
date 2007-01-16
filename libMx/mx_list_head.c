@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -74,6 +74,8 @@ mxr_create_list_head( MX_RECORD *record )
 	}
 	
 	record->record_superclass_struct = list_head_struct;
+
+	list_head_struct->list_head_record = record;
 
 	/* Allocate an array for the list head record fields. */
 

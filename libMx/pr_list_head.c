@@ -8,7 +8,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,6 +44,9 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 
 		switch( record_field->label_value ) {
 		case MXLV_LHD_STATUS:
+		case MXLV_LHD_REPORT:
+		case MXLV_LHD_REPORTALL:
+		case MXLV_LHD_SUMMARY:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -82,36 +85,51 @@ mx_list_head_process_function( void *record_ptr,
 		}
 		break;
 	case MX_PROCESS_PUT:
+		MX_DEBUG(-2,("%s: label_value = %ld",
+			fname, record_field->label_value));
+
 		switch( record_field->label_value ) {
 		case MXLV_LHD_STATUS:
 			if ( (strcmp("clients", list_head->status) == 0)
 			  || (strcmp("users", list_head->status) == 0) )
 			{
 			    if ( list_head->is_server ) {
-				    mx_status = mx_list_head_print_clients(
-						record, list_head );
+				    mx_status = 
+				    	mx_list_head_print_clients( list_head );
 			    } else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 	"This process is not currently functioning as an active MX server." );
 			    }
 			} else
 			if (strcmp("cpu_type", list_head->status) == 0) {
-				mx_status = mx_list_head_show_cpu_type(
-				    		record, list_head );
+				mx_status = 
+					mx_list_head_show_cpu_type( list_head );
 			} else
 			if (strcmp("process_memory", list_head->status) == 0) {
-				mx_status = mx_list_head_show_process_memory(
-				    		record, list_head );
+				mx_status =
+				  mx_list_head_show_process_memory( list_head );
 			} else
 			if (strcmp("system_memory", list_head->status) == 0) {
-				mx_status = mx_list_head_show_system_memory(
-				    		record, list_head );
+				mx_status =
+				  mx_list_head_show_system_memory( list_head );
 			} else {
 				return mx_error( MXE_ILLEGAL_ARGUMENT,
 						fname,
 				    "Unrecognized database status request '%s'",
 				    		list_head->status );
 			}
+			break;
+		case MXLV_LHD_REPORT:
+			MX_DEBUG(-2,("report = '%s'", list_head->report));
+			mx_status = mx_list_head_record_report( list_head );
+			break;
+		case MXLV_LHD_REPORTALL:
+			MX_DEBUG(-2,("reportall = '%s'", list_head->reportall));
+			mx_status = mx_list_head_record_reportall( list_head );
+			break;
+		case MXLV_LHD_SUMMARY:
+			MX_DEBUG(-2,("summary = '%s'", list_head->summary));
+			mx_status = mx_list_head_record_summary( list_head );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -129,7 +147,7 @@ mx_list_head_process_function( void *record_ptr,
 }
 
 mx_status_type
-mx_list_head_print_clients( MX_RECORD *record, MX_LIST_HEAD *list_head )
+mx_list_head_print_clients( MX_LIST_HEAD *list_head )
 {
 	static const char fname[] = "mx_list_head_print_clients()";
 
@@ -179,7 +197,7 @@ mx_list_head_print_clients( MX_RECORD *record, MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_show_cpu_type( MX_RECORD *record, MX_LIST_HEAD *list_head )
+mx_list_head_show_cpu_type( MX_LIST_HEAD *list_head )
 {
 	char architecture_type[80];
 	char architecture_subtype[80];
@@ -262,7 +280,7 @@ mx_list_head_show_cpu_type( MX_RECORD *record, MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_show_process_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
+mx_list_head_show_process_memory( MX_LIST_HEAD *list_head )
 {
 	mx_status_type mx_status;
 
@@ -284,7 +302,7 @@ mx_list_head_show_process_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
 }
 
 mx_status_type
-mx_list_head_show_system_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
+mx_list_head_show_system_memory( MX_LIST_HEAD *list_head )
 {
 	mx_status_type mx_status;
 
@@ -298,6 +316,86 @@ mx_list_head_show_system_memory( MX_RECORD *record, MX_LIST_HEAD *list_head )
 		return mx_status;
 
 	mx_display_system_meminfo( &meminfo );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mx_list_head_record_report( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *record;
+	char *record_name;
+	mx_status_type mx_status;
+
+	record_name = list_head->report;
+
+	record = mx_get_record( list_head->list_head_record, record_name );
+
+	if ( record == NULL ) {
+		fprintf( stderr, "Record '%s' not found.\n", record_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_print_structure( stderr, record,
+				MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY );
+
+	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_reportall( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *record;
+	char *record_name;
+	mx_status_type mx_status;
+
+	record_name = list_head->report;
+
+	record = mx_get_record( list_head->list_head_record, record_name );
+
+	if ( record == NULL ) {
+		fprintf( stderr, "Record '%s' not found.\n", record_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	mx_status = mx_print_structure( stderr, record, MXFF_SHOW_ALL );
+
+	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_summary( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *record;
+	MX_RECORD_FIELD *field, *field_array;
+	long i, num_fields;
+	char *record_name;
+
+	record_name = list_head->report;
+
+	record = mx_get_record( list_head->list_head_record, record_name );
+
+	if ( record == NULL ) {
+		fprintf( stderr, "Record '%s' not found.\n", record_name );
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	field_array = record->record_field_array;
+
+	num_fields = record->num_record_fields;
+
+	for ( i = 1; i < num_fields; i++ ) {
+		field = &(field_array[i]);
+
+		if ( field->flags & MXFF_IN_SUMMARY ) {
+			fprintf( stderr, "%s ", field->name );
+		}
+	}
+
+	fprintf(stderr, "\n");
 
 	return MX_SUCCESSFUL_RESULT;
 }

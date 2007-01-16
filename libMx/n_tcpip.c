@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -123,6 +123,11 @@ mxn_tcpip_server_create_record_structures( MX_RECORD *record )
 #else
 	network_server->truncate_64bit_longs = FALSE;
 #endif
+
+	network_server->last_rpc_message_id = 0;
+
+	network_server->last_callback_message_id
+			= MX_NETWORK_MESSAGE_IS_CALLBACK;
 
 	return MX_SUCCESSFUL_RESULT;
 }

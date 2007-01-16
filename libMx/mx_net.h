@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2000, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2000, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,23 +26,25 @@
 
 /* Current size of an MX network header. */
 
-#define MXU_NETWORK_NUM_HEADER_VALUES	5
+#define MXU_NETWORK_NUM_HEADER_VALUES	6
 
 #define MXU_NETWORK_HEADER_LENGTH \
 	( MXU_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
 
 /* Initial size of an MX network message buffer. */
 
-#if 0
-#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	163840 
-#else
-#  define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	1000
-#endif
+#define MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH	1000
 
 /* Minimum allowed size of an MX network message_buffer. */
 
 #define MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH \
 	(MXU_NETWORK_HEADER_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 1)
+
+/* Bitmasks used with network message ids.  Message ids are always 32-bits. */
+
+#define MX_NETWORK_MESSAGE_ID_MASK	0x7fffffff
+
+#define MX_NETWORK_MESSAGE_IS_CALLBACK	0x80000000
 
 /*
  * Define the data type that contains MX network messages.
@@ -86,6 +88,10 @@ typedef struct {
 	mx_bool_type server_supports_network_handles;
 	mx_bool_type network_handles_are_valid;
 	mx_bool_type truncate_64bit_longs;
+	mx_bool_type server_supports_callbacks;
+
+	unsigned long last_rpc_message_id;
+	unsigned long last_callback_message_id;
 
 	unsigned long network_field_array_block_size;
 
@@ -137,6 +143,21 @@ typedef struct {
   {-1, -1, "truncate_64bit_longs", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "server_supports_callbacks", MXFT_BOOL, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, server_supports_callbacks), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, last_rpc_message_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "last_callback_message_id", MXFT_HEX, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, last_callback_message_id), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 /* Values for the server_flags field. */
@@ -171,6 +192,7 @@ typedef struct {
 #define MX_NETWORK_MESSAGE_LENGTH	2
 #define MX_NETWORK_MESSAGE_TYPE		3
 #define MX_NETWORK_STATUS_CODE		4
+#define MX_NETWORK_MESSAGE_ID		5
 
 /* Definition of network message type flags. */
 
