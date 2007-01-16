@@ -1174,17 +1174,17 @@ mx_wait_for_debugger( void )
 "If you are using GDB, follow this procedure:\n"
 "  1.  If not already attached, attach to the process with the command\n"
 "          'gdb -p %lu'\n"
-"  2.  Use the command 'finish' to run functions to completion.\n"
-"  3.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
-"      to break out of the loop.\n\n", pid );
+"  2.  Type 'set loop=0' in the mx_wait_for_debugger() stack frame\n"
+"      to break out of the loop.\n"
+"  3.  Use the command 'finish' to run functions to completion.\n\n", pid );
 		
 	fprintf( stderr,
 "If you are using DBX, follow this procedure:\n"
 "  1.  If not already attached, attach to the process with the command\n"
 "          'dbx - %lu'\n"
-"  2.  Use the command 'step up' to run functions to completion.\n"
-"  3.  Type 'assign loop=0' in the mx_wait_for_debugger() stack frame\n"
-"      to break out of the loop.\n\n", pid );
+"  2.  Type 'assign loop=0' in the mx_wait_for_debugger() stack frame\n"
+"      to break out of the loop.\n"
+"  3.  Use the command 'step up' to run functions to completion.\n\n", pid );
 		
 	fprintf( stderr, "Waiting...\n\n" );
 

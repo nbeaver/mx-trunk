@@ -1,3 +1,231 @@
+Version 1.4.0 (01/15/07):
+	This version of MX adds support for the new 'area_detector' and
+	'video_input' driver classes.  The initial motivation for adding
+	the new classes so that they could be used to implement drivers
+	for the new PCCD-170170 CCD detector from Aviex LLC.  These new
+	classes are likely to include new small changes in the near future
+	since the driver development work for that detector is not yet 
+	complete.  In addition, it is expected that the drivers in the old
+	MX 'ccd' driver class will be migrated to the new 'area_detector'
+	class at some point in the near future.
+
+	As part of the CCD work, a new 'camera_link' interface class has been
+	added to support communication with digital cameras and frame grabbers
+	via the Camera Link interface standard.  The Camera Link standard
+	is sponsored by the Automated Imaging Association.
+
+	The new files 'mx_image.c' and 'mx_image.h' provide support for a
+	variety of operations on 2-dimensional images and for sequences of
+	such images.  The images are encapsulated in an MX_IMAGE_FRAME
+	structure.  In the current version, the actual image data must be
+	in an array local to the process.  However, future versions will 
+	add support for image frames that are located in remote computers
+	so that area detectors that never transfer the raw image data to
+	the local process can be supported.
+
+	Several new MX device drivers have been added:
+
+	    Area detector drivers:
+	        network_area_detector - This driver allows an MX client to
+			communicate with an area detector controlled by a
+			remote MX server.
+
+		pccd_170170 - This driver is used to control a PCCD-170170
+			CCD detector from Aviex LLC.  Not all features of
+			this detector are supported yet.
+
+		soft_area_detector - This driver is a software emulation
+			of an area detector.  The driver depends on an
+			underlying video input driver to generate the
+			actual frame data.  This underlying driver can be
+			either for a software emulated device or for a
+			real frame grabber or imaging board.
+
+	    Video input drivers:
+		edt, edt_video_input - These drivers are used to control
+			imaging boards from EDT, Inc. (http://www.edt.com/)
+			using the EDTpdv drivers that are downloadable from
+			http://www.edt.com/dvsoftware.html.  At present,
+			the MX drivers are only partially complete and are
+			not ready for use.
+
+		epix_xclib, epix_xclib_video_input - These drivers are used
+			to control imaging boards from EPIX, Inc.
+			(http://www.epixinc.com/) using the XCLIB drivers
+			that may be purchased for $495.  At present, the
+			MX drivers are mostly complete and have successfully
+			been used to read out image frames from a PIXCI E4
+			frame grabber using PCI Express.
+
+		network_vinput - This driver allows an MX client to 
+			communicate with a video input device controlled by
+			a remote MX server.
+
+		soft_vinput - This driver is a software emulation of a
+			video input card that can generate 8-bit greyscale,
+			16-bit greyscale, or 24-bit RGB images.  The driver
+			generates a sequence of 4 images that smoothly ramp
+			from maximum intensity to minimum intensity.  Each
+			of the four images has a maximum in a different
+			corner of the image, which helps in verifying that
+			the image transfer is working properly.
+
+		v4l2_input - This driver reads out frames from any imaging
+			board supported by the Linux Video4Linux2 driver.
+			At present, only the RGB565 and YUYV image formats
+			are supported.
+
+	    Camera Link drivers:
+	        epix_camera_link - This driver can be used to send and receive
+			messages from a Camera Link controlled camera.
+
+	    RS-232 drivers:
+	    	camera_link_rs232 - This driver can be used to treat a
+			Camera Link interface as if it were an RS-232
+			interface.  The driver is intended to be used by
+			RS-232 specific programs like 'mxserial'.
+
+	MX client/server communication now uses dynamically resizeable
+	buffers for network messages.  The buffers are now programmed to
+	start at 1000 bytes and then increase their size as needed.  The
+	primary motivation for this feature was to make it easy to pass
+	very large arrays, such as those used by area detector images, in
+	one network call.  The length of network buffers should now be
+	limited only by the amount of memory available on the client and
+	the server.
+
+	A new early move feature has been added to MX step scans.  If the
+	current MX database contains a variable record called 'scan_early_move'
+	and the value of that variable is non-zero, then MX step scans will
+	start the move to the next step position immediately after the
+	counters stop counting for the current position.  This means that
+	all input devices will be read out while the motor is moving to
+	the next step position.
+	
+	The early move feature will only work correctly if all of the input
+	devices for the scan latch their values at the end of the counting
+	time.  Other input devices such as analog voltage or current inputs
+	that do not latch or the motor position itself, will be recorded
+	with a value taken at some point during the move to the next step
+	position and not the value it had at the previous step.  Thus, one
+	must be careful about using this feature.
+
+	Another change made in support of the early move feature was the
+	splitting of the old mx_measure_data() function into separate
+	mx_acquire_data() and mx_readout_data() functions.  If you are
+	writing a program to use the early move feature, then the 
+	mx_acquire_data() function should be called before you start
+	the next move and mx_readout_data() should be called after the
+	move starts.
+
+	If a scan has more than 4 input devices, 'modify scan' in the
+	'motor' program now asks whether or not you want to make any
+	changes to the list of input devices.  If the answer is 'no',
+	then the list of input devices is copied as is into the new
+	version of the scan.
+
+	Support has been added for starting an MX client or server that
+	does not get its record definitions from a disk file.  Instead,
+	you can generate the ASCII record definitions in an in-memory
+	array of strings and create the database by calling the function
+	mx_setup_database_from_array().
+
+	The 'win32' build target makefile now looks for the 'manifest' files
+	that are created by Visual C++ 2005 and above.  If the makefile
+	discovers that manifest files have been created, it invokes the
+	Microsoft 'mt' utility to embed the contents of the manifest in
+	the executable.  Embedding the manifest file in the executable makes
+	it unnecessary to explicitly copy manifest files to the install
+	location.  Some effort has been made in the makefile to ensure that
+	the 'mt' program invoked is the Microsoft one and not the magnetic
+	tape handling program from Cygwin.
+
+	On Linux/Unix platforms, the mx_start_debugger() function now 
+	attempts to start a GUI debugger such as DDD or the Sun Studio
+	debugger.  If a known GUI debugger is not found, then it falls back
+	to a Curses based debugger in a terminal window.  If that fails
+	as well, it finally attempts to use gdb or dbx in a terminal
+	window.
+
+	Added a new MX build target called 'vms-gnv'.  The OpenVMS systems
+	in the HP TestDrive program only support the version of 'make' 
+	included with the GNV package (http://gnv.sourceforge.net/), so
+	this new build target was added to work with that makefile system.
+	However, the underlying compiler is still the HP compiler.
+
+	On VMS, the mx_sleep() family of functions now makes sure that
+	lib$wait() is told that the wait time passed is in LIB$K_IEEE_S
+	format on Itanium and in LIB$K_VAX_F format on Alpha and Vax.
+
+	mx_rs232_putline() has been modified so that if the underlying
+	RS-232 driver does not have a putline() function, it next looks
+	for a write() function before falling back to single character I/O.
+
+	The source code for the mx_clock_ticks_per_second() function has
+	been changed so that it first attempts to read the value from the
+	function sysconf(_SC_CLK_TCK), then reverts to the value of CLK_TCK
+	if _SC_CLK_TCK is not defined, and finally reverts to the value
+	of CLOCKS_PER_SECOND if CLK_TCK is not defined as well.  The reason
+	for the change is that the XSI extension to POSIX apparently requires
+	that CLOCKS_PER_SECOND have the value 1000000 on all compliant
+	systems regardless of the actual number of clock ticks per second 
+	used by the operating system.
+
+	Previous versions of the 'icplus_voltage' driver used an incorrect
+	':CONFx:VOLT?' command for setting the HV voltage rather than the
+	correct ':CONFx:VOLT' form of the command, without a question mark
+	on the end of it.  This bug has now been fixed.
+
+	A bug has been fixed in the 'tracker_ainput' and 'tracker_aoutput'
+	drivers for Data Track Tracker modules where originally only the
+	first four characters were read in responses from the module.
+
+	The 'motor' driver class now contains a new record field called
+	'old_destination'.  This new field contains the requested destination
+	for the move prior to the current move.
+
+	The 'keithley428' driver now makes it possible to read out the
+	version of the firmware loaded in the electrometer, by reading
+	the value of the new 'firmware_version' record field.
+
+	The 'pfcu' driver for XIA PF4 and PF2S2 filter and shutter controllers
+	has been modified so that it uses the correct line terminators (0x0d)
+	for commands sent to the controller.
+
+	The old 'labpc_adc', 'labpc_dac', 'labpc_din', and 'labpc_dout'
+	drivers for the LabPC+ DAQ card have been removed from MX.  The reason
+	for this is that they relied on a third-party device driver that has
+	not been updated since the Linux 2.0 days.  At some future date, we
+	plan to add support for Comedi supported DAQ cards which will support
+	the LabPC+ card and a wide variety of other cards.
+
+	The array functions in libMx/mx_array.c no longer add an extra byte
+	at the end of strings for the null terminator character.  For new
+	versions of MX, if you want enough space for a null terminator, then
+	make the string 1 byte longer to begin with.  This change was made
+	to make strings in C code more compatible with the way Python handles
+	strings.
+
+	A new header file called 'mx_poison.h' has been added.  The purpose
+	of this header is to enforce a prohibition on the use of unsafe
+	C runtime functions such as gets() and strcpy().  Currently, only
+	part of MX is making use of this feature, but we plan to expand the
+	use of this header to most of MX as time permits.  The current
+	implementation makes use of the 'GCC poison' pragma, which means
+	that it only works for code compiled with GCC 3 and later.
+
+	A bug report has been made for the 'compumotor' driver such that
+	it sometimes locks up when several clients are connected to the
+	MX server that all are communicating with the Compumotor controller.
+	It is thought that this may be due to problems that occur when you
+	send two commands to the controller too close together in time.
+	According to Parker, the controller may not see any commands sent
+	less than 2 milliseconds after the last command.  If the last
+	command was a GO command, this interval increases to 10 or 15
+	milliseconds.  Unfortunately, it was not possible to test the fix
+	for the 'compumotor' bug above in time for the MX 1.4.0 release,
+	but this issue will be revisited soon.
+
 Version 1.3.0 (08/08/06):
 	This version of MX has added support for multiple virtual interval
 	timers that are layered on top of a single real interval timer.
