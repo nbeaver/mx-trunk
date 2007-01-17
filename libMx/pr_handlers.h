@@ -110,6 +110,8 @@ extern mx_status_type mx_list_head_record_reportall( MX_LIST_HEAD *list_head );
 
 extern mx_status_type mx_list_head_record_summary( MX_LIST_HEAD *list_head );
 
+extern mx_status_type mx_list_head_record_fielddef( MX_LIST_HEAD *list_head );
+
 /*---*/
 
 extern mx_status_type mx_setup_mca_process_functions(

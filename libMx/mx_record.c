@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <signal.h>
 #include <errno.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_unistd.h"
@@ -32,6 +33,7 @@
 #include "mx_signal.h"
 #include "mx_list_head.h"
 #include "mx_net.h"
+#include "mx_motor.h"
 
 /* === Private function definitions === */
 
@@ -1765,9 +1767,9 @@ mx_initialize_hardware( MX_RECORD *record_list_head,
 
 	/* Initialize the hardware. */
 
-	current_record = record_list_head->next_record;
+	current_record = record_list_head;
 
-	while( current_record != record_list_head ) {
+	do {
 		if ( current_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			    "NULL pointer to record found in record list.");
@@ -1790,15 +1792,16 @@ mx_initialize_hardware( MX_RECORD *record_list_head,
 		}
 
 		current_record = current_record->next_record;
-	}
+
+	} while ( current_record != record_list_head );
 
 	/* A few drivers require extra initialization steps after
 	 * almost everything else has been initialized.
 	 */
 
-	current_record = record_list_head->next_record;
+	current_record = record_list_head;
 
-	while( current_record != record_list_head ) {
+	do {
 		if ( current_record == (MX_RECORD *) NULL ) {
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			    "NULL pointer to record found in record list.");
@@ -1821,7 +1824,9 @@ mx_initialize_hardware( MX_RECORD *record_list_head,
 			}
 		}
 		current_record = current_record->next_record;
-	}
+
+	} while ( current_record != record_list_head );
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2071,6 +2076,161 @@ mx_print_structure( FILE *file, MX_RECORD *record, unsigned long mask )
 	}
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_print_summary( FILE *output, MX_RECORD *record )
+{
+	static const char fname[] = "mx_print_summary()";
+
+	MX_RECORD_FIELD *field_array, *field;
+	long i, num_fields;
+	void *value_ptr;
+	MX_MOTOR *motor;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+	}
+
+	field_array = record->record_field_array;
+
+	if ( field_array == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	num_fields = record->num_record_fields;
+
+	/* Print the record name with special formatting. */
+
+	fprintf( output, "%-16s ", record->name );
+
+	/* As a special case, print out the user position
+	 * and units for motor records.
+	 */
+
+	if ( record->mx_class == MXC_MOTOR ) {
+		motor = (MX_MOTOR *) record->record_class_struct;
+
+		if ( motor == NULL ) {
+			fprintf( output, "(NULL MX_MOTOR pointer) " );
+		} else {
+			if ( fabs(motor->position) < 1.0e7 ) {
+				fprintf( output, "%11.3f %-5s ",
+					motor->position, motor->units );
+			} else {
+				fprintf( output, "%11.3e %-5s ",
+					motor->position, motor->units );
+			}
+		}
+	}
+
+	/* Record name is the first field so we skip over it. */
+
+	for ( i = 1; i < num_fields; i++ ) {
+
+		/* Show only selected fields. */
+
+		field = &(field_array[i]);
+
+		if ( field == (MX_RECORD_FIELD *) NULL ) {
+			fprintf( output, "(field %ld is NULL) ", i );
+			continue;
+		}
+
+		if ( field->flags & MXFF_IN_SUMMARY) {
+
+			if ( ( field->num_dimensions > 1 )
+     || (( field->datatype != MXFT_STRING ) && ( field->num_dimensions > 0 )) )
+			{
+				(void) mx_print_field_array( output,
+						record, field, FALSE );
+			} else {
+				value_ptr =
+					mx_get_field_value_pointer( field );
+
+				(void) mx_print_field_value( output,
+					record, field, value_ptr, FALSE );
+			}
+			fprintf( output, " " );
+		}
+	}
+
+	fprintf( output, "\n" );
+	fflush( output );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_print_field_definitions( FILE *output, MX_RECORD *record )
+{
+	static const char fname[] = "mx_print_field_definitions()";
+
+	MX_RECORD_FIELD *field_array, *field;
+	char name_format[40];
+	long i, num_fields;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL.");
+	}
+
+	field_array = record->record_field_array;
+
+	if ( field_array == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	num_fields = record->num_record_fields;
+
+	fprintf(output, "Record: '%s',  num_record_fields = %ld\n",
+			record->name, num_fields );
+
+	fprintf(output,
+"Field name                           label  num  type  #dim dim[0] siz[0]\n");
+
+	snprintf( name_format, sizeof(name_format),
+		"  %%-%ds ", MXU_FIELD_NAME_LENGTH );
+
+	for ( i = 0; i < num_fields; i++ ) {
+		field = &(field_array[i]);
+
+		fprintf(output, name_format, field->name);
+		fprintf(output, "%5ld ", field->label_value);
+		fprintf(output, "%5ld ", field->field_number);
+		fprintf(output, "%5ld ", field->datatype);
+		fprintf(output, "%5ld ", field->num_dimensions);
+
+		if ( field->num_dimensions > 0 ) {
+			if ( field->dimension  == NULL ) {
+				fprintf(output, "NULL  ");
+			} else {
+				fprintf(output, "%5ld ", field->dimension[0]);
+			}
+		} else {
+			fprintf(output,"      ");
+		}
+
+		if ( field->num_dimensions > 0 ) {
+			if ( field->data_element_size  == NULL ) {
+				fprintf(output, "NULL  ");
+			} else {
+				fprintf(output, "%5ld ",
+					(long) field->data_element_size[0]);
+			}
+		} else {
+			fprintf(output,"      ");
+		}
+
+		fprintf(output, "\n");
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

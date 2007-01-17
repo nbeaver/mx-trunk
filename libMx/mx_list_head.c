@@ -23,9 +23,17 @@
 #include "mx_list_head.h"
 
 MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list = {
-	NULL, NULL, NULL, NULL,
+	NULL,
+	NULL,  /* It is not an error that this entry is NULL. */
+	NULL,
+	NULL,
 	mxr_list_head_print_structure,
-	NULL, NULL, NULL, NULL };
+	NULL,
+	NULL,
+	mxr_list_head_open,
+	NULL,
+	mxr_list_head_finish_delayed_initialization
+};
 
 MX_RECORD_FIELD_DEFAULTS mxr_list_head_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
@@ -167,6 +175,18 @@ mxr_list_head_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "Record = '%s',  Type = Record list head.\n",
 		record->name);
 
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxr_list_head_open( MX_RECORD *record )
+{
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxr_list_head_finish_delayed_initialization( MX_RECORD *record )
+{
 	return MX_SUCCESSFUL_RESULT;
 }
 

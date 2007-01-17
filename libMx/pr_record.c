@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -46,7 +46,6 @@ mx_setup_record_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_REC_PRECISION:
 		case MXLV_REC_RESYNCHRONIZE:
-		case MXLV_REC_REPORT:
 			record_field->process_function
 					    = mx_record_process_function;
 			break;
@@ -106,12 +105,6 @@ mx_record_process_function( void *record_ptr,
 			} else {
 				mx_status = ( *resynchronize_fn ) ( record );
 			}
-			break;
-		case MXLV_REC_REPORT:
-			mx_status = mx_print_structure( stderr, record,
-							record->report );
-
-			fflush(stderr);
 			break;
 		default:
 			MX_DEBUG(-2,(

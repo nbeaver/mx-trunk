@@ -138,7 +138,6 @@ typedef struct mx_record_type {
 	long long_precision;
 	int precision;
 	mx_bool_type resynchronize;
-	unsigned long report;
 	unsigned long record_flags;
 	unsigned long record_processing_flags;
 	struct mx_record_type *list_head;
@@ -208,11 +207,10 @@ typedef struct {
 
 #define MXLV_REC_PRECISION		101
 #define MXLV_REC_RESYNCHRONIZE		102
-#define MXLV_REC_REPORT			103
-#define MXLV_REC_ALLOCATED_BY		104
-#define MXLV_REC_GROUP_ARRAY		105
-#define MXLV_REC_PARENT_RECORD_ARRAY	106
-#define MXLV_REC_CHILD_RECORD_ARRAY	107
+#define MXLV_REC_ALLOCATED_BY		103
+#define MXLV_REC_GROUP_ARRAY		104
+#define MXLV_REC_PARENT_RECORD_ARRAY	105
+#define MXLV_REC_CHILD_RECORD_ARRAY	106
 
 #define MX_RECORD_STANDARD_FIELDS  \
   {-1, -1, "name", MXFT_STRING, NULL, 1, {MXU_RECORD_NAME_LENGTH}, \
@@ -253,10 +251,6 @@ typedef struct {
   \
   {MXLV_REC_RESYNCHRONIZE, -1, "resynchronize", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, resynchronize), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_REC_REPORT, -1, "report", MXFT_HEX, NULL, 0, {0}, \
-	MXF_REC_RECORD_STRUCT, offsetof(MX_RECORD, report), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "record_flags", MXFT_HEX, NULL, 0, {0}, \
@@ -387,6 +381,7 @@ typedef struct {
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char reportall[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
+	char fielddef[ MXU_FIELD_NAME_LENGTH + 1 ];
 
 	mx_bool_type is_server;
 	void *connection_acl;
@@ -515,6 +510,12 @@ MX_API mx_status_type  mx_read_database_from_array( MX_RECORD *record_list,
 MX_API mx_status_type  mx_print_structure( FILE *file,
 					MX_RECORD *record,
 					unsigned long mask );
+
+MX_API mx_status_type  mx_print_summary( FILE *file,
+					MX_RECORD *record );
+
+MX_API mx_status_type  mx_print_field_definitions( FILE *file,
+					MX_RECORD *record );
 
 MX_API mx_status_type  mx_print_field_array( FILE *file,
 					MX_RECORD *record,

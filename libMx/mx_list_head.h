@@ -17,10 +17,11 @@
 #ifndef __MX_LIST_HEAD_H__
 #define __MX_LIST_HEAD_H__
 
-#define MXLV_LHD_STATUS		101
-#define MXLV_LHD_REPORT		102
-#define MXLV_LHD_REPORTALL	103
-#define MXLV_LHD_SUMMARY	104
+#define MXLV_LHD_STATUS		1001
+#define MXLV_LHD_REPORT		1002
+#define MXLV_LHD_REPORTALL	1003
+#define MXLV_LHD_SUMMARY	1004
+#define MXLV_LHD_FIELDDEF	1005
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -61,12 +62,22 @@
   {MXLV_LHD_SUMMARY, -1, "summary", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, summary), \
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_LHD_FIELDDEF, -1, "fielddef", MXFT_STRING, NULL, \
+	  				1, {MXU_RECORD_NAME_LENGTH}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, fielddef), \
 	{sizeof(char)}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
-MX_API_PRIVATE mx_status_type mxr_list_head_print_structure(
-					FILE *file, MX_RECORD *record );
+MX_API_PRIVATE mx_status_type mxr_list_head_print_structure( FILE *file,
+							MX_RECORD *record );
+
+MX_API_PRIVATE mx_status_type mxr_list_head_open( MX_RECORD *record );
+
+MX_API_PRIVATE mx_status_type mxr_list_head_finish_delayed_initialization(
+							MX_RECORD *record );
 
 extern MX_RECORD_FUNCTION_LIST mxr_list_head_record_function_list;
 

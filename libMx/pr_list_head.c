@@ -47,6 +47,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORTALL:
 		case MXLV_LHD_SUMMARY:
+		case MXLV_LHD_FIELDDEF:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -85,9 +86,6 @@ mx_list_head_process_function( void *record_ptr,
 		}
 		break;
 	case MX_PROCESS_PUT:
-		MX_DEBUG(-2,("%s: label_value = %ld",
-			fname, record_field->label_value));
-
 		switch( record_field->label_value ) {
 		case MXLV_LHD_STATUS:
 			if ( (strcmp("clients", list_head->status) == 0)
@@ -120,16 +118,16 @@ mx_list_head_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_LHD_REPORT:
-			MX_DEBUG(-2,("report = '%s'", list_head->report));
 			mx_status = mx_list_head_record_report( list_head );
 			break;
 		case MXLV_LHD_REPORTALL:
-			MX_DEBUG(-2,("reportall = '%s'", list_head->reportall));
 			mx_status = mx_list_head_record_reportall( list_head );
 			break;
 		case MXLV_LHD_SUMMARY:
-			MX_DEBUG(-2,("summary = '%s'", list_head->summary));
 			mx_status = mx_list_head_record_summary( list_head );
+			break;
+		case MXLV_LHD_FIELDDEF:
+			mx_status = mx_list_head_record_fielddef( list_head );
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -350,7 +348,7 @@ mx_list_head_record_reportall( MX_LIST_HEAD *list_head )
 	char *record_name;
 	mx_status_type mx_status;
 
-	record_name = list_head->report;
+	record_name = list_head->reportall;
 
 	record = mx_get_record( list_head->list_head_record, record_name );
 
@@ -369,11 +367,10 @@ mx_status_type
 mx_list_head_record_summary( MX_LIST_HEAD *list_head )
 {
 	MX_RECORD *record;
-	MX_RECORD_FIELD *field, *field_array;
-	long i, num_fields;
 	char *record_name;
+	mx_status_type mx_status;
 
-	record_name = list_head->report;
+	record_name = list_head->summary;
 
 	record = mx_get_record( list_head->list_head_record, record_name );
 
@@ -383,20 +380,30 @@ mx_list_head_record_summary( MX_LIST_HEAD *list_head )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	field_array = record->record_field_array;
+	mx_status = mx_print_summary( stderr, record );
 
-	num_fields = record->num_record_fields;
+	return mx_status;
+}
 
-	for ( i = 1; i < num_fields; i++ ) {
-		field = &(field_array[i]);
+mx_status_type
+mx_list_head_record_fielddef( MX_LIST_HEAD *list_head )
+{
+	MX_RECORD *record;
+	char *record_name;
+	mx_status_type mx_status;
 
-		if ( field->flags & MXFF_IN_SUMMARY ) {
-			fprintf( stderr, "%s ", field->name );
-		}
+	record_name = list_head->fielddef;
+
+	record = mx_get_record( list_head->list_head_record, record_name );
+
+	if ( record == NULL ) {
+		fprintf( stderr, "Record '%s' not found.\n", record_name );
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
-	fprintf(stderr, "\n");
+	mx_status = mx_print_field_definitions( stderr, record );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
