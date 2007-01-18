@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -40,7 +40,7 @@
 #     define ntohl(x) (x)
 #endif
 
-#define NETWORK_DEBUG		FALSE
+#define NETWORK_DEBUG		TRUE
 
 #define NETWORK_DEBUG_TIMING	FALSE
 
@@ -52,7 +52,8 @@
 
 MX_EXPORT mx_status_type
 mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
-				size_t initial_length )
+				size_t initial_length,
+				unsigned long data_format )
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
 
@@ -92,6 +93,8 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 	}
 
 	(*message_buffer)->buffer_length = initial_length;
+
+	(*message_buffer)->data_format = data_format;
 
 #if 0
 	MX_DEBUG(-2,
@@ -270,6 +273,13 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 	mx_status = ( *fptr ) ( server, message_buffer );
 
+#if NETWORK_DEBUG
+	fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
+				server_record->name );
+
+	mx_network_display_message_buffer( message_buffer );
+#endif
+
 	return mx_status;
 }
 
@@ -319,6 +329,13 @@ mx_network_send_message( MX_RECORD *server_record,
 	"send_message function pointer for server record '%s' is NULL.",
 			server_record->name );
 	}
+
+#if NETWORK_DEBUG
+	fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
+					server_record->name );
+
+	mx_network_display_message_buffer( message_buffer );
+#endif
 
 	mx_status = ( *fptr ) ( server, message_buffer );
 
@@ -465,18 +482,111 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#define MXP_MAX_MESSAGE_DISPLAY    10
+
+static void
+mxp_show_network_buffer( void *buffer,
+			unsigned long data_format,
+			uint32_t message_length )
+{
+	static const char fname[] = "mxp_show_network_buffer()";
+
+	uint32_t *uint32_array;
+	char *char_array;
+	int i, display_length;
+	unsigned long u;
+	int c;
+
+	data_format = MX_NETWORK_DATAFMT_RAW;
+
+	switch( data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		char_array = buffer;
+
+		if ( message_length > MXP_MAX_MESSAGE_DISPLAY ) {
+			display_length = MXP_MAX_MESSAGE_DISPLAY;
+		} else {
+			display_length = message_length;
+		}
+
+		for ( i = 0; i < display_length; i++ ) {
+			c = char_array[i];
+
+			c &= 0xff;
+
+			if ( isalnum(c) || ispunct(c) ) {
+				fprintf( stderr, "'%c' ", c );
+			} else {
+				fprintf( stderr, "%#x ", c );
+			}
+		}
+
+		if ( i >= display_length ) {
+			fprintf( stderr, "..." );
+		}
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		uint32_array = buffer;
+
+		if ( (message_length/4) > MXP_MAX_MESSAGE_DISPLAY ) {
+			display_length = MXP_MAX_MESSAGE_DISPLAY;
+		} else {
+			display_length = message_length/4;
+		}
+
+		for ( i = 0; i < display_length; i++ ) {
+			u = uint32_array[i];
+
+			fprintf( stderr, "%#lx ", u );
+		}
+
+		if ( i >= display_length ) {
+			fprintf( stderr, "..." );
+		}
+		break;
+
+	case MX_NETWORK_DATAFMT_XDR:
+		uint32_array = buffer;
+
+		if ( (message_length/4) > MXP_MAX_MESSAGE_DISPLAY ) {
+			display_length = MXP_MAX_MESSAGE_DISPLAY;
+		} else {
+			display_length = message_length/4;
+		}
+
+		for ( i = 0; i < display_length; i++ ) {
+			u = uint32_array[i];
+
+			u = mx_ntohl(u);
+
+			fprintf( stderr, "%#lx ", u );
+		}
+
+		if ( i >= display_length ) {
+			fprintf( stderr, "..." );
+		}
+		break;
+
+	default:
+		(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported data format %ld", data_format );
+	}
+
+	fprintf(stderr, "\n");
+}
+
 MX_EXPORT void
 mx_network_display_message_buffer(
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
 	static const char fname[] = "mx_network_display_message_buffer()";
 
-	uint32_t *header;
-	char *buffer, *message;
+	uint32_t *header, *uint32_message;
+	char *buffer, *char_message;
 	uint32_t magic_number, header_length, message_length;
-	uint32_t message_type, status_code;
-	unsigned long i;
-	unsigned char c;
+	uint32_t message_type, status_code, message_id;
+	uint32_t record_handle, field_handle;
 
 	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -493,94 +603,74 @@ mx_network_display_message_buffer(
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-	message = buffer + header_length;
-
-	/**** Print out the header. ****/
-
-	/* Header magic number */
-
-	mx_info( "Magic number:     0x%8lx   (%2x %2x %2x %2x)",
-	  (long) magic_number, buffer[0], buffer[1], buffer[2], buffer[3] );
-
-	if ( magic_number != MX_NETWORK_MAGIC_VALUE ) {
-		(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Invalid magic number 0x%lx in network buffer header.",
-			(long) magic_number );
-		return;
+	if ( header_length < 24 ) {
+		message_id = 0;
+	} else {
+		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 	}
 
-	/* Header length */
+	uint32_message = header + header_length / 4;
+	char_message   = buffer + header_length;
 
-	i = MX_NETWORK_HEADER_LENGTH * sizeof( uint32_t );
+	fprintf( stderr,
+"  Header: hlen = %ld, mlen = %ld, mtype = %#lx, stat = %ld, msgid = %#lx\n",
+		(long) header_length, (long) message_length,
+		(long) message_type, (long) status_code,
+		(long) message_id );
 
-	mx_info( "Header length:  %12lu   (%2x %2x %2x %2x)",
-		(unsigned long) header_length,
-			buffer[i+0], buffer[i+1],
-			buffer[i+2], buffer[i+3] );
+	switch( message_type ) {
+	case MX_NETMSG_GET_ARRAY_BY_NAME:
+		fprintf( stderr, "  GET_ARRAY_BY_NAME: '%s'\n", char_message );
+		break;
 
-	if ( header_length < MXU_NETWORK_HEADER_LENGTH ) {
-		mx_info( "*** Header length %lu was unexpectedly short. ***",
-			(unsigned long) header_length );
-		return;
+	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+		record_handle = mx_ntohl( uint32_message[0] );
+		field_handle  = mx_ntohl( uint32_message[1] );
+
+		fprintf( stderr, "  GET_ARRAY_BY_HANDLE: (%lu,%lu)\n",
+				(unsigned long) record_handle,
+				(unsigned long) field_handle );
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME):
+		fprintf( stderr, "  GET_ARRAY_BY_NAME response = " );
+
+		mxp_show_network_buffer( uint32_message,
+					message_buffer->data_format,
+					message_length );
+		break;
+	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
+		fprintf( stderr, "  GET_ARRAY_BY_HANDLE response = " );
+
+		mxp_show_network_buffer( uint32_message,
+					message_buffer->data_format,
+					message_length );
+		break;
+
+	case MX_NETMSG_PUT_ARRAY_BY_NAME:
+	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+
+	case MX_NETMSG_GET_NETWORK_HANDLE:
+	case MX_NETMSG_GET_FIELD_TYPE:
+	case MX_NETMSG_SET_CLIENT_INFO:
+	case MX_NETMSG_GET_OPTION:
+	case MX_NETMSG_SET_OPTION:
+		break;
+
+	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
+	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
+
+	case mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE):
+	case mx_server_response(MX_NETMSG_GET_FIELD_TYPE):
+	case mx_server_response(MX_NETMSG_SET_CLIENT_INFO):
+	case mx_server_response(MX_NETMSG_GET_OPTION):
+	case mx_server_response(MX_NETMSG_SET_OPTION):
+		break;
+	default:
+		mx_warning( "%s: Unrecognized message type %#lx",
+			fname, (unsigned long) message_type );
 	}
 
-	/* Message length */
-
-	i = MX_NETWORK_MESSAGE_LENGTH * sizeof( uint32_t );
-
-	mx_info( "Message length: %12lu   (%2x %2x %2x %2x)",
-		(unsigned long) message_length,
-			buffer[i+0], buffer[i+1],
-			buffer[i+2], buffer[i+3] );
-
-	/* Message type */
-
-	i = MX_NETWORK_MESSAGE_TYPE * sizeof( uint32_t );
-
-	mx_info( "Message type:   %12lu   (%2x %2x %2x %2x)",
-		(unsigned long) message_type,
-			buffer[i+0], buffer[i+1],
-			buffer[i+2], buffer[i+3] );
-
-	/* Status code */
-
-	i = MX_NETWORK_STATUS_CODE * sizeof( uint32_t );
-
-	mx_info( "Status code:    %12lu   (%2x %2x %2x %2x)",
-		(unsigned long) status_code,
-			buffer[i+0], buffer[i+1],
-			buffer[i+2], buffer[i+3] );
-
-	/* Remaining part of header. */
-
-	if ( header_length > MXU_NETWORK_HEADER_LENGTH ) {
-		mx_info( "Remaining header bytes:" );
-
-		for ( i += sizeof( uint32_t ); i < header_length; i++ ) {
-			c = buffer[i];
-
-			if ( isprint(c) ) {
-				mx_info("  buffer[%lu]  = %02x (%c)",
-						i, c, c);
-			} else {
-				mx_info("  buffer[%lu]  = %02x", i, c);
-			}
-		}
-	}
-
-	/* Print out the message body. */
-
-	mx_info( "Message contents:" );
-
-	for ( i = 0; i < message_length; i++ ) {
-		c = message[i];
-
-		if ( isprint(c) ) {
-			mx_info("  message[%lu] = %02x (%c)", i, c, c);
-		} else {
-			mx_info("  message[%lu] = %02x", i, c);
-		}
-	}
 	return;
 }
 
@@ -1069,7 +1159,8 @@ mx_get_field_array( MX_RECORD *server_record,
 	char *buffer;
 	char *message;
 	uint32_t header_length, message_length;
-	uint32_t message_type, status_code;
+	uint32_t send_message_type, receive_message_type;
+	uint32_t status_code;
 	mx_status_type mx_status;
 	char token_buffer[500];
 
@@ -1154,7 +1245,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		/* Use ASCII record field name */
 
-		message_type = MX_NETMSG_GET_ARRAY_BY_NAME;
+		send_message_type = MX_NETMSG_GET_ARRAY_BY_NAME;
 
 		strlcpy( message, remote_record_field_name,
 				MXU_RECORD_FIELD_NAME_LENGTH );
@@ -1164,7 +1255,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 		/* Use binary network handle */
 
-		message_type = MX_NETMSG_GET_ARRAY_BY_HANDLE;
+		send_message_type = MX_NETMSG_GET_ARRAY_BY_HANDLE;
 
 		uint32_message[0] = mx_htonl( nf->record_handle );
 		uint32_message[1] = mx_htonl( nf->field_handle );
@@ -1172,13 +1263,16 @@ mx_get_field_array( MX_RECORD *server_record,
 		message_length = 2 * sizeof( uint32_t );
 	}
 
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( send_message_type );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-#if NETWORK_DEBUG
-	mx_network_display_message_buffer( aligned_buffer );
-#endif
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1216,14 +1310,10 @@ mx_get_field_array( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-#if NETWORK_DEBUG
-	mx_network_display_message_buffer( aligned_buffer );
-#endif
-
-	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+	header_length        = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length       = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	receive_message_type = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code          = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 #if 0
 	if ( nf != NULL ) {
@@ -1243,9 +1333,9 @@ mx_get_field_array( MX_RECORD *server_record,
 		(unsigned long) status_code));
 #endif
 
-	if ( message_type != mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) ) {
+	if ( receive_message_type != mx_server_response(send_message_type) ) {
 
-		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+		if ( receive_message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
 			switch( status_code ) {
 			case MXE_SUCCESS:
 				break;
@@ -1268,8 +1358,10 @@ mx_get_field_array( MX_RECORD *server_record,
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_GET_ARRAY_ASCII_RESPONSE.  "
-"Instead it was of type = %#lx", (unsigned long) message_type );
+		"Message type for response was not %#lx.  "
+		"Instead it was of type = %#lx",
+			(unsigned long) mx_server_response( send_message_type ),
+			(unsigned long) receive_message_type );
 	}
 
 	message = buffer + header_length;
@@ -1435,7 +1527,8 @@ mx_put_field_array( MX_RECORD *server_record,
 	unsigned long i, j, max_attempts;
 	unsigned long ptr_address, remainder_value, gap_size;
 	uint32_t header_length, message_length, saved_message_length;
-	uint32_t message_type, status_code;
+	uint32_t send_message_type, receive_message_type;
+	uint32_t status_code;
 	size_t buffer_left, num_bytes;
 	size_t current_length, new_length;
 	mx_status_type mx_status;
@@ -1513,7 +1606,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		/* Use ASCII record field name */
 
-		message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
+		send_message_type = MX_NETMSG_PUT_ARRAY_BY_NAME;
 
 		sprintf( message, "%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
 				remote_record_field_name );
@@ -1523,7 +1616,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 		/* Use binary network handle */
 
-		message_type = MX_NETMSG_PUT_ARRAY_BY_HANDLE;
+		send_message_type = MX_NETMSG_PUT_ARRAY_BY_HANDLE;
 
 		uint32_message[0] = mx_htonl( nf->record_handle );
 		uint32_message[1] = mx_htonl( nf->field_handle );
@@ -1531,7 +1624,7 @@ mx_put_field_array( MX_RECORD *server_record,
 		message_length = 2 * sizeof( uint32_t );
 	}
 
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( message_type );
+	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( send_message_type );
 
 	ptr = message + message_length;
 
@@ -1748,9 +1841,12 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
-#if NETWORK_DEBUG
-	mx_network_display_message_buffer( aligned_buffer );
-#endif
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -1789,14 +1885,10 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header = aligned_buffer->u.uint32_buffer;
 
-#if NETWORK_DEBUG
-	mx_network_display_message_buffer( aligned_buffer );
-#endif
-
-        header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-        message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-        message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
-        status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+        header_length        = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+        message_length       = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+        receive_message_type = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+        status_code          = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
 #if 0
 	if ( nf != NULL ) {
@@ -1816,9 +1908,9 @@ mx_put_field_array( MX_RECORD *server_record,
 		(unsigned long) status_code));
 #endif
 
-        if ( message_type != mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) ) {
+        if ( receive_message_type != mx_server_response(send_message_type) ) {
 
-		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+		if ( receive_message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
 			return mx_put_array_ascii_error_message(
 					status_code,
 					server_record->name,
@@ -1827,8 +1919,10 @@ mx_put_field_array( MX_RECORD *server_record,
 		}
 
                 return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_PUT_ARRAY_ASCII_RESPONSE.  "
-"Instead it was of type = %#lx", (unsigned long) message_type );
+		"Message type for response was not %#lx.  "
+		"Instead it was of type = %#lx",
+			(unsigned long) mx_server_response(send_message_type),
+			(unsigned long) receive_message_type );
         }
 
         message = aligned_buffer->u.char_buffer + header_length;
@@ -1920,6 +2014,13 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -1990,13 +2091,9 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_GET_NETWORK_HANDLE_RESPONSE.  "
+"Message type for response was not MX_NETMSG_GET_NETWORK_HANDLE.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-#if 0
-	mx_network_display_message_buffer( buffer );
-#endif
 
 	/* If the remote command failed, the message field will include
 	 * the text of the error message rather than the field type
@@ -2106,6 +2203,13 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -2149,13 +2253,9 @@ mx_get_field_type( MX_RECORD *server_record,
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_GET_FIELD_TYPE_RESPONSE.  "
+"Message type for response was not MX_NETMSG_GET_FIELD_TYPE.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-#if 0
-	mx_network_display_message_buffer( buffer );
-#endif
 
 	/* If the remote command failed, the message field will include
 	 * the text of the error message rather than the field type
@@ -2303,6 +2403,13 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -2346,13 +2453,9 @@ mx_set_client_info( MX_RECORD *server_record,
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_SET_CLIENT_INFO_RESPONSE.  "
+"Message type for response was not MX_NETMSG_SET_CLIENT_INFO.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-#if 0
-	mx_network_display_message_buffer( buffer );
-#endif
 
 	/* If the remote command failed, the message field will include
 	 * the text of the error message rather than the field type
@@ -2428,6 +2531,13 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
 
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -2489,13 +2599,9 @@ mx_network_get_option( MX_RECORD *server_record,
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_GET_OPTION_RESPONSE.  "
+"Message type for response was not MX_NETMSG_GET_OPTION.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-#if 0
-	mx_network_display_message_buffer( buffer );
-#endif
 
 	/* If the remote command failed, the message field will include
 	 * the text of the error message rather than the field type
@@ -2584,6 +2690,13 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 2 * sizeof(uint32_t) );
 
+	server->last_rpc_message_id++;
+
+	if ( server->last_rpc_message_id == 0 )
+		server->last_rpc_message_id = 1;
+
+	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
 #endif
@@ -2645,13 +2758,9 @@ mx_network_set_option( MX_RECORD *server_record,
 		}
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"Message type for response was not MX_NETMSG_SET_OPTION_RESPONSE.  "
+"Message type for response was not MX_NETMSG_SET_OPTION.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
-
-#if 0
-	mx_network_display_message_buffer( buffer );
-#endif
 
 	/* If the remote command failed, the message field will include
 	 * the text of the error message rather than the field type

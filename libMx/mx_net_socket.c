@@ -639,7 +639,8 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	total_length = header_length + message_length;
 
-	mx_status = mx_allocate_network_buffer( &message_buffer, total_length );
+	mx_status = mx_allocate_network_buffer( &message_buffer, total_length,
+						MX_NETWORK_DATAFMT_ASCII );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -660,6 +661,8 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 	header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( error_message.code );
 
 	header[ MX_NETWORK_MESSAGE_TYPE ] = mx_htonl( return_message_type );
+
+	header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( 0 );
 
 	/* Send back the error message. */
 

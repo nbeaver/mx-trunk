@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,8 @@
  */
 
 #define NETWORK_DEBUG			FALSE
+
+#define NETWORK_DEBUG_MESSAGES		TRUE
 
 #define NETWORK_DEBUG_VERBOSE		FALSE
 
@@ -549,7 +551,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	mx_status = mx_allocate_network_buffer(
 			&(new_socket_handler->message_buffer),
-			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH,
+			new_socket_handler->data_format );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( client_socket );
@@ -951,18 +954,13 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	message_ptr[ message_length ] = '\0';
 
-#if NETWORK_DEBUG_VERBOSE
-	MX_DEBUG(-2,("%s: message_length = %lu",
-			fname, (unsigned long) message_length));
-	{
-		long i;
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
+			(int) client_socket->socket_fd );
 
-		for ( i = 0; i < message_length; i++ ) {
-			MX_DEBUG(-2,("message_ptr[%ld] = %x '%c'",
-				i, message_ptr[i], message_ptr[i]));
-		}
-	}
+	mx_network_display_message_buffer( received_message );
 #endif
+
 #if NETWORK_DEBUG
 	{
 		char message_type_string[40];
@@ -1068,6 +1066,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"MX message type %#lx is not yet implemented.",
 			(unsigned long) message_type );
+
+#if NETWORK_DEBUG_MESSAGES
+		fprintf( stderr,
+			"\nMX NET: Sending error code %ld to socket %d\n",
+			mx_status.code, client_socket->socket_fd );
+#endif
 
 		(void) mx_network_socket_send_error_message( client_socket,
 			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
@@ -1232,6 +1236,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		/* Send back the error message. */
 
+#if NETWORK_DEBUG_MESSAGES
+		fprintf( stderr,
+			"\nMX NET: Sending error code %ld to socket %d\n",
+			mx_status.code, client_socket->socket_fd );
+#endif
+
 		(void) mx_network_socket_send_error_message( client_socket,
 					MX_NETMSG_UNEXPECTED_ERROR, mx_status );
 
@@ -1274,6 +1284,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			    = mxsrv_get_returning_message_type( message_type );
 
 			/* Send back the error message. */
+
+#if NETWORK_DEBUG_MESSAGES
+			fprintf( stderr,
+			"\nMX NET: Sending error code %ld to socket %d\n",
+				mx_status.code, client_socket->socket_fd );
+#endif
 
 			(void) mx_network_socket_send_error_message(
 					client_socket,
@@ -1364,6 +1380,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"MX message type %#lx is not yet implemented!",
 			(unsigned long) message_type );
+
+#if NETWORK_DEBUG_MESSAGES
+		fprintf( stderr,
+			"\nMX NET: Sending error code %ld to socket %d\n",
+			mx_status.code, client_socket->socket_fd );
+#endif
 
 		(void) mx_network_socket_send_error_message( client_socket,
 			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
@@ -1573,6 +1595,9 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_handle_get_array()";
 
 	char location[ sizeof(fname) + 40 ];
+	uint32_t *receive_buffer_header;
+	uint32_t receive_buffer_header_length;
+	uint32_t receive_buffer_message_type, receive_buffer_message_id;
 	uint32_t *send_buffer_header;
 	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;
@@ -1603,6 +1628,23 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		array_is_dynamically_allocated = TRUE;
 	} else {
 		array_is_dynamically_allocated = FALSE;
+	}
+
+	/* Save the message type and message id for later. */
+
+	receive_buffer_header = network_message->u.uint32_buffer;
+
+	receive_buffer_header_length =
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ]);
+
+	receive_buffer_message_type =
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]);
+
+	if ( receive_buffer_header_length < 24 ) {
+		receive_buffer_message_id = 0;
+	} else {
+		receive_buffer_message_id =
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
 	}
 
 	/* Get the data from the hardware for this get_array request. */
@@ -1817,13 +1859,16 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= mx_htonl( mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) );
+		= mx_htonl( mx_server_response(receive_buffer_message_type) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
 				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( send_buffer_message_actual_length );
+
+	send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
+				= mx_htonl( receive_buffer_message_id );
 
 	/* Send the string description back to the client. */
 
@@ -1889,6 +1934,13 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 "#6 before sending reply for '%s.%s'", record->name, record_field->name );
 #endif
 
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+					mx_socket->socket_fd );
+
+	mx_network_display_message_buffer( network_message );
+#endif
+
 	mx_status = mx_network_socket_send_message( mx_socket,
 						-1.0, network_message );
 
@@ -1926,6 +1978,8 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	uint32_t *receive_buffer_header;
 	uint32_t receive_buffer_header_length;
 	uint32_t receive_buffer_message_length;
+	uint32_t receive_buffer_message_type;
+	uint32_t receive_buffer_message_id;
 
 	char *send_buffer_message, *value_buffer;
 	uint32_t *send_buffer_header;
@@ -1997,12 +2051,24 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		if ( mx_status.code != MXE_SUCCESS )
 			break;		/* Exit the do...while(0) loop. */
 
-		/* Get a pointer to the start of the value string. */
+		/* Save the message type and message id for later. */
 
 		receive_buffer_header = network_message->u.uint32_buffer;
 
 		receive_buffer_header_length =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_HEADER_LENGTH ]);
+
+		receive_buffer_message_type =
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]);
+
+		if ( receive_buffer_header_length < 24 ) {
+			receive_buffer_message_id = 0;
+		} else {
+			receive_buffer_message_id =
+		      mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
+		}
+
+		/* Get a pointer to the start of the value string. */
 
 		receive_buffer_message  = network_message->u.char_buffer;
 		receive_buffer_message += receive_buffer_header_length;
@@ -2210,13 +2276,16 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= mx_htonl( mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) );
+		= mx_htonl( mx_server_response(receive_buffer_message_type) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
 				= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( send_buffer_message_length );
+
+	send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
+				= mx_htonl( receive_buffer_message_id );
 
 	/* Send the string description back to the client. */
 
@@ -2238,6 +2307,13 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 		MX_DEBUG(-2,("%s", text_buffer));
 	}
+#endif
+
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+					mx_socket->socket_fd );
+
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
@@ -2339,6 +2415,13 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		/* Send back the error message. */
 
+#if NETWORK_DEBUG_MESSAGES
+		fprintf( stderr,
+			"\nMX NET: Sending error code %ld to socket %d\n",
+			mx_status.code,
+			socket_handler->synchronous_socket->socket_fd );
+#endif
+
 		(void) mx_network_socket_send_error_message(
 					socket_handler->synchronous_socket,
 					MX_NETMSG_UNEXPECTED_ERROR, mx_status );
@@ -2400,8 +2483,11 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[0] = mx_htonl( record_handle );
 	send_buffer_message[1] = mx_htonl( field_handle );
 
-#if 0 && NETWORK_DEBUG_VERBOSE
-	mx_network_display_message_buffer( send_buffer );
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+			socket_handler->synchronous_socket->socket_fd );
+
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	/* Send the record field handle back to the client. */
@@ -2491,8 +2577,11 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		}
 	}
 
-#if 0 && NETWORK_DEBUG_VERBOSE
-	mx_network_display_message_buffer( send_buffer );
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				mx_socket->socket_fd );
+
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	/* Send the field type information back to the client. */
@@ -2666,7 +2755,10 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 
 	send_buffer_message[0] = '\0';
 
-#if NETWORK_DEBUG_VERBOSE
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+			socket_handler->synchronous_socket->socket_fd );
+
 	mx_network_display_message_buffer( network_message );
 #endif
 
@@ -2786,8 +2878,11 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
 	}
 
-#if 0 && NETWORK_DEBUG_VERBOSE
-	mx_network_display_message_buffer( send_buffer );
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+			socket_handler->synchronous_socket->socket_fd );
+
+	mx_network_display_message_buffer( network_message );
 #endif
 
 	/* Send the option information back to the client. */
@@ -2941,7 +3036,10 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 				= mx_htonl( MXE_SUCCESS );
 	}
 
-#if NETWORK_DEBUG_VERBOSE
+#if NETWORK_DEBUG_MESSAGES
+	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+			socket_handler->synchronous_socket->socket_fd );
+
 	mx_network_display_message_buffer( network_message );
 #endif
 

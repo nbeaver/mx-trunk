@@ -60,6 +60,7 @@ typedef struct mx_network_message_buffer {
 		char     *char_buffer;
 	} u;
 	size_t buffer_length;
+	unsigned long data_format;
 } MX_NETWORK_MESSAGE_BUFFER;
 
 /*
@@ -251,14 +252,14 @@ typedef struct {
 
 MX_API mx_status_type mx_allocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER **message_buffer,
-				size_t initial_length );
+				size_t initial_length,
+				unsigned long data_format );
 
 MX_API mx_status_type mx_reallocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 				size_t new_length );
 
-MX_API void mx_free_network_buffer(
-				MX_NETWORK_MESSAGE_BUFFER *message_buffer);
+MX_API void mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
 MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
