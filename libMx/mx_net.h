@@ -26,7 +26,7 @@
 
 /* Current size of an MX network header. */
 
-#define MXU_NETWORK_NUM_HEADER_VALUES	6
+#define MXU_NETWORK_NUM_HEADER_VALUES	7
 
 #define MXU_NETWORK_HEADER_LENGTH \
 	( MXU_NETWORK_NUM_HEADER_VALUES * sizeof(uint32_t) )
@@ -193,7 +193,8 @@ typedef struct {
 #define MX_NETWORK_MESSAGE_LENGTH	2
 #define MX_NETWORK_MESSAGE_TYPE		3
 #define MX_NETWORK_STATUS_CODE		4
-#define MX_NETWORK_MESSAGE_ID		5
+#define MX_NETWORK_DATA_TYPE		5
+#define MX_NETWORK_MESSAGE_ID		6
 
 /* Definition of network message type flags. */
 
@@ -252,8 +253,7 @@ typedef struct {
 
 MX_API mx_status_type mx_allocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER **message_buffer,
-				size_t initial_length,
-				unsigned long data_format );
+				size_t initial_length );
 
 MX_API mx_status_type mx_reallocate_network_buffer(
 				MX_NETWORK_MESSAGE_BUFFER *message_buffer,

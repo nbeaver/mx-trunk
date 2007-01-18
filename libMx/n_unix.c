@@ -105,8 +105,7 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 
 	mx_status = mx_allocate_network_buffer(
 			&(network_server->message_buffer),
-			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH,
-			network_server->data_format );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

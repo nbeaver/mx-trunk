@@ -48,6 +48,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		case MXLV_LHD_REPORTALL:
 		case MXLV_LHD_SUMMARY:
 		case MXLV_LHD_FIELDDEF:
+		case MXLV_LHD_SHOW_HANDLE:
 			record_field->process_function
 					    = mx_list_head_process_function;
 			break;
@@ -128,6 +129,9 @@ mx_list_head_process_function( void *record_ptr,
 			break;
 		case MXLV_LHD_FIELDDEF:
 			mx_status = mx_list_head_record_fielddef( list_head );
+			break;
+		case MXLV_LHD_SHOW_HANDLE:
+			mx_status = mx_list_head_record_show_handle(list_head);
 			break;
 		default:
 			MX_DEBUG( 1,(
@@ -405,5 +409,74 @@ mx_list_head_record_fielddef( MX_LIST_HEAD *list_head )
 	mx_status = mx_print_field_definitions( stderr, record );
 
 	return mx_status;
+}
+
+mx_status_type
+mx_list_head_record_show_handle( MX_LIST_HEAD *list_head )
+{
+	static const char fname[] = "mx_list_head_record_show_handle()";
+
+	void *record_ptr;
+	MX_RECORD *record;
+	MX_RECORD_FIELD *field;
+	long record_handle, field_handle;
+	mx_status_type mx_status;
+
+	record_handle = list_head->show_handle[0];
+	field_handle  = list_head->show_handle[1];
+
+	MX_DEBUG(-2,("%s invoked for network field (%ld,%ld).",
+		fname, record_handle, field_handle));
+
+	/* Get the record pointer. */
+
+	mx_status = mx_get_pointer_from_handle( &record_ptr,
+						list_head->handle_table,
+						record_handle );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD pointer returned for network field "
+		"(%ld,%ld) is NULL.", record_handle, field_handle );
+	}
+
+	/* Get the field pointer. */
+
+	if ( field_handle < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested field handle %ld for network field "
+		"(%ld,%ld) is a negative number for record '%s'.",
+			field_handle, record_handle, field_handle,
+			record->name );
+	}
+
+	if ( field_handle >= record->num_record_fields ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested field handle %ld for network field "
+		"(%ld,%ld) is greater than or equal to the "
+		"number of record fields %ld for record '%s'.",
+			field_handle, record_handle, field_handle,
+			record->num_record_fields, record->name );
+	}
+
+	field = &(record->record_field_array[ field_handle ]);
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD_FIELD pointer returned for "
+		"network field (%ld,%ld) is NULL.",
+			record_handle, field_handle );
+	}
+
+	fprintf(stderr, "Network field (%ld,%ld) = '%s.%s'\n",
+		record_handle, field_handle,
+		record->name, field->name );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

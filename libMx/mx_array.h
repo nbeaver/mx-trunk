@@ -57,6 +57,8 @@ MX_API mx_status_type mx_copy_buffer_to_array(
 #define MX_XDR_ENCODE	0
 #define MX_XDR_DECODE	1
 
+MX_API size_t mx_xdr_get_scalar_element_size( long mx_datatype );
+
 MX_API mx_status_type mx_xdr_data_transfer( int direction,
 		void *array_pointer,
 		int array_is_dynamically_allocated,

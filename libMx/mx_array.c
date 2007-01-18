@@ -7,7 +7,7 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1048,10 +1048,8 @@ mx_copy_buffer_to_array( void *source_buffer, size_t source_buffer_length,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if HAVE_XDR
-
-static size_t
-mxp_xdr_get_scalar_element_size( long mx_datatype ) {
+MX_EXPORT size_t
+mx_xdr_get_scalar_element_size( long mx_datatype ) {
 
 	size_t element_size, native_size;
 
@@ -1093,6 +1091,8 @@ mxp_xdr_get_scalar_element_size( long mx_datatype ) {
 
 	return element_size;
 }
+
+#if HAVE_XDR
 
 MX_EXPORT mx_status_type
 mx_xdr_data_transfer( int direction, void *array_pointer,
@@ -1219,7 +1219,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 
 		/* Handling scalars takes a bit more effort. */
 
-		xdr_data_size = mxp_xdr_get_scalar_element_size( mx_datatype );
+		xdr_data_size = mx_xdr_get_scalar_element_size( mx_datatype );
 
 		if ( direction == MX_XDR_ENCODE ) {
 			if ( xdr_data_size > xdr_buffer_length ) {
@@ -1374,7 +1374,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 					* data_element_size_array[0];
 
 		xdr_array_size = dimension_array[0] 
-				* mxp_xdr_get_scalar_element_size(mx_datatype);
+				* mx_xdr_get_scalar_element_size(mx_datatype);
 
 #if ADD_STRING_BYTE	/* Adding a byte is a bad idea. */
 
@@ -1517,7 +1517,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 			mx_get_scalar_element_size( mx_datatype, FALSE );
 
 		last_dimension_xdr_size_in_bytes =
-				mxp_xdr_get_scalar_element_size( mx_datatype );
+				mx_xdr_get_scalar_element_size( mx_datatype );
 	} else {
 		/* num_dimensions > 1 */
 
@@ -1525,7 +1525,7 @@ mx_xdr_data_transfer( int direction, void *array_pointer,
 						* data_element_size_array[0];
 
 		last_dimension_xdr_size_in_bytes = last_dimension_size
-			* mxp_xdr_get_scalar_element_size( mx_datatype );
+			* mx_xdr_get_scalar_element_size( mx_datatype );
 	
 	}
 

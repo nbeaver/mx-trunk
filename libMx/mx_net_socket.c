@@ -639,11 +639,12 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	total_length = header_length + message_length;
 
-	mx_status = mx_allocate_network_buffer( &message_buffer, total_length,
-						MX_NETWORK_DATAFMT_ASCII );
+	mx_status = mx_allocate_network_buffer( &message_buffer, total_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 	header = message_buffer->u.uint32_buffer;
 	ptr    = message_buffer->u.char_buffer;

@@ -382,6 +382,7 @@ typedef struct {
 	char reportall[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char fielddef[ MXU_FIELD_NAME_LENGTH + 1 ];
+	unsigned long show_handle[2];
 
 	mx_bool_type is_server;
 	void *connection_acl;

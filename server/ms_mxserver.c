@@ -551,8 +551,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 	mx_status = mx_allocate_network_buffer(
 			&(new_socket_handler->message_buffer),
-			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH,
-			new_socket_handler->data_format );
+			MXU_NETWORK_INITIAL_MESSAGE_BUFFER_LENGTH );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mx_free( client_socket );
@@ -560,6 +559,9 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 
 		return mx_status;
 	}
+
+	new_socket_handler->message_buffer->data_format
+					= new_socket_handler->data_format;
 
 	new_socket_handler->synchronous_socket = client_socket;
 	new_socket_handler->callback_socket = NULL;
@@ -1598,6 +1600,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	uint32_t *receive_buffer_header;
 	uint32_t receive_buffer_header_length;
 	uint32_t receive_buffer_message_type, receive_buffer_message_id;
+	long receive_datatype;
 	uint32_t *send_buffer_header;
 	char *send_buffer_message;
 	long send_buffer_header_length, send_buffer_message_length;
@@ -1640,9 +1643,15 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	receive_buffer_message_type =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]);
 
-	if ( receive_buffer_header_length < 24 ) {
+	if ( receive_buffer_header_length < 28 ) {
+		/* Handle clients from MX 1.4 or before. */
+
+		receive_datatype = record_field->datatype;
 		receive_buffer_message_id = 0;
 	} else {
+		receive_datatype = 
+		   mx_ntohl(receive_buffer_header[ MX_NETWORK_DATA_TYPE ]);
+
 		receive_buffer_message_id =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
 	}
@@ -1867,6 +1876,9 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( send_buffer_message_actual_length );
 
+	send_buffer_header[ MX_NETWORK_DATA_TYPE ]
+				= mx_htonl( record_field->datatype );
+
 	send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
 				= mx_htonl( receive_buffer_message_id );
 
@@ -1980,6 +1992,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	uint32_t receive_buffer_message_length;
 	uint32_t receive_buffer_message_type;
 	uint32_t receive_buffer_message_id;
+	long receive_datatype;
 
 	char *send_buffer_message, *value_buffer;
 	uint32_t *send_buffer_header;
@@ -2061,9 +2074,15 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		receive_buffer_message_type =
 		   mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]);
 
-		if ( receive_buffer_header_length < 24 ) {
+		if ( receive_buffer_header_length < 28 ) {
+			/* Handle clients from MX 1.4 or before. */
+
+			receive_datatype = record_field->datatype;
 			receive_buffer_message_id = 0;
 		} else {
+			receive_datatype = 
+		      mx_ntohl(receive_buffer_header[ MX_NETWORK_DATA_TYPE ]);
+
 			receive_buffer_message_id =
 		      mx_ntohl(receive_buffer_header[ MX_NETWORK_MESSAGE_ID ]);
 		}
@@ -2283,6 +2302,9 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 				= mx_htonl( send_buffer_message_length );
+
+	send_buffer_header[ MX_NETWORK_DATA_TYPE ]
+				= mx_htonl( record_field->datatype );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
 				= mx_htonl( receive_buffer_message_id );
@@ -2937,6 +2959,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	switch( option_number ) {
 	case MX_NETWORK_OPTION_DATAFMT:
 		socket_handler->data_format = option_value;
+		socket_handler->message_buffer->data_format = option_value;
 		break;
 
 	case MX_NETWORK_OPTION_64BIT_LONG:

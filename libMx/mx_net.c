@@ -52,8 +52,7 @@
 
 MX_EXPORT mx_status_type
 mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
-				size_t initial_length,
-				unsigned long data_format )
+				size_t initial_length )
 {
 	static const char fname[] = "mx_allocate_network_buffer()";
 
@@ -94,7 +93,7 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 
 	(*message_buffer)->buffer_length = initial_length;
 
-	(*message_buffer)->data_format = data_format;
+	(*message_buffer)->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 #if 0
 	MX_DEBUG(-2,
@@ -482,95 +481,174 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#define MXP_MAX_MESSAGE_DISPLAY    10
+#define MXP_MAX_DISPLAY_VALUES    10
 
 static void
 mxp_show_network_buffer( void *buffer,
 			unsigned long data_format,
+			uint32_t data_type,
+			uint32_t message_type,
 			uint32_t message_length )
 {
 	static const char fname[] = "mxp_show_network_buffer()";
 
-	uint32_t *uint32_array;
-	char *char_array;
-	int i, display_length;
-	unsigned long u;
 	int c;
+	long i, raw_display_values, max_display_values;
+	size_t scalar_element_size;
 
-	data_format = MX_NETWORK_DATAFMT_RAW;
+	/* For GET_ARRAY and PUT_ARRAY in ASCII format, we treat the body
+	 * of the message as a single string.
+	 */
+
+	if ( data_format == MX_NETWORK_DATAFMT_ASCII ) {
+		switch( message_type ) {
+		case MX_NETMSG_GET_ARRAY_BY_NAME:
+		case MX_NETMSG_GET_ARRAY_BY_HANDLE:
+		case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+		case mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME):
+		case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
+		case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
+		case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
+			fprintf( stderr, "%s\n", (char *) buffer );
+
+			/* At this point, we are done.  For ASCII format,
+			 * message types not mentioned above will be
+			 * handled together with RAW format.
+			 */
+
+			return;
+		}
+	}
+
+	if ( data_format == MX_NETWORK_DATAFMT_XDR ) {
+		scalar_element_size = mx_xdr_get_scalar_element_size(data_type);
+	} else {
+		scalar_element_size =
+			mx_get_scalar_element_size(data_type, FALSE);
+	}
+
+	if ( scalar_element_size == 0 ) {
+		(void) mx_error( MXE_FUNCTION_FAILED, fname,
+		"scalar_element_size is 0 for data_type = %lu",
+			(unsigned long) data_type );
+
+		return;
+	}
+
+	raw_display_values = message_length / scalar_element_size;
+
+	if ( data_type == MXFT_STRING ) {
+		if ( raw_display_values > (4 * MXP_MAX_DISPLAY_VALUES) ) {
+			max_display_values = 4 * MXP_MAX_DISPLAY_VALUES;
+		} else {
+			max_display_values = raw_display_values;
+		}
+	} else {
+		if ( raw_display_values > MXP_MAX_DISPLAY_VALUES ) {
+			max_display_values = MXP_MAX_DISPLAY_VALUES;
+		} else {
+			max_display_values = raw_display_values;
+		}
+	}
+
+	i = -1;
 
 	switch( data_format ) {
 	case MX_NETWORK_DATAFMT_ASCII:
-		char_array = buffer;
-
-		if ( message_length > MXP_MAX_MESSAGE_DISPLAY ) {
-			display_length = MXP_MAX_MESSAGE_DISPLAY;
-		} else {
-			display_length = message_length;
-		}
-
-		for ( i = 0; i < display_length; i++ ) {
-			c = char_array[i];
-
-			c &= 0xff;
-
-			if ( isalnum(c) || ispunct(c) ) {
-				fprintf( stderr, "'%c' ", c );
-			} else {
-				fprintf( stderr, "%#x ", c );
-			}
-		}
-
-		if ( i >= display_length ) {
-			fprintf( stderr, "..." );
-		}
-		break;
-
 	case MX_NETWORK_DATAFMT_RAW:
-		uint32_array = buffer;
+		switch( data_type ) {
+		case MXFT_STRING:
+			fprintf( stderr, "%s\n", (char *) buffer );
+			break;
+		case MXFT_CHAR:
+		case MXFT_UCHAR:
+			for ( i = 0; i < max_display_values; i++ ) {
+				c = ((char *) buffer)[i];
 
-		if ( (message_length/4) > MXP_MAX_MESSAGE_DISPLAY ) {
-			display_length = MXP_MAX_MESSAGE_DISPLAY;
-		} else {
-			display_length = message_length/4;
-		}
-
-		for ( i = 0; i < display_length; i++ ) {
-			u = uint32_array[i];
-
-			fprintf( stderr, "%#lx ", u );
-		}
-
-		if ( i >= display_length ) {
-			fprintf( stderr, "..." );
+				if ( isalnum(c) || ispunct(c) ) {
+					fprintf( stderr, "%c ", c );
+				} else {
+					fprintf( stderr, "%#x", c & 0xff );
+				}
+			}
+		case MXFT_SHORT:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%hd ",
+					((short *) buffer)[i] );
+			}
+			break;
+		case MXFT_USHORT:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%hu ",
+					((unsigned short *) buffer)[i] );
+			}
+			break;
+		case MXFT_BOOL:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%d ",
+					(int)(((mx_bool_type *) buffer)[i]) );
+			}
+			break;
+		case MXFT_LONG:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%ld ",
+					((long *) buffer)[i] );
+			}
+			break;
+		case MXFT_ULONG:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%lu ",
+					((unsigned long *) buffer)[i] );
+			}
+			break;
+		case MXFT_FLOAT:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%g ",
+					((float *) buffer)[i] );
+			}
+			break;
+		case MXFT_DOUBLE:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%g ",
+					((double *) buffer)[i] );
+			}
+			break;
+		case MXFT_HEX:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%#lx ",
+					((unsigned long *) buffer)[i] );
+			}
+			break;
+		case MXFT_INT64:
+		case MXFT_UINT64:
+		case MXFT_RECORD:
+		case MXFT_RECORDTYPE:
+		case MXFT_INTERFACE:
+			(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		      "Support for data type %lu has not yet been implemented.",
+		      		(unsigned long) data_type );
+			return;
+		default:
+			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Unrecognized data type %lu requested.",
+				(unsigned long) data_type );
+			return;
 		}
 		break;
 
 	case MX_NETWORK_DATAFMT_XDR:
-		uint32_array = buffer;
-
-		if ( (message_length/4) > MXP_MAX_MESSAGE_DISPLAY ) {
-			display_length = MXP_MAX_MESSAGE_DISPLAY;
-		} else {
-			display_length = message_length/4;
-		}
-
-		for ( i = 0; i < display_length; i++ ) {
-			u = uint32_array[i];
-
-			u = mx_ntohl(u);
-
-			fprintf( stderr, "%#lx ", u );
-		}
-
-		if ( i >= display_length ) {
-			fprintf( stderr, "..." );
-		}
-		break;
-
+		(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Support for XDR buffer display is not yet implemented." );
+		return;
 	default:
 		(void) mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported data format %ld", data_format );
+		return;
+	}
+
+	if ( raw_display_values > max_display_values ) {
+		fprintf( stderr, "..." );
 	}
 
 	fprintf(stderr, "\n");
@@ -587,6 +665,8 @@ mx_network_display_message_buffer(
 	uint32_t magic_number, header_length, message_length;
 	uint32_t message_type, status_code, message_id;
 	uint32_t record_handle, field_handle;
+	long i, data_type, field_type, num_dimensions, dimension_size;
+	unsigned long option_number, option_value;
 
 	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -603,9 +683,13 @@ mx_network_display_message_buffer(
 	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
 	status_code    = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
 
-	if ( header_length < 24 ) {
+	if ( header_length < 28 ) {
+		/* Handle servers and clients from MX 1.4 and before. */
+
+		data_type  = 0;
 		message_id = 0;
 	} else {
+		data_type  = mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
 		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 	}
 
@@ -613,10 +697,13 @@ mx_network_display_message_buffer(
 	char_message   = buffer + header_length;
 
 	fprintf( stderr,
-"  Header: hlen = %ld, mlen = %ld, mtype = %#lx, stat = %ld, msgid = %#lx\n",
+"  header length = %ld, message_length = %ld, message type = %#lx,\n",
 		(long) header_length, (long) message_length,
-		(long) message_type, (long) status_code,
-		(long) message_id );
+		(long) message_type );
+
+	fprintf( stderr,
+"  status code = %ld, data type = %ld, message id = %#lx\n",
+		(long) status_code, data_type, (unsigned long) message_id );
 
 	switch( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
@@ -637,35 +724,144 @@ mx_network_display_message_buffer(
 
 		mxp_show_network_buffer( uint32_message,
 					message_buffer->data_format,
+					data_type,
+					message_type,
 					message_length );
 		break;
+
 	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
 		fprintf( stderr, "  GET_ARRAY_BY_HANDLE response = " );
 
 		mxp_show_network_buffer( uint32_message,
 					message_buffer->data_format,
+					data_type,
+					message_type,
 					message_length );
 		break;
 
-	case MX_NETMSG_PUT_ARRAY_BY_NAME:
-	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+	/*-------------------------------------------------------------------*/
 
-	case MX_NETMSG_GET_NETWORK_HANDLE:
-	case MX_NETMSG_GET_FIELD_TYPE:
-	case MX_NETMSG_SET_CLIENT_INFO:
-	case MX_NETMSG_GET_OPTION:
-	case MX_NETMSG_SET_OPTION:
+	case MX_NETMSG_PUT_ARRAY_BY_NAME:
+		fprintf( stderr, "  PUT_ARRAY_BY_NAME: '%s', ", char_message );
+
+		mxp_show_network_buffer(
+				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
+		break;
+
+	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+		record_handle = mx_ntohl( uint32_message[0] );
+		field_handle  = mx_ntohl( uint32_message[1] );
+
+		fprintf( stderr, "  PUT_ARRAY_BY_HANDLE: (%lu,%lu),  ",
+				(unsigned long) record_handle,
+				(unsigned long) field_handle );
+
+		mxp_show_network_buffer(
+				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
 		break;
 
 	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
+		fprintf( stderr, "  PUT_ARRAY_BY_NAME response\n" );
+		break;
+
 	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE):
+		fprintf( stderr, "  PUT_ARRAY_BY_HANDLE response\n" );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_GET_NETWORK_HANDLE:
+		fprintf( stderr, "  GET_NETWORK_HANDLE: '%s'\n", char_message );
+		break;
 
 	case mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE):
-	case mx_server_response(MX_NETMSG_GET_FIELD_TYPE):
-	case mx_server_response(MX_NETMSG_SET_CLIENT_INFO):
-	case mx_server_response(MX_NETMSG_GET_OPTION):
-	case mx_server_response(MX_NETMSG_SET_OPTION):
+		record_handle = mx_ntohl( uint32_message[0] );
+		field_handle  = mx_ntohl( uint32_message[1] );
+
+		fprintf( stderr, "  GET_NETWORK_HANDLE response: (%lu,%lu)\n",
+				(unsigned long) record_handle,
+				(unsigned long) field_handle );
 		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_GET_FIELD_TYPE:
+		fprintf( stderr, "  GET_FIELD_TYPE: '%s'\n", char_message );
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_FIELD_TYPE):
+		field_type     = mx_ntohl( uint32_message[0] );
+		num_dimensions = mx_ntohl( uint32_message[1] );
+
+		fprintf( stderr,
+	"  GET_FIELD_TYPE response: field type = %ld, num dimensions = %ld",
+			field_type, num_dimensions );
+
+		for ( i = 0; i < num_dimensions; i++ ) {
+			dimension_size = mx_ntohl( uint32_message[i+2] );
+
+			fprintf( stderr, ", %ld", dimension_size );
+		}
+		fprintf( stderr, "\n" );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_SET_CLIENT_INFO:
+		fprintf( stderr, "  SET_CLIENT_INFO: '%s'\n", char_message );
+		break;
+
+	case mx_server_response(MX_NETMSG_SET_CLIENT_INFO):
+		fprintf( stderr, "  SET_CLIENT_INFO response\n" );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_GET_OPTION:
+		option_number = mx_ntohl( uint32_message[0] );
+
+		fprintf( stderr, "  GET_OPTION: option number = %lu\n",
+				option_number );
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_OPTION):
+		option_value = mx_ntohl( uint32_message[0] );
+
+		fprintf( stderr, "  GET_OPTION: option value = %lu\n",
+							option_value );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_SET_OPTION:
+		option_number = mx_ntohl( uint32_message[0] );
+		option_value  = mx_ntohl( uint32_message[1] );
+
+		fprintf( stderr,
+		"  SET_OPTION: option number = %lu, option value = %lu\n",
+			option_number, option_value );
+		break;
+
+	case mx_server_response(MX_NETMSG_SET_OPTION):
+		if ( char_message[0] == '\0' ) {
+			fprintf( stderr,
+			"  SET_OPTION response: Option change accepted\n" );
+		} else {
+			fprintf( stderr,
+			"  SET_OPTION response: %s\n", char_message );
+		}
+		break;
+
+	/*-------------------------------------------------------------------*/
+
 	default:
 		mx_warning( "%s: Unrecognized message type %#lx",
 			fname, (unsigned long) message_type );
@@ -1267,6 +1463,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
+
 	server->last_rpc_message_id++;
 
 	if ( server->last_rpc_message_id == 0 )
@@ -1841,6 +2039,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
 
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
+
 	server->last_rpc_message_id++;
 
 	if ( server->last_rpc_message_id == 0 )
@@ -2013,6 +2213,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	message_length = (uint32_t) ( strlen( message ) + 1 );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
+
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
 	server->last_rpc_message_id++;
 
@@ -2202,6 +2404,8 @@ mx_get_field_type( MX_RECORD *server_record,
 	message_length = (uint32_t) ( strlen( message ) + 1 );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
+
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
 	server->last_rpc_message_id++;
 
@@ -2403,6 +2607,8 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
+
 	server->last_rpc_message_id++;
 
 	if ( server->last_rpc_message_id == 0 )
@@ -2530,6 +2736,8 @@ mx_network_get_option( MX_RECORD *server_record,
 	uint32_message[0] = mx_htonl( option_number );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
+
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
 
 	server->last_rpc_message_id++;
 
@@ -2690,6 +2898,8 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 2 * sizeof(uint32_t) );
 
+	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
+
 	server->last_rpc_message_id++;
 
 	if ( server->last_rpc_message_id == 0 )
@@ -2783,6 +2993,7 @@ mx_network_request_data_format( MX_RECORD *server_record,
 	static const char fname[] = "mx_network_request_data_format()";
 
 	MX_NETWORK_SERVER *server;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	unsigned long local_native_data_format, remote_native_data_format;
 	mx_status_type mx_status;
 
@@ -2799,6 +3010,14 @@ mx_network_request_data_format( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	message_buffer = server->message_buffer;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The MX_NETWORK_MESSAGE_BUFFER pointer for server '%s' is NULL.",
+	    		server_record->name );
+	}
+
 	/* If the caller has not requested automatic data format negotiation,
 	 * just attempt to set the requested format and fail if it is not
 	 * available.
@@ -2812,6 +3031,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 		if ( mx_status.code == MXE_SUCCESS ) {
 			server->data_format = requested_format;
 
+			message_buffer->data_format = requested_format;
+
 			return MX_SUCCESSFUL_RESULT;
 		} else
 		if ( ( mx_status.code == MXE_NOT_YET_IMPLEMENTED )
@@ -2822,6 +3043,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 			 */
 
 			server->data_format = MX_NETWORK_DATAFMT_ASCII;
+
+			message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 			return mx_error( mx_status.code, fname,
 			"MX server '%s' only supports ASCII data format.",
@@ -2858,6 +3081,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 	 		fname, server_record->name ));
 
 		server->data_format = MX_NETWORK_DATAFMT_ASCII;
+
+		message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 		
 		/* Cannot do any further negotiation, so we just return now. */
 
@@ -2897,6 +3122,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 
 		server->data_format = requested_format;
 
+		message_buffer->data_format = requested_format;
+
 		return MX_SUCCESSFUL_RESULT;
 	case MXE_NOT_YET_IMPLEMENTED:
 		/* The server does not implement 'set option'. */
@@ -2905,6 +3132,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 			fname, server_record->name));
 
 		server->data_format = MX_NETWORK_DATAFMT_ASCII;
+
+		message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -2920,6 +3149,8 @@ mx_network_request_data_format( MX_RECORD *server_record,
 	 */
 
 	server->data_format = MX_NETWORK_DATAFMT_ASCII;
+
+	message_buffer->data_format = MX_NETWORK_DATAFMT_ASCII;
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 		MX_DEBUG( 2,("%s: ASCII data format successfully selected.",

@@ -22,6 +22,7 @@
 #define MXLV_LHD_REPORTALL	1003
 #define MXLV_LHD_SUMMARY	1004
 #define MXLV_LHD_FIELDDEF	1005
+#define MXLV_LHD_SHOW_HANDLE	1006
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -67,7 +68,11 @@
   {MXLV_LHD_FIELDDEF, -1, "fielddef", MXFT_STRING, NULL, \
 	  				1, {MXU_RECORD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, fielddef), \
-	{sizeof(char)}, NULL, 0}
+	{sizeof(char)}, NULL, 0}, \
+  \
+  {MXLV_LHD_SHOW_HANDLE, -1, "show_handle", MXFT_ULONG, NULL, 1, {2}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, show_handle), \
+	{sizeof(unsigned long)}, NULL, 0}
 
 MX_API_PRIVATE mx_status_type mxr_create_list_head( MX_RECORD *record );
 
