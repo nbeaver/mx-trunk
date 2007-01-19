@@ -23,7 +23,7 @@
 
 #include "mx_osdef.h"
 #include "mx_util.h"
-#include "mx_stdint.h"
+#include "mx_inttypes.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 #include "mx_record.h"
@@ -539,11 +539,7 @@ mxp_show_network_buffer( void *buffer,
 	raw_display_values = message_length / scalar_element_size;
 
 	if ( data_type == MXFT_STRING ) {
-		if ( raw_display_values > (4 * MXP_MAX_DISPLAY_VALUES) ) {
-			max_display_values = 4 * MXP_MAX_DISPLAY_VALUES;
-		} else {
-			max_display_values = raw_display_values;
-		}
+		max_display_values = raw_display_values;
 	} else {
 		if ( raw_display_values > MXP_MAX_DISPLAY_VALUES ) {
 			max_display_values = MXP_MAX_DISPLAY_VALUES;
@@ -621,14 +617,22 @@ mxp_show_network_buffer( void *buffer,
 			}
 			break;
 		case MXFT_INT64:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRId64 " ",
+					((int64_t *) buffer)[i] );
+			}
+			break;
 		case MXFT_UINT64:
+			for ( i = 0; i < max_display_values; i++ ) {
+				fprintf( stderr, "%" PRIu64 " ",
+					((uint64_t *) buffer)[i] );
+			}
+			break;
 		case MXFT_RECORD:
 		case MXFT_RECORDTYPE:
 		case MXFT_INTERFACE:
-			(void) mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		      "Support for data type %lu has not yet been implemented.",
-		      		(unsigned long) data_type );
-			return;
+			fprintf( stderr, "'%s' ", ((char *) buffer) );
+			break;
 		default:
 			(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 				"Unrecognized data type %lu requested.",
@@ -667,6 +671,7 @@ mx_network_display_message_buffer(
 	uint32_t record_handle, field_handle;
 	long i, data_type, field_type, num_dimensions, dimension_size;
 	unsigned long option_number, option_value;
+	const char *data_type_name;
 
 	if ( message_buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
@@ -701,9 +706,19 @@ mx_network_display_message_buffer(
 		(long) header_length, (long) message_length,
 		(long) message_type );
 
-	fprintf( stderr,
-"  status code = %ld, data type = %ld, message id = %#lx\n",
-		(long) status_code, data_type, (unsigned long) message_id );
+	data_type_name = mx_get_field_type_string( data_type );
+
+	if ( strcmp( data_type_name, "MXFT_UNKNOWN" ) == 0 ) {
+		fprintf( stderr,
+"  status code = %ld, data type = 'Unknown type %ld', message id = %#lx\n",
+			(long) status_code, data_type,
+			(unsigned long) message_id );
+	} else {
+		fprintf( stderr,
+"  status code = %ld, data type = %s, message id = %#lx\n",
+			(long) status_code, data_type_name,
+			(unsigned long) message_id );
+	}
 
 	switch( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
@@ -742,7 +757,8 @@ mx_network_display_message_buffer(
 	/*-------------------------------------------------------------------*/
 
 	case MX_NETMSG_PUT_ARRAY_BY_NAME:
-		fprintf( stderr, "  PUT_ARRAY_BY_NAME: '%s', ", char_message );
+		fprintf( stderr, "  PUT_ARRAY_BY_NAME: '%s' value = ",
+				char_message );
 
 		mxp_show_network_buffer(
 				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
@@ -756,16 +772,15 @@ mx_network_display_message_buffer(
 		record_handle = mx_ntohl( uint32_message[0] );
 		field_handle  = mx_ntohl( uint32_message[1] );
 
-		fprintf( stderr, "  PUT_ARRAY_BY_HANDLE: (%lu,%lu),  ",
+		fprintf( stderr, "  PUT_ARRAY_BY_HANDLE: (%lu,%lu) value = ",
 				(unsigned long) record_handle,
 				(unsigned long) field_handle );
 
-		mxp_show_network_buffer(
-				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
+		mxp_show_network_buffer( &(uint32_message[2]),
 					message_buffer->data_format,
 					data_type,
 					message_type,
-					message_length );
+					message_length - 2 * sizeof(uint32_t) );
 		break;
 
 	case mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME):
@@ -835,7 +850,7 @@ mx_network_display_message_buffer(
 	case mx_server_response(MX_NETMSG_GET_OPTION):
 		option_value = mx_ntohl( uint32_message[0] );
 
-		fprintf( stderr, "  GET_OPTION: option value = %lu\n",
+		fprintf( stderr, "  GET_OPTION: returned option value = %lu\n",
 							option_value );
 		break;
 

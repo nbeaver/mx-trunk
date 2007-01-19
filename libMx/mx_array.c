@@ -394,6 +394,7 @@ mx_get_scalar_element_size( long mx_datatype,
 	size_t element_size;
 
 	switch( mx_datatype ) {
+	case MXFT_STRING:     element_size = sizeof(char);                break;
 	case MXFT_CHAR:       element_size = sizeof(char);                break;
 	case MXFT_UCHAR:      element_size = sizeof(unsigned char);       break;
 	case MXFT_SHORT:      element_size = sizeof(short);               break;

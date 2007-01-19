@@ -425,9 +425,6 @@ mx_list_head_record_show_handle( MX_LIST_HEAD *list_head )
 	record_handle = list_head->show_handle[0];
 	field_handle  = list_head->show_handle[1];
 
-	MX_DEBUG(-2,("%s invoked for network field (%ld,%ld).",
-		fname, record_handle, field_handle));
-
 	/* Get the record pointer. */
 
 	mx_status = mx_get_pointer_from_handle( &record_ptr,

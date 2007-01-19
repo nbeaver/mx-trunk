@@ -327,6 +327,7 @@ mx_get_pointer_from_handle( void **pointer,
 	static const char fname[] = "mx_get_pointer_from_handle()";
 
 	MX_HANDLE_STRUCT *handle_struct_array;
+	signed long maximum_handle_number;
 
 	if ( pointer == (void **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -350,6 +351,23 @@ mx_get_pointer_from_handle( void **pointer,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"handle_struct_array for handle table %p is NULL.",
 			handle_table );
+	}
+
+	/* Is this a valid handle number? */
+
+	if ( handle < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested handle %ld is a negative number "
+		"which is not allowed.", handle );
+	}
+
+	maximum_handle_number =
+			handle_table->block_size * handle_table->num_blocks;
+
+	if ( handle >= maximum_handle_number ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested handle %ld is larger than the current "
+		"maximum handle value %ld.", handle, maximum_handle_number );
 	}
 
 	/* Is this handle active? */

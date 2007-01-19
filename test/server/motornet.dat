@@ -16,7 +16,7 @@ report         variable net_variable net_string "" "" 10id mx_database.report 1 
 reportall      variable net_variable net_string "" "" 10id mx_database.reportall 1 40 ""
 summary        variable net_variable net_string "" "" 10id mx_database.summary 1 40 ""
 fielddef       variable net_variable net_string "" "" 10id mx_database.fielddef 1 40 ""
-show_handle    variable net_variable net_string "" "" 10id mx_database.show_handle 1 40 ""
+show_handle    variable net_variable net_ulong "" "" 10id mx_database.show_handle 1 2 -1 -1
 tty1           interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 10id tty1
 theta          device motor network_motor "" "" 10 0 -100000 100000 0 -1 -1 1 0 deg 10id theta_real
 rawomega       device motor network_motor "" "" 0 -20 -50000 50000 0 -1 -1 1 0 um 10id rawomega
