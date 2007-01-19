@@ -212,6 +212,10 @@ mxn_tcpip_server_open( MX_RECORD *record )
 			record->name );
 	}
 
+	if ( list_head->network_debug ) {
+		network_server->server_flags |= MXF_NETWORK_SERVER_DEBUG;
+	}
+
 	flags = network_server->server_flags;
 
 	if ( flags & MXF_NETWORK_SERVER_DISABLED ) {

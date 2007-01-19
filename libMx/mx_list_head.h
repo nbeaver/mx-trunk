@@ -37,6 +37,10 @@
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, allow_fast_mode), \
 	{0}, NULL, 0}, \
   \
+  {-1, -1, "network_debug", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, network_debug), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_LHD_STATUS, -1, "status", MXFT_STRING, NULL, \
 	  				1, {MXU_FIELD_NAME_LENGTH}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, status), \

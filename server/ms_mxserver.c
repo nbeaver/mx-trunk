@@ -15,13 +15,15 @@
  *
  */
 
+/* Normally, you should leave NETWORK_DEBUG_MESSAGES turned on. */
+
+#define NETWORK_DEBUG_MESSAGES		TRUE
+
 /* NETWORK_DEBUG displays the messages transmitted to and from the server
  * while NETWORK_DEBUG_VERBOSE shows much more information.
  */
 
 #define NETWORK_DEBUG			FALSE
-
-#define NETWORK_DEBUG_MESSAGES		TRUE
 
 #define NETWORK_DEBUG_VERBOSE		FALSE
 
@@ -327,6 +329,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler->callback_socket = NULL;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
+	socket_handler->network_debug = FALSE;
 
 	strcpy( socket_handler->client_address_string, "" );
 	strlcpy( socket_handler->program_name, "mxserver",
@@ -528,6 +531,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 "Attempt to allocate a new socket handler for new client socket %d failed.",
 			client_socket->socket_fd );
 	}
+
+	new_socket_handler->network_debug = list_head->network_debug;
 
 	new_socket_handler->handler_array_index = -1;
 
@@ -957,10 +962,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	message_ptr[ message_length ] = '\0';
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
-			(int) client_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
+				(int) client_socket->socket_fd );
 
-	mx_network_display_message_buffer( received_message );
+		mx_network_display_message_buffer( received_message );
+	}
 #endif
 
 #if NETWORK_DEBUG
@@ -1360,8 +1367,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		break;
 	case MX_NETMSG_GET_FIELD_TYPE:
 		mx_status = mxsrv_handle_get_field_type( record_list,
-						client_socket, record_field,
-						received_message );
+						socket_handler, client_socket,
+						record_field, received_message);
 		break;
 	case MX_NETMSG_SET_CLIENT_INFO:
 		mx_status = mxsrv_handle_set_client_info( record_list,
@@ -1947,10 +1954,12 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-					mx_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+						mx_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
@@ -2332,10 +2341,12 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 #endif
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-					mx_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+						mx_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	mx_status = mx_network_socket_send_message( mx_socket,
@@ -2506,10 +2517,12 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	send_buffer_message[1] = mx_htonl( field_handle );
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			socket_handler->synchronous_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	/* Send the record field handle back to the client. */
@@ -2529,6 +2542,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 mx_status_type
 mxsrv_handle_get_field_type( MX_RECORD *record_list,
+				MX_SOCKET_HANDLER *socket_handler,
 				MX_SOCKET *mx_socket,
 				MX_RECORD_FIELD *field,
 				MX_NETWORK_MESSAGE_BUFFER *network_message )
@@ -2600,10 +2614,12 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-				mx_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+						mx_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	/* Send the field type information back to the client. */
@@ -2778,10 +2794,12 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	send_buffer_message[0] = '\0';
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			socket_handler->synchronous_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	/* Send the success message back to the client. */
@@ -2901,10 +2919,12 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			socket_handler->synchronous_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	/* Send the option information back to the client. */
@@ -3060,10 +3080,12 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	}
 
 #if NETWORK_DEBUG_MESSAGES
-	fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
-			socket_handler->synchronous_socket->socket_fd );
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
 
-	mx_network_display_message_buffer( network_message );
+		mx_network_display_message_buffer( network_message );
+	}
 #endif
 
 	/* Send the option information back to the client. */

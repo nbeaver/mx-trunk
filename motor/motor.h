@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -131,7 +131,7 @@ extern int motor_close_fn( int argc, char *argv[] );
 
 extern int motor_init( char *motor_savefile_name, int num_savefiles,
 			char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
-			int trace_flag );
+			int init_hw_flags, int network_debug );
 
 extern int motor_exit_save_dialog( void );
 

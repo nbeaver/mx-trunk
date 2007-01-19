@@ -173,6 +173,7 @@ typedef struct {
 #define MXF_NETWORK_SERVER_USE_64BIT_LONGS	0x10000
 
 #define MXF_NETWORK_SERVER_BLOCKING_IO		0x20000000
+#define MXF_NETWORK_SERVER_DEBUG		0x40000000
 
 /* Definition of network data formats. */
 

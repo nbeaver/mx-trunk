@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2003-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2003-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -110,6 +110,7 @@ extern mx_status_type mxsrv_handle_get_network_handle(
 
 extern mx_status_type mxsrv_handle_get_field_type(
 			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
 			MX_SOCKET *mx_socket,
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );

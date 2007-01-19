@@ -134,6 +134,7 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->list_is_active = FALSE;
 	list_head_struct->fast_mode = FALSE;
 	list_head_struct->allow_fast_mode = TRUE;
+	list_head_struct->network_debug = FALSE;
 
 	list_head_struct->is_server = FALSE;
 	list_head_struct->connection_acl = NULL;

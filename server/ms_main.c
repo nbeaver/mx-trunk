@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -318,7 +318,7 @@ mxserver_main( int argc, char *argv[] )
 	int server_port, default_display_precision, init_hw_flags;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int display_stack_traceback, redirect_stderr, destination_unbuffered;
-	int bypass_signal_handlers;
+	int bypass_signal_handlers, network_debug;
 	long delay_microseconds;
 	unsigned long default_data_format;
 	FILE *new_stderr;
@@ -400,9 +400,12 @@ mxserver_main( int argc, char *argv[] )
 
         error_flag = FALSE;
 
-        while ((c = getopt(argc, argv, "b:C:d:De:E:f:l:L:n:p:P:sStu:Z")) != -1)
+        while ((c = getopt(argc, argv, "Ab:C:d:De:E:f:l:L:n:p:P:sStu:Z")) != -1)
 	{
                 switch (c) {
+		case 'A':
+			network_debug = TRUE;
+			break;
 		case 'b':
 			if ( strcmp( optarg, "raw" ) == 0 ) {
 				default_data_format = MX_NETWORK_DATAFMT_RAW;
@@ -663,6 +666,10 @@ mxserver_main( int argc, char *argv[] )
 	/* Use the application_ptr to point to the socket handler list. */
 
 	list_head_struct->application_ptr = &socket_handler_list;
+
+	/* Set the default network debugging flag. */
+
+	list_head_struct->network_debug = network_debug;
 
 	/* Make sure that the socket infrastructure has been initialized.
 	 * On Win32, it is necessary to do this before invoking the 

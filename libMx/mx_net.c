@@ -40,7 +40,7 @@
 #     define ntohl(x) (x)
 #endif
 
-#define NETWORK_DEBUG		TRUE
+#define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
 
 #define NETWORK_DEBUG_TIMING	FALSE
 
@@ -273,10 +273,12 @@ mx_network_receive_message( MX_RECORD *server_record,
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 #if NETWORK_DEBUG
-	fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
-	mx_network_display_message_buffer( message_buffer );
+		mx_network_display_message_buffer( message_buffer );
+	}
 #endif
 
 	return mx_status;
@@ -330,10 +332,12 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 
 #if NETWORK_DEBUG
-	fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
-	mx_network_display_message_buffer( message_buffer );
+		mx_network_display_message_buffer( message_buffer );
+	}
 #endif
 
 	mx_status = ( *fptr ) ( server, message_buffer );

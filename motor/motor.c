@@ -147,6 +147,7 @@ motor_main( int argc, char *argv[] )
 	int status, debug_level, unbuffered_io;
 	int init_hw_flags, start_debugger;
 	int run_startup_scripts, ignore_scan_savefiles;
+	int network_debug;
 	mx_status_type mx_status;
 	char prompt[80];
 	char saved_command_name[80];
@@ -205,13 +206,18 @@ motor_main( int argc, char *argv[] )
 
 	start_debugger = FALSE;
 
+	network_debug = FALSE;
+
 #if HAVE_GETOPT
 	/* Process command line arguments, if any. */
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:DF:f:Hg:iNnP:p:S:s:tuz")) != -1 ) {
+	while ((c = getopt(argc, argv, "Ad:DF:f:Hg:iNnP:p:S:s:tuz")) != -1 ) {
 		switch (c) {
+		case 'A':
+			network_debug = TRUE;
+			break;
 		case 'd':
 			debug_level = atoi( optarg );
 			break;
@@ -363,7 +369,7 @@ motor_main( int argc, char *argv[] )
 
 	status = motor_init( motor_savefile,
 			num_scan_savefiles, scan_savefile_array,
-			init_hw_flags );
+			init_hw_flags, network_debug );
 
 	if ( status == FAILURE ) {
 		fprintf(output,"motor: Initialization failed.  Exiting...\n");

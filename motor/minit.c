@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -26,7 +26,8 @@ int
 motor_init( char *motor_savefile_name,
 		int num_scan_savefiles,
 		char scan_savefile_array[][MXU_FILENAME_LENGTH+1],
-		int init_hw_flags )
+		int init_hw_flags,
+		int network_debug )
 {
 	static const char fname[] = "motor_init()";
 
@@ -126,6 +127,12 @@ motor_init( char *motor_savefile_name,
 
 	strlcpy( list_head_struct->program_name,
 			cmd_program_name(), MXU_PROGRAM_NAME_LENGTH );
+
+	if ( network_debug ) {
+		list_head_struct->network_debug = TRUE;
+	} else {
+		list_head_struct->network_debug = FALSE;
+	}
 
 	/* Read 'motor.dat' and add the records therein to the record list. */
 

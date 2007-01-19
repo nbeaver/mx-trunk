@@ -375,6 +375,7 @@ typedef struct {
 	mx_bool_type list_is_active;
 	mx_bool_type fast_mode;
 	mx_bool_type allow_fast_mode;
+	mx_bool_type network_debug;
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
 	unsigned long num_records;
