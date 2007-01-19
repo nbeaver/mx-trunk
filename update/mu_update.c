@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -153,6 +153,7 @@ main( int argc, char *argv[] )
 	MXUPD_UPDATE_LIST update_list;
 
 	MX_RECORD *record_list;
+	MX_LIST_HEAD *list_head;
 
 	MX_CLOCK_TICK event_interval;
 	MX_CLOCK_TICK next_event_time;
@@ -167,6 +168,7 @@ main( int argc, char *argv[] )
 	char *autosave_filename;
 	char hostname[80];
 	char ident_string[100];
+	int network_debug;
 	int i, debug_level, num_non_option_arguments;
 	int install_syslog_handler, syslog_number, syslog_options;
 	int default_display_precision;
@@ -177,6 +179,7 @@ main( int argc, char *argv[] )
 "Usage: mxupdate [options] update_list_filename autosave_fn1 [ autosave_fn2 ]\n"
 "\n"
 "The available options are:\n"
+"       -A                   (enable network debugging)\n"
 "       -d debug_level\n"
 "       -l log_number        (log to syslog)\n"
 "       -L log_number        (log to syslog and stderr)\n"
@@ -206,6 +209,7 @@ main( int argc, char *argv[] )
 #if ! defined( OS_WIN32 )
 	mxupd_install_signal_and_exit_handlers();
 #endif
+	network_debug = FALSE;
 
 	debug_level = 0;
 
@@ -225,8 +229,11 @@ main( int argc, char *argv[] )
 
 	error_flag = FALSE;
 
-	while ((c = getopt(argc, argv, "d:l:L:P:Rrsu:")) != -1 ) {
+	while ((c = getopt(argc, argv, "Ad:l:L:P:Rrsu:")) != -1 ) {
 		switch(c) {
+		case 'A':
+			network_debug = TRUE;
+			break;
 		case 'd':
 			debug_level = atoi( optarg );
 			break;
@@ -395,6 +402,23 @@ main( int argc, char *argv[] )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( (int) mx_status.code );
+
+	/* Set the 'network_debug' flag appropriately. */
+
+	list_head = mx_get_record_list_head_struct( record_list );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the current database is NULL." );
+
+		exit( MXE_CORRUPT_DATA_STRUCTURE );
+	}
+
+	if ( network_debug ) {
+		list_head->network_debug = TRUE;
+	} else {
+		list_head->network_debug = FALSE;
+	}
 
 	/* Construct the update list data structure. */
 

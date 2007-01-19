@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../update/mxupdate msoft_update.dat msoft_update_save.1 msoft_update_save.2 $*
+
