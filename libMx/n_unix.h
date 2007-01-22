@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003-2006 Illinois Institute of Technology
+ * Copyright 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -48,10 +48,14 @@ MX_API mx_status_type mxn_unix_server_send_message(
 
 MX_API mx_status_type mxn_unix_server_connection_is_up(
 					MX_NETWORK_SERVER *network_server,
-					int *connection_is_up );
+					mx_bool_type *connection_is_up );
 
 MX_API mx_status_type mxn_unix_server_reconnect_if_down(
 					MX_NETWORK_SERVER *network_server );
+
+MX_API mx_status_type mxn_unix_server_message_is_available(
+					MX_NETWORK_SERVER *network_server,
+					mx_bool_type *message_is_available );
 
 extern MX_RECORD_FUNCTION_LIST mxn_unix_server_record_function_list;
 extern MX_NETWORK_SERVER_FUNCTION_LIST

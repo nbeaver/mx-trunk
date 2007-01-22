@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <stdarg.h>
+#include <math.h>
 
 #include "mx_osdef.h"
 #include "mx_util.h"
@@ -106,6 +107,8 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* ====================================================================== */
 
 MX_EXPORT mx_status_type
 mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
@@ -200,6 +203,8 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT void
 mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
@@ -284,6 +289,8 @@ mx_network_receive_message( MX_RECORD *server_record,
 	return mx_status;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_network_send_message( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
@@ -345,8 +352,197 @@ mx_network_send_message( MX_RECORD *server_record,
 	return mx_status;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
-mx_network_connection_is_up( MX_RECORD *server_record, int *connection_is_up )
+mx_network_wait_for_message_id( MX_RECORD *server_record,
+			MX_NETWORK_MESSAGE_BUFFER *buffer,
+			uint32_t message_id,
+			double timeout_in_seconds )
+{
+	static const char fname[] = "mx_network_wait_for_message_id()";
+
+	MX_NETWORK_SERVER *server;
+	MX_CLOCK_TICK current_tick, end_tick, timeout_in_ticks;
+	mx_bool_type message_is_available, timeout_enabled;
+	mx_bool_type debug_enabled;
+	int comparison;
+	uint32_t received_message_id;
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* Figure out when the timeout period will end. */
+
+	if ( timeout_in_seconds < 0.0 ) {
+		timeout_enabled = FALSE;
+	} else {
+		timeout_enabled = TRUE;
+	}
+
+	if ( timeout_enabled ) {
+		timeout_in_ticks =
+		    mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
+
+		current_tick = mx_current_clock_tick();
+
+		end_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+	}
+
+	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
+		debug_enabled = TRUE;
+	} else {
+		debug_enabled = FALSE;
+	}
+
+#if 0 && NETWORK_DEBUG
+	if ( debug_enabled ) {
+		fprintf( stderr,
+		"\nMX NET: Waiting for message ID %#lx, timeout = %g sec\n",
+	    			(unsigned long) message_id,
+				timeout_in_seconds );
+	}
+#endif
+	/* Wait for messages.  We always go through the loop at least once. */
+
+	do {
+		/* Are any network messages available? */
+
+		mx_status = mx_network_message_is_available( server_record,
+							&message_is_available );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If no messages are available, see if we have timed out. */
+
+		if ( message_is_available == FALSE ) {
+			if ( timeout_enabled ) {
+				current_tick = mx_current_clock_tick();
+
+				comparison = mx_compare_clock_ticks( 
+					end_tick, current_tick );
+
+				if ( comparison >= 0 ) {
+				    return mx_error( MXE_TIMED_OUT, fname,
+				    "Timed out after waiting %g seconds "
+				    "for message ID %#lx from MX server '%s'.",
+				    	timeout_in_seconds,
+					(unsigned long) message_id,
+					server_record->name );
+				}
+			} else {
+				/* For most platforms, invoking the function
+				 * mx_current_clock_tick() causes a system
+				 * call to be made.  If we get here, then
+				 * no system call was performed, so we need
+				 * to sleep for a moment to give the CPU
+				 * a chance to service other tasks.
+				 */
+
+				mx_usleep(1);
+			}
+
+			/* Go back to the top of the loop and try again. */
+
+			continue;
+		}
+
+		/* If we get here, then a message is available to be read
+		 * from the server.  Thus, we now try to read the message.
+		 */
+
+		mx_status = mx_network_receive_message( server_record, buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If the message ID, matches the number that we are
+		 * looking for, then we can return to our caller now.
+		 */
+
+		received_message_id =
+		   mx_ntohl( buffer->u.uint32_buffer[ MX_NETWORK_MESSAGE_ID ] );
+
+		if ( received_message_id == message_id ) {
+#if 0 && NETWORK_DEBUG
+			if ( debug_enabled ) {
+				fprintf( stderr,
+	"\nMX NET: Message ID %#lx has finally arrived from server '%s'.\n",
+		    			(unsigned long) message_id,
+					server_record->name );
+			}
+#endif
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* If we get here, this message is not the one that we
+		 * were waiting for.
+		 */
+
+		/* Is the message a callback message? */
+
+		if ( received_message_id & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
+
+		    	/* The message is a callback message. */
+#if NETWORK_DEBUG
+			if ( debug_enabled ) {
+				fprintf( stderr,
+	"\nMX NET: Received _callback_ message ID %#lx from server '%s'.\n",
+		    			(unsigned long) received_message_id,
+					server_record->name );
+			}
+#endif
+			/* Now invoked the callback. */
+
+			MX_DEBUG(-2,("%s: FIXME! - We should handle the "
+				"callback for message ID %#lx here!", fname,
+				(unsigned long) received_message_id ));
+
+			/* Go back to the top of the loop and look again
+			 * for the message ID that we are waiting for.
+			 */
+
+			continue;
+		}
+
+		/* If we get here, then we have received an RPC message that
+		 * does not match the message ID that we were looking for.
+		 * This is an error.
+		 */
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"Received unexpected message ID %#lx when we were waiting for "
+		"message ID %#lx from server '%s'.", 
+			(unsigned long) received_message_id,
+			(unsigned long) message_id,
+			server_record->name );
+
+	} while (1);
+
+	/* We should not be able to get here. */
+
+	return mx_error( MXE_FUNCTION_FAILED, fname,
+		"We got to the end of the do...while() loop, even though "
+		"this should not be possible." );
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_connection_is_up( MX_RECORD *server_record,
+				mx_bool_type *connection_is_up )
 {
 	static const char fname[] = "mx_network_connection_is_up()";
 
@@ -394,6 +590,8 @@ mx_network_connection_is_up( MX_RECORD *server_record, int *connection_is_up )
 	return mx_status;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_network_reconnect_if_down( MX_RECORD *server_record )
 {
@@ -438,6 +636,60 @@ mx_network_reconnect_if_down( MX_RECORD *server_record )
 
 	return mx_status;
 }
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_message_is_available( MX_RECORD *server_record,
+				mx_bool_type *message_is_available )
+{
+	static const char fname[] = "mx_network_message_is_available()";
+
+	MX_NETWORK_SERVER *server;
+	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, int * );
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+	if ( message_is_available == (int *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"message_is_available pointer is NULL." );
+	}
+
+	server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	function_list = (MX_NETWORK_SERVER_FUNCTION_LIST *)
+			(server_record->class_specific_function_list);
+
+	if ( function_list == (MX_NETWORK_SERVER_FUNCTION_LIST *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"MX_SERVER_FUNCTION_LIST pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	fptr = function_list->message_is_available;
+
+	if ( fptr == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	"message_is_available function pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	mx_status = ( *fptr ) ( server, message_is_available );
+
+	return mx_status;
+}
+
+/* ====================================================================== */
 
 MX_EXPORT mx_status_type
 mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
@@ -484,6 +736,8 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/* ====================================================================== */
 
 #define MXP_MAX_DISPLAY_VALUES    10
 
@@ -1160,6 +1414,8 @@ mx_get_array( MX_NETWORK_FIELD *nf,
 	return mx_status;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_put_array( MX_NETWORK_FIELD *nf,
 		long datatype,
@@ -1256,6 +1512,8 @@ mx_internal_get_array( MX_RECORD *server_record,
 	return mx_status;
 }
 
+/* ====================================================================== */
+
 MX_EXPORT mx_status_type
 mx_internal_put_array( MX_RECORD *server_record,
 		char *remote_record_field_name,
@@ -1348,6 +1606,8 @@ mx_put_array_ascii_error_message( uint32_t status_code,
 
 	return mx_error( (long) status_code, location, error_message );
 }
+
+/* ====================================================================== */
 
 MX_EXPORT mx_status_type
 mx_get_field_array( MX_RECORD *server_record,
@@ -1502,8 +1762,10 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/************* Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -1521,7 +1783,7 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);
@@ -1719,6 +1981,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	return mx_status;
 }
+
+/* ====================================================================== */
 
 MX_EXPORT mx_status_type
 mx_put_field_array( MX_RECORD *server_record,
@@ -2080,8 +2344,10 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	/************** Wait for the response. ************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2099,7 +2365,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = aligned_buffer->u.uint32_buffer;
@@ -2253,9 +2519,10 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( nf->server_record,
-						aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( nf->server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2267,7 +2534,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);
@@ -2444,8 +2711,10 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2457,7 +2726,7 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);
@@ -2646,8 +2915,10 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2659,7 +2930,7 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);
@@ -2776,8 +3047,10 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2789,7 +3062,7 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);
@@ -2937,8 +3210,10 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	/************** Wait for the response. **************/
 
-	mx_status = mx_network_receive_message( server_record, aligned_buffer );
-
+	mx_status = mx_network_wait_for_message_id( server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_END( measurement );
 
@@ -2950,7 +3225,7 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	/* Update these pointers in case they were
 	 * changed by mx_reallocate_network_buffer()
-	 * in mx_network_receive_message().
+	 * in mx_network_wait_for_message_id().
 	 */
 
 	header = &(aligned_buffer->u.uint32_buffer[0]);

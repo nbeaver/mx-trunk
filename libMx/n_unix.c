@@ -48,7 +48,8 @@ MX_NETWORK_SERVER_FUNCTION_LIST
 	mxn_unix_server_receive_message,
 	mxn_unix_server_send_message,
 	mxn_unix_server_connection_is_up,
-	mxn_unix_server_reconnect_if_down
+	mxn_unix_server_reconnect_if_down,
+	mxn_unix_server_message_is_available
 };
 
 MX_RECORD_FIELD_DEFAULTS mxn_unix_server_record_field_defaults[] = {
@@ -464,7 +465,7 @@ mxn_unix_server_send_message(MX_NETWORK_SERVER *network_server,
 
 MX_EXPORT mx_status_type
 mxn_unix_server_connection_is_up( MX_NETWORK_SERVER *network_server,
-					int *connection_is_up )
+					mx_bool_type *connection_is_up )
 {
 	static const char fname[] = "mxn_unix_server_connection_is_up()";
 
@@ -539,6 +540,40 @@ mxn_unix_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxn_unix_server_message_is_available( MX_NETWORK_SERVER *network_server,
+					mx_bool_type *message_is_available )
+{
+	static const char fname[] = "mxn_unix_server_message_is_available()";
+
+	MX_UNIX_SERVER *unix_server;
+	long num_bytes_available;
+	mx_status_type mx_status;
+
+	unix_server = (MX_UNIX_SERVER *)
+			network_server->record->record_type_struct;
+
+	if ( unix_server == (MX_UNIX_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_UNIX_SERVER pointer for server '%s' is NULL.",
+			network_server->record->name );
+	}
+
+	mx_status = mx_socket_num_input_bytes_available( unix_server->socket,
+							&num_bytes_available );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_bytes_available == 0 ) {
+		*message_is_available = FALSE;
+	} else {
+		*message_is_available = TRUE;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

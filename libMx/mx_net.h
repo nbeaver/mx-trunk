@@ -89,7 +89,6 @@ typedef struct {
 	mx_bool_type server_supports_network_handles;
 	mx_bool_type network_handles_are_valid;
 	mx_bool_type truncate_64bit_longs;
-	mx_bool_type server_supports_callbacks;
 
 	unsigned long last_rpc_message_id;
 	unsigned long last_callback_message_id;
@@ -110,8 +109,12 @@ typedef struct {
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
 	mx_status_type ( *connection_is_up ) ( MX_NETWORK_SERVER *server,
-						int *connection_is_up );
+					mx_bool_type *connection_is_up );
+
 	mx_status_type ( *reconnect_if_down ) ( MX_NETWORK_SERVER *server );
+
+	mx_status_type ( *message_is_available ) ( MX_NETWORK_SERVER *server,
+					mx_bool_type *message_is_available );
 } MX_NETWORK_SERVER_FUNCTION_LIST;
 
 #define MX_NETWORK_SERVER_STANDARD_FIELDS \
@@ -144,11 +147,6 @@ typedef struct {
   {-1, -1, "truncate_64bit_longs", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {-1, -1, "server_supports_callbacks", MXFT_BOOL, NULL, 0, {0}, \
-        MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_NETWORK_SERVER, server_supports_callbacks), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
@@ -268,10 +266,18 @@ MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
+MX_API mx_status_type mx_network_wait_for_message_id( MX_RECORD *server_record,
+					MX_NETWORK_MESSAGE_BUFFER *buffer,
+					uint32_t message_id,
+					double timeout_in_seconds );
+
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,
-						int *connection_is_up );
+					mx_bool_type *connection_is_up );
 
 MX_API mx_status_type mx_network_reconnect_if_down( MX_RECORD *server_record );
+
+MX_API mx_status_type mx_network_message_is_available( MX_RECORD *server_record,
+					mx_bool_type *message_is_available );
 
 MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
