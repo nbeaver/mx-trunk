@@ -22,6 +22,7 @@
 /* Include hardware and operating system dependent definitions and symbols. */
 
 #include "mx_util.h"
+#include "mx_list.h"
 #include "mx_stdint.h"
 #include "mx_clock.h"
 
@@ -370,7 +371,7 @@ typedef struct {
 #define MX_FIXUP_RECORD_ARRAY_BLOCK_SIZE	50
 
 typedef struct {
-	MX_RECORD *list_head_record;
+	MX_RECORD *record;
 
 	mx_bool_type list_is_active;
 	mx_bool_type fast_mode;
@@ -379,6 +380,7 @@ typedef struct {
 	char status[ MXU_FIELD_NAME_LENGTH + 1 ];
 	unsigned long mx_version;
 	unsigned long num_records;
+
 	char report[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char reportall[ MXU_RECORD_NAME_LENGTH + 1 ];
 	char summary[ MXU_RECORD_NAME_LENGTH + 1 ];
@@ -397,9 +399,16 @@ typedef struct {
 	long server_protocols_active;
 	void *handle_table;
 	void *application_ptr;
+
 	char hostname[ MXU_HOSTNAME_LENGTH + 1 ];
 	char username[ MXU_USERNAME_LENGTH + 1 ];
 	char program_name[ MXU_PROGRAM_NAME_LENGTH + 1 ];
+
+	unsigned long num_server_records;
+	MX_RECORD **server_record_array;
+
+	MX_LIST *client_callback_list;	/* Callbacks invoked by a client. */
+	MX_LIST *server_callback_list;	/* Callbacks invoked by a server. */
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

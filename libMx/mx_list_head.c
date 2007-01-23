@@ -83,7 +83,7 @@ mxr_create_list_head( MX_RECORD *record )
 	
 	record->record_superclass_struct = list_head_struct;
 
-	list_head_struct->list_head_record = record;
+	list_head_struct->record = record;
 
 	/* Allocate an array for the list head record fields. */
 
@@ -152,6 +152,12 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->mx_version  = MX_MAJOR_VERSION * 1000000L;
 	list_head_struct->mx_version += MX_MINOR_VERSION * 1000L;
 	list_head_struct->mx_version += MX_UPDATE_VERSION;
+
+	list_head_struct->num_server_records = 0;
+	list_head_struct->server_record_array = NULL;
+
+	list_head_struct->client_callback_list = NULL;
+	list_head_struct->server_callback_list = NULL;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 

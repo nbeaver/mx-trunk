@@ -331,7 +331,7 @@ mx_list_head_record_report( MX_LIST_HEAD *list_head )
 
 	record_name = list_head->report;
 
-	record = mx_get_record( list_head->list_head_record, record_name );
+	record = mx_get_record( list_head->record, record_name );
 
 	if ( record == NULL ) {
 		fprintf( stderr, "Record '%s' not found.\n", record_name );
@@ -354,7 +354,7 @@ mx_list_head_record_reportall( MX_LIST_HEAD *list_head )
 
 	record_name = list_head->reportall;
 
-	record = mx_get_record( list_head->list_head_record, record_name );
+	record = mx_get_record( list_head->record, record_name );
 
 	if ( record == NULL ) {
 		fprintf( stderr, "Record '%s' not found.\n", record_name );
@@ -376,7 +376,7 @@ mx_list_head_record_summary( MX_LIST_HEAD *list_head )
 
 	record_name = list_head->summary;
 
-	record = mx_get_record( list_head->list_head_record, record_name );
+	record = mx_get_record( list_head->record, record_name );
 
 	if ( record == NULL ) {
 		fprintf( stderr, "Record '%s' not found.\n", record_name );
@@ -398,7 +398,7 @@ mx_list_head_record_fielddef( MX_LIST_HEAD *list_head )
 
 	record_name = list_head->fielddef;
 
-	record = mx_get_record( list_head->list_head_record, record_name );
+	record = mx_get_record( list_head->record, record_name );
 
 	if ( record == NULL ) {
 		fprintf( stderr, "Record '%s' not found.\n", record_name );

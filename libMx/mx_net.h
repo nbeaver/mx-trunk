@@ -91,7 +91,6 @@ typedef struct {
 	mx_bool_type truncate_64bit_longs;
 
 	unsigned long last_rpc_message_id;
-	unsigned long last_callback_message_id;
 
 	unsigned long network_field_array_block_size;
 
@@ -152,11 +151,6 @@ typedef struct {
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, last_rpc_message_id), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
-  {-1, -1, "last_callback_message_id", MXFT_HEX, NULL, 0, {0}, \
-  	MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_NETWORK_SERVER, last_callback_message_id), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 /* Values for the server_flags field. */
@@ -199,10 +193,8 @@ typedef struct {
 
 #define MX_NETMSG_ERROR_FLAG		0x8000000
 #define MX_NETMSG_SERVER_RESPONSE_FLAG	0x4000000
-#define MX_NETMSG_SERVER_CALLBACK_FLAG	0x2000000
 
 #define mx_server_response(x)	((x) | MX_NETMSG_SERVER_RESPONSE_FLAG)
-#define mx_server_callback(x)	((x) | MX_NETMSG_SERVER_CALLBACK_FLAG)
 
 /* Definition of network message types. */
 

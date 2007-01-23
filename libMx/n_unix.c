@@ -126,9 +126,6 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 
 	network_server->last_rpc_message_id = 0;
 
-	network_server->last_callback_message_id
-			= MX_NETWORK_MESSAGE_IS_CALLBACK;
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
