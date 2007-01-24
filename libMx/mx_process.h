@@ -160,53 +160,9 @@ MX_API mx_status_type mx_process_record_field(
 				MX_RECORD_FIELD *record_field,
 				int direction );
 
-MX_API mx_status_type mx_see_if_event_must_be_queued(
-				MX_RECORD *record,
-				MX_RECORD_FIELD *record_field,
-				int *event_must_be_queued );
-
-MX_API mx_status_type mx_add_queued_event(
-				MX_SOCKET_HANDLER *socket_handler,
-				MX_RECORD *record,
-				MX_RECORD_FIELD *record_field,
-				long event_type,
-				void *event_data );
-
-MX_API mx_status_type mx_process_queued_event(
-				MX_RECORD *record,
-				MX_CLOCK_TICK current_clock_time );
-
 MX_API mx_status_type mx_update_next_allowed_event_time(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field );
-
-MX_API mx_status_type mx_add_callback(
-				long callback_type,
-				MX_RECORD_FIELD *field,
-				mx_status_type ( *callback_function )
-						( MX_RECORD_FIELD *, void *),
-				void *callback_argument );
-
-MX_API mx_status_type mx_delete_callback(
-				long callback_type,
-				MX_RECORD_FIELD *field,
-				mx_status_type ( *callback_function )
-						( MX_RECORD_FIELD *, void *),
-				void *callback_argument );
-
-MX_API mx_status_type mx_find_callback(
-				long callback_type,
-				MX_RECORD_FIELD *field,
-				mx_status_type ( *callback_function )
-						( MX_RECORD_FIELD *, void *),
-				void *callback_argument,
-				MX_CALLBACK **callback_found );
-
-MX_API mx_status_type mx_invoke_callback_list(
-				long callback_type,
-				MX_RECORD_FIELD *field );
-
-/*---*/
 
 #endif /* __MX_PROCESS_H__ */
 

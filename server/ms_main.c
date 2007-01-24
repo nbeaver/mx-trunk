@@ -302,9 +302,8 @@ mxserver_main( int argc, char *argv[] )
 {
 	static const char fname[] = "main()";
 
-	MX_RECORD *mx_record_list, *current_record, *next_record;
+	MX_RECORD *mx_record_list;
 	MX_LIST_HEAD *list_head_struct;
-	MX_CLOCK_TICK current_clock_tick;
 	MX_HANDLE_TABLE *handle_table;
 	unsigned long handle_table_block_size, handle_table_num_blocks;
 	char mx_database_filename[MXU_FILENAME_LENGTH+1];
@@ -1012,39 +1011,6 @@ mxserver_main( int argc, char *argv[] )
 			    }
 			}
 		}
-
-		/* Are there any queued events that are ready to process? */
-
-		current_clock_tick = mx_current_clock_tick();
-
-		current_record = mx_record_list;
-
-		do {
-			if ( current_record->event_queue != NULL ) {
-
-				mx_status = mx_process_queued_event(
-						current_record,
-						current_clock_tick );
-			}
-			next_record = current_record->next_record;
-
-			if ( next_record == (MX_RECORD *) NULL ) {
-				(void) mx_error(
-					MXE_CORRUPT_DATA_STRUCTURE, fname,
-	"The next record pointer for record '%s' was found to be NULL "
-	"while checking for queued events.  This implies massive memory "
-	"corruption in the MX server, so the MX server will abort "
-	"with a core dump now.",
-			current_record->name );
-
-				mx_force_core_dump();
-
-				/* mx_force_core_dump() does not return. */
-			}
-
-			current_record = next_record;
-
-		} while ( current_record != mx_record_list );
 	}
 
 #if ( defined(OS_HPUX) && !defined(__ia64) )

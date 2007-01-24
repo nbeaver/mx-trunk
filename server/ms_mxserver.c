@@ -1267,63 +1267,6 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	queue_a_message = FALSE;
 
-	if ( see_if_we_need_to_queue_this_event ) {
-		mx_status = mx_see_if_event_must_be_queued( record,
-							record_field,
-							&queue_a_message );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	if ( queue_a_message ) {
-
-#if NETWORK_DEBUG_TIMING
-		MX_HRT_START( queue_measurement );
-#endif
-		/* Queue the event. */
-
-		mx_status = mx_add_queued_event( socket_handler,
-					record, record_field,
-					MXQ_NETWORK_MESSAGE,
-					received_message );
-
-		if ( mx_status.code != MXE_SUCCESS ) {
-			returned_message_type
-			    = mxsrv_get_returning_message_type( message_type );
-
-			/* Send back the error message. */
-
-#if NETWORK_DEBUG_MESSAGES
-			fprintf( stderr,
-			"\nMX NET: Sending error code %ld to socket %d\n",
-				mx_status.code, client_socket->socket_fd );
-#endif
-
-			(void) mx_network_socket_send_error_message(
-					client_socket,
-					MX_NETMSG_UNEXPECTED_ERROR, mx_status );
-		}
-
-#if NETWORK_DEBUG_TIMING
-		MX_HRT_END( queue_measurement );
-
-		MX_HRT_RESULTS( recv_measurement, fname,
-			"receiving for '%s.%s'",
-			record->name, record_field->name );
-
-		MX_HRT_RESULTS( parse_measurement, fname,
-			"parsing for '%s.%s'",
-			record->name, record_field->name );
-
-		MX_HRT_RESULTS( queue_measurement, fname,
-			"mxsrv_add_queued_event() for '%s.%s'",
-			record->name, record_field->name );
-#endif
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( immediate_measurement );
 #endif
