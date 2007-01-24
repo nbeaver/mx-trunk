@@ -3,6 +3,7 @@ MX_ARCH = linux
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 
 all:
+	( cd callback_test ; $(MAKECMD) )
 	( cd itimer_test ; $(MAKECMD) )
 	( cd mutex_test ; $(MAKECMD) )
 	( cd semaphore_test ; $(MAKECMD) )
@@ -11,6 +12,7 @@ all:
 	( cd vtimer_test ; $(MAKECMD) )
 
 clean:
+	( cd callback_test ; $(MAKECMD) clean )
 	( cd itimer_test ; $(MAKECMD) clean )
 	( cd mutex_test ; $(MAKECMD) clean )
 	( cd semaphore_test ; $(MAKECMD) clean )
