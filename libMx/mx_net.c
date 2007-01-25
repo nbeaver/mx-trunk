@@ -212,7 +212,7 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		return;
 	}
 
-	MX_DEBUG(-2,("mx_free_network_buffer(): message_buffer = %p, "
+	MX_DEBUG( 2,("mx_free_network_buffer(): message_buffer = %p, "
 		"u.uint32_buffer = %p, length = %lu",
 	 	message_buffer, message_buffer->u.uint32_buffer,
 		(unsigned long) message_buffer->buffer_length));
@@ -282,7 +282,7 @@ mx_network_receive_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
 				server_record->name );
 
-		mx_network_display_message_buffer( message_buffer );
+		mx_network_display_message( message_buffer );
 	}
 #endif
 
@@ -343,7 +343,7 @@ mx_network_send_message( MX_RECORD *server_record,
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
 					server_record->name );
 
-		mx_network_display_message_buffer( message_buffer );
+		mx_network_display_message( message_buffer );
 	}
 #endif
 
@@ -741,14 +741,14 @@ mx_network_mark_handles_as_invalid( MX_RECORD *server_record )
 
 #define MXP_MAX_DISPLAY_VALUES    10
 
-static void
-mxp_show_network_buffer( void *buffer,
-			unsigned long data_format,
-			uint32_t data_type,
-			uint32_t message_type,
-			uint32_t message_length )
+MX_EXPORT void
+mx_network_buffer_show_value( void *buffer,
+				unsigned long data_format,
+				uint32_t data_type,
+				uint32_t message_type,
+				uint32_t message_length )
 {
-	static const char fname[] = "mxp_show_network_buffer()";
+	static const char fname[] = "mx_network_buffer_show_value()";
 
 	int c;
 	long i, raw_display_values, max_display_values;
@@ -917,10 +917,9 @@ mxp_show_network_buffer( void *buffer,
 }
 
 MX_EXPORT void
-mx_network_display_message_buffer(
-			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
+mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 {
-	static const char fname[] = "mx_network_display_message_buffer()";
+	static const char fname[] = "mx_network_display_message()";
 
 	uint32_t *header, *uint32_message;
 	char *buffer, *char_message;
@@ -995,7 +994,7 @@ mx_network_display_message_buffer(
 	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME):
 		fprintf( stderr, "  GET_ARRAY_BY_NAME response = " );
 
-		mxp_show_network_buffer( uint32_message,
+		mx_network_buffer_show_value( uint32_message,
 					message_buffer->data_format,
 					data_type,
 					message_type,
@@ -1005,7 +1004,7 @@ mx_network_display_message_buffer(
 	case mx_server_response(MX_NETMSG_GET_ARRAY_BY_HANDLE):
 		fprintf( stderr, "  GET_ARRAY_BY_HANDLE response = " );
 
-		mxp_show_network_buffer( uint32_message,
+		mx_network_buffer_show_value( uint32_message,
 					message_buffer->data_format,
 					data_type,
 					message_type,
@@ -1018,7 +1017,7 @@ mx_network_display_message_buffer(
 		fprintf( stderr, "  PUT_ARRAY_BY_NAME: '%s' value = ",
 				char_message );
 
-		mxp_show_network_buffer(
+		mx_network_buffer_show_value(
 				char_message + MXU_RECORD_FIELD_NAME_LENGTH,
 					message_buffer->data_format,
 					data_type,
@@ -1034,7 +1033,7 @@ mx_network_display_message_buffer(
 				(unsigned long) record_handle,
 				(unsigned long) field_handle );
 
-		mxp_show_network_buffer( &(uint32_message[2]),
+		mx_network_buffer_show_value( &(uint32_message[2]),
 					message_buffer->data_format,
 					data_type,
 					message_type,

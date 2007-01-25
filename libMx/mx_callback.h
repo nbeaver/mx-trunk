@@ -17,11 +17,15 @@
 #ifndef __MX_CALLBACK_H__
 #define __MX_CALLBACK_H__
 
+/*--- Callback types ---*/
+
+#define MXCB_VALUE_CHANGED	1
+
 /*--- Network client callbacks ---*/
 
 MX_API mx_status_type mx_network_add_callback(
 					MX_NETWORK_FIELD *nf,
-					double poll_interval,
+					long callback_type,
 					mx_status_type ( *callback_function )
 						( MX_NETWORK_FIELD *, void * ),
 					void *callback_argument );

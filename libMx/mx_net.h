@@ -221,6 +221,9 @@ typedef struct {
 #define MX_NETMSG_GET_OPTION		0x3002
 #define MX_NETMSG_SET_OPTION		0x3003
 
+#define MX_NETMSG_ADD_CALLBACK		0x4001
+#define MX_NETMSG_DELETE_CALLBACK	0x4002
+
 /* The MX_NETWORK_MAGIC header field should always contain the
  * MX_NETWORK_MAGIC_VALUE.  If it does not, there has been
  * a protocol error somewhere.
@@ -274,8 +277,21 @@ MX_API mx_status_type mx_network_message_is_available( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_mark_handles_as_invalid(
 						MX_RECORD *server_record );
 
-MX_API void mx_network_display_message_buffer(
-					MX_NETWORK_MESSAGE_BUFFER *buffer );
+/* mx_network_display_message() is used to display the contents of
+ * a network message.
+ */
+
+MX_API void mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *buffer );
+
+/* mx_network_buffer_show_value() is a lower level function that only
+ * shows the contents of the value array at the end of a network message.
+ */
+
+MX_API void mx_network_buffer_show_value( void *value_buffer,
+					unsigned long data_format,
+					uint32_t datatype,
+					uint32_t message_type,
+					uint32_t message_length );
 
 /*---*/
 

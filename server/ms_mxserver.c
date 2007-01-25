@@ -966,7 +966,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
 				(int) client_socket->socket_fd );
 
-		mx_network_display_message_buffer( received_message );
+		mx_network_display_message( received_message );
 	}
 #endif
 
@@ -1071,15 +1071,23 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		value_at_message_start = MXS_START_NOTHING;
 		break;
+	case MX_NETMSG_ADD_CALLBACK:
+	case MX_NETMSG_DELETE_CALLBACK:
+		see_if_we_need_to_queue_this_event = FALSE;
+
+		value_at_message_start = MXS_START_RECORD_FIELD_HANDLE;
+		break;
 	default:
 		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"MX message type %#lx is not yet implemented.",
 			(unsigned long) message_type );
 
 #if NETWORK_DEBUG_MESSAGES
-		fprintf( stderr,
+		if ( socket_handler->network_debug ) {
+			fprintf( stderr,
 			"\nMX NET: Sending error code %ld to socket %d\n",
-			mx_status.code, client_socket->socket_fd );
+				mx_status.code, client_socket->socket_fd );
+		}
 #endif
 
 		(void) mx_network_socket_send_error_message( client_socket,
@@ -1246,9 +1254,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		/* Send back the error message. */
 
 #if NETWORK_DEBUG_MESSAGES
-		fprintf( stderr,
+		if ( socket_handler->network_debug ) {
+			fprintf( stderr,
 			"\nMX NET: Sending error code %ld to socket %d\n",
-			mx_status.code, client_socket->socket_fd );
+				mx_status.code, client_socket->socket_fd );
+		}
 #endif
 
 		(void) mx_network_socket_send_error_message( client_socket,
@@ -1334,9 +1344,11 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			(unsigned long) message_type );
 
 #if NETWORK_DEBUG_MESSAGES
-		fprintf( stderr,
+		if ( socket_handler->network_debug ) {
+			fprintf( stderr,
 			"\nMX NET: Sending error code %ld to socket %d\n",
-			mx_status.code, client_socket->socket_fd );
+				mx_status.code, client_socket->socket_fd );
+		}
 #endif
 
 		(void) mx_network_socket_send_error_message( client_socket,
@@ -1901,7 +1913,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -2288,7 +2300,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -2392,10 +2404,12 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		/* Send back the error message. */
 
 #if NETWORK_DEBUG_MESSAGES
-		fprintf( stderr,
+		if ( socket_handler->network_debug ) {
+			fprintf( stderr,
 			"\nMX NET: Sending error code %ld to socket %d\n",
-			mx_status.code,
-			socket_handler->synchronous_socket->socket_fd );
+				mx_status.code,
+				socket_handler->synchronous_socket->socket_fd );
+		}
 #endif
 
 		(void) mx_network_socket_send_error_message(
@@ -2464,7 +2478,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -2561,7 +2575,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 						mx_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -2741,7 +2755,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -2866,7 +2880,7 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
@@ -3027,7 +3041,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
 				socket_handler->synchronous_socket->socket_fd );
 
-		mx_network_display_message_buffer( network_message );
+		mx_network_display_message( network_message );
 	}
 #endif
 
