@@ -14,7 +14,9 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG	TRUE
+#define MXD_PCCD_170170_DEBUG			TRUE
+
+#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -230,6 +232,10 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	long i, j, i_framesize, j_framesize;
 	mx_status_type mx_status;
 
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	long k;
+#endif
+
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The image_frame pointer passed was NULL." );
@@ -310,48 +316,63 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 * to the image frame.
 	 */
 
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	for ( k = 0; k < 16; k++ ) {
+		raw_frame_data[k] = k+1;
+	}
+#endif
+
 	image_sector_array = pccd_170170->image_sector_array;
 
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
 
-		image_sector_array[0][i][j] = raw_frame_data[15];
+		image_sector_array[0][i][j] = raw_frame_data[14];
 
-		image_sector_array[1][i_framesize-i-1][j] = raw_frame_data[14];
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
 
-		image_sector_array[2][i][j] = raw_frame_data[11];
+		image_sector_array[2][i][j] = raw_frame_data[10];
 
-		image_sector_array[3][i_framesize-i-1][j] = raw_frame_data[10];
+		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
 
-		image_sector_array[4][i][j_framesize-j-1] = raw_frame_data[12];
+		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
 
 		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[13];
+							= raw_frame_data[12];
 
-		image_sector_array[6][i][j_framesize-j-1] = raw_frame_data[8];
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
 
 		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[9];
+							= raw_frame_data[8];
 
-		image_sector_array[8][i][j] = raw_frame_data[3];
+		image_sector_array[8][i][j] = raw_frame_data[0];
 
-		image_sector_array[9][i_framesize-i-1][j] = raw_frame_data[2];
+		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
 
-		image_sector_array[10][i][j] = raw_frame_data[7];
+		image_sector_array[10][i][j] = raw_frame_data[4];
 
-		image_sector_array[11][i_framesize-i-1][j] = raw_frame_data[6];
+		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
 
-		image_sector_array[12][i][j_framesize-j-1] = raw_frame_data[0];
+		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
 
 		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[1];
+							= raw_frame_data[2];
 
-		image_sector_array[14][i][j_framesize-j-1] = raw_frame_data[4];
+		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
 
 		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[5];
+							= raw_frame_data[6];
+
+		raw_frame_data += 16;
 	    }
 	}
+
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	for ( k = 0; k < 16; k++ ) {
+		MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %ld",
+			fname, k, image_sector_array[k][0][0] ));
+	}
+#endif
 
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
 
