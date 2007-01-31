@@ -33,8 +33,7 @@ mxgnuplt.obj: win32/src/mxgnuplt.c
 		-WX -Z7 win32/src/mxgnuplt.c -Fmxgnuplt.obj
 
 mxgnuplt.exe: mxgnuplt.obj
-	link /nologo /debugtype:cv /out:mxgnuplt.exe mxgnuplt.obj \
-		$(MSDEV_DIR)\\lib\\user32.lib $(MSDEV_DIR)\\lib\\gdi32.lib
+	link /nologo /debugtype:cv /out:mxgnuplt.exe mxgnuplt.obj $(WIN32_LIBS)
 
 mx_clean:
 	-rm *.obj *.exe *.manifest

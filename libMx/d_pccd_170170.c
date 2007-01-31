@@ -262,6 +262,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	("%s: image_length = %ld, raw_length = %ld, bytes_to_copy = %ld",
 		fname, image_length, raw_length, bytes_to_copy));
 
+#if 0
 	if ( (raw_frame->framesize[0] != image_frame->framesize[0])
 	  || (raw_frame->framesize[1] != image_frame->framesize[1]) )
 	{
@@ -272,14 +273,15 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 			raw_frame->framesize[0], raw_frame->framesize[1],
 			image_frame->framesize[0], image_frame->framesize[1] );
 	}
+#endif
 
 	/* For each frame, we overlay the frame with 16 sets of sector array
 	 * pointers so that we can treat each of the 16 sectors as independent
 	 * two dimensional arrays.
 	 */
 
-	i_framesize = raw_frame->framesize[0] / 4;
-	j_framesize = raw_frame->framesize[1] / 4;
+	i_framesize = image_frame->framesize[0] / 4;
+	j_framesize = image_frame->framesize[1] / 4;
 
 	/* If the framesize has changed since the last time we descrambled
 	 * a frame, we must create new sector arrays to point into the raw
@@ -289,8 +291,8 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 * arrays as they are.
 	 */
 
-	if ( ( pccd_170170->old_framesize[0] != raw_frame->framesize[0] )
-	  || ( pccd_170170->old_framesize[1] != raw_frame->framesize[1] ) )
+	if ( ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
+	  || ( pccd_170170->old_framesize[1] != image_frame->framesize[1] ) )
 	{
 		mx_status = mxd_pccd_170170_free_sector_array(
 					&(pccd_170170->image_sector_array) );
