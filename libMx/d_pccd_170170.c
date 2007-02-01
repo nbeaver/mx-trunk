@@ -152,8 +152,9 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	uint16_t **sector_array_row_ptr;
 	long num_sector_rows, num_sector_columns, num_sectors;
 	long n, sector_row, row, sector_column;
-	long row_of_sectors_size, row_size;
-	long offset;
+	long row_of_sectors_size, row_size, sector_row_size;
+	long row_byte_offset, row_ptr_offset;
+	long byte_offset, ptr_offset;
 
 	if ( sector_array_ptr == (uint16_t ****) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -189,14 +190,61 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"of row pointers.", num_sectors * sector_height );
 	}
 
+	row_byte_offset = sector_height * sizeof(sector_array_row_ptr);
+
+	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
+
+#if 0
+	MX_DEBUG(-2,
+	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
+		fname, row_byte_offset, row_byte_offset,
+		row_ptr_offset, row_ptr_offset));
+
+	MX_DEBUG(-2,("%s: sector_array_row_pointer = %p",
+			fname, sector_array_row_ptr ));
+#endif
+
 	for ( n = 0; n < num_sectors; n++ ) {
-		sector_array[n] = sector_array_row_ptr
-			+ n * sector_height * sizeof(sector_array_row_ptr);
+
+		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
+
+#if 0
+		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
+			fname, n, sector_array[n] ));
+#endif
 	}
 
-	row_of_sectors_size = num_sector_columns * sector_height * sector_width;
+	/* The 'row_size' is the number of bytes in a single horizontal
+	 * line of the image.  The 'row_of_sectors_size' is the number of
+	 * bytes in a horizontal row of sectors.  In unbinned mode,
+	 * row_of_sectors_size = 1024 * row_size.
+	 */
 
-	row_size = num_sector_columns * sector_width;
+	/* sector_row_size     = number of bytes in a single horizontal
+	 *                       row of a sector.
+	 *
+	 * row_size            = number of bytes in a single horizontal
+	 *                       row of the full image.
+	 *
+	 * row_of_sectors_size = number of bytes in all the rows of a
+	 *                       single row of sectors.
+	 *
+	 * For an unbinned image:
+	 *
+	 *   row_of_sectors_size = 1024 * row_size = 1024 * 4 * sector_row_size
+	 */
+
+	sector_row_size = sector_width * sizeof(uint16_t);
+
+	row_size = num_sector_columns * sector_row_size;
+
+	row_of_sectors_size = row_size * sector_height;
+
+#if 0
+	MX_DEBUG(-2,
+	("%s: image_data = %p, row_size = %#lx, row_of_sectors_size = %#lx",
+		fname, image_data, row_size, row_of_sectors_size));
+#endif
 
 	for ( sector_row = 0; sector_row < num_sector_rows; sector_row++ ) {
 	    for ( row = 0; row < sector_width; row++ ) {
@@ -205,11 +253,20 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		{
 		    n = sector_column + 4 * sector_row;
 
-		    offset = sector_row * row_of_sectors_size
+		    byte_offset = sector_row * row_of_sectors_size
 				+ row * row_size
-				+ sector_column;
+				+ sector_column * sector_row_size;
 
-		    sector_array[n][row] = image_data + offset;
+		    ptr_offset = byte_offset / sizeof(uint16_t);
+
+		    sector_array[n][row] = image_data + ptr_offset;
+
+#if 0
+		    MX_DEBUG(-2,
+    ("byte_offset = %#lx, ptr_offset = %#lx, array[%ld][%ld] = %#lx",
+			byte_offset, ptr_offset, n, row,
+			(long) sector_array[n][row] ));
+#endif
 		}
 	    }
 	}
@@ -231,10 +288,6 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	uint16_t ***image_sector_array;
 	long i, j, i_framesize, j_framesize;
 	mx_status_type mx_status;
-
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	long k;
-#endif
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -318,12 +371,6 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 * to the image frame.
 	 */
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	for ( k = 0; k < 16; k++ ) {
-		raw_frame_data[k] = k+1;
-	}
-#endif
-
 	image_sector_array = pccd_170170->image_sector_array;
 
 	for ( i = 0; i < i_framesize; i++ ) {
@@ -370,9 +417,13 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	for ( k = 0; k < 16; k++ ) {
-		MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %d",
-			fname, k, image_sector_array[k][0][0] ));
+	{
+		long k;
+
+		for ( k = 0; k < 16; k++ ) {
+			MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %d",
+				fname, k, image_sector_array[k][0][0] ));
+		}
 	}
 #endif
 
