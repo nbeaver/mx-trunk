@@ -371,7 +371,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	for ( k = 0; k < 16; k++ ) {
-		MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %ld",
+		MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %d",
 			fname, k, image_sector_array[k][0][0] ));
 	}
 #endif
