@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -41,6 +41,9 @@
 
 #define MXT_IMAGE_FILE_PNM			1
 #define MXT_IMAGE_FILE_TIFF			2
+#define MXT_IMAGE_FILE_SMV			3
+
+#define MXU_IMAGE_SMV_HEADER_LENGTH		512
 
 /*---- Sequence type definitions ----*/
 
@@ -149,6 +152,14 @@ MX_API mx_status_type mx_image_read_pnm_file( MX_IMAGE_FRAME **frame,
 						char *datafile_name );
 
 MX_API mx_status_type mx_image_write_pnm_file( MX_IMAGE_FRAME *frame,
+						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
+						char *datafile_name );
+
+MX_API mx_status_type mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
 
 #endif /* __MX_IMAGE_H__ */

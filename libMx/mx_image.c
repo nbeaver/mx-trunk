@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		FALSE
+#define MX_IMAGE_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -676,6 +676,9 @@ mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_read_pnm_file( frame_ptr, datafile_name );
 		break;
+	case MXT_IMAGE_FILE_SMV:
+		mx_status = mx_image_read_smv_file( frame_ptr, datafile_name );
+		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image file type %lu requested for datafile '%s'.",
@@ -697,6 +700,9 @@ mx_image_write_file( MX_IMAGE_FRAME *frame,
 	switch( datafile_type ) {
 	case MXT_IMAGE_FILE_PNM:
 		mx_status = mx_image_write_pnm_file( frame, datafile_name );
+		break;
+	case MXT_IMAGE_FILE_SMV:
+		mx_status = mx_image_write_smv_file( frame, datafile_name );
 		break;
 	default:
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
@@ -1183,6 +1189,494 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,
 	("%s: PNM file '%s' successfully written.", fname, datafile_name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+/*
+ *
+ * FIXME: Describe SMV format here.
+ *
+ */
+
+MX_EXPORT mx_status_type
+mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_read_smv_file()";
+
+	FILE *file;
+	char buffer[100];
+	char byte_order_buffer[40];
+	char *ptr;
+	int saved_errno, os_status, num_items;
+	long framesize[2];
+	long bytes_per_pixel, bytes_per_frame, bytes_read, image_format;
+	long header_length, datafile_byteorder, num_whitespace_chars;
+	mx_status_type mx_status;
+
+	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+#endif
+
+	/* Open the data file. */
+
+	file = fopen( datafile_name, "rb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_NOT_FOUND, fname,
+		"Cannot open SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* The first line of an SMV file should be a '{' character
+	 * followed by a line feed character.
+	 */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot read the first line of SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	if ( ( buffer[0] != '{' ) || ( buffer[1] != '\n' ) ) {
+		return mx_error( MXE_TYPE_MISMATCH, fname,
+		"Data file '%s' does not appear to be an SMV file.",
+			datafile_name );
+	}
+
+	/* The second line should tell us the length of the header. */
+
+	ptr = fgets( buffer, sizeof(buffer), file );
+
+	if ( ptr == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot find the second line of SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	num_items = sscanf( buffer, "HEADER_BYTES=%ld", &header_length );
+
+	if ( num_items != 1 ) {
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"The file '%s' does not appear to be an SMV file, since the "
+		"second line of the file does not contain the header length.",
+			datafile_name );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: HEADER_BYTES = %ld", fname, header_length));
+#endif
+
+	/* Read in the rest of the header. */
+
+	datafile_byteorder = -1;
+	framesize[0] = -1;
+	framesize[1] = -1;
+
+	for (;;)  {
+		ptr = fgets( buffer, sizeof(buffer), file );
+
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+
+		if ( ptr == NULL ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot read the second line of SMV image file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				datafile_name,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( buffer[0] == '}' ) {
+			/* We have reached the end of the text header,
+			 * so break out of the for(;;) loop.
+			 */
+
+			break;
+		} else
+		if ( strncmp( buffer, "SIZE1=", 5 ) == 0 ) {
+			num_items = sscanf(buffer, "SIZE1=%lu", &framesize[0]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"SIZE1 statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "SIZE2=", 5 ) == 0 ) {
+			num_items = sscanf(buffer, "SIZE2=%lu", &framesize[1]);
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"SIZE2 statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "BYTE_ORDER=", 11 ) == 0 ) {
+
+			/* Look for the first non-whitespace character 
+			 * after the equals sign.
+			 */
+
+			ptr = strchr( buffer, '=' );
+
+			if ( ptr == NULL ) {
+				return mx_error( MXE_CORRUPT_DATA_STRUCTURE,
+				fname, "Apparently the buffer '%s' does not "
+				"contain a '=' character.  However a previous "
+				"statement said that it _did_ contain a '=' "
+				"character.  This is inconsistent.", buffer );
+			}
+
+			ptr++;	/* Step over the '=' character. */
+
+			num_whitespace_chars = strspn( ptr, " \t" );
+
+			ptr += num_whitespace_chars;
+
+			if ( strncmp(ptr, "little_endian", 13 ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_LITTLE_ENDIAN;
+			} else
+			if ( strncmp(ptr, "big_endian", 10 ) == 0 ) {
+				datafile_byteorder = MX_DATAFMT_BIG_ENDIAN;
+			} else {
+				return mx_error( MXE_UNSUPPORTED, fname,
+				"The BYTE_ORDER statement in the header of "
+				"data file '%s' says that the data file "
+				"byte order has the unrecognized value '%s'.",
+					datafile_name, byte_order_buffer );
+			}
+		}
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: datafile_byteorder = %ld, framesize = (%ld,%ld)",
+		fname, datafile_byteorder, framesize[0], framesize[1]));
+#endif
+
+	if ( datafile_byteorder < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"SMV data file '%s' did not contain a BYTE_ORDER "
+		"statement in its header.", datafile_name );
+	}
+
+	if ( (framesize[0] < 0) || (framesize[1] < 0) ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The header for SMV file '%s' did not contain one or both "
+		"of the SIZE1 and SIZE2 statements.  These statements "
+		"are used to specify the dimensions of the image and "
+		"must be present.", datafile_name );
+	}
+
+	/* --- */
+
+	image_format = MXT_IMAGE_FORMAT_GREY16;
+
+	bytes_per_pixel = 2;
+
+	bytes_per_frame = bytes_per_pixel * framesize[0] * framesize[1];
+
+	/* Change the size of the MX_IMAGE_FRAME to match the SMV file. */
+
+	mx_status = mx_image_alloc( frame,
+					MXT_IMAGE_LOCAL_1D_ARRAY,
+					framesize,
+					image_format,
+					MXT_IMAGE_PIXEL_ORDER_STANDARD,
+					(double) bytes_per_pixel,
+					0,
+					bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Move to the first byte after the header. */
+
+	os_status = fseek( file, MXU_IMAGE_SMV_HEADER_LENGTH, SEEK_SET );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to seek to the end of the header block "
+		"in image file '%s' failed with errno = %d, "
+		"error message = '%s'", datafile_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Read in the binary part of the image file. */
+
+	bytes_read = fread( (*frame)->image_data, sizeof(unsigned char),
+				bytes_per_frame, file );
+
+	if ( bytes_read < bytes_per_frame ) {
+		if ( feof(file) ) {
+			return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+			"End of file at pixel %ld for SMV image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		if ( ferror(file) ) {
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"An error occurred while reading pixel %ld "
+			"for SMV image file '%s'.",
+				bytes_read, datafile_name );
+		}
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Only %ld image bytes were read from "
+			"SMV image file '%s' when %ld bytes were expected.",
+				bytes_read, datafile_name, bytes_per_frame );
+	}
+
+	/* Close the SMV image file. */
+
+	fclose( file );
+
+	/* If the byte order in the file does not match the native
+	 * byte order of the machine we are running on, then we must
+	 * byteswap the bytes in the image.
+	 */
+
+	if ( mx_native_byteorder() != datafile_byteorder ) {
+		uint16_t *uint16_array;
+		long i, words_per_frame;
+
+		/* Byteswap the 16-bit integers. */
+
+		uint16_array = (*frame)->image_data;
+
+		words_per_frame = framesize[0] * framesize[1];
+
+		for ( i = 0; i < words_per_frame; i++ ) {
+			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
+		}
+	}
+
+	/* We are done, so return. */
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
+{
+	static const char fname[] = "mx_image_write_smv_file()";
+
+	FILE *file;
+	pixel_converter_t converter;
+	void (*converter_fn)( unsigned char *, unsigned char * );
+	int src_step, dest_step;
+	unsigned char *src;
+	unsigned char dest[10];
+	int saved_errno, os_status, num_items_written;
+	unsigned long byteorder;
+	unsigned char null_header_bytes[MXU_IMAGE_SMV_HEADER_LENGTH] = { 0 };
+	long i;
+
+	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_IMAGE_FRAME pointer passed was NULL." );
+	}
+
+	if ( datafile_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The datafile_name pointer passed was NULL." );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
+		fname, datafile_name ));
+
+	MX_DEBUG(-2,("%s: image_type = %ld, width = %ld, height = %ld",
+		fname, frame->image_type,
+		frame->framesize[0], frame->framesize[1] ));
+	MX_DEBUG(-2,("%s: image_format = %ld, pixel_order = %ld",
+		fname, frame->image_format, frame->pixel_order));
+	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
+		fname, (unsigned long) frame->image_length, frame->image_data));
+#endif
+
+	byteorder = mx_native_byteorder();
+
+	switch( frame->image_format ) {
+	case MXT_IMAGE_FORMAT_RGB565:
+		converter = mxp_rgb565_converter;
+		break;
+	case MXT_IMAGE_FORMAT_YUYV:
+		converter = mxp_yuyv_converter;
+		break;
+
+	case MXT_IMAGE_FORMAT_RGB:
+		converter = mxp_rgb_converter;
+		break;
+	case MXT_IMAGE_FORMAT_GREY8:
+		converter = mxp_grey8_converter;
+		break;
+	case MXT_IMAGE_FORMAT_GREY16:
+		converter = mxp_grey16_converter;
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported image format %ld requested for datafile '%s'.",
+			frame->image_format, datafile_name );
+	}
+
+	src_step     = converter.num_source_bytes;
+	dest_step    = converter.num_destination_bytes;
+	converter_fn = converter.converter_fn;
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: src_step = %d, dest_step = %d, converter_fn = %p",
+		fname, src_step, dest_step, converter_fn));
+#endif
+
+	if ( dest_step > sizeof(dest) ) {
+		return mx_error( MXE_UNKNOWN_ERROR, fname,
+			"You must increase the size of the dest array "
+			"to %d and then recompile MX.",
+				dest_step );
+	}
+
+	file = fopen( datafile_name, "wb" );
+
+	if ( file == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Cannot open SMV image file '%s'.  "
+		"Errno = %d, error message = '%s'",
+			datafile_name,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Write the SMV header. */
+
+	/* First null out the first 512 bytes of the file. */
+
+	num_items_written = fwrite( null_header_bytes,
+				sizeof(null_header_bytes), 1, file );
+
+	MX_DEBUG(-2,("%s: num_items_written = %d", fname, num_items_written));
+
+	/* Now go back to the start of the file. */
+
+	os_status = fseek( file, 0, SEEK_SET );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to seek to the end of the header block "
+		"in image file '%s' failed with errno = %d, "
+		"error message = '%s'", datafile_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Write the text header. */
+
+	fprintf( file, "{\n" );
+	fprintf( file, "HEADER_BYTES=  512;\n" );
+
+	switch( byteorder ) {
+	case MX_DATAFMT_BIG_ENDIAN:
+		fprintf( file, "BYTE_ORDER=big_endian;\n" );
+		break;
+	case MX_DATAFMT_LITTLE_ENDIAN:
+		fprintf( file, "BYTE_ORDER=little_endian;\n" );
+		break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Byteorder %ld is not supported.", byteorder );
+	}
+
+	fprintf( file, "DIM=2;\n" );
+
+	if ( frame->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+		fprintf( file, "TYPE=unsigned_short;\n" );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"8-bit file formats are not supported by SMV format files." );
+	}
+
+	fprintf( file, "SIZE1=%lu;\n", frame->framesize[0] );
+	fprintf( file, "SIZE2=%lu;\n", frame->framesize[1] );
+
+	/* FIXME: We should add the binsize here.  Doing that requires
+	 *        one of the following:
+	 * 
+	 *        1.  Add a pointer to the MX_AREA_DETECTOR structure as
+	 *            new argument to the list of arguments of this function.
+	 *        2.  Add a new binsize field to the MX_IMAGE_FRAME structure.
+	 */
+
+	/* Terminate the part of the header block that we are using. */
+
+	fprintf( file, "}\f" );
+
+	/* Move to the first byte after the header. */
+
+	os_status = fseek( file, MXU_IMAGE_SMV_HEADER_LENGTH, SEEK_SET );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"An attempt to seek to the end of the header block "
+		"in image file '%s' failed with errno = %d, "
+		"error message = '%s'", datafile_name,
+			saved_errno, strerror( saved_errno ) );
+	}
+
+	/* Loop through the image file. */
+
+	src = frame->image_data;
+
+	for ( i = 0; i < frame->image_length; i += src_step ) {
+
+		/* Convert and write out the pixels. */
+
+		converter_fn( &src[i], dest );
+
+		fwrite( dest, sizeof(unsigned char), dest_step, file );
+	}
+
+	fclose( file );
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,
+	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;

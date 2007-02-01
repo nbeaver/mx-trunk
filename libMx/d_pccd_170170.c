@@ -570,9 +570,9 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	video_input_record = pccd_170170->video_input_record;
 
-	/* FIXME: Need to change the file format. */
+	/* Set the default file format. */
 
-	ad->frame_file_format = MXT_IMAGE_FILE_PNM;
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
 
 	ad->binsize[0] = 1;
 	ad->binsize[1] = 1;
