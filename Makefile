@@ -49,7 +49,7 @@ MX_ARCH = win32
 
 #MX_INSTALL_DIR = /opt/mx
 
-MX_INSTALL_DIR = c:/opt/mx
+MX_INSTALL_DIR = c:/opt/mx-2007-02-01
 
 #MX_INSTALL_DIR = $(HOME)/mxtest
 

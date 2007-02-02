@@ -394,6 +394,8 @@ mxserver_main( int argc, char *argv[] )
 
 	bypass_signal_handlers = FALSE;
 
+	network_debug = FALSE;
+
 #if HAVE_GETOPT
         /* Process command line arguments, if any. */
 
@@ -669,6 +671,11 @@ mxserver_main( int argc, char *argv[] )
 	/* Set the default network debugging flag. */
 
 	list_head_struct->network_debug = network_debug;
+
+#if 0
+	fprintf(stderr, "%s: list_head_struct->network_debug = %d\n",
+		fname, list_head_struct->network_debug );
+#endif
 
 	/* Make sure that the socket infrastructure has been initialized.
 	 * On Win32, it is necessary to do this before invoking the 
