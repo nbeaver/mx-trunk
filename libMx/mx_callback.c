@@ -195,6 +195,10 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		fname, callback_type, nf->record_handle, nf->field_handle,
 		callback_id ));
 
+	/* FIXME: At this point we add the callback to the list maintained
+	 *        by the record list head.
+	 */
+
 	return mx_error( MXE_NOT_YET_IMPLEMENTED,
 			fname, "Not yet implemented.");
 }

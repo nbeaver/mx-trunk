@@ -108,6 +108,8 @@ mxsrv_get_returning_message_type( uint32_t message_type )
 {MX_NETMSG_SET_CLIENT_INFO,   mx_server_response(MX_NETMSG_SET_CLIENT_INFO)},
 {MX_NETMSG_GET_OPTION,        mx_server_response(MX_NETMSG_GET_OPTION)},
 {MX_NETMSG_SET_OPTION,        mx_server_response(MX_NETMSG_SET_OPTION)},
+{MX_NETMSG_ADD_CALLBACK,      mx_server_response(MX_NETMSG_ADD_CALLBACK)},
+{MX_NETMSG_DELETE_CALLBACK,   mx_server_response(MX_NETMSG_DELETE_CALLBACK)},
 
 	};
 
@@ -723,7 +725,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	uint32_t *header;
 	MX_NETWORK_MESSAGE_BUFFER *received_message;
 
-	int see_if_we_need_to_queue_this_event, update_next_event_time;
+	int update_next_event_time;
 	int queue_a_message, value_at_message_start;
 	char *record_name, *field_name;
 	MX_RECORD *record;
@@ -1004,6 +1006,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		case MX_NETMSG_SET_OPTION:
 			strcpy( message_type_string, "SET_OPTION" );
 			break;
+		case MX_NETMSG_ADD_CALLBACK:
+			strcpy( message_type_string, "ADD_CALLBACK" );
+			break;
+		case MX_NETMSG_DELETE_CALLBACK:
+			strcpy( message_type_string, "DELETE_CALLBACK" );
+			break;
 		default:
 			sprintf( message_type_string,
 				"Unknown message type %#lx",
@@ -1044,38 +1052,22 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	switch( message_type ) {
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 	case MX_NETMSG_PUT_ARRAY_BY_NAME:
-		see_if_we_need_to_queue_this_event = TRUE;
-
+	case MX_NETMSG_GET_NETWORK_HANDLE:
+	case MX_NETMSG_GET_FIELD_TYPE:
 		value_at_message_start = MXS_START_RECORD_FIELD_NAME;
 		break;
+
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
-		see_if_we_need_to_queue_this_event = TRUE;
-
+	case MX_NETMSG_ADD_CALLBACK:
 		value_at_message_start = MXS_START_RECORD_FIELD_HANDLE;
 		break;
-	case MX_NETMSG_GET_NETWORK_HANDLE:
-		see_if_we_need_to_queue_this_event = FALSE;
 
-		value_at_message_start = MXS_START_RECORD_FIELD_NAME;
-		break;
-	case MX_NETMSG_GET_FIELD_TYPE:
-		see_if_we_need_to_queue_this_event = FALSE;
-
-		value_at_message_start = MXS_START_RECORD_FIELD_NAME;
-		break;
 	case MX_NETMSG_SET_CLIENT_INFO:
 	case MX_NETMSG_GET_OPTION:
 	case MX_NETMSG_SET_OPTION:
-		see_if_we_need_to_queue_this_event = FALSE;
-
-		value_at_message_start = MXS_START_NOTHING;
-		break;
-	case MX_NETMSG_ADD_CALLBACK:
 	case MX_NETMSG_DELETE_CALLBACK:
-		see_if_we_need_to_queue_this_event = FALSE;
-
-		value_at_message_start = MXS_START_RECORD_FIELD_HANDLE;
+		value_at_message_start = MXS_START_NOTHING;
 		break;
 	default:
 		mx_status = mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
@@ -1334,8 +1326,19 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 						received_message );
 		break;
 	case MX_NETMSG_SET_OPTION:
-		mx_status = mxsrv_handle_set_option(
-						record_list, socket_handler,
+		mx_status = mxsrv_handle_set_option( record_list,
+						socket_handler,
+						received_message );
+		break;
+	case MX_NETMSG_ADD_CALLBACK:
+		mx_status = mxsrv_handle_add_callback( record_list,
+						socket_handler,
+						record, record_field,
+						received_message );
+		break;
+	case MX_NETMSG_DELETE_CALLBACK:
+		mx_status = mxsrv_handle_delete_callback( record_list,
+						socket_handler,
 						received_message );
 		break;
 	default:
@@ -3060,6 +3063,58 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	MX_DEBUG( 1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mxsrv_handle_add_callback( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *field,
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
+{
+	static const char fname[] = "mxsrv_handle_add_callback()";
+
+	uint32_t *uint32_header, *uint32_message;
+	unsigned long header_length, message_length;
+	unsigned long record_handle, field_handle, callback_type;
+
+	MX_DEBUG(-2,("%s: record = '%s', field = '%s'",
+		fname, record->name, field->name ));
+
+	uint32_header = network_message->u.uint32_buffer;
+
+	header_length  = mx_ntohl( uint32_header[MX_NETWORK_HEADER_LENGTH] );
+	message_length = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_LENGTH] );
+
+	if ( message_length < ( 3 * sizeof(uint32_t) ) ) {
+		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
+		"The ADD_CALLBACK message of length %lu sent by "
+		"client socket %d is shorter than the required length of %lu.",
+			message_length,
+			socket_handler->synchronous_socket->socket_fd,
+			(unsigned long) (3L * sizeof(uint32_t)) );
+	}
+
+	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
+
+	record_handle = mx_ntohl( uint32_message[0] );
+	field_handle  = mx_ntohl( uint32_message[1] );
+	callback_type = mx_ntohl( uint32_message[2] );
+
+	MX_DEBUG(-2,("%s: (%lu,%lu) callback_type = %lu",
+		fname, record_handle, field_handle, callback_type ));
+
+	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+}
+
+mx_status_type
+mxsrv_handle_delete_callback( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
+{
+	static const char fname[] = "mxsrv_handle_delete_callback()";
+
+	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
 }
 
 #if HAVE_UNIX_DOMAIN_SOCKETS

@@ -130,6 +130,18 @@ extern mx_status_type mxsrv_handle_set_option(
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
+extern mx_status_type mxsrv_handle_add_callback(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+extern mx_status_type mxsrv_handle_delete_callback(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
 #if HAVE_UNIX_DOMAIN_SOCKETS
 
 extern mx_status_type mxsrv_get_unix_domain_socket_credentials(

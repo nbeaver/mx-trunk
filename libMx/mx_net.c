@@ -31,6 +31,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_handle.h"
+#include "mx_callback.h"
 #include "mx_driver.h"
 
 #include "n_tcpip.h"
@@ -928,6 +929,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 	uint32_t record_handle, field_handle;
 	long i, data_type, field_type, num_dimensions, dimension_size;
 	unsigned long option_number, option_value;
+	unsigned long callback_type, callback_id;
 	const char *data_type_name;
 
 	if ( message_buffer == NULL ) {
@@ -1130,6 +1132,36 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 			fprintf( stderr,
 			"  SET_OPTION response: %s\n", char_message );
 		}
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_ADD_CALLBACK:
+		record_handle = mx_ntohl( uint32_message[0] );
+		field_handle  = mx_ntohl( uint32_message[1] );
+		callback_type = mx_ntohl( uint32_message[2] );
+
+		fprintf( stderr,
+		"  ADD_CALLBACK: (%lu,%lu) callback type = ",
+			(unsigned long) record_handle,
+			(unsigned long) field_handle );
+
+		switch ( callback_type ) {
+		case MXCB_VALUE_CHANGED:
+			fprintf( stderr, "MXCB_VALUE_CHANGED\n" );
+			break;
+		default:
+			fprintf( stderr, "%lu\n", callback_type );
+			break;
+		}
+
+		break;
+
+	case mx_server_response(MX_NETMSG_ADD_CALLBACK):
+		callback_id = mx_ntohl( uint32_message[0] );
+
+		fprintf( stderr,
+		"  ADD_CALLBACK response: callback id = %lu\n", callback_id );
 		break;
 
 	/*-------------------------------------------------------------------*/
