@@ -56,6 +56,7 @@
 #include "mx_bit.h"
 
 #include "mx_process.h"
+#include "mx_callback.h"
 #include "ms_mxserver.h"
 #include "ms_security.h"
 
@@ -3075,8 +3076,11 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_handle_add_callback()";
 
 	uint32_t *uint32_header, *uint32_message;
+	uint32_t message_id;
 	unsigned long header_length, message_length;
 	unsigned long record_handle, field_handle, callback_type;
+	MX_CALLBACK *callback_object;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s: record = '%s', field = '%s'",
 		fname, record->name, field->name ));
@@ -3084,9 +3088,16 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	uint32_header = network_message->u.uint32_buffer;
 
 	header_length  = mx_ntohl( uint32_header[MX_NETWORK_HEADER_LENGTH] );
+
+	if ( header_length < (7 * sizeof(uint32_t)) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"This server cannot support callbacks from clients using "
+		"MX 1.4 or before." );
+	}
+
 	message_length = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_LENGTH] );
 
-	if ( message_length < ( 3 * sizeof(uint32_t) ) ) {
+	if ( message_length < (3 * sizeof(uint32_t)) ) {
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
 		"The ADD_CALLBACK message of length %lu sent by "
 		"client socket %d is shorter than the required length of %lu.",
@@ -3094,6 +3105,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 			socket_handler->synchronous_socket->socket_fd,
 			(unsigned long) (3L * sizeof(uint32_t)) );
 	}
+
+	message_id = uint32_header[MX_NETWORK_MESSAGE_ID];
 
 	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
 
@@ -3104,7 +3117,56 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	MX_DEBUG(-2,("%s: (%lu,%lu) callback_type = %lu",
 		fname, record_handle, field_handle, callback_type ));
 
-	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+	/* Add the callback to the list of callbacks. */
+
+	mx_status = mx_field_add_callback( field, callback_type,
+					NULL, NULL, &callback_object );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( callback_object == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"For some reason, mx_field_add_callback() returned a NULL"
+		"MX_CALLBACK object in spite of the fact that it returned "
+		"an MXE_SUCCESS status code.  This should not happen." );
+	}
+
+	/* Construct a message to send the callback id back to the client. */
+
+	uint32_header = network_message->u.uint32_buffer;
+
+	uint32_header[MX_NETWORK_MAGIC] = mx_htonl(MX_NETWORK_MAGIC_VALUE);
+
+	uint32_header[MX_NETWORK_HEADER_LENGTH] =
+			mx_htonl(MXU_NETWORK_HEADER_LENGTH);
+
+	uint32_header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl(sizeof(uint32_t));
+
+	uint32_header[MX_NETWORK_MESSAGE_TYPE] =
+			mx_htonl( mx_server_response(MX_NETMSG_ADD_CALLBACK) );
+
+	uint32_header[MX_NETWORK_STATUS_CODE] = mx_htonl(MXE_SUCCESS);
+
+	uint32_header[MX_NETWORK_DATA_TYPE] = mx_htonl(MXFT_HEX);
+
+	uint32_header[MX_NETWORK_MESSAGE_ID] = mx_htonl(message_id);
+
+	uint32_message = uint32_header + MXU_NETWORK_NUM_HEADER_VALUES;
+
+	uint32_message[0] = mx_htonl( callback_object->callback_id );
+
+	/* Send the message to the client. */
+
+	mx_status = mx_network_socket_send_message(
+		socket_handler->synchronous_socket, -1.0, network_message );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 mx_status_type

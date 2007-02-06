@@ -25,10 +25,11 @@
 
 MX_EXPORT mx_status_type
 mx_network_add_callback( MX_NETWORK_FIELD *nf,
-			long callback_type,
+			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
-						MX_NETWORK_FIELD *, void * ),
-			void *callback_argument )
+						MX_CALLBACK *, void * ),
+			void *callback_argument,
+			MX_CALLBACK **callback_object )
 {
 	static const char fname[] = "mx_network_add_callback()";
 
@@ -173,8 +174,8 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		    (unsigned long) message_type );
 	}
 
-	/* If the header is not at least 28 bytes long, the the server
-	 * does not support callbacks.
+	/* If the header is not at least 28 bytes long, then the server
+	 * is too old to support callbacks.
 	 */
 
 	if ( header_length < 28 ) {
@@ -201,5 +202,104 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 
 	return mx_error( MXE_NOT_YET_IMPLEMENTED,
 			fname, "Not yet implemented.");
+}
+
+MX_EXPORT mx_status_type
+mx_field_add_callback( MX_RECORD_FIELD *record_field,
+			unsigned long callback_type,
+			mx_status_type ( *callback_function )(
+						MX_CALLBACK *, void * ),
+			void *callback_argument,
+			MX_CALLBACK **callback_object )
+{
+	static const char fname[] = "mx_field_add_callback()";
+
+	MX_CALLBACK *callback_ptr;
+	MX_RECORD *record;
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	signed long callback_handle;
+	mx_status_type mx_status;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	/* Get a pointer to the record list head struct so that we
+	 * can add the new callback there.
+	 */
+
+	record = record_field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX_RECORD_FIELD passed has a NULL MX_RECORD pointer.  "
+		"This probably means that it is a temporary record field "
+		"object used by the MX networking code.  Callbacks are not "
+		"supported for such record fields." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for record '%s', field '%s'.",
+		fname, record->name, record_field->name ));
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Cannot get the MX_LIST_HEAD pointer for the record list "
+		"containing the record '%s'.", record->name );
+	}
+
+	/* If the list head does not already have a server callback handle
+	 * table, then create one now.  Otherwise, just use the table that
+	 * is already there.
+	 */
+	
+	if ( list_head->server_callback_handle_table != NULL ) {
+		callback_handle_table = list_head->server_callback_handle_table;
+	} else {
+		/* The handle table starts with a single block of 100 handles.*/
+
+		mx_status = mx_create_handle_table( &callback_handle_table,
+							100, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->server_callback_handle_table = callback_handle_table;
+	}
+
+	/* Allocate an MX_CALLBACK structure to contain the callback info. */
+
+	callback_ptr = malloc( sizeof(MX_CALLBACK) );
+
+	if ( callback_ptr == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	    "Ran out of memory trying to allocate an MX_CALLBACK structure.");
+	}
+
+	callback_ptr->callback_class = MXCB_FIELD;
+	callback_ptr->callback_function = callback_function;
+	callback_ptr->callback_argument = callback_argument;
+
+	/* Add this callback to the callback handle table. */
+
+	mx_status = mx_create_handle( &callback_handle,
+					callback_handle_table, callback_ptr );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	callback_ptr->callback_id =
+		MX_NETWORK_MESSAGE_ID_MASK & (uint32_t) callback_handle;
+
+	callback_ptr->callback_id |= MX_NETWORK_MESSAGE_IS_CALLBACK;
+
+	if ( callback_object != (MX_CALLBACK **) NULL ) {
+		*callback_object = callback_ptr;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 

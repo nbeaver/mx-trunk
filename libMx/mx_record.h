@@ -22,7 +22,6 @@
 /* Include hardware and operating system dependent definitions and symbols. */
 
 #include "mx_util.h"
-#include "mx_list.h"
 #include "mx_stdint.h"
 #include "mx_clock.h"
 
@@ -114,6 +113,7 @@ typedef struct {
 	void *client_callback_list;
 	void *server_callback_list;
 	void *application_ptr;
+	struct mx_record_type *record;
 } MX_RECORD_FIELD;
 
 typedef struct {
@@ -407,8 +407,8 @@ typedef struct {
 	unsigned long num_server_records;
 	MX_RECORD **server_record_array;
 
-	MX_LIST *client_callback_list;	/* Callbacks invoked by a client. */
-	MX_LIST *server_callback_list;	/* Callbacks invoked by a server. */
+	void *client_callback_handle_table;
+	void *server_callback_handle_table;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

@@ -134,22 +134,6 @@ typedef struct mx_event_handler_type MX_EVENT_HANDLER;
 
 /*---*/
 
-struct mx_callback_type {
-	mx_status_type ( *callback_function ) ( MX_RECORD_FIELD *record_field,
-						void *callback_argument );
-	void *callback_argument;
-	int callback_enabled;
-	struct mx_callback_type *next_callback;
-};
-
-typedef struct mx_callback_type MX_CALLBACK;
-
-typedef struct {
-	MX_CALLBACK *value_changed_callback_list;
-} MX_CALLBACK_LIST;
-
-#define MXSF_VALUE_CHANGED_CALLBACK	1
-
 MX_API mx_status_type mx_initialize_database_processing(
 						MX_RECORD *record_list );
 

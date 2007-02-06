@@ -156,8 +156,8 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->num_server_records = 0;
 	list_head_struct->server_record_array = NULL;
 
-	list_head_struct->client_callback_list = NULL;
-	list_head_struct->server_callback_list = NULL;
+	list_head_struct->client_callback_handle_table = NULL;
+	list_head_struct->server_callback_handle_table = NULL;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 

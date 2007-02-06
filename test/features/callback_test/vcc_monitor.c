@@ -25,6 +25,7 @@ main( int argc, char *argv[] )
 	char record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 	char field_name[ MXU_FIELD_NAME_LENGTH+1 ];
 	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
+	MX_CALLBACK *callback;
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
 	char server_record_name[] = "mxserver";
@@ -214,7 +215,8 @@ main( int argc, char *argv[] )
 	/* Create a callback handler for this network field. */
 
 	mx_status = mx_network_add_callback( &nf,
-					MXCB_VALUE_CHANGED, NULL, NULL );
+					MXCB_VALUE_CHANGED, NULL, NULL,
+					&callback );
 
 	exit(0);
 }

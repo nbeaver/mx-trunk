@@ -1968,6 +1968,7 @@ mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
 	field->client_callback_list = NULL;
 	field->server_callback_list = NULL;
 	field->application_ptr      = NULL;
+	field->record               = NULL;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -2077,7 +2078,11 @@ mx_parse_record_fields( MX_RECORD *record,
 		MX_DEBUG( 8, ("record_field = %p, record_field_defaults = %p",
 			record_field, record_field_defaults));
 
-		/* What type of record is this supposed to be? */
+		/* Save a pointer to the record this field is part of. */
+
+		record_field->record = record;
+
+		/* What type of field is this supposed to be? */
 
 		field_type = record_field->datatype;
 
@@ -3464,6 +3469,7 @@ mx_initialize_temp_record_field( MX_RECORD_FIELD *temp_record_field,
 	temp_record_field->client_callback_list = NULL;
 	temp_record_field->server_callback_list = NULL;
 	temp_record_field->application_ptr = NULL;
+	temp_record_field->record = NULL;
 	temp_record_field->data_pointer = value_ptr;
 
 	if ( num_dimensions <= 0L ) {
