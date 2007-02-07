@@ -1161,7 +1161,7 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		callback_id = mx_ntohl( uint32_message[0] );
 
 		fprintf( stderr,
-		"  ADD_CALLBACK response: callback id = %lu\n", callback_id );
+		"  ADD_CALLBACK response: callback id = %#lx\n", callback_id );
 		break;
 
 	/*-------------------------------------------------------------------*/

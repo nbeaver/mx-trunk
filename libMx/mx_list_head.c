@@ -127,6 +127,8 @@ mxr_create_list_head( MX_RECORD *record )
 			return mx_status;
 
 		record_field->data_pointer = field_data_ptr;
+
+		record_field->record = record;
 	}
 
 	/* Fill in the list head structure values by hand. */

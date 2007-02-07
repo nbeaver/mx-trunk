@@ -3106,7 +3106,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 			(unsigned long) (3L * sizeof(uint32_t)) );
 	}
 
-	message_id = uint32_header[MX_NETWORK_MESSAGE_ID];
+	message_id = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_ID] );
 
 	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
 

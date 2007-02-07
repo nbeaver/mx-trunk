@@ -192,7 +192,7 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	callback_id = mx_ntohl( uint32_message[0] );
 
 	MX_DEBUG(-2,
-	("%s: The callback ID of type %lu for handle (%lu,%lu) is %lu",
+	("%s: The callback ID of type %lu for handle (%lu,%lu) is %#lx",
 		fname, callback_type, nf->record_handle, nf->field_handle,
 		callback_id ));
 
