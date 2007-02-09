@@ -44,7 +44,7 @@ struct mx_unix_domain_auth {
 
 typedef struct {
 	MX_SOCKET *synchronous_socket;
-	MX_SOCKET *callback_socket;
+	MX_LIST_HEAD *list_head;
 	long handler_array_index;
 	struct mx_event_handler_type *event_handler;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;

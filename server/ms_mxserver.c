@@ -134,31 +134,92 @@ mx_status_type
 mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			MX_SOCKET_HANDLER_LIST *socket_handler_list )
 {
-	long i;
+	static const char fname[] = "mxsrv_free_client_socket_handler()";
 
-	i = socket_handler->handler_array_index;
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *handle_table;
+	MX_HANDLE_STRUCT *handle_struct, *handle_struct_array;
+	long n;
+	unsigned long i, array_size;
+	signed long handle;
+	MX_CALLBACK *callback;
+
+	n = socket_handler->handler_array_index;
 
 	if ( socket_handler_list != NULL ) {
-		socket_handler_list->array[i] = NULL;
+		socket_handler_list->array[n] = NULL;
 	}
 
-	if ( i >= 0 ) {
+	if ( n >= 0 ) {
 		mx_info("Client %ld (socket %d) disconnected.",
-			i, socket_handler->synchronous_socket->socket_fd);
+			n, socket_handler->synchronous_socket->socket_fd);
 	}
 
-	/* If this handler had a callback socket, close it. */
+	list_head = socket_handler->list_head;
 
-	if ( socket_handler->callback_socket != NULL ) {
-		(void) mx_socket_close( socket_handler->callback_socket );
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the current database is NULL." );
+	}
 
-		if ( socket_handler_list != NULL ) {
-			socket_handler_list->num_sockets_in_use--;
+	/* If this handler had any callbacks, find them and delete them. */
+
+	handle_table = list_head->server_callback_handle_table;
+
+	if ( handle_table != (MX_HANDLE_TABLE *) NULL ) {
+
+		/* Look through the handle table for handles used
+		 * by this socket handler.
+		 */
+
+		handle_struct_array = handle_table->handle_struct_array;
+
+		if ( handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The handle_struct_array table for the current "
+			"database is NULL." );
 		}
 
-#if 0
-		mx_free( socket_handler->callback_socket );
-#endif
+		array_size = 
+			handle_table->block_size * handle_table->num_blocks;
+
+		for ( i = 0; i < array_size; i++ ) {
+			handle_struct = &(handle_struct_array[i]);
+
+			handle = handle_struct->handle;
+			callback = handle_struct->pointer;
+
+			if ((handle != MX_ILLEGAL_HANDLE) && (callback != NULL))
+			{
+			    /* Does this callback use the socket handler
+			     * that we are in the process of deleting?
+			     */
+
+			    if (callback->callback_argument != socket_handler) 
+			    {
+			    	/* The callback does not use this socket
+				 * handler, so skip on to the next callback.
+				 */
+
+				continue;
+			    }
+
+			    /* If we get here, the callback _does_ use this
+			     * socket handler.
+			     */
+
+			    /* Delete the handle from the callback handle
+			     * table.  This is enough to keep the callback
+			     * from being invoked.
+			     */
+
+			    (void) mx_delete_handle( handle, handle_table );
+
+			    /* Finish up by freeing the callback structure. */
+
+			    mx_free( callback );
+			}
+		}
 	}
 
 	/* Close our end of the synchronous socket. */
@@ -184,7 +245,6 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	 */
 
 	socket_handler->synchronous_socket = NULL;
-	socket_handler->callback_socket = NULL;
 	socket_handler->handler_array_index = -1;
 	socket_handler->event_handler = NULL;
 	socket_handler->message_buffer = NULL;
@@ -204,18 +264,30 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	MXSRV_MX_SERVER_SOCKET *server_socket_struct;
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_SOCKET *server_socket;
+	MX_LIST_HEAD *list_head;
 	int i, socket_type, max_sockets, handler_array_size;
 	mx_status_type mx_status;
 
 	MX_DEBUG( 1,("%s invoked.", fname));
 
+	if ( list_head_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The list_head_record pointer passed was NULL." );
+	}
 	if ( socket_handler_list == (MX_SOCKET_HANDLER_LIST *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_SOCKET_HANDLER_LIST pointer passed is NULL." );
+		"The MX_SOCKET_HANDLER_LIST pointer passed was NULL." );
 	}
 	if ( event_handler == (MX_EVENT_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_EVENT_HANDLER pointer passed is NULL." );
+		"The MX_EVENT_HANDLER pointer passed was NULL." );
+	}
+
+	list_head = list_head_record->record_superclass_struct;
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for the current database is NULL." );
 	}
 
 	max_sockets = socket_handler_list->max_sockets;
@@ -329,7 +401,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 	socket_handler_list->array[i] = socket_handler;
 
 	socket_handler->synchronous_socket = server_socket;
-	socket_handler->callback_socket = NULL;
+	socket_handler->list_head = list_head;
 	socket_handler->handler_array_index = i;
 	socket_handler->event_handler = event_handler;
 	socket_handler->network_debug = FALSE;
@@ -535,6 +607,8 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 			client_socket->socket_fd );
 	}
 
+	new_socket_handler->list_head = list_head;
+
 	new_socket_handler->network_debug = list_head->network_debug;
 
 	new_socket_handler->handler_array_index = -1;
@@ -572,7 +646,6 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 					= new_socket_handler->data_format;
 
 	new_socket_handler->synchronous_socket = client_socket;
-	new_socket_handler->callback_socket = NULL;
 	new_socket_handler->event_handler
 			= server_socket_struct->client_event_handler;
 
@@ -1645,7 +1718,7 @@ mxsrv_send_field_value_to_client(
 
 	mx_status = MX_SUCCESSFUL_RESULT;
 
-	MX_DEBUG(-2,("%s: socket_handler = %p, network_message = %p",
+	MX_DEBUG( 2,("%s: socket_handler = %p, network_message = %p",
 		fname, socket_handler, network_message ));
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
