@@ -1534,64 +1534,13 @@ mx_socket_getline( MX_SOCKET *mx_socket, char *buffer, size_t buffer_length,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#if HAVE_FIONREAD_FOR_SOCKETS
-
 MX_EXPORT mx_status_type
-mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
-					long *num_input_bytes_available )
+mx_socket_num_input_bytes_available( MX_SOCKET *mx_socket,
+				long *num_input_bytes_available )
 {
-	static const char fname[] =
-		"mx_socket_fionread_num_input_bytes_available()";
+	static const char fname[] = "mx_socket_num_input_bytes_available()";
 
-	int socket_errno;
-
-	if ( mx_socket == (MX_SOCKET *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_SOCKET pointer passed was NULL." );
-	}
-	if ( num_input_bytes_available == (long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The num_input_bytes_available pointer passed was NULL." );
-	}
-
-	socket_errno = mx_socket_ioctl( mx_socket, FIONREAD,
-					num_input_bytes_available );
-
-	if ( socket_errno != 0 ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"FIONREAD ioctl failed for socket %d.  "
-			"Errno = %d, error message = '%s'",
-			mx_socket->socket_fd, socket_errno,
-			mx_socket_strerror( socket_errno ) );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#else /* HAVE_FIONREAD_FOR_SOCKETS */
-
-MX_EXPORT mx_status_type
-mx_socket_fionread_num_input_bytes_available( MX_SOCKET *mx_socket,
-					long *num_input_bytes_available )
-{
-	static const char fname[] =
-		"mx_socket_fionread_num_input_bytes_available()";
-
-	return mx_error( MXE_UNSUPPORTED, fname,
-		"This function is not supported for this platform.  "
-		"Use mx_socket_select_num_input_bytes_available() instead." );
-}
-
-#endif /* HAVE_FIONREAD_FOR_SOCKETS */
-
-MX_EXPORT mx_status_type
-mx_socket_select_num_input_bytes_available( MX_SOCKET *mx_socket,
-					long *num_input_bytes_available )
-{
-	static const char fname[] =
-		"mx_socket_select_num_input_bytes_available()";
-
-	int num_fds, select_status, saved_errno;
+	int num_fds, select_status, socket_errno;
 	struct timeval timeout;
 	char *error_string;
 
@@ -1609,6 +1558,10 @@ mx_socket_select_num_input_bytes_available( MX_SOCKET *mx_socket,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The num_input_bytes_available pointer passed was NULL." );
 	}
+
+	/* First, we check with select().  select() is capable of detecting
+	 * whether or not the remote server connection has gone away.
+	 */
 
 #if defined( OS_WIN32 )
 	num_fds = -1;		/* Win32 does not really use this argument. */
@@ -1631,28 +1584,62 @@ mx_socket_select_num_input_bytes_available( MX_SOCKET *mx_socket,
 
 	select_status = select( num_fds, &read_mask, NULL, NULL, &timeout );
 
-	saved_errno = mx_socket_check_error_status(
+	socket_errno = mx_socket_check_error_status(
 		&select_status, MXF_SOCKCHK_INVALID, &error_string );
 
-	if ( saved_errno != 0 ) {
+	if ( socket_errno != 0 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Error while testing socket %d for input.  "
-			"Errno = %d, error_message = '%s'",
-			mx_socket->socket_fd, saved_errno,
-			mx_socket_strerror( saved_errno ) );
+		"An error occurred while checking socket %d for input.  "
+		"Errno = %d, error_message = '%s'",
+			mx_socket->socket_fd, socket_errno,
+			mx_socket_strerror( socket_errno ) );
+	}
+
+	if ( select_status == 0 ) {
+		*num_input_bytes_available = 0;
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	/* select() can only tell you whether or not at least one character
 	 * is available to be read.  It cannot tell you how many characters
-	 * are waiting to be read, so we should only claim that one character
-	 * is available to be read.
+	 * are waiting to be read.
 	 */
 
-	if ( select_status ) {
-		*num_input_bytes_available = 1;
-	} else {
-		*num_input_bytes_available = 0;
+#if HAVE_FIONREAD_FOR_SOCKETS
+	/* If FIONREAD is available, we can use that to determine how
+	 * many bytes are available.
+	 */
+
+	socket_errno = mx_socket_ioctl( mx_socket, FIONREAD,
+					num_input_bytes_available );
+
+	if ( socket_errno != 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"FIONREAD ioctl failed for socket %d.  "
+			"Errno = %d, error message = '%s'",
+			mx_socket->socket_fd, socket_errno,
+			mx_socket_strerror( socket_errno ) );
 	}
+
+	/* If select() returned a non-zero status, but FIONREAD said that
+	 * zero bytes were available, then we assume that the socket has
+	 * had an error.  The most likely error is that the remote server
+	 * has disconnected.
+	 */
+
+	if ( *num_input_bytes_available == 0 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"An error occurred while checking socket %d for input.",
+			mx_socket->socket_fd );
+	}
+#else
+	/* If FIONREAD is not available, then we can only safely claim
+	 * that 1 input byte is available.  This is inefficient, but safe.
+	 */
+
+	*num_input_bytes_available = 1;
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

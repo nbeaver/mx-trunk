@@ -433,10 +433,10 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 				current_tick = mx_current_clock_tick();
 
 				comparison = mx_compare_clock_ticks( 
-					end_tick, current_tick );
+					current_tick, end_tick );
 
 				if ( comparison >= 0 ) {
-				    return mx_error( MXE_TIMED_OUT, fname,
+				    return mx_error_quiet( MXE_TIMED_OUT, fname,
 				    "Timed out after waiting %g seconds "
 				    "for message ID %#lx from MX server '%s'.",
 				    	timeout_in_seconds,
@@ -475,6 +475,13 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		received_message_id =
 		   mx_ntohl( buffer->u.uint32_buffer[ MX_NETWORK_MESSAGE_ID ] );
+
+		if ( received_message_id == 0 ) {
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Received a message ID of 0 from server '%s'.  "
+			"Message ID 0 is illegal, so this should not happen.",
+				server_record->name );
+		}
 
 		if ( received_message_id == message_id ) {
 #if 0 && NETWORK_DEBUG
@@ -537,6 +544,36 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	return mx_error( MXE_FUNCTION_FAILED, fname,
 		"We got to the end of the do...while() loop, even though "
 		"this should not be possible." );
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_wait_for_messages( MX_RECORD *server_record,
+			double timeout_in_seconds )
+{
+	static const char fname[] = "mx_network_wait_for_messages()";
+
+	MX_NETWORK_SERVER *server;
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"MX_RECORD pointer passed was NULL." );
+	}
+
+	server = (MX_NETWORK_SERVER *) (server_record->record_class_struct);
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			server_record->name );
+	}
+
+	mx_status = mx_network_wait_for_message_id( server_record,
+			server->message_buffer, 0, timeout_in_seconds );
+
+	return mx_status;
 }
 
 /* ====================================================================== */

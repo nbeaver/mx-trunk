@@ -115,6 +115,8 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 	network_server->num_network_fields = 0;
 	network_server->network_field_array = NULL;
 
+	network_server->callback_list = NULL;
+
 	MX_DEBUG( 2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",
 		fname, MX_WORDSIZE, MX_PROGRAM_MODEL));
 

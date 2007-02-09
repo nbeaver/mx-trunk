@@ -19,6 +19,7 @@
 
 #include "mx_stdint.h"
 #include "mx_handle.h"
+#include "mx_list.h"
 
 /* Used by mx_parse_network_field_id() and mx_find_mx_server_record() below. */
 
@@ -96,6 +97,8 @@ typedef struct {
 
 	unsigned long num_network_fields;
 	struct mx_network_field_type **network_field_array;
+
+	MX_LIST *callback_list;
 } MX_NETWORK_SERVER;
 
 typedef struct mx_network_field_type MX_NETWORK_FIELD;
@@ -264,6 +267,9 @@ MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_wait_for_message_id( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer,
 					uint32_t message_id,
+					double timeout_in_seconds );
+
+MX_API mx_status_type mx_network_wait_for_messages( MX_RECORD *server_record,
 					double timeout_in_seconds );
 
 MX_API mx_status_type mx_network_connection_is_up( MX_RECORD *server_record,

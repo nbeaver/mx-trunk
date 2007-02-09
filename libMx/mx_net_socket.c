@@ -19,13 +19,6 @@
 
 #define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE		FALSE
 
-/* Oct. 11, 2006 - For now it is best to leave the following define
- * set to TRUE, so that any such errors will not be hidden.  Currently,
- * this seems to only be an issue on Solaris.  (W. Lavender)
- */
-
-#define MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE	FALSE
-
 #include <stdio.h>
 
 #include "mx_osdef.h"
@@ -181,19 +174,6 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-
-#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
-				if ( is_non_blocking == FALSE ) {
-					return mx_error_quiet(
-					MXE_NETWORK_IO_ERROR, fname,
-				"A call to recv() for MX socket %d returned an "
-				"error code warning that the call would block "
-				"even though we are in blocking mode.  "
-				"This should not happen.",
-						mx_socket->socket_fd );
-				}
-#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
-
 				if ( no_timeout ) {
 					/* In this case, we are never
 					 * supposed to time out, so
@@ -334,20 +314,6 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-
-#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
-				if ( is_non_blocking == FALSE ) {
-					return mx_error_quiet(
-					MXE_NETWORK_IO_ERROR, fname,
-				"A call to recv() for MX socket %d returned an "
-				"error code warning that the call would block "
-				"even though we are in blocking mode.  "
-				"This should not happen.",
-						mx_socket->socket_fd );
-
-				}
-#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
-
 				if ( no_timeout ) {
 					/* In this case, we are never
 					 * supposed to time out, so
@@ -544,51 +510,35 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 #if ( EAGAIN != EWOULDBLOCK )
 			case EWOULDBLOCK:
 #endif
-				if ( is_non_blocking == FALSE ) {
+				if ( no_timeout ) {
+					/* In this case, we are never
+					 * supposed to time out, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-#if MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE
+					continue;
+				}
 
-					return mx_error_quiet(
-					MXE_NETWORK_IO_ERROR, fname,
-				"A call to send() for MX socket %d returned an "
-				"error code warning that the call would block "
-				"even though we are in blocking mode.  "
-				"This should not happen.",
-						mx_socket->socket_fd );
+				current_time = mx_current_clock_tick();
 
-#endif /* MX_WARN_ABOUT_EWOULDBLOCK_IN_BLOCKING_MODE */
-
-				} else {
-					if ( no_timeout ) {
-						/* In this case, we are never
-						 * supposed to time out, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
-
-						continue;
-					}
-
-					current_time = mx_current_clock_tick();
-
-					comparison = mx_compare_clock_ticks(
+				comparison = mx_compare_clock_ticks(
 					    	current_time, timeout_time );
 
-					if ( comparison < 0 ) {
+				if ( comparison < 0 ) {
 
-						/* Have not timed out yet, so
-						 * go back to the top of the
-						 * while() loop and try again.
-						 */
+					/* Have not timed out yet, so
+					 * go back to the top of the
+					 * while() loop and try again.
+					 */
 
-						continue;
-					} else {
-						return mx_error_quiet(
-						MXE_TIMED_OUT, fname,
+					continue;
+				} else {
+					return mx_error_quiet(
+					MXE_TIMED_OUT, fname,
 	"Timed out after waiting %g seconds to write to MX network socket %d.",
 							timeout,
 							mx_socket->socket_fd );
-					}
 				}
 				break;
 			default:

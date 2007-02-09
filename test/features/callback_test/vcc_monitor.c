@@ -38,6 +38,7 @@ main( int argc, char *argv[] )
 	unsigned long server_flags;
 	MX_RECORD_FIELD temp_field;
 	void *value_ptr;
+	double timeout;
 	mx_status_type mx_status;
 
 	if ( argc < 2 ) {
@@ -217,6 +218,29 @@ main( int argc, char *argv[] )
 	mx_status = mx_network_add_callback( &nf,
 					MXCB_VALUE_CHANGED, NULL, NULL,
 					&callback );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
+
+	/* Wait indefinitely for callbacks. */
+
+	timeout = 1.0;		/* in seconds */
+
+	for(;;) {
+		mx_status = mx_network_wait_for_messages( server_record,
+							timeout );
+
+		switch( mx_status.code ) {
+		case MXE_SUCCESS:
+		case MXE_TIMED_OUT:
+			break;
+		default:
+			exit( mx_status.code );
+		}
+
+		MX_DEBUG(-2,
+		("%s: Timed out after %g seconds.", fname, timeout));
+	}
 
 	exit(0);
 }

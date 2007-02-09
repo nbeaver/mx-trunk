@@ -14,7 +14,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -255,19 +255,7 @@ MX_API mx_status_type mx_socket_getline( MX_SOCKET *mx_socket,
 					size_t buffer_length,
 					char *line_terminators );
 
-#if HAVE_FIONREAD_FOR_SOCKETS
-#define mx_socket_num_input_bytes_available(s,n) \
-		mx_socket_fionread_num_input_bytes_available(s,n)
-#else
-#define mx_socket_num_input_bytes_available(s,n) \
-		mx_socket_select_num_input_bytes_available(s,n)
-#endif
-
-MX_API mx_status_type mx_socket_fionread_num_input_bytes_available(
-					MX_SOCKET *mx_socket,
-					long *num_input_bytes_available );
-
-MX_API mx_status_type mx_socket_select_num_input_bytes_available(
+MX_API mx_status_type mx_socket_num_input_bytes_available(
 					MX_SOCKET *mx_socket,
 					long *num_input_bytes_available );
 

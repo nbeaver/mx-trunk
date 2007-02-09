@@ -33,8 +33,9 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 {
 	static const char fname[] = "mx_network_add_callback()";
 
+	MX_CALLBACK *callback_ptr;
+	MX_LIST_ENTRY *list_entry;
 	MX_RECORD *server_record;
-	MX_LIST_HEAD *list_head;
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t *header, *uint32_message;
@@ -67,11 +68,6 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 			return mx_status;
 	}
 
-	/* We must find a pointer to the list head structure for the
-	 * current database, so that we can add the callback to the
-	 * list there.
-	 */
-
 	server_record = nf->server_record;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -80,15 +76,6 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 			nf->nfname );
 	}
 
-	list_head = mx_get_record_list_head_struct( server_record );
-
-	if ( list_head == (MX_LIST_HEAD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_LIST_HEAD pointer for the MX database is NULL." );
-	}
-
-	/* Find the message buffer for this server. */
-
 	server = server_record->record_class_struct;
 
 	if ( server == (MX_NETWORK_SERVER *) NULL ) {
@@ -96,6 +83,19 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
 	}
+
+	/* If the server structure does not already have a callback list,
+	 * then set one up for it.
+	 */
+
+	if ( server->callback_list == (MX_LIST *) NULL ) {
+		mx_status = mx_list_create( &(server->callback_list) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	/* Find the message buffer for this server. */
 
 	message_buffer = server->message_buffer;
 
@@ -196,12 +196,39 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		fname, callback_type, nf->record_handle, nf->field_handle,
 		callback_id ));
 
-	/* FIXME: At this point we add the callback to the list maintained
-	 *        by the record list head.
+	/* Create a new client-side callback structure. */
+
+	callback_ptr = malloc( sizeof(MX_CALLBACK) );
+
+	if ( callback_ptr == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_CALLBACK structure" );
+	}
+
+	callback_ptr->callback_class    = MXCB_NETWORK;
+	callback_ptr->callback_id       = callback_id;
+	callback_ptr->callback_function = callback_function;
+	callback_ptr->callback_argument = callback_argument;
+	callback_ptr->u.network.network_field = nf;
+
+	/* Add the callback to the server record's callback list.
+	 * 
+	 * FIXME: Does this list entry need a destructor?
 	 */
 
-	return mx_error( MXE_NOT_YET_IMPLEMENTED,
-			fname, "Not yet implemented.");
+	mx_status = mx_list_entry_create( &list_entry, callback_ptr, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_add_entry( server->callback_list, list_entry );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s complete.", fname));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
