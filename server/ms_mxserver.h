@@ -87,6 +87,15 @@ extern mx_status_type mxsrv_mx_client_socket_proc_queued_event(
 			MX_RECORD *record_list,
 			MX_QUEUED_EVENT *queued_event );
 
+extern mx_status_type mxsrv_send_field_value_to_client(
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer,
+			uint32_t message_type_for_client,
+			uint32_t message_id_for_client,
+			mx_status_type caller_mx_status );
+
 extern mx_status_type mxsrv_handle_get_array(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,

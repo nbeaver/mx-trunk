@@ -11,6 +11,17 @@
 extern char *optarg;
 extern int optind;
 
+static mx_status_type
+client_callback_function( MX_CALLBACK *callback, void *argument )
+{
+	static const char fname[] = "client_callback_function()";
+
+	MX_DEBUG(-2,("%s invoked for callback = %p, argument = %p",
+		fname, callback, argument));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 int
 main( int argc, char *argv[] )
 {
@@ -216,7 +227,8 @@ main( int argc, char *argv[] )
 	/* Create a callback handler for this network field. */
 
 	mx_status = mx_network_add_callback( &nf,
-					MXCB_VALUE_CHANGED, NULL, NULL,
+					MXCB_VALUE_CHANGED,
+					client_callback_function, NULL,
 					&callback );
 
 	if ( mx_status.code != MXE_SUCCESS )

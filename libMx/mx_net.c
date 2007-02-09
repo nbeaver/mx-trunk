@@ -365,8 +365,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_CLOCK_TICK current_tick, end_tick, timeout_in_ticks;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK *callback;
+	mx_status_type (*callback_function)( MX_CALLBACK *, void * );
+	void *callback_argument;
 	mx_bool_type message_is_available, timeout_enabled;
-	mx_bool_type debug_enabled;
+	mx_bool_type debug_enabled, callback_found;
 	int comparison;
 	uint32_t received_message_id;
 	mx_status_type mx_status;
@@ -503,20 +507,79 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		if ( received_message_id & MX_NETWORK_MESSAGE_IS_CALLBACK ) {
 
-		    	/* The message is a callback message. */
-#if NETWORK_DEBUG
-			if ( debug_enabled ) {
-				fprintf( stderr,
-	"\nMX NET: Received _callback_ message ID %#lx from server '%s'.\n",
-		    			(unsigned long) received_message_id,
+		    	/* The message is a callback message, so we
+			 * must invoke the callback.
+			 */
+
+			MX_DEBUG( 2,
+			("%s: Handling callback for message ID %#lx here!",
+				fname, (unsigned long) received_message_id ));
+
+			if ( server->callback_list == NULL ) {
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"Received callback %#lx from server '%s', "
+				"but no callbacks are registered on "
+				"the client side.",
+					(unsigned long) received_message_id,
 					server_record->name );
 			}
-#endif
-			/* Now invoked the callback. */
 
-			MX_DEBUG(-2,("%s: FIXME! - We should handle the "
-				"callback for message ID %#lx here!", fname,
-				(unsigned long) received_message_id ));
+			/* Look for the callback in the server record's
+			 * callback list.
+			 */
+
+			list_start = server->callback_list->list_start;
+
+			if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The list_start pointer for the callback list "
+				"belonging to server record '%s' is NULL.",
+					server_record->name );
+			}
+
+			list_entry = list_start;
+
+			callback_found = FALSE;
+
+			do {
+			    callback = list_entry->list_entry_data;
+
+			    if ( callback == (MX_CALLBACK *) NULL ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"Null MX_CALLBACK pointer found in "
+				"callback list for server '%s'.",
+						server_record->name );
+			    }
+
+			    if ( callback->callback_id == received_message_id )
+			    {
+			    	/* This is the correct callback. */
+
+				callback_found = TRUE;
+
+				break;	/* Exit the do...while() loop. */
+			    }
+				
+			} while( list_entry != list_start );
+
+			/* If we have found the correct callback, then
+			 * invoke the callback function.
+			 */
+
+			callback_function = callback->callback_function;
+
+			callback_argument = callback->callback_argument;
+
+			if ( callback_function == NULL ) {
+			    mx_warning( "The callback function pointer "
+			    		"for callback %#lx is NULL.",
+					(unsigned long) received_message_id );
+			} else {
+			    mx_status = 
+			    (*callback_function)( callback, callback_argument );
+			}
 
 			/* Go back to the top of the loop and look again
 			 * for the message ID that we are waiting for.
@@ -528,9 +591,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		/* If we get here, then we have received an RPC message that
 		 * does not match the message ID that we were looking for.
 		 * This is an error.
-		 */
-
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		 */ return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"Received unexpected message ID %#lx when we were waiting for "
 		"message ID %#lx from server '%s'.", 
 			(unsigned long) received_message_id,
@@ -1199,6 +1260,20 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 
 		fprintf( stderr,
 		"  ADD_CALLBACK response: callback id = %#lx\n", callback_id );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case mx_server_response(MX_NETMSG_CALLBACK):
+		fprintf( stderr,
+		"  CALLBACK from server: callback id = %#lx, value = ",
+			(unsigned long) message_id );
+
+		mx_network_buffer_show_value( uint32_message,
+					message_buffer->data_format,
+					data_type,
+					message_type,
+					message_length );
 		break;
 
 	/*-------------------------------------------------------------------*/

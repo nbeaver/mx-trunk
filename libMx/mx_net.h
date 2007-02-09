@@ -227,6 +227,8 @@ typedef struct {
 #define MX_NETMSG_ADD_CALLBACK		0x4001
 #define MX_NETMSG_DELETE_CALLBACK	0x4002
 
+#define MX_NETMSG_CALLBACK		0x9001
+
 /* The MX_NETWORK_MAGIC header field should always contain the
  * MX_NETWORK_MAGIC_VALUE.  If it does not, there has been
  * a protocol error somewhere.

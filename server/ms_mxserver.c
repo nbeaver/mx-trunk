@@ -1560,44 +1560,17 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *network_message )
 {
-	static const char fname[] = "mxsrv_handle_get_array()";
-
-	char location[ sizeof(fname) + 40 ];
 	uint32_t *receive_buffer_header;
 	uint32_t receive_buffer_header_length;
 	uint32_t receive_buffer_message_type, receive_buffer_message_id;
 	long receive_datatype;
-	uint32_t *send_buffer_header;
-	char *send_buffer_message;
-	long send_buffer_header_length, send_buffer_message_length;
-	long send_buffer_message_actual_length;
-	size_t num_bytes;
-
-	MX_SOCKET *mx_socket;
-	void *pointer_to_value;
-	int array_is_dynamically_allocated;
-	mx_status_type ( *token_constructor )
-		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
-	mx_status_type mx_status;
+	mx_status_type mx_status, process_mx_status;
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 
 	MX_HRT_START( measurement );
 #endif
-
-	mx_status = MX_SUCCESSFUL_RESULT;
-
-	mx_socket = socket_handler->synchronous_socket;
-
-	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-				fname, mx_socket->socket_fd));
-
-	if ( record_field->flags & MXFF_VARARGS ) {
-		array_is_dynamically_allocated = TRUE;
-	} else {
-		array_is_dynamically_allocated = FALSE;
-	}
 
 	/* Save the message type and message id for later. */
 
@@ -1624,8 +1597,76 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	/* Get the data from the hardware for this get_array request. */
 
-	mx_status = mx_process_record_field( record, record_field,
-						MX_PROCESS_GET );
+	process_mx_status = mx_process_record_field( record, record_field,
+							MX_PROCESS_GET );
+
+	mx_status = mxsrv_send_field_value_to_client( socket_handler,
+						record, record_field,
+						network_message,
+				mx_server_response(receive_buffer_message_type),
+						receive_buffer_message_id,
+						process_mx_status );
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname,
+		"final for '%s.%s'", record->name, record_field->name );
+#endif
+
+	return mx_status;
+}
+
+mx_status_type
+mxsrv_send_field_value_to_client( 
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *network_message,
+			uint32_t message_type_for_client,
+			uint32_t message_id_for_client,
+			mx_status_type caller_mx_status )
+{
+	static const char fname[] = "mxsrv_send_field_value_to_client()";
+
+	char location[ sizeof(fname) + 40 ];
+	uint32_t *send_buffer_header;
+	char *send_buffer_message;
+	long send_buffer_header_length, send_buffer_message_length;
+	long send_buffer_message_actual_length;
+	size_t num_bytes;
+
+	MX_SOCKET *mx_socket;
+	void *pointer_to_value;
+	int array_is_dynamically_allocated;
+	mx_status_type ( *token_constructor )
+		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	MX_DEBUG(-2,("%s: socket_handler = %p, network_message = %p",
+		fname, socket_handler, network_message ));
+
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET_HANDLER pointer passed was NULL." );
+	}
+	if ( network_message == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_MESSAGE_BUFFFER pointer passed was NULL." );
+	}
+
+	mx_socket = socket_handler->synchronous_socket;
+
+	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
+				fname, mx_socket->socket_fd));
+
+	if ( record_field->flags & MXFF_VARARGS ) {
+		array_is_dynamically_allocated = TRUE;
+	} else {
+		array_is_dynamically_allocated = FALSE;
+	}
 
 	/* Get a pointer to the data to be returned to the remote client. */
 
@@ -1644,14 +1685,6 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 
 	send_buffer_message  = network_message->u.char_buffer;
 	send_buffer_message += send_buffer_header_length;
-
-#if NETWORK_DEBUG_TIMING_VERBOSE
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-	"#4 before constructing response for '%s.%s'",
-		record->name, record_field->name );
-#endif
 
 	if ( mx_status.code == MXE_SUCCESS ) {
 
@@ -1802,13 +1835,6 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	    }
 	}
 
-#if NETWORK_DEBUG_TIMING_VERBOSE
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-	"#5 after constructing response for '%s.%s'",
-		record->name, record_field->name );
-#endif
 	/* Make sure these pointers are up to date. */
 
 	send_buffer_header = network_message->u.uint32_buffer;;
@@ -1834,7 +1860,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
-		= mx_htonl( mx_server_response(receive_buffer_message_type) );
+		= mx_htonl( message_type_for_client );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
 				= mx_htonl( send_buffer_header_length );
@@ -1846,7 +1872,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 				= mx_htonl( record_field->datatype );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
-				= mx_htonl( receive_buffer_message_id );
+				= mx_htonl( message_id_for_client );
 
 	/* Send the string description back to the client. */
 
@@ -1905,13 +1931,6 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	}
 #endif
 
-#if NETWORK_DEBUG_TIMING_VERBOSE
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-"#6 before sending reply for '%s.%s'", record->name, record_field->name );
-#endif
-
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug ) {
 		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
@@ -1932,13 +1951,6 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
-
-#if NETWORK_DEBUG_TIMING
-	MX_HRT_END( measurement );
-
-	MX_HRT_RESULTS( measurement, fname,
-		"final for '%s.%s'", record->name, record_field->name );
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3071,12 +3083,32 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 {
 	static const char fname[] = "mxsrv_server_callback()";
 
+	MX_SOCKET_HANDLER *socket_handler;
+	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	MX_RECORD *record;
-	MX_RECORD_FIELD *field;
-	mx_status_type mx_status;
+	MX_RECORD_FIELD *record_field;
+	mx_bool_type send_value_changed_callback;
+	mx_status_type mx_status, process_mx_status;
 
-	MX_DEBUG(-2,("%s: callback = %p, argument = %p",
-		fname, callback, argument));
+	if ( callback == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK pointer passed was NULL." );
+	}
+
+	socket_handler = (MX_SOCKET_HANDLER *) argument;
+
+	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SOCKET_HANDLER pointer passed was NULL." );
+	}
+
+	message_buffer = socket_handler->message_buffer;
+
+	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The MX_NETWORK_MESSAGE_BUFFER corresponding to "
+		"the socket handler passed is NULL." );
+	}
 
 	if ( callback->callback_class != MXCB_FIELD ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
@@ -3092,25 +3124,26 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 			callback->callback_class, MXCB_VALUE_CHANGED );
 	}
 
-	field = callback->u.record_field;
+	record_field = callback->u.record_field;
 
-	if ( field == (MX_RECORD_FIELD *) NULL ) {
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"No MX_RECORD_FIELD pointer was specified for callback %p",
 			callback );
 	}
 
-	record = field->record;
+	record = record_field->record;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Callbacks are not supported for temporary record fields.  "
-		"Field name = '%s'", field->name );
+		"Field name = '%s'", record_field->name );
 	}
 
 	/* Process the record field. */
 
-	mx_status = mx_process_record_field( record, field, MX_PROCESS_GET );
+	mx_status = mx_process_record_field( record, record_field,
+						MX_PROCESS_GET );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3119,12 +3152,19 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 	 * to the client.
 	 */
 
-	MX_DEBUG(-2,("******************** HUZZAH! ********************"));
-	MX_DEBUG(-2,("Send a value changed callback for '%s.%s'",
-		record->name, field->name ));
-	MX_DEBUG(-2,("*************************************************"));
+	send_value_changed_callback = TRUE;
 
-	return MX_SUCCESSFUL_RESULT;
+	if ( send_value_changed_callback ) {
+
+		mx_status = mxsrv_send_field_value_to_client( socket_handler,
+						record, record_field,
+						message_buffer,
+					mx_server_response(MX_NETMSG_CALLBACK),
+						callback->callback_id,
+						process_mx_status );
+	}
+
+	return mx_status;
 }
 
 mx_status_type
@@ -3180,8 +3220,11 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/* Add the callback to the list of callbacks. */
 
-	mx_status = mx_field_add_callback( field, callback_type,
-				mxsrv_server_callback, NULL, &callback_object );
+	mx_status = mx_field_add_callback( field,
+					callback_type,
+					mxsrv_server_callback,
+					socket_handler,
+					&callback_object );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
