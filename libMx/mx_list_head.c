@@ -129,6 +129,8 @@ mxr_create_list_head( MX_RECORD *record )
 		record_field->data_pointer = field_data_ptr;
 
 		record_field->record = record;
+
+		record_field->active = FALSE;
 	}
 
 	/* Fill in the list head structure values by hand. */
@@ -160,6 +162,9 @@ mxr_create_list_head( MX_RECORD *record )
 
 	list_head_struct->client_callback_handle_table = NULL;
 	list_head_struct->server_callback_handle_table = NULL;
+
+	list_head_struct->master_timer = NULL;
+	list_head_struct->callback_timer = NULL;
 
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 

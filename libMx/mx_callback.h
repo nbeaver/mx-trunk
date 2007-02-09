@@ -28,23 +28,16 @@
 
 /*---*/
 
-typedef struct {
-	MX_NETWORK_FIELD *network_field;
-} MX_NETWORK_CALLBACK;
-
-typedef struct {
-	MX_RECORD_FIELD *record_field;
-} MX_FIELD_CALLBACK;
-
 typedef struct mx_callback_type {
 	unsigned long callback_class;
+	unsigned long callback_type;
 	uint32_t callback_id;
 	mx_status_type ( *callback_function )
 				( struct mx_callback_type *, void * );
 	void *callback_argument;
 	union {
-		MX_NETWORK_CALLBACK network;
-		MX_FIELD_CALLBACK field;
+		MX_NETWORK_FIELD *network_field;
+		MX_RECORD_FIELD *record_field;
 	} u;
 } MX_CALLBACK;
 
@@ -63,6 +56,11 @@ MX_API mx_status_type mx_field_add_callback( MX_RECORD_FIELD *rf,
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
 					MX_CALLBACK **callback_object );
+
+MX_API mx_status_type mx_field_initialize_callbacks( MX_RECORD *record_list );
+
+MX_API mx_status_type mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
+						unsigned long callback_type );
 
 #endif /* __MX_CALLBACK_H__ */
 

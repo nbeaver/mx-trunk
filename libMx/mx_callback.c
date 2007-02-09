@@ -19,6 +19,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_interval_timer.h"
+#include "mx_virtual_timer.h"
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_callback.h"
@@ -206,10 +208,11 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	}
 
 	callback_ptr->callback_class    = MXCB_NETWORK;
+	callback_ptr->callback_type     = callback_type;
 	callback_ptr->callback_id       = callback_id;
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
-	callback_ptr->u.network.network_field = nf;
+	callback_ptr->u.network_field   = nf;
 
 	/* Add the callback to the server record's callback list.
 	 * 
@@ -242,6 +245,9 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	static const char fname[] = "mx_field_add_callback()";
 
 	MX_CALLBACK *callback_ptr;
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *list_entry;
+
 	MX_RECORD *record;
 	MX_LIST_HEAD *list_head;
 	MX_HANDLE_TABLE *callback_handle_table;
@@ -278,23 +284,33 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 		"containing the record '%s'.", record->name );
 	}
 
-	/* If the list head does not already have a server callback handle
-	 * table, then create one now.  Otherwise, just use the table that
-	 * is already there.
+	/* If database callbacks are not already initialized, then
+	 * initialize them now.
 	 */
-	
-	if ( list_head->server_callback_handle_table != NULL ) {
-		callback_handle_table = list_head->server_callback_handle_table;
-	} else {
-		/* The handle table starts with a single block of 100 handles.*/
 
-		mx_status = mx_create_handle_table( &callback_handle_table,
-							100, 1 );
+	if ( list_head->callback_timer == NULL ) {
+		mx_status = mx_field_initialize_callbacks( record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	/* If the record field does not yet have a callback list, then
+	 * create one now.  Otherwise, just use the list that is 
+	 * already there.
+	 */
+
+	if ( record_field->callback_list == NULL ) {
+		mx_status = mx_list_create( &callback_list );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		list_head->server_callback_handle_table = callback_handle_table;
+		record_field->callback_list = callback_list;
+	} else {
+		callback_list = record_field->callback_list;
 	}
 
 	/* Allocate an MX_CALLBACK structure to contain the callback info. */
@@ -306,11 +322,13 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	    "Ran out of memory trying to allocate an MX_CALLBACK structure.");
 	}
 
-	callback_ptr->callback_class = MXCB_FIELD;
+	callback_ptr->callback_class    = MXCB_FIELD;
+	callback_ptr->callback_type     = callback_type;
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
+	callback_ptr->u.record_field    = record_field;
 
-	/* Add this callback to the callback handle table. */
+	/* Add this callback to the server's callback handle table. */
 
 	mx_status = mx_create_handle( &callback_handle,
 					callback_handle_table, callback_ptr );
@@ -323,9 +341,177 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 
 	callback_ptr->callback_id |= MX_NETWORK_MESSAGE_IS_CALLBACK;
 
+	/* Add this callback to the record field's callback list. */
+
+	mx_status = mx_list_entry_create( &list_entry, callback_ptr, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If requested, return the new callback object to the caller. */
+
 	if ( callback_object != (MX_CALLBACK **) NULL ) {
 		*callback_object = callback_ptr;
 	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static void
+mx_field_callback_function( MX_VIRTUAL_TIMER *callback_timer,
+				void *callback_args )
+{
+	MX_LIST_HEAD *list_head;
+#if 0
+	static const char fname[] = "mx_field_callback_function()";
+
+	MX_CLOCK_TICK current_clock_tick;
+
+	current_clock_tick = mx_current_clock_tick();
+
+	MX_DEBUG(-2,("%s: clock tick = (%lu,%lu)",
+	fname, current_clock_tick.high_order, current_clock_tick.low_order));
+#endif
+
+	list_head = callback_args;
+
+	list_head->callback_timer_count++;
+	
+	list_head->callback_timer_expired = TRUE;
+}
+
+MX_EXPORT mx_status_type
+mx_field_initialize_callbacks( MX_RECORD *record )
+{
+	static const char fname[] = "mx_field_initialize_callbacks()";
+
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_INTERVAL_TIMER *master_timer;
+	MX_VIRTUAL_TIMER *callback_timer;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* If the list head does not already have a server callback handle
+	 * table, then create one now.  Otherwise, just use the table that
+	 * is already there.
+	 */
+	
+	if ( list_head->server_callback_handle_table == NULL ) {
+
+		/* The handle table starts with a single block of 100 handles.*/
+
+		mx_status = mx_create_handle_table( &callback_handle_table,
+							100, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->server_callback_handle_table = callback_handle_table;
+	}
+
+	/* If the list head does not have a master timer, then create one
+	 * with a timer period of 100 milliseconds.
+	 */
+
+	if ( list_head->master_timer == NULL ) {
+		mx_status = mx_virtual_timer_create_master(&master_timer, 0.1);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->master_timer = master_timer;
+	}
+
+	/* If the list head does not have a callback timer, then create one
+	 * derived from the master timer.
+	 */
+
+	if ( list_head->callback_timer == NULL ) {
+		mx_status = mx_virtual_timer_create( &callback_timer,
+						list_head->master_timer,
+						MXIT_PERIODIC_TIMER,
+						mx_field_callback_function,
+						list_head );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->callback_timer = callback_timer;
+
+		list_head->callback_timer_expired = FALSE;
+		list_head->callback_timer_count = 0;
+
+		mx_status = mx_virtual_timer_start( list_head->callback_timer,
+							0.1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
+				unsigned long callback_type )
+{
+	static const char fname[] = "mx_field_invoke_callback_list()";
+
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_CALLBACK *callback;
+	mx_status_type (*function)( MX_CALLBACK *, void * );
+	void *argument;
+	mx_status_type mx_status;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
+		fname, field->name, callback_type));
+
+	callback_list = field->callback_list;
+
+	if ( callback_list == (MX_LIST *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_start = callback_list->list_start;
+
+	list_entry = list_start;
+
+	do {
+		callback = list_entry->list_entry_data;
+
+		if ( callback != (MX_CALLBACK *) NULL ) {
+			
+			function = callback->callback_function;
+
+			argument = callback->callback_argument;
+
+			if ( function != NULL ) {
+				mx_status = (*function)( callback, argument );
+			}
+		}
+
+		list_entry = list_entry->next_list_entry;
+
+	} while ( list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
 }

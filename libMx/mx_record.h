@@ -110,10 +110,10 @@ typedef struct {
 	size_t *data_element_size;
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
-	void *client_callback_list;
-	void *server_callback_list;
+	void *callback_list;
 	void *application_ptr;
 	struct mx_record_type *record;
+	mx_bool_type active;
 } MX_RECORD_FIELD;
 
 typedef struct {
@@ -409,6 +409,11 @@ typedef struct {
 
 	void *client_callback_handle_table;
 	void *server_callback_handle_table;
+
+	void *master_timer;
+	void *callback_timer;
+	mx_bool_type callback_timer_expired;
+	unsigned long callback_timer_count;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

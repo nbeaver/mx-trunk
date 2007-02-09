@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1005,12 +1005,32 @@ mx_mutex_trylock( MX_MUTEX *mutex )
 MX_EXPORT mx_status_type
 mx_mutex_create( MX_MUTEX **mutex )
 {
+	static const char fname[] = "mx_mutex_create()";
+
+	if ( mutex == (MX_MUTEX **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_MUTEX pointer passed was NULL." );
+	}
+
+	*mutex = (MX_MUTEX *) malloc( sizeof(MX_MUTEX) );
+
+	if ( *mutex == (MX_MUTEX *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_MUTEX structure." );
+	}
+
+	(*mutex)->mutex_ptr = NULL;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
 mx_mutex_destroy( MX_MUTEX *mutex )
 {
+	if ( mutex != (MX_MUTEX *) NULL ) {
+		mx_free(mutex);
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 

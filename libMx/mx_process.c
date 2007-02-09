@@ -32,6 +32,8 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_socket.h"
+#include "mx_net.h"
+#include "mx_callback.h"
 #include "mx_clock.h"
 #include "mx_hrt_debug.h"
 
@@ -279,10 +281,27 @@ mx_process_record_field( MX_RECORD *record,
 		if ( record_field->label_value < 0 ) {
 			return  MX_SUCCESSFUL_RESULT;
 		} else {
+			/* If the record field is already active, then
+			 * do not process the record field.
+			 */
+
+			if ( record_field->active ) {
+#if PROCESS_DEBUG
+				MX_DEBUG(-1,
+	    ("%s: Returning early since the record field is already active.",
+	    				fname));
+#endif
+				return MX_SUCCESSFUL_RESULT;
+			}
+
+			record_field->active = TRUE;
+
 			/* Invoke the record processing function. */
 
 			mx_status = ( *process_fn )
 				    ( record, record_field, direction );
+
+			record_field->active = FALSE;
 
 			MX_DEBUG( 1,(
 				"%s: process_fn returned mx_status.code = %ld",
@@ -296,17 +315,14 @@ mx_process_record_field( MX_RECORD *record,
 "#2 after record processing for '%s.%s'", record->name, record_field->name );
 #endif
 
-		/* FIXME! If the process function succeeded, invoke
-		 *        the value changed callback.
+		/* If the process function succeeded, invoke
+		 * the value changed callback.
 		 */
 
-#if 0
 		if ( mx_status.code == MXE_SUCCESS ) {
-			mx_status = mx_invoke_callback_list(
-					MXSF_VALUE_CHANGED_CALLBACK,
-					record_field );
+			mx_status = mx_field_invoke_callback_list(
+				record_field, MXCB_VALUE_CHANGED );
 		}
-#endif
 	}
 
 #if PROCESS_DEBUG_TIMING

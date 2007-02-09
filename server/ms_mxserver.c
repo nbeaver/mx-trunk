@@ -3066,6 +3066,67 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
+{
+	static const char fname[] = "mxsrv_server_callback()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *field;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s: callback = %p, argument = %p",
+		fname, callback, argument));
+
+	if ( callback->callback_class != MXCB_FIELD ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal callback class %lu used.  "
+		"Only MXCB_FIELD (%d) callbacks are allowed here.",
+			callback->callback_class, MXCB_FIELD );
+	}
+
+	if ( callback->callback_type != MXCB_VALUE_CHANGED ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal callback type %lu used.  Currently, "
+		"MXCB_VALUE_CHANGED (%d) callbacks are allowed here.",
+			callback->callback_class, MXCB_VALUE_CHANGED );
+	}
+
+	field = callback->u.record_field;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"No MX_RECORD_FIELD pointer was specified for callback %p",
+			callback );
+	}
+
+	record = field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Callbacks are not supported for temporary record fields.  "
+		"Field name = '%s'", field->name );
+	}
+
+	/* Process the record field. */
+
+	mx_status = mx_process_record_field( record, field, MX_PROCESS_GET );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* If we get here, see if we should send a value changed callback
+	 * to the client.
+	 */
+
+	MX_DEBUG(-2,("******************** HUZZAH! ********************"));
+	MX_DEBUG(-2,("Send a value changed callback for '%s.%s'",
+		record->name, field->name ));
+	MX_DEBUG(-2,("*************************************************"));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 mx_status_type
 mxsrv_handle_add_callback( MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
@@ -3120,7 +3181,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	/* Add the callback to the list of callbacks. */
 
 	mx_status = mx_field_add_callback( field, callback_type,
-					NULL, NULL, &callback_object );
+				mxsrv_server_callback, NULL, &callback_object );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3177,6 +3238,61 @@ mxsrv_handle_delete_callback( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_handle_delete_callback()";
 
 	return mx_error(MXE_NOT_YET_IMPLEMENTED, fname, "Not yet implemented.");
+}
+
+mx_status_type
+mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
+{
+	static const char fname[] = "mxsrv_process_callbacks()";
+
+	MX_HANDLE_TABLE *handle_table;
+	MX_HANDLE_STRUCT *handle_struct;
+	signed long handle;
+	MX_CALLBACK *callback;
+	unsigned long i, array_size;
+	mx_status_type (*function)( MX_CALLBACK *, void * );
+	void *argument;
+	mx_status_type mx_status;
+
+	handle_table = list_head->server_callback_handle_table;
+
+	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
+		MX_DEBUG(-2,("%s: No callback handle table installed.", fname));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( handle_table->handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "handle_struct_array pointer for callback handle table is NULL." );
+	}
+
+	array_size = handle_table->block_size
+			* handle_table->num_blocks;
+
+	for ( i = 0; i < array_size; i++ ) {
+		handle_struct = &(handle_table->handle_struct_array[i]);
+
+		handle   = handle_struct->handle;
+		callback = handle_struct->pointer;
+
+		if ( ( handle == MX_ILLEGAL_HANDLE )
+		  || ( callback == NULL ) )
+		{
+			/* Skip unused handles. */
+
+			continue;
+		}
+
+		function = callback->callback_function;
+		argument = callback->callback_argument;
+
+		if ( function != NULL ) {
+			mx_status = (*function)( callback, argument );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #if HAVE_UNIX_DOMAIN_SOCKETS

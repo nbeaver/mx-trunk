@@ -1018,6 +1018,12 @@ mxserver_main( int argc, char *argv[] )
 			    }
 			}
 		}
+
+		if ( list_head_struct->callback_timer_expired ) {
+			list_head_struct->callback_timer_expired = FALSE;
+
+			mx_status = mxsrv_process_callbacks(list_head_struct);
+		}
 	}
 
 #if ( defined(OS_HPUX) && !defined(__ia64) )
