@@ -3161,7 +3161,7 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 	MX_RECORD *record;
 	MX_RECORD_FIELD *record_field;
 	mx_bool_type send_value_changed_callback;
-	mx_status_type mx_status, process_mx_status;
+	mx_status_type mx_status;
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3234,7 +3234,7 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 						message_buffer,
 					mx_server_response(MX_NETMSG_CALLBACK),
 						callback->callback_id,
-						process_mx_status );
+						mx_status );
 	}
 
 	return mx_status;
