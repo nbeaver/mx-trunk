@@ -274,7 +274,7 @@ mx_area_detector_process_function( void *record_ptr,
 
 			snprintf(
 			    ad->extended_status, sizeof(ad->extended_status),
-			    "%ld %lu %#lx",
+			    "%ld %ld %#lx",
 					ad->last_frame_number,
 					ad->total_num_frames,
 					ad->status );

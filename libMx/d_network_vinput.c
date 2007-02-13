@@ -46,8 +46,10 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_network_vinput_video_input_function_list = {
 	mxd_network_vinput_trigger,
 	mxd_network_vinput_stop,
 	mxd_network_vinput_abort,
-	mxd_network_vinput_busy,
+	mxd_network_vinput_get_last_frame_number,
+	mxd_network_vinput_get_total_num_frames,
 	mxd_network_vinput_get_status,
+	mxd_network_vinput_get_extended_status,
 	mxd_network_vinput_get_frame,
 	mxd_network_vinput_get_parameter,
 	mxd_network_vinput_set_parameter,
@@ -178,10 +180,6 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.arm", network_vinput->remote_record_name );
 
-	mx_network_field_init( &(network_vinput->busy_nf),
-			network_vinput->server_record,
-			"%s.busy", network_vinput->remote_record_name );
-
 	mx_network_field_init( &(network_vinput->bytes_per_frame_nf),
 			network_vinput->server_record,
 		"%s.bytes_per_frame", network_vinput->remote_record_name );
@@ -193,6 +191,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->camera_trigger_polarity_nf),
 			network_vinput->server_record,
 	    "%s.camera_trigger_polarity", network_vinput->remote_record_name);
+
+	mx_network_field_init( &(network_vinput->extended_status_nf),
+			network_vinput->server_record,
+		"%s.extended_status", network_vinput->remote_record_name );
 
 	mx_network_field_init( &(network_vinput->external_trigger_polarity_nf),
 			network_vinput->server_record,
@@ -218,6 +220,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.image_format", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->last_frame_number_nf),
+			network_vinput->server_record,
+		"%s.last_frame_number", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->pixel_clock_frequency_nf),
 			network_vinput->server_record,
 	    "%s.pixel_clock_frequency", network_vinput->remote_record_name );
@@ -233,6 +239,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->stop_nf),
 			network_vinput->server_record,
 			"%s.stop", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->total_num_frames_nf),
+			network_vinput->server_record,
+		"%s.total_num_frames", network_vinput->remote_record_name );
 
 	mx_network_field_init( &(network_vinput->trigger_nf),
 			network_vinput->server_record,
@@ -452,9 +462,10 @@ mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_vinput_busy( MX_VIDEO_INPUT *vinput )
+mxd_network_vinput_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_network_vinput_busy()";
+	static const char fname[] =
+			"mxd_network_vinput_get_last_frame_number()";
 
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
@@ -465,13 +476,39 @@ mxd_network_vinput_busy( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mx_get( &(network_vinput->busy_nf),
-				MXFT_BOOL, &(vinput->busy) );
+#if MXD_NETWORK_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+
+	mx_status = mx_get( &(network_vinput->last_frame_number_nf),
+				MXFT_HEX, &(vinput->last_frame_number) );
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_vinput_get_total_num_frames( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] =
+			"mxd_network_vinput_get_total_num_frames()";
+
+	MX_NETWORK_VINPUT *network_vinput;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_vinput_get_pointers( vinput,
+						&network_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if MXD_NETWORK_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s: video input '%s', busy = %d",
-		fname, vinput->record->name, (int) vinput->busy ));
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
 #endif
+
+	mx_status = mx_get( &(network_vinput->total_num_frames_nf),
+				MXFT_HEX, &(vinput->total_num_frames) );
 
 	return mx_status;
 }
@@ -499,6 +536,63 @@ mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput )
 				MXFT_HEX, &(vinput->status) );
 
 	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] =
+			"mxd_network_vinput_get_extended_status()";
+
+	MX_NETWORK_VINPUT *network_vinput;
+	long dimension[1];
+	int num_items;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_vinput_get_pointers( vinput,
+						&network_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, ad->record->name ));
+#endif
+	dimension[0] = MXU_VIN_EXTENDED_STATUS_STRING_LENGTH;
+
+	mx_status = mx_get_array( &(network_vinput->extended_status_nf),
+			MXFT_STRING, 1, dimension, &(vinput->extended_status) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if 1 || MXD_NETWORK_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: vinput->extended_status = '%s'",
+		fname, vinput->extended_status));
+#endif
+
+	num_items = sscanf( vinput->extended_status, "%ld %ld %lx",
+				&(vinput->last_frame_number),
+				&(vinput->total_num_frames),
+				&(vinput->status) );
+
+	if ( num_items != 3 ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		"The string returned by server '%s' for record field '%s' "
+		"was not parseable as an extended status string.  "
+		"Returned string = '%s'",
+			network_vinput->server_record->name,
+			"extended_status", vinput->extended_status );
+	}
+
+#if 1 || MXD_NETWORK_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
+		fname, vinput->last_frame_number,
+		vinput->total_num_frames, vinput->status));
+#endif
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -686,11 +780,6 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BYTES_PER_PIXEL:
 		mx_status = mx_get( &(network_vinput->bytes_per_pixel_nf),
 				    MXFT_DOUBLE, &(vinput->bytes_per_pixel) );
-		break;
-
-	case MXLV_VIN_BUSY:
-		mx_status = mx_get( &(network_vinput->busy_nf),
-					MXFT_BOOL, &(vinput->busy) );
 		break;
 
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:

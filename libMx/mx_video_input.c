@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -93,6 +93,12 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	vinput->maximum_frame_number = 0;
+	vinput->last_frame_number = -1;
+	vinput->total_num_frames = -1;
+	vinput->status = 0;
+	vinput->extended_status[0] = '\0';
 
 	vinput->frame = NULL;
 	vinput->frame_buffer = NULL;
@@ -680,7 +686,7 @@ mx_video_input_is_busy( MX_RECORD *record, mx_bool_type *busy )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
-	mx_status_type ( *busy_fn ) ( MX_VIDEO_INPUT * );
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
@@ -688,14 +694,103 @@ mx_video_input_is_busy( MX_RECORD *record, mx_bool_type *busy )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	busy_fn = flist->busy;
+	mx_status = mx_video_input_get_status( record, &status_flags );
 
-	if ( busy_fn != NULL ) {
-		mx_status = (*busy_fn)( vinput );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( busy != NULL ) {
-		*busy = vinput->busy;
+		if ( vinput->status & MXSF_VIN_IS_BUSY ) {
+			*busy = TRUE;
+		} else {
+			*busy = FALSE;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_get_last_frame_number( MX_RECORD *record,
+			long *last_frame_number )
+{
+	static const char fname[] = "mx_video_input_get_last_frame_number()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_last_frame_number_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_last_frame_number_fn = flist->get_last_frame_number;
+	get_extended_status_fn   = flist->get_extended_status;
+
+	if ( get_last_frame_number_fn != NULL ) {
+		mx_status = (*get_last_frame_number_fn)( vinput );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( vinput );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the last frame number for area detector '%s' "
+		"is unsupported.", record->name );
+	}
+
+#if 1 || MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: last_frame_number = %ld",
+		fname, vinput->last_frame_number));
+#endif
+
+	if ( last_frame_number != NULL ) {
+		*last_frame_number = vinput->last_frame_number;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_get_total_num_frames( MX_RECORD *record,
+			long *total_num_frames )
+{
+	static const char fname[] = "mx_video_input_get_total_num_frames()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_total_num_frames_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_total_num_frames_fn  = flist->get_total_num_frames;
+	get_extended_status_fn   = flist->get_extended_status;
+
+	if ( get_total_num_frames_fn != NULL ) {
+		mx_status = (*get_total_num_frames_fn)( vinput );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( vinput );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the total number of frames for area detector '%s' "
+		"is unsupported.", record->name );
+	}
+
+#if 1 || MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: total_num_frames = %ld",
+		fname, vinput->total_num_frames));
+#endif
+
+	if ( total_num_frames != NULL ) {
+		*total_num_frames = vinput->total_num_frames;
 	}
 
 	return mx_status;
@@ -703,8 +798,6 @@ mx_video_input_is_busy( MX_RECORD *record, mx_bool_type *busy )
 
 MX_EXPORT mx_status_type
 mx_video_input_get_status( MX_RECORD *record,
-			long *last_frame_number,
-			unsigned long *total_num_frames,
 			unsigned long *status_flags )
 {
 	static const char fname[] = "mx_video_input_get_status()";
@@ -712,6 +805,7 @@ mx_video_input_get_status( MX_RECORD *record,
 	MX_VIDEO_INPUT *vinput;
 	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
 	mx_status_type ( *get_status_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_VIDEO_INPUT * );
 	mx_status_type mx_status;
 
 	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
@@ -719,17 +813,103 @@ mx_video_input_get_status( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	get_status_fn = flist->get_status;
+	get_status_fn            = flist->get_status;
+	get_extended_status_fn   = flist->get_extended_status;
 
 	if ( get_status_fn != NULL ) {
 		mx_status = (*get_status_fn)( vinput );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( vinput );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the detector status for area detector '%s' "
+		"is unsupported.", record->name );
 	}
 
+#if 1 || MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,("%s: status = %#lx", fname, vinput->status));
+#endif
+
+	if ( status_flags != NULL ) {
+		*status_flags = vinput->status;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_get_extended_status( MX_RECORD *record,
+			long *last_frame_number,
+			long *total_num_frames,
+			unsigned long *status_flags )
+{
+	static const char fname[] = "mx_video_input_get_extended_status()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_last_frame_number_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_total_num_frames_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_status_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_last_frame_number_fn = flist->get_last_frame_number;
+	get_total_num_frames_fn  = flist->get_total_num_frames;
+	get_status_fn            = flist->get_status;
+	get_extended_status_fn   = flist->get_extended_status;
+
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( vinput );
+	} else {
+		if ( get_last_frame_number_fn == NULL ) {
+			vinput->last_frame_number = -1;
+		} else {
+			mx_status = (*get_last_frame_number_fn)( vinput );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+		}
+
+		if ( get_total_num_frames_fn == NULL ) {
+			vinput->total_num_frames = -1;
+		} else {
+			mx_status = (*get_total_num_frames_fn)( vinput );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		if ( get_status_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Getting the detector status for area detector '%s' "
+			"is unsupported.", record->name );
+		} else {
+			mx_status = (*get_status_fn)( vinput );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
+#if 1 || MX_VIDEO_INPUT_DEBUG
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
+		fname, vinput->last_frame_number,
+		vinput->total_num_frames, vinput->status));
+#endif
+
 	if ( last_frame_number != NULL ) {
-		*last_frame_number = 0;
+		*last_frame_number = vinput->last_frame_number;
 	}
 	if ( total_num_frames != NULL ) {
-		*total_num_frames = 0;
+		*total_num_frames = vinput->total_num_frames;
 	}
 	if ( status_flags != NULL ) {
 		*status_flags = vinput->status;

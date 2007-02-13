@@ -187,8 +187,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_flags = MXFT_AD_ALL;
 
+	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
-	ad->total_num_frames = 0;
+	ad->total_num_frames = -1;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
 
@@ -1995,7 +1996,7 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_total_num_frames( MX_RECORD *record,
-			unsigned long *total_num_frames )
+			long *total_num_frames )
 {
 	static const char fname[] = "mx_area_detector_get_total_num_frames()";
 
@@ -2081,7 +2082,7 @@ mx_area_detector_get_status( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_get_extended_status( MX_RECORD *record,
 			long *last_frame_number,
-			unsigned long *total_num_frames,
+			long *total_num_frames,
 			unsigned long *status_flags )
 {
 	static const char fname[] = "mx_area_detector_get_extended_status()";
@@ -2108,32 +2109,34 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		mx_status = (*get_extended_status_fn)( ad );
 	} else {
 		if ( get_last_frame_number_fn == NULL ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Getting the last frame number for area detector '%s' "
-			"is unsupported.", record->name );
+			ad->last_frame_number = -1;
+		} else {
+			mx_status = (*get_last_frame_number_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 		}
+
 		if ( get_total_num_frames_fn == NULL ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Getting the total number of frames for area detector "
-			"'%s' is unsupported.", record->name );
+			ad->total_num_frames = -1;
+		} else {
+			mx_status = (*get_total_num_frames_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
+
 		if ( get_status_fn == NULL ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Getting the detector status for area detector '%s' "
 			"is unsupported.", record->name );
+		} else {
+			mx_status = (*get_status_fn)( ad );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
-
-		mx_status = (*get_last_frame_number_fn)( ad );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = (*get_total_num_frames_fn)( ad );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = (*get_status_fn)( ad );
 	}
 
 #if 1 || MX_AREA_DETECTOR_DEBUG

@@ -846,7 +846,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	long last_frame_number;
-	unsigned long total_num_frames;
+	long total_num_frames;
 	unsigned long status_flags;
 	mx_status_type mx_status;
 
@@ -859,7 +859,8 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_get_status( pccd_170170->video_input_record,
+	mx_status = mx_video_input_get_extended_status(
+						pccd_170170->video_input_record,
 						&last_frame_number,
 						&total_num_frames,
 						&status_flags );

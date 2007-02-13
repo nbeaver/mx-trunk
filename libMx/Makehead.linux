@@ -29,8 +29,8 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EDT_LIBRARIES) -ldl -lpthread -lrt -lm
@@ -53,9 +53,9 @@ LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -lm
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(JORWAY_CAMAC_LIB_DIRS)
 #LIBRARIES	= $(JORWAY_CAMAC_LIBRARIES) -lpthread -lrt -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EDT_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EDT_LIBRARIES) \
-#						-ldl -lpthread -lrt -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS) $(EDT_LIB_DIRS)
+LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) $(EDT_LIBRARIES) \
+						-ldl -lpthread -lrt -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS) $(EPICS_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) $(EPICS_LIBRARIES) -lpthread -lrt -lm

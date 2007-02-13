@@ -61,8 +61,9 @@ typedef struct {
 	mx_bool_type stop;
 	mx_bool_type abort;
 	mx_bool_type busy;
+	unsigned long maximum_frame_number;
 	long last_frame_number;
-	unsigned long total_num_frames;
+	long total_num_frames;
 	unsigned long status;
 	char extended_status[ MXU_AD_EXTENDED_STATUS_STRING_LENGTH + 1 ];
 
@@ -205,38 +206,39 @@ typedef struct {
 #define MXLV_AD_TRIGGER				12011
 #define MXLV_AD_STOP				12012
 #define MXLV_AD_ABORT				12013
-#define MXLV_AD_LAST_FRAME_NUMBER		12014
-#define MXLV_AD_TOTAL_NUM_FRAMES		12015
-#define MXLV_AD_STATUS				12016
-#define MXLV_AD_EXTENDED_STATUS			12017
-#define MXLV_AD_MAXIMUM_NUM_ROIS		12018
-#define MXLV_AD_CURRENT_NUM_ROIS		12019
-#define MXLV_AD_ROI_ARRAY			12020
-#define MXLV_AD_ROI_NUMBER			12021
-#define MXLV_AD_ROI				12022
-#define MXLV_AD_ROI_BYTES_PER_FRAME		12023
-#define MXLV_AD_GET_ROI_FRAME			12024
-#define MXLV_AD_ROI_FRAME_BUFFER		12025
-#define MXLV_AD_SEQUENCE_TYPE			12026
-#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12027
-#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12028
-#define MXLV_AD_READOUT_FRAME			12029
-#define MXLV_AD_IMAGE_FRAME_BUFFER		12030
-#define MXLV_AD_CORRECT_FRAME			12031
-#define MXLV_AD_CORRECTION_FLAGS		12032
-#define MXLV_AD_TRANSFER_FRAME			12033
-#define MXLV_AD_LOAD_FRAME			12034
-#define MXLV_AD_SAVE_FRAME			12035
-#define MXLV_AD_FRAME_FILENAME			12036
-#define MXLV_AD_COPY_FRAME			12037
-#define MXLV_AD_PROPERTY_NAME			12038
-#define MXLV_AD_PROPERTY_LONG			12039
-#define MXLV_AD_PROPERTY_DOUBLE			12040
-#define MXLV_AD_PROPERTY_STRING			12041
-#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12042
-#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12043
-#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12044
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12045
+#define MXLV_AD_MAXIMUM_FRAME_NUMBER		12014
+#define MXLV_AD_LAST_FRAME_NUMBER		12015
+#define MXLV_AD_TOTAL_NUM_FRAMES		12016
+#define MXLV_AD_STATUS				12017
+#define MXLV_AD_EXTENDED_STATUS			12018
+#define MXLV_AD_MAXIMUM_NUM_ROIS		12019
+#define MXLV_AD_CURRENT_NUM_ROIS		12020
+#define MXLV_AD_ROI_ARRAY			12021
+#define MXLV_AD_ROI_NUMBER			12022
+#define MXLV_AD_ROI				12023
+#define MXLV_AD_ROI_BYTES_PER_FRAME		12024
+#define MXLV_AD_GET_ROI_FRAME			12025
+#define MXLV_AD_ROI_FRAME_BUFFER		12026
+#define MXLV_AD_SEQUENCE_TYPE			12027
+#define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12028
+#define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12029
+#define MXLV_AD_READOUT_FRAME			12030
+#define MXLV_AD_IMAGE_FRAME_BUFFER		12031
+#define MXLV_AD_CORRECT_FRAME			12032
+#define MXLV_AD_CORRECTION_FLAGS		12033
+#define MXLV_AD_TRANSFER_FRAME			12034
+#define MXLV_AD_LOAD_FRAME			12035
+#define MXLV_AD_SAVE_FRAME			12036
+#define MXLV_AD_FRAME_FILENAME			12037
+#define MXLV_AD_COPY_FRAME			12038
+#define MXLV_AD_PROPERTY_NAME			12039
+#define MXLV_AD_PROPERTY_LONG			12040
+#define MXLV_AD_PROPERTY_DOUBLE			12041
+#define MXLV_AD_PROPERTY_STRING			12042
+#define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12043
+#define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12044
+#define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12045
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12046
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -300,11 +302,16 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, abort), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_AD_MAXIMUM_FRAME_NUMBER, -1, "maximum_frame_number", \
+  						MXFT_LONG, NULL, 0, {0},\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, maximum_frame_number),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
   {MXLV_AD_LAST_FRAME_NUMBER, -1, "last_frame_number", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, last_frame_number), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AD_TOTAL_NUM_FRAMES, -1, "total_num_frames", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_AD_TOTAL_NUM_FRAMES, -1, "total_num_frames", MXFT_LONG, NULL, 0, {0},\
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, total_num_frames), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
@@ -714,7 +721,7 @@ MX_API mx_status_type mx_area_detector_get_last_frame_number(
 
 MX_API mx_status_type mx_area_detector_get_total_num_frames(
 						MX_RECORD *ad_record,
-					      unsigned long *total_num_frames );
+						long *total_num_frames );
 
 MX_API mx_status_type mx_area_detector_get_status( MX_RECORD *ad_record,
 						unsigned long *status_flags );
@@ -722,7 +729,7 @@ MX_API mx_status_type mx_area_detector_get_status( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_get_extended_status(
 						MX_RECORD *ad_record,
 						long *last_frame_number,
-						unsigned long *total_num_frames,
+						long *total_num_frames,
 						unsigned long *status_flags );
 
 MX_API mx_status_type mx_area_detector_setup_frame( MX_RECORD *ad_record,

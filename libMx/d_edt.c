@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -53,8 +53,10 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_edt_video_input_function_list = {
 	mxd_edt_trigger,
 	mxd_edt_stop,
 	mxd_edt_abort,
-	mxd_edt_busy,
+	NULL,
+	NULL,
 	mxd_edt_get_status,
+	NULL,
 	mxd_edt_get_frame,
 	mxd_edt_get_parameter,
 	mxd_edt_set_parameter,
@@ -661,9 +663,9 @@ mxd_edt_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_edt_busy( MX_VIDEO_INPUT *vinput )
+mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_edt_busy()";
+	static const char fname[] = "mxd_edt_get_status()";
 
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	int busy;
@@ -699,29 +701,6 @@ mxd_edt_busy( MX_VIDEO_INPUT *vinput )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] = "mxd_edt_get_status()";
-
-	MX_EDT_VIDEO_INPUT *edt_vinput;
-	mx_status_type mx_status;
-
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EDT_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
-#endif
-
-	mx_status = mxd_edt_busy( vinput );
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type

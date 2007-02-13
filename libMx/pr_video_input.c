@@ -132,15 +132,18 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_BYTES_PER_PIXEL:
 		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+		case MXLV_VIN_EXTENDED_STATUS:
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 		case MXLV_VIN_FORMAT:
 		case MXLV_VIN_FORMAT_NAME:
 		case MXLV_VIN_FRAMESIZE:
 		case MXLV_VIN_FRAME_BUFFER:
 		case MXLV_VIN_GET_FRAME:
+		case MXLV_VIN_LAST_FRAME_NUMBER:
 		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 		case MXLV_VIN_STATUS:
 		case MXLV_VIN_STOP:
+		case MXLV_VIN_TOTAL_NUM_FRAMES:
 		case MXLV_VIN_TRIGGER:
 			record_field->process_function
 					= mx_video_input_process_function;
@@ -190,6 +193,20 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_get_camera_trigger_polarity(
 								record, NULL );
 			break;
+		case MXLV_VIN_EXTENDED_STATUS:
+			mx_status = mx_video_input_get_extended_status(
+						record, NULL, NULL, NULL );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			snprintf( vinput->extended_status,
+				sizeof(vinput->extended_status),
+				"%ld %ld %#lx",
+					vinput->last_frame_number,
+					vinput->total_num_frames,
+					vinput->status );
+			break;
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 			mx_status =
 		  mx_video_input_get_external_trigger_polarity( record, NULL );
@@ -217,13 +234,20 @@ mx_video_input_process_function( void *record_ptr,
 					record->name );
 			}
 			break;
+		case MXLV_VIN_LAST_FRAME_NUMBER:
+			mx_status = mx_video_input_get_last_frame_number(
+								record, NULL );
+			break;
 		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 			mx_status = mx_video_input_get_pixel_clock_frequency(
 								record, NULL );
 			break;
 		case MXLV_VIN_STATUS:
-			mx_status = mx_video_input_get_status( record,
-							NULL, NULL, NULL );
+			mx_status = mx_video_input_get_status( record, NULL );
+			break;
+		case MXLV_VIN_TOTAL_NUM_FRAMES:
+			mx_status = mx_video_input_get_total_num_frames(
+								record, NULL );
 			break;
 		default:
 			MX_DEBUG(-1,(

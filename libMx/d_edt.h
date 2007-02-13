@@ -67,7 +67,6 @@ MX_API mx_status_type mxd_edt_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_edt_busy( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_get_status( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput );

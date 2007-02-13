@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -63,8 +63,10 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_trigger,
 	mxd_epix_xclib_stop,
 	mxd_epix_xclib_abort,
-	mxd_epix_xclib_busy,
+	NULL,
+	NULL,
 	mxd_epix_xclib_get_status,
+	NULL,
 	mxd_epix_xclib_get_frame,
 	mxd_epix_xclib_get_parameter,
 	mxd_epix_xclib_set_parameter,
@@ -892,9 +894,9 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
+mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_epix_xclib_busy()";
+	static const char fname[] = "mxd_epix_xclib_get_status()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int busy;
@@ -938,31 +940,6 @@ mxd_epix_xclib_busy( MX_VIDEO_INPUT *vinput )
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
-{
-	static const char fname[] = "mxd_epix_xclib_get_status()";
-
-	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
-	int busy;
-	mx_status_type mx_status;
-
-	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
-#endif
-
-	mx_status = mxd_epix_xclib_busy( vinput );
-
-	return mx_status;
 }
 
 MX_EXPORT mx_status_type

@@ -683,7 +683,7 @@ mxd_network_area_detector_get_total_num_frames( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_get( &(network_area_detector->total_num_frames_nf),
-				MXFT_ULONG, &(ad->total_num_frames) );
+				MXFT_LONG, &(ad->total_num_frames) );
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: area detector '%s', total_num_frames = %ld",
@@ -752,7 +752,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		fname, ad->extended_status));
 #endif
 
-	num_items = sscanf( ad->extended_status, "%ld %lu %lx",
+	num_items = sscanf( ad->extended_status, "%ld %ld %lx",
 				&(ad->last_frame_number),
 				&(ad->total_num_frames),
 				&(ad->status) );
@@ -768,7 +768,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 #if 1 || MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
-	("%s: last_frame_number = %ld, total_num_frames = %lu, status = %#lx",
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
 	return MX_SUCCESSFUL_RESULT;

@@ -46,8 +46,8 @@ MX_API mx_status_type mxd_soft_vinput_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_soft_vinput_busy( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_soft_vinput_get_status( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_soft_vinput_get_extended_status(
+						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_get_parameter(MX_VIDEO_INPUT *vinput);
 MX_API mx_status_type mxd_soft_vinput_set_parameter(MX_VIDEO_INPUT *vinput);

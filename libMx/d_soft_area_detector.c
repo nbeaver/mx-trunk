@@ -397,7 +397,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK current_time, clock_tick_difference;
 	double seconds_difference;
 	long num_frames;
-	unsigned long total_num_frames;
+	long total_num_frames;
 	double exposure_time, frame_time;
 	long sequence_type, num_parameters;
 	double *parameter_array;
@@ -532,7 +532,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 #if 1 || MXD_SOFT_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: (B) last_frame_number = %ld, "
-		"total_num_frames = %lu, status = %#lx", fname,
+		"total_num_frames = %ld, status = %#lx", fname,
 		    ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
 		return MX_SUCCESSFUL_RESULT;
@@ -549,7 +549,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	/* Now we can calculate the total number of frames acquired. */
 
-	total_num_frames = (unsigned long) ( seconds_difference / frame_time );
+	total_num_frames = (long) ( seconds_difference / frame_time );
 
 	/* What happens next depends on the type of sequence
 	 * we are running.

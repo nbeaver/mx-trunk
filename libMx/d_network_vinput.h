@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,18 +25,20 @@ typedef struct {
 
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
-	MX_NETWORK_FIELD busy_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
 	MX_NETWORK_FIELD camera_trigger_polarity_nf;
+	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD external_trigger_polarity_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
+	MX_NETWORK_FIELD last_frame_number_nf;
 	MX_NETWORK_FIELD pixel_clock_frequency_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
+	MX_NETWORK_FIELD total_num_frames_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;
 
@@ -70,8 +72,13 @@ MX_API mx_status_type mxd_network_vinput_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_network_vinput_busy( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_network_vinput_get_last_frame_number(
+							MX_VIDEO_INPUT * );
+MX_API mx_status_type mxd_network_vinput_get_total_num_frames(
+							MX_VIDEO_INPUT * );
 MX_API mx_status_type mxd_network_vinput_get_status( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_network_vinput_get_extended_status(
+						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_get_parameter(MX_VIDEO_INPUT *vinput);
 MX_API mx_status_type mxd_network_vinput_set_parameter(MX_VIDEO_INPUT *vinput);
