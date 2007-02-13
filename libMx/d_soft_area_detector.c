@@ -396,7 +396,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_SOFT_AREA_DETECTOR *soft_area_detector;
 	MX_CLOCK_TICK current_time, clock_tick_difference;
 	double seconds_difference;
-	long num_frames, last_frame_number;
+	long num_frames;
 	unsigned long total_num_frames;
 	double exposure_time, frame_time;
 	long sequence_type, num_parameters;
