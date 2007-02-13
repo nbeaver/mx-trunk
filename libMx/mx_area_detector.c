@@ -188,6 +188,7 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->correction_flags = MXFT_AD_ALL;
 
 	ad->last_frame_number = -1;
+	ad->total_num_frames = 0;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
 
@@ -1993,6 +1994,49 @@ mx_area_detector_get_last_frame_number( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_total_num_frames( MX_RECORD *record,
+			unsigned long *total_num_frames )
+{
+	static const char fname[] = "mx_area_detector_get_total_num_frames()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_total_num_frames_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_total_num_frames_fn  = flist->get_total_num_frames;
+	get_extended_status_fn   = flist->get_extended_status;
+
+	if ( get_total_num_frames_fn != NULL ) {
+		mx_status = (*get_total_num_frames_fn)( ad );
+	} else
+	if ( get_extended_status_fn != NULL ) {
+		mx_status = (*get_extended_status_fn)( ad );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Getting the total number of frames for area detector '%s' "
+		"is unsupported.", record->name );
+	}
+
+#if 0 && MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: total_num_frames = %ld",
+		fname, ad->total_num_frames));
+#endif
+
+	if ( total_num_frames != NULL ) {
+		*total_num_frames = ad->total_num_frames;
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_status( MX_RECORD *record,
 			unsigned long *status_flags )
 {
@@ -2037,6 +2081,7 @@ mx_area_detector_get_status( MX_RECORD *record,
 MX_EXPORT mx_status_type
 mx_area_detector_get_extended_status( MX_RECORD *record,
 			long *last_frame_number,
+			unsigned long *total_num_frames,
 			unsigned long *status_flags )
 {
 	static const char fname[] = "mx_area_detector_get_extended_status()";
@@ -2044,6 +2089,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_last_frame_number_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type ( *get_total_num_frames_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type ( *get_extended_status_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
@@ -2054,6 +2100,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		return mx_status;
 
 	get_last_frame_number_fn = flist->get_last_frame_number;
+	get_total_num_frames_fn  = flist->get_total_num_frames;
 	get_status_fn            = flist->get_status;
 	get_extended_status_fn   = flist->get_extended_status;
 
@@ -2064,6 +2111,11 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Getting the last frame number for area detector '%s' "
 			"is unsupported.", record->name );
+		}
+		if ( get_total_num_frames_fn == NULL ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Getting the total number of frames for area detector "
+			"'%s' is unsupported.", record->name );
 		}
 		if ( get_status_fn == NULL ) {
 			return mx_error( MXE_UNSUPPORTED, fname,
@@ -2076,16 +2128,25 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		mx_status = (*get_total_num_frames_fn)( ad );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		mx_status = (*get_status_fn)( ad );
 	}
 
-#if 0 && MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: last_frame_number = %ld, status = %#lx",
-		fname, ad->last_frame_number, ad->status));
+#if 1 || MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
 
 	if ( last_frame_number != NULL ) {
 		*last_frame_number = ad->last_frame_number;
+	}
+	if ( total_num_frames != NULL ) {
+		*total_num_frames = ad->total_num_frames;
 	}
 	if ( status_flags != NULL ) {
 		*status_flags = ad->status;

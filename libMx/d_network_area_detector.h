@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -59,6 +59,7 @@ typedef struct {
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;
+	MX_NETWORK_FIELD total_num_frames_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;
@@ -99,6 +100,8 @@ MX_API mx_status_type mxd_network_area_detector_trigger( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_stop( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_abort( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_get_last_frame_number(
+							MX_AREA_DETECTOR *ad );
+MX_API mx_status_type mxd_network_area_detector_get_total_num_frames(
 							MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_get_status(
 							MX_AREA_DETECTOR *ad );

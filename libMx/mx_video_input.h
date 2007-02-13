@@ -264,6 +264,7 @@ MX_API mx_status_type mx_video_input_is_busy( MX_RECORD *record,
 
 MX_API mx_status_type mx_video_input_get_status( MX_RECORD *record,
 						long *last_frame_number,
+						unsigned long *total_num_frames,
 						unsigned long *status_flags );
 
 /*---*/

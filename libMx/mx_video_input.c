@@ -704,6 +704,7 @@ mx_video_input_is_busy( MX_RECORD *record, mx_bool_type *busy )
 MX_EXPORT mx_status_type
 mx_video_input_get_status( MX_RECORD *record,
 			long *last_frame_number,
+			unsigned long *total_num_frames,
 			unsigned long *status_flags )
 {
 	static const char fname[] = "mx_video_input_get_status()";
@@ -726,6 +727,9 @@ mx_video_input_get_status( MX_RECORD *record,
 
 	if ( last_frame_number != NULL ) {
 		*last_frame_number = 0;
+	}
+	if ( total_num_frames != NULL ) {
+		*total_num_frames = 0;
 	}
 	if ( status_flags != NULL ) {
 		*status_flags = vinput->status;

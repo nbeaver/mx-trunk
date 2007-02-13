@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -223,7 +223,7 @@ mx_video_input_process_function( void *record_ptr,
 			break;
 		case MXLV_VIN_STATUS:
 			mx_status = mx_video_input_get_status( record,
-								NULL, NULL );
+							NULL, NULL, NULL );
 			break;
 		default:
 			MX_DEBUG(-1,(

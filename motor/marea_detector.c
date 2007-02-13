@@ -46,6 +46,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number;
+	unsigned long total_num_frames;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	double property_double;
@@ -841,14 +842,17 @@ motor_area_detector_fn( int argc, char *argv[] )
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			mx_status = mx_area_detector_get_extended_status(
-				ad_record, &last_frame_number, &ad_status );
+				ad_record, &last_frame_number,
+				&total_num_frames, &ad_status );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-		"Area detector '%s': last frame number = %ld, status = %#lx\n",
-				ad_record->name, last_frame_number, ad_status );
+		"Area detector '%s': last frame number = %ld, "
+		"total num frames = %lu, status = %#lx\n",
+				ad_record->name, last_frame_number,
+				total_num_frames, ad_status );
 		} else
 		if ( strncmp( "busy", argv[4], strlen(argv[4]) ) == 0 ) {
 

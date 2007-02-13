@@ -52,6 +52,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	mxd_pccd_170170_abort,
 	NULL,
 	NULL,
+	NULL,
 	mxd_pccd_170170_get_extended_status,
 	mxd_pccd_170170_readout_frame,
 	NULL,
@@ -845,6 +846,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	long last_frame_number;
+	unsigned long total_num_frames;
 	unsigned long status_flags;
 	mx_status_type mx_status;
 
@@ -859,12 +861,15 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 #endif
 	mx_status = mx_video_input_get_status( pccd_170170->video_input_record,
 						&last_frame_number,
+						&total_num_frames,
 						&status_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	ad->last_frame_number = last_frame_number;
+
+	ad->total_num_frames = total_num_frames;
 
 	ad->status = 0;
 

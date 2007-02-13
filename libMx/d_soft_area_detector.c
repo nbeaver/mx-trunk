@@ -48,6 +48,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_soft_area_detector_function_list = {
 	mxd_soft_area_detector_abort,
 	NULL,
 	NULL,
+	NULL,
 	mxd_soft_area_detector_get_extended_status,
 	mxd_soft_area_detector_readout_frame,
 	NULL,
@@ -396,6 +397,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK current_time, clock_tick_difference;
 	double seconds_difference;
 	long num_frames, last_frame_number;
+	unsigned long total_num_frames;
 	double exposure_time, frame_time;
 	long sequence_type, num_parameters;
 	double *parameter_array;
@@ -511,8 +513,9 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	}
 
 	/* If the time difference is less than one exposure time, we
-	 * unconditionally declare the area detector to be busy and the
-	 * last_frame_number to be -1.
+	 * unconditionally declare the area detector to be busy, the
+	 * last_frame_number to be -1, and the total number of frames
+	 * to be 0.
 	 */
 	
 	if ( seconds_difference < exposure_time ) {
@@ -523,11 +526,14 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->last_frame_number = -1;
 
+		ad->total_num_frames  = 0;
+
 		ad->status |= MXSF_AD_IS_BUSY;
 
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: (B) last_frame_number = %ld, status = %#lx",
-			fname, ad->last_frame_number, ad->status));
+#if 1 || MXD_SOFT_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: (B) last_frame_number = %ld, "
+		"total_num_frames = %lu, status = %#lx", fname,
+		    ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
 		return MX_SUCCESSFUL_RESULT;
 	}
@@ -541,9 +547,9 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 	seconds_difference -= exposure_time;
 
-	/* Now we can calculate the nominal last frame number. */
+	/* Now we can calculate the total number of frames acquired. */
 
-	last_frame_number = (long) ( seconds_difference / frame_time );
+	total_num_frames = (unsigned long) ( seconds_difference / frame_time );
 
 	/* What happens next depends on the type of sequence
 	 * we are running.
@@ -558,6 +564,8 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->last_frame_number = 0;
 
+		ad->total_num_frames = 1;
+
 		soft_area_detector->sequence_in_progress = FALSE;
 	} else
 	if ( sequence_type == MXT_SQ_CONTINUOUS ) {
@@ -571,6 +579,8 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->last_frame_number = 0;
 
+		ad->total_num_frames = total_num_frames;
+
 		ad->status |= MXSF_AD_IS_BUSY;
 	} else
 	if ( sequence_type == MXT_SQ_MULTIFRAME ) {
@@ -580,13 +590,17 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 #endif
 		/* Multiframe mode. */
 
-		if ( last_frame_number >= num_frames ) {
+		if ( total_num_frames >= num_frames ) {
 
 			ad->last_frame_number = num_frames - 1;
 
+			ad->total_num_frames  = num_frames - 1;
+
 			soft_area_detector->sequence_in_progress = FALSE;
 		} else {
-			ad->last_frame_number = last_frame_number;
+			ad->last_frame_number = total_num_frames;
+
+			ad->total_num_frames  = total_num_frames;
 
 			ad->status |= MXSF_AD_IS_BUSY;
 		}
@@ -603,7 +617,9 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		 * of frames.
 		 */
 
-		ad->last_frame_number = last_frame_number % num_frames;
+		ad->last_frame_number = total_num_frames % num_frames;
+
+		ad->total_num_frames  = total_num_frames;
 
 		ad->status |= MXSF_AD_IS_BUSY;
 	} else {

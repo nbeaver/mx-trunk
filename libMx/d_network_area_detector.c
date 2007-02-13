@@ -48,6 +48,7 @@ mxd_network_area_detector_area_detector_function_list = {
 	mxd_network_area_detector_stop,
 	mxd_network_area_detector_abort,
 	mxd_network_area_detector_get_last_frame_number,
+	mxd_network_area_detector_get_total_num_frames,
 	mxd_network_area_detector_get_status,
 	mxd_network_area_detector_get_extended_status,
 	mxd_network_area_detector_readout_frame,
@@ -353,6 +354,11 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.subframe_size", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->total_num_frames_nf),
+		network_area_detector->server_record,
+		"%s.total_num_frames",
+				network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->transfer_frame_nf),
 		network_area_detector->server_record,
 		"%s.transfer_frame", network_area_detector->remote_record_name);
@@ -651,11 +657,37 @@ mxd_network_area_detector_get_last_frame_number( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	mx_status = mx_get( &(network_area_detector->last_frame_number_nf),
-				MXFT_BOOL, &(ad->last_frame_number) );
+				MXFT_LONG, &(ad->last_frame_number) );
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: area detector '%s', last_frame_number = %ld",
 		fname, ad->record->name, ad->last_frame_number ));
+#endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_get_total_num_frames( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mxd_network_area_detector_get_total_num_frames()";
+
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	mx_status_type mx_status;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_get( &(network_area_detector->total_num_frames_nf),
+				MXFT_ULONG, &(ad->total_num_frames) );
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: area detector '%s', total_num_frames = %ld",
+		fname, ad->record->name, ad->total_num_frames ));
 #endif
 
 	return mx_status;
@@ -715,15 +747,17 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0 && MXD_NETWORK_AREA_DETECTOR_DEBUG
+#if 1 || MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: ad->extended_status = '%s'",
 		fname, ad->extended_status));
 #endif
 
-	num_items = sscanf( ad->extended_status, "%ld %lx",
-				&(ad->last_frame_number), &(ad->status) );
+	num_items = sscanf( ad->extended_status, "%ld %lu %lx",
+				&(ad->last_frame_number),
+				&(ad->total_num_frames),
+				&(ad->status) );
 
-	if ( num_items != 2 ) {
+	if ( num_items != 3 ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 		"The string returned by server '%s' for record field '%s' "
 		"was not parseable as an extended status string.  "
@@ -732,9 +766,10 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 			"extended_status", ad->extended_status );
 	}
 
-#if 0 && MXD_NETWORK_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: last_frame_number = %ld, status = %#lx",
-		fname, ad->last_frame_number, ad->status));
+#if 1 || MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: last_frame_number = %ld, total_num_frames = %lu, status = %#lx",
+	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
 	return MX_SUCCESSFUL_RESULT;
 }

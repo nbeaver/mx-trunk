@@ -203,6 +203,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_SAVE_FRAME:
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
+		case MXLV_AD_TOTAL_NUM_FRAMES:
 		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
 
@@ -266,14 +267,17 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_EXTENDED_STATUS:
 			mx_status = mx_area_detector_get_extended_status(
-							record, NULL, NULL );
+						record, NULL, NULL, NULL );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
 			snprintf(
 			    ad->extended_status, sizeof(ad->extended_status),
-			    "%ld %#lx", ad->last_frame_number, ad->status );
+			    "%ld %lu %#lx",
+					ad->last_frame_number,
+					ad->total_num_frames,
+					ad->status );
 			break;
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:
@@ -340,6 +344,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_STATUS:
 			mx_status = mx_area_detector_get_status( record, NULL );
+			break;
+		case MXLV_AD_TOTAL_NUM_FRAMES:
+			mx_status = mx_area_detector_get_total_num_frames(
+								record, NULL );
 			break;
 
 #if PR_AREA_DETECTOR_DEBUG
