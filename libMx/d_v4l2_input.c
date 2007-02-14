@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -622,13 +622,21 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 		/* Wait for a frame to be available. */
 
 #if MXD_V4L2_INPUT_DEBUG
-		MX_DEBUG(-2,("%s: wait for a frame.", fname));
+		MX_DEBUG(-2,("%s: wait for a frame on fd %d",
+			fname, fd));
 #endif
+		errno = 0;
 
 		result = select( fd+1, &fds, NULL, NULL, &tv );
 
+		saved_errno = errno;
+
+#if MXD_V4L2_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: select() result = %d, errno = %d",
+			fname, result, saved_errno));
+#endif
+
 		if ( result == -1 ) {
-			saved_errno = errno;
 
 			if ( saved_errno == EINTR ) {
 				/* Go back to the top of the for() loop. */
@@ -651,7 +659,8 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 		}
 
 #if MXD_V4L2_INPUT_DEBUG
-		MX_DEBUG(-2,("%s: read a frame.", fname));
+		MX_DEBUG(-2,("%s: read a frame from fd %d",
+					fname, v4l2_input->fd));
 #endif
 
 		errno = 0;
@@ -662,7 +671,10 @@ mxd_v4l2_input_trigger( MX_VIDEO_INPUT *vinput )
 
 		saved_errno = errno;
 
-		MX_DEBUG(-2,("%s: read() errno = %d", fname, saved_errno));
+#if MXD_V4L2_INPUT_DEBUG
+		MX_DEBUG(-2,("%s: read() result = %d, errno = %d",
+			fname, result, saved_errno));
+#endif
 
 		if ( saved_errno == EAGAIN ) {
 			/* If we got an errno of EAGAIN, go back to the top of
