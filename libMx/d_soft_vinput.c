@@ -47,10 +47,10 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_soft_vinput_video_input_function_list = {
 	mxd_soft_vinput_trigger,
 	mxd_soft_vinput_stop,
 	mxd_soft_vinput_abort,
+	mxd_soft_vinput_get_last_frame_number,
+	mxd_soft_vinput_get_total_num_frames,
+	mxd_soft_vinput_get_status,
 	NULL,
-	NULL,
-	NULL,
-	mxd_soft_vinput_get_extended_status,
 	mxd_soft_vinput_get_frame,
 	mxd_soft_vinput_get_parameter,
 	mxd_soft_vinput_set_parameter,
@@ -207,7 +207,7 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
-	soft_vinput->counter   = 0;
+	vinput->total_num_frames = 0;
 
 	switch( vinput->image_format ) {
 	case MXT_IMAGE_FORMAT_RGB565:
@@ -360,9 +360,9 @@ mxd_soft_vinput_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_soft_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
+mxd_soft_vinput_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_soft_vinput_get_extended_status()";
+	static const char fname[] = "mxd_soft_vinput_get_last_frame_number()";
 
 	MX_SOFT_VINPUT *soft_vinput;
 	mx_status_type mx_status;
@@ -373,13 +373,64 @@ mxd_soft_vinput_get_extended_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	vinput->last_frame_number = (vinput->total_num_frames) % 4;
+
 #if MXD_SOFT_VINPUT_DEBUG
-	MX_DEBUG(-2,("%s invoked for video input '%s'.",
-		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: last_frame_number = %ld",
+		fname, vinput->last_frame_number));
 #endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_vinput_get_total_num_frames( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_soft_vinput_get_total_num_frames()";
+
+	MX_SOFT_VINPUT *soft_vinput;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_vinput_get_pointers( vinput,
+						&soft_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The value of total_num_frames has already been set by the
+	 * function mxd_soft_vinput_get_frame().
+	 */
+
+#if MXD_SOFT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: total_num_frames = %ld",
+		fname, vinput->total_num_frames));
+#endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxd_soft_vinput_get_status( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_soft_vinput_get_status()";
+
+	MX_SOFT_VINPUT *soft_vinput;
+	mx_status_type mx_status;
+
+	mx_status = mxd_soft_vinput_get_pointers( vinput,
+						&soft_vinput, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	vinput->busy = FALSE;
 
 	vinput->status = 0;
+
+#if MXD_SOFT_VINPUT_DEBUG
+	MX_DEBUG(-2,("%s: busy = %d, status = %ld",
+		fname, vinput->busy, vinput->status));
+#endif
 
 	return mx_status;
 }
@@ -448,7 +499,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		case MXT_IMAGE_FORMAT_RGB:
 			max_value = sqrt( 255.0 );
 
-			switch( (soft_vinput->counter) % 4 ) {
+			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
 			    cxr1 = max_value / x_max;     cxr0 = 0;
 			    cyr1 = max_value / y_max;     cyr0 = 0;
@@ -513,7 +564,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		case MXT_IMAGE_FORMAT_GREY8:
 			max_value = sqrt( 255.0 );
 
-			switch( (soft_vinput->counter) % 4 ) {
+			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
 			    cx1 = max_value / x_max;     cx0 = 0;
 			    cy1 = max_value / y_max;     cy0 = 0;
@@ -550,7 +601,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		case MXT_IMAGE_FORMAT_GREY16:
 			max_value = sqrt( 65535.0 );
 
-			switch( (soft_vinput->counter) % 4 ) {
+			switch( (vinput->total_num_frames) % 4 ) {
 			case 0:
 			    cx1 = max_value / x_max;     cx0 = 0;
 			    cy1 = max_value / y_max;     cy0 = 0;
@@ -573,7 +624,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			}
 
 #if 0
-			if ( soft_vinput->counter == 0 ) {
+			if ( vinput->total_num_frames == 0 ) {
 				MX_DEBUG(-2,("%s: j_max = %ld, i_max = %ld",
 					fname, j_max, i_max));
 				MX_DEBUG(-2,("%s: x_max = %g, y_max = %g",
@@ -616,7 +667,7 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 			soft_vinput->image_type, vinput->record->name );
 	}
 
-	soft_vinput->counter++;
+	vinput->total_num_frames++;
 				
 #if MXD_SOFT_VINPUT_DEBUG
 	MX_DEBUG(-2,

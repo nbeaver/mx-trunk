@@ -17,12 +17,13 @@
 #ifndef __MX_LIST_HEAD_H__
 #define __MX_LIST_HEAD_H__
 
-#define MXLV_LHD_STATUS		1001
-#define MXLV_LHD_REPORT		1002
-#define MXLV_LHD_REPORTALL	1003
-#define MXLV_LHD_SUMMARY	1004
-#define MXLV_LHD_FIELDDEF	1005
-#define MXLV_LHD_SHOW_HANDLE	1006
+#define MXLV_LHD_DEBUG_LEVEL	1001
+#define MXLV_LHD_STATUS		1002
+#define MXLV_LHD_REPORT		1003
+#define MXLV_LHD_REPORTALL	1004
+#define MXLV_LHD_SUMMARY	1005
+#define MXLV_LHD_FIELDDEF	1006
+#define MXLV_LHD_SHOW_HANDLE	1007
 
 #define MXR_LIST_HEAD_STANDARD_FIELDS \
   {-1, -1, "list_is_active", MXFT_BOOL, NULL, 0, {0}, \
@@ -39,6 +40,10 @@
   \
   {-1, -1, "network_debug", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, network_debug), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_LHD_DEBUG_LEVEL, -1, "debug_level", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_SUPERCLASS_STRUCT, offsetof(MX_LIST_HEAD, debug_level), \
 	{0}, NULL, 0}, \
   \
   {MXLV_LHD_STATUS, -1, "status", MXFT_STRING, NULL, \

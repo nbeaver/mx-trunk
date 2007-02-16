@@ -194,6 +194,8 @@ $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 update_install:
 	/usr/bin/install -c -m 755 $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin 
 	/usr/bin/install -c -m 755 ../scripts/startmxupdate $(MX_INSTALL_DIR)/sbin 
+	/usr/bin/install -c -m 755 ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
+	/usr/bin/install -c -m 755 ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
 	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
 
 #

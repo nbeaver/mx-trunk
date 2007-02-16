@@ -530,7 +530,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->status |= MXSF_AD_IS_BUSY;
 
-#if 1 || MXD_SOFT_AREA_DETECTOR_DEBUG
+#if MXD_SOFT_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: (B) last_frame_number = %ld, "
 		"total_num_frames = %ld, status = %#lx", fname,
 		    ad->last_frame_number, ad->total_num_frames, ad->status));

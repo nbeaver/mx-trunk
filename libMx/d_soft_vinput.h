@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,8 +25,6 @@ typedef struct {
 	MX_RECORD *record;
 
 	long image_type;
-
-	unsigned long counter;
 } MX_SOFT_VINPUT;
 
 
@@ -46,8 +44,11 @@ MX_API mx_status_type mxd_soft_vinput_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_soft_vinput_get_extended_status(
+MX_API mx_status_type mxd_soft_vinput_get_last_frame_number(
 						MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_soft_vinput_get_total_num_frames(
+						MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_soft_vinput_get_status( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_soft_vinput_get_parameter(MX_VIDEO_INPUT *vinput);
 MX_API mx_status_type mxd_soft_vinput_set_parameter(MX_VIDEO_INPUT *vinput);

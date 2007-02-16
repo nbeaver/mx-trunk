@@ -868,6 +868,10 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-137,
+("%s: last_frame_number = %ld, total_num_frames = %ld, status_flags = %#lx",
+		fname, last_frame_number, total_num_frames, status_flags));
+
 	ad->last_frame_number = last_frame_number;
 
 	ad->total_num_frames = total_num_frames;

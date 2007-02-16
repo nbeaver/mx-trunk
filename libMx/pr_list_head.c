@@ -43,6 +43,7 @@ mx_setup_list_head_process_functions( MX_RECORD *record )
 		record_field = &record_field_array[i];
 
 		switch( record_field->label_value ) {
+		case MXLV_LHD_DEBUG_LEVEL:
 		case MXLV_LHD_STATUS:
 		case MXLV_LHD_REPORT:
 		case MXLV_LHD_REPORTALL:
@@ -79,6 +80,9 @@ mx_list_head_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_LHD_DEBUG_LEVEL:
+			list_head->debug_level = mx_get_debug_level();
+			break;
 		default:
 			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
@@ -88,6 +92,9 @@ mx_list_head_process_function( void *record_ptr,
 		break;
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
+		case MXLV_LHD_DEBUG_LEVEL:
+			mx_set_debug_level( (int) list_head->debug_level );
+			break;
 		case MXLV_LHD_STATUS:
 			if ( (strcmp("clients", list_head->status) == 0)
 			  || (strcmp("users", list_head->status) == 0) )

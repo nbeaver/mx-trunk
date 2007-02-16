@@ -205,6 +205,8 @@ $(UPDATE_NAME): $(UPDATE_OBJS) $(MX_LIBRARY_PATH)
 update_install:
 	cp $(UPDATE_NAME) $(MX_INSTALL_DIR)/sbin 
 	cp ../scripts/startmxupdate $(MX_INSTALL_DIR)/sbin 
+	cp ../scripts/mxsave $(MX_INSTALL_DIR)/bin 
+	cp ../scripts/mxrestore $(MX_INSTALL_DIR)/bin 
 	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
 
 #

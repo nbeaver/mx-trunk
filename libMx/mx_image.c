@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		TRUE
+#define MX_IMAGE_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -747,7 +747,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1 || MXD_NETWORK_AREA_DETECTOR_DEBUG
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: ad->extended_status = '%s'",
 		fname, ad->extended_status));
 #endif
@@ -766,7 +766,7 @@ mxd_network_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 			"extended_status", ad->extended_status );
 	}
 
-#if 1 || MXD_NETWORK_AREA_DETECTOR_DEBUG
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));

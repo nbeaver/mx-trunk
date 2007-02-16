@@ -232,6 +232,10 @@ update_install:
 	install -F $(MX_INSTALL_DIR)/sbin -m 755 -O $(UPDATE_NAME)
 	install -F $(MX_INSTALL_DIR)/sbin -m 755 -O \
 				-src ../scripts/startmxupdate startmxupdate
+	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
+				-src ../scripts/mxsave mxsave
+	install -F $(MX_INSTALL_DIR)/bin -m 755 -O \
+				-src ../scripts/mxrestore mxrestore
 	touch $(MX_INSTALL_DIR)/etc/mxupdate.dat
 
 #
