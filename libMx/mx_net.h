@@ -39,7 +39,7 @@
 /* Minimum allowed size of an MX network message_buffer. */
 
 #define MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH \
-	(MXU_NETWORK_HEADER_LENGTH + MXU_RECORD_FIELD_NAME_LENGTH + 1)
+	(MXU_NETWORK_HEADER_LENGTH + 1)
 
 /* Bitmasks used with network message ids.  Message ids are always 32-bits. */
 

@@ -207,6 +207,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.binsize", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->bits_per_pixel_nf),
+		network_area_detector->server_record,
+	    "%s.bits_per_pixel", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->bytes_per_frame_nf),
 		network_area_detector->server_record,
 	    "%s.bytes_per_frame", network_area_detector->remote_record_name );
@@ -508,6 +512,14 @@ mxd_network_area_detector_open( MX_RECORD *record )
 
 	mx_status = mx_get( &(network_area_detector->pixel_order_nf),
 				MXFT_LONG, &(ad->pixel_order) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Get the bits per pixel. */
+
+	mx_status = mx_get( &(network_area_detector->bits_per_pixel_nf),
+				MXFT_LONG, &(ad->bits_per_pixel) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1234,6 +1246,11 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 		mx_status =
 			mx_get( &(network_area_detector->bytes_per_pixel_nf),
 					MXFT_DOUBLE, &(ad->bytes_per_pixel) );
+		break;
+	case MXLV_AD_BITS_PER_PIXEL:
+		mx_status =
+			mx_get( &(network_area_detector->bits_per_pixel_nf),
+					MXFT_LONG, &(ad->bits_per_pixel) );
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:

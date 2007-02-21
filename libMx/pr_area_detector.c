@@ -181,6 +181,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_ABORT:
 		case MXLV_AD_ARM:
 		case MXLV_AD_BINSIZE:
+		case MXLV_AD_BITS_PER_PIXEL:
 		case MXLV_AD_BYTES_PER_FRAME:
 		case MXLV_AD_BYTES_PER_PIXEL:
 		case MXLV_AD_COPY_FRAME:
@@ -256,6 +257,10 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_BINSIZE:
 			mx_status = mx_area_detector_get_binsize( record,
 								NULL, NULL );
+			break;
+		case MXLV_AD_BITS_PER_PIXEL:
+			mx_status = mx_area_detector_get_bits_per_pixel(
+								record, NULL );
 			break;
 		case MXLV_AD_BYTES_PER_FRAME:
 			mx_status = mx_area_detector_get_bytes_per_frame(

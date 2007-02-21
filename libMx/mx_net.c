@@ -1078,6 +1078,10 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 	}
 
 	switch( message_type ) {
+	case MX_NETMSG_UNEXPECTED_ERROR:
+		fprintf( stderr, "  UNEXPECTED_ERROR: '%s'\n", char_message );
+		break;
+
 	case MX_NETMSG_GET_ARRAY_BY_NAME:
 		fprintf( stderr, "  GET_ARRAY_BY_NAME: '%s'\n", char_message );
 		break;

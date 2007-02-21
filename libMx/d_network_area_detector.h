@@ -26,6 +26,7 @@ typedef struct {
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD binsize_nf;
+	MX_NETWORK_FIELD bits_per_pixel_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
 	MX_NETWORK_FIELD copy_frame_nf;

@@ -1227,6 +1227,42 @@ mx_area_detector_get_bytes_per_pixel(MX_RECORD *record, double *bytes_per_pixel)
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_area_detector_get_bits_per_pixel(MX_RECORD *record, long *bits_per_pixel)
+{
+	static const char fname[] = "mx_area_detector_get_bits_per_pixel()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_BITS_PER_PIXEL;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bits_per_pixel != NULL ) {
+		*bits_per_pixel = ad->bits_per_pixel;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 MX_API mx_status_type
 mx_area_detector_get_correction_flags( MX_RECORD *record,
 					unsigned long *correction_flags )
@@ -2820,7 +2856,7 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 				"The image_frame pointer is NULL for "
 				"area detector '%s', although apparently "
-				"it was _not_ NULL earlier in the function.",
+				"it was _not_ NULL earlier in this function.",
 					record->name );
 		}
 
@@ -3242,6 +3278,7 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
+	case MXLV_AD_BITS_PER_PIXEL:
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
 	case MXLV_AD_SEQUENCE_TYPE:

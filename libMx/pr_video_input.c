@@ -128,6 +128,7 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_VIN_ABORT:
 		case MXLV_VIN_ARM:
+		case MXLV_VIN_BITS_PER_PIXEL:
 		case MXLV_VIN_BUSY:
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_BYTES_PER_PIXEL:
@@ -178,6 +179,10 @@ mx_video_input_process_function( void *record_ptr,
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
+		case MXLV_VIN_BITS_PER_PIXEL:
+			mx_status = mx_video_input_get_bits_per_pixel(
+								record, NULL );
+			break;
 		case MXLV_VIN_BUSY:
 			mx_status = mx_video_input_is_busy( record, NULL );
 			break;

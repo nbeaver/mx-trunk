@@ -815,7 +815,7 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	int saved_errno;
 	int bytes_left, bytes_received, initial_recv_length;
 	uint32_t magic_value, header_length, message_length, total_length;
-	uint32_t message_type, returned_message_type;
+	uint32_t message_type, returned_message_type, message_id;
 	mx_status_type mx_status, mx_status2;
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
@@ -1037,6 +1037,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	message_ptr[ message_length ] = '\0';
 
+	if ( header_length < 28 ) {
+		message_id = 0;     /* This client is using MX 1.4 or before. */
+	} else {
+		message_id = mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
+	}
+
 #if NETWORK_DEBUG_MESSAGES
 	if ( socket_handler->network_debug ) {
 		fprintf( stderr, "\nMX NET: CLIENT (socket %d) -> SERVER\n",
@@ -1148,15 +1154,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			"MX message type %#lx is not yet implemented.",
 			(unsigned long) message_type );
 
-#if NETWORK_DEBUG_MESSAGES
-		if ( socket_handler->network_debug ) {
-			fprintf( stderr,
-			"\nMX NET: Sending error code %ld to socket %d\n",
-				mx_status.code, client_socket->socket_fd );
-		}
-#endif
-
 		(void) mx_network_socket_send_error_message( client_socket,
+			message_id, socket_handler->network_debug,
 			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
 
 		return mx_status;
@@ -1319,16 +1318,9 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		/* Send back the error message. */
 
-#if NETWORK_DEBUG_MESSAGES
-		if ( socket_handler->network_debug ) {
-			fprintf( stderr,
-			"\nMX NET: Sending error code %ld to socket %d\n",
-				mx_status.code, client_socket->socket_fd );
-		}
-#endif
-
 		(void) mx_network_socket_send_error_message( client_socket,
-					MX_NETMSG_UNEXPECTED_ERROR, mx_status );
+			message_id, socket_handler->network_debug,
+			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
 
 		return mx_status;
 	}
@@ -1382,7 +1374,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 	case MX_NETMSG_GET_NETWORK_HANDLE:
 		mx_status = mxsrv_handle_get_network_handle( record_list,
 						socket_handler,
-						record, record_field );
+						record, record_field,
+						message_id );
 		break;
 	case MX_NETMSG_GET_FIELD_TYPE:
 		mx_status = mxsrv_handle_get_field_type( record_list,
@@ -1420,15 +1413,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			"MX message type %#lx is not yet implemented!",
 			(unsigned long) message_type );
 
-#if NETWORK_DEBUG_MESSAGES
-		if ( socket_handler->network_debug ) {
-			fprintf( stderr,
-			"\nMX NET: Sending error code %ld to socket %d\n",
-				mx_status.code, client_socket->socket_fd );
-		}
-#endif
-
 		(void) mx_network_socket_send_error_message( client_socket,
+			message_id, socket_handler->network_debug,
 			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
 		break;
 	}
@@ -2419,7 +2405,8 @@ mx_status_type
 mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 				MX_SOCKET_HANDLER *socket_handler,
 				MX_RECORD *record,
-				MX_RECORD_FIELD *record_field )
+				MX_RECORD_FIELD *record_field,
+				uint32_t message_id )
 {
 	static const char fname[] = "mxsrv_handle_get_network_handle()";
 
@@ -2492,18 +2479,12 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	if ( mx_status.code != MXE_SUCCESS ) {
 		/* Send back the error message. */
 
-#if NETWORK_DEBUG_MESSAGES
-		if ( socket_handler->network_debug ) {
-			fprintf( stderr,
-			"\nMX NET: Sending error code %ld to socket %d\n",
-				mx_status.code,
-				socket_handler->synchronous_socket->socket_fd );
-		}
-#endif
-
 		(void) mx_network_socket_send_error_message(
 					socket_handler->synchronous_socket,
-					MX_NETMSG_UNEXPECTED_ERROR, mx_status );
+					message_id,
+					socket_handler->network_debug,
+					MX_NETMSG_UNEXPECTED_ERROR,
+					mx_status );
 
 		return mx_status;
 	}

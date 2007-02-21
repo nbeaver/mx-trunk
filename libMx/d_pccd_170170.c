@@ -541,6 +541,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_AREA_DETECTOR *ad;
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
+	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
 	unsigned long flags;
 	mx_status_type mx_status;
@@ -565,11 +566,31 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( flags & MXF_PCCD_170170_USE_SIMULATOR ) {
 		mx_warning( "Area detector '%s' will use "
-				"a camera simulator instead of a real camera.",
+			"an Aviex camera simulator instead of a real camera.",
 				record->name );
 	}
 
 	video_input_record = pccd_170170->video_input_record;
+
+	if ( video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The video_input_record pointer for area detector '%s' is NULL.",
+			record->name );
+	}
+
+	vinput = video_input_record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for video input record '%s' "
+		"used by area detector '%s' is NULL.",
+			video_input_record->name, record->name );
+	}
+
+	/* The PCCD-170170 camera generates 16 bit per pixel images. */
+
+	vinput->bits_per_pixel = 16;
+	ad->bits_per_pixel = vinput->bits_per_pixel;
 
 	/* Set the default file format. */
 
@@ -679,7 +700,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * read in the raw pixels from the imaging board before descrambling.
 	 */
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: Before final call to mx_image_alloc()", fname));
 
 	MX_DEBUG(-2,("%s: &(pccd_170170->raw_frame) = %p",

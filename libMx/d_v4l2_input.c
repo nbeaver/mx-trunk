@@ -164,6 +164,7 @@ mxd_v4l2_input_create_record_structures( MX_RECORD *record )
 	memset( &(vinput->sequence_parameters),
 			0, sizeof(vinput->sequence_parameters) );
 
+	vinput->bits_per_pixel = 0;
 	vinput->bytes_per_pixel = 0;
 	vinput->bytes_per_frame = 0;
 
@@ -515,14 +516,17 @@ mxd_v4l2_input_arm( MX_VIDEO_INPUT *vinput )
 	case MXT_IMAGE_FORMAT_RGB565:
 		/* 16 bits (2 bytes) per pixel. */
 
+		vinput->bits_per_pixel  = 16;
 		vinput->bytes_per_pixel = 2;
 		break;
 	case MXT_IMAGE_FORMAT_YUYV:
 		/* 32 bits (4 bytes) for 2 pixels. */
 
+		vinput->bits_per_pixel  = 16;
 		vinput->bytes_per_pixel = 2;
 		break;
 	default:
+		vinput->bits_per_pixel  = 0;
 		vinput->bytes_per_pixel = 0;
 		vinput->bytes_per_frame = 0;
 

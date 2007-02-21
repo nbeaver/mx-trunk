@@ -319,6 +319,41 @@ mx_video_input_get_bytes_per_pixel( MX_RECORD *record, double *bytes_per_pixel )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+MX_EXPORT mx_status_type
+mx_video_input_get_bits_per_pixel( MX_RECORD *record, long *bits_per_pixel )
+{
+	static const char fname[] = "mx_video_input_get_bits_per_pixel()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BITS_PER_PIXEL;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( bits_per_pixel != NULL ) {
+		*bits_per_pixel = vinput->bits_per_pixel;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -1331,6 +1366,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 		"mx_video_input_default_get_parameter_handler()";
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_BITS_PER_PIXEL:
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_PIXEL_ORDER:

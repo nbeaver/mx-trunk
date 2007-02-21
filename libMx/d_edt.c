@@ -143,6 +143,7 @@ mxd_edt_create_record_structures( MX_RECORD *record )
 
 	vinput->bytes_per_frame = 0;
 	vinput->bytes_per_pixel = 0;
+	vinput->bits_per_pixel = 0;
 	vinput->trigger_mode = 0;
 
 	return MX_SUCCESSFUL_RESULT;
@@ -343,6 +344,11 @@ mxd_edt_open( MX_RECORD *record )
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_video_input_get_bits_per_pixel( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

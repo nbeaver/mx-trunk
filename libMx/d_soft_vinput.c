@@ -213,16 +213,20 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	case MXT_IMAGE_FORMAT_RGB565:
 	case MXT_IMAGE_FORMAT_YUYV:
 		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel  = 16;
 		break;
 
 	case MXT_IMAGE_FORMAT_RGB:
 		vinput->bytes_per_pixel = 3;
+		vinput->bits_per_pixel  = 24;
 		break;
 	case MXT_IMAGE_FORMAT_GREY8:
 		vinput->bytes_per_pixel = 1;
+		vinput->bits_per_pixel  = 8;
 		break;
 	case MXT_IMAGE_FORMAT_GREY16:
 		vinput->bytes_per_pixel = 2;
+		vinput->bits_per_pixel  = 16;
 		break;
 
 	default:
@@ -254,6 +258,9 @@ mxd_soft_vinput_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %ld",
 		fname, vinput->trigger_mode));
+
+	MX_DEBUG(-2,("%s: vinput->bits_per_pixel = %g",
+		fname, vinput->bits_per_pixel));
 
 	MX_DEBUG(-2,("%s: vinput->bytes_per_pixel = %g",
 		fname, vinput->bytes_per_pixel));

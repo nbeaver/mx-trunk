@@ -44,6 +44,7 @@ typedef struct {
 	long trigger_mode;
 	long bytes_per_frame;
 	double bytes_per_pixel;
+	long bits_per_pixel;
 
 	mx_bool_type arm;
 	mx_bool_type trigger;
@@ -85,24 +86,25 @@ typedef struct {
 #define MXLV_VIN_TRIGGER_MODE			11005
 #define MXLV_VIN_BYTES_PER_FRAME		11006
 #define MXLV_VIN_BYTES_PER_PIXEL		11007
-#define MXLV_VIN_ARM				11008
-#define MXLV_VIN_TRIGGER			11009
-#define MXLV_VIN_STOP				11010
-#define MXLV_VIN_ABORT				11011
-#define MXLV_VIN_BUSY				11012
-#define MXLV_VIN_MAXIMUM_FRAME_NUMBER		11013
-#define MXLV_VIN_LAST_FRAME_NUMBER		11014
-#define MXLV_VIN_TOTAL_NUM_FRAMES		11015
-#define MXLV_VIN_STATUS				11016
-#define MXLV_VIN_EXTENDED_STATUS		11017
-#define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11018
-#define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11019
-#define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11020
-#define MXLV_VIN_SEQUENCE_TYPE			11021
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11022
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11023
-#define MXLV_VIN_GET_FRAME			11024
-#define MXLV_VIN_FRAME_BUFFER			11025
+#define MXLV_VIN_BITS_PER_PIXEL			11008
+#define MXLV_VIN_ARM				11009
+#define MXLV_VIN_TRIGGER			11010
+#define MXLV_VIN_STOP				11011
+#define MXLV_VIN_ABORT				11012
+#define MXLV_VIN_BUSY				11013
+#define MXLV_VIN_MAXIMUM_FRAME_NUMBER		11014
+#define MXLV_VIN_LAST_FRAME_NUMBER		11015
+#define MXLV_VIN_TOTAL_NUM_FRAMES		11016
+#define MXLV_VIN_STATUS				11017
+#define MXLV_VIN_EXTENDED_STATUS		11018
+#define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11019
+#define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11020
+#define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11021
+#define MXLV_VIN_SEQUENCE_TYPE			11022
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11023
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11024
+#define MXLV_VIN_GET_FRAME			11025
+#define MXLV_VIN_FRAME_BUFFER			11026
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -132,6 +134,10 @@ typedef struct {
   \
   {MXLV_VIN_BYTES_PER_PIXEL, -1, "bytes_per_pixel", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, bytes_per_pixel), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_BITS_PER_PIXEL, -1, "bits_per_pixel", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, bits_per_pixel), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_ARM, -1, "arm", MXFT_BOOL, NULL, 0, {0}, \
@@ -263,6 +269,9 @@ MX_API mx_status_type mx_video_input_get_bytes_per_frame( MX_RECORD *record,
 
 MX_API mx_status_type mx_video_input_get_bytes_per_pixel( MX_RECORD *record,
 						      double *bytes_per_pixel );
+
+MX_API mx_status_type mx_video_input_get_bits_per_pixel( MX_RECORD *record,
+						      long *bits_per_pixel );
 /*---*/
 
 MX_API mx_status_type mx_video_input_set_exposure_time( MX_RECORD *record,

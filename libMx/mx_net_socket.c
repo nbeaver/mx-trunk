@@ -19,6 +19,8 @@
 
 #define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE		FALSE
 
+#define MX_NET_SOCKET_DEBUG_MESSAGES			TRUE
+
 #include <stdio.h>
 
 #include "mx_osdef.h"
@@ -567,6 +569,8 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 MX_EXPORT mx_status_type
 mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
+			uint32_t message_id,
+			mx_bool_type debug_flag,
 			long return_message_type,
 			mx_status_type error_message )
 {
@@ -609,11 +613,25 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	header[ MX_NETWORK_MESSAGE_LENGTH ] = mx_htonl( message_length );
 
-	header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( error_message.code );
-
 	header[ MX_NETWORK_MESSAGE_TYPE ] = mx_htonl( return_message_type );
 
-	header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( 0 );
+	header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( error_message.code );
+
+	header[ MX_NETWORK_DATA_TYPE ] = mx_htonl( MXFT_STRING );
+
+	header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( message_id );
+
+#if MX_NET_SOCKET_DEBUG_MESSAGES
+	if ( debug_flag ) {
+		fprintf( stderr,
+		"\nMX NET: Sending error code %s (%ld) to socket %d\n",
+			mx_status_code_string( error_message.code ),
+			error_message.code,
+			mx_socket->socket_fd );
+
+		mx_network_display_message( message_buffer );
+	}
+#endif
 
 	/* Send back the error message. */
 

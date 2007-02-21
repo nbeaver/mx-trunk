@@ -180,6 +180,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.arm", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->bits_per_pixel_nf),
+			network_vinput->server_record,
+		"%s.bits_per_pixel", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->bytes_per_frame_nf),
 			network_vinput->server_record,
 		"%s.bytes_per_frame", network_vinput->remote_record_name );
@@ -780,6 +784,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BYTES_PER_PIXEL:
 		mx_status = mx_get( &(network_vinput->bytes_per_pixel_nf),
 				    MXFT_DOUBLE, &(vinput->bytes_per_pixel) );
+		break;
+
+	case MXLV_VIN_BITS_PER_PIXEL:
+		mx_status = mx_get( &(network_vinput->bits_per_pixel_nf),
+				    MXFT_LONG, &(vinput->bits_per_pixel) );
 		break;
 
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:

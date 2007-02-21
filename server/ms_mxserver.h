@@ -115,7 +115,8 @@ extern mx_status_type mxsrv_handle_get_network_handle(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,
 			MX_RECORD *record,
-			MX_RECORD_FIELD *record_field );
+			MX_RECORD_FIELD *record_field,
+			uint32_t message_id );
 
 extern mx_status_type mxsrv_handle_get_field_type(
 			MX_RECORD *record_list,

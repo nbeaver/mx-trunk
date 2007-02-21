@@ -713,6 +713,11 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 				video_input_record, &(ad->bytes_per_pixel) );
 		break;
 
+	case MXLV_AD_BITS_PER_PIXEL:
+		mx_status = mx_video_input_get_bits_per_pixel(
+				video_input_record, &(ad->bits_per_pixel) );
+		break;
+
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
