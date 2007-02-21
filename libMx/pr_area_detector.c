@@ -195,9 +195,6 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FRAME_BUFFER:
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
-		case MXLV_AD_PROPERTY_DOUBLE:
-		case MXLV_AD_PROPERTY_LONG:
-		case MXLV_AD_PROPERTY_STRING:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
@@ -318,21 +315,6 @@ mx_area_detector_process_function( void *record_ptr,
 			mx_status = mx_area_detector_get_maximum_framesize(
 							record, NULL, NULL );
 			break;
-		case MXLV_AD_PROPERTY_DOUBLE:
-			mx_status = mx_area_detector_get_property_double(
-						record, ad->property_name,
-						NULL );
-			break;
-		case MXLV_AD_PROPERTY_LONG:
-			mx_status = mx_area_detector_get_property_long(
-						record, ad->property_name,
-						NULL );
-			break;
-		case MXLV_AD_PROPERTY_STRING:
-			mx_status = mx_area_detector_get_property_string(
-						record, ad->property_name,
-						NULL, 0 );
-			break;
 		case MXLV_AD_ROI:
 			mx_status = mx_area_detector_get_roi( record,
 							ad->roi_number, NULL );
@@ -439,21 +421,6 @@ mx_area_detector_process_function( void *record_ptr,
 		case MXLV_AD_LOAD_FRAME:
 			mx_status = mx_area_detector_load_frame( record,
 					ad->load_frame, ad->frame_filename );
-			break;
-		case MXLV_AD_PROPERTY_DOUBLE:
-			mx_status = mx_area_detector_set_property_double(
-						record, ad->property_name,
-						ad->property_double );
-			break;
-		case MXLV_AD_PROPERTY_LONG:
-			mx_status = mx_area_detector_set_property_long(
-						record, ad->property_name,
-						ad->property_long );
-			break;
-		case MXLV_AD_PROPERTY_STRING:
-			mx_status = mx_area_detector_set_property_string(
-						record, ad->property_name,
-						ad->property_string );
 			break;
 		case MXLV_AD_ROI:
 			mx_status = mx_area_detector_set_roi( record,

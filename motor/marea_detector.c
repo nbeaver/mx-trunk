@@ -49,9 +49,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long total_num_frames;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
-	double property_double;
-	long property_long;
-	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
+	long long_parameter;
 	long correction_type, num_measurements;
 	double measurement_time;
 	double exposure_time, gap_time, exposure_multiplier, gap_multiplier;
@@ -73,12 +71,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' get correction_flags\n"
 "  area_detector 'name' set correction_flags 'correction flags'\n"
 "\n"
-"  area_detector 'name' get property_double 'property_name'\n"
-"  area_detector 'name' set property_double 'property_name' 'property_double'\n"
-"  area_detector 'name' get property_long 'property_name'\n"
-"  area_detector 'name' set property_long 'property_name' 'property_long'\n"
-"  area_detector 'name' get property_string 'property_name'\n"
-"  area_detector 'name' set property_string 'property_name' 'property_string'\n"
+"  area_detector 'name' get long_parameter 'parameter_name'\n"
+"  area_detector 'name' set long_parameter 'parameter_name' 'parameter_value'\n"
 "\n"
 "  area_detector 'name' get sequence_parameters\n"
 "  area_detector 'name' set one_shot_mode 'exposure time in seconds'\n"
@@ -914,72 +908,27 @@ motor_area_detector_fn( int argc, char *argv[] )
 				"Area detector '%s': correction flags = %#lx\n",
 				ad_record->name, correction_flags );
 		} else
-		if ( strncmp( "property_double",
+		if ( strncmp( "long_parameter",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 6 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'get property_double' command\n",
+	    "%s: wrong number of arguments to 'get long_parameter' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_get_property_double(
-					ad_record, argv[5], &property_double );
+			mx_status = mx_area_detector_get_long_parameter(
+					ad_record, argv[5], &long_parameter );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
 			fprintf( output,
-			"Area detector '%s': property '%s' double value = %g\n",
-				ad_record->name, argv[5], property_double );
-		} else
-		if ( strncmp( "property_long",
-					argv[4], strlen(argv[4]) ) == 0 )
-		{
-			if ( argc != 6 ) {
-				fprintf( output,
-	    "%s: wrong number of arguments to 'get property_long' command\n",
-					cname );
-
-				fprintf( output, "%s\n", usage );
-				return FAILURE;
-			}
-
-			mx_status = mx_area_detector_get_property_long(
-					ad_record, argv[5], &property_long );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-
-			fprintf( output,
-			"Area detector '%s': property '%s' long value = %ld\n",
-				ad_record->name, argv[5], property_long );
-		} else
-		if ( strncmp( "property_string",
-					argv[4], strlen(argv[4]) ) == 0 )
-		{
-			if ( argc != 6 ) {
-				fprintf( output,
-	    "%s: wrong number of arguments to 'get property_string' command\n",
-					cname );
-
-				fprintf( output, "%s\n", usage );
-				return FAILURE;
-			}
-
-			mx_status = mx_area_detector_get_property_string(
-					ad_record, argv[5], property_string,
-					sizeof(property_string) );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-
-			fprintf( output,
-			"Area detector '%s': property '%s' string = '%s'\n",
-				ad_record->name, argv[5], property_string );
+			"Area detector '%s': parameter '%s' long value = %ld\n",
+				ad_record->name, argv[5], long_parameter );
 		} else
 		if ( strncmp( "sequence_parameters",
 					argv[4], strlen(argv[4]) ) == 0 )
@@ -1212,68 +1161,30 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 		} else
-		if ( strncmp( "property_double",
+		if ( strncmp( "long_parameter",
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			if ( argc != 7 ) {
 				fprintf( output,
-	    "%s: wrong number of arguments to 'set property_double' command\n",
+	    "%s: wrong number of arguments to 'set long_parameter' command\n",
 					cname );
 
 				fprintf( output, "%s\n", usage );
 				return FAILURE;
 			}
 
-			property_double = atof( argv[6] );
-
-			mx_status = mx_area_detector_set_property_double(
-					ad_record, argv[5], property_double );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-		} else
-		if ( strncmp( "property_long",
-					argv[4], strlen(argv[4]) ) == 0 )
-		{
-			if ( argc != 7 ) {
-				fprintf( output,
-	    "%s: wrong number of arguments to 'set property_long' command\n",
-					cname );
-
-				fprintf( output, "%s\n", usage );
-				return FAILURE;
-			}
-
-			property_long = strtol( argv[6], &endptr, 0 );
+			long_parameter = strtol( argv[6], &endptr, 0 );
 
 			if ( *endptr != '\0' ) {
 				fprintf( output,
-	"%s: Non-numeric characters found in the long property value '%s'\n",
+	"%s: Non-numeric characters found in the long parameter value '%s'\n",
 					cname, argv[6] );
 
 				return FAILURE;
 			}
 
-			mx_status = mx_area_detector_set_property_long(
-					ad_record, argv[5], property_long );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return FAILURE;
-		} else
-		if ( strncmp( "property_string",
-					argv[4], strlen(argv[4]) ) == 0 )
-		{
-			if ( argc != 7 ) {
-				fprintf( output,
-	    "%s: wrong number of arguments to 'set property_string' command\n",
-					cname );
-
-				fprintf( output, "%s\n", usage );
-				return FAILURE;
-			}
-
-			mx_status = mx_area_detector_set_property_string(
-					ad_record, argv[5], argv[6] );
+			mx_status = mx_area_detector_set_long_parameter(
+					ad_record, argv[5], &long_parameter );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;

@@ -23,6 +23,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_socket.h"
+#include "mx_process.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
@@ -42,7 +44,10 @@ MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	NULL,
 	NULL,
 	mxd_pccd_170170_open,
-	mxd_pccd_170170_close
+	mxd_pccd_170170_close,
+	NULL,
+	NULL,
+	mxd_pccd_170170_special_processing_setup
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
@@ -79,6 +84,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pccd_170170_rfield_def_ptr
 			= &mxd_pccd_170170_record_field_defaults[0];
 
 /*---*/
+
+static mx_status_type mxd_pccd_170170_process_function( void *record_ptr,
+							void *record_field_ptr,
+							int operation );
 
 static mx_status_type
 mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
@@ -1053,29 +1062,6 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 				video_input_record, &(ad->trigger_mode) );
 		break;
 
-	case MXLV_AD_PROPERTY_NAME:
-		break;
-	case MXLV_AD_PROPERTY_DOUBLE:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Returning value %g for property '%s'",
-			fname, ad->property_double, ad->property_name ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_LONG:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Returning value %ld for property '%s'",
-			fname, ad->property_long, ad->property_name ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_STRING:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Returning string '%s' for property '%s'",
-			fname, ad->property_string, ad->property_name ));
-#endif
-		break;
 	default:
 		mx_status = mx_area_detector_default_get_parameter_handler(ad);
 		break;
@@ -1149,30 +1135,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_video_input_set_trigger_mode(
 				pccd_170170->video_input_record,
 				ad->trigger_mode );
-		break;
-
-	case MXLV_AD_PROPERTY_NAME:
-		break;
-	case MXLV_AD_PROPERTY_DOUBLE:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to %g",
-			fname, ad->property_name, ad->property_double ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_LONG:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to %ld",
-			fname, ad->property_name, ad->property_long ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_STRING:
-
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to '%s'",
-			fname, ad->property_name, ad->property_string ));
-#endif
 		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
@@ -1277,7 +1239,7 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long register_address,
-				unsigned long *register_value )
+				unsigned short *register_value )
 {
 	static const char fname[] = "mxd_pccd_170170_read_register()";
 
@@ -1311,7 +1273,7 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 
 	response[4] = '\0';
 
-	*register_value = atoi( &response[1] );
+	*register_value = atol( &response[1] );
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1319,7 +1281,7 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long register_address,
-				unsigned long register_value )
+				unsigned short register_value )
 {
 	static const char fname[] = "mxd_pccd_170170_write_register()";
 
@@ -1338,13 +1300,13 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 	}
 	if ( register_value >= 300 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested register value %lu for record '%s' "
+		"The requested register value %hu for record '%s' "
 		"is outside the allowed range of 0 to 299.",
 			register_value, pccd_170170->record->name );
 	}
 
 	snprintf( command, sizeof(command),
-		"W%02lu%03lu", register_address, register_value );
+		"W%02lu%03hu", register_address, register_value );
 
 	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
 					command, response, 2,
@@ -1356,7 +1318,7 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_read_adc( MX_PCCD_170170 *pccd_170170,
 				unsigned long adc_address,
-				double *adc_value )
+				unsigned short *adc_value )
 {
 	static const char fname[] = "mxd_pccd_170170_read_adc()";
 
@@ -1390,9 +1352,89 @@ mxd_pccd_170170_read_adc( MX_PCCD_170170 *pccd_170170,
 
 	response[4] = '\0';
 
-	*adc_value = atof( &response[1] );
+	*adc_value = atol( &response[1] );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
+{
+	static const char fname[] =
+		"mxd_pccd_170170_special_processing_setup()";
+
+	MX_RECORD_FIELD *record_field;
+	MX_RECORD_FIELD *record_field_array;
+	long i;
+
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &record_field_array[i];
+
+		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+			record_field->process_function
+					= mxd_pccd_170170_process_function;
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_pccd_170170_process_function( void *record_ptr,
+				void *record_field_ptr,
+				int operation )
+{
+	static const char fname[] = "mxd_pccd_170170_process_function()";
+
+	MX_RECORD *record;
+	MX_RECORD_FIELD *record_field;
+	mx_status_type mx_status;
+
+	record = (MX_RECORD *) record_ptr;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	record_field = (MX_RECORD_FIELD *) record_field_ptr;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	switch( operation ) {
+	case MX_PROCESS_GET:
+		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+			mx_status = mx_area_detector_get_long_parameter(
+					record, record_field->name, NULL );
+		}
+		break;
+
+	case MX_PROCESS_PUT:
+		if ( record_field->label_value > MXLV_PCCD_170170_DH_BASE ) {
+			mx_status = mx_area_detector_set_long_parameter(
+					record, record_field->name, NULL );
+		}
+		break;
+
+	default:
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Unknown operation code = %d for record '%s'.",
+			operation, record->name );
+	}
+
+	return mx_status;
 }
 
 #endif /* HAVE_CAMERA_LINK */

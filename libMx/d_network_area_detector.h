@@ -47,10 +47,6 @@ typedef struct {
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD num_correction_measurements_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
-	MX_NETWORK_FIELD property_name_nf;
-	MX_NETWORK_FIELD property_double_nf;
-	MX_NETWORK_FIELD property_long_nf;
-	MX_NETWORK_FIELD property_string_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
 	MX_NETWORK_FIELD roi_nf;
 	MX_NETWORK_FIELD roi_array_nf;

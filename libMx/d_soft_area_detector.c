@@ -723,29 +723,6 @@ mxd_soft_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 		break;
 
-	case MXLV_AD_PROPERTY_NAME:
-		break;
-	case MXLV_AD_PROPERTY_DOUBLE:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Returning value %g for property '%s'",
-			fname, ad->property_double, ad->property_name ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_LONG:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Returning value %ld for property '%s'",
-			fname, ad->property_long, ad->property_name ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_STRING:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Returning string '%s' for property '%s'",
-			fname, ad->property_string, ad->property_name ));
-#endif
-		break;
 	default:
 		mx_status = mx_area_detector_default_get_parameter_handler(ad);
 		break;
@@ -802,30 +779,6 @@ mxd_soft_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 					soft_area_detector->video_input_record,
 					&(ad->sequence_parameters) );
 		break; 
-
-	case MXLV_AD_PROPERTY_NAME:
-		break;
-	case MXLV_AD_PROPERTY_DOUBLE:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to %g",
-			fname, ad->property_name, ad->property_double ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_LONG:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to %ld",
-			fname, ad->property_name, ad->property_long ));
-#endif
-		break;
-	case MXLV_AD_PROPERTY_STRING:
-
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Setting property '%s' to '%s'",
-			fname, ad->property_name, ad->property_string ));
-#endif
-		break;
 
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:

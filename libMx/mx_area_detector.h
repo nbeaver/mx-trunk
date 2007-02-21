@@ -20,8 +20,6 @@
 #include "mx_namefix.h"
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
-#define MXU_AD_PROPERTY_NAME_LENGTH		40
-#define MXU_AD_PROPERTY_STRING_LENGTH		80
 
 /* Status bit definitions for the 'status' field. */
 
@@ -146,15 +144,6 @@ typedef struct {
 
 	long copy_frame[2];
 
-	/* The following fields are used for getting and setting
-	 * detector property values, both as numbers and as strings.
-	 */
-
-	char property_name[MXU_AD_PROPERTY_NAME_LENGTH+1];
-	long property_long;
-	double property_double;
-	char property_string[MXU_AD_PROPERTY_STRING_LENGTH+1];
-
 	/* The following fields are used for measuring dark current and
 	 * flood field image frames.
 	 */
@@ -233,10 +222,7 @@ typedef struct {
 #define MXLV_AD_SAVE_FRAME			12037
 #define MXLV_AD_FRAME_FILENAME			12038
 #define MXLV_AD_COPY_FRAME			12039
-#define MXLV_AD_PROPERTY_NAME			12040
-#define MXLV_AD_PROPERTY_LONG			12041
-#define MXLV_AD_PROPERTY_DOUBLE			12042
-#define MXLV_AD_PROPERTY_STRING			12043
+
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12046
@@ -422,24 +408,6 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
   \
-  {MXLV_AD_PROPERTY_NAME, -1, "property_name", MXFT_STRING, \
-  				NULL, 1, {MXU_AD_PROPERTY_NAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_name), \
-	{sizeof(char)}, NULL, 0}, \
-  \
-  {MXLV_AD_PROPERTY_LONG, -1, "property_long", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_long), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_AD_PROPERTY_DOUBLE, -1, "property_double", MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_double), \
-	{0}, NULL, 0}, \
-  \
-  {MXLV_AD_PROPERTY_STRING, -1, "property_string", MXFT_STRING, \
-  				NULL, 1, {MXU_AD_PROPERTY_STRING_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, property_string), \
-	{sizeof(char)}, NULL, 0}, \
-  \
   {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
   		"correction_measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
@@ -554,30 +522,13 @@ MX_API mx_status_type mx_area_detector_load_correction_files(
 
 /*---*/
 
-MX_API mx_status_type mx_area_detector_get_property_long( MX_RECORD *record,
-							char *property_name,
-							long *property_value );
+MX_API mx_status_type mx_area_detector_get_long_parameter( MX_RECORD *record,
+							char *parameter_name,
+							long *parameter_value );
 
-MX_API mx_status_type mx_area_detector_set_property_long( MX_RECORD *record,
-							char *property_name,
-							long property_value );
-
-MX_API mx_status_type mx_area_detector_get_property_double( MX_RECORD *record,
-							char *property_name,
-							double *property_value);
-
-MX_API mx_status_type mx_area_detector_set_property_double( MX_RECORD *record,
-							char *property_name,
-							double property_value );
-
-MX_API mx_status_type mx_area_detector_get_property_string( MX_RECORD *record,
-							char *property_name,
-							char *property_string,
-						     size_t max_string_length );
-
-MX_API mx_status_type mx_area_detector_set_property_string( MX_RECORD *record,
-							char *property_name,
-							char *property_string );
+MX_API mx_status_type mx_area_detector_set_long_parameter( MX_RECORD *record,
+							char *parameter_name,
+							long *parameter_value );
 
 /*---*/
 
