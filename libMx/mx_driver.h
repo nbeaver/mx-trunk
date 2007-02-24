@@ -241,7 +241,7 @@
 
 #define MXI_USB_LIBUSB			800
 
-#define MXI_CL_MINIMAL			900
+#define MXI_CL_API			900
 #define MXI_CL_EPIX_XCLIB		901
 
 /* --- Analog input types --- */

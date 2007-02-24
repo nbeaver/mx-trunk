@@ -1,7 +1,7 @@
 /*
  * Name:    i_epix_camera_link.c
  *
- * Purpose: MX driver for National Instruments CAMERA_LINK interfaces.
+ * Purpose: MX driver for EPIX, Inc. Camera Link serial I/O interfaces.
  *
  * Author:  William Lavender
  *
@@ -827,6 +827,8 @@ mxi_epix_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 
 #if MXI_EPIX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
+
+	MX_DEBUG(-40,("%s: baud_rate = %lu", fname, (unsigned long) baud_rate));
 #endif
 
 	epix_status = pxd_serialConfigure( port->epix_camera_link->unitmap, 0,

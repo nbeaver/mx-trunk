@@ -19,6 +19,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_ccd.c mx_cfn.c mx_clock.c \
 	mx_coprocess.c mx_cpu_arch.c mx_dead_reckoning.c mx_debug.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_driver_class.c \
+	mx_dynamic_link.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
 	mx_image.c mx_info.c mx_interval_timer.c mx_key.c \
@@ -134,7 +135,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_wavelength.c d_wavenumber.c d_xafs_wavenumber.c \
 	d_xia_dxp_mca.c d_xia_dxp_var.c d_xia_dxp_sum.c d_xia_dxp_timer.c \
 	d_xia_handel_timer.c \
-	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c i_camera_link_rs232.c \
+	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c \
+	i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
 	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c i_edt.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
@@ -276,6 +278,9 @@ i_8255.$(OBJ): i_8255.c
 
 i_am9513.$(OBJ): i_am9513.c
 	$(COMPILE) $(CFLAGS) $(AM9513_INCLUDES) i_am9513.c
+
+i_camera_link_api.$(OBJ): i_camera_link_api.c
+	$(COMPILE) $(CFLAGS) -DIS_MX_DRIVER i_camera_link_api.c
 
 i_driverlinx_portio.$(OBJ): i_driverlinx_portio.c
 	$(COMPILE) $(CFLAGS) $(DRIVERLINX_INCLUDES) i_driverlinx_portio.c
