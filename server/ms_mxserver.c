@@ -2051,6 +2051,9 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 
 	char separators[] = MX_RECORD_FIELD_SEPARATORS;
 
+	receive_buffer_message_type = 0;
+	receive_buffer_message_id = 0;
+
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_TIMING measurement;
 

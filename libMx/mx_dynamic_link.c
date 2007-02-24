@@ -25,7 +25,7 @@
 
 /************************ Microsoft Win32 ***********************/
 
-#if defined( OS_WIN32 )
+#if defined(OS_WIN32)
 
 #include "windows.h"
 
@@ -182,7 +182,7 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /************************ dlopen() ***********************/
 
-#elif defined( OS_LINUX )
+#elif defined(OS_LINUX) || defined(OS_MACOSX)
 
 #include <stdlib.h>
 #include <errno.h>

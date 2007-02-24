@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -379,8 +379,13 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 	MX_CAMERA_LINK_API_LIST *api_ptr;
 	INT32 ( *serial_read_fn ) ( hSerRef, INT8 *, UINT32 *, UINT32 );
 	INT32 cl_status;
-	UINT32 timeout_in_ms;
+	UINT32 timeout_in_ms, cl_buffer_size;
 	mx_status_type mx_status;
+
+	if ( buffer_size == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer_size pointer passed was NULL." );
+	}
 
 	mx_status = mx_camera_link_get_pointers( cl_record,
 						&camera_link, &api_ptr, fname );
@@ -401,10 +406,12 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 
 	/* Invoke the serial_read function. */
 
+	cl_buffer_size = *buffer_size;
+
 	timeout_in_ms = mx_round( 1000.0 * timeout_in_seconds );
 
 	cl_status = (*serial_read_fn)( camera_link->serial_ref,
-					buffer, buffer_size, timeout_in_ms );
+				buffer, &cl_buffer_size, timeout_in_ms );
 
 	switch( cl_status ) {
 	case CL_ERR_NO_ERR:	/* Success. */
@@ -445,8 +452,13 @@ mx_camera_link_serial_write( MX_RECORD *cl_record,
 	MX_CAMERA_LINK_API_LIST *api_ptr;
 	INT32 ( *serial_write_fn ) ( hSerRef, INT8 *, UINT32 *, UINT32 );
 	INT32 cl_status;
-	UINT32 timeout_in_ms;
+	UINT32 timeout_in_ms, cl_buffer_size;
 	mx_status_type mx_status;
+
+	if ( buffer_size == (size_t *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The buffer_size pointer passed was NULL." );
+	}
 
 	mx_status = mx_camera_link_get_pointers( cl_record,
 						&camera_link, &api_ptr, fname );
@@ -467,10 +479,12 @@ mx_camera_link_serial_write( MX_RECORD *cl_record,
 
 	/* Invoke the serial_write function. */
 
+	cl_buffer_size = *buffer_size;
+
 	timeout_in_ms = mx_round( 1000.0 * timeout_in_seconds );
 
 	cl_status = (*serial_write_fn)( camera_link->serial_ref,
-					buffer, buffer_size, timeout_in_ms );
+				buffer, &cl_buffer_size, timeout_in_ms );
 
 	switch( cl_status ) {
 	case CL_ERR_NO_ERR:	/* Success. */

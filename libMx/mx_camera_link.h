@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,10 +19,21 @@
 
 #include "mxconfig.h"
 
-/* Here we decide whether or not Camera Link is available on this platform. */
+/* Here we decide whether or not Camera Link is available on this platform.
+ *
+ * We will only define a value of HAVE_CAMERA_LINK here if the macro has not
+ * yet been defined.
+ */
+
+/* FIXME - Need to better sort out the definition of HAVE_CAMERA_LINK. */
+
+#define HAVE_CAMERA_LINK	TRUE
 
 #if ( HAVE_EPIX_XCLIB || HAVE_EDT )
-#  define HAVE_CAMERA_LINK	TRUE
+
+#  if !defined(HAVE_CAMERA_LINK)
+#     define HAVE_CAMERA_LINK	TRUE
+#  endif
 
    /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
 
@@ -33,7 +44,11 @@
 #  endif
 
 #else
-#  define HAVE_CAMERA_LINK	FALSE
+
+#  if !defined(HAVE_CAMERA_LINK)
+#     define HAVE_CAMERA_LINK	FALSE
+#  endif
+
 #  define MX_CLCALL
 #endif
 
