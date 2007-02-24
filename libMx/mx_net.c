@@ -602,9 +602,11 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 	/* We should not be able to get here. */
 
+#if !defined(OS_SOLARIS)
 	return mx_error( MXE_FUNCTION_FAILED, fname,
 		"We got to the end of the do...while() loop, even though "
 		"this should not be possible." );
+#endif
 }
 
 /* ====================================================================== */

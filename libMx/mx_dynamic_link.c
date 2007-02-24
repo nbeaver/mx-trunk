@@ -182,7 +182,7 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /************************ dlopen() ***********************/
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 
 #include <stdlib.h>
 #include <errno.h>
