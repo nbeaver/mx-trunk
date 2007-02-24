@@ -17,6 +17,7 @@
 #define MXI_CAMERA_LINK_API_DEBUG	TRUE
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define HAVE_CAMERA_LINK		TRUE
 

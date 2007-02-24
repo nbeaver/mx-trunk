@@ -180,6 +180,151 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ dlopen() ***********************/
+
+#elif defined( OS_LINUX )
+
+#include <stdlib.h>
+#include <errno.h>
+#include <dlfcn.h>
+
+MX_EXPORT mx_status_type
+mx_dynamic_link_open_library( const char *filename,
+				MX_DYNAMIC_LIBRARY **library )
+{
+	static const char fname[] = "mx_dynamic_link_open_library()";
+
+	int saved_errno;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+
+	*library = malloc( sizeof(MX_DYNAMIC_LIBRARY) );
+
+	if ( (*library) == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_DYNAMIC_LIBRARY structure." );
+	}
+
+	(*library)->object = dlopen( filename, RTLD_LAZY );
+
+	if ( (*library)->object == NULL ) {
+
+		saved_errno = errno;
+
+		mx_free( *library );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to open dynamic library '%s'.  "
+			"Error code = %d, error message = '%s'.",
+			filename, saved_errno, strerror(saved_errno) );
+	}
+
+	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_link_close_library( MX_DYNAMIC_LIBRARY *library )
+{
+	static const char fname[] = "mx_dynamic_link_close_library()";
+
+	int os_status, saved_errno;
+
+	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+
+	if ( library->object == NULL ) {
+		mx_free( library );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
+			"passed was NULL." );
+	}
+
+	os_status = dlclose( library->object );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		mx_free( library );
+		
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to close dynamic library '%s'.  "
+			"Error code = %d, error message = '%s'.",
+			library->filename, saved_errno, strerror(saved_errno) );
+	}
+
+	mx_free( library );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
+				const char *symbol_name,
+				void **symbol_pointer,
+				mx_bool_type quiet_flag )
+{
+	static const char fname[] = "mx_dynamic_link_find_symbol()";
+
+	int saved_errno;
+
+	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+	if ( symbol_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The symbol_name pointer passed was NULL." );
+	}
+	if ( symbol_pointer == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The symbol_pointer argument passed was NULL." );
+	}
+
+	if ( library->object == NULL ) {
+		mx_free( library );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
+			"passed was NULL." );
+	}
+
+	*symbol_pointer = dlsym( library->object, symbol_name );
+
+	if ( (*symbol_pointer) == NULL ) {
+
+		saved_errno = errno;
+		
+		if ( quiet_flag ) {
+			return mx_error_quiet(MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to find symbol '%s' in dynamic library '%s'.  "
+			"Error code = %d, error message = '%s'.",
+				symbol_name, library->filename,
+				saved_errno, strerror(saved_errno) );
+		} else {
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to find symbol '%s' in dynamic library '%s'.  "
+			"Error code = %d, error message = '%s'.",
+				symbol_name, library->filename,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 #else
 
 #error Dynamic linking of libraries is not implemented for this platform.
