@@ -355,6 +355,44 @@ mx_network_send_message( MX_RECORD *server_record,
 
 /* ====================================================================== */
 
+/* Each time we send a new RPC message, we increment the message id.
+ * However, we must arrange for the message id to wrap back to 1, 
+ * whenever it goes outside the allowed range (currently 1 to 0x7fffffff).
+ */
+
+MX_EXPORT void
+mx_network_update_message_id( unsigned long *message_id )
+{
+	if ( message_id == NULL )
+		return;
+
+	(*message_id)++;
+
+	/* We must prevent two things here:
+	 * 
+	 * 1.  We must not allow the message id to increment past the largest
+	 *     allowed RPC message id and on into the range where the callback
+	 *     bit is set.
+	 *
+	 * 2.  We must not allow the message id to have a value of 0.
+	 *
+	 * For both cases, we set the message id to 1.
+	 */
+
+	if ( (*message_id) >= MX_NETWORK_MESSAGE_IS_CALLBACK ) {
+		*message_id = 1;
+	} else
+	if ( (*message_id) == 0 ) {
+		*message_id = 1;
+	}
+
+	return;
+}
+
+/* ====================================================================== */
+
+#define MX_NETWORK_MAX_ID_MISMATCH    10
+
 MX_EXPORT mx_status_type
 mx_network_wait_for_message_id( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *buffer,
@@ -372,7 +410,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	mx_bool_type message_is_available, timeout_enabled;
 	mx_bool_type debug_enabled, callback_found;
 	int comparison;
-	uint32_t received_message_id;
+	uint32_t received_message_id, difference;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -590,23 +628,101 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 
 		/* If we get here, then we have received an RPC message that
 		 * does not match the message ID that we were looking for.
-		 * This is an error.
-		 */ return mx_error( MXE_NETWORK_IO_ERROR, fname,
-		"Received unexpected message ID %#lx when we were waiting for "
-		"message ID %#lx from server '%s'.", 
-			(unsigned long) received_message_id,
-			(unsigned long) message_id,
-			server_record->name );
+		 */
 
+		/* Check for illegal message IDs. */
+
+		if ( received_message_id >= MX_NETWORK_MESSAGE_IS_CALLBACK ) {
+
+			/* Note: We should only get here if the received
+			 * message id is greater than or equal to
+			 * 0x100000000 (8 zeros) and the 0x80000000 (7 zeros)
+			 * bit is not set.  This should only be possible
+			 * if uint32_t integers actually have more than
+			 * 32 bits in them.  This may happen at some point
+			 * in the future if 64-bit or 128-bit architectures
+			 * come into being which do not directly support
+			 * 32 bit integer types in hardware.  It might
+			 * happen someday.
+			 *
+			 * A much less likely possibility is if the code is
+			 * run on a machine where the word sizes are not a
+			 * power of 2.  There were ancient systems with
+			 * 36-bit integers like the DECsystem 10 or 20,
+			 * but those are dead and gone.
+			 *
+			 * The only modern system I know of where this might
+			 * come up is a 48-bit IBM AS/400.  Now, it is very
+			 * unlikely that MX will ever be ported to an AS/400.
+			 * However, if you are successfully running MX on
+			 * an AS/400, I salute you.  Also, I would love to
+			 * hear about it if you were to do something that
+			 * unusual.
+			 * 
+			 * Anyway, this will probably never happen, but
+			 * we check for it anyway.
+			 */
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Illegal RPC message id %#lx received from server '%s'."
+			"  The maximum legal RPC message id is %#x.",
+				(unsigned long) received_message_id,
+				server_record->name,
+				MX_NETWORK_MESSAGE_IS_CALLBACK - 1 );
+		}
+
+		/*
+		 * If the received message id is less than, but close to
+		 * the expected message id, we make the hopeful assumption
+		 * that the client timed out waiting for an old message
+		 * and now that old message has arrived.  However, we are
+		 * no longer in a position to deal with the old message,
+		 * so we discard it and go back to look for the correct
+		 * message.
+		 *
+		 * In making this decision, we must take into account the
+		 * possibility that the message id recently wrapped around
+		 * to 1.
+		 */ 
+
+		/* Handle wraparound case first. */
+
+		if ( (MX_NETWORK_MESSAGE_IS_CALLBACK - received_message_id)
+			< MX_NETWORK_MAX_ID_MISMATCH )
+		{
+			difference = MX_NETWORK_MESSAGE_IS_CALLBACK
+					+ message_id - received_message_id;
+		} else {
+			difference = message_id - received_message_id;
+		}
+
+		if ( difference <= MX_NETWORK_MAX_ID_MISMATCH ) {
+			/* If the difference is small enough, we generate a
+			 * warning and go back to look again for the message
+			 * that we actually want.
+			 */
+
+			mx_warning( "Received old RPC message ID %#lx when we "
+			"were waiting for message ID %#lx from server '%s'.  "
+			"Perhaps a previous transaction with the server "
+			"timed out?  RPC message %#lx will be discarded.",
+				(unsigned long) received_message_id,
+				(unsigned long) message_id,
+				server_record->name,
+				(unsigned long) received_message_id );
+		} else {
+			/* If we have a large difference, we bomb out
+			 * with an error message.
+			 */
+
+			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Received unexpected RPC message ID %#lx when we "
+			"were waiting for message ID %#lx from server '%s'.", 
+				(unsigned long) received_message_id,
+				(unsigned long) message_id,
+				server_record->name );
+		}
 	} while (1);
-
-	/* We should not be able to get here. */
-
-#if !defined(OS_SOLARIS)
-	return mx_error( MXE_FUNCTION_FAILED, fname,
-		"We got to the end of the do...while() loop, even though "
-		"this should not be possible." );
-#endif
 }
 
 /* ====================================================================== */
@@ -1893,10 +2009,8 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -2473,10 +2587,8 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -2650,10 +2762,8 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -2842,10 +2952,8 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -3046,10 +3154,8 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -3178,10 +3284,8 @@ mx_network_get_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
@@ -3341,10 +3445,8 @@ mx_network_set_option( MX_RECORD *server_record,
 
 	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 

@@ -266,6 +266,8 @@ MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
+MX_API void mx_network_update_message_id( unsigned long *message_id );
+
 MX_API mx_status_type mx_network_wait_for_message_id( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer,
 					uint32_t message_id,

@@ -120,10 +120,8 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	header[MX_NETWORK_STATUS_CODE]    = mx_htonl(MXE_SUCCESS);
 	header[MX_NETWORK_DATA_TYPE]      = mx_htonl(MXFT_ULONG);
 
-	server->last_rpc_message_id++;
 
-	if ( server->last_rpc_message_id == 0 )
-		server->last_rpc_message_id = 1;
+	mx_network_update_message_id( &(server->last_rpc_message_id) );
 
 	header[MX_NETWORK_MESSAGE_ID] = mx_htonl(server->last_rpc_message_id);
 
