@@ -85,6 +85,17 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pccd_170170_rfield_def_ptr
 
 /*---*/
 
+#define INIT_REGISTER( i, v, r, t, n, x ) \
+	do {                                                          \
+		mx_status = mxp_pccd_170170_init_register(            \
+			pccd_170170, (i), (v), (r), (t), (n), (x) );  \
+	                                                              \
+		if ( mx_status.code != MXE_SUCCESS )                  \
+			return mx_status;                             \
+	} while(0)
+
+/*---*/
+
 static mx_status_type mxd_pccd_170170_process_function( void *record_ptr,
 							void *record_field_ptr,
 							int operation );
@@ -442,6 +453,155 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static mx_status_type
+mxp_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
+				unsigned long register_address,
+				unsigned long register_value,
+				MX_PCCD_170170_REGISTER **register_pointer )
+{
+	static const char fname[] = "mxp_pccd_170170_check_value()";
+
+	MX_PCCD_170170_REGISTER *reg;
+
+	if ( register_address < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal register address %lu.", register_address );
+	} else
+	if ( register_address >= pccd_170170->num_registers ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal register address %lu.", register_address );
+	}
+
+	reg = &(pccd_170170->register_array[register_address]);
+
+	if ( reg->read_only ) {
+		return mx_error( MXE_READ_ONLY, fname,
+			"Register %lu is read only.", register_address );
+	}
+
+	if ( register_value < reg->minimum ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested value %lu for register %lu is less than the "
+		"minimum allowed value of %lu.", register_value,
+			register_address, reg->minimum );
+	}
+
+	if ( register_value > reg->maximum ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested value %lu for register %lu is greater than the "
+		"maximum allowed value of %lu.", register_value,
+			register_address, reg->maximum );
+	}
+
+	if ( register_pointer != (MX_PCCD_170170_REGISTER **) NULL ) {
+		*register_pointer = reg;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxp_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
+				long register_index,
+				unsigned long register_value,
+				mx_bool_type read_only,
+				mx_bool_type power_of_two,
+				unsigned long minimum,
+				unsigned long maximum )
+{
+	static const char fname[] = "mxp_pccd_170170_init_register()";
+
+	MX_PCCD_170170_REGISTER *reg;
+	long register_address;
+
+	register_address = register_index - MXLV_PCCD_170170_DH_BASE;
+
+	if ( register_address < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal register address %ld.", register_address );
+	} else
+	if ( register_address >= pccd_170170->num_registers ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal register address %ld.", register_address );
+	}
+
+	reg = &(pccd_170170->register_array[register_address]);
+
+	reg->value        = register_value;
+	reg->read_only    = read_only;
+	reg->power_of_two = power_of_two;
+	reg->minimum      = minimum;
+	reg->maximum      = maximum;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
+					char *command,
+					char *response,
+					size_t max_response_length,
+					int debug_flag )
+{
+	static const char fname[] = "mxd_pccd_170170_simulated_cl_command()";
+
+	MX_PCCD_170170_REGISTER *reg;
+	unsigned long register_address, register_value, combined_value;
+	int num_items;
+	mx_status_type mx_status;
+
+	switch( command[0] ) {
+	case 'R':
+		num_items = sscanf( command, "R%lu", &register_address );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Illegal command '%s' sent to detector '%s'.",
+				command, pccd_170170->record->name );
+		}
+
+		if ( register_address >= MX_PCCD_170170_NUM_REGISTERS ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"Illegal register address %lu.",
+				register_address );
+		}
+
+		reg = &(pccd_170170->register_array[register_address]);
+
+		snprintf( response, max_response_length, "S%05lu", reg->value );
+		break;
+	case 'W':
+		num_items = sscanf( command, "W%lu", &combined_value );
+
+		if ( num_items != 1 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Illegal command '%s' sent to detector '%s'.",
+				command, pccd_170170->record->name );
+		}
+
+		register_address = combined_value / 100000;
+		register_value   = combined_value % 100000;
+
+		mx_status = mxp_pccd_170170_check_value( pccd_170170,
+							register_address,
+							register_value,
+							&reg );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			strlcpy( response, "E", max_response_length );
+		} else {
+			strlcpy( response, "X", max_response_length );
+
+			reg->value = register_value;
+		}
+		break;
+	default:
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -553,6 +713,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
 	unsigned long flags;
+	unsigned long controller_fpga_version, comm_fpga_version;
+	size_t array_size;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -742,7 +904,167 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->image_sector_array = NULL;
 
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
+	/* Initialize data structures used to specify attributes
+	 * of each detector head register.
+	 */
+
+	array_size = MX_PCCD_170170_NUM_REGISTERS
+			* sizeof(MX_PCCD_170170_REGISTER);
+
+	/* Allocate memory for the simulated register array. */
+
+	pccd_170170->num_registers = MX_PCCD_170170_NUM_REGISTERS;
+
+	pccd_170170->register_array = malloc( array_size );
+
+	if ( pccd_170170->register_array == NULL ) {
+		pccd_170170->num_registers = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate a %d element array "
+		"of simulated detector head registers for detector '%s.'",
+			MX_PCCD_170170_NUM_REGISTERS,
+			pccd_170170->record->name );
+	}
+
+	memset( pccd_170170->register_array, 0, array_size );
+
+	/* Initialize register attributes. */
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_CONTROL,
+					0x184, FALSE, FALSE, 0,  0xffff );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE,
+					4,     FALSE, FALSE, 1,  2048 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT,
+					1046,  FALSE, FALSE, 1,  8192 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE,
+					1050,  FALSE, FALSE, 1,  8192 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT,
+					1024,  FALSE, FALSE, 1,  8192 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT,
+					1024,  FALSE, FALSE, 1,  8192 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME,
+					0,     FALSE, FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+					0,     FALSE, FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
+					0,     FALSE, FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+					1,     FALSE, FALSE, 1,  128 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
+					1,     FALSE, FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+					0,     FALSE, FALSE, 0,  255 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+					0,     FALSE, FALSE, 0,  255 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
+					17010, TRUE,  FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_LINE_BINNING,
+					1,     FALSE, TRUE,  1,  128 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_PIXEL_BINNING,
+					1,     FALSE, TRUE,  1,  128 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGE_LINES,
+					1024,  FALSE, TRUE,  16, 1024 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
+					2,     FALSE, FALSE, 2,  128 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+					1,     FALSE, FALSE, 1,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
+					17010, TRUE,  FALSE, 0,  65535 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A1,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A2,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A3,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_A4,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B1,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B2,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B3,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_B4,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C1,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C2,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C3,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_C4,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D1,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D2,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D3,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D4,
+					0,     FALSE, FALSE, 0,  65534 );
+
+	/* Check to see what firmware versions are being used by
+	 * the detector head.
+	 */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
+				&controller_fpga_version );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,
+				&comm_fpga_version );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: controller FPGA version = %lu",
+			fname, controller_fpga_version ));
+	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
+			fname, comm_fpga_version ));
+#endif
+
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
@@ -930,7 +1252,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
@@ -969,10 +1291,10 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 			bytes_to_copy = image_length;
 		}
 
-#if MXD_SOFT_AREA_DETECTOR_DEBUG
+#if MXD_PCCD_170170_DEBUG
 		MX_DEBUG(-2,
 	    ("%s: Copying camera simulator image.  Image length = %lu bytes.",
-			fname, bytes_to_copy ));
+			fname, (unsigned long) bytes_to_copy ));
 #endif
 		memcpy( ad->image_frame->image_data,
 			pccd_170170->raw_frame->image_data,
@@ -1077,9 +1399,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+	long sequence_type, exp_index, exposure_steps;
+	double exposure_time;
 	mx_status_type mx_status;
 
-	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64 };
+	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
 	static int num_allowed_binsizes = sizeof( allowed_binsize )
 						/ sizeof( allowed_binsize[0] );
@@ -1126,6 +1450,56 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+
+		/* Reprogram the detector head. */
+
+		sequence_type = ad->sequence_parameters.sequence_type;
+
+		switch( sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_MULTIFRAME:
+			if ( sequence_type == MXT_SQ_ONE_SHOT ) {
+				exp_index = 0;
+			} else {
+				exp_index = 1;
+			}
+
+			exposure_time =
+			     ad->sequence_parameters.parameter_array[exp_index];
+
+			exposure_steps = mx_round( exposure_time / 0.01 );
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+					exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+		case MXT_SQ_GEOMETRICAL:
+			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Geometrical mode is not yet implemented for detector '%s'.",
+				ad->record->name );
+			break;
+		case MXT_SQ_STROBE:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Strobe mode is not supported for detector '%s'.",
+				ad->record->name );
+		case MXT_SQ_BULB:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Bulb mode is not supported for detector '%s'.",
+				ad->record->name );
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal sequence type %ld requested "
+			"for detector '%s'.",
+				sequence_type, ad->record->name );
+		}
+
+		/* Reprogram the imaging board. */
+
 		mx_status = mx_video_input_set_sequence_parameters(
 					pccd_170170->video_input_record,
 					&(ad->sequence_parameters) );
@@ -1201,25 +1575,39 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			fname, command, camera_link_record->name ));
 	}
 
-	command_length = strlen(command);
+	if ( pccd_170170->pccd_170170_flags & MXF_PCCD_170170_USE_SIMULATOR ) {
 
-	mx_status = mx_camera_link_serial_write( camera_link_record,
+		/* Talk to a simulated detector head. */
+
+		mx_status = mxd_pccd_170170_simulated_cl_command( 
+						pccd_170170, command,
+						response, max_response_length,
+						debug_flag );
+	} else {
+		/* Talk to the real detector head. */
+
+		command_length = strlen(command);
+
+		mx_status = mx_camera_link_serial_write( camera_link_record,
 						command, &command_length, -1 );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	/* Leave room in the response buffer to null terminate the response. */
+		/* Leave room in the response buffer to null terminate
+		 * the response.
+		 */
 
-	response_length = max_response_length - 1;
+		response_length = max_response_length - 1;
 
-	mx_status = mx_camera_link_serial_read( camera_link_record,
+		mx_status = mx_camera_link_serial_read( camera_link_record,
 						response, &response_length, -1);
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
-	response[response_length] = '\0';
+		response[response_length] = '\0';
+	}
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2,("%s: received '%s' from '%s'",
@@ -1239,11 +1627,12 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long register_address,
-				unsigned short *register_value )
+				unsigned long *register_value )
 {
 	static const char fname[] = "mxd_pccd_170170_read_register()";
 
-	char command[10], response[10];
+	char command[20], response[20];
+	int num_items;
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
@@ -1255,25 +1644,28 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 		"The register_value pointer passed for record '%s' was NULL.",
 			pccd_170170->record->name );
 	}
-	if ( register_address >= 100 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested register address %lu for record '%s' "
-		"is outside the allowed range of 0 to 99.",
-			register_address, pccd_170170->record->name );
+
+	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {
+		register_address -= MXLV_PCCD_170170_DH_BASE;
 	}
 
-	snprintf( command, sizeof(command), "R%02lu", register_address );
+	snprintf( command, sizeof(command), "R%03lu", register_address );
 
 	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
-					command, response, 5,
+					command, response, sizeof(response),
 					MXD_PCCD_170170_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	response[4] = '\0';
+	num_items = sscanf( response, "S%lu", register_value );
 
-	*register_value = atol( &response[1] );
+	if ( num_items != 1 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Could not find the register value in the response '%s' "
+		"by detector '%s' to the command '%s'.",
+			response, pccd_170170->record->name, command );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1281,78 +1673,59 @@ mxd_pccd_170170_read_register( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long register_address,
-				unsigned short register_value )
+				unsigned long register_value )
 {
 	static const char fname[] = "mxd_pccd_170170_write_register()";
 
-	char command[10], response[10];
+	char command[20], response[20];
+	unsigned long value_read;
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
 	}
-	if ( register_address >= 100 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested register address %lu for record '%s' "
-		"is outside the allowed range of 0 to 99.",
-			register_address, pccd_170170->record->name );
+
+	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {
+		register_address -= MXLV_PCCD_170170_DH_BASE;
 	}
-	if ( register_value >= 300 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested register value %hu for record '%s' "
-		"is outside the allowed range of 0 to 299.",
-			register_value, pccd_170170->record->name );
-	}
+
+	mx_status = mxp_pccd_170170_check_value( pccd_170170,
+					register_address, register_value, NULL);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	snprintf( command, sizeof(command),
-		"W%02lu%03hu", register_address, register_value );
+		"W%03lu%05lu", register_address, register_value );
+
+	/* Write the new value. */
 
 	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
-					command, response, 2,
-					MXD_PCCD_170170_DEBUG );
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pccd_170170_read_adc( MX_PCCD_170170 *pccd_170170,
-				unsigned long adc_address,
-				unsigned short *adc_value )
-{
-	static const char fname[] = "mxd_pccd_170170_read_adc()";
-
-	char command[10], response[10];
-	mx_status_type mx_status;
-
-	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PCCD_170170 pointer passed was NULL." );
-	}
-	if ( adc_value == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The adc_value pointer passed for record '%s' was NULL.",
-			pccd_170170->record->name );
-	}
-	if ( adc_address >= 8 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"The requested register address %lu for record '%s' "
-		"is outside the allowed range of 0 to 7.",
-			adc_address, pccd_170170->record->name );
-	}
-
-	snprintf( command, sizeof(command), "R%01lu", adc_address );
-
-	mx_status = mxd_pccd_170170_camera_link_command( pccd_170170,
-					command, response, 7,
+					command, response, sizeof(response),
 					MXD_PCCD_170170_DEBUG );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	response[4] = '\0';
+	/* Read the value back to verify that the value was set correctly. */
 
-	*adc_value = atol( &response[1] );
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+						register_address, &value_read );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Verify that the value read back matches the value sent. */
+
+	if ( value_read != register_value ) {
+		return mx_error( MXE_CONTROLLER_INTERNAL_ERROR, fname,
+		"The attempt to set '%s' register %lu to %lu "
+		"appears to have failed since the value read back "
+		"from that register is now %lu.",
+			pccd_170170->record->name, register_address,
+			register_value, value_read );
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
