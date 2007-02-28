@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -558,7 +558,7 @@ mxi_mardtb_raw_read_status_parameter( MX_MARDTB *mardtb,
 		return mx_status;
 
 	if ( move_in_progress ) {
-		return mx_error_quiet( MXE_NOT_READY, fname,
+		return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
 		"MarDTB motor '%s' belonging to MarDTB '%s' "
 		"is currently in motion, "
 		"so we cannot read the value of parameter %ld",

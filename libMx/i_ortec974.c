@@ -11,12 +11,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_ORTEC974_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -33,13 +35,13 @@
 #include "i_ortec974.h"
 
 MX_RECORD_FUNCTION_LIST mxi_ortec974_record_function_list = {
-	mxi_ortec974_initialize_type,
+	NULL,
 	mxi_ortec974_create_record_structures,
 	mxi_ortec974_finish_record_initialization,
-	mxi_ortec974_delete_record,
 	NULL,
-	mxi_ortec974_read_parms_from_hardware,
-	mxi_ortec974_write_parms_to_hardware,
+	NULL,
+	NULL,
+	NULL,
 	mxi_ortec974_open,
 	mxi_ortec974_close
 };
@@ -66,17 +68,7 @@ long mxi_ortec974_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_ortec974_rfield_def_ptr
 			= &mxi_ortec974_record_field_defaults[0];
 
-#define MXI_ORTEC974_DEBUG		FALSE
-
 /*==========================*/
-
-MX_EXPORT mx_status_type
-mxi_ortec974_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_ortec974_create_record_structures( MX_RECORD *record )
@@ -118,7 +110,8 @@ mxi_ortec974_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxi_ortec974_finish_record_initialization( MX_RECORD *record )
 {
-	static const char fname[] = "mxi_ortec974_finish_record_initialization()";
+	static const char fname[] =
+			"mxi_ortec974_finish_record_initialization()";
 
 	MX_ORTEC974 *ortec974;
 	MX_RECORD *interface_record;
@@ -178,44 +171,13 @@ mxi_ortec974_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_ortec974_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_ortec974_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_ortec974_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_ortec974_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_ortec974_open()";
 
 	MX_ORTEC974 *ortec974;
 	MX_RECORD *interface_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG(2, ("mxi_ortec974_open() invoked."));
 
@@ -247,62 +209,62 @@ mxi_ortec974_open( MX_RECORD *record )
 		 * computer sends to it.
 		 */
 
-		status = mx_rs232_putline( interface_record,
+		mx_status = mx_rs232_putline( interface_record,
 				"COMPUTER", NULL, MXI_ORTEC974_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		mx_msleep(500);
 
 		/* Send an XON character (ctrl-Q) to the 974. */
 
-		status = mx_rs232_putchar( interface_record,
+		mx_status = mx_rs232_putchar( interface_record,
 					'\021', MXF_232_WAIT );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* Throw away any characters that the 974 may have already
 		 * sent to us.
 		 */
 
-		status = mx_rs232_discard_unread_input( interface_record,
+		mx_status = mx_rs232_discard_unread_input( interface_record,
 							MXI_ORTEC974_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		break;
 
 	case MXI_GPIB:
 		/* Open a connection to this GPIB device's address. */
 
-		status = mx_gpib_open_device( interface_record,
+		mx_status = mx_gpib_open_device( interface_record,
 					ortec974->module_interface.address );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		/* If the 974 was just powered on, it will have generated
 		 * a response record.  We need to get rid of this record
 		 * before we can proceed.
 		 */
 
-		status = mx_gpib_selective_device_clear( interface_record,
+		mx_status = mx_gpib_selective_device_clear( interface_record,
 					ortec974->module_interface.address );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #if 0
 		/* Do a remote enable. */
 
-		status = mx_gpib_remote_enable( interface_record,
+		mx_status = mx_gpib_remote_enable( interface_record,
 					ortec974->module_interface->address );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 #endif
 		break;
@@ -317,26 +279,26 @@ mxi_ortec974_open( MX_RECORD *record )
 
 	/* Just in case the timer is running, tell it to stop. */
 
-	status = mxi_ortec974_command( ortec974, "STOP",
+	mx_status = mxi_ortec974_command( ortec974, "STOP",
 					NULL, 0, NULL, 0, MXI_ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Configure the 974 to only send counter values when requested. */
 
-	status = mxi_ortec974_command( ortec974, "DISABLE_ALARM",
+	mx_status = mxi_ortec974_command( ortec974, "DISABLE_ALARM",
 					NULL, 0, NULL, 0, MXI_ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Put the 974 into remote control mode. */
 
-	status = mxi_ortec974_command( ortec974, "ENABLE_REMOTE",
+	mx_status = mxi_ortec974_command( ortec974, "ENABLE_REMOTE",
 					NULL, 0, NULL, 0, MXI_ORTEC974_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -345,7 +307,7 @@ mxi_ortec974_close( MX_RECORD *record )
 	static const char fname[] = "mxi_ortec974_close()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -361,18 +323,18 @@ mxi_ortec974_close( MX_RECORD *record )
 
 	/* Stop the counters in case they are running. */
 
-	status = mxi_ortec974_command( ortec974, "STOP",
+	mx_status = mxi_ortec974_command( ortec974, "STOP",
 					NULL, 0, NULL, 0, MXI_ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Put the 974 into local control mode. */
 
-	status = mxi_ortec974_command( ortec974, "ENABLE_LOCAL",
+	mx_status = mxi_ortec974_command( ortec974, "ENABLE_LOCAL",
 					NULL, 0, NULL, 0, MXI_ORTEC974_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -381,7 +343,7 @@ mxi_ortec974_getchar( MX_GENERIC *generic, char *c, int flags )
 	static const char fname[] = "mxi_ortec974_getchar()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -397,14 +359,14 @@ mxi_ortec974_getchar( MX_GENERIC *generic, char *c, int flags )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_getchar(
+		mx_status = mx_rs232_getchar(
 			ortec974->module_interface.record, c, flags );
 
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -413,7 +375,7 @@ mxi_ortec974_putchar( MX_GENERIC *generic, char c, int flags )
 	static const char fname[] = "mxi_ortec974_putchar()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -429,14 +391,14 @@ mxi_ortec974_putchar( MX_GENERIC *generic, char c, int flags )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_putchar(
+		mx_status = mx_rs232_putchar(
 			ortec974->module_interface.record, c, flags );
 
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -445,7 +407,7 @@ mxi_ortec974_read( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_ortec974_read()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -461,14 +423,14 @@ mxi_ortec974_read( MX_GENERIC *generic, void *buffer, size_t count )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_read( ortec974->module_interface.record,
+		mx_status = mx_rs232_read( ortec974->module_interface.record,
 						buffer, count, NULL, 0 );
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -477,7 +439,7 @@ mxi_ortec974_write( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_ortec974_write()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -493,14 +455,14 @@ mxi_ortec974_write( MX_GENERIC *generic, void *buffer, size_t count )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_write(
+		mx_status = mx_rs232_write(
 		ortec974->module_interface.record, buffer, count, NULL, 0 );
 
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -510,7 +472,7 @@ mxi_ortec974_num_input_bytes_available( MX_GENERIC *generic,
 	static const char fname[] = "mxi_ortec974_num_input_bytes_available()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -526,7 +488,7 @@ mxi_ortec974_num_input_bytes_available( MX_GENERIC *generic,
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-	status = mx_rs232_num_input_bytes_available(
+	mx_status = mx_rs232_num_input_bytes_available(
 			ortec974->module_interface.record,
 			num_input_bytes_available );
 
@@ -534,7 +496,7 @@ mxi_ortec974_num_input_bytes_available( MX_GENERIC *generic,
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -543,7 +505,7 @@ mxi_ortec974_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_ortec974_discard_unread_input()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -559,14 +521,14 @@ mxi_ortec974_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_discard_unread_input(
+		mx_status = mx_rs232_discard_unread_input(
 			ortec974->module_interface.record, debug_flag );
 
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -575,7 +537,7 @@ mxi_ortec974_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_ortec974_discard_unwritten_output()";
 
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -591,14 +553,14 @@ mxi_ortec974_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 
 	if ( ortec974->module_interface.record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_discard_unwritten_output(
+		mx_status = mx_rs232_discard_unwritten_output(
 			ortec974->module_interface.record, debug_flag );
 
 	} else {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 			"%s is not yet implemented.", fname );
 	}
-	return status;
+	return mx_status;
 }
 
 /* === Functions specific to this driver. === */
@@ -613,7 +575,7 @@ mxi_ortec974_wait_for_response_line( MX_ORTEC974 *ortec974,
 
 	MX_GENERIC *generic;
 	int i, max_attempts, sleep_ms;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	generic = (MX_GENERIC *) ortec974->record->record_class_struct;
 
@@ -629,10 +591,10 @@ mxi_ortec974_wait_for_response_line( MX_ORTEC974 *ortec974,
 				fname, ortec974->record->name ));
 		}
 
-		status = mxi_ortec974_getline( ortec974, buffer,
+		mx_status = mxi_ortec974_getline( ortec974, buffer,
 				buffer_length, debug_flag );
 
-		if ( status.code == MXE_SUCCESS ) {
+		if ( mx_status.code == MXE_SUCCESS ) {
 
 			/* If we got a zero length string, something
 			 * went wrong.
@@ -650,18 +612,18 @@ mxi_ortec974_wait_for_response_line( MX_ORTEC974 *ortec974,
 
 			break;
 
-		} else if ( status.code != MXE_NOT_READY ) {
-			return mx_error( status.code, fname,
+		} else if ( mx_status.code != MXE_NOT_READY ) {
+			return mx_error( mx_status.code, fname,
 			"Error reading response line from Ortec 974." );
 		}
 		mx_msleep(sleep_ms);
 	}
 
 	if ( i >= max_attempts ) {
-		status = mxi_ortec974_discard_unread_input(
+		mx_status = mxi_ortec974_discard_unread_input(
 				generic, debug_flag );
 
-		if ( status.code != MXE_SUCCESS ) {
+		if ( mx_status.code != MXE_SUCCESS ) {
 			mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Failed at attempt to discard unread input in buffer for record '%s'",
 					ortec974->record->name );
@@ -685,7 +647,7 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 	char percent_response[14];
 	char *buffer;
 	int saw_response_line, buffer_length;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( ortec974 == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -699,10 +661,10 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 
 	/* === Send the command string. === */
 
-	status = mxi_ortec974_putline( ortec974, command, debug_flag );
+	mx_status = mxi_ortec974_putline( ortec974, command, debug_flag );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* The regular response line and the percent response line may
 	 * come back in any order, so we cannot assume a particular order.
@@ -720,11 +682,11 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 		buffer_length = response_buffer_length;
 	}
 
-	status = mxi_ortec974_wait_for_response_line( ortec974, buffer,
+	mx_status = mxi_ortec974_wait_for_response_line( ortec974, buffer,
 					buffer_length, debug_flag );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( buffer[0] == '%' ) {
 		/* Got a percent response line. */
@@ -765,12 +727,12 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 
 		/* There must still be a percent response line to read. */
 
-		status = mxi_ortec974_wait_for_response_line( ortec974,
+		mx_status = mxi_ortec974_wait_for_response_line( ortec974,
 				percent_response, sizeof(percent_response)-1,
 				debug_flag );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( percent_response[0] == '%' ) {
 			/* Got a percent response line. */
@@ -798,12 +760,13 @@ mxi_ortec974_command( MX_ORTEC974 *ortec974, char *command,
 		if ( response != NULL ) {
 			/* Otherwise, still have to get a line of data. */
 
-			status = mxi_ortec974_wait_for_response_line( ortec974,
+			mx_status = mxi_ortec974_wait_for_response_line(
+					ortec974,
 					response, response_buffer_length,
 					debug_flag );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 	return MX_SUCCESSFUL_RESULT;
@@ -816,16 +779,17 @@ mxi_ortec974_getline( MX_ORTEC974 *ortec974,
 	static const char fname[] = "mxi_ortec974_getline()";
 
 	MX_INTERFACE *interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	interface = &(ortec974->module_interface);
 
 	if ( interface->record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_getline(interface->record,
+		mx_status = mx_rs232_getline(interface->record,
 				buffer, buffer_length, NULL, 0 );
 	} else {
-		status = mx_gpib_getline(interface->record, interface->address,
+		mx_status = mx_gpib_getline(
+				interface->record, interface->address,
 				buffer, buffer_length, NULL, 0 );
 	}
 
@@ -833,7 +797,7 @@ mxi_ortec974_getline( MX_ORTEC974 *ortec974,
 		MX_DEBUG(-2, ("%s: buffer = '%s'", fname, buffer) );
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -842,7 +806,7 @@ mxi_ortec974_putline( MX_ORTEC974 *ortec974, char *buffer, int debug_flag )
 	static const char fname[] = "mxi_ortec974_putline()";
 
 	MX_INTERFACE *interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( debug_flag ) {
 		MX_DEBUG(-2, ("%s: buffer = '%s'", fname, buffer));
@@ -852,13 +816,14 @@ mxi_ortec974_putline( MX_ORTEC974 *ortec974, char *buffer, int debug_flag )
 
 	if ( interface->record->mx_class == MXI_RS232 ) {
 
-		status = mx_rs232_putline(interface->record,
+		mx_status = mx_rs232_putline(interface->record,
 				buffer, NULL, 0 );
 	} else {
-		status = mx_gpib_putline(interface->record, interface->address,
+		mx_status = mx_gpib_putline(
+				interface->record, interface->address,
 				buffer, NULL, 0 );
 	}
 
-	return status;
+	return mx_status;
 }
 

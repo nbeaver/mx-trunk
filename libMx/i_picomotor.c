@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2006 Illinois Institute of Technology
+ * Copyright 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -772,7 +772,7 @@ mxi_picomotor_getline( MX_PICOMOTOR_CONTROLLER *picomotor_controller,
 		MX_DEBUG(-2,("%s: > character seen.", fname));
 #endif
 		if ( command_flags & MXF_PICOMOTOR_TERMINATE_ON_STATUS_CHAR ) {
-			return mx_error_quiet( MXE_END_OF_DATA, fname,
+			return mx_error( (MXE_END_OF_DATA | MXE_QUIET), fname,
 				"No more output available." );
 		}
 		break;

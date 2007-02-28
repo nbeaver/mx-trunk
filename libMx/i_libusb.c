@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004 Illinois Institute of Technology
+ * Copyright 2004, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -509,6 +509,7 @@ mxi_libusb_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 	unsigned long vendor_id, product_id;
 	int order_number, num_matching_devices_found, product_id_in_use;
 	int quiet_flag;
+	long mx_error_code;
 	char *serial_number;
 	mx_status_type mx_status;
 
@@ -624,41 +625,38 @@ mxi_libusb_find_device( MX_USB *usb, MX_USB_DEVICE **usb_device )
 	if ( product_id_in_use ) {
 		if ( usb->find_type == MXF_USB_FIND_TYPE_ORDER ) {
 			if ( quiet_flag ) {
-				return mx_error_quiet( MXE_NOT_FOUND, fname,
-			"The requested device (vendor %#lx, product %#lx) "
-			"number %d for USB record '%s' was not found.",
-				vendor_id, product_id, order_number,
-				usb->record->name);
+				mx_error_code = (MXE_NOT_FOUND | MXE_QUIET);
 			} else {
-				return mx_error( MXE_NOT_FOUND, fname,
+				mx_error_code = MXE_NOT_FOUND;
+			}
+
+			return mx_error( mx_error_code, fname,
 			"The requested device (vendor %#lx, product %#lx) "
 			"number %d for USB record '%s' was not found.",
 				vendor_id, product_id, order_number,
 				usb->record->name);
-			}
 		} else {
 			if ( quiet_flag ) {
-				return mx_error_quiet( MXE_NOT_FOUND, fname,
-			"The requested device (vendor %#lx, product %#lx) "
-			"for USB record '%s' was not found.",
-				vendor_id, product_id, usb->record->name );
+				mx_error_code = (MXE_NOT_FOUND | MXE_QUIET);
 			} else {
-				return mx_error( MXE_NOT_FOUND, fname,
+				mx_error_code = MXE_NOT_FOUND;
+			}
+
+			return mx_error( mx_error_code, fname,
 			"The requested device (vendor %#lx, product %#lx) "
 			"for USB record '%s' was not found.",
 				vendor_id, product_id, usb->record->name );
-			}
 		}
 	} else {
 		if ( quiet_flag ) {
-			return mx_error_quiet( MXE_NOT_FOUND, fname,
-		"The requested device for USB record '%s' was not found.",
-			usb->record->name );
+			mx_error_code = (MXE_NOT_FOUND | MXE_QUIET);
 		} else {
-			return mx_error( MXE_NOT_FOUND, fname,
+			mx_error_code = MXE_NOT_FOUND;
+		}
+
+		return mx_error( mx_error_code, fname,
 		"The requested device for USB record '%s' was not found.",
 			usb->record->name );
-		}
 	}
 }
 

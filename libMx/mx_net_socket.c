@@ -156,7 +156,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 		switch( bytes_received ) {
 		case 0:
-			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
+			return mx_error(
+			(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
 				"Network connection closed unexpectedly." );
 			break;
 		case MX_SOCKET_ERROR:
@@ -165,10 +166,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			switch( saved_errno ) {
 			case ECONNRESET:
 			case ECONNABORTED:
-				return mx_error_quiet(
-					MXE_NETWORK_CONNECTION_LOST, fname,
-			"Connection lost.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+				return mx_error(
+				(MXE_NETWORK_CONNECTION_LOST | MXE_QUIET),fname,
+					"Connection lost.  "
+					"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 
 				break;
 			case EAGAIN:
@@ -200,17 +203,20 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 					continue;
 				} else {
-					return mx_error_quiet(
-						MXE_TIMED_OUT, fname,
-    "Timed out after waiting %g seconds to read from the MX network socket.",
-							timeout );
+					return mx_error(
+					(MXE_TIMED_OUT | MXE_QUIET), fname,
+					"Timed out after waiting %g seconds to "
+					"read from the MX network socket.",
+						timeout );
 				}
 				break;
 			default:
-				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
-						fname,
-"Error receiving header from remote host.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+				return mx_error(
+				(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
+				"Error receiving header from remote host.  "
+				"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 
 				break;
 			}
@@ -233,8 +239,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 #endif
 
 	if ( magic_value != MX_NETWORK_MAGIC_VALUE ) {
-		return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
-		"Wrong magic number %#lx in received message.",
+		return mx_error( (MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
+			"Wrong magic number %#lx in received message.",
 			(unsigned long) magic_value );
 	}
 
@@ -296,7 +302,8 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 		switch( bytes_received ) {
 		case 0:
-			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
+			return mx_error(
+				(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
 				"Network connection closed unexpectedly." );
 			break;
 		case MX_SOCKET_ERROR:
@@ -305,11 +312,12 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 			switch( saved_errno ) {
 			case ECONNRESET:
 			case ECONNABORTED:
-				return mx_error_quiet(
-					MXE_NETWORK_CONNECTION_LOST, fname,
-			"Connection lost.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
-
+				return mx_error(
+				(MXE_NETWORK_CONNECTION_LOST | MXE_QUIET),fname,
+				"Connection lost.  "
+				"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 				break;
 			case EAGAIN:
 
@@ -340,18 +348,20 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 
 					continue;
 				} else {
-					return mx_error_quiet(
-						MXE_TIMED_OUT, fname,
-    "Timed out after waiting %g seconds to read from the MX network socket.",
-							timeout );
+					return mx_error(
+					(MXE_TIMED_OUT | MXE_QUIET), fname,
+					"Timed out after waiting %g seconds to "
+					"read from the MX network socket.",
+						timeout );
 				}
 				break;
 			default:
-				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
-						fname,
-			"Error receiving message body from remote host.  "
-			"Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+				return mx_error(
+				(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
+				"Error receiving message body from "
+				"remote host.  Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 
 				break;
 			}
@@ -502,10 +512,12 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 			switch( saved_errno ) {
 			case ECONNRESET:
 			case ECONNABORTED:
-				return mx_error_quiet(
-					MXE_NETWORK_CONNECTION_LOST, fname,
-			"Connection lost.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+				return mx_error(
+				(MXE_NETWORK_CONNECTION_LOST| MXE_QUIET), fname,
+				"Connection lost.  "
+				"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 				break;
 			case EAGAIN:
 
@@ -536,18 +548,21 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 
 					continue;
 				} else {
-					return mx_error_quiet(
-					MXE_TIMED_OUT, fname,
-	"Timed out after waiting %g seconds to write to MX network socket %d.",
-							timeout,
-							mx_socket->socket_fd );
+					return mx_error(
+					(MXE_TIMED_OUT | MXE_QUIET), fname,
+					"Timed out after waiting %g seconds to "
+					"write to MX network socket %d.",
+						timeout,
+						mx_socket->socket_fd );
 				}
 				break;
 			default:
-				return mx_error_quiet( MXE_NETWORK_IO_ERROR,
-						fname,
-	"Error sending to remote host.  Errno = %d, error text = '%s'",
-				saved_errno, mx_socket_strerror(saved_errno));
+				return mx_error(
+				(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
+				"Error sending to remote host.  "
+				"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno) );
 				break;
 			}
 			break;

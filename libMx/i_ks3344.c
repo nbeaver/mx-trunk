@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,10 +39,10 @@ static mx_status_type mxi_ks3344_write_parms( MX_RS232 *rs232 );
 
 
 MX_RECORD_FUNCTION_LIST mxi_ks3344_record_function_list = {
-	mxi_ks3344_initialize_type,
+	NULL,
 	mxi_ks3344_create_record_structures,
 	mxi_ks3344_finish_record_initialization,
-	mxi_ks3344_delete_record,
+	NULL,
 	NULL,
 	mxi_ks3344_read_parms_from_hardware,
 	mxi_ks3344_write_parms_to_hardware,
@@ -76,14 +76,6 @@ MX_RECORD_FIELD_DEFAULTS *mxi_ks3344_rfield_def_ptr
 			= &mxi_ks3344_record_field_defaults[0];
 
 /* ---- */
-
-MX_EXPORT mx_status_type
-mxi_ks3344_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 MX_EXPORT mx_status_type
 mxi_ks3344_create_record_structures( MX_RECORD *record )
@@ -159,25 +151,6 @@ mxi_ks3344_finish_record_initialization( MX_RECORD *record )
 	record->record_flags |= ( ~MXF_REC_OPEN );
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_ks3344_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type
@@ -340,12 +313,12 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 			 * whether there is input ready on the RS-232
 			 * port.  Normally, it is not desirable to 
 			 * broadcast a message to the world when this
-			 * fails, so we use mx_error_quiet() rathen
-			 * than mx_error().
+			 * fails, so we add the MXE_QUIET flag to the
+			 * error code.
 			 */
 
 			if ( rs232->transfer_flags & MXF_232_NOWAIT ) {
-			    return mx_error_quiet( MXE_NOT_READY, fname,
+			    return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
 			      "Failed to read a character from port '%s'",
 			      rs232->record->name );
 
@@ -356,8 +329,8 @@ mxi_ks3344_getchar( MX_RS232 *rs232, char *c )
 
 						/* Do nothing. */
 				} else {
-				    return mx_error_quiet(
-					MXE_NOT_READY, fname,
+				    return mx_error(
+					(MXE_NOT_READY | MXE_QUIET), fname,
 	"Read attempt from port '%s' exceeded maximum retry count = %ld",
 					rs232->record->name,
 					ks3344->max_read_retries );

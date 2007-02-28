@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -297,7 +297,7 @@ mxi_win32com_getchar( MX_RS232 *rs232, char *c )
 			return status;
 
 		if ( rs232->num_input_bytes_available == 0 ) {
-			return mx_error_quiet( MXE_NOT_READY, fname,
+			return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
 				"Failed to read a character from port '%s'.",
 				rs232->record->name );
 		}
@@ -327,11 +327,11 @@ mxi_win32com_getchar( MX_RS232 *rs232, char *c )
 	/* mxi_win32com_getchar() is often used to test whether there is
 	 * input ready on the COM port.  Normally, it is not desireable
 	 * to broadcast a message to the world when this fails, so we
-	 * use mx_error_quiet() rather than mx_error().
+	 * add the MXE_QUIET flag to the error code.
 	 */
 
 	if ( num_chars != 1 ) {
-		return mx_error_quiet( MXE_NOT_READY, fname,
+		return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
 			"Failed to read a character from port '%s'.",
 			rs232->record->name );
 	}

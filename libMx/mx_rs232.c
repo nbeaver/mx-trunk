@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -384,6 +384,7 @@ mx_rs232_getchar_with_timeout( MX_RECORD *record,
 	MX_RS232 *rs232;
 	MX_CLOCK_TICK start_tick, finish_tick, current_tick;
 	MX_CLOCK_TICK timeout_clock_ticks;
+	long error_code;
 	mx_status_type mx_status;
 
 	mx_status = mx_rs232_get_pointers( record, &rs232, NULL, fname );
@@ -431,14 +432,14 @@ mx_rs232_getchar_with_timeout( MX_RECORD *record,
 	}
 
 	if ( rs232->rs232_flags & MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES ) {
-		return mx_error_quiet( MXE_TIMED_OUT, fname,
-		"Read from RS-232 port '%s' timed out after %g seconds.",
-			record->name, timeout_in_seconds );
+		error_code = (MXE_TIMED_OUT | MXE_QUIET);
 	} else {
-		return mx_error( MXE_TIMED_OUT, fname,
-		"Read from RS-232 port '%s' timed out after %g seconds.",
-			record->name, timeout_in_seconds );
+		error_code = MXE_TIMED_OUT;
 	}
+
+	return mx_error( error_code, fname,
+	"Read from RS-232 port '%s' timed out after %g seconds.",
+			record->name, timeout_in_seconds );
 }
 		
 MX_EXPORT mx_status_type
@@ -594,6 +595,7 @@ mx_rs232_getline( MX_RECORD *record,
 	int i, terminators_seen, start_of_terminator, buffered_io;
 	char c;
 	int do_timeout, tick_comparison;
+	long error_code;
 	unsigned long num_bytes_available;
 	MX_CLOCK_TICK timeout_clock_ticks, current_tick, finish_tick;
 	mx_status_type mx_status;
@@ -657,15 +659,16 @@ mx_rs232_getline( MX_RECORD *record,
 			    	    if ( rs232->rs232_flags &
 				      MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES )
 				    {
-					return mx_error_quiet(
-						MXE_TIMED_OUT, fname,
-		"Read from RS-232 port '%s' timed out after %g seconds.",
-						record->name, rs232->timeout );
+					error_code = 
+						(MXE_TIMED_OUT | MXE_QUIET);
 				    } else {
-					return mx_error( MXE_TIMED_OUT, fname,
-		"Read from RS-232 port '%s' timed out after %g seconds.",
-						record->name, rs232->timeout );
+					error_code = MXE_TIMED_OUT;
 				    }
+
+				    return mx_error( error_code, fname,
+					"Read from RS-232 port '%s' timed out "
+					"after %g seconds.",
+						record->name, rs232->timeout );
 				}
 
 				mx_status = mx_rs232_num_input_bytes_available(

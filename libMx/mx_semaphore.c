@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -2358,7 +2358,8 @@ mx_posix_sem_open( MX_SEMAPHORE *semaphore,
 				"Could not connect to semaphore '%s'.",
 					semaphore->name );
 		case EEXIST:
-			return mx_error_quiet( MXE_ALREADY_EXISTS, fname,
+			return mx_error(
+				(MXE_ALREADY_EXISTS | MXE_QUIET), fname,
 				"Semaphore '%s' already exists, but you "
 				"requested exclusive access.",
 					semaphore->name );

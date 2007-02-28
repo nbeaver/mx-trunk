@@ -315,7 +315,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 		port_number = server_socket_struct->u.tcp.port;
 
 		if ( port_number < 0 ) {
-			return mx_error_quiet( MXE_NOT_FOUND, fname,
+			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 		"No TCP/IP socket number was specified for the server." );
 		}
 
@@ -342,7 +342,7 @@ mxsrv_mx_server_socket_init( MX_RECORD *list_head_record,
 		pathname = server_socket_struct->u.unix_domain.pathname;
 
 		if ( strlen( pathname ) == 0 ) {
-			return mx_error_quiet( MXE_NOT_FOUND, fname,
+			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 		"No Unix domain socket name was specified for the server." );
 		}
 

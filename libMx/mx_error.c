@@ -7,7 +7,7 @@
  *
  *----------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -20,6 +20,7 @@
 #include <errno.h>
 
 #include "mx_util.h"
+#include "mx_stdint.h"
 
 typedef struct {
 	int error_code;
@@ -100,10 +101,25 @@ mx_error( long error_code, const char *location, char *format, ... )
 	char buffer1[2500];
 	char buffer2[2500];
 	long i;
+	mx_bool_type quiet_flag;
 
 	va_start(args, format);
 	vsnprintf(buffer1, sizeof(buffer1), format, args);
 	va_end(args);
+
+	/* Check to see if we have been asked to suppress
+	 * output to the user.
+	 */
+
+	if ( error_code & MXE_QUIET ) {
+		quiet_flag = TRUE;
+	} else {
+		quiet_flag = FALSE;
+	}
+
+	/* Clear the quiet bit in the error code. */
+
+	error_code &= ( ~MXE_QUIET );
 
 	/* Fill in the status structure. */
 
@@ -121,6 +137,10 @@ mx_error( long error_code, const char *location, char *format, ... )
 	status_struct.message = &mx_error_message_buffer[0];
 
 #endif /* USE_STACK_BASED_MX_ERROR */
+
+	if ( quiet_flag ) {
+		return status_struct;
+	}
 
 	/* Format the optional error message. */
 
@@ -141,42 +161,6 @@ mx_error( long error_code, const char *location, char *format, ... )
 
 		(*mx_error_output_function)( buffer2 );
 	}
-	return status_struct;
-}
-
-/* mx_error_quiet() is just like mx_error() except that it doesn't
- * invoke *mx_error_output_function().
- */
-
-MX_EXPORT mx_status_type
-mx_error_quiet( long error_code, const char *location, char *format, ... )
-{
-	mx_status_type status_struct;
-
-	va_list args;
-	char buffer1[2500];
-
-	va_start(args, format);
-	vsnprintf(buffer1, sizeof(buffer1), format, args);
-	va_end(args);
-
-	/* Fill in the status structure. */
-
-	status_struct.code = error_code;
-	status_struct.location = location;
-
-#if USE_STACK_BASED_MX_ERROR
-
-	strlcpy( status_struct.message, buffer1, MXU_ERROR_MESSAGE_LENGTH );
-
-#else /* not USE_STACK_BASED_MX_ERROR */
-
-	strlcpy( mx_error_message_buffer, buffer1, MXU_ERROR_MESSAGE_LENGTH );
-
-	status_struct.message = &mx_error_message_buffer[0];
-
-#endif /* USE_STACK_BASED_MX_ERROR */
-
 	return status_struct;
 }
 

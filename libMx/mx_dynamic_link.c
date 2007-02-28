@@ -129,6 +129,7 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 {
 	static const char fname[] = "mx_dynamic_link_find_symbol()";
 
+	long mx_error_code;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
 
@@ -163,18 +164,17 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 			message_buffer, sizeof(message_buffer) );
 
 		if ( quiet_flag ) {
-			return mx_error_quiet(MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to find symbol '%s' in dynamic library '%s'.  "
-			"Win32 error code = %ld, error message = '%s'.",
-				symbol_name, library->filename,
-				last_error_code, message_buffer );
+			mx_error_code =
+				(MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
 		} else {
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to find symbol '%s' in dynamic library '%s'.  "
-			"Win32 error code = %ld, error message = '%s'.",
+			mx_error_code = MXE_OPERATING_SYSTEM_ERROR;
+		}
+
+		return mx_error( mx_error_code, fname,
+		"Unable to find symbol '%s' in dynamic library '%s'.  "
+		"Win32 error code = %ld, error message = '%s'.",
 				symbol_name, library->filename,
 				last_error_code, message_buffer );
-		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -279,6 +279,7 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	static const char fname[] = "mx_dynamic_link_find_symbol()";
 
 	int saved_errno;
+	long error_code;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -308,18 +309,16 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 		saved_errno = errno;
 		
 		if ( quiet_flag ) {
-			return mx_error_quiet(MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to find symbol '%s' in dynamic library '%s'.  "
-			"Error code = %d, error message = '%s'.",
-				symbol_name, library->filename,
-				saved_errno, strerror(saved_errno) );
+			error_code = (MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
 		} else {
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			error_code = MXE_OPERATING_SYSTEM_ERROR;
+		}
+
+		return mx_error( error_code, fname,
 			"Unable to find symbol '%s' in dynamic library '%s'.  "
 			"Error code = %d, error message = '%s'.",
 				symbol_name, library->filename,
 				saved_errno, strerror(saved_errno) );
-		}
 	}
 
 	return MX_SUCCESSFUL_RESULT;

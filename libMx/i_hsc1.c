@@ -8,12 +8,14 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2004-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2004-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXI_HSC1_INTERFACE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,10 +34,10 @@ MX_RECORD_FUNCTION_LIST mxi_hsc1_record_function_list = {
 	mxi_hsc1_initialize_type,
 	mxi_hsc1_create_record_structures,
 	mxi_hsc1_finish_record_initialization,
-	mxi_hsc1_delete_record,
 	NULL,
-	mxi_hsc1_read_parms_from_hardware,
-	mxi_hsc1_write_parms_to_hardware,
+	NULL,
+	NULL,
+	NULL,
 	mxi_hsc1_open,
 	mxi_hsc1_close,
 	mxi_hsc1_resynchronize,
@@ -62,8 +64,6 @@ long mxi_hsc1_num_record_fields
 
 MX_RECORD_FIELD_DEFAULTS *mxi_hsc1_rfield_def_ptr
 			= &mxi_hsc1_record_field_defaults[0];
-
-#define MXI_HSC1_INTERFACE_DEBUG	FALSE
 
 /* ==== Private function for the driver's use only. ==== */
 
@@ -109,7 +109,7 @@ mxi_hsc1_initialize_type( long type )
 	long num_record_fields;
 	long num_modules_field_index;
 	long num_modules_varargs_cookie;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	driver = mx_get_driver_by_type( type );
 
@@ -121,25 +121,25 @@ mxi_hsc1_initialize_type( long type )
 	record_field_defaults = *(driver->record_field_defaults_ptr);
 	num_record_fields = *(driver->num_record_fields);
 
-	status = mx_find_record_field_defaults_index(
+	mx_status = mx_find_record_field_defaults_index(
 			record_field_defaults, num_record_fields,
 			"num_modules", &num_modules_field_index );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_construct_varargs_cookie(
+	mx_status = mx_construct_varargs_cookie(
 		num_modules_field_index, 0, &num_modules_varargs_cookie );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_find_record_field_defaults(
+	mx_status = mx_find_record_field_defaults(
 			record_field_defaults, num_record_fields,
 			"module_id", &field );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	field->dimension[0] = num_modules_varargs_cookie;
 
@@ -230,44 +230,13 @@ mxi_hsc1_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxi_hsc1_delete_record( MX_RECORD *record )
-{
-        if ( record == NULL ) {
-                return MX_SUCCESSFUL_RESULT;
-        }
-        if ( record->record_type_struct != NULL ) {
-                free( record->record_type_struct );
-
-                record->record_type_struct = NULL;
-        }
-        if ( record->record_class_struct != NULL ) {
-                free( record->record_class_struct );
-
-                record->record_class_struct = NULL;
-        }
-        return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_hsc1_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxi_hsc1_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxi_hsc1_open( MX_RECORD *record )
 {
 	static const char fname[] = "mxi_hsc1_open()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	MX_RS232 *rs232;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -276,10 +245,10 @@ mxi_hsc1_open( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( record, &hsc1_interface, fname );
+	mx_status = mxi_hsc1_get_pointers( record, &hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( hsc1_interface->rs232_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
@@ -334,9 +303,9 @@ mxi_hsc1_open( MX_RECORD *record )
 			rs232->write_terminators );
 	}
 
-	status = mxi_hsc1_resynchronize( record );
+	mx_status = mxi_hsc1_resynchronize( record );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -345,7 +314,7 @@ mxi_hsc1_close( MX_RECORD *record )
 	static const char fname[] = "mxi_hsc1_close()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s invoked.", fname));
 
@@ -354,15 +323,15 @@ mxi_hsc1_close( MX_RECORD *record )
 			"MX_RECORD pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( record, &hsc1_interface, fname );
+	mx_status = mxi_hsc1_get_pointers( record, &hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
 					MXI_HSC1_INTERFACE_DEBUG);
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -372,7 +341,7 @@ mxi_hsc1_resynchronize( MX_RECORD *record )
 
 	MX_HSC1_INTERFACE *hsc1_interface;
 	long i;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	hsc1_interface = (MX_HSC1_INTERFACE *) record->record_type_struct;
 
@@ -383,26 +352,26 @@ mxi_hsc1_resynchronize( MX_RECORD *record )
 
 	/* Discard any unwritten RS-232 output. */
 
-	status = mx_rs232_discard_unwritten_output(
+	mx_status = mx_rs232_discard_unwritten_output(
 						hsc1_interface->rs232_record,
 						MXI_HSC1_INTERFACE_DEBUG );
 
-	if ( status.code != MXE_SUCCESS && status.code != MXE_UNSUPPORTED )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS && mx_status.code != MXE_UNSUPPORTED)
+		return mx_status;
 
 	/* Send a CR character so that any incomplete command line
 	 * will be terminated.
 	 */
 
-	status = mx_rs232_putchar( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_putchar( hsc1_interface->rs232_record,
 					0xd, MXF_232_WAIT );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Discard any unread RS-232 input. */
 
-	status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
 						MXI_HSC1_INTERFACE_DEBUG );
 
 	/* Mark all the HSC-1 modules as not busy. */
@@ -411,7 +380,7 @@ mxi_hsc1_resynchronize( MX_RECORD *record )
 		hsc1_interface->module_is_busy[i] = FALSE;
 	}
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -420,22 +389,22 @@ mxi_hsc1_getchar( MX_GENERIC *generic, char *c, int flags )
 	static const char fname[] = "mxi_hsc1_getchar()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_getchar( hsc1_interface->rs232_record, c, flags );
+	mx_status = mx_rs232_getchar( hsc1_interface->rs232_record, c, flags );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -444,22 +413,22 @@ mxi_hsc1_putchar( MX_GENERIC *generic, char c, int flags )
 	static const char fname[] = "mxi_hsc1_putchar()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_putchar( hsc1_interface->rs232_record, c, flags );
+	mx_status = mx_rs232_putchar( hsc1_interface->rs232_record, c, flags );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -468,23 +437,23 @@ mxi_hsc1_read( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_hsc1_read()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_read( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_read( hsc1_interface->rs232_record,
 				buffer, count, NULL, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -493,23 +462,23 @@ mxi_hsc1_write( MX_GENERIC *generic, void *buffer, size_t count )
 	static const char fname[] = "mxi_hsc1_write()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_write( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_write( hsc1_interface->rs232_record,
 					buffer, count, NULL, 0 );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -519,23 +488,23 @@ mxi_hsc1_num_input_bytes_available( MX_GENERIC *generic,
 	static const char fname[] = "mxi_hsc1_num_input_bytes_available()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_num_input_bytes_available(
+	mx_status = mx_rs232_num_input_bytes_available(
 		hsc1_interface->rs232_record, num_input_bytes_available );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -544,23 +513,23 @@ mxi_hsc1_discard_unread_input( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_hsc1_discard_unread_input()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_discard_unread_input( hsc1_interface->rs232_record,
 							debug_flag );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -569,24 +538,24 @@ mxi_hsc1_discard_unwritten_output( MX_GENERIC *generic, int debug_flag )
 	static const char fname[] = "mxi_hsc1_discard_unwritten_output()";
 
 	MX_HSC1_INTERFACE *hsc1_interface;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	if ( generic == NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_GENERIC pointer passed is NULL.");
 	}
 
-	status = mxi_hsc1_get_pointers( generic->record,
+	mx_status = mxi_hsc1_get_pointers( generic->record,
 					&hsc1_interface, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mx_rs232_discard_unwritten_output(
+	mx_status = mx_rs232_discard_unwritten_output(
 					hsc1_interface->rs232_record,
 					debug_flag );
 
-	return status;
+	return mx_status;
 }
 
 /* === Functions specific to this driver. === */
@@ -678,11 +647,11 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	char *module_id;
 	size_t module_id_length, status_length, remaining_buffer_length;
 	unsigned long sleep_ms;
-	long other_module_number;
+	long other_module_number, mx_error_code;
 	int i, max_attempts;
 	int module_is_busy, ignore_busy_status;
 	unsigned long num_input_bytes_available;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	static unsigned long command_number = 0L;
 
@@ -742,33 +711,34 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 		/* Is there any pending input on the serial port? */
 
-		status = mx_rs232_num_input_bytes_available(
+		mx_status = mx_rs232_num_input_bytes_available(
 				hsc1_interface->rs232_record,
 				&num_input_bytes_available );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 
 		if ( num_input_bytes_available == 0 ) {
 			if ( debug_flag & MXI_HSC1_INTERFACE_DEBUG ) {
-				return mx_error( MXE_NOT_READY, fname,
-			    "One or more of the HSC-1 motors is still busy." );
+				mx_error_code = (MXE_NOT_READY | MXE_QUIET);
 			} else {
-				return mx_error_quiet( MXE_NOT_READY, fname,
-			    "One or more of the HSC-1 motors is still busy." );
+				mx_error_code = MXE_NOT_READY;
 			}
+
+			return mx_error( mx_error_code, fname,
+			    "One or more of the HSC-1 motors is still busy." );
 		}
 
 		while ( num_input_bytes_available > 0 ) {
 
 			/* Try to read in a line from a module. */
 
-			status = mx_rs232_getline( hsc1_interface->rs232_record,
+			mx_status = mx_rs232_getline( hsc1_interface->rs232_record,
 					local_buffer, sizeof(local_buffer),
 					NULL, 0);
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			buffer_ptr = local_buffer;
 
@@ -818,22 +788,23 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 			 * the serial port?
 			 */
 
-			status = mx_rs232_num_input_bytes_available(
+			mx_status = mx_rs232_num_input_bytes_available(
 					hsc1_interface->rs232_record,
 					&num_input_bytes_available );
 
-			if ( status.code != MXE_SUCCESS )
-				return status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			if ( num_input_bytes_available == 0 ) {
 				if ( debug_flag & MXI_HSC1_INTERFACE_DEBUG ) {
-					return mx_error( MXE_NOT_READY, fname,
-				"One or more HSC-1 motors is still busy." );
+					mx_error_code =
+						(MXE_NOT_READY | MXE_QUIET);
 				} else {
-					return mx_error_quiet( MXE_NOT_READY,
-					fname,
-				"One or more HSC-1 motors is still busy." );
+					mx_error_code = MXE_NOT_READY;
 				}
+
+				return mx_error( mx_error_code, fname,
+				"One or more HSC-1 motors is still busy." );
 			}
 		}
 	}
@@ -847,11 +818,11 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 				fname, module_id, command));
 	}
 
-	status = mx_rs232_putline( hsc1_interface->rs232_record,
+	mx_status = mx_rs232_putline( hsc1_interface->rs232_record,
 					local_buffer, NULL, 0 );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* If we are not going to wait for the response status, return now. */
 
@@ -882,27 +853,27 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 
 			strcpy( local_buffer, "" );
 
-			status = mx_rs232_getline(
+			mx_status = mx_rs232_getline(
 				hsc1_interface->rs232_record, local_buffer,
 				sizeof(local_buffer), NULL, 0 );
 
-			if ( status.code == MXE_SUCCESS ) {
+			if ( mx_status.code == MXE_SUCCESS ) {
 				break;		/* Exit the for() loop. */
 
-			} else if ( status.code != MXE_NOT_READY ) {
-				MX_DEBUG(-2,
-				("*** Exiting with status = %ld",status.code));
-				return status;
+			} else if ( mx_status.code != MXE_NOT_READY ) {
+				MX_DEBUG(-2,("*** Exiting with status = %ld",
+							mx_status.code));
+				return mx_status;
 			}
 			mx_msleep(sleep_ms);
 		}
 
 		if ( i >= max_attempts ) {
-			status = mx_rs232_discard_unread_input(
+			mx_status = mx_rs232_discard_unread_input(
 					hsc1_interface->rs232_record,
 					debug_flag );
 
-			if ( status.code != MXE_SUCCESS ) {
+			if ( mx_status.code != MXE_SUCCESS ) {
 				mx_error( MXE_INTERFACE_IO_ERROR, fname,
 "Failed at attempt to discard unread characters in buffer for record '%s'",
 					hsc1_interface->record->name );
@@ -1015,12 +986,13 @@ mxi_hsc1_command( MX_HSC1_INTERFACE *hsc1_interface,
 	} else if (strncmp(hsc1_status, "BUSY", status_length)== 0) {
 
 		if ( debug_flag & MXI_HSC1_INTERFACE_DEBUG ) {
-			return mx_error( MXE_NOT_READY, fname,
-				"HSC-1 controller is busy." );
+			mx_error_code = (MXE_NOT_READY | MXE_QUIET);
 		} else {
-			return mx_error_quiet( MXE_NOT_READY, fname,
-				"HSC-1 controller is busy." );
+			mx_error_code = MXE_NOT_READY;
 		}
+
+		return mx_error( mx_error_code, fname,
+				"HSC-1 controller is busy." );
 
 	} else if (strncmp(hsc1_status, "ERROR", status_length)== 0) {
 

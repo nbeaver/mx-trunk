@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -39,7 +39,7 @@ MX_RECORD_FUNCTION_LIST mxd_qs450_record_function_list = {
 
 MX_SCALER_FUNCTION_LIST mxd_qs450_scaler_function_list = {
 	mxd_qs450_scaler_clear,
-	mxd_qs450_scaler_overflow_set,
+	NULL,
 	mxd_qs450_scaler_read,
 	NULL,
 	NULL,
@@ -202,7 +202,7 @@ mxd_qs450_scaler_clear( MX_SCALER *scaler )
 			"QS450 pointer is NULL.");
 	}
 
-	mx_camac( (qs450->camac_record), (qs450->slot), (qs450->subaddress), 9,
+	mx_camac( qs450->camac_record, qs450->slot, qs450->subaddress, 9,
 		&data, &camac_Q, &camac_X );
 
 	if ( camac_Q == 0 || camac_X == 0 ) {
@@ -213,17 +213,6 @@ mxd_qs450_scaler_clear( MX_SCALER *scaler )
 	scaler->raw_value = 0L;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_qs450_scaler_overflow_set( MX_SCALER *scaler )
-{
-	static const char fname[] = "mxd_qs450_scaler_overflow_set()";
-
-	scaler->overflow_set = 0;
-
-	return mx_error_quiet( MXE_UNSUPPORTED, fname,
-		"This type of scaler cannot check for overflow set." );
 }
 
 MX_EXPORT mx_status_type
@@ -242,7 +231,7 @@ mxd_qs450_scaler_read( MX_SCALER *scaler )
 			"QS450 pointer is NULL.");
 	}
 
-	mx_camac( (qs450->camac_record), (qs450->slot), (qs450->subaddress), 0,
+	mx_camac( qs450->camac_record, qs450->slot, qs450->subaddress, 0,
 		&data, &camac_Q, &camac_X );
 
 	if ( camac_Q == 0 || camac_X == 0 ) {

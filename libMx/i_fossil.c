@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -316,9 +316,10 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 #endif
 
 			if ( ax_register == 0xffff ) {
-				return mx_error_quiet( MXE_NOT_READY, fname,
+				return mx_error(
+				(MXE_NOT_READY | MXE_QUIET), fname,
 				"No characters in input buffer for port '%s'",
-				rs232->record->name );
+					rs232->record->name );
 			}
 		}
 
@@ -355,15 +356,16 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 			     * whether there is input ready on the FOSSIL
 			     * port.  Normally, it is not desirable to 
 			     * broadcast a message to the world when this 
-			     * fails, so we use mx_error_quiet() rather 
-			     * than mx_error().
+			     * fails, so we add the MXE_QUIET flag to the
+			     * error code.
 			     */
 
 			    if ( rs232->transfer_flags & MXF_232_NOWAIT ) {
 
-				return mx_error_quiet( MXE_NOT_READY, fname,
+				return mx_error(
+				(MXE_NOT_READY | MXE_QUIET), fname,
 				"No characters in input buffer for port '%s'",
-				rs232->record->name );
+					rs232->record->name );
 
 			    } else {
 
@@ -372,8 +374,8 @@ mxi_fossil_getchar( MX_RS232 *rs232, char *c )
 
 						/* Do nothing. */
 				    } else {
-					return mx_error_quiet(
-						MXE_NOT_READY, fname,
+					return mx_error(
+					(MXE_NOT_READY | MXE_QUIET), fname,
 	"Read attempt from port '%s' exceeded maximum retry count = %ld",
 						rs232->record->name,
 						fossil->max_read_retries );

@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -762,7 +762,8 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 
 			if ( pcstep->controller_initialized == FALSE ) {
 
-				mx_status = mx_error_quiet(MXE_NOT_READY, fname,
+				mx_status = mx_error(
+					(MXE_NOT_READY | MXE_QUIET), fname,
 	"The PC-Step command '%#6.4x' was not executed due to either a power "
 	"on reset or a watchdog reset.", command_word );
 
@@ -807,16 +808,16 @@ mxi_pcstep_command( MX_PCSTEP *pcstep, int command,
 		test_var = ( command_word & 0xff );
 
 		if ( test_var == ( MX_PCSTEP_START_MOTION(0) & 0xff ) ) {
-			mx_command_execution_status = mx_error_quiet(
-				MXE_INTERFACE_ACTION_FAILED, fname,
+			mx_command_execution_status = mx_error(
+				(MXE_INTERFACE_ACTION_FAILED | MXE_QUIET),fname,
 "The PC-Step controller refused to execute a start motion command %#6.4x.",
 				command_word );
 
 		} else if ( test_var
 			== ( MX_PCSTEP_READ_COMMUNICATIONS_STATUS & 0xff ) )
 		{
-			mx_command_execution_status = mx_error_quiet(
-				MXE_INTERFACE_ACTION_FAILED, fname,
+			mx_command_execution_status = mx_error(
+				(MXE_INTERFACE_ACTION_FAILED | MXE_QUIET),fname,
 "The PC-Step controller refused to send the communication status word %#6.4x.",
 				command_word );
 		} else {

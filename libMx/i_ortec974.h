@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001, 2005 Illinois Institute of Technology
+ * Copyright 1999, 2001, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -44,14 +44,10 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_ORTEC974, module_interface), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
-MX_API mx_status_type mxi_ortec974_initialize_type( long type );
 MX_API mx_status_type mxi_ortec974_create_record_structures(
 							MX_RECORD *record );
 MX_API mx_status_type mxi_ortec974_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_ortec974_delete_record( MX_RECORD *record );
-MX_API mx_status_type mxi_ortec974_read_parms_from_hardware(MX_RECORD *record);
-MX_API mx_status_type mxi_ortec974_write_parms_to_hardware(MX_RECORD *record);
 MX_API mx_status_type mxi_ortec974_open( MX_RECORD *record );
 MX_API mx_status_type mxi_ortec974_close( MX_RECORD *record );
 

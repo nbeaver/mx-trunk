@@ -11,7 +11,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2000-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2000-2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -575,11 +575,11 @@ mxi_epics_rs232_getchar( MX_RS232 *rs232, char *c )
 	/* mxi_epics_rs232_getchar() is often used to test whether there is
 	 * input ready on the EPICS_RS232 port.  Normally, it is not desirable
 	 * to broadcast a message to the world when this fails, so we
-	 * use mx_error_quiet() rather than mx_error().
+	 * add the MXE_QUIET flag to the error code.
 	 */
 
 	if ( num_chars != 1L ) {
-		return mx_error_quiet( MXE_NOT_READY, fname,
+		return mx_error( (MXE_NOT_READY | MXE_QUIET), fname,
 			"Failed to read a character from port '%s'.",
 			rs232->record->name );
 	}

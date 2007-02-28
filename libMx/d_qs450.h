@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -34,7 +34,6 @@ MX_API mx_status_type mxd_qs450_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_qs450_finish_record_initialization(MX_RECORD *record);
 
 MX_API mx_status_type mxd_qs450_scaler_clear( MX_SCALER *scaler );
-MX_API mx_status_type mxd_qs450_scaler_overflow_set( MX_SCALER *scaler );
 MX_API mx_status_type mxd_qs450_scaler_read( MX_SCALER *scaler );
 MX_API mx_status_type mxd_qs450_scaler_get_parameter( MX_SCALER *scaler );
 MX_API mx_status_type mxd_qs450_scaler_set_parameter( MX_SCALER *scaler );

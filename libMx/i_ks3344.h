@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,15 +21,14 @@
 
 /* Define all of the interface functions. */
 
-MX_API mx_status_type mxi_ks3344_initialize_type( long type );
 MX_API mx_status_type mxi_ks3344_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_finish_record_initialization(
 							MX_RECORD *record );
-MX_API mx_status_type mxi_ks3344_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_read_parms_from_hardware( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_write_parms_to_hardware( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_open( MX_RECORD *record );
 MX_API mx_status_type mxi_ks3344_close( MX_RECORD *record );
+
 MX_API mx_status_type mxi_ks3344_getchar( MX_RS232 *rs232, char *c );
 MX_API mx_status_type mxi_ks3344_putchar( MX_RS232 *rs232, char c );
 MX_API mx_status_type mxi_ks3344_read( MX_RS232 *rs232,

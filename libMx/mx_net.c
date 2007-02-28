@@ -478,12 +478,14 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 					current_tick, end_tick );
 
 				if ( comparison >= 0 ) {
-				    return mx_error_quiet( MXE_TIMED_OUT, fname,
-				    "Timed out after waiting %g seconds "
-				    "for message ID %#lx from MX server '%s'.",
-				    	timeout_in_seconds,
-					(unsigned long) message_id,
-					server_record->name );
+				    return mx_error(
+					(MXE_TIMED_OUT | MXE_QUIET), fname,
+					"Timed out after waiting %g seconds "
+					"for message ID %#lx from "
+					"MX server '%s'.",
+					    	timeout_in_seconds,
+						(unsigned long) message_id,
+						server_record->name );
 				}
 			} else {
 				/* For most platforms, invoking the function
@@ -3337,9 +3339,11 @@ mx_network_get_option( MX_RECORD *server_record,
 				 * message.
 				 */
 
-				return mx_error_quiet((long) status_code, fname,
-	"The MX 'get option' message type is not implemented by server '%s'.",
-					server_record->name );
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+					"The MX 'get option' message type is "
+					"not implemented by server '%s'.",
+						server_record->name );
 			} else {
 				/* Some other error occurred. */
 
@@ -3498,9 +3502,11 @@ mx_network_set_option( MX_RECORD *server_record,
 				 * message.
 				 */
 
-				return mx_error_quiet((long) status_code, fname,
-	"The MX 'set option' message type is not implemented by server '%s'.",
-					server_record->name );
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+					"The MX 'set option' message type is "
+					"not implemented by server '%s'.",
+						server_record->name );
 			} else {
 				/* Some other error occurred. */
 

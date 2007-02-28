@@ -562,10 +562,6 @@ MX_API mx_status_type mx_error( long error_code,
 				const char *location,
 				char *format, ... ) MX_PRINTFLIKE( 3, 4 );
 
-MX_API mx_status_type mx_error_quiet( long error_code,
-				const char *location,
-				char *format, ... ) MX_PRINTFLIKE( 3, 4 );
-
 #define MX_CHECK_FOR_ERROR( function )				\
 	do { 							\
 		mx_status_type mx_private_status;		\
@@ -669,7 +665,7 @@ MX_API int mx_command_found( char *command_name );
 
 /*------------------------------------------------------------------------*/
 
-/* === Define error message numbers. === */
+/* === Define error message codes. === */
 
 #define MXE_SUCCESS				1000	/* No error. */
 
@@ -722,5 +718,11 @@ MX_API int mx_command_found( char *command_name );
 #define MXE_OBJECT_ABANDONED			1047
 #define MXE_MIGHT_CAUSE_DEADLOCK		1048
 #define MXE_ALREADY_EXISTS			1049
+
+/* If the error message code is OR-ed with MXE_QUIET, then
+ * the error message is not displayed to the user.
+ */
+
+#define MXE_QUIET				0x8000
 
 #endif /* __MX_UTIL_H__ */

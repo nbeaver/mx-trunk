@@ -1217,8 +1217,8 @@ mxp_readline_from_file( MXP_DB_SOURCE *db_source,
 	if ( feof( db_source->file ) ) {
 		fclose( db_source->file );
 
-		return mx_error_quiet( MXE_END_OF_DATA, fname,
-		"End of file at line %ld of file '%s'.",
+		return mx_error( (MXE_END_OF_DATA | MXE_QUIET), fname,
+			"End of file at line %ld of file '%s'.",
 			db_source->line_number, db_source->filename );
 	}
 
@@ -1254,8 +1254,8 @@ mxp_readline_from_array( MXP_DB_SOURCE *db_source,
 	long i;
 
 	if ( db_source->line_number >= db_source->num_lines ) {
-		return mx_error_quiet( MXE_END_OF_DATA, fname,
-		"End of data at line %ld of the database array.",
+		return mx_error( (MXE_END_OF_DATA | MXE_QUIET), fname,
+			"End of data at line %ld of the database array.",
 			db_source->line_number );
 	}
 

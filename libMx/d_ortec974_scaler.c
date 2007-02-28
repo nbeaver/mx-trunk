@@ -7,12 +7,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define ORTEC974_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,25 +30,19 @@
 /* Initialize the scaler driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_ortec974_scaler_record_function_list = {
-	mxd_ortec974_scaler_initialize_type,
-	mxd_ortec974_scaler_create_record_structures,
-	mxd_ortec974_scaler_finish_record_initialization,
-	mxd_ortec974_scaler_delete_record,
 	NULL,
-	mxd_ortec974_scaler_read_parms_from_hardware,
-	mxd_ortec974_scaler_write_parms_to_hardware,
-	mxd_ortec974_scaler_open,
-	mxd_ortec974_scaler_close
+	mxd_ortec974_scaler_create_record_structures,
+	mxd_ortec974_scaler_finish_record_initialization
 };
 
 MX_SCALER_FUNCTION_LIST mxd_ortec974_scaler_scaler_function_list = {
 	mxd_ortec974_scaler_clear,
-	mxd_ortec974_scaler_overflow_set,
+	NULL,
 	mxd_ortec974_scaler_read,
 	NULL,
-	mxd_ortec974_scaler_is_busy,
-	mxd_ortec974_scaler_start,
-	mxd_ortec974_scaler_stop,
+	NULL,
+	NULL,
+	NULL,
 	mxd_ortec974_scaler_get_parameter,
 	mxd_ortec974_scaler_set_parameter
 };
@@ -66,8 +62,6 @@ long mxd_ortec974_scaler_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_scaler_rfield_def_ptr
 			= &mxd_ortec974_scaler_record_field_defaults[0];
 
-#define ORTEC974_DEBUG	FALSE
-
 #define CHANNEL_MASK(x)  (1 << ((x)-1))
 
 /* A private function for the use of the driver. */
@@ -78,7 +72,7 @@ mxd_ortec974_get_pointers( MX_SCALER *scaler,
 				MX_ORTEC974 **ortec974,
 				const char *calling_fname )
 {
-	const char fname[] = "mxd_ortec974_get_pointers()";
+	static const char fname[] = "mxd_ortec974_get_pointers()";
 
 	if ( scaler == (MX_SCALER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -121,17 +115,10 @@ mxd_ortec974_get_pointers( MX_SCALER *scaler,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_ortec974_scaler_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ortec974_scaler_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ortec974_scaler_create_record_structures()";
+	static const char fname[] =
+			"mxd_ortec974_scaler_create_record_structures()";
 
 	MX_SCALER *scaler;
 	MX_ORTEC974_SCALER *ortec974_scaler;
@@ -168,7 +155,7 @@ mxd_ortec974_scaler_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ortec974_scaler_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_ortec974_scaler_finish_record_initialization()";
 
 	MX_ORTEC974_SCALER *ortec974_scaler;
@@ -213,90 +200,36 @@ mxd_ortec974_scaler_finish_record_initialization( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_ortec974_scaler_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_ortec974_scaler_clear( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_ortec974_scaler_clear()";
+	static const char fname[] = "mxd_ortec974_scaler_clear()";
 
 	MX_ORTEC974_SCALER *ortec974_scaler;
 	MX_ORTEC974 *ortec974;
 	char command[40];
-	mx_status_type status;
+	mx_status_type mx_status;
 
-	status = mxd_ortec974_get_pointers( scaler,
+	mx_status = mxd_ortec974_get_pointers( scaler,
 			&ortec974_scaler, &ortec974, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "CLEAR_COUNTERS %d",
 			CHANNEL_MASK(ortec974_scaler->channel_number) );
 
-	status = mxi_ortec974_command( ortec974, command,
+	mx_status = mxi_ortec974_command( ortec974, command,
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
 	scaler->raw_value = 0L;
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_overflow_set( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_ortec974_scaler_overflow_set()";
-
-	scaler->overflow_set = 0;
-
-	return mx_error_quiet( MXE_UNSUPPORTED, fname,
-		"This type of scaler cannot check for overflow set." );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ortec974_scaler_read( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_ortec974_scaler_read()";
+	static const char fname[] = "mxd_ortec974_scaler_read()";
 
 	MX_ORTEC974_SCALER *ortec974_scaler;
 	MX_ORTEC974 *ortec974;
@@ -304,24 +237,24 @@ mxd_ortec974_scaler_read( MX_SCALER *scaler )
 	char response[40];
 	long data;
 	int num_items;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	scaler->raw_value = 0L;
 
-	status = mxd_ortec974_get_pointers( scaler,
+	mx_status = mxd_ortec974_get_pointers( scaler,
 			&ortec974_scaler, &ortec974, fname );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	sprintf( command, "SHOW_COUNTS %d",
 			CHANNEL_MASK(ortec974_scaler->channel_number) );
 
-	status = mxi_ortec974_command( ortec974, command,
+	mx_status = mxi_ortec974_command( ortec974, command,
 			response, sizeof(response), NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &data );
 
@@ -334,33 +267,6 @@ mxd_ortec974_scaler_read( MX_SCALER *scaler )
 	scaler->raw_value = data;
 
 	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_is_busy( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_ortec974_scaler_is_busy()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"This function is not yet implemented." );
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_start( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_ortec974_scaler_start()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"This function is not yet implemented." );
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_scaler_stop( MX_SCALER *scaler )
-{
-	const char fname[] = "mxd_ortec974_scaler_stop()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"This function is not yet implemented." );
 }
 
 MX_EXPORT mx_status_type
@@ -382,7 +288,7 @@ mxd_ortec974_scaler_get_parameter( MX_SCALER *scaler )
 MX_EXPORT mx_status_type
 mxd_ortec974_scaler_set_parameter( MX_SCALER *scaler )
 {
-	const char fname[] = "mxd_ortec974_scaler_set_parameter()";
+	static const char fname[] = "mxd_ortec974_scaler_set_parameter()";
 
 	switch( scaler->parameter_type ) {
 	case MXLV_SCL_MODE:

@@ -562,11 +562,12 @@ mx_kill_process( unsigned long process_id )
 	} else {
 		switch( saved_errno ) {
 		case ESRCH:
-			return mx_error_quiet( MXE_NOT_FOUND, fname,
+			return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 				"Process %lu does not exist.", process_id);
 
 		case EPERM:
-			return mx_error_quiet( MXE_PERMISSION_DENIED, fname,
+			return mx_error(
+				(MXE_PERMISSION_DENIED | MXE_QUIET), fname,
 				"Cannot send the signal to process %lu.",
 					process_id );
 

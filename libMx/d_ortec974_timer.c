@@ -8,12 +8,14 @@
  *
  *------------------------------------------------------------------------
  *
- * Copyright 1999, 2001-2002, 2006 Illinois Institute of Technology
+ * Copyright 1999, 2001-2002, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define ORTEC974_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,23 +32,17 @@
 /* Initialize the timer driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_ortec974_timer_record_function_list = {
-	mxd_ortec974_timer_initialize_type,
-	mxd_ortec974_timer_create_record_structures,
-	mxd_ortec974_timer_finish_record_initialization,
-	mxd_ortec974_timer_delete_record,
 	NULL,
-	mxd_ortec974_timer_read_parms_from_hardware,
-	mxd_ortec974_timer_write_parms_to_hardware,
-	mxd_ortec974_timer_open,
-	mxd_ortec974_timer_close
+	mxd_ortec974_timer_create_record_structures,
+	mxd_ortec974_timer_finish_record_initialization
 };
 
 MX_TIMER_FUNCTION_LIST mxd_ortec974_timer_timer_function_list = {
 	mxd_ortec974_timer_is_busy,
 	mxd_ortec974_timer_start,
 	mxd_ortec974_timer_stop,
-	mxd_ortec974_timer_clear,
-	mxd_ortec974_timer_read,
+	NULL,
+	NULL,
 	mxd_ortec974_timer_get_mode,
 	mxd_ortec974_timer_set_mode
 };
@@ -66,21 +62,10 @@ long mxd_ortec974_timer_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_ortec974_timer_rfield_def_ptr
 			= &mxd_ortec974_timer_record_field_defaults[0];
 
-#define ORTEC974_DEBUG	FALSE
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_initialize_type( long type )
-{
-	/* Nothing needed here. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_ortec974_timer_create_record_structures()";
+	static const char fname[] = "mxd_ortec974_timer_create_record_structures()";
 
 	MX_TIMER *timer;
 	MX_ORTEC974_TIMER *ortec974_timer;
@@ -117,13 +102,13 @@ mxd_ortec974_timer_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[]
+	static const char fname[]
 		= "mxd_ortec974_timer_finish_record_initialization()";
 
 	MX_TIMER *timer;
 	MX_ORTEC974_TIMER *ortec974_timer;
 	MX_RECORD *ortec974_record;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	timer = (MX_TIMER *)( record->record_class_struct );
 
@@ -154,58 +139,15 @@ mxd_ortec974_timer_finish_record_initialization( MX_RECORD *record )
 	ortec974_timer->timer_mode = MX_974_TIMER_MODE_SECONDS;
 	ortec974_timer->seconds_per_tick = 0.0;
 
-	status = mx_timer_finish_record_initialization( record );
+	mx_status = mx_timer_finish_record_initialization( record );
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
-
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_close( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_ortec974_timer_is_busy()";
+	static const char fname[] = "mxd_ortec974_timer_is_busy()";
 
 	MX_ORTEC974_TIMER *ortec974_timer;
 	MX_ORTEC974 *ortec974;
@@ -213,7 +155,7 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 	int num_items;
 	unsigned long nap_milliseconds;
 	long time1, time2;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	MX_DEBUG( 2, ("%s called.", fname));
 
@@ -246,11 +188,11 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 
 	/* Read the current timer value in the timer channel. */
 
-	status = mxi_ortec974_command( ortec974, "SHOW_COUNTS 1",
+	mx_status = mxi_ortec974_command( ortec974, "SHOW_COUNTS 1",
 		response, sizeof(response)-1, NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &time1 );
 
@@ -281,11 +223,11 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 
 	/* Read the current timer value in the timer channel again. */
 
-	status = mxi_ortec974_command( ortec974, "SHOW_COUNTS 1",
+	mx_status = mxi_ortec974_command( ortec974, "SHOW_COUNTS 1",
 		response, sizeof(response)-1, NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	num_items = sscanf( response, "%ld", &time2 );
 
@@ -300,7 +242,7 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 
 		/* Turn the timer gate off. */
 
-		status = mxi_ortec974_command( ortec974, "STOP",
+		mx_status = mxi_ortec974_command( ortec974, "STOP",
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 	} else {
 		timer->busy = TRUE;
@@ -308,13 +250,13 @@ mxd_ortec974_timer_is_busy( MX_TIMER *timer )
 
 	MX_DEBUG( 2,("%s: timer->busy = %d", fname, (int) timer->busy));
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_start( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_ortec974_timer_start()";
+	static const char fname[] = "mxd_ortec974_timer_start()";
 
 	MX_ORTEC974_TIMER *ortec974_timer;
 	MX_ORTEC974 *ortec974;
@@ -325,7 +267,7 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 	int multiplier_above, exponent_above;
 	double preset_count_above, preset_count_below;
 	double seconds_above, seconds_below;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	seconds = timer->value;
 
@@ -356,17 +298,17 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 
 	/* Stop and clear the Ortec 974 in case it is counting. */
 
-	status = mxi_ortec974_command( ortec974, "STOP",
+	mx_status = mxi_ortec974_command( ortec974, "STOP",
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	status = mxi_ortec974_command( ortec974, "CLEAR_COUNTERS",
+	mx_status = mxi_ortec974_command( ortec974, "CLEAR_COUNTERS",
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 #endif
 
 	/* Treat any time less than zero as zero. */
@@ -443,11 +385,11 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 		"Illegal timer mode %d requested.", timer_mode );
 		}
 
-		status = mxi_ortec974_command( ortec974, command,
+		mx_status = mxi_ortec974_command( ortec974, command,
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
-		if ( status.code != MXE_SUCCESS )
-			return status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* Set the preset count. */
@@ -488,28 +430,28 @@ mxd_ortec974_timer_start( MX_TIMER *timer )
 
 	sprintf( command, "SET_COUNT_PRESET %d,%d", multiplier, exponent );
 
-	status = mxi_ortec974_command( ortec974, command,
+	mx_status = mxi_ortec974_command( ortec974, command,
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
-	if ( status.code != MXE_SUCCESS )
-		return status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Start the timer. */
 
-	status = mxi_ortec974_command( ortec974, "START",
+	mx_status = mxi_ortec974_command( ortec974, "START",
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
-	return status;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_stop( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_ortec974_timer_stop()";
+	static const char fname[] = "mxd_ortec974_timer_stop()";
 
 	MX_ORTEC974_TIMER *ortec974_timer;
 	MX_ORTEC974 *ortec974;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	ortec974_timer = (MX_ORTEC974_TIMER *)
 				( timer->record->record_type_struct );
@@ -529,30 +471,12 @@ mxd_ortec974_timer_stop( MX_TIMER *timer )
 
 	/* Stop the timer. */
 
-	status = mxi_ortec974_command( ortec974, "STOP",
+	mx_status = mxi_ortec974_command( ortec974, "STOP",
 					NULL, 0, NULL, 0, ORTEC974_DEBUG );
 
 	timer->value = 0.0;
 
-	return status;
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_clear( MX_TIMER *timer )
-{
-	const char fname[] = "mxd_ortec974_timer_clear()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"This function should be possible, but has not been implemented yet.");
-}
-
-MX_EXPORT mx_status_type
-mxd_ortec974_timer_read( MX_TIMER *timer )
-{
-	const char fname[] = "mxd_ortec974_timer_read()";
-
-	return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-	"This function should be possible, but has not been implemented yet.");
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -566,7 +490,7 @@ mxd_ortec974_timer_get_mode( MX_TIMER *timer )
 MX_EXPORT mx_status_type
 mxd_ortec974_timer_set_mode( MX_TIMER *timer )
 {
-	const char fname[] = "mxd_ortec974_timer_set_mode()";
+	static const char fname[] = "mxd_ortec974_timer_set_mode()";
 
 	if ( timer->mode != MXCM_PRESET_MODE ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,

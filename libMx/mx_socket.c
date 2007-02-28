@@ -159,6 +159,7 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 	unsigned long inet_address;
 
 	int saved_errno, status;
+	long error_code;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -240,17 +241,18 @@ mx_tcp_socket_open_as_client( MX_SOCKET **client_socket,
 			&status, MXF_SOCKCHK_INVALID, &error_string );
 
 	if ( saved_errno != 0 ) {
+
 		if ( socket_flags & MXF_SOCKET_QUIET_CONNECTION ) {
-			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
-"connect() to host '%s', port %ld failed.  Errno = %d.  Error string = '%s'.",
-				hostname, port_number,
-				saved_errno, error_string );
+			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
 		} else {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
-"connect() to host '%s', port %ld failed.  Errno = %d.  Error string = '%s'.",
+			error_code = MXE_NETWORK_IO_ERROR;
+		}
+
+		return mx_error( error_code, fname,
+			"connect() to host '%s', port %ld failed.  "
+			"Errno = %d.  Error string = '%s'.",
 				hostname, port_number,
 				saved_errno, error_string );
-		}
 	}
 
 	if ( socket_flags & MXF_SOCKET_DISABLE_NAGLE_ALGORITHM ) {
@@ -488,6 +490,7 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 	void *sockaddr_ptr;
 
 	int saved_errno, status;
+	long error_code;
 	char *error_string;
 	mx_status_type mx_status;
 
@@ -567,16 +570,15 @@ mx_unix_socket_open_as_client( MX_SOCKET **client_socket,
 
 	if ( saved_errno != 0 ) {
 		if ( socket_flags & MXF_SOCKET_QUIET_CONNECTION ) {
-			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
-			"connect() to Unix domain socket '%s' failed.  "
-			"Errno = %d.  Error string = '%s'.",
-				pathname, saved_errno, error_string );
+			error_code = (MXE_NETWORK_IO_ERROR | MXE_QUIET);
 		} else {
-			return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			error_code = MXE_NETWORK_IO_ERROR;
+		}
+
+		return mx_error( error_code, fname,
 			"connect() to Unix domain socket '%s' failed.  "
 			"Errno = %d.  Error string = '%s'.",
 				pathname, saved_errno, error_string );
-		}
 	}
 
 	MX_DEBUG( 2,("Leaving %s.", fname));
@@ -1261,7 +1263,7 @@ mx_socket_send( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_send()";
 
-	long bytes_left, bytes_sent;
+	long bytes_left, bytes_sent, error_code;
 	int saved_errno;
 	char *ptr;
 
@@ -1288,18 +1290,17 @@ mx_socket_send( MX_SOCKET *mx_socket,
 			case EPIPE:
 				if (mx_socket->socket_flags & MXF_SOCKET_QUIET)
 				{
-					return mx_error_quiet(
-					MXE_NETWORK_CONNECTION_LOST, fname,
-		    "Network connection lost.  Errno = %d, error text = '%s'",
-					    saved_errno,
-					    mx_socket_strerror(saved_errno));
+				    error_code =
+				      (MXE_NETWORK_CONNECTION_LOST | MXE_QUIET);
 				} else {
-					return mx_error(
-					MXE_NETWORK_CONNECTION_LOST, fname,
-		    "Network connection lost.  Errno = %d, error text = '%s'",
-					    saved_errno,
-					    mx_socket_strerror(saved_errno));
+				    error_code = MXE_NETWORK_CONNECTION_LOST;
 				}
+
+				return mx_error( error_code, fname,
+				"Network connection lost.  "
+				"Errno = %d, error text = '%s'",
+					saved_errno,
+					mx_socket_strerror(saved_errno));
 				break;
 			default:
 				return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -1344,7 +1345,7 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 {
 	static const char fname[] = "mx_socket_receive()";
 
-	long bytes_left, bytes_received, total_bytes_received;
+	long bytes_left, bytes_received, total_bytes_received, error_code;
 	int i, saved_errno, num_terminators_seen;
 	char *ptr, *terminators;
 
@@ -1382,14 +1383,13 @@ mx_socket_receive( MX_SOCKET *mx_socket,
 			}
 
 			if ( mx_socket->socket_flags & MXF_SOCKET_QUIET ) {
-				return mx_error_quiet(
-				    MXE_NETWORK_CONNECTION_LOST, fname,
-				    "Network connection closed unexpectedly." );
+				error_code =
+				    (MXE_NETWORK_CONNECTION_LOST | MXE_QUIET);
 			} else {
-				return mx_error(
-				    MXE_NETWORK_CONNECTION_LOST, fname,
-				    "Network connection closed unexpectedly." );
+				error_code = MXE_NETWORK_CONNECTION_LOST;
 			}
+			return mx_error( error_code, fname,
+			    "Network connection closed unexpectedly." );
 			break;
 		case MX_SOCKET_ERROR:
 			saved_errno = mx_socket_get_last_error();

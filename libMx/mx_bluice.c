@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -539,7 +539,7 @@ mx_bluice_setup_device_pointer( MX_BLUICE_SERVER *bluice_server,
 
 		mx_mutex_unlock( bluice_server->foreign_data_mutex );
 
-		return mx_error_quiet( MXE_NOT_FOUND, fname,
+		return mx_error( (MXE_NOT_FOUND | MXE_QUIET), fname,
 			"Blu-Ice device '%s' was not found.", name );
 	}
 

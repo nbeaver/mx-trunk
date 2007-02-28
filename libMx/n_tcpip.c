@@ -521,7 +521,8 @@ mxn_tcpip_server_reconnect_if_down( MX_NETWORK_SERVER *network_server )
 		network_server->network_handles_are_valid = TRUE;
 
 		if ( flags & MXF_NETWORK_SERVER_NO_AUTO_RECONNECT ) {
-			return mx_error_quiet( MXE_NETWORK_IO_ERROR, fname,
+			return mx_error(
+			(MXE_NETWORK_IO_ERROR | MXE_QUIET), fname,
 			"Server '%s' at '%s', port %ld is not connected.",
 				network_server->record->name,
 				tcpip_server->hostname,

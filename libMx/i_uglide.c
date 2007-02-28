@@ -10,7 +10,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2002, 2005-2006 Illinois Institute of Technology
+ * Copyright 2002, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -505,8 +505,8 @@ mxi_uglide_command( MX_UGLIDE *uglide, char *command, int debug_flag )
 				if ( uglide->last_response_code
 					== MXF_UGLIDE_MOVE_IN_PROGRESS )
 				{
-					return mx_error_quiet(
-						MXE_NOT_READY, fname,
+					return mx_error(
+					(MXE_NOT_READY | MXE_QUIET), fname,
 		"A previous move for controller '%s' is still in progress.",
 						uglide->record->name );
 				}
@@ -667,7 +667,7 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 	/* Ignore other lines that do not start with '#' characters. */
 
 	if ( response[0] != '#' ) {
-		return mx_error_quiet( MXE_TRY_AGAIN, fname,
+		return mx_error( (MXE_TRY_AGAIN | MXE_QUIET), fname,
 		"Discarding the non-response line '%s' from controller '%s'.  "
 		"There may be more text to read.",
 			uglide->record->name, response );
@@ -680,7 +680,7 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 
 	switch( uglide->last_response_code ) {
 	case MXF_UGLIDE_MOVE_COMPLETE:
-		return mx_error_quiet( MXE_TRY_AGAIN, fname,
+		return mx_error( (MXE_TRY_AGAIN | MXE_QUIET), fname,
 			"A move just completed.  "
 			"There should be more response lines available." );
 
@@ -689,7 +689,7 @@ mxi_uglide_handle_response( MX_UGLIDE *uglide,
 		"Received warning message '%s' from controller '%s'.",
 				response, uglide->record->name );
 
-		return mx_error_quiet( MXE_TRY_AGAIN, fname,
+		return mx_error( (MXE_TRY_AGAIN | MXE_QUIET), fname,
 			"Most recent message was a warning.  Try again." );
 
 	case MXF_UGLIDE_OK:
