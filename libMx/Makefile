@@ -19,7 +19,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_ccd.c mx_cfn.c mx_clock.c \
 	mx_coprocess.c mx_cpu_arch.c mx_dead_reckoning.c mx_debug.c \
 	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_driver_class.c \
-	mx_dynamic_link.c \
+	mx_dynamic_library.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
 	mx_image.c mx_info.c mx_interval_timer.c mx_key.c \

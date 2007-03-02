@@ -145,7 +145,7 @@ mxi_camera_link_get_api_entry( MX_DYNAMIC_LIBRARY *library,
 	void *ptr;
 	mx_status_type mx_status;
 
-	mx_status = mx_dynamic_link_find_symbol( library,
+	mx_status = mx_dynamic_library_find_symbol( library,
 						function_name, &ptr, TRUE );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
@@ -192,7 +192,7 @@ mxi_camera_link_api_open( MX_RECORD *record )
 
 	/* Attempt to load the specified Camera Link dynamic library. */
 
-	mx_status = mx_dynamic_link_open_library(
+	mx_status = mx_dynamic_library_open(
 				camera_link_api->library_filename,
 				&(camera_link_api->library) );
 
@@ -281,7 +281,7 @@ mxi_camera_link_api_close( MX_RECORD *record )
 
 	/* Disconnect from the dynamic library. */
 
-	mx_status = mx_dynamic_link_close_library( camera_link_api->library );
+	mx_status = mx_dynamic_library_close( camera_link_api->library );
 
 	return mx_status;
 }

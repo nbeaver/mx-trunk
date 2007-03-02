@@ -1,5 +1,5 @@
 /*
- * Name:    mx_dynamic_link.h
+ * Name:    mx_dynamic_library.h
  *
  * Purpose: This header defines functions for loading dynamic libraries
  *          at run time and for searching for symbols in them.
@@ -15,8 +15,8 @@
  *
  */
 
-#ifndef __MX_DYNAMIC_LINK_H__
-#define __MX_DYNAMIC_LINK_H__
+#ifndef __MX_DYNAMIC_LIBRARY_H__
+#define __MX_DYNAMIC_LIBRARY_H__
 
 #include "mx_stdint.h"
 
@@ -25,16 +25,16 @@ typedef struct {
 	char filename[MXU_FILENAME_LENGTH+1];
 } MX_DYNAMIC_LIBRARY;
 
-MX_API mx_status_type mx_dynamic_link_open_library( const char *filename,
+MX_API mx_status_type mx_dynamic_library_open( const char *filename,
 						MX_DYNAMIC_LIBRARY **library );
 
-MX_API mx_status_type mx_dynamic_link_close_library(
-						MX_DYNAMIC_LIBRARY *library );
+MX_API mx_status_type mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library );
 
-MX_API mx_status_type mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
+MX_API mx_status_type mx_dynamic_library_find_symbol(
+						MX_DYNAMIC_LIBRARY *library,
 						const char *symbol_name,
 						void **symbol_pointer,
 						mx_bool_type quiet_flag );
 
-#endif /* __MX_DYNAMIC_LINK_H_ */
+#endif /* __MX_DYNAMIC_LIBRARY_H_ */
 

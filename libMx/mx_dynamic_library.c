@@ -1,5 +1,5 @@
 /*
- * Name:    mx_hrt.c
+ * Name:    mx_dynamic_library.c
  *
  * Purpose: This file defines functions for loading dynamic libraries at
  *          run time and for searching for symbols in them.  Searching for
@@ -21,7 +21,7 @@
 #include <stdio.h>
 
 #include "mx_util.h"
-#include "mx_dynamic_link.h"
+#include "mx_dynamic_library.h"
 
 /************************ Microsoft Win32 ***********************/
 
@@ -30,10 +30,10 @@
 #include "windows.h"
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_open_library( const char *filename,
+mx_dynamic_library_open( const char *filename,
 				MX_DYNAMIC_LIBRARY **library )
 {
-	static const char fname[] = "mx_dynamic_link_open_library()";
+	static const char fname[] = "mx_dynamic_library_open()";
 
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
@@ -78,9 +78,9 @@ mx_dynamic_link_open_library( const char *filename,
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_close_library( MX_DYNAMIC_LIBRARY *library )
+mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 {
-	static const char fname[] = "mx_dynamic_link_close_library()";
+	static const char fname[] = "mx_dynamic_library_close()";
 
 	BOOL os_status;
 	DWORD last_error_code;
@@ -122,12 +122,12 @@ mx_dynamic_link_close_library( MX_DYNAMIC_LIBRARY *library )
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				mx_bool_type quiet_flag )
 {
-	static const char fname[] = "mx_dynamic_link_find_symbol()";
+	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
 	long mx_error_code;
 	DWORD last_error_code;
@@ -189,10 +189,10 @@ mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
 #include <dlfcn.h>
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_open_library( const char *filename,
+mx_dynamic_library_open( const char *filename,
 				MX_DYNAMIC_LIBRARY **library )
 {
-	static const char fname[] = "mx_dynamic_link_open_library()";
+	static const char fname[] = "mx_dynamic_library_open()";
 
 	int saved_errno;
 
@@ -233,9 +233,9 @@ mx_dynamic_link_open_library( const char *filename,
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_close_library( MX_DYNAMIC_LIBRARY *library )
+mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 {
-	static const char fname[] = "mx_dynamic_link_close_library()";
+	static const char fname[] = "mx_dynamic_library_close()";
 
 	int os_status, saved_errno;
 
@@ -271,12 +271,12 @@ mx_dynamic_link_close_library( MX_DYNAMIC_LIBRARY *library )
 }
 
 MX_EXPORT mx_status_type
-mx_dynamic_link_find_symbol( MX_DYNAMIC_LIBRARY *library,
+mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 				const char *symbol_name,
 				void **symbol_pointer,
 				mx_bool_type quiet_flag )
 {
-	static const char fname[] = "mx_dynamic_link_find_symbol()";
+	static const char fname[] = "mx_dynamic_library_find_symbol()";
 
 	int saved_errno;
 	long error_code;

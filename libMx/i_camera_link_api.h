@@ -17,7 +17,7 @@
 #ifndef __I_CAMERA_LINK_API_H__
 #define __I_CAMERA_LINK_API_H__
 
-#include "mx_dynamic_link.h"
+#include "mx_dynamic_library.h"
 
 #if defined(IS_MX_DRIVER)
 
