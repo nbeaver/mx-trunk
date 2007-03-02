@@ -26,6 +26,7 @@
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_image.h"
+#include "mx_digital_input.h"
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
 #include "mx_area_detector.h"
@@ -46,7 +47,7 @@ MX_RECORD_FUNCTION_LIST mxd_pccd_170170_record_function_list = {
 	mxd_pccd_170170_open,
 	mxd_pccd_170170_close,
 	NULL,
-	NULL,
+	mxd_pccd_170170_resynchronize,
 	mxd_pccd_170170_special_processing_setup
 };
 
@@ -735,9 +736,14 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	flags = pccd_170170->pccd_170170_flags;
 
-	if ( flags & MXF_PCCD_170170_USE_SIMULATOR ) {
+	if ( flags & MXF_PCCD_170170_USE_CAMERA_SIMULATOR ) {
 		mx_warning( "Area detector '%s' will use "
 			"an Aviex camera simulator instead of a real camera.",
+				record->name );
+	}
+	if ( flags & MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR ) {
+		mx_warning( "Area detector '%s' will use "
+	"an Aviex detector head simulator instead of a real detector head.",
 				record->name );
 	}
 
@@ -1039,7 +1045,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	INIT_REGISTER( MXLV_PCCD_170170_DH_OFFSET_D4,
 					0,     FALSE, FALSE, 0,  65534 );
 
-	/* Check to see what firmware versions are being used by
+	/* Check to find out the firmware versions that are being used by
 	 * the detector head.
 	 */
 
@@ -1075,6 +1081,40 @@ MX_EXPORT mx_status_type
 mxd_pccd_170170_close( MX_RECORD *record )
 {
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_pccd_170170_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_pccd_170170_resynchronize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_PCCD_170170 *pccd_170170;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = (MX_AREA_DETECTOR *) record->record_class_struct;
+
+	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
+	/* Send an 'Initialize CCD Controller' command to the detector head
+	 * by toggling the CC4 line.
+	 */
+
+	mx_status = mx_camera_link_pulse_cc_line(
+					pccd_170170->camera_link_record, 4,
+					-1, 1000 );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1153,6 +1193,10 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_stop()";
 
 	MX_PCCD_170170 *pccd_170170;
+	MX_CLOCK_TICK timeout_in_ticks, current_tick, finish_tick;
+	double timeout;
+	int comparison;
+	mx_bool_type busy, timed_out;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1164,9 +1208,69 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Send an 'Abort Exposure' command to the detector head by
+	 * toggling the CC2 line.
+	 */
+
+	mx_status = mx_camera_link_pulse_cc_line(
+					pccd_170170->camera_link_record, 2,
+					-1, 1000 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Tell the imaging board to stop acquiring frames after the end
+	 * of the current frame.
+	 */
+
 	mx_status = mx_video_input_stop( pccd_170170->video_input_record );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS );
+		return mx_status;
+
+	/* Wait for the imaging board to stop.  If this takes more than
+	 * 'timeout' seconds, then break out with a timeout error.
+	 */
+
+	timeout = 1.0;		/* in seconds */
+
+	timeout_in_ticks = mx_convert_seconds_to_clock_ticks( timeout );
+
+	current_tick = mx_current_clock_tick();
+
+	finish_tick = mx_add_clock_ticks( current_tick, timeout_in_ticks );
+
+	timed_out = FALSE;
+
+	for (;;) {
+		mx_status = mx_video_input_is_busy(
+				pccd_170170->video_input_record, &busy );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( busy == FALSE ) {
+			break;			/* Exit the for(;;) loop. */
+		}
+
+		current_tick = mx_current_clock_tick();
+
+		comparison = mx_compare_clock_ticks(current_tick, finish_tick);
+
+		if ( comparison >= 0 ) {
+			timed_out = TRUE;
+			break;			/* Exit the for(;;) loop. */
+		}
+	}
+
+	if ( timed_out ) {
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Timed out after waiting %g seconds for video input '%s' "
+		"to stop acquiring the current frame.",
+			timeout, pccd_170170->video_input_record->name );
+	} else {
+		return MX_SUCCESSFUL_RESULT;
+	}
 }
 
 MX_EXPORT mx_status_type
@@ -1186,6 +1290,19 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Send a 'Reset CCD Controller' command to the detector head by
+	 * toggling the CC3 line.
+	 */
+
+	mx_status = mx_camera_link_pulse_cc_line(
+					pccd_170170->camera_link_record, 3,
+					-1, 1000 );
+
+	if ( mx_status.code != MXE_SUCCESS );
+		return mx_status;
+
+	/* Tell the imaging board to immediately stop acquiring frames. */
+
 	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
 
 	return mx_status;
@@ -1199,7 +1316,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	long last_frame_number;
 	long total_num_frames;
-	unsigned long status_flags;
+	unsigned long status_flags, spare_status;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1211,6 +1328,8 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Ask the video board for its current status. */
+
 	mx_status = mx_video_input_get_extended_status(
 						pccd_170170->video_input_record,
 						&last_frame_number,
@@ -1231,6 +1350,20 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	ad->status = 0;
 
 	if ( status_flags & MXSF_VIN_IS_BUSY ) {
+		ad->status |= MXSF_AD_IS_BUSY;
+	}
+
+	/* See if the Camera Link Spare line says that
+	 * the detector head is idle.
+	 */
+
+	mx_status = mx_digital_input_read( pccd_170170->spare_line_record,
+						&spare_status );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( spare_status != 0 ) {
 		ad->status |= MXSF_AD_IS_BUSY;
 	}
 
@@ -1275,7 +1408,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	flags = pccd_170170->pccd_170170_flags;
 
-	if ( flags & MXF_PCCD_170170_USE_SIMULATOR ) {
+	if ( flags & MXF_PCCD_170170_USE_CAMERA_SIMULATOR ) {
 		/* If we are using the camera simulator board, the data
 		 * stream coming in is not scrambled, so we just copy
 		 * directly from the raw frame to the image frame.
@@ -1399,8 +1532,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	long vinput_horiz_framesize, vinput_vert_framesize;
-	long sequence_type, exp_index, exposure_steps;
-	double exposure_time;
+	long sequence_type, num_frames, exposure_steps, gap_steps;
+	long exposure_multiplier_steps, gap_multiplier_steps;
+	double exposure_time, frame_time, gap_time;
+	double exposure_multiplier, gap_multiplier;
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
@@ -1425,6 +1560,22 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 							ad->parameter_type,
 							num_allowed_binsizes,
 							allowed_binsize );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Tell the detector head to change its binsize. */
+
+		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_PIXEL_BINNING,
+					ad->binsize[0] );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_LINE_BINNING,
+					ad->binsize[1] );
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
@@ -1456,17 +1607,57 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		sequence_type = ad->sequence_parameters.sequence_type;
 
 		switch( sequence_type ) {
+		case MXT_SQ_GEOMETRICAL:
+			exposure_multiplier =
+				ad->sequence_parameters.parameter_array[3];
+
+			exposure_multiplier_steps = mx_round(
+						exposure_multiplier / 0.078 );
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+					exposure_multiplier_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			gap_multiplier =
+				ad->sequence_parameters.parameter_array[3];
+
+			gap_multiplier_steps = mx_round(gap_multiplier / 0.078);
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+					gap_multiplier_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Fall through to the next case. */
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_MULTIFRAME:
 			if ( sequence_type == MXT_SQ_ONE_SHOT ) {
-				exp_index = 0;
+				num_frames = 1;
+				exposure_time =
+				    ad->sequence_parameters.parameter_array[0];
 			} else {
-				exp_index = 1;
+				num_frames = mx_round(
+				    ad->sequence_parameters.parameter_array[0]);
+				exposure_time =
+				    ad->sequence_parameters.parameter_array[1];
+				frame_time =
+				    ad->sequence_parameters.parameter_array[2];
 			}
 
-			exposure_time =
-			     ad->sequence_parameters.parameter_array[exp_index];
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+					num_frames );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
 			exposure_steps = mx_round( exposure_time / 0.01 );
 
@@ -1477,20 +1668,49 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
+
+			if ( num_frames > 1 ) {
+				gap_time = frame_time - exposure_time;
+
+				if ( gap_time < 0.0 ) {
+					return mx_error(
+						MXE_ILLEGAL_ARGUMENT, fname,
+				"The requested time per frame of %g seconds "
+				"is less than the requested exposure time "
+				"of %g seconds for detector '%s'.",
+						frame_time, exposure_time,
+						ad->record->name );
+				}
+
+				gap_steps = mx_round( gap_time / 0.0001 );
+
+				if ( gap_steps > 65535 ) {
+					return mx_error(
+						MXE_ILLEGAL_ARGUMENT, fname,
+				"The difference between the requested frame "
+				"time of %g seconds and the requested exposure "
+				"time of %g seconds is greater than the "
+				"maximum difference of %g seconds for "
+				"detector '%s'.", frame_time, exposure_time,
+						gap_time, ad->record->name );
+				}
+
+				mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_GAP_TIME,
+					gap_steps );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
 			break;
-		case MXT_SQ_GEOMETRICAL:
-			return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"Geometrical mode is not yet implemented for detector '%s'.",
-				ad->record->name );
-			break;
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Strobe mode is not supported for detector '%s'.",
-				ad->record->name );
-		case MXT_SQ_BULB:
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"Bulb mode is not supported for detector '%s'.",
-				ad->record->name );
+			"Detector sequence type %lu is not supported "
+			"for detector '%s'.",
+				sequence_type, ad->record->name );
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal sequence type %ld requested "
@@ -1538,6 +1758,7 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 
 	MX_RECORD *camera_link_record;
 	size_t command_length, response_length;
+	unsigned long use_dh_simulator;
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
@@ -1575,7 +1796,10 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			fname, command, camera_link_record->name ));
 	}
 
-	if ( pccd_170170->pccd_170170_flags & MXF_PCCD_170170_USE_SIMULATOR ) {
+	use_dh_simulator = pccd_170170->pccd_170170_flags
+				& MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR;
+
+	if ( use_dh_simulator ) {
 
 		/* Talk to a simulated detector head. */
 

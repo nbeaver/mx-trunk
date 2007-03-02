@@ -19,7 +19,8 @@
 
 /* Values for 'pccd_170170_flags'. */
 
-#define MXF_PCCD_170170_USE_SIMULATOR	0x1
+#define MXF_PCCD_170170_USE_CAMERA_SIMULATOR		0x1
+#define MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR	0x2
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
@@ -41,6 +42,7 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *camera_link_record;
+	MX_RECORD *spare_line_record;
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
 
@@ -178,6 +180,10 @@ typedef struct {
   \
   {-1, -1, "camera_link_record", MXFT_RECORD, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, camera_link_record), \
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "spare_line_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, spare_line_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \
@@ -387,6 +393,7 @@ MX_API mx_status_type mxd_pccd_170170_finish_record_initialization(
 MX_API mx_status_type mxd_pccd_170170_delete_record( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_open( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_close( MX_RECORD *record );
+MX_API mx_status_type mxd_pccd_170170_resynchronize( MX_RECORD *record );
 MX_API mx_status_type mxd_pccd_170170_special_processing_setup(
 							MX_RECORD *record );
 

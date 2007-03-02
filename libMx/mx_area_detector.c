@@ -1637,7 +1637,7 @@ MX_EXPORT mx_status_type
 mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 					long num_frames,
 					double exposure_time,
-					double gap_time,
+					double frame_time,
 					double exposure_multiplier,
 					double gap_multiplier )
 {
@@ -1648,7 +1648,7 @@ mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 	seq_params.num_parameters = 5;
 	seq_params.parameter_array[0] = num_frames;
 	seq_params.parameter_array[1] = exposure_time;
-	seq_params.parameter_array[2] = gap_time;
+	seq_params.parameter_array[2] = frame_time;
 	seq_params.parameter_array[3] = exposure_multiplier;
 	seq_params.parameter_array[4] = gap_multiplier;
 
