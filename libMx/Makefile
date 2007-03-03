@@ -152,7 +152,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_panasonic_kx_dp702.c i_pcmotion32.c i_pcstep.c i_pdi40.c i_pdi45.c \
 	i_pfcu.c i_phidget_old_stepper.c i_picomotor.c i_pmac.c \
 	i_pmc_mcapi.c i_rtems_vme.c i_scipe.c i_sis3100.c i_sis3807.c \
-	i_soft_camac.c i_soft_rs232.c i_sony_visca.c i_spec_command.c \
+	i_soft_camac.c i_soft_camera_link.c i_soft_rs232.c \
+	i_sony_visca.c i_spec_command.c \
 	i_sr630.c i_tcp232.c i_tpg262.c i_tty.c \
 	i_u500.c i_uglide.c i_umcbi.c i_vme58.c i_vms_terminal.c \
 	i_vp9000.c i_vsc16.c i_vxi_memacc.c \

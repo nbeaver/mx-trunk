@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mpccd_170170_soft.dat -s ./spccd_170170_soft.dat -i $*
+

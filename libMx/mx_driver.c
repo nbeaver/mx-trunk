@@ -148,6 +148,7 @@
 
 #include "i_modbus_serial_rtu.h"
 
+#include "i_soft_camera_link.h"
 #include "i_camera_link_api.h"
 #include "i_epix_camera_link.h"
 
@@ -1253,6 +1254,13 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_libusb_num_record_fields,
 				&mxi_libusb_rfield_def_ptr},
 #endif /* HAVE_LIBUSB */
+
+{"soft_camera_link", MXI_CL_SOFTWARE, MXI_CAMERA_LINK,  MXR_INTERFACE,
+				&mxi_soft_camera_link_record_function_list,
+				NULL,
+				NULL,
+				&mxi_soft_camera_link_num_record_fields,
+				&mxi_soft_camera_link_rfield_def_ptr},
 
 {"camera_link_api", MXI_CL_API,       MXI_CAMERA_LINK,  MXR_INTERFACE,
 				&mxi_camera_link_api_record_function_list,

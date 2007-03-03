@@ -2090,7 +2090,7 @@ mx_area_detector_get_extended_status( MX_RECORD *record,
 	}
 
 #if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-137,
+	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 	    fname, ad->last_frame_number, ad->total_num_frames, ad->status));
 #endif
