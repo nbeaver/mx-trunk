@@ -155,7 +155,7 @@ mx_camera_link_flush_port( MX_RECORD *cl_record )
 			return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 			"Unexpected error code %d returned for the attempt "
 			"to flush input for Camera Link record '%s'.",
-				cl_status, cl_record->name );
+				(int) cl_status, cl_record->name );
 			break;
 		}
 	} else {
@@ -257,7 +257,7 @@ mx_camera_link_get_num_bytes_avail( MX_RECORD *cl_record,
 		"Unexpected error code %d returned for the attempt "
 		"to get the number of available input bytes for "
 		"Camera Link record '%s'.",
-			cl_status, cl_record->name );
+			(int) cl_status, cl_record->name );
 		break;
 	}
 
@@ -356,7 +356,7 @@ mx_camera_link_serial_init( MX_RECORD *cl_record )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected error code %d returned for the attempt "
 		"to initialize serial index %ld for Camera Link record '%s'.",
-			cl_status, camera_link->serial_index,
+			(int) cl_status, camera_link->serial_index,
 			cl_record->name );
 		break;
 	}
@@ -433,7 +433,7 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected error code %d returned for the attempt "
 		"to read from Camera Link record '%s'.",
-			cl_status, cl_record->name );
+			(int) cl_status, cl_record->name );
 		break;
 	}
 
@@ -506,7 +506,7 @@ mx_camera_link_serial_write( MX_RECORD *cl_record,
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected error code %d returned for the attempt "
 		"to write to Camera Link record '%s'.",
-			cl_status, cl_record->name );
+			(int) cl_status, cl_record->name );
 		break;
 	}
 
@@ -565,7 +565,7 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected error code %d returned for the attempt "
 		"to initialize serial index %ld for Camera Link record '%s'.",
-			cl_status, camera_link->serial_index,
+			(int) cl_status, camera_link->serial_index,
 			cl_record->name );
 		break;
 	}
@@ -625,7 +625,7 @@ mx_camera_link_set_cc_line( MX_RECORD *cl_record,
 		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
 		"Unexpected error code %d returned for the attempt "
 		"to set CC%lu to %lu for Camera Link record '%s'.",
-			cl_status, cc_line_number, cc_line_state,
+			(int) cl_status, cc_line_number, cc_line_state,
 			cl_record->name );
 		break;
 	}

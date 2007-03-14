@@ -397,7 +397,7 @@ mxi_soft_camera_link_set_cc_line( hSerRef serial_ref,
 
 #if MXI_SOFT_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s: cc_line_number = %d, cc_line_state = %d",
-			fname, cc_line_number, cc_line_state));
+		fname, (int) cc_line_number, (int) cc_line_state));
 #endif
 
 	return CL_ERR_NO_ERR;

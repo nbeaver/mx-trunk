@@ -182,7 +182,8 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /************************ dlopen() ***********************/
 
-#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
+#elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
+	|| defined(OS_CYGWIN)
 
 #include <stdlib.h>
 #include <errno.h>
@@ -326,7 +327,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 #else
 
-#error Dynamic linking of libraries is not implemented for this platform.
+#error Dynamic loading of libraries is not implemented for this platform.
 
 #endif
 

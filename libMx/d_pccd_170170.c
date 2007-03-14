@@ -1713,6 +1713,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				num_frames = 1;
 				exposure_time =
 				    ad->sequence_parameters.parameter_array[0];
+				frame_time = exposure_time;
 			} else {
 				num_frames = mx_round(
 				    ad->sequence_parameters.parameter_array[0]);

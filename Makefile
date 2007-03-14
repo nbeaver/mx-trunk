@@ -45,7 +45,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = linux
+MX_ARCH = cygwin
 
 MX_INSTALL_DIR = /opt/mx
 

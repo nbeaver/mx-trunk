@@ -767,14 +767,14 @@ mx_network_connection_is_up( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, int * );
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, mx_bool_type * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed was NULL." );
 	}
-	if ( connection_is_up == (int *) NULL ) {
+	if ( connection_is_up == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"connection_is_up pointer is NULL." );
 	}
@@ -866,14 +866,14 @@ mx_network_message_is_available( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
-	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, int * );
+	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *, mx_bool_type * );
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"MX_RECORD pointer passed was NULL." );
 	}
-	if ( message_is_available == (int *) NULL ) {
+	if ( message_is_available == (mx_bool_type *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"message_is_available pointer is NULL." );
 	}
@@ -3079,7 +3079,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	char *buffer, *message, *ptr;
 	uint32_t header_length, message_length;
 	uint32_t message_type, status_code;
-	int connection_is_up;
+	mx_bool_type connection_is_up;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_TIMING
@@ -3113,7 +3113,7 @@ mx_set_client_info( MX_RECORD *server_record,
 		return mx_status;
 
 	MX_DEBUG( 2,("%s: server '%s', connection_is_up = %d",
-		fname, server_record->name, connection_is_up));
+		fname, server_record->name, (int) connection_is_up));
 
 	if ( connection_is_up == FALSE ) {
 		return MX_SUCCESSFUL_RESULT;
