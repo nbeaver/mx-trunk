@@ -55,7 +55,11 @@
 #define MXT_SQ_STROBE				5
 #define MXT_SQ_BULB				6
 
+/*---- AVIEX specific sequence types ----*/
+
 #define MXT_SQ_GEOMETRICAL			101
+#define MXT_SQ_STREAK_CAMERA			102
+#define MXT_SQ_SUBIMAGE				103
 
 /*----*/
 

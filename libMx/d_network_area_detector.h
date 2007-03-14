@@ -35,6 +35,7 @@ typedef struct {
 	MX_NETWORK_FIELD correction_measurement_time_nf;
 	MX_NETWORK_FIELD correction_measurement_type_nf;
 	MX_NETWORK_FIELD current_num_rois_nf;
+	MX_NETWORK_FIELD detector_readout_time_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD framesize_nf;
 	MX_NETWORK_FIELD frame_filename_nf;
@@ -57,6 +58,7 @@ typedef struct {
 	MX_NETWORK_FIELD stop_nf;
 	MX_NETWORK_FIELD subframe_size_nf;
 	MX_NETWORK_FIELD total_num_frames_nf;
+	MX_NETWORK_FIELD total_sequence_time_nf;
 	MX_NETWORK_FIELD transfer_frame_nf;
 	MX_NETWORK_FIELD trigger_nf;
 	MX_NETWORK_FIELD trigger_mode_nf;

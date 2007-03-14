@@ -83,6 +83,9 @@ typedef struct {
 
 	char *roi_frame_buffer;
 
+	double detector_readout_time;
+	double total_sequence_time;
+
 	/* 'sequence_parameters' contains information like the type of the
 	 * sequence, the number of frames in the sequence, and sequence
 	 * parameters like the exposure time per frame, and the interval
@@ -222,6 +225,8 @@ typedef struct {
 #define MXLV_AD_SAVE_FRAME			12037
 #define MXLV_AD_FRAME_FILENAME			12038
 #define MXLV_AD_COPY_FRAME			12039
+#define MXLV_AD_DETECTOR_READOUT_TIME		12040
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12041
 
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
@@ -407,6 +412,18 @@ typedef struct {
   {MXLV_AD_COPY_FRAME, -1, "copy_frame", MXFT_LONG, NULL, 1, {2}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, copy_frame), \
 	{sizeof(long)}, NULL, 0}, \
+  \
+  {MXLV_AD_DETECTOR_READOUT_TIME, -1, \
+		"detector_readout_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, detector_readout_time), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_AD_TOTAL_SEQUENCE_TIME, -1, \
+		"total_sequence_time", MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, total_sequence_time), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_CORRECTION_MEASUREMENT_TIME, -1, \
   		"correction_measurement_time", MXFT_DOUBLE, NULL, 0, {0}, \
@@ -614,6 +631,14 @@ MX_API mx_status_type mx_area_detector_set_use_scaled_dark_current_flag(
 
 /*---*/
 
+MX_API mx_status_type mx_area_detector_get_detector_readout_time(
+						MX_RECORD *ad_record,
+						double *detector_readout_time );
+
+MX_API mx_status_type mx_area_detector_get_total_sequence_time(
+						MX_RECORD *ad_record,
+						double *total_sequence_time );
+
 MX_API mx_status_type mx_area_detector_get_sequence_parameters(
 				MX_RECORD *ad_record,
 				MX_SEQUENCE_PARAMETERS *sequence_parameters );
@@ -646,6 +671,8 @@ MX_API mx_status_type mx_area_detector_set_strobe_mode( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_set_bulb_mode( MX_RECORD *ad_record,
 							long num_frames );
 
+/*---*/
+
 MX_API mx_status_type mx_area_detector_set_geometrical_mode(
 						MX_RECORD *ad_record,
 						long num_frames,
@@ -653,6 +680,20 @@ MX_API mx_status_type mx_area_detector_set_geometrical_mode(
 						double frame_time,
 						double exposure_multiplier,
 						double gap_multiplier );
+
+MX_API mx_status_type mx_area_detector_set_streak_camera_mode(
+						MX_RECORD *ad_record,
+						long num_lines,
+						double exposure_time_per_line );
+
+MX_API mx_status_type mx_area_detector_set_subimage_mode(
+						MX_RECORD *ad_record,
+						long num_lines_per_subimage,
+						long num_subimages,
+						double exposure_time,
+						double subimage_time );
+
+/*---*/
 
 MX_API mx_status_type mx_area_detector_get_trigger_mode( MX_RECORD *ad_record,
 							long *trigger_mode );

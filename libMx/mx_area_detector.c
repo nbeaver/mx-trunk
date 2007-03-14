@@ -1353,6 +1353,82 @@ mx_area_detector_set_use_scaled_dark_current_flag( MX_RECORD *record,
 /*---*/
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_detector_readout_time( MX_RECORD *record,
+					double *detector_readout_time )
+{
+	static const char fname[] =
+			"mx_area_detector_get_detector_readout_time()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_DETECTOR_READOUT_TIME;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( detector_readout_time != (double *) NULL ) {
+		*detector_readout_time = ad->detector_readout_time;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_get_total_sequence_time( MX_RECORD *record,
+					double *total_sequence_time )
+{
+	static const char fname[] =
+			"mx_area_detector_get_total_sequence_time()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_TOTAL_SEQUENCE_TIME;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( total_sequence_time != (double *) NULL ) {
+		*total_sequence_time = ad->total_sequence_time;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 			MX_SEQUENCE_PARAMETERS *sequence_parameters )
 {
@@ -1369,7 +1445,7 @@ mx_area_detector_get_sequence_parameters( MX_RECORD *record,
 		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
 	}
 
-	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+	mx_status = mx_area_detector_get_pointers( record, &ad, &flist, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1633,6 +1709,8 @@ mx_area_detector_set_bulb_mode( MX_RECORD *record,
 	return mx_status;
 }
 
+/*---*/
+
 MX_EXPORT mx_status_type
 mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 					long num_frames,
@@ -1656,6 +1734,48 @@ mx_area_detector_set_geometrical_mode( MX_RECORD *record,
 								&seq_params );
 	return mx_status;
 }
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_streak_camera_mode( MX_RECORD *record,
+					long num_lines,
+					double exposure_time_per_line )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_STREAK_CAMERA;
+	seq_params.num_parameters = 2;
+	seq_params.parameter_array[0] = num_lines;
+	seq_params.parameter_array[1] = exposure_time_per_line;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_area_detector_set_subimage_mode( MX_RECORD *record,
+					long num_lines_per_subimage,
+					long num_subimages,
+					double exposure_time,
+					double subimage_time )
+{
+	MX_SEQUENCE_PARAMETERS seq_params;
+	mx_status_type mx_status;
+
+	seq_params.sequence_type = MXT_SQ_SUBIMAGE;
+	seq_params.num_parameters = 4;
+	seq_params.parameter_array[0] = num_lines_per_subimage;
+	seq_params.parameter_array[1] = num_subimages;
+	seq_params.parameter_array[2] = exposure_time;
+	seq_params.parameter_array[3] = subimage_time;
+
+	mx_status = mx_area_detector_set_sequence_parameters( record,
+								&seq_params );
+	return mx_status;
+}
+
+/*---*/
 
 MX_EXPORT mx_status_type
 mx_area_detector_get_trigger_mode( MX_RECORD *record, long *trigger_mode )
@@ -3187,8 +3307,12 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 	static const char fname[] =
 		"mx_area_detector_default_get_parameter_handler()";
 
+	MX_SEQUENCE_PARAMETERS seq;
 	unsigned long i;
 	double double_value;
+	long num_frames;
+	double exposure_time, frame_time;
+	mx_status_type mx_status;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
@@ -3226,6 +3350,79 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 
 		ad->bytes_per_frame = mx_round( ceil(double_value) );
 		break;
+
+	case MXLV_AD_DETECTOR_READOUT_TIME:
+		ad->detector_readout_time = 0;
+		break;
+
+	case MXLV_AD_TOTAL_SEQUENCE_TIME:
+		mx_status = mx_area_detector_get_sequence_parameters(
+							ad->record, &seq );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch( seq.sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
+			exposure_time = seq.parameter_array[0];
+
+			ad->total_sequence_time =
+				exposure_time + ad->detector_readout_time;
+			break;
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			num_frames = seq.parameter_array[0];
+			exposure_time = seq.parameter_array[1];
+			frame_time = seq.parameter_array[2];
+
+			if ( frame_time <
+				(exposure_time + ad->detector_readout_time) )
+			{
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The frame time (%g seconds) is shorter than "
+				"the sum of the exposure time (%g seconds) and "
+				"the detector readout time (%g seconds) for "
+				"area detector '%s'.  It is impossible for "
+				"the frame as a whole to take less time than "
+				"the events that happen within the frame.",
+					frame_time, exposure_time,
+					ad->detector_readout_time,
+					ad->record->name );
+			}
+
+			ad->total_sequence_time =
+				frame_time * (double) num_frames;
+			break;
+		case MXT_SQ_STROBE:
+			num_frames = seq.parameter_array[0];
+			exposure_time = seq.parameter_array[1];
+
+			ad->total_sequence_time =
+				( exposure_time + ad->detector_readout_time )
+					* (double) num_frames;
+			break;
+		case MXT_SQ_BULB:
+			num_frames = seq.parameter_array[0];
+
+			ad->total_sequence_time = ad->detector_readout_time
+							* (double) num_frames;
+			break;
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Area detector '%s' is configured for unsupported "
+			"sequence type %ld.",
+				ad->record->name,
+				seq.sequence_type );
+		}
+		break;
+
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Parameter type '%s' (%ld) is not supported by the MX driver "

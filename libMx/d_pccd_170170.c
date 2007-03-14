@@ -1452,6 +1452,10 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+	MX_SEQUENCE_PARAMETERS seq;
+	long i, num_frames;
+	double exposure_time, frame_time, gap_time;
+	double exposure_multiplier, gap_multiplier;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1505,6 +1509,73 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_BYTES_PER_PIXEL:
 		mx_status = mx_video_input_get_bytes_per_pixel(
 				video_input_record, &(ad->bytes_per_pixel) );
+		break;
+
+	case MXLV_AD_DETECTOR_READOUT_TIME:
+		/* FIXME, FIXME, FIXME!!!
+		 * 
+		 * This is just a placeholder for the real value!
+		 */
+
+		ad->detector_readout_time = 0.01;
+		break;
+
+	case MXLV_AD_TOTAL_SEQUENCE_TIME:
+		mx_status = mx_area_detector_get_sequence_parameters(
+							ad->record, &seq );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		switch ( seq.sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+		case MXT_SQ_STROBE:
+		case MXT_SQ_BULB:
+			/* For these cases, use the default calculation. */
+
+			mx_status =
+			   mx_area_detector_default_get_parameter_handler( ad );
+			break;
+
+		case MXT_SQ_GEOMETRICAL:
+			num_frames          = seq.parameter_array[0];
+			exposure_time       = seq.parameter_array[1];
+			frame_time          = seq.parameter_array[2];
+			exposure_multiplier = seq.parameter_array[3];
+			gap_multiplier      = seq.parameter_array[4];
+
+			gap_time = frame_time - exposure_time
+						- ad->detector_readout_time;
+
+			ad->total_sequence_time = 0.0;
+
+			for ( i = 0; i < num_frames; i++ ) {
+
+				ad->total_sequence_time
+						+= ad->detector_readout_time;
+
+				ad->total_sequence_time += exposure_time;
+				ad->total_sequence_time += gap_time;
+
+				exposure_time *= exposure_multiplier;
+				gap_time *= gap_multiplier;
+			}
+			break;
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Area detector '%s' is configured for unsupported "
+			"sequence type %ld.",
+				ad->record->name,
+				seq.sequence_type );
+		}
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
