@@ -45,7 +45,7 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = qnx
+MX_ARCH = irix-gcc
 
 MX_INSTALL_DIR = /opt/mx
 

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2002, 2005 Illinois Institute of Technology
+ * Copyright 1999-2002, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,6 +17,8 @@
 #ifndef __MX_CONSTANTS_H__
 #define __MX_CONSTANTS_H__
 
+#include <limits.h>
+
 /* Mathematical constants are given rounded to 16 digits accuracy. */
 
 #define MX_PI    		3.141592653589793
@@ -25,13 +27,17 @@
 
 /* For Irix, ULONG_MAX can be too large to fit into a 32 bit integer. */
 
-#if defined( OS_IRIX ) && defined(__GNUC__)
-#  define MX_ULONG_MAX		(unsigned long) LONG_MAX
-#  define MX_LONG_MAX		(long) LONG_MAX
+/* FIXME: This may not be necessary anymore since we no longer have to
+ * support Irix machines running GCC 2.8 like we once did.
+ */
+
+#if 0 && defined( OS_IRIX ) && defined(__GNUC__)
+#  define MX_ULONG_MAX		LONG_MAX
 #else
 #  define MX_ULONG_MAX		ULONG_MAX
-#  define MX_LONG_MAX		LONG_MAX
 #endif
+
+#define MX_LONG_MAX		LONG_MAX
 
 /*
  * HC is derived from fundamental constants as stated at the NIST web site

@@ -31,7 +31,7 @@
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-				MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
@@ -183,7 +183,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 /************************ dlopen() ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_CYGWIN) || defined(OS_QNX)
+	|| defined(OS_IRIX) || defined(OS_CYGWIN) || defined(OS_QNX)
 
 #include <stdlib.h>
 #include <errno.h>
@@ -191,7 +191,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,
-				MX_DYNAMIC_LIBRARY **library )
+			MX_DYNAMIC_LIBRARY **library )
 {
 	static const char fname[] = "mx_dynamic_library_open()";
 
@@ -327,7 +327,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 #else
 
-#error Dynamic loading of libraries is not implemented for this platform.
+#error Dynamic loading of libraries has not been implemented for this platform.
 
 #endif
 
