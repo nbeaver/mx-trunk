@@ -183,7 +183,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 /************************ dlopen() ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-	|| defined(OS_CYGWIN)
+	|| defined(OS_CYGWIN) || defined(OS_QNX)
 
 #include <stdlib.h>
 #include <errno.h>
