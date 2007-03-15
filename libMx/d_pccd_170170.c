@@ -1225,7 +1225,7 @@ mxd_pccd_170170_stop( MX_AREA_DETECTOR *ad )
 
 	mx_status = mx_video_input_stop( pccd_170170->video_input_record );
 
-	if ( mx_status.code != MXE_SUCCESS );
+	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Wait for the imaging board to stop.  If this takes more than
@@ -1298,7 +1298,7 @@ mxd_pccd_170170_abort( MX_AREA_DETECTOR *ad )
 					pccd_170170->camera_link_record, 3,
 					-1, 1000 );
 
-	if ( mx_status.code != MXE_SUCCESS );
+	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Tell the imaging board to immediately stop acquiring frames. */
@@ -1673,6 +1673,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
+		/* Get the detector readout time. */
+
+		mx_status = mx_area_detector_get_detector_readout_time(
+							ad->record, NULL );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		/* Reprogram the detector head. */
 
 		sequence_type = ad->sequence_parameters.sequence_type;
@@ -1742,15 +1749,18 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			if ( num_frames > 1 ) {
-				gap_time = frame_time - exposure_time;
+				gap_time = frame_time - exposure_time
+						- ad->detector_readout_time;
 
 				if ( gap_time < 0.0 ) {
 					return mx_error(
 						MXE_ILLEGAL_ARGUMENT, fname,
-				"The requested time per frame of %g seconds "
-				"is less than the requested exposure time "
-				"of %g seconds for detector '%s'.",
+				"The requested time per frame (%g seconds) "
+				"is less than the sum of the requested "
+				"exposure time (%g seconds) and the detector "
+				"readout time (%g seconds) for detector '%s'.",
 						frame_time, exposure_time,
+						ad->detector_readout_time,
 						ad->record->name );
 				}
 
@@ -1759,12 +1769,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				if ( gap_steps > 65535 ) {
 					return mx_error(
 						MXE_ILLEGAL_ARGUMENT, fname,
-				"The difference between the requested frame "
-				"time of %g seconds and the requested exposure "
-				"time of %g seconds is greater than the "
-				"maximum difference of %g seconds for "
-				"detector '%s'.", frame_time, exposure_time,
-						gap_time, ad->record->name );
+				"The computed gap time (%g seconds) is "
+				"greater than the maximum allowed gap time "
+				"(%g seconds) for detector '%s'.",
+						gap_time,
+						0.0001 * (double) 65535,
+						ad->record->name );
 				}
 
 				mx_status = mxd_pccd_170170_write_register(
