@@ -44,6 +44,11 @@
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
 
+#if MXD_EPIX_XCLIB_DEBUG
+#include <sys/times.h>
+#include "mx_hrt.h"
+#endif
+
 /*---*/
 
 MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
@@ -1038,6 +1043,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	uint16_t *image_data16;
+	uint32_t sys_ticks;
 	long i, num_image_words;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1105,6 +1111,49 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 		"Frame number %ld for record '%s' is an illegal frame number.",
 			vinput->frame_number, vinput->record->name );
 	}
+
+	/* Get the timestamp for the frame. */
+
+	sys_ticks = pxd_buffersSysTicks( epix_xclib_vinput->unitmap,
+						epix_frame_number );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	{
+		time_t time_since_epoch;
+		struct tms buf;
+		unsigned long current_cpu_tick;
+		struct timespec hrt;
+
+		time_since_epoch = time(NULL);
+
+		current_cpu_tick = times(&buf);
+
+		hrt = mx_high_resolution_time();
+
+		MX_DEBUG(-2,("%s: frame = %lu, sys_ticks = %lu",
+			fname, (unsigned long) epix_frame_number,
+			(unsigned long) sys_ticks));
+
+		MX_DEBUG(-2,("%s: time_since_epoch = %lu",
+			fname, (unsigned long) time_since_epoch));
+
+		MX_DEBUG(-2,("%s: current_cpu_tick = %lu",
+			fname, current_cpu_tick));
+
+		MX_DEBUG(-2,("%s: user time = %lu, system time = %lu",
+			fname, (unsigned long) buf.tms_utime,
+			(unsigned long) buf.tms_stime));
+
+		MX_DEBUG(-2,
+		("%s: children user time = %lu, children system time = %lu",
+			fname, (unsigned long) buf.tms_cutime,
+			(unsigned long) buf.tms_cstime));
+
+		MX_DEBUG(-2,("%s: hrt.tv_sec = %lu, hrt.tv_nsec = %lu",
+			fname, (unsigned long) hrt.tv_sec,
+			(unsigned long) hrt.tv_nsec));
+	}
+#endif
 
 	/* Read the frame into the MX_IMAGE_FRAME structure. */
 

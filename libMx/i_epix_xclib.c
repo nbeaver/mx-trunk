@@ -8,7 +8,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -134,6 +134,8 @@ mxi_epix_xclib_open( MX_RECORD *record )
 			fault_message );
 	}
 
+	epix_xclib->open_time = time(NULL);
+
 #if MXI_EPIX_XCLIB_DEBUG
 	/* Display some statistics. */
 
@@ -160,6 +162,9 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: %d components per pixel", fname, pxd_imageCdim() ));
 
 	MX_DEBUG(-2,("%s: %d fields per frame buffer", fname, pxd_imageIdim()));
+
+	MX_DEBUG(-2,("%s: open time = %lu seconds",
+		fname, epix_xclib->open_time));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
