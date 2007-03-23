@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/time.h>
 
 #include "mx_osdef.h"
 
@@ -1793,7 +1794,105 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 #endif
 
-/* --- */
+/*-------------------------------------------------------------------------*/
+
+#if defined( OS_WIN32 )
+
+MX_EXPORT struct timespec
+mx_current_os_time( void )
+{
+	DWORD os_time;
+
+	os_time = timeGetTime();
+
+	result.tv_sec = os_time / 1000L;
+	result.tv_nsec = ( os_time % 1000L ) * 1000000L;
+
+	return result;
+}
+
+#else
+
+MX_EXPORT struct timespec
+mx_current_os_time( void )
+{
+	static const char fname[] = "mx_current_os_time()";
+
+	struct timespec result;
+	struct timeval os_timeofday;
+	int os_status, saved_errno;
+
+	os_status = gettimeofday( &os_timeofday, NULL );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		result.tv_sec = 0;
+		result.tv_nsec = 0;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"A call to gettimeofday() failed.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	} else {
+		result.tv_sec = os_timeofday.tv_sec;
+		result.tv_nsec = 1000L * os_timeofday.tv_usec;
+	}
+
+	return result;
+}
+
+#endif
+
+MX_EXPORT char *
+mx_os_time_string( struct timespec os_time,
+			char *buffer,
+			size_t buffer_length )
+{
+	static const char fname[] = "mx_os_time_string()";
+
+	time_t time_in_seconds;
+	struct tm tm_struct;
+	struct tm *tm_struct_ptr;
+	size_t string_length, buffer_left;
+	char *ptr;
+
+	tm_struct = tm_struct;	/* Suppress unused variable warnings. */
+
+	if ( buffer == NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The string buffer pointer passed was NULL." );
+
+		return NULL;
+	}
+
+	time_in_seconds = os_time.tv_sec;
+#if 1
+	tm_struct_ptr = localtime( &time_in_seconds );
+#else
+	localtime_r( &time_in_seconds, &tm_struct );
+
+	tm_struct_ptr = &tm_struct;
+#endif
+
+	strftime( buffer, buffer_length,
+		"%a %b %d %Y %H:%M:%S", tm_struct_ptr );
+
+	string_length = strlen( buffer );
+
+	if ( string_length < buffer_length ) {
+		ptr = buffer + string_length;
+
+		buffer_left = buffer_length - string_length;
+
+		snprintf( ptr, buffer_left, ".%09ld",
+			os_time.tv_nsec );
+	}
+
+	return buffer;
+}
+
+/*-------------------------------------------------------------------------*/
 
 MX_EXPORT char *
 mx_ctime_string( void )

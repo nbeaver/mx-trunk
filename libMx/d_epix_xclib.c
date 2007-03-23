@@ -94,30 +94,51 @@ MX_RECORD_FIELD_DEFAULTS *mxd_epix_xclib_rfield_def_ptr
 
 static mx_status_type
 mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
-			MX_EPIX_XCLIB_VIDEO_INPUT **epix_xclib,
+			MX_EPIX_XCLIB_VIDEO_INPUT **epix_xclib_vinput,
+			MX_EPIX_XCLIB **epix_xclib,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_epix_xclib_get_pointers()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput_ptr;
+	MX_RECORD *xclib_record;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_VIDEO_INPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (epix_xclib == NULL) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_EPIX_XCLIB_VIDEO_INPUT pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
 
-	*epix_xclib = (MX_EPIX_XCLIB_VIDEO_INPUT *)
-				vinput->record->record_type_struct;
+	epix_xclib_vinput_ptr = vinput->record->record_type_struct;
 
-	if ( *epix_xclib == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
+	if ( epix_xclib_vinput_ptr == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_EPIX_XCLIB_VIDEO_INPUT pointer for record '%s' passed by '%s' is NULL.",
-			vinput->record->name, calling_fname );
+	    "The MX_EPIX_XCLIB_VIDEO_INPUT pointer for record '%s' is NULL.",
+			vinput->record->name );
 	}
+
+	if ( epix_xclib_vinput != (MX_EPIX_XCLIB_VIDEO_INPUT **) NULL ) {
+		*epix_xclib_vinput = epix_xclib_vinput_ptr;
+	}
+
+	if ( epix_xclib != (MX_EPIX_XCLIB **) NULL ) {
+		xclib_record = epix_xclib_vinput_ptr->xclib_record;
+
+		if ( xclib_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The xclib_record pointer for record '%s' is NULL.",
+				vinput->record->name );
+		}
+
+		*epix_xclib = xclib_record->record_type_struct;
+
+		if ( (*epix_xclib) == (MX_EPIX_XCLIB *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_EPIX_XCLIB pointer for record '%s' is NULL.",
+				vinput->record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -382,7 +403,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -466,7 +487,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -623,7 +644,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -841,7 +862,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -878,7 +899,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -913,7 +934,7 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -938,7 +959,7 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -965,7 +986,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1034,6 +1055,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	char grey_colorspace[] = "Grey";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_EPIX_XCLIB *epix_xclib;
 	MX_IMAGE_FRAME *frame;
 	pxbuffer_t epix_frame_number;
 	long words_to_read, result;
@@ -1042,12 +1064,13 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	char error_message[80];
 	mx_status_type mx_status;
 
+	struct timespec epix_system_timespec;
+	unsigned long epix_system_ticks;
 	uint16_t *image_data16;
-	uint32_t sys_ticks;
 	long i, num_image_words;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+				&epix_xclib_vinput, &epix_xclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1112,49 +1135,6 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			vinput->frame_number, vinput->record->name );
 	}
 
-	/* Get the timestamp for the frame. */
-
-	sys_ticks = pxd_buffersSysTicks( epix_xclib_vinput->unitmap,
-						epix_frame_number );
-
-#if MXD_EPIX_XCLIB_DEBUG
-	{
-		time_t time_since_epoch;
-		struct tms buf;
-		unsigned long current_cpu_tick;
-		struct timespec hrt;
-
-		time_since_epoch = time(NULL);
-
-		current_cpu_tick = times(&buf);
-
-		hrt = mx_high_resolution_time();
-
-		MX_DEBUG(-2,("%s: frame = %lu, sys_ticks = %lu",
-			fname, (unsigned long) epix_frame_number,
-			(unsigned long) sys_ticks));
-
-		MX_DEBUG(-2,("%s: time_since_epoch = %lu",
-			fname, (unsigned long) time_since_epoch));
-
-		MX_DEBUG(-2,("%s: current_cpu_tick = %lu",
-			fname, current_cpu_tick));
-
-		MX_DEBUG(-2,("%s: user time = %lu, system time = %lu",
-			fname, (unsigned long) buf.tms_utime,
-			(unsigned long) buf.tms_stime));
-
-		MX_DEBUG(-2,
-		("%s: children user time = %lu, children system time = %lu",
-			fname, (unsigned long) buf.tms_cutime,
-			(unsigned long) buf.tms_cstime));
-
-		MX_DEBUG(-2,("%s: hrt.tv_sec = %lu, hrt.tv_nsec = %lu",
-			fname, (unsigned long) hrt.tv_sec,
-			(unsigned long) hrt.tv_nsec));
-	}
-#endif
-
 	/* Read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_EPIX_XCLIB_DEBUG
@@ -1204,6 +1184,57 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			(unsigned long) frame->image_length );
 	}
 
+	/* Get the timestamp for the frame. */
+
+	epix_system_ticks = pxd_buffersSysTicks( epix_xclib_vinput->unitmap,
+							epix_frame_number );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	{
+		time_t time_since_epoch;
+		struct timespec hrt;
+
+		time_since_epoch = time(NULL);
+
+		hrt = mx_high_resolution_time();
+
+		MX_DEBUG(-2,("%s: frame = %lu, EPIX system_ticks = %lu",
+			fname, (unsigned long) epix_frame_number,
+			epix_system_ticks));
+
+		MX_DEBUG(-2,("%s: time_since_epoch = %lu",
+			fname, (unsigned long) time_since_epoch));
+
+		MX_DEBUG(-2,("%s: hrt.tv_sec = %lu, hrt.tv_nsec = %lu",
+			fname, (unsigned long) hrt.tv_sec,
+			(unsigned long) hrt.tv_nsec));
+	}
+#endif
+
+	epix_system_timespec =
+	    mxi_epix_xclib_convert_system_time_to_timespec( epix_system_ticks );
+
+	frame->image_time = mx_add_high_resolution_times(
+			epix_xclib->epix_zero_time, epix_system_timespec );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s: EPIX system_timespec = (%lu,%ld), image_time = (%lu,%ld)", fname,
+		epix_system_timespec.tv_sec, epix_system_timespec.tv_nsec,
+		frame->image_time.tv_sec, frame->image_time.tv_nsec));
+
+	{
+		char buffer[80];
+
+		mx_os_time_string( frame->image_time,
+				buffer, sizeof(buffer) );
+
+		MX_DEBUG(-2,("%s: Image time = '%s'", fname, buffer));
+	}
+#endif
+
+	/* If requested, byteswap the image. */
+
 	flags = epix_xclib_vinput->epix_xclib_flags;
 
 	if ( flags & MXF_EPIX_BYTESWAP ) {
@@ -1241,7 +1272,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1371,7 +1402,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	xclib_DeclareVidStateStructs(vidstate);
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-						&epix_xclib_vinput, fname );
+					&epix_xclib_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

@@ -635,9 +635,18 @@ MX_API unsigned long mx_process_id( void );
 
 MX_API int mx_get_max_file_descriptors( void );
 
+/*---- OS time reporting functions. ----*/
+
+MX_API struct timespec mx_current_os_time( void );
+
+MX_API char *mx_os_time_string( struct timespec os_time,
+				char *buffer, size_t buffer_length );
+
 MX_API char *mx_ctime_string( void );
 
 MX_API char *mx_current_time_string( char *buffer, size_t buffer_length );
+
+/*----*/
 
 MX_API char *mx_skip_string_fields( char *buffer, int num_fields );
 

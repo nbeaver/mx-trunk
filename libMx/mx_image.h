@@ -73,6 +73,7 @@ typedef struct {
 	size_t header_length;
 	void *header_data;
 
+	struct timespec image_time;
 	size_t image_length;
 	void *image_data;
 

@@ -24,7 +24,7 @@ typedef struct {
 
 	char format_file[MXU_FILENAME_LENGTH+1];
 
-	unsigned long open_time;
+	struct timespec epix_zero_time;
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
@@ -41,6 +41,9 @@ MX_API char *mxi_epix_xclib_error_message( int unitmap,
 					int epix_status,
 					char *buffer,
 					size_t buffer_length );
+
+MX_API struct timespec mxi_epix_xclib_convert_system_time_to_timespec(
+						unsigned long epix_system_time);
 
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 

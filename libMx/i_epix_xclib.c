@@ -18,14 +18,17 @@
 #define MXI_EPIX_XCLIB_DEBUG	TRUE
 
 #include <stdio.h>
-#include <stdlib.h>
 
 #include "mxconfig.h"
 
 #if HAVE_EPIX_XCLIB
 
+#include <stdlib.h>
+#include <errno.h>
+
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_hrt.h"
 #include "i_epix_xclib.h"
 
 #if defined(OS_WIN32)
@@ -95,6 +98,12 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	char fault_message[80];
 	MX_EPIX_XCLIB *epix_xclib;
 	int i, length, epix_status;
+	char error_message[80];
+	uint original_exsync, original_prin;
+	unsigned long timeout_in_milliseconds;
+	double timeout_in_seconds;
+	uint32_t epix_system_time;
+	struct timespec epix_system_timespec, os_timespec;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -134,8 +143,6 @@ mxi_epix_xclib_open( MX_RECORD *record )
 			fault_message );
 	}
 
-	epix_xclib->open_time = time(NULL);
-
 #if MXI_EPIX_XCLIB_DEBUG
 	/* Display some statistics. */
 
@@ -163,10 +170,126 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: %d fields per frame buffer", fname, pxd_imageIdim()));
 
-	MX_DEBUG(-2,("%s: open time = %lu seconds",
-		fname, epix_xclib->open_time));
+	MX_DEBUG(-2,("%s: Getting the zero for EPIX system time.", fname));
 #endif
 
+	/* We need to be able to convert the EPIX system time as reported
+	 * by pxd_buffersSysTicks() and pxd_capturedSysTicks() into an
+	 * absolute timestamp.  This requires us to determine the absolute
+	 * time at which the EPIX system time was zero.
+	 *
+	 * Our current method for doing this is to take a frame and then
+	 * invoke time() as soon as possible after the frame ends.  This
+	 * means that there is an uncertainty on the order of a second or
+	 * so in the absolute zero for the EPIX system time.  However, the
+	 * difference in system time between consecutive frames should 
+	 * be as accurate as the EPIX software can make it.
+	 */
+
+	/* Save the original values of EXSYNC (CC1 pulse width) and
+	 * PRIN (time between the end of one CC1 pulse and the start
+	 * of the next CC1 pulse).
+	 */
+
+#if 0
+	original_exsync = pxd_getExsync(1);
+	original_prin   = pxd_getPrin(1);
+
+	/* Set the EXSYNC and PRIN counts to be very small.  This makes
+	 * the exposure time for the following test frame as short as
+	 * is possible.
+	 */
+
+	epix_status = pxd_setExsyncPrin(1,1,1);
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message( 1, epix_status,
+					error_message, sizeof(error_message) );
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to read the EXSYNC and PRIN registers "
+			"for record '%s' failed.  %s",
+				record->name, error_message );
+	}
+#endif
+
+	/* Take a frame.  Time out if the frame takes longer than 1 second. */
+
+	timeout_in_milliseconds = 1000;
+
+	epix_status = pxd_doSnap(1,1,timeout_in_milliseconds);
+
+	/* Get the EPIX system time. */
+
+	epix_system_time = pxd_capturedSysTicks(1);
+
+	/* Get the current wall clock time. */
+
+	os_timespec = mx_current_os_time();
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: epix_system_time = %lu", fname,
+					(unsigned long) epix_system_time));
+
+	MX_DEBUG(-2,("%s: os_timespec = (%lu,%ld)", fname,
+					os_timespec.tv_sec,
+					os_timespec.tv_nsec));
+#endif
+
+	if ( epix_status == 0 ) {
+		/* The function succeeded, so we do nothing here. */
+	} else
+	if ( epix_status == PXERTIMEOUT ) {
+		pxd_goUnLive(1);
+
+		timeout_in_seconds = 0.001 * (double) timeout_in_milliseconds;
+
+		return mx_error( MXE_TIMED_OUT, fname,
+		"Detector '%s' timed out after waiting %g seconds to get the "
+		"current EPIX system clock time by taking a frame.  This could "
+		"happen if the default exposure time set by the Video "
+		"Configuration for your camera is longer than %g seconds.", 
+			record->name, timeout_in_seconds, timeout_in_seconds );
+	} else {
+		mxi_epix_xclib_error_message( 1, epix_status,
+					error_message, sizeof(error_message) );
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to calibrate the current EPIX system time "
+			"for record '%s' failed.  %s",
+				record->name, error_message );
+	}
+
+#if 0
+	/* Restore the original EXSYNC and PRIN values. */
+
+	epix_status = pxd_setExsyncPrin(1, original_exsync, original_prin);
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message( 1, epix_status,
+					error_message, sizeof(error_message) );
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to restore the EXSYNC and PRIN registers "
+			"for record '%s' failed.  %s",
+				record->name, error_message );
+	}
+#endif
+
+	/* Compute the EPIX zero time. */
+
+	epix_system_timespec =
+	    mxi_epix_xclib_convert_system_time_to_timespec( epix_system_time );
+
+	epix_xclib->epix_zero_time = mx_subtract_high_resolution_times(
+					os_timespec, epix_system_timespec );
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: epix_system_timespec = (%lu,%ld)", fname,
+				epix_system_timespec.tv_sec,
+				epix_system_timespec.tv_nsec));
+
+	MX_DEBUG(-2,("%s: epix_zero_time       = (%lu,%ld)", fname,
+				epix_xclib->epix_zero_time.tv_sec,
+				epix_xclib->epix_zero_time.tv_nsec));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -183,8 +306,6 @@ mxi_epix_xclib_error_message( int unitmap,
 
 	MX_DEBUG(-2,("debug: unitmap = %d, epix_error_code = %d",
 			unitmap, epix_error_code ));
-
-	return buffer;
 
 	if ( buffer == NULL )
 		return NULL;
@@ -229,6 +350,72 @@ mxi_epix_xclib_error_message( int unitmap,
 	MX_DEBUG(-2,("debug: buffer = '%s'", buffer));
 
 	return buffer;
+}
+
+#define MXP_ONE_NANOSECOND	1000000000L
+
+MX_EXPORT struct timespec
+mxi_epix_xclib_convert_system_time_to_timespec( unsigned long epix_system_time )
+{
+	struct timespec result;
+	double epix_ticks_per_second, fp_result, fp_remainder;
+
+#if defined(OS_LINUX)
+	epix_ticks_per_second = 1000.0;
+
+#elif defined(OS_WIN32)
+	{
+		int os_major, os_minor, os_update;
+
+		(void) mx_get_os_version(&os_major, &os_minor, &os_update);
+
+		if ( os_major == 4 ) {
+			switch( os_minor ) {
+			case 0:		/* Windows 95 */
+			case 10:	/* Windows 98 */
+			case 90:	/* Windows ME */
+				epix_ticks_per_second = 1000.0;
+				break;
+			default:
+				epix_ticks_per_second = 1.0e7;
+			}
+		} else {
+				epix_ticks_per_second = 1.0e7;
+		}
+	}
+#else
+#error This platform is not supported for EPIX XCLIB.
+#endif
+
+	fp_result = ((double) epix_system_time) / epix_ticks_per_second;
+
+	result.tv_sec = (time_t) fp_result;
+
+	fp_remainder = fp_result - (double) result.tv_sec;
+
+	result.tv_nsec = mx_round( fp_remainder * (double) MXP_ONE_NANOSECOND );
+
+	/* Guard against floating point roundoff errors. */
+
+	if ( result.tv_nsec < 0 ) {
+		result.tv_nsec = 0;
+	} else
+	if ( result.tv_nsec >= MXP_ONE_NANOSECOND ) {
+		result.tv_sec  += 1;
+		result.tv_nsec -= MXP_ONE_NANOSECOND;
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("EPIX: system time = %lu", epix_system_time));
+	MX_DEBUG(-2,("EPIX: ticks per second = %g", epix_ticks_per_second));
+	MX_DEBUG(-2,("EPIX: fp_result = %g, fp_remainder = %g",
+				fp_result, fp_remainder));
+	MX_DEBUG(-2,("EPIX: result = (%lu,%ld)",
+				(unsigned long) result.tv_sec,
+				result.tv_nsec));
+#endif
+
+	return result;
 }
 
 #endif /* HAVE_EPIX_XCLIB */
