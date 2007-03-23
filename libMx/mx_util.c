@@ -1867,7 +1867,8 @@ mx_os_time_string( struct timespec os_time,
 	}
 
 	time_in_seconds = os_time.tv_sec;
-#if 1
+
+#if 0
 	tm_struct_ptr = localtime( &time_in_seconds );
 #else
 	localtime_r( &time_in_seconds, &tm_struct );
