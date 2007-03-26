@@ -227,12 +227,25 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	os_timespec = mx_current_os_time();
 
 #if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("****** Start of statistics dump ******"));
+
 	MX_DEBUG(-2,("%s: epix_system_time = %lu", fname,
 					(unsigned long) epix_system_time));
 
 	MX_DEBUG(-2,("%s: os_timespec = (%lu,%ld)", fname,
 					os_timespec.tv_sec,
 					os_timespec.tv_nsec));
+
+	MX_DEBUG(-2,("*** /proc/uptime ***"));
+	system("cat /proc/uptime");
+
+	MX_DEBUG(-2,("*** /proc/interrupts ***"));
+	system("cat /proc/interrupts");
+
+	MX_DEBUG(-2,("*** /proc/stat ***"));
+	system("cat /proc/stat");
+
+	MX_DEBUG(-2,("****** End of statistics dump ******"));
 #endif
 
 	if ( epix_status == 0 ) {
