@@ -7,12 +7,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2000-2001 Illinois Institute of Technology
+ * Copyright 2000-2001, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
+
+#define MXD_SOFT_SCA_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -56,16 +58,12 @@ long mxd_soft_sca_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxd_soft_sca_rfield_def_ptr
 			= &mxd_soft_sca_record_field_defaults[0];
 
-#define MXD_SOFT_SCA_DEBUG	FALSE
-
-/* A private function for the use of the driver. */
-
 static mx_status_type
 mxd_soft_sca_get_pointers( MX_SCA *sca,
 			MX_SOFT_SCA **soft_sca,
 			const char *calling_fname )
 {
-	const char fname[] = "mxd_soft_sca_get_pointers()";
+	static const char fname[] = "mxd_soft_sca_get_pointers()";
 
 	if ( sca == (MX_SCA *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -109,7 +107,7 @@ mxd_soft_sca_get_pointers( MX_SCA *sca,
 MX_EXPORT mx_status_type
 mxd_soft_sca_create_record_structures( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_sca_create_record_structures()";
+	static const char fname[] = "mxd_soft_sca_create_record_structures()";
 
 	MX_SCA *sca;
 	MX_SOFT_SCA *soft_sca;
@@ -144,7 +142,8 @@ mxd_soft_sca_create_record_structures( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_sca_finish_record_initialization( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_sca_finish_record_initialization()";
+	static const char fname[] =
+			"mxd_soft_sca_finish_record_initialization()";
 
 	MX_SCA *sca;
 	MX_SOFT_SCA *soft_sca;
@@ -170,9 +169,11 @@ mxd_soft_sca_finish_record_initialization( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_sca_open( MX_RECORD *record )
 {
-	const char fname[] = "mxd_soft_sca_open()";
+	static const char fname[] = "mxd_soft_sca_open()";
 
+#if MXD_SOFT_SCA_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -180,12 +181,40 @@ mxd_soft_sca_open( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mxd_soft_sca_get_parameter( MX_SCA *sca )
 {
-	return mx_sca_default_get_parameter_handler( sca );
+	static const char fname[] = "mxd_soft_sca_get_parameter()";
+
+	mx_status_type mx_status;
+
+#if MXD_SOFT_SCA_DEBUG
+	MX_DEBUG(-2,("%s invoked for SCA '%s' for parameter type '%s' (%ld).",
+		fname, sca->record->name,
+		mx_get_field_label_string( sca->record,
+			sca->parameter_type ),
+		sca->parameter_type));
+#endif
+
+	mx_status = mx_sca_default_get_parameter_handler( sca );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
 mxd_soft_sca_set_parameter( MX_SCA *sca )
 {
-	return mx_sca_default_set_parameter_handler( sca );
+	static const char fname[] = "mxd_soft_sca_set_parameter()";
+
+	mx_status_type mx_status;
+
+#if MXD_SOFT_SCA_DEBUG
+	MX_DEBUG(-2,("%s invoked for SCA '%s' for parameter type '%s' (%ld).",
+		fname, sca->record->name,
+		mx_get_field_label_string( sca->record,
+			sca->parameter_type ),
+		sca->parameter_type));
+#endif
+
+	mx_status = mx_sca_default_set_parameter_handler( sca );
+
+	return mx_status;
 }
 

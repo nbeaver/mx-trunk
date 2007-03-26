@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./msoft_sca.dat -s ./ssoft_sca.dat $*
+
