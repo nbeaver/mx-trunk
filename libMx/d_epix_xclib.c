@@ -1064,8 +1064,6 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	char error_message[80];
 	mx_status_type mx_status;
 
-	struct timespec epix_system_timespec;
-	unsigned long epix_system_ticks;
 	uint16_t *image_data16;
 	long i, num_image_words;
 
@@ -1186,41 +1184,11 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
-	epix_system_ticks = pxd_buffersSysTicks( epix_xclib_vinput->unitmap,
-							epix_frame_number );
-
-#if MXD_EPIX_XCLIB_DEBUG
-	{
-		time_t time_since_epoch;
-		struct timespec hrt;
-
-		time_since_epoch = time(NULL);
-
-		hrt = mx_high_resolution_time();
-
-		MX_DEBUG(-2,("%s: frame = %lu, EPIX system_ticks = %lu",
-			fname, (unsigned long) epix_frame_number,
-			epix_system_ticks));
-
-		MX_DEBUG(-2,("%s: time_since_epoch = %lu",
-			fname, (unsigned long) time_since_epoch));
-
-		MX_DEBUG(-2,("%s: hrt.tv_sec = %lu, hrt.tv_nsec = %lu",
-			fname, (unsigned long) hrt.tv_sec,
-			(unsigned long) hrt.tv_nsec));
-	}
-#endif
-
-	epix_system_timespec =
-	    mxi_epix_xclib_convert_system_time_to_timespec( epix_system_ticks );
-
-	frame->image_time = mx_add_high_resolution_times(
-			epix_xclib->epix_zero_time, epix_system_timespec );
-
+	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
+						epix_xclib_vinput->unitmap, 1 );
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,
-	("%s: EPIX system_timespec = (%lu,%ld), image_time = (%lu,%ld)", fname,
-		epix_system_timespec.tv_sec, epix_system_timespec.tv_nsec,
+	("%s: EPIX image timespec = (%lu,%ld)", fname,
 		frame->image_time.tv_sec, frame->image_time.tv_nsec));
 
 	{
