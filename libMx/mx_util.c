@@ -1854,8 +1854,9 @@ mx_os_time_string( struct timespec os_time,
 	time_t time_in_seconds;
 	struct tm tm_struct;
 	struct tm *tm_struct_ptr;
-	size_t string_length, buffer_left;
 	char *ptr;
+	char local_buffer[20];
+	double nsec_in_seconds;
 
 	tm_struct = tm_struct;	/* Suppress unused variable warnings. */
 
@@ -1879,16 +1880,17 @@ mx_os_time_string( struct timespec os_time,
 	strftime( buffer, buffer_length,
 		"%a %b %d %Y %H:%M:%S", tm_struct_ptr );
 
-	string_length = strlen( buffer );
+	nsec_in_seconds = 1.0e-9 * (double) os_time.tv_nsec;
 
-	if ( string_length < buffer_length ) {
-		ptr = buffer + string_length;
+	snprintf( local_buffer, sizeof(local_buffer), "%f", nsec_in_seconds );
 
-		buffer_left = buffer_length - string_length;
+	ptr = strchr( local_buffer, '.' );
 
-		snprintf( ptr, buffer_left, ".%09ld",
-			os_time.tv_nsec );
+	if ( ptr == NULL ) {
+		return buffer;
 	}
+
+	strlcat( buffer, ptr, buffer_length );
 
 	return buffer;
 }

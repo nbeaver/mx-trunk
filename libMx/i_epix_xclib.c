@@ -15,7 +15,9 @@
  *
  */
 
-#define MXI_EPIX_XCLIB_DEBUG	TRUE
+#define MXI_EPIX_XCLIB_DEBUG			TRUE
+
+#define MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS	FALSE
 
 #include <stdio.h>
 
@@ -125,7 +127,7 @@ mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
 			"that was supposed to contain the boot time." );
 		}
 
-#if MXI_EPIX_XCLIB_DEBUG
+#if 0 && MXI_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
 #endif
 
@@ -221,7 +223,6 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	}
 #endif
 
-
 	/* Initialize XCLIB. */
 
 	epix_status = pxd_PIXCIopen( NULL, NULL, epix_xclib->format_file );
@@ -271,9 +272,11 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: %d components per pixel", fname, pxd_imageCdim() ));
 
 	MX_DEBUG(-2,("%s: %d fields per frame buffer", fname, pxd_imageIdim()));
+#endif
+
+#if MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS
 
 	MX_DEBUG(-2,("%s: Getting the zero for EPIX system time.", fname));
-#endif
 
 	/* Verify that the computed EPIX system time matches the operating
 	 * system time by taking a frame and then immediately comparing
@@ -295,7 +298,6 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	epix_system_timespec =
 		mxi_epix_xclib_get_buffer_timespec( epix_xclib, 1, 1 );
 
-#if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("****** Start of statistics dump ******"));
 
 	MX_DEBUG(-2,("%s: epix_system_timespec = (%lu,%ld)", fname,
@@ -459,6 +461,10 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 			fname, (unsigned long) jiffies_since_boot,
 			timespec_since_boot.tv_sec,
 			timespec_since_boot.tv_nsec));
+
+		MX_DEBUG(-2,("%s: system_boot_time = (%lu,%ld)", fname,
+			(unsigned long) epix_xclib->system_boot_time.tv_sec,
+			epix_xclib->system_boot_time.tv_nsec));
 #endif
 		result = mx_add_high_resolution_times( timespec_since_boot,
 						epix_xclib->system_boot_time );
