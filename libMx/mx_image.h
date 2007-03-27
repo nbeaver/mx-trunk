@@ -18,6 +18,8 @@
 #ifndef __MX_IMAGE_H__
 #define __MX_IMAGE_H__
 
+#include "mx_hrt.h"
+
 /*---- Image type definitions ----*/
 
 #define MXT_IMAGE_LOCAL_1D_ARRAY		1

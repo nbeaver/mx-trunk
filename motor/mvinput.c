@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -19,6 +19,7 @@
 
 #include "motor.h"
 #include "mx_key.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 

@@ -22,6 +22,7 @@
 #include <errno.h>
 
 #include "mx_util.h"
+#include "mx_hrt.h"
 #include "mx_stdint.h"
 #include "mx_bit.h"
 #include "mx_image.h"

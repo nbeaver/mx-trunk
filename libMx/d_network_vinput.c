@@ -23,6 +23,7 @@
 #include "mx_record.h"
 #include "mx_driver.h"
 #include "mx_net.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "d_network_vinput.h"

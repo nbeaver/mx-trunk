@@ -26,7 +26,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/types.h>
-#include <sys/time.h>
 
 #include "mx_osdef.h"
 
@@ -38,11 +37,13 @@
 #endif
 
 #if defined( OS_UNIX ) || defined( OS_CYGWIN )
+#include <sys/time.h>
 #include <sys/wait.h>
 #include <pwd.h>
 #endif
 
 #include "mx_util.h"
+#include "mx_hrt.h"
 #include "mx_unistd.h"
 #include "mx_record.h"
 #include "mx_signal.h"
@@ -1802,6 +1803,7 @@ MX_EXPORT struct timespec
 mx_current_os_time( void )
 {
 	DWORD os_time;
+	struct timespec result;
 
 	os_time = timeGetTime();
 
@@ -1858,8 +1860,6 @@ mx_os_time_string( struct timespec os_time,
 	char local_buffer[20];
 	double nsec_in_seconds;
 
-	tm_struct = tm_struct;	/* Suppress unused variable warnings. */
-
 	if ( buffer == NULL ) {
 		(void) mx_error( MXE_NULL_ARGUMENT, fname,
 			"The string buffer pointer passed was NULL." );
@@ -1871,6 +1871,11 @@ mx_os_time_string( struct timespec os_time,
 
 #if 0
 	tm_struct_ptr = localtime( &time_in_seconds );
+
+#elif defined(OS_WIN32)
+	localtime_s( &tm_struct, &time_in_seconds );
+
+	tm_struct_ptr = &tm_struct;
 #else
 	localtime_r( &time_in_seconds, &tm_struct );
 

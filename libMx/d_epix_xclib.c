@@ -29,12 +29,15 @@
 #include <stdlib.h>
 
 #if defined(OS_WIN32)
-#include <windows.h>
+#  include <windows.h>
+#else
+#  include <sys/times.h>
 #endif
 
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_bit.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_camera_link.h"
 #include "mx_video_input.h"
@@ -43,11 +46,6 @@
 
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
-
-#if MXD_EPIX_XCLIB_DEBUG
-#include <sys/times.h>
-#include "mx_hrt.h"
-#endif
 
 /*---*/
 

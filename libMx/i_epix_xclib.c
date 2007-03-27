@@ -196,6 +196,17 @@ mxi_epix_xclib_open( MX_RECORD *record )
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
+	/* Initialize the MX high resolution timer here, so that we do not
+	 * need to keep track of initializing it later.
+	 */
+
+	mx_high_resolution_time_init();
+
+	/* FIXME: Do we need to set processor affinity here in order to
+	 *        get more reliable timing?
+	 */
+
+	epix_xclib->use_high_resolution_timing = FALSE;
 
 #if defined(OS_LINUX)
 	{
@@ -318,7 +329,8 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	system("cat /proc/stat");
 
 	MX_DEBUG(-2,("****** End of statistics dump ******"));
-#endif
+
+#endif /* MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS */
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -430,7 +442,24 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 	/********************** Win32 *************************/
 
 #if defined( OS_WIN32 )
-#error Win32 support not yet written.
+
+#if 0  /* FIXME */
+
+	if ( epix_xclib->use_high_resolution_timing ) {
+
+		/* Use the low 32 bits of KeQueryPerformanceCounter(). */
+
+		mx_warning(
+		"High resolution timing not yet implemented for Win32.");
+	} else {
+		/* Use the low 32 bits of KeQueryInterruptTime(). */
+
+		ULONGLONG interrupt_time;
+
+		interrupt_time = KeQueryInterruptTime();
+
+	}
+#endif
 
 	/********************** Linux *************************/
 
@@ -438,10 +467,15 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 	if ( epix_xclib->use_high_resolution_timing ) {
 
-		mx_warning(
-		"High resolution timing not yet implemented for Linux.");
+		/* EPIX system ticks are computed from gettimeofday(&s,&u)
+		 * by taking the low order 32 bits of (1000000*s + u).
+		 * Thus, the value is in units of microseconds.
+		 */
+
+		result.tv_sec = epix_buffer_sys_ticks / 1000000L;
+		result.tv_nsec = 1000L * (epix_buffer_sys_ticks % 1000000L);
 	} else {
-		/* Here we use Linux kernel 'jiffies'. */
+		/* EPIX system ticks use Linux kernel 'jiffies'. */
 
 		uint32 jiffies_since_boot;
 

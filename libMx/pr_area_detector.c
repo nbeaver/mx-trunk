@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_record.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 #include "mx_socket.h"

@@ -21,6 +21,7 @@
 
 #include "motor.h"
 #include "mx_key.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
 

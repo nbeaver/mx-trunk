@@ -22,6 +22,7 @@
 #include "mx_stdint.h"
 
 #include "mx_driver.h"
+#include "mx_hrt_debug.h"
 #include "mx_interval_timer.h"
 #include "mx_thread.h"
 #include "mx_mutex.h"
@@ -88,8 +89,6 @@
 #include "mx_list_head.h"
 
 #include "mx_dead_reckoning.h"
-
-#include "mx_hrt_debug.h"
 
 /* Include the header files for all of the interfaces and devices. */
 

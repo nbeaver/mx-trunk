@@ -25,6 +25,7 @@
 #include "mx_record.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_digital_input.h"
 #include "mx_video_input.h"
