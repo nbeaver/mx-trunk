@@ -294,10 +294,12 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 
 		fp_frequency = performance_frequency.QuadPart;
 
+		epix_xclib->tick_frequency = fp_frequency;
+
 		two_to_the_32nd_power = pow( 2.0, 32 );
 
-		wraparound_seconds = mx_divide_safely( two_to_the_32nd_power,
-							fp_frequency );
+		epix_xclib->wraparound_interval = mx_divide_safely(
+				two_to_the_32nd_power, fp_frequency );
 
 	} else {
 		/* The EPIX driver uses KeQueryInterruptTime().
@@ -308,11 +310,10 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 		 *     100.0e-9 * 2^32 = 429.4967296 seconds.
 		 */
 
-		wraparound_seconds = 100.0e-9 * pow( 2.0, 32.0 );
-	}
+		epix_xclib->tick_frequency = 1.0e7;
 
-	epix_xclib->wraparound_interval = wraparound_seconds;
-	
+		epix_xclib->wraparound_interval = 1.0e-7 * pow( 2.0, 32.0 );
+	}
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: wraparound_interval = %.9g",
@@ -672,7 +673,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 	{
 		unsigned long current_seconds, seconds_difference;
 		double wraparound_seconds, total_wraparound_seconds;
-		double base_seconds, sys_ticks_seconds, event_time_seconds;
+		double base_seconds, sys_tick_seconds, event_time_seconds;
 		unsigned long num_wraparounds;
 
 		current_seconds = time(NULL);
@@ -713,18 +714,13 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 		MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
 
 		
-		if ( epix_xclib->use_high_resolution_time_stamps ) {
-			mx_warning(
-			"%s: FIXME! - sys_ticks_seconds not computed.", fname);
-		} else {
-			sys_ticks_seconds =
-				1.0e-7 * (double) epix_buffer_sys_ticks;
-		}
+		sys_tick_seconds = mx_divide_safely( epix_buffer_sys_ticks,
+						epix_xclib->tick_frequency );
 
-		MX_DEBUG(-2,("%s: sys_ticks_seconds = %g",
-			fname, sys_ticks_seconds));
+		MX_DEBUG(-2,("%s: sys_tick_seconds = %g",
+			fname, sys_tick_seconds));
 
-		event_time_seconds = base_seconds + sys_ticks_seconds;
+		event_time_seconds = base_seconds + sys_tick_seconds;
 
 		MX_DEBUG(-2,("%s: event_time_seconds = %g",
 			fname, event_time_seconds));

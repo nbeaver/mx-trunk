@@ -28,6 +28,8 @@ typedef struct {
 
 	unsigned long system_boot_time;	/* in seconds from Jan 1, 1970 */
 	double wraparound_interval;	/* in seconds */
+
+	double tick_frequency;		/* ticks per second */
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
