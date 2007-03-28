@@ -247,13 +247,11 @@ mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
 			"in the Event Log failed for an unknown reason." );
 	}
 
-	epix_xclib->system_boot_time.tv_sec = event_log_pointer->TimeGenerated;
-	epix_xclib->system_boot_time.tv_nsec = 0;
+	epix_xclib->system_boot_time = event_log_pointer->TimeGenerated;
 
 #if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = (%lu,%lu)", fname,
-				epix_xclib->system_boot_time.tv_sec,
-				epix_xclib->system_boot_time.tv_nsec));
+	MX_DEBUG(-2,("%s: system_boot_time = %lu seconds",
+			fname, epix_xclib->system_boot_time ));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -268,12 +266,8 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 	BOOL os_status;
 	double two_to_the_32nd_power;
 	double wraparound_seconds, fp_frequency;
-	double fp_sec, fp_nsec;
-	time_t tv_sec;
-	long tv_nsec;
 
-	epix_xclib->wraparound_interval.tv_sec = 0;
-	epix_xclib->wraparound_interval.tv_nsec = 0;
+	epix_xclib->wraparound_interval = 0.0;
 
 	if ( epix_xclib->use_high_resolution_time_stamps ) {
 
@@ -317,53 +311,13 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 		wraparound_seconds = 100.0e-9 * pow( 2.0, 32.0 );
 	}
 
-
-#if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: wraparound_seconds = %.9g",
-			fname, wraparound_seconds));
-#endif
-
-	fp_sec = floor( wraparound_seconds );
-
-	fp_nsec = 1.0e9 * ( wraparound_seconds - fp_sec );
-
-	MX_DEBUG(-2,("%s: fp_sec = %g, fp_nsec = %g", fname, fp_sec, fp_nsec));
-
-	tv_sec  = mx_round(fp_sec);
-
-	tv_nsec = mx_round(fp_nsec);
-
-	/* FIXME!!!: For some reason, MX_DEBUG shows the correct value
-	 *           of fp_nsec, but shows 0 for tv_nsec.  However,
-	 *           if you convert tv_nsec back to a float and print
-	 *           it, you get the right value?!?  Something wierd
-	 *           is going on here.  Also, WinDbg shows tv_nsec as
-	 *           containing the right value.
-	 *
-	 * For what it's worth, the problem was seen with Microsoft
-	 * Visual C++ 2005 Express on a 4 CPU Xeon system running 
-	 * Windows XP Professional on Tuesday, March 27, 2007.
-	 *
-	 *    William Lavender
-	 */
-
-	epix_xclib->wraparound_interval.tv_sec = tv_sec;
+	epix_xclib->wraparound_interval = wraparound_seconds;
 	
-	epix_xclib->wraparound_interval.tv_nsec = tv_nsec;
 
-		
 #if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: wraparound_interval = (%lu,%lu)", fname,
-			epix_xclib->wraparound_interval.tv_sec,
-		(unsigned long) epix_xclib->wraparound_interval.tv_nsec ));
+	MX_DEBUG(-2,("%s: wraparound_interval = %.9g",
+			fname, epix_xclib->wraparound_interval));
 #endif
-
-	/* FIXME!!!: For some reason, dividing tv_nsec by 1L make it display
-	 *           the correct value.
-	 */
-
-	MX_DEBUG(-2,("%s: tv_nsec / 1L = %lu",
-		fname, epix_xclib->wraparound_interval.tv_nsec / 1L));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -716,56 +670,45 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 #if defined( OS_WIN32 )
 
 	{
-		double boot_seconds, current_seconds, seconds_difference;
+		unsigned long current_seconds, seconds_difference;
 		double wraparound_seconds, total_wraparound_seconds;
 		double base_seconds, sys_ticks_seconds, event_time_seconds;
 		unsigned long num_wraparounds;
 
-		current_seconds = (double) time(NULL);
+		current_seconds = time(NULL);
 
-		MX_DEBUG(-2,("%s: current_seconds = %g",
+		MX_DEBUG(-2,("%s: current_seconds = %lu",
 			fname, current_seconds));
 
-		MX_DEBUG(-2,("%s: system_boot_time = (%lu,%lu)",
-			fname, epix_xclib->system_boot_time.tv_sec,
-			epix_xclib->system_boot_time.tv_nsec));
+		MX_DEBUG(-2,("%s: ctime = '%s'", fname, mx_ctime_string() ));
 
-		boot_seconds = 
-			mx_convert_high_resolution_time_to_seconds(
-					epix_xclib->system_boot_time );
+		MX_DEBUG(-2,("%s: system_boot_time = %lu",
+			fname, epix_xclib->system_boot_time ));
 
-		MX_DEBUG(-2,("%s: boot_seconds = %g",
-			fname, boot_seconds));
+		seconds_difference =
+			current_seconds - epix_xclib->system_boot_time;
 
-		seconds_difference = current_seconds - boot_seconds;
-
-		MX_DEBUG(-2,("%s: seconds_difference = %g",
+		MX_DEBUG(-2,("%s: seconds_difference = %lu",
 			fname, seconds_difference));
 
-		MX_DEBUG(-2,("%s: wraparound_interval = (%lu,%lu)",
-			fname, epix_xclib->wraparound_interval.tv_sec,
-			epix_xclib->wraparound_interval.tv_nsec));
 
-		wraparound_seconds =
-			mx_convert_high_resolution_time_to_seconds(
-					epix_xclib->wraparound_interval );
-
-		MX_DEBUG(-2,("%s: wraparound_seconds = %g",
-			fname, wraparound_seconds));
+		MX_DEBUG(-2,("%s: wraparound_interval = %g",
+			fname, epix_xclib->wraparound_interval));
 
 		num_wraparounds = mx_divide_safely( seconds_difference,
-							wraparound_seconds );
+					    epix_xclib->wraparound_interval );
 
 		MX_DEBUG(-2,("%s: num_wraparounds = %lu",
 			fname, num_wraparounds));
 
-		total_wraparound_seconds = wraparound_seconds
+		total_wraparound_seconds = epix_xclib->wraparound_interval
 						* (double) num_wraparounds;
 
 		MX_DEBUG(-2,("%s: total_wraparound_seconds = %g",
 			fname, total_wraparound_seconds));
 
-		base_seconds = boot_seconds + total_wraparound_seconds;
+		base_seconds = total_wraparound_seconds
+					+ (double) epix_xclib->system_boot_time;
 
 		MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
 

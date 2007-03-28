@@ -26,8 +26,8 @@ typedef struct {
 
 	mx_bool_type use_high_resolution_time_stamps;
 
-	struct timespec system_boot_time;
-	struct timespec wraparound_interval;
+	unsigned long system_boot_time;	/* in seconds from Jan 1, 1970 */
+	double wraparound_interval;	/* in seconds */
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
