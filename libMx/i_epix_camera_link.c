@@ -32,12 +32,11 @@
 #include "mx_record.h"
 #include "mx_hrt.h"
 #include "mx_camera_link.h"
+
+#include "xcliball.h"	/* Vendor include file. */
+
 #include "i_epix_xclib.h"
 #include "i_epix_camera_link.h"
-
-/* Include the vendor include file. */
-
-#include "xcliball.h"
 
 MX_RECORD_FUNCTION_LIST mxi_epix_camera_link_record_function_list = {
 	NULL,

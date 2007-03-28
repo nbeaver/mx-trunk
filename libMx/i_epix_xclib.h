@@ -52,6 +52,15 @@ MX_API struct timespec mxi_epix_xclib_get_buffer_timespec(
 					long unitmap,
 					long buffer_number );
 
+#ifdef IS_MX_DRIVER
+MX_API mx_status_type mxi_epix_xclib_get_pxvidstatus(
+					MX_EPIX_XCLIB *epix_xclib,
+					long unitmap,
+					long buffer_number,
+					struct pxvidstatus *pv_struct,
+					int selection_mode );
+#endif
+
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 
 extern long mxi_epix_xclib_num_record_fields;

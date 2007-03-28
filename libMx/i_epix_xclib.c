@@ -2,7 +2,7 @@
  * Name:    i_epix_xclib.c
  *
  * Purpose: MX interface driver for cameras controlled through the
- *          EPIX, Inc. EPIX_XCLIB library.
+ *          EPIX, Inc. XCLIB library.
  *
  * Author:  William Lavender
  *
@@ -32,13 +32,14 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
-#include "i_epix_xclib.h"
 
 #if defined(OS_WIN32)
 #include <windows.h>
 #endif
 
-#include "xcliball.h"
+#include "xcliball.h"	/* Vendor include file. */
+
+#include "i_epix_xclib.h"
 
 MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list = {
 	NULL,
@@ -696,6 +697,10 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 #if defined( OS_LINUX )
 	if ( epix_xclib->use_high_resolution_time_stamps == FALSE ) {
 
+#if MXI_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: _Raw_ epix_buffer_sys_ticks = %lu",
+			fname, (unsigned long) epix_buffer_sys_ticks));
+#endif
 		/* If EPIX system ticks use Linux kernel 'jiffies', then
 		 * subtract the value of INITIAL_JIFFIES, so that system
 		 * boot time becomes the zero time.
@@ -758,6 +763,83 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 #endif
 
 	return result;
+}
+
+MX_EXPORT mx_status_type
+mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
+					long unitmap,
+					long buffer_number,
+					struct pxvidstatus *pxstatus,
+					int selection_mode )
+{
+	static const char fname[] = "mxi_epix_xclib_get_pxvidstatus()";
+
+	struct xclibs *xc;
+	int epix_status;
+	mx_status_type mx_status;
+
+	if ( epix_xclib == (MX_EPIX_XCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EPIX_XCLIB pointer passed was NULL." );
+	}
+
+	if ( pxstatus == (pxvidstatus_s *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The pxvidstatus_s pointer passed was NULL." );
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'",
+		fname, epix_xclib->record->name ));
+#endif
+	/* Initialize the pxstatus structure. */
+
+	memset( pxstatus, 0, sizeof(struct pxvidstatus) );
+
+	pxstatus->ddch.len = sizeof(struct pxvidstatus);
+	pxstatus->ddch.mos = PXMOS_VIDSTATUS;
+
+	/* Escape to the Structured Style Interface. */
+
+	xc = pxd_xclibEscape(0, 0, 0);
+
+	if ( xc == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The XCLIB library has not yet been initialized "
+		"for record '%s' with pxd_PIXCIopen().",
+			epix_xclib->record->name );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	epix_status = xc->pxdev.getVidStatus( &(xc->pxdev),
+				unitmap, 0, pxstatus, selection_mode );
+
+	if ( epix_status != 0 ) {
+		/* Do not return just yet since we need to call
+		 * pxd_xclibEscaped() before returning.  Instead,
+		 * we save the MX status and return it at the
+		 * end of this function.
+		 */
+
+		mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in xc->pxdev.getVidStatus() for record '%s'.  "
+		"Error code = %d",
+			epix_xclib->record->name, epix_status );
+	}
+
+	/* Return from the Structured Style Interface. */
+
+	epix_status = pxd_xclibEscaped(0, 0, 0);
+
+	if ( epix_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in pxd_xclibEscaped() for record '%s'.  "
+		"Error code = %d",
+			epix_xclib->record->name, epix_status );
+	}
+
+	return mx_status;
 }
 
 #endif /* HAVE_EPIX_XCLIB */

@@ -42,7 +42,7 @@
 #include "mx_camera_link.h"
 #include "mx_video_input.h"
 
-#include "xcliball.h"
+#include "xcliball.h"	/* Vendor include file */
 
 #include "i_epix_xclib.h"
 #include "d_epix_xclib.h"
@@ -1186,17 +1186,39 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,
-	("%s: EPIX image timespec = (%lu,%ld)", fname,
-		frame->image_time.tv_sec, frame->image_time.tv_nsec));
-
 	{
 		char buffer[80];
+		struct pxvidstatus pxstatus;
+
+		(void) mxi_epix_xclib_get_pxvidstatus( epix_xclib,
+						epix_xclib_vinput->unitmap,
+						epix_frame_number,
+						&pxstatus,
+						PXSTAT_LASTVSP );
 
 		mx_os_time_string( frame->image_time,
 				buffer, sizeof(buffer) );
 
+		MX_DEBUG(-2,
+		("%s: EPIX image timespec = (%lu,%ld)", fname,
+			frame->image_time.tv_sec, frame->image_time.tv_nsec));
+
 		MX_DEBUG(-2,("%s: Image time = '%s'", fname, buffer));
+
+		MX_DEBUG(-2,("%s: vcnt = %lu",
+			fname, (unsigned long) pxstatus.time.vcnt));
+		MX_DEBUG(-2,("%s: hcnt = %lu",
+			fname, (unsigned long) pxstatus.time.hcnt));
+		MX_DEBUG(-2,("%s: ticks = (%lu,%lu)", fname,
+			(unsigned long) pxstatus.time.ticks[0],
+			(unsigned long) pxstatus.time.ticks[1]));
+		MX_DEBUG(-2,("%s: ticku = (%lu,%lu)", fname,
+			(unsigned long) pxstatus.time.ticku[0],
+			(unsigned long) pxstatus.time.ticku[1]));
+		MX_DEBUG(-2,("%s: field = %lu",
+			fname, (unsigned long) pxstatus.time.field));
+		MX_DEBUG(-2,("%s: fieldmod = %lu",
+			fname, (unsigned long) pxstatus.time.fieldmod));
 	}
 #endif
 
@@ -1444,7 +1466,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		vidstate.vidres->datfields = 1;
 		vidstate.vidres->setmaxdatfields = 0;
 
-		/* Leave the Structured Style Interface. */
+		/* Change the state. */
 
 		epix_status = xc->pxlib.defineState(
 				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
@@ -1455,6 +1477,8 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Error code = %d",
 				vinput->record->name, epix_status );
 		}
+
+		/* Leave the Structured Style Interface. */
 
 		epix_status = pxd_xclibEscaped(0, 0, 0);
 
