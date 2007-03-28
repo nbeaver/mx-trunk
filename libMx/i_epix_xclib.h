@@ -24,11 +24,10 @@ typedef struct {
 
 	char format_file[MXU_FILENAME_LENGTH+1];
 
-	mx_bool_type use_high_resolution_timing;
+	mx_bool_type use_high_resolution_time_stamps;
 
-#if defined(OS_LINUX)
 	struct timespec system_boot_time;
-#endif
+	struct timespec wraparound_interval;
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \

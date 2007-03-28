@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_record.h"
@@ -62,46 +63,23 @@ long mxi_epix_xclib_num_record_fields
 MX_RECORD_FIELD_DEFAULTS *mxi_epix_xclib_rfield_def_ptr
 			= &mxi_epix_xclib_record_field_defaults[0];
 
-MX_EXPORT mx_status_type
-mxi_epix_xclib_create_record_structures( MX_RECORD *record )
-{
-	static const char fname[] = "mxi_epix_xclib_create_record_structures()";
-
-	MX_EPIX_XCLIB *epix_xclib;
-
-	/* Allocate memory for the necessary structures. */
-
-	epix_xclib = (MX_EPIX_XCLIB *) malloc( sizeof(MX_EPIX_XCLIB) );
-
-	if ( epix_xclib == (MX_EPIX_XCLIB *) NULL ) {
-		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Can't allocate memory for MX_EPIX_XCLIB structure." );
-	}
-
-	/* Now set up the necessary pointers. */
-
-	record->record_class_struct = NULL;
-	record->record_type_struct = epix_xclib;
-
-	record->record_function_list = &mxi_epix_xclib_record_function_list;
-	record->superclass_specific_function_list = NULL;
-	record->class_specific_function_list = NULL;
-
-	epix_xclib->record = record;
-
-	return MX_SUCCESSFUL_RESULT;
-}
+/*---------------------------------------------------------------------------*/
 
 #if defined(OS_LINUX)
+
+/* The following procedure has only been tested with Linux 2.6 kernels. */
 
 static mx_status_type
 mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
 {
 	static const char fname[] = "mxi_epix_xclib_get_system_boot_time()";
+
 	FILE *proc_stat;
 	char buffer[100];
 	int saved_errno, num_items;
 	unsigned long boot_time_in_seconds;
+
+	/* First, find out when this computer booted. */
 
 	proc_stat = fopen( "/proc/stat", "r" );
 
@@ -164,7 +142,267 @@ mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#endif /* OS_LINUX */
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+
+#elif defined(OS_WIN32)
+
+/* The following code was based on this MSDN example:
+ *
+ *   http://msdn2.microsoft.com/en-us/library/aa363675.aspx
+ */
+
+#define EVENT_LOG_BUFFER_SIZE (1024 * 64)
+
+static mx_status_type
+mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
+{
+	static const char fname[] = "mxi_epix_xclib_get_system_boot_time()";
+
+	HANDLE event_log_handle;
+	EVENTLOGRECORD *event_log_pointer;
+	BYTE buffer[ EVENT_LOG_BUFFER_SIZE ];
+	DWORD bytes_read, bytes_left, bytes_needed;
+
+	DWORD last_error_code;
+	TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
+
+	mx_bool_type boot_event_found;
+	int event_code;
+
+	/* First, find out when this computer booted. */
+
+	event_log_handle = OpenEventLog( NULL, "System" );
+
+	if ( event_log_handle == NULL ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to open the Windows Event Log for record '%s'.  "
+		"Win32 error code = %ld, error message = '%s'",
+			epix_xclib->record->name,
+			last_error_code,
+			message_buffer );
+	}
+
+	/* Read the event log in reverse order looking for the last
+	 * instance of an event of type 6009.  Event type 6009 is
+	 * generated each time a Windows system boots and is normally
+	 * the first event to be generated.
+	 */
+
+	boot_event_found = FALSE;
+
+	event_log_pointer = (EVENTLOGRECORD *) &buffer;
+
+	while ( ReadEventLog( event_log_handle,
+			EVENTLOG_BACKWARDS_READ |
+			EVENTLOG_SEQUENTIAL_READ,
+			0,
+			event_log_pointer,
+			EVENT_LOG_BUFFER_SIZE,
+			&bytes_read,
+			&bytes_needed ) )
+	{
+		bytes_left = bytes_read;
+
+		while ( bytes_left > 0 ) {
+
+			event_code = event_log_pointer->EventID & 0xffff;
+
+#if 0 && MXI_EPIX_XCLIB_DEBUG
+			MX_DEBUG(-2,
+	   ("Event id = 0x%08X (%d), Event type = %lu, Event source = '%s'",
+				event_log_pointer->EventID,
+				event_code,
+				event_log_pointer->EventType,
+	    (LPSTR) ((LPBYTE) event_log_pointer + sizeof(EVENTLOGRECORD)) ));
+#endif
+			if ( event_code == 6009 ) {
+				boot_event_found = TRUE;
+				break;
+			}
+
+			bytes_left -= event_log_pointer->Length;
+
+			event_log_pointer = (EVENTLOGRECORD *)
+		    ((LPBYTE) event_log_pointer + event_log_pointer->Length);
+		}
+
+		if ( boot_event_found ) {
+			break;
+		}
+
+		event_log_pointer = (EVENTLOGRECORD *) &buffer;
+	}
+
+	CloseEventLog( event_log_handle );
+
+	if ( boot_event_found == FALSE ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The attempt to find the Windows boot time "
+			"in the Event Log failed for an unknown reason." );
+	}
+
+	epix_xclib->system_boot_time.tv_sec = event_log_pointer->TimeGenerated;
+	epix_xclib->system_boot_time.tv_nsec = 0;
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_time = (%lu,%lu)", fname,
+				epix_xclib->system_boot_time.tv_sec,
+				epix_xclib->system_boot_time.tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
+{
+	static const char fname[] = "mxi_epix_xclib_get_wraparound_interval()";
+
+	LARGE_INTEGER performance_frequency;
+	BOOL os_status;
+	double two_to_the_32nd_power;
+	double wraparound_seconds, fp_frequency;
+	double fp_sec, fp_nsec;
+	time_t tv_sec;
+	long tv_nsec;
+
+	epix_xclib->wraparound_interval.tv_sec = 0;
+	epix_xclib->wraparound_interval.tv_nsec = 0;
+
+	if ( epix_xclib->use_high_resolution_time_stamps ) {
+
+		/* The EPIX driver uses KeQueryPerformanceCounter().
+		 * 
+		 * The frequency at which this counter increments can be found
+		 * using QueryPerformanceFrequency().
+		 */
+
+		mx_warning("FIXME!: There are some unresolved issues around "
+			"computing the update frequency here.");
+
+		os_status = QueryPerformanceFrequency( &performance_frequency );
+
+		if ( os_status == 0 ) {
+			return mx_error( MXE_NOT_AVAILABLE, fname,
+			"Win32 high performance counters are not available "
+			"on this computer.  This error means that "
+			"image frame timestamps will be invalid." );
+		}
+
+		MX_DEBUG(-2,("%s: performance frequency = %I64d",
+			fname, performance_frequency.QuadPart));
+
+		fp_frequency = performance_frequency.QuadPart;
+
+		two_to_the_32nd_power = pow( 2.0, 32 );
+
+		wraparound_seconds = mx_divide_safely( two_to_the_32nd_power,
+							fp_frequency );
+
+	} else {
+		/* The EPIX driver uses KeQueryInterruptTime().
+		 * 
+		 * This timer runs at 100 nanoseconds per tick.  Thus,
+		 * the wraparound time always has the value of
+		 *
+		 *     100.0e-9 * 2^32 = 429.4967296 seconds.
+		 */
+
+		wraparound_seconds = 100.0e-9 * pow( 2.0, 32.0 );
+	}
+
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: wraparound_seconds = %.9g",
+			fname, wraparound_seconds));
+#endif
+
+	fp_sec = floor( wraparound_seconds );
+
+	fp_nsec = 1.0e9 * ( wraparound_seconds - fp_sec );
+
+	MX_DEBUG(-2,("%s: fp_sec = %g, fp_nsec = %g", fname, fp_sec, fp_nsec));
+
+	tv_sec  = mx_round(fp_sec);
+
+	tv_nsec = mx_round(fp_nsec);
+
+	/* FIXME!!!: For some reason, MX_DEBUG shows the correct value
+	 *           of fp_nsec, but shows 0 for tv_nsec.  However,
+	 *           if you convert tv_nsec back to a float and print
+	 *           it, you get the right value?!?  Something wierd
+	 *           is going on here.  Also, WinDbg shows tv_nsec as
+	 *           containing the right value.
+	 *
+	 * For what it's worth, the problem was seen with Microsoft
+	 * Visual C++ 2005 Express on a 4 CPU Xeon system running 
+	 * Windows XP Professional on Tuesday, March 27, 2007.
+	 *
+	 *    William Lavender
+	 */
+
+	epix_xclib->wraparound_interval.tv_sec = tv_sec;
+	
+	epix_xclib->wraparound_interval.tv_nsec = tv_nsec;
+
+		
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: wraparound_interval = (%lu,%lu)", fname,
+			epix_xclib->wraparound_interval.tv_sec,
+		(unsigned long) epix_xclib->wraparound_interval.tv_nsec ));
+#endif
+
+	/* FIXME!!!: For some reason, dividing tv_nsec by 1L make it display
+	 *           the correct value.
+	 */
+
+	MX_DEBUG(-2,("%s: tv_nsec / 1L = %lu",
+		fname, epix_xclib->wraparound_interval.tv_nsec / 1L));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_epix_xclib_create_record_structures( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_epix_xclib_create_record_structures()";
+
+	MX_EPIX_XCLIB *epix_xclib;
+
+	/* Allocate memory for the necessary structures. */
+
+	epix_xclib = (MX_EPIX_XCLIB *) malloc( sizeof(MX_EPIX_XCLIB) );
+
+	if ( epix_xclib == (MX_EPIX_XCLIB *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Can't allocate memory for MX_EPIX_XCLIB structure." );
+	}
+
+	/* Now set up the necessary pointers. */
+
+	record->record_class_struct = NULL;
+	record->record_type_struct = epix_xclib;
+
+	record->record_function_list = &mxi_epix_xclib_record_function_list;
+	record->superclass_specific_function_list = NULL;
+	record->class_specific_function_list = NULL;
+
+	epix_xclib->record = record;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mxi_epix_xclib_open( MX_RECORD *record )
@@ -173,6 +411,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	char fault_message[80];
 	MX_EPIX_XCLIB *epix_xclib;
+	int os_major, os_minor, os_update;
 	int i, length, epix_status;
 	char error_message[80];
 	uint original_exsync, original_prin;
@@ -196,43 +435,60 @@ mxi_epix_xclib_open( MX_RECORD *record )
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
-	/* Initialize the MX high resolution timer here, so that we do not
-	 * need to keep track of initializing it later.
-	 */
 
-	mx_high_resolution_time_init();
+	mx_warning( "FIXME: Do we need to set processor affinity here "
+			"in order to get more reliable timing?" );
 
-	/* FIXME: Do we need to set processor affinity here in order to
-	 *        get more reliable timing?
-	 */
+	/* Check to see if we are running on a supported operating system. */
 
-	epix_xclib->use_high_resolution_timing = FALSE;
+	mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 #if defined(OS_LINUX)
+	/* Please note that Linux 2.4.8 and after might be supportable.
+	 * I just haven't put the effort into making that happen yet.
+	 */
+
+	if ( (os_major < 2) || (os_minor < 6) ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX epix_xclib driver does not support versions "
+		"of the Linux kernel older than Linux 2.6.  "
+		"You are running Linux %d.%d.%d",
+			os_major, os_minor, os_update );
+	}
+#elif defined(OS_W32)
 	{
-		/* Linux specific initialization */
+		mx_bool_type supported;
 
-		int os_major, os_minor, os_update;
+		if ( os_major > 4 ) {
+			supported = TRUE;
+		} else
+		if ( os_major < 4 ) {
+			supported = FALSE;
+		} else {
+			switch( os_minor ) {
+			case 1:
+			case 3: /* These two cases are Windows NT 4 */
 
-		mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
+				supported = TRUE;
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			default: /* All other cases are Windows 9x versions */
 
-		if ( (os_major < 2) || (os_minor < 6) ) {
-			return mx_error( MXE_UNSUPPORTED, fname,
-			"The epix_xclib driver does not support versions "
-			"of the Linux kernel older than Linux 2.6.  "
-			"You are running Linux %d.%d.%d",
-				os_major, os_minor, os_update );
+				supported = FALSE;
+			}
 		}
 
-		mx_status = mxi_epix_xclib_get_system_boot_time( epix_xclib );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		if ( supported == FALSE ) {
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"The MX epix_xclib driver for Windows only supports "
+			"Windows NT 4, Windows 2000, Windows XP, "
+			"and possibly Windows Server 2003 and Windows Vista.");
+		}
 	}
 #endif
+
 
 	/* Initialize XCLIB. */
 
@@ -285,6 +541,22 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: %d fields per frame buffer", fname, pxd_imageIdim()));
 #endif
 
+	/* Are we using high resolution time stamps? */
+
+	epix_xclib->use_high_resolution_time_stamps = FALSE;
+
+	/* Find out when this computer booted and how long it will take
+	 * for the EPIX system tick counter to wrap.
+	 */
+
+	mx_status = mxi_epix_xclib_get_system_boot_time( epix_xclib );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_epix_xclib_get_wraparound_interval( epix_xclib );
+		return mx_status;
+
 #if MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS
 
 	MX_DEBUG(-2,("%s: Getting the zero for EPIX system time.", fname));
@@ -335,7 +607,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 MX_EXPORT char *
 mxi_epix_xclib_error_message( int unitmap,
@@ -394,7 +666,7 @@ mxi_epix_xclib_error_message( int unitmap,
 	return buffer;
 }
 
-/*------------------------------------------------------------*/
+/*---------------------------------------------------------------------------*/
 
 #if defined(OS_LINUX)
 
@@ -443,29 +715,87 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 #if defined( OS_WIN32 )
 
-#if 0  /* FIXME */
+	{
+		double boot_seconds, current_seconds, seconds_difference;
+		double wraparound_seconds, total_wraparound_seconds;
+		double base_seconds, sys_ticks_seconds, event_time_seconds;
+		unsigned long num_wraparounds;
 
-	if ( epix_xclib->use_high_resolution_timing ) {
+		current_seconds = (double) time(NULL);
 
-		/* Use the low 32 bits of KeQueryPerformanceCounter(). */
+		MX_DEBUG(-2,("%s: current_seconds = %g",
+			fname, current_seconds));
 
-		mx_warning(
-		"High resolution timing not yet implemented for Win32.");
-	} else {
-		/* Use the low 32 bits of KeQueryInterruptTime(). */
+		MX_DEBUG(-2,("%s: system_boot_time = (%lu,%lu)",
+			fname, epix_xclib->system_boot_time.tv_sec,
+			epix_xclib->system_boot_time.tv_nsec));
 
-		ULONGLONG interrupt_time;
+		boot_seconds = 
+			mx_convert_high_resolution_time_to_seconds(
+					epix_xclib->system_boot_time );
 
-		interrupt_time = KeQueryInterruptTime();
+		MX_DEBUG(-2,("%s: boot_seconds = %g",
+			fname, boot_seconds));
 
+		seconds_difference = current_seconds - boot_seconds;
+
+		MX_DEBUG(-2,("%s: seconds_difference = %g",
+			fname, seconds_difference));
+
+		MX_DEBUG(-2,("%s: wraparound_interval = (%lu,%lu)",
+			fname, epix_xclib->wraparound_interval.tv_sec,
+			epix_xclib->wraparound_interval.tv_nsec));
+
+		wraparound_seconds =
+			mx_convert_high_resolution_time_to_seconds(
+					epix_xclib->wraparound_interval );
+
+		MX_DEBUG(-2,("%s: wraparound_seconds = %g",
+			fname, wraparound_seconds));
+
+		num_wraparounds = mx_divide_safely( seconds_difference,
+							wraparound_seconds );
+
+		MX_DEBUG(-2,("%s: num_wraparounds = %lu",
+			fname, num_wraparounds));
+
+		total_wraparound_seconds = wraparound_seconds
+						* (double) num_wraparounds;
+
+		MX_DEBUG(-2,("%s: total_wraparound_seconds = %g",
+			fname, total_wraparound_seconds));
+
+		base_seconds = boot_seconds + total_wraparound_seconds;
+
+		MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
+
+		
+		if ( epix_xclib->use_high_resolution_time_stamps ) {
+			mx_warning(
+			"%s: FIXME! - sys_ticks_seconds not computed.", fname);
+		} else {
+			sys_ticks_seconds =
+				1.0e-7 * (double) epix_buffer_sys_ticks;
+		}
+
+		MX_DEBUG(-2,("%s: sys_ticks_seconds = %g",
+			fname, sys_ticks_seconds));
+
+		event_time_seconds = base_seconds + sys_ticks_seconds;
+
+		MX_DEBUG(-2,("%s: event_time_seconds = %g",
+			fname, event_time_seconds));
+
+		result = mx_convert_seconds_to_high_resolution_time(
+							event_time_seconds );
 	}
-#endif
+
 
 	/********************** Linux *************************/
 
 #elif defined( OS_LINUX )
 
-	if ( epix_xclib->use_high_resolution_timing ) {
+	if ( epix_xclib->use_high_resolution_time_stamps ) {
 
 		/* EPIX system ticks are computed from gettimeofday(&s,&u)
 		 * by taking the low order 32 bits of (1000000*s + u).
