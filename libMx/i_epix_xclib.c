@@ -667,9 +667,14 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 {
 	static const char fname[] = "mxi_epix_xclib_get_buffer_timespec()";
 
-	struct timespec result, timespec_since_boot;
+	struct timespec result;
 	uint32 epix_buffer_sys_ticks;
 	double sys_tick_seconds, event_time_in_seconds;
+
+	unsigned long current_seconds, seconds_difference;
+	unsigned long num_wraparounds;
+	double wraparound_seconds, total_wraparound_seconds;
+	double base_seconds;
 
 	result.tv_sec = 0;
 	result.tv_nsec = 0;
@@ -688,79 +693,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 	epix_buffer_sys_ticks = pxd_buffersSysTicks( unitmap, buffer_number );
 
-#if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: epix_buffer_sys_ticks = %lu",
-		fname, (unsigned long) epix_buffer_sys_ticks));
-#endif
-
-	/********************** Win32 *************************/
-
-#if defined( OS_WIN32 )
-
-	{
-		unsigned long current_seconds, seconds_difference;
-		unsigned long num_wraparounds;
-		double wraparound_seconds, total_wraparound_seconds;
-		double base_seconds;
-
-		current_seconds = time(NULL);
-
-		MX_DEBUG(-2,("%s: current_seconds = %lu",
-			fname, current_seconds));
-
-		MX_DEBUG(-2,("%s: ctime = '%s'", fname, mx_ctime_string() ));
-
-		MX_DEBUG(-2,("%s: system_boot_time = %lu",
-			fname, epix_xclib->system_boot_time ));
-
-		seconds_difference =
-			current_seconds - epix_xclib->system_boot_time;
-
-		MX_DEBUG(-2,("%s: seconds_difference = %lu",
-			fname, seconds_difference));
-
-
-		MX_DEBUG(-2,("%s: wraparound_interval = %g",
-			fname, epix_xclib->wraparound_interval));
-
-		num_wraparounds = mx_divide_safely( seconds_difference,
-					    epix_xclib->wraparound_interval );
-
-		MX_DEBUG(-2,("%s: num_wraparounds = %lu",
-			fname, num_wraparounds));
-
-		total_wraparound_seconds = epix_xclib->wraparound_interval
-						* (double) num_wraparounds;
-
-		MX_DEBUG(-2,("%s: total_wraparound_seconds = %g",
-			fname, total_wraparound_seconds));
-
-		base_seconds = total_wraparound_seconds
-					+ (double) epix_xclib->system_boot_time;
-
-		MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
-
-		
-		sys_tick_seconds = mx_divide_safely( epix_buffer_sys_ticks,
-						epix_xclib->tick_frequency );
-
-		MX_DEBUG(-2,("%s: sys_tick_seconds = %g",
-			fname, sys_tick_seconds));
-
-		event_time_in_seconds = base_seconds + sys_tick_seconds;
-
-		MX_DEBUG(-2,("%s: event_time_in_seconds = %g",
-			fname, event_time_in_seconds));
-
-		result = mx_convert_seconds_to_high_resolution_time(
-							event_time_in_seconds );
-	}
-
-
-	/********************** Linux *************************/
-
-#elif defined( OS_LINUX )
-
+#if defined( OS_LINUX )
 	if ( epix_xclib->use_high_resolution_time_stamps == FALSE ) {
 
 		/* If EPIX system ticks use Linux kernel 'jiffies', then
@@ -770,22 +703,54 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 		epix_buffer_sys_ticks = epix_buffer_sys_ticks - INITIAL_JIFFIES;
 	}
+#endif
 
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: epix_buffer_sys_ticks = %lu",
+		fname, (unsigned long) epix_buffer_sys_ticks));
+#endif
+	current_seconds = time(NULL);
+
+	MX_DEBUG(-2,("%s: current_seconds = %lu", fname, current_seconds));
+	MX_DEBUG(-2,("%s: ctime = '%s'", fname, mx_ctime_string() ));
+	MX_DEBUG(-2,("%s: system_boot_time = %lu",
+			fname, epix_xclib->system_boot_time ));
+
+	seconds_difference = current_seconds - epix_xclib->system_boot_time;
+
+	MX_DEBUG(-2,("%s: seconds_difference = %lu",fname, seconds_difference));
+	MX_DEBUG(-2,("%s: wraparound_interval = %g",
+			fname, epix_xclib->wraparound_interval));
+
+	num_wraparounds = mx_divide_safely( seconds_difference,
+					    epix_xclib->wraparound_interval );
+
+	MX_DEBUG(-2,("%s: num_wraparounds = %lu", fname, num_wraparounds));
+
+	total_wraparound_seconds = epix_xclib->wraparound_interval
+					* (double) num_wraparounds;
+
+	MX_DEBUG(-2,("%s: total_wraparound_seconds = %g",
+		fname, total_wraparound_seconds));
+
+	base_seconds = total_wraparound_seconds
+				+ (double) epix_xclib->system_boot_time;
+
+	MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
+		
 	sys_tick_seconds = mx_divide_safely( epix_buffer_sys_ticks,
 						epix_xclib->tick_frequency );
 
-	event_time_in_seconds = epix_xclib->system_boot_time
-						+ sys_tick_seconds;
-#if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: system_boot_time = %lu, sys_tick_seconds = %g",
 		fname, epix_xclib->system_boot_time, sys_tick_seconds));
-#endif
-	result = mx_convert_seconds_to_high_resolution_time(
-						event_time_in_seconds );
 
-#else
-#error This platform is not supported for EPIX XCLIB.
-#endif
+	event_time_in_seconds = base_seconds + sys_tick_seconds;
+
+	MX_DEBUG(-2,("%s: event_time_in_seconds = %g",
+			fname, event_time_in_seconds));
+
+	result = mx_convert_seconds_to_high_resolution_time(
+					event_time_in_seconds );
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: result = (%lu,%ld)", fname,
