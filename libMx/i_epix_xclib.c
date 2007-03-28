@@ -129,15 +129,45 @@ mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
 				buffer );
 	}
 
-	epix_xclib->system_boot_time.tv_sec = boot_time_in_seconds;
-	epix_xclib->system_boot_time.tv_nsec = 0;
+	epix_xclib->system_boot_time = boot_time_in_seconds;
 
 #if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = (%lu,%lu)", fname,
-				epix_xclib->system_boot_time.tv_sec,
-				epix_xclib->system_boot_time.tv_nsec));
+	MX_DEBUG(-2,("%s: system_boot_time = %lu",
+		fname, epix_xclib->system_boot_time ));
 #endif
 	fclose(proc_stat);
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
+{
+	static const char fname[] = "mxi_epix_xclib_get_wraparound_interval()";
+
+	double two_to_the_32nd_power;
+
+	if ( epix_xclib->use_high_resolution_time_stamps ) {
+
+		/* The EPIX driver uses gettimeofday(). */
+
+		epix_xclib->tick_frequency = 1.0e6;
+	} else {
+		/* The EPIX driver uses jiffies. */
+
+		epix_xclib->tick_frequency = 1.0e3;
+	}
+
+	two_to_the_32nd_power = pow( 2.0, 32 );
+
+	epix_xclib->wraparound_interval = mx_divide_safely(
+			two_to_the_32nd_power, epix_xclib->tick_frequency );
+
+#if MX_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s: tick_frequency = %g Hz, wraparound_interval = %g seconds",
+	fname, epix_xclib->tick_frequency, epix_xclib->wraparound_interval));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -292,15 +322,7 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 		MX_DEBUG(-2,("%s: performance frequency = %I64d",
 			fname, performance_frequency.QuadPart));
 
-		fp_frequency = performance_frequency.QuadPart;
-
-		epix_xclib->tick_frequency = fp_frequency;
-
-		two_to_the_32nd_power = pow( 2.0, 32 );
-
-		epix_xclib->wraparound_interval = mx_divide_safely(
-				two_to_the_32nd_power, fp_frequency );
-
+		epix_xclib->tick_frequency = performance_frequency.QuadPart;
 	} else {
 		/* The EPIX driver uses KeQueryInterruptTime().
 		 * 
@@ -311,13 +333,17 @@ mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
 		 */
 
 		epix_xclib->tick_frequency = 1.0e7;
-
-		epix_xclib->wraparound_interval = 1.0e-7 * pow( 2.0, 32.0 );
 	}
 
-#if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: wraparound_interval = %.9g",
-			fname, epix_xclib->wraparound_interval));
+	two_to_the_32nd_power = pow( 2.0, 32 );
+
+	epix_xclib->wraparound_interval = mx_divide_safely(
+			two_to_the_32nd_power, epix_xclib->tick_frequency );
+
+#if MX_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s: tick_frequency = %g Hz, wraparound_interval = %g seconds",
+	fname, epix_xclib->tick_frequency, epix_xclib->wraparound_interval));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -643,6 +669,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 	struct timespec result, timespec_since_boot;
 	uint32 epix_buffer_sys_ticks;
+	double sys_tick_seconds, event_time_in_seconds;
 
 	result.tv_sec = 0;
 	result.tv_nsec = 0;
@@ -672,9 +699,9 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 	{
 		unsigned long current_seconds, seconds_difference;
-		double wraparound_seconds, total_wraparound_seconds;
-		double base_seconds, sys_tick_seconds, event_time_seconds;
 		unsigned long num_wraparounds;
+		double wraparound_seconds, total_wraparound_seconds;
+		double base_seconds;
 
 		current_seconds = time(NULL);
 
@@ -720,13 +747,13 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 		MX_DEBUG(-2,("%s: sys_tick_seconds = %g",
 			fname, sys_tick_seconds));
 
-		event_time_seconds = base_seconds + sys_tick_seconds;
+		event_time_in_seconds = base_seconds + sys_tick_seconds;
 
-		MX_DEBUG(-2,("%s: event_time_seconds = %g",
-			fname, event_time_seconds));
+		MX_DEBUG(-2,("%s: event_time_in_seconds = %g",
+			fname, event_time_in_seconds));
 
 		result = mx_convert_seconds_to_high_resolution_time(
-							event_time_seconds );
+							event_time_in_seconds );
 	}
 
 
@@ -734,44 +761,28 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 
 #elif defined( OS_LINUX )
 
-	if ( epix_xclib->use_high_resolution_time_stamps ) {
+	if ( epix_xclib->use_high_resolution_time_stamps == FALSE ) {
 
-		/* EPIX system ticks are computed from gettimeofday(&s,&u)
-		 * by taking the low order 32 bits of (1000000*s + u).
-		 * Thus, the value is in units of microseconds.
+		/* If EPIX system ticks use Linux kernel 'jiffies', then
+		 * subtract the value of INITIAL_JIFFIES, so that system
+		 * boot time becomes the zero time.
 		 */
 
-		result.tv_sec = epix_buffer_sys_ticks / 1000000L;
-		result.tv_nsec = 1000L * (epix_buffer_sys_ticks % 1000000L);
-	} else {
-		/* EPIX system ticks use Linux kernel 'jiffies'. */
-
-		uint32 jiffies_since_boot;
-
-		/* Subtract the value of INITIAL_JIFFIES, so that system boot
-		 * time becomes the zero time.
-		 */
-
-		jiffies_since_boot = epix_buffer_sys_ticks - INITIAL_JIFFIES;
-
-		timespec_since_boot.tv_sec = jiffies_since_boot / 1000L;
-		timespec_since_boot.tv_nsec =
-			(jiffies_since_boot % 1000L) * 1000000L;
-
-#if MXI_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,
-	    ("%s: jiffies_since_boot = %lu, timespec_since_boot = (%lu,%ld)",
-			fname, (unsigned long) jiffies_since_boot,
-			timespec_since_boot.tv_sec,
-			timespec_since_boot.tv_nsec));
-
-		MX_DEBUG(-2,("%s: system_boot_time = (%lu,%ld)", fname,
-			(unsigned long) epix_xclib->system_boot_time.tv_sec,
-			epix_xclib->system_boot_time.tv_nsec));
-#endif
-		result = mx_add_high_resolution_times( timespec_since_boot,
-						epix_xclib->system_boot_time );
+		epix_buffer_sys_ticks = epix_buffer_sys_ticks - INITIAL_JIFFIES;
 	}
+
+	sys_tick_seconds = mx_divide_safely( epix_buffer_sys_ticks,
+						epix_xclib->tick_frequency );
+
+	event_time_in_seconds = epix_xclib->system_boot_time
+						+ sys_tick_seconds;
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_time = %lu, sys_tick_seconds = %g",
+		fname, epix_xclib->system_boot_time, sys_tick_seconds));
+#endif
+	result = mx_convert_seconds_to_high_resolution_time(
+						event_time_in_seconds );
+
 #else
 #error This platform is not supported for EPIX XCLIB.
 #endif
