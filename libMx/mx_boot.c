@@ -278,9 +278,9 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---------------------- Solaris ----------------------*/
+/*---------------------- Solaris and Irix ----------------------*/
 
-#elif defined(OS_SOLARIS)
+#elif defined(OS_SOLARIS) || defined(OS_IRIX)
 
 #include <utmpx.h>
 
