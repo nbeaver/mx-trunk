@@ -250,7 +250,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 	found_system_boot = FALSE;
 
-	while ( entry = getutxent() ) {
+	while ( ( entry = getutxent() ) ) {
 		if ( strcmp( "system boot", entry->ut_line ) == 0 ) {
 			found_system_boot = TRUE;
 			break;			/* Exit the while() loop. */
