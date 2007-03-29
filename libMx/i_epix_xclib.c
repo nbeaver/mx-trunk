@@ -340,17 +340,6 @@ mxi_epix_xclib_error_message( int unitmap,
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX)
-
-/* FIXME: INITIAL_JIFFIES is copied from the Linux kernel include file
- *        "linux/jiffies.h".  It is not advisable to include kernel 
- *        header files directly, so we copy the definition.
- */
-
-#define INITIAL_JIFFIES ((unsigned long)(unsigned int) (-300000))
-
-#endif /* OS_LINUX */
-
 MX_EXPORT struct timespec
 mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
@@ -413,7 +402,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 		 * boot time becomes the zero time.
 		 */
 
-		buffer64_ticks = buffer64_ticks - (uint64_t) INITIAL_JIFFIES;
+		buffer64_ticks = buffer64_ticks + 300000ULL;
 	}
 #endif
 
@@ -470,7 +459,7 @@ mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'",
 		fname, epix_xclib->record->name ));
-	MX_DEBUG(-2,("%s: unitmap = %#x, selection_mode = %d",
+	MX_DEBUG(-2,("%s: unitmap = %#lx, selection_mode = %d",
 		fname, unitmap, selection_mode));
 #endif
 	/* Initialize the pxstatus structure. */
@@ -565,7 +554,7 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'",
 		fname, epix_xclib->record->name ));
-	MX_DEBUG(-2,("%s: unitmap = %#x, buffer_number = %ld",
+	MX_DEBUG(-2,("%s: unitmap = %#lx, buffer_number = %ld",
 		fname, unitmap, buffer_number));
 #endif
 	/* Initialize the pxbstatus structure. */
@@ -618,7 +607,7 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: stateid = %d", fname, pxbstatus->stateid));
 	MX_DEBUG(-2,("%s: tracker = %d", fname, pxbstatus->tracker));
-	MX_DEBUG(-2,("%s: captvcnt = %d", fname, pxbstatus->captvcnt));
+	MX_DEBUG(-2,("%s: captvcnt = %d", fname, (int) pxbstatus->captvcnt));
 	MX_DEBUG(-2,("%s: captticks = [%lu,%lu]", fname,
 		(unsigned long) pxbstatus->captticks[0],
 		(unsigned long) pxbstatus->captticks[1]));
