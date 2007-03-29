@@ -325,6 +325,43 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ Not available ***********************/
+
+#elif defined(OS_ECOS)
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_open( const char *filename,
+			MX_DYNAMIC_LIBRARY **library )
+{
+	static const char fname[] = "mx_dynamic_library_open()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Dynamic loading of libraries is not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
+{
+	static const char fname[] = "mx_dynamic_library_close()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Dynamic loading of libraries is not supported on this platform." );
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+				const char *symbol_name,
+				void **symbol_pointer,
+				mx_bool_type quiet_flag )
+{
+	static const char fname[] = "mx_dynamic_library_find_symbol()";
+
+	return mx_error( MXE_UNSUPPORTED, fname,
+	"Dynamic loading of libraries is not supported on this platform." );
+}
+
+/************************ unknown ***********************/
+
 #else
 
 #error Dynamic loading of libraries has not been implemented for this platform.

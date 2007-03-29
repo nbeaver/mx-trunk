@@ -392,6 +392,34 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------- not available ----------------------*/
+
+#elif defined(OS_ECOS)
+
+/* Some platforms do not record the boot time. */
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	system_boot_timespec->tv_sec  = 0;
+	system_boot_timespec->tv_nsec = 0;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+		(unsigned long) system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------- unknown ----------------------*/
 
 #else
