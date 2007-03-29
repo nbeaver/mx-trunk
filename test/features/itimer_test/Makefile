@@ -13,5 +13,5 @@ itimer_periodic: itimer_periodic.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 clean:
-	-$(RM) itimer_oneshot itimer_periodic *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) itimer_oneshot itimer_periodic *.o *.obj *.exe *.ilk *.pdb *.manifest
 

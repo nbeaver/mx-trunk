@@ -19,5 +19,5 @@ mutex_recursive: mutex_recursive.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 
 clean:
 	-$(RM) mutex_lock mutex_trylock mutex_recursive \
-		*.o *.obj *.exe *.ilk *.pdb
+		*.o *.obj *.exe *.ilk *.pdb *.manifest
 

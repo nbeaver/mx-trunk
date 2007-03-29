@@ -18,5 +18,5 @@ vtimer_periodic: vtimer_periodic.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 
 clean:
 	-$(RM) vtimer_multi vtimer_oneshot vtimer_periodic
-	-$(RM) *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) *.o *.obj *.exe *.ilk *.pdb *.manifest
 

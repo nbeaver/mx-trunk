@@ -9,5 +9,5 @@ vcc_monitor: vcc_monitor.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 clean:
-	-$(RM) vcc_monitor *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) vcc_monitor *.o *.obj *.exe *.ilk *.pdb *.manifest
 

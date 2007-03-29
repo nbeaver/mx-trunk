@@ -30,5 +30,5 @@ named_semaphore_client: named_semaphore_client.c \
 clean:
 	-$(RM) semaphore_lock semaphore_trylock
 	-$(RM) named_semaphore_server named_semaphore_client
-	-$(RM) *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) *.o *.obj *.exe *.ilk *.pdb *.manifest
 

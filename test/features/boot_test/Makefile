@@ -9,5 +9,5 @@ boot_test: boot_test.c $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME)
 		-I$(LIBMXDIR) $(LIBMXDIR)/$(MX_LIBRARY_STATIC_NAME) $(LIBRARIES)
 
 clean:
-	-$(RM) boot_test *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) boot_test *.o *.obj *.exe *.ilk *.pdb *.manifest
 

@@ -8,5 +8,5 @@ types: types.c
 	$(CC) $(CFLAGS) $(EXEOUT)types$(DOTEXE) types.c
 
 clean:
-	-$(RM) types *.o *.obj *.exe *.ilk *.pdb
+	-$(RM) types *.o *.obj *.exe *.ilk *.pdb *.manifest
 
