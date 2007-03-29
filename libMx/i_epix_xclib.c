@@ -32,6 +32,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
+#include "mx_inttypes.h"
 
 #if defined(OS_WIN32)
 #include <windows.h>
@@ -66,291 +67,27 @@ MX_RECORD_FIELD_DEFAULTS *mxi_epix_xclib_rfield_def_ptr
 
 /*---------------------------------------------------------------------------*/
 
-#if defined(OS_LINUX)
-
-/* The following procedure has only been tested with Linux 2.6 kernels. */
-
 static mx_status_type
-mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
+mxi_epix_xclib_get_timing_parameters( MX_EPIX_XCLIB *epix_xclib )
 {
-	static const char fname[] = "mxi_epix_xclib_get_system_boot_time()";
+	static const char fname[] = "mxi_epix_xclib_get_timing_parameters()";
 
-	FILE *proc_stat;
-	char buffer[100];
-	int saved_errno, num_items;
-	unsigned long boot_time_in_seconds;
+	struct pxvidstatus pxvstatus;
+	mx_status_type mx_status;
 
-	/* First, find out when this computer booted. */
+	/* Get the current video status. */
 
-	proc_stat = fopen( "/proc/stat", "r" );
+	mx_status = mxi_epix_xclib_get_pxvidstatus( epix_xclib, 1, &pxvstatus,
+							PXSTAT_UPDATED );
 
-	if ( proc_stat == NULL ) {
-		saved_errno = errno;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Unable to open /proc/stat.  Errno = %d, error message = '%s'.",
-			saved_errno, strerror(saved_errno) );
-	}
+	epix_xclib->tick_frequency = pxvstatus.time.ticku[1];
 
-	/* Read through the output from /proc/stat until we find a line that
-	 * begins with the word 'btime'. */
-
-	fgets( buffer, sizeof(buffer), proc_stat );
-
-	for(;;) {
-		if ( feof(proc_stat) || ferror(proc_stat) ) {
-			fclose(proc_stat);
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Did not find the line starting with 'btime' "
-			"that was supposed to contain the boot time." );
-		}
-
-#if 0 && MXI_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
-#endif
-
-		if ( strncmp( buffer, "btime", 5 ) == 0 ) {
-			break;			/* Exit the for(;;) loop. */
-		}
-
-		fgets( buffer, sizeof(buffer), proc_stat );
-	}
-
-	/* Parse the line that contains the boot time. */
-
-	num_items = sscanf( buffer, "btime %lu", &boot_time_in_seconds );
-
-	if ( num_items != 1 ) {
-		fclose(proc_stat);
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"The system boot time could not be found in "
-			"the line '%s' returned by /proc/stat.",
-				buffer );
-	}
-
-	epix_xclib->system_boot_time = boot_time_in_seconds;
-
-#if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = %lu",
-		fname, epix_xclib->system_boot_time ));
-#endif
-	fclose(proc_stat);
 
 	return MX_SUCCESSFUL_RESULT;
 }
-
-static mx_status_type
-mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
-{
-	static const char fname[] = "mxi_epix_xclib_get_wraparound_interval()";
-
-	double two_to_the_32nd_power;
-
-	if ( epix_xclib->use_high_resolution_time_stamps ) {
-
-		/* The EPIX driver uses gettimeofday(). */
-
-		epix_xclib->tick_frequency = 1.0e6;
-	} else {
-		/* The EPIX driver uses jiffies. */
-
-		epix_xclib->tick_frequency = 1.0e3;
-	}
-
-	two_to_the_32nd_power = pow( 2.0, 32 );
-
-	epix_xclib->wraparound_interval = mx_divide_safely(
-			two_to_the_32nd_power, epix_xclib->tick_frequency );
-
-#if MX_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,
-	("%s: tick_frequency = %g Hz, wraparound_interval = %g seconds",
-	fname, epix_xclib->tick_frequency, epix_xclib->wraparound_interval));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
-
-
-#elif defined(OS_WIN32)
-
-/* The following code was based on this MSDN example:
- *
- *   http://msdn2.microsoft.com/en-us/library/aa363675.aspx
- */
-
-#define EVENT_LOG_BUFFER_SIZE (1024 * 64)
-
-static mx_status_type
-mxi_epix_xclib_get_system_boot_time( MX_EPIX_XCLIB *epix_xclib )
-{
-	static const char fname[] = "mxi_epix_xclib_get_system_boot_time()";
-
-	HANDLE event_log_handle;
-	EVENTLOGRECORD *event_log_pointer;
-	BYTE buffer[ EVENT_LOG_BUFFER_SIZE ];
-	DWORD bytes_read, bytes_left, bytes_needed;
-
-	DWORD last_error_code;
-	TCHAR message_buffer[MXU_ERROR_MESSAGE_LENGTH - 120];
-
-	mx_bool_type boot_event_found;
-	int event_code;
-
-	/* First, find out when this computer booted. */
-
-	event_log_handle = OpenEventLog( NULL, "System" );
-
-	if ( event_log_handle == NULL ) {
-		last_error_code = GetLastError();
-
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-		"Unable to open the Windows Event Log for record '%s'.  "
-		"Win32 error code = %ld, error message = '%s'",
-			epix_xclib->record->name,
-			last_error_code,
-			message_buffer );
-	}
-
-	/* Read the event log in reverse order looking for the last
-	 * instance of an event of type 6009.  Event type 6009 is
-	 * generated each time a Windows system boots and is normally
-	 * the first event to be generated.
-	 */
-
-	boot_event_found = FALSE;
-
-	event_log_pointer = (EVENTLOGRECORD *) &buffer;
-
-	while ( ReadEventLog( event_log_handle,
-			EVENTLOG_BACKWARDS_READ |
-			EVENTLOG_SEQUENTIAL_READ,
-			0,
-			event_log_pointer,
-			EVENT_LOG_BUFFER_SIZE,
-			&bytes_read,
-			&bytes_needed ) )
-	{
-		bytes_left = bytes_read;
-
-		while ( bytes_left > 0 ) {
-
-			event_code = event_log_pointer->EventID & 0xffff;
-
-#if 0 && MXI_EPIX_XCLIB_DEBUG
-			MX_DEBUG(-2,
-	   ("Event id = 0x%08X (%d), Event type = %lu, Event source = '%s'",
-				event_log_pointer->EventID,
-				event_code,
-				event_log_pointer->EventType,
-	    (LPSTR) ((LPBYTE) event_log_pointer + sizeof(EVENTLOGRECORD)) ));
-#endif
-			if ( event_code == 6009 ) {
-				boot_event_found = TRUE;
-				break;
-			}
-
-			bytes_left -= event_log_pointer->Length;
-
-			event_log_pointer = (EVENTLOGRECORD *)
-		    ((LPBYTE) event_log_pointer + event_log_pointer->Length);
-		}
-
-		if ( boot_event_found ) {
-			break;
-		}
-
-		event_log_pointer = (EVENTLOGRECORD *) &buffer;
-	}
-
-	CloseEventLog( event_log_handle );
-
-	if ( boot_event_found == FALSE ) {
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"The attempt to find the Windows boot time "
-			"in the Event Log failed for an unknown reason." );
-	}
-
-	epix_xclib->system_boot_time = event_log_pointer->TimeGenerated;
-
-#if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = %lu seconds",
-			fname, epix_xclib->system_boot_time ));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-static mx_status_type
-mxi_epix_xclib_get_wraparound_interval( MX_EPIX_XCLIB *epix_xclib )
-{
-	static const char fname[] = "mxi_epix_xclib_get_wraparound_interval()";
-
-	LARGE_INTEGER performance_frequency;
-	BOOL os_status;
-	double two_to_the_32nd_power;
-	double wraparound_seconds, fp_frequency;
-
-	epix_xclib->wraparound_interval = 0.0;
-
-	if ( epix_xclib->use_high_resolution_time_stamps ) {
-
-		/* The EPIX driver uses KeQueryPerformanceCounter().
-		 * 
-		 * The frequency at which this counter increments can be found
-		 * using QueryPerformanceFrequency().
-		 */
-
-		mx_warning("FIXME!: There are some unresolved issues around "
-			"computing the update frequency here.");
-
-		os_status = QueryPerformanceFrequency( &performance_frequency );
-
-		if ( os_status == 0 ) {
-			return mx_error( MXE_NOT_AVAILABLE, fname,
-			"Win32 high performance counters are not available "
-			"on this computer.  This error means that "
-			"image frame timestamps will be invalid." );
-		}
-
-		MX_DEBUG(-2,("%s: performance frequency = %I64d",
-			fname, performance_frequency.QuadPart));
-
-		epix_xclib->tick_frequency = performance_frequency.QuadPart;
-	} else {
-		/* The EPIX driver uses KeQueryInterruptTime().
-		 * 
-		 * This timer runs at 100 nanoseconds per tick.  Thus,
-		 * the wraparound time always has the value of
-		 *
-		 *     100.0e-9 * 2^32 = 429.4967296 seconds.
-		 */
-
-		epix_xclib->tick_frequency = 1.0e7;
-	}
-
-	two_to_the_32nd_power = pow( 2.0, 32 );
-
-	epix_xclib->wraparound_interval = mx_divide_safely(
-			two_to_the_32nd_power, epix_xclib->tick_frequency );
-
-#if MX_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,
-	("%s: tick_frequency = %g Hz, wraparound_interval = %g seconds",
-	fname, epix_xclib->tick_frequency, epix_xclib->wraparound_interval));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-#endif
 
 /*---------------------------------------------------------------------------*/
 
@@ -527,66 +264,19 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib->use_high_resolution_time_stamps = FALSE;
 
-	/* Find out when this computer booted and how long it will take
-	 * for the EPIX system tick counter to wrap.
+	/* Find out when this computer booted and the tick frequency
+	 * for the EPIX system clock.
 	 */
 
-	mx_status = mxi_epix_xclib_get_system_boot_time( epix_xclib );
+	mx_status = mx_get_system_boot_time(
+				&(epix_xclib->system_boot_timespec) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	mx_status = mxi_epix_xclib_get_wraparound_interval( epix_xclib );
-		return mx_status;
+	mx_status = mxi_epix_xclib_get_timing_parameters( epix_xclib );
 
-#if MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS
-
-	MX_DEBUG(-2,("%s: Getting the zero for EPIX system time.", fname));
-
-	/* Verify that the computed EPIX system time matches the operating
-	 * system time by taking a frame and then immediately comparing
-	 * the operating system time to the EPIX system time.
-	 */
-
-	/* Take a frame.  Time out if the frame takes longer than 1 second. */
-
-	timeout_in_milliseconds = 1000;
-
-	epix_status = pxd_doSnap(1,1,timeout_in_milliseconds);
-
-	/* Get the current wall clock time. */
-
-	os_timespec = mx_current_os_time();
-
-	/* Get the EPIX system time for the buffer we just acquired. */
-
-	epix_system_timespec =
-		mxi_epix_xclib_get_buffer_timespec( epix_xclib, 1, 1 );
-
-	MX_DEBUG(-2,("****** Start of statistics dump ******"));
-
-	MX_DEBUG(-2,("%s: epix_system_timespec = (%lu,%ld)", fname,
-				epix_system_timespec.tv_sec,
-				epix_system_timespec.tv_nsec));
-
-	MX_DEBUG(-2,("%s: os_timespec = (%lu,%ld)", fname,
-					os_timespec.tv_sec,
-					os_timespec.tv_nsec));
-
-	MX_DEBUG(-2,("*** /proc/uptime ***"));
-	system("cat /proc/uptime");
-
-	MX_DEBUG(-2,("*** /proc/interrupts ***"));
-	system("cat /proc/interrupts");
-
-	MX_DEBUG(-2,("*** /proc/stat ***"));
-	system("cat /proc/stat");
-
-	MX_DEBUG(-2,("****** End of statistics dump ******"));
-
-#endif /* MXI_EPIX_XCLIB_DEBUG_SYSTEM_TICKS */
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---------------------------------------------------------------------------*/
@@ -668,14 +358,10 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 {
 	static const char fname[] = "mxi_epix_xclib_get_buffer_timespec()";
 
-	struct timespec result;
-	uint32 epix_buffer_sys_ticks;
-	double sys_tick_seconds, event_time_in_seconds;
-
-	unsigned long current_seconds, seconds_difference;
-	unsigned long num_wraparounds;
-	double wraparound_seconds, total_wraparound_seconds;
-	double base_seconds;
+	struct timespec result, offset;
+	struct pxbufstatus pxbstatus;
+	uint64_t buffer64_ticks, frequency64, two_to_the_32nd_power;
+	mx_status_type mx_status;
 
 	result.tv_sec = 0;
 	result.tv_nsec = 0;
@@ -692,70 +378,64 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 		fname, unitmap, buffer_number ));
 #endif
 
-	epix_buffer_sys_ticks = pxd_buffersSysTicks( unitmap, buffer_number );
+	mx_status = mxi_epix_xclib_get_pxbufstatus( epix_xclib,
+						unitmap, buffer_number,
+						&pxbstatus );
+	if ( mx_status.code != MXE_SUCCESS )
+		return result;
+
+	/* Use 64-bit integers to do the calculations. */
+
+	two_to_the_32nd_power = ( 1ULL << 32 );
+
+	frequency64 = epix_xclib->tick_frequency;
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s: two_to_the_32nd_power = %" PRIu64 ", frequency64 = %" PRIu64,
+		fname, two_to_the_32nd_power, frequency64));
+#endif
+
+	buffer64_ticks = 
+		( two_to_the_32nd_power * (uint64_t) pxbstatus.captticks[1] )
+			+ (uint64_t) pxbstatus.captticks[0];
 
 #if defined( OS_LINUX )
+
 	if ( epix_xclib->use_high_resolution_time_stamps == FALSE ) {
 
 #if MXI_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: _Raw_ epix_buffer_sys_ticks = %lu",
-			fname, (unsigned long) epix_buffer_sys_ticks));
+		MX_DEBUG(-2,("%s: _Raw_ buffer64_ticks = %" PRIu64,
+			fname, buffer64_ticks ));
 #endif
 		/* If EPIX system ticks use Linux kernel 'jiffies', then
 		 * subtract the value of INITIAL_JIFFIES, so that system
 		 * boot time becomes the zero time.
 		 */
 
-		epix_buffer_sys_ticks = epix_buffer_sys_ticks - INITIAL_JIFFIES;
+		buffer64_ticks = buffer64_ticks - (uint64_t) INITIAL_JIFFIES;
 	}
 #endif
 
 #if MXI_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: epix_buffer_sys_ticks = %lu",
-		fname, (unsigned long) epix_buffer_sys_ticks));
+	MX_DEBUG(-2,("%s: buffer64_ticks = %" PRIu64, fname, buffer64_ticks));
+
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+		epix_xclib->system_boot_timespec.tv_sec,
+		epix_xclib->system_boot_timespec.tv_nsec));
 #endif
-	current_seconds = time(NULL);
 
-	MX_DEBUG(-2,("%s: current_seconds = %lu", fname, current_seconds));
-	MX_DEBUG(-2,("%s: ctime = '%s'", fname, mx_ctime_string() ));
-	MX_DEBUG(-2,("%s: system_boot_time = %lu",
-			fname, epix_xclib->system_boot_time ));
+	offset.tv_sec = (time_t) ( buffer64_ticks / frequency64 );
+	offset.tv_nsec = (long)  ( buffer64_ticks % frequency64 );
 
-	seconds_difference = current_seconds - epix_xclib->system_boot_time;
 
-	MX_DEBUG(-2,("%s: seconds_difference = %lu",fname, seconds_difference));
-	MX_DEBUG(-2,("%s: wraparound_interval = %g",
-			fname, epix_xclib->wraparound_interval));
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: offset = (%lu,%ld)", fname,
+		offset.tv_sec, offset.tv_nsec));
+#endif
 
-	num_wraparounds = mx_divide_safely( seconds_difference,
-					    epix_xclib->wraparound_interval );
-
-	MX_DEBUG(-2,("%s: num_wraparounds = %lu", fname, num_wraparounds));
-
-	total_wraparound_seconds = epix_xclib->wraparound_interval
-					* (double) num_wraparounds;
-
-	MX_DEBUG(-2,("%s: total_wraparound_seconds = %g",
-		fname, total_wraparound_seconds));
-
-	base_seconds = total_wraparound_seconds
-				+ (double) epix_xclib->system_boot_time;
-
-	MX_DEBUG(-2,("%s: base_time = %g", fname, base_seconds));
-		
-	sys_tick_seconds = mx_divide_safely( epix_buffer_sys_ticks,
-						epix_xclib->tick_frequency );
-
-	MX_DEBUG(-2,("%s: system_boot_time = %lu, sys_tick_seconds = %g",
-		fname, epix_xclib->system_boot_time, sys_tick_seconds));
-
-	event_time_in_seconds = base_seconds + sys_tick_seconds;
-
-	MX_DEBUG(-2,("%s: event_time_in_seconds = %g",
-			fname, event_time_in_seconds));
-
-	result = mx_convert_seconds_to_high_resolution_time(
-					event_time_in_seconds );
+	result = mx_add_high_resolution_times(
+			epix_xclib->system_boot_timespec, offset );
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: result = (%lu,%ld)", fname,
@@ -768,8 +448,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 MX_EXPORT mx_status_type
 mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
-					long buffer_number,
-					struct pxvidstatus *pxstatus,
+					struct pxvidstatus *pxvstatus,
 					int selection_mode )
 {
 	static const char fname[] = "mxi_epix_xclib_get_pxvidstatus()";
@@ -783,21 +462,23 @@ mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
 		"The MX_EPIX_XCLIB pointer passed was NULL." );
 	}
 
-	if ( pxstatus == (pxvidstatus_s *) NULL ) {
+	if ( pxvstatus == (pxvidstatus_s *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The pxvidstatus_s pointer passed was NULL." );
+		"The struct pxvidstatus pointer passed was NULL." );
 	}
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'",
 		fname, epix_xclib->record->name ));
+	MX_DEBUG(-2,("%s: unitmap = %#x, selection_mode = %d",
+		fname, unitmap, selection_mode));
 #endif
 	/* Initialize the pxstatus structure. */
 
-	memset( pxstatus, 0, sizeof(struct pxvidstatus) );
+	memset( pxvstatus, 0, sizeof(struct pxvidstatus) );
 
-	pxstatus->ddch.len = sizeof(struct pxvidstatus);
-	pxstatus->ddch.mos = PXMOS_VIDSTATUS;
+	pxvstatus->ddch.len = sizeof(struct pxvidstatus);
+	pxvstatus->ddch.mos = PXMOS_VIDSTATUS;
 
 	/* Escape to the Structured Style Interface. */
 
@@ -813,7 +494,7 @@ mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	epix_status = xc->pxdev.getVidStatus( &(xc->pxdev),
-				unitmap, 0, pxstatus, selection_mode );
+				unitmap, 0, pxvstatus, selection_mode );
 
 	if ( epix_status != 0 ) {
 		/* Do not return just yet since we need to call
@@ -838,6 +519,111 @@ mxi_epix_xclib_get_pxvidstatus( MX_EPIX_XCLIB *epix_xclib,
 		"Error code = %d",
 			epix_xclib->record->name, epix_status );
 	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: vcnt = %lu",
+		fname, (unsigned long) pxvstatus->time.vcnt));
+	MX_DEBUG(-2,("%s: hcnt = %lu",
+		fname, (unsigned long) pxvstatus->time.hcnt));
+	MX_DEBUG(-2,("%s: ticks = [%lu,%lu]", fname,
+		(unsigned long) pxvstatus->time.ticks[0],
+		(unsigned long) pxvstatus->time.ticks[1]));
+	MX_DEBUG(-2,("%s: ticku = [%lu,%lu]", fname,
+		(unsigned long) pxvstatus->time.ticku[0],
+		(unsigned long) pxvstatus->time.ticku[1]));
+	MX_DEBUG(-2,("%s: field = %lu",
+		fname, (unsigned long) pxvstatus->time.field));
+	MX_DEBUG(-2,("%s: fieldmod = %lu",
+		fname, (unsigned long) pxvstatus->time.fieldmod));
+#endif
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
+					long unitmap,
+					long buffer_number,
+					struct pxbufstatus *pxbstatus )
+{
+	static const char fname[] = "mxi_epix_xclib_get_pxbufstatus()";
+
+	struct xclibs *xc;
+	int epix_status;
+	mx_status_type mx_status;
+
+	if ( epix_xclib == (MX_EPIX_XCLIB *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_EPIX_XCLIB pointer passed was NULL." );
+	}
+
+	if ( pxbstatus == (pxbufstatus_s *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct pxvidstatus pointer passed was NULL." );
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'",
+		fname, epix_xclib->record->name ));
+	MX_DEBUG(-2,("%s: unitmap = %#x, buffer_number = %ld",
+		fname, unitmap, buffer_number));
+#endif
+	/* Initialize the pxbstatus structure. */
+
+	memset( pxbstatus, 0, sizeof(struct pxbufstatus) );
+
+	pxbstatus->ddch.len = sizeof(struct pxbufstatus);
+	pxbstatus->ddch.mos = PXMOS_BUFSTATUS;
+
+	/* Escape to the Structured Style Interface. */
+
+	xc = pxd_xclibEscape(0, 0, 0);
+
+	if ( xc == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The XCLIB library has not yet been initialized "
+		"for record '%s' with pxd_PIXCIopen().",
+			epix_xclib->record->name );
+	}
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	epix_status = xc->pxlib.goingBufStatus( &(xc->pxlib),
+				0, unitmap, buffer_number, pxbstatus );
+
+	if ( epix_status != 0 ) {
+		/* Do not return just yet since we need to call
+		 * pxd_xclibEscaped() before returning.  Instead,
+		 * we save the MX status and return it at the
+		 * end of this function.
+		 */
+
+		mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in xc->pxlib.goingBufStatus() for record '%s'.  "
+		"Error code = %d",
+			epix_xclib->record->name, epix_status );
+	}
+
+	/* Return from the Structured Style Interface. */
+
+	epix_status = pxd_xclibEscaped(0, 0, 0);
+
+	if ( epix_status != 0 ) {
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"Error in pxd_xclibEscaped() for record '%s'.  "
+		"Error code = %d",
+			epix_xclib->record->name, epix_status );
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: stateid = %d", fname, pxbstatus->stateid));
+	MX_DEBUG(-2,("%s: tracker = %d", fname, pxbstatus->tracker));
+	MX_DEBUG(-2,("%s: captvcnt = %d", fname, pxbstatus->captvcnt));
+	MX_DEBUG(-2,("%s: captticks = [%lu,%lu]", fname,
+		(unsigned long) pxbstatus->captticks[0],
+		(unsigned long) pxbstatus->captticks[1]));
+	MX_DEBUG(-2,("%s: captgpin = %d", fname, pxbstatus->captgpin));
+#endif
 
 	return mx_status;
 }

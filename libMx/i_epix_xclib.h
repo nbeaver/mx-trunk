@@ -26,10 +26,9 @@ typedef struct {
 
 	mx_bool_type use_high_resolution_time_stamps;
 
-	unsigned long system_boot_time;	/* in seconds from Jan 1, 1970 */
-	double wraparound_interval;	/* in seconds */
+	struct timespec system_boot_timespec;	/* since Jan 1, 1970 */
 
-	double tick_frequency;		/* ticks per second */
+	unsigned long tick_frequency;		/* ticks per second */
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
@@ -53,13 +52,19 @@ MX_API struct timespec mxi_epix_xclib_get_buffer_timespec(
 					long buffer_number );
 
 #ifdef IS_MX_DRIVER
+
 MX_API mx_status_type mxi_epix_xclib_get_pxvidstatus(
 					MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
-					long buffer_number,
-					struct pxvidstatus *pv_struct,
+					struct pxvidstatus *pxstatus,
 					int selection_mode );
-#endif
+
+MX_API mx_status_type mxi_epix_xclib_get_pxbufstatus(
+					MX_EPIX_XCLIB *epix_xclib,
+					long unitmap,
+					long buffer_number,
+					struct pxbufstatus *pxstatus );
+#endif /* IS_MX_DRIVER */
 
 extern MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list;
 
