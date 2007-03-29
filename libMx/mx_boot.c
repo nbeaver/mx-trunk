@@ -17,19 +17,20 @@
 #define MX_BOOT_DEBUG	TRUE
 
 #include <stdio.h>
+#include <errno.h>
 
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_hrt.h"
 
-/*---------------------- Linux ----------------------*/
+/*---------------------- Linux and Cygwin ----------------------*/
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_CYGWIN)
 
-/* The following procedure has only been tested with Linux 2.6 kernels. */
+/* The following code has not been tested with Linux 2.4 kernels or before. */
 
 MX_EXPORT mx_status_type
-mx_get_system_boot_time( struct timespec *boot_timespec )
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
 {
 	static const char fname[] = "mx_get_system_boot_time()";
 
@@ -38,7 +39,12 @@ mx_get_system_boot_time( struct timespec *boot_timespec )
 	int saved_errno, num_items;
 	unsigned long boot_time_in_seconds;
 
-	/* First, find out when this computer booted. */
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	/* Find out when this computer booted from /proc/stat. */
 
 	proc_stat = fopen( "/proc/stat", "r" );
 
@@ -88,13 +94,16 @@ mx_get_system_boot_time( struct timespec *boot_timespec )
 				buffer );
 	}
 
-	epix_xclib->system_boot_time = boot_time_in_seconds;
+	system_boot_timespec->tv_sec = boot_time_in_seconds;
+	system_boot_timespec->tv_nsec = 0;
+
+	fclose(proc_stat);
 
 #if MX_BOOT_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = %lu",
-		fname, epix_xclib->system_boot_time ));
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
 #endif
-	fclose(proc_stat);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -213,7 +222,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	system_boot_timespec->tv_nsec = 0;
 
 #if MX_BOOT_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_time = (%lu,%ld)", fname,
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
 			system_boot_timespec->tv_sec,
 			system_boot_timespec->tv_nsec));
 #endif
