@@ -229,6 +229,120 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------- Solaris ----------------------*/
+
+#elif defined(OS_SOLARIS)
+
+#include <utmpx.h>
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	struct utmpx *entry;
+	mx_bool_type found_system_boot;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	found_system_boot = FALSE;
+
+	while ( entry = getutxent() ) {
+		if ( strcmp( "system boot", entry->ut_line ) == 0 ) {
+			found_system_boot = TRUE;
+			break;			/* Exit the while() loop. */
+		}
+	}
+
+	if ( found_system_boot == FALSE ) {
+		endutxent();
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Did not find a 'system boot' entry in utmpx." );
+	}
+
+	system_boot_timespec->tv_sec = entry->ut_tv.tv_sec;
+	system_boot_timespec->tv_nsec = 1000L * entry->ut_tv.tv_usec;
+
+	endutxent();
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------- HP-UX ----------------------*/
+
+#elif defined(OS_HPUX)
+
+#include <sys/param.h>
+#include <sys/pstat.h>
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	struct pst_static pst;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	pstat_getstatic( &pst, sizeof(pst), (size_t) 1, 0 );
+
+	system_boot_timespec->tv_sec = pst.boot_time;
+	system_boot_timespec->tv_nsec = 0;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------- Tru64 ----------------------*/
+
+#elif defined(OS_TRU64)
+
+#include <sys/table.h>
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	struct tbl_sysinfo system_info;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	table( TBL_SYSINFO, 0, &system_info, 1, sizeof(system_info) );
+
+	system_boot_timespec->tv_sec = system_info.si_boottime;
+	system_boot_timespec->tv_nsec = 0;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------- unknown ----------------------*/
 
 #else
