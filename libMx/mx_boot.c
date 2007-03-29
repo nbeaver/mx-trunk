@@ -148,7 +148,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 #elif defined(OS_LINUX) || defined(OS_CYGWIN)
 
-/* The following code has not been tested with Linux 2.4 kernels or before. */
+/* The following code has not been tested with Linux 2.2 kernels or before. */
 
 MX_EXPORT mx_status_type
 mx_get_system_boot_time( struct timespec *system_boot_timespec )
