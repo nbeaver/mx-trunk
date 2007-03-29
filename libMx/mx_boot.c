@@ -23,95 +23,9 @@
 #include "mx_stdint.h"
 #include "mx_hrt.h"
 
-/*---------------------- Linux and Cygwin ----------------------*/
-
-#if defined(OS_LINUX) || defined(OS_CYGWIN)
-
-/* The following code has not been tested with Linux 2.4 kernels or before. */
-
-MX_EXPORT mx_status_type
-mx_get_system_boot_time( struct timespec *system_boot_timespec )
-{
-	static const char fname[] = "mx_get_system_boot_time()";
-
-	FILE *proc_stat;
-	char buffer[100];
-	int saved_errno, num_items;
-	unsigned long boot_time_in_seconds;
-
-	if ( system_boot_timespec == (struct timespec *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The struct timespec pointer passed was NULL." );
-	}
-
-	/* Find out when this computer booted from /proc/stat. */
-
-	proc_stat = fopen( "/proc/stat", "r" );
-
-	if ( proc_stat == NULL ) {
-		saved_errno = errno;
-
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Unable to open /proc/stat.  Errno = %d, error message = '%s'.",
-			saved_errno, strerror(saved_errno) );
-	}
-
-	/* Read through the output from /proc/stat until we find a line that
-	 * begins with the word 'btime'. */
-
-	fgets( buffer, sizeof(buffer), proc_stat );
-
-	for(;;) {
-		if ( feof(proc_stat) || ferror(proc_stat) ) {
-			fclose(proc_stat);
-
-			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Did not find the line starting with 'btime' "
-			"that was supposed to contain the boot time." );
-		}
-
-#if 0 && MX_BOOT_DEBUG
-		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
-#endif
-
-		if ( strncmp( buffer, "btime", 5 ) == 0 ) {
-			break;			/* Exit the for(;;) loop. */
-		}
-
-		fgets( buffer, sizeof(buffer), proc_stat );
-	}
-
-	/* Parse the line that contains the boot time. */
-
-	num_items = sscanf( buffer, "btime %lu", &boot_time_in_seconds );
-
-	if ( num_items != 1 ) {
-		fclose(proc_stat);
-
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"The system boot time could not be found in "
-			"the line '%s' returned by /proc/stat.",
-				buffer );
-	}
-
-	system_boot_timespec->tv_sec = boot_time_in_seconds;
-	system_boot_timespec->tv_nsec = 0;
-
-	fclose(proc_stat);
-
-#if MX_BOOT_DEBUG
-	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
-			system_boot_timespec->tv_sec,
-			system_boot_timespec->tv_nsec));
-#endif
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
 /*---------------------- Win32 ----------------------*/
 
-
-#elif defined(OS_WIN32)
+#if defined(OS_WIN32)
 
 /* The following code was based on this MSDN example:
  *
@@ -230,8 +144,94 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------- Linux and Cygwin ----------------------*/
+
+#elif defined(OS_LINUX) || defined(OS_CYGWIN)
+
+/* The following code has not been tested with Linux 2.4 kernels or before. */
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	FILE *proc_stat;
+	char buffer[100];
+	int saved_errno, num_items;
+	unsigned long boot_time_in_seconds;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	/* Find out when this computer booted from /proc/stat. */
+
+	proc_stat = fopen( "/proc/stat", "r" );
+
+	if ( proc_stat == NULL ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_FILE_IO_ERROR, fname,
+		"Unable to open /proc/stat.  Errno = %d, error message = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Read through the output from /proc/stat until we find a line that
+	 * begins with the word 'btime'. */
+
+	fgets( buffer, sizeof(buffer), proc_stat );
+
+	for(;;) {
+		if ( feof(proc_stat) || ferror(proc_stat) ) {
+			fclose(proc_stat);
+
+			return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Did not find the line starting with 'btime' "
+			"that was supposed to contain the boot time." );
+		}
+
+#if 0 && MX_BOOT_DEBUG
+		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
+
+		if ( strncmp( buffer, "btime", 5 ) == 0 ) {
+			break;			/* Exit the for(;;) loop. */
+		}
+
+		fgets( buffer, sizeof(buffer), proc_stat );
+	}
+
+	/* Parse the line that contains the boot time. */
+
+	num_items = sscanf( buffer, "btime %lu", &boot_time_in_seconds );
+
+	if ( num_items != 1 ) {
+		fclose(proc_stat);
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The system boot time could not be found in "
+			"the line '%s' returned by /proc/stat.",
+				buffer );
+	}
+
+	system_boot_timespec->tv_sec = boot_time_in_seconds;
+	system_boot_timespec->tv_nsec = 0;
+
+	fclose(proc_stat);
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------- unknown ----------------------*/
 
 #else
 #error mx_get_system_boot_time() has not yet been written for this platform.
 #endif
+
