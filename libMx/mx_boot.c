@@ -22,6 +22,7 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_hrt.h"
+#include "mx_clock.h"
 
 /*---------------------- Win32 ----------------------*/
 
@@ -392,9 +393,51 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---------------------- not available ----------------------*/
+/*---------------------- Use clock ticks and time() ----------------------*/
 
-#elif defined(OS_ECOS)
+#elif defined(OS_ECOS) || defined(OS_RTEMS)
+
+/* For platforms that return a valid value for time() and which also report
+ * the number of clock ticks since boot, we can calculate the boot time.
+ */
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	MX_CLOCK_TICK clock_ticks_since_boot;
+	double seconds_since_the_epoch, seconds_since_boot;
+	double boot_time_in_seconds;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	seconds_since_the_epoch = time(NULL);
+	clock_ticks_since_boot = mx_current_clock_tick();
+
+	seconds_since_boot =
+		mx_convert_clock_ticks_to_seconds( clock_ticks_since_boot );
+
+	boot_time_in_seconds = seconds_since_the_epoch - seconds_since_boot;
+
+	*system_boot_timespec =
+	    mx_convert_seconds_to_high_resolution_time( boot_time_in_seconds );
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+		(unsigned long) system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------- Feature not available ----------------------*/
+
+#elif 0
 
 /* Some platforms do not record the boot time. */
 
@@ -420,7 +463,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---------------------- unknown ----------------------*/
+/*---------------------- Unknown ----------------------*/
 
 #else
 #error mx_get_system_boot_time() has not yet been written for this platform.

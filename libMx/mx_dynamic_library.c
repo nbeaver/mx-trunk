@@ -327,7 +327,7 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 
 /************************ Not available ***********************/
 
-#elif defined(OS_ECOS)
+#elif defined(OS_ECOS) || defined(OS_RTEMS)
 
 MX_EXPORT mx_status_type
 mx_dynamic_library_open( const char *filename,

@@ -1,4 +1,4 @@
-MX_ARCH = ecos
+MX_ARCH = linux
 
 LIBMXDIR = ../libMx
 
