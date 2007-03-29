@@ -229,6 +229,55 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---------------------- MacOS X ----------------------*/
+
+#elif defined(OS_MACOSX)
+
+#include <sys/sysctl.h>
+
+MX_EXPORT mx_status_type
+mx_get_system_boot_time( struct timespec *system_boot_timespec )
+{
+	static const char fname[] = "mx_get_system_boot_time()";
+
+	struct timeval boot_time;
+	size_t boot_time_size;
+	int mib[2];
+	int os_status, saved_errno;
+
+	if ( system_boot_timespec == (struct timespec *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The struct timespec pointer passed was NULL." );
+	}
+
+	mib[0] = CTL_KERN;
+	mib[1] = KERN_BOOTTIME;
+
+	boot_time_size = sizeof(boot_time);
+
+	os_status = sysctl( mib, 2, &boot_time, &boot_time_size, NULL, 0 );
+
+	if ( os_status == -1 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to get KERN_BOOTTIME from the kernel.  "
+		"Errno = %d, error message = '%s'",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	system_boot_timespec->tv_sec = boot_time.tv_sec;
+	system_boot_timespec->tv_nsec = 1000L * boot_time.tv_usec;
+
+#if MX_BOOT_DEBUG
+	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
+			system_boot_timespec->tv_sec,
+			system_boot_timespec->tv_nsec));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---------------------- Solaris ----------------------*/
 
 #elif defined(OS_SOLARIS)
