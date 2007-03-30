@@ -19,8 +19,8 @@ main( int argc, char *argv[] )
 		exit( mx_status.code );
 
 	fprintf( stderr, "\n%s: system_boot_timespec = (%lu,%ld)\n\n",
-		fname, system_boot_timespec.tv_sec,
-		system_boot_timespec.tv_nsec );
+		fname, (unsigned long) system_boot_timespec.tv_sec,
+			system_boot_timespec.tv_nsec );
 
 	mx_os_time_string( system_boot_timespec, buffer, sizeof(buffer) );
 

@@ -232,7 +232,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 /*---------------------- MacOS X ----------------------*/
 
-#elif defined(OS_MACOSX)
+#elif defined(OS_MACOSX) || defined(__FreeBSD__)
 
 #include <sys/sysctl.h>
 
@@ -272,7 +272,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 #if MX_BOOT_DEBUG
 	MX_DEBUG(-2,("%s: system_boot_timespec = (%lu,%ld)", fname,
-			system_boot_timespec->tv_sec,
+		(unsigned long) system_boot_timespec->tv_sec,
 			system_boot_timespec->tv_nsec));
 #endif
 
