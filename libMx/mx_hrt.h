@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------
  *
- * Copyright 2003-2005 Illinois Institute of Technology
+ * Copyright 2003-2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -17,25 +17,6 @@
 
 #ifndef __MX_HRT_H__
 #define __MX_HRT_H__
-
-#include <time.h>	/* We usually get 'struct timespec' from here. */
-
-#if defined( OS_BSD )
-#include <sys/time.h>	/* Sometimes we get it from here. */
-#endif
-
-#if defined( OS_DJGPP )
-#include <sys/wtime.h>	/* Sometimes we get it from here. */
-#endif
-
-/* However, some operating systems do not define 'struct timespec'. */
-
-#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
-struct timespec {
-	time_t tv_sec;	  /* seconds */
-	long   tv_nsec;   /* nanoseconds */
-};
-#endif
 
 /* mx_high_resolution_time_init() initializes internal data structures
  * that are used by mx_high_resolution_time() and mx_udelay() below.

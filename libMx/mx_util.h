@@ -18,10 +18,30 @@
 #define __MX_UTIL_H__
 
 #include <string.h>	/* We get 'size_t' from here. */
-
-#include <time.h>	/* We get 'struct timespec' from here. */
-
 #include <stdarg.h>	/* We get 'va_list' from here. */
+
+/*-----*/
+
+#include <time.h>	/* We usually get 'struct timespec' from here. */
+
+#if defined( OS_BSD )
+#include <sys/time.h>	/* Sometimes we get 'struct timespec' from here. */
+#endif
+
+#if defined( OS_DJGPP )
+#include <sys/wtime.h>	/* Sometimes we get 'struct timespec' from here. */
+#endif
+
+/* However, some operating systems do not define 'struct timespec'. */
+
+#if defined( OS_WIN32 ) || ( defined( OS_VMS ) && (__VMS_VER < 80000000) )
+struct timespec {
+	time_t tv_sec;	  /* seconds */
+	long   tv_nsec;   /* nanoseconds */
+};
+#endif
+
+/*-----*/
 
 /*
  * Macros for declaring shared library or DLL functions.
