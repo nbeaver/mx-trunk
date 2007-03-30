@@ -19,6 +19,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mx_util.h"
 #include "mx_dynamic_library.h"
@@ -87,6 +88,8 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 	TCHAR message_buffer[100];
 	mx_status_type mx_status;
 
+	mx_status = MX_SUCCESSFUL_RESULT;
+
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
@@ -102,9 +105,7 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 
 	os_status = FreeLibrary( library->object );
 
-	if ( os_status != 0 ) {
-		mx_status = MX_SUCCESSFUL_RESULT;
-	} else {
+	if ( os_status == 0 ) {
 		last_error_code = GetLastError();
 		
 		mx_win32_error_message( last_error_code,
@@ -147,8 +148,6 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	}
 
 	if ( library->object == NULL ) {
-		mx_free( library );
-
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
 			"passed was NULL." );
@@ -180,12 +179,185 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/************************ VxWorks ***********************/
+
+#elif defined(OS_VXWORKS)
+
+#include <ioLib.h>
+#include <symLib.h>
+#include <loadLib.h>
+#include <unldLib.h>
+#include <sysSymTbl.h>
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_open( const char *filename,
+			MX_DYNAMIC_LIBRARY **library )
+{
+	static const char fname[] = "mx_dynamic_library_open()";
+
+	int fd;
+
+	if ( filename == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The filename pointer passed was NULL." );
+	}
+	if ( library == (MX_DYNAMIC_LIBRARY **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+
+	fd = open( filename, O_RDONLY, 0 );
+
+	if ( fd == ERROR ) {
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to open object module '%s'.", filename );
+	}
+
+	*library = malloc( sizeof(MX_DYNAMIC_LIBRARY) );
+
+	if ( (*library) == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		close(fd);
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate "
+			"an MX_DYNAMIC_LIBRARY structure." );
+	}
+
+	(*library)->object = NULL;
+
+	(*library)->object = loadModule( fd, LOAD_ALL_SYMBOLS );
+
+	if ( (*library)->object == NULL ) {
+		close(fd);
+		mx_free( *library );
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unable to open object module '%s'.", filename );
+	}
+
+	close(fd);
+
+	strlcpy( (*library)->filename, filename, sizeof((*library)->filename) );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
+{
+	static const char fname[] = "mx_dynamic_library_close()";
+
+	int os_status;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
+
+	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+
+	if ( library->object == NULL ) {
+		mx_free( library );
+
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
+			"passed was NULL." );
+	}
+
+	os_status = unldByModuleId( (MODULE_ID) library->object, 0 );
+
+	if ( os_status != 0 ) {
+		mx_free( library );
+		
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to close dynamic library '%s'.",
+				library->filename );
+	}
+
+	mx_free( library );
+
+	return mx_status;
+}
+
+/* WARNING: VxWorks uses the same symbol table for all shared objects,
+ * so the symbol you find may be from a different shared object!
+ */
+
+MX_EXPORT mx_status_type
+mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
+				const char *symbol_name,
+				void **symbol_pointer,
+				mx_bool_type quiet_flag )
+{
+	static const char fname[] = "mx_dynamic_library_find_symbol()";
+
+	int os_status;
+	long error_code;
+	char local_symbol_name[MAX_SYS_SYM_LEN+1];
+
+	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_DYNAMIC_LIBRARY pointer passed was NULL." );
+	}
+	if ( symbol_name == (char *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The symbol_name pointer passed was NULL." );
+	}
+	if ( symbol_pointer == (void **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The symbol_pointer argument passed was NULL." );
+	}
+
+	if ( library->object == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
+			"passed was NULL." );
+	}
+
+	/* Avoid the warning
+	 *   passing arg 2 of `symFindByName' discards `const' 
+	 *   from pointer target type
+	 * by copying the string to a local buffer.
+	 */
+
+	if ( strlen(symbol_name) >= sizeof(local_symbol_name) ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Symbol name '%s' is longer (%lu) than the maximum allowed "
+		"symbol length (%d) for the VxWorks system symbol table.",
+			symbol_name, (unsigned long) strlen(symbol_name),
+			MAX_SYS_SYM_LEN );
+	}
+
+	strlcpy( local_symbol_name, symbol_name, sizeof(local_symbol_name) );
+
+	/* Look up the symbol name. */
+
+	os_status = symFindByName( sysSymTbl,
+				local_symbol_name,
+				(char **) symbol_pointer, 0 );
+
+	if ( os_status == ERROR ) {
+
+		if ( quiet_flag ) {
+			error_code = (MXE_OPERATING_SYSTEM_ERROR | MXE_QUIET);
+		} else {
+			error_code = MXE_OPERATING_SYSTEM_ERROR;
+		}
+
+		return mx_error( error_code, fname,
+			"Unable to find symbol '%s' in dynamic library '%s'.",
+				symbol_name, library->filename );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ dlopen() ***********************/
 
 #elif defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
 	|| defined(OS_IRIX) || defined(OS_CYGWIN) || defined(OS_QNX)
 
-#include <stdlib.h>
 #include <errno.h>
 #include <dlfcn.h>
 
@@ -239,6 +411,9 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 	static const char fname[] = "mx_dynamic_library_close()";
 
 	int os_status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	if ( library == (MX_DYNAMIC_LIBRARY *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -258,17 +433,16 @@ mx_dynamic_library_close( MX_DYNAMIC_LIBRARY *library )
 	if ( os_status != 0 ) {
 		saved_errno = errno;
 
-		mx_free( library );
-		
-		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
-			"Unable to close dynamic library '%s'.  "
-			"Error code = %d, error message = '%s'.",
-			library->filename, saved_errno, strerror(saved_errno) );
+		mx_status = mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+				"Unable to close dynamic library '%s'.  "
+				"Error code = %d, error message = '%s'.",
+					library->filename,
+					saved_errno, strerror(saved_errno) );
 	}
 
 	mx_free( library );
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -296,8 +470,6 @@ mx_dynamic_library_find_symbol( MX_DYNAMIC_LIBRARY *library,
 	}
 
 	if ( library->object == NULL ) {
-		mx_free( library );
-
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 			"The object pointer for the MX_DYNAMIC_LIBRARY pointer "
 			"passed was NULL." );

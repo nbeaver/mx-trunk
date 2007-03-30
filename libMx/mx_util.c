@@ -1826,6 +1826,30 @@ mx_current_os_time( void )
 	return result;
 }
 
+#elif defined( OS_VXWORKS )
+
+MX_EXPORT struct timespec
+mx_current_os_time( void )
+{
+	static const char fname[] = "mx_current_os_time()";
+
+	struct timespec result;
+	int os_status, saved_errno;
+
+	os_status = clock_gettime(CLOCK_REALTIME, &result);
+
+	if ( os_status == -1 ) {
+		saved_errno = errno;
+
+		(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"The call to clock_gettime() failed.  "
+			"Errno = %d, error message = '%s'",
+				saved_errno, strerror(saved_errno) );
+	}
+
+	return result;
+}
+
 #else
 
 MX_EXPORT struct timespec
