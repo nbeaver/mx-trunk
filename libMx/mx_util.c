@@ -1911,9 +1911,13 @@ mx_os_time_string( struct timespec os_time,
 	tm_struct_ptr = localtime( &time_in_seconds );
 
 #elif defined(OS_WIN32)
+#  if defined(_MSC_VER) && (_MSC_VER >= 1400 )
 	localtime_s( &tm_struct, &time_in_seconds );
 
 	tm_struct_ptr = &tm_struct;
+#  else
+	tm_struct_ptr = localtime( &time_in_seconds );
+#  endif
 #else
 	localtime_r( &time_in_seconds, &tm_struct );
 
