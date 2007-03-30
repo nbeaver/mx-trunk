@@ -232,7 +232,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 /*---------------------- MacOS X ----------------------*/
 
-#elif defined(OS_MACOSX) || defined(__FreeBSD__)
+#elif defined(OS_MACOSX) || defined(__FreeBSD__) || defined(__NetBSD__)
 
 #include <sys/sysctl.h>
 
