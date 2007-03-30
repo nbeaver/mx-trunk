@@ -350,6 +350,7 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 	struct timespec result, offset;
 	struct pxbufstatus pxbstatus;
 	uint64_t buffer64_ticks, frequency64, two_to_the_32nd_power;
+	uint64_t remainder;
 	mx_status_type mx_status;
 
 	result.tv_sec = 0;
@@ -413,10 +414,11 @@ mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
 		epix_xclib->system_boot_timespec.tv_sec,
 		epix_xclib->system_boot_timespec.tv_nsec));
 #endif
-
 	offset.tv_sec = (time_t) ( buffer64_ticks / frequency64 );
-	offset.tv_nsec = (long)  ( buffer64_ticks % frequency64 );
 
+	remainder = buffer64_ticks % frequency64;
+
+	offset.tv_nsec = (long) ( (1000000000ULL * remainder) / frequency64 );
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: offset = (%lu,%ld)", fname,
