@@ -33,11 +33,13 @@ BSD_TOOLS += xdr_hyper.o
 #
 
 all: ${BSD_TOOLS}
-	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 mx_clean:
 	( cd unix/src/editline ; make clean )
 	-rm *.o
+
+unix/src/editline/libedit.a:
+	( cd unix/src/editline ; $(EDITLINE_MAKECMD) )
 
 #
 # xdr_hyper.o will only be built on OpenBSD.
