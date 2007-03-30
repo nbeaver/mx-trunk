@@ -27,7 +27,6 @@ main( int argc, char *argv[] )
 	fprintf( stderr, "%s: This computer booted at time = '%s'\n\n",
 		fname, buffer );
 
-	exit(0);
+	return 0;
 }
-
 
