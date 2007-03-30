@@ -1797,7 +1797,7 @@ mx_vsnprintf( char *dest, size_t maxlen, const char *format, va_list args  )
 
 /*-------------------------------------------------------------------------*/
 
-#if defined( OS_ECOS )
+#if 0
 
 MX_EXPORT struct timespec
 mx_current_os_time( void )
@@ -1810,7 +1810,7 @@ mx_current_os_time( void )
 	return result;
 }
 
-#elif defined( OS_WIN32 )
+#elif defined(OS_WIN32)
 
 MX_EXPORT struct timespec
 mx_current_os_time( void )
@@ -1826,7 +1826,7 @@ mx_current_os_time( void )
 	return result;
 }
 
-#elif defined( OS_VXWORKS )
+#elif defined(OS_ECOS) || defined(OS_VXWORKS)
 
 MX_EXPORT struct timespec
 mx_current_os_time( void )
