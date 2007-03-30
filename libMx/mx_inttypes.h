@@ -9,7 +9,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,7 +24,8 @@
 /* The non-standard build targets are listed first. */
 
 /*=======================================================================*/
-#if defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_ECOS)
+#if defined(OS_DJGPP) || defined(OS_RTEMS) || defined(OS_ECOS) \
+	|| defined(__OpenBSD__)
 
 #define PRId8	"hhd"
 #define PRIu8	"hhu"

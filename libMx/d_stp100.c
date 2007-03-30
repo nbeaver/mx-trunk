@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -1197,7 +1197,7 @@ mxd_stp100_motor_command( MX_STP100_MOTOR *stp100_motor,
 
 	/* Construct the complete command with the board number prefix. */
 
-	snprintf( command_string, sizeof(command), "BD%ld,%s",
+	snprintf( command_string, sizeof(command_string), "BD%ld,%s",
 				stp100_motor->board_number, command );
 
 	if ( debug_flag ) {

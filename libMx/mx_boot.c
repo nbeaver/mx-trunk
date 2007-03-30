@@ -230,9 +230,9 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*---------------------- MacOS X ----------------------*/
+/*---------------------- MacOS X and BSD ----------------------*/
 
-#elif defined(OS_MACOSX) || defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(OS_MACOSX) || defined(OS_BSD)
 
 #include <sys/sysctl.h>
 

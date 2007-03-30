@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -21,7 +21,7 @@
 #   include "../tools/xdr/src/xdr.h"
 #   include "../tools/xdr/src/xdr_hyper.h"
 
-#elif defined(OS_RTEMS) || defined(OS_VXWORKS)
+#elif defined(OS_RTEMS) || defined(OS_VXWORKS) || defined(__OpenBSD__)
 #   include "../tools/xdr/src/xdr_hyper.h"
 
 #elif defined(OS_VMS)
@@ -68,3 +68,4 @@
 #endif
 
 #endif /* __MX_XDR_H__ */
+

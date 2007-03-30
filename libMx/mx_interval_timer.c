@@ -2158,7 +2158,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style kqueue() timers ***********************/
 
-#elif defined( OS_BSD )
+#elif defined( __FreeBSD__ ) || defined( __NetBSD__ )
 
 #include <sys/types.h>
 #include <sys/event.h>
@@ -3323,7 +3323,7 @@ mx_interval_timer_read( MX_INTERVAL_TIMER *itimer,
 
 /************************ BSD style setitimer() timers ***********************/
 
-#elif defined( OS_DJGPP )
+#elif defined( OS_DJGPP ) || defined( __OpenBSD__ )
 
 /* WARNING: BSD setitimer() timers should only be used as a last resort,
  *          since they have some significant limitations in their
