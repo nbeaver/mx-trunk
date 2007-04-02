@@ -1906,7 +1906,7 @@ mx_os_time_string( struct timespec os_time,
 
 	time_in_seconds = os_time.tv_sec;
 
-#if 0
+#if defined(OS_DJGPP)
 	tm_struct_ptr = localtime( &time_in_seconds );
 
 #elif defined(OS_WIN32)
