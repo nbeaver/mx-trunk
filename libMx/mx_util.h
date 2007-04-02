@@ -644,6 +644,9 @@ MX_API mx_status_type mx_get_cpu_architecture( char *architecture_type,
 
 MX_API mx_status_type mx_get_system_boot_time( struct timespec *boot_timespec );
 
+MX_API mx_status_type mx_get_system_boot_time_from_ticks(
+					struct timespec *boot_timespec );
+
 MX_API mx_status_type mx_get_current_directory_name( char *filename_buffer,
 						size_t max_filename_length );
 

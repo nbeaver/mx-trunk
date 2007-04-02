@@ -1,0 +1,2 @@
+10id      server network tcpip_server "" "" 0x0 localhost 9827
+cs0       device sca network_sca "" "" 10id cs0
