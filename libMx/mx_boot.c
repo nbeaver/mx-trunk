@@ -52,6 +52,7 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 	mx_bool_type boot_event_found;
 	int event_code;
+	mx_status_type mx_status;
 
 	if ( system_boot_timespec == (struct timespec *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -64,6 +65,19 @@ mx_get_system_boot_time( struct timespec *system_boot_timespec )
 
 	if ( event_log_handle == NULL ) {
 		last_error_code = GetLastError();
+
+		if ( last_error_code == ERROR_CALL_NOT_IMPLEMENTED ) {
+			/* If we get this error code, it probably means
+			 * that we are running on a Windows 9x family
+			 * operating system.  In that case, we fall back
+			 * the ticks variant of this call.
+			 */
+
+			mx_status =  mx_get_system_boot_time_from_ticks(
+							system_boot_timespec );
+
+			return mx_status;
+		}
 
 		mx_win32_error_message( last_error_code,
 			message_buffer, sizeof(message_buffer) );
