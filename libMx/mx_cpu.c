@@ -170,6 +170,8 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #include <stdio.h>
 #include <errno.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <sched.h>
 
 #include "mx_util.h"
