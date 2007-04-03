@@ -134,7 +134,8 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	int i, length, epix_status;
 	char error_message[80];
 	uint original_exsync, original_prin;
-	unsigned long timeout_in_milliseconds;
+	unsigned long requested_mask, actual_mask;
+	unsigned long timeout_in_milliseconds, flags;
 	double timeout_in_seconds;
 	struct timespec epix_system_timespec, os_timespec;
 	mx_status_type mx_status;
@@ -155,9 +156,6 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
 
-	mx_warning( "FIXME: Do we need to set processor affinity here "
-			"in order to get more reliable timing?" );
-
 	/* Check to see if we are running on a supported operating system. */
 
 	mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
@@ -177,7 +175,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		"You are running Linux %d.%d.%d",
 			os_major, os_minor, os_update );
 	}
-#elif defined(OS_W32)
+#elif defined(OS_WIN32)
 	{
 		mx_bool_type supported;
 
@@ -208,6 +206,36 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	}
 #endif
 
+	flags = epix_xclib->epix_xclib_flags;
+
+	/* If requested, set the CPU affinity mask for the current process
+	 * to enable running only on the first CPU.
+	 */
+
+	if ( flags & MXF_EPIX_SET_AFFINITY ) {
+
+		/* Set affinity to the first CPU. */
+
+		requested_mask = 0x1;
+
+		mx_status = mx_set_process_affinity_mask( 0, requested_mask );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Verify that the affinity mask was set correctly. */
+
+		mx_status = mx_get_process_affinity_mask( 0, &actual_mask );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( actual_mask != requested_mask ) {
+			mx_warning( "The process affinity mask was set to %#lx "
+			"rather than the requested value of %#lx",
+				actual_mask, requested_mask );
+		}
+	}
 
 	/* Initialize XCLIB. */
 

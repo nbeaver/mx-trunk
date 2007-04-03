@@ -660,6 +660,12 @@ MX_API unsigned long mx_process_id( void );
 
 MX_API int mx_get_max_file_descriptors( void );
 
+MX_API mx_status_type mx_get_process_affinity_mask( unsigned long process_id,
+							unsigned long *mask );
+
+MX_API mx_status_type mx_set_process_affinity_mask( unsigned long process_id,
+							unsigned long mask );
+
 /*---- OS time reporting functions. ----*/
 
 MX_API struct timespec mx_current_os_time( void );

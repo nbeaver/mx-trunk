@@ -632,6 +632,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_trigger()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_EPIX_XCLIB *epix_xclib;
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
 	double trigger_time, frame_time;
@@ -642,7 +643,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-					&epix_xclib_vinput, NULL, fname );
+				&epix_xclib_vinput, &epix_xclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -681,7 +682,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
-	flags = epix_xclib_vinput->epix_xclib_flags;
+	flags = epix_xclib->epix_xclib_flags;
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,
@@ -1204,7 +1205,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* If requested, byteswap the image. */
 
-	flags = epix_xclib_vinput->epix_xclib_flags;
+	flags = epix_xclib->epix_xclib_flags;
 
 	if ( flags & MXF_EPIX_BYTESWAP ) {
 

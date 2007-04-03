@@ -18,11 +18,18 @@
 #ifndef __I_EPIX_XCLIB_H__
 #define __I_EPIX_XCLIB_H__
 
+/* Flag values for the 'epix_xclib_flags' field. */
+
+#define MXF_EPIX_USE_CLCCSE_REGISTER    0x1
+#define MXF_EPIX_BYTESWAP               0x2
+#define MXF_EPIX_SET_AFFINITY           0x4
+#define MXF_EPIX_CONSTANT_TSC           0x8
 
 typedef struct {
 	MX_RECORD *record;
 
 	char format_file[MXU_FILENAME_LENGTH+1];
+	unsigned long epix_xclib_flags;
 
 	mx_bool_type use_high_resolution_time_stamps;
 
@@ -35,6 +42,10 @@ typedef struct {
   {-1, -1, "format_file", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, format_file), \
 	{sizeof(char)}, NULL, MXFF_IN_DESCRIPTION}, \
+  \
+  {-1, -1, "epix_xclib_flags", MXFT_HEX, NULL, 0, {0}, \
+        MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB, epix_xclib_flags), \
+        {0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
 
 MX_API mx_status_type mxi_epix_xclib_create_record_structures(
 						MX_RECORD *record );
