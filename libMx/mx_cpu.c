@@ -17,10 +17,6 @@
 
 #define MX_CPU_DEBUG	TRUE
 
-#include <stdio.h>
-
-#include "mx_util.h"
-
 /*
  * Process affinity masks are used in multiprocessor systems to constrain
  * the set of CPUs on which the process is eligible to run.  For MX, this
@@ -170,8 +166,14 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #elif defined(OS_LINUX)
 
+#define _GNU_SOURCE
+
+#include <stdio.h>
 #include <errno.h>
 #include <sched.h>
+
+#include "mx_util.h"
+#include "mx_program_model.h"
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -209,26 +211,19 @@ mx_get_process_affinity_mask( unsigned long process_id,
 			process_id, saved_errno, strerror(saved_errno) );
 	}
 
-#if ( MX_WORDSIZE == 32 )
-	num_bits = 32;
-
-#elif ( MX_WORDSIZE == 64 )
-	num_bits = 64;
-#else
-#error Unsupported wordsize for mx_get_process_affinity_mask()
-#endif
+	num_bits = MX_WORDSIZE;
 
 	*mask = 0;
 
 	for ( i = 0; i < num_bits; i++ ) {
 
-		if ( CPU_ISSET(i, &cpu_set_struct) {
+		if ( CPU_ISSET(i, &cpu_set_struct) ) {
 			*mask |= (1UL << i);
 		}
 	}
 
 #if MX_CPU_DEBUG
-	MX_DEBUG(-2,("%s: process %lu CPU affinity mask = %#x",
+	MX_DEBUG(-2,("%s: process %lu CPU affinity mask = %#lx",
 		fname, process_id, *mask));
 #endif
 
@@ -254,23 +249,16 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	}
 
 #if MX_CPU_DEBUG
-	MX_DEBUG(-2,("%s: setting process %lu CPU affinity mask to %#x",
+	MX_DEBUG(-2,("%s: setting process %lu CPU affinity mask to %#lx",
 		fname, process_id, mask));
 #endif
 
-#if ( MX_WORDSIZE == 32 )
-	num_bits = 32;
-
-#elif ( MX_WORDSIZE == 64 )
-	num_bits = 64;
-#else
-#error Unsupported wordsize for mx_get_process_affinity_mask()
-#endif
+	num_bits = MX_WORDSIZE;
 
 	CPU_ZERO( &cpu_set_struct );
 
 	for ( i = 0; i < num_bits; i++ ) {
-		if ( mask & (1UL << i) {
+		if ( mask & (1UL << i) ) {
 			CPU_SET( i, &cpu_set_struct );
 		}
 	}
