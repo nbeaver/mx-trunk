@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -254,6 +254,12 @@ MX_API mx_status_type mx_set_string_variable( MX_RECORD *record,
 	sizeof(MX_RECORD ***), sizeof(MX_RECORD ****), \
 	sizeof(MX_RECORD *****), sizeof(MX_RECORD ******), \
 	sizeof(MX_RECORD *******), sizeof(MX_RECORD ********) }
+
+#define MXA_INTERFACE_SIZEOF \
+	{ sizeof(MX_INTERFACE *), sizeof(MX_INTERFACE **), \
+	sizeof(MX_INTERFACE ***), sizeof(MX_INTERFACE ****), \
+	sizeof(MX_INTERFACE *****), sizeof(MX_INTERFACE ******), \
+	sizeof(MX_INTERFACE *******), sizeof(MX_INTERFACE ********) }
 
 /* =========================================== */
 

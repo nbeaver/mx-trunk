@@ -10,7 +10,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -3379,6 +3379,8 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 							= MXA_DOUBLE_SIZEOF;
 	static size_t record_sizeof[MXU_FIELD_MAX_DIMENSIONS]
 							= MXA_RECORD_SIZEOF;
+	static size_t interface_sizeof[MXU_FIELD_MAX_DIMENSIONS]
+							= MXA_INTERFACE_SIZEOF;
 
 	switch( datatype ) {
 	case MXFT_STRING:
@@ -3420,6 +3422,12 @@ mx_get_datatype_sizeof_array( long datatype, size_t **sizeof_array )
 		break;
 	case MXFT_RECORD:
 		*sizeof_array = record_sizeof;
+		break;
+	case MXFT_RECORDTYPE:
+		*sizeof_array = long_sizeof;
+		break;
+	case MXFT_INTERFACE:
+		*sizeof_array = interface_sizeof;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

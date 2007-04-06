@@ -1698,6 +1698,7 @@ mxsrv_send_field_value_to_client(
 	MX_SOCKET *mx_socket;
 	void *pointer_to_value;
 	int array_is_dynamically_allocated;
+	unsigned long data_format;
 	mx_status_type ( *token_constructor )
 		(void *, char *, size_t, MX_RECORD *, MX_RECORD_FIELD *);
 	mx_status_type mx_status;
@@ -1745,6 +1746,27 @@ mxsrv_send_field_value_to_client(
 	send_buffer_message  = network_message->u.char_buffer;
 	send_buffer_message += send_buffer_header_length;
 
+	/* What data format do we use to send the response? */
+
+	data_format = socket_handler->data_format;
+
+	/* For MXFT_RECORD and MXFT_INTERFACE fields, the raw value is
+	 * a pointer to the data structure, while for MXFT_RECORDTYPE 
+	 * fields, the raw value is an MX version dependent 'long'
+	 * value that represents the driver type.  None of these are
+	 * directly useable by the client, so instead we send back
+	 * the ASCII name for the field value.  This is most easily done
+	 * by telling the code below to use MX_NETWORK_DATAFMT_ASCII
+	 * in its response.
+	 */
+
+	if ( (record_field->datatype == MXFT_RECORD)
+	  || (record_field->datatype == MXFT_RECORDTYPE)
+	  || (record_field->datatype == MXFT_INTERFACE) )
+	{
+		data_format = MX_NETWORK_DATAFMT_ASCII;
+	}
+
 	if ( mx_status.code == MXE_SUCCESS ) {
 
 	    int i, max_attempts;
@@ -1759,7 +1781,7 @@ mxsrv_send_field_value_to_client(
 
 		size_t current_length, new_length;
 
-		switch( socket_handler->data_format ) {
+		switch( data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 
 		        /* Use ASCII MX database format. */
@@ -1847,7 +1869,7 @@ mxsrv_send_field_value_to_client(
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		    "Unrecognized network data format type %lu was requested.",
-		    		socket_handler->data_format );
+		    		data_format );
 		}
 
 		/* If we succeeded or if some error other than
@@ -1943,7 +1965,7 @@ mxsrv_send_field_value_to_client(
 		long i, length;
 		long max_length = 20;
 
-		switch( socket_handler->data_format ) {
+		switch( data_format ) {
 		case MX_NETWORK_DATAFMT_ASCII:
 			sprintf( text_buffer,
 				"%s: sending response = '", fname );
@@ -1982,7 +2004,7 @@ mxsrv_send_field_value_to_client(
 		default:
 			sprintf( text_buffer,
 				"%s: sending response in data format %lu.",
-				fname, socket_handler->data_format );
+				fname, data_format );
 			break;
 		}
 
