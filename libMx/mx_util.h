@@ -758,6 +758,7 @@ MX_API int mx_command_found( char *command_name );
 #define MXE_OBJECT_ABANDONED			1047
 #define MXE_MIGHT_CAUSE_DEADLOCK		1048
 #define MXE_ALREADY_EXISTS			1049
+#define MXE_INVALID_CALLBACK			1050
 
 /* If the error message code is OR-ed with MXE_QUIET, then
  * the error message is not displayed to the user.

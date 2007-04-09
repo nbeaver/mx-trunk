@@ -92,6 +92,8 @@ MXSRV_MX_SERVER_SOCKET mxsrv_tcp_server_socket_struct;
 MXSRV_MX_SERVER_SOCKET mxsrv_unix_server_socket_struct;
 #endif
 
+static mx_status_type mxsrv_delete_field_callback( MX_CALLBACK *callback );
+
 uint32_t
 mxsrv_get_returning_message_type( uint32_t message_type )
 {
@@ -208,16 +210,21 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			     * socket handler.
 			     */
 
-			    /* Delete the handle from the callback handle
-			     * table.  This is enough to keep the callback
-			     * from being invoked.
+			    /* Delete the handle from the server's callback
+			     * handle table.
 			     */
 
 			    (void) mx_delete_handle( handle, handle_table );
 
-			    /* Finish up by freeing the callback structure. */
+			    /* If this callback was attached to a record field,
+			     * we must delete the callback there as well.
+			     */
 
-			    mx_free( callback );
+			    if ( callback->callback_class == MXCB_FIELD ) {
+				(void) mxsrv_delete_field_callback ( callback );
+			    } else {
+			    	mx_free( callback );
+			    }
 			}
 		}
 	}
@@ -250,6 +257,96 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 	socket_handler->message_buffer = NULL;
 
 	mx_free( socket_handler );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxsrv_delete_field_callback( MX_CALLBACK *callback )
+{
+	static const char fname[] = "mxsrv_delete_field_callback()";
+
+	MX_RECORD_FIELD *field;
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
+	MX_CALLBACK *callback_entry;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for callback %p", fname, callback));
+
+	if ( callback == (MX_CALLBACK *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK pointer passed was NULL.");
+	}
+
+	field = callback->u.record_field;
+
+	if ( field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_RECORD_FIELD pointer for callback %p was NULL.",
+			callback );
+	}
+
+	MX_DEBUG(-2,("%s: field = '%s.%s'",
+		fname, field->record->name, field->name));
+
+	/* Find this callback in the record field's callback list. */
+
+	callback_list = field->callback_list;
+
+	if ( callback_list == (MX_LIST *) NULL ) {
+		MX_DEBUG(-2,("%s: No callback list installed for field '%s.%s'",
+			fname, field->record->name, field->name));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_start = callback_list->list_start;
+
+	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+		MX_DEBUG(-2,
+	    ("%s: No callbacks installed in callback list %p for field '%s.%s'",
+		fname, callback_list, field->record->name, field->name));
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	list_entry = list_start;
+
+	do {
+		next_list_entry = list_entry->next_list_entry;
+
+		callback_entry = list_entry->list_entry_data;
+
+		if ( callback_entry == callback ) {
+			/* We have found the callback entry, so delete it. */
+
+			MX_DEBUG(-2,("%s: Found callback entry.", fname));
+
+			mx_status = mx_list_delete_entry( callback_list,
+								list_entry );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_list_entry_destroy( list_entry );
+
+#if 0
+			if ( callback_list->list_start == NULL ) {
+				mx_list_destroy( callback_list );
+
+				field->callback_list = NULL;
+			}
+#endif
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		list_entry = next_list_entry;
+
+	} while ( list_entry != list_start );
+
+	MX_DEBUG(-2,("%s: Did not find callback entry.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3169,6 +3266,9 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 	mx_bool_type send_value_changed_callback;
 	mx_status_type mx_status;
 
+	MX_DEBUG(-2,("%s: callback = %p, argument = %p",
+		fname, callback, argument));
+
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CALLBACK pointer passed was NULL." );
@@ -3177,14 +3277,14 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 	socket_handler = (MX_SOCKET_HANDLER *) argument;
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
+		return mx_error( MXE_INVALID_CALLBACK, fname,
 		"The MX_SOCKET_HANDLER pointer passed was NULL." );
 	}
 
 	message_buffer = socket_handler->message_buffer;
 
 	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
-		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+		return mx_error( MXE_INVALID_CALLBACK, fname,
 		"The MX_NETWORK_MESSAGE_BUFFER corresponding to "
 		"the socket handler passed is NULL." );
 	}
@@ -3372,8 +3472,6 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 	signed long handle;
 	MX_CALLBACK *callback;
 	unsigned long i, array_size;
-	mx_status_type (*function)( MX_CALLBACK *, void * );
-	void *argument;
 	mx_status_type mx_status;
 
 	handle_table = list_head->server_callback_handle_table;
@@ -3406,11 +3504,8 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 			continue;
 		}
 
-		function = callback->callback_function;
-		argument = callback->callback_argument;
-
-		if ( function != NULL ) {
-			mx_status = (*function)( callback, argument );
+		if ( callback->callback_function != NULL ) {
+			mx_status = mx_invoke_callback( callback );
 		}
 	}
 

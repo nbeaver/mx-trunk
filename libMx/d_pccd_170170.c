@@ -14,9 +14,9 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG			TRUE
+#define MXD_PCCD_170170_DEBUG			FALSE
 
-#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
+#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

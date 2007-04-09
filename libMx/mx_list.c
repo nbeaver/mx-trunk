@@ -153,10 +153,30 @@ mx_list_delete_entry( MX_LIST *list, MX_LIST_ENTRY *list_entry )
 		"The MX_LIST_ENTRY pointer passed was NULL." );
 	}
 
-	/* Remove the list entry from the list. */
-
 	previous_list_entry = list_entry->previous_list_entry;
 	next_list_entry     = list_entry->next_list_entry;
+
+	/* If the list entry is the list_start entry, then we must
+	 * take special action.
+	 */
+
+	if ( list_entry == list->list_start ) {
+		if ( list_entry == next_list_entry ) {
+			/* If the list_start entry points to itself, then
+			 * deleting this entry leaves us with an empty list.
+			 */
+
+			list->list_start = NULL;
+		} else {
+			/* Otherwise, redirect the list_start pointer to
+			 * the next entry.
+			 */
+
+			list->list_start = next_list_entry;
+		}
+	}
+
+	/* Remove the list entry from the list. */
 
 	next_list_entry->previous_list_entry = previous_list_entry;
 	previous_list_entry->next_list_entry = next_list_entry;

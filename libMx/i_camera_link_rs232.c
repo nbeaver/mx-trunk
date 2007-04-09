@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_CAMERA_LINK_RS232_DEBUG	TRUE
+#define MXI_CAMERA_LINK_RS232_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

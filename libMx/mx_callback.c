@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_CALLBACK_DEBUG	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -52,10 +54,12 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		"The MX_NETWORK_FIELD pointer passed was NULL." );
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 	MX_DEBUG(-2,("%s: server = '%s', nfname = '%s', handle = (%ld,%ld)",
 		fname, nf->server_record->name, nf->nfname,
 		nf->record_handle, nf->field_handle ));
+#endif
 
 	/* Make sure the network field is connected. */
 
@@ -192,10 +196,12 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 
 	callback_id = mx_ntohl( uint32_message[0] );
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,
 	("%s: The callback ID of type %lu for handle (%lu,%lu) is %#lx",
 		fname, callback_type, nf->record_handle, nf->field_handle,
 		callback_id ));
+#endif
 
 	/* Create a new client-side callback structure. */
 
@@ -228,7 +234,9 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -272,8 +280,10 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 		"supported for such record fields." );
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s', field '%s'.",
 		fname, record->name, record_field->name ));
+#endif
 
 	list_head = mx_get_record_list_head_struct( record );
 
@@ -343,6 +353,11 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	/* Add this callback to the record field's callback list. */
 
 	mx_status = mx_list_entry_create( &list_entry, callback_ptr, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_list_add_entry( callback_list, list_entry );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -470,10 +485,8 @@ mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	static const char fname[] = "mx_field_invoke_callback_list()";
 
 	MX_LIST *callback_list;
-	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
 	MX_CALLBACK *callback;
-	mx_status_type (*function)( MX_CALLBACK *, void * );
-	void *argument;
 	mx_status_type mx_status;
 
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
@@ -481,10 +494,16 @@ mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
 		"The MX_RECORD_FIELD pointer passed was NULL." );
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
 		fname, field->name, callback_type));
+#endif
 
 	callback_list = field->callback_list;
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_list = %p", fname, callback_list));
+#endif
 
 	if ( callback_list == (MX_LIST *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -492,26 +511,113 @@ mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
 
 	list_start = callback_list->list_start;
 
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: list_start = %p", fname, list_start));
+#endif
+
+	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The list_start entry for callback list %p used by "
+		"record field '%s.%s' is NULL.", callback_list,
+			field->record->name, field->name );
+	}
+
 	list_entry = list_start;
 
 	do {
+
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,("%s: list_entry = %p", fname, list_entry));
+#endif
+
+		next_list_entry = list_entry->next_list_entry;
+
+		if ( next_list_entry == (MX_LIST_ENTRY *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The next_list_entry pointer for list entry %p "
+			"of callback list %p for record field '%s.%s' is NULL.",
+				list_entry, callback_list,
+				field->record->name, field->name );
+		}
+
 		callback = list_entry->list_entry_data;
 
 		if ( callback != (MX_CALLBACK *) NULL ) {
 			
-			function = callback->callback_function;
+			if ( callback->callback_function != NULL ) {
+				/* Invoke the callback. */
 
-			argument = callback->callback_argument;
+				mx_status = mx_invoke_callback( callback );
 
-			if ( function != NULL ) {
-				mx_status = (*function)( callback, argument );
+				/* If the callback is invalid, remove the
+				 * callback from the callback list.
+				 */
+
+				if ( mx_status.code == MXE_INVALID_CALLBACK ) {
+
+					mx_status = mx_list_delete_entry(
+						callback_list, list_entry );
+
+					if ( mx_status.code == MXE_SUCCESS ) {
+						mx_list_entry_destroy(
+							list_entry );
+					}
+
+					/* If the callback we just deleted
+					 * was the list_start callback, then
+					 * we must load the new value of the
+					 * list_start callback.
+					 */
+
+					list_start = callback_list->list_start;
+
+					if (list_start == (MX_LIST_ENTRY *)NULL)
+					{
+						mx_warning(
+				"%s: The list_start entry ended up as NULL "
+				"after a callback was deleted.", fname );
+
+						return MX_SUCCESSFUL_RESULT;
+					}
+				}
 			}
 		}
 
-		list_entry = list_entry->next_list_entry;
+		list_entry = next_list_entry;
 
 	} while ( list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_invoke_callback( MX_CALLBACK *callback )
+{
+	mx_status_type (*function)( MX_CALLBACK *, void * );
+	void *argument;
+	mx_status_type mx_status;
+
+	if ( callback == (MX_CALLBACK *) NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	function = callback->callback_function;
+	argument = callback->callback_argument;
+
+	if ( function == NULL ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	if ( callback->active ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	callback->active = TRUE;
+
+	mx_status = (*function)( callback, argument );
+
+	callback->active = FALSE;
+
+	return mx_status;
 }
 

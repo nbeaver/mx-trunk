@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG	TRUE
+#define MXD_EPIX_XCLIB_DEBUG	FALSE
 
 #include <stdio.h>
 

@@ -405,8 +405,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	MX_CLOCK_TICK current_tick, end_tick, timeout_in_ticks;
 	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_CALLBACK *callback;
-	mx_status_type (*callback_function)( MX_CALLBACK *, void * );
-	void *callback_argument;
 	mx_bool_type message_is_available, timeout_enabled;
 	mx_bool_type debug_enabled, callback_found;
 	int comparison;
@@ -608,17 +606,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			 * invoke the callback function.
 			 */
 
-			callback_function = callback->callback_function;
-
-			callback_argument = callback->callback_argument;
-
-			if ( callback_function == NULL ) {
+			if ( callback->callback_function == NULL ) {
 			    mx_warning( "The callback function pointer "
 			    		"for callback %#lx is NULL.",
 					(unsigned long) received_message_id );
 			} else {
-			    mx_status = 
-			    (*callback_function)( callback, callback_argument );
+			    mx_status = mx_invoke_callback( callback ); 
 			}
 
 			/* Go back to the top of the loop and look again

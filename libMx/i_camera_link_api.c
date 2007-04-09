@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_CAMERA_LINK_API_DEBUG	TRUE
+#define MXI_CAMERA_LINK_API_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
