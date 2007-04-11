@@ -14,6 +14,8 @@
  *
  */
 
+#define MX_CAMERA_LINK_DEBUG	FALSE
+
 #ifndef IS_MX_DRIVER
 #   define IS_MX_DRIVER
 #endif
@@ -130,7 +132,9 @@ mx_camera_link_flush_port( MX_RECORD *cl_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	flush_port_fn = api_ptr->flush_port;
 
@@ -201,9 +205,11 @@ mx_camera_link_flush_port( MX_RECORD *cl_record )
 		}
 	}
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,
 	("%s: Camera Link '%s' has successfully flushed unread input.",
 		fname, cl_record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -227,7 +233,9 @@ mx_camera_link_get_num_bytes_avail( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	get_num_bytes_avail_fn = api_ptr->get_num_bytes_avail;
 
@@ -263,8 +271,10 @@ mx_camera_link_get_num_bytes_avail( MX_RECORD *cl_record,
 
 	*num_bytes_avail = bytes_available;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s: Record '%s', num_bytes_avail = %ld",
 		fname, cl_record->name, (long) *num_bytes_avail));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -285,7 +295,9 @@ mx_camera_link_serial_close( MX_RECORD *cl_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	serial_close_fn = api_ptr->serial_close;
 
@@ -320,7 +332,9 @@ mx_camera_link_serial_init( MX_RECORD *cl_record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	serial_init_fn = api_ptr->serial_init;
 
@@ -361,8 +375,10 @@ mx_camera_link_serial_init( MX_RECORD *cl_record )
 		break;
 	}
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s: Camera Link record '%s' successfully opened.",
 		fname, cl_record->name ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -393,7 +409,9 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	serial_read_fn = api_ptr->serial_read;
 
@@ -466,7 +484,9 @@ mx_camera_link_serial_write( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	serial_write_fn = api_ptr->serial_write;
 
@@ -530,7 +550,9 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	set_baud_rate_fn = api_ptr->set_baud_rate;
 
@@ -570,8 +592,10 @@ mx_camera_link_set_baud_rate( MX_RECORD *cl_record, unsigned long baud_rate )
 		break;
 	}
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s: Camera Link record '%s' speed set to %lu.",
 		fname, cl_record->name, camera_link->baud_rate ));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -596,7 +620,9 @@ mx_camera_link_set_cc_line( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	set_cc_line_fn = api_ptr->set_cc_line;
 
@@ -630,8 +656,10 @@ mx_camera_link_set_cc_line( MX_RECORD *cl_record,
 		break;
 	}
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s: Camera Link record '%s' CC%lu set to %lu.",
 		fname, cl_record->name, cc_line_number, cc_line_state));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -655,7 +683,9 @@ mx_camera_link_pulse_cc_line( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+#endif
 
 	if ( polarity >= 0 ) {
 		first_state  = 1;

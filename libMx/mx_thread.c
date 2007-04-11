@@ -970,6 +970,28 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+MX_EXPORT char *
+mx_thread_id_string( char *buffer, size_t buffer_length )
+{
+	MX_THREAD *thread;
+
+	if ( (buffer == NULL) || (buffer_length == 0) ) {
+		fprintf( stderr,
+		"(No buffer was supplied to write the thread id string to) ");
+
+		return NULL;
+	}
+
+	thread = TlsGetValue( mx_current_thread_index );
+
+	snprintf( buffer, buffer_length, "(MX thread = %p, Win32 ID = %ld) ",
+		thread, (long) GetCurrentThreadId() );
+
+	return buffer;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT mx_status_type
 mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 {
@@ -2873,6 +2895,31 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
+MX_EXPORT char *
+mx_thread_id_string( char *buffer, size_t buffer_length )
+{
+	MX_THREAD *thread;
+
+	if ( (buffer == NULL) || (buffer_length == 0) ) {
+		fprintf( stderr,
+		"(No buffer was supplied to write the thread id string to) ");
+
+		return NULL;
+	}
+
+	/* FIXME: Casting an integer to a pointer is a bad thing. */
+
+	thread = (MX_THREAD *) taskVarGet( taskIdSelf(),
+					&mx_current_task_variable );
+
+	snprintf( buffer, buffer_length, "(MX thread = %p, task ID = %#x) ",
+		thread, taskIdSelf() );
+
+	return buffer;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
 MX_EXPORT mx_status_type
 mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 {
@@ -3164,6 +3211,17 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 
 	(void) mx_error( MXE_UNSUPPORTED, fname,
 		"Threads are not supported on this platform." );
+}
+
+MX_EXPORT char *
+mx_thread_id_string( char *buffer, size_t buffer_length )
+{
+	static const char fname[] = "mx_thread_id_string()";
+
+	(void) mx_error( MXE_UNSUPPORTED, fname,
+		"Threads are not supported on this platform." );
+
+	return NULL;
 }
 
 MX_EXPORT mx_status_type

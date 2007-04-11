@@ -29,6 +29,8 @@
 
 #include <windows.h>
 
+#include "mx_util.h"
+
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
 				unsigned long *mask )

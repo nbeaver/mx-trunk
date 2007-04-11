@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG			FALSE
+#define MXD_PCCD_170170_DEBUG			TRUE
 
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
 
@@ -23,6 +23,8 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_ascii.h"
+#include "mx_clock.h"
 #include "mx_socket.h"
 #include "mx_process.h"
 #include "mx_hrt.h"
@@ -1841,7 +1843,13 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 
 	MX_RECORD *camera_link_record;
 	size_t command_length, response_length;
+	size_t i, bytes_available, total_bytes_read, buffer_left;
+	char *ptr;
 	unsigned long use_dh_simulator;
+	double timeout_in_seconds;
+	MX_CLOCK_TICK timeout_in_clock_ticks;
+	MX_CLOCK_TICK start_tick, timeout_tick, current_tick;
+	int comparison;
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
@@ -1901,19 +1909,103 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* Arrange for a timeout if it takes too long to get a
+		 * response from the detector head.
+		 */
+
+		timeout_in_seconds = 1.0;
+
+		timeout_in_clock_ticks = 
+			mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
+
+		start_tick = mx_current_clock_tick();
+
+		timeout_tick = mx_add_clock_ticks( start_tick,
+						timeout_in_clock_ticks );
+
 		/* Leave room in the response buffer to null terminate
 		 * the response.
 		 */
 
 		response_length = max_response_length - 1;
 
-		mx_status = mx_camera_link_serial_read( camera_link_record,
-						response, &response_length, -1);
+		total_bytes_read = 0;
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		for (;;) {
+			mx_status = mx_camera_link_get_num_bytes_avail(
+							camera_link_record,
+							&bytes_available );
 
-		response[response_length] = '\0';
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			ptr = response + total_bytes_read;
+
+			buffer_left = response_length - total_bytes_read;
+
+			if ( bytes_available > buffer_left ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The number of bytes available to read (%ld) "
+				"is larger than the space left (%ld) in the "
+				"response buffer for Camera Link record '%s'.",
+					(long) bytes_available,
+					(long) buffer_left,
+					camera_link_record->name );
+			}
+
+			/* The Camera Link specification implies that you
+			 * should never attempt to read more characters than
+			 * were said to be available by a previous call to
+			 * mx_camera_link_get_num_bytes_available().
+			 *
+			 * If you do attempt to read more bytes than are
+			 * available, the spec says that no bytes should
+			 * be read and you should get back an error code.
+			 */
+
+			mx_status = mx_camera_link_serial_read(
+				camera_link_record, ptr, &bytes_available, -1);
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			total_bytes_read += bytes_available;
+
+			/* Were there any carriage returns in the bytes
+			 * that we just received?  If so, we have reached
+			 * the end of the response and can now break out of
+			 * this loop.
+			 */
+
+			for ( i = 0; i < bytes_available; i++ ) {
+				if ( ptr[i] == MX_CR ) {
+					ptr[i] = '\0';
+					break;	/* Exit the for(i) loop. */
+				}
+			}
+
+			if ( i < bytes_available ) {
+				/* We saw a carriage return, so break out
+				 * of the for(;;) loop as well.
+				 */
+				break;
+			}
+
+			current_tick = mx_current_clock_tick();
+
+			comparison = mx_compare_clock_ticks( current_tick,
+								timeout_tick );
+
+			if ( comparison >= 0 ) {
+				return mx_error( MXE_TIMED_OUT, fname,
+				"Timed out after waiting %g seconds for "
+				"a response to the '%s' command sent to '%s'.",
+					timeout_in_seconds, command,
+					camera_link_record->name );
+			}
+		}
+
+		response[total_bytes_read] = '\0';
 	}
 
 	if ( debug_flag ) {

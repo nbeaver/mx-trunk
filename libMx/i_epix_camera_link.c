@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -576,8 +576,12 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 		if (bytes_available >= MX_EPIX_CAMERA_LINK_RECEIVE_BUFFER_SIZE){
 			bytes_to_read = MX_EPIX_CAMERA_LINK_RECEIVE_BUFFER_SIZE;
 		} else {
-			bytes_to_read = 0;
+			bytes_to_read = bytes_available;
 		}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+		MX_DEBUG(-2,("%s: bytes_to_read = %ld", fname, bytes_to_read));
+#endif
 
 		/* Read as many characters as we can.*/
 
@@ -620,6 +624,10 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 
 			read_ptr += bytes_read;
 		}
+
+#if MXI_EPIX_CAMERA_LINK_DEBUG
+		MX_DEBUG(-2,("%s: bytes_left = %ld", fname, bytes_left));
+#endif
 
 		if ( bytes_left <= 0 ) {
 			/* We are finished writing, so exit the for(;;) loop. */
