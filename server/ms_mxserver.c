@@ -3474,6 +3474,8 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 	unsigned long i, array_size;
 	mx_status_type mx_status;
 
+	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
+
 	handle_table = list_head->server_callback_handle_table;
 
 	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
@@ -3496,6 +3498,12 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 		handle   = handle_struct->handle;
 		callback = handle_struct->pointer;
 
+#if 0
+		MX_DEBUG(-2,
+	("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
+			fname, i, handle_struct, handle, callback));
+#endif
+
 		if ( ( handle == MX_ILLEGAL_HANDLE )
 		  || ( callback == NULL ) )
 		{
@@ -3504,7 +3512,17 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 			continue;
 		}
 
+#if 0
+		MX_DEBUG(-2,("%s: callback->callback_function = %p",
+			fname, callback->callback_function));
+#endif
+
 		if ( callback->callback_function != NULL ) {
+			MX_DEBUG(-2,
+	("%s: calling mx_invoke_callback(): i = %lu, handle = %ld, callback = %p, callback->callback_function = %p",
+				fname, i, handle, callback,
+				callback->callback_function));
+
 			mx_status = mx_invoke_callback( callback );
 		}
 	}

@@ -42,6 +42,7 @@
 #include "mx_cfn.h"
 #include "mx_log.h"
 #include "mx_syslog.h"
+#include "mx_thread.h"
 
 #include "mx_process.h"
 #include "ms_mxserver.h"
@@ -187,6 +188,21 @@ mxsrv_print_timestamp( void )
 #else
 	write( 2, buffer, strlen(buffer) );
 #endif
+
+#if 1	/* Show thread ID */
+	*buffer = '\0';
+
+	mx_thread_id_string( buffer, sizeof(buffer) );
+
+#if MXSRV_USE_STDIO_OUTPUT
+	fputs( buffer, stderr );
+#else
+	write( 2, buffer, strlen(buffer) );
+#endif
+
+#endif	/* Show thread ID */
+
+	return;
 }
 
 static void

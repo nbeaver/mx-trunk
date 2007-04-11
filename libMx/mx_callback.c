@@ -337,6 +337,9 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.record_field    = record_field;
 
+	MX_DEBUG(-2,("%s: callback_ptr->callback_function = %p",
+		fname, callback_ptr->callback_function));
+
 	/* Add this callback to the server's callback handle table. */
 
 	mx_status = mx_create_handle( &callback_handle,
@@ -516,10 +519,18 @@ mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
 #endif
 
 	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
+#if 0
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The list_start entry for callback list %p used by "
 		"record field '%s.%s' is NULL.", callback_list,
 			field->record->name, field->name );
+#else
+		mx_warning("%s: The list_start entry for callback list %p "
+		"used by record field '%s.%s' is NULL.", fname,
+			callback_list, field->record->name, field->name );
+
+		return MX_SUCCESSFUL_RESULT;
+#endif
 	}
 
 	list_entry = list_start;
@@ -593,9 +604,13 @@ mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
 MX_EXPORT mx_status_type
 mx_invoke_callback( MX_CALLBACK *callback )
 {
+	static const char fname[] = "mx_invoke_callback()";
+
 	mx_status_type (*function)( MX_CALLBACK *, void * );
 	void *argument;
 	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked for callback %p", fname, callback));
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -604,13 +619,25 @@ mx_invoke_callback( MX_CALLBACK *callback )
 	function = callback->callback_function;
 	argument = callback->callback_argument;
 
+	MX_DEBUG(-2,("%s: function = %p, argument = %p",
+		fname, function, argument));
+
 	if ( function == NULL ) {
+		MX_DEBUG(-2,("%s: Aborting since function == NULL.", fname));
+
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	MX_DEBUG(-2,("%s: callback->active = %d", fname, callback->active));
+
 	if ( callback->active ) {
+		MX_DEBUG(-2,("%s: Aborting since callback->active != 0", fname));
+
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	MX_DEBUG(-2,
+	("%s: REALLY invoking callback function %p", fname, function));
 
 	callback->active = TRUE;
 

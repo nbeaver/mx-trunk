@@ -7,14 +7,14 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MX_THREAD_DEBUG		FALSE
+#define MX_THREAD_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -440,7 +440,9 @@ mx_thread_create( MX_THREAD **thread,
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,
+	("%s invoked for thread_function = %p, thread_arguments = %p",
+		fname, thread_function, thread_arguments));
 #endif
 
 	if ( mx_threads_are_initialized == FALSE ) {
@@ -981,9 +983,7 @@ mx_tls_alloc( MX_THREAD_LOCAL_STORAGE **key )
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_THREAD_LOCAL_STORAGE pointer passed was NULL." );
 	}
-
-	*key = (MX_THREAD_LOCAL_STORAGE *)
-			malloc( sizeof(MX_THREAD_LOCAL_STORAGE) );
+*key = (MX_THREAD_LOCAL_STORAGE *) malloc( sizeof(MX_THREAD_LOCAL_STORAGE) );
 
 	if ( (*key) == (MX_THREAD_LOCAL_STORAGE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -1360,8 +1360,13 @@ mx_thread_initialize( void )
 #endif
 
 	/* Create a Pthread key that we will use to store a pointer to
-	 * the current thread for each thread.  The stop request handler
-	 * will be invoked for each thread as it exits.
+	 * the current thread for each thread.
+	 *
+	 * The function mx_thread_stop_request_handler(), specified as
+	 * the second argument, serves as the destructor function for
+	 * this key.  mx_thread_stop_request_handler() ensures that
+	 * the MX stop request handler will be invoked for each thread
+	 * as it exits.
 	 */
 
 	status = pthread_key_create( &mx_current_thread_key,
@@ -1508,7 +1513,9 @@ mx_thread_create( MX_THREAD **thread,
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,
+	("%s invoked for thread_function = %p, thread_arguments = %p",
+		fname, thread_function, thread_arguments));
 #endif
 
 	if ( mx_threads_are_initialized == FALSE ) {
@@ -1888,6 +1895,28 @@ mx_show_thread_info( MX_THREAD *thread, char *message )
 				(unsigned long) thread_private->thread_id );
 
 	return;
+}
+
+/*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
+
+MX_EXPORT char *
+mx_thread_id_string( char *buffer, size_t buffer_length )
+{
+	MX_THREAD *thread;
+
+	if ( (buffer == NULL) || (buffer_length == 0) ) {
+		fprintf( stderr,
+		"(No buffer was supplied to write the thread id string to) ");
+
+		return NULL;
+	}
+
+	thread = pthread_getspecific( mx_current_thread_key );
+
+	snprintf( buffer, buffer_length, "(MX thread = %p, pthread ID = %ld) ",
+		thread, (long) pthread_self() );
+
+	return buffer;
 }
 
 /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
@@ -2333,7 +2362,9 @@ mx_thread_create( MX_THREAD **thread,
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,
+	("%s invoked for thread_function = %p, thread_arguments = %p",
+		fname, thread_function, thread_arguments));
 #endif
 
 	if ( mx_threads_are_initialized == FALSE ) {
