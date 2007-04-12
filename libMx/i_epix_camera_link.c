@@ -614,8 +614,9 @@ mxi_epix_camera_link_serial_read( hSerRef serial_ref, INT8 *buffer,
 				int i;
 
 				for ( i = 0; i < bytes_read; i++ ) {
-					MX_DEBUG(-2,("%s: read_ptr[%d] = %#x",
-						fname, i, read_ptr[i]));
+					MX_DEBUG(-2,
+					("%s: read_ptr[%d] = %#x '%c'",
+					fname, i, read_ptr[i], read_ptr[i]));
 				}
 			}
 #endif
@@ -692,8 +693,8 @@ mxi_epix_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 		int i;
 
 		for ( i = 0; i < *num_bytes; i++ ) {
-			MX_DEBUG(-2,("%s: buffer[%d] = %#x",
-				fname, i, buffer[i]));
+			MX_DEBUG(-2,("%s: buffer[%d] = %#x '%c'",
+				fname, i, buffer[i], buffer[i]));
 		}
 	}
 #endif

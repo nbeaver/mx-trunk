@@ -189,7 +189,9 @@ mxsrv_print_timestamp( void )
 	write( 2, buffer, strlen(buffer) );
 #endif
 
-#if 1	/* Show thread ID */
+	/* Enable the following if you want to log the ID of this thread. */
+
+#if 0	/* Show thread ID */
 	*buffer = '\0';
 
 	mx_thread_id_string( buffer, sizeof(buffer) );

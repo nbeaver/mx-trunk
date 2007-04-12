@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_CAMERA_LINK_RS232_DEBUG	FALSE
+#define MXI_CAMERA_LINK_RS232_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -236,11 +236,6 @@ mxi_camera_link_rs232_getchar( MX_RS232 *rs232, char *c )
 		"The character pointer 'c' passed is NULL." );
 	}
 
-#if MXI_CAMERA_LINK_RS232_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.",
-			fname, rs232->record->name));
-#endif
-
 	buffer_size = 1;
 
 	mx_status = mx_camera_link_serial_read( camera_link_record,
@@ -250,7 +245,8 @@ mxi_camera_link_rs232_getchar( MX_RS232 *rs232, char *c )
 		return mx_status;
 
 #if MXI_CAMERA_LINK_RS232_DEBUG
-	MX_DEBUG(-2, ("%s: received 0x%x, '%c'", fname, *c, *c));
+	MX_DEBUG(-2, ("%s: received 0x%x, '%c' from '%s'",
+			fname, *c, *c, rs232->record->name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -266,7 +262,8 @@ mxi_camera_link_rs232_putchar( MX_RS232 *rs232, char c )
 	mx_status_type mx_status;
 
 #if MXI_CAMERA_LINK_RS232_DEBUG
-	MX_DEBUG(-2, ("%s: sending 0x%x, '%c'", fname, c, c));
+	MX_DEBUG(-2, ("%s: sending 0x%x, '%c' to '%s'",
+		fname, c, c, rs232->record->name));
 #endif
 
 	mx_status = mxi_camera_link_rs232_get_pointers( rs232,

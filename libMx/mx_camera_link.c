@@ -409,10 +409,6 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MX_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
-#endif
-
 	serial_read_fn = api_ptr->serial_read;
 
 	if ( serial_read_fn == NULL ) {
@@ -455,6 +451,19 @@ mx_camera_link_serial_read( MX_RECORD *cl_record,
 		break;
 	}
 
+#if MX_CAMERA_LINK_DEBUG
+	{
+		char local_buffer[50];
+
+		memcpy( local_buffer, buffer, *buffer_size );
+
+		local_buffer[*buffer_size] = '\0';
+
+		MX_DEBUG(-2,("%s: read '%s' from '%s'.",
+			fname, local_buffer, cl_record->name));
+	}
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -485,7 +494,16 @@ mx_camera_link_serial_write( MX_RECORD *cl_record,
 		return mx_status;
 
 #if MX_CAMERA_LINK_DEBUG
-	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, cl_record->name));
+	{
+		char local_buffer[50];
+
+		memcpy( local_buffer, buffer, *buffer_size );
+
+		local_buffer[*buffer_size] = '\0';
+
+		MX_DEBUG(-2,("%s writing '%s' to '%s'.",
+			fname, local_buffer, cl_record->name));
+	}
 #endif
 
 	serial_write_fn = api_ptr->serial_write;
