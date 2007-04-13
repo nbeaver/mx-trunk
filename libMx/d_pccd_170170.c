@@ -18,6 +18,8 @@
 
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
 
+#define MXD_PCCD_170170_DEBUG_ALLOCATION	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -190,6 +192,11 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 			"The image_data pointer passed was NULL." );
 	}
 
+#if MXD_PCCD_170170_DEBUG_ALLOCATION
+	MX_DEBUG(-2,("%s: sector_height = %ld, sector_width = %ld",
+		fname, sector_height, sector_width));
+#endif
+
 	num_sector_rows = 4;
 	num_sector_columns = 4;
 	num_sectors = num_sector_rows * num_sector_columns;
@@ -298,6 +305,42 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	*sector_array_ptr = sector_array;
 
+#if MXD_PCCD_170170_DEBUG_ALLOCATION
+	{
+		long k;
+		char *ptr, *previous_ptr;
+		unsigned long ul_p, ul_m;
+
+		previous_ptr = (char *) image_data;
+
+		for ( k = 0; k < 16; k++ ) {
+			ptr = (char *) &(sector_array[k][0][0]);
+
+			MX_DEBUG(-2,
+	("%s: ul_corner[%ld] = %p, ptr - previous_ptr = %#x (%lu pixels)",
+				fname, k, ptr, ptr - previous_ptr,
+				(ptr - previous_ptr) / 2));
+
+			previous_ptr = ptr;
+		}
+
+		for ( k = 0; k < 12; k += 4 ) {
+		    ul_m = (unsigned long) &(sector_array[k][0][0]);
+		    ul_p = (unsigned long) &(sector_array[k+4][0][0]);
+
+		    MX_DEBUG(-2,("%s: ul[%ld] = %#lx, ul[%ld] = %#lx",
+			fname, k+4, ul_p, k, ul_m));
+
+		    MX_DEBUG(-2,("%s: diff = %#lx (%lu pixels)",
+			fname, ul_p - ul_m, (ul_p - ul_m)/2L ));
+		}
+	}
+
+	fprintf(stderr, "Type any key to continue..." );
+	mx_getch();
+	fprintf(stderr, "\n");
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -361,6 +404,9 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	i_framesize = image_frame->framesize[0] / 4;
 	j_framesize = image_frame->framesize[1] / 4;
 
+	MX_DEBUG(-2,("%s: i_framesize = %ld, j_framesize = %ld",
+		fname, i_framesize, j_framesize));
+
 	/* If the framesize has changed since the last time we descrambled
 	 * a frame, we must create new sector arrays to point into the raw
 	 * frame data and the image frame data.
@@ -369,7 +415,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 * arrays as they are.
 	 */
 
-	if ( ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
+	if ( 1 || ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
 	  || ( pccd_170170->old_framesize[1] != image_frame->framesize[1] ) )
 	{
 		mx_status = mxd_pccd_170170_free_sector_array(
@@ -377,6 +423,24 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+#if MXD_PCCD_170170_DEBUG_ALLOCATION
+		MX_DEBUG(-2,("%s: image_data = %p",
+			fname, image_frame->image_data));
+		MX_DEBUG(-2,("%s: framesize = (%lu,%lu)",
+			fname, image_frame->framesize[0],
+			image_frame->framesize[1]));
+		{
+			MX_AREA_DETECTOR *ad;
+
+			ad = pccd_170170->record->record_class_struct;
+
+			MX_DEBUG(-2,("%s: binsize = (%lu,%lu)",
+				fname, ad->binsize[0], ad->binsize[1]));
+		}
+		MX_DEBUG(-2,("%s: i_framesize = %lu, j_framesize = %lu",
+			fname, i_framesize, j_framesize));
+#endif
 
 		mx_status = mxd_pccd_170170_alloc_sector_array(
 					&(pccd_170170->image_sector_array),
@@ -397,6 +461,38 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 */
 
 	image_sector_array = pccd_170170->image_sector_array;
+
+#if 1 || MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	{
+		long k;
+		char *ptr, *previous_ptr;
+		unsigned long ul_p, ul_m;
+
+		previous_ptr = image_frame->image_data;
+
+		for ( k = 0; k < 16; k++ ) {
+			ptr = (char *) &(image_sector_array[k][0][0]);
+
+			MX_DEBUG(-2,
+	("%s: ul_corner[%ld] = %p, ptr - previous_ptr = %#x (%lu pixels)",
+				fname, k, ptr, ptr - previous_ptr,
+				(ptr - previous_ptr) / 2));
+
+			previous_ptr = ptr;
+		}
+
+		for ( k = 0; k < 12; k += 4 ) {
+		    ul_m = (unsigned long) &(image_sector_array[k][0][0]);
+		    ul_p = (unsigned long) &(image_sector_array[k+4][0][0]);
+
+		    MX_DEBUG(-2,("%s: ul[%ld] = %#lx, ul[%ld] = %#lx",
+			fname, k+4, ul_p, k, ul_m));
+
+		    MX_DEBUG(-2,("%s: diff = %#lx (%lu pixels)",
+			fname, ul_p - ul_m, (ul_p - ul_m)/2L ));
+		}
+	}
+#endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
@@ -441,12 +537,12 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	    }
 	}
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	{
 		long k;
 
 		for ( k = 0; k < 16; k++ ) {
-			MX_DEBUG(-2,("%s: upper_left_corner[%ld] = %d",
+			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
 				fname, k, image_sector_array[k][0][0] ));
 		}
 	}
