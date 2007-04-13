@@ -169,8 +169,8 @@ mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
 
 static mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
-					long sector_height,
 					long sector_width,
+					long sector_height,
 					uint16_t *image_data )
 {
 	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
@@ -193,8 +193,8 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	}
 
 #if MXD_PCCD_170170_DEBUG_ALLOCATION
-	MX_DEBUG(-2,("%s: sector_height = %ld, sector_width = %ld",
-		fname, sector_height, sector_width));
+	MX_DEBUG(-2,("%s: sector_width = %ld, sector_height = %ld",
+		fname, sector_width, sector_height));
 #endif
 
 	num_sector_rows = 4;
@@ -226,7 +226,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
 
-#if 0
+#if 1
 	MX_DEBUG(-2,
 	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
 		fname, row_byte_offset, row_byte_offset,
@@ -240,7 +240,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
 			fname, n, sector_array[n] ));
 #endif
@@ -272,7 +272,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	row_of_sectors_size = row_size * sector_height;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,
 	("%s: image_data = %p, row_size = %#lx, row_of_sectors_size = %#lx",
 		fname, image_data, row_size, row_of_sectors_size));
@@ -293,7 +293,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
-#if 0
+#if 1
 		    MX_DEBUG(-2,
     ("byte_offset = %#lx, ptr_offset = %#lx, array[%ld][%ld] = %#lx",
 			byte_offset, ptr_offset, n, row,
