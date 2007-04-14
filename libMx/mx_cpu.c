@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_CPU_DEBUG	TRUE
+#define MX_CPU_DEBUG	FALSE
 
 /*
  * Process affinity masks are used in multiprocessor systems to constrain

@@ -14,11 +14,13 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG			TRUE
+#define MXD_PCCD_170170_DEBUG			FALSE
 
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
 
-#define MXD_PCCD_170170_DEBUG_ALLOCATION	TRUE
+#define MXD_PCCD_170170_DEBUG_ALLOCATION	FALSE
+
+#define MXD_PCCD_170170_DEBUG_SERIAL		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -135,6 +137,7 @@ mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if MXD_PCCD_170170_DEBUG_ALLOCATION
 static void
 mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array )
 {
@@ -158,6 +161,7 @@ mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array )
 
 	MX_DEBUG(-2,("****** %s END *****", fname));
 }
+#endif
 
 static mx_status_type
 mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
@@ -167,7 +171,7 @@ mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
 	uint16_t ***sector_array;
 	uint16_t **sector_array_row_ptr;
 
-#if 1
+#if 0
 	mx_warning("%s: Skipped freeing the sector array.  FIXME!", fname);
 
 	return MX_SUCCESSFUL_RESULT;	/* FIXME: Don't leave me this way! */
@@ -187,8 +191,16 @@ mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
 	sector_array_row_ptr = *sector_array;
 
 	if ( sector_array_row_ptr != NULL ) {
+#if 0
+		MX_DEBUG(-2,("%s: freeing sector_array_row_ptr = %p",
+			fname, sector_array_row_ptr));
+#endif
 		free( sector_array_row_ptr );
 	}
+
+#if 0
+	MX_DEBUG(-2,("%s: freeing sector_array = %p", fname, sector_array));
+#endif
 
 	free( sector_array );
 
@@ -241,7 +253,12 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"sector array pointer.", num_sectors );
 	}
 
-#if 1
+#if 0
+	MX_DEBUG(-2,("%s: allocated sector_array = %p, length = %lu",
+		fname, sector_array, num_sectors * sizeof(uint16_t **) ));
+#endif
+
+#if 0
 	memset( sector_array, 0, num_sectors * sizeof(uint16_t **) );
 #endif
 
@@ -256,11 +273,17 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"of row pointers.", num_sectors * sector_height );
 	}
 
+#if 0
+	MX_DEBUG(-2,("%s: allocated sector_array_row_ptr = %p, length = %lu",
+		fname, sector_array_row_ptr,
+		num_sectors * sector_height * sizeof(uint16_t *) ));
+#endif
+
 	row_byte_offset = sector_height * sizeof(sector_array_row_ptr);
 
 	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
 		fname, row_byte_offset, row_byte_offset,
@@ -274,7 +297,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
 			fname, n, sector_array[n] ));
 #endif
@@ -307,13 +330,13 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
-#if 1
+#if 0
 	MX_DEBUG(-2,
 ("%s: image_data = %p, sizeof_full_row = %#lx, sizeof_row_of_sectors = %#lx",
 		fname, image_data, sizeof_full_row, sizeof_row_of_sectors));
 #endif
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s:\n"
 		"    byte_offset = ( %#lx ) * sector_row\n"
 		"                  + ( %#lx ) * row\n"
@@ -337,14 +360,6 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    n = sector_column + 4 * sector_row;
 
-#if 1
-		    if ( ( row == 0 ) && ( (n%4) == 0 ) ) {
-			MX_DEBUG(-2,("!!! n = %ld. PRETEST.", n));
-
-			mxd_pccd_170170_display_ul_corners( sector_array );
-		    }
-#endif
-
 		    byte_offset = sector_row * sizeof_row_of_sectors
 				+ row * sizeof_full_row
 				+ sector_column * sizeof_sector_row;
@@ -353,7 +368,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
-#if 1
+#if 0
 		    if ( row == 0 ) {
 			MX_DEBUG(-2,
 	("*** n = %ld, sector_row = %ld, sector_column = %ld, addr = %#lx ***",
@@ -364,7 +379,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		    }
 #endif
 
-#if 1
+#if 0
 		    MX_DEBUG(-2,
 	    ("offset = %#lx = %#lx * (%#lx) + %#lx * (%#lx) + %#lx * (%#lx)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -433,9 +448,11 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 			raw_length, image_length );
 	}
 
+#if 0
 	MX_DEBUG(-2,
 	("%s: image_length = %ld, raw_length = %ld, bytes_to_copy = %ld",
 		fname, image_length, raw_length, bytes_to_copy));
+#endif
 
 #if 0
 	if ( (raw_frame->framesize[0] != image_frame->framesize[0])
@@ -458,8 +475,10 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	i_framesize = image_frame->framesize[1] / 4;
 	j_framesize = image_frame->framesize[0] / 4;
 
+#if 0
 	MX_DEBUG(-2,("%s: i_framesize = %ld, j_framesize = %ld",
 		fname, i_framesize, j_framesize));
+#endif
 
 	/* If the framesize has changed since the last time we descrambled
 	 * a frame, we must create new sector arrays to point into the raw
@@ -469,7 +488,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	 * arrays as they are.
 	 */
 
-	if ( 1 || ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
+	if ( ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
 	  || ( pccd_170170->old_framesize[1] != image_frame->framesize[1] ) )
 	{
 		mx_status = mxd_pccd_170170_free_sector_array(
@@ -507,8 +526,10 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 
 	raw_frame_data = raw_frame->image_data;
 
+#if 0
 	MX_DEBUG(-2,("%s: raw_frame_data = %p, image_frame->image_data = %p",
 		fname, raw_frame_data, image_frame->image_data));
+#endif
 
 	/* Copy and descramble the pixels from the raw frame
 	 * to the image frame.
@@ -516,7 +537,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 
 	image_sector_array = pccd_170170->image_sector_array;
 
-#if 1 || MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	mxd_pccd_170170_display_ul_corners( image_sector_array );
 #endif
 
@@ -574,7 +595,9 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	}
 #endif
 
+#if 0
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1464,9 +1487,11 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-137,
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,
 ("%s: last_frame_number = %ld, total_num_frames = %ld, status_flags = %#lx",
 		fname, last_frame_number, total_num_frames, status_flags));
+#endif
 
 	ad->last_frame_number = last_frame_number;
 
@@ -1974,6 +1999,10 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 	int comparison;
 	mx_status_type mx_status;
 
+#if MXD_PCCD_170170_DEBUG_SERIAL
+	debug_flag |= 1;
+#endif
+
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
@@ -2256,14 +2285,18 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 MX_EXPORT mx_status_type
 mxd_pccd_170170_special_processing_setup( MX_RECORD *record )
 {
+#if MXD_PCCD_170170_DEBUG
 	static const char fname[] =
 		"mxd_pccd_170170_special_processing_setup()";
+#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
+#endif
 
 	record_field_array = record->record_field_array;
 

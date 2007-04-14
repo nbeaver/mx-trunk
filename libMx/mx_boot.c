@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_BOOT_DEBUG	TRUE
+#define MX_BOOT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <errno.h>

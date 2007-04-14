@@ -8,14 +8,14 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define MXI_CAMERA_LINK_RS232_DEBUG	TRUE
+#define MXI_CAMERA_LINK_RS232_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -162,7 +162,9 @@ mxi_camera_link_rs232_finish_record_initialization( MX_RECORD *record )
 
 	mx_status_type status;
 
+#if MXI_CAMERA_LINK_RS232_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -198,7 +200,9 @@ mxi_camera_link_rs232_open( MX_RECORD *record )
 		"MX_RECORD pointer passed is NULL.");
 	}
 
+#if MXI_CAMERA_LINK_RS232_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name));
+#endif
 
 	rs232 = (MX_RS232 *) record->record_class_struct;
 

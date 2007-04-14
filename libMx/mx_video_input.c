@@ -777,7 +777,7 @@ mx_video_input_get_last_frame_number( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-#if 1 || MX_VIDEO_INPUT_DEBUG
+#if MX_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: last_frame_number = %ld",
 		fname, vinput->last_frame_number));
 #endif
@@ -820,7 +820,7 @@ mx_video_input_get_total_num_frames( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-#if 1 || MX_VIDEO_INPUT_DEBUG
+#if MX_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: total_num_frames = %ld",
 		fname, vinput->total_num_frames));
 #endif
@@ -863,7 +863,7 @@ mx_video_input_get_status( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
-#if 1 || MX_VIDEO_INPUT_DEBUG
+#if MX_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,("%s: status = %#lx", fname, vinput->status));
 #endif
 
@@ -934,7 +934,7 @@ mx_video_input_get_extended_status( MX_RECORD *record,
 		}
 	}
 
-#if 1 || MX_VIDEO_INPUT_DEBUG
+#if MX_VIDEO_INPUT_DEBUG
 	MX_DEBUG(-2,
 	("%s: last_frame_number = %ld, total_num_frames = %ld, status = %#lx",
 		fname, vinput->last_frame_number,
@@ -1289,7 +1289,7 @@ mx_video_input_get_frame( MX_RECORD *record,
 #endif
 	}
 
-#if 1  /* FIXME!!! - This should not be present in the final version. */
+#if 0  /* FIXME!!! - This should not be present in the final version. */
 	memset( (*frame)->image_data, 0, 50 );
 #endif
 
