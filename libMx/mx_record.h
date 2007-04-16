@@ -684,12 +684,16 @@ MX_API_PRIVATE mx_status_type  mx_find_record_field_defaults_index(
 		const char *name_of_field_to_find,
 		long *index_of_field_that_was_found );
 
-MX_API_PRIVATE const char *mx_get_field_label_string( MX_RECORD *record,
+MX_API mx_status_type mx_get_field_by_label_value( MX_RECORD *record,
+						long label_value,
+						MX_RECORD_FIELD **field );
+
+MX_API const char *mx_get_field_label_string( MX_RECORD *record,
 						long label_value );
 
-MX_API_PRIVATE const char *mx_get_field_type_string( long field_type );
+MX_API const char *mx_get_field_type_string( long field_type );
 
-MX_API_PRIVATE void *mx_get_field_value_pointer( MX_RECORD_FIELD *field );
+MX_API void *mx_get_field_value_pointer( MX_RECORD_FIELD *field );
 
 MX_API_PRIVATE mx_status_type  mx_setup_typeinfo_for_record_type_fields(
 		long num_record_fields,

@@ -1601,6 +1601,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
+	MX_RECORD_FIELD *field;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	MX_SEQUENCE_PARAMETERS seq;
 	long i, num_frames;
@@ -1738,6 +1739,53 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 				video_input_record, &(ad->trigger_mode) );
 		break;
 
+	case MXLV_PCCD_170170_DH_CONTROL:
+	case MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME:
+	case MXLV_PCCD_170170_DH_EXPOSURE_TIME:
+	case MXLV_PCCD_170170_DH_READOUT_DELAY_TIME:
+	case MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE:
+	case MXLV_PCCD_170170_DH_GAP_TIME:
+	case MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER:
+	case MXLV_PCCD_170170_DH_GAP_MULTIPLIER:
+	case MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION:
+	case MXLV_PCCD_170170_DH_LINE_BINNING:
+	case MXLV_PCCD_170170_DH_PIXEL_BINNING:
+	case MXLV_PCCD_170170_DH_SUBIMAGE_LINES:
+	case MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ:
+	case MXLV_PCCD_170170_DH_STREAK_MODE_LINES:
+	case MXLV_PCCD_170170_DH_COMM_FPGA_VERSION:
+	case MXLV_PCCD_170170_DH_OFFSET_A1:
+	case MXLV_PCCD_170170_DH_OFFSET_A2:
+	case MXLV_PCCD_170170_DH_OFFSET_A3:
+	case MXLV_PCCD_170170_DH_OFFSET_A4:
+	case MXLV_PCCD_170170_DH_OFFSET_B1:
+	case MXLV_PCCD_170170_DH_OFFSET_B2:
+	case MXLV_PCCD_170170_DH_OFFSET_B3:
+	case MXLV_PCCD_170170_DH_OFFSET_B4:
+	case MXLV_PCCD_170170_DH_OFFSET_C1:
+	case MXLV_PCCD_170170_DH_OFFSET_C2:
+	case MXLV_PCCD_170170_DH_OFFSET_C3:
+	case MXLV_PCCD_170170_DH_OFFSET_C4:
+	case MXLV_PCCD_170170_DH_OFFSET_D1:
+	case MXLV_PCCD_170170_DH_OFFSET_D2:
+	case MXLV_PCCD_170170_DH_OFFSET_D3:
+	case MXLV_PCCD_170170_DH_OFFSET_D4:
+		mx_status = mx_get_field_by_label_value( ad->record,
+							ad->parameter_type,
+							&field );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					ad->parameter_type,
+					mx_get_field_value_pointer( field ) );
+		break;
+
 	default:
 		mx_status = mx_area_detector_default_get_parameter_handler(ad);
 		break;
@@ -1752,6 +1800,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_set_parameter()";
 
 	MX_PCCD_170170 *pccd_170170;
+	MX_RECORD_FIELD *field;
+	unsigned long *register_value_ptr;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long sequence_type, num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
@@ -1969,6 +2019,61 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	"Changing parameter '%s' for area detector '%s' is not supported.",
 			mx_get_field_label_string( ad->record,
 				ad->parameter_type ), ad->record->name );
+		break;
+
+	case MXLV_PCCD_170170_DH_CONTROL:
+	case MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT:
+	case MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME:
+	case MXLV_PCCD_170170_DH_EXPOSURE_TIME:
+	case MXLV_PCCD_170170_DH_READOUT_DELAY_TIME:
+	case MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE:
+	case MXLV_PCCD_170170_DH_GAP_TIME:
+	case MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER:
+	case MXLV_PCCD_170170_DH_GAP_MULTIPLIER:
+	case MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION:
+	case MXLV_PCCD_170170_DH_LINE_BINNING:
+	case MXLV_PCCD_170170_DH_PIXEL_BINNING:
+	case MXLV_PCCD_170170_DH_SUBIMAGE_LINES:
+	case MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ:
+	case MXLV_PCCD_170170_DH_STREAK_MODE_LINES:
+	case MXLV_PCCD_170170_DH_COMM_FPGA_VERSION:
+	case MXLV_PCCD_170170_DH_OFFSET_A1:
+	case MXLV_PCCD_170170_DH_OFFSET_A2:
+	case MXLV_PCCD_170170_DH_OFFSET_A3:
+	case MXLV_PCCD_170170_DH_OFFSET_A4:
+	case MXLV_PCCD_170170_DH_OFFSET_B1:
+	case MXLV_PCCD_170170_DH_OFFSET_B2:
+	case MXLV_PCCD_170170_DH_OFFSET_B3:
+	case MXLV_PCCD_170170_DH_OFFSET_B4:
+	case MXLV_PCCD_170170_DH_OFFSET_C1:
+	case MXLV_PCCD_170170_DH_OFFSET_C2:
+	case MXLV_PCCD_170170_DH_OFFSET_C3:
+	case MXLV_PCCD_170170_DH_OFFSET_C4:
+	case MXLV_PCCD_170170_DH_OFFSET_D1:
+	case MXLV_PCCD_170170_DH_OFFSET_D2:
+	case MXLV_PCCD_170170_DH_OFFSET_D3:
+	case MXLV_PCCD_170170_DH_OFFSET_D4:
+		mx_status = mx_get_field_by_label_value( ad->record,
+							ad->parameter_type,
+							&field );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		register_value_ptr = mx_get_field_value_pointer( field );
+
+		if ( register_value_ptr == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The register value pointer for field '%s.%s' is NULL.",
+				ad->record->name, field->name );
+		}
+
+		mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					ad->parameter_type,
+					*register_value_ptr );
 		break;
 
 	default:

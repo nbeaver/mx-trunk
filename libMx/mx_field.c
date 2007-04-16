@@ -50,6 +50,50 @@ typedef struct {
 
 /*=====================================================================*/
 
+MX_EXPORT mx_status_type
+mx_get_field_by_label_value( MX_RECORD *record,
+				long label_value,
+				MX_RECORD_FIELD **field )
+{
+	static const char fname[] = "mx_get_field_by_label_value()";
+
+	MX_RECORD_FIELD *record_field_array, *record_field;
+	long i;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( field == (MX_RECORD_FIELD **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	*field = NULL;
+
+	record_field_array = record->record_field_array;
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+
+		record_field = &( record_field_array[i] );
+
+		if ( label_value == record_field->label_value ) {
+			*field = record_field;
+		}
+	}
+
+	if ( (*field) == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"An MX_RECORD_FIELD with a label value of %ld "
+		"was not found in record '%s'.",
+			label_value, record->name );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*=====================================================================*/
+
 MX_EXPORT const char *
 mx_get_field_label_string( MX_RECORD *record, long label_value )
 {
