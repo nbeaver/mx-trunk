@@ -282,8 +282,10 @@ mx_area_detector_process_function( void *record_ptr,
 					ad->total_num_frames,
 					ad->status );
 
+#if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s: extended_status = %s",
 				fname, ad->extended_status));
+#endif
 			break;
 		case MXLV_AD_IMAGE_FORMAT:
 		case MXLV_AD_IMAGE_FORMAT_NAME:

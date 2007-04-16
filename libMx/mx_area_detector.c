@@ -476,8 +476,10 @@ mx_area_detector_get_long_parameter( MX_RECORD *record,
 			field->datatype, parameter_name );
 	}
 
+#if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: parameter_name = '%s', parameter_value = %ld",
 		fname, parameter_name, long_value ));
+#endif
 
 	if ( long_parameter != NULL ) {
 		*long_parameter = long_value;
@@ -529,13 +531,17 @@ mx_area_detector_set_long_parameter( MX_RECORD *record,
 		 * before the current function was called.
 		 */
 
+#if MX_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: parameter_name = '%s'",
 			fname, parameter_name ));
+#endif
 	} else {
 		/* Otherwise, we must copy the parameter value to the field. */
 
+#if MX_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: parameter_name = '%s', parameter_value = %ld",
 			fname, parameter_name, *long_parameter ));
+#endif
 
 		value_ptr = mx_get_field_value_pointer( field );
 
