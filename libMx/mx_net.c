@@ -492,10 +492,6 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s: server '%s', server_supports_message_ids = %d",
-		fname, server_record->name, 
-		(int) server->server_supports_message_ids));
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
