@@ -102,6 +102,8 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 	network_server->server_supports_network_handles = TRUE;
 	network_server->network_handles_are_valid = TRUE;
 
+	network_server->server_supports_message_ids = TRUE;
+
 	network_server->record = record;
 
 	mx_status = mx_allocate_network_buffer(
@@ -274,6 +276,13 @@ mxn_unix_server_open( MX_RECORD *record )
 	null_byte = '\0';
 
 	mx_status = mx_socket_send( unix_server->socket, &null_byte, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Figure out whether or not the server supports message IDs. */
+
+	mx_status = mx_network_server_supports_message_ids( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

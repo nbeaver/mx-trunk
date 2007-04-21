@@ -19,7 +19,7 @@
 
 #define MX_NET_SOCKET_DEBUG_IO_PERFORMANCE		FALSE
 
-#define MX_NET_SOCKET_DEBUG_MESSAGES			TRUE
+#define MX_NET_SOCKET_DEBUG_MESSAGES			FALSE
 
 #include <stdio.h>
 
@@ -379,6 +379,13 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	MX_HRT_RESULTS( total_measurement, fname, "Total duration" );
 #endif
 
+#if MX_NET_SOCKET_DEBUG_MESSAGES
+	MX_DEBUG(-2,("%s: Received message from socket %d <--",
+		fname, mx_socket->socket_fd ));
+
+	mx_network_display_message( message_buffer );
+#endif
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -479,6 +486,13 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 		timeout_time = mx_add_clock_ticks( current_time,
 							timeout_interval );
 	}
+
+#if MX_NET_SOCKET_DEBUG_MESSAGES
+	MX_DEBUG(-2,("%s: Sending message to socket %d -->",
+		fname, mx_socket->socket_fd ));
+
+	mx_network_display_message( message_buffer );
+#endif
 
 #if MX_NET_SOCKET_DEBUG_TOTAL_PERFORMANCE
 	MX_HRT_START( total_measurement );

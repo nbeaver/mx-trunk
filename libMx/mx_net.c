@@ -67,11 +67,12 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 	}
 
 	if ( initial_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested initial buffer length of %lu is smaller than "
-		"the minimum allowed value of %lu.",
-		(unsigned long) initial_length,
-		(unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+		mx_warning(
+	    "Raised the initial buffer length from %lu to the minimum of %lu",
+		    (unsigned long) initial_length,
+		    (unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+
+		initial_length = MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH;
 	}
 
 	*message_buffer = malloc( sizeof(MX_NETWORK_MESSAGE_BUFFER) );
@@ -129,11 +130,12 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	}
 
 	if ( new_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested new buffer length of %lu is smaller than "
-		"the minimum allowed value of %lu.",
-		(unsigned long) new_length,
-		(unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+		mx_warning(
+	    "Raised the new buffer length from %lu to the minimum of %lu",
+		    (unsigned long) new_length,
+		    (unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
+
+		new_length = MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH;
 	}
 
 	if ( message_buffer->u.uint32_buffer == (uint32_t *) NULL ) {
@@ -229,6 +231,58 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 
 /* ====================================================================== */
 
+static mx_status_type
+mxp_network_expand_incoming_header( MX_NETWORK_SERVER *server,
+				MX_NETWORK_MESSAGE_BUFFER *buffer )
+{
+	uint32_t *old_header, *new_header;
+	char *old_message, *new_message;
+	size_t old_header_length, new_header_length, header_difference;
+	size_t message_length, new_buffer_length;
+	mx_status_type mx_status;
+
+	old_header = buffer->u.uint32_buffer;
+
+	old_header_length = mx_ntohl( old_header[ MX_NETWORK_HEADER_LENGTH ] );
+
+	header_difference = MXU_NETWORK_HEADER_LENGTH - old_header_length;
+
+	new_header_length = old_header_length + header_difference;
+
+	message_length = mx_ntohl( old_header[ MX_NETWORK_MESSAGE_LENGTH ] );
+
+	if ( (new_header_length + message_length) > buffer->buffer_length ) {
+
+		/* Increase the size of the network buffer, if necessary. */
+
+		new_buffer_length = buffer->buffer_length + header_difference;
+
+		mx_status = mx_reallocate_network_buffer(
+					buffer, new_buffer_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	new_header = buffer->u.uint32_buffer;
+
+	new_header[ MX_NETWORK_HEADER_LENGTH ] = mx_htonl( new_header_length );
+
+	old_message = buffer->u.char_buffer + old_header_length;
+
+	new_message = buffer->u.char_buffer + new_header_length;
+
+	memmove( new_message, old_message, message_length );
+
+	new_header[ MX_NETWORK_DATA_TYPE ] = mx_htonl( server->last_data_type );
+
+	new_header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( 0 );
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mx_network_receive_message( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
@@ -278,6 +332,14 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 	mx_status = ( *fptr ) ( server, message_buffer );
 
+	if ( server->server_supports_message_ids == FALSE ) {
+		mx_status = mxp_network_expand_incoming_header(
+						server, message_buffer );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
 #if NETWORK_DEBUG
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
@@ -292,6 +354,34 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 /* ====================================================================== */
 
+static void
+mxp_network_shrink_outgoing_header( MX_NETWORK_MESSAGE_BUFFER *buffer )
+{
+	uint32_t *header;
+	char *old_message, *new_message;
+	uint32_t header_length, message_length;
+
+	/* If we are talking to an MX server older than MX 1.5, then
+	 * the remote server expects to see 20 byte headers.  This
+	 * function patches the header and moves the message in order
+	 * to fulfill this requirement.
+	 */
+
+	header = buffer->u.uint32_buffer;
+
+	header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+
+	old_message = buffer->u.char_buffer + header_length;
+	new_message = buffer->u.char_buffer + 20;
+
+	header[ MX_NETWORK_HEADER_LENGTH ] = mx_htonl( 20 );
+
+	memmove( new_message, old_message, message_length );
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mx_network_send_message( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
@@ -302,6 +392,7 @@ mx_network_send_message( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
 				MX_NETWORK_MESSAGE_BUFFER * );
+	uint32_t *header;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -339,6 +430,10 @@ mx_network_send_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
+	header = message_buffer->u.uint32_buffer;
+
+	server->last_data_type = mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
+
 #if NETWORK_DEBUG
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
@@ -348,9 +443,60 @@ mx_network_send_message( MX_RECORD *server_record,
 	}
 #endif
 
+	if ( server->server_supports_message_ids == FALSE ) {
+		mxp_network_shrink_outgoing_header( message_buffer );
+	}
+
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 	return mx_status;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_server_supports_message_ids( MX_RECORD *server_record,
+				mx_bool_type *message_ids_are_supported )
+{
+	static const char fname[] = "mx_network_server_supports_message_ids()";
+
+	MX_NETWORK_SERVER *server;
+	long datatype, num_dimensions, dimension_array[1];
+	mx_status_type mx_status;
+
+	if ( server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+			"The server_record pointer passed was NULL." );
+	}
+
+	server = server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for record '%s' is NULL.",
+			server_record->name );
+	}
+
+	/* A safe way to do this is to ask for the field type of the
+	 * 'mx_database.list_is_active' field.  Under the hood, this
+	 * will cause mx_network_send_message() to be invoked, followed
+	 * by mx_network_wait_for_message_id().  The wait for message ID
+	 * function will determine whether or not message IDs are supported
+	 * as part of the process of reading out the response.
+	 */
+
+	mx_status = mx_get_field_type( server_record,
+				"mx_database.list_is_active", 0, &datatype,
+				&num_dimensions, dimension_array );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MX_DEBUG(-2,("%s: server '%s', server_supports_message_ids = %d",
+		fname, server_record->name, 
+		(int) server->server_supports_message_ids));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* ====================================================================== */
@@ -408,7 +554,8 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	mx_bool_type message_is_available, timeout_enabled;
 	mx_bool_type debug_enabled, callback_found;
 	int comparison;
-	uint32_t received_message_id, difference;
+	uint32_t *header;
+	uint32_t header_length, received_message_id, difference;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -511,12 +658,49 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* If we already know that the server does not support 
+		 * message IDs, then return here.
+		 */
+
+		if ( server->server_supports_message_ids == FALSE ) {
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		/* Get the message ID. */
+
+		header = buffer->u.uint32_buffer;
+
+		header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+
+#if 0
+		MX_DEBUG(-2,("%s: header_length = %lu",
+			fname, (unsigned long) header_length));
+#endif
+
+		if ( header_length < 28 ) {
+
+			/* This is a pre-MX 1.5 server which does not have
+			 * a message ID field in its header.  Servers prior
+			 * to MX 1.5 do not support callbacks, which means
+			 * that they only supports RPC messages.  In this
+			 * case, it is safe to just pretend that the message
+			 * ID matches.
+			 */
+#if 0
+			MX_DEBUG(-2,("%s: The server is an old MX server, "
+			"so we _assume_ that the message ID matches.", fname));
+#endif
+			server->server_supports_message_ids = FALSE;
+
+			return MX_SUCCESSFUL_RESULT;
+		}
+
 		/* If the message ID, matches the number that we are
 		 * looking for, then we can return to our caller now.
 		 */
 
-		received_message_id =
-		   mx_ntohl( buffer->u.uint32_buffer[ MX_NETWORK_MESSAGE_ID ] );
+		received_message_id = 
+			mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
 
 		if ( received_message_id == 0 ) {
 			return mx_error( MXE_NETWORK_IO_ERROR, fname,
@@ -999,8 +1183,7 @@ mx_network_buffer_show_value( void *buffer,
 	}
 
 	if ( scalar_element_size == 0 ) {
-		(void) mx_error( MXE_FUNCTION_FAILED, fname,
-		"scalar_element_size is 0 for data_type = %lu",
+		fprintf( stderr, "*** Unknown type %lu ***\n",
 			(unsigned long) data_type );
 
 		return;
@@ -2069,7 +2252,17 @@ mx_get_field_array( MX_RECORD *server_record,
 		(unsigned long) message_type,
 		(unsigned long) status_code));
 #endif
+	/* Check to see if the response type matches the send type. */
 
+	if ( ( server->remote_mx_version < 1005000L )
+	  && ( send_message_type == MX_NETMSG_GET_ARRAY_BY_HANDLE )
+	  && ( receive_message_type == 
+	  		mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) ) )
+	{
+		/* MX servers prior to MX 1.5 returned the wrong server
+		 * response type for 'get array by handle' messages.
+		 */
+	} else
 	if ( receive_message_type != mx_server_response(send_message_type) ) {
 
 		if ( receive_message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
@@ -2649,6 +2842,15 @@ mx_put_field_array( MX_RECORD *server_record,
 		(unsigned long) status_code));
 #endif
 
+	if ( ( server->remote_mx_version < 1005000L )
+	  && ( send_message_type == MX_NETMSG_PUT_ARRAY_BY_HANDLE )
+	  && ( receive_message_type == 
+	  		mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) ) )
+	{
+		/* MX servers prior to MX 1.5 returned the wrong server
+		 * response type for 'put array by handle' messages.
+		 */
+	} else
         if ( receive_message_type != mx_server_response(send_message_type) ) {
 
 		if ( receive_message_type == MX_NETMSG_UNEXPECTED_ERROR ) {

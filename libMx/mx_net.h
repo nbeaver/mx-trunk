@@ -91,7 +91,10 @@ typedef struct {
 	mx_bool_type network_handles_are_valid;
 	mx_bool_type truncate_64bit_longs;
 
+	mx_bool_type server_supports_message_ids;
 	unsigned long last_rpc_message_id;
+
+	unsigned long last_data_type;
 
 	unsigned long network_field_array_block_size;
 
@@ -149,6 +152,11 @@ typedef struct {
   {-1, -1, "truncate_64bit_longs", MXFT_BOOL, NULL, 0, {0}, \
         MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "server_supports_message_ids", MXFT_BOOL, NULL, 0, {0}, \
+        MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, server_supports_message_ids), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
@@ -265,6 +273,10 @@ MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
+
+MX_API mx_status_type mx_network_server_supports_message_ids(
+				MX_RECORD *server_record,
+				mx_bool_type *message_ids_are_supported );
 
 MX_API void mx_network_update_message_id( unsigned long *message_id );
 

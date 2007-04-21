@@ -9,7 +9,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2002-2006 Illinois Institute of Technology
+ * Copyright 2002-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -503,7 +503,7 @@ mxi_xia_network_read_parameter( MX_MCA *mca,
 			xia_dxp_mca->detector_channel, parameter_name));
 	}
 
-	dimension_array[0] = (long) strlen( parameter_name );
+	dimension_array[0] = (long) strlen( parameter_name ) + 1L;
 
 	mx_status = mx_put_array( &(xia_network->parameter_name_nf[i]),
 					MXFT_STRING, 1, dimension_array,
@@ -559,7 +559,7 @@ mxi_xia_network_write_parameter( MX_MCA *mca,
 			parameter_name, parameter_value));
 	}
 
-	dimension_array[0] = (long) strlen( parameter_name );
+	dimension_array[0] = (long) strlen( parameter_name ) + 1L;
 
 	mx_status = mx_put_array( &(xia_network->parameter_name_nf[i]),
 					MXFT_STRING, 1, dimension_array,
@@ -615,7 +615,7 @@ mxi_xia_network_write_param_to_all_channels( MX_MCA *mca,
 			parameter_name, parameter_value));
 	}
 
-	dimension_array[0] = (long) strlen( parameter_name );
+	dimension_array[0] = (long) strlen( parameter_name ) + 1L;
 
 	mx_status = mx_put_array( &(xia_network->parameter_name_nf[i]),
 					MXFT_STRING, 1, dimension_array,

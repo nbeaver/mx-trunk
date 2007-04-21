@@ -80,4 +80,4 @@ mcs1                             device mcs soft_mcs "" "" 2 512 "" 0 0 timer2 8
 Io                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
 It                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
 timer2                           device timer mcs_timer "" "" mcs1
-dark_timer                       device timer timer_fanout "" "" 2 timer1 timer2
+dark_timer                       device timer timer_fanout "" "" 2 timer1 timer2  

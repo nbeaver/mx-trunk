@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -571,6 +571,13 @@ motor_set_fn( int argc, char *argv[] )
 	/* SET VARIABLE function. */
 
 	} else if ( strncmp( argv[2], "variable", length2 ) == 0 ) {
+
+		if ( argc <= 4 ) {
+			fprintf(output,
+			"Usage: set variable 'variable_name' 'value'\n");
+
+			return FAILURE;
+		}
 
 		/* Get the record corresponding to this name. */
 
