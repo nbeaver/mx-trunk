@@ -15,8 +15,8 @@
 #INCLUDES = $(MX_INCLUDES) $(EPICS_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(EPICS_LIBS)
 
-INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
-LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
+#INCLUDES = $(MX_INCLUDES) $(EPIX_XCLIB_INCLUDES)
+#LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(ESONE_CAMAC_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(JORWAY_CAMAC_LIBS)
@@ -24,8 +24,8 @@ LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
 #INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS)
 
-#INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
-#LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
+INCLUDES = $(MX_INCLUDES) $(XIA_HANDEL_INCLUDES)
+LIBRARIES = $(WIN32_LIBS) $(XIA_HANDEL_LIBS) $(XIA_XERXES_LIBS)
 
 #INCLUDES = $(MX_INCLUDES) $(DRIVERLINX_INCLUDES)
 #LIBRARIES = $(WIN32_LIBS) $(DRIVERLINX_LIBS)
@@ -57,10 +57,10 @@ LIBRARIES = $(WIN32_LIBS) $(EPIX_XCLIB_LIBS)
 # Also, since MX uses threads in a number of places, -ML and -MLd are
 # not valid choices and must not be used.
 
-RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
+#RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 #RUN_TIME_LIBRARY_FLAGS = -MDd	# dynamically linked MSVCRT (debugging version)
 #RUN_TIME_LIBRARY_FLAGS = -MT	# statically linked LIBCMT
-#RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
+RUN_TIME_LIBRARY_FLAGS = -MTd	# statically linked LIBCMT (debugging version)
 
 #
 # You may also need to modify some of the following definitions, depending
@@ -73,7 +73,7 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 # for Gnu Make MUST NOT contain any spaces in it.  That is why the example
 # below specified the progra~1\micros~1 directory.
 #
-#MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
+MSDEV_DIR	= c:\\progra~1\\micros~1.net\\vc7\\PlatformSDK
 #MSDEV_DIR	= c:\\progra~1\\micros~1\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~2\\vc98
 #MSDEV_DIR	= c:\\progra~1\\micros~3\\vc98
@@ -106,12 +106,12 @@ RUN_TIME_LIBRARY_FLAGS = -MD	# dynamically linked MSVCRT
 
 #PLATFORM_SDK = c:\\progra~1\\mifd68~1
 #PLATFORM_SDK = c:\\progra~1\\micros~3
-PLATFORM_SDK = c:\\progra~1\\micros~4
+#PLATFORM_SDK = c:\\progra~1\\micros~4
 #
-RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
-INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
-MSDEV_DIR               = $(PLATFORM_SDK)
+#RUN_TIME_LIBRARY_FLAGS += $(LIBMX_INCLUDES)
+#INCLUDES                = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#LIBMX_INCLUDES          = -I$(PLATFORM_SDK)\\include $(MX_INCLUDES)
+#MSDEV_DIR               = $(PLATFORM_SDK)
 
 #
 # The following definition of WIN32_LIBS can probably be left alone if you
@@ -156,7 +156,8 @@ UMCBI_LIBS	= $(UMCBI_DIR)\\lib\\Mcbcio32.lib
 #
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\kepler-dev-tools-1_1_7\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-0.6-1216\\handel
-XIA_HANDEL_DIR      = c:\\opt\\handel-0.5.4\\handel
+#XIA_HANDEL_DIR      = c:\\opt\\handel-0.5.4\\handel
+XIA_HANDEL_DIR      = c:\\opt\\handel-0.5.4-ken\\handel
 #XIA_HANDEL_DIR      = c:\\progra~1\\xia\\handel-Win_All_DLL-0_5_4\\handel
 
 XIA_HANDEL_INCLUDES = -I$(XIA_HANDEL_DIR)\\inc -DIS_MX_DRIVER

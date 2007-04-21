@@ -3474,12 +3474,16 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 	unsigned long i, array_size;
 	mx_status_type mx_status;
 
+#if 0
 	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
+#endif
 
 	handle_table = list_head->server_callback_handle_table;
 
 	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
+#if 0
 		MX_DEBUG(-2,("%s: No callback handle table installed.", fname));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;
 	}
