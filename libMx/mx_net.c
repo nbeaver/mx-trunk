@@ -67,11 +67,6 @@ mx_allocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER **message_buffer,
 	}
 
 	if ( initial_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
-		mx_warning(
-	    "Raised the initial buffer length from %lu to the minimum of %lu",
-		    (unsigned long) initial_length,
-		    (unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
-
 		initial_length = MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH;
 	}
 
@@ -130,11 +125,6 @@ mx_reallocate_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer,
 	}
 
 	if ( new_length < MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH ) {
-		mx_warning(
-	    "Raised the new buffer length from %lu to the minimum of %lu",
-		    (unsigned long) new_length,
-		    (unsigned long) MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH );
-
 		new_length = MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH;
 	}
 

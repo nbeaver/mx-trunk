@@ -289,6 +289,7 @@ MXDRIVERINFO_OBJS = $(MXDRIVERINFO_SRCS:.c=.$(OBJ))
 
 #----
 
+MX_LIB_OBJS += mx_util_win32.obj
 MX_LIB_OBJS += ..\\tools\\strlcpy.obj ..\\tools\\strlcat.obj
 MX_LIB_OBJS += ..\\tools\\xdr.obj ..\\tools\\xdr_hyper.obj
 MX_LIB_OBJS += ..\\tools\\getopt.obj

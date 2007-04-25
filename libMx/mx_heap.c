@@ -11,7 +11,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2004-2005 Illinois Institute of Technology
+ * Copyright 2004-2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -24,12 +24,19 @@
 
 #include "mx_util.h"
 
-#if defined( OS_WIN32 ) && defined( _DEBUG )
+#if defined( OS_WIN32 )
+
+#  include <windows.h>
+
+#  if defined( _DEBUG )
 
 /* Theoretically, one could use IsBadReadPtr() for non-debug builds.
  * However, MSDN and mailing list messages on the net say that
  * dereferencing invalid pointers can sometimes cause automatic
  * stack expansion to fail, so we should not use IsBadReadPtr().
+ *
+ * In addition, MSDN says that the use of HeapValidate() can degrade
+ * performance, so we do not use it with non-debug builds.
  */
 
 MX_EXPORT int
@@ -38,11 +45,11 @@ mx_is_valid_heap_pointer( void *pointer )
 	if ( pointer == NULL ) {
 		return FALSE;
 	} else {
-		return _CrtIsValidHeapPointer( pointer );
+		return HeapValidate( GetProcessHeap(), 0, pointer );
 	}
 }
 
-#else
+#  else
 
 MX_EXPORT int
 mx_is_valid_heap_pointer( void *pointer )
@@ -54,39 +61,16 @@ mx_is_valid_heap_pointer( void *pointer )
 	}
 }
 
+#  endif
 #endif
 
 /*-------------------------------------------------------------------------*/
 
 #if defined( OS_WIN32 )
 
-#if defined( _DEBUG )
-
-/* Use _CrtCheckMemory() in debug mode.  Otherwise, use HeapValidate()
- * directly on the heaps.
+/* Warning: MSDN says that using HeapValidate() can degrade the performance
+ * of your program until it exits.
  */
-
-MX_EXPORT int
-mx_heap_check( void )
-{
-	static const char fname[] = "mx_heap_check()";
-
-	int status;
-
-	status = _CrtCheckMemory();
-
-	if ( status ) {
-		mx_info("%s: Heap is OK.", fname);
-	} else {
-		mx_warning("%s: Heap is corrupted.", fname);
-	}
-
-	return status;
-}
-
-#else
-
-#include <windows.h>
 
 MX_EXPORT int
 mx_heap_check( void )
@@ -181,8 +165,6 @@ mx_heap_check( void )
 
 	return heap_ok;
 }
-
-#endif
 
 #elif defined( OS_MACOSX )
 

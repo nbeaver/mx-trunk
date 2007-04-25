@@ -182,20 +182,22 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-#if defined( OS_WIN32 ) && defined(__BORLANDC__)
-   /* I have problems with lockups when using the malloc(), etc. functions
-    * provided by Borland C++ 5.5, so I define replacements for them.
+#if defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
+
+   /* We need to make sure that MX DLLs and EXEs are all using the same heap,
+    * so we define replacements for the malloc(), etc. functions that use
+    * HeapAlloc(), etc. on the heap returned by GetProcessHeap().
     */
 
-   MX_API void *bc_calloc( size_t, size_t );
-   MX_API void  bc_free( void * );
-   MX_API void *bc_malloc( size_t );
-   MX_API void *bc_realloc( void *, size_t );
+   MX_API void *mx_win32_calloc( size_t, size_t );
+   MX_API void  mx_win32_free( void * );
+   MX_API void *mx_win32_malloc( size_t );
+   MX_API void *mx_win32_realloc( void *, size_t );
 
-#  define calloc(x,y)  bc_calloc((x),(y))
-#  define free(x)      bc_free(x)
-#  define malloc(x)    bc_malloc(x)
-#  define realloc(x,y) bc_realloc((x),(y))
+#  define calloc(x,y)  mx_win32_calloc((x),(y))
+#  define free(x)      mx_win32_free(x)
+#  define malloc(x)    mx_win32_malloc(x)
+#  define realloc(x,y) mx_win32_realloc((x),(y))
 
 #endif
 
