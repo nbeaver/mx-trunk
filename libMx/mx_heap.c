@@ -20,15 +20,14 @@
 
 #include <stdio.h>
 
-#include "mx_osdef.h"
+#if defined( OS_WIN32 )
+#include <windows.h>
+#endif
 
+#include "mx_osdef.h"
 #include "mx_util.h"
 
-#if defined( OS_WIN32 )
-
-#  include <windows.h>
-
-#  if defined( _DEBUG )
+#if defined( OS_WIN32 ) && defined( _DEBUG )
 
 /* Theoretically, one could use IsBadReadPtr() for non-debug builds.
  * However, MSDN and mailing list messages on the net say that
@@ -49,7 +48,7 @@ mx_is_valid_heap_pointer( void *pointer )
 	}
 }
 
-#  else
+#else
 
 MX_EXPORT int
 mx_is_valid_heap_pointer( void *pointer )
@@ -61,7 +60,6 @@ mx_is_valid_heap_pointer( void *pointer )
 	}
 }
 
-#  endif
 #endif
 
 /*-------------------------------------------------------------------------*/
