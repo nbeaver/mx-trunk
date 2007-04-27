@@ -91,9 +91,9 @@ typedef struct {
 	mx_bool_type network_handles_are_valid;
 	mx_bool_type truncate_64bit_longs;
 
-	mx_bool_type server_supports_message_ids;
 	unsigned long last_rpc_message_id;
 
+	unsigned long remote_header_length;
 	unsigned long last_data_type;
 
 	unsigned long network_field_array_block_size;
@@ -154,14 +154,19 @@ typedef struct {
 		offsetof(MX_NETWORK_SERVER, truncate_64bit_longs), \
 	{0}, NULL, MXFF_READ_ONLY }, \
   \
-  {-1, -1, "server_supports_message_ids", MXFT_BOOL, NULL, 0, {0}, \
-        MXF_REC_CLASS_STRUCT, \
-		offsetof(MX_NETWORK_SERVER, server_supports_message_ids), \
-	{0}, NULL, MXFF_READ_ONLY }, \
-  \
   {-1, -1, "last_rpc_message_id", MXFT_HEX, NULL, 0, {0}, \
   	MXF_REC_CLASS_STRUCT, \
 		offsetof(MX_NETWORK_SERVER, last_rpc_message_id), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "remote_header_length", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, remote_header_length), \
+	{0}, NULL, MXFF_READ_ONLY }, \
+  \
+  {-1, -1, "last_data_type", MXFT_ULONG, NULL, 0, {0}, \
+  	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_NETWORK_SERVER, last_data_type), \
 	{0}, NULL, MXFF_READ_ONLY }
 
 /* Values for the server_flags field. */
@@ -206,6 +211,9 @@ typedef struct {
 #define MX_NETMSG_SERVER_RESPONSE_FLAG	0x4000000
 
 #define mx_server_response(x)	((x) | MX_NETMSG_SERVER_RESPONSE_FLAG)
+
+#define mx_server_supports_message_ids(s) \
+((s)->remote_header_length >= ((MX_NETWORK_MESSAGE_ID+1) * sizeof(uint32_t)))
 
 /* Definition of network message types. */
 

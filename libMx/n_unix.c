@@ -102,7 +102,8 @@ mxn_unix_server_create_record_structures( MX_RECORD *record )
 	network_server->server_supports_network_handles = TRUE;
 	network_server->network_handles_are_valid = TRUE;
 
-	network_server->server_supports_message_ids = TRUE;
+	network_server->remote_header_length = 0;
+	network_server->last_data_type = 0;
 
 	network_server->record = record;
 

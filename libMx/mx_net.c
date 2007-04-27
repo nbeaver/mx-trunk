@@ -221,58 +221,6 @@ mx_free_network_buffer( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 
 /* ====================================================================== */
 
-static mx_status_type
-mxp_network_expand_incoming_header( MX_NETWORK_SERVER *server,
-				MX_NETWORK_MESSAGE_BUFFER *buffer )
-{
-	uint32_t *old_header, *new_header;
-	char *old_message, *new_message;
-	size_t old_header_length, new_header_length, header_difference;
-	size_t message_length, new_buffer_length;
-	mx_status_type mx_status;
-
-	old_header = buffer->u.uint32_buffer;
-
-	old_header_length = mx_ntohl( old_header[ MX_NETWORK_HEADER_LENGTH ] );
-
-	header_difference = MXU_NETWORK_HEADER_LENGTH - old_header_length;
-
-	new_header_length = old_header_length + header_difference;
-
-	message_length = mx_ntohl( old_header[ MX_NETWORK_MESSAGE_LENGTH ] );
-
-	if ( (new_header_length + message_length) > buffer->buffer_length ) {
-
-		/* Increase the size of the network buffer, if necessary. */
-
-		new_buffer_length = buffer->buffer_length + header_difference;
-
-		mx_status = mx_reallocate_network_buffer(
-					buffer, new_buffer_length );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	new_header = buffer->u.uint32_buffer;
-
-	new_header[ MX_NETWORK_HEADER_LENGTH ] = mx_htonl( new_header_length );
-
-	old_message = buffer->u.char_buffer + old_header_length;
-
-	new_message = buffer->u.char_buffer + new_header_length;
-
-	memmove( new_message, old_message, message_length );
-
-	new_header[ MX_NETWORK_DATA_TYPE ] = mx_htonl( server->last_data_type );
-
-	new_header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( 0 );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-/*---*/
-
 MX_EXPORT mx_status_type
 mx_network_receive_message( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
@@ -322,14 +270,6 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 	mx_status = ( *fptr ) ( server, message_buffer );
 
-	if ( server->server_supports_message_ids == FALSE ) {
-		mx_status = mxp_network_expand_incoming_header(
-						server, message_buffer );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
 #if NETWORK_DEBUG
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
 		fprintf( stderr, "\nMX NET: SERVER (%s) -> CLIENT\n",
@@ -344,34 +284,6 @@ mx_network_receive_message( MX_RECORD *server_record,
 
 /* ====================================================================== */
 
-static void
-mxp_network_shrink_outgoing_header( MX_NETWORK_MESSAGE_BUFFER *buffer )
-{
-	uint32_t *header;
-	char *old_message, *new_message;
-	uint32_t header_length, message_length;
-
-	/* If we are talking to an MX server older than MX 1.5, then
-	 * the remote server expects to see 20 byte headers.  This
-	 * function patches the header and moves the message in order
-	 * to fulfill this requirement.
-	 */
-
-	header = buffer->u.uint32_buffer;
-
-	header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
-
-	old_message = buffer->u.char_buffer + header_length;
-	new_message = buffer->u.char_buffer + 20;
-
-	header[ MX_NETWORK_HEADER_LENGTH ] = mx_htonl( 20 );
-
-	memmove( new_message, old_message, message_length );
-}
-
-/*---*/
-
 MX_EXPORT mx_status_type
 mx_network_send_message( MX_RECORD *server_record,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer )
@@ -382,7 +294,6 @@ mx_network_send_message( MX_RECORD *server_record,
 	MX_NETWORK_SERVER_FUNCTION_LIST *function_list;
 	mx_status_type ( *fptr ) ( MX_NETWORK_SERVER *,
 				MX_NETWORK_MESSAGE_BUFFER * );
-	uint32_t *header;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -420,10 +331,6 @@ mx_network_send_message( MX_RECORD *server_record,
 			server_record->name );
 	}
 
-	header = message_buffer->u.uint32_buffer;
-
-	server->last_data_type = mx_ntohl( header[ MX_NETWORK_DATA_TYPE ] );
-
 #if NETWORK_DEBUG
 	if ( server->server_flags & MXF_NETWORK_SERVER_DEBUG ) {
 		fprintf( stderr, "\nMX NET: CLIENT -> SERVER (%s)\n",
@@ -432,11 +339,6 @@ mx_network_send_message( MX_RECORD *server_record,
 		mx_network_display_message( message_buffer );
 	}
 #endif
-
-	if ( server->server_supports_message_ids == FALSE ) {
-		mxp_network_shrink_outgoing_header( message_buffer );
-	}
-
 	mx_status = ( *fptr ) ( server, message_buffer );
 
 	return mx_status;
@@ -452,6 +354,7 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 
 	MX_NETWORK_SERVER *server;
 	long datatype, num_dimensions, dimension_array[1];
+	uint32_t *header;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -467,12 +370,9 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 			server_record->name );
 	}
 
-	/* A safe way to do this is to ask for the field type of the
-	 * 'mx_database.list_is_active' field.  Under the hood, this
-	 * will cause mx_network_send_message() to be invoked, followed
-	 * by mx_network_wait_for_message_id().  The wait for message ID
-	 * function will determine whether or not message IDs are supported
-	 * as part of the process of reading out the response.
+	/* A safe way to find out the length of headers returned by
+	 * a remote MX server is to ask for the field type of the
+	 * 'mx_database.list_is_active' field.
 	 */
 
 	mx_status = mx_get_field_type( server_record,
@@ -481,6 +381,34 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* We do not actually care about the value returned by the server
+	 * in the variable 'active'.  That value may actually be corrupt.
+	 * Instead, we want to examine the contents of the header of the
+	 * message just returned.
+	 */
+
+	if ( server->message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The message_buffer pointer for server '%s' is NULL "
+		"at a time when the buffer should already have been allocated.",
+			server_record->name );
+	}
+
+	header = server->message_buffer->u.uint32_buffer;
+
+	if ( header == (uint32_t *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The message_buffer->u.uint32_buffer pointer for server '%s' "
+		"is NULL at a time when the buffer should already have "
+		"been allocated.", server_record->name );
+	}
+
+	server->remote_header_length = 
+		mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
+
+	MX_DEBUG( 2,("%s: server '%s' remote_header_length = %lu",
+		fname, server_record->name, server->remote_header_length));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -541,7 +469,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	mx_bool_type debug_enabled, callback_found;
 	int comparison;
 	uint32_t *header;
-	uint32_t header_length, received_message_id, difference;
+	uint32_t received_message_id, difference;
 	mx_status_type mx_status;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -648,36 +576,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		 * message IDs, then return here.
 		 */
 
-		if ( server->server_supports_message_ids == FALSE ) {
-			return MX_SUCCESSFUL_RESULT;
-		}
-
-		/* Get the message ID. */
-
-		header = buffer->u.uint32_buffer;
-
-		header_length = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
-
-#if 0
-		MX_DEBUG(-2,("%s: header_length = %lu",
-			fname, (unsigned long) header_length));
-#endif
-
-		if ( header_length < 28 ) {
-
-			/* This is a pre-MX 1.5 server which does not have
-			 * a message ID field in its header.  Servers prior
-			 * to MX 1.5 do not support callbacks, which means
-			 * that they only supports RPC messages.  In this
-			 * case, it is safe to just pretend that the message
-			 * ID matches.
-			 */
-#if 0
-			MX_DEBUG(-2,("%s: The server is an old MX server, "
-			"so we _assume_ that the message ID matches.", fname));
-#endif
-			server->server_supports_message_ids = FALSE;
-
+		if ( mx_server_supports_message_ids(server) == FALSE ) {
 			return MX_SUCCESSFUL_RESULT;
 		}
 
@@ -2136,14 +2035,19 @@ mx_get_field_array( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
 
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	message = buffer + header_length;
+
+	uint32_message = header + (header_length / sizeof(uint32_t));
 
 	if ( use_network_handles == FALSE ) {
 
@@ -2171,12 +2075,18 @@ mx_get_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
+	server->last_data_type = local_field->datatype;
 
+	if ( mx_server_supports_message_ids(server) ) {
 
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
+		header[MX_NETWORK_DATA_TYPE] =
+				mx_htonl( local_field->datatype );
 
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2444,7 +2354,8 @@ mx_put_field_array( MX_RECORD *server_record,
 	char *message, *ptr, *name_ptr;
 	unsigned long i, j, max_attempts;
 	unsigned long ptr_address, remainder_value, gap_size;
-	uint32_t header_length, message_length, saved_message_length;
+	uint32_t header_length, field_id_length;
+	uint32_t message_length, saved_message_length;
 	uint32_t send_message_type, receive_message_type;
 	uint32_t status_code;
 	size_t buffer_left, num_bytes;
@@ -2511,14 +2422,31 @@ mx_put_field_array( MX_RECORD *server_record,
 	aligned_buffer = server->message_buffer;
 
 	header  = aligned_buffer->u.uint32_buffer;
-	message = aligned_buffer->u.char_buffer + MXU_NETWORK_HEADER_LENGTH;
 
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	message = aligned_buffer->u.char_buffer + header_length;
+
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] =
+				mx_htonl( local_field->datatype );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 	if ( use_network_handles == FALSE ) {
 
@@ -2529,7 +2457,7 @@ mx_put_field_array( MX_RECORD *server_record,
 		sprintf( message, "%*s", -MXU_RECORD_FIELD_NAME_LENGTH,
 				remote_record_field_name );
 
-		message_length = MXU_RECORD_FIELD_NAME_LENGTH;
+		field_id_length = MXU_RECORD_FIELD_NAME_LENGTH;
 	} else {
 
 		/* Use binary network handle */
@@ -2539,18 +2467,18 @@ mx_put_field_array( MX_RECORD *server_record,
 		uint32_message[0] = mx_htonl( nf->record_handle );
 		uint32_message[1] = mx_htonl( nf->field_handle );
 
-		message_length = 2 * sizeof( uint32_t );
+		field_id_length = 2 * sizeof( uint32_t );
 	}
 
 	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( send_message_type );
 
-	ptr = message + message_length;
+	ptr = message + field_id_length;
 
-	MX_DEBUG( 2,("%s: message = %p, ptr = %p, message_length = %lu",
-		fname, message, ptr, (unsigned long) message_length));
+	MX_DEBUG( 2,("%s: message = %p, ptr = %p, field_id_length = %lu",
+		fname, message, ptr, (unsigned long) field_id_length));
 
 	buffer_left = aligned_buffer->buffer_length
-			- MXU_NETWORK_HEADER_LENGTH - message_length;
+			- header_length - field_id_length;
 
 	/* Construct the data to send.   We use a retry loop here in case
 	 * we need to increase the size of the network buffer to make the
@@ -2558,6 +2486,8 @@ mx_put_field_array( MX_RECORD *server_record,
 	 */
 
 	max_attempts = 10;
+
+	message_length = field_id_length;
 
 	for ( i = 0; i < max_attempts; i++ ) {
 
@@ -2729,7 +2659,7 @@ mx_put_field_array( MX_RECORD *server_record,
 	    /* Update some values that reallocation will have changed. */
 
 	    header  = aligned_buffer->u.uint32_buffer;
-	    message = aligned_buffer->u.char_buffer + MXU_NETWORK_HEADER_LENGTH;
+	    message = aligned_buffer->u.char_buffer + header_length;
 
 	    /* Revert back to the buffer location before the failed copy. */
 
@@ -2737,7 +2667,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	    ptr         = message + message_length;
 	    buffer_left = aligned_buffer->buffer_length
-		    		- MXU_NETWORK_HEADER_LENGTH - message_length;
+		    		- header_length - message_length;
 	}
 
 	if ( i >= max_attempts ) {
@@ -2755,16 +2685,9 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	message_length += MXU_NETWORK_HEADER_LENGTH;
+	message_length += header_length;
 
 	MX_DEBUG( 2,("%s: message = '%s'", fname, message));
-
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( local_field->datatype );
-
-
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
-
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -2926,14 +2849,19 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
 	header[MX_NETWORK_MESSAGE_TYPE]
 				= mx_htonl( MX_NETMSG_GET_NETWORK_HANDLE );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	message = buffer + header_length;
 
 	/* Copy the network field name to the outgoing message buffer. */
 
@@ -2943,12 +2871,15 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
+	if ( mx_server_supports_message_ids(server) ) {
 
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
 
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3118,13 +3049,18 @@ mx_get_field_type( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_FIELD_TYPE );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_GET_FIELD_TYPE );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
 
 	strlcpy( message, remote_record_field_name,
 					MXU_RECORD_FIELD_NAME_LENGTH );
@@ -3133,12 +3069,15 @@ mx_get_field_type( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
+	if ( mx_server_supports_message_ids(server) ) {
 
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
 
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3307,13 +3246,18 @@ mx_set_client_info( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_CLIENT_INFO );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_SET_CLIENT_INFO);
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
 
 	strlcpy( message, username, MXU_USERNAME_LENGTH );
 
@@ -3335,12 +3279,15 @@ mx_set_client_info( MX_RECORD *server_record,
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
+	if ( mx_server_supports_message_ids(server) ) {
 
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_STRING );
 
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
 
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3452,25 +3399,23 @@ mx_network_get_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_GET_OPTION );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_GET_OPTION );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
 
 	uint32_message[0] = mx_htonl( option_number );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
-
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
-
-
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
-
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3614,26 +3559,34 @@ mx_network_set_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	header[MX_NETWORK_MAGIC] = mx_htonl( MX_NETWORK_MAGIC_VALUE );
-	header[MX_NETWORK_HEADER_LENGTH]
-				= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
-	header[MX_NETWORK_MESSAGE_TYPE] = mx_htonl( MX_NETMSG_SET_OPTION );
-	header[MX_NETWORK_STATUS_CODE] = mx_htonl( MXE_SUCCESS );
+	if ( server->remote_header_length > 0 ) {
+		header_length = server->remote_header_length;
+	} else {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
-	message = buffer + MXU_NETWORK_HEADER_LENGTH;
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_SET_OPTION );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
 
 	uint32_message[0] = mx_htonl( option_number );
 	uint32_message[1] = mx_htonl( option_value );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 2 * sizeof(uint32_t) );
 
-	header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
+	if ( mx_server_supports_message_ids(server) ) {
 
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
 
-	mx_network_update_message_id( &(server->last_rpc_message_id) );
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
 
-	header[MX_NETWORK_MESSAGE_ID] = mx_htonl( server->last_rpc_message_id );
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
