@@ -55,6 +55,7 @@ typedef struct {
 	unsigned long data_format;
 	mx_bool_type truncate_64bit_longs;
 	mx_bool_type network_debug;
+	unsigned long last_rpc_message_id;
 	unsigned long remote_header_length;
 
 	long authentication_type;

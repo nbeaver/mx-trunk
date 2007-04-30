@@ -2164,6 +2164,8 @@ mx_get_field_array( MX_RECORD *server_record,
 	  && ( receive_message_type == 
 	  		mx_server_response(MX_NETMSG_GET_ARRAY_BY_NAME) ) )
 	{
+		/* Bug compatibility for old MX servers. */
+
 		/* MX servers prior to MX 1.5 returned the wrong server
 		 * response type for 'get array by handle' messages.
 		 */
@@ -2761,6 +2763,8 @@ mx_put_field_array( MX_RECORD *server_record,
 	  && ( receive_message_type == 
 	  		mx_server_response(MX_NETMSG_PUT_ARRAY_BY_NAME) ) )
 	{
+		/* Bug compatibility for old MX servers. */
+
 		/* MX servers prior to MX 1.5 returned the wrong server
 		 * response type for 'put array by handle' messages.
 		 */
