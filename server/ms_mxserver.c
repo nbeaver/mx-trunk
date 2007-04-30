@@ -35,6 +35,8 @@
 
 #define NETWORK_DEBUG_HANDLES		FALSE
 
+#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -723,6 +725,7 @@ mxsrv_mx_server_socket_process_event( MX_RECORD *record_list,
 #else
 	new_socket_handler->truncate_64bit_longs = FALSE;
 #endif
+	new_socket_handler->remote_header_length = 0;
 
 	new_socket_handler->authentication_type = MXF_SRVAUTH_NONE;
 
@@ -1058,6 +1061,19 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		(unsigned long) magic_value );
         }
 
+	/* Save a copy of the client's header length on the first pass
+	 * through this function.
+	 */
+
+	if ( socket_handler->remote_header_length == 0 ) {
+		socket_handler->remote_header_length = header_length;
+
+#if NETWORK_DEBUG_HEADER_LENGTH
+		MX_DEBUG(-2,("%s: client header length = %lu",
+			fname, socket_handler->remote_header_length));
+#endif
+	}
+
 	/* If the message is too long to fit into the current buffer,
 	 * increase the size of the buffer.
 	 */
@@ -1251,9 +1267,13 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			"MX message type %#lx is not yet implemented.",
 			(unsigned long) message_type );
 
-		(void) mx_network_socket_send_error_message( client_socket,
-			message_id, socket_handler->network_debug,
-			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
+		(void) mx_network_socket_send_error_message(
+					client_socket,
+					message_id, 
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					MX_NETMSG_UNEXPECTED_ERROR,
+					mx_status );
 
 		return mx_status;
 	}
@@ -1327,7 +1347,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			break;	/* Exit the switch() statement. */
 		}
 
-		uint32_message_body = header + MXU_NETWORK_NUM_HEADER_VALUES;
+		uint32_message_body = header +
+		  (mx_remote_header_length(socket_handler) / sizeof(uint32_t));
 
 		record_handle = (long) mx_ntohl( uint32_message_body[0] );
 
@@ -1415,9 +1436,13 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 		/* Send back the error message. */
 
-		(void) mx_network_socket_send_error_message( client_socket,
-			message_id, socket_handler->network_debug,
-			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
+		(void) mx_network_socket_send_error_message(
+					client_socket,
+					message_id, 
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					MX_NETMSG_UNEXPECTED_ERROR,
+					mx_status );
 
 		return mx_status;
 	}
@@ -1510,9 +1535,13 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 			"MX message type %#lx is not yet implemented!",
 			(unsigned long) message_type );
 
-		(void) mx_network_socket_send_error_message( client_socket,
-			message_id, socket_handler->network_debug,
-			MX_NETMSG_UNEXPECTED_ERROR, mx_status );
+		(void) mx_network_socket_send_error_message(
+					client_socket,
+					message_id, 
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					MX_NETMSG_UNEXPECTED_ERROR,
+					mx_status );
 		break;
 	}
 
@@ -1831,10 +1860,10 @@ mxsrv_send_field_value_to_client(
 
 	/* Construct the response header. */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
 	send_buffer_message_length = network_message->buffer_length
-					- MXU_NETWORK_HEADER_LENGTH;
+					- send_buffer_header_length;
 
 	send_buffer_message_actual_length = 0;
 
@@ -2430,7 +2459,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
         if ( mx_status.code == MXE_SUCCESS ) {
 		send_buffer_message_length = 1;
@@ -2538,7 +2567,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 	MX_NETWORK_MESSAGE_BUFFER *network_message;
 	uint32_t *send_buffer_header, *send_buffer_message;
 
-	long i;
+	long i, send_buffer_header_length;
 	long record_handle;
 	long field_handle;
 	mx_status_type mx_status;
@@ -2604,6 +2633,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		(void) mx_network_socket_send_error_message(
 					socket_handler->synchronous_socket,
 					message_id,
+					socket_handler->remote_header_length,
 					socket_handler->network_debug,
 					MX_NETMSG_UNEXPECTED_ERROR,
 					mx_status );
@@ -2642,7 +2672,10 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 
 	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_message = send_buffer_header + MXU_NETWORK_NUM_HEADER_VALUES;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
+
+	send_buffer_message = send_buffer_header
+			+ ( send_buffer_header_length / sizeof(uint32_t) );
 
 	/* Construct the message header. */
 
@@ -2653,7 +2686,7 @@ mxsrv_handle_get_network_handle( MX_RECORD *record_list,
 		= mx_htonl( mx_server_response(MX_NETMSG_GET_NETWORK_HANDLE) );
 
 	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
-		= mx_htonl( MXU_NETWORK_HEADER_LENGTH );
+		= mx_htonl( send_buffer_header_length );
 
 	send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
 		= mx_htonl( 2 * sizeof( uint32_t ) );
@@ -2715,7 +2748,7 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
 	send_buffer_message_length = (uint32_t)
 		( sizeof(uint32_t) * ( 2 + field->num_dimensions ) );
@@ -2803,10 +2836,13 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	char *message_string;
 	char *ptr, *ptr2, *endptr;
 	size_t length;
+	long header_length;
 	mx_status_type mx_status;
 
+	header_length = mx_remote_header_length(socket_handler);
+
 	message_string  = network_message->u.char_buffer;
-	message_string += MXU_NETWORK_HEADER_LENGTH;
+	message_string += header_length;
 
 	MX_DEBUG( 1,("%s for '%s', message_length = %lu",
 		fname, message_string,
@@ -2913,7 +2949,7 @@ mxsrv_handle_set_client_info( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
 	send_buffer_message_length = 1;
 
@@ -2984,7 +3020,8 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	mx_status_type mx_status;
 
 	option_array  = network_message->u.uint32_buffer;
-	option_array += MXU_NETWORK_NUM_HEADER_VALUES;
+	option_array +=
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
 
 	option_number = mx_ntohl( option_array[0] );
 
@@ -3025,11 +3062,12 @@ mxsrv_handle_get_option( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
 	send_buffer_header = network_message->u.uint32_buffer;
 
-	send_buffer_message = send_buffer_header + MXU_NETWORK_NUM_HEADER_VALUES;
+	send_buffer_message = send_buffer_header
+			+ ( send_buffer_header_length / sizeof(uint32_t) );
 
 	/* Construct the header of the message. */
 
@@ -3111,7 +3149,8 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	mx_status_type mx_status;
 
 	option_array  = network_message->u.uint32_buffer;
-	option_array += MXU_NETWORK_NUM_HEADER_VALUES;
+	option_array +=
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
 
 	option_number = mx_ntohl( option_array[0] );
 	option_value = mx_ntohl( option_array[1] );
@@ -3158,7 +3197,7 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 	 * back to the client.
 	 */
 
-	send_buffer_header_length = MXU_NETWORK_HEADER_LENGTH;
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
 
 	send_buffer_header = network_message->u.uint32_buffer;
 
@@ -3369,7 +3408,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	header_length  = mx_ntohl( uint32_header[MX_NETWORK_HEADER_LENGTH] );
 
-	if ( header_length < (7 * sizeof(uint32_t)) ) {
+	if ( mx_client_supports_message_ids(socket_handler) ) {
+
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"This server cannot support callbacks from clients using "
 		"MX 1.4 or before." );
@@ -3422,7 +3462,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	uint32_header[MX_NETWORK_MAGIC] = mx_htonl(MX_NETWORK_MAGIC_VALUE);
 
 	uint32_header[MX_NETWORK_HEADER_LENGTH] =
-			mx_htonl(MXU_NETWORK_HEADER_LENGTH);
+			mx_htonl(socket_handler->remote_header_length);
 
 	uint32_header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl(sizeof(uint32_t));
 
@@ -3435,7 +3475,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	uint32_header[MX_NETWORK_MESSAGE_ID] = mx_htonl(message_id);
 
-	uint32_message = uint32_header + MXU_NETWORK_NUM_HEADER_VALUES;
+	uint32_message = uint32_header +
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
 
 	uint32_message[0] = mx_htonl( callback_object->callback_id );
 

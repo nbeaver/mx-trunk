@@ -31,6 +31,7 @@ MX_API mx_status_type mx_network_socket_send_message(
 MX_API mx_status_type mx_network_socket_send_error_message(
 				MX_SOCKET *mx_socket,
 				uint32_t message_id,
+				unsigned long header_length,
 				mx_bool_type debug_flag,
 				long return_message_type,
 				mx_status_type error_message );

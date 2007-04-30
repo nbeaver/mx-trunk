@@ -215,6 +215,13 @@ typedef struct {
 #define mx_server_supports_message_ids(s) \
 ((s)->remote_header_length >= ((MX_NETWORK_MESSAGE_ID+1) * sizeof(uint32_t)))
 
+#define mx_client_supports_message_ids(h) \
+((h)->remote_header_length >= ((MX_NETWORK_MESSAGE_ID+1) * sizeof(uint32_t)))
+
+#define mx_remote_header_length(r) \
+	( (r)->remote_header_length ? \
+		(r)->remote_header_length : MXU_NETWORK_HEADER_LENGTH )
+
 /* Definition of network message types. */
 
 #define MX_NETMSG_UNEXPECTED_ERROR	0x1
@@ -282,9 +289,8 @@ MX_API mx_status_type mx_network_receive_message( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_send_message( MX_RECORD *server_record,
 					MX_NETWORK_MESSAGE_BUFFER *buffer );
 
-MX_API mx_status_type mx_network_server_supports_message_ids(
-				MX_RECORD *server_record,
-				mx_bool_type *message_ids_are_supported );
+MX_API mx_status_type mx_network_server_discover_header_length(
+					MX_RECORD *server_record );
 
 MX_API void mx_network_update_message_id( unsigned long *message_id );
 

@@ -46,6 +46,8 @@
 
 #define NETWORK_DEBUG_TIMING	FALSE
 
+#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
+
 #if NETWORK_DEBUG_TIMING
 #include "mx_hrt_debug.h"
 #endif
@@ -347,10 +349,10 @@ mx_network_send_message( MX_RECORD *server_record,
 /* ====================================================================== */
 
 MX_EXPORT mx_status_type
-mx_network_server_supports_message_ids( MX_RECORD *server_record,
-				mx_bool_type *message_ids_are_supported )
+mx_network_server_discover_header_length( MX_RECORD *server_record )
 {
-	static const char fname[] = "mx_network_server_supports_message_ids()";
+	static const char fname[] =
+		"mx_network_server_discover_header_length()";
 
 	MX_NETWORK_SERVER *server;
 	long datatype, num_dimensions, dimension_array[1];
@@ -383,9 +385,9 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 		return mx_status;
 
 	/* We do not actually care about the value returned by the server
-	 * in the variable 'active'.  That value may actually be corrupt.
-	 * Instead, we want to examine the contents of the header of the
-	 * message just returned.
+	 * in the variable 'active'.  The value may actually be corrupt if
+	 * there is a mismatch in the header lengths.  Instead, we want to
+	 * examine the contents of the header of the message just returned.
 	 */
 
 	if ( server->message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
@@ -407,8 +409,10 @@ mx_network_server_supports_message_ids( MX_RECORD *server_record,
 	server->remote_header_length = 
 		mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
 
-	MX_DEBUG( 2,("%s: server '%s' remote_header_length = %lu",
+#if NETWORK_DEBUG_HEADER_LENGTH
+	MX_DEBUG(-2,("%s: server '%s' remote_header_length = %lu",
 		fname, server_record->name, server->remote_header_length));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -583,6 +587,15 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 		/* If the message ID, matches the number that we are
 		 * looking for, then we can return to our caller now.
 		 */
+
+		header = buffer->u.uint32_buffer;
+
+		if ( header == NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The uint32_buffer pointer for message buffer %p "
+			"used for server '%s' is NULL.",
+		    		buffer, server_record->name );
+		}
 
 		received_message_id = 
 			mx_ntohl( header[ MX_NETWORK_MESSAGE_ID ] );
@@ -2035,11 +2048,7 @@ mx_get_field_array( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
@@ -2423,11 +2432,7 @@ mx_put_field_array( MX_RECORD *server_record,
 
 	header  = aligned_buffer->u.uint32_buffer;
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	message = aligned_buffer->u.char_buffer + header_length;
 
@@ -2849,11 +2854,7 @@ mx_network_field_connect( MX_NETWORK_FIELD *nf )
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
@@ -3049,11 +3050,7 @@ mx_get_field_type( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
@@ -3246,11 +3243,7 @@ mx_set_client_info( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
@@ -3399,11 +3392,7 @@ mx_network_get_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
@@ -3416,6 +3405,16 @@ mx_network_get_option( MX_RECORD *server_record,
 	uint32_message[0] = mx_htonl( option_number );
 
 	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( sizeof(uint32_t) );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_ULONG );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
 
 #if NETWORK_DEBUG_TIMING
 	MX_HRT_START( measurement );
@@ -3559,11 +3558,7 @@ mx_network_set_option( MX_RECORD *server_record,
 	header = &(aligned_buffer->u.uint32_buffer[0]);
 	buffer = &(aligned_buffer->u.char_buffer[0]);
 
-	if ( server->remote_header_length > 0 ) {
-		header_length = server->remote_header_length;
-	} else {
-		header_length = MXU_NETWORK_HEADER_LENGTH;
-	}
+	header_length = mx_remote_header_length(server);
 
 	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
 	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );

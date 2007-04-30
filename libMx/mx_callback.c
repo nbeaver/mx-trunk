@@ -61,20 +61,6 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		nf->record_handle, nf->field_handle ));
 #endif
 
-	/* Make sure the network field is connected. */
-
-	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( new_handle_needed ) {
-		mx_status = mx_network_field_connect( nf );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
 	server_record = nf->server_record;
 
 	if ( server_record == (MX_RECORD *) NULL ) {
@@ -89,6 +75,30 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
 			server_record->name );
+	}
+
+	/* If the server is not new enough to support message ids,
+	 * then there is no point in proceding any further.
+	 */
+
+	if ( mx_server_supports_message_ids(server) == FALSE ) {
+		return mx_error( MXE_UNSUPPORTED | MXE_QUIET, fname,
+		"MX server '%s' does not support message callbacks.",
+			server_record->name );
+	}
+
+	/* Make sure the network field is connected. */
+
+	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( new_handle_needed ) {
+		mx_status = mx_network_field_connect( nf );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* If the server structure does not already have a callback list,
@@ -117,9 +127,10 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	/*--- First, construct the header. ---*/
 
 	header = message_buffer->u.uint32_buffer;
+	header_length = server->remote_header_length;
 
 	header[MX_NETWORK_MAGIC]          = mx_htonl(MX_NETWORK_MAGIC_VALUE);
-	header[MX_NETWORK_HEADER_LENGTH]  = mx_htonl(MXU_NETWORK_HEADER_LENGTH);
+	header[MX_NETWORK_HEADER_LENGTH]  = mx_htonl(header_length);
 	header[MX_NETWORK_MESSAGE_TYPE]   = mx_htonl(MX_NETMSG_ADD_CALLBACK);
 	header[MX_NETWORK_STATUS_CODE]    = mx_htonl(MXE_SUCCESS);
 	header[MX_NETWORK_DATA_TYPE]      = mx_htonl(MXFT_ULONG);
@@ -131,7 +142,8 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 
 	/*--- Then, fill in the message body. ---*/
 
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	uint32_message = header
+		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
 
 	uint32_message[0] = mx_htonl( nf->record_handle );
 	uint32_message[1] = mx_htonl( nf->field_handle );
@@ -162,7 +174,8 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 
 	header = message_buffer->u.uint32_buffer;
 
-	uint32_message = header + MXU_NETWORK_NUM_HEADER_VALUES;
+	uint32_message = header
+		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
 
 	/* Read the header of the returned message. */
 

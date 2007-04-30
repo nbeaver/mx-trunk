@@ -283,7 +283,7 @@ mxn_unix_server_open( MX_RECORD *record )
 
 	/* Figure out whether or not the server supports message IDs. */
 
-	mx_status = mx_network_server_supports_message_ids( record, NULL );
+	mx_status = mx_network_server_discover_header_length( record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

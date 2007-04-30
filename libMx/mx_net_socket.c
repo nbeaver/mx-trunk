@@ -54,7 +54,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	int saved_errno, comparison;
 	mx_bool_type is_non_blocking, no_timeout;
 	MX_CLOCK_TICK timeout_interval, current_time, timeout_time;
-	int i, bytes_received, initial_recv_length;
+	int bytes_received, initial_recv_length;
 	uint32_t bytes_left;
 	uint32_t magic_value, header_length, message_length, total_length;
 	mx_status_type mx_status;
@@ -94,9 +94,7 @@ mx_network_socket_receive_message( MX_SOCKET *mx_socket,
 	 * from a previous call to mx_network_socket_receive_message().
 	 */
 
-	for ( i = 0; i < MXU_NETWORK_NUM_HEADER_VALUES; i++ ) {
-		header[i] = mx_htonl( 0L );
-	}
+	memset( header, 0, MXU_NETWORK_HEADER_LENGTH );
 
 	/* Is this socket in non-blocking mode? */
 
@@ -599,6 +597,7 @@ mx_network_socket_send_message( MX_SOCKET *mx_socket,
 MX_EXPORT mx_status_type
 mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 			uint32_t message_id,
+			unsigned long header_length,
 			mx_bool_type debug_flag,
 			long return_message_type,
 			mx_status_type error_message )
@@ -608,7 +607,7 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t *header;
 	char     *ptr;
-	uint32_t header_length, message_length, total_length;
+	uint32_t message_length, total_length;
 	mx_status_type mx_status;
 
 	if ( mx_socket == (MX_SOCKET *) NULL ) {
@@ -616,7 +615,9 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 		"The MX_SOCKET pointer passed was NULL." );
 	}
 
-	header_length = MXU_NETWORK_HEADER_LENGTH;
+	if ( header_length == 0 ) {
+		header_length = MXU_NETWORK_HEADER_LENGTH;
+	}
 
 	message_length = (uint32_t) ( 1 + strlen( error_message.message ) );
 
@@ -646,9 +647,13 @@ mx_network_socket_send_error_message( MX_SOCKET *mx_socket,
 
 	header[ MX_NETWORK_STATUS_CODE ] = mx_htonl( error_message.code );
 
-	header[ MX_NETWORK_DATA_TYPE ] = mx_htonl( MXFT_STRING );
+	/* If the header is long enough, include the message id. */
 
-	header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( message_id );
+	if ( header_length >= ((MX_NETWORK_MESSAGE_ID+1) * sizeof(uint32_t)) ) {
+		header[ MX_NETWORK_DATA_TYPE ] = mx_htonl( MXFT_STRING );
+
+		header[ MX_NETWORK_MESSAGE_ID ] = mx_htonl( message_id );
+	}
 
 #if MX_NET_SOCKET_DEBUG_MESSAGES
 	if ( debug_flag ) {
