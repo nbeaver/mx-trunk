@@ -641,10 +641,12 @@ mx_invoke_callback( MX_CALLBACK *callback )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	MX_DEBUG(-2,("%s: callback->active = %d", fname, callback->active));
+	MX_DEBUG(-2,("%s: callback->active = %d",
+			fname, (int)callback->active));
 
 	if ( callback->active ) {
-		MX_DEBUG(-2,("%s: Aborting since callback->active != 0", fname));
+		MX_DEBUG(-2,
+		("%s: Aborting since callback->active != 0", fname));
 
 		return MX_SUCCESSFUL_RESULT;
 	}

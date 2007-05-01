@@ -17,6 +17,14 @@
 
 #define MX_CPU_DEBUG	FALSE
 
+#include <stdio.h>
+
+#if defined(OS_WIN32)
+#include <windows.h>
+#endif
+
+#include "mx_util.h"
+
 /*
  * Process affinity masks are used in multiprocessor systems to constrain
  * the set of CPUs on which the process is eligible to run.  For MX, this
@@ -26,10 +34,6 @@
 /*------------------------------ Win32 ------------------------------*/
 
 #if defined(OS_WIN32)
-
-#include <windows.h>
-
-#include "mx_util.h"
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -170,13 +174,11 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #define _GNU_SOURCE
 
-#include <stdio.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sched.h>
 
-#include "mx_util.h"
 #include "mx_program_model.h"
 
 MX_EXPORT mx_status_type
@@ -283,7 +285,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#else
+#elif defined(OS_CYGWIN)
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,
@@ -292,7 +294,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 	static const char fname[] = "mx_get_process_affinity_mask()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-	"Getting the CPU affinity mask on this computer is not supported." );
+"Getting the CPU affinity mask is not currently supported on this platform." );
 }
 
 MX_EXPORT mx_status_type
@@ -302,8 +304,12 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	static const char fname[] = "mx_set_process_affinity_mask()";
 
 	return mx_error( MXE_UNSUPPORTED, fname,
-	"Setting the CPU affinity mask on this computer is not supported." );
+"Setting the CPU affinity mask is not currently supported on this platform." );
 }
+
+#else
+
+#error CPU affinity mask functions have not yet been defined for this platform.
 
 #endif
 

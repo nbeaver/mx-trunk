@@ -35,7 +35,7 @@
 
 #define NETWORK_DEBUG_HANDLES		FALSE
 
-#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
+#define NETWORK_DEBUG_HEADER_LENGTH	FALSE
 
 #include <stdio.h>
 #include <string.h>

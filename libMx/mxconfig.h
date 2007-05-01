@@ -219,7 +219,7 @@
  *
  */
 
-#define HAVE_XIA_HANDEL			1
+#define HAVE_XIA_HANDEL			0
 
 /*****************************************************************************
  *
@@ -230,7 +230,7 @@
  *
  */
 
-#define HAVE_XIA_XERXES			1
+#define HAVE_XIA_XERXES			0
 
 #endif /* _MXCONFIG_H_ */
 
