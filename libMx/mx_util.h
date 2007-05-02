@@ -182,7 +182,7 @@ struct timespec {
 
 /*------------------------------------------------------------------------*/
 
-#if defined(OS_WIN32) && (defined(_MSC_VER) || defined(__BORLANDC__))
+#if defined(OS_WIN32)
 
    /* We need to make sure that MX DLLs and EXEs are all using the same heap,
     * so we define replacements for the malloc(), etc. functions that use
