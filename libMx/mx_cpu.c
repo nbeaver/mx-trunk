@@ -172,11 +172,12 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 #elif defined(OS_LINUX)
 
-#define _GNU_SOURCE
-
-#include <errno.h>
 #include <sys/types.h>
+#include <errno.h>
 #include <unistd.h>
+
+#define __USE_GNU
+
 #include <sched.h>
 
 #include "mx_program_model.h"
