@@ -2157,6 +2157,17 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 	} else {
 		/* Talk to the real detector head. */
 
+		/* Throw away any unread input.  It is likely to be garbage
+		 * from electromagnetic interference.
+		 */
+
+		mx_status = mx_camera_link_flush_port( camera_link_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Send the command. */
+
 		command_length = strlen(command);
 
 		mx_status = mx_camera_link_serial_write( camera_link_record,
