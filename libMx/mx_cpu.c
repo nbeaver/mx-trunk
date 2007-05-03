@@ -188,7 +188,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_get_process_affinity_mask()";
 
-	cpu_set_t cpu_set_struct;
+	cpu_set_t cpu_set;
 	int os_status, saved_errno;
 	unsigned long i, num_bits;
 
@@ -203,10 +203,9 @@ mx_get_process_affinity_mask( unsigned long process_id,
 		process_id = getpid();
 	}
 
-	CPU_ZERO( &cpu_set_struct );
+	CPU_ZERO( &cpu_set );
 
-	os_status = sched_getaffinity( process_id,
-				CPU_SETSIZE, &cpu_set_struct );
+	os_status = sched_getaffinity( process_id, sizeof(cpu_set), &cpu_set );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;
@@ -224,7 +223,7 @@ mx_get_process_affinity_mask( unsigned long process_id,
 
 	for ( i = 0; i < num_bits; i++ ) {
 
-		if ( CPU_ISSET(i, &cpu_set_struct) ) {
+		if ( CPU_ISSET(i, &cpu_set) ) {
 			*mask |= (1UL << i);
 		}
 	}
@@ -245,7 +244,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 {
 	static const char fname[] = "mx_set_process_affinity_mask()";
 
-	cpu_set_t cpu_set_struct;
+	cpu_set_t cpu_set;
 	int os_status, saved_errno;
 	unsigned long i, num_bits;
 
@@ -262,16 +261,15 @@ mx_set_process_affinity_mask( unsigned long process_id,
 
 	num_bits = MX_WORDSIZE;
 
-	CPU_ZERO( &cpu_set_struct );
+	CPU_ZERO( &cpu_set );
 
 	for ( i = 0; i < num_bits; i++ ) {
 		if ( mask & (1UL << i) ) {
-			CPU_SET( i, &cpu_set_struct );
+			CPU_SET( i, &cpu_set );
 		}
 	}
 
-	os_status = sched_setaffinity( process_id,
-				CPU_SETSIZE, &cpu_set_struct );
+	os_status = sched_setaffinity( process_id, sizeof(cpu_set), &cpu_set );
 
 	if ( os_status != 0 ) {
 		saved_errno = errno;

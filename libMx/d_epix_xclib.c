@@ -18,7 +18,9 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG	FALSE
+#define MXD_EPIX_XCLIB_DEBUG		FALSE
+
+#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME	TRUE
 
 #include <stdio.h>
 
@@ -1187,16 +1189,18 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
 #if MXD_EPIX_XCLIB_DEBUG
-
 	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",
 		fname, frame->image_time.tv_sec, frame->image_time.tv_nsec));
+#endif
 
+#if MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME
 	{
 		char buffer[80];
 
 		mx_os_time_string( frame->image_time,
 				buffer, sizeof(buffer) );
 
+		MX_DEBUG(-2,(" "));
 		MX_DEBUG(-2,("%s: Image time = '%s'", fname, buffer));
 		MX_DEBUG(-2,("%s: OS time    = '%s'", fname,
 			mx_current_time_string(buffer, sizeof(buffer)) ));

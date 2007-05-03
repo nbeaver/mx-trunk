@@ -23,7 +23,6 @@
 #define MXF_EPIX_USE_CLCCSE_REGISTER    0x1
 #define MXF_EPIX_BYTESWAP               0x2
 #define MXF_EPIX_SET_AFFINITY           0x4
-#define MXF_EPIX_CONSTANT_TSC           0x8
 
 typedef struct {
 	MX_RECORD *record;
