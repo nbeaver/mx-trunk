@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 2001, 2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -35,9 +35,21 @@
 static int
 motor_rs232_readline( MX_RECORD *record )
 {
+	MX_RS232 *rs232;
 	static char receive_buffer[2000];
 	unsigned long num_input_bytes_available;
+	unsigned long transfer_flags;
+	mx_bool_type ignore_nulls;
 	mx_status_type mx_status;
+
+	rs232 = (MX_RS232 *) record->record_class_struct;
+
+	if ( rs232 == (MX_RS232 *) NULL ) {
+		fprintf( output,
+		"Program bug: The MX_RS232 pointer for record '%s' is NULL.\n",
+			record->name );
+		return FAILURE;
+	}
 
 	/* See if there are any characters available to read. */
 
@@ -54,16 +66,35 @@ motor_rs232_readline( MX_RECORD *record )
 
 	/* We need to read a string here. */
 
+	if ( rs232->rs232_flags & MXF_232_ALWAYS_IGNORE_NULLS ) {
+		ignore_nulls = TRUE;
+	} else {
+		ignore_nulls = FALSE;
+	}
+
+	transfer_flags = RS232_DEBUG;
+
+	if ( ignore_nulls ) {
+		transfer_flags |= MXF_232_IGNORE_NULLS;
+	}
+
 	mx_status = mx_rs232_getline( record,
 				receive_buffer, sizeof( receive_buffer ),
-				NULL, RS232_DEBUG );
+				NULL, transfer_flags );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return FAILURE;
 
 	/* Print the response we received. */
 
-	fprintf( output, "'%s'\n", receive_buffer );
+	if ( ignore_nulls && ( receive_buffer[0] == '\0' ) )
+	{
+		/* If we should ignore receive buffers that only contain nulls,
+		 * then we show nothing here.
+		 */
+	} else {
+		fprintf( output, "'%s'\n", receive_buffer );
+	}
 
 	return SUCCESS;
 }

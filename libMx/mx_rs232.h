@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -70,6 +70,7 @@
 
 #define MXF_232_UNBUFFERED_IO			0x1
 #define MXF_232_DO_NOT_CHANGE_PORT_SETTINGS	0x2
+#define MXF_232_ALWAYS_IGNORE_NULLS		0x4
 
 #define MXF_232_SUPPRESS_TIMEOUT_ERROR_MESSAGES	0x1000
 #define MXF_232_POSIX_VMIN_FIX			0x2000

@@ -611,6 +611,14 @@ mx_rs232_getline( MX_RECORD *record,
 		buffered_io = TRUE;
 	}
 
+	/* If requested, force mx_rs232_getline() to always ignore nulls,
+	 * even if this particular invocation did not set the necessary flag.
+	 */
+
+	if ( rs232->rs232_flags & MXF_232_ALWAYS_IGNORE_NULLS ) {
+		transfer_flags |= MXF_232_IGNORE_NULLS;
+	}
+
 	rs232->transfer_flags = transfer_flags;
 
 	/* Does this driver have a getline function? */
