@@ -26,6 +26,7 @@ typedef struct {
 
 	long unitmap;
 	double default_trigger_time;
+	long pixel_clock_divisor;
 
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 

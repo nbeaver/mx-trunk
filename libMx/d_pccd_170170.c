@@ -1218,6 +1218,15 @@ mxd_pccd_170170_open( MX_RECORD *record )
 			fname, comm_fpga_version ));
 #endif
 
+	/* Initialize the detector to one-shot mode with an exposure time
+	 * of 1 second.
+	 */
+
+	mx_status = mx_area_detector_set_one_shot_mode( record, 1.0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -1313,6 +1322,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_CONTINUOUS:
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_STROBE:
 		break;
 
 	default:
@@ -1916,18 +1926,34 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			/* Fall through to the next case. */
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_STROBE:
 			if ( sequence_type == MXT_SQ_ONE_SHOT ) {
 				num_frames = 1;
 				exposure_time =
 				    ad->sequence_parameters.parameter_array[0];
 				frame_time = exposure_time;
-			} else {
+
+			} else if ( sequence_type == MXT_SQ_MULTIFRAME ) {
 				num_frames = mx_round(
 				    ad->sequence_parameters.parameter_array[0]);
 				exposure_time =
 				    ad->sequence_parameters.parameter_array[1];
 				frame_time =
 				    ad->sequence_parameters.parameter_array[2];
+
+			} else if ( sequence_type == MXT_SQ_STROBE ) {
+				num_frames = mx_round(
+				    ad->sequence_parameters.parameter_array[0]);
+				exposure_time =
+				    ad->sequence_parameters.parameter_array[1];
+
+				frame_time = exposure_time
+						+ ad->detector_readout_time;
+			} else {
+				return mx_error( MXE_FUNCTION_FAILED, fname,
+				"Inconsistent control structures for "
+				"sequence type.  Sequence type = %lu",
+					sequence_type );
 			}
 
 			mx_status = mxd_pccd_170170_write_register(
@@ -1988,7 +2014,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
-		case MXT_SQ_STROBE:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Detector sequence type %lu is not supported "
 			"for detector '%s'.",

@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG		FALSE
+#define MXD_EPIX_XCLIB_DEBUG		TRUE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME	TRUE
 
@@ -156,7 +156,7 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 
 	unsigned int exsync_mode, princ_mode, mask;
 	unsigned int epcd, trigneg, exps, cnts, tis;
-	long pixel_clock_divisor;
+	unsigned int pixel_clock_bitmap;
 	int epix_status;
 	unsigned long flags;
 	char error_message[80];
@@ -164,6 +164,39 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 			fname, vinput->record->name));
+
+#if 0
+	{
+		/* Show the EXSYNC and PRIN values and also the resulting
+		 * camera timing.
+		 */
+
+		int exsync_value, prin_value;
+		double timing_scale, epix_exposure_time, epix_frame_time;
+
+		exsync_value = pxd_getExsync( epix_xclib_vinput->unitmap );
+		prin_value   = pxd_getPrin( epix_xclib_vinput->unitmap );
+
+	MX_DEBUG(-2,("%s: EXSYNC value = %#x", fname, exsync_value));
+	MX_DEBUG(-2,("%s: PRIN value = %#x", fname, prin_value));
+	MX_DEBUG(-2,("%s: pixel clock divisor = %lu",
+		fname, epix_xclib_vinput->pixel_clock_divisor));
+
+		timing_scale = mx_divide_safely(
+				epix_xclib_vinput->pixel_clock_divisor,
+				vinput->pixel_clock_frequency );
+
+		epix_exposure_time = timing_scale * (double) exsync_value;
+
+		epix_frame_time = epix_exposure_time + 2.0e-6
+					+ timing_scale * (double) prin_value;
+
+		MX_DEBUG(-2,
+		("%s: EPIX exposure time = %g sec, EPIX frame time = %g sec",
+			fname, epix_exposure_time, epix_frame_time));
+	}
+#endif
+
 	MX_DEBUG(-2,("%s: trigger_time = %g, frame_time = %g",
 			fname, trigger_time, frame_time));
 	MX_DEBUG(-2,("%s: continuous_select = %d, trigger_input_select = %d",
@@ -192,11 +225,26 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 
 	/* Bits 9-7, EPCD, Exposure Pixel Clock Divide. */
 
-	epcd = 0x7 << 7;     /* Pixel clock divide by 512. */
+	switch( epix_xclib_vinput->pixel_clock_divisor ) {
+
+	case 512: pixel_clock_bitmap = 0x7; break;
+	case 256: pixel_clock_bitmap = 0x6; break;
+	case 128: pixel_clock_bitmap = 0x5; break;
+	case  64: pixel_clock_bitmap = 0x4; break;
+	case  32: pixel_clock_bitmap = 0x3; break;
+	case  16: pixel_clock_bitmap = 0x2; break;
+	case   8: pixel_clock_bitmap = 0x1; break;
+	case   4: pixel_clock_bitmap = 0x0; break;
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	    "Unsupported pixel clock divisor %lu for EPIX imaging board '%s'.",
+			epix_xclib_vinput->pixel_clock_divisor,
+			vinput->record->name );
+	}
+
+	epcd = pixel_clock_bitmap << 7;
 
 	princ_mode |= epcd;
-
-	pixel_clock_divisor = 512;
 
 	/* Bit 4, TRIGNEG, Trigger Input Polarity Select. */
 
@@ -414,6 +462,8 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib_vinput->unitmap = 1 << (epix_xclib_vinput->unit_number - 1);
 
+	epix_xclib_vinput->pixel_clock_divisor = 512;
+
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: board model = %#x",
 		fname, pxd_infoModel( epix_xclib_vinput->unitmap ) ));
@@ -587,11 +637,15 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	 * for all other modes.
 	 */
 
+#if 0
 	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 		continuous_select = FALSE;
 	} else {
 		continuous_select = TRUE;
 	}
+#else
+	continuous_select = TRUE;
+#endif
 
 	mx_status = mxd_epix_xclib_set_exsync_princ( vinput, epix_xclib_vinput,
 							trigger_time,
