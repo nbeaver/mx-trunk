@@ -41,13 +41,16 @@ motor_area_detector_fn( int argc, char *argv[] )
 	MX_AREA_DETECTOR *ad;
 	MX_SEQUENCE_PARAMETERS seq_params;
 	char *filename, *endptr;
+	char *filename_stem;
+	char filename_ext[20];
+	char frame_filename[MXU_FILENAME_LENGTH+1];
 	unsigned long datafile_type, correction_flags;
 	long frame_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
-	long i, last_frame_number;
-	long total_num_frames;
+	long i, last_frame_number, total_num_frames;
+	long old_total_num_frames, starting_total_num_frames;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -96,6 +99,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' take frame\n"
 "  area_detector 'name' write frame 'file_format' 'filename'\n"
 "  area_detector 'name' write roiframe 'file_format' 'filename'\n"
+"  area_detector 'name' sequence 'file_format' 'filename'\n"
 "\n"
 "  area_detector 'name' arm\n"
 "  area_detector 'name' trigger\n"
@@ -123,6 +127,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 #if MAREA_DETECTOR_DEBUG_TIMING
 	MX_HRT_TIMING measurement1, measurement2, measurement3, measurement4;
 #endif
+
+	strlcpy( frame_filename, "", sizeof(frame_filename) );
 
 	if ( argc < 4 ) {
 		fprintf( output, "%s\n", usage );
@@ -153,7 +159,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
-		if ( argc < 5 ) {
+		if ( argc < 6 ) {
 			fprintf( output,
 			"%s: not enough arguments to 'snap' command\n",
 				cname );
@@ -281,6 +287,118 @@ motor_area_detector_fn( int argc, char *argv[] )
 #endif
 		fprintf( output,
 			"Image file '%s' successfully written.\n", filename );
+	} else
+	if ( strncmp( "sequence", argv[3], strlen(argv[3]) ) == 0 ) {
+
+		if ( argc < 5 ) {
+			fprintf( output,
+			"%s: not enough arguments to 'snap' command\n",
+				cname );
+
+			fprintf( output, "%s\n", usage );
+			return FAILURE;
+		}
+
+		if ( strcmp( argv[4], "pnm" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_PNM;
+			strlcpy( filename_ext, "pnm", sizeof(filename_ext) );
+		} else
+		if ( strcmp( argv[4], "tiff" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_TIFF;
+			strlcpy( filename_ext, "tiff", sizeof(filename_ext) );
+		} else
+		if ( strcmp( argv[4], "smv" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_SMV;
+			strlcpy( filename_ext, "smv", sizeof(filename_ext) );
+		} else {
+			fprintf( output,
+				"%s: Unrecognized datafile type '%s'\n",
+				cname, argv[4] );
+
+			return FAILURE;
+		}
+
+		filename_stem = argv[5];
+
+		mx_status = mx_area_detector_get_extended_status( ad_record,
+						&last_frame_number,
+						&starting_total_num_frames,
+						&ad_status );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		fprintf( output, "Starting sequence\n" );
+		fflush( output );
+
+		mx_status = mx_area_detector_start( ad_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		old_total_num_frames = starting_total_num_frames;
+
+		for(;;) {
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				(void) mx_area_detector_stop( ad_record );
+
+				fprintf( output,
+			    "%s: Area detector '%s' sequence interrupted.\n",
+					cname, ad_record->name );
+
+				return FAILURE;
+			}
+
+			mx_status = mx_area_detector_get_extended_status(
+					ad_record,
+					&last_frame_number,
+					&total_num_frames,
+					&ad_status );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			if ( total_num_frames != old_total_num_frames ) {
+				fprintf( output, "Reading frame %ld.\n",
+					last_frame_number );
+
+#if 0
+				mx_status = mx_area_detector_get_frame(
+					ad_record, last_frame_number, &frame );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				snprintf(frame_filename, sizeof(frame_filename),
+					"%s%ld.%s", filename_stem,
+				   total_num_frames - starting_total_num_frames,
+					filename_ext );
+
+				fprintf( output, "Writing image file '%s'.  ",
+					frame_filename );
+
+				mx_status = mx_image_write_file( frame,
+						datafile_type, frame_filename );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return FAILURE;
+
+				fprintf( output, "Complete.\n" );
+#endif
+				old_total_num_frames = total_num_frames;
+			}
+
+			if ( (ad_status & MXSF_AD_IS_BUSY) == FALSE ) {
+
+				break;		/* Exit the for(;;) loop. */
+			}
+			mx_msleep(10);
+		}
+
+		fprintf( output, "Sequence complete.\n" );
+		fflush( output );
 	} else
 	if ( strncmp( "take", argv[3], strlen(argv[3]) ) == 0 ) {
 

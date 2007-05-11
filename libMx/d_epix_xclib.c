@@ -566,8 +566,9 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	sp = &(vinput->sequence_parameters);
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
+	MX_DEBUG(-2,("%s: External triggering selected.", fname));
 
+	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
@@ -657,6 +658,11 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 	/* Enable the external trigger on General Purpose Trigger 1. */
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: startbuf = %ld, endbuf = %ld, numbuf = %ld",
+		fname, startbuf, endbuf, numbuf));
+#endif
+
 	epix_status = pxd_goLiveSeqTrig( epix_xclib_vinput->unitmap,
 		startbuf, endbuf, 1, numbuf, 1,
 		0, 0,                   /* reserved */
@@ -733,8 +739,9 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	sp = &(vinput->sequence_parameters);
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
+	MX_DEBUG(-2,("%s: Internal triggering selected.", fname));
 
+	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
@@ -997,7 +1004,8 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	vinput->last_frame_number =
 		pxd_capturedBuffer( epix_xclib_vinput->unitmap ) - 1;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if 0 && MXD_EPIX_XCLIB_DEBUG	/* WML */
+
 	MX_DEBUG(-2,("%s: last_frame_number = %ld",
 		fname, vinput->last_frame_number ));
 #endif
@@ -1217,6 +1225,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 				colorspace );
 	}
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: result = %ld", fname, result));
+#endif
 	/* Was the read successful? */
 
 	if ( result < 0 ) {
@@ -1239,9 +1250,12 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
+#if 0
 	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
+#endif
+
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",
 		fname, frame->image_time.tv_sec, frame->image_time.tv_nsec));

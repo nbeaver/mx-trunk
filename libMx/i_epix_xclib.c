@@ -594,6 +594,11 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	pxbstatus->ddch.len = sizeof(struct pxbufstatus);
 	pxbstatus->ddch.mos = PXMOS_BUFSTATUS;
 
+#if 1
+	MX_DEBUG(-2,("%s: BEFORE pxd_goneLive() = %d",
+		fname, pxd_goneLive(1,0)));
+#endif
+
 	/* Escape to the Structured Style Interface. */
 
 	xc = pxd_xclibEscape(0, 0, 0);
@@ -626,6 +631,11 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	/* Return from the Structured Style Interface. */
 
 	epix_status = pxd_xclibEscaped(0, 0, 0);
+
+#if 1
+	MX_DEBUG(-2,("%s: AFTER pxd_goneLive() = %d",
+		fname, pxd_goneLive(1,0)));
+#endif
 
 	if ( epix_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
