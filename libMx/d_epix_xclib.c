@@ -484,6 +484,9 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
+	epix_xclib_vinput->num_write_test_array_bytes = 0;
+	epix_xclib_vinput->write_test_array = NULL;
+
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -534,6 +537,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
+	unsigned long old_array_bytes, new_array_bytes;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -547,11 +551,92 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+	/* If the 'write test' feature is enabled, fill
+	 * the first frame buffer with a test value.
+	 */
 
-		/* If external triggering is not enabled,
-		 * return without doing anything
-		 */
+#if 1
+	MX_DEBUG(-200,("%s: epix_xclib_vinput_flags = %#lx",
+		fname, epix_xclib_vinput->epix_xclib_vinput_flags));
+#endif
+
+	if ( epix_xclib_vinput->epix_xclib_vinput_flags & MXF_EPIX_WRITE_TEST) {
+
+		old_array_bytes = epix_xclib_vinput->num_write_test_array_bytes;
+
+		new_array_bytes = vinput->framesize[0] * vinput->framesize[1]
+						* sizeof(uint16_t);
+
+		if ( old_array_bytes == 0 ) {
+			if ( new_array_bytes == 0 ) {
+				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+					"The length requested by record '%s' "
+					"for the write test array is 0.",
+					vinput->record->name );
+			} else {
+				epix_xclib_vinput->write_test_array
+					= malloc( new_array_bytes );
+
+				epix_xclib_vinput->num_write_test_array_bytes
+					= new_array_bytes;
+			}
+		} else {
+			if ( new_array_bytes > old_array_bytes ) {
+				epix_xclib_vinput->write_test_array = realloc(
+					epix_xclib_vinput->write_test_array,
+					new_array_bytes );
+
+				epix_xclib_vinput->num_write_test_array_bytes
+					= new_array_bytes;
+			}
+		}
+
+		if ( epix_xclib_vinput->write_test_array == NULL ) {
+			epix_xclib_vinput->num_write_test_array_bytes = 0;
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"The write_test_array pointer for record '%s' is NULL.",
+				vinput->record->name );
+		}
+
+		memset( epix_xclib_vinput->write_test_array,
+			epix_xclib_vinput->write_test_value,
+			epix_xclib_vinput->num_write_test_array_bytes );
+
+#if 1
+		MX_DEBUG(-200,("%s: Writing a %lu byte array set to "
+			"the value %#lx for record '%s'.",
+			fname, epix_xclib_vinput->num_write_test_array_bytes,
+			epix_xclib_vinput->write_test_array[0],
+			vinput->record->name ));
+#endif
+		epix_status = pxd_writeushort( epix_xclib_vinput->unitmap, 1,
+					0, 0, -1, -1,
+					epix_xclib_vinput->write_test_array,
+			    epix_xclib_vinput->num_write_test_array_bytes / 2L,
+					"Grey" );
+#if 1
+		MX_DEBUG(-200,("%s: pxd_writeushort() epix_status = %d",
+			fname, epix_status));
+#endif
+		if ( epix_status < 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) ); 
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"An error occurred while writing a %lu byte "
+			"image frame to video input '%s'.  Error = '%s'.",
+		(unsigned long) epix_xclib_vinput->num_write_test_array_bytes,
+			vinput->record->name, error_message );
+		}
+	}
+
+	/* If external triggering is not enabled,
+	 * return without doing anything further.
+	 */
+
+	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
 #if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,

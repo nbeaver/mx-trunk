@@ -239,6 +239,11 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 	/* Initialize XCLIB. */
 
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: Loading EPIX configuration file '%s'.",
+		fname, epix_xclib->format_file ));
+#endif
+
 	epix_status = pxd_PIXCIopen( NULL, NULL, epix_xclib->format_file );
 
 	if ( epix_status < 0 ) {
