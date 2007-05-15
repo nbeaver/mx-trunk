@@ -1537,6 +1537,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	unsigned long flags;
+	mx_bool_type descramble;
 	size_t bytes_to_copy, raw_frame_length, image_length;
 	mx_status_type mx_status;
 
@@ -1569,10 +1570,20 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	flags = pccd_170170->pccd_170170_flags;
 
 	if ( flags & MXF_PCCD_170170_USE_CAMERA_SIMULATOR ) {
-		/* If we are using the camera simulator board, the data
-		 * stream coming in is not scrambled, so we just copy
-		 * directly from the raw frame to the image frame.
+		/* The camera simulator board provides data that 
+		 * is not scrambled, so we do not descramble it.
 		 */
+
+		descramble = FALSE;
+	} else
+	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
+		descramble = FALSE;
+	} else {
+		descramble = TRUE;
+	}
+
+	if ( descramble == FALSE ) {
+		/* Just copy directly from the raw frame to the image frame. */
 
 		raw_frame_length = pccd_170170->raw_frame->image_length;
 
