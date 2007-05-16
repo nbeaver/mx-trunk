@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG		TRUE
+#define MXD_EPIX_XCLIB_DEBUG		FALSE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME	TRUE
 
@@ -1566,7 +1566,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if 1 || MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: setting '%s' framesize to (%lu, %lu)",
 			fname, vinput->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
@@ -1619,6 +1619,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		/* Leave the Structured Style Interface. */
 
+#if 0    /* WML WML WML */
 		epix_status = pxd_xclibEscaped(0, 0, 0);
 
 		if ( epix_status != 0 ) {
@@ -1627,8 +1628,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Error code = %d",
 				vinput->record->name, epix_status );
 		}
+#endif   /* WML WML WML */
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if 1 || MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: finished setting '%s' framesize.",
 			fname, vinput->record->name));
 #endif

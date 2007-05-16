@@ -20,7 +20,7 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL		FALSE
+#define MXD_PCCD_170170_DEBUG_SERIAL		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
