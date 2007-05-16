@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #define MX_DEFINE_DRIVER_LISTS
 
@@ -37,9 +38,13 @@
 #define MXDI_FIELDS		4
 #define MXDI_DRIVERS		5
 #define MXDI_VERSION		6
+#define MXDI_LATEX_FIELDS	7
 
 static int find_driver( MX_DRIVER *driver_list,
 			char *name, MX_DRIVER **driver_found );
+
+static char * find_varargs_field_name( MX_DRIVER *driver,
+				long varargs_value, int debug );
 
 static int show_all_drivers( MX_DRIVER **list_of_types, int debug );
 
@@ -52,8 +57,12 @@ static int show_field_list( MX_DRIVER **list_of_types, char *item_name,
 static int show_field( MX_DRIVER *driver,
 		MX_RECORD_FIELD_DEFAULTS *field_defaults, int debug );
 
-static char * find_varargs_field_name( MX_DRIVER *driver,
-				long varargs_value, int debug );
+static int show_latex_field_table( MX_DRIVER **list_of_types, char *item_name,
+					int show_all_fields, int debug );
+
+static int show_latex_field( MX_DRIVER *driver,
+		MX_RECORD_FIELD_DEFAULTS *field_defaults, int debug );
+
 
 static char program_name[] = "mxdriverinfo";
 
@@ -89,7 +98,7 @@ main( int argc, char *argv[] ) {
 	show_all_fields = FALSE;
 	strcpy( item_name, "" );
 
-	while ((c = getopt(argc, argv, "a:c:df:F:lst:v")) != -1 ) {
+	while ((c = getopt(argc, argv, "a:c:df:lst:vA:F:")) != -1 ) {
 		switch (c) {
 		case 'a':
 			items_to_show = MXDI_FIELDS;
@@ -106,7 +115,6 @@ main( int argc, char *argv[] ) {
 			debug = TRUE;
 			break;
 		case 'f':
-		case 'F':
 			items_to_show = MXDI_FIELDS;
 			show_all_fields = FALSE;
 
@@ -125,6 +133,18 @@ main( int argc, char *argv[] ) {
 			break;
 		case 'v':
 			items_to_show = MXDI_VERSION;
+			break;
+		case 'A':
+			items_to_show = MXDI_LATEX_FIELDS;
+			show_all_fields = TRUE;
+
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
+			break;
+		case 'F':
+			items_to_show = MXDI_LATEX_FIELDS;
+			show_all_fields = FALSE;
+
+			strlcpy( item_name, optarg, MXU_DRIVER_NAME_LENGTH );
 			break;
 		case '?':
 			fprintf(stderr, usage_format, program_name);
@@ -160,6 +180,10 @@ main( int argc, char *argv[] ) {
 		fprintf(stderr, "\nMX version %s\n\n", mx_get_version_string());
 
 		status = SUCCESS;
+		break;
+	case MXDI_LATEX_FIELDS:
+		status = show_latex_field_table( list_of_types, item_name,
+						show_all_fields, debug );
 		break;
 	default:
 		fprintf(stderr, usage_format, program_name);
@@ -199,10 +223,47 @@ find_driver( MX_DRIVER *driver_list, char *name, MX_DRIVER **driver_found )
 	return FAILURE;
 }
 
+static char *
+find_varargs_field_name( MX_DRIVER *driver,
+			long varargs_cookie,
+			int debug )
+{
+	static char defaults_string[MXU_FIELD_NAME_LENGTH + 1];
+
+	MX_RECORD_FIELD_DEFAULTS *field_defaults_array;
+	MX_RECORD_FIELD_DEFAULTS *referenced_field_defaults;
+	unsigned long num_record_fields;
+	long field_index, array_in_field_index;
+
+	varargs_cookie = -varargs_cookie;
+
+	field_index = varargs_cookie / MXU_VARARGS_COOKIE_MULTIPLIER;
+
+	array_in_field_index = varargs_cookie % MXU_VARARGS_COOKIE_MULTIPLIER;
+
+	num_record_fields = *(driver->num_record_fields);
+
+	field_defaults_array = *(driver->record_field_defaults_ptr);
+
+	if ( ( field_index < 0 ) || ( field_index >= num_record_fields ) ) {
+		fprintf( stderr, "ERROR: Illegal referenced field index %ld\n",
+					field_index );
+		exit(1);
+	}
+
+	referenced_field_defaults = &field_defaults_array[ field_index ];
+
+	sprintf( defaults_string, "%s,%ld",
+				referenced_field_defaults->name,
+				array_in_field_index );
+
+	return &defaults_string[0];
+}
+
 static int
 show_all_drivers( MX_DRIVER **list_of_types, int debug )
 {
-	const char fname[] = "show_all_drivers()";
+	static const char fname[] = "show_all_drivers()";
 
 	MX_DRIVER *superclass_list, *class_list, *type_list;
 	MX_DRIVER *driver;
@@ -306,7 +367,7 @@ show_drivers( MX_DRIVER **list_of_types,
 		char *item_name,
 		int debug )
 {
-	const char fname[] = "show_drivers()";
+	static const char fname[] = "show_drivers()";
 
 	MX_DRIVER *item_list;
 	MX_DRIVER *driver;
@@ -400,7 +461,7 @@ show_field_list( MX_DRIVER **list_of_types,
 		int show_all_fields,
 		int debug )
 {
-	const char fname[] = "show_field_list()";
+	static const char fname[] = "show_field_list()";
 
 	MX_DRIVER *driver_list;
 	MX_DRIVER *driver;
@@ -519,40 +580,197 @@ show_field( MX_DRIVER *driver,
 	return SUCCESS;
 }
 
-static char *
-find_varargs_field_name( MX_DRIVER *driver,
-			long varargs_cookie,
-			int debug )
+/*--------------------------------------------------------------------------*/
+
+/* The following functions are intended to help in constructing field tables
+ * for the MX Driver Reference Manual.  They are probably not useful for
+ * other purposes.
+ */
+
+static int
+show_latex_field_table( MX_DRIVER **list_of_types,
+		char *driver_name,
+		int show_all_fields,
+		int debug )
 {
-	static char defaults_string[MXU_FIELD_NAME_LENGTH + 1];
+	static const char fname[] = "show_latex_field_table()";
 
-	MX_RECORD_FIELD_DEFAULTS *field_defaults_array;
-	MX_RECORD_FIELD_DEFAULTS *referenced_field_defaults;
-	unsigned long num_record_fields;
-	long field_index, array_in_field_index;
+	MX_DRIVER *driver_list;
+	MX_DRIVER *driver;
+	MX_RECORD_FIELD_DEFAULTS *field_defaults_array, *field_defaults;
+	unsigned long i;
+	int status;
 
-	varargs_cookie = -varargs_cookie;
+	if ( debug ) {
+		fprintf(stderr, "%s invoked for driver '%s'\n",
+			fname, driver_name);
+	}
 
-	field_index = varargs_cookie / MXU_VARARGS_COOKIE_MULTIPLIER;
+	/* Initialize the MX device drivers. */
 
-	array_in_field_index = varargs_cookie % MXU_VARARGS_COOKIE_MULTIPLIER;
+	mx_initialize_drivers();
 
-	num_record_fields = *(driver->num_record_fields);
+	/* Walk through the list of drivers looking for the requested driver. */
+
+	driver_list = list_of_types[2];
+
+	for ( i = 0; ; i++ ) {
+		if ( driver_list[i].mx_superclass == 0 ) {
+			/* End of the list. */
+
+			fprintf(stderr, "The MX driver '%s' was not found.\n",
+					driver_name );
+			exit(1);
+		}
+
+		if ( strcmp( driver_name, driver_list[i].name ) == 0 ) {
+			driver = &driver_list[i];
+
+			break;	/* Exit the for() loop. */
+		}
+	}
+
+	/* The pointers to the number of record fields and the record
+	 * field defaults array must both be non-NULL for us to proceed.
+	 */
+
+	if ( ( driver->num_record_fields == NULL ) 
+	  || ( driver->record_field_defaults_ptr == NULL ) )
+	{
+		/* This driver has no fields available and is not currently
+		 * useable, so we do not try to do anything further with it.
+		 */
+
+		return SUCCESS;
+	}
+
+	/* Print out a header for the LaTeX table. */
+
+	printf( "\\begin{tabular}{|c|c|c|c|p{72mm}|}\n" );
+	printf( "\\hline\n" );
+	printf(
+	"\\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
+	printf(
+	"          & \\MxTextSizes & \\MxTextDescriptions \\\\\n" );
+	printf( "\\hline\n" );
+	printf( "%%\\multicolumn{5}{|c|}{\\linkmotorfields} \\\\\n" );
+	printf( "%%\\hline\n" );
+
+	/* Show the field list. */
 
 	field_defaults_array = *(driver->record_field_defaults_ptr);
 
-	if ( ( field_index < 0 ) || ( field_index >= num_record_fields ) ) {
-		fprintf( stderr, "ERROR: Illegal referenced field index %ld\n",
-					field_index );
-		exit(1);
+	for ( i = 0; i < *(driver->num_record_fields); i++ ) {
+
+		field_defaults = &field_defaults_array[i];
+
+		if ( ( show_all_fields == TRUE )
+		  || ( field_defaults->flags & MXFF_IN_DESCRIPTION ) )
+		{
+			status = show_latex_field( driver,
+					field_defaults, debug );
+
+		}
 	}
 
-	referenced_field_defaults = &field_defaults_array[ field_index ];
+	printf( "\\end{tabular}\n" );
 
-	sprintf( defaults_string, "%s,%ld",
-				referenced_field_defaults->name,
-				array_in_field_index );
-
-	return &defaults_string[0];
+	return SUCCESS;
 }
+
+static int
+show_latex_field( MX_DRIVER *driver,
+		MX_RECORD_FIELD_DEFAULTS *field_defaults,
+		int debug )
+{
+	char buffer[500];
+	char *name_ptr;
+	const char *type_ptr;
+	unsigned long i, j, length;
+	long dimension, num_dimensions;
+	long field_is_varargs;
+
+	field_is_varargs = ( field_defaults->flags & MXFF_VARARGS );
+
+	/* Print out the field name with LaTeX escapes for underscores. */
+
+	name_ptr = field_defaults->name;
+
+	length = strlen(name_ptr);
+
+	for ( i = 0, j = 0; i < length; i++, j++ ) {
+		if ( name_ptr[i] == '_' ) {
+			buffer[j] = '\\';
+			j++;
+		}
+		buffer[j] = name_ptr[i];
+	}
+	buffer[j] = '\0';
+
+	printf( "\\textit{%s} & ", buffer );
+
+	/* Print out the field datatype in lower case with the MXFT_ prefix
+	 * removed and with LaTeX escapes for underscores.
+	 */
+
+	type_ptr = mx_get_field_type_string( field_defaults->datatype );
+	type_ptr += 5;
+
+	length = strlen(type_ptr);
+
+	for ( i = 0, j = 0; i < length; i++, j++ ) {
+		if ( type_ptr[i] == '_' ) {
+			buffer[j] = '\\';
+			j++;
+		}
+		buffer[j] = tolower(type_ptr[i]);
+	}
+	buffer[j] = '\0';
+
+	printf( "\\textit{%s} & ", buffer );
+
+	/* Display the number of dimensions. */
+
+	if ( field_defaults->num_dimensions < 0 ) {
+		num_dimensions = MXU_FIELD_MAX_DIMENSIONS;
+
+		printf( "\\textit{%s} & ", find_varargs_field_name( driver,
+					field_defaults->num_dimensions,
+					debug ) );
+	} else {
+		num_dimensions = field_defaults->num_dimensions;
+
+		printf( "%ld & ", num_dimensions );
+	}
+
+	/* Display each of the dimensions in turn. */
+
+	if ( num_dimensions == 0 ) {
+		printf( "0" );
+	} else {
+		for ( i = 0; i < num_dimensions; i++ ) {
+
+			if ( i > 0 ) {
+				printf( ", " );
+			}
+
+			dimension = field_defaults->dimension[i];
+
+			if ( dimension < 0 ) {
+				printf( "\textit{%s}",
+					find_varargs_field_name( driver,
+					dimension, debug ) );
+			} else {
+				printf( "%ld", dimension );
+			}
+		}
+	}
+
+	printf( " & xxx \\\\\n" );
+	printf( "\\hline\n" );
+
+	return SUCCESS;
+}
+
+/*--------------------------------------------------------------------------*/
 

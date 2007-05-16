@@ -604,8 +604,8 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			epix_xclib_vinput->num_write_test_array_bytes );
 
 #if 1
-		MX_DEBUG(-200,("%s: Writing a %lu byte array set to "
-			"the value %#lx for record '%s'.",
+		MX_DEBUG(-2,("%s: Writing a %lu byte array set to "
+			"the value %#x for record '%s'.",
 			fname, epix_xclib_vinput->num_write_test_array_bytes,
 			epix_xclib_vinput->write_test_array[0],
 			vinput->record->name ));
@@ -616,9 +616,10 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			    epix_xclib_vinput->num_write_test_array_bytes / 2L,
 					"Grey" );
 #if 1
-		MX_DEBUG(-200,("%s: pxd_writeushort() epix_status = %d",
+		MX_DEBUG(-2,("%s: pxd_writeushort() epix_status = %d",
 			fname, epix_status));
 #endif
+
 		if ( epix_status < 0 ) {
 			mxi_epix_xclib_error_message(
 				epix_xclib_vinput->unitmap, epix_status,

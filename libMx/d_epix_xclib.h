@@ -34,7 +34,7 @@ typedef struct {
 	double default_trigger_time;
 	long pixel_clock_divisor;
 
-	size_t num_write_test_array_bytes;
+	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 
 } MX_EPIX_XCLIB_VIDEO_INPUT;
