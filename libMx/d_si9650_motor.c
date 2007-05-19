@@ -8,14 +8,14 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2003, 2005 Illinois Institute of Technology
+ * Copyright 2003, 2005, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
-#define SI9650_MOTOR_DEBUG	FALSE
+#define SI9650_MOTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -255,12 +255,12 @@ mxd_si9650_motor_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  Motor type         = SI9650_MOTOR.\n\n");
 	fprintf(file, "  name               = %s\n", record->name);
 
-	if ( controller_interface->record->mx_type == MXI_RS232 ) {
+	if ( controller_interface->record->mx_class == MXI_RS232 ) {
 		fprintf(file,
 		      "  RS-232 interface   = %s\n",
 		      controller_interface->record->name );
 
-	} else if ( controller_interface->record->mx_type == MXI_GPIB ) {
+	} else if ( controller_interface->record->mx_class == MXI_GPIB ) {
 		fprintf(file,
 		      "  GPIB interface     = %s\n",
 		      controller_interface->record->name );
@@ -355,7 +355,7 @@ mxd_si9650_motor_open( MX_RECORD *record )
 
 	/* Throw away any unread and unwritten characters. */
 
-	if ( controller_interface->record->mx_type == MXI_RS232 ) {
+	if ( controller_interface->record->mx_class == MXI_RS232 ) {
 		mx_status = mx_rs232_discard_unread_input(
 			controller_interface->record,
 			SI9650_MOTOR_DEBUG );
@@ -564,7 +564,7 @@ mxd_si9650_motor_command( MX_SI9650_MOTOR *si9650_motor,
 		MX_DEBUG(-2,("%s: sending command '%s'.", fname, command));
 	}
 
-	if ( controller_interface->record->mx_type == MXI_GPIB ) {
+	if ( controller_interface->record->mx_class == MXI_GPIB ) {
 		mx_status = mx_gpib_putline( controller_interface->record,
 						controller_interface->address,
 						command, NULL,
@@ -586,7 +586,7 @@ mxd_si9650_motor_command( MX_SI9650_MOTOR *si9650_motor,
 
 	/* Get the response. */
 
-	if ( controller_interface->record->mx_type == MXI_GPIB ) {
+	if ( controller_interface->record->mx_class == MXI_GPIB ) {
 		mx_status = mx_gpib_getline( controller_interface->record,
 						controller_interface->address,
 						response, max_response_length,

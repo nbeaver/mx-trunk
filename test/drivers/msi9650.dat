@@ -1,0 +1,2 @@
+gpib0   interface gpib linux_gpib "" "" 10.0 0 0xa 0x0 0x0 0
+displex device motor si9650_motor "" "" 0 0 10 300 0 -1 -1 1 0 K gpib0:15 10 1

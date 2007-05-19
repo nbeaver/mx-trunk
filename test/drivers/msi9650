@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -i -F ./msi9650.dat -s ./ssi9650.dat $*
+

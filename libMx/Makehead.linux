@@ -29,8 +29,8 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -46,6 +46,9 @@ LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
+
+LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
+LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
 #LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -149,9 +152,8 @@ NI488_LIBRARIES = -lgpib
 #NI488_LIBRARIES = -lgpibenet
 
 #
-LLP_GPIB_INCLUDES  = -I/usr/local/include/gpib
-LLP_GPIB_LIB_DIR   = -L/usr/local/lib
-LLP_GPIB_LIBRARIES = -lgpib -lfl
+LINUX_GPIB_LIB_DIR   =
+LINUX_GPIB_LIBRARIES = -lgpib
 
 #
 LIBUSB_INCLUDES   =
