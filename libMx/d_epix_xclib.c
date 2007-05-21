@@ -555,8 +555,8 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	 * the first frame buffer with a test value.
 	 */
 
-#if 1
-	MX_DEBUG(-200,("%s: epix_xclib_vinput_flags = %#lx",
+#if 0
+	MX_DEBUG(-2,("%s: epix_xclib_vinput_flags = %#lx",
 		fname, epix_xclib_vinput->epix_xclib_vinput_flags));
 #endif
 

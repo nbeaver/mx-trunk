@@ -47,7 +47,7 @@
  *
  */
 
-#define HAVE_EPIX_XCLIB			0
+#define HAVE_EPIX_XCLIB			1
 
 /*****************************************************************************
  *
@@ -80,7 +80,7 @@
  * this would lead to name conflicts at link time.
  */
 
-#define HAVE_LINUX_GPIB			1
+#define HAVE_LINUX_GPIB			0
 
 /*****************************************************************************
  *

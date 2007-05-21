@@ -29,8 +29,8 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
 #LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
@@ -47,8 +47,8 @@ INCLUDES	= $(MX_INCLUDES)
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI488_LIB_DIRS)
 #LIBRARIES	= $(NI488_LIBRARIES) -lpthread -lrt -ldl -lm
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
-LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(LINUX_GPIB_LIB_DIRS)
+#LIBRARIES	= $(LINUX_GPIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(XIA_HANDEL_LIB_DIRS)
 #LIBRARIES	= $(XIA_HANDEL_LIBRARIES) -lpthread -lrt -ldl -lm
