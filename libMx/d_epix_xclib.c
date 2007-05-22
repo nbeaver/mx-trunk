@@ -658,8 +658,8 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
 
-	/* Compute all of the parameters needed by the sequence.
-	 * Only one-shot and strobe sequences are supported
+	/* Compute all of the parameters needed by the sequence.  One-shot,
+	 * strobe, sub-image, and streak camera sequences are supported
 	 * with external triggers.
 	 */
 
@@ -683,6 +683,27 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 		trigger_time = epix_xclib_vinput->default_trigger_time;
 		break;
+
+	case MXT_SQ_STREAK_CAMERA:
+		startbuf = 1;
+		endbuf = 1;
+		numbuf = 1;
+
+		frame_time = sp->parameter_array[0] * sp->parameter_array[1];
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
+		break;
+
+	case MXT_SQ_SUBIMAGE:
+		startbuf = 1;
+		endbuf = 1;
+		numbuf = 1;
+
+		frame_time = sp->parameter_array[1] * sp->parameter_array[3];
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
+		break;
+
 
 	case MXT_SQ_CONTINUOUS:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -726,7 +747,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 #if 0
 	if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
-		continuous_select = FALSE;
+		continuous_select = FALSE;   /* _Not_ supported by the HW! */
 	} else {
 		continuous_select = TRUE;
 	}
@@ -857,6 +878,12 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 		frame_time = sp->parameter_array[2];
 		break;
+	case MXT_SQ_STREAK_CAMERA:
+		frame_time = sp->parameter_array[0] * sp->parameter_array[1];
+		break;
+	case MXT_SQ_SUBIMAGE:
+		frame_time = sp->parameter_array[1] * sp->parameter_array[3];
+		break;
 	default:
 		frame_time = -1;
 		break;
@@ -869,10 +896,15 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		 * mode and to TRUE for all other modes.
 		 */
 
-		if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_STREAK_CAMERA:
+		case MXT_SQ_SUBIMAGE:
 			continuous_select = FALSE;
-		} else {
+			break;
+		default:
 			continuous_select = TRUE;
+			break;
 		}
 
 		mx_status = mxd_epix_xclib_set_exsync_princ(
@@ -889,10 +921,12 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_STREAK_CAMERA:
+	case MXT_SQ_SUBIMAGE:
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: triggering one shot mode for vinput '%s'.",
-		fname, vinput->record->name ));
+	MX_DEBUG(-2,("%s: triggering one-shot, streak camera, "
+	    "or subimage mode for vinput '%s'.", fname, vinput->record->name ));
 #endif
 		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 

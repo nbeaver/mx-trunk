@@ -47,6 +47,8 @@ typedef struct {
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
 
+	long vinput_normal_framesize[2];
+
 	MX_IMAGE_FRAME *raw_frame;
 
 	long old_framesize[2];

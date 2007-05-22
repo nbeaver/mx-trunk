@@ -1021,6 +1021,13 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Initialize some parameters used to switch between streak camera
+	 * mode and other modes.
+	 */
+
+	pccd_170170->vinput_normal_framesize[0] = vinput_framesize[0];
+	pccd_170170->vinput_normal_framesize[1] = vinput_framesize[1];
+
 	/* Allocate space for a raw frame buffer.  This buffer will be used to
 	 * read in the raw pixels from the imaging board before descrambling.
 	 */
@@ -1822,9 +1829,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD_FIELD *field;
+	MX_SEQUENCE_PARAMETERS *sp;
 	unsigned long *register_value_ptr;
+	unsigned long old_control_register_value, new_control_register_value;
+	unsigned long old_detector_readout_mode;
 	long vinput_horiz_framesize, vinput_vert_framesize;
-	long sequence_type, num_frames, exposure_steps, gap_steps;
+	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	double exposure_time, frame_time, gap_time;
 	double exposure_multiplier, gap_multiplier;
@@ -1888,6 +1898,24 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record,
 					vinput_horiz_framesize,
 					vinput_vert_framesize );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if 1 /* FIXME - I'm not sure if we want to do the following or not.    */
+      /*         The alternative would be to _only_ save the resolution */
+      /*         when we switch to streak camera mode.                  */
+
+		/* If the resolution change succeeded, save the framesize for
+		 * later use in switching to and from streak camera mode.
+		 */
+
+		pccd_170170->vinput_normal_framesize[0] =
+						vinput_horiz_framesize;
+
+		pccd_170170->vinput_normal_framesize[1] =
+						vinput_vert_framesize;
+#endif
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -1901,14 +1929,32 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Reprogram the detector head. */
+		/* Get the old detector readout mode, since that will be
+		 * used by the following code.
+		 */
 
-		sequence_type = ad->sequence_parameters.sequence_type;
+		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					&old_control_register_value );
 
-		switch( sequence_type ) {
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		old_detector_readout_mode = 
+				(old_control_register_value >> 3) & 0x3;
+#if 1
+		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
+			fname, old_control_register_value));
+		MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
+			fname, old_detector_readout_mode));
+#endif
+		/* Reprogram the detector head for the requested sequence. */
+
+		sp = &(ad->sequence_parameters);
+
+		switch( sp->sequence_type ) {
 		case MXT_SQ_GEOMETRICAL:
-			exposure_multiplier =
-				ad->sequence_parameters.parameter_array[3];
+			exposure_multiplier = sp->parameter_array[3];
 
 			exposure_multiplier_steps = mx_round(
 						exposure_multiplier / 0.078 );
@@ -1921,8 +1967,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			gap_multiplier =
-				ad->sequence_parameters.parameter_array[3];
+			gap_multiplier = sp->parameter_array[3];
 
 			gap_multiplier_steps = mx_round(gap_multiplier / 0.078);
 
@@ -1934,29 +1979,61 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			/* Fall through to the next case. */
+			/* No break since we fall through to the next case. */
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_MULTIFRAME:
 		case MXT_SQ_STROBE:
-			if ( sequence_type == MXT_SQ_ONE_SHOT ) {
+			if ( old_detector_readout_mode != 0 ) {
+				/* We must switch to full frame mode. */
+
+				new_control_register_value =
+					old_control_register_value & (~0x18);
+#if 1
+				MX_DEBUG(-2,
+			("%s: (full frame) new_control_register_value = %#lx",
+					fname, new_control_register_value));
+#endif
+				mx_status = mxd_pccd_170170_write_register(
+						pccd_170170,
+						MXLV_PCCD_170170_DH_CONTROL,
+						new_control_register_value );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* If we were previously in streak camera mode,
+				 * we must also restore the normal imaging
+				 * board framesize.
+				 */
+
+				if ( old_detector_readout_mode == 0x3 ) {
+				    mx_status = mx_video_input_set_framesize(
+					pccd_170170->video_input_record,
+					pccd_170170->vinput_normal_framesize[0],
+				       pccd_170170->vinput_normal_framesize[1]);
+
+				    if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+				}
+			}
+
+			/* Configure the detector head for the requested 
+			 * number of frames, exposure time, and gap time.
+			 */
+
+			if ( sp->sequence_type == MXT_SQ_ONE_SHOT ) {
 				num_frames = 1;
-				exposure_time =
-				    ad->sequence_parameters.parameter_array[0];
+				exposure_time = sp->parameter_array[0];
 				frame_time = exposure_time;
 
-			} else if ( sequence_type == MXT_SQ_MULTIFRAME ) {
-				num_frames = mx_round(
-				    ad->sequence_parameters.parameter_array[0]);
-				exposure_time =
-				    ad->sequence_parameters.parameter_array[1];
-				frame_time =
-				    ad->sequence_parameters.parameter_array[2];
+			} else if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+				num_frames = mx_round( sp->parameter_array[0] );
+				exposure_time = sp->parameter_array[1];
+				frame_time = sp->parameter_array[2];
 
-			} else if ( sequence_type == MXT_SQ_STROBE ) {
-				num_frames = mx_round(
-				    ad->sequence_parameters.parameter_array[0]);
-				exposure_time =
-				    ad->sequence_parameters.parameter_array[1];
+			} else if ( sp->sequence_type == MXT_SQ_STROBE ) {
+				num_frames = mx_round( sp->parameter_array[0] );
+				exposure_time = sp->parameter_array[1];
 
 				frame_time = exposure_time
 						+ ad->detector_readout_time;
@@ -1964,7 +2041,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 				"Inconsistent control structures for "
 				"sequence type.  Sequence type = %lu",
-					sequence_type );
+					sp->sequence_type );
 			}
 
 			mx_status = mxd_pccd_170170_write_register(
@@ -2023,24 +2100,168 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					return mx_status;
 			}
 			break;
+		case MXT_SQ_STREAK_CAMERA:
+			if ( old_detector_readout_mode != 0x3 ) {
+				/* Before switching to streak camera mode,
+				 * save the video board's current framesize
+				 * for later restoration.
+				 */
+
+				mx_status = mx_video_input_get_framesize(
+					pccd_170170->video_input_record,
+				    &(pccd_170170->vinput_normal_framesize[0]),
+				    &(pccd_170170->vinput_normal_framesize[1]));
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* Now switch to streak camera mode. */
+
+				new_control_register_value =
+					old_control_register_value | 0x18;
+#if 1
+				MX_DEBUG(-2,
+		       ("%s: (streak camera) new_control_register_value = %#lx",
+					fname, new_control_register_value));
+#endif
+				mx_status = mxd_pccd_170170_write_register(
+						pccd_170170,
+						MXLV_PCCD_170170_DH_CONTROL,
+						new_control_register_value );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+
+			/* Set the number of frames in sequence to 1. */
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+					1 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the number of streak camera mode lines.*/
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
+					mx_round( sp->parameter_array[0] ));
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the exposure time per line. */
+
+			exposure_time = sp->parameter_array[1];
+
+			exposure_steps = mx_round( exposure_time / 0.01 );
+
+			mx_status = mxd_pccd_170170_write_register(
+				pccd_170170,
+				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+				exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
+		case MXT_SQ_SUBIMAGE:
+			if ( old_detector_readout_mode != 0x2 ) {
+				/* Switch to sub-image mode. */
+
+				new_control_register_value =
+					old_control_register_value & (~0x18);
+
+				new_control_register_value |= 0x10;
+#if 1
+				MX_DEBUG(-2,
+			("%s: (sub-image) new_control_register_value = %#lx",
+					fname, new_control_register_value));
+#endif
+				mx_status = mxd_pccd_170170_write_register(
+						pccd_170170,
+						MXLV_PCCD_170170_DH_CONTROL,
+						new_control_register_value );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				/* If we were previously in streak camera mode,
+				 * we must also restore the normal imaging
+				 * board framesize.
+				 */
+
+				if ( old_detector_readout_mode == 0x3 ) {
+				    mx_status = mx_video_input_set_framesize(
+					pccd_170170->video_input_record,
+					pccd_170170->vinput_normal_framesize[0],
+				       pccd_170170->vinput_normal_framesize[1]);
+
+				    if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+				}
+			}
+
+			/* Set the number of frames in sequence to 1. */
+
+			mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+					1 );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the number of lines per subimage. */
+
+			mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_SUBIMAGE_LINES,
+					mx_round(sp->parameter_array[0]) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the number of subimages per frame. */
+
+			mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
+					mx_round(sp->parameter_array[1]) );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the exposure time. */
+
+			exposure_time = sp->parameter_array[2];
+
+			exposure_steps = mx_round( exposure_time / 0.01 );
+
+			mx_status = mxd_pccd_170170_write_register(
+				pccd_170170,
+				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
+				exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+			break;
 		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Detector sequence type %lu is not supported "
 			"for detector '%s'.",
-				sequence_type, ad->record->name );
+				sp->sequence_type, ad->record->name );
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal sequence type %ld requested "
 			"for detector '%s'.",
-				sequence_type, ad->record->name );
+				sp->sequence_type, ad->record->name );
 		}
 
 		/* Reprogram the imaging board. */
 
 		mx_status = mx_video_input_set_sequence_parameters(
-					pccd_170170->video_input_record,
-					&(ad->sequence_parameters) );
+					pccd_170170->video_input_record, sp );
 		break; 
 
 	case MXLV_AD_TRIGGER_MODE:
