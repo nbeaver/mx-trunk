@@ -8,7 +8,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2003, 2005-2006 Illinois Institute of Technology
+ * Copyright 1999-2003, 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -917,7 +917,7 @@ mxd_compumotor_set_position( MX_MOTOR *motor )
 	for ( j = 0; j < num_axes; j++ ) {
 
 		if ( j != 0 ) {
-			strlcpy( buffer, ",", sizeof(buffer) );
+			strlcat( command, ",", sizeof(command) );
 		}
 		if ( j+1 == compumotor->axis_number ) {
 			snprintf( buffer, sizeof(buffer),
