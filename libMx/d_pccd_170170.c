@@ -20,7 +20,7 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL		FALSE
+#define MXD_PCCD_170170_DEBUG_SERIAL		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -866,6 +866,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	size_t array_size;
 	mx_status_type mx_status;
 
+#if 1
+	unsigned long control_register_value;
+#endif
+
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_RECORD pointer passed was NULL." );
@@ -911,159 +915,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		"used by area detector '%s' is NULL.",
 			video_input_record->name, record->name );
 	}
-
-	/* The PCCD-170170 camera generates 16 bit per pixel images. */
-
-	vinput->bits_per_pixel = 16;
-	ad->bits_per_pixel = vinput->bits_per_pixel;
-
-	/* Set the default file format. */
-
-	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
-
-	ad->binsize[0] = 1;
-	ad->binsize[1] = 1;
-
-	ad->sequence_parameters.sequence_type = MXT_SQ_ONE_SHOT;
-	ad->sequence_parameters.num_parameters = 1;
-	ad->sequence_parameters.parameter_array[0] = 1.0;
-
-	/* Get the video input's current framesize, which will be used
-	 * to compute the area detector's maximum framesize.
-	 */
-
-	mx_status = mx_video_input_get_framesize( video_input_record,
-					&vinput_framesize[0],
-					&vinput_framesize[1] );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* At maximum resolution, the Aviex camera is configured such that
-	 * each line contains 1024 groups of pixels, with 16 pixels per group.
-	 * There are a total of 1024 lines.  This means that at maximum
-	 * resolution, the video input is configured for a resolution
-	 * of 16384 by 1024.  However, we want this to appear to the user
-	 * to have a resolution of 4096 by 4096.  Thus we must rescale the
-	 * resolution as reported by the video card by multiplying and
-	 * dividing by appropriate factors of 4.
-	 */
-
-	ad->maximum_framesize[0] =
-		vinput_framesize[0] / MXF_PCCD_170170_HORIZ_SCALE;
-
-	ad->maximum_framesize[1] =
-		vinput_framesize[1] * MXF_PCCD_170170_VERT_SCALE;
-
-	/* Copy the maximum framesize to the current framesize. */
-
-	ad->framesize[0] = ad->maximum_framesize[0];
-	ad->framesize[1] = ad->maximum_framesize[1];
-
-	/* The pixel clock frequency is 60 MHz. */
-
-	mx_status = mx_video_input_set_pixel_clock_frequency(
-				video_input_record, 6.0e7 );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Configure the video input's external trigger to trigger on
-	 * the rising edge of the trigger pulse.
-	 */
-
-	mx_status = mx_video_input_set_external_trigger_polarity(
-				video_input_record, MXF_VIN_TRIGGER_RISING );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Configure the video input to use negative Camera Link pulses. */
-
-	mx_status = mx_video_input_set_camera_trigger_polarity(
-				video_input_record, MXF_VIN_TRIGGER_LOW );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Set the video input's initial trigger mode (internal/external/etc) */
-
-	mx_status = mx_video_input_set_trigger_mode( video_input_record,
-				pccd_170170->initial_trigger_mode );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Load the image correction files. */
-
-	mx_status = mx_area_detector_load_correction_files( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Initialize area detector parameters. */
-
-	ad->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
-	ad->header_length = 0;
-
-	mx_status = mx_area_detector_get_image_format( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_get_bytes_per_pixel( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/* Initialize some parameters used to switch between streak camera
-	 * mode and other modes.
-	 */
-
-	pccd_170170->vinput_normal_framesize[0] = vinput_framesize[0];
-	pccd_170170->vinput_normal_framesize[1] = vinput_framesize[1];
-
-	/* Allocate space for a raw frame buffer.  This buffer will be used to
-	 * read in the raw pixels from the imaging board before descrambling.
-	 */
-
-#if 0
-	MX_DEBUG(-2,("%s: Before final call to mx_image_alloc()", fname));
-
-	MX_DEBUG(-2,("%s: &(pccd_170170->raw_frame) = %p",
-			fname, &(pccd_170170->raw_frame) ));
-
-	MX_DEBUG(-2,("%s: vinput_framesize = (%lu,%lu)",
-			fname, vinput_framesize[0], vinput_framesize[1]));
-
-	MX_DEBUG(-2,("%s: image_format = %ld", fname, ad->image_format ));
-	MX_DEBUG(-2,("%s: pixel_order = %ld", fname, ad->pixel_order ));
-	MX_DEBUG(-2,("%s: bytes_per_pixel = %g", fname, ad->bytes_per_pixel));
-	MX_DEBUG(-2,("%s: header_length = %ld", fname, ad->header_length));
-	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
-#endif
-
-	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					vinput_framesize,
-					ad->image_format,
-					ad->pixel_order,
-					ad->bytes_per_pixel,
-					ad->header_length,
-					ad->bytes_per_frame );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	pccd_170170->old_framesize[0] = -1;
-	pccd_170170->old_framesize[1] = -1;
-
-	pccd_170170->image_sector_array = NULL;
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
@@ -1224,6 +1075,168 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
 			fname, comm_fpga_version ));
 #endif
+
+	/* The PCCD-170170 camera generates 16 bit per pixel images. */
+
+	vinput->bits_per_pixel = 16;
+	ad->bits_per_pixel = vinput->bits_per_pixel;
+
+	/* Set the default file format. */
+
+	ad->frame_file_format = MXT_IMAGE_FILE_SMV;
+
+	/* In unbinned mode, the Aviex camera is configured such that
+	 * each line contains 1024 groups of pixels, with 16 pixels
+	 * per group.  This means that for maximum resolution in
+	 * full frame mode, the video input will be configured for a
+	 * resolution of 16384 by 1024.  However, we want this to appear
+	 * to the user to have a resolution of 4096 by 4096.  Thus we
+         * must rescale the resolution as reported by the video card by
+	 * multiplying and dividing by appropriate factors of 4.
+	 */
+
+	ad->maximum_framesize[0] = 4096;
+	ad->maximum_framesize[1] = 65536;	/* For streak camera mode. */
+
+	/* Set the default framesize and binning. */
+
+	ad->framesize[0] = 4096;
+	ad->framesize[1] = 4096;
+
+	mx_status = mx_area_detector_set_binsize( record, 1, 1 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Put the detector head in full frame mode. */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					&control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	control_register_value &= (~0x18);
+
+	mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_CONTROL,
+					control_register_value );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* The pixel clock frequency is 60 MHz. */
+
+	mx_status = mx_video_input_set_pixel_clock_frequency(
+				video_input_record, 6.0e7 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the video input's external trigger to trigger on
+	 * the rising edge of the trigger pulse.
+	 */
+
+	mx_status = mx_video_input_set_external_trigger_polarity(
+				video_input_record, MXF_VIN_TRIGGER_RISING );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Configure the video input to use negative Camera Link pulses. */
+
+	mx_status = mx_video_input_set_camera_trigger_polarity(
+				video_input_record, MXF_VIN_TRIGGER_LOW );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Set the video input's initial trigger mode (internal/external/etc) */
+
+	mx_status = mx_video_input_set_trigger_mode( video_input_record,
+				pccd_170170->initial_trigger_mode );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Load the image correction files. */
+
+	mx_status = mx_area_detector_load_correction_files( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize area detector parameters. */
+
+	ad->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	ad->header_length = 0;
+
+	mx_status = mx_area_detector_get_image_format( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_pixel( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Initialize some parameters used to switch between streak camera
+	 * mode and other modes.
+	 */
+
+	mx_status = mx_video_input_get_framesize( video_input_record,
+						&vinput_framesize[0],
+						&vinput_framesize[1] );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pccd_170170->vinput_normal_framesize[0] = vinput_framesize[0];
+	pccd_170170->vinput_normal_framesize[1] = vinput_framesize[1];
+
+	/* Allocate space for a raw frame buffer.  This buffer will be used to
+	 * read in the raw pixels from the imaging board before descrambling.
+	 */
+
+#if 0
+	MX_DEBUG(-2,("%s: Before final call to mx_image_alloc()", fname));
+
+	MX_DEBUG(-2,("%s: &(pccd_170170->raw_frame) = %p",
+			fname, &(pccd_170170->raw_frame) ));
+
+	MX_DEBUG(-2,("%s: vinput_framesize = (%lu,%lu)",
+			fname, vinput_framesize[0], vinput_framesize[1]));
+
+	MX_DEBUG(-2,("%s: image_format = %ld", fname, ad->image_format ));
+	MX_DEBUG(-2,("%s: pixel_order = %ld", fname, ad->pixel_order ));
+	MX_DEBUG(-2,("%s: bytes_per_pixel = %g", fname, ad->bytes_per_pixel));
+	MX_DEBUG(-2,("%s: header_length = %ld", fname, ad->header_length));
+	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
+#endif
+
+	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
+					MXT_IMAGE_LOCAL_1D_ARRAY,
+					vinput_framesize,
+					ad->image_format,
+					ad->pixel_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pccd_170170->old_framesize[0] = -1;
+	pccd_170170->old_framesize[1] = -1;
+
+	pccd_170170->image_sector_array = NULL;
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -1942,7 +1955,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		old_detector_readout_mode = 
 				(old_control_register_value >> 3) & 0x3;
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
 		MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
