@@ -18,7 +18,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG		FALSE
+#define MXD_EPIX_XCLIB_DEBUG		TRUE
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME	TRUE
 
@@ -1653,7 +1653,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		/* Leave the Structured Style Interface. */
 
-#if 0    /* WML WML WML */
+#if 1    /* WML WML WML */
 		epix_status = pxd_xclibEscaped(0, 0, 0);
 
 		if ( epix_status != 0 ) {
