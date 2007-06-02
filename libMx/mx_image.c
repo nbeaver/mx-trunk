@@ -20,6 +20,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <float.h>
+#include <math.h>
 
 #include "mx_util.h"
 #include "mx_hrt.h"
@@ -257,7 +259,7 @@ mx_image_get_format_name_from_type( long type,
 	"Image format type %ld is not currently supported by MX.", type );
 }
 
-/*----*/
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_image_alloc( MX_IMAGE_FRAME **frame,
@@ -478,7 +480,7 @@ mx_image_free( MX_IMAGE_FRAME *frame )
 	return;
 }
 
-/*----*/
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_image_get_frame_from_sequence( MX_IMAGE_SEQUENCE *image_sequence,
@@ -662,7 +664,268 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/*----*/
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
+			unsigned long num_original_frames,
+			MX_IMAGE_FRAME **original_frame_array,
+			double threshold )
+{
+	static const char fname[] = "mx_image_dezinger()";
+
+	MX_IMAGE_FRAME *dz_frame, *original_frame;
+	unsigned long i;
+	double diff;
+
+	if ( original_frame_array == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The original_frame_array pointer passed was NULL." );
+	}
+
+	if ( dezingered_frame == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The dezingered_frame pointer passed was NULL." );
+	}
+
+	if ( (*dezingered_frame) == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value of the dezingered_frame pointer passed was NULL." );
+	}
+
+	if ( num_original_frames < 2 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The number of original frames to be dezingered (%lu) "
+		"is less than the minimum value of 2.", num_original_frames );
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s invoked for %lu image frames.", fname));
+#endif
+
+	dz_frame = *dezingered_frame;
+
+	/* Verify that all of the frames have the same image type. */
+
+	for ( i = 0; i < num_original_frames; i++ ) {
+		original_frame = original_frame_array[i];
+
+		if ( original_frame == (MX_IMAGE_FRAME *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The frame pointer for frame %lu in the "
+			"original frame array is NULL.", i );
+		}
+
+		if ( dz_frame->image_type != original_frame->image_type ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The image type %ld of the dezingered frame "
+			"is different than the image type %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->image_type,
+				original_frame->image_type, i );
+		}
+
+		if ( dz_frame->framesize[0] != original_frame->framesize[0] ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The X framesize %ld of the dezingered frame "
+			"is different than the X framesize %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->framesize[0],
+				original_frame->framesize[0], i );
+		}
+
+		if ( dz_frame->framesize[1] != original_frame->framesize[1] ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The Y framesize %ld of the dezingered frame "
+			"is different than the Y framesize %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->framesize[1],
+				original_frame->framesize[1], i );
+		}
+
+		if ( dz_frame->image_format != original_frame->image_format ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The image format %ld of the dezingered frame "
+			"is different than the image format %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->image_format,
+				original_frame->image_format, i );
+		}
+
+		if ( dz_frame->pixel_order != original_frame->pixel_order ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The pixel order %ld of the dezingered frame "
+			"is different than the pixel order %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->pixel_order,
+				original_frame->pixel_order, i );
+		}
+
+		if ( dz_frame->pixel_order != original_frame->pixel_order ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The pixel order %ld of the dezingered frame "
+			"is different than the pixel order %ld "
+			"of element %lu in the original frame array.",
+				dz_frame->pixel_order,
+				original_frame->pixel_order, i );
+		}
+
+		diff = mx_difference( dz_frame->bytes_per_pixel,
+					original_frame->bytes_per_pixel );
+
+		if ( diff >= DBL_MIN ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The number of bytes per pixel (%g) of the "
+			"dezingered frame is different than the number "
+			"of bytes per pixel (%g) of element %lu in the "
+			"original frame array.",
+				dz_frame->bytes_per_pixel,
+				original_frame->bytes_per_pixel, i );
+		}
+
+		if ( dz_frame->image_length != original_frame->image_length ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The image length %lu of the dezingered frame "
+			"is different than the image length %lu "
+			"of element %lu in the original frame array.",
+				(unsigned long) dz_frame->image_length,
+				(unsigned long) original_frame->image_length,
+				i );
+		}
+	}
+
+	if ( dz_frame->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Image dezingering is currently only supported for "
+		"16-bit greyscale images." );
+	}
+
+	if ( num_original_frames == 2 ) {
+		/* This method checks to see if the relative difference
+		 * between the two original pixels is greater than the
+		 * specified threshold.  If so, then the smaller of the
+		 * two is written to the dezingered array.  Otherwise,
+		 * the average of the two is written to the dezingered
+		 * array.
+		 */
+
+		uint16_t *dz_image_data;
+		uint16_t *original_image_data_0, *original_image_data_1;
+		double pixel0, pixel1;
+
+		dz_image_data = dz_frame->image_data;
+		original_image_data_0 = original_frame_array[0]->image_data;
+		original_image_data_1 = original_frame_array[1]->image_data;
+
+		for ( i = 0; i < dz_frame->image_length; i++ ) {
+
+			pixel0 = original_image_data_0[i];
+			pixel1 = original_image_data_1[i];
+
+			diff = mx_difference( pixel0, pixel1 );
+
+			if ( diff < threshold ) {
+				dz_image_data[i] = (uint16_t)
+					mx_round( (pixel0 + pixel1) / 2.0 );
+			} else
+			if ( pixel1 >= pixel0 ) {
+				dz_image_data[i] = original_image_data_0[i];
+			} else {
+				dz_image_data[i] = original_image_data_1[i];
+			}
+		}
+	} else {
+		/* num_original_frames > 2 */
+
+		/* For this case, we compute the standard deviation of
+		 * the pixel values.  Pixel values that are larger than
+		 * the threshold (in units of standard deviation) are
+		 * left out of the sum.
+		 */
+
+		uint16_t *dz_image_data, *original_image_data;
+		double sum, sum_of_squares;
+		double mean, standard_deviation, pixel;
+		double dz_sum, dz_mean, scaled_threshold;
+		unsigned long j, dz_num_frames;
+
+		dz_image_data = dz_frame->image_data;
+
+		for ( i = 0; i < dz_frame->image_length; i++ ) {
+
+			/* First compute the mean. */
+
+			sum = 0.0;
+
+			for ( j = 0; j < num_original_frames; j++ ) {
+
+				original_image_data =
+					original_frame_array[i]->image_data;
+
+				pixel = original_image_data[i];
+
+				sum += pixel;
+			}
+
+			mean = sum / (double) num_original_frames;
+
+			/* Next compute the standard deviation. */
+
+			sum_of_squares = 0.0;
+
+			for ( j = 0; j < num_original_frames; j++ ) {
+
+				original_image_data =
+					original_frame_array[i]->image_data;
+
+				pixel = original_image_data[i];
+
+				diff = pixel - mean;
+
+				sum_of_squares += (diff * diff);
+			}
+
+			standard_deviation = sqrt( sum_of_squares
+			    / ( ((double) num_original_frames) - 1.0) );
+
+			/* Now compute the dezingered mean.  Pixels that
+			 * are larger than the scaled threshold are
+			 * left out of the sum.
+			 */
+
+			dz_sum = 0.0;
+
+			dz_num_frames = 0;
+
+			scaled_threshold = threshold * standard_deviation;
+
+			for ( j = 0; j < num_original_frames; j++ ) {
+
+				original_image_data =
+					original_frame_array[i]->image_data;
+
+				pixel = original_image_data[i];
+
+				if ( (pixel - mean) < scaled_threshold ) {
+					dz_sum += pixel;
+					dz_num_frames += 1L;
+				}
+			}
+
+			dz_mean = dz_sum / (double) dz_num_frames;
+
+			dz_image_data[i] = (uint16_t) mx_round( dz_mean );
+		}
+	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s complete for %lu image frames.", fname));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
 mx_image_read_file( MX_IMAGE_FRAME **frame_ptr,

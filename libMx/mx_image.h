@@ -145,6 +145,15 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
 
+/*----*/
+
+MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
+					unsigned long num_original_frames,
+					MX_IMAGE_FRAME **original_frame_array,
+					double threshold );
+
+/*----*/
+
 MX_API mx_status_type mx_image_read_file( MX_IMAGE_FRAME **frame,
 					unsigned long datafile_type,
 					char *datafile_name );
