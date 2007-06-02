@@ -1,3 +1,37 @@
+Version 1.4.1 (06/04/07):
+	Fixed a bug in the 'xia_network' driver which caused the driver to
+	overwrite the last character of XIA parameter names with a null byte.
+
+	Fixed a bug in the 'compumotor' driver that prevented the driver's
+	'set_position' function from working.
+
+	The Win32 MX malloc wrappers originally written for use with the
+	Borland C++ compiler are now being used by the Visual C++ compiler
+	as well.  These wrappers replace calls to the malloc() family of
+	functions with calls to HeapAlloc(), HeapFree(), and HeapRealloc().
+	This was done to make it more likely that DLLs and EXEs compiled
+	with the -MTd (static debug library) switch will work properly.
+	In general, a DLL linked to the LIBCMTD.LIB library will use a
+	C runtime heap for malloc(), etc. that is different from the C
+	runtime heap used by the EXE.  This can lead to crashes if memory
+	allocated from one runtime heap is freed by the other runtime heap.
+	The use of the MX malloc wrappers forces MX DLL code and MX EXEs to
+	use the same heap and avoids the clashes.  We recommend that you
+	use the -MD switch (dynamic library) which links to MSVCRT.DLL,
+	since it appears that DLLs and EXEs compiled this way all use the
+	same C runtime heap by default.
+
+	The mx_is_valid_heap_pointer() now invokes HeapValidate() on Win32
+	when _DEBUG is defined rather than _CrtIsValidHeapPointer().
+	This was done for compatibility with the new malloc() wrappers
+	mentioned in the previous paragraph.
+
+	If the requested length of a buffer passed to the functions
+	mx_allocate_network_buffer() and mx_reallocate_network_buffer() is
+	shorter than MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH, the length is
+	now rounded up to MXU_NETWORK_MINIMUM_MESSAGE_BUFFER_LENGTH.  The old
+	behavior in this case was to return an MXE_WOULD_EXCEED_LIMIT error.
+
 Version 1.4.0 (01/15/07):
 	This version of MX adds support for the new 'area_detector' and
 	'video_input' driver classes.  The initial motivation for adding
