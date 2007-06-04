@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_CAMERA_LINK_RS232_DEBUG	FALSE
+#define MXI_CAMERA_LINK_RS232_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -419,6 +419,9 @@ mxi_camera_link_rs232_num_input_bytes_available( MX_RS232 *rs232 )
 
 	rs232->num_input_bytes_available = num_bytes_avail;
 
+#if MXI_CAMERA_LINK_RS232_DEBUG
+	fprintf( stderr, "*%ld*", (long) rs232->num_input_bytes_available );
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 

@@ -2366,7 +2366,7 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 
 	MX_RECORD *camera_link_record;
 	size_t command_length, response_length;
-	size_t i, bytes_available, total_bytes_read, buffer_left;
+	size_t i, bytes_available, bytes_to_read, total_bytes_read, buffer_left;
 	char *ptr;
 	unsigned long use_dh_simulator;
 	double timeout_in_seconds;
@@ -2470,6 +2470,8 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 		total_bytes_read = 0;
 
 		for (;;) {
+			mx_msleep(1);	/* Wait 1 millisecond. */
+
 			mx_status = mx_camera_link_get_num_bytes_avail(
 							camera_link_record,
 							&bytes_available );
@@ -2481,12 +2483,23 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 
 			buffer_left = response_length - total_bytes_read;
 
-			if ( bytes_available > buffer_left ) {
+			if ( bytes_available < 1 ) {
+#if MXD_PCCD_170170_DEBUG_SERIAL
+				MX_DEBUG(-2,
+				("%s: No bytes available from '%s'.",
+					fname, camera_link_record->name));
+#endif
+			}
+
+			bytes_to_read = 1;
+
+			if ( bytes_to_read > buffer_left ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-				"The number of bytes available to read (%ld) "
-				"is larger than the space left (%ld) in the "
+				"The number of bytes that we want to "
+				"read (%ld) is larger than the space "
+				"left (%ld) in the "
 				"response buffer for Camera Link record '%s'.",
-					(long) bytes_available,
+					(long) bytes_to_read,
 					(long) buffer_left,
 					camera_link_record->name );
 			}
@@ -2502,12 +2515,12 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			 */
 
 			mx_status = mx_camera_link_serial_read(
-				camera_link_record, ptr, &bytes_available, -1);
+				camera_link_record, ptr, &bytes_to_read, -1);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			total_bytes_read += bytes_available;
+			total_bytes_read += bytes_to_read;
 
 			/* Were there any carriage returns in the bytes
 			 * that we just received?  If so, we have reached
@@ -2515,14 +2528,14 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			 * this loop.
 			 */
 
-			for ( i = 0; i < bytes_available; i++ ) {
+			for ( i = 0; i < bytes_to_read; i++ ) {
 				if ( ptr[i] == MX_CR ) {
 					ptr[i] = '\0';
 					break;	/* Exit the for(i) loop. */
 				}
 			}
 
-			if ( i < bytes_available ) {
+			if ( i < bytes_to_read ) {
 				/* We saw a carriage return, so break out
 				 * of the for(;;) loop as well.
 				 */

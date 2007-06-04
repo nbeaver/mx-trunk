@@ -171,13 +171,15 @@ mx_camera_link_flush_port( MX_RECORD *cl_record )
 		 * receive buffer and throwing them away.
 		 */
 
-		mx_status = mx_camera_link_get_num_bytes_avail( cl_record,
-							&bytes_available );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
 		for (;;) {
+			mx_msleep(1);
+
+			mx_status = mx_camera_link_get_num_bytes_avail(
+						cl_record, &bytes_available );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			if ( bytes_available > sizeof(buffer) ) {
 				bytes_to_read = sizeof(buffer);
 			} else

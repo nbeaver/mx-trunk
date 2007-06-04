@@ -654,6 +654,11 @@ mx_rs232_getline( MX_RECORD *record,
 		terminators_seen = 0;
 		start_of_terminator = INT_MAX;
 
+#if 1
+		MX_DEBUG(-2,("%s: do_timeout = %d, rs232->timeout = %g",
+			fname, do_timeout, rs232->timeout));
+#endif
+
 		for ( i = 0; i < max_bytes_to_read; i++ ) {
 
 			if ( do_timeout ) {
@@ -684,6 +689,10 @@ mx_rs232_getline( MX_RECORD *record,
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
+#if 1
+				MX_DEBUG(-2,("%s: num_bytes_available = %ld",
+					fname, num_bytes_available));
+#endif
 
 				if ( num_bytes_available < 1 ) {
 					/* The serial port says that it 
@@ -710,6 +719,10 @@ mx_rs232_getline( MX_RECORD *record,
 			}
 
 			mx_status = mx_rs232_getchar(record, &c, MXF_232_WAIT);
+
+#if 1
+			MX_DEBUG(-2,("%s: c = %#x '%c'", fname, c, c));
+#endif
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 	                        /* Make the buffer contents a valid C string

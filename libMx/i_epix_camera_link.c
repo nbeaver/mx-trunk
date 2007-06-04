@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_EPIX_CAMERA_LINK_DEBUG	TRUE
+#define MXI_EPIX_CAMERA_LINK_DEBUG	FALSE
 
 #include <stdio.h>
 
