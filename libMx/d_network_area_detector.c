@@ -853,17 +853,22 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	frame = ad->image_frame;
-
-	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_IMAGE_FRAME pointer passed was NULL." );
-	}
-
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	if ( ad->transfer_destination_frame != NULL ) {
+		frame = ad->transfer_destination_frame;
+	} else
+	if ( ad->image_frame != NULL ) {
+		frame = ad->image_frame;
+	} else {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"Both the transfer_destination_frame pointer and "
+		"the image_frame pointer are NULL for area detector '%s'.",
+			ad->record->name );
+	}
+
 	/* Tell the server to copy the frame to the image frame buffer. */
 
 	mx_status = mx_put( &(network_area_detector->transfer_frame_nf),

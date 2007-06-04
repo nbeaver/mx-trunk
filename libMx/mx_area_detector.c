@@ -207,6 +207,9 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->image_frame = NULL;
 	ad->image_frame_buffer = NULL;
 
+	ad->transfer_destination_frame = NULL;
+	ad->dezinger_threshold = 1.0;
+
 	ad->frame_filename[0] = '\0';
 
 	ad->mask_frame = NULL;
@@ -2329,7 +2332,8 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 
 MX_EXPORT mx_status_type
 mx_area_detector_transfer_frame( MX_RECORD *record,
-				long frame_type )
+				long frame_type,
+				MX_IMAGE_FRAME *destination_frame )
 {
 	static const char fname[] = "mx_area_detector_transfer_frame()";
 
@@ -2342,6 +2346,8 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	ad->transfer_destination_frame = destination_frame;
 
 	transfer_frame_fn = flist->transfer_frame;
 
@@ -2568,7 +2574,7 @@ mx_area_detector_get_frame( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_area_detector_transfer_frame( record,
-						MXFT_AD_IMAGE_FRAME );
+						MXFT_AD_IMAGE_FRAME, NULL );
 
 	return mx_status;
 }
@@ -3048,7 +3054,11 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	destination_frame = ad->image_frame;
+	if ( ad->transfer_destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+		destination_frame = ad->image_frame;
+	} else {
+		destination_frame = ad->transfer_destination_frame;
+	}
 
 	switch( ad->transfer_frame ) {
 	case MXFT_AD_MASK_FRAME:
@@ -3506,6 +3516,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 	MX_IMAGE_FRAME *dest_frame;
 	void *void_image_data_pointer;
+	unsigned long saved_correction_flags, desired_correction_flags;
 	uint16_t *src_array, *dest_array;
 	double *sum_array;
 	double exposure_time, temp_double;
@@ -3565,6 +3576,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&(ad->dark_current_frame) );
 
 		dest_frame = ad->dark_current_frame;
+
+		desired_correction_flags = 0;
 		break;
 	
 	case MXFT_AD_FLOOD_FIELD_FRAME:
@@ -3572,6 +3585,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 						&(ad->flood_field_frame) );
 
 		dest_frame = ad->flood_field_frame;
+
+		desired_correction_flags = MXFT_AD_DARK_CURRENT_FRAME;
 		break;
 
 	default:
@@ -3672,6 +3687,23 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			return mx_status;
 		}
 
+		/* Perform any necessary image corrections. */
+
+		if ( desired_correction_flags != 0 ) {
+			saved_correction_flags = ad->correction_flags;
+
+			ad->correction_flags = desired_correction_flags;
+
+			mx_status = mx_area_detector_correct_frame(ad->record);
+
+			ad->correction_flags = saved_correction_flags;
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				free( sum_array );
+				return mx_status;
+			}
+		}
+
 		/* Get the image data pointer. */
 
 		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
@@ -3722,6 +3754,238 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	}
 
 	free( sum_array );
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: correction measurement complete.", fname));
+#endif
+	
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+#define FREE_DEZINGER_ARRAYS \
+	do {								\
+		if ( image_frame_array != NULL ) {			\
+			for ( z = 0; z < num_exposures; z++ ) {		\
+				mx_image_free( image_frame_array[z] );	\
+			}						\
+		}							\
+	} while(0)
+
+MX_EXPORT mx_status_type
+mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
+{
+	static const char fname[] =
+		"mx_area_detector_default_dezinger_correction()";
+
+	MX_IMAGE_FRAME *dest_frame;
+	MX_IMAGE_FRAME **image_frame_array;
+	unsigned long saved_correction_flags, desired_correction_flags;
+	long i, n, z, num_exposures, pixels_per_frame;
+	double exposure_time;
+	mx_bool_type busy;
+	mx_status_type mx_status;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
+		fname, ad->record->name ));
+
+	MX_DEBUG(-2,("%s: type = %ld, time = %g, num measurements = %ld",
+		fname, ad->correction_measurement_type,
+		ad->correction_measurement_time,
+		ad->num_correction_measurements ));
+#endif
+
+	if ( ad->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The area detector is currently using an image format of %ld.  "
+		"At present, only GREY16 image format is supported.",
+			ad->image_format );
+	}
+
+	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
+
+	exposure_time = ad->correction_measurement_time;
+
+	num_exposures = ad->num_correction_measurements;
+
+	if ( num_exposures <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal number of exposures (%ld) requested for "
+		"area detector '%s'.  The minimum number of exposures "
+		"allowed is 1.",  num_exposures, ad->record->name );
+	}
+
+	/* The correction frames will originally be read into the image frame.
+	 * We must make sure that the image frame is big enough to hold
+	 * the image data.
+	 */
+
+	mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Make sure that the destination image frame is already big enough
+	 * to hold the image frame that we are going to put in it.
+	 */
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->dark_current_frame) );
+
+		dest_frame = ad->dark_current_frame;
+
+		desired_correction_flags = 0;
+		break;
+	
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		mx_status = mx_area_detector_setup_frame( ad->record,
+						&(ad->flood_field_frame) );
+
+		dest_frame = ad->flood_field_frame;
+
+		desired_correction_flags = MXFT_AD_DARK_CURRENT_FRAME;
+		break;
+
+	default:
+		mx_status = mx_error( MXE_UNSUPPORTED, fname,
+		"Correction measurement type %ld is not supported "
+		"for area detector '%s'.",
+			ad->correction_measurement_type, ad->record->name );
+
+		dest_frame = NULL;
+	}
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Allocate an array of images to store the images to be used
+	 * for dezingering.
+	 */
+
+	image_frame_array = malloc( num_exposures * sizeof(MX_IMAGE_FRAME *) );
+
+	if ( image_frame_array == (MX_IMAGE_FRAME **) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+	"Could not allocate a %lu element array of MX_IMAGE_FRAME pointers.",
+			num_exposures );
+	}
+
+	for ( i = 0; i < num_exposures; i++ ) {
+		mx_status = mx_area_detector_setup_frame( ad->record,
+						&(image_frame_array[i]) );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			FREE_DEZINGER_ARRAYS;
+			return mx_status;
+		}
+	}
+
+	/* Put the area detector in One-shot mode. */
+
+	mx_status = mx_area_detector_set_one_shot_mode( ad->record,
+							exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		FREE_DEZINGER_ARRAYS;
+		return mx_status;
+	}
+
+	/* Take the requested number of exposures. */
+
+	for ( n = 0; n < num_exposures; n++ ) {
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: Exposure %ld", fname, n));
+#endif
+
+		/* Start the exposure. */
+
+		mx_status = mx_area_detector_start( ad->record );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			FREE_DEZINGER_ARRAYS;
+			return mx_status;
+		}
+
+		/* Wait for the exposure to end. */
+
+		for(;;) {
+			mx_status = mx_area_detector_is_busy(ad->record, &busy);
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				FREE_DEZINGER_ARRAYS;
+				return mx_status;
+			}
+
+#if 0
+			if ( mx_kbhit() ) {
+				(void) mx_getch();
+
+				MX_DEBUG(-2,("%s: INTERRUPTED", fname));
+
+				FREE_DEZINGER_ARRAYS;
+				return mx_area_detector_stop( ad->record );
+			}
+#endif
+
+			if ( busy == FALSE ) {
+				break;		/* Exit the for(;;) loop. */
+			}
+			mx_msleep(10);
+		}
+
+		/* Readout the frame into ad->image_frame. */
+
+		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			FREE_DEZINGER_ARRAYS;
+			return mx_status;
+		}
+
+		/* Perform any necessary image corrections. */
+
+		if ( desired_correction_flags != 0 ) {
+			saved_correction_flags = ad->correction_flags;
+
+			ad->correction_flags = desired_correction_flags;
+
+			mx_status = mx_area_detector_correct_frame( ad->record);
+
+			ad->correction_flags = saved_correction_flags;
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				FREE_DEZINGER_ARRAYS;
+				return mx_status;
+			}
+		}
+
+		/* Transfer the frame to the image frame array. */
+
+		mx_status = mx_area_detector_transfer_frame( ad->record,
+							MXFT_AD_IMAGE_FRAME,
+							image_frame_array[n] );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			FREE_DEZINGER_ARRAYS;
+			return mx_status;
+		}
+	}
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: Dezingering images.", fname));
+#endif
+
+	mx_status = mx_image_dezinger( &dest_frame,
+					num_exposures,
+					image_frame_array,
+					ad->dezinger_threshold );
+	FREE_DEZINGER_ARRAYS;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: correction measurement complete.", fname));

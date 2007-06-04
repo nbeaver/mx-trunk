@@ -122,6 +122,7 @@ typedef struct {
 	 */
 
 	long transfer_frame;
+	MX_IMAGE_FRAME *transfer_destination_frame;
 
 	/* 'frame_file_format' is the file format that is used for load and
 	 * save operations below.
@@ -154,6 +155,12 @@ typedef struct {
 	long correction_measurement_type;
 	double correction_measurement_time;
 	long num_correction_measurements;
+
+	/* dezinger_threshold is use to determine which pixels are to be
+	 * thrown away during dezingering.
+	 */
+
+	double dezinger_threshold;
 
 	/* The following are the image frames and frame buffer pointers
 	 * used for image correction.
@@ -231,7 +238,8 @@ typedef struct {
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12046
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12047
+#define MXLV_AD_DEZINGER_THRESHOLD		12047
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12048
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -454,6 +462,11 @@ typedef struct {
   {-1, -1, "bias_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_AD_DEZINGER_THRESHOLD, -1, "dezinger_threshold", \
+  						MXFT_DOUBLE, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, dezinger_threshold), \
+	{0}, NULL, 0}, \
   \
   {MXLV_AD_USE_SCALED_DARK_CURRENT, -1, "use_scaled_dark_current", \
   						MXFT_BOOL, NULL, 0, {0}, \
@@ -742,7 +755,8 @@ MX_API mx_status_type mx_area_detector_readout_frame( MX_RECORD *ad_record,
 MX_API mx_status_type mx_area_detector_correct_frame( MX_RECORD *ad_record );
 
 MX_API mx_status_type mx_area_detector_transfer_frame( MX_RECORD *ad_record,
-						long frame_type );
+						long frame_type,
+						MX_IMAGE_FRAME *destination );
 
 MX_API mx_status_type mx_area_detector_load_frame( MX_RECORD *ad_record,
 						long frame_type,
@@ -794,6 +808,9 @@ MX_API mx_status_type mx_area_detector_default_set_parameter_handler(
                                                 MX_AREA_DETECTOR *ad );
 
 MX_API mx_status_type mx_area_detector_default_measure_correction(
+                                                MX_AREA_DETECTOR *ad );
+
+MX_API mx_status_type mx_area_detector_default_dezinger_correction(
                                                 MX_AREA_DETECTOR *ad );
 
 /*---*/

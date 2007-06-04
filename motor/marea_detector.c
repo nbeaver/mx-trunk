@@ -626,7 +626,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		mx_status = mx_area_detector_transfer_frame( ad_record,
-								frame_type );
+							frame_type, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;

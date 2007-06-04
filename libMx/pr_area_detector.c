@@ -448,7 +448,7 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_TRANSFER_FRAME:
 			mx_status = mx_area_detector_transfer_frame( record,
-							ad->transfer_frame );
+						ad->transfer_frame, NULL );
 			break;
 		case MXLV_AD_TRIGGER:
 			mx_status = mx_area_detector_trigger( record );
