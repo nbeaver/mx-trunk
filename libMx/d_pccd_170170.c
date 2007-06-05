@@ -1853,6 +1853,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	unsigned long old_control_register_value, new_control_register_value;
 	unsigned long old_detector_readout_mode;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+	long num_streak_mode_lines;
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	double exposure_time, frame_time, gap_time;
@@ -2120,19 +2121,27 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			}
 			break;
 		case MXT_SQ_STREAK_CAMERA:
+			/* Get the current framesize. */
+
+			mx_status = mx_video_input_get_framesize(
+					pccd_170170->video_input_record,
+					&vinput_horiz_framesize,
+					&vinput_vert_framesize );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			if ( old_detector_readout_mode != 0x3 ) {
 				/* Before switching to streak camera mode,
 				 * save the video board's current framesize
 				 * for later restoration.
 				 */
 
-				mx_status = mx_video_input_get_framesize(
-					pccd_170170->video_input_record,
-				    &(pccd_170170->vinput_normal_framesize[0]),
-				    &(pccd_170170->vinput_normal_framesize[1]));
+				pccd_170170->vinput_normal_framesize[0]
+					= vinput_horiz_framesize;
 
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
+				pccd_170170->vinput_normal_framesize[1]
+					= vinput_vert_framesize;
 
 				/* Now switch to streak camera mode. */
 
@@ -2164,10 +2173,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of streak camera mode lines.*/
 
+			num_streak_mode_lines
+				= mx_round( sp->parameter_array[0] );
+
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
 					MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
-					mx_round( sp->parameter_array[0] ));
+					num_streak_mode_lines );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2182,6 +2194,16 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
 				exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Set the streak-mode framesize. */
+
+			mx_status = mx_video_input_set_framesize(
+				pccd_170170->video_input_record,
+				vinput_horiz_framesize,
+				(num_streak_mode_lines / ad->binsize[1]) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
