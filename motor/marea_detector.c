@@ -364,7 +364,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 				fprintf( output, "Reading frame %ld.\n",
 					last_frame_number );
 
-#if 0
 				mx_status = mx_area_detector_get_frame(
 					ad_record, last_frame_number, &frame );
 
@@ -386,7 +385,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 					return FAILURE;
 
 				fprintf( output, "Complete.\n" );
-#endif
+
 				old_total_num_frames = total_num_frames;
 			}
 
@@ -455,6 +454,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strcmp( argv[5], "tiff" ) == 0 ) {
 			datafile_type = MXT_IMAGE_FILE_TIFF;
+		} else
+		if ( strcmp( argv[5], "smv" ) == 0 ) {
+			datafile_type = MXT_IMAGE_FILE_SMV;
 		} else {
 			fprintf( output,
 				"%s: Unrecognized datafile type '%s'\n",
