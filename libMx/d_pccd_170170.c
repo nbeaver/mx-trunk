@@ -1096,8 +1096,13 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * multiplying and dividing by appropriate factors of 4.
 	 */
 
+#if 0
 	ad->maximum_framesize[0] = 4096;
 	ad->maximum_framesize[1] = 65536;	/* For streak camera mode. */
+#else
+	ad->maximum_framesize[0] = 4096;
+	ad->maximum_framesize[1] = 4096;
+#endif
 
 	/* Set the default framesize and binning. */
 
