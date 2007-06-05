@@ -2203,7 +2203,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			mx_status = mx_video_input_set_framesize(
 				pccd_170170->video_input_record,
 				vinput_horiz_framesize,
-				(num_streak_mode_lines / ad->binsize[1]) );
+				num_streak_mode_lines );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
