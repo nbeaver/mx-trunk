@@ -415,6 +415,75 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 }
 
 static mx_status_type
+mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
+				uint16_t ***image_sector_array,
+				long i_framesize,
+				long j_framesize )
+{
+	long i, j;
+
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	mxd_pccd_170170_display_ul_corners( image_sector_array );
+#endif
+
+	for ( i = 0; i < i_framesize; i++ ) {
+	    for ( j = 0; j < j_framesize; j++ ) {
+
+		image_sector_array[0][i][j] = raw_frame_data[14];
+
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
+
+		image_sector_array[2][i][j] = raw_frame_data[10];
+
+		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
+
+		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
+
+		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[12];
+
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
+
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[8];
+
+		image_sector_array[8][i][j] = raw_frame_data[0];
+
+		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
+
+		image_sector_array[10][i][j] = raw_frame_data[4];
+
+		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
+
+		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
+
+		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[2];
+
+		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
+
+		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
+							= raw_frame_data[6];
+
+		raw_frame_data += 16;
+	    }
+	}
+
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	{
+		long k;
+
+		for ( k = 0; k < 16; k++ ) {
+			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
+				fname, k, image_sector_array[k][0][0] ));
+		}
+	}
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
@@ -424,7 +493,7 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 	long bytes_to_copy, raw_length, image_length;
 	uint16_t *raw_frame_data;
 	uint16_t ***image_sector_array;
-	long i, j, i_framesize, j_framesize;
+	long i_framesize, j_framesize;
 	mx_status_type mx_status;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -538,69 +607,15 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 
 	image_sector_array = pccd_170170->image_sector_array;
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_pccd_170170_display_ul_corners( image_sector_array );
-#endif
-
-	for ( i = 0; i < i_framesize; i++ ) {
-	    for ( j = 0; j < j_framesize; j++ ) {
-
-		image_sector_array[0][i][j] = raw_frame_data[14];
-
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
-
-		image_sector_array[2][i][j] = raw_frame_data[10];
-
-		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
-
-		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
-
-		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[12];
-
-		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
-
-		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[8];
-
-		image_sector_array[8][i][j] = raw_frame_data[0];
-
-		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
-
-		image_sector_array[10][i][j] = raw_frame_data[4];
-
-		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
-
-		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
-
-		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[2];
-
-		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
-
-		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
-							= raw_frame_data[6];
-
-		raw_frame_data += 16;
-	    }
-	}
-
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	{
-		long k;
-
-		for ( k = 0; k < 16; k++ ) {
-			MX_DEBUG(-2,("%s: ul_corner[%ld] = %d",
-				fname, k, image_sector_array[k][0][0] ));
-		}
-	}
-#endif
-
+	mx_status = mxd_pccd_170170_descramble_raw_data( raw_frame_data,
+							image_sector_array,
+							i_framesize,
+							j_framesize );
 #if 0
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
 #endif
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 static mx_status_type
