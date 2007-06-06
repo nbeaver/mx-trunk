@@ -66,7 +66,7 @@ typedef struct {
 	unsigned long dh_control;
 	unsigned long dh_overscanned_pixels_per_line;
 	unsigned long dh_physical_lines_in_quadrant;
-	unsigned long dh_physical_pixels_per_line;
+	unsigned long dh_physical_pixels_in_quadrant;
 
 	unsigned long dh_lines_read_in_quadrant;
 	unsigned long dh_pixels_read_in_quadrant;
@@ -116,7 +116,7 @@ typedef struct {
 #define MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT \
 				 		(MXLV_PCCD_170170_DH_BASE + 2)
 
-#define MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE \
+#define MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT \
 				 		(MXLV_PCCD_170170_DH_BASE + 3)
 
 
@@ -222,10 +222,10 @@ typedef struct {
 		offsetof(MX_PCCD_170170, dh_physical_lines_in_quadrant), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE, \
-		-1, "dh_physical_pixels_per_line", MXFT_ULONG, NULL, 0, {0},\
+  {MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT, \
+		-1, "dh_physical_pixels_in_quadrant", MXFT_ULONG, NULL, 0, {0},\
 	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_PCCD_170170, dh_physical_pixels_per_line), \
+		offsetof(MX_PCCD_170170, dh_physical_pixels_in_quadrant), \
 	{0}, NULL, 0}, \
   \
   {MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT, \

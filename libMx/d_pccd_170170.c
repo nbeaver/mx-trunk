@@ -775,6 +775,235 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* PCCD-170170 detector readout time formula as of June 6, 2007. */
+
+static mx_status_type
+mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
+					MX_PCCD_170170 *pccd_170170,
+					double *detector_readout_time )
+{
+	MX_SEQUENCE_PARAMETERS *sp;
+	mx_bool_type high_speed;
+	unsigned long control_register;
+	unsigned long linenum, pixnum, linesrd, pixrd, lbin, pixbin;
+	double t;
+	mx_status_type mx_status;
+
+	sp = &(ad->sequence_parameters);
+
+	/* Read out the necessary register values from the detector head. */
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_CONTROL,
+				&control_register );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( control_register & 0x100 ) {
+		high_speed = TRUE;
+	} else {
+		high_speed = FALSE;
+	}
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT,
+				&linenum );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT,
+				&pixnum );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT,
+				&linesrd );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT,
+				&pixrd );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_LINE_BINNING,
+				&lbin );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_PIXEL_BINNING,
+				&pixbin );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/******************************************************************
+	 *                    ... Here Be Dragons ...                     *
+	 ******************************************************************/
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_STREAK_CAMERA:
+	    mx_warning(
+	    "STREAK CAMERA DETECTOR READOUT TIME NOT YET IMPLEMENTED!" );
+
+	    *detector_readout_time = 0.01;
+	    break;
+
+	case MXT_SQ_SUBIMAGE:
+	    mx_warning(
+	    "SUBIMAGE DETECTOR READOUT TIME NOT YET IMPLEMENTED!" );
+
+	    *detector_readout_time = 0.01;
+	    break;
+
+	default:	/* Full Frame Mode */
+
+	    if ( high_speed ) {		/* High Speed Mode */
+		
+		if ( (lbin == 1) && (pixbin == 1) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+			+ 360.0e-6*(pixnum - 2))*(linenum);
+		} else
+		if ( (lbin > 1) && (pixbin == 1) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+			+ 360.0e-6*(pixnum - 2))*(linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
+			+ 360.0e-6*(pixnum - 2))*(((linenum - 6) - linesrd) / 2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (360.0e-9 + 300.0e-9)
+			+ 360.0e-6*(pixnum - 2))*(linesrd / lbin);
+		} else
+		if ( (lbin == 1) && (pixbin < 16) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+	+ (360.0e-6 + 300.0e-9*(pixbin - 1))*((pixnum - 2) / pixbin))*(linenum);
+
+		} else
+		if ( (lbin == 1) && (pixbin >= 16) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+	    + (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+	    + (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))*(linenum);
+
+		} else
+		if ( (lbin > 1) && (pixbin < 16) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+			+ (360.0e-6 + 300.0e-9*(pixbin - 1))
+				*((pixnum - 2) / pixbin))
+				*(linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
+			+ (360.0e-6 + 300.0e-9*(pixbin - 1))
+			*((pixnum - 2) / pixbin))*(((linenum - 6) - linesrd)/2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (360.0e-9 + 300.0e-9) + (360.0e-6
+			+ 300.0e-9*(pixbin - 1))*((pixnum - 2) / pixbin))
+				*(linesrd / lbin);
+
+		} else
+		if ( (lbin > 1) && (pixbin >= 16 ) ) {
+
+		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
+			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+				* (linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
+			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+				*(((linenum - 6) - linesrd) / 2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (360.0e-9 + 300.0e-9)
+			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+				*(linesrd / lbin);
+		}
+	    } else {			/* Low Noise Mode */
+
+		if ( (lbin == 1) && (pixbin == 1) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ 1.25e-6 *(pixnum - 2))*(linenum);
+
+		} else
+		if ( (lbin > 1) && (pixbin == 1) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ 1.25e-6 *(pixnum - 2))*(linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (1.25e-6 + 300.0e-9)
+			+ 1.25e-6 *(pixnum - 2))*(((linenum - 6) - linesrd) / 2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (1.25e-6 + 300.0e-9) + 1.25e-6 *(pixnum - 2))
+				*(linesrd / lbin);
+		
+		} else
+		if ( (lbin == 1) && (pixbin < 16) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*((pixnum - 2) / pixbin))*(linenum);
+
+		} else
+		if ( (lbin == 1) && (pixbin >= 16) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*(pixrd / pixbin))*(linenum);
+
+		} else
+		if ( (lbin > 1) && (pixbin < 16) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*((pixnum - 2) / pixbin))
+				*(linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*((pixnum - 2) / pixbin))
+				*(((linenum - 6) - linesrd) / 2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*((pixnum - 2) / pixbin))*(linesrd / lbin);
+
+		} else
+		if ( (lbin > 1) && (pixbin >= 16) ) {
+
+		    t = (100.0e-6 + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))
+				*(pixrd / pixbin))* (linenum - (linenum - 6))
+			+ ((100.0e-6 + 60.0e-6) + (1.25e-6 + 300.0e-9)
+			+ (1.25e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+				*(((linenum - 6) - linesrd) / 2)
+			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
+			+ (1.25e-6 + 300.0e-9) + (1.25e-6 + 300.0e-9*(7))
+				*(((pixnum - 2) - pixrd) / 8)
+			+ (1.25e-6 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+				*(linesrd / lbin);
+		}
+	    }
+		
+	    *detector_readout_time = t;
+
+	    break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -976,7 +1205,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT,
 					1046,  FALSE, FALSE, 1,  8192 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE,
+	INIT_REGISTER( MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT,
 					1050,  FALSE, FALSE, 1,  8192 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT,
@@ -1737,12 +1966,8 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXLV_AD_DETECTOR_READOUT_TIME:
-		/* FIXME, FIXME, FIXME!!!
-		 * 
-		 * This is just a placeholder for the real value!
-		 */
-
-		ad->detector_readout_time = 0.01;
+		mx_status = mxd_pccd_170170_compute_detector_readout_time(
+				ad, pccd_170170, &(ad->detector_readout_time) );
 		break;
 
 	case MXLV_AD_TOTAL_SEQUENCE_TIME:
@@ -1816,7 +2041,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_CONTROL:
 	case MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE:
 	case MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT:
-	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME:
@@ -2360,7 +2585,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_CONTROL:
 	case MXLV_PCCD_170170_DH_OVERSCANNED_PIXELS_PER_LINE:
 	case MXLV_PCCD_170170_DH_PHYSICAL_LINES_IN_QUADRANT:
-	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_PER_LINE:
+	case MXLV_PCCD_170170_DH_PHYSICAL_PIXELS_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_LINES_READ_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_PIXELS_READ_IN_QUADRANT:
 	case MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME:
