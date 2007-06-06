@@ -96,7 +96,7 @@ MX_RECORD_FIELD_DEFAULTS *mxd_pccd_170170_rfield_def_ptr
 
 #define INIT_REGISTER( i, v, r, t, n, x ) \
 	do {                                                          \
-		mx_status = mxp_pccd_170170_init_register(            \
+		mx_status = mxd_pccd_170170_init_register(            \
 			pccd_170170, (i), (v), (r), (t), (n), (x) );  \
 	                                                              \
 		if ( mx_status.code != MXE_SUCCESS )                  \
@@ -163,52 +163,6 @@ mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array )
 	MX_DEBUG(-2,("****** %s END *****", fname));
 }
 #endif
-
-static mx_status_type
-mxd_pccd_170170_free_sector_array( uint16_t ****sector_array_ptr )
-{
-	static const char fname[] = "mxd_pccd_170170_free_sector_array()";
-
-	uint16_t ***sector_array;
-	uint16_t **sector_array_row_ptr;
-
-#if 0
-	mx_warning("%s: Skipped freeing the sector array.  FIXME!", fname);
-
-	return MX_SUCCESSFUL_RESULT;	/* FIXME: Don't leave me this way! */
-#endif
-
-	if ( sector_array_ptr == NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The sector_array_ptr argument passed was NULL." );
-	}
-
-	sector_array = *sector_array_ptr;
-
-	if ( sector_array == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	sector_array_row_ptr = *sector_array;
-
-	if ( sector_array_row_ptr != NULL ) {
-#if 0
-		MX_DEBUG(-2,("%s: freeing sector_array_row_ptr = %p",
-			fname, sector_array_row_ptr));
-#endif
-		free( sector_array_row_ptr );
-	}
-
-#if 0
-	MX_DEBUG(-2,("%s: freeing sector_array = %p", fname, sector_array));
-#endif
-
-	free( sector_array );
-
-	*sector_array_ptr = NULL;
-
-	return MX_SUCCESSFUL_RESULT;
-}
 
 static mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
@@ -414,6 +368,59 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+static void
+mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
+{
+	uint16_t **sector_array_row_ptr;
+
+	if ( sector_array == NULL ) {
+		return;
+	}
+
+	sector_array_row_ptr = *sector_array;
+
+	if ( sector_array_row_ptr != NULL ) {
+		free( sector_array_row_ptr );
+	}
+
+	free( sector_array );
+
+	return;
+}
+
+static void
+mxd_pccd_170170_free_all_sector_arrays( MX_PCCD_170170 *pccd_170170 )
+{
+	long i;
+
+	if ( pccd_170170->full_frame_sector_array != NULL ) {
+
+		mxd_pccd_170170_free_sector_array(
+				pccd_170170->full_frame_sector_array );
+
+		pccd_170170->full_frame_sector_array = NULL;
+	}
+
+	if ( pccd_170170->subimage_sector_arrays != NULL ) {
+		for ( i = 0; i < pccd_170170->num_subimage_sector_arrays; i++ )
+		{
+			if ( pccd_170170->subimage_sector_arrays[i] != NULL ) {
+
+				mxd_pccd_170170_free_sector_array(
+				    pccd_170170->subimage_sector_arrays[i] );
+
+				pccd_170170->subimage_sector_arrays[i] = NULL;
+			}
+		}
+
+		pccd_170170->subimage_sector_arrays = NULL;
+
+		pccd_170170->num_subimage_sector_arrays = -1;
+	}
+
+	return;
+}
+
 static mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
@@ -484,16 +491,17 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 }
 
 static mx_status_type
-mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
+mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
+				MX_PCCD_170170 *pccd_170170,
 				MX_IMAGE_FRAME *image_frame,
 				MX_IMAGE_FRAME *raw_frame )
 {
 	static const char fname[] = "mxd_pccd_170170_descramble_image()";
 
-	long bytes_to_copy, raw_length, image_length;
-	uint16_t *raw_frame_data;
-	uint16_t ***image_sector_array;
-	long i_framesize, j_framesize;
+	MX_SEQUENCE_PARAMETERS *sp;
+	long i_framesize, j_framesize, frame_width;
+	long n, num_subimages, num_lines_per_subimage, num_pixels_per_subimage;
+	uint16_t *raw_data, *raw_ptr, *image_data, *image_ptr;
 	mx_status_type mx_status;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -505,126 +513,126 @@ mxd_pccd_170170_descramble_image( MX_PCCD_170170 *pccd_170170,
 		"The raw_frame pointer passed was NULL." );
 	}
 
-	image_length = image_frame->image_length;
+	sp = &(ad->sequence_parameters);
 
-	raw_length = raw_frame->image_length;
-
-	if ( raw_length <= image_length ) {
-		bytes_to_copy = raw_length;
-	} else {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The raw frame of length %ld bytes is too long to fit "
-		"into the image frame of length %ld bytes.",
-			raw_length, image_length );
-	}
-
-#if 0
-	MX_DEBUG(-2,
-	("%s: image_length = %ld, raw_length = %ld, bytes_to_copy = %ld",
-		fname, image_length, raw_length, bytes_to_copy));
-#endif
-
-#if 0
-	if ( (raw_frame->framesize[0] != image_frame->framesize[0])
-	  || (raw_frame->framesize[1] != image_frame->framesize[1]) )
-	{
-		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
-		"The raw frame (%ld,%ld) and the image frame (%ld,%ld) have "
-		"different dimensions.  At present, I do not know what the "
-		"correct mapping is for this case.",
-			raw_frame->framesize[0], raw_frame->framesize[1],
-			image_frame->framesize[0], image_frame->framesize[1] );
-	}
-#endif
-
-	/* For each frame, we overlay the frame with 16 sets of sector array
-	 * pointers so that we can treat each of the 16 sectors as independent
-	 * two dimensional arrays.
+	/* For each frame or subimage, we overlay the frame with 16 sets of
+	 * sector array pointers so that we can treat each of the 16 sectors
+	 * as independent two dimensional arrays.
 	 */
 
-	i_framesize = image_frame->framesize[1] / 4;
-	j_framesize = image_frame->framesize[0] / 4;
-
-#if 0
-	MX_DEBUG(-2,("%s: i_framesize = %ld, j_framesize = %ld",
-		fname, i_framesize, j_framesize));
-#endif
-
-	/* If the framesize has changed since the last time we descrambled
-	 * a frame, we must create new sector arrays to point into the raw
-	 * frame data and the image frame data.
+	/* The full_frame_sector_array pointer and the subimage_sector_arrays
+	 * pointer will be NULL, if any of the following has happened.
 	 *
-	 * If the framesize is the same, we just leave the existing sector
-	 * arrays as they are.
+	 * 1. This is the first frame taken by the program.
+	 *
+	 * 2. The framesize or detector mode has changed
+	 *      (full frame, subimage, streak camera).
 	 */
 
-	if ( ( pccd_170170->old_framesize[0] != image_frame->framesize[0] )
-	  || ( pccd_170170->old_framesize[1] != image_frame->framesize[1] ) )
-	{
-		mx_status = mxd_pccd_170170_free_sector_array(
-					&(pccd_170170->image_sector_array) );
+	switch( sp->sequence_type ) {
+	case MXT_SQ_STREAK_CAMERA:
+		mx_warning( "STREAK CAMERA DESCRAMBLING NOT YET IMPLEMENTED!" );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+		memcpy( image_frame->image_data, raw_frame->image_data,
+				image_frame->image_length );
+		break;
 
-#if MXD_PCCD_170170_DEBUG_ALLOCATION
-		MX_DEBUG(-2,("%s: image_data = %p",
-			fname, image_frame->image_data));
-		MX_DEBUG(-2,("%s: framesize = (%lu,%lu)",
-			fname, image_frame->framesize[0],
-			image_frame->framesize[1]));
-		{
-			MX_AREA_DETECTOR *ad;
+	case MXT_SQ_SUBIMAGE:
+		num_lines_per_subimage = sp->parameter_array[0];
+		num_subimages          = sp->parameter_array[1];
+		frame_width            = image_frame->framesize[0];
 
-			ad = pccd_170170->record->record_class_struct;
+		if ( pccd_170170->subimage_sector_arrays == NULL ) {
 
-			MX_DEBUG(-2,("%s: binsize = (%lu,%lu)",
-				fname, ad->binsize[0], ad->binsize[1]));
+			pccd_170170->subimage_sector_arrays
+				= calloc( num_subimages, sizeof(uint16_t ***) );
+
+			if ( pccd_170170->subimage_sector_arrays == NULL ) {
+				return mx_error( MXE_OUT_OF_MEMORY, fname,
+				"Unable to create a %ld element array of "
+				"image sector arrays for area detector '%s'.",
+				    num_subimages, pccd_170170->record->name );
+			}
 		}
-		MX_DEBUG(-2,("%s: i_framesize = %lu, j_framesize = %lu",
-			fname, i_framesize, j_framesize));
-#endif
 
-		mx_status = mxd_pccd_170170_alloc_sector_array(
-					&(pccd_170170->image_sector_array),
+		i_framesize = num_lines_per_subimage / 4;
+		j_framesize = frame_width / 4;
+
+		num_pixels_per_subimage = frame_width * num_lines_per_subimage;
+
+		raw_data   = raw_frame->image_data;
+		image_data = image_frame->image_data;
+
+		for ( n = 0; n < num_subimages; n++ ) {
+			raw_ptr   = raw_data   + n * num_pixels_per_subimage;
+			image_ptr = image_data + n * num_pixels_per_subimage;
+
+			if ( pccd_170170->subimage_sector_arrays[n] == NULL ) {
+
+				mx_status = mxd_pccd_170170_alloc_sector_array(
+				    &(pccd_170170->subimage_sector_arrays[n]),
 					j_framesize, i_framesize,
-					image_frame->image_data );
+					image_ptr );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+			}
+
+			mx_status = mxd_pccd_170170_descramble_raw_data(
+					raw_ptr,
+					pccd_170170->subimage_sector_arrays[n],
+					i_framesize, j_framesize );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+		break;
+
+	default:
+		/* The remaining sequence types use full frame images. */
+
+		i_framesize = image_frame->framesize[1] / 4;
+		j_framesize = image_frame->framesize[0] / 4;
+
+		if ( pccd_170170->full_frame_sector_array == NULL ) {
+
+			mx_status = mxd_pccd_170170_alloc_sector_array(
+				&(pccd_170170->full_frame_sector_array),
+				j_framesize, i_framesize,
+				image_frame->image_data );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Copy and descramble the pixels from the raw frame
+		 * to the image frame.
+		 */
+
+		mx_status = mxd_pccd_170170_descramble_raw_data(
+				raw_frame->image_data,
+				pccd_170170->full_frame_sector_array,
+				i_framesize, j_framesize );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+		break;
 	}
 
-	raw_frame_data = raw_frame->image_data;
-
-#if 0
-	MX_DEBUG(-2,("%s: raw_frame_data = %p, image_frame->image_data = %p",
-		fname, raw_frame_data, image_frame->image_data));
-#endif
-
-	/* Copy and descramble the pixels from the raw frame
-	 * to the image frame.
-	 */
-
-	image_sector_array = pccd_170170->image_sector_array;
-
-	mx_status = mxd_pccd_170170_descramble_raw_data( raw_frame_data,
-							image_sector_array,
-							i_framesize,
-							j_framesize );
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 static mx_status_type
-mxp_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
+mxd_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 				unsigned long register_address,
 				unsigned long register_value,
 				MX_PCCD_170170_REGISTER **register_pointer )
 {
-	static const char fname[] = "mxp_pccd_170170_check_value()";
+	static const char fname[] = "mxd_pccd_170170_check_value()";
 
 	MX_PCCD_170170_REGISTER *reg;
 
@@ -666,7 +674,7 @@ mxp_pccd_170170_check_value( MX_PCCD_170170 *pccd_170170,
 }
 
 static mx_status_type
-mxp_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
+mxd_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 				long register_index,
 				unsigned long register_value,
 				mx_bool_type read_only,
@@ -674,7 +682,7 @@ mxp_pccd_170170_init_register( MX_PCCD_170170 *pccd_170170,
 				unsigned long minimum,
 				unsigned long maximum )
 {
-	static const char fname[] = "mxp_pccd_170170_init_register()";
+	static const char fname[] = "mxd_pccd_170170_init_register()";
 
 	MX_PCCD_170170_REGISTER *reg;
 	long register_address;
@@ -747,7 +755,7 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 		register_address = combined_value / 100000;
 		register_value   = combined_value % 100000;
 
-		mx_status = mxp_pccd_170170_check_value( pccd_170170,
+		mx_status = mxd_pccd_170170_check_value( pccd_170170,
 							register_address,
 							register_value,
 							&reg );
@@ -1257,7 +1265,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	pccd_170170->old_framesize[0] = -1;
 	pccd_170170->old_framesize[1] = -1;
 
-	pccd_170170->image_sector_array = NULL;
+	pccd_170170->full_frame_sector_array = NULL;
+
+	pccd_170170->num_subimage_sector_arrays = -1;
+	pccd_170170->subimage_sector_arrays = NULL;
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -1647,7 +1658,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	} else {
 		/* Descramble the image. */
 
-		mx_status = mxd_pccd_170170_descramble_image( pccd_170170,
+		mx_status = mxd_pccd_170170_descramble_image( ad,
+							pccd_170170,
 							ad->image_frame,
 							pccd_170170->raw_frame);
 	}
@@ -1893,6 +1905,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
+
+		/* Invalidate any existing images sector arrays. */
+
+		mxd_pccd_170170_free_all_sector_arrays(pccd_170170);
+
+		/* Find a compatible framesize and binsize. */
+
 		mx_status = mx_area_detector_compute_new_binning( ad,
 							ad->parameter_type,
 							num_allowed_binsizes,
@@ -1956,6 +1975,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
+
+		/* Invalidate any existing images sector arrays. */
+
+		mxd_pccd_170170_free_all_sector_arrays(pccd_170170);
 
 		/* Get the detector readout time. */
 
@@ -2682,7 +2705,7 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 		register_address -= MXLV_PCCD_170170_DH_BASE;
 	}
 
-	mx_status = mxp_pccd_170170_check_value( pccd_170170,
+	mx_status = mxd_pccd_170170_check_value( pccd_170170,
 					register_address, register_value, NULL);
 
 	if ( mx_status.code != MXE_SUCCESS )

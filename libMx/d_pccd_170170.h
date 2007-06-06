@@ -53,7 +53,10 @@ typedef struct {
 
 	long old_framesize[2];
 
-	uint16_t ***image_sector_array;
+	uint16_t ***full_frame_sector_array;
+
+	long num_subimage_sector_arrays;
+	uint16_t ****subimage_sector_arrays;
 
 	long num_registers;
 	MX_PCCD_170170_REGISTER *register_array;
