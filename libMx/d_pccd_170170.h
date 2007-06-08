@@ -58,6 +58,8 @@ typedef struct {
 	long num_subimage_sector_arrays;
 	uint16_t ****subimage_sector_arrays;
 
+	uint16_t ***streak_camera_sector_array;
+
 	long num_registers;
 	MX_PCCD_170170_REGISTER *register_array;
 

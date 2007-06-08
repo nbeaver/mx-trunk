@@ -82,6 +82,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {
 	MX_RECORD_STANDARD_FIELDS,
 	MX_AREA_DETECTOR_STANDARD_FIELDS,
+	MX_AREA_DETECTOR_CORRECTION_STANDARD_FIELDS,
 	MXD_PCCD_170170_STANDARD_FIELDS
 };
 
@@ -418,6 +419,14 @@ mxd_pccd_170170_free_all_sector_arrays( MX_PCCD_170170 *pccd_170170 )
 		pccd_170170->num_subimage_sector_arrays = -1;
 	}
 
+	if ( pccd_170170->streak_camera_sector_array != NULL ) {
+
+		mxd_pccd_170170_free_sector_array(
+				pccd_170170->streak_camera_sector_array );
+
+		pccd_170170->streak_camera_sector_array = NULL;
+	}
+
 	return;
 }
 
@@ -501,6 +510,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	MX_SEQUENCE_PARAMETERS *sp;
 	long i_framesize, j_framesize, frame_width;
 	long n, num_subimages, num_lines_per_subimage, num_pixels_per_subimage;
+	long num_streak_camera_lines;
 	uint16_t *raw_data, *raw_ptr, *image_data, *image_ptr;
 	mx_status_type mx_status;
 
@@ -531,10 +541,33 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_STREAK_CAMERA:
-		mx_warning( "STREAK CAMERA DESCRAMBLING NOT YET IMPLEMENTED!" );
+		num_streak_camera_lines = sp->parameter_array[0];
 
-		memcpy( image_frame->image_data, raw_frame->image_data,
-				image_frame->image_length );
+		i_framesize = num_streak_camera_lines / 4;
+		j_framesize = image_frame->framesize[0] / 4;
+
+		if ( pccd_170170->streak_camera_sector_array == NULL ) {
+
+			mx_status = mxd_pccd_170170_alloc_sector_array(
+				&(pccd_170170->streak_camera_sector_array),
+				j_framesize, i_framesize,
+				image_frame->image_data );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+
+		/* Copy and descramble the pixels from the raw frame
+		 * to the image frame.
+		 */
+
+		mx_status = mxd_pccd_170170_descramble_raw_data(
+				raw_frame->image_data,
+				pccd_170170->streak_camera_sector_array,
+				i_framesize, j_framesize );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 		break;
 
 	case MXT_SQ_SUBIMAGE:
@@ -1116,12 +1149,9 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	long vinput_framesize[2];
 	unsigned long flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
+	unsigned long control_register_value;
 	size_t array_size;
 	mx_status_type mx_status;
-
-#if 1
-	unsigned long control_register_value;
-#endif
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1348,13 +1378,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * multiplying and dividing by appropriate factors of 4.
 	 */
 
-#if 0
-	ad->maximum_framesize[0] = 4096;
-	ad->maximum_framesize[1] = 65536;	/* For streak camera mode. */
-#else
 	ad->maximum_framesize[0] = 4096;
 	ad->maximum_framesize[1] = 4096;
-#endif
 
 	/* Set the default framesize and binning. */
 
@@ -1498,6 +1523,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->num_subimage_sector_arrays = -1;
 	pccd_170170->subimage_sector_arrays = NULL;
+
+	pccd_170170->streak_camera_sector_array = NULL;
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -1832,11 +1859,6 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		fname, ad->record->name ));
 #endif
 
-#if 0
-	mx_status = mx_video_input_get_frame(
-		pccd_170170->video_input_record,
-		ad->readout_frame, &(ad->image_frame) );
-#else
 	/* Read in the raw image frame. */
 
 	mx_status = mx_video_input_get_frame(
@@ -1892,7 +1914,6 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 							ad->image_frame,
 							pccd_170170->raw_frame);
 	}
-#endif
 
 	return mx_status;
 }

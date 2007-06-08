@@ -451,10 +451,6 @@ typedef struct {
 		offsetof(MX_AREA_DETECTOR, correction_measurement_type), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "frame_filename", MXFT_STRING, NULL, 1, {MXU_FILENAME_LENGTH}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, frame_filename),\
-	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
-  \
   {-1, -1, "mask_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, mask_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
