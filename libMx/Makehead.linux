@@ -29,11 +29,11 @@ INCLUDES	= $(MX_INCLUDES)
 # Note: EPICS and EPIX are not related to each other.  The naming is just
 #       a coincidence.
 
-LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
-LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
+#LIB_DIRS	= -L$(MX_LIB_DIR) $(EPIX_XCLIB_LIB_DIRS)
+#LIBRARIES	= $(EPIX_XCLIB_LIBRARIES) -lpthread -lrt -ldl -lm
 
-#LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
-#LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
+LIB_DIRS	= -L$(MX_LIB_DIR) $(EDT_LIB_DIRS)
+LIBRARIES	= $(EDT_LIBRARIES) -lpthread -lrt -ldl -lm
 
 #LIB_DIRS	= -L$(MX_LIB_DIR) $(NI_VISA_LIB_DIRS)
 #LIBRARIES	= $(NI_VISA_LIBRARIES) -lpthread -lrt -ldl -lm

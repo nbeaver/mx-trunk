@@ -1,4 +1,5 @@
 tty1  interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0
+spare device digital_input soft_dinput "" "" 0
 edt   interface generic edt "" "" pdv
 video device video_input edt_video_input "" "" 4096 4096 grey16 -1 edt 0 1 0x0 4
-aviex device area_detector pccd_170170 "" "" 0 video tty1 0x1 0x1
+aviex device area_detector pccd_170170 "" "" 0 "" "" "" "" video tty1 spare 0x1 0x1
