@@ -287,6 +287,27 @@ mxd_edt_open( MX_RECORD *record )
 	timeout = 5000;
 
 #if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: pdv_get_depth() = %d",
+		fname, pdv_get_depth( edt_vinput->pdv_p ) ));
+	MX_DEBUG(-2,("%s: pdv_get_extdepth() = %d",
+		fname, pdv_get_extdepth( edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: pdv_get_cam_height() = %d",
+		fname, pdv_get_cam_height( edt_vinput->pdv_p ) ));
+	MX_DEBUG(-2,("%s: pdv_get_cam_width() = %d",
+		fname, pdv_get_cam_width( edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: pdv_get_height() = %d",
+		fname, pdv_get_height( edt_vinput->pdv_p ) ));
+	MX_DEBUG(-2,("%s: pdv_get_width() = %d",
+		fname, pdv_get_width( edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: pdv_get_imagesize() = %d",
+		fname, pdv_get_imagesize( edt_vinput->pdv_p ) ));
+
+	MX_DEBUG(-2,("%s: pdv_get_exposure() = %d",
+		fname, pdv_get_exposure( edt_vinput->pdv_p ) ));
+
 	MX_DEBUG(-2,("%s: Setting timeout to %d milliseconds",
 		fname, timeout));
 #endif

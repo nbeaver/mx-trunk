@@ -249,7 +249,12 @@ EPIX_XCLIB_LIBRARIES = $(EPIX_XCLIB_DIR)/xclib_i386.a
 
 #
 
-EDT_DIR		= /opt/EDTpdv
+#EDT_DIR		= /opt/EDTpdv
+#EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
+#EDT_LIB_DIRS	= -L$(EDT_DIR)
+#EDT_LIBRARIES	= $(EDT_DIR)/libpdv.a
+
+EDT_DIR		= /home/lavender/EDTpdv
 EDT_INCLUDES	= -I$(EDT_DIR) -DIS_MX_DRIVER -Wno-strict-prototypes
 EDT_LIB_DIRS	= -L$(EDT_DIR)
 EDT_LIBRARIES	= $(EDT_DIR)/libpdv.a
