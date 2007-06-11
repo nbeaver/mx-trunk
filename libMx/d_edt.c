@@ -79,30 +79,51 @@ MX_RECORD_FIELD_DEFAULTS *mxd_edt_rfield_def_ptr
 
 static mx_status_type
 mxd_edt_get_pointers( MX_VIDEO_INPUT *vinput,
-			MX_EDT_VIDEO_INPUT **edt,
+			MX_EDT_VIDEO_INPUT **edt_vinput,
+			MX_EDT **edt,
 			const char *calling_fname )
 {
 	static const char fname[] = "mxd_edt_get_pointers()";
+
+	MX_EDT_VIDEO_INPUT *edt_vinput_ptr;
+	MX_RECORD *edt_record;
 
 	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 			"MX_VIDEO_INPUT pointer passed by '%s' was NULL.",
 			calling_fname );
 	}
-	if (edt == NULL) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"MX_EDT_VIDEO_INPUT pointer passed by '%s' was NULL.",
-			calling_fname );
-	}
 
-	*edt = (MX_EDT_VIDEO_INPUT *)
-				vinput->record->record_type_struct;
+	edt_vinput_ptr = vinput->record->record_type_struct;
 
-	if ( *edt == (MX_EDT_VIDEO_INPUT *) NULL ) {
+	if ( edt_vinput_ptr == (MX_EDT_VIDEO_INPUT *) NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-  "MX_EDT_VIDEO_INPUT pointer for record '%s' passed by '%s' is NULL.",
-			vinput->record->name, calling_fname );
+		"The MX_EDT_VIDEO_INPUT pointer for record '%s' is NULL.",
+			vinput->record->name );
 	}
+
+	if ( edt_vinput != (MX_EDT_VIDEO_INPUT **) NULL ) {
+		*edt_vinput = edt_vinput_ptr;
+	}
+
+	if ( edt != (MX_EDT **) NULL ) {
+		edt_record = edt_vinput_ptr->edt_record;
+
+		if ( edt_record == (MX_RECORD *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The edt_record pointer for record '%s' is NULL.",
+				vinput->record->name );
+		}
+
+		*edt = edt_record->record_type_struct;
+
+		if ( (*edt) == (MX_EDT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_EDT pointer for record '%s' is NULL.",
+				vinput->record->name );
+		}
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -146,6 +167,12 @@ mxd_edt_create_record_structures( MX_RECORD *record )
 	vinput->bits_per_pixel = 0;
 	vinput->trigger_mode = 0;
 
+	vinput->pixel_clock_frequency = 0.0;	/* in pixels/second */
+
+	vinput->external_trigger_polarity = MXF_VIN_TRIGGER_NONE;
+
+	vinput->camera_trigger_polarity = MXF_VIN_TRIGGER_NONE;
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -162,9 +189,7 @@ mxd_edt_open( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_EDT_VIDEO_INPUT *edt_vinput;
-	MX_RECORD *edt_record;
 	MX_EDT *edt;
-	uint_t reg_value;
 	unsigned int buffer_size;
 	int i, edt_status, timeout;
 	mx_status_type mx_status;
@@ -176,7 +201,7 @@ mxd_edt_open( MX_RECORD *record )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, &edt, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -184,23 +209,6 @@ mxd_edt_open( MX_RECORD *record )
 #if MXD_EDT_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
-
-	edt_record = edt_vinput->edt_record;
-
-	if ( edt_record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The edt_record pointer for EDT video input '%s' is NULL.",
-			record->name );
-	}
-
-	edt = (MX_EDT *) edt_record->record_type_struct;
-
-	if ( edt == (MX_EDT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_EDT pointer for EDT record '%s' used by "
-		"EDT video input '%s' is NULL.",
-			edt_record->name, record->name );
-	}
 
 	/* Connect to the EDT imaging board. */
 
@@ -234,9 +242,14 @@ mxd_edt_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: EDT utility 2 register = %#x",
 		fname, edt_reg_read( edt_vinput->pdv_p, PDV_UTIL2 ) ));
 #endif
+
+#if 0 /* WML WML WML */
+
 	/* Check to see if this is a Camera Link board. */
 
 	if ( edt_vinput->pdv_p->devid == PDVCL_ID ) {
+
+		uint_t reg_value;
 
 #if MXD_EDT_DEBUG
 		MX_DEBUG(-2,("%s: EDT board '%s' is a Camera Link board.",
@@ -281,6 +294,8 @@ mxd_edt_open( MX_RECORD *record )
 						fname, reg_value));
 #endif
 	}
+
+#endif /* WML WML WML */
 
 	/* Set timeout to 5 seconds. */
 
@@ -334,6 +349,12 @@ mxd_edt_open( MX_RECORD *record )
 					edt_vinput->maximum_num_frames );
 
 	if ( edt_status != 0 ) {
+		char msg[64];
+
+		sprintf(msg, "pdv_multibuf(0x%p, %lu)",
+			edt_vinput->pdv_p, edt_vinput->maximum_num_frames);
+		pdv_perror(msg);
+
 		if ( edt_errno() == 0 ) {
 			mx_warning("edt_status = %d, but edt_errno() = %d",
 				edt_status, edt_errno() );
@@ -413,7 +434,7 @@ mxd_edt_close( MX_RECORD *record )
 
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -444,7 +465,7 @@ mxd_edt_arm( MX_VIDEO_INPUT *vinput )
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -454,11 +475,11 @@ mxd_edt_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
-	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
+	/* If external triggering is not enabled,
+	 * return without doing anything further.
+	 */
 
-		/* If external triggering is not enabled,
-		 * return without doing anything
-		 */
+	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
 #if MXD_EDT_DEBUG
 		MX_DEBUG(-2,
@@ -482,7 +503,7 @@ mxd_edt_trigger( MX_VIDEO_INPUT *vinput )
 	double exposure_time;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -653,7 +674,7 @@ mxd_edt_stop( MX_VIDEO_INPUT *vinput )
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -675,7 +696,7 @@ mxd_edt_abort( MX_VIDEO_INPUT *vinput )
 	MX_EDT_VIDEO_INPUT *edt_vinput;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -698,7 +719,7 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 	int busy;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -740,7 +761,7 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 	unsigned char *image_data;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -795,7 +816,7 @@ mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput )
 	int bit_depth;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -816,16 +837,20 @@ mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_BYTES_PER_FRAME:
 	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
 			vinput->bytes_per_pixel = 3;
+			vinput->bits_per_pixel  = 24;
 			break;
 		case MXT_IMAGE_FORMAT_GREY8:
 			vinput->bytes_per_pixel = 1;
+			vinput->bits_per_pixel  = 8;
 			break;
 	
 		case MXT_IMAGE_FORMAT_GREY16:
 			vinput->bytes_per_pixel = 2;
+			vinput->bits_per_pixel  = 16;
 			break;
 	
 		default:
@@ -889,7 +914,7 @@ mxd_edt_set_parameter( MX_VIDEO_INPUT *vinput )
 	int edt_status;
 	mx_status_type mx_status;
 
-	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, fname );
+	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

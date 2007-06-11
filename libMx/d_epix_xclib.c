@@ -1455,16 +1455,20 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_BYTES_PER_FRAME:
 	case MXLV_VIN_BYTES_PER_PIXEL:
+	case MXLV_VIN_BITS_PER_PIXEL:
 		switch( vinput->image_format ) {
 		case MXT_IMAGE_FORMAT_RGB:
 			vinput->bytes_per_pixel = 3;
+			vinput->bits_per_pixel  = 24;
 			break;
 		case MXT_IMAGE_FORMAT_GREY8:
 			vinput->bytes_per_pixel = 1;
+			vinput->bits_per_pixel  = 8;
 			break;
 	
 		case MXT_IMAGE_FORMAT_GREY16:
 			vinput->bytes_per_pixel = 2;
+			vinput->bits_per_pixel  = 16;
 			break;
 	
 		default:
