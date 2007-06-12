@@ -390,7 +390,7 @@ mxd_edt_open( MX_RECORD *record )
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
 	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
-	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+	vinput->trigger_mode   = MXT_IMAGE_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
@@ -668,7 +668,8 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_edt_get_status()";
 
 	MX_EDT_VIDEO_INPUT *edt_vinput;
-	int busy, num_timeouts, overrun;
+	int done_count, busy, num_timeouts, overrun;
+	uint status_register;
 	mx_status_type mx_status;
 
 	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
@@ -676,18 +677,17 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	status_register = edt_reg_read( edt_vinput->pdv_p, PDV_STAT );
+
 #if MXD_EDT_DEBUG
-	MX_DEBUG(-2,("%s: edt_done_count() = %ld",
-		fname, (long) edt_done_count(edt_vinput->pdv_p ) ));
-
-	MX_DEBUG(-2,("%s: pdv_in_continuous() = %ld",
-		fname, (long) pdv_in_continuous(edt_vinput->pdv_p ) ));
-
-	MX_DEBUG(-2,("%s: EDT status register = %#x",
-		fname, edt_reg_read( edt_vinput->pdv_p, PDV_STAT ) ));
+	MX_DEBUG(-2,("%s: EDT status register = %#x", fname, status_register));
 #endif
 
-	busy = FALSE;		/* FIXME!!! */
+	if ( status_register == 0x30 ) {
+		busy = FALSE;
+	} else {
+		busy = TRUE;
+	}
 
 	if ( busy ) {
 		vinput->busy = TRUE;
@@ -703,13 +703,37 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: busy = %d", fname, vinput->busy ));
 #endif
 
+	done_count = edt_done_count( edt_vinput->pdv_p );
+
+	vinput->total_num_frames = done_count;
+
+	if ( vinput->maximum_frame_number == 0 ) {
+		vinput->last_frame_number = 0;
+	} else {
+		vinput->last_frame_number
+			= done_count % vinput->maximum_frame_number;
+	}
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: edt_done_count() = %ld",
+		fname, (long) edt_done_count(edt_vinput->pdv_p ) ));
+#endif
+
 	num_timeouts = pdv_timeouts( edt_vinput->pdv_p );
 
 	if ( num_timeouts > edt_vinput->num_timeouts ) {
 		vinput->status |= MXSF_VIN_TIMEOUT;
 	}
 
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: num_timeouts = %d", fname, num_timeouts));
+#endif
+
 	overrun = pdv_overrun( edt_vinput->pdv_p );
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: overrun = %d", fname, overrun));
+#endif
 
 	if ( overrun ) {
 		vinput->status |= MXSF_VIN_OVERRUN;
@@ -729,7 +753,7 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 	unsigned char *image_data;
 	u_int time_array[2];
 	u_int buffer_number;
-	int edt_status;
+	int edt_status, done_count;
 	mx_status_type mx_status;
 
 	mx_status = mxd_edt_get_pointers( vinput, &edt_vinput, NULL, fname );
@@ -750,13 +774,22 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 #endif
 	/* Compute the EDT buffer number from the MX frame number. */
 
-	buffer_number = edt_vinput->last_done_count + vinput->frame_number;
-
 	if ( vinput->maximum_frame_number == 0 ) {
 		buffer_number = 0;
 	} else {
-		buffer_number %= vinput->maximum_frame_number;
+		if ( vinput->frame_number == (-1) ) {
+			done_count = edt_done_count( edt_vinput->pdv_p );
+		} else {
+			done_count = edt_vinput->last_done_count
+						+ vinput->frame_number;
+		}
+		buffer_number
+			= ( done_count - 1 ) % vinput->maximum_frame_number;
 	}
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: buffer_number = %u", fname, buffer_number));
+#endif
 
 	/* Get the address of the image buffer. */
 
@@ -789,11 +822,13 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 	edt_status = edt_get_timestamp( edt_vinput->pdv_p,
 					time_array, buffer_number );
 
+#if 0
 	if ( edt_status != 0 ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
 		"Unable to get the timestamp for EDT buffer %u of record '%s'.",
 			buffer_number, vinput->record->name );
 	}
+#endif
 
 	frame->image_time.tv_sec = time_array[0];
 	frame->image_time.tv_nsec = 1000L * (long) time_array[1];
