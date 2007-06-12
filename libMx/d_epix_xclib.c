@@ -804,7 +804,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB *epix_xclib;
 	MX_SEQUENCE_PARAMETERS *sp;
 	pxbuffer_t startbuf, endbuf, numbuf;
-	double trigger_time, frame_time;
+	double trigger_time, exposure_time;
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
@@ -872,24 +872,24 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_CONTINUOUS:
-		frame_time = sp->parameter_array[0];
+		exposure_time = sp->parameter_array[0];
 		break;
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		frame_time = sp->parameter_array[2];
+		exposure_time = sp->parameter_array[1];
 		break;
 	case MXT_SQ_STREAK_CAMERA:
-		frame_time = sp->parameter_array[0] * sp->parameter_array[1];
+		exposure_time = sp->parameter_array[0] * sp->parameter_array[1];
 		break;
 	case MXT_SQ_SUBIMAGE:
-		frame_time = sp->parameter_array[1] * sp->parameter_array[3];
+		exposure_time = sp->parameter_array[1] * sp->parameter_array[3];
 		break;
 	default:
-		frame_time = -1;
+		exposure_time = -1;
 		break;
 	}
 
-	if ( frame_time >= 0.0 ) {
+	if ( exposure_time >= 0.0 ) {
 		/* Configure the EXSYNC and PRINC registers with trigger
 		 * input select (TIS) set to FALSE for all sequence types.
 		 * Continuous select (CNTS) is set to FALSE for one-shot
@@ -910,7 +910,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		mx_status = mxd_epix_xclib_set_exsync_princ(
 						vinput, epix_xclib_vinput,
 							trigger_time,
-							frame_time,
+							exposure_time,
 							continuous_select,
 							FALSE );
 		if ( mx_status.code != MXE_SUCCESS )

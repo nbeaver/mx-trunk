@@ -22,6 +22,8 @@
 /* Status bit definitions for the 'status' field. */
 
 #define MXSF_VIN_IS_BUSY	0x1
+#define MXSF_VIN_TIMEOUT	0x2
+#define MXSF_VIN_OVERRUN	0x4
 
 /* Definitions for 'external_trigger_polarity' and 'camera_trigger_polarity'. */
 

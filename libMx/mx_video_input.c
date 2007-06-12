@@ -1187,6 +1187,12 @@ mx_video_input_get_frame( MX_RECORD *record,
 		"The MX_IMAGE_FRAME pointer passed was NULL." );
 	}
 
+	if ( frame_number < 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal frame number %ld requested for video input '%s'.",
+			frame_number, record->name );
+	}
+
 	/* Does this driver implement a get_frame function? */
 
 	get_frame_fn = flist->get_frame;

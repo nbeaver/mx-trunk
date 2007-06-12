@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -29,6 +29,9 @@ typedef struct {
 	long channel_number;
 	unsigned long edt_flags;
 	unsigned long maximum_num_frames;
+
+	long last_done_count;
+	long num_timeouts;
 
 #if IS_MX_DRIVER
 	PdvDev *pdv_p;
@@ -56,7 +59,15 @@ typedef struct {
   \
   {-1, -1, "maximum_num_frames", MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EDT_VIDEO_INPUT, maximum_num_frames), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "last_done_count", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EDT_VIDEO_INPUT, last_done_count), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "num_timeouts", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_EDT_VIDEO_INPUT, num_timeouts), \
+	{0}, NULL, 0}
 
 MX_API mx_status_type mxd_edt_create_record_structures( MX_RECORD *record );
 MX_API mx_status_type mxd_edt_finish_record_initialization( MX_RECORD *record );
