@@ -683,10 +683,40 @@ mxd_edt_get_status( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: EDT status register = %#x", fname, status_register));
 #endif
 
-	if ( status_register == 0x30 ) {
-		busy = FALSE;
-	} else {
+#if MXD_EDT_DEBUG
+	{
+		if ( status_register & PDV_AQUIRE_IP ) {
+			fprintf(stderr, "PDV_AQUIRE_IP ");
+		}
+		if ( status_register & PDV_GRAB_ARMED ) {
+			fprintf(stderr, "PDV_GRAB_ARMED ");
+		}
+		if ( status_register & PDV_CHAN_ID1 ) {
+			fprintf(stderr, "PDV_CHAN_ID1 ");
+		}
+		if ( status_register & PDV_CHAN_ID0 ) {
+			fprintf(stderr, "PDV_CHAN_ID0 ");
+		}
+		if ( status_register & PDV_SW_ARMED ) {	     /* or PDV_FIELD */
+			fprintf(stderr, "PDV_SW_ARMED ");
+		}
+		if ( status_register & PDV_EXPOSURE ) {
+			fprintf(stderr, "PDV_EXPOSURE ");
+		}
+		if ( status_register & PDV_FRAME_VALID ) {
+			fprintf(stderr, "PDV_FRAME_VALID ");
+		}
+		if ( status_register & PDV_OVERRUN ) {
+			fprintf(stderr, "PDV_OVERRUN ");
+		}
+		fprintf(stderr,"\n");
+	}
+#endif
+
+	if ( status_register & PDV_EXPOSURE ) {
 		busy = TRUE;
+	} else {
+		busy = FALSE;
 	}
 
 	if ( busy ) {
@@ -811,6 +841,22 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EDT_DEBUG
+	{
+		int i;
+		uint16_t *uint16_image_data;
+
+		uint16_image_data =
+			(uint16_t *) ring_buffer_array[buffer_number];
+
+		for ( i = 0; i < 20; i++ ) {
+			fprintf(stderr, "%d ", (int) uint16_image_data[i]);
+		}
+
+		fprintf(stderr, "...\n");
+	}
+#endif
+
+#if MXD_EDT_DEBUG
 	MX_DEBUG(-2,("%s: Copying a %lu byte image frame.",
 			fname, (unsigned long) frame->image_length));
 #endif
@@ -821,6 +867,11 @@ mxd_edt_get_frame( MX_VIDEO_INPUT *vinput )
 
 	edt_status = edt_get_timestamp( edt_vinput->pdv_p,
 					time_array, buffer_number );
+
+#if MXD_EDT_DEBUG
+	MX_DEBUG(-2,("%s: edt_get_timestamp(), edt_status = %d",
+		fname, edt_status));
+#endif
 
 #if 0
 	if ( edt_status != 0 ) {
