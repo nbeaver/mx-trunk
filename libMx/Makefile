@@ -138,7 +138,8 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	i_6821.c i_8255.c i_am9513.c i_aps_adcmod2.c \
 	i_camera_link_api.c i_camera_link_rs232.c \
 	i_cm17a.c i_compumotor.c i_cxtilt02.c i_d8.c i_databox.c \
-	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c i_edt.c \
+	i_dos_com.c i_dos_portio.c i_driverlinx_portio.c i_dsp6001.c \
+	i_edt.c i_edt_rs232.c \
 	i_epics_gpib.c i_epics_rs232.c i_epics_vme.c \
 	i_epix_camera_link.c i_epix_rs232.c i_epix_xclib.c \
 	i_esone_camac.c i_fossil.c i_ggcs.c i_hsc1.c \
@@ -288,6 +289,9 @@ i_driverlinx_portio.$(OBJ): i_driverlinx_portio.c
 
 i_edt.$(OBJ): i_edt.c
 	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt.c
+
+i_edt_rs232.$(OBJ): i_edt_rs232.c
+	$(COMPILE) $(CFLAGS) $(EDT_INCLUDES) i_edt_rs232.c
 
 i_epix_camera_link.$(OBJ): i_epix_camera_link.c
 	$(COMPILE) $(CFLAGS) $(EPIX_XCLIB_INCLUDES) i_epix_camera_link.c

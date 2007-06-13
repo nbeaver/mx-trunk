@@ -29,7 +29,7 @@
 #include "mx_image.h"
 #include "mx_video_input.h"
 
-#include "edtinc.h"
+#include "edtinc.h"	/* Vendor include file. */
 
 #include "i_edt.h"
 #include "d_edt.h"

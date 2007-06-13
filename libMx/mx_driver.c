@@ -99,7 +99,6 @@
 #include "i_fossil.h"
 #include "i_ks3344.h"
 #include "i_wago750_serial.h"
-#include "i_spec_command.h"
 
 #ifdef OS_WIN32
 #include "i_win32_com.h"
@@ -116,6 +115,10 @@
 #if HAVE_CAMERA_LINK
 #include "i_camera_link_rs232.h"
 #endif
+
+#include "i_spec_command.h"
+#include "i_epix_rs232.h"
+#include "i_edt_rs232.h"
 
 #if HAVE_TCPIP
 #include "i_tcp232.h"
@@ -619,13 +622,6 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_tcp232_rfield_def_ptr},
 #endif /* HAVE_TCPIP */
 
-{"spec_command",   MXI_232_SPEC_COMMAND, MXI_RS232,      MXR_INTERFACE,
-				&mxi_spec_command_record_function_list,
-				NULL,
-				&mxi_spec_command_rs232_function_list,
-				&mxi_spec_command_num_record_fields,
-				&mxi_spec_command_rfield_def_ptr},
-
 #if defined(OS_VMS)
 {"vms_terminal",   MXI_232_VMS,      MXI_RS232,          MXR_INTERFACE,
 				&mxi_vms_terminal_record_function_list,
@@ -652,6 +648,27 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_camera_link_rs232_num_record_fields,
 				&mxi_camera_link_rs232_rfield_def_ptr},
 #endif
+
+{"spec_command",   MXI_232_SPEC_COMMAND, MXI_RS232,      MXR_INTERFACE,
+				&mxi_spec_command_record_function_list,
+				NULL,
+				&mxi_spec_command_rs232_function_list,
+				&mxi_spec_command_num_record_fields,
+				&mxi_spec_command_rfield_def_ptr},
+
+{"epix_rs232",     MXI_232_EPIX_XCLIB,   MXI_RS232,      MXR_INTERFACE,
+				&mxi_epix_rs232_record_function_list,
+				NULL,
+				&mxi_epix_rs232_rs232_function_list,
+				&mxi_epix_rs232_num_record_fields,
+				&mxi_epix_rs232_rfield_def_ptr},
+
+{"edt_rs232",      MXI_232_EDT,          MXI_RS232,      MXR_INTERFACE,
+				&mxi_edt_rs232_record_function_list,
+				NULL,
+				&mxi_edt_rs232_rs232_function_list,
+				&mxi_edt_rs232_num_record_fields,
+				&mxi_edt_rs232_rfield_def_ptr},
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,

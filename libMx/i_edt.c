@@ -7,7 +7,7 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -25,9 +25,10 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
-#include "i_edt.h"
 
-#include "edtinc.h"
+#include "edtinc.h"	/* Vendor include file. */
+
+#include "i_edt.h"
 
 MX_RECORD_FUNCTION_LIST mxi_edt_record_function_list = {
 	NULL,
