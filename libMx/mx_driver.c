@@ -656,19 +656,23 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_spec_command_num_record_fields,
 				&mxi_spec_command_rfield_def_ptr},
 
+#if HAVE_EPIX_XCLIB
 {"epix_rs232",     MXI_232_EPIX_XCLIB,   MXI_RS232,      MXR_INTERFACE,
 				&mxi_epix_rs232_record_function_list,
 				NULL,
 				&mxi_epix_rs232_rs232_function_list,
 				&mxi_epix_rs232_num_record_fields,
 				&mxi_epix_rs232_rfield_def_ptr},
+#endif /* HAVE_EPIX_XCLIB */
 
+#if HAVE_EDT
 {"edt_rs232",      MXI_232_EDT,          MXI_RS232,      MXR_INTERFACE,
 				&mxi_edt_rs232_record_function_list,
 				NULL,
 				&mxi_edt_rs232_rs232_function_list,
 				&mxi_edt_rs232_num_record_fields,
 				&mxi_edt_rs232_rfield_def_ptr},
+#endif /* HAVE_EDT */
 
 {"network_gpib",   MXI_GPIB_NETWORK, MXI_GPIB,         MXR_INTERFACE,
 				&mxi_network_gpib_record_function_list,

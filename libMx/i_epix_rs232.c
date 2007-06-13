@@ -26,6 +26,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#if defined(OS_WIN32)
+#   include <windows.h>
+#endif
+
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
