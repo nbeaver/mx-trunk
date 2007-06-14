@@ -60,7 +60,9 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
 	NULL,
 	NULL,
 	mxd_epix_xclib_open,
-	mxd_epix_xclib_close
+	NULL,
+	NULL,
+	mxd_epix_xclib_resynchronize
 };
 
 MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
@@ -520,9 +522,34 @@ mxd_epix_xclib_open( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mxd_epix_xclib_close( MX_RECORD *record )
+mxd_epix_xclib_resynchronize( MX_RECORD *record )
 {
-	return MX_SUCCESSFUL_RESULT;
+	static const char fname[] = "mxd_epix_xclib_resynchronize()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'", fname, record->name ));
+#endif
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+					&epix_xclib_vinput, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_resynchronize_record( epix_xclib_vinput->xclib_record );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

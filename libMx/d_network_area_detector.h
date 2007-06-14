@@ -49,6 +49,7 @@ typedef struct {
 	MX_NETWORK_FIELD num_correction_measurements_nf;
 	MX_NETWORK_FIELD pixel_order_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
+	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;
 	MX_NETWORK_FIELD roi_array_nf;
 	MX_NETWORK_FIELD roi_bytes_per_frame_nf;
@@ -93,6 +94,8 @@ MX_API mx_status_type mxd_network_area_detector_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_network_area_detector_open( MX_RECORD *record );
 MX_API mx_status_type mxd_network_area_detector_close( MX_RECORD *record );
+MX_API mx_status_type mxd_network_area_detector_resynchronize(
+							MX_RECORD *record );
 
 MX_API mx_status_type mxd_network_area_detector_arm( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_network_area_detector_trigger( MX_AREA_DETECTOR *ad );

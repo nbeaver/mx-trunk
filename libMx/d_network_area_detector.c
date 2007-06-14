@@ -39,7 +39,9 @@ MX_RECORD_FUNCTION_LIST mxd_network_area_detector_record_function_list = {
 	NULL,
 	NULL,
 	mxd_network_area_detector_open,
-	mxd_network_area_detector_close
+	mxd_network_area_detector_close,
+	NULL,
+	mxd_network_area_detector_resynchronize
 };
 
 MX_AREA_DETECTOR_FUNCTION_LIST
@@ -313,6 +315,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.readout_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->resynchronize_nf),
+		network_area_detector->server_record,
+		"%s.resynchronize", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->roi_nf),
 		network_area_detector->server_record,
 		"%s.roi", network_area_detector->remote_record_name );
@@ -548,6 +554,41 @@ MX_EXPORT mx_status_type
 mxd_network_area_detector_close( MX_RECORD *record )
 {
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_network_area_detector_resynchronize( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_network_area_detector_resynchronize()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_NETWORK_AREA_DETECTOR *network_area_detector;
+	mx_bool_type resynchronize;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	ad = record->record_class_struct;
+
+	mx_status = mxd_network_area_detector_get_pointers( ad,
+						&network_area_detector, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for area detector '%s'",
+		fname, ad->record->name ));
+#endif
+	resynchronize = 1;
+
+	mx_status = mx_put( &(network_area_detector->resynchronize_nf),
+				MXFT_BOOL, &resynchronize );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

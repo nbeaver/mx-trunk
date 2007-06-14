@@ -1576,9 +1576,19 @@ mxd_pccd_170170_resynchronize( MX_RECORD *record )
 	 * by toggling the CC4 line.
 	 */
 
+#if 0
 	mx_status = mx_camera_link_pulse_cc_line(
 					pccd_170170->camera_link_record, 4,
 					-1, 1000 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#endif
+
+	/* Restart the PIXCI library. */
+
+	mx_status = mx_resynchronize_record( pccd_170170->video_input_record );
+
 	return mx_status;
 }
 
@@ -2261,8 +2271,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		case MXT_SQ_GEOMETRICAL:
 			exposure_multiplier = sp->parameter_array[3];
 
-			exposure_multiplier_steps = mx_round(
-					exposure_multiplier / 0.0039 );
+			exposure_multiplier_steps = 
+				mx_round( (exposure_multiplier - 1.0) * 255.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2274,8 +2284,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			gap_multiplier = sp->parameter_array[4];
 
-			gap_multiplier_steps = mx_round(
-						gap_multiplier / 0.0039 );
+			gap_multiplier_steps = 
+				mx_round( (gap_multiplier - 1.0) * 255.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,

@@ -39,7 +39,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
-	MX_SEQUENCE_PARAMETERS seq_params;
+	MX_SEQUENCE_PARAMETERS sp;
 	char *filename, *endptr;
 	char *filename_stem;
 	char filename_ext[20];
@@ -50,7 +50,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long trigger_mode, bytes_per_frame, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number, total_num_frames;
-	long old_total_num_frames, starting_total_num_frames;
+	long n, starting_total_num_frames, starting_last_frame_number;
+	long final_total_num_frames, frame_number_to_read;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -318,15 +319,69 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
+		mx_status = mx_area_detector_get_sequence_parameters(
+						ad_record, &sp );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		switch( sp.sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_STREAK_CAMERA:
+		case MXT_SQ_SUBIMAGE:
+			num_frames = 1;
+			break;
+
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_STROBE:
+		case MXT_SQ_BULB:
+		case MXT_SQ_GEOMETRICAL:
+			num_frames = mx_round( sp.parameter_array[0] );
+			break;
+
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			fprintf( output,
+		"%s: Sequence support in motor has not yet been implemented\n"
+		"for continuous and circular multiframe sequences.\n",
+				cname );
+			return FAILURE;
+			break;
+		default:
+			fprintf( output,
+		"%s: Area detector '%s' is currently configured for\n"
+		"unrecognized sequence type %ld.\n",
+				cname, ad_record->name, sp.sequence_type );
+			break;
+		}
+
 		filename_stem = argv[5];
 
 		mx_status = mx_area_detector_get_extended_status( ad_record,
-						&last_frame_number,
+						&starting_last_frame_number,
 						&starting_total_num_frames,
 						&ad_status );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
+
+		if ( starting_total_num_frames > (LONG_MAX - num_frames) ) {
+			fprintf( output,
+	"%s: FIXME! The sum of the starting total number of frames (%ld)\n"
+	"    and the number of frames in this sequence (%ld) is larger than\n"
+	"    the largest long integer (%ld).  Support in 'motor' has not\n"
+	"    been implemented for this case.  This should only happen if\n"
+	"    the MX server has taken close to %ld image frames without\n"
+	"    being restarted.  The simplest way of dealing with this\n"
+	"    situation is to restart the MX server.  If you ever actually\n"
+	"    see this error message, please tell Bill Lavender about it.\n",
+			cname, starting_total_num_frames, num_frames,
+			LONG_MAX, LONG_MAX );
+
+			return FAILURE;
+		}
+
+		final_total_num_frames = starting_total_num_frames + num_frames;
 
 		fprintf( output, "Starting sequence\n" );
 		fflush( output );
@@ -336,9 +391,15 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
-		old_total_num_frames = starting_total_num_frames;
+		/* Loop over the frames in the sequence.  Please note that
+		 * the final section of the loop instruction is empty, since
+		 * 'n' does not get incremented on every pass through
+		 * the loop.
+		 */
 
-		for(;;) {
+		for ( n = starting_total_num_frames;
+			n < final_total_num_frames; )
+		{
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
 
@@ -360,19 +421,28 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			if ( total_num_frames != old_total_num_frames ) {
+			MX_DEBUG(-2,("***********************************"));
+			MX_DEBUG(-2,
+	("%s: n = %ld, last_frame_number = %ld, total_num_frames = %ld, "
+	"ad_status = %#lx", cname, n, last_frame_number, total_num_frames,
+				ad_status));
+
+			if ( total_num_frames > n ) {
+				frame_number_to_read =
+				  starting_last_frame_number + n + 1L;
+
 				fprintf( output, "Reading frame %ld.\n",
-					last_frame_number );
+					frame_number_to_read );
 
 				mx_status = mx_area_detector_get_frame(
-					ad_record, last_frame_number, &frame );
+				    ad_record, frame_number_to_read, &frame );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
 
 				snprintf(frame_filename, sizeof(frame_filename),
-					"%s%ld.%s", filename_stem,
-				   total_num_frames - starting_total_num_frames,
+					"%s%ld.%s",filename_stem,
+					n - starting_total_num_frames,
 					filename_ext );
 
 				fprintf( output, "Writing image file '%s'.  ",
@@ -386,13 +456,21 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 				fprintf( output, "Complete.\n" );
 
-				old_total_num_frames = total_num_frames;
+				/* Increment the frame number. */
+
+				n++;
+
+				if ( n >= final_total_num_frames ) {
+					break;	/* Exit the for() loop. */
+				}
 			}
 
+#if 0
 			if ( (ad_status & MXSF_AD_IS_BUSY) == FALSE ) {
 
 				break;		/* Exit the for(;;) loop. */
 			}
+#endif
 			mx_msleep(10);
 		}
 
@@ -1056,7 +1134,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 					argv[4], strlen(argv[4]) ) == 0 )
 		{
 			mx_status = mx_area_detector_get_sequence_parameters(
-						ad_record, &seq_params );
+						ad_record, &sp );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
@@ -1064,11 +1142,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 			fprintf( output,
 	"Area detector '%s': sequence type = %ld, num parameters = %ld\n"
 	"    parameter array =", ad_record->name,
-			seq_params.sequence_type, seq_params.num_parameters);
+			sp.sequence_type, sp.num_parameters);
 
-			for ( i = 0; i < seq_params.num_parameters; i++ ) {
+			for ( i = 0; i < sp.num_parameters; i++ ) {
 				fprintf( output, " %g",
-					seq_params.parameter_array[i] );
+					sp.parameter_array[i] );
 			}
 			fprintf( output, "\n" );
 		} else

@@ -50,7 +50,10 @@ MX_RECORD_FUNCTION_LIST mxi_epix_xclib_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
-	mxi_epix_xclib_open
+	mxi_epix_xclib_open,
+	mxi_epix_xclib_close,
+	NULL,
+	mxi_epix_xclib_resynchronize
 };
 
 MX_RECORD_FIELD_DEFAULTS mxi_epix_xclib_record_field_defaults[] = {
@@ -308,6 +311,71 @@ mxi_epix_xclib_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mxi_epix_xclib_get_timing_parameters( epix_xclib );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_epix_xclib_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxi_epix_xclib_close()";
+
+	int i, length, epix_status;
+	char fault_message[80];
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+#endif
+	epix_status = pxd_PIXCIclose();
+
+	if ( epix_status < 0 ) {
+
+		pxd_mesgFaultText(-1, fault_message, sizeof(fault_message) );
+
+		length = strlen(fault_message);
+
+		for ( i = 0; i < length; i++ ) {
+			if ( fault_message[i] == '\n' )
+				fault_message[i] = ' ';
+		}
+
+		return mx_error( MXE_INTERFACE_IO_ERROR, fname,
+		"Shutting down the PIXCI library failed for record '%s' "
+		"with error code %d (%s).  Fault description = '%s'.", 
+			record->name, epix_status,
+			pxd_mesgErrorCode( epix_status ),
+			fault_message );
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name ));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mxi_epix_xclib_resynchronize( MX_RECORD *record )
+{
+	mx_status_type mx_status;
+
+	mx_status = mxi_epix_xclib_close( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxi_epix_xclib_open( record );
 
 	return mx_status;
 }

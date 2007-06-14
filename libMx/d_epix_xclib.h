@@ -68,7 +68,7 @@ MX_API mx_status_type mxd_epix_xclib_create_record_structures(
 MX_API mx_status_type mxd_epix_xclib_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epix_xclib_open( MX_RECORD *record );
-MX_API mx_status_type mxd_epix_xclib_close( MX_RECORD *record );
+MX_API mx_status_type mxd_epix_xclib_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput );
