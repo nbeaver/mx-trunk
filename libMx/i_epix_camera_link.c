@@ -16,6 +16,8 @@
 
 #define MXI_EPIX_CAMERA_LINK_DEBUG	FALSE
 
+#define MXI_EPIX_CAMERA_LINK_DEBUG_CC	FALSE
+
 #include <stdio.h>
 
 #include "mxconfig.h"
@@ -893,11 +895,11 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 	port = serial_ref;
 
-#if MXI_EPIX_CAMERA_LINK_DEBUG
+#if 0 && MXI_EPIX_CAMERA_LINK_DEBUG_CC
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, port->record->name));
 #endif
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG_CC
 	MX_DEBUG(-2,("%s: cc_line_number = %d, cc_line_state = %d",
 			fname, cc_line_number, cc_line_state));
 #endif
@@ -919,7 +921,7 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 
 	CLCCSE = vidstate.xc.dxxformat->CLCCSE;
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if 0 && MXD_EPIX_XCLIB_DEBUG_CC
 	MX_DEBUG(-2,("%s: Old CLCCSE = %#x", fname, CLCCSE));
 #endif
 
@@ -1012,7 +1014,7 @@ mxi_epix_camera_link_set_cc_line( hSerRef serial_ref,
 		return CL_ERR_ERROR_NOT_FOUND;
 	}
 
-#if MXD_EPIX_XCLIB_DEBUG
+#if 0 && MXD_EPIX_XCLIB_DEBUG_CC
 	MX_DEBUG(-2,("%s: New CLCCSE = %#x", fname, CLCCSE));
 #endif
 

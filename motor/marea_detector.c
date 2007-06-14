@@ -51,7 +51,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
-	long final_total_num_frames, frame_number_to_read;
+	long old_last_frame_number, old_total_num_frames;
+	mx_bool_type new_frame_arrived;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -387,8 +388,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		final_total_num_frames = starting_total_num_frames + num_frames;
-
 		fprintf( output, "Starting sequence\n" );
 		fflush( output );
 
@@ -403,8 +402,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 		 * the loop.
 		 */
 
-		for ( n = starting_total_num_frames;
-			n < final_total_num_frames; )
+		old_last_frame_number = starting_last_frame_number;
+		old_total_num_frames  = starting_total_num_frames;
+
+		for ( n = 0; n < num_frames; )
 		{
 			if ( mx_kbhit() ) {
 				(void) mx_getch();
@@ -433,23 +434,29 @@ motor_area_detector_fn( int argc, char *argv[] )
 	"ad_status = %#lx", n, last_frame_number, total_num_frames,
 				ad_status));
 
-			if ( total_num_frames > n ) {
-				frame_number_to_read =
-				  starting_last_frame_number + n + 1L;
+			if ( last_frame_number != old_last_frame_number ) {
+				new_frame_arrived = TRUE;
+			} else
+			if ( total_num_frames != old_total_num_frames ) {
+				new_frame_arrived = TRUE;
+			} else {
+				new_frame_arrived = FALSE;
+			}
 
-				fprintf( output, "Reading frame %ld.\n",
-					frame_number_to_read );
+			if ( new_frame_arrived ) {
+				fprintf( output, "Reading frame %ld.\n", n );
+
+				frame_number = starting_last_frame_number + n;
 
 				mx_status = mx_area_detector_get_frame(
-				    ad_record, frame_number_to_read, &frame );
+				    ad_record, frame_number, &frame );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
 
 				snprintf(frame_filename, sizeof(frame_filename),
-					"%s%ld.%s",filename_stem,
-					n - starting_total_num_frames,
-					filename_ext );
+					"%s%ld.%s",
+					filename_stem, n, filename_ext );
 
 				fprintf( output, "Writing image file '%s'.  ",
 					frame_filename );
@@ -466,10 +473,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 				n++;
 
-				if ( n >= final_total_num_frames ) {
+				if ( n >= num_frames ) {
 					break;	/* Exit the for() loop. */
 				}
 			}
+
+			old_last_frame_number = last_frame_number;
+			old_total_num_frames  = total_num_frames;
 
 #if 0
 			if ( (ad_status & MXSF_AD_IS_BUSY) == FALSE ) {
