@@ -876,6 +876,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		break;
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_GEOMETRICAL:
 		exposure_time = sp->parameter_array[1];
 		break;
 	case MXT_SQ_STREAK_CAMERA:
@@ -963,6 +964,7 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_GEOMETRICAL:
 		if ( sp->num_parameters < 1 ) {
 			return mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
 			"The first sequence parameter of video input '%s' "

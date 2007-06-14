@@ -1631,6 +1631,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_MULTIFRAME:
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
+	case MXT_SQ_GEOMETRICAL:
 		break;
 
 	default:
@@ -2261,7 +2262,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_multiplier = sp->parameter_array[3];
 
 			exposure_multiplier_steps = mx_round(
-						exposure_multiplier / 0.078 );
+					exposure_multiplier / 0.0039 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2271,9 +2272,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			gap_multiplier = sp->parameter_array[3];
+			gap_multiplier = sp->parameter_array[4];
 
-			gap_multiplier_steps = mx_round(gap_multiplier / 0.078);
+			gap_multiplier_steps = mx_round(
+						gap_multiplier / 0.0039 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2341,6 +2343,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 				frame_time = exposure_time
 						+ ad->detector_readout_time;
+
+			} else if ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) {
+				num_frames = mx_round( sp->parameter_array[0] );
+				exposure_time = sp->parameter_array[1];
+				frame_time = sp->parameter_array[2];
+
 			} else {
 				return mx_error( MXE_FUNCTION_FAILED, fname,
 				"Inconsistent control structures for "

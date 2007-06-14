@@ -45,11 +45,11 @@
 # More detailed instructions may be found in the file "mx/README.install".
 #
 
-MX_ARCH = win32
+MX_ARCH = linux
 
-#MX_INSTALL_DIR = /opt/mx
+MX_INSTALL_DIR = /opt/mx
 
-MX_INSTALL_DIR = c:/opt/mx-2007-06-13
+#MX_INSTALL_DIR = c:/opt/mx-2007-06-13
 
 #MX_INSTALL_DIR = $(HOME)/mxtest
 
