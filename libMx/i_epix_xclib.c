@@ -70,6 +70,22 @@ MX_RECORD_FIELD_DEFAULTS *mxi_epix_xclib_rfield_def_ptr
 
 /*---------------------------------------------------------------------------*/
 
+static mx_bool_type mxi_epix_xclib_atexit_handler_installed = FALSE;
+
+static void
+mxi_epix_xclib_atexit_handler( void )
+{
+#if MXI_EPIX_XCLIB_DEBUG
+	static char fname[] = "mxi_epix_xclib_atexit_handler()";
+
+	MX_DEBUG(-2,("%s: atexit handler invoked.", fname));
+#endif
+
+	(void) pxd_PIXCIclose();
+}
+
+/*---------------------------------------------------------------------------*/
+
 static mx_status_type
 mxi_epix_xclib_get_timing_parameters( MX_EPIX_XCLIB *epix_xclib )
 {
@@ -157,7 +173,31 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
+
+	MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler_installed = %d",
+			fname, mxi_epix_xclib_atexit_handler_installed ));
 #endif
+	/* Install the PIXCI atexit handler, if
+	 * it has not already been installed.
+	 */
+
+	if ( mxi_epix_xclib_atexit_handler_installed == FALSE ) {
+		int status;
+
+		status = atexit( mxi_epix_xclib_atexit_handler );
+
+		if ( status != 0 ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+    "Installing the EPIX PIXCI atexit handler failed for an unknown reason." );
+		}
+
+		mxi_epix_xclib_atexit_handler_installed = TRUE;
+
+#if MXI_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler() installed.",
+			fname));
+#endif
+	}
 
 	/* Check to see if we are running on a supported operating system. */
 

@@ -365,6 +365,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		MX_DEBUG(-2,("%s: starting_last_frame_number = %ld",
+			cname, starting_last_frame_number));
+		MX_DEBUG(-2,("%s: starting_total_num_frames = %ld",
+			cname, starting_total_num_frames));
+		MX_DEBUG(-2,("%s: ad_status = %#lx", cname, ad_status));
+
 		if ( starting_total_num_frames > (LONG_MAX - num_frames) ) {
 			fprintf( output,
 	"%s: FIXME! The sum of the starting total number of frames (%ld)\n"
@@ -423,8 +429,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			MX_DEBUG(-2,("***********************************"));
 			MX_DEBUG(-2,
-	("%s: n = %ld, last_frame_number = %ld, total_num_frames = %ld, "
-	"ad_status = %#lx", cname, n, last_frame_number, total_num_frames,
+	("n = %ld, last_frame_number = %ld, total_num_frames = %ld, "
+	"ad_status = %#lx", n, last_frame_number, total_num_frames,
 				ad_status));
 
 			if ( total_num_frames > n ) {
