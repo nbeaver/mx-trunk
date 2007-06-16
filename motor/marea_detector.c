@@ -51,8 +51,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
-	long old_last_frame_number, old_total_num_frames;
-	mx_bool_type new_frame_arrived;
+	long old_last_frame_number, old_total_num_frames, num_unread_frames;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -366,6 +365,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		MX_DEBUG(-2,("%s: num_frames = %ld", cname, num_frames));
+
 		MX_DEBUG(-2,("%s: starting_last_frame_number = %ld",
 			cname, starting_last_frame_number));
 		MX_DEBUG(-2,("%s: starting_total_num_frames = %ld",
@@ -405,6 +406,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		old_last_frame_number = starting_last_frame_number;
 		old_total_num_frames  = starting_total_num_frames;
 
+		num_unread_frames = 0;
+
 		for ( n = 0; n < num_frames; )
 		{
 			if ( mx_kbhit() ) {
@@ -428,22 +431,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+			num_unread_frames +=
+				last_frame_number - old_last_frame_number;
+
 			MX_DEBUG(-2,("***********************************"));
 			MX_DEBUG(-2,
 	("n = %ld, last_frame_number = %ld, total_num_frames = %ld, "
 	"ad_status = %#lx", n, last_frame_number, total_num_frames,
 				ad_status));
+			MX_DEBUG(-2,("%s: num_unread_frames = %ld",
+				cname, num_unread_frames));
 
-			if ( last_frame_number != old_last_frame_number ) {
-				new_frame_arrived = TRUE;
-			} else
-			if ( total_num_frames != old_total_num_frames ) {
-				new_frame_arrived = TRUE;
-			} else {
-				new_frame_arrived = FALSE;
-			}
+			if ( num_unread_frames > 0 ) {
 
-			if ( new_frame_arrived ) {
 				fprintf( output, "Reading frame %ld.\n", n );
 
 				frame_number = starting_last_frame_number + n;
@@ -472,6 +472,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				/* Increment the frame number. */
 
 				n++;
+				num_unread_frames--;
 
 				if ( n >= num_frames ) {
 					break;	/* Exit the for() loop. */
