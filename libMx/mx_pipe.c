@@ -23,9 +23,307 @@
 #include "mx_util.h"
 #include "mx_pipe.h"
 
+/************************ Windows ***********************/
+
+#if defined(OS_WIN32)
+
+/* FIXME! We may need to use SetNamedPipeHandleState() to set the
+ *        PIPE_NOWAIT flag so that WriteFile will not block on
+ *        a full pipe.
+ */
+
+#include <windows.h>
+
+typedef struct {
+	HANDLE read_handle;
+	HANDLE write_handle;
+} MX_WIN32_PIPE;
+
+MX_EXPORT mx_status_type
+mx_pipe_open( MX_PIPE **mx_pipe )
+{
+	static const char fname[] = "mx_pipe_open()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	SECURITY_ATTRIBUTES pipe_attributes;
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_pipe == (MX_PIPE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	*mx_pipe = (MX_PIPE *) malloc( sizeof(MX_PIPE) );
+
+	if ( *mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_PIPE structure." );
+	}
+
+	win32_pipe = (MX_WIN32_PIPE *) malloc( sizeof(MX_WIN32_PIPE) );
+
+	if ( win32_pipe == (MX_WIN32_PIPE *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_WIN32_PIPE pointer." );
+	}
+
+	(*mx_pipe)->private = win32_pipe;
+
+	/* Make sure the pipe handles can be inherited by a new process. */
+
+	pipe_attributes.nLength = sizeof(SECURITY_ATTRIBUTES);
+	pipe_attributes.lpSecurityDescriptor = NULL;
+	pipe_attributes.bInheritHandle = TRUE;
+
+	/* Now create the pipe. */
+
+	os_status = CreatePipe( &(win32_pipe->read_handle),
+				&(win32_pipe->write_handle),
+				&pipe_attributes, 0 );
+
+	if ( os_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to create a Win32 anonymous pipe failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_close( MX_PIPE *mx_pipe, int flags )
+{
+	static const char fname[] = "mx_pipe_close()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL os_status;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	win32_pipe = mx_pipe->private;
+
+	if ( win32_pipe == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+	}
+
+	if ( flags & MXF_PIPE_CLOSE_READ ) {
+		os_status = CloseHandle( win32_pipe->read_handle );
+
+		if ( os_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The attempt to close the read handle %p for "
+			"MX pipe %p failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				win32_pipe->read_handle, mx_pipe,
+				last_error_code, message_buffer );
+		}
+
+		win32_pipe->read_handle = NULL;
+	}
+
+	if ( flags & MXF_PIPE_CLOSE_WRITE ) {
+		os_status = CloseHandle( win32_pipe->write_handle );
+
+		if ( os_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The attempt to close the write handle %p for "
+			"MX pipe %p failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				win32_pipe->write_handle, mx_pipe,
+				last_error_code, message_buffer );
+		}
+
+		win32_pipe->write_handle = NULL;
+	}
+
+	if ( (win32_pipe->read_handle == NULL)
+	  && (win32_pipe->write_handle == NULL) )
+	{
+		mx_free( win32_pipe );
+
+		mx_free( mx_pipe );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_read( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t max_bytes_to_read,
+		size_t *bytes_read )
+{
+	static const char fname[] = "mx_pipe_read()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL read_status;
+	DWORD last_error_code, number_of_bytes_read;
+	TCHAR message_buffer[100];
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	win32_pipe = mx_pipe->private;
+
+	if ( win32_pipe == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+	}
+
+	read_status = ReadFile( win32_pipe->read_handle,
+					buffer, max_bytes_to_read,
+					&number_of_bytes_read, NULL );
+
+	if ( read_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to read %ld bytes from MX pipe %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			max_bytes_to_read, mx_pipe,
+			last_error_code, message_buffer );
+	}
+
+	if ( bytes_read != NULL ) {
+		*bytes_read = number_of_bytes_read;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_write( MX_PIPE *mx_pipe,
+		char *buffer,
+		size_t bytes_to_write )
+{
+	static const char fname[] = "mx_pipe_write()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL write_status;
+	DWORD last_error_code, number_of_bytes_written;
+	TCHAR message_buffer[100];
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	win32_pipe = mx_pipe->private;
+
+	if ( win32_pipe == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+	}
+
+	write_status = WriteFile( win32_pipe->write_handle,
+					buffer, bytes_to_write,
+					&number_of_bytes_written, NULL );
+
+	if ( write_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to write %ld bytes to MX pipe %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			bytes_to_write, mx_pipe,
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
+				size_t *num_bytes_available )
+{
+	static const char fname[] = "mx_pipe_num_bytes_available()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL pipe_status;
+	DWORD last_error_code, total_bytes_avail;
+	TCHAR message_buffer[100];
+
+	MX_DEBUG(-2,("%s invoked.", fname));
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed was NULL." );
+	}
+
+	win32_pipe = mx_pipe->private;
+
+	if ( win32_pipe == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+	}
+
+	if ( win32_pipe->read_handle == NULL ) {
+		return mx_error( MXE_NOT_READY, fname,
+		"MX pipe %p is not open for reading.", mx_pipe );
+	}
+
+	pipe_status = PeekNamedPipe( win32_pipe->read_handle,
+				NULL, 0, NULL, &total_bytes_avail, NULL );
+
+	if ( pipe_status == 0 ) {
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"The attempt to determine the number of bytes available "
+		"in MX pipe %p failed.  "
+		"Win32 error code = %ld, error message = '%s'.",
+			mx_pipe, last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /************************ Unix ***********************/
 
-#if defined(OS_UNIX)
+#elif defined(OS_UNIX)
 
 #include <sys/ioctl.h>
 
