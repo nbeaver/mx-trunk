@@ -2231,6 +2231,19 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_TYPE:
 	case MXLV_AD_NUM_SEQUENCE_PARAMETERS:
+
+		/* Do not send any changes to the hardware when these two
+		 * values are changed since the contents of the sequence
+		 * parameter array may not match the change.  For example,
+		 * if we are changing from one-shot mode to multiframe mode,
+		 * parameter_array[0] is the exposure time in one-shot mode,
+		 * but parameter_array[0] is the number of frames in
+		 * multiframe mode.  Thus, the only quasi-safe time for
+		 * sending changes to the hardware is when the contents
+		 * of the sequence parameter array has been changed.
+		 */
+		break;
+
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
 		/* Invalidate any existing images sector arrays. */
@@ -2605,6 +2618,16 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		mx_status = mx_video_input_set_sequence_parameters(
 					pccd_170170->video_input_record, sp );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Insert a delay to give the detector head FPGAs time to
+		 * finish their processing.
+		 */
+
+		mx_msleep(1);
+
 		break; 
 
 	case MXLV_AD_TRIGGER_MODE:
