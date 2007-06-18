@@ -348,6 +348,7 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 
 	callback_ptr->callback_class    = MXCB_FIELD;
 	callback_ptr->callback_type     = callback_type;
+	callback_ptr->active            = FALSE;
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.record_field    = record_field;
