@@ -17,10 +17,10 @@
 #ifndef __MX_PIPE_H__
 #define __MX_PIPE_H__
 
-#define MXF_PIPE_CLOSE_READ	0x1
-#define MXF_PIPE_CLOSE_WRITE	0x2
+#define MXF_PIPE_READ	0x1
+#define MXF_PIPE_WRITE	0x2
 
-#define MXF_PIPE_CLOSE_BOTH	(MXF_PIPE_CLOSE_READ | MXF_PIPE_CLOSE_WRITE)
+#define MXF_PIPE_BOTH	(MXF_PIPE_READ | MXF_PIPE_WRITE)
 
 typedef struct {
 	void *private;
@@ -41,6 +41,10 @@ MX_API mx_status_type mx_pipe_write( MX_PIPE *mx_pipe,
 
 MX_API mx_status_type mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 						size_t *num_bytes_available );
+
+MX_API mx_status_type mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
+					int flags,
+					mx_bool_type blocking_mode_flag );
 
 #endif /* __MX_PIPE_H__ */
 

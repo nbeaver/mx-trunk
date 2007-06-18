@@ -21,6 +21,7 @@
 #include "mx_osdef.h"
 
 #include "mx_util.h"
+#include "mx_stdint.h"
 #include "mx_pipe.h"
 
 /************************ Windows ***********************/
@@ -124,7 +125,7 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
 	}
 
-	if ( flags & MXF_PIPE_CLOSE_READ ) {
+	if ( flags & MXF_PIPE_READ ) {
 		os_status = CloseHandle( win32_pipe->read_handle );
 
 		if ( os_status == 0 ) {
@@ -144,7 +145,7 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 		win32_pipe->read_handle = NULL;
 	}
 
-	if ( flags & MXF_PIPE_CLOSE_WRITE ) {
+	if ( flags & MXF_PIPE_WRITE ) {
 		os_status = CloseHandle( win32_pipe->write_handle );
 
 		if ( os_status == 0 ) {
@@ -283,8 +284,6 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	DWORD last_error_code, total_bytes_avail;
 	TCHAR message_buffer[100];
 
-	MX_DEBUG(-2,("%s invoked.", fname));
-
 	if ( mx_pipe == (MX_PIPE *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PIPE pointer passed was NULL." );
@@ -295,6 +294,11 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	if ( win32_pipe == NULL ) {
 		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
 		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+	}
+
+	if ( num_bytes_available == (size_t) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_bytes_available_pointer passed was NULL." );
 	}
 
 	if ( win32_pipe->read_handle == NULL ) {
@@ -318,6 +322,9 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 			mx_pipe, last_error_code, message_buffer );
 	}
 
+	MX_DEBUG(-2,("%s: num_bytes_available = %ld",
+		fname, (long) *num_bytes_available ));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -325,12 +332,42 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 #elif defined(OS_UNIX)
 
+#include <fcntl.h>
 #include <sys/ioctl.h>
 
 typedef struct {
 	int read_fd;
 	int write_fd;
 } MX_UNIX_PIPE;
+
+static mx_status_type
+mx_pipe_get_pointers( MX_PIPE *mx_pipe,
+			MX_UNIX_PIPE **unix_pipe,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_pipe_get_pointers()";
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed by '%s' was NULL.", calling_fname );
+	}
+
+	if ( unix_pipe == (MX_UNIX_PIPE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_UNIX_PIPE pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	(*unix_pipe) = mx_pipe->private;
+
+	if ( (*unix_pipe) == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_UNIX_PIPE pointer for MX_PIPE %p "
+			"passed by '%s' was NULL.", mx_pipe, calling_fname );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_pipe_open( MX_PIPE **mx_pipe )
@@ -388,22 +425,16 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 
 	MX_UNIX_PIPE *unix_pipe;
 	int os_status, saved_errno;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
-	unix_pipe = mx_pipe->private;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	if ( unix_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_UNIX_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
-
-	if ( flags & MXF_PIPE_CLOSE_READ ) {
+	if ( flags & MXF_PIPE_READ ) {
 		os_status = close( unix_pipe->read_fd );
 
 		if ( os_status != 0 ) {
@@ -418,7 +449,7 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 		unix_pipe->read_fd = -1;
 	}
 
-	if ( flags & MXF_PIPE_CLOSE_WRITE ) {
+	if ( flags & MXF_PIPE_WRITE ) {
 		os_status = close( unix_pipe->write_fd );
 
 		if ( os_status != 0 ) {
@@ -452,20 +483,14 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 
 	MX_UNIX_PIPE *unix_pipe;
 	int read_status, saved_errno;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
-	unix_pipe = mx_pipe->private;
-
-	if ( unix_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_UNIX_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_status = read( unix_pipe->read_fd, buffer, max_bytes_to_read );
 
@@ -495,20 +520,14 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 
 	MX_UNIX_PIPE *unix_pipe;
 	int write_status, saved_errno;
+	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked.", fname));
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
-	unix_pipe = mx_pipe->private;
-
-	if ( unix_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_UNIX_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	write_status = write( unix_pipe->write_fd, buffer, bytes_to_write );
 
@@ -533,19 +552,16 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 	MX_UNIX_PIPE *unix_pipe;
 	int os_status, saved_errno;
+	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( num_bytes_available == (size_t) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
-
-	unix_pipe = mx_pipe->private;
-
-	if ( unix_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_UNIX_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
+		"The num_bytes_available_pointer passed was NULL." );
 	}
 
 	if ( unix_pipe->read_fd < 0 ) {
@@ -596,6 +612,96 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 		}
 	}
 #endif
+
+	if ( (*num_bytes_available) > 0 ) {
+		MX_DEBUG(-2,("%s: num_bytes_available = %ld",
+			fname, (long) *num_bytes_available ));
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
+				int flags,
+				mx_bool_type blocking_mode )
+{
+	static const char fname[] = "mx_pipe_set_blocking_mode()";
+
+	MX_UNIX_PIPE *unix_pipe;
+	int old_flags, new_flags, os_status, saved_errno;
+	mx_status_type mx_status;
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (flags & MXF_PIPE_READ) && (unix_pipe->read_fd >= 0) )
+	{
+		old_flags = fcntl( unix_pipe->read_fd, F_GETFL, 0 );
+
+		if ( old_flags < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Error using F_GETFL for read fd %d of MX pipe %p.  "
+			"Errno = %d, error text = '%s'.",
+				unix_pipe->read_fd, mx_pipe,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( blocking_mode == FALSE ) {
+			new_flags = old_flags | O_NDELAY;
+		} else {
+			new_flags = old_flags & ~O_NDELAY;
+		}
+
+		os_status = fcntl( unix_pipe->read_fd, F_SETFL, new_flags );
+
+		if ( os_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Error using F_SETFL for read fd %d of MX pipe %p.  "
+			"Errno = %d, error text = '%s'.",
+				unix_pipe->read_fd, mx_pipe,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
+
+	if ( (flags & MXF_PIPE_WRITE) && (unix_pipe->write_fd >= 0) )
+	{
+		old_flags = fcntl( unix_pipe->write_fd, F_GETFL, 0 );
+
+		if ( old_flags < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Error using F_GETFL for write fd %d of MX pipe %p.  "
+			"Errno = %d, error text = '%s'.",
+				unix_pipe->write_fd, mx_pipe,
+				saved_errno, strerror(saved_errno) );
+		}
+
+		if ( blocking_mode == FALSE ) {
+			new_flags = old_flags | O_NDELAY;
+		} else {
+			new_flags = old_flags & ~O_NDELAY;
+		}
+
+		os_status = fcntl( unix_pipe->write_fd, F_SETFL, new_flags );
+
+		if ( os_status < 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"Error using F_SETFL for write fd %d of MX pipe %p.  "
+			"Errno = %d, error text = '%s'.",
+				unix_pipe->write_fd, mx_pipe,
+				saved_errno, strerror(saved_errno) );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

@@ -26,6 +26,7 @@
 #include "mx_virtual_timer.h"
 #include "mx_socket.h"
 #include "mx_net.h"
+#include "mx_pipe.h"
 #include "mx_callback.h"
 
 MX_EXPORT mx_status_type
@@ -228,6 +229,7 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 	callback_ptr->callback_class    = MXCB_NETWORK;
 	callback_ptr->callback_type     = callback_type;
 	callback_ptr->callback_id       = callback_id;
+	callback_ptr->active            = FALSE;
 	callback_ptr->callback_function = callback_function;
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.network_field   = nf;
@@ -392,7 +394,14 @@ mx_field_callback_function( MX_VIRTUAL_TIMER *callback_timer,
 				void *callback_args )
 {
 	MX_LIST_HEAD *list_head;
-#if 0
+	MX_PIPE *mx_pipe;
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_HANDLE_STRUCT *handle_struct_array, *handle_struct;
+	unsigned long i, num_handle_table_entries;
+	long callback_handle;
+	MX_CALLBACK *callback;
+
+#if 1
 	static const char fname[] = "mx_field_callback_function()";
 
 	MX_CLOCK_TICK current_clock_tick;
@@ -403,11 +412,62 @@ mx_field_callback_function( MX_VIRTUAL_TIMER *callback_timer,
 	fname, current_clock_tick.high_order, current_clock_tick.low_order));
 #endif
 
+	if ( callback_args == NULL ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The callback_args pointer passed was NULL." );
+		return;
+	}
+
 	list_head = callback_args;
 
-	list_head->callback_timer_count++;
-	
-	list_head->callback_timer_expired = TRUE;
+	mx_pipe = list_head->callback_pipe;
+
+	if ( mx_pipe == NULL ) {
+		MX_DEBUG(-2,
+		("%s: callback_pipe == NULL.  Returning...", fname));
+
+		return;
+	}
+
+	callback_handle_table = list_head->server_callback_handle_table;
+
+	if ( callback_handle_table == NULL ) {
+		MX_DEBUG(-2,
+		("%s: callback_handle_table == NULL.  Returning...", fname));
+
+		return;
+	}
+
+	num_handle_table_entries = callback_handle_table->num_blocks
+					* callback_handle_table->block_size;
+
+	handle_struct_array = callback_handle_table->handle_struct_array;
+
+	for ( i = 0; i < num_handle_table_entries; i++ ) {
+		handle_struct = &(handle_struct_array[i]);
+
+		callback_handle = handle_struct->handle;
+
+		callback = handle_struct->pointer;
+
+		if ( callback_handle >= 0 ) {
+			MX_DEBUG(-2,
+			("%s: i = %lu, callback handle = %ld, callback = %p",
+				fname, i, callback_handle, callback));
+
+			MX_DEBUG(-2,
+			("%s: callback_class = %lu, callback_type = %lu",
+				fname, callback->callback_class,
+				callback->callback_type));
+
+			MX_DEBUG(-2,
+			("%s: callback_id = %#lx, active = %d",
+				fname, (unsigned long) callback->callback_id,
+				callback->active));
+
+			(void) mx_invoke_callback( callback );
+		}
+	}
 }
 
 MX_EXPORT mx_status_type
@@ -480,9 +540,6 @@ mx_field_initialize_callbacks( MX_RECORD *record )
 			return mx_status;
 
 		list_head->callback_timer = callback_timer;
-
-		list_head->callback_timer_expired = FALSE;
-		list_head->callback_timer_count = 0;
 
 		mx_status = mx_virtual_timer_start( list_head->callback_timer,
 							0.1 );

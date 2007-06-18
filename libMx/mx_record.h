@@ -413,8 +413,8 @@ typedef struct {
 
 	void *master_timer;
 	void *callback_timer;
-	mx_bool_type callback_timer_expired;
-	unsigned long callback_timer_count;
+
+	void *callback_pipe;
 } MX_LIST_HEAD;
 
 /* --- Record list handling functions. --- */

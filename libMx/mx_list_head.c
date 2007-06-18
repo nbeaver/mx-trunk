@@ -166,6 +166,8 @@ mxr_create_list_head( MX_RECORD *record )
 	list_head_struct->master_timer = NULL;
 	list_head_struct->callback_timer = NULL;
 
+	list_head_struct->callback_pipe = NULL;
+
 	strlcpy( list_head_struct->hostname, "", MXU_HOSTNAME_LENGTH );
 
 	(void) mx_username( list_head_struct->username, MXU_USERNAME_LENGTH );

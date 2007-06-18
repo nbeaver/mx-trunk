@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_THREAD_DEBUG		TRUE
+#define MX_THREAD_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

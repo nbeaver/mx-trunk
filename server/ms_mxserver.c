@@ -35,7 +35,7 @@
 
 #define NETWORK_DEBUG_HANDLES		FALSE
 
-#define NETWORK_DEBUG_HEADER_LENGTH	FALSE
+#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -54,6 +54,7 @@
 #include "mx_socket.h"
 #include "mx_net.h"
 #include "mx_net_socket.h"
+#include "mx_pipe.h"
 #include "mx_array.h"
 #include "mx_bit.h"
 
@@ -3496,7 +3497,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	header_length  = mx_ntohl( uint32_header[MX_NETWORK_HEADER_LENGTH] );
 
-	if ( mx_client_supports_message_ids(socket_handler) ) {
+	if ( mx_client_supports_message_ids(socket_handler) == FALSE ) {
 
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"This server cannot support callbacks from clients using "
@@ -3595,7 +3596,8 @@ mxsrv_handle_delete_callback( MX_RECORD *record_list,
 }
 
 mx_status_type
-mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
+mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
+				MX_PIPE *callback_pipe )
 {
 	static const char fname[] = "mxsrv_process_callbacks()";
 
@@ -3606,14 +3608,14 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head )
 	unsigned long i, array_size;
 	mx_status_type mx_status;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
 #endif
 
 	handle_table = list_head->server_callback_handle_table;
 
 	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: No callback handle table installed.", fname));
 #endif
 

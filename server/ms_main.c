@@ -37,6 +37,7 @@
 #include "mx_socket.h"
 #include "mx_select.h"
 #include "mx_net.h"
+#include "mx_pipe.h"
 #include "mx_clock.h"
 #include "mx_hrt.h"
 #include "mx_cfn.h"
@@ -330,6 +331,7 @@ mxserver_main( int argc, char *argv[] )
 	char server_pathname[MXU_FILENAME_LENGTH+1];
 	char os_version_string[40];
 	char ident_string[80];
+	mx_bool_type enable_callbacks;
 	int i, debug_level, start_debugger, saved_errno;
 	int num_fds, max_fd;
 	int server_port, default_display_precision, init_hw_flags;
@@ -384,6 +386,8 @@ mxserver_main( int argc, char *argv[] )
 	strlcpy( mx_stderr_destination_filename,
 					"", MXU_FILENAME_LENGTH );
 
+	enable_callbacks = FALSE;
+
 	debug_level = 0;
 
 	start_debugger = FALSE;
@@ -419,7 +423,7 @@ mxserver_main( int argc, char *argv[] )
 
         error_flag = FALSE;
 
-        while ((c = getopt(argc, argv, "Ab:C:d:De:E:f:l:L:n:p:P:sStu:Z")) != -1)
+        while ((c = getopt(argc, argv,"Ab:cC:d:De:E:f:l:L:n:p:P:sStu:Z")) != -1)
 	{
                 switch (c) {
 		case 'A':
@@ -440,6 +444,9 @@ mxserver_main( int argc, char *argv[] )
 	"  are raw, xdr, and ascii.\n", optarg );
 				exit(1);
 			}
+			break;
+		case 'c':
+			enable_callbacks = TRUE;
 			break;
 		case 'C':
 			strlcpy( mx_connection_acl_filename,
@@ -730,6 +737,29 @@ mxserver_main( int argc, char *argv[] )
 	MX_DEBUG(-2,("%s: MX_WORDSIZE = %d, MX_PROGRAM_MODEL = %#x",
 		fname, MX_WORDSIZE, MX_PROGRAM_MODEL));
 #endif
+
+	/* If requested, enable the callback support. */
+
+	if ( enable_callbacks ) {
+		MX_PIPE *callback_pipe;
+
+		mx_info("Enabling callbacks.");
+
+		mx_status = mx_pipe_open( &callback_pipe );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit( mx_status.code );
+
+		list_head_struct->callback_pipe = callback_pipe;
+
+		mx_status = mx_pipe_set_blocking_mode(
+				list_head_struct->callback_pipe,
+				MXF_PIPE_READ | MXF_PIPE_WRITE,
+				FALSE );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit( mx_status.code );
+	}
 
 	/* Read the database description file and add the records therein
 	 * to the record list.
@@ -1037,10 +1067,20 @@ mxserver_main( int argc, char *argv[] )
 			}
 		}
 
-		if ( list_head_struct->callback_timer_expired ) {
-			list_head_struct->callback_timer_expired = FALSE;
+		if ( list_head_struct->callback_pipe != NULL ) {
+			size_t num_bytes_available;
 
-			mx_status = mxsrv_process_callbacks(list_head_struct);
+			mx_status = mx_pipe_num_bytes_available(
+						list_head_struct->callback_pipe,
+						&num_bytes_available );
+
+			if ( ( mx_status.code == MXE_SUCCESS )
+			  && ( num_bytes_available > 0 ) )
+			{
+				mx_status = mxsrv_process_callbacks(
+					list_head_struct,
+					list_head_struct->callback_pipe );
+			}
 		}
 	}
 
