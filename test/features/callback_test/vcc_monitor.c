@@ -287,7 +287,7 @@ main( int argc, char *argv[] )
 
 	/* Create a callback handler for this network field. */
 
-	mx_status = mx_network_add_callback( &nf,
+	mx_status = mx_remote_add_callback( &nf,
 					MXCBT_VALUE_CHANGED,
 					client_callback_function,
 					client_callback_args,
