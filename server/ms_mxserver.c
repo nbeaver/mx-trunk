@@ -223,7 +223,7 @@ mxsrv_free_client_socket_handler( MX_SOCKET_HANDLER *socket_handler,
 			     * we must delete the callback there as well.
 			     */
 
-			    if ( callback->callback_class == MXCB_FIELD ) {
+			    if ( callback->callback_class == MXCBC_FIELD ) {
 				(void) mxsrv_delete_field_callback ( callback );
 			    } else {
 			    	mx_free( callback );
@@ -1854,7 +1854,7 @@ mxsrv_send_field_value_to_client(
 	mx_status = MX_SUCCESSFUL_RESULT;
 
 	MX_DEBUG( 2,("%s: socket_handler = %p, network_message = %p",
-		fname, socket_handler, network_message ));
+			fname, socket_handler, network_message ));
 
 	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -1868,7 +1868,7 @@ mxsrv_send_field_value_to_client(
 	mx_socket = socket_handler->synchronous_socket;
 
 	MX_DEBUG( 1,("***** %s invoked for socket %d *****",
-				fname, mx_socket->socket_fd));
+					fname, mx_socket->socket_fd));
 
 	if ( record_field->flags & MXFF_VARARGS ) {
 		array_is_dynamically_allocated = TRUE;
@@ -3383,9 +3383,9 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 }
 
 static mx_status_type
-mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
+mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 {
-	static const char fname[] = "mxsrv_server_callback()";
+	static const char fname[] = "mxsrv_poll_callback()";
 
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
@@ -3417,18 +3417,18 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 		"the socket handler passed is NULL." );
 	}
 
-	if ( callback->callback_class != MXCB_FIELD ) {
+	if ( callback->callback_class != MXCBC_FIELD ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal callback class %lu used.  "
-		"Only MXCB_FIELD (%d) callbacks are allowed here.",
-			callback->callback_class, MXCB_FIELD );
+		"Only MXCBC_FIELD (%d) callbacks are allowed here.",
+			callback->callback_class, MXCBC_FIELD );
 	}
 
-	if ( callback->callback_type != MXCB_VALUE_CHANGED ) {
+	if ( callback->callback_type != MXCBT_VALUE_CHANGED ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Illegal callback type %lu used.  Currently, "
-		"MXCB_VALUE_CHANGED (%d) callbacks are allowed here.",
-			callback->callback_class, MXCB_VALUE_CHANGED );
+		"MXCBT_VALUE_CHANGED (%d) callbacks are allowed here.",
+			callback->callback_class, MXCBT_VALUE_CHANGED );
 	}
 
 	record_field = callback->u.record_field;
@@ -3449,6 +3449,9 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 
 	/* Process the record field. */
 
+	MX_DEBUG(-2,("%s: Processing '%s.%s'",
+		fname, record->name, record_field->name));
+
 	mx_status = mx_process_record_field( record, record_field,
 						MX_PROCESS_GET );
 
@@ -3459,9 +3462,18 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 	 * to the client.
 	 */
 
+	/* FIXME FIXME FIXME! - This is where we actually should do
+	 *                      the test for whether or not the
+	 *                      value has changed.
+	 */
+
 	send_value_changed_callback = TRUE;
 
 	if ( send_value_changed_callback ) {
+
+		MX_DEBUG(-2,
+		("%s: invoking mxsrv_send_field_value_to_client for '%s.%s'",
+			fname, record->name, record_field->name ));
 
 		mx_status = mxsrv_send_field_value_to_client( socket_handler,
 						record, record_field,
@@ -3469,6 +3481,9 @@ mxsrv_server_callback( MX_CALLBACK *callback, void *argument )
 					mx_server_response(MX_NETMSG_CALLBACK),
 						callback->callback_id,
 						mx_status );
+		MX_DEBUG(-2,
+		("%s: mxsrv_send_field_value_to_client status = %ld",
+			fname, mx_status.code));
 	}
 
 	return mx_status;
@@ -3530,7 +3545,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	mx_status = mx_field_add_callback( field,
 					callback_type,
-					mxsrv_server_callback,
+					mxsrv_poll_callback,
 					socket_handler,
 					&callback_object );
 
@@ -3605,64 +3620,112 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	MX_HANDLE_STRUCT *handle_struct;
 	signed long handle;
 	MX_CALLBACK *callback;
+	MX_CALLBACK_MESSAGE *callback_message;
 	unsigned long i, array_size;
+	size_t bytes_read;
 	mx_status_type mx_status;
 
 #if 1
 	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
 #endif
+	/* Read the next message from the callback pipe. */
 
-	handle_table = list_head->server_callback_handle_table;
+	mx_status = mx_pipe_read( callback_pipe,
+				(char *) &callback_message,
+				sizeof(MX_CALLBACK_MESSAGE *),
+				&bytes_read );
 
-	if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
-#if 1
-		MX_DEBUG(-2,("%s: No callback handle table installed.", fname));
-#endif
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-		return MX_SUCCESSFUL_RESULT;
+	if ( bytes_read != sizeof(MX_CALLBACK_MESSAGE *) ) {
+		return mx_error( MXE_IPC_IO_ERROR, fname,
+		"An attempt to read an MX_CALLBACK_MESSAGE pointer from "
+		"MX callback pipe %p failed, since the number of bytes "
+		"read (%ld) is less than the expected size of %ld.",
+			callback_pipe, (long) bytes_read,
+			(long) sizeof(MX_CALLBACK_MESSAGE *) );
 	}
 
-	if ( handle_table->handle_struct_array == (MX_HANDLE_STRUCT *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-	    "handle_struct_array pointer for callback handle table is NULL." );
-	}
+	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
 
-	array_size = handle_table->block_size
-			* handle_table->num_blocks;
+	MX_DEBUG(-2,("%s: callback_type = %ld",
+		fname, callback_message->callback_type));
 
-	for ( i = 0; i < array_size; i++ ) {
-		handle_struct = &(handle_table->handle_struct_array[i]);
+	/* We do different things depending on the type of callback message. */
 
-		handle   = handle_struct->handle;
-		callback = handle_struct->pointer;
+	switch( callback_message->callback_type ) {
+	case MXCBT_POLL:
+		/* Poll all value changed callback handlers. */
 
-#if 0
 		MX_DEBUG(-2,
-	("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
-			fname, i, handle_struct, handle, callback));
+		("%s: Poll all value changed callback handlers.", fname));
+
+		if ( list_head != callback_message->u.poll.list_head ) {
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The callback has a different address %p for the "
+			"list head than the server's list head address %p.",
+				callback_message->u.poll.list_head,
+				list_head );
+		}
+
+		handle_table = list_head->server_callback_handle_table;
+
+		if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
+#if 1
+			MX_DEBUG(-2,
+			("%s: No callback handle table installed.", fname));
 #endif
 
-		if ( ( handle == MX_ILLEGAL_HANDLE )
-		  || ( callback == NULL ) )
-		{
-			/* Skip unused handles. */
-
-			continue;
+			return MX_SUCCESSFUL_RESULT;
 		}
+
+		if ( handle_table->handle_struct_array
+				== (MX_HANDLE_STRUCT *) NULL )
+		{
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"handle_struct_array pointer for callback handle "
+			"table is NULL." );
+		}
+
+		array_size = handle_table->block_size
+				* handle_table->num_blocks;
+
+		for ( i = 0; i < array_size; i++ ) {
+			handle_struct = &(handle_table->handle_struct_array[i]);
+
+			handle   = handle_struct->handle;
+			callback = handle_struct->pointer;
 
 #if 0
-		MX_DEBUG(-2,("%s: callback->callback_function = %p",
-			fname, callback->callback_function));
+			MX_DEBUG(-2,
+	    ("%s: handle_struct_array[%lu] = %p, handle = %ld, callback = %p",
+				fname, i, handle_struct, handle, callback));
 #endif
 
-		if ( callback->callback_function != NULL ) {
-			MX_DEBUG(-2,
-	("%s: calling mx_invoke_callback(): i = %lu, handle = %ld, callback = %p, callback->callback_function = %p",
-				fname, i, handle, callback,
-				callback->callback_function));
+			if ( ( handle == MX_ILLEGAL_HANDLE )
+			  || ( callback == NULL ) )
+			{
+				/* Skip unused handles. */
 
-			mx_status = mx_invoke_callback( callback );
+				continue;
+			}
+
+#if 0
+			MX_DEBUG(-2,("%s: callback->callback_function = %p",
+				fname, callback->callback_function));
+#endif
+
+			if ( callback->callback_function != NULL ) {
+				MX_DEBUG(-2,
+	("%s: calling mx_invoke_callback(): i = %lu, handle = %ld, callback = %p, callback->callback_function = %p",
+					fname, i, handle, callback,
+					callback->callback_function));
+
+				mx_status = mx_invoke_callback( callback );
+			}
 		}
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

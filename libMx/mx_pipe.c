@@ -22,6 +22,7 @@
 
 #include "mx_util.h"
 #include "mx_stdint.h"
+#include "mx_unistd.h"
 #include "mx_pipe.h"
 
 /************************ Windows ***********************/
@@ -415,6 +416,8 @@ mx_pipe_open( MX_PIPE **mx_pipe )
 	unix_pipe->read_fd  = pipe_array[0];
 	unix_pipe->write_fd = pipe_array[1];
 
+	MX_DEBUG(-2,("%s: create MX pipe %p", fname, *mx_pipe));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -508,6 +511,9 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 		*bytes_read = read_status;
 	}
 
+	MX_DEBUG(-2,("%s: read %d bytes from MX pipe %p",
+		fname, read_status, mx_pipe));
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -522,7 +528,8 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 	int write_status, saved_errno;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked.", fname));
+	MX_DEBUG(-2,("%s: writing %ld bytes to MX pipe %p",
+		fname, (long) bytes_to_write, mx_pipe));
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &unix_pipe, fname );
 

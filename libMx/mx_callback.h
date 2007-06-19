@@ -19,12 +19,13 @@
 
 /*--- Callback classes ---*/
 
-#define MXCB_NETWORK		1
-#define MXCB_FIELD		2
+#define MXCBC_NETWORK		1
+#define MXCBC_FIELD		2
 
 /*--- Callback types ---*/
 
-#define MXCB_VALUE_CHANGED	0x1
+#define MXCBT_VALUE_CHANGED	1
+#define MXCBT_POLL		2
 
 /*---*/
 
@@ -41,6 +42,17 @@ typedef struct mx_callback_type {
 		MX_RECORD_FIELD *record_field;
 	} u;
 } MX_CALLBACK;
+
+typedef struct {
+	MX_LIST_HEAD *list_head;
+} MX_CALLBACK_POLL_MESSAGE;
+
+typedef struct {
+	unsigned long callback_type;
+	union {
+		MX_CALLBACK_POLL_MESSAGE poll;
+	} u;
+} MX_CALLBACK_MESSAGE;
 
 /*--- Network client callbacks ---*/
 

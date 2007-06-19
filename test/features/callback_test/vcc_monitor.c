@@ -16,8 +16,24 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 {
 	static const char fname[] = "client_callback_function()";
 
-	MX_DEBUG(-2,("%s invoked for callback = %p, argument = %p",
+	MX_RECORD_FIELD *temp_field;
+	char display_buffer[200];
+	mx_status_type mx_status;
+
+	MX_DEBUG( 2,("%s invoked for callback = %p, argument = %p",
 		fname, callback, argument));
+
+	temp_field = argument;
+
+	MX_DEBUG( 2,("%s: temp_field = %p", fname, temp_field));
+
+	mx_status = mx_create_description_from_field( NULL, temp_field,
+				display_buffer, sizeof(display_buffer) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
+
+	MX_DEBUG(-2,("%s: value = '%s'", fname, display_buffer));
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -47,7 +63,7 @@ main( int argc, char *argv[] )
 	int c, server_port, num_items;
 	mx_bool_type network_debug, start_debugger;
 	unsigned long server_flags;
-	MX_RECORD_FIELD temp_field;
+	MX_RECORD_FIELD *temp_field;
 	void *value_ptr;
 	double timeout;
 	mx_status_type mx_status;
@@ -196,7 +212,18 @@ main( int argc, char *argv[] )
 	 * the temporary field created has the MXFF_VARARGS bit set.
 	 */
 
-	mx_status = mx_initialize_temp_record_field( &temp_field,
+	temp_field = malloc( sizeof(MX_RECORD_FIELD) );
+
+	if ( temp_field == NULL ) {
+		mx_status = mx_error( MXE_OUT_OF_MEMORY, fname,
+		  "Unable to allocate memory for the 'temp_field' structure.");
+
+		exit( mx_status.code );
+	}
+
+	MX_DEBUG(-2,("%s: temp_field = %p", fname, temp_field));
+
+	mx_status = mx_initialize_temp_record_field( temp_field,
 							datatype,
 							num_dimensions,
 							dimension_array,
@@ -216,7 +243,7 @@ main( int argc, char *argv[] )
 
 	/* Display the starting value of the network field. */
 
-	mx_status = mx_create_description_from_field( NULL, &temp_field,
+	mx_status = mx_create_description_from_field( NULL, temp_field,
 				display_buffer, sizeof(display_buffer) );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -227,8 +254,9 @@ main( int argc, char *argv[] )
 	/* Create a callback handler for this network field. */
 
 	mx_status = mx_network_add_callback( &nf,
-					MXCB_VALUE_CHANGED,
-					client_callback_function, NULL,
+					MXCBT_VALUE_CHANGED,
+					client_callback_function,
+					temp_field,
 					&callback );
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -1443,8 +1443,11 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 			(unsigned long) field_handle );
 
 		switch ( callback_type ) {
-		case MXCB_VALUE_CHANGED:
-			fprintf( stderr, "MXCB_VALUE_CHANGED\n" );
+		case MXCBT_VALUE_CHANGED:
+			fprintf( stderr, "MXCBT_VALUE_CHANGED\n" );
+			break;
+		case MXCBT_POLL:
+			fprintf( stderr, "MXCBT_POLL\n" );
 			break;
 		default:
 			fprintf( stderr, "%lu\n", callback_type );
