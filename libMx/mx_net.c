@@ -4353,3 +4353,139 @@ mx_get_mx_server_record( MX_RECORD *record_list,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_copy_message_to_field( MX_RECORD *source_server_record,
+				MX_RECORD_FIELD *destination_field )
+{
+	static const char fname[] = "mx_network_copy_message_to_field()";
+
+	MX_NETWORK_SERVER *source_server;
+	MX_NETWORK_MESSAGE_BUFFER *source_message_buffer;
+	unsigned long header_length, message_length, status_code;
+	uint32_t *source_header;
+	char *char_header, *char_message;
+	void *value_ptr;
+	mx_bool_type dynamically_allocated;
+	mx_status_type mx_status;
+
+	if ( source_server_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+	if ( destination_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	/* Find everything we need to know about the server's message buffer. */
+
+	source_server =
+		(MX_NETWORK_SERVER *) source_server_record->record_class_struct;
+
+	if ( source_server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			source_server_record->name );
+	}
+
+	source_message_buffer = source_server->message_buffer;
+
+	if ( source_message_buffer == ( MX_NETWORK_MESSAGE_BUFFER * ) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The message_buffer pointer for server '%s' is NULL.",
+			source_server_record->name );
+	}
+
+	/* Figure out the address of the message buffer body for the server. */
+
+	source_header = source_message_buffer->u.uint32_buffer;
+
+	if ( source_header == (uint32_t *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The uint32_buffer pointer for server '%s' is NULL.",
+			source_server_record->name );
+	}
+
+	/* 'char_message' is the address of the data that we need to copy
+	 * to the MX record field.  'message_length' is the length in bytes
+	 * of the data to copy to the MX record field.
+	 */
+
+	header_length = mx_ntohl( source_header[MX_NETWORK_HEADER_LENGTH] );
+
+	message_length = mx_ntohl( source_header[MX_NETWORK_MESSAGE_LENGTH] );
+
+	status_code = mx_ntohl( source_header[MX_NETWORK_STATUS_CODE] );
+
+	char_header = source_message_buffer->u.char_buffer;
+
+	char_message = char_header + header_length;
+
+	/* If the server response is an error message, then return. */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( status_code, fname, char_message );
+	}
+
+	/* 'value_ptr' is the address at which the record field value
+	 * is stored at.
+	 */
+
+	value_ptr = mx_get_field_value_pointer( destination_field );
+
+	if ( destination_field->flags & MXFF_VARARGS ) {
+		dynamically_allocated = TRUE;
+	} else {
+		dynamically_allocated = FALSE;
+	}
+
+	/* Now we are ready to copy the data. */
+
+	switch( source_message_buffer->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+			"Support for the ASCII MX data format "
+			"has not been implemented.");
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		mx_status = mx_copy_buffer_to_array(
+				char_message,
+				message_length,
+				value_ptr,
+				dynamically_allocated,
+				destination_field->datatype,
+				destination_field->num_dimensions,
+				destination_field->dimension,
+				destination_field->data_element_size,
+				NULL,
+				source_server->truncate_64bit_longs );
+		break;
+
+	case MX_NETWORK_DATAFMT_XDR:
+		mx_status = mx_xdr_data_transfer( MX_XDR_DECODE,
+				value_ptr,
+				dynamically_allocated,
+				destination_field->datatype,
+				destination_field->num_dimensions,
+				destination_field->dimension,
+				destination_field->data_element_size,
+				char_message,
+				message_length,
+				NULL );
+		break;
+
+	default:
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"MX server '%s' is configured for unrecognized "
+			"network data format %lu",
+				source_server_record->name,
+				source_message_buffer->data_format );
+		break;
+	}
+
+	return mx_status;
+}
+

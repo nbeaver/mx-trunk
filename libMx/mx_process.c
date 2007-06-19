@@ -320,7 +320,7 @@ mx_process_record_field( MX_RECORD *record,
 		 */
 
 		if ( mx_status.code == MXE_SUCCESS ) {
-			mx_status = mx_field_invoke_callback_list(
+			mx_status = mx_local_invoke_callback_list(
 				record_field, MXCBT_VALUE_CHANGED );
 		}
 	}

@@ -11,11 +11,18 @@
 extern char *optarg;
 extern int optind;
 
+typedef struct {
+	MX_RECORD *server_record;
+	MX_RECORD_FIELD *temp_field;
+} CLIENT_CALLBACK_ARGS;
+
 static mx_status_type
 client_callback_function( MX_CALLBACK *callback, void *argument )
 {
 	static const char fname[] = "client_callback_function()";
 
+	CLIENT_CALLBACK_ARGS *client_callback_args;
+	MX_RECORD *server_record;
 	MX_RECORD_FIELD *temp_field;
 	char display_buffer[200];
 	mx_status_type mx_status;
@@ -25,7 +32,17 @@ client_callback_function( MX_CALLBACK *callback, void *argument )
 
 	temp_field = argument;
 
-	MX_DEBUG( 2,("%s: temp_field = %p", fname, temp_field));
+	client_callback_args = argument;
+
+	server_record = client_callback_args->server_record;
+
+	temp_field = client_callback_args->temp_field;
+
+	mx_status = mx_network_copy_message_to_field( server_record,
+							temp_field );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		exit( mx_status.code );
 
 	mx_status = mx_create_description_from_field( NULL, temp_field,
 				display_buffer, sizeof(display_buffer) );
@@ -52,6 +69,7 @@ main( int argc, char *argv[] )
 	char record_name[ MXU_RECORD_NAME_LENGTH+1 ];
 	char field_name[ MXU_FIELD_NAME_LENGTH+1 ];
 	char record_field_name[ MXU_RECORD_FIELD_NAME_LENGTH+1 ];
+	CLIENT_CALLBACK_ARGS *client_callback_args;
 	MX_CALLBACK *callback;
 	MX_RECORD *record_list;
 	MX_RECORD *server_record;
@@ -233,6 +251,22 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+	/* Create a CLIENT_CALLBACK_ARGS structure which will be returned
+	 * to the callback function via the callback_args pointer.
+	 */
+
+	client_callback_args = malloc( sizeof(CLIENT_CALLBACK_ARGS) );
+
+	if ( client_callback_args == NULL ) {
+		(void) mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Unable to allocate a CLIENT_CALLBACK_ARGS structure.");
+
+		exit( MXE_OUT_OF_MEMORY );
+	}
+
+	client_callback_args->server_record = server_record;
+	client_callback_args->temp_field    = temp_field;
+
 	/* Get the starting value of the network field. */
 
 	mx_status = mx_get_array( &nf, datatype,
@@ -256,7 +290,7 @@ main( int argc, char *argv[] )
 	mx_status = mx_network_add_callback( &nf,
 					MXCBT_VALUE_CHANGED,
 					client_callback_function,
-					temp_field,
+					client_callback_args,
 					&callback );
 
 	if ( mx_status.code != MXE_SUCCESS )

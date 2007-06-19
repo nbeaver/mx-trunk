@@ -445,4 +445,8 @@ MX_API mx_status_type mx_get_mx_server_record( MX_RECORD *record_list,
 			char *server_name, char *server_arguments,
 			MX_RECORD **server_record );
 
+MX_API mx_status_type mx_network_copy_message_to_field(
+				MX_RECORD *source_server_record,
+				MX_RECORD_FIELD *destination_field );
+
 #endif /* __MX_NET_H__ */

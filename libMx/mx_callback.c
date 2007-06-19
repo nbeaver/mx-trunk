@@ -30,14 +30,14 @@
 #include "mx_callback.h"
 
 MX_EXPORT mx_status_type
-mx_network_add_callback( MX_NETWORK_FIELD *nf,
+mx_remote_add_callback( MX_NETWORK_FIELD *nf,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_network_add_callback()";
+	static const char fname[] = "mx_remote_add_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST_ENTRY *list_entry;
@@ -257,14 +257,14 @@ mx_network_add_callback( MX_NETWORK_FIELD *nf,
 }
 
 MX_EXPORT mx_status_type
-mx_field_add_callback( MX_RECORD_FIELD *record_field,
+mx_local_add_callback( MX_RECORD_FIELD *record_field,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_field_add_callback()";
+	static const char fname[] = "mx_local_add_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_list;
@@ -313,7 +313,7 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	 */
 
 	if ( list_head->callback_timer == NULL ) {
-		mx_status = mx_field_initialize_callbacks( record );
+		mx_status = mx_local_initialize_callbacks( record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -353,8 +353,10 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
 	callback_ptr->callback_argument = callback_argument;
 	callback_ptr->u.record_field    = record_field;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback_ptr->callback_function = %p",
 		fname, callback_ptr->callback_function));
+#endif
 
 	/* Add this callback to the server's callback handle table. */
 
@@ -401,7 +403,7 @@ mx_field_add_callback( MX_RECORD_FIELD *record_field,
  *       to the pipe.
  *
  *       The solution, in this case, is to malloc() the necessary data
- *       structure in advance in the mx_field_initialize_callbacks()
+ *       structure in advance in the mx_local_initialize_callbacks()
  *       function.
  */
 
@@ -413,7 +415,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	MX_LIST_HEAD *list_head;
 	MX_PIPE *mx_pipe;
 
-#if 1
+#if MX_CALLBACK_DEBUG
 	static const char fname[] = "mx_request_value_changed_poll()";
 
 	MX_CLOCK_TICK current_clock_tick;
@@ -439,7 +441,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	mx_pipe = list_head->callback_pipe;
 
 	if ( mx_pipe == NULL ) {
-#if 1
+#if MX_CALLBACK_DEBUG
 		MX_DEBUG(-2,
 		("%s: callback_pipe == NULL.  Returning...", fname));
 #endif
@@ -456,7 +458,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 	 * to invoke from a signal handler.
 	 */
 
-#if 1
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: poll_callback_message = %p",
 		fname, poll_callback_message));
 #endif
@@ -469,9 +471,9 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 }
 
 MX_EXPORT mx_status_type
-mx_field_initialize_callbacks( MX_RECORD *record )
+mx_local_initialize_callbacks( MX_RECORD *record )
 {
-	static const char fname[] = "mx_field_initialize_callbacks()";
+	static const char fname[] = "mx_local_initialize_callbacks()";
 
 	MX_LIST_HEAD *list_head;
 	MX_HANDLE_TABLE *callback_handle_table;
@@ -574,10 +576,10 @@ mx_field_initialize_callbacks( MX_RECORD *record )
 }
 
 MX_EXPORT mx_status_type
-mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
+mx_local_invoke_callback_list( MX_RECORD_FIELD *field,
 				unsigned long callback_type )
 {
-	static const char fname[] = "mx_field_invoke_callback_list()";
+	static const char fname[] = "mx_local_invoke_callback_list()";
 
 	MX_LIST *callback_list;
 	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
@@ -702,7 +704,9 @@ mx_invoke_callback( MX_CALLBACK *callback )
 	void *argument;
 	mx_status_type mx_status;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s invoked for callback %p", fname, callback));
+#endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
@@ -711,28 +715,37 @@ mx_invoke_callback( MX_CALLBACK *callback )
 	function = callback->callback_function;
 	argument = callback->callback_argument;
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: function = %p, argument = %p",
 		fname, function, argument));
+#endif
 
 	if ( function == NULL ) {
-		MX_DEBUG(-2,("%s: Aborting since function == NULL.", fname));
 
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,("%s: Aborting since function == NULL.", fname));
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,("%s: callback->active = %d",
 			fname, (int)callback->active));
+#endif
 
 	if ( callback->active ) {
+
+#if MX_CALLBACK_DEBUG
 		MX_DEBUG(-2,
 		("%s: Aborting since callback->active != 0", fname));
-
+#endif
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+#if MX_CALLBACK_DEBUG
 	MX_DEBUG(-2,
 	("%s: REALLY invoking callback function %p", fname, function));
-
+#endif
 	callback->active = TRUE;
 
 	mx_status = (*function)( callback, argument );

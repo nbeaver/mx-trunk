@@ -56,23 +56,23 @@ typedef struct {
 
 /*--- Network client callbacks ---*/
 
-MX_API mx_status_type mx_network_add_callback( MX_NETWORK_FIELD *nf,
+MX_API mx_status_type mx_remote_add_callback( MX_NETWORK_FIELD *nf,
 					unsigned long callback_type,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
 					MX_CALLBACK **callback_object );
 					
-MX_API mx_status_type mx_field_add_callback( MX_RECORD_FIELD *rf,
+MX_API mx_status_type mx_local_add_callback( MX_RECORD_FIELD *rf,
 					unsigned long callback_type,
 					mx_status_type ( *callback_function )
 						( MX_CALLBACK *, void * ),
 					void *callback_argument,
 					MX_CALLBACK **callback_object );
 
-MX_API mx_status_type mx_field_initialize_callbacks( MX_RECORD *record_list );
+MX_API mx_status_type mx_local_initialize_callbacks( MX_RECORD *record_list );
 
-MX_API mx_status_type mx_field_invoke_callback_list( MX_RECORD_FIELD *field,
+MX_API mx_status_type mx_local_invoke_callback_list( MX_RECORD_FIELD *field,
 						unsigned long callback_type );
 
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb );
