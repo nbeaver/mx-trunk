@@ -7,14 +7,17 @@
  *
  *--------------------------------------------------------------------------
  *
- * Copyright 1999-2004, 2006 Illinois Institute of Technology
+ * Copyright 1999-2004, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
  */
 
+#define PR_MOTOR_DEBUG		TRUE
+
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "mxconfig.h"
 #include "mx_util.h"
@@ -22,10 +25,272 @@
 #include "mx_record.h"
 #include "mx_motor.h"
 #include "mx_socket.h"
+#include "mx_interval_timer.h"
+#include "mx_virtual_timer.h"
 
 #include "mx_process.h"
 #include "pr_handlers.h"
 
+#define FREE_CALLBACK_OBJECTS \
+	do {							\
+		mx_free( backlash_callback );			\
+		(void) mx_virtual_timer_destroy( vtimer );	\
+	} while (0)
+
+static void
+mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
+{
+	MX_MOTOR_BACKLASH_CALLBACK *backlash_callback;
+	double current_position, backlash_destination;
+	unsigned long motor_status;
+	int flags;
+	mx_status_type mx_status;
+
+#if PR_MOTOR_DEBUG
+	static const char fname[] = "mxp_motor_backlash_handler()";
+#endif
+
+	backlash_callback = args;
+
+	backlash_destination = backlash_callback->original_position
+				+ backlash_callback->backlash;
+
+	/* Check to see if the motor is still moving. */
+
+	mx_status = mx_motor_get_extended_status(
+					backlash_callback->motor_record,
+					&current_position,
+					&motor_status );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		FREE_CALLBACK_OBJECTS;
+		return;
+	}
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: motor '%s' position = %g, status = %#lx",
+		fname, backlash_callback->motor_record->name,
+		current_position, motor_status));
+#endif
+
+	/* Has a motor error occurred? */
+
+	if ( motor_status & MXSF_MTR_ERROR_BITMASK ) {
+
+		/* If so, generate an error message
+		 * and shut down the callback.
+		 */
+
+		(void) mx_error( MXE_INTERRUPTED, fname,
+		"Backlash callback for motor '%s' terminated due to "
+		"a motor status error.  status = %#lx",
+			backlash_callback->motor_record->name,
+			motor_status );
+
+		FREE_CALLBACK_OBJECTS;
+		return;
+	}
+
+	/* Is the motor still moving? */
+
+	if ( motor_status & MXSF_MTR_IS_BUSY ) {
+
+#if PR_MOTOR_DEBUG
+		MX_DEBUG(-2,("%s: Rescheduling backlash callback.",fname));
+#endif
+		/* If the motor is still moving, reschedule the callback. */
+
+		mx_status = mx_virtual_timer_start( vtimer,
+						backlash_callback->delay );
+
+#if PR_MOTOR_DEBUG
+		MX_DEBUG(-2,("%s: mx_virtual_timer_start() status = %ld",
+			fname, mx_status.code));
+#endif
+		if ( mx_status.code != MXE_SUCCESS ) {
+			FREE_CALLBACK_OBJECTS;
+		}
+
+		return;
+	}
+
+	/* The motor has stopped moving, so start the main move
+	 * and then terminate the backlash callback.
+	 */
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: backlash_destination = %g, current_position = %g",
+		fname, backlash_destination, current_position));
+#endif
+
+	flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
+					| MXF_MTR_IGNORE_BACKLASH;
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: starting the main move for motor '%s' to %g",
+		fname, backlash_callback->motor_record->name,
+		backlash_callback->destination));
+#endif
+
+	mx_status = mx_motor_move_absolute( backlash_callback->motor_record,
+						backlash_callback->destination,
+						flags );
+
+	FREE_CALLBACK_OBJECTS;
+	return;
+}
+
+static mx_status_type
+mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
+{
+	MX_LIST_HEAD *list_head;
+	MX_MOTOR *motor;
+	MX_MOTOR_BACKLASH_CALLBACK *backlash_callback;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	double original_position, relative_motion, backlash;
+	mx_bool_type do_backlash;
+	int flags;
+	mx_status_type mx_status;
+
+#if PR_MOTOR_DEBUG
+	static const char fname[] = "mxp_motor_move_absolute_handler()";
+
+	MX_DEBUG(-2,("%s: motor = '%s', destination = %g",
+		fname, record->name, destination));
+#endif
+	/* See if callbacks are enabled. */
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head->callback_pipe == NULL ) {
+
+		/* We are not configured to handle callbacks,
+		 * so just start the move.
+		 */
+
+		flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
+					| MXF_MTR_IGNORE_BACKLASH;
+
+		mx_status = mx_motor_move_absolute( record,
+						destination, flags );
+
+		return mx_status;
+	}
+
+	/* If we get here, then callbacks are enabled. */
+
+	motor = (MX_MOTOR *) record->record_class_struct;
+
+	/* Figure out whether or not we need to perform a backlash correction
+	 * by checking the direction of motion.
+	 */
+
+	backlash = motor->backlash_correction;
+
+	mx_status = mx_motor_get_position( record, &original_position );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	relative_motion = destination - original_position;
+
+	/* We perform the backlash correction if 'relative_motion'
+	 * and 'backlash' are both non-zero and have the same signs.
+	 */
+
+	if ( (relative_motion > 0.0) && (backlash > 0.0) ) {
+		do_backlash = TRUE;
+	} else
+	if ( (relative_motion < 0.0) && (backlash < 0.0) ) {
+		do_backlash = TRUE;
+	} else {
+		do_backlash = FALSE;
+	}
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: original_position = %g", fname, original_position));
+	MX_DEBUG(-2,("%s: relative_motion = %g", fname, relative_motion));
+	MX_DEBUG(-2,("%s: backlash = %g", fname, backlash));
+	MX_DEBUG(-2,("%s: do_backlash = %d", fname, do_backlash));
+#endif
+
+	if ( do_backlash == FALSE ) {
+		/* If backlash is not required, then just start the move. */
+
+		flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
+					| MXF_MTR_IGNORE_BACKLASH;
+
+		mx_status = mx_motor_move_absolute( record,
+						destination, flags );
+
+		return mx_status;
+	}
+
+	/**** Backlash is required. ****/
+
+	/* Initialize the backlash callback structure. */
+
+	backlash_callback = malloc( sizeof(MX_MOTOR_BACKLASH_CALLBACK) );
+
+	if ( backlash_callback == (MX_MOTOR_BACKLASH_CALLBACK *) NULL ) {
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Unable to allocate memory for an MX_MOTOR_BACKLASH_CALLBACK "
+		"structure for motor '%s'.", record->name );
+	}
+
+	backlash_callback->motor_record = record;
+	backlash_callback->original_position = original_position;
+	backlash_callback->destination = destination;
+	backlash_callback->backlash = backlash;
+
+	backlash_callback->delay = 0.5;		/* in seconds */
+
+	/* Start the move to the backlash position. */
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: move '%s' to backlash position %g",
+		fname, record->name, original_position + backlash));
+#endif
+
+	flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
+			| MXF_MTR_GO_TO_BACKLASH_POSITION;
+
+	mx_status = mx_motor_move_absolute( record, destination, flags );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( backlash_callback );
+		return mx_status;
+	}
+
+	/* Start a one-shot interval timer that will arrange for the
+	 * backlash callback function to be invoked later.
+	 */
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: creating backlash one-shot timer.", fname));
+#endif
+
+	mx_status = mx_virtual_timer_create( &oneshot_timer,
+						list_head->master_timer,
+						MXIT_ONE_SHOT_TIMER,
+						mxp_motor_backlash_handler,
+						backlash_callback );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_free( backlash_callback );
+		return mx_status;
+	}
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: starting backlash one-shot timer for %g seconds.",
+		fname, backlash_callback->delay));
+#endif
+
+	mx_status = mx_virtual_timer_start( oneshot_timer,
+					backlash_callback->delay );
+
+	return mx_status;
+}
 mx_status_type
 mx_setup_motor_process_functions( MX_RECORD *record )
 {
@@ -104,75 +369,74 @@ mx_motor_process_function( void *record_ptr,
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *motor_function_list;
 	double position1, position2, time_for_move;
-	mx_status_type status;
+	mx_status_type mx_status;
 
 	double start_position, end_position;
 	double pseudomotor_position, real_position;
-	int flags;
 
 	record = (MX_RECORD *) record_ptr;
 	record_field = (MX_RECORD_FIELD *) record_field_ptr;
-	motor = (MX_MOTOR *) (record->record_class_struct);
+	motor = (MX_MOTOR *) record->record_class_struct;
 
 	motor_function_list = (MX_MOTOR_FUNCTION_LIST *)
-				(record->class_specific_function_list);
+				record->class_specific_function_list;
 
-	status = MX_SUCCESSFUL_RESULT;
+	mx_status = MX_SUCCESSFUL_RESULT;
 
 	switch( operation ) {
 	case MX_PROCESS_GET:
 		switch( record_field->label_value ) {
 		case MXLV_MTR_POSITION:
-			status = mx_motor_get_position( record, NULL );
+			mx_status = mx_motor_get_position( record, NULL );
 			break;
 		case MXLV_MTR_BUSY:
-			status = mx_motor_is_busy( record, NULL );
+			mx_status = mx_motor_is_busy( record, NULL );
 			break;
 		case MXLV_MTR_NEGATIVE_LIMIT_HIT:
-			status = mx_motor_negative_limit_hit( record, NULL );
+			mx_status = mx_motor_negative_limit_hit( record, NULL );
 			break;
 		case MXLV_MTR_POSITIVE_LIMIT_HIT:
-			status = mx_motor_positive_limit_hit( record, NULL );
+			mx_status = mx_motor_positive_limit_hit( record, NULL );
 			break;
 		case MXLV_MTR_SPEED:
-			status = mx_motor_get_speed( record, NULL );
+			mx_status = mx_motor_get_speed( record, NULL );
 
 			break;
 		case MXLV_MTR_BASE_SPEED:
-			status = mx_motor_get_base_speed( record, NULL );
+			mx_status = mx_motor_get_base_speed( record, NULL );
 
 			break;
 		case MXLV_MTR_MAXIMUM_SPEED:
-			status = mx_motor_get_maximum_speed( record, NULL );
+			mx_status = mx_motor_get_maximum_speed( record, NULL );
 
 			break;
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
-			status = mx_motor_get_synchronous_motion_mode(
+			mx_status = mx_motor_get_synchronous_motion_mode(
 							record, NULL );
 			break;
 		case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-			status = mx_motor_get_raw_acceleration_parameters(
+			mx_status = mx_motor_get_raw_acceleration_parameters(
 							record, NULL );
 
 			break;
 		case MXLV_MTR_ACCELERATION_TIME:
-			status = mx_motor_get_acceleration_time( record, NULL );
+			mx_status = mx_motor_get_acceleration_time( record, NULL );
 			break;
 		case MXLV_MTR_ACCELERATION_DISTANCE:
-			status = mx_motor_get_acceleration_distance(
+			mx_status = mx_motor_get_acceleration_distance(
 							record, NULL );
 			break;
 		case MXLV_MTR_COMPUTE_EXTENDED_SCAN_RANGE:
 			start_position = motor->compute_extended_scan_range[0];
 			end_position = motor->compute_extended_scan_range[1];
 
-			status = mx_motor_compute_extended_scan_range( record,
+			mx_status = mx_motor_compute_extended_scan_range( record,
 				start_position, end_position, NULL, NULL );
 			break;
 		case MXLV_MTR_COMPUTE_PSEUDOMOTOR_POSITION:
 			real_position = motor->compute_pseudomotor_position[0];
 
-			status =
+			mx_status =
 		mx_motor_compute_pseudomotor_position_from_real_position(
 			record, real_position, &pseudomotor_position, TRUE );
 
@@ -180,44 +444,44 @@ mx_motor_process_function( void *record_ptr,
 		case MXLV_MTR_COMPUTE_REAL_POSITION:
 			pseudomotor_position = motor->compute_real_position[0];
 
-			status =
+			mx_status =
 		mx_motor_compute_real_position_from_pseudomotor_position(
 			record, pseudomotor_position, &real_position, TRUE );
 
 			break;
 		case MXLV_MTR_GET_STATUS:
-			status = mx_motor_get_status( record, NULL );
+			mx_status = mx_motor_get_status( record, NULL );
 			break;
 		case MXLV_MTR_GET_EXTENDED_STATUS:
-			status = mx_motor_get_extended_status( record,
+			mx_status = mx_motor_get_extended_status( record,
 								NULL, NULL );
 			break;
 		case MXLV_MTR_PROPORTIONAL_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_PROPORTIONAL_GAIN, NULL );
 			break;
 		case MXLV_MTR_INTEGRAL_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_INTEGRAL_GAIN, NULL );
 			break;
 		case MXLV_MTR_DERIVATIVE_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_DERIVATIVE_GAIN, NULL );
 			break;
 		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 				MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN, NULL );
 			break;
 		case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 				MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN, NULL );
 			break;
 		case MXLV_MTR_INTEGRAL_LIMIT:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_INTEGRAL_LIMIT, NULL );
 			break;
 		case MXLV_MTR_EXTRA_GAIN:
-			status = mx_motor_get_gain( record,
+			mx_status = mx_motor_get_gain( record,
 					MXLV_MTR_EXTRA_GAIN, NULL );
 			break;
 		default:
@@ -230,56 +494,52 @@ mx_motor_process_function( void *record_ptr,
 	case MX_PROCESS_PUT:
 		switch( record_field->label_value ) {
 		case MXLV_MTR_DESTINATION:
-			flags = MXF_MTR_NOWAIT | MXF_MTR_IGNORE_KEYBOARD
-					| MXF_MTR_IGNORE_BACKLASH;
-
-			status = mx_motor_move_absolute( record,
-					motor->destination, flags );
-
+			mx_status = mxp_motor_move_absolute_handler(
+						record, motor->destination );
 			break;
 		case MXLV_MTR_SET_POSITION:
-			status = mx_motor_set_position( record,
+			mx_status = mx_motor_set_position( record,
 						motor->set_position );
 
 			break;
 		case MXLV_MTR_SOFT_ABORT:
-			status = mx_motor_soft_abort( record );
+			mx_status = mx_motor_soft_abort( record );
 
 			/* Set the soft abort flag back to zero. */
 
 			motor->soft_abort = 0;
 			break;
 		case MXLV_MTR_IMMEDIATE_ABORT:
-			status = mx_motor_immediate_abort( record );
+			mx_status = mx_motor_immediate_abort( record );
 
 			/* Set the immediate abort flag back to zero. */
 
 			motor->immediate_abort = 0;
 			break;
 		case MXLV_MTR_CONSTANT_VELOCITY_MOVE:
-			status = mx_motor_constant_velocity_move( record,
+			mx_status = mx_motor_constant_velocity_move( record,
 					motor->constant_velocity_move );
 			break;
 		case MXLV_MTR_HOME_SEARCH:
-			status = mx_motor_find_home_position( record,
+			mx_status = mx_motor_find_home_position( record,
 					motor->home_search );
 			break;
 		case MXLV_MTR_SPEED:
-			status = mx_motor_set_speed( record, motor->speed );
+			mx_status = mx_motor_set_speed( record, motor->speed );
 
 			break;
 		case MXLV_MTR_BASE_SPEED:
-			status = mx_motor_set_base_speed( record,
+			mx_status = mx_motor_set_base_speed( record,
 							motor->base_speed );
 
 			break;
 		case MXLV_MTR_MAXIMUM_SPEED:
-			status = mx_motor_set_base_speed( record,
+			mx_status = mx_motor_set_base_speed( record,
 							motor->maximum_speed );
 
 			break;
 		case MXLV_MTR_RAW_ACCELERATION_PARAMETERS:
-			status = mx_motor_set_raw_acceleration_parameters(
+			mx_status = mx_motor_set_raw_acceleration_parameters(
 				record, motor->raw_acceleration_parameters );
 
 			break;
@@ -288,72 +548,72 @@ mx_motor_process_function( void *record_ptr,
 			position2 = motor->speed_choice_parameters[1];
 			time_for_move = motor->speed_choice_parameters[2];
 
-			status = mx_motor_set_speed_between_positions( record,
+			mx_status = mx_motor_set_speed_between_positions( record,
 					position1, position2, time_for_move );
 			break;
 		case MXLV_MTR_SAVE_SPEED:
-			status = mx_motor_save_speed( record );
+			mx_status = mx_motor_save_speed( record );
 			break;
 		case MXLV_MTR_RESTORE_SPEED:
-			status = mx_motor_restore_speed( record );
+			mx_status = mx_motor_restore_speed( record );
 			break;
 		case MXLV_MTR_SYNCHRONOUS_MOTION_MODE:
-			status = mx_motor_set_synchronous_motion_mode( record,
+			mx_status = mx_motor_set_synchronous_motion_mode( record,
 					motor->synchronous_motion_mode );
 			break;
 		case MXLV_MTR_SAVE_START_POSITIONS:
-			status = mx_motor_save_start_positions( record,
+			mx_status = mx_motor_save_start_positions( record,
 					motor->save_start_positions );
 			break;
 	
 		case MXLV_MTR_AXIS_ENABLE:
-			status = mx_motor_send_control_command( record,
+			mx_status = mx_motor_send_control_command( record,
 					MXLV_MTR_AXIS_ENABLE,
 					motor->axis_enable );
 			break;
 		case MXLV_MTR_CLOSED_LOOP:
-			status = mx_motor_send_control_command( record,
+			mx_status = mx_motor_send_control_command( record,
 					MXLV_MTR_CLOSED_LOOP,
 					motor->closed_loop );
 			break;
 		case MXLV_MTR_FAULT_RESET:
-			status = mx_motor_send_control_command( record,
+			mx_status = mx_motor_send_control_command( record,
 					MXLV_MTR_FAULT_RESET,
 					motor->fault_reset );
 			break;
 
 		case MXLV_MTR_PROPORTIONAL_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_PROPORTIONAL_GAIN,
 					motor->proportional_gain );
 			break;
 		case MXLV_MTR_INTEGRAL_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_INTEGRAL_GAIN,
 					motor->integral_gain );
 			break;
 		case MXLV_MTR_DERIVATIVE_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_DERIVATIVE_GAIN,
 					motor->derivative_gain );
 			break;
 		case MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_VELOCITY_FEEDFORWARD_GAIN,
 					motor->velocity_feedforward_gain );
 			break;
 		case MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_ACCELERATION_FEEDFORWARD_GAIN,
 					motor->acceleration_feedforward_gain );
 			break;
 		case MXLV_MTR_INTEGRAL_LIMIT:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_INTEGRAL_LIMIT,
 					motor->integral_limit );
 			break;
 		case MXLV_MTR_EXTRA_GAIN:
-			status = mx_motor_set_gain( record,
+			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_EXTRA_GAIN,
 					motor->extra_gain );
 			break;
@@ -369,6 +629,6 @@ mx_motor_process_function( void *record_ptr,
 			"Unknown operation code = %d", operation );
 	}
 
-	return status;
+	return mx_status;
 }
 

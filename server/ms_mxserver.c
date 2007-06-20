@@ -3543,7 +3543,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/* Add the callback to the list of callbacks. */
 
-	mx_status = mx_local_add_callback( field,
+	mx_status = mx_local_field_add_callback( field,
 					callback_type,
 					mxsrv_poll_callback,
 					socket_handler,

@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -90,7 +90,19 @@
 
 #define MXU_EXTENDED_STATUS_STRING_LENGTH	40
 
-/* MX_MOTOR contains the data that is common to all motor types. */
+/* The MX_MOTOR_BACKLASH_CALLBACK structure is used by MX servers to handle
+ * backlash corrections asynchronously.
+ */
+
+typedef struct {
+	MX_RECORD *motor_record;
+	double original_position;
+	double destination;
+	double backlash;
+	double delay;
+} MX_MOTOR_BACKLASH_CALLBACK;
+
+/* The MX_MOTOR structure contains the data that is common to all motor types.*/
 
 typedef struct {
 	MX_RECORD *record; /* Pointer to the MX_RECORD structure that points

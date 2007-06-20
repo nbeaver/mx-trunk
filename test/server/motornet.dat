@@ -19,7 +19,7 @@ fielddef       variable net_variable net_string "" "" 10id mx_database.fielddef 
 show_handle    variable net_variable net_ulong "" "" 10id mx_database.show_handle 1 2 -1 -1
 tty1           interface rs232 network_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0 10id tty1
 theta          device motor network_motor "" "" 10 0 -100000 100000 0 -1 -1 1 0 deg 10id theta_real
-rawomega       device motor network_motor "" "" 0 -20 -50000 50000 0 -1 -1 1 0 um 10id rawomega
+rawomega       device motor network_motor "" "" 0 0 -50000 50000 0 -1 -1 1 0 um 10id rawomega
 rawchi         device motor network_motor "" "" 0 -20 -50000 50000 0 -1 -1 1 0 um 10id rawchi
 pivot          device motor network_motor "" "" 0 -20 -50000 50000 0 -1 -1 1 0 um 10id pivot
 omega          device motor delta_motor "" "" 0 0 -1e+08 1e+08 0 -1 -1 1 0 um rawomega pivot

@@ -44,6 +44,7 @@
 #include "mx_log.h"
 #include "mx_syslog.h"
 #include "mx_thread.h"
+#include "mx_virtual_timer.h"
 
 #include "mx_process.h"
 #include "ms_mxserver.h"
@@ -742,6 +743,7 @@ mxserver_main( int argc, char *argv[] )
 
 	if ( enable_callbacks ) {
 		MX_PIPE *callback_pipe;
+		MX_INTERVAL_TIMER *master_timer;
 
 		mx_info("Enabling callbacks.");
 
@@ -759,6 +761,18 @@ mxserver_main( int argc, char *argv[] )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			exit( mx_status.code );
+
+		/* Create a master timer with a timer period
+		 * of 100 milliseconds.
+		 */
+
+		mx_status = mx_virtual_timer_create_master(
+						&master_timer, 0.1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			exit( mx_status.code );
+
+		list_head_struct->master_timer = master_timer;
 	}
 
 	/* Read the database description file and add the records therein

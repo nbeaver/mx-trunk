@@ -12,7 +12,7 @@
  *
  */
 
-#define MX_VIRTUAL_TIMER_DEBUG	FALSE
+#define MX_VIRTUAL_TIMER_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -973,7 +973,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG( 2,("%s invoked for vtimer %p.", fname, vtimer));
+	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
 
 	/* We need to add a timer event to the timer event list managed
 	 * by the master timer that this virtual timer uses.
@@ -999,7 +999,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 			master_timer, vtimer );
 	}
 
-	MX_DEBUG( 2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
+	MX_DEBUG(-2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
 		fname, timer_period_in_seconds,
 		(long) vtimer->timer_period.tv_sec,
 		vtimer->timer_period.tv_nsec,
@@ -1026,7 +1026,7 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	UNLOCK_EVENT_LIST( event_list );
 
-	MX_DEBUG( 2,("%s complete.", fname));
+	MX_DEBUG(-2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }

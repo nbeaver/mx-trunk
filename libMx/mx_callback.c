@@ -29,15 +29,198 @@
 #include "mx_pipe.h"
 #include "mx_callback.h"
 
+/* NOTE: The only job of mx_request_value_changed_poll() is to send a message
+ *       through the callback pipe to the main thread ask for the value
+ *       changed handlers to be polled.
+ *
+ *       On some platforms, this function will be invoked in a signal handler
+ *       context, so the function must only do things that are signal handler
+ *       safe.  In particular, you cannot allocate memory with malloc()
+ *       here or write a pointer for a structure on this function's stack
+ *       to the pipe.
+ *
+ *       The solution, in this case, is to malloc() the necessary data
+ *       structure in advance in the mx_initialize_callback_support()
+ *       function.
+ */
+
+static void
+mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
+				void *callback_args )
+{
+	MX_CALLBACK_MESSAGE *poll_callback_message;
+	MX_LIST_HEAD *list_head;
+	MX_PIPE *mx_pipe;
+
+#if MX_CALLBACK_DEBUG
+	static const char fname[] = "mx_request_value_changed_poll()";
+
+	MX_CLOCK_TICK current_clock_tick;
+
+	current_clock_tick = mx_current_clock_tick();
+
+	MX_DEBUG(-2, ("*************************************************"));
+
+	MX_DEBUG(-2,("%s: clock tick = (%lu,%lu)",
+	fname, current_clock_tick.high_order, current_clock_tick.low_order));
+#endif
+
+	if ( callback_args == NULL ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"The callback_args pointer passed was NULL." );
+		return;
+	}
+
+	poll_callback_message = callback_args;
+
+	list_head = poll_callback_message->u.poll.list_head;
+
+	mx_pipe = list_head->callback_pipe;
+
+	if ( mx_pipe == NULL ) {
+#if MX_CALLBACK_DEBUG
+		MX_DEBUG(-2,
+		("%s: callback_pipe == NULL.  Returning...", fname));
+#endif
+		return;
+	}
+
+	/* Write the address of the callback message to the callback pipe.
+	 * The callback message will be read and handled by the server
+	 * main loop.
+	 *
+	 * Please note that the only system calls used by normal execution
+	 * of mx_pipe_write() are the write() call on Linux/Unix and
+	 * WriteFile() on Win32.  Thus, mx_pipe_write() should be safe
+	 * to invoke from a signal handler.
+	 */
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: poll_callback_message = %p",
+		fname, poll_callback_message));
+#endif
+
+	(void) mx_pipe_write( mx_pipe,
+				(char *) &poll_callback_message,
+				sizeof(MX_CALLBACK_MESSAGE *) );
+
+	return;
+}
+
 MX_EXPORT mx_status_type
-mx_remote_add_callback( MX_NETWORK_FIELD *nf,
+mx_initialize_callback_support( MX_RECORD *record )
+{
+	static const char fname[] = "mx_initialize_callback_support()";
+
+	MX_LIST_HEAD *list_head;
+	MX_HANDLE_TABLE *callback_handle_table;
+	MX_INTERVAL_TIMER *master_timer;
+	MX_VIRTUAL_TIMER *callback_timer;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+	list_head = mx_get_record_list_head_struct( record );
+
+	if ( list_head == (MX_LIST_HEAD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
+			record->name );
+	}
+
+	/* If the list head does not already have a server callback handle
+	 * table, then create one now.  Otherwise, just use the table that
+	 * is already there.
+	 */
+	
+	if ( list_head->server_callback_handle_table == NULL ) {
+
+		/* The handle table starts with a single block of 100 handles.*/
+
+		mx_status = mx_create_handle_table( &callback_handle_table,
+							100, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->server_callback_handle_table = callback_handle_table;
+	}
+
+	/* If the list head does not have a master timer, then create one
+	 * with a timer period of 100 milliseconds.
+	 */
+
+	if ( list_head->master_timer == NULL ) {
+		mx_status = mx_virtual_timer_create_master(&master_timer, 0.1);
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->master_timer = master_timer;
+	}
+
+	/* If the list head does not have a callback timer, then create one
+	 * derived from the master timer.
+	 */
+
+	if ( list_head->callback_timer == NULL ) {
+
+		MX_CALLBACK_MESSAGE *poll_callback_message;
+
+		/* The callback timer will need a structure pointer
+		 * to write to the callback pipe telling the main
+		 * thread that it is time to poll the value changed
+		 * handlers.  We must malloc() that structure here,
+		 * since it is unsafe to do it in the context of the
+		 * mx_request_value_changed_poll() function.
+		 */
+
+		poll_callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
+
+		if ( poll_callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"The attempt to allocate memory for an "
+			"MX_CALLBACK_MESSAGE structure failed." );
+		}
+
+		poll_callback_message->callback_type = MXCBT_POLL;
+		poll_callback_message->u.poll.list_head = list_head;
+
+		/* Now create the virtual timer. */
+
+		mx_status = mx_virtual_timer_create( &callback_timer,
+						list_head->master_timer,
+						MXIT_PERIODIC_TIMER,
+						mx_request_value_changed_poll,
+						poll_callback_message );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		list_head->callback_timer = callback_timer;
+
+		mx_status = mx_virtual_timer_start( list_head->callback_timer,
+							0.1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_remote_add_callback()";
+	static const char fname[] = "mx_remote_field_add_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST_ENTRY *list_entry;
@@ -257,14 +440,14 @@ mx_remote_add_callback( MX_NETWORK_FIELD *nf,
 }
 
 MX_EXPORT mx_status_type
-mx_local_add_callback( MX_RECORD_FIELD *record_field,
+mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 			unsigned long callback_type,
 			mx_status_type ( *callback_function )(
 						MX_CALLBACK *, void * ),
 			void *callback_argument,
 			MX_CALLBACK **callback_object )
 {
-	static const char fname[] = "mx_local_add_callback()";
+	static const char fname[] = "mx_local_field_add_callback()";
 
 	MX_CALLBACK *callback_ptr;
 	MX_LIST *callback_list;
@@ -313,7 +496,7 @@ mx_local_add_callback( MX_RECORD_FIELD *record_field,
 	 */
 
 	if ( list_head->callback_timer == NULL ) {
-		mx_status = mx_local_initialize_callbacks( record );
+		mx_status = mx_initialize_callback_support( record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -392,194 +575,11 @@ mx_local_add_callback( MX_RECORD_FIELD *record_field,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* NOTE: The only job of mx_request_value_changed_poll() is to send a message
- *       through the callback pipe to the main thread ask for the value
- *       changed handlers to be polled.
- *
- *       On some platforms, this function will be invoked in a signal handler
- *       context, so the function must only do things that are signal handler
- *       safe.  In particular, you cannot allocate memory with malloc()
- *       here or write a pointer for a structure on this function's stack
- *       to the pipe.
- *
- *       The solution, in this case, is to malloc() the necessary data
- *       structure in advance in the mx_local_initialize_callbacks()
- *       function.
- */
-
-static void
-mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
-				void *callback_args )
-{
-	MX_CALLBACK_MESSAGE *poll_callback_message;
-	MX_LIST_HEAD *list_head;
-	MX_PIPE *mx_pipe;
-
-#if MX_CALLBACK_DEBUG
-	static const char fname[] = "mx_request_value_changed_poll()";
-
-	MX_CLOCK_TICK current_clock_tick;
-
-	current_clock_tick = mx_current_clock_tick();
-
-	MX_DEBUG(-2, ("*************************************************"));
-
-	MX_DEBUG(-2,("%s: clock tick = (%lu,%lu)",
-	fname, current_clock_tick.high_order, current_clock_tick.low_order));
-#endif
-
-	if ( callback_args == NULL ) {
-		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-			"The callback_args pointer passed was NULL." );
-		return;
-	}
-
-	poll_callback_message = callback_args;
-
-	list_head = poll_callback_message->u.poll.list_head;
-
-	mx_pipe = list_head->callback_pipe;
-
-	if ( mx_pipe == NULL ) {
-#if MX_CALLBACK_DEBUG
-		MX_DEBUG(-2,
-		("%s: callback_pipe == NULL.  Returning...", fname));
-#endif
-		return;
-	}
-
-	/* Write the address of the callback message to the callback pipe.
-	 * The callback message will be read and handled by the server
-	 * main loop.
-	 *
-	 * Please note that the only system calls used by normal execution
-	 * of mx_pipe_write() are the write() call on Linux/Unix and
-	 * WriteFile() on Win32.  Thus, mx_pipe_write() should be safe
-	 * to invoke from a signal handler.
-	 */
-
-#if MX_CALLBACK_DEBUG
-	MX_DEBUG(-2,("%s: poll_callback_message = %p",
-		fname, poll_callback_message));
-#endif
-
-	(void) mx_pipe_write( mx_pipe,
-				(char *) &poll_callback_message,
-				sizeof(MX_CALLBACK_MESSAGE *) );
-
-	return;
-}
-
 MX_EXPORT mx_status_type
-mx_local_initialize_callbacks( MX_RECORD *record )
-{
-	static const char fname[] = "mx_local_initialize_callbacks()";
-
-	MX_LIST_HEAD *list_head;
-	MX_HANDLE_TABLE *callback_handle_table;
-	MX_INTERVAL_TIMER *master_timer;
-	MX_VIRTUAL_TIMER *callback_timer;
-	mx_status_type mx_status;
-
-	if ( record == (MX_RECORD *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_RECORD pointer passed was NULL." );
-	}
-
-	list_head = mx_get_record_list_head_struct( record );
-
-	if ( list_head == (MX_LIST_HEAD *) NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_LIST_HEAD pointer for record '%s' is NULL.",
-			record->name );
-	}
-
-	/* If the list head does not already have a server callback handle
-	 * table, then create one now.  Otherwise, just use the table that
-	 * is already there.
-	 */
-	
-	if ( list_head->server_callback_handle_table == NULL ) {
-
-		/* The handle table starts with a single block of 100 handles.*/
-
-		mx_status = mx_create_handle_table( &callback_handle_table,
-							100, 1 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		list_head->server_callback_handle_table = callback_handle_table;
-	}
-
-	/* If the list head does not have a master timer, then create one
-	 * with a timer period of 100 milliseconds.
-	 */
-
-	if ( list_head->master_timer == NULL ) {
-		mx_status = mx_virtual_timer_create_master(&master_timer, 0.1);
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		list_head->master_timer = master_timer;
-	}
-
-	/* If the list head does not have a callback timer, then create one
-	 * derived from the master timer.
-	 */
-
-	if ( list_head->callback_timer == NULL ) {
-
-		MX_CALLBACK_MESSAGE *poll_callback_message;
-
-		/* The callback timer will need a structure pointer
-		 * to write to the callback pipe telling the main
-		 * thread that it is time to poll the value changed
-		 * handlers.  We must malloc() that structure here,
-		 * since it is unsafe to do it in the context of the
-		 * mx_request_value_changed_poll() function.
-		 */
-
-		poll_callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
-
-		if ( poll_callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"The attempt to allocate memory for an "
-			"MX_CALLBACK_MESSAGE structure failed." );
-		}
-
-		poll_callback_message->callback_type = MXCBT_POLL;
-		poll_callback_message->u.poll.list_head = list_head;
-
-		/* Now create the virtual timer. */
-
-		mx_status = mx_virtual_timer_create( &callback_timer,
-						list_head->master_timer,
-						MXIT_PERIODIC_TIMER,
-						mx_request_value_changed_poll,
-						poll_callback_message );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		list_head->callback_timer = callback_timer;
-
-		mx_status = mx_virtual_timer_start( list_head->callback_timer,
-							0.1 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mx_local_invoke_callback_list( MX_RECORD_FIELD *field,
+mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 				unsigned long callback_type )
 {
-	static const char fname[] = "mx_local_invoke_callback_list()";
+	static const char fname[] = "mx_local_field_invoke_callback_list()";
 
 	MX_LIST *callback_list;
 	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
