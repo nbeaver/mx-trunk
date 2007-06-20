@@ -17,6 +17,8 @@
 #ifndef __MX_CALLBACK_H__
 #define __MX_CALLBACK_H__
 
+#include "mx_virtual_timer.h"
+
 /*--- Callback classes ---*/
 
 #define MXCBC_NETWORK		1
@@ -49,9 +51,20 @@ typedef struct {
 } MX_CALLBACK_POLL_MESSAGE;
 
 typedef struct {
+	MX_LIST_HEAD *list_head;
+	MX_RECORD *motor_record;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	double original_position;
+	double destination;
+	double backlash_distance;
+	double delay;
+} MX_CALLBACK_BACKLASH_MESSAGE;
+
+typedef struct {
 	unsigned long callback_type;
 	union {
 		MX_CALLBACK_POLL_MESSAGE poll;
+		MX_CALLBACK_BACKLASH_MESSAGE backlash;
 	} u;
 } MX_CALLBACK_MESSAGE;
 
@@ -78,6 +91,10 @@ MX_API mx_status_type mx_local_field_invoke_callback_list(
 						unsigned long callback_type );
 
 MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb );
+
+/*---*/
+
+MX_API mx_status_type mx_motor_backlash_callback(MX_CALLBACK_MESSAGE *message);
 
 #endif /* __MX_CALLBACK_H__ */
 

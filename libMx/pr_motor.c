@@ -25,52 +25,101 @@
 #include "mx_record.h"
 #include "mx_motor.h"
 #include "mx_socket.h"
-#include "mx_interval_timer.h"
+#include "mx_net.h"
+#include "mx_pipe.h"
 #include "mx_virtual_timer.h"
+#include "mx_callback.h"
 
 #include "mx_process.h"
 #include "pr_handlers.h"
 
 #define FREE_CALLBACK_OBJECTS \
-	do {							\
-		mx_free( backlash_callback );			\
-		(void) mx_virtual_timer_destroy( vtimer );	\
+	do {								\
+		mx_free( callback_message );				\
+		(void) mx_virtual_timer_destroy( oneshot_timer );	\
 	} while (0)
 
+/* mxp_motor_backlash_vtimer_callback() is called when the one-shot
+ * virtual timer fires.  Its job is to write a pointer to the
+ * MX_CALLBACK_MESSAGE structure to the callback pipe.  Virtual timer
+ * callbacks are very limited in what they can do, so it is not safe
+ * to try to do the whole thing here.
+ */
+
 static void
-mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
+mxp_motor_backlash_vtimer_callback( MX_VIRTUAL_TIMER *vtimer, void *args )
 {
-	MX_MOTOR_BACKLASH_CALLBACK *backlash_callback;
+	static const char fname[] = "mxp_motor_backlash_vtimer_callback()";
+
+	MX_CALLBACK_MESSAGE *callback_message;
+	MX_LIST_HEAD *list_head;
+
+	callback_message = args;
+
+	list_head = callback_message->u.backlash.list_head;
+
+	if ( list_head->callback_pipe == (MX_PIPE *) NULL ) {
+		(void) mx_error( MXE_IPC_IO_ERROR, fname,
+		"The callback pipe for this process has not been created." );
+
+		return;
+	}
+
+	(void) mx_pipe_write( list_head->callback_pipe,
+				(char *) &callback_message,
+				sizeof(MX_CALLBACK_MESSAGE *) );
+
+	return;
+}
+
+/* mx_motor_backlash_callback() gets called after the main thread reads
+ * the message written by mxp_motor_backlash_vtimer_callback() to the
+ * callback pipe and sees whether or not the motor has completed the
+ * backlash move.  If the backlash move is complete, the main move is
+ * started and the callback message is deleted.  If the backlash move
+ * is _not_ complete, the one-shot virtual timer is started to reschedule
+ * the callback for a later time.
+ */
+
+MX_EXPORT mx_status_type
+mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
+{
+	MX_LIST_HEAD *list_head;
+	MX_RECORD *motor_record;
+	MX_VIRTUAL_TIMER *oneshot_timer;
+	double original_position, destination, backlash_distance, delay;
 	double current_position, backlash_destination;
 	unsigned long motor_status;
 	int flags;
 	mx_status_type mx_status;
 
 #if PR_MOTOR_DEBUG
-	static const char fname[] = "mxp_motor_backlash_handler()";
+	static const char fname[] = "mx_motor_backlash_callback()";
 #endif
 
-	backlash_callback = args;
+	list_head         = callback_message->u.backlash.list_head;
+	motor_record      = callback_message->u.backlash.motor_record;
+	oneshot_timer     = callback_message->u.backlash.oneshot_timer;
+	original_position = callback_message->u.backlash.original_position;
+	destination       = callback_message->u.backlash.destination;
+	backlash_distance = callback_message->u.backlash.backlash_distance;
+	delay             = callback_message->u.backlash.delay;
 
-	backlash_destination = backlash_callback->original_position
-				+ backlash_callback->backlash;
+	backlash_destination = original_position + backlash_distance;
 
 	/* Check to see if the motor is still moving. */
 
-	mx_status = mx_motor_get_extended_status(
-					backlash_callback->motor_record,
-					&current_position,
-					&motor_status );
+	mx_status = mx_motor_get_extended_status( motor_record,
+					&current_position, &motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
 		FREE_CALLBACK_OBJECTS;
-		return;
+		return mx_status;
 	}
 
 #if PR_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: motor '%s' position = %g, status = %#lx",
-		fname, backlash_callback->motor_record->name,
-		current_position, motor_status));
+		fname, motor_record->name, current_position, motor_status));
 #endif
 
 	/* Has a motor error occurred? */
@@ -81,14 +130,13 @@ mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 		 * and shut down the callback.
 		 */
 
-		(void) mx_error( MXE_INTERRUPTED, fname,
-		"Backlash callback for motor '%s' terminated due to "
-		"a motor status error.  status = %#lx",
-			backlash_callback->motor_record->name,
-			motor_status );
+		mx_status = mx_error( MXE_INTERRUPTED, fname,
+			"Backlash callback for motor '%s' terminated due to "
+			"a motor status error.  status = %#lx",
+				motor_record->name, motor_status );
 
 		FREE_CALLBACK_OBJECTS;
-		return;
+		return mx_status;
 	}
 
 	/* Is the motor still moving? */
@@ -100,8 +148,7 @@ mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 #endif
 		/* If the motor is still moving, reschedule the callback. */
 
-		mx_status = mx_virtual_timer_start( vtimer,
-						backlash_callback->delay );
+		mx_status = mx_virtual_timer_start( oneshot_timer, delay );
 
 #if PR_MOTOR_DEBUG
 		MX_DEBUG(-2,("%s: mx_virtual_timer_start() status = %ld",
@@ -111,7 +158,7 @@ mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 			FREE_CALLBACK_OBJECTS;
 		}
 
-		return;
+		return mx_status;
 	}
 
 	/* The motor has stopped moving, so start the main move
@@ -128,26 +175,33 @@ mxp_motor_backlash_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
 
 #if PR_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: starting the main move for motor '%s' to %g",
-		fname, backlash_callback->motor_record->name,
-		backlash_callback->destination));
+		fname, motor_record->name, destination));
 #endif
 
-	mx_status = mx_motor_move_absolute( backlash_callback->motor_record,
-						backlash_callback->destination,
-						flags );
+	mx_status = mx_motor_move_absolute( motor_record, destination, flags );
 
 	FREE_CALLBACK_OBJECTS;
-	return;
+
+	return mx_status;
 }
+
+/* mxp_motor_move_absolute_handler() serves as a replacement for
+ * mx_motor_move_absolute() in the mx_motor_process_function() below.
+ *
+ * The job of mxp_motor_move_absolute_handler() is to see if a backlash
+ * move is required, start the backlash move, and then schedule a virtual
+ * timer event to check to see if the backlash has completed.  If no
+ * backlash is needed, the main move is started here.
+ */
 
 static mx_status_type
 mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 {
 	MX_LIST_HEAD *list_head;
 	MX_MOTOR *motor;
-	MX_MOTOR_BACKLASH_CALLBACK *backlash_callback;
+	MX_CALLBACK_MESSAGE *callback_message;
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	double original_position, relative_motion, backlash;
+	double original_position, relative_motion, backlash, delay_in_seconds;
 	mx_bool_type do_backlash;
 	int flags;
 	mx_status_type mx_status;
@@ -230,20 +284,25 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 
 	/* Initialize the backlash callback structure. */
 
-	backlash_callback = malloc( sizeof(MX_MOTOR_BACKLASH_CALLBACK) );
+	callback_message = malloc( sizeof(MX_CALLBACK_MESSAGE) );
 
-	if ( backlash_callback == (MX_MOTOR_BACKLASH_CALLBACK *) NULL ) {
+	if ( callback_message == (MX_CALLBACK_MESSAGE *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
-		"Unable to allocate memory for an MX_MOTOR_BACKLASH_CALLBACK "
+		"Unable to allocate memory for an MX_CALLBACK_MESSAGE "
 		"structure for motor '%s'.", record->name );
 	}
 
-	backlash_callback->motor_record = record;
-	backlash_callback->original_position = original_position;
-	backlash_callback->destination = destination;
-	backlash_callback->backlash = backlash;
+	delay_in_seconds = 0.5;
 
-	backlash_callback->delay = 0.5;		/* in seconds */
+	callback_message->callback_type = MXCBT_MOTOR_BACKLASH;
+
+	callback_message->u.backlash.list_head         = list_head;
+	callback_message->u.backlash.motor_record      = record;
+	callback_message->u.backlash.oneshot_timer     = oneshot_timer;
+	callback_message->u.backlash.original_position = original_position;
+	callback_message->u.backlash.destination       = destination;
+	callback_message->u.backlash.backlash_distance = backlash;
+	callback_message->u.backlash.delay             = delay_in_seconds;
 
 	/* Start the move to the backlash position. */
 
@@ -258,7 +317,7 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 	mx_status = mx_motor_move_absolute( record, destination, flags );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_free( backlash_callback );
+		mx_free( callback_message );
 		return mx_status;
 	}
 
@@ -271,26 +330,30 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 #endif
 
 	mx_status = mx_virtual_timer_create( &oneshot_timer,
-						list_head->master_timer,
-						MXIT_ONE_SHOT_TIMER,
-						mxp_motor_backlash_handler,
-						backlash_callback );
+					list_head->master_timer,
+					MXIT_ONE_SHOT_TIMER,
+					mxp_motor_backlash_vtimer_callback,
+					callback_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		mx_free( backlash_callback );
+		mx_free( callback_message );
 		return mx_status;
 	}
 
 #if PR_MOTOR_DEBUG
 	MX_DEBUG(-2,("%s: starting backlash one-shot timer for %g seconds.",
-		fname, backlash_callback->delay));
+		fname, delay_in_seconds));
 #endif
 
-	mx_status = mx_virtual_timer_start( oneshot_timer,
-					backlash_callback->delay );
+	mx_status = mx_virtual_timer_start( oneshot_timer, delay_in_seconds );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		FREE_CALLBACK_OBJECTS;
+	}
 
 	return mx_status;
 }
+
 mx_status_type
 mx_setup_motor_process_functions( MX_RECORD *record )
 {

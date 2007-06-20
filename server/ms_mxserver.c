@@ -3726,6 +3726,12 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 			}
 		}
 		break;
+	case MXCBT_MOTOR_BACKLASH:
+		mx_status = mx_motor_backlash_callback( callback_message );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+		break;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

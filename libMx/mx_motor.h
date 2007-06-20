@@ -90,18 +90,6 @@
 
 #define MXU_EXTENDED_STATUS_STRING_LENGTH	40
 
-/* The MX_MOTOR_BACKLASH_CALLBACK structure is used by MX servers to handle
- * backlash corrections asynchronously.
- */
-
-typedef struct {
-	MX_RECORD *motor_record;
-	double original_position;
-	double destination;
-	double backlash;
-	double delay;
-} MX_MOTOR_BACKLASH_CALLBACK;
-
 /* The MX_MOTOR structure contains the data that is common to all motor types.*/
 
 typedef struct {
