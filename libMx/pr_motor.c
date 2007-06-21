@@ -33,8 +33,9 @@
 #include "mx_process.h"
 #include "pr_handlers.h"
 
-#define FREE_CALLBACK_OBJECTS \
+#define FREE_CALLBACK_OBJECTS(x) \
 	do {								\
+		MX_DEBUG(-2,("FREE_CALLBACK_OBJECTS: %s",(x)));		\
 		mx_free( callback_message );				\
 		(void) mx_virtual_timer_destroy( oneshot_timer );	\
 	} while (0)
@@ -54,7 +55,17 @@ mxp_motor_backlash_vtimer_callback( MX_VIRTUAL_TIMER *vtimer, void *args )
 	MX_CALLBACK_MESSAGE *callback_message;
 	MX_LIST_HEAD *list_head;
 
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: *************************************************", fname));
+#endif
+
 	callback_message = args;
+
+#if PR_MOTOR_DEBUG
+	MX_DEBUG(-2,("%s: backlash callback for motor '%s'",
+		fname, callback_message->u.backlash.motor_record->name ));
+#endif
 
 	list_head = callback_message->u.backlash.list_head;
 
@@ -84,6 +95,8 @@ mxp_motor_backlash_vtimer_callback( MX_VIRTUAL_TIMER *vtimer, void *args )
 MX_EXPORT mx_status_type
 mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 {
+	static const char fname[] = "mx_motor_backlash_callback()";
+
 	MX_LIST_HEAD *list_head;
 	MX_RECORD *motor_record;
 	MX_VIRTUAL_TIMER *oneshot_timer;
@@ -93,10 +106,6 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 	int flags;
 	mx_status_type mx_status;
 
-#if PR_MOTOR_DEBUG
-	static const char fname[] = "mx_motor_backlash_callback()";
-#endif
-
 	list_head         = callback_message->u.backlash.list_head;
 	motor_record      = callback_message->u.backlash.motor_record;
 	oneshot_timer     = callback_message->u.backlash.oneshot_timer;
@@ -105,7 +114,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 	backlash_distance = callback_message->u.backlash.backlash_distance;
 	delay             = callback_message->u.backlash.delay;
 
-	backlash_destination = original_position + backlash_distance;
+	backlash_destination = destination + backlash_distance;
 
 	/* Check to see if the motor is still moving. */
 
@@ -113,7 +122,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 					&current_position, &motor_status );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		FREE_CALLBACK_OBJECTS;
+		FREE_CALLBACK_OBJECTS("1");
 		return mx_status;
 	}
 
@@ -135,7 +144,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 			"a motor status error.  status = %#lx",
 				motor_record->name, motor_status );
 
-		FREE_CALLBACK_OBJECTS;
+		FREE_CALLBACK_OBJECTS("2");
 		return mx_status;
 	}
 
@@ -155,7 +164,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 			fname, mx_status.code));
 #endif
 		if ( mx_status.code != MXE_SUCCESS ) {
-			FREE_CALLBACK_OBJECTS;
+			FREE_CALLBACK_OBJECTS("3");
 		}
 
 		return mx_status;
@@ -180,7 +189,7 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 
 	mx_status = mx_motor_move_absolute( motor_record, destination, flags );
 
-	FREE_CALLBACK_OBJECTS;
+	FREE_CALLBACK_OBJECTS("4");
 
 	return mx_status;
 }
@@ -348,7 +357,7 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 	mx_status = mx_virtual_timer_start( oneshot_timer, delay_in_seconds );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		FREE_CALLBACK_OBJECTS;
+		FREE_CALLBACK_OBJECTS("5");
 	}
 
 	return mx_status;

@@ -59,7 +59,8 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 
 	current_clock_tick = mx_current_clock_tick();
 
-	MX_DEBUG(-2, ("*************************************************"));
+	MX_DEBUG(-2,
+	("%s: *************************************************", fname));
 
 	MX_DEBUG(-2,("%s: clock tick = (%lu,%lu)",
 	fname, current_clock_tick.high_order, current_clock_tick.low_order));
