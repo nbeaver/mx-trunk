@@ -8,7 +8,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -382,7 +382,7 @@ mxd_gated_backlash_move_absolute( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->backlash_in_progress ) {
+	if ( motor->backlash_move_in_progress ) {
 		mx_status = mxd_gated_backlash_set_gate_value(
 				gated_backlash, gated_backlash->gate_on );
 
@@ -717,7 +717,7 @@ mxd_gated_backlash_get_status( MX_MOTOR *motor )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( motor->backlash_in_progress ) {
+	if ( motor->backlash_move_in_progress ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
 
 			comparison = mx_compare_high_resolution_times(
@@ -725,7 +725,7 @@ mxd_gated_backlash_get_status( MX_MOTOR *motor )
 					gated_backlash->gate_delay_finish );
 
 			if ( comparison >= 0 ) {
-				motor->backlash_in_progress = FALSE;
+				motor->backlash_move_in_progress = FALSE;
 
 				mx_status = mxd_gated_backlash_set_gate_value(
 				    gated_backlash, gated_backlash->gate_off );

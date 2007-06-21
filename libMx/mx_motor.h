@@ -145,7 +145,8 @@ typedef struct {
 	double position;
 	double set_position;
 
-	mx_bool_type backlash_in_progress;
+	mx_bool_type backlash_move_in_progress;
+	mx_bool_type server_backlash_in_progress;
 	double backlash_correction;
 	double quick_scan_backlash_correction;
 
@@ -373,8 +374,12 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, set_position), \
 	{0}, NULL, 0}, \
   \
-  {-1, -1, "backlash_in_progress", MXFT_BOOL, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, backlash_in_progress), \
+  {-1, -1, "backlash_move_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, backlash_move_in_progress), \
+	{0}, NULL, 0}, \
+  \
+  {-1, -1, "server_backlash_in_progress", MXFT_BOOL, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, server_backlash_in_progress), \
 	{0}, NULL, 0}, \
   \
   {-1, -1, "backlash_correction", MXFT_DOUBLE, NULL, 0, {0},\

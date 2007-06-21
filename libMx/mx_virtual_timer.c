@@ -973,7 +973,9 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MX_VIRTUAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s invoked for vtimer %p.", fname, vtimer));
+#endif
 
 	/* We need to add a timer event to the timer event list managed
 	 * by the master timer that this virtual timer uses.
@@ -999,11 +1001,13 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 			master_timer, vtimer );
 	}
 
+#if MX_VIRTUAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s: Adding %g second (%ld,%ld) timer event for vtimer %p",
 		fname, timer_period_in_seconds,
 		(long) vtimer->timer_period.tv_sec,
 		vtimer->timer_period.tv_nsec,
 		vtimer ));
+#endif
 
 	/* Get rid of any old events due to this virtual timer. */
 
@@ -1026,7 +1030,9 @@ mx_virtual_timer_start( MX_VIRTUAL_TIMER *vtimer,
 
 	UNLOCK_EVENT_LIST( event_list );
 
+#if MX_VIRTUAL_TIMER_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

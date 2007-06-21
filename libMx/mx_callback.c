@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG	TRUE
+#define MX_CALLBACK_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,13 +48,13 @@ static void
 mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 				void *callback_args )
 {
+	static const char fname[] = "mx_request_value_changed_poll()";
+
 	MX_CALLBACK_MESSAGE *poll_callback_message;
 	MX_LIST_HEAD *list_head;
 	MX_PIPE *mx_pipe;
 
 #if MX_CALLBACK_DEBUG
-	static const char fname[] = "mx_request_value_changed_poll()";
-
 	MX_CLOCK_TICK current_clock_tick;
 
 	current_clock_tick = mx_current_clock_tick();
@@ -699,13 +699,13 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 MX_EXPORT mx_status_type
 mx_invoke_callback( MX_CALLBACK *callback )
 {
-	static const char fname[] = "mx_invoke_callback()";
-
 	mx_status_type (*function)( MX_CALLBACK *, void * );
 	void *argument;
 	mx_status_type mx_status;
 
 #if MX_CALLBACK_DEBUG
+	static const char fname[] = "mx_invoke_callback()";
+
 	MX_DEBUG(-2,("%s invoked for callback %p", fname, callback));
 #endif
 

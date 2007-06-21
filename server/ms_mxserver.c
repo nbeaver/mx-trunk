@@ -35,7 +35,9 @@
 
 #define NETWORK_DEBUG_HANDLES		FALSE
 
-#define NETWORK_DEBUG_HEADER_LENGTH	TRUE
+#define NETWORK_DEBUG_HEADER_LENGTH	FALSE
+
+#define NETWORK_DEBUG_CALLBACKS		FALSE
 
 #include <stdio.h>
 #include <string.h>
@@ -3625,7 +3627,7 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	size_t bytes_read;
 	mx_status_type mx_status;
 
-#if 1
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
 #endif
 	/* Read the next message from the callback pipe. */
@@ -3647,10 +3649,12 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 			(long) sizeof(MX_CALLBACK_MESSAGE *) );
 	}
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
 
 	MX_DEBUG(-2,("%s: callback_type = %ld",
 		fname, callback_message->callback_type));
+#endif
 
 	/* We do different things depending on the type of callback message. */
 
@@ -3672,7 +3676,7 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 		handle_table = list_head->server_callback_handle_table;
 
 		if ( handle_table == (MX_HANDLE_TABLE *) NULL ) {
-#if 1
+#if NETWORK_DEBUG_CALLBACKS
 			MX_DEBUG(-2,
 			("%s: No callback handle table installed.", fname));
 #endif

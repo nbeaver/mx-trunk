@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2006 Illinois Institute of Technology
+ * Copyright 1999-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -121,7 +121,8 @@ mx_motor_finish_record_initialization( MX_RECORD *motor_record )
 
 	motor->real_motor_record = NULL;
 
-	motor->backlash_in_progress = FALSE;
+	motor->backlash_move_in_progress = FALSE;
+	motor->server_backlash_in_progress = FALSE;
 
 	/* If 'quick_scan_backlash_correction' is changed to be settable
 	 * in the database file, the following will have to be removed.
@@ -269,9 +270,9 @@ mx_motor_is_busy( MX_RECORD *motor_record, mx_bool_type *busy )
 		}
 	}
 
-	if ( motor->backlash_in_progress ) {
+	if ( motor->backlash_move_in_progress ) {
 		if ( motor->busy == FALSE ) {
-			motor->backlash_in_progress = FALSE;
+			motor->backlash_move_in_progress = FALSE;
 		}
 	}
 
@@ -416,7 +417,7 @@ mx_motor_set_backlash_flags( long num_motors,
 			"MX_MOTOR for motor_record_array[%ld] is NULL.", i );
 		}
 
-		motor->backlash_in_progress = flag_value;
+		motor->backlash_move_in_progress = flag_value;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1685,9 +1686,9 @@ mx_motor_get_status( MX_RECORD *motor_record,
 		motor->status |= MXSF_MTR_ERROR;
 	}
 
-	if ( motor->backlash_in_progress ) {
+	if ( motor->backlash_move_in_progress ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
-			motor->backlash_in_progress = FALSE;
+			motor->backlash_move_in_progress = FALSE;
 		}
 	}
 
@@ -1707,7 +1708,7 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 
 	MX_MOTOR *motor;
 	MX_MOTOR_FUNCTION_LIST *fl_ptr;
-	int precision, max_precision;
+	int max_precision;
 	double raw_position;
 	mx_status_type ( *get_extended_status_fn ) ( MX_MOTOR * );
 	mx_status_type ( *get_status_fn ) ( MX_MOTOR * );
@@ -1754,9 +1755,9 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 		}
 
 		if ( mx_status.code != MXE_SUCCESS ) {
-			if ( motor->backlash_in_progress ) {
+			if ( motor->backlash_move_in_progress ) {
 				if (( motor->status & MXSF_MTR_IS_BUSY ) == 0) {
-					motor->backlash_in_progress = FALSE;
+					motor->backlash_move_in_progress = FALSE;
 				}
 			}
 			return mx_status;
@@ -1777,9 +1778,9 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 		mx_status = ( *get_position_fn ) ( motor );
 	}
 
-	if ( motor->backlash_in_progress ) {
+	if ( motor->backlash_move_in_progress ) {
 		if ( ( motor->status & MXSF_MTR_IS_BUSY ) == 0 ) {
-			motor->backlash_in_progress = FALSE;
+			motor->backlash_move_in_progress = FALSE;
 		}
 	}
 
@@ -1809,15 +1810,15 @@ mx_motor_get_extended_status( MX_RECORD *motor_record,
 	max_precision = MXU_EXTENDED_STATUS_STRING_LENGTH - 20;
 
 	if ( motor_record->precision > max_precision ) {
-		precision = max_precision;
+		motor_record->precision = max_precision;
+
 	} else if ( motor_record->precision < 0 ) {
-		precision = 0;
-	} else {
-		precision = motor_record->precision;
+		motor_record->precision = 0;
 	}
 
-	sprintf( motor->extended_status, "%.*e %lx",
-		precision, motor->position, motor->status );
+	snprintf( motor->extended_status, sizeof(motor->extended_status),
+		"%.*e %lx", motor_record->precision,
+		motor->position, motor->status );
 
 	/* Return status values to the caller if desired. */
 
@@ -4260,12 +4261,12 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 
 			motor->raw_destination.stepper = backlash_position;
 
-			motor->backlash_in_progress = TRUE;
+			motor->backlash_move_in_progress = TRUE;
 
 			status = ( *fptr ) ( motor );
 
 			if ( status.code != MXE_SUCCESS ) {
-				motor->backlash_in_progress = FALSE;
+				motor->backlash_move_in_progress = FALSE;
 
 				return status;
 			}
@@ -4296,7 +4297,7 @@ mx_motor_move_absolute_steps_with_report(MX_RECORD *motor_record,
 						motor_record, flags );
 			}
 
-			motor->backlash_in_progress = FALSE;
+			motor->backlash_move_in_progress = FALSE;
 
 			if ( status.code != MXE_SUCCESS )
 				return status;
@@ -4671,12 +4672,12 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 
 			motor->raw_destination.analog = backlash_position;
 
-			motor->backlash_in_progress = TRUE;
+			motor->backlash_move_in_progress = TRUE;
 
 			status = ( *fptr ) ( motor );
 
 			if ( status.code != MXE_SUCCESS ) {
-				motor->backlash_in_progress = FALSE;
+				motor->backlash_move_in_progress = FALSE;
 
 				return status;
 			}
@@ -4707,7 +4708,7 @@ mx_motor_move_absolute_analog_with_report(MX_RECORD *motor_record,
 						motor_record, flags );
 			}
 
-			motor->backlash_in_progress = FALSE;
+			motor->backlash_move_in_progress = FALSE;
 
 			if ( status.code != MXE_SUCCESS )
 				return status;

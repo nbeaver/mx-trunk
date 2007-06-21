@@ -11,7 +11,8 @@ xafs_header3   variable inline string "" "" 1 81 ""
 test_array     variable inline double "" "" 2 2 4 0 1 2 3 10 11 12 13
 tty1           interface rs232 soft_rs232 "" "" 9600 8 N 1 N 0xd0a 0xd0a -1 0x0
 theta_real     device motor soft_motor "" "" 0 0 -5400000 200000 0 -1 -1 -5e-05 0 deg 20000 0 10000
-rawomega       device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+rawomega       device motor soft_motor "" "" 0 -2000 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
+#rawomega       device motor soft_motor "" "" 0 -200 -5000000 5000000 0 -1 -1 0.001 0 um 50 0 500
 rawchi         device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
 pivot          device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
 b_top          device motor soft_motor "" "" 0 -20 -5000000 5000000 0 -1 -1 0.001 0 um 1000 0 500
