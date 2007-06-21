@@ -1502,6 +1502,7 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 	static const char fname[] = "mx_thread_free_data_structures()";
 
 	MX_POSIX_THREAD_PRIVATE *thread_private;
+	int pthread_status;
 	mx_status_type mx_status;
 
 #if MX_THREAD_DEBUG
@@ -1512,6 +1513,18 @@ mx_thread_free_data_structures( MX_THREAD *thread )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* The thread key 'mx_current_thread_key' has a destructor function
+	 * called mx_thread_stop_request_handler() that normally will be
+	 * invoked when the thread exits.  We do not want that destructor
+	 * function to be called after mx_thread_free_data_structures()
+	 * has been invoked, since at that point all of the thread pointers
+	 * are invalid pointers and may cause segmentation faults.
+	 * We can prevent the destructor from being called by setting
+	 * 'mx_current_thread_key' to NULL.
+	 */
+
+	pthread_status = pthread_setspecific( mx_current_thread_key, NULL );
 
 	mx_free( thread_private );
 
