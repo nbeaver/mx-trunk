@@ -316,6 +316,8 @@ main( int argc, char *argv[] )
 		("%s: Timed out after %g seconds.", fname, timeout));
 	}
 
+#if !defined(OS_SOLARIS)
 	exit(0);
+#endif
 }
 

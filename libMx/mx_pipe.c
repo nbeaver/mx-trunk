@@ -441,6 +441,10 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
+#if defined(OS_SOLARIS)
+#  include <sys/filio.h>
+#endif
+
 typedef struct {
 	int read_fd;
 	int write_fd;
@@ -693,7 +697,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 		"MX pipe %p is not open for reading.", mx_pipe );
 	}
 
-#if defined(OS_LINUX) || defined(OS_MACOSX)
+#if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS)
 	{
 		/* Use FIONREAD */
 

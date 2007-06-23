@@ -17,9 +17,11 @@ child_function( MX_THREAD *thread, void *args )
 		mx_msleep(500);
 	}
 
+#if !defined(OS_SOLARIS)
 	/* We should never get here. */
 
 	return MX_SUCCESSFUL_RESULT;
+#endif
 }
 
 int

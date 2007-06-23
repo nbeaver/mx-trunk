@@ -177,11 +177,13 @@ main( int argc, char *argv[] )
 		mx_msleep(100);
 	}
 
+#if !defined(OS_SOLARIS)
 	MX_DEBUG(-2,("Should never get here!"));
 
 	shutdown_timers( master_timer,
 		vtimer_o1, vtimer_o2, vtimer_p3, vtimer_p4 );
 
 	return (0);
+#endif
 }
 
