@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_PIPE_DEBUG	TRUE
+#define MX_PIPE_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
