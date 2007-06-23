@@ -389,7 +389,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 			if ( testmask & 0x1 ) {
 				/* See if more than one bit is set. */
 
-				testmask >> 1;
+				testmask >>= 1;
 
 				if ( testmask != 0 ) {
 					return mx_error( MXE_UNSUPPORTED, fname,
@@ -403,7 +403,7 @@ mx_set_process_affinity_mask( unsigned long process_id,
 				processorid = i;
 				break;		/* Exit the for() loop. */
 			}
-			testmask >> 1;
+			testmask >>= 1;
 		}
 	}
 
