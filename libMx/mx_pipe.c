@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_PIPE_DEBUG	FALSE
+#define MX_PIPE_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,17 +31,41 @@
 
 #if defined(OS_WIN32)
 
-/* FIXME! We may need to use SetNamedPipeHandleState() to set the
- *        PIPE_NOWAIT flag so that WriteFile will not block on
- *        a full pipe.
- */
-
 #include <windows.h>
 
 typedef struct {
 	HANDLE read_handle;
 	HANDLE write_handle;
 } MX_WIN32_PIPE;
+
+static mx_status_type
+mx_pipe_get_pointers( MX_PIPE *mx_pipe,
+			MX_WIN32_PIPE **win32_pipe,
+			const char *calling_fname )
+{
+	static const char fname[] = "mx_pipe_get_pointers()";
+
+	if ( mx_pipe == (MX_PIPE *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_PIPE pointer passed by '%s' was NULL.", calling_fname );
+	}
+
+	if ( win32_pipe == (MX_WIN32_PIPE **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_WIN32_PIPE pointer passed by '%s' was NULL.",
+			calling_fname );
+	}
+
+	(*win32_pipe) = mx_pipe->private;
+
+	if ( (*win32_pipe) == NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_WIN32_PIPE pointer for MX_PIPE %p "
+			"passed by '%s' was NULL.", mx_pipe, calling_fname );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
 
 MX_EXPORT mx_status_type
 mx_pipe_open( MX_PIPE **mx_pipe )
@@ -115,22 +139,16 @@ mx_pipe_close( MX_PIPE *mx_pipe, int flags )
 	BOOL os_status;
 	DWORD last_error_code;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
 
-	win32_pipe = mx_pipe->private;
-
-	if ( win32_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( flags & MXF_PIPE_READ ) {
 		os_status = CloseHandle( win32_pipe->read_handle );
@@ -195,22 +213,16 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	BOOL read_status;
 	DWORD last_error_code, number_of_bytes_read;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
 
-	win32_pipe = mx_pipe->private;
-
-	if ( win32_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	read_status = ReadFile( win32_pipe->read_handle,
 					buffer, max_bytes_to_read,
@@ -247,22 +259,16 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 	BOOL write_status;
 	DWORD last_error_code, number_of_bytes_written;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
 #if MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s invoked.", fname));
 #endif
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
 
-	win32_pipe = mx_pipe->private;
-
-	if ( win32_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	write_status = WriteFile( win32_pipe->write_handle,
 					buffer, bytes_to_write,
@@ -294,18 +300,12 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	BOOL pipe_status;
 	DWORD last_error_code, total_bytes_avail;
 	TCHAR message_buffer[100];
+	mx_status_type mx_status;
 
-	if ( mx_pipe == (MX_PIPE *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_PIPE pointer passed was NULL." );
-	}
+	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
 
-	win32_pipe = mx_pipe->private;
-
-	if ( win32_pipe == NULL ) {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The MX_WIN32_PIPE pointer for MX_PIPE %p was NULL.", mx_pipe );
-	}
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	if ( num_bytes_available == (size_t) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -337,6 +337,99 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	MX_DEBUG(-2,("%s: num_bytes_available = %ld",
 		fname, (long) *num_bytes_available ));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
+				int flags,
+				mx_bool_type blocking_mode )
+{
+	static const char fname[] = "mx_pipe_set_blocking_mode()";
+
+	MX_WIN32_PIPE *win32_pipe;
+	BOOL pipe_status;
+	DWORD pipe_mode;
+	DWORD last_error_code;
+	TCHAR message_buffer[100];
+	mx_status_type mx_status;
+
+	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( (flags & MXF_PIPE_READ)
+	  && (win32_pipe->read_handle != INVALID_HANDLE_VALUE)
+	  && (win32_pipe->read_handle != NULL) )
+	{
+		/* Ignored. */
+
+		/* FIXME: Is ignoring it the right thing to do?
+		 *        I haven't found anything in the Win32
+		 *        API about changing the blocking mode
+		 *        for reading from a pipe.
+		 */
+
+		if ( blocking_mode == FALSE ) {
+			pipe_mode = PIPE_NOWAIT;
+		} else {
+			pipe_mode = PIPE_WAIT;
+		}
+
+		pipe_status = SetNamedPipeHandleState(
+				win32_pipe->read_handle,
+				&pipe_mode, NULL, NULL );
+
+		if ( pipe_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The attempt to change the read blocking mode "
+			"for MX pipe %p failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				mx_pipe, last_error_code, message_buffer );
+		}
+	}
+
+	if ( (flags & MXF_PIPE_WRITE)
+	  && (win32_pipe->write_handle != INVALID_HANDLE_VALUE)
+	  && (win32_pipe->write_handle != NULL) )
+	{
+		/* FIXME: If we start using message mode for pipes
+		 *        in MX, then we will need to detect and
+		 *        and preserve the state of that bit.
+		 *        However, byte mode is more compatible
+		 *        with other operating systems.
+		 */
+
+		if ( blocking_mode == FALSE ) {
+			pipe_mode = PIPE_NOWAIT;
+		} else {
+			pipe_mode = PIPE_WAIT;
+		}
+
+		pipe_status = SetNamedPipeHandleState(
+				win32_pipe->write_handle,
+				&pipe_mode, NULL, NULL );
+
+		if ( pipe_status == 0 ) {
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The attempt to change the write blocking mode "
+			"for MX pipe %p failed.  "
+			"Win32 error code = %ld, error message = '%s'.",
+				mx_pipe, last_error_code, message_buffer );
+		}
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
