@@ -3590,6 +3590,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		break;
 
 	default:
+		desired_correction_flags = 0;
+
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Correction measurement type %ld is not supported "
 		"for area detector '%s'.",
@@ -3852,6 +3854,8 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		break;
 
 	default:
+		desired_correction_flags = 0;
+
 		mx_status = mx_error( MXE_UNSUPPORTED, fname,
 		"Correction measurement type %ld is not supported "
 		"for area detector '%s'.",

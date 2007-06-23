@@ -341,6 +341,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		case MXT_SQ_CONTINUOUS:
 		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			num_frames = 0;
 			fprintf( output,
 		"%s: Sequence support in motor has not yet been implemented\n"
 		"for continuous and circular multiframe sequences.\n",
@@ -348,6 +349,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 			break;
 		default:
+			num_frames = 0;
 			fprintf( output,
 		"%s: Area detector '%s' is currently configured for\n"
 		"unrecognized sequence type %ld.\n",

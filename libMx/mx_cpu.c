@@ -284,7 +284,17 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-#elif defined(OS_CYGWIN)
+/*------------------------------ Unsupported ------------------------------*/
+
+#elif defined(OS_MACOSX) || defined(OS_CYGWIN)
+
+/* FIXME for OS_MACOSX:
+ *        If you have the CHUD package installed on MacOS X, CHUD apparently
+ *        contains the function utilBindThreadToCPU().  However, most machines
+ *        do not have CHUD on them, so I can't rely on its presence.  Also,
+ *        even in the context of CHUD, utilBindThreadToCPU() is stated to be
+ *        undocumented.
+ */
 
 MX_EXPORT mx_status_type
 mx_get_process_affinity_mask( unsigned long process_id,

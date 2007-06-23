@@ -885,6 +885,8 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	 *                    ... Here Be Dragons ...                     *
 	 ******************************************************************/
 
+	t = 0.0;
+
 	switch( sp->sequence_type ) {
 	case MXT_SQ_STREAK_CAMERA:
 	    mx_warning(

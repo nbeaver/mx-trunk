@@ -120,7 +120,7 @@ MAKE		= make
 
 OBJ		= o
 
-EXEOUT		= -o
+EXEOUT		= -o  
 DOTEXE		=
 
 #

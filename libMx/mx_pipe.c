@@ -693,7 +693,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 		"MX pipe %p is not open for reading.", mx_pipe );
 	}
 
-#if defined(OS_LINUX)
+#if defined(OS_LINUX) || defined(OS_MACOSX)
 	{
 		/* Use FIONREAD */
 

@@ -37,13 +37,13 @@ main( int argc, char *argv[] )
 
 	printf( "\n" );
 
-	printf( "sizeof(char)   = %d\n", sizeof_char );
-	printf( "sizeof(short)  = %d\n", sizeof_short );
-	printf( "sizeof(int)    = %d\n", sizeof_int );
-	printf( "sizeof(long)   = %d\n", sizeof_long );
-	printf( "sizeof(void *) = %d\n", sizeof_void_ptr );
-	printf( "sizeof(float)  = %d\n", sizeof_float );
-	printf( "sizeof(double) = %d\n", sizeof_double );
+	printf( "sizeof(char)   = %d\n", (int) sizeof_char );
+	printf( "sizeof(short)  = %d\n", (int) sizeof_short );
+	printf( "sizeof(int)    = %d\n", (int) sizeof_int );
+	printf( "sizeof(long)   = %d\n", (int) sizeof_long );
+	printf( "sizeof(void *) = %d\n", (int) sizeof_void_ptr );
+	printf( "sizeof(float)  = %d\n", (int) sizeof_float );
+	printf( "sizeof(double) = %d\n", (int) sizeof_double );
 
 	printf( "\n" );
 
@@ -53,7 +53,9 @@ main( int argc, char *argv[] )
 		"Programming model is LP32  (int=16, long=32, ptr=32)\n" );
 	    } else {
 		printf( "Programming model is (int=%d, long=%d, ptr=%d)\n",
-		    8 * sizeof_int, 8 * sizeof_long, 8 * sizeof_void_ptr );
+			(int)(8 * sizeof_int),
+			(int)(8 * sizeof_long),
+			(int)(8 * sizeof_void_ptr) );
 	    }
 	} else
 	if ( sizeof_int == 4 ) {
@@ -68,7 +70,7 @@ main( int argc, char *argv[] )
 		    printf( "Check the size of 'long long' to be sure.\n" );
 		} else {
 		    printf( "Programming model is (int=32, long=32, ptr=%d)\n",
-				8 * sizeof(void *) );
+				(int)(8 * sizeof(void *)) );
 		}
 	    } else
 	    if ( sizeof_long == 8 ) {
@@ -77,11 +79,12 @@ main( int argc, char *argv[] )
 		    "Programming model is LP64  (int=32, long=64, ptr=64)\n" );
 		} else {
 		    printf( "Programming model is (int=32, long=64, ptr=%d)\n",
-				8 * sizeof(void *) );
+				(int)(8 * sizeof(void *)) );
 		}
 	    } else {
 		printf( "Programming model is (int=32, long=%d, ptr=%d)\n",
-				8 * sizeof(long), 8 * sizeof(void *) );
+				(int)(8 * sizeof(long)),
+				(int)(8 * sizeof(void *)) );
 	    }
 	} else
 	if ( sizeof_int == 8 ) {
@@ -90,11 +93,14 @@ main( int argc, char *argv[] )
 		"Programming model is ILP64  (int=64, long=64, ptr=64)\n" );
 	    } else {
 		printf( "Programming model is (int=64, long=%d, ptr=%d)\n",
-				8 * sizeof(long), 8 * sizeof(void *) );
+				(int)(8 * sizeof(long)),
+				(int)(8 * sizeof(void *)) );
 	    }
 	} else {
 	    printf( "Programming model is (int=%d, long=%d, ptr=%d)\n",
-		8 * sizeof(int), 8 * sizeof(long), 8 * sizeof(void *) );
+				(int)(8 * sizeof(int)),
+				(int)(8 * sizeof(long)),
+				(int)(8 * sizeof(void *)) );
 	}
 
 	printf( "\n" );

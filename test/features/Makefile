@@ -1,4 +1,4 @@
-MX_ARCH = linux
+MX_ARCH = macosx
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 
