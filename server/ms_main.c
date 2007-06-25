@@ -966,7 +966,7 @@ mxserver_main( int argc, char *argv[] )
 		 */
 
 		if ( delay_microseconds > 0 ) {
-			mx_udelay( (unsigned long) delay_microseconds );
+			mx_usleep( (unsigned long) delay_microseconds );
 		}
 
 #if 0
