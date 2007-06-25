@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #if !defined(OS_WIN32) && !defined(OS_ECOS)
 #include <sys/times.h>
@@ -215,6 +216,7 @@ mx_process_record_field( MX_RECORD *record,
 	static const char fname[] = "mx_process_record_field()";
 
 	mx_status_type (*process_fn) ( void *, void *, int );
+	mx_bool_type value_changed;
 	mx_status_type mx_status;
 
 #if PROCESS_DEBUG_TIMING
@@ -315,13 +317,30 @@ mx_process_record_field( MX_RECORD *record,
 "#2 after record processing for '%s.%s'", record->name, record_field->name );
 #endif
 
-		/* If the process function succeeded, invoke
-		 * the value changed callback.
+		/* If the process function succeeded and the new value
+		 * exceeds the value change threshold, then invoke the
+		 * value changed callback.
 		 */
 
-		if ( mx_status.code == MXE_SUCCESS ) {
-			mx_status = mx_local_field_invoke_callback_list(
-				record_field, MXCBT_VALUE_CHANGED );
+		/* If
+		 *    1.  The process function succeeded.
+		 *    2.  The field has a callback list.
+		 *    3.  The new value exceeds the value change threshold.
+		 * then invoke the value changed callback.
+		 */
+
+		if ( ( mx_status.code == MXE_SUCCESS )
+		  && ( record_field->callback_list != NULL ) )
+		{
+			mx_status = mx_test_for_value_changed( record_field,
+								&value_changed);
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( value_changed ) {
+				mx_status = mx_local_field_invoke_callback_list(
+					record_field, MXCBT_VALUE_CHANGED );
+			}
 		}
 	}
 
@@ -333,6 +352,130 @@ mx_process_record_field( MX_RECORD *record,
 #endif
 
 	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
+					mx_bool_type *value_changed_ptr )
+{
+	static const char fname[] = "mx_test_for_value_changed()";
+
+	void *value_ptr;
+	double new_value, difference, threshold;
+	mx_bool_type value_changed;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( value_changed_ptr == (mx_bool_type *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The value_changed pointer passed was NULL." );
+	}
+
+	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
+	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
+
+	value_changed = FALSE;
+
+	/* Always invoke callbacks for fields for
+	 * multidimensional arrays or 1-dimensional
+	 * arrays with more than one element.
+	 */
+
+	if ( record_field->num_dimensions >= 2 ) {
+		value_changed = TRUE;
+	} else
+	if ( record_field->num_dimensions == 1 ) {
+		if ( record_field->dimension[0] > 1 ) {
+			value_changed = TRUE;
+		}
+	}
+
+	/* Get a pointer to the field value for fields
+	 * for which we have to test the value.
+	 */
+
+	if ( value_changed == FALSE ) {
+		value_ptr =
+		    mx_get_field_value_pointer(record_field);
+
+		switch( record_field->datatype ) {
+		case MXFT_CHAR:
+			new_value = *((char *)value_ptr);
+			break;
+		case MXFT_UCHAR:
+			new_value =
+				*((unsigned char *)value_ptr);
+			break;
+		case MXFT_SHORT:
+			new_value = *((short *)value_ptr);
+			break;
+		case MXFT_USHORT:
+			new_value =
+				*((unsigned short *)value_ptr);
+			break;
+		case MXFT_BOOL:
+			new_value = *((int *)value_ptr);
+			break;
+		case MXFT_LONG:
+			new_value = *((long *)value_ptr);
+			break;
+		case MXFT_ULONG:
+		case MXFT_HEX:
+			new_value =
+				*((unsigned long *)value_ptr);
+			break;
+		case MXFT_FLOAT:
+			new_value = *((float *)value_ptr);
+			break;
+		case MXFT_DOUBLE:
+			new_value = *((double *)value_ptr);
+			break;
+		case MXFT_INT64:
+			new_value = *((int64_t *)value_ptr);
+			break;
+		case MXFT_UINT64:
+			new_value = *((uint64_t *)value_ptr);
+			break;
+		default:
+			value_changed = TRUE;
+			break;
+		}
+	}
+
+	/* If needed, make the value changed test. */
+
+	if ( value_changed == FALSE ) {
+		difference = fabs( new_value - record_field->last_value );
+
+		threshold = record_field->value_changed_threshold;
+
+		MX_DEBUG(-2,("%s: last_value = %g, new_value = %g",
+			fname, record_field->last_value, new_value));
+		MX_DEBUG(-2,("%s: difference = %g, threshold = %g",
+			fname, difference, threshold));
+
+		if ( difference >= threshold ) {
+			value_changed = TRUE;
+
+			/* Only update 'last_value' if we
+			 * have tripped the value changed
+			 * threshold.
+			 */
+
+			record_field->last_value = new_value;
+		}
+	}
+
+	*value_changed_ptr = value_changed;
+
+	MX_DEBUG(-2,("%s: value_changed = %d", fname, (int) value_changed));
+	MX_DEBUG(-2,("%s: ^^^^^^^^^^^^^^^^^^^^",fname));
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /*--------------------------------------------------------------------------*/

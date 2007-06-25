@@ -436,6 +436,8 @@ mx_setup_motor_process_functions( MX_RECORD *record )
 		case MXLV_MTR_GET_EXTENDED_STATUS:
 		case MXLV_MTR_SAVE_START_POSITIONS:
 
+		case MXLV_MTR_VALUE_CHANGED_THRESHOLD:
+
 		case MXLV_MTR_AXIS_ENABLE:
 		case MXLV_MTR_CLOSED_LOOP:
 		case MXLV_MTR_FAULT_RESET:
@@ -760,6 +762,20 @@ mx_motor_process_function( void *record_ptr,
 			mx_status = mx_motor_set_gain( record,
 					MXLV_MTR_EXTRA_GAIN,
 					motor->extra_gain );
+			break;
+		case MXLV_MTR_VALUE_CHANGED_THRESHOLD:
+			{
+				MX_RECORD_FIELD *position_field;
+
+				mx_status = mx_find_record_field( record,
+						"position", &position_field );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				position_field->value_changed_threshold
+					= motor->value_changed_threshold;
+			}
 			break;
 		default:
 			MX_DEBUG( 1,(

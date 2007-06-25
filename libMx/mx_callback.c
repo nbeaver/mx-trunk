@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG	FALSE
+#define MX_CALLBACK_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -607,6 +607,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 		return MX_SUCCESSFUL_RESULT;
 	}
 
+	/* Walk through the list of callbacks. */
+
 	list_start = callback_list->list_start;
 
 #if MX_CALLBACK_DEBUG
@@ -614,18 +616,11 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 #endif
 
 	if ( list_start == (MX_LIST_ENTRY *) NULL ) {
-#if 0
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"The list_start entry for callback list %p used by "
-		"record field '%s.%s' is NULL.", callback_list,
-			field->record->name, field->name );
-#else
 		mx_warning("%s: The list_start entry for callback list %p "
 		"used by record field '%s.%s' is NULL.", fname,
 			callback_list, field->record->name, field->name );
 
 		return MX_SUCCESSFUL_RESULT;
-#endif
 	}
 
 	list_entry = list_start;
@@ -753,6 +748,11 @@ mx_invoke_callback( MX_CALLBACK *callback )
 
 	callback->active = FALSE;
 
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,
+	("%s: Returned from callback function %p, mx_status.code = %ld",
+		fname, function, mx_status.code));
+#endif
 	return mx_status;
 }
 

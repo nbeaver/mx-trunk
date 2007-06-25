@@ -83,6 +83,10 @@
 
 #define MXFF_SHOW_ALL			0x80000000
 
+/* The allowed values of 'preferred_timer_interval'
+ * can be found in 'libMx/mx_process.h'.
+ */
+
 typedef struct {
 	long label_value;
 	long field_number;
@@ -96,6 +100,8 @@ typedef struct {
 	size_t data_element_size[MXU_FIELD_MAX_DIMENSIONS];
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
+	long preferred_timer_interval;
+	double value_changed_threshold;
 } MX_RECORD_FIELD_DEFAULTS;
 
 typedef struct {
@@ -110,6 +116,9 @@ typedef struct {
 	size_t *data_element_size;
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
+	long preferred_timer_interval;
+	double value_changed_threshold;
+	double last_value;
 	void *callback_list;
 	void *application_ptr;
 	struct mx_record_type *record;
