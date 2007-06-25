@@ -9,7 +9,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 2005-2006 Illinois Institute of Technology
+ * Copyright 2005-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -198,7 +198,7 @@ mxd_record_field_motor_get_disable_flag(
 	}
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -287,7 +287,7 @@ mxd_record_field_motor_get_command_in_progress_flag(
 		/* Get the command_in_progress flag. */
 
 		mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -378,7 +378,7 @@ mxd_record_field_motor_set_command_in_progress_flag(
 		return mx_status;
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_PUT );
+				handler->record_field, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -719,7 +719,7 @@ mxd_record_field_motor_busy( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -773,7 +773,7 @@ mxd_record_field_motor_move_absolute( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_PUT );
+				handler->record_field, MX_PROCESS_PUT, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -818,7 +818,7 @@ mxd_record_field_motor_get_position( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -869,7 +869,7 @@ mxd_record_field_motor_set_position( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_PUT );
+				handler->record_field, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -909,7 +909,7 @@ mxd_record_field_motor_soft_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_PUT );
+				handler->record_field, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -954,7 +954,7 @@ mxd_record_field_motor_immediate_abort( MX_MOTOR *motor )
 		return mx_status;
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_PUT );
+				handler->record_field, MX_PROCESS_PUT, NULL );
 
 	return mx_status;
 }
@@ -995,7 +995,7 @@ mxd_record_field_motor_positive_limit_hit( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1048,7 +1048,7 @@ mxd_record_field_motor_negative_limit_hit( MX_MOTOR *motor )
 	 */
 
 	mx_status = mx_process_record_field( handler->record,
-					handler->record_field, MX_PROCESS_GET );
+				handler->record_field, MX_PROCESS_GET, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

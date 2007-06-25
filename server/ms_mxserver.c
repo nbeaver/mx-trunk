@@ -1807,7 +1807,7 @@ mxsrv_handle_get_array( MX_RECORD *record_list,
 	/* Get the data from the hardware for this get_array request. */
 
 	process_mx_status = mx_process_record_field( record, record_field,
-							MX_PROCESS_GET );
+						MX_PROCESS_GET, NULL );
 
 	mx_status = mxsrv_send_field_value_to_client( socket_handler,
 						record, record_field,
@@ -2480,7 +2480,7 @@ mxsrv_handle_put_array( MX_RECORD *record_list,
 		/* Send the client request just received to the hardware. */
 
 		mx_status = mx_process_record_field( record, record_field,
-							MX_PROCESS_PUT );
+							MX_PROCESS_PUT, NULL );
 	} while (0);
 
 	/* Bug compatibility for old MX clients. */
@@ -3396,8 +3396,8 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 	mx_bool_type send_value_changed_callback;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s: callback = %p, argument = %p",
-		fname, callback, argument));
+	MX_DEBUG(-2,("%s (%p): callback = %p, argument = %p",
+		fname, mxsrv_poll_callback, callback, argument));
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3455,7 +3455,8 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 		fname, record->name, record_field->name));
 
 	mx_status = mx_process_record_field( record, record_field,
-						MX_PROCESS_GET );
+						MX_PROCESS_GET,
+						&send_value_changed_callback );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3464,12 +3465,8 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 	 * to the client.
 	 */
 
-	/* FIXME FIXME FIXME! - This is where we actually should do
-	 *                      the test for whether or not the
-	 *                      value has changed.
-	 */
-
-	send_value_changed_callback = TRUE;
+	MX_DEBUG(-2,("%s: send_value_changed_callback = %d",
+		fname, send_value_changed_callback));
 
 	if ( send_value_changed_callback ) {
 
@@ -3628,8 +3625,10 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s invoked for list head %p", fname, list_head));
+	MX_DEBUG(-2,("%s (%p)invoked for list head %p",
+		fname, mxsrv_process_callbacks, list_head));
 #endif
+
 	/* Read the next message from the callback pipe. */
 
 	mx_status = mx_pipe_read( callback_pipe,

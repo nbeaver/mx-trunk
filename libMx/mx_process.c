@@ -211,7 +211,8 @@ mx_initialize_record_processing( MX_RECORD *record )
 MX_EXPORT mx_status_type
 mx_process_record_field( MX_RECORD *record,
 			MX_RECORD_FIELD *record_field,
-			int direction )
+			int direction,
+			mx_bool_type *value_changed_ptr )
 {
 	static const char fname[] = "mx_process_record_field()";
 
@@ -227,12 +228,17 @@ mx_process_record_field( MX_RECORD *record,
 
 	if ( record == (MX_RECORD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD pointer passed was NULL." );
+			"The MX_RECORD pointer passed was NULL." );
 	}
-
 	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"MX_RECORD_FIELD pointer passed was NULL." );
+			"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+
+	value_changed = FALSE;
+
+	if ( value_changed_ptr != NULL ) {
+		*value_changed_ptr = value_changed;
 	}
 
 	mx_status = MX_SUCCESSFUL_RESULT;
@@ -343,6 +349,14 @@ mx_process_record_field( MX_RECORD *record,
 			}
 		}
 	}
+
+	if ( value_changed_ptr != NULL ) {
+		*value_changed_ptr = value_changed;
+	}
+
+#if PROCESS_DEBUG
+	MX_DEBUG(-2,("%s: value_changed = %d", fname, (int)value_changed));
+#endif
 
 #if PROCESS_DEBUG_TIMING
 	MX_HRT_END( measurement );
@@ -458,7 +472,7 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		MX_DEBUG(-2,("%s: difference = %g, threshold = %g",
 			fname, difference, threshold));
 
-		if ( difference >= threshold ) {
+		if ( difference > threshold ) {
 			value_changed = TRUE;
 
 			/* Only update 'last_value' if we

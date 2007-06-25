@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG	TRUE
+#define MX_CALLBACK_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

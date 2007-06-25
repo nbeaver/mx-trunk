@@ -144,7 +144,8 @@ MX_API mx_status_type mx_initialize_record_processing( MX_RECORD *record );
 MX_API mx_status_type mx_process_record_field(
 				MX_RECORD *record,
 				MX_RECORD_FIELD *record_field,
-				int direction );
+				int direction,
+				mx_bool_type *value_changed );
 
 MX_API mx_status_type mx_test_for_value_changed(
 				MX_RECORD_FIELD *record_field,
