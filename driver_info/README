@@ -11,10 +11,10 @@ epics_mcs - An add-on to the EPICS MCS database that provides a place
 epics_scaler - An add-on to the EPICS scaler database that provides a place
 		in the EPICS server for scaler dark currents to be stored.
 
+epix_pixci - Contains an example /etc/init.d/pixci script that can be used
+		on Linux system to load the PIXCI driver at boot time.
+
 hsc1 - The 'hsc1' and 'hsc1_motor' records require some modification to the
 		variables in the HSC-1 memory map.  The README describes
 		what has to be done.
-
-llp_gpib - This directory contains an addition to /etc/gpib.conf that must
-		be present for the llp_gpib driver to work.
 

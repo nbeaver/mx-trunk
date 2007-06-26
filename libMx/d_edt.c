@@ -26,6 +26,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 
@@ -389,7 +390,7 @@ mxd_edt_open( MX_RECORD *record )
 	vinput->get_frame      = -100;
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
-	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	vinput->byte_order     = mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_INTERNAL_TRIGGER;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
@@ -911,7 +912,7 @@ mxd_edt_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_TRIGGER_MODE:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
@@ -1024,9 +1025,9 @@ mxd_edt_set_parameter( MX_VIDEO_INPUT *vinput )
 		"MX is not supported.", vinput->record->name );
 		break;
 
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the pixel order for video input '%s' "
+			"Changing the byte order for video input '%s' "
 			"is not supported.", vinput->record->name );
 		break;
 

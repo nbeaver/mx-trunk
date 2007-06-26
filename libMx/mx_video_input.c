@@ -1239,7 +1239,7 @@ mx_video_input_get_frame( MX_RECORD *record,
 	(*frame)->framesize[0] = vinput->framesize[0];
 	(*frame)->framesize[1] = vinput->framesize[1];
 	(*frame)->image_format = vinput->image_format;
-	(*frame)->pixel_order = vinput->pixel_order;
+	(*frame)->byte_order = vinput->byte_order;
 
 	/* See if the image buffer is already big enough for the image. */
 
@@ -1376,7 +1376,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_BITS_PER_PIXEL:
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
@@ -1411,7 +1411,7 @@ mx_video_input_default_set_parameter_handler( MX_VIDEO_INPUT *vinput )
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:

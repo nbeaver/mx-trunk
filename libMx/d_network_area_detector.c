@@ -214,6 +214,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.bits_per_pixel", network_area_detector->remote_record_name );
 
+	mx_network_field_init( &(network_area_detector->byte_order_nf),
+		network_area_detector->server_record,
+		"%s.byte_order", network_area_detector->remote_record_name );
+
 	mx_network_field_init( &(network_area_detector->bytes_per_frame_nf),
 		network_area_detector->server_record,
 	    "%s.bytes_per_frame", network_area_detector->remote_record_name );
@@ -306,10 +310,6 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 			"%s.num_correction_measurements",
 			network_area_detector->remote_record_name );
-
-	mx_network_field_init( &(network_area_detector->pixel_order_nf),
-		network_area_detector->server_record,
-		"%s.pixel_order", network_area_detector->remote_record_name );
 
 	mx_network_field_init( &(network_area_detector->readout_frame_nf),
 		network_area_detector->server_record,
@@ -511,10 +511,10 @@ mxd_network_area_detector_open( MX_RECORD *record )
 		ad->image_format));
 #endif
 
-	/* Get the pixel order. */
+	/* Get the byte order. */
 
-	mx_status = mx_get( &(network_area_detector->pixel_order_nf),
-				MXFT_LONG, &(ad->pixel_order) );
+	mx_status = mx_get( &(network_area_detector->byte_order_nf),
+				MXFT_LONG, &(ad->byte_order) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1269,9 +1269,9 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 #endif
 		break;
 
-	case MXLV_AD_PIXEL_ORDER:
-		mx_status = mx_get( &(network_area_detector->pixel_order_nf),
-					MXFT_LONG, &(ad->pixel_order) );
+	case MXLV_AD_BYTE_ORDER:
+		mx_status = mx_get( &(network_area_detector->byte_order_nf),
+					MXFT_LONG, &(ad->byte_order) );
 		break;
 
 	case MXLV_AD_TRIGGER_MODE:
@@ -1498,7 +1498,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_BYTES_PER_PIXEL:
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
-	case MXLV_AD_PIXEL_ORDER:
+	case MXLV_AD_BYTE_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Changing the parameter '%s' for area detector '%s' "
 		"is not supported.", mx_get_field_label_string( ad->record,

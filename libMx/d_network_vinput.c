@@ -185,6 +185,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 		"%s.bits_per_pixel", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->byte_order_nf),
+			network_vinput->server_record,
+			"%s.byte_order", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->bytes_per_frame_nf),
 			network_vinput->server_record,
 		"%s.bytes_per_frame", network_vinput->remote_record_name );
@@ -232,10 +236,6 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->pixel_clock_frequency_nf),
 			network_vinput->server_record,
 	    "%s.pixel_clock_frequency", network_vinput->remote_record_name );
-
-	mx_network_field_init( &(network_vinput->pixel_order_nf),
-			network_vinput->server_record,
-			"%s.pixel_order", network_vinput->remote_record_name );
 
 	mx_network_field_init( &(network_vinput->status_nf),
 			network_vinput->server_record,
@@ -345,10 +345,10 @@ mxd_network_vinput_open( MX_RECORD *record )
 		vinput->image_format));
 #endif
 
-	/* Get the pixel order. */
+	/* Get the byte order. */
 
-	mx_status = mx_get( &(network_vinput->pixel_order_nf),
-				MXFT_LONG, &(vinput->pixel_order) );
+	mx_status = mx_get( &(network_vinput->byte_order_nf),
+				MXFT_LONG, &(vinput->byte_order) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -731,6 +731,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_BYTE_ORDER:
+		mx_status = mx_get( &(network_vinput->byte_order_nf),
+					MXFT_LONG, &(vinput->byte_order) );
+		break;
+
 	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
 		mx_status = 
 		    mx_get( &(network_vinput->camera_trigger_polarity_nf),
@@ -765,11 +770,6 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 		MX_DEBUG(-2,("%s: video format = %ld, format name = '%s'",
 		    fname, vinput->image_format, vinput->image_format_name));
 #endif
-		break;
-
-	case MXLV_VIN_PIXEL_ORDER:
-		mx_status = mx_get( &(network_vinput->pixel_order_nf),
-					MXFT_LONG, &(vinput->pixel_order) );
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
@@ -885,9 +885,9 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 				MXFT_DOUBLE, &(vinput->pixel_clock_frequency) );
 		break;
 
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the pixel order for video input '%s' "
+			"Changing the byte order for video input '%s' "
 			"is not supported.", vinput->record->name );
 
 	case MXLV_VIN_TRIGGER_MODE:

@@ -24,6 +24,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
@@ -205,7 +206,7 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	vinput->get_frame      = -100;
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
-	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	vinput->byte_order     = mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
 	vinput->total_num_frames = 0;
@@ -254,8 +255,8 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: vinput->image_format = %ld",
 		fname, vinput->image_format));
 
-	MX_DEBUG(-2,("%s: vinput->pixel_order = %ld",
-		fname, vinput->pixel_order));
+	MX_DEBUG(-2,("%s: vinput->byte_order = %ld",
+		fname, vinput->byte_order));
 
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %ld",
 		fname, vinput->trigger_mode));
@@ -739,7 +740,7 @@ mxd_soft_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 		break;
 
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 		break;
 
 	case MXLV_VIN_TRIGGER_MODE:
@@ -802,9 +803,9 @@ mxd_soft_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Changing the image format is not supported for "
 			"video input '%s'.", vinput->record->name );
 
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the pixel order for video input '%s' "
+			"Changing the byte order for video input '%s' "
 			"is not supported.", vinput->record->name );
 
 	case MXLV_VIN_TRIGGER_MODE:

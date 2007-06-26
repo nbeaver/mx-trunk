@@ -1,8 +1,0 @@
-The Linux Lab Project GPIB driver does not provide an equivalent to the
-ibdev() function that finds a GPIB device by address.  That makes the 
-Linux Lab Project driver the only one that does not provide such an
-interface, so it is easier just to provide one for it.  This is handled
-by adding to /etc/gpib.conf the contents of the file gpib.conf_addon
-in this directory, so that there is a way to find a given GPIB device
-by its primary address.
-

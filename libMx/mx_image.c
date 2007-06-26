@@ -266,7 +266,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			long image_type,
 			long *framesize,
 			long image_format,
-			long pixel_order,
+			long byte_order,
 			double bytes_per_pixel,
 			size_t header_length,
 			size_t image_length )
@@ -315,7 +315,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	(*frame)->framesize[0] = framesize[0];
 	(*frame)->framesize[1] = framesize[1];
 	(*frame)->image_format = image_format;
-	(*frame)->pixel_order = pixel_order;
+	(*frame)->byte_order = byte_order;
 	(*frame)->bytes_per_pixel = bytes_per_pixel;
 
 	/*** See if the header buffer is already big enough for the header. ***/
@@ -643,7 +643,7 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 				old_frame->image_type,
 				old_frame->framesize,
 				old_frame->image_format,
-				old_frame->pixel_order,
+				old_frame->byte_order,
 				old_frame->bytes_per_pixel,
 				old_frame->header_length,
 				old_frame->image_length );
@@ -752,22 +752,22 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 				original_frame->image_format, i );
 		}
 
-		if ( dz_frame->pixel_order != original_frame->pixel_order ) {
+		if ( dz_frame->byte_order != original_frame->byte_order ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The pixel order %ld of the dezingered frame "
-			"is different than the pixel order %ld "
+			"The byte order %ld of the dezingered frame "
+			"is different than the byte order %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->pixel_order,
-				original_frame->pixel_order, i );
+				dz_frame->byte_order,
+				original_frame->byte_order, i );
 		}
 
-		if ( dz_frame->pixel_order != original_frame->pixel_order ) {
+		if ( dz_frame->byte_order != original_frame->byte_order ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The pixel order %ld of the dezingered frame "
-			"is different than the pixel order %ld "
+			"The byte order %ld of the dezingered frame "
+			"is different than the byte order %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->pixel_order,
-				original_frame->pixel_order, i );
+				dz_frame->byte_order,
+				original_frame->byte_order, i );
 		}
 
 		diff = mx_difference( dz_frame->bytes_per_pixel,
@@ -1219,7 +1219,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					MXT_IMAGE_LOCAL_1D_ARRAY,
 					framesize,
 					image_format,
-					MXT_IMAGE_PIXEL_ORDER_STANDARD,
+					MX_DATAFMT_BIG_ENDIAN,
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame );
@@ -1274,6 +1274,8 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		for ( i = 0; i < words_per_frame; i++ ) {
 			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
 		}
+
+		(*frame)->byte_order = MX_DATAFMT_LITTLE_ENDIAN;
 	}
 
 	/* We are done, so return. */
@@ -1315,8 +1317,8 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,("%s: image_type = %ld, width = %ld, height = %ld",
 		fname, frame->image_type,
 		frame->framesize[0], frame->framesize[1] ));
-	MX_DEBUG(-2,("%s: image_format = %ld, pixel_order = %ld",
-		fname, frame->image_format, frame->pixel_order));
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld",
+		fname, frame->image_format, frame->byte_order));
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
 #endif
@@ -1679,7 +1681,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					MXT_IMAGE_LOCAL_1D_ARRAY,
 					framesize,
 					image_format,
-					MXT_IMAGE_PIXEL_ORDER_STANDARD,
+					datafile_byteorder,
 					(double) bytes_per_pixel,
 					0,
 					bytes_per_frame );
@@ -1746,6 +1748,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 		for ( i = 0; i < words_per_frame; i++ ) {
 			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
 		}
+
+		(*frame)->byte_order = mx_native_byteorder();
 	}
 
 	/* We are done, so return. */
@@ -1786,8 +1790,8 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,("%s: image_type = %ld, width = %ld, height = %ld",
 		fname, frame->image_type,
 		frame->framesize[0], frame->framesize[1] ));
-	MX_DEBUG(-2,("%s: image_format = %ld, pixel_order = %ld",
-		fname, frame->image_format, frame->pixel_order));
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld",
+		fname, frame->image_format, frame->byte_order));
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
 #endif

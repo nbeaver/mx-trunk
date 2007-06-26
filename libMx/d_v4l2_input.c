@@ -36,6 +36,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_bit.h"
 #include "mx_image.h"
 #include "mx_video_input.h"
 #include "d_v4l2_input.h"
@@ -889,7 +890,7 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_BYTES_PER_FRAME:
 	case MXLV_VIN_BYTES_PER_PIXEL:
 
@@ -970,18 +971,18 @@ mxd_v4l2_input_get_parameter( MX_VIDEO_INPUT *vinput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Save the pixel order. */
+		/* Save the byte order. */
 
 		switch( format.fmt.pix.field ) {
 		case V4L2_FIELD_NONE:
 		case V4L2_FIELD_INTERLACED:
-			vinput->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+			vinput->byte_order = mx_native_byteorder();
 			break;
 		default:
-			vinput->pixel_order = -1;
+			vinput->byte_order = -1;
 
 			mx_warning(
-			"Support for pixel order %d used by "
+			"Support for byte order %d used by "
 			"video input '%s' is not yet implemented.",
 				format.fmt.pix.field, vinput->record->name );
 				
@@ -1034,7 +1035,7 @@ mxd_v4l2_input_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 	case MXLV_VIN_FORMAT:
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 
 		/* Get the current settings. */
 

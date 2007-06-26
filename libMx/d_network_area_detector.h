@@ -27,6 +27,7 @@ typedef struct {
 	MX_NETWORK_FIELD arm_nf;
 	MX_NETWORK_FIELD binsize_nf;
 	MX_NETWORK_FIELD bits_per_pixel_nf;
+	MX_NETWORK_FIELD byte_order_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
 	MX_NETWORK_FIELD copy_frame_nf;
@@ -47,7 +48,6 @@ typedef struct {
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD num_correction_measurements_nf;
-	MX_NETWORK_FIELD pixel_order_nf;
 	MX_NETWORK_FIELD readout_frame_nf;
 	MX_NETWORK_FIELD resynchronize_nf;
 	MX_NETWORK_FIELD roi_nf;

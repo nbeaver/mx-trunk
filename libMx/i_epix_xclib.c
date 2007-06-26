@@ -173,32 +173,7 @@ mxi_epix_xclib_open( MX_RECORD *record )
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
-
-	MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler_installed = %d",
-			fname, mxi_epix_xclib_atexit_handler_installed ));
 #endif
-	/* Install the PIXCI atexit handler, if
-	 * it has not already been installed.
-	 */
-
-	if ( mxi_epix_xclib_atexit_handler_installed == FALSE ) {
-		int status;
-
-		status = atexit( mxi_epix_xclib_atexit_handler );
-
-		if ( status != 0 ) {
-			return mx_error( MXE_FUNCTION_FAILED, fname,
-    "Installing the EPIX PIXCI atexit handler failed for an unknown reason." );
-		}
-
-		mxi_epix_xclib_atexit_handler_installed = TRUE;
-
-#if MXI_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler() installed.",
-			fname));
-#endif
-	}
-
 	/* Check to see if we are running on a supported operating system. */
 
 	mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
@@ -249,11 +224,51 @@ mxi_epix_xclib_open( MX_RECORD *record )
 	}
 #endif
 
-	flags = epix_xclib->epix_xclib_flags;
+#if defined(OS_LINUX)
+	{
+		char pixci_filename[MXU_FILENAME_LENGTH];
+		int os_status, saved_errno;
+
+		/* Can we access the /dev/pixci device node? */
+
+		strlcpy( pixci_filename, "/dev/pixci", sizeof(pixci_filename) );
+
+		/* First check for existence of the file. */
+
+		os_status = access( "/dev/pixci", F_OK );
+
+		if ( os_status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"The PIXCI device file '%s' does not exist. "
+			"Have you run the command '/etc/init.d/pixci start' "
+			"to create it?  "
+			"Errno = %d, error message = '%s'.",
+					pixci_filename,
+					saved_errno, strerror(saved_errno) );
+		}
+
+		os_status = access( "/dev/pixci", R_OK );
+
+		if ( os_status != 0 ) {
+			saved_errno = errno;
+
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"This process not have read access for the PIXCI "
+			"device file '%s'.  "
+			"Errno = %d, error message = '%s'.",
+					pixci_filename,
+					saved_errno, strerror(saved_errno) );
+		}
+	}
+#endif
 
 	/* If requested, set the CPU affinity mask for the current process
 	 * to enable running only on the first CPU.
 	 */
+
+	flags = epix_xclib->epix_xclib_flags;
 
 	if ( flags & MXF_EPIX_SET_AFFINITY ) {
 
@@ -306,6 +321,32 @@ mxi_epix_xclib_open( MX_RECORD *record )
 			epix_xclib->format_file, record->name,
 			epix_status, pxd_mesgErrorCode( epix_status ),
 			fault_message );
+	}
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler_installed = %d",
+			fname, mxi_epix_xclib_atexit_handler_installed ));
+#endif
+	/* Install the PIXCI atexit handler, if
+	 * it has not already been installed.
+	 */
+
+	if ( mxi_epix_xclib_atexit_handler_installed == FALSE ) {
+		int status;
+
+		status = atexit( mxi_epix_xclib_atexit_handler );
+
+		if ( status != 0 ) {
+			return mx_error( MXE_FUNCTION_FAILED, fname,
+    "Installing the EPIX PIXCI atexit handler failed for an unknown reason." );
+		}
+
+		mxi_epix_xclib_atexit_handler_installed = TRUE;
+
+#if MXI_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: mxi_epix_xclib_atexit_handler() installed.",
+			fname));
+#endif
 	}
 
 #if MXI_EPIX_XCLIB_DEBUG

@@ -35,10 +35,6 @@
 #define MXT_IMAGE_FORMAT_RGB565			1001
 #define MXT_IMAGE_FORMAT_YUYV			1002
 
-/*---- Pixel order definitions ----*/
-
-#define MXT_IMAGE_PIXEL_ORDER_STANDARD		1
-
 /*---- Datafile format definitions ----*/
 
 #define MXT_IMAGE_FILE_PNM			1
@@ -46,6 +42,23 @@
 #define MXT_IMAGE_FILE_SMV			3
 
 #define MXU_IMAGE_SMV_HEADER_LENGTH		512
+
+/*---- Binary image header definitions for the 'header_data' ----*/
+
+#define MXT_IMAGE_HEADER_LENGTH			0	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_ROW_FRAMESIZE		4	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_COLUMN_FRAMESIZE	8	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_ROW_BINSIZE		12	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_COLUMN_BINSIZE		16	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_NUM_IMAGES		20	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_IMAGE_FORMAT		22	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_BYTE_ORDER		24	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_BITS_PER_PIXEL		26	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_TIMESTAMP_SEC		28	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_TIMESTAMP_NSEC		32	/* 32-bit integer */
+
+#define MXT_IMAGE_HEADER_ARRAY_BYTES \
+				(MXT_IMAGE_HEADER_TIMESTAMP_NSEC+4)
 
 /*---- Sequence type definitions ----*/
 
@@ -69,8 +82,9 @@ typedef struct {
 	long image_type;
 	long framesize[2];
 	long image_format;
-	long pixel_order;
+	long byte_order;
 	double bytes_per_pixel;
+	long bits_per_pixel;
 
 	size_t header_length;
 	void *header_data;
@@ -118,7 +132,7 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					long image_type,
 					long *framesize,
 					long image_format,
-					long pixel_order,
+					long byte_order,
 					double bytes_per_pixel,
 					size_t header_length,
 					size_t image_length );

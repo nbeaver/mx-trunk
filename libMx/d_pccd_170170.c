@@ -31,6 +31,7 @@
 #include "mx_clock.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_image.h"
 #include "mx_digital_input.h"
@@ -1454,7 +1455,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Initialize area detector parameters. */
 
-	ad->pixel_order = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	ad->byte_order = mx_native_byteorder();
 	ad->header_length = 0;
 
 	mx_status = mx_area_detector_get_image_format( record, NULL );
@@ -1500,7 +1501,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 			fname, vinput_framesize[0], vinput_framesize[1]));
 
 	MX_DEBUG(-2,("%s: image_format = %ld", fname, ad->image_format ));
-	MX_DEBUG(-2,("%s: pixel_order = %ld", fname, ad->pixel_order ));
+	MX_DEBUG(-2,("%s: byte_order = %ld", fname, ad->byte_order ));
 	MX_DEBUG(-2,("%s: bytes_per_pixel = %g", fname, ad->bytes_per_pixel));
 	MX_DEBUG(-2,("%s: header_length = %ld", fname, ad->header_length));
 	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
@@ -1510,7 +1511,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 					MXT_IMAGE_LOCAL_1D_ARRAY,
 					vinput_framesize,
 					ad->image_format,
-					ad->pixel_order,
+					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame );

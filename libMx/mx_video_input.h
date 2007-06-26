@@ -42,8 +42,9 @@ typedef struct {
 	long framesize[2];
 	char image_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long image_format;
-	long pixel_order;
+	long byte_order;
 	long trigger_mode;
+	long header_length;
 	long bytes_per_frame;
 	double bytes_per_pixel;
 	long bits_per_pixel;
@@ -84,7 +85,7 @@ typedef struct {
 #define MXLV_VIN_FRAMESIZE			11001
 #define MXLV_VIN_FORMAT_NAME			11002
 #define MXLV_VIN_FORMAT				11003
-#define MXLV_VIN_PIXEL_ORDER			11004
+#define MXLV_VIN_BYTE_ORDER			11004
 #define MXLV_VIN_TRIGGER_MODE			11005
 #define MXLV_VIN_BYTES_PER_FRAME		11006
 #define MXLV_VIN_BYTES_PER_PIXEL		11007
@@ -122,8 +123,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, image_format), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_VIN_PIXEL_ORDER, -1, "pixel_order", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, pixel_order), \
+  {MXLV_VIN_BYTE_ORDER, -1, "byte_order", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, byte_order), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {MXLV_VIN_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \

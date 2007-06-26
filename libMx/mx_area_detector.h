@@ -7,7 +7,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 2006-7 Illinois Institute of Technology
+ * Copyright 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -23,7 +23,8 @@
 
 /* Status bit definitions for the 'status' field. */
 
-#define MXSF_AD_IS_BUSY		0x1
+#define MXSF_AD_IS_BUSY			0x1
+#define MXSF_AD_CORRECTION_IN_PROGRESS	0x2
 
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.
@@ -48,7 +49,7 @@ typedef struct {
 	long binsize[2];
 	char image_format_name[MXU_IMAGE_FORMAT_NAME_LENGTH+1];
 	long image_format;
-	long pixel_order;
+	long byte_order;
 	long trigger_mode;
 	long header_length;
 	long bytes_per_frame;
@@ -198,7 +199,7 @@ typedef struct {
 #define MXLV_AD_BINSIZE				12003
 #define MXLV_AD_IMAGE_FORMAT_NAME		12004
 #define MXLV_AD_IMAGE_FORMAT			12005
-#define MXLV_AD_PIXEL_ORDER			12006
+#define MXLV_AD_BYTE_ORDER			12006
 #define MXLV_AD_TRIGGER_MODE			12007
 #define MXLV_AD_BYTES_PER_FRAME			12008
 #define MXLV_AD_BYTES_PER_PIXEL			12009
@@ -271,8 +272,8 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_format), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
-  {MXLV_AD_PIXEL_ORDER, -1, "pixel_order", MXFT_LONG, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, pixel_order), \
+  {MXLV_AD_BYTE_ORDER, -1, "byte_order", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, byte_order), \
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_TRIGGER_MODE, -1, "trigger_mode", MXFT_LONG, NULL, 0, {0}, \

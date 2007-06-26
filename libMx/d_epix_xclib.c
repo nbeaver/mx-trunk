@@ -483,7 +483,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	vinput->get_frame      = -100;
 	vinput->frame          = NULL;
 	vinput->frame_buffer   = NULL;
-	vinput->pixel_order    = MXT_IMAGE_PIXEL_ORDER_STANDARD;
+	vinput->byte_order     = mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
 
 	epix_xclib_vinput->num_write_test_array_bytes = 0;
@@ -1399,11 +1399,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
-#if 0
 	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
-#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",
@@ -1474,7 +1472,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 	case MXLV_VIN_TRIGGER_MODE:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
@@ -1625,9 +1623,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		"program from EPIX, Inc.", vinput->record->name );
 		break;
 
-	case MXLV_VIN_PIXEL_ORDER:
+	case MXLV_VIN_BYTE_ORDER:
 		return mx_error( MXE_UNSUPPORTED, fname,
-			"Changing the pixel order for video input '%s' "
+			"Changing the byte order for video input '%s' "
 			"is not supported.", vinput->record->name );
 		break;
 

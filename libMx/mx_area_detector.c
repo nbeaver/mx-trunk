@@ -2258,7 +2258,7 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 					MXT_IMAGE_LOCAL_1D_ARRAY,
 					ad->framesize,
 					ad->image_format,
-					ad->pixel_order,
+					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame );
@@ -2797,12 +2797,12 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	(*roi_frame)->framesize[1] = ad->roi[3] - ad->roi[2] + 1;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
-		(*roi_frame)->image_format = ad->image_format;
-		(*roi_frame)->pixel_order  = ad->pixel_order;
+		(*roi_frame)->image_format    = ad->image_format;
+		(*roi_frame)->byte_order      = ad->byte_order;
 		(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
 	} else {
-		(*roi_frame)->image_format = image_frame->image_format;
-		(*roi_frame)->pixel_order  = image_frame->pixel_order;
+		(*roi_frame)->image_format    = image_frame->image_format;
+		(*roi_frame)->byte_order      = image_frame->byte_order;
 		(*roi_frame)->bytes_per_pixel = image_frame->bytes_per_pixel;
 	}
 
@@ -3132,7 +3132,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 					MXT_IMAGE_LOCAL_1D_ARRAY,
 					ad->framesize,
 					ad->image_format,
-					ad->pixel_order,
+					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame );
