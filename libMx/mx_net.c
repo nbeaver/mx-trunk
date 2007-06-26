@@ -3158,8 +3158,12 @@ mx_get_field_type( MX_RECORD *server_record,
 	*num_dimensions
 		= (long) mx_ntohl( (unsigned long) message_uint32_array[1] );
 
-	expected_message_length = (uint32_t)
-				( sizeof(long) * ( (*num_dimensions) + 2 ) );
+	if ( (*num_dimensions) <= 0 ) {
+		expected_message_length = (uint32_t) ( 3 * sizeof(uint32_t) );
+	} else {
+		expected_message_length = (uint32_t)
+				( sizeof(uint32_t) * ((*num_dimensions) + 2) );
+	}
 
 	if ( message_length < expected_message_length ) {
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
