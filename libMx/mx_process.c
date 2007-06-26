@@ -393,6 +393,7 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
 
 	value_changed = FALSE;
+	new_value = record_field->last_value;
 
 	/* Always invoke callbacks for fields for
 	 * multidimensional arrays or 1-dimensional

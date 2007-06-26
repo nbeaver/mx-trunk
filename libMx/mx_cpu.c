@@ -427,6 +427,133 @@ mx_set_process_affinity_mask( unsigned long process_id,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*------------------------------ Irix ------------------------------*/
+
+#elif defined(OS_IRIX)
+
+/* FIXME: This code is untested and probably does not work as is. */
+
+#include <pthread.h>
+
+#include "mx_unistd.h"
+#include "mx_program_model.h"
+
+MX_EXPORT mx_status_type
+mx_get_process_affinity_mask( unsigned long process_id,
+				unsigned long *mask )
+{
+	static const char fname[] = "mx_get_process_affinity_mask()";
+
+	int cur_cpu;
+	int os_status, saved_errno;
+
+	if ( mask == NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The affinity mask pointer passed was NULL." );
+	}
+
+	if ( process_id == 0 ) {
+		process_id = getpid();
+	}
+
+	os_status = pthread_getrunon_np( &cur_cpu );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to get the process affinity mask failed."
+		"Errno = %d, error message = '%s'.",
+			saved_errno, strerror(saved_errno) );
+	}
+
+	*mask = 1 << cur_cpu;
+
+#if MX_CPU_DEBUG
+	MX_DEBUG(-2,("%s: process %lu CPU affinity mask = %#lx",
+		fname, process_id, *mask));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*---*/
+
+MX_EXPORT mx_status_type
+mx_set_process_affinity_mask( unsigned long process_id,
+				unsigned long mask )
+{
+	static const char fname[] = "mx_set_process_affinity_mask()";
+
+	unsigned long allbits, testmask;
+	int i, cpu, os_status, saved_errno;
+
+	/* Either all bits should be set in the mask or only one bit. */
+
+#if ( MX_WORDSIZE == 32 )
+	allbits = 0xffffffff;
+#else
+	allbits = 0xffffffffffffffff;
+#endif
+	cpu = 0;
+
+	if ( mask == allbits ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Explicitly requesting that a process be runnable on all CPUs "
+		"is not supported under Irix." );
+	} else
+	if ( mask == 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The supplied affinity mask of %lu is illegal since, "
+		"in principle, it would not allow the process to run "
+		"on _any_ of the CPUs.", mask );
+	} else {
+		/* Look for the first bit set. */
+
+		testmask = mask;
+
+		for ( i = 0; i < MX_WORDSIZE; i++ ) {
+			if ( testmask & 0x1 ) {
+				/* See if more than one bit is set. */
+
+				testmask >>= 1;
+
+				if ( testmask != 0 ) {
+					return mx_error( MXE_UNSUPPORTED, fname,
+			"On Irix, either all bits in the processor affinity "
+			"mask should be set or only one bit should be set.  "
+			"The supplied bitmask of %#lx is not supported.", mask);
+				}
+
+				/* We have found the correct cpu_number. */
+
+				cpu = i;
+				break;		/* Exit the for() loop. */
+			}
+			testmask >>= 1;
+		}
+	}
+
+	if ( process_id == 0 ) {
+		os_status = pthread_setrunon_np( cpu );
+	} else {
+		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
+		"Changing the proccessor affinity mask for another process "
+		"is not yet implemented for Irix." );
+	}
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"The attempt to set the process affinity mask to %#lx failed.  "
+		"Errno = %d, error message = '%s'.",
+			mask, saved_errno, strerror(saved_errno) );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*------------------------------ Unsupported ------------------------------*/
 
 #elif defined(OS_MACOSX) || defined(OS_CYGWIN)
