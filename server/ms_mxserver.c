@@ -3396,8 +3396,10 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 	mx_bool_type send_value_changed_callback;
 	mx_status_type mx_status;
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s (%p): callback = %p, argument = %p",
 		fname, mxsrv_poll_callback, callback, argument));
+#endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -3451,8 +3453,10 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 
 	/* Process the record field. */
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: Processing '%s.%s'",
 		fname, record->name, record_field->name));
+#endif
 
 	mx_status = mx_process_record_field( record, record_field,
 						MX_PROCESS_GET,
@@ -3465,14 +3469,18 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 	 * to the client.
 	 */
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: send_value_changed_callback = %d",
 		fname, send_value_changed_callback));
+#endif
 
 	if ( send_value_changed_callback ) {
 
+#if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,
 		("%s: invoking mxsrv_send_field_value_to_client for '%s.%s'",
 			fname, record->name, record_field->name ));
+#endif
 
 		mx_status = mxsrv_send_field_value_to_client( socket_handler,
 						record, record_field,
@@ -3480,9 +3488,11 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 					mx_server_response(MX_NETMSG_CALLBACK),
 						callback->callback_id,
 						mx_status );
+#if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,
 		("%s: mxsrv_send_field_value_to_client status = %ld",
 			fname, mx_status.code));
+#endif
 	}
 
 	return mx_status;
@@ -3504,8 +3514,10 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	MX_CALLBACK *callback_object;
 	mx_status_type mx_status;
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: record = '%s', field = '%s'",
 		fname, record->name, field->name ));
+#endif
 
 	uint32_header = network_message->u.uint32_buffer;
 
@@ -3537,8 +3549,10 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	field_handle  = mx_ntohl( uint32_message[1] );
 	callback_type = mx_ntohl( uint32_message[2] );
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: (%lu,%lu) callback_type = %lu",
 		fname, record_handle, field_handle, callback_type ));
+#endif
 
 	/* Add the callback to the list of callbacks. */
 
@@ -3594,7 +3608,9 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -3661,8 +3677,10 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	case MXCBT_POLL:
 		/* Poll all value changed callback handlers. */
 
+#if NETWORK_DEBUG_CALLBACKS
 		MX_DEBUG(-2,
 		("%s: Poll all value changed callback handlers.", fname));
+#endif
 
 		if ( list_head != callback_message->u.poll.list_head ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
@@ -3720,10 +3738,12 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 #endif
 
 			if ( callback->callback_function != NULL ) {
+#if NETWORK_DEBUG_CALLBACKS
 				MX_DEBUG(-2,
 	("%s: calling mx_invoke_callback(): i = %lu, handle = %ld, callback = %p, callback->callback_function = %p",
 					fname, i, handle, callback,
 					callback->callback_function));
+#endif
 
 				mx_status = mx_invoke_callback( callback );
 			}

@@ -18,7 +18,9 @@
 
 #define PROCESS_DEBUG_TIMING	FALSE
 
-#define PROCESS_DEBUG_QUEUEING	TRUE
+#define PROCESS_DEBUG_QUEUEING	FALSE
+
+#define PROCESS_DEBUG_CALLBACKS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -389,8 +391,10 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 		"The value_changed pointer passed was NULL." );
 	}
 
+#if PROCESS_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: vvvvvvvvvvvvvvvvvvvv",fname));
 	MX_DEBUG(-2,("%s invoked for field '%s'", fname, record_field->name));
+#endif
 
 	value_changed = FALSE;
 	new_value = record_field->last_value;
@@ -468,10 +472,12 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 		threshold = record_field->value_changed_threshold;
 
+#if PROCESS_DEBUG_CALLBACKS
 		MX_DEBUG(-2,("%s: last_value = %g, new_value = %g",
 			fname, record_field->last_value, new_value));
 		MX_DEBUG(-2,("%s: difference = %g, threshold = %g",
 			fname, difference, threshold));
+#endif
 
 		if ( difference > threshold ) {
 			value_changed = TRUE;
@@ -487,8 +493,10 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 
 	*value_changed_ptr = value_changed;
 
+#if PROCESS_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s: value_changed = %d", fname, (int) value_changed));
 	MX_DEBUG(-2,("%s: ^^^^^^^^^^^^^^^^^^^^",fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

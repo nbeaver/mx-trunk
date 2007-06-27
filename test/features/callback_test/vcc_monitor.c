@@ -8,8 +8,8 @@
 #include "mx_net.h"
 #include "mx_callback.h"
 
-extern char *optarg;
-extern int optind;
+MX_API char *optarg;
+MX_API int optind;
 
 typedef struct {
 	MX_RECORD *server_record;

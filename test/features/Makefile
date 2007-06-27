@@ -1,4 +1,4 @@
-MX_ARCH = solaris
+MX_ARCH = win32
 
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 

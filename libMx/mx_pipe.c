@@ -231,14 +231,19 @@ mx_pipe_read( MX_PIPE *mx_pipe,
 	if ( read_status == 0 ) {
 		last_error_code = GetLastError();
 
-		mx_win32_error_message( last_error_code,
-			message_buffer, sizeof(message_buffer) );
+		if ( last_error_code == ERROR_NO_DATA ) {
+			return mx_error( MXE_END_OF_DATA | MXE_QUIET, fname,
+			"MX pipe %p has no unread data.", mx_pipe );
+		} else {
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
 
-		return mx_error( MXE_IPC_IO_ERROR, fname,
-		"The attempt to read %ld bytes from MX pipe %p failed.  "
-		"Win32 error code = %ld, error message = '%s'.",
-			max_bytes_to_read, mx_pipe,
-			last_error_code, message_buffer );
+			return mx_error( MXE_IPC_IO_ERROR, fname,
+			"The attempt to read %ld bytes from MX pipe %p failed."
+			"  Win32 error code = %ld, error message = '%s'.",
+				max_bytes_to_read, mx_pipe,
+				last_error_code, message_buffer );
+		}
 	}
 
 	if ( bytes_read != NULL ) {
@@ -298,8 +303,9 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 
 	MX_WIN32_PIPE *win32_pipe;
 	BOOL pipe_status;
-	DWORD last_error_code, total_bytes_avail;
+	DWORD last_error_code, bytes_read, total_bytes_avail;
 	TCHAR message_buffer[100];
+	TCHAR peek_buffer[1000];
 	mx_status_type mx_status;
 
 	mx_status = mx_pipe_get_pointers( mx_pipe, &win32_pipe, fname );
@@ -317,8 +323,17 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 		"MX pipe %p is not open for reading.", mx_pipe );
 	}
 
+
 	pipe_status = PeekNamedPipe( win32_pipe->read_handle,
-				NULL, 0, NULL, &total_bytes_avail, NULL );
+			peek_buffer, sizeof(peek_buffer),
+			&bytes_read, &total_bytes_avail, NULL );
+
+#if MX_PIPE_DEBUG
+	if ( total_bytes_avail != 0 ) {
+		MX_DEBUG(-2,("Peek: bytes_read = %ld, total_bytes_avail = %ld",
+				(long) bytes_read, (long) total_bytes_avail ));
+	}
+#endif
 
 	if ( pipe_status == 0 ) {
 		last_error_code = GetLastError();
@@ -333,7 +348,9 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 			mx_pipe, last_error_code, message_buffer );
 	}
 
-#if MX_PIPE_DEBUG
+	*num_bytes_available = total_bytes_avail;
+
+#if 0 && MX_PIPE_DEBUG
 	MX_DEBUG(-2,("%s: num_bytes_available = %ld",
 		fname, (long) *num_bytes_available ));
 #endif
