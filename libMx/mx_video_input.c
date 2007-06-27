@@ -251,6 +251,41 @@ mx_video_input_set_framesize( MX_RECORD *record,
 }
 
 MX_EXPORT mx_status_type
+mx_video_input_get_byte_order( MX_RECORD *record, long *byte_order )
+{
+	static const char fname[] = "mx_video_input_get_byte_order()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_BYTE_ORDER;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( byte_order != NULL ) {
+		*byte_order = vinput->byte_order;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_video_input_get_bytes_per_frame( MX_RECORD *record, long *bytes_per_frame )
 {
 	static const char fname[] = "mx_video_input_get_bytes_per_frame()";

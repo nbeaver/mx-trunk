@@ -267,6 +267,9 @@ MX_API mx_status_type mx_video_input_set_framesize( MX_RECORD *record,
 							long x_framesize,
 							long y_framesize );
 
+MX_API mx_status_type mx_video_input_get_byte_order( MX_RECORD *record,
+							long *byte_order );
+
 MX_API mx_status_type mx_video_input_get_bytes_per_frame( MX_RECORD *record,
 							long *bytes_per_frame );
 
