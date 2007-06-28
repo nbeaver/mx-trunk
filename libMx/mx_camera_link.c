@@ -30,8 +30,6 @@
 #include "mx_hrt.h"
 #include "mx_camera_link.h"
 
-#if HAVE_CAMERA_LINK
-
 MX_EXPORT mx_status_type
 mx_camera_link_get_pointers( MX_RECORD *cl_record,
 			MX_CAMERA_LINK **camera_link,
@@ -730,6 +728,4 @@ mx_camera_link_pulse_cc_line( MX_RECORD *cl_record,
 
 	return mx_status;
 }
-
-#endif /* HAVE_CAMERA_LINK */
 

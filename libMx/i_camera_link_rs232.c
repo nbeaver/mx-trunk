@@ -26,8 +26,6 @@
 #include "mx_camera_link.h"
 #include "i_camera_link_rs232.h"
 
-#if HAVE_CAMERA_LINK
-
 MX_RECORD_FUNCTION_LIST mxi_camera_link_rs232_record_function_list = {
 	NULL,
 	mxi_camera_link_rs232_create_record_structures,
@@ -445,4 +443,3 @@ mxi_camera_link_rs232_discard_unread_input( MX_RS232 *rs232 )
 	return mx_status;
 }
 
-#endif /* HAVE_CAMERA_LINK */

@@ -19,42 +19,17 @@
 
 #include "mxconfig.h"
 
-/* Here we decide whether or not Camera Link is available on this platform.
- *
- * We will only define a value of HAVE_CAMERA_LINK here if the macro has not
- * yet been defined.
- */
+/* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
 
-/* FIXME - Need to better sort out the definition of HAVE_CAMERA_LINK. */
-
-#define HAVE_CAMERA_LINK	TRUE
-
-#if ( HAVE_EPIX_XCLIB || HAVE_EDT )
-
-#  if !defined(HAVE_CAMERA_LINK)
-#     define HAVE_CAMERA_LINK	TRUE
-#  endif
-
-   /* The Camera Link standard says MX_CLCALL should be __stdcall on Win32. */
-
-#  if defined(OS_WIN32)
+#if defined(OS_WIN32)
 #     define MX_CLCALL		__cdecl
-#  else
-#     define MX_CLCALL
-#  endif
-
 #else
-
-#  if !defined(HAVE_CAMERA_LINK)
-#     define HAVE_CAMERA_LINK	FALSE
-#  endif
-
-#  define MX_CLCALL
+#     define MX_CLCALL
 #endif
 
 /*---*/
 
-#if HAVE_CAMERA_LINK && defined(IS_MX_DRIVER)
+#if defined(IS_MX_DRIVER)
 
 /* If your Camera Link based system does not include the standard
  * Camera Link API, then include the following header file.
@@ -162,7 +137,7 @@ MX_API mx_status_type mx_camera_link_get_pointers( MX_RECORD *cl_record,
 		                        MX_CAMERA_LINK_API_LIST **api_ptr,
 		                        const char *calling_fname );
 
-#endif /* HAVE_CAMERA_LINK && defined(IS_MX_DRIVER) */
+#endif /* defined(IS_MX_DRIVER) */
 
 /* ============== Interface function prototypes. ============== */
 

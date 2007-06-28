@@ -112,10 +112,7 @@
 #include "i_vxworks_rs232.h"
 #endif
 
-#if HAVE_CAMERA_LINK
 #include "i_camera_link_rs232.h"
-#endif
-
 #include "i_spec_command.h"
 #include "i_epix_rs232.h"
 #include "i_edt_rs232.h"
@@ -640,14 +637,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxi_vxworks_rs232_rfield_def_ptr},
 #endif /* OS_VXWORKS */
 
-#if HAVE_CAMERA_LINK
 {"camera_link_rs232", MXI_232_CAMERA_LINK, MXI_RS232,    MXR_INTERFACE,
 				&mxi_camera_link_rs232_record_function_list,
 				NULL,
 				&mxi_camera_link_rs232_rs232_function_list,
 				&mxi_camera_link_rs232_num_record_fields,
 				&mxi_camera_link_rs232_rfield_def_ptr},
-#endif
 
 {"spec_command",   MXI_232_SPEC_COMMAND, MXI_RS232,      MXR_INTERFACE,
 				&mxi_spec_command_record_function_list,
@@ -3265,16 +3260,12 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_network_area_detector_num_record_fields,
 				&mxd_network_area_detector_rfield_def_ptr},
 
-#if HAVE_CAMERA_LINK
-
 {"pccd_170170",    MXT_AD_PCCD_170170, MXC_AREA_DETECTOR,  MXR_DEVICE,
 				&mxd_pccd_170170_record_function_list,
 				NULL,
 				NULL,
 				&mxd_pccd_170170_num_record_fields,
 				&mxd_pccd_170170_rfield_def_ptr},
-
-#endif /* HAVE_CAMERA_LINK */
 
 {"cryostream600_status", MXT_AIN_CRYOSTREAM600, MXC_ANALOG_INPUT, MXR_DEVICE,
 				&mxd_cryostream600_status_record_function_list,

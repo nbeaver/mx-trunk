@@ -57,7 +57,7 @@
  *
  */
 
-#define HAVE_EDT			0
+#define HAVE_EDT			1
 
 /*****************************************************************************
  *
@@ -123,7 +123,7 @@
  * the obsolete Video4linux version 1 API.
  */
 
-#define HAVE_VIDEO_4_LINUX_2		0
+#define HAVE_VIDEO_4_LINUX_2		1
 
 /*****************************************************************************
  *
