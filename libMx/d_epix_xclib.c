@@ -564,7 +564,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
-	unsigned long old_array_bytes, new_array_bytes;
+	unsigned long flags, old_array_bytes, new_array_bytes;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -578,16 +578,17 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
+	flags = epix_xclib_vinput->epix_xclib_vinput_flags;
+
 	/* If the 'write test' feature is enabled, fill
 	 * the first frame buffer with a test value.
 	 */
 
 #if 0
-	MX_DEBUG(-2,("%s: epix_xclib_vinput_flags = %#lx",
-		fname, epix_xclib_vinput->epix_xclib_vinput_flags));
+	MX_DEBUG(-2,("%s: epix_xclib_vinput_flags = %#lx", fname, flags));
 #endif
 
-	if ( epix_xclib_vinput->epix_xclib_vinput_flags & MXF_EPIX_WRITE_TEST) {
+	if ( flags & MXF_EPIX_WRITE_TEST) {
 
 		old_array_bytes = epix_xclib_vinput->num_write_test_array_bytes;
 
@@ -659,6 +660,45 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			vinput->record->name, error_message );
 		}
 	}
+
+	/* If the camera is expected to decide when images are captured
+	 * instead of the imaging board, then we simply enable continuous
+	 * image capture here and return.
+	 */
+
+	if ( flags & MXF_EPIX_CAMERA_IS_MASTER ) {
+
+		/* The capture sequence is configured to continue until
+		 * explicitly stopped and uses all available camera buffers.
+		 */
+
+		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
+				1, pxd_imageZdim(), 1, 0, 1 );
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+	("%s: pxd_goLiveSeq() invoked for video input '%s'.  epix_status = %d",
+			fname, vinput->record->name, epix_status));
+#endif
+		if ( epix_status < 0 ) {
+			mxi_epix_xclib_error_message(
+				epix_xclib_vinput->unitmap, epix_status,
+				error_message, sizeof(error_message) ); 
+
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to start an image capture sequence "
+			"failed for video input '%s'.  Error = '%s'.",
+				vinput->record->name, error_message );
+		}
+
+		/* We are done arming the EPIX board. */
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* If we get here, then the EPIX imaging board is configured
+	 * to be in charge of deciding when images are captured.
+	 */
 
 	/* If external triggering is not enabled,
 	 * return without doing anything further.
@@ -848,6 +888,18 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	flags = epix_xclib->epix_xclib_flags;
+
+	/* If the camera is expected to decide when images are captured
+	 * instead of the imaging board, then the imaging board is already
+	 * ready to capture images and we do not need to do anything 
+	 * further here.
+	 */
+
+	if ( flags & MXF_EPIX_CAMERA_IS_MASTER ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
+
 	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
 
 		/* If internal triggering is not enabled,
@@ -878,8 +930,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: sp = %p", fname, sp));
 	MX_DEBUG(-2,("%s: sp->sequence_type = %ld", fname, sp->sequence_type));
 #endif
-
-	flags = epix_xclib->epix_xclib_flags;
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: starting buffer count = %d", fname,

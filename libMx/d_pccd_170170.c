@@ -27,6 +27,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_ascii.h"
 #include "mx_clock.h"
 #include "mx_socket.h"
@@ -34,10 +35,11 @@
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_image.h"
-#include "mx_digital_input.h"
+#include "mx_digital_output.h"
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
 #include "mx_area_detector.h"
+#include "d_epix_xclib.h"
 #include "d_pccd_170170.h"
 
 /*---*/
@@ -1147,6 +1149,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
 	MX_VIDEO_INPUT *vinput;
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	long vinput_framesize[2];
 	unsigned long flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
@@ -1198,6 +1201,41 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		"The MX_VIDEO_INPUT pointer for video input record '%s' "
 		"used by area detector '%s' is NULL.",
 			video_input_record->name, record->name );
+	}
+
+	/* Make sure the internal trigger output is low. */
+
+	mx_status = mx_digital_output_write(
+				pccd_170170->internal_trigger_record, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Do any video card specific initialization. */
+
+	switch( video_input_record->mx_type ) {
+	case MXT_VIN_EPIX_XCLIB:
+		epix_xclib_vinput = video_input_record->record_type_struct;
+
+		if ( epix_xclib_vinput == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_EPIX_XCLIB_VIDEO_INPUT pointer for video "
+			"input record '%s' used by area detector '%s' is NULL.",
+				video_input_record->name, record->name );
+		}
+
+		/* If the area detector record expects that the camera FPGA
+		 * will determine when frames are captured, then make sure
+		 * that the video input record knows this as well.
+		 */
+
+		if ( flags & MXF_PCCD_170170_CAMERA_IS_MASTER ) {
+			epix_xclib_vinput->epix_xclib_vinput_flags
+				|= MXF_EPIX_CAMERA_IS_MASTER;
+		}
+		break;
+	default:
+		break;
 	}
 
 	/* Initialize data structures used to specify attributes
@@ -1621,6 +1659,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_trigger()";
 
 	MX_PCCD_170170 *pccd_170170;
+	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_status_type mx_status;
 
@@ -1629,12 +1668,30 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( pccd_170170->video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The video_input_record pointer for area detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	vinput = pccd_170170->video_input_record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for video input '%s' "
+		"used by area detector '%s' is NULL.",
+			pccd_170170->video_input_record->name,
+			ad->record->name );
+	}
+
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
 
 	sp = &(ad->sequence_parameters);
+
+	/* Make sure we are configured for a supported sequence type. */
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
@@ -1643,6 +1700,8 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_GEOMETRICAL:
+	case MXT_SQ_SUBIMAGE:
+	case MXT_SQ_STREAK_CAMERA:
 		break;
 
 	default:
@@ -1652,10 +1711,39 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			sp->sequence_type, ad->record->name );
 	}
 
+	/* Send the trigger request to the video input board. */
+
 	mx_status = mx_video_input_trigger( pccd_170170->video_input_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* If we are configured for internal triggering and the camera is
+	 * expected to be in charge of frame timing, then we must send
+	 * a start pulse to the camera.
+	 */
+
+	if (( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
+	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
+	{
+		/* Set the output high. */
+
+		mx_status = mx_digital_output_write(
+				pccd_170170->internal_trigger_record, 1 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_msleep(100);		/* Wait 0.1 seconds. */
+
+		/* Set the output low. */
+
+		mx_status = mx_digital_output_write(
+				pccd_170170->internal_trigger_record, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: Started taking a frame using area detector '%s'.",
@@ -1794,7 +1882,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	long last_frame_number;
 	long total_num_frames;
-	unsigned long status_flags, spare_status;
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1830,20 +1918,6 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	ad->status = 0;
 
 	if ( status_flags & MXSF_VIN_IS_BUSY ) {
-		ad->status |= MXSF_AD_IS_BUSY;
-	}
-
-	/* See if the Camera Link Spare line says that
-	 * the detector head is idle.
-	 */
-
-	mx_status = mx_digital_input_read( pccd_170170->spare_line_record,
-						&spare_status );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	if ( spare_status != 0 ) {
 		ad->status |= MXSF_AD_IS_BUSY;
 	}
 

@@ -19,7 +19,9 @@
 
 /* Values for epix_xclib_vinput_flags */
 
-#define MXF_EPIX_WRITE_TEST	0x1000
+#define MXF_EPIX_WRITE_TEST		0x1000
+
+#define MXF_EPIX_CAMERA_IS_MASTER	0x10000000
 
 typedef struct {
 	MX_RECORD *record;

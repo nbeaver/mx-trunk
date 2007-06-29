@@ -23,6 +23,8 @@
 #define MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR	0x2
 #define MXF_PCCD_170170_SUPPRESS_DESCRAMBLING		0x4
 
+#define MXF_PCCD_170170_CAMERA_IS_MASTER		0x10000000
+
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
  */
@@ -43,7 +45,7 @@ typedef struct {
 
 	MX_RECORD *video_input_record;
 	MX_RECORD *camera_link_record;
-	MX_RECORD *spare_line_record;
+	MX_RECORD *internal_trigger_record;
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
 
@@ -190,8 +192,8 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, camera_link_record), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "spare_line_record", MXFT_RECORD, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, spare_line_record), \
+  {-1, -1, "internal_trigger_record", MXFT_RECORD, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, internal_trigger_record),\
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "initial_trigger_mode", MXFT_HEX, NULL, 0, {0}, \

@@ -1,5 +1,5 @@
 port   interface camera_link soft_camera_link "" "" 9600 0.5 1
 rs232  interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
 video0 device video_input soft_vinput "" "" 16384 1024 grey16 -1 1
-spare  device digital_input soft_dinput "" "" 0
-aviex  device area_detector pccd_170170 "" "" 0 "" "" "" "" video0 port spare 0x1 0x3
+trigger  device digital_output soft_doutput "" "" 0
+aviex  device area_detector pccd_170170 "" "" 0 "" "" "" "" video0 port trigger 0x1 0x3

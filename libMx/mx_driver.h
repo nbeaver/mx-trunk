@@ -353,6 +353,7 @@
 #define MXT_DIN_PMC_MCAPI		30024
 #define MXT_DIN_PICOMOTOR		30025
 #define MXT_DIN_TRACKER			30026
+#define MXT_DIN_EPIX_XCLIB		30027
 
 /* --- Digital output types --- */
 
@@ -388,6 +389,7 @@
 #define MXT_DOU_TRACKER			40029
 #define MXT_DOU_TPG262			40030
 #define MXT_DOU_CM17A			40031
+#define MXT_DOU_EPIX_XCLIB		40032
 
 /* --- Motor subclasses --- */
 

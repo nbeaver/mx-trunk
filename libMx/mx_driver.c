@@ -249,6 +249,7 @@
 #include "d_tpg262_pressure.h"
 #include "d_cm17a_doutput.h"
 #include "d_bluice_ion_chamber.h"
+#include "d_epix_xclib_dio.h"
 
 #include "d_soft_motor.h"
 #include "d_e500.h"
@@ -1880,6 +1881,24 @@ MX_DRIVER mx_type_list[] = {
 				&mxd_linux_parport_out_rfield_def_ptr},
 
 #endif /* OS_LINUX */
+
+#if HAVE_EPIX_XCLIB
+
+{"epix_xclib_dinput",   MXT_DIN_EPIX_XCLIB,  MXC_DIGITAL_INPUT,  MXR_DEVICE,
+				&mxd_epix_xclib_dinput_record_function_list,
+				NULL,
+			  &mxd_epix_xclib_dinput_digital_input_function_list,
+				&mxd_epix_xclib_dinput_num_record_fields,
+				&mxd_epix_xclib_dinput_rfield_def_ptr},
+
+{"epix_xclib_doutput",  MXT_DOU_EPIX_XCLIB,  MXC_DIGITAL_OUTPUT, MXR_DEVICE,
+				&mxd_epix_xclib_doutput_record_function_list,
+				NULL,
+			  &mxd_epix_xclib_doutput_digital_output_function_list,
+				&mxd_epix_xclib_doutput_num_record_fields,
+				&mxd_epix_xclib_doutput_rfield_def_ptr},
+
+#endif /* HAVE_EPIX_XCLIB */
 
 {"soft_motor",     MXT_MTR_SOFTWARE,  MXC_MOTOR,          MXR_DEVICE,
 				&mxd_soft_motor_record_function_list,
