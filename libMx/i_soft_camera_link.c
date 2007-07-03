@@ -173,6 +173,10 @@ mxi_soft_camera_link_open( MX_RECORD *record )
 
 	camera_link = (MX_CAMERA_LINK *) record->record_class_struct;
 
+	/* Suppress GCC 4 uninitialized variable warning. */
+
+	soft_camera_link = NULL;
+
 	mx_status = mxi_soft_camera_link_get_pointers( camera_link,
 					&soft_camera_link, &api_list, fname );
 

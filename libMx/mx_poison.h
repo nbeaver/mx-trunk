@@ -42,9 +42,45 @@
 
 #if (__GNUC__ >= 3)
 
+#ifdef gets
+#  undef gets
+#endif
 #pragma GCC poison gets
-#pragma GCC poison sprintf vsprintf
-#pragma GCC poison strcpy strncpy strcat strncat strtok
+
+#ifdef sprintf
+#  undef sprintf
+#endif
+#pragma GCC poison sprintf
+
+#ifdef vsprintf
+#  undef vsprintf
+#endif
+#pragma GCC poison vsprintf
+
+#ifdef strcpy
+#  undef strcpy
+#endif
+#pragma GCC poison strcpy
+
+#ifdef strncpy
+#  undef strncpy
+#endif
+#pragma GCC poison strncpy
+
+#ifdef strcat
+#  undef strcat
+#endif
+#pragma GCC poison strcat
+
+#ifdef strncat
+#  undef strncat
+#endif
+#pragma GCC poison strncat
+
+#ifdef strtok
+#  undef strtok
+#endif
+#pragma GCC poison strtok
 
 #endif /* (__GNUC__ >= 3) */
 

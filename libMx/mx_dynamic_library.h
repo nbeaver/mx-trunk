@@ -36,5 +36,8 @@ MX_API mx_status_type mx_dynamic_library_find_symbol(
 						void **symbol_pointer,
 						mx_bool_type quiet_flag );
 
+MX_API void *mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
+						const char *symbol_name );
+
 #endif /* __MX_DYNAMIC_LIBRARY_H_ */
 

@@ -271,6 +271,10 @@ mxd_epix_xclib_dinput_read( MX_DIGITAL_INPUT *dinput )
 	int value;
 	mx_status_type mx_status;
 
+	/* Suppress GCC 4 uninitialized variable warning. */
+
+	epix_xclib_vinput = NULL;
+
 	mx_status = mxd_epix_xclib_dinput_get_pointers( dinput,
 				&epix_xclib_dinput, &epix_xclib_vinput, fname );
 

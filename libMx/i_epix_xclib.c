@@ -31,6 +31,7 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_unistd.h"
 #include "mx_hrt.h"
 #include "mx_inttypes.h"
 

@@ -24,6 +24,23 @@
 #include "mx_util.h"
 #include "mx_dynamic_library.h"
 
+MX_EXPORT void *
+mx_dynamic_library_get_symbol_pointer( MX_DYNAMIC_LIBRARY *library,
+					const char *symbol_name )
+{
+	void *result_ptr;
+	mx_status_type mx_status;
+
+	mx_status = mx_dynamic_library_find_symbol( library, symbol_name,
+							&result_ptr, TRUE );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		result_ptr = NULL;
+	}
+
+	return result_ptr;
+}
+
 /************************ Microsoft Win32 ***********************/
 
 #if defined(OS_WIN32)
