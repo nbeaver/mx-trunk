@@ -56,6 +56,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_edt_video_input_function_list = {
 	mxd_edt_abort,
 	NULL,
 	NULL,
+	NULL,
 	mxd_edt_get_status,
 	NULL,
 	mxd_edt_get_frame,

@@ -21,8 +21,6 @@
 
 #define MXF_EPIX_WRITE_TEST		0x1000
 
-#define MXF_EPIX_CAMERA_IS_MASTER	0x10000000
-
 typedef struct {
 	MX_RECORD *record;
 
@@ -76,10 +74,12 @@ MX_API mx_status_type mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput );
+MX_API mx_status_type mxd_epix_xclib_continuous_capture(
+						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_last_frame_number(
-						MX_VIDEO_INPUT *vinput);
+						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_total_num_frames(
-						MX_VIDEO_INPUT *vinput);
+						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_extended_status(
 						MX_VIDEO_INPUT *vinput);

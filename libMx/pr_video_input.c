@@ -134,6 +134,7 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_BYTES_PER_PIXEL:
 		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+		case MXLV_VIN_CONTINUOUS_CAPTURE:
 		case MXLV_VIN_EXTENDED_STATUS:
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 		case MXLV_VIN_FORMAT:
@@ -273,6 +274,10 @@ mx_video_input_process_function( void *record_ptr,
 		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
 			mx_status = mx_video_input_set_camera_trigger_polarity(
 				    record, vinput->camera_trigger_polarity );
+			break;
+		case MXLV_VIN_CONTINUOUS_CAPTURE:
+			mx_status = mx_video_input_continuous_capture(
+					record, vinput->continuous_capture );
 			break;
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 			mx_status =

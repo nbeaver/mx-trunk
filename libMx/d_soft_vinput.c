@@ -49,6 +49,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_soft_vinput_video_input_function_list = {
 	mxd_soft_vinput_trigger,
 	mxd_soft_vinput_stop,
 	mxd_soft_vinput_abort,
+	NULL,
 	mxd_soft_vinput_get_last_frame_number,
 	mxd_soft_vinput_get_total_num_frames,
 	mxd_soft_vinput_get_status,
@@ -261,7 +262,7 @@ mxd_soft_vinput_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: vinput->trigger_mode = %ld",
 		fname, vinput->trigger_mode));
 
-	MX_DEBUG(-2,("%s: vinput->bits_per_pixel = %g",
+	MX_DEBUG(-2,("%s: vinput->bits_per_pixel = %ld",
 		fname, vinput->bits_per_pixel));
 
 	MX_DEBUG(-2,("%s: vinput->bytes_per_pixel = %g",

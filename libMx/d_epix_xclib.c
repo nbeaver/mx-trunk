@@ -70,6 +70,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_trigger,
 	mxd_epix_xclib_stop,
 	mxd_epix_xclib_abort,
+	mxd_epix_xclib_continuous_capture,
 	mxd_epix_xclib_get_last_frame_number,
 	mxd_epix_xclib_get_total_num_frames,
 	mxd_epix_xclib_get_status,
@@ -661,45 +662,6 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		}
 	}
 
-	/* If the camera is expected to decide when images are captured
-	 * instead of the imaging board, then we simply enable continuous
-	 * image capture here and return.
-	 */
-
-	if ( flags & MXF_EPIX_CAMERA_IS_MASTER ) {
-
-		/* The capture sequence is configured to continue until
-		 * explicitly stopped and uses all available camera buffers.
-		 */
-
-		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-				1, pxd_imageZdim(), 1, 0, 1 );
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,
-	("%s: pxd_goLiveSeq() invoked for video input '%s'.  epix_status = %d",
-			fname, vinput->record->name, epix_status));
-#endif
-		if ( epix_status < 0 ) {
-			mxi_epix_xclib_error_message(
-				epix_xclib_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) ); 
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start an image capture sequence "
-			"failed for video input '%s'.  Error = '%s'.",
-				vinput->record->name, error_message );
-		}
-
-		/* We are done arming the EPIX board. */
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
-	/* If we get here, then the EPIX imaging board is configured
-	 * to be in charge of deciding when images are captured.
-	 */
-
 	/* If external triggering is not enabled,
 	 * return without doing anything further.
 	 */
@@ -889,16 +851,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 	flags = epix_xclib->epix_xclib_flags;
-
-	/* If the camera is expected to decide when images are captured
-	 * instead of the imaging board, then the imaging board is already
-	 * ready to capture images and we do not need to do anything 
-	 * further here.
-	 */
-
-	if ( flags & MXF_EPIX_CAMERA_IS_MASTER ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
 
 	if ( ( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER ) == 0 ) {
 
@@ -1179,6 +1131,67 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"The attempt to abort taking frames for "
+			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
+{
+	static const char fname[] = "mxd_epix_xclib_continuous_capture()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	char error_message[80];
+	int epix_status;
+	mx_status_type mx_status;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+					&epix_xclib_vinput, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'.",
+		fname, vinput->record->name ));
+#endif
+	if ( vinput->continuous_capture > vinput->maximum_frame_number ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number (%ld) of continuous capture frames "
+		"exceeds the maximum (%ld) allowed by the MX driver "
+		"for video input '%s'.",
+			vinput->continuous_capture,
+			vinput->maximum_frame_number,
+			vinput->record->name );
+	}
+
+	if ( vinput->continuous_capture > pxd_imageZdim() ) {
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"The requested number (%ld) of continuous capture frames "
+		"exceeds the maximum (%d) allowed by the EPIX XCLIB library "
+		"for video input '%s'.",
+			vinput->continuous_capture,
+			pxd_imageZdim(),
+			vinput->record->name );
+	}
+
+	/* Configure the capture sequence to continue using the requested
+	 * number of frames until explicitly stopped.  
+	 */
+
+	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
+				1, vinput->continuous_capture, 1, 0, 1 );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to start continuous capture for "
 			"video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 	}

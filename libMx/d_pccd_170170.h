@@ -22,8 +22,7 @@
 #define MXF_PCCD_170170_USE_CAMERA_SIMULATOR		0x1
 #define MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR	0x2
 #define MXF_PCCD_170170_SUPPRESS_DESCRAMBLING		0x4
-
-#define MXF_PCCD_170170_CAMERA_IS_MASTER		0x10000000
+#define MXF_PCCD_170170_CAMERA_IS_MASTER		0x8
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.

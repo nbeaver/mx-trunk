@@ -83,6 +83,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_v4l2_input_video_input_function_list = {
 	mxd_v4l2_input_abort,
 	NULL,
 	NULL,
+	NULL,
 	mxd_v4l2_input_get_status,
 	NULL,
 	mxd_v4l2_input_get_frame,

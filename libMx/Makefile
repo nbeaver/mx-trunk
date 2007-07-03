@@ -18,8 +18,8 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_bluice.c mx_boot.c mx_callback.c mx_camac.c mx_camera_link.c \
 	mx_ccd.c mx_cfn.c mx_clock.c \
 	mx_coprocess.c mx_cpu.c mx_cpu_arch.c mx_dead_reckoning.c mx_debug.c \
-	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_driver_class.c \
-	mx_dynamic_library.c \
+	mx_datafile.c mx_digital_input.c mx_digital_output.c mx_dirent.c \
+	mx_driver_class.c mx_dynamic_library.c \
 	mx_encoder.c mx_error.c mx_epics.c mx_field.c mx_fvarargs.c \
 	mx_generic.c mx_gpib.c mx_handle.c mx_heap.c mx_hrt.c mx_hrt_debug.c \
 	mx_image.c mx_info.c mx_interval_timer.c mx_key.c \
@@ -75,7 +75,7 @@ MX_DRIVER_SRCS = d_6821.c d_8255.c d_adc_table.c d_adsc_two_theta.c \
 	d_e662.c d_edt.c d_elapsed_time.c d_energy.c \
 	d_epics_aio.c d_epics_dio.c d_epics_mca.c \
 	d_epics_mcs.c d_epics_motor.c d_epics_scaler.c d_epics_timer.c \
-	d_epix_xclib.c d_epix_xclib_dio.c \
+	d_epix_xclib.c d_epix_xclib_dio.c d_file_vinput.c \
 	d_gain_tracking_scaler.c d_gated_backlash.c d_generic_relay.c d_ggcs.c \
 	d_gm10_scaler.c d_gm10_timer.c d_hitachi_kp_d20.c d_hsc1.c \
 	d_icplus.c d_icplus_aio.c d_icplus_dio.c \

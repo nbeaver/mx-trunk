@@ -113,6 +113,8 @@ typedef struct {
 
 #define MXU_IMAGE_FORMAT_NAME_LENGTH	10
 
+#define MXU_IMAGE_FILE_NAME_LENGTH	10
+
 /* Trigger modes for video inputs and area detectors. */
 
 #define MXT_IMAGE_NO_TRIGGER		0x0

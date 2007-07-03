@@ -39,7 +39,6 @@
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
 #include "mx_area_detector.h"
-#include "d_epix_xclib.h"
 #include "d_pccd_170170.h"
 
 /*---*/
@@ -1149,7 +1148,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_PCCD_170170 *pccd_170170;
 	MX_RECORD *video_input_record;
 	MX_VIDEO_INPUT *vinput;
-	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	long vinput_framesize[2];
 	unsigned long flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
@@ -1210,33 +1208,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	/* Do any video card specific initialization. */
-
-	switch( video_input_record->mx_type ) {
-	case MXT_VIN_EPIX_XCLIB:
-		epix_xclib_vinput = video_input_record->record_type_struct;
-
-		if ( epix_xclib_vinput == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
-			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-			"The MX_EPIX_XCLIB_VIDEO_INPUT pointer for video "
-			"input record '%s' used by area detector '%s' is NULL.",
-				video_input_record->name, record->name );
-		}
-
-		/* If the area detector record expects that the camera FPGA
-		 * will determine when frames are captured, then make sure
-		 * that the video input record knows this as well.
-		 */
-
-		if ( flags & MXF_PCCD_170170_CAMERA_IS_MASTER ) {
-			epix_xclib_vinput->epix_xclib_vinput_flags
-				|= MXF_EPIX_CAMERA_IS_MASTER;
-		}
-		break;
-	default:
-		break;
-	}
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
@@ -1648,7 +1619,21 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	mx_status = mx_video_input_arm( pccd_170170->video_input_record );
+	if ( pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER )
+	{
+		mx_status = mx_video_input_stop(
+					pccd_170170->video_input_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_video_input_continuous_capture(
+					pccd_170170->video_input_record,
+					ad->maximum_frame_number );
+	} else {
+		mx_status = mx_video_input_arm(
+					pccd_170170->video_input_record );
+	}
 
 	return mx_status;
 }
@@ -1661,6 +1646,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
+	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1711,9 +1697,30 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			sp->sequence_type, ad->record->name );
 	}
 
-	/* Send the trigger request to the video input board. */
+	if (( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
+	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
+	{
+		camera_is_master = TRUE;
+	} else {
+		camera_is_master = FALSE;
+	}
 
-	mx_status = mx_video_input_trigger( pccd_170170->video_input_record );
+	if ( camera_is_master ) {
+		mx_status = mx_video_input_stop(
+					pccd_170170->video_input_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mx_video_input_continuous_capture(
+					pccd_170170->video_input_record,
+					ad->maximum_frame_number );
+	} else {
+		/* Send the trigger request to the video input board. */
+
+		mx_status = mx_video_input_trigger(
+					pccd_170170->video_input_record );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1723,9 +1730,8 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	 * a start pulse to the camera.
 	 */
 
-	if (( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
-	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
-	{
+	if ( camera_is_master ) {
+
 		/* Set the output high. */
 
 		mx_status = mx_digital_output_write(

@@ -95,6 +95,7 @@ mx_video_input_finish_record_initialization( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	vinput->continuous_capture = -1;
 	vinput->maximum_frame_number = 0;
 	vinput->last_frame_number = -1;
 	vinput->total_num_frames = -1;
@@ -745,6 +746,31 @@ mx_video_input_abort( MX_RECORD *record )
 
 	if ( abort_fn != NULL ) {
 		mx_status = (*abort_fn)( vinput );
+	}
+
+	return mx_status;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_continuous_capture( MX_RECORD *record,
+				long num_capture_frames )
+{
+	static const char fname[] = "mx_video_input_continuous_capture()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *continuous_capture_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	continuous_capture_fn = flist->continuous_capture;
+
+	if ( continuous_capture_fn != NULL ) {
+		mx_status = (*continuous_capture_fn)( vinput );
 	}
 
 	return mx_status;

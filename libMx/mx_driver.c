@@ -430,6 +430,7 @@
 
 #include "d_soft_vinput.h"
 #include "d_network_vinput.h"
+#include "d_file_vinput.h"
 #include "d_v4l2_input.h"
 #include "d_epix_xclib.h"
 #include "d_edt.h"
@@ -3231,6 +3232,13 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxd_network_vinput_num_record_fields,
 				&mxd_network_vinput_rfield_def_ptr},
+
+{"file_vinput",     MXT_VIN_FILE,         MXC_VIDEO_INPUT,  MXR_DEVICE,
+				&mxd_file_vinput_record_function_list,
+				NULL,
+				NULL,
+				&mxd_file_vinput_num_record_fields,
+				&mxd_file_vinput_rfield_def_ptr},
 
 #if defined(OS_LINUX) && HAVE_VIDEO_4_LINUX_2
 

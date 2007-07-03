@@ -53,6 +53,8 @@ typedef struct {
 	mx_bool_type trigger;
 	mx_bool_type stop;
 	mx_bool_type abort;
+	long continuous_capture;
+
 	mx_bool_type busy;
 	unsigned long maximum_frame_number;
 	long last_frame_number;
@@ -94,20 +96,21 @@ typedef struct {
 #define MXLV_VIN_TRIGGER			11010
 #define MXLV_VIN_STOP				11011
 #define MXLV_VIN_ABORT				11012
-#define MXLV_VIN_BUSY				11013
-#define MXLV_VIN_MAXIMUM_FRAME_NUMBER		11014
-#define MXLV_VIN_LAST_FRAME_NUMBER		11015
-#define MXLV_VIN_TOTAL_NUM_FRAMES		11016
-#define MXLV_VIN_STATUS				11017
-#define MXLV_VIN_EXTENDED_STATUS		11018
-#define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11019
-#define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11020
-#define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11021
-#define MXLV_VIN_SEQUENCE_TYPE			11022
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11023
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11024
-#define MXLV_VIN_GET_FRAME			11025
-#define MXLV_VIN_FRAME_BUFFER			11026
+#define MXLV_VIN_CONTINUOUS_CAPTURE		11013
+#define MXLV_VIN_BUSY				11014
+#define MXLV_VIN_MAXIMUM_FRAME_NUMBER		11015
+#define MXLV_VIN_LAST_FRAME_NUMBER		11016
+#define MXLV_VIN_TOTAL_NUM_FRAMES		11017
+#define MXLV_VIN_STATUS				11018
+#define MXLV_VIN_EXTENDED_STATUS		11019
+#define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11020
+#define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11021
+#define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11022
+#define MXLV_VIN_SEQUENCE_TYPE			11023
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11024
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11025
+#define MXLV_VIN_GET_FRAME			11026
+#define MXLV_VIN_FRAME_BUFFER			11027
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -159,12 +162,17 @@ typedef struct {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, abort), \
 	{0}, NULL, 0}, \
   \
+  {MXLV_VIN_CONTINUOUS_CAPTURE, -1, "continuous_capture", \
+  					MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, continuous_capture), \
+	{0}, NULL, 0}, \
+  \
   {MXLV_VIN_BUSY, -1, "busy", MXFT_BOOL, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, busy), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_MAXIMUM_FRAME_NUMBER, -1, "maximum_frame_number", \
-  					MXFT_LONG, NULL, 0, {0}, \
+  					MXFT_ULONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, maximum_frame_number), \
 	{0}, NULL, 0}, \
   \
@@ -234,6 +242,7 @@ typedef struct {
 	mx_status_type ( *trigger ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *stop ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *abort ) ( MX_VIDEO_INPUT *vinput );
+	mx_status_type ( *continuous_capture ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_last_frame_number ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_total_num_frames ) ( MX_VIDEO_INPUT *vinput );
 	mx_status_type ( *get_status ) ( MX_VIDEO_INPUT *vinput );
@@ -305,6 +314,9 @@ MX_API mx_status_type mx_video_input_start( MX_RECORD *record );
 MX_API mx_status_type mx_video_input_stop( MX_RECORD *record );
 
 MX_API mx_status_type mx_video_input_abort( MX_RECORD *record );
+
+MX_API mx_status_type mx_video_input_continuous_capture( MX_RECORD *record,
+						long num_capture_frames );
 
 MX_API mx_status_type mx_video_input_is_busy( MX_RECORD *record,
 						mx_bool_type *busy );
