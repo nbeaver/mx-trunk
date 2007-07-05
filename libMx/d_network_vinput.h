@@ -37,6 +37,7 @@ typedef struct {
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
 	MX_NETWORK_FIELD last_frame_number_nf;
+	MX_NETWORK_FIELD maximum_frame_number_nf;
 	MX_NETWORK_FIELD pixel_clock_frequency_nf;
 	MX_NETWORK_FIELD status_nf;
 	MX_NETWORK_FIELD stop_nf;

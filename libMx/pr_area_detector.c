@@ -196,6 +196,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_IMAGE_FRAME_BUFFER:
 		case MXLV_AD_LAST_FRAME_NUMBER:
 		case MXLV_AD_LOAD_FRAME:
+		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
 		case MXLV_AD_READOUT_FRAME:
 		case MXLV_AD_ROI:
 		case MXLV_AD_ROI_FRAME_BUFFER:
@@ -312,6 +313,10 @@ mx_area_detector_process_function( void *record_ptr,
 			break;
 		case MXLV_AD_LAST_FRAME_NUMBER:
 			mx_status = mx_area_detector_get_last_frame_number(
+								record, NULL );
+			break;
+		case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+			mx_status = mx_area_detector_get_maximum_frame_number(
 								record, NULL );
 			break;
 		case MXLV_AD_MAXIMUM_FRAMESIZE:

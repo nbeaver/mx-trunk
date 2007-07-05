@@ -340,6 +340,11 @@ mxd_epix_xclib_set_ready_status( MX_VIDEO_INPUT *vinput,
 	char error_message[80];
 	int output_value, epix_status;
 
+#if 1	/* Not using OUT1 as a ready bit anymore. */
+
+	return MX_SUCCESSFUL_RESULT;
+#endif
+
 	/* General Purpose Output 1 is used to indicate the imaging board
 	 * is ready to be triggered.
 	 */
@@ -486,6 +491,8 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	vinput->frame_buffer   = NULL;
 	vinput->byte_order     = mx_native_byteorder();
 	vinput->trigger_mode   = MXT_IMAGE_NO_TRIGGER;
+
+	vinput->maximum_frame_number = pxd_imageZdim() - 1;
 
 	epix_xclib_vinput->num_write_test_array_bytes = 0;
 	epix_xclib_vinput->write_test_array = NULL;
@@ -665,6 +672,11 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	/* If external triggering is not enabled,
 	 * return without doing anything further.
 	 */
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: vinput->trigger_mode = %#lx",
+		fname, vinput->trigger_mode));
+#endif
 
 	if ( ( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER ) == 0 ) {
 
@@ -1145,6 +1157,7 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	char error_message[80];
+	long num_frame_buffers;
 	int epix_status;
 	mx_status_type mx_status;
 
@@ -1158,23 +1171,19 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
-	if ( vinput->continuous_capture > vinput->maximum_frame_number ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested number (%ld) of continuous capture frames "
-		"exceeds the maximum (%ld) allowed by the MX driver "
-		"for video input '%s'.",
-			vinput->continuous_capture,
-			vinput->maximum_frame_number,
-			vinput->record->name );
-	}
+	num_frame_buffers = pxd_imageZdim();
 
-	if ( vinput->continuous_capture > pxd_imageZdim() ) {
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: num_frame_buffers = %ld", fname, num_frame_buffers));
+#endif
+	vinput->maximum_frame_number = num_frame_buffers - 1;
+
+	if ( vinput->continuous_capture > num_frame_buffers ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
 		"The requested number (%ld) of continuous capture frames "
-		"exceeds the maximum (%d) allowed by the EPIX XCLIB library "
-		"for video input '%s'.",
+		"exceeds the maximum allowed value (%ld) for video input '%s'.",
 			vinput->continuous_capture,
-			pxd_imageZdim(),
+			num_frame_buffers,
 			vinput->record->name );
 	}
 
@@ -1182,8 +1191,13 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 	 * number of frames until explicitly stopped.  
 	 */
 
+#if 1
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-				1, vinput->continuous_capture, 1, 0, 1 );
+			1, num_frame_buffers, 1, 0, 1 );
+#else
+	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
+			1, num_frame_buffers, 1, 10, 1 );
+#endif
 
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
@@ -1205,6 +1219,7 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_get_last_frame_number()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	long captured_buffer;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1213,14 +1228,14 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->last_frame_number =
-		pxd_capturedBuffer( epix_xclib_vinput->unitmap ) - 1;
+	captured_buffer = pxd_capturedBuffer( epix_xclib_vinput->unitmap );
 
-#if 0 && MXD_EPIX_XCLIB_DEBUG	/* WML */
+#if 1 && MXD_EPIX_XCLIB_DEBUG	/* WML */
 
-	MX_DEBUG(-2,("%s: last_frame_number = %ld",
+	MX_DEBUG(-2,("%s: pxd_capturedBuffer() = %ld",
 		fname, vinput->last_frame_number ));
 #endif
+	vinput->last_frame_number = captured_buffer - 1;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1243,7 +1258,7 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 		pxd_capturedFieldCount( epix_xclib_vinput->unitmap );
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: total_num_frames = %ld",
+	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
 		fname, vinput->total_num_frames ));
 #endif
 
@@ -1258,6 +1273,8 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int busy;
 	pxbuffer_t last_buffer;
+	int epix_status;
+	char error_message[1024];	/* 1024 is recommended by the manual. */
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1265,6 +1282,24 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 0
+	epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
+				error_message, sizeof(error_message) );
+#else
+	epix_status = pxd_mesgFault( epix_xclib_vinput->unitmap );
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: epix_status = %d", fname, epix_status));
+#endif
+
+	if ( epix_status != 0 ) {
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: EPIX error message = '%s'",
+			fname, error_message));
+#endif
+	}
 
 	busy = pxd_goneLive( epix_xclib_vinput->unitmap, 0 );
 
@@ -1279,13 +1314,15 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: busy = %d, field count = %lu, last buffer = %d",
+	MX_DEBUG(-2,
+	("%s: pxd_goneLive() = %d, pxd_videoFieldCount() = %lu, "
+	"pxd_capturedBuffer() = %d",
 		fname, vinput->busy,
 		pxd_videoFieldCount( epix_xclib_vinput->unitmap ),
 		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
 #endif
 
-#if 1
+#if 0
 	if ( vinput->busy == FALSE ) {
 		mx_status = mxd_epix_xclib_set_ready_status( vinput,
 							epix_xclib_vinput,
@@ -1306,17 +1343,17 @@ mxd_epix_xclib_get_extended_status( MX_VIDEO_INPUT *vinput )
 
 	mx_status_type mx_status;
 
+	mx_status = mxd_epix_xclib_get_status( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	mx_status = mxd_epix_xclib_get_last_frame_number( vinput );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	mx_status = mxd_epix_xclib_get_total_num_frames( vinput );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	mx_status = mxd_epix_xclib_get_status( vinput );
 
 	return mx_status;
 }
@@ -1632,6 +1669,10 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		    fname, vinput->image_format, vinput->image_format_name));
 		 	
 #endif
+		break;
+
+	case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
+		vinput->maximum_frame_number = pxd_imageZdim() - 1;
 		break;
 
 	case MXLV_VIN_FRAMESIZE:

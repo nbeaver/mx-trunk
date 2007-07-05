@@ -286,7 +286,7 @@ CFLAGS  = -g -fPIC $(GCCFLAGS) $(INCLUDES) -DOS_LINUX \
 				$(EXTRA_FLAGS) -DDEBUG $(USER_CFLAGS)
 # Turn on optimization
 # 
-CFLAGS += -O2
+#CFLAGS += -O2
 
 #---
 

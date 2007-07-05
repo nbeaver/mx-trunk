@@ -2032,6 +2032,44 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 }
 
 MX_EXPORT mx_status_type
+mx_area_detector_get_maximum_frame_number( MX_RECORD *record,
+					unsigned long *maximum_frame_number )
+{
+	static const char fname[] =
+				"mx_area_detector_get_maximum_frame_number()";
+
+	MX_AREA_DETECTOR *ad;
+	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_AREA_DETECTOR * );
+	mx_status_type mx_status;
+
+	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn =
+			mx_area_detector_default_get_parameter_handler;
+	}
+
+	ad->parameter_type = MXLV_AD_MAXIMUM_FRAME_NUMBER;
+
+	mx_status = (*get_parameter_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( maximum_frame_number != NULL ) {
+		*maximum_frame_number = ad->maximum_frame_number;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
 mx_area_detector_get_last_frame_number( MX_RECORD *record,
 			long *last_frame_number )
 {
@@ -3366,6 +3404,10 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 		    * ((double) ad->framesize[0]) * ((double) ad->framesize[0]);
 
 		ad->bytes_per_frame = mx_round( ceil(double_value) );
+		break;
+
+	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+		ad->maximum_frame_number = 0;
 		break;
 
 	case MXLV_AD_DETECTOR_READOUT_TIME:

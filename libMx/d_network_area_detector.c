@@ -297,6 +297,10 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 	    "%s.load_frame", network_area_detector->remote_record_name );
 
+	mx_network_field_init(&(network_area_detector->maximum_frame_number_nf),
+		network_area_detector->server_record,
+	  "%s.maximum_frame_number", network_area_detector->remote_record_name);
+
 	mx_network_field_init( &(network_area_detector->maximum_framesize_nf),
 		network_area_detector->server_record,
 	    "%s.maximum_framesize", network_area_detector->remote_record_name );
@@ -1224,6 +1228,12 @@ mxd_network_area_detector_get_parameter( MX_AREA_DETECTOR *ad )
 #endif
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+		mx_status = mx_get(
+			&(network_area_detector->maximum_frame_number_nf),
+			MXFT_ULONG, &(ad->maximum_frame_number) );
+		break;
+
 	case MXLV_AD_MAXIMUM_FRAMESIZE:
 		dimension[0] = 2;
 

@@ -238,6 +238,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 		"%s.last_frame_number", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->maximum_frame_number_nf),
+			network_vinput->server_record,
+		"%s.maximum_frame_number", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->pixel_clock_frequency_nf),
 			network_vinput->server_record,
 	    "%s.pixel_clock_frequency", network_vinput->remote_record_name );
@@ -761,6 +765,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 
 	switch( vinput->parameter_type ) {
+	case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
+		mx_status = mx_get( &(network_vinput->maximum_frame_number_nf),
+				MXFT_ULONG, &(vinput->maximum_frame_number) );
+		break;
+
 	case MXLV_VIN_BYTE_ORDER:
 		mx_status = mx_get( &(network_vinput->byte_order_nf),
 					MXFT_LONG, &(vinput->byte_order) );

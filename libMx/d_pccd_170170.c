@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG			FALSE
+#define MXD_PCCD_170170_DEBUG			TRUE
 
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
 
@@ -1608,6 +1608,8 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	static const char fname[] = "mxd_pccd_170170_arm()";
 
 	MX_PCCD_170170 *pccd_170170;
+	MX_VIDEO_INPUT *vinput;
+	mx_bool_type master_camera_external_trigger;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1615,18 +1617,57 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	if ( pccd_170170->video_input_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The video_input_record pointer for area detector '%s' is NULL.",
+			ad->record->name );
+	}
+
+	vinput = pccd_170170->video_input_record->record_class_struct;
+
+	if ( vinput == (MX_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_VIDEO_INPUT pointer for video input '%s' "
+		"used by area detector '%s' is NULL.",
+			pccd_170170->video_input_record->name,
+			ad->record->name );
+	}
+
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	if ( pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER )
+	if (( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
+	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
 	{
+		master_camera_external_trigger = TRUE;
+	} else {
+		master_camera_external_trigger = FALSE;
+	}
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: master_camera_external_trigger = %d",
+		fname, (int) master_camera_external_trigger));
+#endif
+
+	if ( master_camera_external_trigger ) {
+
 		mx_status = mx_video_input_stop(
 					pccd_170170->video_input_record );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		mx_status = mx_area_detector_get_maximum_frame_number(
+					ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: maximum_frame_number = %lu",
+			fname, ad->maximum_frame_number));
+#endif
 		mx_status = mx_video_input_continuous_capture(
 					pccd_170170->video_input_record,
 					ad->maximum_frame_number );
@@ -1646,7 +1687,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
-	mx_bool_type camera_is_master;
+	mx_bool_type master_camera_internal_trigger;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1700,12 +1741,17 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	if (( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
 	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
 	{
-		camera_is_master = TRUE;
+		master_camera_internal_trigger = TRUE;
 	} else {
-		camera_is_master = FALSE;
+		master_camera_internal_trigger = FALSE;
 	}
 
-	if ( camera_is_master ) {
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: master_camera_internal_trigger = %d",
+		fname, (int) master_camera_internal_trigger));
+#endif
+
+	if ( master_camera_internal_trigger ) {
 		mx_status = mx_video_input_stop(
 					pccd_170170->video_input_record );
 
@@ -1730,7 +1776,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	 * a start pulse to the camera.
 	 */
 
-	if ( camera_is_master ) {
+	if ( master_camera_internal_trigger ) {
 
 		/* Set the output high. */
 
@@ -2037,6 +2083,11 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	video_input_record = pccd_170170->video_input_record;
 
 	switch( ad->parameter_type ) {
+	case MXLV_AD_MAXIMUM_FRAME_NUMBER:
+		mx_status = mx_video_input_get_maximum_frame_number(
+			video_input_record, &(ad->maximum_frame_number) );
+		break;
+
 	case MXLV_AD_FRAMESIZE:
 		mx_status = mx_video_input_get_framesize( video_input_record,
 			     &vinput_horiz_framesize, &vinput_vert_framesize );
@@ -2055,6 +2106,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		ad->framesize[1] =
 			vinput_vert_framesize * MXF_PCCD_170170_VERT_SCALE;
 		break;
+
 	case MXLV_AD_IMAGE_FORMAT:
 	case MXLV_AD_IMAGE_FORMAT_NAME:
 		mx_status = mx_video_input_get_image_format( video_input_record,

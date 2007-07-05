@@ -321,6 +321,10 @@ MX_API mx_status_type mx_video_input_continuous_capture( MX_RECORD *record,
 MX_API mx_status_type mx_video_input_is_busy( MX_RECORD *record,
 						mx_bool_type *busy );
 
+MX_API mx_status_type mx_video_input_get_maximum_frame_number(
+					MX_RECORD *record,
+					unsigned long *maximum_frame_number );
+
 MX_API mx_status_type mx_video_input_get_last_frame_number( MX_RECORD *record,
 						long *last_frame_number );
 

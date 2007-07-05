@@ -724,6 +724,8 @@ mx_video_input_stop( MX_RECORD *record )
 		mx_status = (*stop_fn)( vinput );
 	}
 
+	vinput->continuous_capture = -1;
+
 	return mx_status;
 }
 
@@ -748,6 +750,8 @@ mx_video_input_abort( MX_RECORD *record )
 		mx_status = (*abort_fn)( vinput );
 	}
 
+	vinput->continuous_capture = -1;
+
 	return mx_status;
 }
 
@@ -766,6 +770,8 @@ mx_video_input_continuous_capture( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	vinput->continuous_capture = num_capture_frames;
 
 	continuous_capture_fn = flist->continuous_capture;
 
@@ -802,6 +808,42 @@ mx_video_input_is_busy( MX_RECORD *record, mx_bool_type *busy )
 		} else {
 			*busy = FALSE;
 		}
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_get_maximum_frame_number( MX_RECORD *record,
+					unsigned long *maximum_frame_number )
+{
+	static const char fname[] = "mx_video_input_get_maximum_frame_number()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_MAXIMUM_FRAME_NUMBER;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( maximum_frame_number != NULL ) {
+		*maximum_frame_number = vinput->maximum_frame_number;
 	}
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1449,6 +1491,9 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 		 * data structure.
 		 */
 
+		break;
+	case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
+		vinput->maximum_frame_number = 0;
 		break;
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,

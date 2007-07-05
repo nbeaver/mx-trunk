@@ -45,6 +45,7 @@ typedef struct {
 	MX_NETWORK_FIELD image_frame_buffer_nf;
 	MX_NETWORK_FIELD last_frame_number_nf;
 	MX_NETWORK_FIELD load_frame_nf;
+	MX_NETWORK_FIELD maximum_frame_number_nf;
 	MX_NETWORK_FIELD maximum_framesize_nf;
 	MX_NETWORK_FIELD maximum_num_rois_nf;
 	MX_NETWORK_FIELD num_correction_measurements_nf;

@@ -726,6 +726,10 @@ MX_API mx_status_type mx_area_detector_abort( MX_RECORD *ad_record );
 MX_API mx_status_type mx_area_detector_is_busy( MX_RECORD *ad_record,
 						mx_bool_type *busy );
 
+MX_API mx_status_type mx_area_detector_get_maximum_frame_number(
+					MX_RECORD *ad_record,
+					unsigned long *maximum_frame_number );
+
 MX_API mx_status_type mx_area_detector_get_last_frame_number(
 						MX_RECORD *ad_record,
 						long *frame_number );
