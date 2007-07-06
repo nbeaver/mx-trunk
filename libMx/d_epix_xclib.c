@@ -1232,8 +1232,7 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 
 #if 1 && MXD_EPIX_XCLIB_DEBUG	/* WML */
 
-	MX_DEBUG(-2,("%s: pxd_capturedBuffer() = %ld",
-		fname, vinput->last_frame_number ));
+	MX_DEBUG(-2,("%s: pxd_capturedBuffer() = %ld", fname, captured_buffer));
 #endif
 	vinput->last_frame_number = captured_buffer - 1;
 
@@ -1283,7 +1282,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 0
+#if 1
 	epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
 				error_message, sizeof(error_message) );
 #else
@@ -1291,7 +1290,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: epix_status = %d", fname, epix_status));
+	MX_DEBUG(-2,("%s: pxd_mesgFaultText() = %d", fname, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
@@ -1314,12 +1313,11 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,
-	("%s: pxd_goneLive() = %d, pxd_videoFieldCount() = %lu, "
-	"pxd_capturedBuffer() = %d",
-		fname, vinput->busy,
-		pxd_videoFieldCount( epix_xclib_vinput->unitmap ),
-		(int) pxd_capturedBuffer( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: vinput->busy = %d, pxd_goneLive() = %d",
+		fname, vinput->busy, busy ));
+
+	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
+		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
 #if 0
@@ -1560,6 +1558,7 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int bits_per_component, components_per_pixel;
+	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1569,8 +1568,11 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_status;
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, vinput->record->name, vinput->parameter_type));
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+		fname, vinput->record->name,
+		mx_get_parameter_name_from_type(
+			vinput->record, vinput->parameter_type,
+			name_buffer, sizeof(name_buffer)) ));
 #endif
 
 	switch( vinput->parameter_type ) {
@@ -1695,6 +1697,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int epix_status;
+	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	struct xclibs *xc;
@@ -1707,8 +1710,11 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_status;
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter type %ld",
-		fname, vinput->record->name, vinput->parameter_type));
+	MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+		fname, vinput->record->name,
+		mx_get_parameter_name_from_type(
+			vinput->record, vinput->parameter_type,
+			name_buffer, sizeof(name_buffer)) ));
 #endif
 
 	switch( vinput->parameter_type ) {

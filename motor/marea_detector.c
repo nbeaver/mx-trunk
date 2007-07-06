@@ -424,6 +424,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
+			MX_DEBUG(-2,
+			("Seq: n = %ld vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv",n));
+
 			mx_status = mx_area_detector_get_extended_status(
 					ad_record,
 					&last_frame_number,
@@ -433,14 +436,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			num_unread_frames +=
-				last_frame_number - old_last_frame_number;
+			if ( last_frame_number < old_last_frame_number ) {
+				num_unread_frames = last_frame_number + 1;
+			} else {
+				num_unread_frames +=
+				    last_frame_number - old_last_frame_number;
+			}
 
-			MX_DEBUG(-2,("***********************************"));
-			MX_DEBUG(-2,
-	("n = %ld, last_frame_number = %ld, total_num_frames = %ld, "
-	"ad_status = %#lx", n, last_frame_number, total_num_frames,
-				ad_status));
+			MX_DEBUG(-2,("n = %ld, last_frame_number = %ld, "
+			"old_last_frame_number = %ld, total_num_frames = %ld, "
+			"ad_status = %#lx",
+				n, last_frame_number, old_last_frame_number,
+				total_num_frames, ad_status));
+
 			MX_DEBUG(-2,("%s: num_unread_frames = %ld",
 				cname, num_unread_frames));
 
@@ -484,12 +492,16 @@ motor_area_detector_fn( int argc, char *argv[] )
 			old_last_frame_number = last_frame_number;
 			old_total_num_frames  = total_num_frames;
 
-#if 0
-			if ( (ad_status & MXSF_AD_IS_BUSY) == FALSE ) {
+			if ( ((ad_status & MXSF_AD_IS_BUSY) == FALSE )
+			  && (num_unread_frames <= 0) )
+			{
 
-				break;		/* Exit the for(;;) loop. */
+				break;		/* Exit the for() loop. */
 			}
-#endif
+
+			MX_DEBUG(-2,
+			("Seq: n = %ld ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",n));
+
 			mx_msleep(10);
 		}
 

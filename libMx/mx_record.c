@@ -233,6 +233,108 @@ mx_get_driver_name( MX_RECORD *record )
 	return driver->name;
 }
 
+MX_EXPORT long
+mx_get_parameter_type_from_name( MX_RECORD *record, char *name )
+{
+	static const char fname[] = "mx_get_parameter_type_from_name()";
+
+	MX_RECORD_FIELD *field_array, *field;
+	long i;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+		return (-1L);
+	}
+	if ( name == (char *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The name pointer passed was NULL." );
+		return (-1L);
+	}
+
+	field_array = record->record_field_array;
+
+	if ( field_array == (MX_RECORD_FIELD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for record '%s' is NULL.",
+			record->name );
+		return (-1L);
+	}
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+		field = &(field_array[i]);
+
+		if ( field == (MX_RECORD_FIELD *) NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The record field pointer for field %ld "
+				"of record '%s' is NULL.", i, record->name );
+			return (-1L);
+		}
+
+		if ( strcmp( field->name, name ) == 0 ) {
+			return field->label_value;
+		}
+	}
+
+	(void) mx_error( MXE_NOT_FOUND, fname,
+	"Parameter name '%s' was not found for record '%s'.",
+		name, record->name );
+
+	return (-1L);
+}
+
+MX_EXPORT char *
+mx_get_parameter_name_from_type( MX_RECORD *record, long type,
+				char *name_buffer, size_t name_buffer_length )
+{
+	static const char fname[] = "mx_get_parameter_name_from_type()";
+
+	MX_RECORD_FIELD *field_array, *field;
+	long i;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The MX_RECORD pointer passed was NULL." );
+		return NULL;
+	}
+	if ( name_buffer == (char *) NULL ) {
+		(void) mx_error( MXE_NULL_ARGUMENT, fname,
+			"The name_buffer pointer passed was NULL." );
+		return NULL;
+	}
+
+	field_array = record->record_field_array;
+
+	if ( field_array == (MX_RECORD_FIELD *) NULL ) {
+		(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The record_field_array pointer for record '%s' is NULL.",
+			record->name );
+		return NULL;
+	}
+
+	for ( i = 0; i < record->num_record_fields; i++ ) {
+		field = &(field_array[i]);
+
+		if ( field == (MX_RECORD_FIELD *) NULL ) {
+			(void) mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+				"The record field pointer for field %ld "
+				"of record '%s' is NULL.", i, record->name );
+			return NULL;
+		}
+
+		if ( field->label_value == type ) {
+			strlcpy( name_buffer, field->name, name_buffer_length );			return name_buffer;
+
+		}
+	}
+
+	(void) mx_error( MXE_NOT_FOUND, fname,
+	"Parameter type %ld was not found for record '%s'.",
+		type, record->name );
+
+	return NULL;
+}
+
 MX_EXPORT MX_RECORD *
 mx_create_record( void )
 {

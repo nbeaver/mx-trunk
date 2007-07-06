@@ -454,6 +454,11 @@ MX_API const char *mx_get_driver_name( MX_RECORD *record );
 
 MX_API MX_DRIVER **mx_get_driver_lists( void );
 
+MX_API long  mx_get_parameter_type_from_name( MX_RECORD *record, char *name );
+MX_API char *mx_get_parameter_name_from_type( MX_RECORD *record, long type,
+						char *name_buffer,
+						size_t name_buffer_length );
+
 MX_API MX_RECORD      *mx_create_record( void );
 MX_API mx_status_type  mx_delete_record( MX_RECORD *record );
 
