@@ -1623,7 +1623,10 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
-	mx_bool_type master_camera_external_trigger;
+	MX_CLOCK_TICK num_ticks_to_wait, finish_tick;
+	double timeout_in_seconds;
+	int comparison;
+	mx_bool_type camera_is_master, external_trigger, busy;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1651,27 +1654,56 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	if (( vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER )
-	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
-	{
-		master_camera_external_trigger = TRUE;
-	} else {
-		master_camera_external_trigger = FALSE;
-	}
+	camera_is_master = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
+
+	external_trigger =
+	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: master_camera_external_trigger = %d",
-		fname, (int) master_camera_external_trigger));
+	MX_DEBUG(-2,("%s: camera_is_master = %d, external_trigger = %d",
+		fname, (int) camera_is_master, (int) external_trigger));
 #endif
 
-	if ( master_camera_external_trigger ) {
+	mx_status = mx_video_input_stop( pccd_170170->video_input_record );
 
-		mx_status = mx_video_input_stop(
-					pccd_170170->video_input_record );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Wait for up to 5 seconds for the video input to stop. */
+
+	timeout_in_seconds = 5.0;
+
+	num_ticks_to_wait =
+		mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
+
+	finish_tick = mx_add_clock_ticks( mx_current_clock_tick(),
+						num_ticks_to_wait );
+
+	while(1) {
+		mx_status = mx_area_detector_is_busy( ad->record, &busy );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		if ( busy == FALSE ) {
+			break;		/* Exit the while() loop. */
+		}
+
+		comparison = mx_compare_clock_ticks( mx_current_clock_tick(),
+							finish_tick );
+
+		if ( comparison >= 0 ) {
+			return mx_error( MXE_TIMED_OUT, fname,
+			"Area detector '%s' timed out after waiting %g seconds "
+			"for video input '%s' to stop acquiring frames.",
+				ad->record->name,
+				timeout_in_seconds, vinput->record->name );
+		}
+	}
+
+	/* Prepare the video input for the next trigger. */
+
+	if ( camera_is_master && external_trigger ) {
 		mx_status = mx_area_detector_get_maximum_frame_number(
 					ad->record, NULL );
 
@@ -1701,7 +1733,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
-	mx_bool_type master_camera_internal_trigger;
+	mx_bool_type camera_is_master, internal_trigger;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -1752,26 +1784,17 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			sp->sequence_type, ad->record->name );
 	}
 
-	if (( vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER )
-	 && (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER))
-	{
-		master_camera_internal_trigger = TRUE;
-	} else {
-		master_camera_internal_trigger = FALSE;
-	}
+	camera_is_master = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
+
+	internal_trigger =
+	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: master_camera_internal_trigger = %d",
-		fname, (int) master_camera_internal_trigger));
+	MX_DEBUG(-2,("%s: camera_is_master = %d, internal_trigger = %d",
+		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
 
-	if ( master_camera_internal_trigger ) {
-		mx_status = mx_video_input_stop(
-					pccd_170170->video_input_record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
+	if ( camera_is_master & internal_trigger ) {
 		mx_status = mx_video_input_continuous_capture(
 					pccd_170170->video_input_record,
 					ad->maximum_frame_number );
@@ -1790,7 +1813,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	 * a start pulse to the camera.
 	 */
 
-	if ( master_camera_internal_trigger ) {
+	if ( camera_is_master && internal_trigger ) {
 
 		/* Set the output high. */
 

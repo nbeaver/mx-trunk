@@ -1110,6 +1110,19 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 	}
 
+	epix_status = pxd_setExsyncPrincMode(epix_xclib_vinput->unitmap, 0, 0);
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to abort the generation of trigger pulses "
+			"for video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1144,6 +1157,19 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"The attempt to abort taking frames for "
 			"video input '%s' failed.  %s",
+				vinput->record->name, error_message );
+	}
+
+	epix_status = pxd_setExsyncPrincMode(epix_xclib_vinput->unitmap, 0, 0);
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"The attempt to abort the generation of trigger pulses "
+			"for video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 	}
 

@@ -7,7 +7,7 @@
  *
  *-----------------------------------------------------------------------
  *
- * Copyright 1999-2002 Illinois Institute of Technology
+ * Copyright 1999-2002, 2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -22,6 +22,9 @@
 #include "mx_mca.h"
 #include "mx_mcs.h"
 #include "mx_pulse_generator.h"
+#include "mx_image.h"
+#include "mx_video_input.h"
+#include "mx_area_detector.h"
 
 int
 motor_stop_fn( int argc, char *argv[] )
@@ -72,6 +75,12 @@ motor_stop_fn( int argc, char *argv[] )
 		break;
 	case MXC_PULSE_GENERATOR:
 		mx_status = mx_pulse_generator_stop( record );
+		break;
+	case MXC_AREA_DETECTOR:
+		mx_status = mx_area_detector_stop( record );
+		break;
+	case MXC_VIDEO_INPUT:
+		mx_status = mx_video_input_stop( record );
 		break;
 	default:
 		fprintf(output, "Stop is not supported for '%s' records.\n",
