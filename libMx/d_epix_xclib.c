@@ -1499,9 +1499,11 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
+#if 0
 	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
+#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",

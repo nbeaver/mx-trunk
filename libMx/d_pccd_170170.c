@@ -822,6 +822,20 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	double t;
 	mx_status_type mx_status;
 
+	/* If we are using a detector head simulator,
+	 * return a small fake value.
+	 */
+
+	if ( pccd_170170->pccd_170170_flags
+				& MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR )
+	{
+		*detector_readout_time = 0.01;
+
+		return MX_SUCCESSFUL_RESULT;
+	}
+
+	/* Otherwise, compute the real value. */
+
 	sp = &(ad->sequence_parameters);
 
 	/* Read out the necessary register values from the detector head. */
