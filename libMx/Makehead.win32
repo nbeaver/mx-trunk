@@ -263,16 +263,16 @@ CFLAGS_MX_VERS  = $(CFLAGS) -DMX_MAJOR_VERSION=$(MX_MAJOR_VERSION) \
 COMPILE		= $(CC) -c
 DEFINE		= -D
 #
-# I use a version of makedepend that I obtained from the web site
-# http://www.utexas.edu/ftp/microlib/nt/new/
+# For makedepend, you can use either the Cygwin 'makedepend' command
+# or you can use the 'makedepend' from UnxUtils.  UnxUtils can be found
+# at http://sourceforge.net/projects/unxutils.
 #
-# Disabled for now.
+#MAKEDEPEND_CMD = c:/unxutils
 #
-#MAKEDEPEND	= mkdepend -f- $(CFLAGS) $(EPICS_INCLUDES) *.c > Makefile.depend
+MAKEDEPEND_CMD = makedepend
 
-#MAKEDEPEND	= cp nul Makefile.depend
-
-MAKEDEPEND	= ( rm Makefile.depend ; touch Makefile.depend )
+MAKEDEPEND = \
+$(MAKEDEPEND_CMD) -o.obj -Y -I../libMx -f- *.c 2>nul > Makefile.depend
 
 MAKEDEPEND_CLEAN = rm Makefile.depend
 

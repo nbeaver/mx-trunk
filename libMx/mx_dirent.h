@@ -18,7 +18,28 @@
 #define _MX_DIRENT_H_
 
 #if defined(OS_WIN32)
-#error WIN32 support not yet implemented for mx_dirent.h
+
+#include <windows.h>
+
+typedef struct {
+	HANDLE find_handle;
+	WIN32_FIND_DATA find_data;
+	long file_number;
+	char directory_name[MAX_PATH+1];
+} DIR;
+
+struct dirent {
+	char d_name[MAX_PATH+1];
+};
+
+MX_API DIR *opendir( const char *name );
+
+MX_API int closedir( DIR *dir );
+
+MX_API struct dirent *readdir( DIR *dir );
+
+MX_API void rewinddir( DIR *dir );
+
 #else
 #  include <dirent.h>
 #endif

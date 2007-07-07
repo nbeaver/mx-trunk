@@ -123,7 +123,7 @@
  * the obsolete Video4linux version 1 API.
  */
 
-#define HAVE_VIDEO_4_LINUX_2		1
+#define HAVE_VIDEO_4_LINUX_2		0
 
 /*****************************************************************************
  *

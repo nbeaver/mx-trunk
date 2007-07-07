@@ -25,6 +25,10 @@
 
 #include <stdlib.h>
 
+#if defined(OS_WIN32)
+#  include <windows.h>
+#endif
+
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_image.h"
