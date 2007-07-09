@@ -1654,10 +1654,10 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
-	camera_is_master = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
-
-	external_trigger =
+	camera_is_master =
 	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+
+	external_trigger = (vinput->trigger_mode & MXT_IMAGE_EXTERNAL_TRIGGER);
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: camera_is_master = %d, external_trigger = %d",
@@ -1784,17 +1784,17 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 			sp->sequence_type, ad->record->name );
 	}
 
-	camera_is_master = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
-
-	internal_trigger =
+	camera_is_master =
 	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+
+	internal_trigger = (vinput->trigger_mode & MXT_IMAGE_INTERNAL_TRIGGER);
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: camera_is_master = %d, internal_trigger = %d",
 		fname, (int) camera_is_master, (int) internal_trigger));
 #endif
 
-	if ( camera_is_master & internal_trigger ) {
+	if ( camera_is_master && internal_trigger ) {
 		mx_status = mx_video_input_continuous_capture(
 					pccd_170170->video_input_record,
 					ad->maximum_frame_number );
@@ -2799,6 +2799,33 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+
+		/* Set the trigger mode for the imaging board. */
+
+		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+		case MXT_SQ_GEOMETRICAL:
+		case MXT_SQ_STREAK_CAMERA:
+		case MXT_SQ_SUBIMAGE:
+			mx_status = mx_video_input_set_trigger_mode( 
+						pccd_170170->video_input_record,
+						MXT_IMAGE_INTERNAL_TRIGGER );
+			break;
+		case MXT_SQ_STROBE:
+		case MXT_SQ_BULB:
+			mx_status = mx_video_input_set_trigger_mode( 
+						pccd_170170->video_input_record,
+						MXT_IMAGE_EXTERNAL_TRIGGER );
+			break;
+		default:
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal sequence type %ld requested "
+			"for detector '%s'.",
+				sp->sequence_type, ad->record->name );
+		}
 
 		/* Insert a delay to give the detector head FPGAs time to
 		 * finish their processing.

@@ -1603,11 +1603,16 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 
 	switch( vinput->parameter_type ) {
 	case MXLV_VIN_BYTE_ORDER:
-	case MXLV_VIN_TRIGGER_MODE:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
+		break;
 
+#if MXD_EPIX_XCLIB_DEBUG
+	case MXLV_VIN_TRIGGER_MODE:
+		MX_DEBUG(-2,("%s: trigger_mode = %ld",
+			fname, vinput->trigger_mode));
+#endif
 		break;
 
 	case MXLV_VIN_BYTES_PER_FRAME:
@@ -1750,6 +1755,13 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		break;
 
+#if MXD_EPIX_XCLIB_DEBUG
+	case MXLV_VIN_TRIGGER_MODE:
+		MX_DEBUG(-2,("%s: trigger_mode = %ld",
+			fname, vinput->trigger_mode));
+#endif
+		break;
+
 	case MXLV_VIN_FORMAT:
 	case MXLV_VIN_FORMAT_NAME:
 		(void) mxd_epix_xclib_get_parameter( vinput );
@@ -1837,9 +1849,6 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		MX_DEBUG(-2,("%s: finished setting '%s' framesize.",
 			fname, vinput->record->name));
 #endif
-		break;
-
-	case MXLV_VIN_TRIGGER_MODE:
 		break;
 
 	default:
