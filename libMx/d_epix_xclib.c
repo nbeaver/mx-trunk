@@ -33,11 +33,15 @@
 #if defined(OS_WIN32)
 #  include <windows.h>
 #else
+#  include <errno.h>
+#  include <signal.h>
 #  include <sys/times.h>
+#  define OS_LINUX_GNU
 #endif
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_signal.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_image.h"
@@ -60,7 +64,7 @@ MX_RECORD_FUNCTION_LIST mxd_epix_xclib_record_function_list = {
 	NULL,
 	NULL,
 	mxd_epix_xclib_open,
-	NULL,
+	mxd_epix_xclib_close,
 	NULL,
 	mxd_epix_xclib_resynchronize
 };
@@ -144,6 +148,198 @@ mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+
+/*---*/
+
+/*--------- Microsoft Win32 specific functions ---------*/
+
+#if defined( OS_WIN32 )
+
+static mx_status_type
+mxd_epix_xclib_create_captured_field_handler(
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+}
+
+#endif  /* OS_WIN32 */
+
+/*--------- Linux specific functions ---------*/
+
+#if defined( OS_LINUX )
+
+#ifdef CONFIG_SMP
+#  define LOCK "lock ; "
+#else
+#  define LOCK ""
+#endif
+
+static uint32_t mxd_epix_xclib_total_num_frames = 0;
+
+static void
+mxd_epix_xclib_captured_field_signal_handler( int signal_number,
+						siginfo_t *siginfo,
+						void *cruft )
+{
+	/* Do an atomic increment of mxd_epix_xclib_total_num_frames.
+	 * We use inline x86 assembly language to do it.
+	 */
+
+	__asm__ __volatile__(
+		LOCK "incl %0"
+		:"=m" (mxd_epix_xclib_total_num_frames)
+		:"m" (mxd_epix_xclib_total_num_frames));
+
+#if MXD_EPIX_XCLIB_DEBUG
+	/* Show the current value of mxd_epix_xclib_total_num_frames. */
+
+	{
+		uint32_t divisor, remainder, result;
+		char ascii_digit;
+		mx_bool_type suppress_output;
+
+		/* Since we cannot safely use printf() in a signal handler,
+		 * we have to resort to more primitive and awkward methods.
+		 */
+
+		write( 2, "CAPTURE: Total num frames = ", 28 );
+
+		divisor = 1000000000;
+		remainder = mxd_epix_xclib_total_num_frames;
+
+		suppress_output = TRUE;
+
+		while( divisor > 0 ) {
+
+			result = remainder / divisor;
+
+			if ( suppress_output ) {
+				if ( result != 0 ) {
+					suppress_output = FALSE;
+				}
+			}
+
+			if ( suppress_output == FALSE ) {
+				ascii_digit = '0' + result;
+
+				write( 2, &ascii_digit, 1 );
+			}
+
+			remainder = remainder % divisor;
+
+			divisor /= 10;
+		}
+
+		write( 2, "\n", 1 );
+	}
+#endif
+
+	return;
+}
+
+static mx_status_type
+mxd_epix_xclib_create_captured_field_handler(
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	static const char fname[] =
+		"mxd_epix_xclib_create_captured_field_handler()";
+
+	struct sigaction sa;
+	int epix_status, os_status, saved_errno, allocated_signal_number;
+	char error_message[100];
+	mx_status_type mx_status;
+
+	/* Reserve SIGUSR1 for use by the signal handler. */
+
+	mx_status = mx_signal_allocate( SIGUSR1, &allocated_signal_number );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epix_xclib_vinput->captured_field_signal = allocated_signal_number;
+
+	/* Set up the signal handler. */
+
+	memset( &sa, 0, sizeof(sa) );
+
+	sa.sa_flags = (SA_SIGINFO | SA_RESTART);
+	sa.sa_sigaction = mxd_epix_xclib_captured_field_signal_handler;
+
+	os_status = sigaction( allocated_signal_number, &sa, NULL );
+
+	if ( os_status != 0 ) {
+		saved_errno = errno;
+
+		return mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+		"Unable to configure the signal handler for signal %d.  "
+		"Errno = %d, error message = '%s'.",
+			allocated_signal_number,
+			saved_errno, strerror(saved_errno) );
+	}
+
+	/* Tell XCLIB that it can start sending captured field signals. */
+
+	epix_status = pxd_eventCapturedFieldCreate( epix_xclib_vinput->unitmap,
+						allocated_signal_number, NULL );
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to start the EPIX captured field handler for "
+		"video input '%s' failed.  %s",
+			epix_xclib_vinput->record->name, error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_epix_xclib_destroy_captured_field_handler(
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	static const char fname[] =
+		"mxd_epix_xclib_destroy_captured_field_handler()";
+
+	int epix_status, os_status, saved_errno;
+	char error_message[100];
+	mx_status_type mx_status;
+
+	/* Tell XCLIB to stop sending captured field signals. */
+
+	epix_status = pxd_eventCapturedFieldClose( epix_xclib_vinput->unitmap,
+				epix_xclib_vinput->captured_field_signal );
+
+	if ( epix_status != 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) );
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"The attempt to stop the EPIX captured field handler for "
+		"video input '%s' failed.  %s",
+			epix_xclib_vinput->record->name, error_message );
+	}
+
+	/* Shut down the signal handler. */
+
+	signal(epix_xclib_vinput->captured_field_signal, SIG_DFL);
+
+	/* Deallocate the signal. */
+
+	mx_status = mx_signal_free( epix_xclib_vinput->captured_field_signal );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epix_xclib_vinput->captured_field_signal = -1;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+#endif  /* OS_LINUX */
+
+/*--------- End of platform specific functions ---------*/
 
 /*---*/
 
@@ -522,11 +718,50 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Setup the captured field signal handler. */
+
+	mx_status = mxd_epix_xclib_create_captured_field_handler(
+						epix_xclib_vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mxd_epix_xclib_close( MX_RECORD *record )
+{
+	static const char fname[] = "mxd_epix_xclib_close()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	mx_status_type mx_status;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD pointer passed was NULL." );
+	}
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s invoked for video input '%s'", fname, record->name ));
+#endif
+
+	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
+
+	mx_status = mxd_epix_xclib_get_pointers( vinput,
+					&epix_xclib_vinput, NULL, fname );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epix_xclib_destroy_captured_field_handler(
+							epix_xclib_vinput );
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1585,7 +1820,12 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	int bits_per_component, components_per_pixel;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+	uint16 CLCCSE;
+	int epix_status;
 	mx_status_type mx_status;
+
+	struct xclibs *xc;
+	xclib_DeclareVidStateStructs(vidstate);
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
 					&epix_xclib_vinput, NULL, fname );
@@ -1706,6 +1946,68 @@ mxd_epix_xclib_get_parameter( MX_VIDEO_INPUT *vinput )
 #endif
 		break;
 
+	case MXLV_VIN_MASTER_CLOCK:
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: setting '%s' master clock to %ld",
+			fname, vinput->record->name, vinput->master_clock));
+#endif
+		/* Escape to the Structured Style Interface. */
+
+		xc = pxd_xclibEscape(0, 0, 0);
+
+		if ( xc == NULL ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The XCLIB library has not yet been initialized "
+			"for video input '%s' with pxd_PIXCIopen().",
+				vinput->record->name );
+		}
+
+		xclib_InitVidStateStructs(vidstate);
+
+		xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		CLCCSE = vidstate.xc.dxxformat->CLCCSE;
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: CLCCSE = %#x", fname, CLCCSE));
+#endif
+		/* The CC1 line is controlled by bits 0 to 3.
+		 *
+		 * If we want the video input board to be the master,
+		 * then we must set bits 0-3 to 2.  If we want the
+		 * camera head to be the master then we must set
+		 * bits 0-3 to 0.
+		 */
+
+		switch( CLCCSE & 0xf ) {
+		case 2:
+			vinput->master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
+			break;
+		case 0:
+			vinput->master_clock = MXF_VIN_MASTER_CAMERA;
+			break;
+		default:
+			mx_status = mx_error(
+				MXE_HARDWARE_CONFIGURATION_ERROR, fname,
+				"CLCCSE has the unsupported value %#x "
+				"for video input '%s'.",
+					CLCCSE, vinput->record->name );
+			break;
+		}
+
+		/* Leave the Structured Style Interface. */
+
+		epix_status = pxd_xclibEscaped(0, 0, 0);
+
+		if ( epix_status != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Error in pxd_xclibEscaped() for record '%s'.  "
+			"Error code = %d, error message = '%s'",
+				vinput->record->name,
+				epix_status, pxd_mesgErrorCode(epix_status) );
+		}
+		break;
+
 	case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
 		vinput->maximum_frame_number = pxd_imageZdim() - 1;
 		break;
@@ -1727,6 +2029,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 	static const char fname[] = "mxd_epix_xclib_set_parameter()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	uint16 CLCCSE;
 	int epix_status;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
@@ -1777,6 +2080,82 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Changing the byte order for video input '%s' "
 			"is not supported.", vinput->record->name );
+		break;
+
+	case MXLV_VIN_MASTER_CLOCK:
+		if ( (vinput->master_clock != MXF_VIN_MASTER_VIDEO_BOARD)
+		  && (vinput->master_clock != MXF_VIN_MASTER_CAMERA) )
+		{
+			return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported master clock type %ld requested "
+			"for video input '%s'.",
+				vinput->master_clock, vinput->record->name );
+		}
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: setting '%s' master clock to %ld",
+			fname, vinput->record->name, vinput->master_clock));
+#endif
+		/* Escape to the Structured Style Interface. */
+
+		xc = pxd_xclibEscape(0, 0, 0);
+
+		if ( xc == NULL ) {
+			return mx_error( MXE_INITIALIZATION_ERROR, fname,
+			"The XCLIB library has not yet been initialized "
+			"for video input '%s' with pxd_PIXCIopen().",
+				vinput->record->name );
+		}
+
+		xclib_InitVidStateStructs(vidstate);
+
+		xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		CLCCSE = vidstate.xc.dxxformat->CLCCSE;
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: Old CLCCSE = %#x", fname, CLCCSE));
+#endif
+		/* The CC1 line is controlled by bits 0 to 3.
+		 *
+		 * If we want the video input board to be the master,
+		 * then we must set bits 0-3 to 2.  If we want the
+		 * camera head to be the master then we must set
+		 * bits 0-3 to 0.
+		 */
+
+		CLCCSE &= ~0xf;
+
+		if ( vinput->master_clock == MXF_VIN_MASTER_VIDEO_BOARD ) {
+			CLCCSE |= 0x2;
+		}
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: New CLCCSE = %#x", fname, CLCCSE));
+#endif
+		vidstate.xc.dxxformat->CLCCSE = CLCCSE;
+
+		epix_status = xc->pxlib.defineState(
+				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		if ( epix_status != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Error in xc->pxlib.defineState() for record '%s'.  "
+			"Error code = %d, error message = '%s'",
+				vinput->record->name,
+				epix_status, pxd_mesgErrorCode(epix_status) );
+		}
+
+		/* Leave the Structured Style Interface. */
+
+		epix_status = pxd_xclibEscaped(0, 0, 0);
+
+		if ( epix_status != 0 ) {
+			return mx_error( MXE_DEVICE_IO_ERROR, fname,
+			"Error in pxd_xclibEscaped() for record '%s'.  "
+			"Error code = %d, error message = '%s'",
+				vinput->record->name,
+				epix_status, pxd_mesgErrorCode(epix_status) );
+		}
 		break;
 
 	case MXLV_VIN_FRAMESIZE:

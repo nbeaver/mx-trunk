@@ -1266,6 +1266,71 @@ mx_video_input_set_camera_trigger_polarity( MX_RECORD *record,
 	return mx_status;
 }
 
+MX_EXPORT mx_status_type
+mx_video_input_get_master_clock( MX_RECORD *record, long *master_clock )
+{
+	static const char fname[] = "mx_video_input_get_master_clock()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *get_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	get_parameter_fn = flist->get_parameter;
+
+	if ( get_parameter_fn == NULL ) {
+		get_parameter_fn = mx_video_input_default_get_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_MASTER_CLOCK;
+
+	mx_status = (*get_parameter_fn)( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( master_clock != NULL ) {
+		*master_clock = vinput->master_clock;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_video_input_set_master_clock( MX_RECORD *record, long master_clock )
+{
+	static const char fname[] = "mx_video_input_set_master_clock()";
+
+	MX_VIDEO_INPUT *vinput;
+	MX_VIDEO_INPUT_FUNCTION_LIST *flist;
+	mx_status_type ( *set_parameter_fn ) ( MX_VIDEO_INPUT * );
+	mx_status_type mx_status;
+
+	mx_status = mx_video_input_get_pointers(record, &vinput, &flist, fname);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	set_parameter_fn = flist->set_parameter;
+
+	if ( set_parameter_fn == NULL ) {
+		set_parameter_fn = mx_video_input_default_set_parameter_handler;
+	}
+
+	vinput->parameter_type = MXLV_VIN_MASTER_CLOCK;
+
+	vinput->master_clock = master_clock;
+
+	mx_status = (*set_parameter_fn)( vinput );
+
+	return mx_status;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -1483,6 +1548,7 @@ mx_video_input_default_get_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+	case MXLV_VIN_MASTER_CLOCK:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:
@@ -1521,6 +1587,7 @@ mx_video_input_default_set_parameter_handler( MX_VIDEO_INPUT *vinput )
 	case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 	case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 	case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
+	case MXLV_VIN_MASTER_CLOCK:
 	case MXLV_VIN_SEQUENCE_TYPE:
 	case MXLV_VIN_NUM_SEQUENCE_PARAMETERS:
 	case MXLV_VIN_SEQUENCE_PARAMETER_ARRAY:

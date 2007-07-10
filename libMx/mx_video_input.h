@@ -33,6 +33,12 @@
 #define MXF_VIN_TRIGGER_HIGH		3
 #define MXF_VIN_TRIGGER_LOW		4
 
+/* Definitions for 'master_clock'. */
+
+#define MXF_VIN_MASTER_NONE		0
+#define MXF_VIN_MASTER_VIDEO_BOARD	1
+#define MXF_VIN_MASTER_CAMERA		2
+
 typedef struct {
 	MX_RECORD *record;
 
@@ -65,6 +71,8 @@ typedef struct {
 	double pixel_clock_frequency;		/* in pixels per second */
 	long external_trigger_polarity;
 	long camera_trigger_polarity;
+
+	long master_clock;
 
 	MX_SEQUENCE_PARAMETERS sequence_parameters;
 
@@ -106,11 +114,12 @@ typedef struct {
 #define MXLV_VIN_PIXEL_CLOCK_FREQUENCY		11020
 #define MXLV_VIN_EXTERNAL_TRIGGER_POLARITY	11021
 #define MXLV_VIN_CAMERA_TRIGGER_POLARITY	11022
-#define MXLV_VIN_SEQUENCE_TYPE			11023
-#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11024
-#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11025
-#define MXLV_VIN_GET_FRAME			11026
-#define MXLV_VIN_FRAME_BUFFER			11027
+#define MXLV_VIN_MASTER_CLOCK			11023
+#define MXLV_VIN_SEQUENCE_TYPE			11024
+#define MXLV_VIN_NUM_SEQUENCE_PARAMETERS	11025
+#define MXLV_VIN_SEQUENCE_PARAMETER_ARRAY	11026
+#define MXLV_VIN_GET_FRAME			11027
+#define MXLV_VIN_FRAME_BUFFER			11028
 
 #define MX_VIDEO_INPUT_STANDARD_FIELDS \
   {MXLV_VIN_FRAMESIZE, -1, "framesize", MXFT_LONG, NULL, 1, {2}, \
@@ -210,6 +219,10 @@ typedef struct {
 					MXFT_LONG, NULL, 0, {0}, \
 	MXF_REC_CLASS_STRUCT, \
 			offsetof(MX_VIDEO_INPUT, camera_trigger_polarity), \
+	{0}, NULL, 0}, \
+  \
+  {MXLV_VIN_MASTER_CLOCK, -1, "master_clock", MXFT_LONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_VIDEO_INPUT, master_clock), \
 	{0}, NULL, 0}, \
   \
   {MXLV_VIN_SEQUENCE_TYPE, -1, "sequence_type", MXFT_LONG, NULL, 0, {0}, \
@@ -364,6 +377,14 @@ MX_API mx_status_type mx_video_input_get_camera_trigger_polarity(
 MX_API mx_status_type mx_video_input_set_camera_trigger_polarity(
 					MX_RECORD *record,
 					long camera_trigger_polarity );
+
+MX_API mx_status_type mx_video_input_get_master_clock(
+					MX_RECORD *record,
+					long *master_clock );
+
+MX_API mx_status_type mx_video_input_set_master_clock(
+					MX_RECORD *record,
+					long master_clock );
 
 /*---*/
 

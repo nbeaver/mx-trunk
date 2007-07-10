@@ -37,6 +37,12 @@ typedef struct {
 	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 
+#if defined(OS_WIN32)
+	HANDLE captured_field_handle;
+#else
+	int captured_field_signal;
+#endif
+
 } MX_EPIX_XCLIB_VIDEO_INPUT;
 
 #define MXD_EPIX_XCLIB_STANDARD_FIELDS \
@@ -68,6 +74,7 @@ MX_API mx_status_type mxd_epix_xclib_create_record_structures(
 MX_API mx_status_type mxd_epix_xclib_finish_record_initialization(
 							MX_RECORD *record );
 MX_API mx_status_type mxd_epix_xclib_open( MX_RECORD *record );
+MX_API mx_status_type mxd_epix_xclib_close( MX_RECORD *record );
 MX_API mx_status_type mxd_epix_xclib_resynchronize( MX_RECORD *record );
 
 MX_API mx_status_type mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput );

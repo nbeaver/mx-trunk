@@ -1167,6 +1167,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	unsigned long controller_fpga_version, comm_fpga_version;
 	unsigned long control_register_value;
 	size_t array_size;
+	long master_clock;
+	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -1415,7 +1417,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Put the detector head in full frame mode. */
+	/* Read the control register so that we can change it. */
 
 	mx_status = mxd_pccd_170170_read_register( pccd_170170,
 					MXLV_PCCD_170170_DH_CONTROL,
@@ -1424,7 +1426,29 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: OLD control_register_value = %#lx",
+		fname, control_register_value));
+
+	/* Put the detector head in full frame mode. */
+
 	control_register_value &= (~0x18);
+
+	/* If requested, turn on the test mode pattern. */
+
+	if ( flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
+		control_register_value |= 0x200;
+
+		mx_warning( "Area detector '%s' will return a test image "
+			"instead of taking a real image.",
+				record->name );
+	} else {
+		control_register_value &= (~0x200);
+	}
+
+	/* Write out the new control register value. */
+
+	MX_DEBUG(-2,("%s: NEW control_register_value = %#lx",
+		fname, control_register_value));
 
 	mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_CONTROL,
@@ -1464,6 +1488,24 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	mx_status = mx_video_input_set_trigger_mode( video_input_record,
 				pccd_170170->initial_trigger_mode );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Specify whether or not the camera head or the video board is
+	 * in charge of generating the trigger pulse for sequences.
+	 */
+
+	camera_is_master =
+	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
+
+	if ( camera_is_master ) {
+		master_clock = MXF_VIN_MASTER_CAMERA;
+	} else {
+		master_clock = MXF_VIN_MASTER_VIDEO_BOARD;
+	}
+
+	mx_status = mx_video_input_set_master_clock( video_input_record,
+							master_clock );
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 

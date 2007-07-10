@@ -238,6 +238,10 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 		"%s.last_frame_number", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->master_clock_nf),
+			network_vinput->server_record,
+		"%s.master_clock", network_vinput->remote_record_name );
+
 	mx_network_field_init( &(network_vinput->maximum_frame_number_nf),
 			network_vinput->server_record,
 		"%s.maximum_frame_number", network_vinput->remote_record_name );
@@ -787,6 +791,11 @@ mxd_network_vinput_get_parameter( MX_VIDEO_INPUT *vinput )
 			    MXFT_LONG, &(vinput->external_trigger_polarity) );
 		break;
 
+	case MXLV_VIN_MASTER_CLOCK:
+		mx_status = mx_get( &(network_vinput->master_clock_nf),
+				MXFT_LONG, &(vinput->master_clock) );
+		break;
+
 	case MXLV_VIN_FRAMESIZE:
 		dimension[0] = 2;
 
@@ -903,6 +912,11 @@ mxd_network_vinput_set_parameter( MX_VIDEO_INPUT *vinput )
 		mx_status = 
 		    mx_put( &(network_vinput->external_trigger_polarity_nf),
 			    MXFT_LONG, &(vinput->external_trigger_polarity) );
+		break;
+
+	case MXLV_VIN_MASTER_CLOCK:
+		mx_status = mx_put( &(network_vinput->master_clock_nf),
+				MXFT_LONG, &(vinput->master_clock) );
 		break;
 
 	case MXLV_VIN_FRAMESIZE:

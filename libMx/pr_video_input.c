@@ -143,6 +143,7 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		case MXLV_VIN_FRAME_BUFFER:
 		case MXLV_VIN_GET_FRAME:
 		case MXLV_VIN_LAST_FRAME_NUMBER:
+		case MXLV_VIN_MASTER_CLOCK:
 		case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
 		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 		case MXLV_VIN_STATUS:
@@ -246,6 +247,10 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_get_last_frame_number(
 								record, NULL );
 			break;
+		case MXLV_VIN_MASTER_CLOCK:
+			mx_status = mx_video_input_get_master_clock(
+								record, NULL );
+			break;
 		case MXLV_VIN_MAXIMUM_FRAME_NUMBER:
 			mx_status = mx_video_input_get_maximum_frame_number(
 								record, NULL );
@@ -309,6 +314,10 @@ mx_video_input_process_function( void *record_ptr,
 		case MXLV_VIN_GET_FRAME:
 			mx_status = mxp_video_input_get_frame_handler(
 					record, record_field, vinput );
+			break;
+		case MXLV_VIN_MASTER_CLOCK:
+			mx_status = mx_video_input_set_master_clock( record,
+							vinput->master_clock );
 			break;
 		case MXLV_VIN_PIXEL_CLOCK_FREQUENCY:
 			mx_status = mx_video_input_set_pixel_clock_frequency(

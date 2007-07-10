@@ -374,6 +374,13 @@ mxd_file_vinput_open( MX_RECORD *record )
 		fname, file_vinput->directory_name, file_vinput->num_files));
 #endif
 
+	if ( file_vinput->num_files <= 0 ) {
+		return mx_error( MXE_NOT_FOUND, fname,
+		"There are no files in the directory '%s' "
+		"specified by video input record '%s'.",
+			file_vinput->directory_name, record->name );
+	}
+
 	/* Read in the names of all of the files in the specified directory. */
 
 #if 1
@@ -735,8 +742,22 @@ mxd_file_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 
+	if ( file_vinput->num_files <= 0 ) {
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+		"There are no files in the directory '%s' specified "
+		"by video input record '%s'.",
+			file_vinput->directory_name,
+			vinput->record->name );
+	}
+
 	if ( file_vinput->current_filenum >= file_vinput->num_files ) {
-		file_vinput->current_filenum = 0;
+		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+		"Video input record '%s' read image frame %ld "
+		"from directory '%s' which has only %ld files in it.",
+			vinput->record->name,
+			file_vinput->current_filenum,
+			file_vinput->directory_name,
+			file_vinput->num_files );
 	}
 
 	i = file_vinput->current_filenum;
