@@ -34,6 +34,9 @@ typedef struct {
 	double default_trigger_time;
 	long pixel_clock_divisor;
 
+	mx_bool_type new_sequence;
+	long old_total_num_frames;
+
 	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 

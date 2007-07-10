@@ -199,11 +199,12 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 
 		/* Since we cannot safely use printf() in a signal handler,
 		 * we have to resort to more primitive and awkward methods.
+		 * write() is async signal safe, so we can call it directly.
 		 */
 
 		write( 2, "CAPTURE: Total num frames = ", 28 );
 
-		divisor = 1000000000;
+		divisor = 1000000000L;
 		remainder = mxd_epix_xclib_total_num_frames;
 
 		suppress_output = TRUE;
@@ -226,7 +227,7 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 
 			remainder = remainder % divisor;
 
-			divisor /= 10;
+			divisor /= 10L;
 		}
 
 		write( 2, "\n", 1 );
@@ -692,6 +693,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib_vinput->num_write_test_array_bytes = 0;
 	epix_xclib_vinput->write_test_array = NULL;
+	epix_xclib_vinput->new_sequence = FALSE;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
@@ -820,8 +822,23 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
-
 	flags = epix_xclib_vinput->epix_xclib_vinput_flags;
+
+	/* Save the starting value of the total number of frames. */
+
+	mx_status = mxd_epix_xclib_get_total_num_frames( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epix_xclib_vinput->old_total_num_frames = vinput->total_num_frames;
+
+	/* Record the fact that we have started a new sequence,
+	 * so that mxd_epix_xclib_get_last_frame_number() can make
+	 * use of that fact.
+	 */
+
+	epix_xclib_vinput->new_sequence = TRUE;
 
 	/* If the 'write test' feature is enabled, fill
 	 * the first frame buffer with a test value.
@@ -1054,6 +1071,12 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		0, 0, 0,                /* No end trigger */
 		0, 0, 0, 0, 0, 0 );     /* yet more reserved */
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_goLiveSeqTrig( %ld, %ld, %ld, 1, %ld, ... ) = %d",
+		fname, epix_xclib_vinput->unitmap,
+		startbuf, endbuf, numbuf, epix_status));
+#endif
+
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
 			epix_xclib_vinput->unitmap, epix_status,
@@ -1207,6 +1230,11 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 		epix_status = pxd_goSnap( epix_xclib_vinput->unitmap, 1 );
 
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: pxd_goSnap( %ld, 1 ) = %d",
+		fname, epix_xclib_vinput->unitmap, epix_status));
+#endif
+
 		if ( epix_status != 0 ) {
 			mxi_epix_xclib_error_message(
 				epix_xclib_vinput->unitmap, epix_status,
@@ -1225,6 +1253,11 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 		fname, vinput->record->name ));
 #endif
 		epix_status = pxd_goLive( epix_xclib_vinput->unitmap, 1 );
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: pxd_goLive( %ld, 1 ) = %d",
+		fname, epix_xclib_vinput->unitmap, epix_status));
+#endif
 
 		if ( epix_status != 0 ) {
 			mxi_epix_xclib_error_message(
@@ -1277,6 +1310,13 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 #endif
 		epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 					startbuf, endbuf, 1, numbuf, 1 );
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+		("%s: pxd_goLiveSeq( %ld, %ld, %ld, 1, %ld, 1 ) = %d",
+			fname, epix_xclib_vinput->unitmap,
+			startbuf, endbuf, numbuf, epix_status));
+#endif
 
 		if ( epix_status != 0 ) {
 			mxi_epix_xclib_error_message(
@@ -1452,12 +1492,13 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 	 * number of frames until explicitly stopped.  
 	 */
 
-#if 1
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
 			1, num_frame_buffers, 1, 0, 1 );
-#else
-	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-			1, num_frame_buffers, 1, 10, 1 );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, 0, 1 ) = %d",
+		fname, epix_xclib_vinput->unitmap,
+		num_frame_buffers, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
@@ -1491,11 +1532,48 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 
 	captured_buffer = pxd_capturedBuffer( epix_xclib_vinput->unitmap );
 
-#if 1 && MXD_EPIX_XCLIB_DEBUG	/* WML */
-
+#if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: pxd_capturedBuffer() = %ld", fname, captured_buffer));
+
+	MX_DEBUG(-2,("%s: new_sequence = %d",
+		fname, (int) epix_xclib_vinput->new_sequence ));
 #endif
-	vinput->last_frame_number = captured_buffer - 1;
+	if ( epix_xclib_vinput->new_sequence ) {
+
+		/* If new_sequence is TRUE, this means that we have just
+		 * started a new sequence with mxd_epix_xclib_arm().  If
+		 * this is not the first sequence started after calling
+		 * pxd_PIXCIopen(), then pxd_capturedBuffer() will report
+		 * a value >= 1.
+		 *
+		 * If pxd_capturedBuffer() == 1, then it will also return
+		 * a value of 1 after the first frame of the new sequence
+		 * is captured.  This makes it more difficult than it should
+		 * be to easily determine whether or not the first frame
+		 * has been acquired.
+		 *
+		 * To work around this, we set the value of last_frame_number
+		 * to -1 until total_num_frames becomes different from
+		 * old_total_num_frames.  For the second frame and later,
+		 * we just pass through the value derived from the hardware.
+		 */
+
+		mx_status = mxd_epix_xclib_get_total_num_frames( vinput );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( vinput->total_num_frames
+			== epix_xclib_vinput->old_total_num_frames )
+		{
+			vinput->last_frame_number = -1;
+		} else {
+			vinput->last_frame_number = captured_buffer - 1;
+			epix_xclib_vinput->new_sequence = FALSE;
+		}
+	} else {
+		vinput->last_frame_number = captured_buffer - 1;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1514,12 +1592,11 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	vinput->total_num_frames =
-		pxd_capturedFieldCount( epix_xclib_vinput->unitmap );
+	vinput->total_num_frames = mxd_epix_xclib_total_num_frames;
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
-		fname, vinput->total_num_frames ));
+	MX_DEBUG(-2,("%s: total_num_frames = %lu",
+		fname, vinput->total_num_frames));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
@@ -1579,6 +1656,9 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
 		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
+
+	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
+		fname, pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
 #if 0
@@ -1758,11 +1838,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
-#if 0
 	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
-#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",

@@ -1368,8 +1368,23 @@ mxd_pccd_170170_open( MX_RECORD *record )
 				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
 				&controller_fpga_version );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+	/* The first read after the detector head is powered on may fail.
+	 * If so, we try one more time.
+	 */
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		mx_info( "%s: Retrying read of register %d for detector '%s'.",
+			fname,
+    (MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION - MXLV_PCCD_170170_DH_BASE),
+			record->name );
+
+		mx_status = mxd_pccd_170170_read_register( pccd_170170,
+				MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION,
+				&controller_fpga_version );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
 
 	mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_COMM_FPGA_VERSION,

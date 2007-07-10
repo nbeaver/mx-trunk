@@ -52,6 +52,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
 	long old_last_frame_number, old_total_num_frames, num_unread_frames;
+	long num_frames_difference;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -436,11 +437,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+			num_frames_difference =
+				last_frame_number - old_last_frame_number;
+
 			if ( last_frame_number < old_last_frame_number ) {
 				num_unread_frames = last_frame_number + 1;
 			} else {
-				num_unread_frames +=
-				    last_frame_number - old_last_frame_number;
+				num_unread_frames += num_frames_difference;
 			}
 
 			MX_DEBUG(-2,("n = %ld, last_frame_number = %ld, "
@@ -448,6 +451,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 			"ad_status = %#lx",
 				n, last_frame_number, old_last_frame_number,
 				total_num_frames, ad_status));
+
+			MX_DEBUG(-2,("%s: num_frames_difference = %ld",
+				cname, num_frames_difference));
 
 			MX_DEBUG(-2,("%s: num_unread_frames = %ld",
 				cname, num_unread_frames));
