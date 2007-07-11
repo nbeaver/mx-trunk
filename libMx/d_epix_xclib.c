@@ -155,10 +155,138 @@ mxd_epix_xclib_get_pointers( MX_VIDEO_INPUT *vinput,
 
 #if defined( OS_WIN32 )
 
+static unsigned __stdcall
+mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
+{
+	static const char fname[] = "mxd_epix_xclib_captured_field_thread_fn()";
+
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	DWORD milliseconds, os_status, last_error_code;
+	TCHAR message_buffer[100];
+
+	if ( args_ptr == NULL ) {
+		return FALSE;
+	}
+
+	epix_xclib_vinput = (MX_EPIX_XCLIB_VIDEO_INPUT *) args_ptr;
+
+	if ( epix_xclib_vinput == NULL ) {
+		return FALSE;
+	}
+
+	/* Wait for captured field events to occur. */
+
+	milliseconds = INFINITE;
+
+	while (1) {
+		os_status = WaitForSingleObject(
+				epix_xclib_vinput->captured_field_event,
+				milliseconds );
+
+		switch( os_status ) {
+		case WAIT_OBJECT_0:
+			/* The captured field event has been signaled,
+			 * so increment uint32_total_num_frames in an
+			 * atomic fashion.
+			 */
+
+			InterlockedIncrement(
+			    &(epix_xclib_vinput->uint32_total_num_frames) );
+
+			break;
+
+		case WAIT_TIMEOUT:
+			/* For now, we just try again. */
+
+			break;
+
+		case WAIT_FAILED:
+			last_error_code = GetLastError();
+
+			mx_win32_error_message( last_error_code,
+				message_buffer, sizeof(message_buffer) );
+
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"WaitForSingleObject() for record '%s' failed "
+			"with error code %ld, error message = '%s'.",
+				epix_xclib_vinput->record->name,
+				last_error_code, message_buffer );
+			break;
+		default:
+			(void) mx_error( MXE_OPERATING_SYSTEM_ERROR, fname,
+			"Unexpected value %#lx returned by "
+			"WaitForSingleObject() for record '%s'.",
+				os_status, epix_xclib_vinput->record->name );
+			break;
+		}
+	}
+}
+
 static mx_status_type
 mxd_epix_xclib_create_captured_field_handler(
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
 {
+	static const char fname[] =
+		"mxd_epix_xclib_create_captured_field_handler()";
+
+	TCHAR message_buffer[100];
+	DWORD last_error_code;
+	unsigned thread_id;
+
+	epix_xclib_vinput->captured_field_event =
+		pxd_eventCapturedFieldCreate( epix_xclib_vinput->unitmap );
+
+	if ( epix_xclib_vinput->captured_field_event == NULL ) {
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to create a captured field event object "
+		"for record '%s' failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			epix_xclib_vinput->record->name,
+			last_error_code, message_buffer );
+	}
+
+	epix_xclib_vinput->captured_field_thread =
+			(HANDLE) _beginthreadex( NULL, 0,
+					mxd_epix_xclib_captured_field_thread_fn,
+					epix_xclib_vinput,
+					0,
+					&thread_id );
+
+	if ( epix_xclib_vinput->captured_field_thread == NULL ) {
+
+		last_error_code = GetLastError();
+
+		mx_win32_error_message( last_error_code,
+			message_buffer, sizeof(message_buffer) );
+
+		return mx_error( MXE_FUNCTION_FAILED, fname,
+		"The attempt to create captured field thread "
+		"for record '%s' failed.  "
+		"Win32 error code = %ld, error message = '%s'",
+			epix_xclib_vinput->record->name,
+			last_error_code, message_buffer );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxd_epix_xclib_destroy_captured_field_handler(
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	static const char fname[] =
+		"mxd_epix_xclib_destroy_captured_field_handler()";
+
+	pxd_eventCapturedFieldClose( epix_xclib_vinput->unitmap,
+				epix_xclib_vinput->captured_field_event );
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif  /* OS_WIN32 */
@@ -694,6 +822,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	epix_xclib_vinput->num_write_test_array_bytes = 0;
 	epix_xclib_vinput->write_test_array = NULL;
 	epix_xclib_vinput->new_sequence = FALSE;
+	epix_xclib_vinput->uint32_total_num_frames = 0;
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
@@ -1592,7 +1721,11 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if defined(OS_WIN32)
+	vinput->total_num_frames = epix_xclib_vinput->uint32_total_num_frames;
+#else
 	vinput->total_num_frames = mxd_epix_xclib_total_num_frames;
+#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: total_num_frames = %lu",

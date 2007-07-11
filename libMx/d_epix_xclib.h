@@ -40,8 +40,11 @@ typedef struct {
 	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 
+	uint32_t volatile uint32_total_num_frames;
+
 #if defined(OS_WIN32)
-	HANDLE captured_field_handle;
+	HANDLE captured_field_event;
+	HANDLE captured_field_thread;
 #else
 	int captured_field_signal;
 #endif
