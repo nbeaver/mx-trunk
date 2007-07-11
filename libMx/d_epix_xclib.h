@@ -26,7 +26,10 @@ typedef struct {
 
 	MX_RECORD *xclib_record;
 	long unit_number;
-	MX_RECORD *camera_link_record;
+
+	char ready_for_trigger_name[MXU_RECORD_NAME_LENGTH+1];
+	MX_RECORD *ready_for_trigger_record;
+
 	unsigned long epix_xclib_vinput_flags;
 	unsigned long write_test_value;
 
@@ -34,6 +37,7 @@ typedef struct {
 	double default_trigger_time;
 	long pixel_clock_divisor;
 
+	mx_bool_type sequence_in_progress;
 	mx_bool_type new_sequence;
 	long old_total_num_frames;
 
@@ -60,10 +64,11 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, unit_number), \
 	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
-  {-1, -1, "camera_link_record", MXFT_RECORD, NULL, 0, {0}, \
+  {-1, -1, "ready_for_trigger_name", MXFT_STRING, \
+				NULL, 1, {MXU_RECORD_NAME_LENGTH},\
 	MXF_REC_TYPE_STRUCT, \
-		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, camera_link_record), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, ready_for_trigger_name), \
+	{sizeof(char)}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
   \
   {-1, -1, "epix_xclib_vinput_flags", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \

@@ -815,6 +815,11 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 					MX_PCCD_170170 *pccd_170170,
 					double *detector_readout_time )
 {
+#if MXD_PCCD_170170_DEBUG
+	static const char fname[] =
+		"mxd_pccd_170170_compute_detector_readout_time()";
+#endif
+
 	MX_SEQUENCE_PARAMETERS *sp;
 	mx_bool_type high_speed;
 	unsigned long control_register;
@@ -847,7 +852,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( control_register & 0x100 ) {
+	if ( control_register & 0x2 ) {
 		high_speed = TRUE;
 	} else {
 		high_speed = FALSE;
@@ -923,42 +928,42 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		if ( (lbin == 1) && (pixbin == 1) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-			+ 360.0e-6*(pixnum - 2))*(linenum);
+			+ 360.0e-9*(pixnum - 2))*(linenum);
 		} else
 		if ( (lbin > 1) && (pixbin == 1) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-			+ 360.0e-6*(pixnum - 2))*(linenum - (linenum - 6))
+			+ 360.0e-9*(pixnum - 2))*(linenum - (linenum - 6))
 			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
-			+ 360.0e-6*(pixnum - 2))*(((linenum - 6) - linesrd) / 2)
+			+ 360.0e-9*(pixnum - 2))*(((linenum - 6) - linesrd) / 2)
 			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
 			+ (360.0e-9 + 300.0e-9)
-			+ 360.0e-6*(pixnum - 2))*(linesrd / lbin);
+			+ 360.0e-9*(pixnum - 2))*(linesrd / lbin);
 		} else
 		if ( (lbin == 1) && (pixbin < 16) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-	+ (360.0e-6 + 300.0e-9*(pixbin - 1))*((pixnum - 2) / pixbin))*(linenum);
+	+ (360.0e-9 + 300.0e-9*(pixbin - 1))*((pixnum - 2) / pixbin))*(linenum);
 
 		} else
 		if ( (lbin == 1) && (pixbin >= 16) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-	    + (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+	    + (360.0e-9 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
 	    + (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))*(linenum);
 
 		} else
 		if ( (lbin > 1) && (pixbin < 16) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-			+ (360.0e-6 + 300.0e-9*(pixbin - 1))
+			+ (360.0e-9 + 300.0e-9*(pixbin - 1))
 				*((pixnum - 2) / pixbin))
 				*(linenum - (linenum - 6))
 			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
-			+ (360.0e-6 + 300.0e-9*(pixbin - 1))
+			+ (360.0e-9 + 300.0e-9*(pixbin - 1))
 			*((pixnum - 2) / pixbin))*(((linenum - 6) - linesrd)/2)
 			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
-			+ (360.0e-9 + 300.0e-9) + (360.0e-6
+			+ (360.0e-9 + 300.0e-9) + (360.0e-9
 			+ 300.0e-9*(pixbin - 1))*((pixnum - 2) / pixbin))
 				*(linesrd / lbin);
 
@@ -966,14 +971,14 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		if ( (lbin > 1) && (pixbin >= 16 ) ) {
 
 		    t = (100.0e-6 + (360.0e-9 + 300.0e-9)
-			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+			+ (360.0e-9 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
 				* (linenum - (linenum - 6))
 			+ ((100.0e-6 + 60.0e-6) + (360.0e-9 + 300.0e-9)
-			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
+			+ (360.0e-9 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
 				*(((linenum - 6) - linesrd) / 2)
 			+ ((100.0e-6 + 60.0e-6*(lbin - 1))
 			+ (360.0e-9 + 300.0e-9)
-			+ (360.0e-6 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
+			+ (360.0e-9 + 300.0e-9*(7))*(((pixnum - 2) - pixrd) / 8)
 			+ (360.0e-9 + 300.0e-9*(pixbin - 1))*(pixrd / pixbin))
 				*(linesrd / lbin);
 		}
@@ -1050,6 +1055,10 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	    break;
 	}
 
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: detector_readout_time = %g",
+			fname, *detector_readout_time));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1446,18 +1455,18 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Put the detector head in full frame mode. */
 
-	control_register_value &= (~0x18);
+	control_register_value &= (~0x60);
 
 	/* If requested, turn on the test mode pattern. */
 
 	if ( flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
-		control_register_value |= 0x200;
+		control_register_value |= 0x1;
 
 		mx_warning( "Area detector '%s' will return a test image "
 			"instead of taking a real image.",
 				record->name );
 	} else {
-		control_register_value &= (~0x200);
+		control_register_value &= (~0x1);
 	}
 
 	/* Write out the new control register value. */
@@ -2504,8 +2513,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			return mx_status;
 
 		old_detector_readout_mode = 
-				(old_control_register_value >> 3) & 0x3;
-#if 0
+				(old_control_register_value >> 5) & 0x3;
+#if 1
 		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
 		MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
@@ -2551,7 +2560,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* We must switch to full frame mode. */
 
 				new_control_register_value =
-					old_control_register_value & (~0x18);
+					old_control_register_value & (~0x60);
 #if 1
 				MX_DEBUG(-2,
 			("%s: (full frame) new_control_register_value = %#lx",
@@ -2622,7 +2631,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			exposure_steps = mx_round( exposure_time / 0.01 );
+			exposure_steps = mx_round( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2696,7 +2705,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* Now switch to streak camera mode. */
 
 				new_control_register_value =
-					old_control_register_value | 0x18;
+					old_control_register_value | 0x60;
 #if 1
 				MX_DEBUG(-2,
 		       ("%s: (streak camera) new_control_register_value = %#lx",
@@ -2738,7 +2747,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[1];
 
-			exposure_steps = mx_round( exposure_time / 0.01 );
+			exposure_steps = mx_round( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -2763,9 +2772,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* Switch to sub-image mode. */
 
 				new_control_register_value =
-					old_control_register_value & (~0x18);
+					old_control_register_value & (~0x60);
 
-				new_control_register_value |= 0x10;
+				new_control_register_value |= 0x20;
 #if 1
 				MX_DEBUG(-2,
 			("%s: (sub-image) new_control_register_value = %#lx",
@@ -2826,7 +2835,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[2];
 
-			exposure_steps = mx_round( exposure_time / 0.01 );
+			exposure_steps = mx_round( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,

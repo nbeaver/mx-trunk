@@ -41,9 +41,11 @@
 
 #include "mx_util.h"
 #include "mx_record.h"
+#include "mx_driver.h"
 #include "mx_signal.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
+#include "mx_digital_output.h"
 #include "mx_image.h"
 #include "mx_camera_link.h"
 #include "mx_video_input.h"
@@ -193,26 +195,6 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 			InterlockedIncrement(
 			    &(epix_xclib_vinput->uint32_total_num_frames) );
 
-			/* FIXME: I am not sure whether or not resetting
-			 * the event is necessary or not.
-			 */
-
-			os_status = ResetEvent( 
-				epix_xclib_vinput->captured_field_event );
-
-			if ( os_status == 0 ) {
-				last_error_code = GetLastError();
-
-				mx_win32_error_message( last_error_code,
-				    message_buffer, sizeof(message_buffer) );
-
-				(void) mx_error(
-				MXE_OPERATING_SYSTEM_ERROR, fname,
-				"ResetEvent() for record '%s' failed with "
-					"error code %ld, error message = '%s'.",
-					    epix_xclib_vinput->record->name,
-					    last_error_code, message_buffer );
-			}
 			break;
 
 		case WAIT_TIMEOUT:
@@ -676,57 +658,19 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 /*---*/
 
 static mx_status_type
-mxd_epix_xclib_set_ready_status( MX_VIDEO_INPUT *vinput,
-				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
+mxd_epix_xclib_set_ready_status( MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
 				mx_bool_type ready_for_trigger )
 {
-	static const char fname[] = "mxd_epix_xclib_set_ready_status()";
+	mx_status_type mx_status;
 
-	char error_message[80];
-	int output_value, epix_status;
+	if ( epix_xclib_vinput->ready_for_trigger_record == NULL )
+		return MX_SUCCESSFUL_RESULT;
 
-#if 1	/* Not using OUT1 as a ready bit anymore. */
+	mx_status = mx_digital_output_write(
+				epix_xclib_vinput->ready_for_trigger_record,
+				ready_for_trigger );
 
-	return MX_SUCCESSFUL_RESULT;
-#endif
-
-	/* General Purpose Output 1 is used to indicate the imaging board
-	 * is ready to be triggered.
-	 */
-
-	output_value = pxd_getGPOut( epix_xclib_vinput->unitmap, 0 );
-
-	if ( output_value < 0 ) {
-		mxi_epix_xclib_error_message(
-			epix_xclib_vinput->unitmap, output_value,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to read the status of the General "
-			"Purpose Outputs for video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-	}
-
-	if ( ready_for_trigger ) {
-		output_value |= 0x1;
-	} else {
-		output_value &= ~0x1;
-	}
-
-	epix_status = pxd_setGPOut( epix_xclib_vinput->unitmap, output_value );
-
-	if ( epix_status != 0 ) {
-		mxi_epix_xclib_error_message(
-			epix_xclib_vinput->unitmap, epix_status,
-			error_message, sizeof(error_message) );
-
-		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to set the value of the General "
-			"Purpose Output 1 for video input '%s' failed.  %s",
-				vinput->record->name, error_message );
-	}
-
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 /*---*/
@@ -794,6 +738,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_RECORD *ready_for_trigger_record;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -841,6 +786,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	epix_xclib_vinput->num_write_test_array_bytes = 0;
 	epix_xclib_vinput->write_test_array = NULL;
+	epix_xclib_vinput->sequence_in_progress = FALSE;
 	epix_xclib_vinput->new_sequence = FALSE;
 	epix_xclib_vinput->uint32_total_num_frames = 0;
 
@@ -876,6 +822,41 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Find the 'ready_for_trigger_record' and verify that it is
+	 * a digital output record.
+	 */
+
+	epix_xclib_vinput->ready_for_trigger_record = NULL;
+
+	if ( strlen( epix_xclib_vinput->ready_for_trigger_name ) > 0 ) {
+
+		ready_for_trigger_record = mx_get_record( record,
+				epix_xclib_vinput->ready_for_trigger_name );
+
+		if ( ready_for_trigger_record == NULL ) {
+			return mx_error( MXE_NOT_FOUND, fname,
+			"The ready_for_trigger record '%s' used by "
+			"video input '%s' was not found in the "
+			"current MX database.",
+				epix_xclib_vinput->ready_for_trigger_name,
+				record->name );
+		}
+
+		if ( ready_for_trigger_record->mx_class != MXC_DIGITAL_OUTPUT )
+		{
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The ready_for_trigger record '%s' used by "
+			"video input '%s' is not a digital output record.  "
+			"Instead, it is a '%s' record.",
+				epix_xclib_vinput->ready_for_trigger_name,
+				record->name,
+				mx_get_driver_name( ready_for_trigger_record ));
+		}
+
+		epix_xclib_vinput->ready_for_trigger_record
+			= ready_for_trigger_record;
+	}
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -982,12 +963,22 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 
 	epix_xclib_vinput->old_total_num_frames = vinput->total_num_frames;
 
-	/* Record the fact that we have started a new sequence,
-	 * so that mxd_epix_xclib_get_last_frame_number() can make
-	 * use of that fact.
+	/* Record the fact that we have started a new sequence, so
+	 * that later code can use that knowledge.
+	 * 
+	 * 'new_sequence' is used by mxd_epix_xclib_get_last_frame_number().
+	 * While 'new_sequence' is TRUE, mxd_epix_xclib_get_last_frame_number()
+	 * will always set 'last_frame_number' to (-1).
+	 *
+	 * 'sequence_in_progress' is used by mxd_epix_xclib_get_status().
+	 * Once pxd_goneLive() returns 0, mxd_epix_xclib_get_status()
+	 * invokes mx_video_input_stop() to stop any CC1 pulses that may
+	 * be sent and then sets 'sequence_in_progress' to FALSE.
 	 */
 
 	epix_xclib_vinput->new_sequence = TRUE;
+
+	epix_xclib_vinput->sequence_in_progress = TRUE;
 
 	/* If the 'write test' feature is enabled, fill
 	 * the first frame buffer with a test value.
@@ -1237,8 +1228,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 			vinput->record->name, error_message );
 	}
 
-	mx_status = mxd_epix_xclib_set_ready_status( vinput,
-						epix_xclib_vinput, TRUE );
+	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
 
 	return mx_status;
 }
@@ -1490,8 +1480,6 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 			sp->sequence_type, vinput->record->name );
 	}
 
-	mx_status = mxd_epix_xclib_set_ready_status( vinput,
-						epix_xclib_vinput, TRUE );
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: Started taking frame(s) using video input '%s'.",
 		fname, vinput->record->name ));
@@ -1661,7 +1649,12 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	epix_xclib_vinput->sequence_in_progress = TRUE;
+	epix_xclib_vinput->new_sequence = TRUE;
+
+	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
+
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -1781,6 +1774,9 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
+		fname, (int) epix_xclib_vinput->sequence_in_progress));
+
 	MX_DEBUG(-2,("%s: pxd_mesgFaultText() = %d", fname, epix_status));
 #endif
 
@@ -1814,16 +1810,26 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 		fname, pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
 #endif
 
-#if 0
-	if ( vinput->busy == FALSE ) {
-		mx_status = mxd_epix_xclib_set_ready_status( vinput,
-							epix_xclib_vinput,
-							FALSE );
+	if ( ( vinput->busy == FALSE )
+	  && ( epix_xclib_vinput->sequence_in_progress ) )
+	{
+
+		epix_xclib_vinput->sequence_in_progress = FALSE;
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: sequence_in_progress set to FALSE", fname));
+#endif
+		mx_status = mxd_epix_xclib_stop( vinput );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		mx_status = mxd_epix_xclib_set_ready_status(
+					epix_xclib_vinput, FALSE );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
