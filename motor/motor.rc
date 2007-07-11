@@ -1,0 +1,51 @@
+/*
+ * Name:    motor.rc
+ *
+ * Purpose: Win32 versioninfo resource file.
+ *
+ * Author:  William Lavender
+ *
+ *--------------------------------------------------------------------------
+ *
+ * Copyright 2007 Illinois Institute of Technology
+ *
+ * See the file "LICENSE" for information on usage and redistribution
+ * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
+ *
+ */
+
+#include "windows.h"
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION    1,5,0,0
+  PRODUCTVERSION 1,5,0,0
+  FILEFLAGSMASK  0x3fL
+#ifdef _DEBUG
+  FILEFLAGS 0x1L
+#else
+  FILEFLAGS 0x0L
+#endif
+  FILEOS VOS__WINDOWS32
+  FILETYPE VFT_APP
+  FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "04090000"
+        BEGIN
+            VALUE "CompanyName", "Illinois Institute of Technology\0"
+            VALUE "FileDescription", "MX Command Line Client\0"
+            VALUE "FileVersion", "1.5.0 prerelease\0"
+            VALUE "InternalName", "motor\0"
+            VALUE "LegalCopyright", "Copyright 2007 Illinois Institute of Technology\0"
+            VALUE "OriginalFilename", "motor.exe\0"
+            VALUE "ProductName", "MX Data Acquisition and Control System\0"
+            VALUE "ProductVersion", "1.5.0 prerelease\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 0
+    END
+END
+

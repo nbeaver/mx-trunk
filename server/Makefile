@@ -66,6 +66,8 @@ mx_clean:
 	-$(RM) *.obj
 	-$(RM) *.pdb
 	-$(RM) *.tds
+	-$(RM) *.res
+	-$(RM) *.RES
 	-$(RM) core*
 	-$(RM) $(SERVER_NAME)
 

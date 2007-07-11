@@ -363,8 +363,8 @@ library_install:
 #
 MOTOR_NAME	= motor.exe
 
-$(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
-	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) \
+$(MOTOR_NAME): $(MOTOR_OBJS) motor.res $(MX_LIBRARY_PATH)
+	link /debug /nologo /out:$(MOTOR_NAME) $(MOTOR_OBJS) motor.res \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
@@ -375,6 +375,9 @@ $(MOTOR_NAME): $(MOTOR_OBJS) $(MX_LIBRARY_PATH)
 		rm -f $(MOTOR_NAME).manifest; \
 	fi
 
+motor.res: motor.rc
+	rc motor.rc
+
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
 
@@ -383,8 +386,8 @@ motor_install:
 #
 SERVER_NAME	= mxserver.exe
 
-$(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
-	link /debug /nologo /out:mxserver.exe *.obj \
+$(SERVER_NAME): $(SERVER_OBJS) mxserver.res $(MX_LIBRARY_PATH)
+	link /debug /nologo /out:mxserver.exe *.obj mxserver.res \
 		/nodefaultlib:libc $(DUMA_OPTS) $(MX_LIBRARY_PATH) $(WIN32_LIBS)
 
 	# For VC2005 or later, embed the manifest in the executable.
@@ -394,6 +397,9 @@ $(SERVER_NAME): $(SERVER_OBJS) $(MX_LIBRARY_PATH)
 			-manifest $(SERVER_NAME).manifest $(EXTRA_MANIFESTS) ; \
 		rm -f $(SERVER_NAME).manifest; \
 	fi
+
+mxserver.res: mxserver.rc
+	rc mxserver.rc
 
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
