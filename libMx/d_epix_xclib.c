@@ -193,6 +193,26 @@ mxd_epix_xclib_captured_field_thread_fn( void *args_ptr )
 			InterlockedIncrement(
 			    &(epix_xclib_vinput->uint32_total_num_frames) );
 
+			/* FIXME: I am not sure whether or not resetting
+			 * the event is necessary or not.
+			 */
+
+			os_status = ResetEvent( 
+				epix_xclib_vinput->captured_field_event );
+
+			if ( os_status == 0 ) {
+				last_error_code = GetLastError();
+
+				mx_win32_error_message( last_error_code,
+				    message_buffer, sizeof(message_buffer) );
+
+				(void) mx_error(
+				MXE_OPERATING_SYSTEM_ERROR, fname,
+				"ResetEvent() for record '%s' failed with "
+					"error code %ld, error message = '%s'.",
+					    epix_xclib_vinput->record->name,
+					    last_error_code, message_buffer );
+			}
 			break;
 
 		case WAIT_TIMEOUT:
