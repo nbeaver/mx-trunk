@@ -315,21 +315,29 @@ mxd_epix_xclib_destroy_captured_field_handler(
 #  define LOCK ""
 #endif
 
-static uint32_t mxd_epix_xclib_total_num_frames = 0;
+static uint32_t _total_num_frames_sigusr1 = 0;
+static uint32_t _total_num_frames_sigusr2 = 0;
 
 static void
 mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 						siginfo_t *siginfo,
 						void *cruft )
 {
-	/* Do an atomic increment of mxd_epix_xclib_total_num_frames.
+	/* Do an atomic increment of this signal's total_num_frames variable.
 	 * We use inline x86 assembly language to do it.
 	 */
 
-	__asm__ __volatile__(
-		LOCK "incl %0"
-		:"=m" (mxd_epix_xclib_total_num_frames)
-		:"m" (mxd_epix_xclib_total_num_frames));
+	if ( signal_number == SIGUSR1 ) {
+		__asm__ __volatile__(
+			LOCK "incl %0"
+			:"=m" (_total_num_frames_sigusr1)
+			:"m" (_total_num_frames_sigusr1));
+	} else {
+		__asm__ __volatile__(
+			LOCK "incl %0"
+			:"=m" (_total_num_frames_sigusr2)
+			:"m" (_total_num_frames_sigusr2));
+	}
 
 #if MXD_EPIX_XCLIB_DEBUG
 	/* Show the current value of mxd_epix_xclib_total_num_frames. */
@@ -346,8 +354,13 @@ mxd_epix_xclib_captured_field_signal_handler( int signal_number,
 
 		write( 2, "CAPTURE: Total num frames = ", 28 );
 
+		if ( signal_number == SIGUSR1 ) {
+			remainder = _total_num_frames_sigusr1;
+		} else {
+			remainder = _total_num_frames_sigusr2;
+		}
+
 		divisor = 1000000000L;
-		remainder = mxd_epix_xclib_total_num_frames;
 
 		suppress_output = TRUE;
 
@@ -391,9 +404,25 @@ mxd_epix_xclib_create_captured_field_handler(
 	char error_message[100];
 	mx_status_type mx_status;
 
-	/* Reserve SIGUSR1 for use by the signal handler. */
+	/* It appears that the EPIX XCLIB interface does not support
+	 * Posix realtime signals, so we are stuck with using the
+	 * traditional signals SIGUSR1 and SIGUSR2.
+	 */
 
-	mx_status = mx_signal_allocate( SIGUSR1, &allocated_signal_number );
+	if ( epix_xclib_vinput->unit_number == 1 ) {
+		mx_status = mx_signal_allocate( SIGUSR1,
+					&allocated_signal_number );
+	} else
+	if ( epix_xclib_vinput->unit_number == 2 ) {
+		mx_status = mx_signal_allocate( SIGUSR2,
+					&allocated_signal_number );
+	} else {
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Unsupported unit number %ld for record '%s'.  "
+			"The only allowed unit numbers are 1 and 2.",
+				epix_xclib_vinput->unit_number,
+				epix_xclib_vinput->record->name );
+	}
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -830,7 +859,14 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	epix_xclib_vinput->write_test_array = NULL;
 	epix_xclib_vinput->sequence_in_progress = FALSE;
 	epix_xclib_vinput->new_sequence = FALSE;
+
+#if defined(OS_WIN32)
+	epix_xclib_vinput->captured_field_event = NULL;
+	epix_xclib_vinput->captured_field_thread = NULL;
 	epix_xclib_vinput->uint32_total_num_frames = 0;
+#else
+	epix_xclib_vinput->captured_field_signal = 0;
+#endif
 
 	mx_status = mx_video_input_get_image_format( record, NULL );
 
@@ -1795,7 +1831,11 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 #if defined(OS_WIN32)
 	vinput->total_num_frames = epix_xclib_vinput->uint32_total_num_frames;
 #else
-	vinput->total_num_frames = mxd_epix_xclib_total_num_frames;
+	if ( epix_xclib_vinput->captured_field_signal == SIGUSR1 ) {
+		vinput->total_num_frames = _total_num_frames_sigusr1;
+	} else {
+		vinput->total_num_frames = _total_num_frames_sigusr2;
+	}
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG
