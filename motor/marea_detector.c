@@ -47,12 +47,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long datafile_type, correction_flags;
 	long frame_number;
 	long x_binsize, y_binsize, x_framesize, y_framesize;
-	long trigger_mode, bytes_per_frame, num_frames;
+	long trigger_mode, bytes_per_frame, bits_per_pixel, num_frames;
 	long frame_type, src_frame_type, dest_frame_type;
 	long i, last_frame_number, total_num_frames;
 	long n, starting_total_num_frames, starting_last_frame_number;
 	long old_last_frame_number, old_total_num_frames, num_unread_frames;
 	long num_frames_difference;
+	size_t length;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
 	long long_parameter;
@@ -67,6 +68,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "Usage:\n"
 "  area_detector 'name' get bytes_per_frame\n"
 "  area_detector 'name' get bytes_per_pixel\n"
+"  area_detector 'name' get bits_per_pixel\n"
 "  area_detector 'name' get format\n"
 "  area_detector 'name' get framesize\n"
 "  area_detector 'name' set framesize 'x_framesize' 'y_framesize'\n"
@@ -360,6 +362,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		filename_stem = argv[5];
 
+		mx_status = mx_area_detector_get_trigger_mode( ad_record,
+							&trigger_mode );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 		mx_status = mx_area_detector_get_extended_status( ad_record,
 						&starting_last_frame_number,
 						&starting_total_num_frames,
@@ -392,7 +400,21 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		fprintf( output, "Starting sequence\n" );
+		if ( trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+			fprintf( output,
+			"Starting sequence in internal trigger mode.\n" );
+		} else
+		if ( trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
+			fprintf( output,
+			"Starting sequence in external trigger mode.\n" );
+		} else {
+			fprintf( output,
+			"Illegal trigger mode %ld requested.  Aborting...\n",
+				trigger_mode );
+
+			return FAILURE;
+		}
+
 		fflush( output );
 
 		mx_status = mx_area_detector_start( ad_record );
@@ -401,12 +423,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 
 		/* Loop over the frames in the sequence.  Please note that
-		 * the final section of the loop instruction is empty, since
+		 * the final section of the for() statement is empty, since
 		 * 'n' does not get incremented on every pass through
 		 * the loop.
 		 */
 
-		old_last_frame_number = starting_last_frame_number;
+		old_last_frame_number = -1L;
 		old_total_num_frames  = starting_total_num_frames;
 
 		num_unread_frames = 0;
@@ -425,6 +447,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
+			MX_DEBUG(-2,("%s", mx_ctime_string() ));
 			MX_DEBUG(-2,
 			("Seq: n = %ld vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv",n));
 
@@ -462,10 +485,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 				fprintf( output, "Reading frame %ld.\n", n );
 
-				frame_number = starting_last_frame_number + n;
-
 				mx_status = mx_area_detector_get_frame(
-				    ad_record, frame_number, &frame );
+				    ad_record, n, &frame );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
@@ -1022,6 +1043,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			"Area detector '%s': bytes per pixel = %g\n",
 				ad_record->name, bytes_per_pixel );
 		} else
+		if ( strncmp( "bits_per_pixel",
+				argv[4], strlen(argv[4]) ) == 0 )
+		{
+			mx_status = mx_area_detector_get_bits_per_pixel(
+						ad_record, &bits_per_pixel );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+
+			fprintf( output,
+			"Area detector '%s': bits per pixel = %ld\n",
+				ad_record->name, bits_per_pixel );
+		} else
 		if ( strncmp( "format", argv[4], strlen(argv[4]) ) == 0 ) {
 
 			mx_status = mx_area_detector_get_image_format(
@@ -1128,9 +1162,20 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
-			fprintf( output,
-				"Area detector '%s': trigger mode = %ld\n",
+			if( trigger_mode == MXT_IMAGE_INTERNAL_TRIGGER ) {
+				fprintf( output,
+			"Area detector '%s': trigger mode = internal (%ld)\n",
 				ad_record->name, trigger_mode );
+			} else
+			if ( trigger_mode == MXT_IMAGE_EXTERNAL_TRIGGER ) {
+				fprintf( output,
+			"Area detector '%s': trigger mode = external (%ld)\n",
+				ad_record->name, trigger_mode );
+			} else {
+				fprintf( output,
+			"Area detector '%s': trigger mode = ILLEGAL (%ld)\n",
+				ad_record->name, trigger_mode );
+			}
 		} else
 		if ( strncmp( "correction_flags",
 					argv[4], strlen(argv[4]) ) == 0 )
@@ -1355,14 +1400,25 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			trigger_mode = strtoul( argv[5], &endptr, 0 );
+			length = strlen(argv[5]);
 
-			if ( *endptr != '\0' ) {
-				fprintf( output,
+			if (mx_strncasecmp( argv[5], "internal", length ) == 0)
+			{
+				trigger_mode = MXT_IMAGE_INTERNAL_TRIGGER;
+			} else
+			if (mx_strncasecmp( argv[5], "external", length ) == 0)
+			{
+				trigger_mode = MXT_IMAGE_EXTERNAL_TRIGGER;
+			} else {
+				trigger_mode = strtoul( argv[5], &endptr, 0 );
+
+				if ( *endptr != '\0' ) {
+					fprintf( output,
 		"%s: Non-numeric characters found in trigger mode '%s'\n",
-					cname, argv[5] );
+						cname, argv[5] );
 
-				return FAILURE;
+					return FAILURE;
+				}
 			}
 
 			mx_status = mx_area_detector_set_trigger_mode(

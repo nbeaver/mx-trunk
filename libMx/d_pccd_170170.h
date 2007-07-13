@@ -24,6 +24,7 @@
 #define MXF_PCCD_170170_SUPPRESS_DESCRAMBLING		0x4
 #define MXF_PCCD_170170_CAMERA_IS_MASTER		0x8
 #define MXF_PCCD_170170_USE_TEST_PATTERN		0x10
+#define MXF_PCCD_170170_NUM_FRAMES_KLUDGE		0x20
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.

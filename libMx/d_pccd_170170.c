@@ -1759,12 +1759,16 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 							finish_tick );
 
 		if ( comparison >= 0 ) {
-			return mx_error( MXE_TIMED_OUT, fname,
+			(void) mx_error( MXE_TIMED_OUT, fname,
 			"Area detector '%s' timed out after waiting %g seconds "
 			"for video input '%s' to stop acquiring frames.",
 				ad->record->name,
 				timeout_in_seconds, vinput->record->name );
+
+			break;		/* Exit the while(1) loop. */
 		}
+
+		mx_usleep(1000);
 	}
 
 	/* Prepare the video input for the next trigger. */
@@ -1782,7 +1786,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 #endif
 		mx_status = mx_video_input_continuous_capture(
 					pccd_170170->video_input_record,
-					ad->maximum_frame_number );
+					ad->maximum_frame_number + 1);
 	} else {
 		mx_status = mx_video_input_arm(
 					pccd_170170->video_input_record );
@@ -1834,15 +1838,15 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
-	case MXT_SQ_CONTINUOUS:
 	case MXT_SQ_MULTIFRAME:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_GEOMETRICAL:
 	case MXT_SQ_SUBIMAGE:
 	case MXT_SQ_STREAK_CAMERA:
 		break;
 
+	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
@@ -1861,9 +1865,19 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 #endif
 
 	if ( camera_is_master && internal_trigger ) {
+		mx_status = mx_area_detector_get_maximum_frame_number(
+					ad->record, NULL );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: maximum_frame_number = %lu",
+			fname, ad->maximum_frame_number));
+#endif
 		mx_status = mx_video_input_continuous_capture(
 					pccd_170170->video_input_record,
-					ad->maximum_frame_number );
+					ad->maximum_frame_number + 1);
 	} else {
 		/* Send the trigger request to the video input board. */
 
@@ -2870,22 +2884,30 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
-		case MXT_SQ_GEOMETRICAL:
-		case MXT_SQ_STREAK_CAMERA:
-		case MXT_SQ_SUBIMAGE:
 			mx_status = mx_video_input_set_trigger_mode( 
 						pccd_170170->video_input_record,
 						MXT_IMAGE_INTERNAL_TRIGGER );
 			break;
+
 		case MXT_SQ_STROBE:
-		case MXT_SQ_BULB:
 			mx_status = mx_video_input_set_trigger_mode( 
 						pccd_170170->video_input_record,
 						MXT_IMAGE_EXTERNAL_TRIGGER );
 			break;
+
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_GEOMETRICAL:
+		case MXT_SQ_STREAK_CAMERA:
+		case MXT_SQ_SUBIMAGE:
+			/* For these cases, we leave the trigger mode alone,
+			 * since we may want to use either internal triggering
+			 * or external triggering.
+			 */
+			break;
+
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+		case MXT_SQ_BULB:
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 			"Illegal sequence type %ld requested "
@@ -3251,12 +3273,26 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 	static const char fname[] = "mxd_pccd_170170_write_register()";
 
 	char command[20], response[20];
-	unsigned long value_read;
+	unsigned long value_read, flags;
 	mx_status_type mx_status;
 
 	if ( pccd_170170 == (MX_PCCD_170170 *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_PCCD_170170 pointer passed was NULL." );
+	}
+
+	flags = pccd_170170->pccd_170170_flags;
+
+	if ( (register_address == MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE)
+	  && (flags & MXF_PCCD_170170_NUM_FRAMES_KLUDGE) )
+	{
+		mx_info(
+		"***********************************************************\n"
+		"* FIXME! Using PCCD-170170 num frames kludge!             *\n"
+		"* This must be removed from the software before shipping! *\n"
+		"***********************************************************");
+
+		register_value++;
 	}
 
 	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {

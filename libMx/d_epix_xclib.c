@@ -238,6 +238,12 @@ mxd_epix_xclib_create_captured_field_handler(
 	epix_xclib_vinput->captured_field_event =
 		pxd_eventCapturedFieldCreate( epix_xclib_vinput->unitmap );
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_eventCapturedFieldCreate(%ld) = %p",
+		fname, epix_xclib_vinput->unitmap,
+		epix_xclib_vinput->captured_field_event));
+#endif
+
 	if ( epix_xclib_vinput->captured_field_event == NULL ) {
 
 		last_error_code = GetLastError();
@@ -287,6 +293,12 @@ mxd_epix_xclib_destroy_captured_field_handler(
 
 	pxd_eventCapturedFieldClose( epix_xclib_vinput->unitmap,
 				epix_xclib_vinput->captured_field_event );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_eventCapturedFieldClose(%ld, %p)",
+		fname, epix_xclib_vinput->unitmap,
+		epix_xclib_vinput->captured_field_event));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -411,6 +423,13 @@ mxd_epix_xclib_create_captured_field_handler(
 
 	epix_status = pxd_eventCapturedFieldCreate( epix_xclib_vinput->unitmap,
 						allocated_signal_number, NULL );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_eventCapturedFieldCreate(%ld, %d, NULL) = %d",
+		fname, epix_xclib_vinput->unitmap,
+		allocated_signal_number, epix_status ));
+#endif
+
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
 			epix_xclib_vinput->unitmap, epix_status,
@@ -440,6 +459,12 @@ mxd_epix_xclib_destroy_captured_field_handler(
 
 	epix_status = pxd_eventCapturedFieldClose( epix_xclib_vinput->unitmap,
 				epix_xclib_vinput->captured_field_signal );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_eventCapturedFieldClose(%ld, %d) = %d",
+		fname, epix_xclib_vinput->unitmap,
+		epix_xclib_vinput->captured_field_signal, epix_status ));
+#endif
 
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
@@ -507,10 +532,16 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 		exsync_value = pxd_getExsync( epix_xclib_vinput->unitmap );
 		prin_value   = pxd_getPrin( epix_xclib_vinput->unitmap );
 
-	MX_DEBUG(-2,("%s: EXSYNC value = %#x", fname, exsync_value));
-	MX_DEBUG(-2,("%s: PRIN value = %#x", fname, prin_value));
-	MX_DEBUG(-2,("%s: pixel clock divisor = %lu",
-		fname, epix_xclib_vinput->pixel_clock_divisor));
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: pxd_getExsync(%ld) = %#x",
+			fname, epix_xclib_vinput->unitmap, exsync_value));
+
+		MX_DEBUG(-2,("%s: pxd_getPrin(%ld) = %#x",
+			fname, epix_xclib_vinput->unitmap, prin_value));
+
+		MX_DEBUG(-2,("%s: pixel clock divisor = %lu",
+			fname, epix_xclib_vinput->pixel_clock_divisor));
+#endif
 
 		timing_scale = mx_divide_safely(
 				epix_xclib_vinput->pixel_clock_divisor,
@@ -541,6 +572,12 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 	princ_mode  = pxd_getPrincMode( epix_xclib_vinput->unitmap );
 
 #if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_getExsyncMode(%ld) = %#x",
+		fname, epix_xclib_vinput->unitmap, exsync_mode));
+
+	MX_DEBUG(-2,("%s: pxd_getPrincMode(%ld) = %#x",
+		fname, epix_xclib_vinput->unitmap, princ_mode));
+
 	MX_DEBUG(-2,("%s: old exsync_mode = %#x, old princ_mode = %#x",
 		fname, exsync_mode, princ_mode));
 #endif
@@ -640,6 +677,11 @@ mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 
 	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
 						exsync_mode, princ_mode );
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, %#x, %#x) = %d",
+		fname, epix_xclib_vinput->unitmap,
+		exsync_mode, princ_mode, epix_status));
+#endif
 
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
@@ -1092,8 +1134,8 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 #endif
 
 	/* Compute all of the parameters needed by the sequence.  One-shot,
-	 * strobe, sub-image, and streak camera sequences are supported
-	 * with external triggers.
+	 * multiframe, strobe, sub-image, and streak camera sequences are
+	 * supported with external triggers.
 	 */
 
 	switch( sp->sequence_type ) {
@@ -1103,6 +1145,16 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		numbuf = 1;
 
 		frame_time = sp->parameter_array[0];
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
+		break;
+
+	case MXT_SQ_MULTIFRAME:
+		startbuf = 1;
+		endbuf = mx_round( sp->parameter_array[0] );
+		numbuf = endbuf;
+
+		frame_time = sp->parameter_array[2];
 
 		trigger_time = epix_xclib_vinput->default_trigger_time;
 		break;
@@ -1141,13 +1193,6 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_CONTINUOUS:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Continuous sequences cannot be used with external "
-			"triggers for video input '%s'.",
-				vinput->record->name );
-		break;
-
-	case MXT_SQ_MULTIFRAME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-			"Multiframe sequences cannot be used with external "
 			"triggers for video input '%s'.",
 				vinput->record->name );
 		break;
@@ -1511,6 +1556,11 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 
 	epix_status = pxd_goUnLive( epix_xclib_vinput->unitmap );
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_goUnLive(%ld) = %d",
+		fname, epix_xclib_vinput->unitmap, epix_status));
+#endif
+
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
 			epix_xclib_vinput->unitmap, epix_status,
@@ -1523,6 +1573,11 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	}
 
 	epix_status = pxd_setExsyncPrincMode(epix_xclib_vinput->unitmap, 0, 0);
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, 0) = %d",
+		fname, epix_xclib_vinput->unitmap, epix_status));
+#endif
 
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
@@ -1612,6 +1667,9 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 	num_frame_buffers = pxd_imageZdim();
 
 #if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: vinput->continuous_capture = %ld",
+		fname, vinput->continuous_capture));
+
 	MX_DEBUG(-2,("%s: num_frame_buffers = %ld", fname, num_frame_buffers));
 #endif
 	vinput->maximum_frame_number = num_frame_buffers - 1;
@@ -1630,12 +1688,12 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 	 */
 
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-			1, num_frame_buffers, 1, 0, 1 );
+			1, vinput->continuous_capture, 1, 0, 1 );
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, 0, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap,
-		num_frame_buffers, epix_status));
+		vinput->continuous_capture, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
