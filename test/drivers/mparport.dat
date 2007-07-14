@@ -1,0 +1,9 @@
+lp0      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
+lp0_data device digital_output linux_parport_out "" "" 0 lp0 data
+pin2     device digital_output bit_out "" "" 0 0 lp0_data 0 1 lp0_data 0 1
+pin3     device digital_output bit_out "" "" 0 0 lp0_data 1 1 lp0_data 1 1
+pin4     device digital_output bit_out "" "" 0 0 lp0_data 2 1 lp0_data 2 1
+pin5     device digital_output bit_out "" "" 0 0 lp0_data 3 1 lp0_data 3 1
+pin6     device digital_output bit_out "" "" 0 0 lp0_data 4 1 lp0_data 4 1
+pin8     device digital_output bit_out "" "" 0 0 lp0_data 6 1 lp0_data 6 1
+pin9     device digital_output bit_out "" "" 0 0 lp0_data 7 1 lp0_data 7 1

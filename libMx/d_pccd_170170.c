@@ -3129,14 +3129,22 @@ mxd_pccd_170170_camera_link_command( MX_PCCD_170170 *pccd_170170,
 			buffer_left = response_length - total_bytes_read;
 
 			if ( bytes_available < 1 ) {
-#if MXD_PCCD_170170_DEBUG_SERIAL
+#if 0 && MXD_PCCD_170170_DEBUG_SERIAL
 				MX_DEBUG(-2,
 				("%s: No bytes available from '%s'.",
 					fname, camera_link_record->name));
 #endif
 			}
 
+#if 0
 			bytes_to_read = 1;
+#else
+			if ( bytes_available > 0 ) {
+				bytes_to_read = 1;
+			} else {
+				bytes_to_read = 0;
+			}
+#endif
 
 			if ( bytes_to_read > buffer_left ) {
 				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
