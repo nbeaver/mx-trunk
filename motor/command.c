@@ -7,7 +7,7 @@
  *
  *-------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003-2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -249,6 +249,17 @@ cmd_parse_command_line( int *argc, char *command_line )
 				*dest_ptr = '\0';
 			}
 			break;			/* Exit the for() loop. */
+		}
+	}
+
+	/* If argv[1] starts with the character '#', then this is
+	 * a comment line and should be discarded.
+	 */
+
+	if ( *argc > 1 ) {
+		if ( argv[1][0] == '#' ) {
+			*argc = 1;
+			return NULL;
 		}
 	}
 

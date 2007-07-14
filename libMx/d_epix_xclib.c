@@ -744,6 +744,90 @@ mxd_epix_xclib_set_ready_status( MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
 	return mx_status;
 }
 
+static mx_status_type
+mxd_epix_xclib_write_test_image_to_device( MX_VIDEO_INPUT *vinput,
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	static const char fname[] =
+		"mxd_epix_xclib_write_test_image_to_device()";
+
+	char error_message[80];
+	int epix_status;
+	unsigned long flags, old_array_bytes, new_array_bytes;
+
+	old_array_bytes = epix_xclib_vinput->num_write_test_array_bytes;
+
+	new_array_bytes = vinput->framesize[0] * vinput->framesize[1]
+					* sizeof(uint16_t);
+
+	if ( old_array_bytes == 0 ) {
+		if ( new_array_bytes == 0 ) {
+			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+				"The length requested by record '%s' "
+				"for the write test array is 0.",
+				vinput->record->name );
+		} else {
+			epix_xclib_vinput->write_test_array
+				= malloc( new_array_bytes );
+
+			epix_xclib_vinput->num_write_test_array_bytes
+				= new_array_bytes;
+		}
+	} else {
+		if ( new_array_bytes > old_array_bytes ) {
+			epix_xclib_vinput->write_test_array = realloc(
+				epix_xclib_vinput->write_test_array,
+				new_array_bytes );
+
+			epix_xclib_vinput->num_write_test_array_bytes
+				= new_array_bytes;
+		}
+	}
+
+	if ( epix_xclib_vinput->write_test_array == NULL ) {
+		epix_xclib_vinput->num_write_test_array_bytes = 0;
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"The write_test_array pointer for record '%s' is NULL.",
+			vinput->record->name );
+	}
+
+	memset( epix_xclib_vinput->write_test_array,
+		epix_xclib_vinput->write_test_value,
+		epix_xclib_vinput->num_write_test_array_bytes );
+
+#if 1
+	MX_DEBUG(-2,("%s: Writing a %lu byte array set to "
+		"the value %#x for record '%s'.",
+		fname, epix_xclib_vinput->num_write_test_array_bytes,
+		epix_xclib_vinput->write_test_array[0],
+		vinput->record->name ));
+#endif
+	epix_status = pxd_writeushort( epix_xclib_vinput->unitmap, 1,
+				0, 0, -1, -1,
+				epix_xclib_vinput->write_test_array,
+		    epix_xclib_vinput->num_write_test_array_bytes / 2L,
+				"Grey" );
+#if 1
+	MX_DEBUG(-2,("%s: pxd_writeushort() epix_status = %d",
+		fname, epix_status));
+#endif
+
+	if ( epix_status < 0 ) {
+		mxi_epix_xclib_error_message(
+			epix_xclib_vinput->unitmap, epix_status,
+			error_message, sizeof(error_message) ); 
+
+		return mx_error( MXE_DEVICE_IO_ERROR, fname,
+		"An error occurred while writing a %lu byte "
+		"image frame to video input '%s'.  Error = '%s'.",
+	(unsigned long) epix_xclib_vinput->num_write_test_array_bytes,
+		vinput->record->name, error_message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*---*/
 
 MX_EXPORT mx_status_type
@@ -1017,7 +1101,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
-	unsigned long flags, old_array_bytes, new_array_bytes;
+	unsigned long flags;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1067,76 +1151,11 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 #endif
 
 	if ( flags & MXF_EPIX_WRITE_TEST) {
+		mx_status = mxd_epix_xclib_write_test_image_to_device(
+						vinput, epix_xclib_vinput );
 
-		old_array_bytes = epix_xclib_vinput->num_write_test_array_bytes;
-
-		new_array_bytes = vinput->framesize[0] * vinput->framesize[1]
-						* sizeof(uint16_t);
-
-		if ( old_array_bytes == 0 ) {
-			if ( new_array_bytes == 0 ) {
-				return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-					"The length requested by record '%s' "
-					"for the write test array is 0.",
-					vinput->record->name );
-			} else {
-				epix_xclib_vinput->write_test_array
-					= malloc( new_array_bytes );
-
-				epix_xclib_vinput->num_write_test_array_bytes
-					= new_array_bytes;
-			}
-		} else {
-			if ( new_array_bytes > old_array_bytes ) {
-				epix_xclib_vinput->write_test_array = realloc(
-					epix_xclib_vinput->write_test_array,
-					new_array_bytes );
-
-				epix_xclib_vinput->num_write_test_array_bytes
-					= new_array_bytes;
-			}
-		}
-
-		if ( epix_xclib_vinput->write_test_array == NULL ) {
-			epix_xclib_vinput->num_write_test_array_bytes = 0;
-
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"The write_test_array pointer for record '%s' is NULL.",
-				vinput->record->name );
-		}
-
-		memset( epix_xclib_vinput->write_test_array,
-			epix_xclib_vinput->write_test_value,
-			epix_xclib_vinput->num_write_test_array_bytes );
-
-#if 1
-		MX_DEBUG(-2,("%s: Writing a %lu byte array set to "
-			"the value %#x for record '%s'.",
-			fname, epix_xclib_vinput->num_write_test_array_bytes,
-			epix_xclib_vinput->write_test_array[0],
-			vinput->record->name ));
-#endif
-		epix_status = pxd_writeushort( epix_xclib_vinput->unitmap, 1,
-					0, 0, -1, -1,
-					epix_xclib_vinput->write_test_array,
-			    epix_xclib_vinput->num_write_test_array_bytes / 2L,
-					"Grey" );
-#if 1
-		MX_DEBUG(-2,("%s: pxd_writeushort() epix_status = %d",
-			fname, epix_status));
-#endif
-
-		if ( epix_status < 0 ) {
-			mxi_epix_xclib_error_message(
-				epix_xclib_vinput->unitmap, epix_status,
-				error_message, sizeof(error_message) ); 
-
-			return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"An error occurred while writing a %lu byte "
-			"image frame to video input '%s'.  Error = '%s'.",
-		(unsigned long) epix_xclib_vinput->num_write_test_array_bytes,
-			vinput->record->name, error_message );
-		}
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
 	}
 
 	/* If external triggering is not enabled,

@@ -53,6 +53,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long n, starting_total_num_frames, starting_last_frame_number;
 	long old_last_frame_number, old_total_num_frames, num_unread_frames;
 	long num_frames_difference;
+	long num_lines, num_lines_per_subimage, num_subimages;
 	size_t length;
 	unsigned long ad_status, roi_number;
 	unsigned long roi[4];
@@ -60,6 +61,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long correction_type, num_measurements;
 	double measurement_time;
 	double exposure_time, gap_time, exposure_multiplier, gap_multiplier;
+	double exposure_time_per_line, subimage_time;
 	double bytes_per_pixel;
 	mx_bool_type busy;
 	mx_status_type mx_status;
@@ -93,6 +95,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set bulb_mode '# frames'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
 "          'exposure time' 'gap_time' 'exposure multiplier' 'gap multiplier'\n"
+"  area_detector 'name' set streak_camera_mode '# lines' 'exposure time'\n"
+"  area_detector 'name' set subimage_mode '# lines per subimage' '#subimages'\n"
+"                                             'exposure time' 'subimage time'\n"
 "\n"
 "  area_detector 'name' get binsize\n"
 "  area_detector 'name' set binsize 'x_binsize' 'y_binsize'\n"
@@ -1658,6 +1663,74 @@ motor_area_detector_fn( int argc, char *argv[] )
 			mx_status = mx_area_detector_set_geometrical_mode(
 				ad_record, num_frames, exposure_time, gap_time,
 				exposure_multiplier, gap_multiplier );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp("streak_camera_mode",
+				argv[4], strlen(argv[4])) == 0)
+		{
+			if ( argc != 7 ) {
+				fprintf( output,
+			"Wrong number of arguments specified for 'set %s'.\n",
+					argv[4] );
+				return FAILURE;
+			}
+
+			num_lines = strtol( argv[5], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+	"%s: Non-numeric characters found in the number of lines '%s'\n",
+					cname, argv[5] );
+
+				return FAILURE;
+			}
+
+			exposure_time_per_line = atof( argv[6] );
+
+			mx_status = mx_area_detector_set_streak_camera_mode(
+				ad_record, num_lines, exposure_time_per_line );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return FAILURE;
+		} else
+		if ( strncmp("subimage_mode", argv[4], strlen(argv[4])) == 0)
+		{
+			if ( argc != 9 ) {
+				fprintf( output,
+			"Wrong number of arguments specified for 'set %s'.\n",
+					argv[4] );
+				return FAILURE;
+			}
+
+			num_lines_per_subimage = strtol( argv[5], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+"%s: Non-numeric characters found in the number of lines per subimage '%s'\n",
+					cname, argv[5] );
+
+				return FAILURE;
+			}
+
+			num_subimages = strtol( argv[6], &endptr, 0 );
+
+			if ( *endptr != '\0' ) {
+				fprintf( output,
+	"%s: Non-numeric characters found in the number of subimages '%s'\n",
+					cname, argv[6] );
+
+				return FAILURE;
+			}
+
+			exposure_time = atof( argv[7] );
+
+			subimage_time = atof( argv[8] );
+
+			mx_status = mx_area_detector_set_subimage_mode(
+				ad_record, num_lines_per_subimage,
+				num_subimages, exposure_time, subimage_time );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
