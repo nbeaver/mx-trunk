@@ -36,7 +36,7 @@
 #  include <errno.h>
 #  include <signal.h>
 #  include <sys/times.h>
-#  define OS_LINUX_GNU
+#  define OS_LINUX_GNU	/* Needed by the vendor's include file. */
 #endif
 
 #include "mx_util.h"
@@ -308,6 +308,8 @@ mxd_epix_xclib_destroy_captured_field_handler(
 /*--------- Linux specific functions ---------*/
 
 #if defined( OS_LINUX )
+
+#include <unistd.h>
 
 #ifdef CONFIG_SMP
 #  define LOCK "lock ; "
