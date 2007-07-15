@@ -47,7 +47,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_network_vinput_video_input_function_list = {
 	mxd_network_vinput_trigger,
 	mxd_network_vinput_stop,
 	mxd_network_vinput_abort,
-	mxd_network_vinput_continuous_capture,
+	mxd_network_vinput_asynchronous_capture,
 	mxd_network_vinput_get_last_frame_number,
 	mxd_network_vinput_get_total_num_frames,
 	mxd_network_vinput_get_status,
@@ -182,6 +182,14 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 			network_vinput->server_record,
 			"%s.arm", network_vinput->remote_record_name );
 
+	mx_network_field_init( &(network_vinput->asynchronous_capture_nf),
+			network_vinput->server_record,
+		"%s.asynchronous_capture", network_vinput->remote_record_name );
+
+	mx_network_field_init( &(network_vinput->asynchronous_circular_nf),
+			network_vinput->server_record,
+		"%s.asynchronous_circular", network_vinput->remote_record_name);
+
 	mx_network_field_init( &(network_vinput->bits_per_pixel_nf),
 			network_vinput->server_record,
 		"%s.bits_per_pixel", network_vinput->remote_record_name );
@@ -201,10 +209,6 @@ mxd_network_vinput_finish_record_initialization( MX_RECORD *record )
 	mx_network_field_init( &(network_vinput->camera_trigger_polarity_nf),
 			network_vinput->server_record,
 	    "%s.camera_trigger_polarity", network_vinput->remote_record_name);
-
-	mx_network_field_init( &(network_vinput->continuous_capture_nf),
-			network_vinput->server_record,
-		"%s.continuous_capture", network_vinput->remote_record_name );
 
 	mx_network_field_init( &(network_vinput->extended_status_nf),
 			network_vinput->server_record,
@@ -480,9 +484,9 @@ mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_network_vinput_continuous_capture( MX_VIDEO_INPUT *vinput )
+mxd_network_vinput_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_network_vinput_continuous_capture()";
+	static const char fname[] = "mxd_network_vinput_asynchronous_capture()";
 
 	MX_NETWORK_VINPUT *network_vinput;
 	mx_status_type mx_status;
@@ -497,9 +501,14 @@ mxd_network_vinput_continuous_capture( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s invoked for video input '%s'",
 		fname, vinput->record->name ));
 #endif
+	mx_status = mx_put( &(network_vinput->asynchronous_circular_nf),
+				MXFT_BOOL, &(vinput->asynchronous_circular) );
 
-	mx_status = mx_put( &(network_vinput->continuous_capture_nf),
-				MXFT_LONG, &(vinput->continuous_capture) );
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_put( &(network_vinput->asynchronous_capture_nf),
+				MXFT_LONG, &(vinput->asynchronous_capture) );
 
 	return mx_status;
 }

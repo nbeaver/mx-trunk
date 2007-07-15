@@ -25,12 +25,13 @@ typedef struct {
 
 	MX_NETWORK_FIELD abort_nf;
 	MX_NETWORK_FIELD arm_nf;
+	MX_NETWORK_FIELD asynchronous_capture_nf;
+	MX_NETWORK_FIELD asynchronous_circular_nf;
 	MX_NETWORK_FIELD bits_per_pixel_nf;
 	MX_NETWORK_FIELD byte_order_nf;
 	MX_NETWORK_FIELD bytes_per_frame_nf;
 	MX_NETWORK_FIELD bytes_per_pixel_nf;
 	MX_NETWORK_FIELD camera_trigger_polarity_nf;
-	MX_NETWORK_FIELD continuous_capture_nf;
 	MX_NETWORK_FIELD extended_status_nf;
 	MX_NETWORK_FIELD external_trigger_polarity_nf;
 	MX_NETWORK_FIELD framesize_nf;
@@ -76,7 +77,7 @@ MX_API mx_status_type mxd_network_vinput_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_network_vinput_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_network_vinput_continuous_capture(
+MX_API mx_status_type mxd_network_vinput_asynchronous_capture(
 							MX_VIDEO_INPUT * );
 MX_API mx_status_type mxd_network_vinput_get_last_frame_number(
 							MX_VIDEO_INPUT * );

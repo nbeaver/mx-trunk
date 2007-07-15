@@ -808,7 +808,40 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 	return MX_SUCCESSFUL_RESULT;
 }
 
-/* PCCD-170170 detector readout time formula as of June 6, 2007. */
+static mx_status_type
+mxd_pccd_170170_get_num_frames_in_sequence( MX_AREA_DETECTOR *ad,
+					long *num_frames_in_sequence )
+{
+	MX_SEQUENCE_PARAMETERS *sp;
+	long num_frames;
+
+	sp = &(ad->sequence_parameters);
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAK_CAMERA:
+	case MXT_SQ_SUBIMAGE:
+		num_frames = 1;
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_STROBE:
+	case MXT_SQ_BULB:
+	case MXT_SQ_GEOMETRICAL:
+		num_frames = mx_round( sp->parameter_array[0] );
+		break;
+	default:
+		num_frames = 0;
+		break;
+	}
+
+	*num_frames_in_sequence = num_frames;
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* PCCD-170170 detector readout time formula as of July 13, 2007. */
 
 static mx_status_type
 mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
@@ -1692,6 +1725,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK num_ticks_to_wait, finish_tick;
 	double timeout_in_seconds;
 	int comparison;
+	long num_frames_in_sequence;
 	mx_bool_type camera_is_master, external_trigger, busy;
 	mx_status_type mx_status;
 
@@ -1774,19 +1808,15 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	/* Prepare the video input for the next trigger. */
 
 	if ( camera_is_master && external_trigger ) {
-		mx_status = mx_area_detector_get_maximum_frame_number(
-					ad->record, NULL );
+		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
+						ad, &num_frames_in_sequence );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: maximum_frame_number = %lu",
-			fname, ad->maximum_frame_number));
-#endif
-		mx_status = mx_video_input_continuous_capture(
+		mx_status = mx_video_input_asynchronous_capture(
 					pccd_170170->video_input_record,
-					ad->maximum_frame_number + 1);
+					num_frames_in_sequence, FALSE );
 	} else {
 		mx_status = mx_video_input_arm(
 					pccd_170170->video_input_record );
@@ -1803,6 +1833,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
+	long num_frames_in_sequence;
 	mx_bool_type camera_is_master, internal_trigger;
 	mx_status_type mx_status;
 
@@ -1865,19 +1896,15 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 #endif
 
 	if ( camera_is_master && internal_trigger ) {
-		mx_status = mx_area_detector_get_maximum_frame_number(
-					ad->record, NULL );
+		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
+						ad, &num_frames_in_sequence );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-#if MXD_PCCD_170170_DEBUG
-		MX_DEBUG(-2,("%s: maximum_frame_number = %lu",
-			fname, ad->maximum_frame_number));
-#endif
-		mx_status = mx_video_input_continuous_capture(
+		mx_status = mx_video_input_asynchronous_capture(
 					pccd_170170->video_input_record,
-					ad->maximum_frame_number + 1);
+					num_frames_in_sequence, FALSE );
 	} else {
 		/* Send the trigger request to the video input board. */
 

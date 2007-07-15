@@ -76,7 +76,7 @@ MX_VIDEO_INPUT_FUNCTION_LIST mxd_epix_xclib_video_input_function_list = {
 	mxd_epix_xclib_trigger,
 	mxd_epix_xclib_stop,
 	mxd_epix_xclib_abort,
-	mxd_epix_xclib_continuous_capture,
+	mxd_epix_xclib_asynchronous_capture,
 	mxd_epix_xclib_get_last_frame_number,
 	mxd_epix_xclib_get_total_num_frames,
 	mxd_epix_xclib_get_status,
@@ -1139,7 +1139,6 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	 */
 
 	epix_xclib_vinput->new_sequence = TRUE;
-
 	epix_xclib_vinput->sequence_in_progress = TRUE;
 
 	/* If the 'write test' feature is enabled, fill
@@ -1605,6 +1604,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 		return mx_status;
 
 #if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -1644,6 +1644,23 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 			"for video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 	}
+
+#if 1
+	{
+		int busy;
+
+		busy = pxd_goneLive(epix_xclib_vinput->unitmap, 0);
+
+		if ( busy != 0 ) {
+			mx_warning( "The EPIX clock has not yet stopped!" );
+		}
+	}
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1699,14 +1716,14 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 }
 
 MX_EXPORT mx_status_type
-mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
+mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 {
-	static const char fname[] = "mxd_epix_xclib_continuous_capture()";
+	static const char fname[] = "mxd_epix_xclib_asynchronous_capture()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	char error_message[80];
-	long num_frame_buffers;
 	int epix_status;
+	long numbuf;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1718,37 +1735,46 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
+
+	MX_DEBUG(-2,("%s: vinput->asynchronous_capture = %ld",
+		fname, vinput->asynchronous_capture));
 #endif
-	num_frame_buffers = pxd_imageZdim();
-
-#if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: vinput->continuous_capture = %ld",
-		fname, vinput->continuous_capture));
-
-	MX_DEBUG(-2,("%s: num_frame_buffers = %ld", fname, num_frame_buffers));
-#endif
-	vinput->maximum_frame_number = num_frame_buffers - 1;
-
-	if ( vinput->continuous_capture > num_frame_buffers ) {
+	if ( vinput->asynchronous_capture > pxd_imageZdim() ) {
 		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested number (%ld) of continuous capture frames "
-		"exceeds the maximum allowed value (%ld) for video input '%s'.",
-			vinput->continuous_capture,
-			num_frame_buffers,
+		"The requested number (%ld) of asynchronous capture frames "
+		"exceeds the maximum allowed value (%d) for video input '%s'.",
+			vinput->asynchronous_capture,
+			pxd_imageZdim(),
 			vinput->record->name );
 	}
 
-	/* Configure the capture sequence to continue using the requested
-	 * number of frames until explicitly stopped.  
-	 */
+	if ( vinput->asynchronous_circular ) {
+		numbuf = 0;
+	} else {
+		numbuf = vinput->asynchronous_capture;
+	}
+
+	/* Save the starting value of the total number of frames. */
+
+	mx_status = mxd_epix_xclib_get_total_num_frames( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	epix_xclib_vinput->old_total_num_frames = vinput->total_num_frames;
+
+	epix_xclib_vinput->new_sequence = TRUE;
+	epix_xclib_vinput->sequence_in_progress = TRUE;
+
+	/* Start the sequence. */
 
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-			1, vinput->continuous_capture, 1, 0, 1 );
+			1, vinput->asynchronous_capture, 1, numbuf, 1 );
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, 0, 1 ) = %d",
+	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, %ld, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap,
-		vinput->continuous_capture, epix_status));
+		vinput->asynchronous_capture, numbuf, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
@@ -1757,13 +1783,10 @@ mxd_epix_xclib_continuous_capture( MX_VIDEO_INPUT *vinput )
 			error_message, sizeof(error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"The attempt to start continuous capture for "
+			"The attempt to start asynchronous capture for "
 			"video input '%s' failed.  %s",
 				vinput->record->name, error_message );
 	}
-
-	epix_xclib_vinput->sequence_in_progress = TRUE;
-	epix_xclib_vinput->new_sequence = TRUE;
 
 	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, TRUE );
 
@@ -1818,15 +1841,29 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,
+		("%s: old_total_num_frames = %ld, total_num_frames = %ld",
+			fname, epix_xclib_vinput->old_total_num_frames,
+			vinput->total_num_frames));
+#endif
+
 		if ( vinput->total_num_frames
 			== epix_xclib_vinput->old_total_num_frames )
 		{
+			MX_DEBUG(-2,("%s: MARKER 1", fname));
+
 			vinput->last_frame_number = -1;
 		} else {
+			MX_DEBUG(-2,("%s: MARKER 2", fname));
+
 			vinput->last_frame_number = captured_buffer - 1;
 			epix_xclib_vinput->new_sequence = FALSE;
 		}
 	} else {
+		MX_DEBUG(-2,("%s: MARKER 3", fname));
+
 		vinput->last_frame_number = captured_buffer - 1;
 	}
 

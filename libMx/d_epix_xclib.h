@@ -91,7 +91,7 @@ MX_API mx_status_type mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput );
-MX_API mx_status_type mxd_epix_xclib_continuous_capture(
+MX_API mx_status_type mxd_epix_xclib_asynchronous_capture(
 						MX_VIDEO_INPUT *vinput );
 MX_API mx_status_type mxd_epix_xclib_get_last_frame_number(
 						MX_VIDEO_INPUT *vinput );

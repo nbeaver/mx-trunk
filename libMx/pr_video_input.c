@@ -129,12 +129,12 @@ mx_setup_video_input_process_functions( MX_RECORD *record )
 		switch( record_field->label_value ) {
 		case MXLV_VIN_ABORT:
 		case MXLV_VIN_ARM:
+		case MXLV_VIN_ASYNCHRONOUS_CAPTURE:
 		case MXLV_VIN_BITS_PER_PIXEL:
 		case MXLV_VIN_BUSY:
 		case MXLV_VIN_BYTES_PER_FRAME:
 		case MXLV_VIN_BYTES_PER_PIXEL:
 		case MXLV_VIN_CAMERA_TRIGGER_POLARITY:
-		case MXLV_VIN_CONTINUOUS_CAPTURE:
 		case MXLV_VIN_EXTENDED_STATUS:
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 		case MXLV_VIN_FORMAT:
@@ -285,9 +285,10 @@ mx_video_input_process_function( void *record_ptr,
 			mx_status = mx_video_input_set_camera_trigger_polarity(
 				    record, vinput->camera_trigger_polarity );
 			break;
-		case MXLV_VIN_CONTINUOUS_CAPTURE:
-			mx_status = mx_video_input_continuous_capture(
-					record, vinput->continuous_capture );
+		case MXLV_VIN_ASYNCHRONOUS_CAPTURE:
+			mx_status = mx_video_input_asynchronous_capture(
+					record, vinput->asynchronous_capture,
+					vinput->asynchronous_circular );
 			break;
 		case MXLV_VIN_EXTERNAL_TRIGGER_POLARITY:
 			mx_status =
