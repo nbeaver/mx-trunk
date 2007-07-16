@@ -29,6 +29,7 @@
 #if HAVE_EPIX_XCLIB
 
 #include <stdlib.h>
+#include <math.h>
 
 #if defined(OS_WIN32)
 #  include <windows.h>
@@ -1597,6 +1598,7 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	char error_message[80];
 	int epix_status;
+	unsigned int princ_mode, clock_bits;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1629,11 +1631,19 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 	}
 
-	epix_status = pxd_setExsyncPrincMode(epix_xclib_vinput->unitmap, 0, 0);
+	clock_bits = mx_round(
+		pow( 2.0, epix_xclib_vinput->pixel_clock_divisor + 2 ) );
+
+	clock_bits &= 0x7;
+
+	princ_mode = clock_bits << 7;
+
+	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
+						0, princ_mode );
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, 0) = %d",
-		fname, epix_xclib_vinput->unitmap, epix_status));
+	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, %u) = %d",
+		fname, epix_xclib_vinput->unitmap, princ_mode, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
@@ -1663,7 +1673,6 @@ mxd_epix_xclib_stop( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s complete.", fname));
 	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 #endif
-
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -1675,6 +1684,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	char error_message[80];
 	int epix_status;
+	unsigned int princ_mode, clock_bits;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1684,6 +1694,7 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 		return mx_status;
 
 #if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
 	MX_DEBUG(-2,("%s invoked for video input '%s'.",
 		fname, vinput->record->name ));
 #endif
@@ -1701,8 +1712,20 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 	}
 
-	epix_status = pxd_setExsyncPrincMode(epix_xclib_vinput->unitmap, 0, 0);
+	clock_bits = mx_round(
+		pow( 2.0, epix_xclib_vinput->pixel_clock_divisor + 2 ) );
 
+	clock_bits &= 0x7;
+
+	princ_mode = clock_bits << 7;
+
+	epix_status = pxd_setExsyncPrincMode( epix_xclib_vinput->unitmap,
+						0, princ_mode );
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_setExsyncPrincMode(%ld, 0, %u) = %d",
+		fname, epix_xclib_vinput->unitmap, princ_mode, epix_status));
+#endif
 	if ( epix_status != 0 ) {
 		mxi_epix_xclib_error_message(
 			epix_xclib_vinput->unitmap, epix_status,
@@ -1714,6 +1737,22 @@ mxd_epix_xclib_abort( MX_VIDEO_INPUT *vinput )
 				vinput->record->name, error_message );
 	}
 
+#if 1
+	{
+		int busy;
+
+		busy = pxd_goneLive(epix_xclib_vinput->unitmap, 0);
+
+		if ( busy != 0 ) {
+			mx_warning( "The EPIX clock has not yet stopped!" );
+		}
+	}
+#endif
+
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s complete.", fname));
+	MX_DEBUG(-2,("%s ++++++++++++++++++++++++++++++++++++++++++++", fname));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 

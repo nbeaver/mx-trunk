@@ -1764,7 +1764,7 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		fname, (int) camera_is_master, (int) external_trigger));
 #endif
 
-	mx_status = mx_video_input_stop( pccd_170170->video_input_record );
+	mx_status = mx_video_input_abort( pccd_170170->video_input_record );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1834,6 +1834,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_VIDEO_INPUT *vinput;
 	MX_SEQUENCE_PARAMETERS *sp;
 	long num_frames_in_sequence;
+	int i, num_triggers;
 	mx_bool_type camera_is_master, internal_trigger;
 	mx_status_type mx_status;
 
@@ -1922,23 +1923,40 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 	if ( camera_is_master && internal_trigger ) {
 
-		/* Set the output high. */
+#if 0
+		if ( sp->sequence_type == MXT_SQ_SUBIMAGE ) {
+			num_triggers = 2;
+		} else {
+			num_triggers = 1;
+		}
+#else
+		num_triggers = 1;
+#endif
 
-		mx_status = mx_digital_output_write(
+		for ( i = 0; i < num_triggers; i++ ) {
+
+			/* Set the output high. */
+
+			mx_status = mx_digital_output_write(
 				pccd_170170->internal_trigger_record, 1 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 
-		mx_msleep(100);		/* Wait 0.1 seconds. */
+			mx_msleep(100);		/* Wait 0.1 seconds. */
 
-		/* Set the output low. */
+			/* Set the output low. */
 
-		mx_status = mx_digital_output_write(
+			mx_status = mx_digital_output_write(
 				pccd_170170->internal_trigger_record, 0 );
 
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			if ( num_triggers > 1 ) {
+				mx_msleep(100);		/* Wait 0.1 seconds. */
+			}
+		}
 	}
 
 #if MXD_PCCD_170170_DEBUG
@@ -2847,9 +2865,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of frames in sequence to 1. */
 
+#if 1
 			mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
 					1 );
+#else
+			mx_status = mxd_pccd_170170_write_register( pccd_170170,
+					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
+					2 );
+#endif
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
