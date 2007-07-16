@@ -180,49 +180,65 @@ mxi_camera_link_api_open( MX_RECORD *record )
 
 	lib = camera_link_api->library;
 
-	api_list->flush_port = mx_dynamic_library_get_symbol_pointer(
-						lib, "clFlushPort" );
+	api_list->flush_port = (INT32 (*)(hSerRef))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clFlushPort" );
 					
-	api_list->get_error_text = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetErrorText" );
+	api_list->get_error_text =
+		(INT32 (*)(const INT8 *, INT32, INT8 *, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetErrorText" );
 
-	api_list->get_manufacturer_info = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetManufacturerInfo" );
+	api_list->get_manufacturer_info =
+		(INT32 (*)(INT8 *, UINT32 *, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetManufacturerInfo" );
 
-	api_list->get_num_bytes_avail = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetNumBytesAvail" );
+	api_list->get_num_bytes_avail = (INT32 (*)(hSerRef, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetNumBytesAvail" );
 
-	api_list->get_num_ports = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetNumPorts" );
+	api_list->get_num_ports = (INT32 (*)(UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetNumPorts" );
 
-	api_list->get_num_serial_ports = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetNumSerialPorts" );
+	api_list->get_num_serial_ports = (INT32 (*)(UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetNumSerialPorts" );
 
-	api_list->get_port_info = mx_dynamic_library_get_symbol_pointer(
-						lib, "clGetPortInfo" );
+	api_list->get_port_info =
+	    (INT32 (*)(UINT32, INT8 *, UINT32 *, INT8 *, UINT32 *, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clGetPortInfo" );
 
 	api_list->get_serial_port_identifier =
-		mx_dynamic_library_get_symbol_pointer(
+		(INT32 (*)(UINT32, INT8 *, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
 					lib, "clGetSerialPortIdentifier" );
 
-	api_list->get_supported_baud_rates =
-		mx_dynamic_library_get_symbol_pointer(
+	api_list->get_supported_baud_rates = (INT32 (*)(hSerRef, UINT32 *))
+			mx_dynamic_library_get_symbol_pointer(
 					lib, "clGetSupportedBaudRates" );
 
-	api_list->serial_close = mx_dynamic_library_get_symbol_pointer(
-						lib, "clSerialClose" );
+	api_list->serial_close = (void (*)(hSerRef))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clSerialClose" );
 
-	api_list->serial_init = mx_dynamic_library_get_symbol_pointer(
-						lib, "clSerialInit" );
+	api_list->serial_init = (INT32 (*)(UINT32, hSerRef *))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clSerialInit" );
 
-	api_list->serial_read = mx_dynamic_library_get_symbol_pointer(
-						lib, "clSerialRead" );
+	api_list->serial_read = (INT32 (*)(hSerRef, INT8 *, UINT32 *, UINT32))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clSerialRead" );
 
-	api_list->serial_write = mx_dynamic_library_get_symbol_pointer(
-						lib, "clSerialWrite" );
+	api_list->serial_write = (INT32 (*)(hSerRef, INT8 *, UINT32 *, UINT32))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clSerialWrite" );
 
-	api_list->set_baud_rate = mx_dynamic_library_get_symbol_pointer(
-						lib, "clSetBaudRate" );
+	api_list->set_baud_rate = (INT32 (*)(hSerRef, UINT32))
+			mx_dynamic_library_get_symbol_pointer(
+					lib, "clSetBaudRate" );
 
 	/* Initialize the Camera Link serial connection. */
 
