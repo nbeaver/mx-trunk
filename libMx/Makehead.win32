@@ -379,7 +379,7 @@ $(MOTOR_NAME): $(MOTOR_OBJS) motor.res $(MX_LIBRARY_PATH)
 	fi
 
 motor.res: motor.rc
-	rc motor.rc
+	rc -i$(MSDEV_DIR)/include motor.rc
 
 motor_install:
 	cp $(MOTOR_NAME) $(MX_INSTALL_DIR)/bin
@@ -402,7 +402,7 @@ $(SERVER_NAME): $(SERVER_OBJS) mxserver.res $(MX_LIBRARY_PATH)
 	fi
 
 mxserver.res: mxserver.rc
-	rc mxserver.rc
+	rc -i$(MSDEV_DIR)/include mxserver.rc
 
 server_install:
 	cp $(SERVER_NAME) $(MX_INSTALL_DIR)/sbin
