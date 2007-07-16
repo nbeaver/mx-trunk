@@ -25,6 +25,7 @@
 #include "mx_util.h"
 #include "mx_stdint.h"
 #include "mx_unistd.h"
+#include "mx_socket.h"
 #include "mx_pipe.h"
 
 /************************ Windows ***********************/
@@ -453,7 +454,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 /************************ Unix ***********************/
 
-#elif defined(OS_UNIX)
+#elif defined(OS_UNIX) || defined(OS_CYGWIN)
 
 #include <fcntl.h>
 #include <sys/ioctl.h>
@@ -715,7 +716,7 @@ mx_pipe_num_bytes_available( MX_PIPE *mx_pipe,
 	}
 
 #if defined(OS_LINUX) || defined(OS_MACOSX) || defined(OS_SOLARIS) \
-		|| defined(OS_IRIX)
+		|| defined(OS_IRIX) || defined(OS_CYGWIN)
 	{
 		/* Use FIONREAD */
 

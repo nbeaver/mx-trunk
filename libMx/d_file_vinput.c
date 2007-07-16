@@ -705,7 +705,7 @@ mxd_file_vinput_get_status( MX_VIDEO_INPUT *vinput )
 
 #if MXD_FILE_VINPUT_DEBUG
 	MX_DEBUG(-2,("%s: busy = %d, status = %ld",
-		fname, vinput->busy, vinput->status));
+		fname, (int) vinput->busy, vinput->status));
 #endif
 
 	return mx_status;
