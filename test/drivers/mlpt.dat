@@ -1,0 +1,10 @@
+portio    interface generic dl_portio "" ""
+lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
+lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
+pin2      device digital_output bit_out "" "" 0 0 lpt1_data 0 1 lpt1_data 0 1
+pin3      device digital_output bit_out "" "" 0 0 lpt1_data 1 1 lpt1_data 1 1
+pin4      device digital_output bit_out "" "" 0 0 lpt1_data 2 1 lpt1_data 2 1
+pin5      device digital_output bit_out "" "" 0 0 lpt1_data 3 1 lpt1_data 3 1
+pin6      device digital_output bit_out "" "" 0 0 lpt1_data 4 1 lpt1_data 4 1
+pin8      device digital_output bit_out "" "" 0 0 lpt1_data 6 1 lpt1_data 6 1
+pin9      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
