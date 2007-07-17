@@ -2435,6 +2435,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	unsigned long *register_value_ptr;
 	unsigned long old_control_register_value, new_control_register_value;
 	unsigned long old_detector_readout_mode;
+	unsigned long flags;
 	long vinput_horiz_framesize, vinput_vert_framesize;
 	long num_streak_mode_lines;
 	long num_frames, exposure_steps, gap_steps;
@@ -2461,6 +2462,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			ad->record, ad->parameter_type,
 			name_buffer, sizeof(name_buffer)) ));
 #endif
+	flags = pccd_170170->pccd_170170_flags;
 
 	switch( ad->parameter_type ) {
 	case MXLV_AD_FRAMESIZE:
@@ -2690,7 +2692,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			exposure_steps = mx_round( exposure_time / 0.001 );
+			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
+			    exposure_steps = mx_round( exposure_time / 0.01 );
+			} else {
+			    exposure_steps = mx_round( exposure_time / 0.001 );
+			}
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2806,7 +2812,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[1];
 
-			exposure_steps = mx_round( exposure_time / 0.001 );
+			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
+			    exposure_steps = mx_round( exposure_time / 0.01 );
+			} else {
+			    exposure_steps = mx_round( exposure_time / 0.001 );
+			}
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -2900,7 +2910,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[2];
 
-			exposure_steps = mx_round( exposure_time / 0.001 );
+			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
+			    exposure_steps = mx_round( exposure_time / 0.01 );
+			} else {
+			    exposure_steps = mx_round( exposure_time / 0.001 );
+			}
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,

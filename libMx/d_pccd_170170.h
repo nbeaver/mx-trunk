@@ -25,6 +25,7 @@
 #define MXF_PCCD_170170_CAMERA_IS_MASTER		0x8
 #define MXF_PCCD_170170_USE_TEST_PATTERN		0x10
 #define MXF_PCCD_170170_NUM_FRAMES_KLUDGE		0x20
+#define MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE		0x40
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
