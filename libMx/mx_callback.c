@@ -74,7 +74,7 @@ mx_request_value_changed_poll( MX_VIRTUAL_TIMER *callback_timer,
 
 	poll_callback_message = callback_args;
 
-	list_head = poll_callback_message->u.poll.list_head;
+	list_head = poll_callback_message->list_head;
 
 	mx_pipe = list_head->callback_pipe;
 
@@ -188,7 +188,7 @@ mx_initialize_callback_support( MX_RECORD *record )
 		}
 
 		poll_callback_message->callback_type = MXCBT_POLL;
-		poll_callback_message->u.poll.list_head = list_head;
+		poll_callback_message->list_head = list_head;
 
 		/* Now create the virtual timer. */
 
@@ -754,5 +754,37 @@ mx_invoke_callback( MX_CALLBACK *callback )
 		fname, function, mx_status.code));
 #endif
 	return mx_status;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT void
+mx_callback_standard_vtimer_handler( MX_VIRTUAL_TIMER *vtimer, void *args )
+{
+	static const char fname[] = "mx_callback_standard_vtimer_handler()";
+
+	MX_CALLBACK_MESSAGE *callback_message;
+	MX_LIST_HEAD *list_head;
+
+	callback_message = args;
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
+#endif
+
+	list_head = callback_message->list_head;
+
+	if ( list_head->callback_pipe == (MX_PIPE *) NULL ) {
+		(void) mx_error( MXE_IPC_IO_ERROR, fname,
+		"The callback pipe for this process has not been created." );
+
+		return;
+	}
+
+	(void) mx_pipe_write( list_head->callback_pipe,
+				(char *) &callback_message,
+				sizeof(MX_CALLBACK_MESSAGE *) );
+
+	return;
 }
 

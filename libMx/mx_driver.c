@@ -49,6 +49,8 @@
 #include "mx_epics.h"
 #include "mx_spec.h"
 
+#include "mx_callback.h"
+
 #include "mx_analog_input.h"
 #include "mx_analog_output.h"
 #include "mx_digital_input.h"

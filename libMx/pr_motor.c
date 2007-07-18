@@ -68,7 +68,7 @@ mxp_motor_backlash_vtimer_callback( MX_VIRTUAL_TIMER *vtimer, void *args )
 		fname, callback_message->u.backlash.motor_record->name ));
 #endif
 
-	list_head = callback_message->u.backlash.list_head;
+	list_head = callback_message->list_head;
 
 	if ( list_head->callback_pipe == (MX_PIPE *) NULL ) {
 		(void) mx_error( MXE_IPC_IO_ERROR, fname,
@@ -112,7 +112,8 @@ mx_motor_backlash_callback( MX_CALLBACK_MESSAGE *callback_message )
 	MX_DEBUG(-2,("%s: callback_message = %p", fname, callback_message));
 #endif
 
-	list_head         = callback_message->u.backlash.list_head;
+	list_head         = callback_message->list_head;
+
 	motor_record      = callback_message->u.backlash.motor_record;
 	oneshot_timer     = callback_message->u.backlash.oneshot_timer;
 	original_position = callback_message->u.backlash.original_position;
@@ -330,8 +331,8 @@ mxp_motor_move_absolute_handler( MX_RECORD *record, double destination )
 	delay_in_seconds = 0.5;
 
 	callback_message->callback_type = MXCBT_MOTOR_BACKLASH;
+	callback_message->list_head     = list_head;
 
-	callback_message->u.backlash.list_head         = list_head;
 	callback_message->u.backlash.motor_record      = record;
 	callback_message->u.backlash.original_position = original_position;
 	callback_message->u.backlash.destination       = destination;

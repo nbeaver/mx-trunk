@@ -3682,11 +3682,11 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 		("%s: Poll all value changed callback handlers.", fname));
 #endif
 
-		if ( list_head != callback_message->u.poll.list_head ) {
+		if ( list_head != callback_message->list_head ) {
 			return mx_error( MXE_IPC_IO_ERROR, fname,
 			"The callback has a different address %p for the "
 			"list head than the server's list head address %p.",
-				callback_message->u.poll.list_head,
+				callback_message->list_head,
 				list_head );
 		}
 

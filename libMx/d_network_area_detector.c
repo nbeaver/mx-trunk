@@ -547,6 +547,14 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Get the trigger mode. */
+
+	mx_status = mx_get( &(network_area_detector->trigger_mode_nf),
+				MXFT_LONG, &(ad->trigger_mode) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif

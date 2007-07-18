@@ -17,14 +17,16 @@
 #ifndef __MX_AREA_DETECTOR_H__
 #define __MX_AREA_DETECTOR_H__
 
+#include "mx_callback.h"
 #include "mx_namefix.h"
 
 #define MXU_AD_EXTENDED_STATUS_STRING_LENGTH	40
 
 /* Status bit definitions for the 'status' field. */
 
-#define MXSF_AD_IS_BUSY			0x1
-#define MXSF_AD_CORRECTION_IN_PROGRESS	0x2
+#define MXSF_AD_IS_BUSY					0x1
+#define MXSF_AD_CORRECTION_IN_PROGRESS			0x2
+#define MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS	0x4
 
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.
@@ -39,7 +41,19 @@
 #define MXFT_AD_ALL			0xffffffff
 
 typedef struct {
+	struct mx_area_detector_type *area_detector;
+	MX_IMAGE_FRAME *destination_frame;
+	uint16_t *destination_array;
+	double *sum_array;
+	unsigned long saved_correction_flags;
+	unsigned long desired_correction_flags;
+	MX_CALLBACK_MESSAGE *callback;
+} MX_AREA_DETECTOR_CORRECTION_MEASUREMENT;
+
+typedef struct mx_area_detector_type {
 	MX_RECORD *record;
+
+	long ad_state;
 
 	long parameter_type;
 	long frame_number;
@@ -152,6 +166,8 @@ typedef struct {
 	/* The following fields are used for measuring dark current and
 	 * flood field image frames.
 	 */
+
+	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *correction_measurement;
 
 	long correction_measurement_type;
 	double correction_measurement_time;

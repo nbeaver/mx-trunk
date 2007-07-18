@@ -188,6 +188,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 
 	ad->correction_flags = MXFT_AD_ALL;
 
+	ad->correction_measurement = NULL;
+
 	ad->maximum_frame_number = 0;
 	ad->last_frame_number = -1;
 	ad->total_num_frames = -1;
