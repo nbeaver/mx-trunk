@@ -76,7 +76,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
-	mx_area_detector_default_dezinger_correction
+	mx_area_detector_default_measure_correction
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {

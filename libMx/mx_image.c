@@ -700,7 +700,8 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 	}
 
 #if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s invoked for %lu image frames.", fname));
+	MX_DEBUG(-2,("%s invoked for %lu image frames.",
+			fname, num_original_frames));
 #endif
 
 	dz_frame = *dezingered_frame;
@@ -919,7 +920,8 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 	}
 
 #if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s complete for %lu image frames.", fname));
+	MX_DEBUG(-2,("%s complete for %lu image frames.",
+		fname, num_original_frames));
 #endif
 
 	return MX_SUCCESSFUL_RESULT;
