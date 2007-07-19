@@ -3636,6 +3636,7 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 	signed long handle;
 	MX_CALLBACK *callback;
 	MX_CALLBACK_MESSAGE *callback_message;
+	mx_status_type (*cb_function)( void * );
 	unsigned long i, array_size;
 	size_t bytes_read;
 	mx_status_type mx_status;
@@ -3754,6 +3755,21 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
+		break;
+	case MXCBT_FUNCTION:
+		cb_function = callback_message->u.function.callback_function;
+
+		if ( cb_function == NULL ) {
+			mx_warning(
+		  "Function callback seen by %s with a NULL function pointer.",
+				fname );
+		} else {
+			mx_status = (*cb_function)( callback_message );
+		}
+		break;
+	default:
+		mx_warning( "Unrecognized callback type %ld seen in %s",
+			callback_message->callback_type, fname );
 		break;
 	}
 

@@ -63,11 +63,12 @@ typedef struct {
 
 typedef struct {
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	void (*callback_function)(void *);
+	mx_status_type (*callback_function)(void *);
 	void *callback_args;
 } MX_CALLBACK_FUNCTION_MESSAGE;
 
-typedef struct {
+typedef struct mx_callback_message_type{
+
 	unsigned long callback_type;
 	MX_LIST_HEAD *list_head;
 	union {
