@@ -169,7 +169,8 @@ static mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
 					long sector_height,
-					uint16_t *image_data )
+					uint16_t *image_data,
+					long image_type )
 {
 	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
 
@@ -195,7 +196,14 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		fname, sector_width, sector_height));
 #endif
 
-	num_sector_rows = 4;
+	switch( image_type ) {
+	case MXT_SQ_SUBIMAGE:
+		num_sector_rows = 2;
+		break;
+	default:
+		num_sector_rows = 4;
+		break;
+	}
 	num_sector_columns = 4;
 	num_sectors = num_sector_rows * num_sector_columns;
 
@@ -434,51 +442,78 @@ static mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
 				long i_framesize,
-				long j_framesize )
+				long j_framesize,
+				long image_type )
 {
 	long i, j;
+	long snoff;			/* sector number offset */
+	mx_bool_type keep_top_two_rows;
+
+	/* For subimages, we skip the top two rows of raw data and only 
+	 * save the contents of the bottom two rows.
+	 */
+
+	switch( image_type ) {
+	case MXT_SQ_SUBIMAGE:
+		keep_top_two_rows = FALSE;
+		snoff = -8;
+		break;
+	default:
+		keep_top_two_rows = TRUE;
+		snoff = 0;
+		break;
+	}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	mxd_pccd_170170_display_ul_corners( image_sector_array );
 #endif
-
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
 
-		image_sector_array[0][i][j] = raw_frame_data[14];
+		if ( keep_top_two_rows ) {
+		    image_sector_array[0][i][j] = raw_frame_data[14];
 
-		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
+		    image_sector_array[1][i][j_framesize-j-1]
+							= raw_frame_data[15];
 
-		image_sector_array[2][i][j] = raw_frame_data[10];
+		    image_sector_array[2][i][j] = raw_frame_data[10];
 
-		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
+		    image_sector_array[3][i][j_framesize-j-1]
+							= raw_frame_data[11];
 
-		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
+		    image_sector_array[4][i_framesize-i-1][j]
+							= raw_frame_data[13];
 
-		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+		    image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[12];
 
-		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
+		    image_sector_array[6][i_framesize-i-1][j]
+							= raw_frame_data[9];
 
-		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+		    image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[8];
+		}
 
-		image_sector_array[8][i][j] = raw_frame_data[0];
+		image_sector_array[8-snoff][i][j] = raw_frame_data[0];
 
-		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
+		image_sector_array[9-snoff][i][j_framesize-j-1]
+							= raw_frame_data[1];
 
-		image_sector_array[10][i][j] = raw_frame_data[4];
+		image_sector_array[10-snoff][i][j] = raw_frame_data[4];
 
-		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
+		image_sector_array[11-snoff][i][j_framesize-j-1]
+							= raw_frame_data[5];
 
-		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
+		image_sector_array[12-snoff][i_framesize-i-1][j]
+							= raw_frame_data[3];
 
-		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[13-snoff][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[2];
 
-		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
+		image_sector_array[14-snoff][i_framesize-i-1][j]
+							= raw_frame_data[7];
 
-		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[15-snoff][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[6];
 
 		raw_frame_data += 16;
@@ -551,7 +586,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			mx_status = mxd_pccd_170170_alloc_sector_array(
 				&(pccd_170170->streak_camera_sector_array),
 				j_framesize, i_framesize,
-				image_frame->image_data );
+				image_frame->image_data,
+				sp->sequence_type );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -564,7 +600,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_pccd_170170_descramble_raw_data(
 				raw_frame->image_data,
 				pccd_170170->streak_camera_sector_array,
-				i_framesize, j_framesize );
+				i_framesize, j_framesize,
+				sp->sequence_type );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -588,7 +625,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			}
 		}
 
-		i_framesize = num_lines_per_subimage / 4;
+		i_framesize = num_lines_per_subimage / 2;
 		j_framesize = frame_width / 4;
 
 		num_pixels_per_subimage = frame_width * num_lines_per_subimage;
@@ -605,7 +642,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				mx_status = mxd_pccd_170170_alloc_sector_array(
 				    &(pccd_170170->subimage_sector_arrays[n]),
 					j_framesize, i_framesize,
-					image_ptr );
+					image_ptr, sp->sequence_type );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -614,7 +651,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			mx_status = mxd_pccd_170170_descramble_raw_data(
 					raw_ptr,
 					pccd_170170->subimage_sector_arrays[n],
-					i_framesize, j_framesize );
+					i_framesize, j_framesize,
+					sp->sequence_type );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -632,7 +670,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			mx_status = mxd_pccd_170170_alloc_sector_array(
 				&(pccd_170170->full_frame_sector_array),
 				j_framesize, i_framesize,
-				image_frame->image_data );
+				image_frame->image_data,
+				sp->sequence_type );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -645,7 +684,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		mx_status = mxd_pccd_170170_descramble_raw_data(
 				raw_frame->image_data,
 				pccd_170170->full_frame_sector_array,
-				i_framesize, j_framesize );
+				i_framesize, j_framesize,
+				sp->sequence_type );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -1342,7 +1382,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	INIT_REGISTER( MXLV_PCCD_170170_DH_PIXEL_BINNING,
 					1,     FALSE, TRUE,  1,  128 );
 
-	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGE_LINES,
+	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
 					1024,  FALSE, TRUE,  16, 1024 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
@@ -2385,7 +2425,7 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION:
 	case MXLV_PCCD_170170_DH_LINE_BINNING:
 	case MXLV_PCCD_170170_DH_PIXEL_BINNING:
-	case MXLV_PCCD_170170_DH_SUBIMAGE_LINES:
+	case MXLV_PCCD_170170_DH_SUBFRAME_SIZE:
 	case MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ:
 	case MXLV_PCCD_170170_DH_STREAK_MODE_LINES:
 	case MXLV_PCCD_170170_DH_COMM_FPGA_VERSION:
@@ -2888,11 +2928,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			/* Set the number of lines per subimage. */
+			/* Set the number of lines per subimage.
+			 * The number of subimage lines is twice
+			 * the value of the "subframe size".
+			 */
 
 			mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_SUBIMAGE_LINES,
-					mx_round(sp->parameter_array[0]) );
+					MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
+					mx_round(sp->parameter_array[0]/2.0) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -3018,7 +3061,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_PCCD_170170_DH_CONTROLLER_FPGA_VERSION:
 	case MXLV_PCCD_170170_DH_LINE_BINNING:
 	case MXLV_PCCD_170170_DH_PIXEL_BINNING:
-	case MXLV_PCCD_170170_DH_SUBIMAGE_LINES:
+	case MXLV_PCCD_170170_DH_SUBFRAME_SIZE:
 	case MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ:
 	case MXLV_PCCD_170170_DH_STREAK_MODE_LINES:
 	case MXLV_PCCD_170170_DH_COMM_FPGA_VERSION:

@@ -88,7 +88,7 @@ typedef struct {
 
 	unsigned long dh_line_binning;
 	unsigned long dh_pixel_binning;
-	unsigned long dh_subimage_lines;
+	unsigned long dh_subframe_size;
 	unsigned long dh_subimages_per_read;
 	unsigned long dh_streak_mode_lines;
 
@@ -155,7 +155,7 @@ typedef struct {
 
 #define MXLV_PCCD_170170_DH_PIXEL_BINNING	(MXLV_PCCD_170170_DH_BASE + 19)
 
-#define MXLV_PCCD_170170_DH_SUBIMAGE_LINES	(MXLV_PCCD_170170_DH_BASE + 20)
+#define MXLV_PCCD_170170_DH_SUBFRAME_SIZE	(MXLV_PCCD_170170_DH_BASE + 20)
 
 #define MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ	(MXLV_PCCD_170170_DH_BASE + 21)
 
@@ -296,9 +296,9 @@ typedef struct {
 	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_pixel_binning), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_PCCD_170170_DH_SUBIMAGE_LINES, \
-		-1, "dh_subimage_lines", MXFT_ULONG, NULL, 0, {0}, \
-	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_subimage_lines), \
+  {MXLV_PCCD_170170_DH_SUBFRAME_SIZE, \
+		-1, "dh_subframe_size", MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_TYPE_STRUCT, offsetof(MX_PCCD_170170, dh_subframe_size), \
 	{0}, NULL, 0}, \
   \
   {MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ, \
