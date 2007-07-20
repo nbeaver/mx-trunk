@@ -44,10 +44,14 @@ typedef struct {
 	struct mx_area_detector_type *area_detector;
 	MX_IMAGE_FRAME *destination_frame;
 	uint16_t *destination_array;
+	long num_frames_summed;
 	double *sum_array;
-	unsigned long saved_correction_flags;
+	long num_unread_frames;
+	long old_last_frame_number;
+	long old_total_num_frames;
+	unsigned long old_status;
 	unsigned long desired_correction_flags;
-	MX_CALLBACK_MESSAGE *callback;
+	MX_CALLBACK_MESSAGE *callback_message;
 } MX_AREA_DETECTOR_CORRECTION_MEASUREMENT;
 
 typedef struct mx_area_detector_type {

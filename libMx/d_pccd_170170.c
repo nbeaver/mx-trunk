@@ -1415,7 +1415,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 					1024,  FALSE, TRUE,  16, 1024 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
-					2,     FALSE, FALSE, 1,  128 );
+					1,     FALSE, FALSE, 1,  128 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
 					1,     FALSE, FALSE, 1,  65535 );
@@ -1558,6 +1558,18 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Put the detector head in full frame mode. */
 
 	control_register_value &= (~0x60);
+
+	/* Turn on an initial runt Frame Valid pulse.  This is used to
+	 * work around a misfeature of the PIXCI E4 board.  The E4 board
+	 * always ignores the first frame sent by the camera after 
+	 * starting a new sequence.  EPIX says that this is to protect
+	 * against a race condition in their system.  Aviex's solution
+	 * is to send an extra runt Frame Valid pulse at the start of
+	 * a sequence, so that the frame thrown away by EPIX is a frame
+	 * that we do not want anyway.
+	 */
+
+	control_register_value |= 0x200;
 
 	/* If requested, turn on the test mode pattern. */
 

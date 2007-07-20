@@ -65,6 +65,7 @@ typedef struct {
 	MX_VIRTUAL_TIMER *oneshot_timer;
 	mx_status_type (*callback_function)(void *);
 	void *callback_args;
+	double callback_interval;
 } MX_CALLBACK_FUNCTION_MESSAGE;
 
 typedef struct mx_callback_message_type{

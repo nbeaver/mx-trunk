@@ -2192,6 +2192,10 @@ mx_area_detector_get_status( MX_RECORD *record,
 		"is unsupported.", record->name );
 	}
 
+	if ( ad->correction_measurement != NULL ) {
+		ad->status |= MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
+	}
+
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: status = %#lx", fname, ad->status));
 #endif
