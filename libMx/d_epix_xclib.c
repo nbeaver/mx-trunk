@@ -2171,6 +2171,10 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			vinput->frame_number, vinput->record->name );
 	}
 
+	/* Erase any previous contents of the frame buffer. */
+
+	memset( frame->image_data, 0, frame->allocated_image_length );
+
 	/* Read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_EPIX_XCLIB_DEBUG

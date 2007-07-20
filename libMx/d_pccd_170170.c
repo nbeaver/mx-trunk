@@ -449,7 +449,8 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
 				long i_framesize,
 				long j_framesize,
-				long image_type )
+				long image_type,
+				long n )
 {
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
@@ -476,6 +477,9 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 		snoff = 0;
 		break;
 	}
+
+	if ( n >= 2 )
+		return MX_SUCCESSFUL_RESULT;
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	mxd_pccd_170170_display_ul_corners( image_sector_array, num_sectors );
@@ -570,6 +574,18 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The raw_frame pointer passed was NULL." );
 	}
+#if 1
+	{
+		long i, num_pixels;
+
+		num_pixels = image_frame->allocated_image_length / 2;
+		image_data = image_frame->image_data;
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			image_data[i] = 0x3fff;
+		}
+	}
+#endif
 
 	sp = &(ad->sequence_parameters);
 
@@ -614,7 +630,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				raw_frame->image_data,
 				pccd_170170->streak_camera_sector_array,
 				i_framesize, j_framesize,
-				sp->sequence_type );
+				sp->sequence_type, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
@@ -665,7 +681,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 					raw_ptr,
 					pccd_170170->subimage_sector_arrays[n],
 					i_framesize, j_framesize,
-					sp->sequence_type );
+					sp->sequence_type, n );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -698,7 +714,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				raw_frame->image_data,
 				pccd_170170->full_frame_sector_array,
 				i_framesize, j_framesize,
-				sp->sequence_type );
+				sp->sequence_type, 0 );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;

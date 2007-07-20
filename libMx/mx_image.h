@@ -62,6 +62,9 @@
 /*----*/
 
 typedef struct {
+	size_t allocated_header_length;
+	size_t allocated_image_length;
+
 	long image_type;
 	long framesize[2];
 	long image_format;

@@ -334,6 +334,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		MX_DEBUG(-2,("%s: No header needed.", fname));
 #endif
 		(*frame)->header_length = 0;
+		(*frame)->allocated_header_length = 0;
 
 		if ( (*frame)->header_data != NULL ) {
 
@@ -362,12 +363,14 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		}
 
 		(*frame)->header_length = header_length;
+		(*frame)->allocated_header_length = header_length;
 	} else {
-		if ( (*frame)->header_length >= header_length ) {
+		if ( (*frame)->allocated_header_length >= header_length ) {
 #if MX_IMAGE_DEBUG
 			MX_DEBUG(-2,
 			("%s: The header buffer is already big enough.",fname));
 #endif
+			(*frame)->header_length = header_length;
 		} else {
 #if MX_IMAGE_DEBUG
 			MX_DEBUG(-2,
@@ -388,6 +391,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			}
 
 			(*frame)->header_length = header_length;
+			(*frame)->allocated_header_length = header_length;
 		}
 	}
 
@@ -413,18 +417,22 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		/* Zero length image buffers are not allowed. */
 
+		(*frame)->allocated_image_length = 0;
+		(*frame)->image_data = NULL;
+
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"Attempted to create a zero length image buffer for frame %p.",
 			*frame );
 
 	} else
 	if ( ( (*frame)->image_data != NULL )
-	  && ( (*frame)->image_length >= bytes_per_frame ) )
+	  && ( (*frame)->allocated_image_length >= bytes_per_frame ) )
 	{
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,
 		("%s: The image buffer is already big enough.", fname));
 #endif
+		(*frame)->image_length = bytes_per_frame;
 	} else {
 
 #if MX_IMAGE_DEBUG
@@ -447,15 +455,12 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		}
 
 		(*frame)->image_length = bytes_per_frame;
+		(*frame)->allocated_image_length = bytes_per_frame;
 
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
 #endif
 	}
-
-#if 0  /* FIXME!!! - This should not be present in the final version. */
-	memset( (*frame)->image_data, 0, 50 );
-#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
