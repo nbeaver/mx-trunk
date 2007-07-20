@@ -14,13 +14,15 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG			TRUE
+#define MXD_PCCD_170170_DEBUG				TRUE
 
-#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
+#define MXD_PCCD_170170_DEBUG_DESCRAMBLING		FALSE
 
-#define MXD_PCCD_170170_DEBUG_ALLOCATION	TRUE
+#define MXD_PCCD_170170_DEBUG_ALLOCATION		FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL		TRUE
+#define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
+
+#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,7 +144,7 @@ mxd_pccd_170170_get_pointers( MX_AREA_DETECTOR *ad,
 
 #if MXD_PCCD_170170_DEBUG_ALLOCATION
 static void
-mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array )
+mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array, int num_sectors )
 {
 	static const char fname[] = "mxd_pccd_170170_display_ul_corners()";
 
@@ -151,7 +153,7 @@ mxd_pccd_170170_display_ul_corners( uint16_t ***sector_array )
 
 	MX_DEBUG(-2,("****** %s BEGIN *****", fname));
 
-	for ( k = 0; k < 16; k++ ) {
+	for ( k = 0; k < num_sectors; k++ ) {
 		if ( sector_array[k] == NULL ) {
 			MX_DEBUG(-2,("****** %s END alt *****", fname));
 			return;
@@ -218,12 +220,12 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"sector array pointer.", num_sectors );
 	}
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s: allocated sector_array = %p, length = %lu",
 		fname, sector_array, num_sectors * sizeof(uint16_t **) ));
 #endif
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	memset( sector_array, 0, num_sectors * sizeof(uint16_t **) );
 #endif
 
@@ -238,7 +240,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"of row pointers.", num_sectors * sector_height );
 	}
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s: allocated sector_array_row_ptr = %p, length = %lu",
 		fname, sector_array_row_ptr,
 		num_sectors * sector_height * sizeof(uint16_t *) ));
@@ -248,7 +250,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,
 	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
 		fname, row_byte_offset, row_byte_offset,
@@ -262,7 +264,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
 			fname, n, sector_array[n] ));
 #endif
@@ -295,13 +297,13 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,
 ("%s: image_data = %p, sizeof_full_row = %#lx, sizeof_row_of_sectors = %#lx",
 		fname, image_data, sizeof_full_row, sizeof_row_of_sectors));
 #endif
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 	MX_DEBUG(-2,("%s:\n"
 		"    byte_offset = ( %#lx ) * sector_row\n"
 		"                  + ( %#lx ) * row\n"
@@ -333,18 +335,21 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 		    if ( row == 0 ) {
 			MX_DEBUG(-2,
 	("*** n = %ld, sector_row = %ld, sector_column = %ld, addr = %#lx ***",
 				n, sector_row, sector_column,
 				(long) byte_offset + (long) image_data));
 
-			mxd_pccd_170170_display_ul_corners( sector_array );
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+			mxd_pccd_170170_display_ul_corners( sector_array,
+								num_sectors );
+#endif
 		    }
 #endif
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 		    MX_DEBUG(-2,
 	    ("offset = %#lx = %#lx * (%#lx) + %#lx * (%#lx) + %#lx * (%#lx)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -352,7 +357,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 			sizeof_sector_row, sector_column));
 #endif
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS
 		    MX_DEBUG(-2,
 	    ("offset = %ld = %ld * (%ld) + %ld * (%ld) + %ld * (%ld)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -366,9 +371,9 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 	*sector_array_ptr = sector_array;
 
 #if MXD_PCCD_170170_DEBUG_ALLOCATION
-	mxd_pccd_170170_display_ul_corners( sector_array );
+	mxd_pccd_170170_display_ul_corners( sector_array, num_sectors );
 
-#if 1
+#if 0
 	fprintf(stderr, "Type any key to continue..." );
 	mx_getch();
 	fprintf(stderr, "\n");
@@ -446,12 +451,13 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				long j_framesize,
 				long image_type )
 {
-#if 1
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
 #endif
 
 	long i, j;
 	long snoff;			/* sector number offset */
+	int num_sectors;
 	mx_bool_type keep_top_two_rows;
 
 	/* For subimages, we skip the top two rows of raw data and only 
@@ -460,17 +466,19 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 
 	switch( image_type ) {
 	case MXT_SQ_SUBIMAGE:
+		num_sectors = 8;
 		keep_top_two_rows = FALSE;
 		snoff = -8;
 		break;
 	default:
+		num_sectors = 16;
 		keep_top_two_rows = TRUE;
 		snoff = 0;
 		break;
 	}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_pccd_170170_display_ul_corners( image_sector_array );
+	mxd_pccd_170170_display_ul_corners( image_sector_array, num_sectors );
 #endif
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
@@ -499,26 +507,26 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 							= raw_frame_data[8];
 		}
 
-		image_sector_array[8-snoff][i][j] = raw_frame_data[0];
+		image_sector_array[8+snoff][i][j] = raw_frame_data[0];
 
-		image_sector_array[9-snoff][i][j_framesize-j-1]
+		image_sector_array[9+snoff][i][j_framesize-j-1]
 							= raw_frame_data[1];
 
-		image_sector_array[10-snoff][i][j] = raw_frame_data[4];
+		image_sector_array[10+snoff][i][j] = raw_frame_data[4];
 
-		image_sector_array[11-snoff][i][j_framesize-j-1]
+		image_sector_array[11+snoff][i][j_framesize-j-1]
 							= raw_frame_data[5];
 
-		image_sector_array[12-snoff][i_framesize-i-1][j]
+		image_sector_array[12+snoff][i_framesize-i-1][j]
 							= raw_frame_data[3];
 
-		image_sector_array[13-snoff][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[13+snoff][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[2];
 
-		image_sector_array[14-snoff][i_framesize-i-1][j]
+		image_sector_array[14+snoff][i_framesize-i-1][j]
 							= raw_frame_data[7];
 
-		image_sector_array[15-snoff][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[15+snoff][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[6];
 
 		raw_frame_data += 16;
@@ -1276,9 +1284,9 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	flags = pccd_170170->pccd_170170_flags;
 
-	if ( flags & MXF_PCCD_170170_USE_CAMERA_SIMULATOR ) {
-		mx_warning( "Area detector '%s' will use "
-			"an Aviex camera simulator instead of a real camera.",
+	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
+		mx_warning( "Area detector '%s' will not descramble "
+			"images from the camera head.",
 				record->name );
 	}
 	if ( flags & MXF_PCCD_170170_USE_DETECTOR_HEAD_SIMULATOR ) {
@@ -2190,7 +2198,6 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	unsigned long flags;
-	mx_bool_type descramble;
 	size_t bytes_to_copy, raw_frame_length, image_length;
 	mx_status_type mx_status;
 
@@ -2217,20 +2224,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	flags = pccd_170170->pccd_170170_flags;
 
-	if ( flags & MXF_PCCD_170170_USE_CAMERA_SIMULATOR ) {
-		/* The camera simulator board provides data that 
-		 * is not scrambled, so we do not descramble it.
-		 */
-
-		descramble = FALSE;
-	} else
 	if ( flags & MXF_PCCD_170170_SUPPRESS_DESCRAMBLING ) {
-		descramble = FALSE;
-	} else {
-		descramble = TRUE;
-	}
 
-	if ( descramble == FALSE ) {
 		/* Just copy directly from the raw frame to the image frame. */
 
 		raw_frame_length = pccd_170170->raw_frame->image_length;
