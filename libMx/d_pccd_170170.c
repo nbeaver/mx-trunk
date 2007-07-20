@@ -16,9 +16,9 @@
 
 #define MXD_PCCD_170170_DEBUG			TRUE
 
-#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	FALSE
+#define MXD_PCCD_170170_DEBUG_DESCRAMBLING	TRUE
 
-#define MXD_PCCD_170170_DEBUG_ALLOCATION	FALSE
+#define MXD_PCCD_170170_DEBUG_ALLOCATION	TRUE
 
 #define MXD_PCCD_170170_DEBUG_SERIAL		TRUE
 
@@ -217,12 +217,12 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"sector array pointer.", num_sectors );
 	}
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: allocated sector_array = %p, length = %lu",
 		fname, sector_array, num_sectors * sizeof(uint16_t **) ));
 #endif
 
-#if 0
+#if 1
 	memset( sector_array, 0, num_sectors * sizeof(uint16_t **) );
 #endif
 
@@ -237,7 +237,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		"of row pointers.", num_sectors * sector_height );
 	}
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s: allocated sector_array_row_ptr = %p, length = %lu",
 		fname, sector_array_row_ptr,
 		num_sectors * sector_height * sizeof(uint16_t *) ));
@@ -247,7 +247,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	row_ptr_offset = row_byte_offset / sizeof(uint16_t *);
 
-#if 0
+#if 1
 	MX_DEBUG(-2,
 	("%s: row_byte_offset = %ld (%#lx), row_ptr_offset = %ld (%#lx)",
 		fname, row_byte_offset, row_byte_offset,
@@ -261,7 +261,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		sector_array[n] = sector_array_row_ptr + n * row_ptr_offset;
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: sector_array[%ld] = %p",
 			fname, n, sector_array[n] ));
 #endif
@@ -294,13 +294,13 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 	sizeof_row_of_sectors = sizeof_full_row * sector_height;
 
-#if 0
+#if 1
 	MX_DEBUG(-2,
 ("%s: image_data = %p, sizeof_full_row = %#lx, sizeof_row_of_sectors = %#lx",
 		fname, image_data, sizeof_full_row, sizeof_row_of_sectors));
 #endif
 
-#if 0
+#if 1
 	MX_DEBUG(-2,("%s:\n"
 		"    byte_offset = ( %#lx ) * sector_row\n"
 		"                  + ( %#lx ) * row\n"
@@ -332,7 +332,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 
 		    sector_array[n][row] = image_data + ptr_offset;
 
-#if 0
+#if 1
 		    if ( row == 0 ) {
 			MX_DEBUG(-2,
 	("*** n = %ld, sector_row = %ld, sector_column = %ld, addr = %#lx ***",
@@ -343,7 +343,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		    }
 #endif
 
-#if 0
+#if 1
 		    MX_DEBUG(-2,
 	    ("offset = %#lx = %#lx * (%#lx) + %#lx * (%#lx) + %#lx * (%#lx)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -351,7 +351,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 			sizeof_sector_row, sector_column));
 #endif
 
-#if 0
+#if 1
 		    MX_DEBUG(-2,
 	    ("offset = %ld = %ld * (%ld) + %ld * (%ld) + %ld * (%ld)",
 			byte_offset, sizeof_row_of_sectors, sector_row,
@@ -367,7 +367,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 #if MXD_PCCD_170170_DEBUG_ALLOCATION
 	mxd_pccd_170170_display_ul_corners( sector_array );
 
-#if 0
+#if 1
 	fprintf(stderr, "Type any key to continue..." );
 	mx_getch();
 	fprintf(stderr, "\n");
@@ -445,6 +445,10 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				long j_framesize,
 				long image_type )
 {
+#if 1
+	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
+#endif
+
 	long i, j;
 	long snoff;			/* sector number offset */
 	mx_bool_type keep_top_two_rows;
@@ -520,7 +524,7 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 	    }
 	}
 
-#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 1 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	{
 		long k;
 
@@ -1386,7 +1390,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 					1024,  FALSE, TRUE,  16, 1024 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
-					2,     FALSE, FALSE, 2,  128 );
+					2,     FALSE, FALSE, 1,  128 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_STREAK_MODE_LINES,
 					1,     FALSE, FALSE, 1,  65535 );
