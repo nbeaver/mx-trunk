@@ -18,9 +18,11 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DEBUG		TRUE
+#define MXD_EPIX_XCLIB_DEBUG			TRUE
 
-#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME	TRUE
+#define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME		TRUE
+
+#define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	TRUE
 
 #include <stdio.h>
 
@@ -879,6 +881,11 @@ mxd_epix_xclib_create_record_structures( MX_RECORD *record )
 	vinput->camera_trigger_polarity = MXF_VIN_TRIGGER_NONE;
 
 	epix_xclib_vinput->default_trigger_time = 0.01;	/* in seconds */
+
+	/* The 'fake_frame_numbers' array is used for test purposes only. */
+
+	epix_xclib_vinput->fake_frame_numbers[0] = -1000;
+	epix_xclib_vinput->fake_frame_numbers[1] = -1000;
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -1857,6 +1864,19 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 	MX_DEBUG(-2,("%s: new_sequence = %d",
 		fname, (int) epix_xclib_vinput->new_sequence ));
 #endif
+
+#if MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS
+	/* 'fake_frame_number' allows us to test operation even if
+	 * the real video board is not successfully acquiring frames.
+	 */
+
+	if ( epix_xclib_vinput->fake_frame_numbers[0] >= 0 ) {
+		MX_DEBUG(-2,("%s: MARKER 0", fname));
+
+		vinput->last_frame_number =
+				epix_xclib_vinput->fake_frame_numbers[0];
+	} else
+#endif
 	if ( epix_xclib_vinput->new_sequence ) {
 
 		/* If new_sequence is TRUE, this means that we have just
@@ -1924,6 +1944,19 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS
+	if ( epix_xclib_vinput->fake_frame_numbers[1] >= 0 ) {
+		vinput->total_num_frames =
+			epix_xclib_vinput->fake_frame_numbers[1];
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: total_num_frames = %lu",
+			fname, vinput->total_num_frames));
+#endif
+		return MX_SUCCESSFUL_RESULT;
+	}
+#endif
 
 #if defined(OS_WIN32)
 	vinput->total_num_frames = epix_xclib_vinput->uint32_total_num_frames;

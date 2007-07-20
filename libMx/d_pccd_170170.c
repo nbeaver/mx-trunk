@@ -32,6 +32,7 @@
 #include "mx_clock.h"
 #include "mx_socket.h"
 #include "mx_process.h"
+#include "mx_key.h"
 #include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_image.h"

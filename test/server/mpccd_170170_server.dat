@@ -4,4 +4,4 @@ rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
 ready device digital_output soft_doutput "" "" 0
 epix  device video_input epix_xclib_video_input "" "" 16384 1024 grey16 -1 xclib 1 ready 0x1000 0x5555
 trigger device digital_output epix_xclib_doutput "" "" 0 epix
-aviex device area_detector pccd_170170 "" "" 0 "" "" "" "" epix port trigger 0x1 0x19
+aviex device area_detector pccd_170170 "" "" 0 "" "" "" "" epix port trigger 0x1 0x79

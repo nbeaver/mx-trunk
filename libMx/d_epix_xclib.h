@@ -44,6 +44,8 @@ typedef struct {
 	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 
+	long fake_frame_numbers[2];		/* Used for testing only. */
+
 #if defined(OS_WIN32)
 	HANDLE captured_field_event;
 	HANDLE captured_field_thread;
@@ -77,7 +79,12 @@ typedef struct {
   {-1, -1, "write_test_value", MXFT_HEX, NULL, 0, {0}, \
 	MXF_REC_TYPE_STRUCT, \
 		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, write_test_value), \
-	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}
+	{0}, NULL, (MXFF_IN_DESCRIPTION | MXFF_IN_SUMMARY)}, \
+  \
+  {-1, -1, "fake_frame_numbers", MXFT_LONG, NULL, 1, {2}, \
+	MXF_REC_TYPE_STRUCT, \
+		offsetof(MX_EPIX_XCLIB_VIDEO_INPUT, fake_frame_numbers), \
+	{sizeof(long)}, NULL, 0}
 
 MX_API mx_status_type mxd_epix_xclib_create_record_structures(
 							MX_RECORD *record );
