@@ -172,8 +172,7 @@ static mx_status_type
 mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 					long sector_width,
 					long sector_height,
-					uint16_t *image_data,
-					long image_type )
+					uint16_t *image_data )
 {
 	static const char fname[] = "mxd_pccd_170170_alloc_sector_array()";
 
@@ -199,14 +198,7 @@ mxd_pccd_170170_alloc_sector_array( uint16_t ****sector_array_ptr,
 		fname, sector_width, sector_height));
 #endif
 
-	switch( image_type ) {
-	case MXT_SQ_SUBIMAGE:
-		num_sector_rows = 2;
-		break;
-	default:
-		num_sector_rows = 4;
-		break;
-	}
+	num_sector_rows = 4;
 	num_sector_columns = 4;
 	num_sectors = num_sector_rows * num_sector_columns;
 
@@ -403,138 +395,66 @@ mxd_pccd_170170_free_sector_array( uint16_t ***sector_array )
 	return;
 }
 
-static void
-mxd_pccd_170170_free_all_sector_arrays( MX_PCCD_170170 *pccd_170170 )
-{
-	long i;
-
-	if ( pccd_170170->full_frame_sector_array != NULL ) {
-
-		mxd_pccd_170170_free_sector_array(
-				pccd_170170->full_frame_sector_array );
-
-		pccd_170170->full_frame_sector_array = NULL;
-	}
-
-	if ( pccd_170170->subimage_sector_arrays != NULL ) {
-		for ( i = 0; i < pccd_170170->num_subimage_sector_arrays; i++ )
-		{
-			if ( pccd_170170->subimage_sector_arrays[i] != NULL ) {
-
-				mxd_pccd_170170_free_sector_array(
-				    pccd_170170->subimage_sector_arrays[i] );
-
-				pccd_170170->subimage_sector_arrays[i] = NULL;
-			}
-		}
-
-		pccd_170170->subimage_sector_arrays = NULL;
-
-		pccd_170170->num_subimage_sector_arrays = -1;
-	}
-
-	if ( pccd_170170->streak_camera_sector_array != NULL ) {
-
-		mxd_pccd_170170_free_sector_array(
-				pccd_170170->streak_camera_sector_array );
-
-		pccd_170170->streak_camera_sector_array = NULL;
-	}
-
-	return;
-}
-
 static mx_status_type
 mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				uint16_t ***image_sector_array,
 				long i_framesize,
-				long j_framesize,
-				long image_type,
-				long n )
+				long j_framesize )
 {
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
 #endif
 
 	long i, j;
-	long snoff;			/* sector number offset */
-	int num_sectors;
-	mx_bool_type keep_top_two_rows;
-
-	/* For subimages, we skip the top two rows of raw data and only 
-	 * save the contents of the bottom two rows.
-	 */
-
-	switch( image_type ) {
-	case MXT_SQ_SUBIMAGE:
-		num_sectors = 8;
-		keep_top_two_rows = FALSE;
-		snoff = -8;
-		break;
-	default:
-		num_sectors = 16;
-		keep_top_two_rows = TRUE;
-		snoff = 0;
-		break;
-	}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	mxd_pccd_170170_display_ul_corners( image_sector_array, num_sectors );
 #endif
+
 	for ( i = 0; i < i_framesize; i++ ) {
 	    for ( j = 0; j < j_framesize; j++ ) {
 
-		if ( keep_top_two_rows ) {
-		    image_sector_array[0][i][j] = raw_frame_data[14];
+		image_sector_array[0][i][j] = raw_frame_data[14];
 
-		    image_sector_array[1][i][j_framesize-j-1]
-							= raw_frame_data[15];
+		image_sector_array[1][i][j_framesize-j-1] = raw_frame_data[15];
 
-		    image_sector_array[2][i][j] = raw_frame_data[10];
+		image_sector_array[2][i][j] = raw_frame_data[10];
 
-		    image_sector_array[3][i][j_framesize-j-1]
-							= raw_frame_data[11];
+		image_sector_array[3][i][j_framesize-j-1] = raw_frame_data[11];
 
-		    image_sector_array[4][i_framesize-i-1][j]
-							= raw_frame_data[13];
+		image_sector_array[4][i_framesize-i-1][j] = raw_frame_data[13];
 
-		    image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[5][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[12];
 
-		    image_sector_array[6][i_framesize-i-1][j]
-							= raw_frame_data[9];
+		image_sector_array[6][i_framesize-i-1][j] = raw_frame_data[9];
 
-		    image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[7][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[8];
-		}
 
-		image_sector_array[8+snoff][i][j] = raw_frame_data[0];
+		image_sector_array[8][i][j] = raw_frame_data[0];
 
-		image_sector_array[9+snoff][i][j_framesize-j-1]
-							= raw_frame_data[1];
+		image_sector_array[9][i][j_framesize-j-1] = raw_frame_data[1];
 
-		image_sector_array[10+snoff][i][j] = raw_frame_data[4];
+		image_sector_array[10][i][j] = raw_frame_data[4];
 
-		image_sector_array[11+snoff][i][j_framesize-j-1]
-							= raw_frame_data[5];
+		image_sector_array[11][i][j_framesize-j-1] = raw_frame_data[5];
 
-		image_sector_array[12+snoff][i_framesize-i-1][j]
-							= raw_frame_data[3];
+		image_sector_array[12][i_framesize-i-1][j] = raw_frame_data[3];
 
-		image_sector_array[13+snoff][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[13][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[2];
 
-		image_sector_array[14+snoff][i_framesize-i-1][j]
-							= raw_frame_data[7];
+		image_sector_array[14][i_framesize-i-1][j] = raw_frame_data[7];
 
-		image_sector_array[15+snoff][i_framesize-i-1][j_framesize-j-1]
+		image_sector_array[15][i_framesize-i-1][j_framesize-j-1]
 							= raw_frame_data[6];
 
 		raw_frame_data += 16;
 	    }
 	}
 
-#if 1 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	{
 		long k;
 
@@ -557,10 +477,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	static const char fname[] = "mxd_pccd_170170_descramble_image()";
 
 	MX_SEQUENCE_PARAMETERS *sp;
-	long i_framesize, j_framesize, frame_width;
-	long n, num_subimages, num_lines_per_subimage, num_pixels_per_subimage;
-	long num_streak_camera_lines;
-	uint16_t *raw_data, *raw_ptr, *image_data, *image_ptr;
+	long i, i_framesize, j_framesize;
+	uint16_t *frame_data;
 	mx_status_type mx_status;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
@@ -571,28 +489,52 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The raw_frame pointer passed was NULL." );
 	}
+
+	sp = &(ad->sequence_parameters);
+
+	/* If this is a subimage or streak camera frame, we must
+	 * first descramble to a temporary frame.
+	 */
+
+	if ( (sp->sequence_type == MXT_SQ_SUBIMAGE)
+	  || (sp->sequence_type == MXT_SQ_STREAK_CAMERA) )
+	{
+		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
+					image_frame->image_type,
+					image_frame->framesize,
+					image_frame->image_format,
+					image_frame->byte_order,
+					image_frame->bytes_per_pixel,
+					image_frame->header_length,
+					image_frame->image_length );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		frame_data = pccd_170170->temp_frame->image_data;
+	} else {
+		frame_data = image_frame->image_data;
+	}
+
 #if 1
 	{
-		long i, num_pixels;
+		long num_pixels;
 
 		num_pixels = image_frame->allocated_image_length / 2;
-		image_data = image_frame->image_data;
 
 		for ( i = 0; i < num_pixels; i++ ) {
-			image_data[i] = 0x3fff;
+			frame_data[i] = 0x3fff;
 		}
 	}
 #endif
 
-	sp = &(ad->sequence_parameters);
-
-	/* For each frame or subimage, we overlay the frame with 16 sets of
-	 * sector array pointers so that we can treat each of the 16 sectors
-	 * as independent two dimensional arrays.
+	/* For each frame, we overlay the frame with 16 sets of sector array
+	 * pointers so that we can treat each of the 16 sectors as independent
+	 * two dimensional arrays.
 	 */
 
-	/* The full_frame_sector_array pointer and the subimage_sector_arrays
-	 * pointer will be NULL, if any of the following has happened.
+	/* The sector_array pointer will be NULL, if any of the following
+	 * has happened.
 	 *
 	 * 1. This is the first frame taken by the program.
 	 *
@@ -600,122 +542,97 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	 *      (full frame, subimage, streak camera).
 	 */
 
-	switch( sp->sequence_type ) {
-	case MXT_SQ_STREAK_CAMERA:
-		num_streak_camera_lines = sp->parameter_array[0];
+	/* Initially descramble the full image. */
 
-		i_framesize = num_streak_camera_lines / 4;
-		j_framesize = image_frame->framesize[0] / 4;
+	i_framesize = image_frame->framesize[1] / 4;
+	j_framesize = image_frame->framesize[0] / 4;
 
-		if ( pccd_170170->streak_camera_sector_array == NULL ) {
+	if ( pccd_170170->sector_array == NULL ) {
 
-			mx_status = mxd_pccd_170170_alloc_sector_array(
-				&(pccd_170170->streak_camera_sector_array),
+		mx_status = mxd_pccd_170170_alloc_sector_array(
+				&(pccd_170170->sector_array),
 				j_framesize, i_framesize,
-				image_frame->image_data,
-				sp->sequence_type );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-		/* Copy and descramble the pixels from the raw frame
-		 * to the image frame.
-		 */
-
-		mx_status = mxd_pccd_170170_descramble_raw_data(
-				raw_frame->image_data,
-				pccd_170170->streak_camera_sector_array,
-				i_framesize, j_framesize,
-				sp->sequence_type, 0 );
+				frame_data );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
-		break;
+	}
 
-	case MXT_SQ_SUBIMAGE:
+	/* Copy and descramble the pixels from the raw frame to the image frame.
+	 */
+
+	mx_status = mxd_pccd_170170_descramble_raw_data(
+				raw_frame->image_data,
+				pccd_170170->sector_array,
+				i_framesize, j_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if (sp->sequence_type == MXT_SQ_STREAK_CAMERA) {
+		/* FIXME: Temporarily, we just copy the image data from
+		 * the temporary frame to the image frame.
+		 */
+
+		memcpy( image_frame->image_data, frame_data,
+				image_frame->allocated_image_length );
+	} else
+	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
+
+		long num_lines_per_subimage, num_subimages, frame_width;
+		long bytes_per_half_subimage, bytes_per_half_image;
+		long top_offset, bottom_offset;
+		char *temp_ptr, *image_ptr;
+		char *top_src_ptr, *top_dest_ptr;
+		char *bottom_src_ptr, *bottom_dest_ptr;
+
 		num_lines_per_subimage = sp->parameter_array[0];
 		num_subimages          = sp->parameter_array[1];
 		frame_width            = image_frame->framesize[0];
 
-		if ( pccd_170170->subimage_sector_arrays == NULL ) {
+		temp_ptr  = pccd_170170->temp_frame->image_data;
+		image_ptr = image_frame->image_data;
 
-			pccd_170170->subimage_sector_arrays
-				= calloc( num_subimages, sizeof(uint16_t ***) );
+		bytes_per_half_subimage =
+			frame_width * num_lines_per_subimage
+			* ( sizeof(uint16_t) / 2L );
 
-			if ( pccd_170170->subimage_sector_arrays == NULL ) {
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Unable to create a %ld element array of "
-				"image sector arrays for area detector '%s'.",
-				    num_subimages, pccd_170170->record->name );
-			}
+		bytes_per_half_image = image_frame->framesize[0]
+				* image_frame->framesize[1]
+				* ( sizeof(uint16_t) / 2L );
+
+		MX_DEBUG(-2,("%s: num_lines_per_subimage = %ld",
+			fname, num_lines_per_subimage));
+		MX_DEBUG(-2,("%s: num_subimages = %ld", fname, num_subimages));
+		MX_DEBUG(-2,("%s: frame_width = %ld", fname, frame_width));
+		MX_DEBUG(-2,("%s: bytes_per_half_subimage = %ld",
+			fname, bytes_per_half_subimage));
+		MX_DEBUG(-2,("%s: bytes_per_half_image = %ld",
+			fname, bytes_per_half_image));
+
+		for ( i = 0; i < num_subimages; i++ ) {
+			top_offset = bytes_per_half_image
+					+ i * bytes_per_half_subimage;
+
+			top_src_ptr = temp_ptr + top_offset;
+
+			top_dest_ptr = image_ptr
+				+ (2L * i) * bytes_per_half_subimage;
+
+			memcpy( top_dest_ptr, top_src_ptr,
+					bytes_per_half_subimage );
+
+			bottom_offset = 2 * bytes_per_half_image
+				- (i+1) * bytes_per_half_subimage;
+
+			bottom_src_ptr = temp_ptr + bottom_offset;
+
+			bottom_dest_ptr = image_ptr
+				+ ((2L * i) + 1L) * bytes_per_half_subimage;
+
+			memcpy( bottom_dest_ptr, bottom_src_ptr,
+					bytes_per_half_subimage );
 		}
-
-		i_framesize = num_lines_per_subimage / 2;
-		j_framesize = frame_width / 4;
-
-		num_pixels_per_subimage = frame_width * num_lines_per_subimage;
-
-		raw_data   = raw_frame->image_data;
-		image_data = image_frame->image_data;
-
-		for ( n = 0; n < num_subimages; n++ ) {
-			raw_ptr   = raw_data   + n * num_pixels_per_subimage;
-			image_ptr = image_data + n * num_pixels_per_subimage;
-
-			if ( pccd_170170->subimage_sector_arrays[n] == NULL ) {
-
-				mx_status = mxd_pccd_170170_alloc_sector_array(
-				    &(pccd_170170->subimage_sector_arrays[n]),
-					j_framesize, i_framesize,
-					image_ptr, sp->sequence_type );
-
-				if ( mx_status.code != MXE_SUCCESS )
-					return mx_status;
-			}
-
-			mx_status = mxd_pccd_170170_descramble_raw_data(
-					raw_ptr,
-					pccd_170170->subimage_sector_arrays[n],
-					i_framesize, j_framesize,
-					sp->sequence_type, n );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-		break;
-
-	default:
-		/* The remaining sequence types use full frame images. */
-
-		i_framesize = image_frame->framesize[1] / 4;
-		j_framesize = image_frame->framesize[0] / 4;
-
-		if ( pccd_170170->full_frame_sector_array == NULL ) {
-
-			mx_status = mxd_pccd_170170_alloc_sector_array(
-				&(pccd_170170->full_frame_sector_array),
-				j_framesize, i_framesize,
-				image_frame->image_data,
-				sp->sequence_type );
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-		}
-
-		/* Copy and descramble the pixels from the raw frame
-		 * to the image frame.
-		 */
-
-		mx_status = mxd_pccd_170170_descramble_raw_data(
-				raw_frame->image_data,
-				pccd_170170->full_frame_sector_array,
-				i_framesize, j_framesize,
-				sp->sequence_type, 0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-		break;
 	}
 
 #if 1
@@ -1720,12 +1637,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	pccd_170170->old_framesize[0] = -1;
 	pccd_170170->old_framesize[1] = -1;
 
-	pccd_170170->full_frame_sector_array = NULL;
-
-	pccd_170170->num_subimage_sector_arrays = -1;
-	pccd_170170->subimage_sector_arrays = NULL;
-
-	pccd_170170->streak_camera_sector_array = NULL;
+	pccd_170170->sector_array = NULL;
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -2533,9 +2445,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
 
-		/* Invalidate any existing images sector arrays. */
+		/* Invalidate any existing image sector array. */
 
-		mxd_pccd_170170_free_all_sector_arrays(pccd_170170);
+		mxd_pccd_170170_free_sector_array(
+				pccd_170170->sector_array );
+
+		pccd_170170->sector_array = NULL;
 
 		/* Find a compatible framesize and binsize. */
 
@@ -2616,9 +2531,12 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 	case MXLV_AD_SEQUENCE_PARAMETER_ARRAY: 
 
-		/* Invalidate any existing images sector arrays. */
+		/* Invalidate any existing image sector array. */
 
-		mxd_pccd_170170_free_all_sector_arrays(pccd_170170);
+		mxd_pccd_170170_free_sector_array(
+				pccd_170170->sector_array );
+
+		pccd_170170->sector_array = NULL;
 
 		/* Get the detector readout time. */
 
