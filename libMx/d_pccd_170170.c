@@ -478,9 +478,6 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 		break;
 	}
 
-	if ( n >= 2 )
-		return MX_SUCCESSFUL_RESULT;
-
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	mxd_pccd_170170_display_ul_corners( image_sector_array, num_sectors );
 #endif
