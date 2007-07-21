@@ -274,7 +274,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	static const char fname[] = "mx_image_alloc()";
 
 	unsigned long bytes_per_frame;
-	double double_bytes_per_frame;
+	double bytes_per_frame_as_double;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -397,10 +397,10 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 	/*** See if the image buffer is already big enough for the image. ***/
 
-	double_bytes_per_frame =
+	bytes_per_frame_as_double =
 	    bytes_per_pixel * ((double) framesize[0]) * ((double) framesize[1]);
 
-	bytes_per_frame = mx_round( double_bytes_per_frame );
+	bytes_per_frame = mx_round( bytes_per_frame_as_double );
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: (*frame)->image_data = %p",

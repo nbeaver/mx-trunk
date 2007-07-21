@@ -1188,6 +1188,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_RECORD *video_input_record;
 	MX_VIDEO_INPUT *vinput;
 	long vinput_framesize[2];
+	long ad_binsize[2];
 	unsigned long flags;
 	unsigned long controller_fpga_version, comm_fpga_version;
 	unsigned long control_register_value;
@@ -1601,6 +1602,15 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	pccd_170170->vinput_normal_framesize[0] = vinput_framesize[0];
 	pccd_170170->vinput_normal_framesize[1] = vinput_framesize[1];
+
+	mx_status = mx_area_detector_get_binsize( record,
+						&ad_binsize[0], &ad_binsize[1]);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	pccd_170170->normal_binsize[0] = ad_binsize[0];
+	pccd_170170->normal_binsize[1] = ad_binsize[1];
 
 	/* Allocate space for a raw frame buffer.  This buffer will be used to
 	 * read in the raw pixels from the imaging board before descrambling.
@@ -2414,6 +2424,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	unsigned long old_detector_readout_mode;
 	unsigned long flags;
 	long vinput_horiz_framesize, vinput_vert_framesize;
+	long horiz_binsize, vert_binsize;
+	long saved_vert_binsize, saved_vert_framesize;
 	long num_streak_mode_lines;
 	long num_frames, exposure_steps, gap_steps;
 	long exposure_multiplier_steps, gap_multiplier_steps;
@@ -2446,6 +2458,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	case MXLV_AD_FRAMESIZE:
 	case MXLV_AD_BINSIZE:
 
+		sp = &(ad->sequence_parameters);
+
 		/* Invalidate any existing image sector array. */
 
 		mxd_pccd_170170_free_sector_array(
@@ -2455,12 +2469,52 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		/* Find a compatible framesize and binsize. */
 
-		mx_status = mx_area_detector_compute_new_binning( ad,
+		if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
+			/* Handle streak camera mode. */
+
+			saved_vert_binsize   = ad->binsize[1];
+			saved_vert_framesize = ad->framesize[1];
+
+			/* Restrict the allowed binsize for Y
+			 * to either 1 or 2.
+			 */
+
+			if ( saved_vert_binsize <= 1 ) {
+				saved_vert_binsize = 1;
+			} else
+			if ( saved_vert_binsize >= 2 ) {
+				saved_vert_binsize = 2;
+			}
+
+			MX_DEBUG(-2,
+		("%s: saved_vert_binsize = %ld, saved_vert_framesize = %ld",
+			    fname, saved_vert_binsize, saved_vert_framesize));
+
+			/* Allow the utility function to change the
+			 * X binning and framesize.
+			 */
+
+			mx_status = mx_area_detector_compute_new_binning( ad,
 							ad->parameter_type,
 							num_allowed_binsizes,
 							allowed_binsize );
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Restore the saved Y binsize and framesize. */
+
+			ad->binsize[1] = saved_vert_binsize;
+			ad->framesize[1] = saved_vert_framesize;
+		} else {
+			/* Handle non-streak camera modes. */
+
+			mx_status = mx_area_detector_compute_new_binning( ad,
+							ad->parameter_type,
+							num_allowed_binsizes,
+							allowed_binsize );
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
 
 		/* Tell the detector head to change its binsize. */
 
@@ -2512,6 +2566,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		pccd_170170->vinput_normal_framesize[1] =
 						vinput_vert_framesize;
+
+		pccd_170170->normal_binsize[0] = horiz_binsize;
+
+		pccd_170170->normal_binsize[1] = vert_binsize;
 #endif
 		break;
 
@@ -2570,11 +2628,24 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		sp = &(ad->sequence_parameters);
 
 		switch( sp->sequence_type ) {
+		case MXT_SQ_ONE_SHOT:
+		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_STROBE:
 		case MXT_SQ_GEOMETRICAL:
-			exposure_multiplier = sp->parameter_array[3];
+			if ( sp->sequence_type == MXT_SQ_GEOMETRICAL ) {
+				exposure_multiplier = sp->parameter_array[3];
 
-			exposure_multiplier_steps = 
-			   mx_round_down( (exposure_multiplier - 1.0) * 256.0 );
+				exposure_multiplier_steps = mx_round_down(
+					(exposure_multiplier - 1.0) * 256.0);
+
+				gap_multiplier = sp->parameter_array[4];
+
+				gap_multiplier_steps = mx_round_down(
+					(gap_multiplier - 1.0) * 256.0);
+			} else {
+				exposure_multiplier_steps = 0L;
+				gap_multiplier_steps = 0L;
+			}
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2584,11 +2655,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			gap_multiplier = sp->parameter_array[4];
-
-			gap_multiplier_steps = 
-				mx_round_down( (gap_multiplier - 1.0) * 256.0 );
-
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
 					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
@@ -2597,10 +2663,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			/* No break since we fall through to the next case. */
-		case MXT_SQ_ONE_SHOT:
-		case MXT_SQ_MULTIFRAME:
-		case MXT_SQ_STROBE:
 			if ( old_detector_readout_mode != 0 ) {
 				/* We must switch to full frame mode. */
 
@@ -2629,6 +2691,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record,
 					pccd_170170->vinput_normal_framesize[0],
 				       pccd_170170->vinput_normal_framesize[1]);
+
+				    if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				    mx_status = mx_area_detector_set_binsize(
+					pccd_170170->record,
+					pccd_170170->normal_binsize[0],
+					pccd_170170->normal_binsize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
@@ -2732,6 +2802,24 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			}
 			break;
 		case MXT_SQ_STREAK_CAMERA:
+			/* Turn off the multipliers. */
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+					0L );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+					0L );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
 			/* Get the current framesize. */
 
 			mx_status = mx_video_input_get_framesize(
@@ -2753,6 +2841,10 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 				pccd_170170->vinput_normal_framesize[1]
 					= vinput_vert_framesize;
+
+				pccd_170170->normal_binsize[0] = horiz_binsize;
+
+				pccd_170170->normal_binsize[1] = vert_binsize;
 
 				/* Now switch to streak camera mode. */
 
@@ -2785,7 +2877,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			/* Set the number of streak camera mode lines.*/
 
 			num_streak_mode_lines
-				= mx_round_down( sp->parameter_array[0] );
+				= mx_round_down( sp->parameter_array[0] / 2.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2820,7 +2912,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			mx_status = mx_video_input_set_framesize(
 				pccd_170170->video_input_record,
 				vinput_horiz_framesize,
-				num_streak_mode_lines );
+				num_streak_mode_lines / 2L );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2856,6 +2948,14 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record,
 					pccd_170170->vinput_normal_framesize[0],
 				       pccd_170170->vinput_normal_framesize[1]);
+
+				    if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				    mx_status = mx_area_detector_set_binsize(
+					pccd_170170->record,
+					pccd_170170->normal_binsize[0],
+				       pccd_170170->normal_binsize[1]);
 
 				    if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;

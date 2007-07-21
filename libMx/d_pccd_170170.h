@@ -52,6 +52,7 @@ typedef struct {
 	unsigned long pccd_170170_flags;
 
 	long vinput_normal_framesize[2];
+	long normal_binsize[2];
 
 	MX_IMAGE_FRAME *raw_frame;
 
