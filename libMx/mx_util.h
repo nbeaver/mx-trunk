@@ -345,11 +345,13 @@ MX_API unsigned long mx_string_to_unsigned_long( char *string );
  * This is to prevent numbers that are only non-integral due to roundoff
  * error from being incorrectly rounded to the wrong integer.
  *
- * The ANSI C functions floor() and ceil() cover the other two interesting
- * cases.
+ * mx_round_down() rounds to the next lower integer, while mx_round_up()
+ * rounds to the next higher integer.
  */
 
 MX_API long mx_round( double value );
+MX_API long mx_round_down( double value );
+MX_API long mx_round_up( double value );
 MX_API long mx_round_away_from_zero( double value, double threshold );
 MX_API long mx_round_toward_zero( double value, double threshold );
 

@@ -721,7 +721,9 @@ MX_API mx_status_type mx_area_detector_set_subimage_mode(
 						long num_lines_per_subimage,
 						long num_subimages,
 						double exposure_time,
-						double subimage_time );
+						double subimage_time,
+						double exposure_multiplier,
+						double gap_multiplier );
 
 /*---*/
 

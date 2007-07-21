@@ -1770,17 +1770,21 @@ mx_area_detector_set_subimage_mode( MX_RECORD *record,
 					long num_lines_per_subimage,
 					long num_subimages,
 					double exposure_time,
-					double subimage_time )
+					double subimage_time,
+					double exposure_multiplier,
+					double gap_multiplier )
 {
 	MX_SEQUENCE_PARAMETERS seq_params;
 	mx_status_type mx_status;
 
 	seq_params.sequence_type = MXT_SQ_SUBIMAGE;
-	seq_params.num_parameters = 4;
+	seq_params.num_parameters = 6;
 	seq_params.parameter_array[0] = num_lines_per_subimage;
 	seq_params.parameter_array[1] = num_subimages;
 	seq_params.parameter_array[2] = exposure_time;
 	seq_params.parameter_array[3] = subimage_time;
+	seq_params.parameter_array[4] = exposure_multiplier;
+	seq_params.parameter_array[5] = gap_multiplier;
 
 	mx_status = mx_area_detector_set_sequence_parameters( record,
 								&seq_params );

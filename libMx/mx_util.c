@@ -1349,6 +1349,34 @@ mx_round( double value )
 }
 
 MX_EXPORT long
+mx_round_down( double value )
+{
+	long result;
+
+	if ( value >= 0.0 ) {
+		result = (long) value;
+	} else {
+		result = (long) ( value - 1.0 );
+	}
+
+	return result;
+}
+
+MX_EXPORT long
+mx_round_up( double value )
+{
+	long result;
+
+	if ( value >= 0.0 ) {
+		result = (long) ( value + 1.0 );
+	} else {
+		result = (long) value;
+	}
+
+	return result;
+}
+
+MX_EXPORT long
 mx_round_away_from_zero( double value, double threshold )
 {
 	long result;

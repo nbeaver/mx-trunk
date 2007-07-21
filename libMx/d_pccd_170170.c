@@ -2419,6 +2419,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	double exposure_time, frame_time, gap_time;
 	double exposure_multiplier, gap_multiplier;
+	double subimage_time, detector_readout_time;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
@@ -2573,7 +2574,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_multiplier = sp->parameter_array[3];
 
 			exposure_multiplier_steps = 
-				mx_round( (exposure_multiplier - 1.0) * 255.0 );
+			   mx_round_down( (exposure_multiplier - 1.0) * 256.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2586,7 +2587,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			gap_multiplier = sp->parameter_array[4];
 
 			gap_multiplier_steps = 
-				mx_round( (gap_multiplier - 1.0) * 255.0 );
+				mx_round_down( (gap_multiplier - 1.0) * 256.0 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2676,9 +2677,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 
 			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps = mx_round( exposure_time / 0.01 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.01 );
 			} else {
-			    exposure_steps = mx_round( exposure_time / 0.001 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.001 );
 			}
 
 			mx_status = mxd_pccd_170170_write_register(
@@ -2705,7 +2708,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 						ad->record->name );
 				}
 
-				gap_steps = mx_round( gap_time / 0.0001 );
+				gap_steps =
+					mx_round_down( gap_time / 0.0001 );
 
 				if ( gap_steps > 65535 ) {
 					return mx_error(
@@ -2781,7 +2785,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			/* Set the number of streak camera mode lines.*/
 
 			num_streak_mode_lines
-				= mx_round( sp->parameter_array[0] );
+				= mx_round_down( sp->parameter_array[0] );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -2796,9 +2800,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_time = sp->parameter_array[1];
 
 			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps = mx_round( exposure_time / 0.01 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.01 );
 			} else {
-			    exposure_steps = mx_round( exposure_time / 0.001 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.001 );
 			}
 
 			mx_status = mxd_pccd_170170_write_register(
@@ -2858,15 +2864,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the number of frames in sequence to 1. */
 
-#if 1
 			mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
 					1 );
-#else
-			mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
-					2 );
-#endif
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2878,7 +2878,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_SUBFRAME_SIZE,
-					mx_round(sp->parameter_array[0]/2.0) );
+				    mx_round_down(sp->parameter_array[0]/2.0) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2887,7 +2887,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_SUBIMAGES_PER_READ,
-					mx_round(sp->parameter_array[1]) );
+					mx_round_down(sp->parameter_array[1]) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
@@ -2897,15 +2897,86 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			exposure_time = sp->parameter_array[2];
 
 			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps = mx_round( exposure_time / 0.01 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.01 );
 			} else {
-			    exposure_steps = mx_round( exposure_time / 0.001 );
+			    exposure_steps =
+					mx_round_down( exposure_time / 0.001 );
 			}
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_TIME,
 				exposure_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			/* Compute the gap time from the subimage time. */
+
+			subimage_time = sp->parameter_array[3];
+
+			mx_status =
+				mxd_pccd_170170_compute_detector_readout_time(
+				    ad, pccd_170170, &detector_readout_time );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			gap_time = subimage_time - exposure_time
+					- detector_readout_time;
+
+			if ( gap_time < 0.0 ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"For area detector '%s', The requested "
+				"exposure time (%g sec) and the requested "
+				"subimage time (%g sec) together with the "
+				"calculated detector readout time (%g sec) "
+				"result in a gap time (%g sec) that is "
+				"negative.  This is not supported.",
+					ad->record->name,
+					exposure_time, subimage_time,
+					detector_readout_time, gap_time );
+			}
+
+			/* Set the gap time. */
+
+			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
+				gap_steps = mx_round_down( gap_time / 0.01 );
+			} else {
+				gap_steps = mx_round_down( gap_time / 0.001 );
+			}
+
+			mx_status = mxd_pccd_170170_write_register(
+				pccd_170170,
+				MXLV_PCCD_170170_DH_GAP_TIME,
+				gap_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+					
+			exposure_multiplier = sp->parameter_array[4];
+
+			exposure_multiplier_steps = 
+			   mx_round_down( (exposure_multiplier - 1.0) * 256.0 );
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
+					exposure_multiplier_steps );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			gap_multiplier = sp->parameter_array[5];
+
+			gap_multiplier_steps = 
+				mx_round_down( (gap_multiplier - 1.0) * 256.0 );
+
+			mx_status = mxd_pccd_170170_write_register(
+					pccd_170170,
+					MXLV_PCCD_170170_DH_GAP_MULTIPLIER,
+					gap_multiplier_steps );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;

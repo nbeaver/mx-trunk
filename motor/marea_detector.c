@@ -94,10 +94,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set bulb_mode '# frames'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
-"          'exposure time' 'gap_time' 'exposure multiplier' 'gap multiplier'\n"
+"      'exposure time' 'gap_time' 'exposure multiplier' 'gap multiplier'\n"
 "  area_detector 'name' set streak_camera_mode '# lines' 'exposure time'\n"
 "  area_detector 'name' set subimage_mode '# lines per subimage' '#subimages'\n"
-"                                             'exposure time' 'subimage time'\n"
+"      'exposure time' 'subimage time' 'exposure multiplier' 'gap multiplier'\n"
 "\n"
 "  area_detector 'name' get binsize\n"
 "  area_detector 'name' set binsize 'x_binsize' 'y_binsize'\n"
@@ -1697,7 +1697,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		} else
 		if ( strncmp("subimage_mode", argv[4], strlen(argv[4])) == 0)
 		{
-			if ( argc != 9 ) {
+			if ( argc != 11 ) {
 				fprintf( output,
 			"Wrong number of arguments specified for 'set %s'.\n",
 					argv[4] );
@@ -1728,9 +1728,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			subimage_time = atof( argv[8] );
 
+			exposure_multiplier = atof( argv[9] );
+
+			gap_multiplier = atof( argv[10] );
+
 			mx_status = mx_area_detector_set_subimage_mode(
 				ad_record, num_lines_per_subimage,
-				num_subimages, exposure_time, subimage_time );
+				num_subimages, exposure_time, subimage_time,
+				exposure_multiplier, gap_multiplier );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
