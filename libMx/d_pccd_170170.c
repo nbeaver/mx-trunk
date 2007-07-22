@@ -469,6 +469,58 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 }
 
 static mx_status_type
+mxd_pccd_170170_descramble_streak_camera( MX_AREA_DETECTOR *ad,
+				MX_PCCD_170170 *pccd_170170,
+				MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *raw_frame )
+{
+	uint16_t *image_data, *raw_data;
+	uint16_t *image_ptr, *raw_ptr;
+	long i, x_framesize, y_framesize;
+	mx_status_type mx_status;
+
+	/* First, we figure out how many pixels are in each line
+	 * of the raw data by asking for the framesize.
+	 */
+
+	mx_status = mx_area_detector_get_framesize( ad->record,
+					&x_framesize, &y_framesize );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	raw_data   = raw_frame->image_data;
+	image_data = image_frame->image_data;
+
+	/* Loop through the lines of the raw image. */
+
+	for ( i = 0; i < y_framesize; i++ ) {
+		/* The raw data arrives in groups of 16 pixels that need
+		 * to be appropriately copied to the final image frame.
+		 */
+
+		raw_ptr = raw_data + i * x_framesize;
+
+		/* Half of the raw data is discarded. */
+
+		image_ptr = image_data + i * (x_framesize/2L);
+
+		/* Copy the pixels. */
+
+		image_ptr[0] = raw_ptr[0];
+		image_ptr[1] = raw_ptr[1];
+		image_ptr[2] = raw_ptr[4];
+		image_ptr[3] = raw_ptr[5];
+		image_ptr[4] = raw_ptr[3];
+		image_ptr[5] = raw_ptr[2];
+		image_ptr[6] = raw_ptr[7];
+		image_ptr[7] = raw_ptr[6];
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
 mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				MX_PCCD_170170 *pccd_170170,
 				MX_IMAGE_FRAME *image_frame,
@@ -492,13 +544,26 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	sp = &(ad->sequence_parameters);
 
-	/* If this is a subimage or streak camera frame, we must
-	 * first descramble to a temporary frame.
+	/* We handle streak camera descrambling in a special function
+	 * just for it.
 	 */
 
-	if ( (sp->sequence_type == MXT_SQ_SUBIMAGE)
-	  || (sp->sequence_type == MXT_SQ_STREAK_CAMERA) )
-	{
+	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
+		mx_status = mxd_pccd_170170_descramble_streak_camera(
+				ad, pccd_170170, image_frame, raw_frame );
+#if 1
+		MX_DEBUG(-2,
+		("%s: Streak camera descrambling complete.", fname));
+#endif
+		return mx_status;
+	}
+
+	/* If this is a subimage frame, we initially
+	 * descramble to a temporary frame.
+	 */
+
+	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
+
 		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
 					image_frame->image_type,
 					image_frame->framesize,
@@ -569,14 +634,6 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if (sp->sequence_type == MXT_SQ_STREAK_CAMERA) {
-		/* FIXME: Temporarily, we just copy the image data from
-		 * the temporary frame to the image frame.
-		 */
-
-		memcpy( image_frame->image_data, frame_data,
-				image_frame->allocated_image_length );
-	} else
 	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
 
 		long num_lines_per_subimage, num_subimages, frame_width;
