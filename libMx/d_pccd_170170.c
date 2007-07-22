@@ -2751,6 +2751,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		vinput_vert_framesize =
 			ad->framesize[1] / MXF_PCCD_170170_VERT_SCALE;
 
+		horiz_binsize = ad->binsize[0];
+		vert_binsize  = ad->binsize[1];
+
 		mx_status = mx_video_input_set_framesize(
 					pccd_170170->video_input_record,
 					vinput_horiz_framesize,
@@ -3074,9 +3077,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				pccd_170170->vinput_normal_framesize[1]
 					= vinput_vert_framesize;
 
-				pccd_170170->normal_binsize[0] = horiz_binsize;
+				pccd_170170->normal_binsize[0] = ad->binsize[0];
 
-				pccd_170170->normal_binsize[1] = vert_binsize;
+				pccd_170170->normal_binsize[1] = ad->binsize[1];
 
 				/* Now switch to streak camera mode. */
 
