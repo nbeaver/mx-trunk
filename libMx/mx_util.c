@@ -1334,6 +1334,32 @@ mx_string_to_unsigned_long( char *string )
 	return result;
 }
 
+/* mxp_value_is_near_integer() is used by the mx_round_...() set of 
+ * functions to try and guard against imprecise floating point
+ * representations of numbers.  It assumes that double precision
+ * numbers have around 15 significant digits.  This is true for
+ * IEEE floating point.
+ *
+ * For example, this guards against the possibility of the function
+ * mx_round_down( 3.9999999999999998 ) returning 3 instead of 4.
+ */
+
+#define MXP_DIFFERENCE_THRESHOLD	(1.0e-15)
+
+static mx_bool_type
+mxp_value_is_near_integer( double value )
+{
+	double relative_difference;
+
+	relative_difference = mx_difference( value, (double)mx_round(value) );
+
+	if ( relative_difference < MXP_DIFFERENCE_THRESHOLD ) {
+		return TRUE;
+	} else {
+		return FALSE;
+	}
+}
+
 MX_EXPORT long
 mx_round( double value )
 {
@@ -1353,10 +1379,14 @@ mx_round_down( double value )
 {
 	long result;
 
-	if ( value >= 0.0 ) {
-		result = (long) value;
+	if ( mxp_value_is_near_integer(value) ) {
+		result = mx_round(value);
 	} else {
-		result = (long) ( value - 1.0 );
+		if ( value >= 0.0 ) {
+			result = (long) value;
+		} else {
+			result = (long) ( value - 1.0 );
+		}
 	}
 
 	return result;
@@ -1367,10 +1397,14 @@ mx_round_up( double value )
 {
 	long result;
 
-	if ( value >= 0.0 ) {
-		result = (long) ( value + 1.0 );
+	if ( mxp_value_is_near_integer(value) ) {
+		result = mx_round(value);
 	} else {
-		result = (long) value;
+		if ( value >= 0.0 ) {
+			result = (long) ( value + 1.0 );
+		} else {
+			result = (long) value;
+		}
 	}
 
 	return result;
