@@ -59,8 +59,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long roi[4];
 	long long_parameter;
 	long correction_type, num_measurements;
-	double measurement_time;
-	double exposure_time, gap_time, exposure_multiplier, gap_multiplier;
+	double measurement_time, total_sequence_time;
+	double exposure_time, frame_time, exposure_multiplier, gap_multiplier;
 	double exposure_time_per_line, subimage_time;
 	double bytes_per_pixel;
 	mx_bool_type busy;
@@ -94,7 +94,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  area_detector 'name' set strobe_mode '# frames' 'exposure time'\n"
 "  area_detector 'name' set bulb_mode '# frames'\n"
 "  area_detector 'name' set geometrical_mode '# frames'\n"
-"      'exposure time' 'gap_time' 'exposure multiplier' 'gap multiplier'\n"
+"      'exposure time' 'frame_time' 'exposure multiplier' 'gap multiplier'\n"
 "  area_detector 'name' set streak_camera_mode '# lines' 'exposure time'\n"
 "  area_detector 'name' set subimage_mode '# lines per subimage' '#subimages'\n"
 "      'exposure time' 'subimage time' 'exposure multiplier' 'gap multiplier'\n"
@@ -1503,6 +1503,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("continuous_mode", argv[4], strlen(argv[4])) == 0){
 
@@ -1520,6 +1527,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("multiframe_mode", argv[4], strlen(argv[4])) == 0)
 		{
@@ -1542,13 +1556,20 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time = atof( argv[6] );
 
-			gap_time = atof( argv[7] );
+			frame_time = atof( argv[7] );
 
 			mx_status = mx_area_detector_set_multiframe_mode(
-				ad_record, num_frames, exposure_time, gap_time);
+			    ad_record, num_frames, exposure_time, frame_time );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("circular_multiframe_mode",
 				argv[4], strlen(argv[4])) == 0)
@@ -1572,14 +1593,21 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time = atof( argv[6] );
 
-			gap_time = atof( argv[7] );
+			frame_time = atof( argv[7] );
 
 			mx_status =
 			    mx_area_detector_set_circular_multiframe_mode(
-				ad_record, num_frames, exposure_time, gap_time);
+			      ad_record, num_frames, exposure_time, frame_time);
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("strobe_mode", argv[4], strlen(argv[4])) == 0)
 		{
@@ -1607,6 +1635,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("bulb_mode", argv[4], strlen(argv[4])) == 0)
 		{
@@ -1632,6 +1667,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("geometrical_mode", argv[4], strlen(argv[4])) == 0)
 		{
@@ -1654,18 +1696,26 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			exposure_time = atof( argv[6] );
 
-			gap_time = atof( argv[7] );
+			frame_time = atof( argv[7] );
 
 			exposure_multiplier = atof( argv[8] );
 
 			gap_multiplier = atof( argv[9] );
 
 			mx_status = mx_area_detector_set_geometrical_mode(
-				ad_record, num_frames, exposure_time, gap_time,
+				ad_record, num_frames,
+				exposure_time, frame_time,
 				exposure_multiplier, gap_multiplier );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("streak_camera_mode",
 				argv[4], strlen(argv[4])) == 0)
@@ -1694,6 +1744,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp("subimage_mode", argv[4], strlen(argv[4])) == 0)
 		{
@@ -1739,6 +1796,13 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
+
+			mx_status = mx_area_detector_get_total_sequence_time(
+					ad_record, &total_sequence_time );
+
+			fprintf( output,
+			"The sequence will take %g seconds.\n",
+				total_sequence_time );
 		} else
 		if ( strncmp( "roi", argv[4], strlen(argv[4]) ) == 0 ) {
 

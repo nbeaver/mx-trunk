@@ -3488,12 +3488,19 @@ mx_area_detector_default_get_parameter_handler( MX_AREA_DETECTOR *ad )
 							* (double) num_frames;
 			break;
 		default:
+			ad->total_sequence_time = 0.0;
+
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Area detector '%s' is configured for unsupported "
 			"sequence type %ld.",
 				ad->record->name,
 				seq.sequence_type );
 		}
+
+#if MX_AREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: ad->total_sequence_time = %g",
+			fname, ad->total_sequence_time));
+#endif
 		break;
 
 	default:
