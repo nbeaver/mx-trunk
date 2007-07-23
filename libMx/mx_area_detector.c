@@ -2371,6 +2371,9 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s:  BEFORE correction_flags = %#lx",
+		fname, ad->correction_flags));
+
 	correct_frame_fn = flist->correct_frame;
 
 	if ( correct_frame_fn == NULL ) {
@@ -2378,6 +2381,9 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 	}
 
 	mx_status = (*correct_frame_fn)( ad );
+
+	MX_DEBUG(-2,("%s:  AFTER correction_flags = %#lx",
+		fname, ad->correction_flags));
 
 	return mx_status;
 }
@@ -2458,6 +2464,14 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* MX network clients do not need to do anything further here,
+	 * since the server takes care of all the work.
+	 */
+
+	if ( record->mx_type == MXT_AD_NETWORK ) {
+		return MX_SUCCESSFUL_RESULT;
+	}
 
 	/* Some frame types need special things to happen after
 	 * they are loaded.
@@ -2608,6 +2622,9 @@ mx_area_detector_get_frame( MX_RECORD *record,
 			long frame_number,
 			MX_IMAGE_FRAME **image_frame )
 {
+	static const char fname[] = "mx_area_detector_get_frame()";
+
+	MX_AREA_DETECTOR *ad;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_setup_frame( record, image_frame );
@@ -2620,7 +2637,15 @@ mx_area_detector_get_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	ad = record->record_class_struct;
+
+	MX_DEBUG(-2,("%s: BEFORE correcting frame.  correction_flags = %#lx",
+		fname, ad->correction_flags));
+
 	mx_status = mx_area_detector_correct_frame( record );
+
+	MX_DEBUG(-2,("%s: AFTER correcting frame.  correction_flags = %#lx",
+		fname, ad->correction_flags));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3070,7 +3095,7 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
-	if ( (flags & MXFT_AD_BIAS_FRAME) == 0 ) {
+	if ( (flags & MXFT_AD_FLOOD_FIELD_FRAME) == 0 ) {
 		flood_field_frame = NULL;
 	} else {
 		flood_field_frame = ad->flood_field_frame;
@@ -3586,7 +3611,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	long i, n, num_exposures, pixels_per_frame;
 	size_t image_length;
 	mx_bool_type busy;
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status2;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -3755,13 +3780,39 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		/* Perform any necessary image corrections. */
 
 		if ( desired_correction_flags != 0 ) {
-			saved_correction_flags = ad->correction_flags;
+			mx_status = mx_area_detector_get_correction_flags(
+					ad->record, &saved_correction_flags );
 
-			ad->correction_flags = desired_correction_flags;
+			if ( mx_status.code != MXE_SUCCESS ) {
+				free( sum_array );
+				return mx_status;
+			}
+
+			mx_status = mx_area_detector_set_correction_flags(
+					ad->record, desired_correction_flags );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				free( sum_array );
+				return mx_status;
+			}
+
+			MX_DEBUG(-2,
+		("%s: BEFORE correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
 
 			mx_status = mx_area_detector_correct_frame(ad->record);
 
-			ad->correction_flags = saved_correction_flags;
+			MX_DEBUG(-2,
+		("%s: AFTER correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
+			mx_status2 = mx_area_detector_set_correction_flags(
+					ad->record, saved_correction_flags );
+
+			if ( mx_status2.code != MXE_SUCCESS ) {
+				free( sum_array );
+				return mx_status2;
+			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				free( sum_array );
@@ -3850,7 +3901,7 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 	long i, n, z, num_exposures, pixels_per_frame;
 	double exposure_time;
 	mx_bool_type busy;
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status2;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -4018,13 +4069,39 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 		/* Perform any necessary image corrections. */
 
 		if ( desired_correction_flags != 0 ) {
-			saved_correction_flags = ad->correction_flags;
+			mx_status = mx_area_detector_get_correction_flags(
+					ad->record, &saved_correction_flags );
 
-			ad->correction_flags = desired_correction_flags;
+			if ( mx_status.code != MXE_SUCCESS ) {
+				FREE_DEZINGER_ARRAYS;
+				return mx_status;
+			}
+
+			mx_status = mx_area_detector_set_correction_flags(
+					ad->record, desired_correction_flags );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				FREE_DEZINGER_ARRAYS;
+				return mx_status;
+			}
+
+			MX_DEBUG(-2,
+		("%s: BEFORE correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
 
 			mx_status = mx_area_detector_correct_frame( ad->record);
 
-			ad->correction_flags = saved_correction_flags;
+			MX_DEBUG(-2,
+		("%s: AFTER correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
+			mx_status2 = mx_area_detector_set_correction_flags(
+					ad->record, saved_correction_flags );
+
+			if ( mx_status2.code != MXE_SUCCESS ) {
+				FREE_DEZINGER_ARRAYS;
+				return mx_status2;
+			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				FREE_DEZINGER_ARRAYS;
@@ -4076,7 +4153,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	uint16_t *image_data_array, *mask_data_array, *bias_data_array;
 	uint16_t *dark_current_data_array, *flood_field_data_array;
-	long i;
+	long i, num_pixels;
 	uint16_t image_pixel, total_pixel_offset;
 	unsigned long flags, big_image_pixel;
 	double image_exposure_time, exposure_time_ratio;
@@ -4177,7 +4254,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		exposure_time_ratio = 1.0;
 	}
 
-	for ( i = 0; i < image_frame->image_length; i++ ) {
+	num_pixels = image_frame->image_length / 2L;
+
+	for ( i = 0; i < num_pixels; i++ ) {
 
 		image_pixel = image_data_array[i];
 
@@ -4202,7 +4281,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		/* Add the detector bias. */
 
 		if ( bias_data_array != NULL ) {
-			total_pixel_offset += bias_data_array[i];
+			image_pixel += bias_data_array[i];
 		}
 
 		/* Add the rescaled dark current. */

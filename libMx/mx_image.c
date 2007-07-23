@@ -536,13 +536,18 @@ mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 		"The exposure_time pointer passed was NULL." );
 	}
 
-	/* FIXME - FIXME - FIXME */
+	if ( (frame->exposure_time.tv_sec == 0)
+	  && (frame->exposure_time.tv_nsec == 0) )
+	{
+		mx_warning(
+"%s: The header for image frame %p does not contain the exposure time.\n"
+"    The exposure time will be assumed to be 1 second.", fname, frame );
 
-	/* This is a stub that will need to be filled in when we have
-	 * implemented real image file headers.
-	 */
-
-	*exposure_time = 1.0;
+		*exposure_time = 1.0;
+	} else {
+		*exposure_time = ((double) frame->exposure_time.tv_sec)
+			+ 1.0e-9 * ((double) frame->exposure_time.tv_nsec);
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

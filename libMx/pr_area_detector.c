@@ -89,7 +89,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 	unsigned long ad_status, saved_correction_flags;
 	size_t image_length;
 	mx_bool_type sequence_complete;
-	mx_status_type mx_status;
+	mx_status_type mx_status, mx_status2;
 
 	callback_message = cb_message_ptr;
 
@@ -160,16 +160,45 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		/* Perform any necessary image corrections. */
 
 		if ( corr->desired_correction_flags != 0 ) {
-			saved_correction_flags = ad->correction_flags;
+			mx_status = mx_area_detector_get_correction_flags(
+					ad->record, &saved_correction_flags );
 
-			ad->correction_flags = corr->desired_correction_flags;
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mxp_area_detector_free_correction_struct(
+								ad, corr );
+				return mx_status;
+			}
+
+			mx_status = mx_area_detector_set_correction_flags(
+				ad->record, corr->desired_correction_flags );
+
+			if ( mx_status.code != MXE_SUCCESS ) {
+				mxp_area_detector_free_correction_struct(
+								ad, corr );
+				return mx_status;
+			}
 
 			MX_DEBUG(-2,("%s: Correcting frame %ld",
 					fname, corr->num_frames_summed));
 
+			MX_DEBUG(-2,
+		("%s: BEFORE correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
 			mx_status = mx_area_detector_correct_frame(ad->record);
 
-			ad->correction_flags = saved_correction_flags;
+			MX_DEBUG(-2,
+		("%s: AFTER correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
+			mx_status2 = mx_area_detector_set_correction_flags(
+					ad->record, saved_correction_flags );
+
+			if ( mx_status2.code != MXE_SUCCESS ) {
+				mxp_area_detector_free_correction_struct(
+								ad, corr );
+				return mx_status2;
+			}
 
 			if ( mx_status.code != MXE_SUCCESS ) {
 				mxp_area_detector_free_correction_struct(
@@ -969,7 +998,16 @@ mx_area_detector_process_function( void *record_ptr,
 					ad->copy_frame[0], ad->copy_frame[1] );
 			break;
 		case MXLV_AD_CORRECT_FRAME:
+			MX_DEBUG(-2,
+		("%s: BEFORE correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
 			mx_status = mx_area_detector_correct_frame( record );
+
+			MX_DEBUG(-2,
+		("%s: AFTER correcting frame.  correction_flags = %#lx",
+				fname, ad->correction_flags));
+
 			break;
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
 #if 0

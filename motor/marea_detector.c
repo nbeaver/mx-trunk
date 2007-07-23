@@ -973,6 +973,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 			mx_msleep(10);
 		}
 
+		mx_status = mx_area_detector_get_frame( ad_record,
+							-1, &frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
 		switch( correction_type ) {
 		case MXFT_AD_DARK_CURRENT_FRAME:
 			fprintf( output,

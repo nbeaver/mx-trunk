@@ -72,6 +72,8 @@ typedef struct {
 	double bytes_per_pixel;
 	long bits_per_pixel;
 
+	struct timespec exposure_time;
+
 	size_t header_length;
 	void *header_data;
 
