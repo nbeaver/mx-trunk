@@ -59,6 +59,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	unsigned long roi[4];
 	long long_parameter;
 	long correction_type, num_measurements;
+	unsigned long saved_correction_flags;
 	double measurement_time, total_sequence_time;
 	double exposure_time, frame_time, exposure_multiplier, gap_multiplier;
 	double exposure_time_per_line, subimage_time;
@@ -939,6 +940,24 @@ motor_area_detector_fn( int argc, char *argv[] )
 "  measurement time per frame = %g seconds, number of measurements = %ld\n",
 			measurement_time, num_measurements );
 
+		/* Make sure that automatic frame corrections are
+		 * turned off.
+		 */
+
+		mx_status = mx_area_detector_get_correction_flags( ad_record,
+						&saved_correction_flags );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		mx_status = mx_area_detector_set_correction_flags(
+						ad_record, 0 );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		/* Now start the measurement. */
+
 		mx_status = mx_area_detector_measure_correction_frame(
 			ad_record, correction_type,
 			measurement_time, num_measurements );
@@ -975,6 +994,14 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		mx_status = mx_area_detector_get_frame( ad_record,
 							-1, &frame );
+		if ( mx_status.code != MXE_SUCCESS )
+			return FAILURE;
+
+		/* Restore the correction flags. */
+
+		mx_status = mx_area_detector_set_correction_flags(
+					ad_record, saved_correction_flags );
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 

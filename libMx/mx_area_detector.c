@@ -3779,7 +3779,12 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		/* Perform any necessary image corrections. */
 
+		MX_DEBUG(-2,("%s: MILEPOST 1, desired_correction_flags = %#lx",
+			fname, desired_correction_flags));
+
 		if ( desired_correction_flags != 0 ) {
+			MX_DEBUG(-2,("%s: MILEPOST 1.1", fname));
+
 			mx_status = mx_area_detector_get_correction_flags(
 					ad->record, &saved_correction_flags );
 
@@ -3787,6 +3792,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 				free( sum_array );
 				return mx_status;
 			}
+
+			MX_DEBUG(-2,
+			("%s: MILEPOST 1.2, saved_correction_flags = %#lx",
+				fname, saved_correction_flags));
 
 			mx_status = mx_area_detector_set_correction_flags(
 					ad->record, desired_correction_flags );
@@ -3797,28 +3806,36 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			}
 
 			MX_DEBUG(-2,
-		("%s: BEFORE correcting frame.  correction_flags = %#lx",
+	("%s: MILEPOST 1.3, BEFORE correcting frame.  correction_flags = %#lx",
 				fname, ad->correction_flags));
 
 			mx_status = mx_area_detector_correct_frame(ad->record);
 
 			MX_DEBUG(-2,
-		("%s: AFTER correcting frame.  correction_flags = %#lx",
+	("%s: MILEPOST 1.4, AFTER correcting frame.  correction_flags = %#lx",
 				fname, ad->correction_flags));
 
 			mx_status2 = mx_area_detector_set_correction_flags(
 					ad->record, saved_correction_flags );
+
+			MX_DEBUG(-2,("%s: MILEPOST 1.5", fname));
 
 			if ( mx_status2.code != MXE_SUCCESS ) {
 				free( sum_array );
 				return mx_status2;
 			}
 
+			MX_DEBUG(-2,("%s: MILEPOST 1.6", fname));
+
 			if ( mx_status.code != MXE_SUCCESS ) {
 				free( sum_array );
 				return mx_status;
 			}
+
+			MX_DEBUG(-2,("%s: MILEPOST 1.7", fname));
 		}
+
+		MX_DEBUG(-2,("%s: MILEPOST 2", fname));
 
 		/* Get the image data pointer. */
 
@@ -3859,6 +3876,20 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Calculating normalized pixels.", fname));
+
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: DIE DIE DIE: ad->image_frame = NULL!",
+			fname));
+	} else {
+		MX_DEBUG(-2,("%s: ad->image_frame->image_data = %p",
+			fname, ad->image_frame->image_data));
+		src_array = ad->image_frame->image_data;
+	}
+	if ( ad->dark_current_frame != NULL ) {
+		MX_DEBUG(-2,
+		("%s: dest_array = %p, ad->dark_current_frame->image_data = %p",
+			fname, dest_array, ad->dark_current_frame->image_data));
+	}
 #endif
 
 	/* Copy normalized pixels to the destination array. */
@@ -3867,6 +3898,13 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		temp_double = sum_array[i] / num_exposures;
 
 		dest_array[i] = mx_round( temp_double );
+#if 1
+		if ( i < 5 ) {
+			MX_DEBUG(-2,
+			("src_array[%ld] = %ld, dest_array[%ld] = %ld",
+				i, src_array[i], i, dest_array[i]));
+		}
+#endif
 	}
 
 	free( sum_array );
@@ -4314,8 +4352,19 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
+#if 1
+		if ( i < 5 ) {
+			MX_DEBUG(-2,
+    ("i = %ld, flags = %#x, orig = %ld, bias = %ld, dark = %g, result = %ld",
+			i, flags, image_data_array[i], bias_data_array[i],
+			actual_dark_current, image_pixel));
+		}
+#endif
+
 		image_data_array[i] = image_pixel;
 	}
+
+	MX_DEBUG(-2,("%s complete.", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }

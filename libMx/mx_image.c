@@ -540,8 +540,8 @@ mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 	  && (frame->exposure_time.tv_nsec == 0) )
 	{
 		mx_warning(
-"%s: The header for image frame %p does not contain the exposure time.\n"
-"    The exposure time will be assumed to be 1 second.", fname, frame );
+"%s: The header for image frame %p does not contain the exposure time.  "
+"The exposure time will be assumed to be 1 second.", fname, frame );
 
 		*exposure_time = 1.0;
 	} else {
