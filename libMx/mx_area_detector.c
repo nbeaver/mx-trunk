@@ -3901,8 +3901,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 #if 1
 		if ( i < 5 ) {
 			MX_DEBUG(-2,
-			("src_array[%ld] = %ld, dest_array[%ld] = %ld",
-				i, src_array[i], i, dest_array[i]));
+			("src_array[%ld] = %d, dest_array[%ld] = %d",
+				i, (int) src_array[i], i, (int) dest_array[i]));
 		}
 #endif
 	}
@@ -4355,9 +4355,10 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if 1
 		if ( i < 5 ) {
 			MX_DEBUG(-2,
-    ("i = %ld, flags = %#x, orig = %ld, bias = %ld, dark = %g, result = %ld",
-			i, flags, image_data_array[i], bias_data_array[i],
-			actual_dark_current, image_pixel));
+    ("i = %ld, flags = %#lx, orig = %d, bias = %d, dark = %g, result = %d",
+			i, flags,
+			    (int) image_data_array[i], (int) bias_data_array[i],
+			    actual_dark_current, (int) image_pixel));
 		}
 #endif
 
