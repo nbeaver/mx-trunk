@@ -1864,7 +1864,7 @@ mxsrv_send_field_value_to_client(
 	}
 	if ( network_message == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
-		"The MX_NETWORK_MESSAGE_BUFFFER pointer passed was NULL." );
+		"The MX_NETWORK_MESSAGE_BUFFER pointer passed was NULL." );
 	}
 
 	mx_socket = socket_handler->synchronous_socket;
@@ -2178,8 +2178,17 @@ mxsrv_send_field_value_to_client(
 						-1.0, network_message );
 
 	if ( mx_status.code != MXE_SUCCESS ) {
-		sprintf( location, "%s to client socket %d",
-				fname, mx_socket->socket_fd );
+		if ( record != NULL ) {
+			sprintf( location,
+			"%s to client socket %d for record field '%s.%s'",
+					fname, mx_socket->socket_fd,
+					record->name, record_field->name );
+		} else {
+			sprintf( location,
+			"%s to client socket %d for field '%s'",
+					fname, mx_socket->socket_fd,
+					record_field->name );
+		}
 
 		return mx_error( mx_status.code, location, mx_status.message );
 	}

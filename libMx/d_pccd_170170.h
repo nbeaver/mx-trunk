@@ -26,6 +26,7 @@
 #define MXF_PCCD_170170_USE_TEST_PATTERN		0x10
 #define MXF_PCCD_170170_NUM_FRAMES_KLUDGE		0x20
 #define MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE		0x40
+#define MXF_PCCD_170170_DARK_CURRENT_KLUDGE		0x80
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
@@ -415,7 +416,7 @@ MX_API mx_status_type mxd_pccd_170170_get_extended_status(
 MX_API mx_status_type mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad );
 MX_API mx_status_type mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad );
-
+MX_API mx_status_type mxd_pccd_170170_measure_correction( MX_AREA_DETECTOR *ad);
 
 MX_API mx_status_type mxd_pccd_170170_camera_link_command(
 					MX_PCCD_170170 *pccd_170170,
