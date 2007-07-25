@@ -2196,6 +2196,23 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 		if ( result >= 0 ) {
 			result = result * 2;
 		}
+#if MXD_EPIX_XCLIB_DEBUG
+		{
+			/* Compute and display a simplistic checksum. */
+
+			uint16_t checksum;
+
+			checksum = 0;
+
+			image_data16 = frame->image_data;
+
+			for ( i = 0; i < words_to_read; i++ ) {
+				checksum += image_data16[i];
+			}
+			MX_DEBUG(-2,("%s: Image checksum = %#x",
+				fname, (int) checksum));
+		}
+#endif
 	} else {
 		result = pxd_readuchar( epix_xclib_vinput->unitmap,
 				epix_frame_number,

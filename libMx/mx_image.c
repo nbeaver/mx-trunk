@@ -1130,18 +1130,26 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	MX_DEBUG(-2,("%s: comment line = '%s'", fname, buffer));
 #endif
 
-	/* The third line should contain the width and height. */
+	/* The third line should contain the width and height.
+	 *
+	 * If the second line read did not start with a # character,
+	 * we assume that this file was produced by NetPBM and that
+	 * the second line is the one that contains the width and height.
+	 * In that case, we do not read another line here.
+	 */
 
-	ptr = fgets( buffer, sizeof(buffer), file );
+	if ( buffer[0] == '#' ) {
+		ptr = fgets( buffer, sizeof(buffer), file );
 
-	if ( ptr == NULL ) {
-		saved_errno = errno;
+		if ( ptr == NULL ) {
+			saved_errno = errno;
 
-		return mx_error( MXE_FILE_IO_ERROR, fname,
-		"Cannot read the third line of PNM image file '%s'.  "
-		"Errno = %d, error message = '%s'",
-			datafile_name,
-			saved_errno, strerror(saved_errno) );
+			return mx_error( MXE_FILE_IO_ERROR, fname,
+			"Cannot read the third line of PNM image file '%s'.  "
+			"Errno = %d, error message = '%s'",
+				datafile_name,
+				saved_errno, strerror(saved_errno) );
+		}
 	}
 
 	num_items = sscanf( buffer, "%ld %ld", &framesize[0], &framesize[1] );
