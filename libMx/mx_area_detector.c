@@ -4352,13 +4352,49 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
-#if 1
+#if 0
 		if ( i < 5 ) {
 			MX_DEBUG(-2,
     ("i = %ld, flags = %#lx, orig = %d, bias = %d, dark = %g, result = %d",
 			i, flags,
 			    (int) image_data_array[i], (int) bias_data_array[i],
 			    actual_dark_current, (int) image_pixel));
+		}
+#endif
+
+#if 1
+		if ( ( i < 5 ) && ( mx_get_debug_level() <= -2 ) ) {
+			fprintf( stderr, "i = %ld, flags = %#lx, ", i, flags );
+
+			if ( image_data_array == NULL ) {
+				fprintf( stderr, "orig = NULL, " );
+			} else {
+				fprintf( stderr, "orig = %d, ",
+					(int) image_data_array[i] );
+			}
+			
+			if ( bias_data_array == NULL ) {
+				fprintf( stderr, "bias = NULL, " );
+			} else {
+				fprintf( stderr, "bias = %d, ",
+					(int) bias_data_array[i] );
+			}
+
+			if ( dark_current_data_array == NULL ) {
+				fprintf( stderr, "dark = NULL, " );
+			} else {
+				fprintf( stderr, "dark = %g, ",
+					actual_dark_current );
+			}
+
+			if ( flood_field_data_array == NULL ) {
+				fprintf( stderr, "flood = NULL, " );
+			} else {
+				fprintf( stderr, "flood = %g, ",
+					flood_field_scale_factor );
+			}
+
+			fprintf( stderr, "result = %d\n", (int) image_pixel );
 		}
 #endif
 
