@@ -555,6 +555,13 @@ mxd_network_area_detector_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	/* Setup the image frame data structure. */
+
+	mx_status = mx_area_detector_setup_frame( record, &(ad->image_frame) );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
 #endif
@@ -896,7 +903,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 			"mxd_network_area_detector_transfer_frame()";
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector;
-	MX_IMAGE_FRAME *frame;
+	MX_IMAGE_FRAME *destination_frame;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -910,17 +917,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
-	if ( ad->transfer_destination_frame != NULL ) {
-		frame = ad->transfer_destination_frame;
-	} else
-	if ( ad->image_frame != NULL ) {
-		frame = ad->image_frame;
-	} else {
-		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
-		"Both the transfer_destination_frame pointer and "
-		"the image_frame pointer are NULL for area detector '%s'.",
-			ad->record->name );
-	}
+	destination_frame = ad->transfer_destination_frame;
 
 	/* Tell the server to copy the frame to the image frame buffer. */
 
@@ -930,38 +927,96 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Ask for the bytes per pixel of the image. */
+	/* Make sure that the destination frame is configured correctly.
+	 * This requires asking the server for a variety of parameters.
+	 */
 
-	mx_status = mx_get( &(network_area_detector->bytes_per_pixel_nf),
-				MXFT_DOUBLE, &(ad->bytes_per_pixel) );
+	ad->parameter_type = MXLV_AD_FRAMESIZE;
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	frame->bytes_per_pixel = ad->bytes_per_pixel;
-
-	/* Ask for the size of the image. */
-
-	mx_status = mx_get( &(network_area_detector->bytes_per_frame_nf),
-				MXFT_LONG, &(ad->bytes_per_frame) );
+	mx_status = mxd_network_area_detector_get_parameter( ad );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	frame->image_length = ad->bytes_per_frame;
+	/*---*/
+
+	ad->parameter_type = MXLV_AD_IMAGE_FORMAT;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+	ad->parameter_type = MXLV_AD_BYTE_ORDER;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+	ad->parameter_type = MXLV_AD_BYTES_PER_PIXEL;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/*---*/
+
+#if 0
+	ad->parameter_type = MXLV_AD_HEADER_LENGTH;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#else
+	/* FIXME: We should replace all of these calls with a single
+	 * area detector header transfer.
+	 */
+
+	ad->header_length = 0;
+#endif
+
+	/*---*/
+
+	ad->parameter_type = MXLV_AD_BYTES_PER_FRAME;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Reconfigure the destination_frame data structure. */
+
+	mx_status = mx_image_alloc( &destination_frame,
+					MXT_IMAGE_LOCAL_1D_ARRAY,
+					ad->framesize,
+					ad->image_format,
+					ad->byte_order,
+					ad->bytes_per_pixel,
+					ad->header_length,
+					ad->bytes_per_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Now read the frame into the MX_IMAGE_FRAME structure. */
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: reading a %ld byte image frame.",
-			fname, (long) frame->image_length ));
+			fname, (long) destination_frame->image_length ));
 
 	{
 		char *image_data;
 		long image_length;
 
-		image_data = frame->image_data;
-		image_length = frame->image_length;
+		image_data = destination_frame->image_data;
+		image_length = destination_frame->image_length;
 
 		MX_DEBUG(-2,("%s: about to read image_data[%ld]",
 				fname, image_length - 1));
@@ -972,11 +1027,11 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	}
 #endif
 
-	dimension[0] = frame->image_length;
+	dimension[0] = destination_frame->image_length;
 
 	mx_status = mx_get_array(
 			&(network_area_detector->image_frame_buffer_nf),
-			MXFT_CHAR, 1, dimension, frame->image_data );
+			MXFT_CHAR, 1, dimension, destination_frame->image_data);
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -984,7 +1039,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
     ("%s: successfully read a %lu byte image frame from area detector '%s'.",
-		fname, (unsigned long) frame->image_length,
+		fname, (unsigned long) destination_frame->image_length,
 		ad->record->name ));
 
 	{
@@ -992,7 +1047,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 		unsigned char c;
 		unsigned char *frame_buffer;
 
-		frame_buffer = frame->image_data;
+		frame_buffer = destination_frame->image_data;
 
 		for ( i = 0; i < 10; i++ ) {
 			c = frame_buffer[i];

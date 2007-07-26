@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG    FALSE
+#define MX_AREA_DETECTOR_DEBUG    TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +27,10 @@
 #include "mx_key.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
+
+#define XYZZY(x) \
+  MX_DEBUG(-2,("XYZZY: %s: ad->image_frame = %p, ad->dark_current_frame = %p", \
+  (x), ad->image_frame, ad->dark_current_frame))
 
 /*=======================================================================*/
 
@@ -2304,6 +2308,8 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	XYZZY("BEFORE mx_image_alloc()");
+
 	/* Make sure the frame is big enough. */
 
 	mx_status = mx_image_alloc( image_frame,
@@ -2315,10 +2321,14 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 					ad->header_length,
 					ad->bytes_per_frame );
 
+	XYZZY("AFTER mx_image_alloc()");
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	ad->image_frame = *image_frame;
+#if 0
+	ad->image_frame = *image_frame; /* NO! NO!  A thousand times NO! */
+#endif
 
 	return mx_status;
 }
@@ -2404,6 +2414,11 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination_frame pointer passed was NULL." );
+	}
 
 	ad->transfer_destination_frame = destination_frame;
 
@@ -2651,7 +2666,7 @@ mx_area_detector_get_frame( MX_RECORD *record,
 		return mx_status;
 
 	mx_status = mx_area_detector_transfer_frame( record,
-						MXFT_AD_IMAGE_FRAME, NULL );
+				MXFT_AD_IMAGE_FRAME, ad->image_frame );
 
 	return mx_status;
 }
@@ -3131,11 +3146,7 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return MX_SUCCESSFUL_RESULT;
 	}
 
-	if ( ad->transfer_destination_frame == (MX_IMAGE_FRAME *) NULL ) {
-		destination_frame = ad->image_frame;
-	} else {
-		destination_frame = ad->transfer_destination_frame;
-	}
+	destination_frame = ad->transfer_destination_frame;
 
 	switch( ad->transfer_frame ) {
 	case MXFT_AD_MASK_FRAME:
@@ -3648,22 +3659,86 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	 * the image data.
 	 */
 
+	XYZZY("BEFORE setup");
+
+#if 1
+	MX_DEBUG(-2,("%s: BEFORE setup frame, ad->image_frame = %p",
+		fname, ad->image_frame));
+
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: BEFORE image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: BEFORE image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
+
 	mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->image_frame) );
 
+	XYZZY("AFTER setup");
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if 1
+	MX_DEBUG(-2,("%s: AFTER setup frame, ad->image_frame = %p",
+		fname, ad->image_frame));
+
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: AFTER image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: AFTER image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
 
 	/* Make sure that the destination image frame is already big enough
 	 * to hold the image frame that we are going to put in it.
 	 */
 
+	XYZZY("BEFORE correction_measurement_type switch");
+
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
+		XYZZY("BEFORE dark current setup");
+
+#if 1
+		MX_DEBUG(-2,
+		("%s: BEFORE setup frame, ad->dark_current_frame = %p",
+			fname, ad->dark_current_frame));
+
+		if ( ad->dark_current_frame == NULL ) {
+			MX_DEBUG(-2,
+			("%s: BEFORE dark_current_data = None", fname));
+		} else {
+			MX_DEBUG(-2,("%s: BEFORE dark_current_data = %p",
+				fname, ad->dark_current_frame->image_data));
+		}
+#endif
+		XYZZY("BEFORE the peril!");
 		mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->dark_current_frame) );
+		XYZZY("AFTER the peril!");
+
+#if 1
+		MX_DEBUG(-2,
+		("%s: AFTER setup frame, ad->dark_current_frame = %p",
+			fname, ad->dark_current_frame));
+
+		if ( ad->dark_current_frame == NULL ) {
+			MX_DEBUG(-2,
+			("%s: AFTER dark_current_data = None", fname));
+		} else {
+			MX_DEBUG(-2,("%s: AFTER dark_current_data = %p",
+				fname, ad->dark_current_frame->image_data));
+		}
+#endif
+		XYZZY("AFTER dark current setup");
 
 		dest_frame = ad->dark_current_frame;
+
+		MX_DEBUG(-2,("%s: dest_frame = %p", fname, dest_frame));
 
 		desired_correction_flags = 0;
 		break;
@@ -3693,6 +3768,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 	/* Get a pointer to the destination array. */
 
+	XYZZY("BEFORE get image data ptr for dest frame");
+
 	mx_status = mx_image_get_image_data_pointer( dest_frame,
 						&image_length,
 						&void_image_data_pointer );
@@ -3700,11 +3777,18 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MX_DEBUG(-2,("%s: dest_frame = %p, void_image_data_pointer = %p",
+		fname, dest_frame, void_image_data_pointer));
+
 	dest_array = void_image_data_pointer;
+
+	MX_DEBUG(-2,("%s: dest_array = %p", fname, dest_array));
 
 	/* Allocate a double precision array to store intermediate sums. */
 
 	sum_array = calloc( pixels_per_frame, sizeof(double) );
+
+	MX_DEBUG(-2,("%s: sum_array = %p", fname, sum_array));
 
 	if ( sum_array == (double *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -3770,8 +3854,29 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		/* Readout the frame into ad->image_frame. */
 
-		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
+#if 1
+	MX_DEBUG(-2,("%s: BEFORE readout frame, ad->image_frame = %p",
+		fname, ad->image_frame));
 
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: BEFORE image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: BEFORE image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
+		mx_status = mx_area_detector_readout_frame( ad->record, 0 );
+#if 1
+	MX_DEBUG(-2,("%s: AFTER readout frame, ad->image_frame = %p",
+		fname, ad->image_frame));
+
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: AFTER image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: AFTER image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
 		if ( mx_status.code != MXE_SUCCESS ) {
 			free( sum_array );
 			return mx_status;
@@ -3839,10 +3944,31 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		/* Get the image data pointer. */
 
+#if 1
+	MX_DEBUG(-2,("%s: BEFORE get image data poiner, ad->image_frame = %p",
+		fname, ad->image_frame));
+
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: BEFORE image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: BEFORE image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
 		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
 						&image_length,
 						&void_image_data_pointer );
+#if 1
+	MX_DEBUG(-2,("%s: AFTER get image data poiner, ad->image_frame = %p",
+		fname, ad->image_frame));
 
+	if ( ad->image_frame == NULL ) {
+		MX_DEBUG(-2,("%s: AFTER image_data = None", fname));
+	} else {
+		MX_DEBUG(-2,("%s: AFTER image_data = %p",
+			fname, ad->image_frame->image_data));
+	}
+#endif
 		if ( mx_status.code != MXE_SUCCESS ) {
 			free( sum_array );
 			return mx_status;
@@ -3863,7 +3989,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			sum_array[i] += (double) src_array[i];
 		}
 
-#if 0
+#if 1
 		MX_DEBUG(-2,("%s: n = %ld", fname, n));
 
 		for ( i = 0; i < 10; i++ ) {
