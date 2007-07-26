@@ -4458,6 +4458,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			fname, dark_current_data_array));
 	MX_DEBUG(-2,("%s: flood_field_data_array = %p",
 			fname, flood_field_data_array));
+	MX_DEBUG(-10,("%s: ad->flood_field_average_intensity = %g",
+				fname, ad->flood_field_average_intensity ));
 #endif
 
 	mx_status = mx_image_get_exposure_time( ad->image_frame,
@@ -4536,6 +4538,14 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 
 			big_image_pixel = mx_round(
 			    flood_field_scale_factor * (double) image_pixel );
+
+#if 1
+			if ( i < 10 ) {
+				MX_DEBUG(-10,
+("%s: image_pixel = %ld, flood_field_scale_factor = %g, big_image_pixel = %ld",
+	fname, image_pixel, flood_field_scale_factor, big_image_pixel));
+			}
+#endif
 
 			if ( big_image_pixel > 65535 ) {
 				image_pixel = 65535;
