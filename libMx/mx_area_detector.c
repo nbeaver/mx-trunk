@@ -2440,7 +2440,7 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 		destination_data_array = destination_frame->image_data;
 
 		for ( i = 0; i < 10; i++ ) {
-			MX_DEBUG(-2,("%s: destination_data_array[%ld] = %ld",
+			MX_DEBUG(-2,("%s: destination_data_array[%ld] = %d",
 			fname, i, destination_data_array[i]));
 		}
 	}
@@ -3148,7 +3148,7 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 		image_data_array = image_frame->image_data;
 
 		for ( i = 0; i < 10; i++ ) {
-			MX_DEBUG(-2,("%s: image_data_array[%ld] = %ld",
+			MX_DEBUG(-2,("%s: image_data_array[%ld] = %d",
 				fname, i, image_data_array[i]));
 		}
 	}
@@ -4542,7 +4542,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 #if 1
 			if ( i < 10 ) {
 				MX_DEBUG(-10,
-("%s: image_pixel = %ld, flood_field_scale_factor = %g, big_image_pixel = %ld",
+("%s: image_pixel = %d, flood_field_scale_factor = %g, big_image_pixel = %ld",
 	fname, image_pixel, flood_field_scale_factor, big_image_pixel));
 			}
 #endif
