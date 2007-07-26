@@ -79,7 +79,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
-#if 1
+#if 0
 	mxd_pccd_170170_measure_correction,
 #else
 	mx_area_detector_default_measure_correction
@@ -3529,6 +3529,8 @@ mxd_pccd_170170_measure_correction( MX_AREA_DETECTOR *ad )
 {
 	static const char fname[] = "mxd_pccd_170170_measure_correction()";
 
+	mx_status_type mx_status;
+#if 0
 	MX_PCCD_170170 *pccd_170170;
 	long type;
 	unsigned long flags;
@@ -3537,7 +3539,6 @@ mxd_pccd_170170_measure_correction( MX_AREA_DETECTOR *ad )
 	MX_CLOCK_TICK timeout_ticks, finish_tick;
 	int comparison;
 	mx_bool_type busy;
-	mx_status_type mx_status;
 
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, ad->record->name ));
 
@@ -3668,6 +3669,7 @@ mxd_pccd_170170_measure_correction( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 	}
+#endif
 
 	mx_status = mx_area_detector_default_measure_correction( ad );
 

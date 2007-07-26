@@ -3777,7 +3777,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 		dest_frame = ad->flood_field_frame;
 
-		desired_correction_flags = MXFT_AD_DARK_CURRENT_FRAME;
+		desired_correction_flags = 
+				MXFT_AD_DARK_CURRENT_FRAME | MXFT_AD_BIAS_FRAME;
 		break;
 
 	default:
@@ -3910,6 +3911,21 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			return mx_status;
 		}
 
+#if 0
+		{
+			char filename[MXU_FILENAME_LENGTH+1];
+
+			snprintf( filename, sizeof(filename),
+				"rawdark%d.smv", n );
+
+			MX_DEBUG(-10,("%s: Saving raw dark frame '%s'",
+				fname, filename));
+
+			(void) mx_image_write_smv_file( ad->image_frame,
+							filename );
+		}
+#endif
+
 		/* Perform any necessary image corrections. */
 
 		MX_DEBUG(-2,("%s: MILEPOST 1, desired_correction_flags = %#lx",
@@ -4026,6 +4042,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 			i, (long) src_array[i], i, sum_array[i]));
 		}
 #endif
+		mx_msleep(3000);
 	}
 
 #if MX_AREA_DETECTOR_DEBUG
@@ -4480,6 +4497,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 				 * for the next pixel.
 				 */
 
+				image_data_array[i] = 0;
 				continue;
 			}
 		}
