@@ -2432,6 +2432,20 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 
 	mx_status = (*transfer_frame_fn)( ad );
 
+#if MX_AREA_DETECTOR_DEBUG
+	{
+		uint16_t *destination_data_array;
+		long i;
+
+		destination_data_array = destination_frame->image_data;
+
+		for ( i = 0; i < 10; i++ ) {
+			MX_DEBUG(-2,("%s: destination_data_array[%ld] = %ld",
+			fname, i, destination_data_array[i]));
+		}
+	}
+#endif
+
 	return mx_status;
 }
 
@@ -3125,6 +3139,20 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 	mx_status = mx_area_detector_frame_correction( ad->record,
 				image_frame, mask_frame, bias_frame,
 				dark_current_frame, flood_field_frame );
+
+#if 1
+	{
+		uint16_t *image_data_array;
+		long i;
+
+		image_data_array = image_frame->image_data;
+
+		for ( i = 0; i < 10; i++ ) {
+			MX_DEBUG(-2,("%s: image_data_array[%ld] = %ld",
+				fname, i, image_data_array[i]));
+		}
+	}
+#endif
 
 	return mx_status;
 }
@@ -4405,6 +4433,16 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		flood_field_data_array = flood_field_frame->image_data;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: image_data_array = %p", fname, image_data_array));
+	MX_DEBUG(-2,("%s: mask_data_array = %p", fname, mask_data_array));
+	MX_DEBUG(-2,("%s: bias_data_array = %p", fname, bias_data_array));
+	MX_DEBUG(-2,("%s: dark_current_data_array = %p",
+			fname, dark_current_data_array));
+	MX_DEBUG(-2,("%s: flood_field_data_array = %p",
+			fname, flood_field_data_array));
+#endif
+
 	mx_status = mx_image_get_exposure_time( ad->image_frame,
 						&image_exposure_time );
 
@@ -4418,7 +4456,17 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		exposure_time_ratio = 1.0;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,
+	("%s: image_exposure_time = %g, exposure_time_ratio = %g",
+		fname, image_exposure_time, exposure_time_ratio));
+#endif
+
 	num_pixels = image_frame->image_length / 2L;
+
+#if MX_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: num_pixels = %ld", fname, num_pixels));
+#endif
 
 	for ( i = 0; i < num_pixels; i++ ) {
 
@@ -4478,18 +4526,8 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
-#if 0
-		if ( i < 5 ) {
-			MX_DEBUG(-2,
-    ("i = %ld, flags = %#lx, orig = %d, bias = %d, dark = %g, result = %d",
-			i, flags,
-			    (int) image_data_array[i], (int) bias_data_array[i],
-			    actual_dark_current, (int) image_pixel));
-		}
-#endif
-
 #if 1
-		if ( ( i < 5 ) && ( mx_get_debug_level() <= -2 ) ) {
+		if ( i < 10 ) {
 			fprintf( stderr, "i = %ld, flags = %#lx, ", i, flags );
 
 			if ( image_data_array == NULL ) {
@@ -4527,7 +4565,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 		image_data_array[i] = image_pixel;
 	}
 
+#if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s complete.", fname));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

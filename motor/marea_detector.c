@@ -34,12 +34,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 {
 	static const char cname[] = "area_detector";
 
-	static MX_IMAGE_FRAME *frame = NULL;
 	static MX_IMAGE_FRAME *roi_frame = NULL;
 
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
 	MX_SEQUENCE_PARAMETERS sp;
+	MX_IMAGE_FRAME *frame;
 	char *filename, *endptr;
 	char *filename_stem;
 	char filename_ext[20];
@@ -166,6 +166,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 				ad_record->name );
 		return FAILURE;
 	}
+
+	frame = ad->image_frame;
 
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
