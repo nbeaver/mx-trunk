@@ -1,3 +1,6 @@
+Version 1.4.2 (07/27/07):
+	Fixed a bug that made it difficult to terminate running XAFS scans.
+
 Version 1.4.1 (06/04/07):
 	Fixed a bug in the 'xia_network' driver which caused the driver to
 	overwrite the last character of XIA parameter names with a null byte.
