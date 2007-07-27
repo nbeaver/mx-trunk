@@ -1293,6 +1293,26 @@ mx_area_detector_measure_correction_frame( MX_RECORD *record,
 
 	mx_status = (*measure_correction_fn)( ad );
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Some frame types need special things to happen after
+	 * they are measured.
+	 */
+
+	switch( ad->correction_measurement_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		mx_status = mx_image_get_exposure_time(
+					ad->dark_current_frame,
+					&(ad->dark_current_exposure_time) );
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		mx_status = mx_image_get_average_intensity(
+					ad->flood_field_frame, ad->mask_frame,
+					&(ad->flood_field_average_intensity) );
+		break;
+	}
+
 	return mx_status;
 }
 
@@ -2446,6 +2466,26 @@ mx_area_detector_transfer_frame( MX_RECORD *record,
 	}
 #endif
 
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Some frame types need special things to happen after
+	 * they are transferred.
+	 */
+
+	switch( frame_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		mx_status = mx_image_get_exposure_time(
+					ad->dark_current_frame,
+					&(ad->dark_current_exposure_time) );
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		mx_status = mx_image_get_average_intensity(
+					ad->flood_field_frame, ad->mask_frame,
+					&(ad->flood_field_average_intensity) );
+		break;
+	}
+
 	return mx_status;
 }
 
@@ -2458,9 +2498,6 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	double unmasked_integrated_intensity;
-	unsigned long i, num_unmasked_pixels, total_num_pixels;
-	uint16_t *mask_data_array, *flood_field_data_array;
 	mx_status_type ( *load_frame_fn ) ( MX_AREA_DETECTOR * );
 	mx_status_type mx_status;
 
@@ -2508,76 +2545,19 @@ mx_area_detector_load_frame( MX_RECORD *record,
 
 	switch( frame_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
-
 		mx_status = mx_image_get_exposure_time(
 					ad->dark_current_frame,
 					&(ad->dark_current_exposure_time) );
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Dark current frame '%s' exposure time = %g",
-		    fname, frame_filename, ad->dark_current_exposure_time)); 
-#endif
 		break;
 
 	case MXFT_AD_FLOOD_FIELD_FRAME:
-		/* Compute the average intensity of unmasked pixels
-		 * in the image frame.
-		 */
-
-		flood_field_data_array = ad->flood_field_frame->image_data;
-
-		total_num_pixels = ad->framesize[0] * ad->framesize[1];
-
-		num_unmasked_pixels = 0;
-		unmasked_integrated_intensity = 0.0;
-
-		if ( ( ad->correction_flags & MXFT_AD_MASK_FRAME ) == 0 ) {
-			mask_data_array = NULL;
-		} else
-		if ( ad->mask_frame == NULL ) {
-			mask_data_array = NULL;
-		} else {
-			mask_data_array = ad->mask_frame->image_data;
-		}
-
-		for ( i = 0; i < total_num_pixels; i++ ) {
-
-			if ( mask_data_array == NULL ) {
-				num_unmasked_pixels++;
-
-				unmasked_integrated_intensity
-					+= (double) flood_field_data_array[i];
-			} else
-			if ( mask_data_array[i] != 0 ) {
-				num_unmasked_pixels++;
-
-				unmasked_integrated_intensity
-					+= (double) flood_field_data_array[i];
-			}
-		}
-
-		if ( num_unmasked_pixels == 0 ) {
-			return mx_error(MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
-			"Area detector '%s' is currently using a mask frame "
-			"that does not contain _any_ unmasked pixels.",
-				record->name );
-		}
-
-		ad->flood_field_average_intensity =
-		   unmasked_integrated_intensity / (double) num_unmasked_pixels;
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,
-		("%s: Flood field frame '%s', average intensity = %g ADU.",
-		    fname, frame_filename, ad->flood_field_average_intensity));
-		MX_DEBUG(-2,
-	("%s:   num_unmasked_pixels = %lu, unmasked_integrated_intensity = %g",
-		    fname, num_unmasked_pixels, unmasked_integrated_intensity));
-#endif
+		mx_status = mx_image_get_average_intensity(
+					ad->flood_field_frame, ad->mask_frame,
+					&(ad->flood_field_average_intensity) );
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type
@@ -2640,6 +2620,26 @@ mx_area_detector_copy_frame( MX_RECORD *record,
 	ad->copy_frame[1] = source_frame_type & MXFT_AD_ALL;
 
 	mx_status = (*copy_frame_fn)( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Some frame types need special things to happen after
+	 * they are copied.
+	 */
+
+	switch( destination_frame_type ) {
+	case MXFT_AD_DARK_CURRENT_FRAME:
+		mx_status = mx_image_get_exposure_time(
+					ad->dark_current_frame,
+					&(ad->dark_current_exposure_time) );
+		break;
+	case MXFT_AD_FLOOD_FIELD_FRAME:
+		mx_status = mx_image_get_average_intensity(
+					ad->flood_field_frame, ad->mask_frame,
+					&(ad->flood_field_average_intensity) );
+		break;
+	}
 
 	return mx_status;
 }

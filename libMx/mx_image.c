@@ -15,7 +15,7 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		FALSE
+#define MX_IMAGE_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -548,6 +548,132 @@ mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 		*exposure_time = ((double) frame->exposure_time.tv_sec)
 			+ 1.0e-9 * ((double) frame->exposure_time.tv_nsec);
 	}
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: exposure_time = %g", fname, *exposure_time));
+#endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
+				MX_IMAGE_FRAME *mask_frame,
+				double *average_intensity )
+{
+	static const char fname[] = "mx_image_get_average_intensity()";
+
+	uint16_t *image_data, *mask_data;
+	unsigned long i, num_pixels, num_unmasked_pixels;
+	double intensity_sum;
+
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The image_frame pointer passed was NULL." );
+	}
+	if ( average_intensity == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The average_intensity pointer passed was NULL." );
+	}
+
+	if ( mask_frame != (MX_IMAGE_FRAME *) NULL ) {
+		/* If a mask frame was passed to us, verify that the
+		 * mask frame has the same image parameters as the
+		 * image frame.
+		 */
+
+		if ( mask_frame->image_type != image_frame->image_type ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The mask frame has a different image type (%ld) "
+			"than the image frame (%ld).",
+				mask_frame->image_type,
+				image_frame->image_type );	
+		}
+		if ( ( mask_frame->framesize[0] != image_frame->framesize[0] )
+		  || ( mask_frame->framesize[1] != image_frame->framesize[1] ) )
+		{
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The mask frame has different dimensions (%ld,%ld) "
+			"than the image frame (%ld,%ld).",
+				mask_frame->framesize[0],
+				mask_frame->framesize[1],
+				image_frame->framesize[0],
+				image_frame->framesize[1] );
+		}
+		if ( mask_frame->image_format != image_frame->image_format ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The mask frame has a different image format (%ld) "
+			"than the image frame (%ld).",
+				mask_frame->image_format,
+				image_frame->image_format );	
+		}
+		if ( mask_frame->byte_order != image_frame->byte_order ) {
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The mask frame has a different byte order (%ld) "
+			"than the image frame (%ld).",
+				mask_frame->byte_order,
+				image_frame->byte_order );	
+		}
+		if (mask_frame->bytes_per_pixel != image_frame->bytes_per_pixel)
+		{
+			return mx_error( MXE_TYPE_MISMATCH, fname,
+			"The mask frame has a different number "
+			"of bytes per pixel (%g) "
+			"than the image frame (%g).",
+				mask_frame->bytes_per_pixel,
+				image_frame->bytes_per_pixel );	
+		}
+	}
+
+	num_pixels = image_frame->framesize[0] * image_frame->framesize[1];
+
+	intensity_sum = 0.0;
+
+	num_unmasked_pixels = 0L;
+
+	image_data = image_frame->image_data;
+
+	if ( image_data == (uint16_t *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+	    "The image_data pointer for the specified image frame is NULL.");
+	}
+
+	if ( mask_frame == (MX_IMAGE_FRAME *) NULL ) {
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			intensity_sum += (double) image_data[i];
+		}
+
+		num_unmasked_pixels = num_pixels;
+	} else {
+		mask_data = mask_frame->image_data;
+
+		if ( mask_data == (uint16_t *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The image_data pointer for the specified "
+			"mask frame is NULL." );
+		}
+
+		for ( i = 0; i < num_pixels; i++ ) {
+			if ( mask_data[i] != 0 ) {
+				intensity_sum += (double) image_data[i];
+
+				num_unmasked_pixels++;
+			}
+		}
+	}
+
+	if ( num_unmasked_pixels == 0 ) {
+		return mx_error( MXE_SOFTWARE_CONFIGURATION_ERROR, fname,
+		"The specified mask frame has NO unmasked pixels!" );
+	}
+
+	*average_intensity = intensity_sum / (double) num_unmasked_pixels;
+
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,("%s: average_intensity = %g, num_unmasked_pixels = %lu",
+		fname, *average_intensity, num_unmasked_pixels));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }

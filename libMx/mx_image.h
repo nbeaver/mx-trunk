@@ -154,6 +154,11 @@ MX_API mx_status_type mx_image_get_frame_from_sequence(
 MX_API mx_status_type mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 						double *exposure_time );
 
+MX_API mx_status_type mx_image_get_average_intensity(
+					MX_IMAGE_FRAME *image_frame,
+					MX_IMAGE_FRAME *mask_frame,
+					double *average_intensity );
+
 MX_API mx_status_type mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 						size_t *image_length,
 						void **image_data_pointer );
