@@ -1,4 +1,4 @@
-xafs_scan                        scan xafs_scan_class xafs_scan "" "" 4 0 0  2  I0 I  0 0 preset_time "0 timer1" xafs xafsscan.015 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
+xafs_scan                        scan xafs_scan_class xafs_scan "" "" 4 0 0  2  I0 I  0 0 preset_time "0 timer1" xafs xafsscan.024 gnuxafs log($f[0]/$f[1]) 4 2 2 5  -30 -3 3 1.5 4.5  1 0.5 0.05 0.1  1 1 1 1
 test2                            scan linear_scan motor_scan "" "" 1 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff testscan.out gnuplot log($f[0]/$f[1])  8950.5  1  101
 myscan                           scan linear_scan motor_scan "" "" 3 1 1  hslit_center 1  I0  0 0 preset_time "1 timer1" sff junk.out gnuplot $f[0]  -10  1  21
 test1                            scan linear_scan motor_scan "" "" 2 1 1  energy 2  I0 I  0 0 preset_time "1 timer1" sff testscan.out gnuplot "log( $f[0] / $f[1] )"  8970  1  101

@@ -829,6 +829,9 @@ mxs_linear_scan_execute_scan_level( MX_SCAN *scan,
 						start_fast_mode );
 		}
 
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
 		(scan->plot.section_number)++;
 	}
 	return MX_SUCCESSFUL_RESULT;
