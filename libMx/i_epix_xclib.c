@@ -524,11 +524,11 @@ mxi_epix_xclib_error_message( int unitmap,
 /*---------------------------------------------------------------------------*/
 
 MX_EXPORT struct timespec
-mxi_epix_xclib_get_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
+mxi_epix_xclib_get_buffer_timestamp( MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
 					long buffer_number )
 {
-	static const char fname[] = "mxi_epix_xclib_get_buffer_timespec()";
+	static const char fname[] = "mxi_epix_xclib_get_buffer_timestamp()";
 
 	struct timespec result, offset;
 	struct pxbufstatus pxbstatus;

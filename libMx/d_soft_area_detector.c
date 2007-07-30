@@ -199,8 +199,6 @@ mxd_soft_area_detector_open( MX_RECORD *record )
 
 	video_input_record = soft_area_detector->video_input_record;
 
-	ad->header_length = 0;
-
 	/* FIXME: Need to change the file format. */
 
 	ad->frame_file_format = MXT_IMAGE_FILE_PNM;

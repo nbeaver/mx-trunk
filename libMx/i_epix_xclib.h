@@ -60,7 +60,7 @@ MX_API char *mxi_epix_xclib_error_message( int unitmap,
 					char *buffer,
 					size_t buffer_length );
 
-MX_API struct timespec mxi_epix_xclib_get_buffer_timespec(
+MX_API struct timespec mxi_epix_xclib_get_buffer_timestamp(
 					MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
 					long buffer_number );

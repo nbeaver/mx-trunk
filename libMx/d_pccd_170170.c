@@ -574,7 +574,6 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 					image_frame->image_format,
 					image_frame->byte_order,
 					image_frame->bytes_per_pixel,
-					image_frame->header_length,
 					image_frame->image_length );
 
 		if ( mx_status.code != MXE_SUCCESS )
@@ -1811,7 +1810,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	/* Initialize area detector parameters. */
 
 	ad->byte_order = mx_native_byteorder();
-	ad->header_length = 0;
 
 	mx_status = mx_area_detector_get_image_format( record, NULL );
 
@@ -1877,7 +1875,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
-					ad->header_length,
 					ad->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )

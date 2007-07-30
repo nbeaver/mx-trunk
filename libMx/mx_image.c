@@ -268,7 +268,6 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			long image_format,
 			long byte_order,
 			double bytes_per_pixel,
-			size_t header_length,
 			size_t image_length )
 {
 	static const char fname[] = "mx_image_alloc()";
@@ -317,83 +316,6 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	(*frame)->image_format = image_format;
 	(*frame)->byte_order = byte_order;
 	(*frame)->bytes_per_pixel = bytes_per_pixel;
-
-	/*** See if the header buffer is already big enough for the header. ***/
-
-#if MX_IMAGE_DEBUG
-	MX_DEBUG(-2,("%s: (*frame)->header_data = %p",
-		fname, (*frame)->header_data));
-	MX_DEBUG(-2,
-	("%s: (*frame)->header_length = %lu, header_length = %lu",
-		fname, (unsigned long) (*frame)->header_length,
-		(unsigned long) header_length));
-#endif
-
-	if ( header_length == 0 ) {
-#if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,("%s: No header needed.", fname));
-#endif
-		(*frame)->header_length = 0;
-		(*frame)->allocated_header_length = 0;
-
-		if ( (*frame)->header_data != NULL ) {
-
-#if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: Freeing unneeded header buffer.", fname));
-#endif
-			free( (*frame)->header_data );
-		}
-
-		(*frame)->header_data = NULL;
-	} else
-	if ( (*frame)->header_data == NULL ) {
-
-#if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,("%s: Allocating new %lu byte header.",
-			fname, (unsigned long) header_length ));
-#endif
-		(*frame)->header_data = malloc( header_length );
-
-		if ( (*frame)->header_data == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Ran out of memory trying to allocate a "
-			"%lu byte header buffer.",
-				(unsigned long) header_length );
-		}
-
-		(*frame)->header_length = header_length;
-		(*frame)->allocated_header_length = header_length;
-	} else {
-		if ( (*frame)->allocated_header_length >= header_length ) {
-#if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: The header buffer is already big enough.",fname));
-#endif
-			(*frame)->header_length = header_length;
-		} else {
-#if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: Allocating a new header buffer of %lu bytes.",
-				fname, (unsigned long) header_length));
-#endif
-			if ( (*frame)->header_data != NULL ) {
-				free( (*frame)->header_data );
-			}
-
-			(*frame)->header_data = malloc( header_length );
-
-			if ( (*frame)->header_data == NULL ) {
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Ran out of memory trying to allocate a "
-				"%lu byte header buffer for frame %p.",
-					(unsigned long) header_length, *frame );
-			}
-
-			(*frame)->header_length = header_length;
-			(*frame)->allocated_header_length = header_length;
-		}
-	}
 
 	/*** See if the image buffer is already big enough for the image. ***/
 
@@ -470,10 +392,6 @@ mx_image_free( MX_IMAGE_FRAME *frame )
 {
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return;
-	}
-
-	if ( frame->header_data != NULL ) {
-		free( frame->header_data );
 	}
 
 	if ( frame->image_data != NULL ) {
@@ -781,16 +699,10 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 				old_frame->image_format,
 				old_frame->byte_order,
 				old_frame->bytes_per_pixel,
-				old_frame->header_length,
 				old_frame->image_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-	if ( old_frame->header_length != 0 ) {
-		memcpy( (*new_frame_ptr)->header_data, old_frame->header_data,
-				old_frame->header_length );
-	}
 
 	if ( old_frame->image_length != 0 ) {
 		memcpy( (*new_frame_ptr)->image_data, old_frame->image_data,
@@ -1367,7 +1279,6 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					image_format,
 					MX_DATAFMT_BIG_ENDIAN,
 					(double) bytes_per_pixel,
-					0,
 					bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )
@@ -1829,7 +1740,6 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					image_format,
 					datafile_byteorder,
 					(double) bytes_per_pixel,
-					0,
 					bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )

@@ -2246,20 +2246,22 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
-	frame->image_time = mxi_epix_xclib_get_buffer_timespec( epix_xclib,
+	frame->image_timestamp = mxi_epix_xclib_get_buffer_timestamp(
+						epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)",
-		fname, frame->image_time.tv_sec, frame->image_time.tv_nsec));
+	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)", fname,
+		frame->image_timestamp.tv_sec,
+		frame->image_timestamp.tv_nsec));
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME
 	{
 		char buffer[80];
 
-		mx_os_time_string( frame->image_time,
+		mx_os_time_string( frame->image_timestamp,
 				buffer, sizeof(buffer) );
 
 		MX_DEBUG(-2,(" "));
