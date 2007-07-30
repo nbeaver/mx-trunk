@@ -2338,6 +2338,7 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
+					ad->header_length,
 					ad->bytes_per_frame );
 
 	XYZZY("AFTER mx_image_alloc()");
@@ -2888,6 +2889,9 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 			"a new ROI MX_IMAGE_FRAME structure." );
 		}
 
+		(*roi_frame)->header_length = 0;
+		(*roi_frame)->header_data = NULL;
+
 		(*roi_frame)->image_length = 0;
 		(*roi_frame)->image_data = NULL;
 	}
@@ -3246,6 +3250,7 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
+					ad->header_length,
 					ad->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )

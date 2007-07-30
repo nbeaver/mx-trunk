@@ -2252,9 +2252,8 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 						epix_frame_number );
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: EPIX image timespec = (%lu,%ld)", fname,
-		frame->image_timestamp.tv_sec,
-		frame->image_timestamp.tv_nsec));
+	MX_DEBUG(-2,("%s: EPIX image timestamp = (%lu,%ld)", fname,
+		frame->image_timestamp.tv_sec, frame->image_timestamp.tv_nsec));
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME

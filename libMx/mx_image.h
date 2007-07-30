@@ -62,6 +62,7 @@
 /*----*/
 
 typedef struct {
+	size_t allocated_header_length;
 	size_t allocated_image_length;
 
 	long image_type;
@@ -72,6 +73,9 @@ typedef struct {
 	long bits_per_pixel;
 
 	struct timespec exposure_time;
+
+	size_t header_length;
+	void *header_data;
 
 	struct timespec image_timestamp;
 	size_t image_length;
@@ -105,6 +109,23 @@ typedef struct {
 #define MXT_IMAGE_INTERNAL_TRIGGER	0x1
 #define MXT_IMAGE_EXTERNAL_TRIGGER	0x2
 
+/*---- Binary image header definitions for the 'header_data' ----*/
+
+#define MXT_IMAGE_HEADER_LENGTH			0	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_ROW_FRAMESIZE		4	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_COLUMN_FRAMESIZE	8	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_ROW_BINSIZE		12	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_COLUMN_BINSIZE		16	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_NUM_IMAGES		20	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_IMAGE_FORMAT		22	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_BYTE_ORDER		24	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_BITS_PER_PIXEL		26	/* 16-bit integer */
+#define MXT_IMAGE_HEADER_TIMESTAMP_SEC		28	/* 32-bit integer */
+#define MXT_IMAGE_HEADER_TIMESTAMP_NSEC		32	/* 32-bit integer */
+
+#define MXT_IMAGE_HEADER_ARRAY_BYTES \
+				(MXT_IMAGE_HEADER_TIMESTAMP_NSEC+4)
+
 /*----*/
 
 MX_API mx_status_type mx_image_get_format_type_from_name( char *name,
@@ -120,6 +141,7 @@ MX_API mx_status_type mx_image_alloc( MX_IMAGE_FRAME **frame,
 					long image_format,
 					long byte_order,
 					double bytes_per_pixel,
+					size_t header_length,
 					size_t image_length );
 
 MX_API void mx_image_free( MX_IMAGE_FRAME *frame );

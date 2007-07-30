@@ -1396,6 +1396,9 @@ mx_video_input_get_frame( MX_RECORD *record,
 			"a new MX_IMAGE_FRAME structure." );
 		}
 
+		(*frame)->header_length = 0;
+		(*frame)->header_data = NULL;
+
 		(*frame)->image_length = 0;
 		(*frame)->image_data = NULL;
 	}

@@ -434,6 +434,9 @@ mxd_network_area_detector_open( MX_RECORD *record )
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	/* FIXME: We need to get the header length from the server. */
+
+	ad->header_length = 0;
 
 	/* Get the maximum framesize from the server. */
 
@@ -964,6 +967,23 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	/*---*/
 
+#if 0
+	ad->parameter_type = MXLV_AD_HEADER_LENGTH;
+
+	mx_status = mxd_network_area_detector_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+#else
+	/* FIXME: We should replace all of these calls with a single
+	 * area detector header transfer.
+	 */
+
+	ad->header_length = 0;
+#endif
+
+	/*---*/
+
 	ad->parameter_type = MXLV_AD_BYTES_PER_FRAME;
 
 	mx_status = mxd_network_area_detector_get_parameter( ad );
@@ -979,6 +999,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
+					ad->header_length,
 					ad->bytes_per_frame );
 
 	if ( mx_status.code != MXE_SUCCESS )

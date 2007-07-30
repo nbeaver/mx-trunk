@@ -50,6 +50,7 @@ typedef struct {
 	long image_format;
 	long byte_order;
 	long trigger_mode;
+	long header_length;
 	long bytes_per_frame;
 	double bytes_per_pixel;
 	long bits_per_pixel;
