@@ -28,10 +28,6 @@
 #include "mx_image.h"
 #include "mx_area_detector.h"
 
-#define XYZZY(x) \
-  MX_DEBUG(-2,("XYZZY: %s: ad->image_frame = %p, ad->dark_current_frame = %p", \
-  (x), ad->image_frame, ad->dark_current_frame))
-
 /*=======================================================================*/
 
 MX_EXPORT mx_status_type
@@ -211,7 +207,10 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->roi_frame_buffer = NULL;
 
 	ad->image_frame = NULL;
-	ad->image_frame_buffer = NULL;
+
+	ad->image_frame_header_length = 0;
+	ad->image_frame_header = NULL;
+	ad->image_frame_data = NULL;
 
 	ad->transfer_destination_frame = NULL;
 	ad->dezinger_threshold = 1.0;
@@ -2328,27 +2327,16 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	XYZZY("BEFORE mx_image_alloc()");
-
 	/* Make sure the frame is big enough. */
 
 	mx_status = mx_image_alloc( image_frame,
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					ad->framesize,
+					ad->framesize[0],
+					ad->framesize[1],
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
 					ad->header_length,
 					ad->bytes_per_frame );
-
-	XYZZY("AFTER mx_image_alloc()");
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-#if 0
-	ad->image_frame = *image_frame; /* NO! NO!  A thousand times NO! */
-#endif
 
 	return mx_status;
 }
@@ -2401,9 +2389,6 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	MX_DEBUG(-2,("%s:  BEFORE correction_flags = %#lx",
-		fname, ad->correction_flags));
-
 	correct_frame_fn = flist->correct_frame;
 
 	if ( correct_frame_fn == NULL ) {
@@ -2411,9 +2396,6 @@ mx_area_detector_correct_frame( MX_RECORD *record )
 	}
 
 	mx_status = (*correct_frame_fn)( ad );
-
-	MX_DEBUG(-2,("%s:  AFTER correction_flags = %#lx",
-		fname, ad->correction_flags));
 
 	return mx_status;
 }
@@ -2898,23 +2880,23 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* Fill in some parameters. */
 
-	(*roi_frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
-	(*roi_frame)->framesize[0] = ad->roi[1] - ad->roi[0] + 1;
-	(*roi_frame)->framesize[1] = ad->roi[3] - ad->roi[2] + 1;
+	MXIF_ROW_FRAMESIZE(*roi_frame) = ad->roi[1] - ad->roi[0] + 1;
+	MXIF_COLUMN_FRAMESIZE(*roi_frame) = ad->roi[3] - ad->roi[2] + 1;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
-		(*roi_frame)->image_format    = ad->image_format;
-		(*roi_frame)->byte_order      = ad->byte_order;
-		(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
+	  MXIF_IMAGE_FORMAT(*roi_frame)    = ad->image_format;
+	  MXIF_BYTE_ORDER(*roi_frame)      = ad->byte_order;
+	  MXIF_SET_BYTES_PER_PIXEL(*roi_frame, ad->bytes_per_pixel);
 	} else {
-		(*roi_frame)->image_format    = image_frame->image_format;
-		(*roi_frame)->byte_order      = image_frame->byte_order;
-		(*roi_frame)->bytes_per_pixel = image_frame->bytes_per_pixel;
+	  MXIF_IMAGE_FORMAT(*roi_frame)    = MXIF_IMAGE_FORMAT(image_frame);
+	  MXIF_BYTE_ORDER(*roi_frame)      = MXIF_BYTE_ORDER(image_frame);
+	  MXIF_SET_BYTES_PER_PIXEL(*roi_frame,
+				MXIF_BYTES_PER_PIXEL(image_frame));
 	}
 
-	roi_bytes_per_frame =
-		(*roi_frame)->framesize[0] * (*roi_frame)->framesize[1]
-			* (*roi_frame)->bytes_per_pixel;
+	roi_bytes_per_frame = MXIF_ROW_FRAMESIZE(*roi_frame)
+				* MXIF_COLUMN_FRAMESIZE(*roi_frame)
+				* MXIF_BYTES_PER_PIXEL(*roi_frame);
 
 	/* See if the image buffer is already big enough for the image. */
 
@@ -2977,8 +2959,9 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	ad->roi_bytes_per_frame = roi_bytes_per_frame;
 
-	(*roi_frame)->bytes_per_pixel = ad->bytes_per_pixel;
-	(*roi_frame)->image_length    = ad->roi_bytes_per_frame;
+	MXIF_SET_BYTES_PER_PIXEL(*roi_frame, ad->bytes_per_pixel);
+
+	(*roi_frame)->image_length = ad->roi_bytes_per_frame;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
@@ -3019,15 +3002,15 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 		x_min = ad->roi[0];
 		y_min = ad->roi[2];
 
-		x_offset = x_min * image_frame->bytes_per_pixel;
+		x_offset = x_min * MXIF_BYTES_PER_PIXEL(image_frame);
 
-		image_bytes_per_row =
-		    image_frame->framesize[0] * image_frame->bytes_per_pixel;
+		image_bytes_per_row = MXIF_ROW_FRAMESIZE(image_frame)
+					* MXIF_BYTES_PER_PIXEL(image_frame);
 
-		roi_bytes_per_row =
-		    (*roi_frame)->framesize[0] * (*roi_frame)->bytes_per_pixel;
+		roi_bytes_per_row = MXIF_ROW_FRAMESIZE(*roi_frame)
+					* MXIF_BYTES_PER_PIXEL(*roi_frame);
 
-		for ( y = 0; y < (*roi_frame)->framesize[1]; y++ ) {
+		for ( y = 0; y < MXIF_COLUMN_FRAMESIZE(*roi_frame); y++ ) {
 
 			/* Construct the address of the first pixel
 			 * for this row in the original image frame.
@@ -3165,18 +3148,12 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 	MX_IMAGE_FRAME *destination_frame, *source_frame;
 	mx_status_type mx_status;
 
-	if ( ad->transfer_frame == MXFT_AD_IMAGE_FRAME ) {
-
-		/* The image frame should already be in the right place,
-		 * so we do not need to do anything.
-		 */
-
-		return MX_SUCCESSFUL_RESULT;
-	}
-
 	destination_frame = ad->transfer_destination_frame;
 
 	switch( ad->transfer_frame ) {
+	case MXFT_AD_IMAGE_FRAME:
+		source_frame = ad->image_frame;
+		break;
 	case MXFT_AD_MASK_FRAME:
 		source_frame = ad->mask_frame;
 		break;
@@ -3199,6 +3176,14 @@ mx_area_detector_default_transfer_frame( MX_AREA_DETECTOR *ad )
 		return mx_error( MXE_NOT_AVAILABLE, fname,
 "An image frame of type %#lx has not been configured for area detector '%s'.",
 			ad->transfer_frame, ad->record->name );
+	}
+
+	if ( destination_frame == source_frame ) {
+		/* If the destination and the source are the same,
+		 * then we do not need to do any copying.
+		 */
+
+		return MX_SUCCESSFUL_RESULT;
 	}
 
 	mx_status = mx_image_copy_frame( &destination_frame, source_frame );
@@ -3245,8 +3230,8 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 	}
 
 	mx_status = mx_image_alloc( frame_ptr,
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					ad->framesize,
+					ad->framesize[0],
+					ad->framesize[1],
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
@@ -3265,23 +3250,25 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 
 	/* Does the frame we just loaded have the expected image format? */
 
-	if ( (*frame_ptr)->image_format != ad->image_format ) {
+	if ( MXIF_IMAGE_FORMAT(*frame_ptr) != ad->image_format ) {
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
 		"The image format %ld for file '%s' does not match "
 		"the expected image format %ld for area detector '%s'.",
-			(*frame_ptr)->image_format, ad->frame_filename,
-			ad->image_format, ad->record->name );
+			(long) MXIF_IMAGE_FORMAT(*frame_ptr),
+			ad->frame_filename, ad->image_format,
+			ad->record->name );
 	}
 
 	/* Does the frame we just loaded have the expected image dimensions? */
 
-	if ( ( (*frame_ptr)->framesize[0] != ad->framesize[0] )
-	  || ( (*frame_ptr)->framesize[1] != ad->framesize[1] ) )
+	if ( ( MXIF_ROW_FRAMESIZE(*frame_ptr)    != ad->framesize[0] )
+	  || ( MXIF_COLUMN_FRAMESIZE(*frame_ptr) != ad->framesize[1] ) )
 	{
 		return mx_error( MXE_CONFIGURATION_CONFLICT, fname,
 		"The dimensions (%ld,%ld) of image file '%s' do not match the "
 		"expected image dimensions (%ld,%ld) for area detector '%s.'",
-			(*frame_ptr)->framesize[0], (*frame_ptr)->framesize[1],
+			(long) MXIF_ROW_FRAMESIZE(*frame_ptr),
+			(long) MXIF_COLUMN_FRAMESIZE(*frame_ptr),
 			ad->frame_filename,
 			ad->framesize[0], ad->framesize[1],
 			ad->record->name );
@@ -3687,87 +3674,23 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	 * the image data.
 	 */
 
-	XYZZY("BEFORE setup");
-
-#if 1
-	MX_DEBUG(-2,("%s: BEFORE setup frame, ad->image_frame = %p",
-		fname, ad->image_frame));
-
-	if ( ad->image_frame == NULL ) {
-		MX_DEBUG(-2,("%s: BEFORE image_data = None", fname));
-	} else {
-		MX_DEBUG(-2,("%s: BEFORE image_data = %p",
-			fname, ad->image_frame->image_data));
-	}
-#endif
-
 	mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->image_frame) );
 
-	XYZZY("AFTER setup");
-
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
-
-#if 1
-	MX_DEBUG(-2,("%s: AFTER setup frame, ad->image_frame = %p",
-		fname, ad->image_frame));
-
-	if ( ad->image_frame == NULL ) {
-		MX_DEBUG(-2,("%s: AFTER image_data = None", fname));
-	} else {
-		MX_DEBUG(-2,("%s: AFTER image_data = %p",
-			fname, ad->image_frame->image_data));
-	}
-#endif
 
 	/* Make sure that the destination image frame is already big enough
 	 * to hold the image frame that we are going to put in it.
 	 */
 
-	XYZZY("BEFORE correction_measurement_type switch");
-
 	switch( ad->correction_measurement_type ) {
 	case MXFT_AD_DARK_CURRENT_FRAME:
-		XYZZY("BEFORE dark current setup");
 
-#if 1
-		MX_DEBUG(-2,
-		("%s: BEFORE setup frame, ad->dark_current_frame = %p",
-			fname, ad->dark_current_frame));
-
-		if ( ad->dark_current_frame == NULL ) {
-			MX_DEBUG(-2,
-			("%s: BEFORE dark_current_data = None", fname));
-		} else {
-			MX_DEBUG(-2,("%s: BEFORE dark_current_data = %p",
-				fname, ad->dark_current_frame->image_data));
-		}
-#endif
-		XYZZY("BEFORE the peril!");
 		mx_status = mx_area_detector_setup_frame( ad->record,
 						&(ad->dark_current_frame) );
-		XYZZY("AFTER the peril!");
-
-#if 1
-		MX_DEBUG(-2,
-		("%s: AFTER setup frame, ad->dark_current_frame = %p",
-			fname, ad->dark_current_frame));
-
-		if ( ad->dark_current_frame == NULL ) {
-			MX_DEBUG(-2,
-			("%s: AFTER dark_current_data = None", fname));
-		} else {
-			MX_DEBUG(-2,("%s: AFTER dark_current_data = %p",
-				fname, ad->dark_current_frame->image_data));
-		}
-#endif
-		XYZZY("AFTER dark current setup");
 
 		dest_frame = ad->dark_current_frame;
-
-		MX_DEBUG(-2,("%s: dest_frame = %p", fname, dest_frame));
-
 		desired_correction_flags = 0;
 		break;
 	
@@ -3796,8 +3719,6 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	/* Get a pointer to the destination array. */
-
-	XYZZY("BEFORE get image data ptr for dest frame");
 
 	mx_status = mx_image_get_image_data_pointer( dest_frame,
 						&image_length,
@@ -4405,7 +4326,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	 * for 16-bit greyscale images (MXT_IMAGE_FORMAT_GREY16).
 	 */
 
-	if ( image_frame->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( MXIF_IMAGE_FORMAT(image_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
 		"The primary image frame is not a 16-bit greyscale image." );
 	}

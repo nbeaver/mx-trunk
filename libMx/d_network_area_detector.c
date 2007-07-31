@@ -284,9 +284,19 @@ mxd_network_area_detector_finish_record_initialization( MX_RECORD *record )
 		network_area_detector->server_record,
 		"%s.image_format", network_area_detector->remote_record_name );
 
-	mx_network_field_init( &(network_area_detector->image_frame_buffer_nf),
+	mx_network_field_init( &(network_area_detector->image_frame_data_nf),
 		network_area_detector->server_record,
-	    "%s.image_frame_buffer", network_area_detector->remote_record_name);
+	    "%s.image_frame_data", network_area_detector->remote_record_name);
+
+	mx_network_field_init( &(network_area_detector->image_frame_header_nf),
+		network_area_detector->server_record,
+	    "%s.image_frame_header", network_area_detector->remote_record_name);
+
+	mx_network_field_init(
+		&(network_area_detector->image_frame_header_length_nf),
+		network_area_detector->server_record,
+	    "%s.image_frame_header_length",
+				network_area_detector->remote_record_name);
 
 	mx_network_field_init( &(network_area_detector->last_frame_number_nf),
 		network_area_detector->server_record,
@@ -904,6 +914,7 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	MX_NETWORK_AREA_DETECTOR *network_area_detector;
 	MX_IMAGE_FRAME *destination_frame;
+	unsigned long local_frame_header_length, remote_frame_header_length;
 	long dimension[1];
 	mx_status_type mx_status;
 
@@ -927,75 +938,91 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Make sure that the destination frame is configured correctly.
-	 * This requires asking the server for a variety of parameters.
+	/* Make sure that the destination frame is configured correctly
+	 * by reading the image header in the server.
 	 */
 
-	ad->parameter_type = MXLV_AD_FRAMESIZE;
+	/* First, we must get the length of the header. */
 
-	mx_status = mxd_network_area_detector_get_parameter( ad );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/*---*/
-
-	ad->parameter_type = MXLV_AD_IMAGE_FORMAT;
-
-	mx_status = mxd_network_area_detector_get_parameter( ad );
+	mx_status = mx_get(
+		&(network_area_detector->image_frame_header_length_nf),
+		MXFT_ULONG, &remote_frame_header_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/*---*/
-
-	ad->parameter_type = MXLV_AD_BYTE_ORDER;
-
-	mx_status = mxd_network_area_detector_get_parameter( ad );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/*---*/
-
-	ad->parameter_type = MXLV_AD_BYTES_PER_PIXEL;
-
-	mx_status = mxd_network_area_detector_get_parameter( ad );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	/*---*/
-
-#if 0
-	ad->parameter_type = MXLV_AD_HEADER_LENGTH;
-
-	mx_status = mxd_network_area_detector_get_parameter( ad );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-#else
-	/* FIXME: We should replace all of these calls with a single
-	 * area detector header transfer.
+	/* Make sure the array is big enough for the client's version
+	 * of MX.
 	 */
 
-	ad->header_length = 0;
-#endif
+	if ( remote_frame_header_length < MXT_IMAGE_HEADER_LENGTH_IN_BYTES ) {
+		local_frame_header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
+	} else {
+		local_frame_header_length = remote_frame_header_length;
+	}
 
-	/*---*/
+	/* If the header is too long to fit into the client's image header,
+	 * then increase the size of the client's image header.
+	 */
 
-	ad->parameter_type = MXLV_AD_BYTES_PER_FRAME;
+	if ( local_frame_header_length >
+			destination_frame->allocated_header_length )
+	{
+		destination_frame->header_data =
+			realloc( destination_frame->header_data,
+				local_frame_header_length );
 
-	mx_status = mxd_network_area_detector_get_parameter( ad );
+		if ( destination_frame->header_data == NULL ) {
+			destination_frame->allocated_header_length = 0;
+			destination_frame->header_length = 0;
+
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to increase the size "
+			"of the image frame header array for record '%s' "
+			"to %ld bytes.", ad->record->name,
+				local_frame_header_length );
+		}
+
+		destination_frame->allocated_header_length
+				= local_frame_header_length;
+	}
+
+	destination_frame->header_length = local_frame_header_length;
+
+	memset( destination_frame->header_data, 0,
+			destination_frame->allocated_header_length );
+
+	/* Now transfer the header. */
+
+	dimension[0] = remote_frame_header_length;
+
+	mx_status = mx_get_array(
+		&(network_area_detector->image_frame_header_nf),
+		MXFT_CHAR, 1, dimension, destination_frame->header_data );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Reconfigure the destination_frame data structure. */
+	/* Copy the header values to the MX_AREA_DETECTOR structure. */
+
+	ad->framesize[0]    = MXIF_ROW_FRAMESIZE(destination_frame);
+	ad->framesize[1]    = MXIF_COLUMN_FRAMESIZE(destination_frame);
+	ad->image_format    = MXIF_IMAGE_FORMAT(destination_frame);
+	ad->byte_order      = MXIF_BYTE_ORDER(destination_frame);
+	ad->bytes_per_pixel = MXIF_BYTES_PER_PIXEL(destination_frame);
+	ad->header_length   = local_frame_header_length;
+
+	ad->bytes_per_frame = mx_round( ad->bytes_per_pixel
+		* (double) MXIF_ROW_FRAMESIZE(destination_frame)
+		* (double) MXIF_COLUMN_FRAMESIZE(destination_frame) );
+
+	/* Reconfigure the destination_frame data structure to match
+	 * the image frame that it is about to receive.
+	 */
 
 	mx_status = mx_image_alloc( &destination_frame,
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					ad->framesize,
+					ad->framesize[0],
+					ad->framesize[1],
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,
@@ -1029,9 +1056,11 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = destination_frame->image_length;
 
+#if 0
 	mx_status = mx_get_array(
 			&(network_area_detector->image_frame_buffer_nf),
 			MXFT_CHAR, 1, dimension, destination_frame->image_data);
+#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1213,7 +1242,8 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
-	roi_frame->bytes_per_pixel = ad->bytes_per_pixel;
+	MXIF_SET_BYTES_PER_PIXEL(roi_frame, ad->bytes_per_pixel);
+
 	roi_frame->image_length    = ad->roi_bytes_per_frame;
 
 	/* Now read the ROI frame into the MX_IMAGE_FRAME structure. */

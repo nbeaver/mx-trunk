@@ -120,13 +120,17 @@ typedef struct mx_area_detector_type {
 	long readout_frame;
 	MX_IMAGE_FRAME *image_frame;
 
-	/* 'image_frame_buffer' is used to provide a place for MX event
-	 * handlers to find the contents of the most recently taken frame.
-	 * It must only be modified by mx_area_detector_process_function()
-	 * in libMx/pr_area_detector.c.  No other functions should modify it.
+	/* 'image_frame_header_length', 'image_frame_header', and
+	 * 'image_frame_data' are used to provide places for MX event
+	 * handlers to find the current contents of the 'ad->image_frame'
+	 * object.  They must only be modified by the functions in
+	 * in libMx/pr_area_detector.c.  No other functions should
+	 * modify them.
 	 */
 
-	char *image_frame_buffer;
+	unsigned long image_frame_header_length;
+	uint32_t *image_frame_header;
+	char *image_frame_data;
 
 	/* The individual bits in 'correction_flags' determine which
 	 * corrections are made.  The 'correct_frame' field tells the
@@ -245,16 +249,18 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_NUM_SEQUENCE_PARAMETERS		12029
 #define MXLV_AD_SEQUENCE_PARAMETER_ARRAY	12030
 #define MXLV_AD_READOUT_FRAME			12031
-#define MXLV_AD_IMAGE_FRAME_BUFFER		12032
-#define MXLV_AD_CORRECT_FRAME			12033
-#define MXLV_AD_CORRECTION_FLAGS		12034
-#define MXLV_AD_TRANSFER_FRAME			12035
-#define MXLV_AD_LOAD_FRAME			12036
-#define MXLV_AD_SAVE_FRAME			12037
-#define MXLV_AD_FRAME_FILENAME			12038
-#define MXLV_AD_COPY_FRAME			12039
-#define MXLV_AD_DETECTOR_READOUT_TIME		12040
-#define MXLV_AD_TOTAL_SEQUENCE_TIME		12041
+#define MXLV_AD_IMAGE_FRAME_HEADER_LENGTH	12032
+#define MXLV_AD_IMAGE_FRAME_HEADER		12033
+#define MXLV_AD_IMAGE_FRAME_DATA		12034
+#define MXLV_AD_CORRECT_FRAME			12035
+#define MXLV_AD_CORRECTION_FLAGS		12036
+#define MXLV_AD_TRANSFER_FRAME			12037
+#define MXLV_AD_LOAD_FRAME			12038
+#define MXLV_AD_SAVE_FRAME			12039
+#define MXLV_AD_FRAME_FILENAME			12040
+#define MXLV_AD_COPY_FRAME			12041
+#define MXLV_AD_DETECTOR_READOUT_TIME		12042
+#define MXLV_AD_TOTAL_SEQUENCE_TIME		12043
 
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
@@ -408,9 +414,20 @@ typedef struct mx_area_detector_type {
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, readout_frame), \
 	{0}, NULL, 0}, \
   \
-  {MXLV_AD_IMAGE_FRAME_BUFFER, -1, "image_frame_buffer", \
+  {MXLV_AD_IMAGE_FRAME_HEADER_LENGTH, -1, "image_frame_header_length", \
+						MXFT_ULONG, NULL, 0, {0}, \
+	MXF_REC_CLASS_STRUCT, \
+		offsetof(MX_AREA_DETECTOR, image_frame_header_length),\
+	{0}, NULL, MXFF_READ_ONLY}, \
+  \
+  {MXLV_AD_IMAGE_FRAME_HEADER, -1, "image_frame_header", \
+						MXFT_ULONG, NULL, 1, {0}, \
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_frame_header),\
+	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
+  \
+  {MXLV_AD_IMAGE_FRAME_DATA, -1, "image_frame_data", \
 						MXFT_CHAR, NULL, 1, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_frame_buffer),\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_frame_data),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \
   {MXLV_AD_CORRECT_FRAME, -1, "correct_frame", MXFT_BOOL, NULL, 0, {0}, \

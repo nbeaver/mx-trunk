@@ -569,11 +569,11 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
 
 		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
-					image_frame->image_type,
-					image_frame->framesize,
-					image_frame->image_format,
-					image_frame->byte_order,
-					image_frame->bytes_per_pixel,
+					MXIF_ROW_FRAMESIZE(image_frame),
+					MXIF_COLUMN_FRAMESIZE(image_frame),
+					MXIF_IMAGE_FORMAT(image_frame),
+					MXIF_BYTE_ORDER(image_frame),
+					MXIF_BYTES_PER_PIXEL(image_frame),
 					image_frame->header_length,
 					image_frame->image_length );
 
@@ -613,8 +613,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 	/* Initially descramble the full image. */
 
-	i_framesize = image_frame->framesize[1] / 4;
-	j_framesize = image_frame->framesize[0] / 4;
+	i_framesize = MXIF_COLUMN_FRAMESIZE(image_frame) / 4;
+	j_framesize = MXIF_ROW_FRAMESIZE(image_frame) / 4;
 
 	if ( pccd_170170->sector_array == NULL ) {
 
@@ -649,7 +649,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 
 		num_lines_per_subimage = sp->parameter_array[0];
 		num_subimages          = sp->parameter_array[1];
-		frame_width            = image_frame->framesize[0];
+		frame_width            = MXIF_ROW_FRAMESIZE(image_frame);
 
 		temp_ptr  = pccd_170170->temp_frame->image_data;
 		image_ptr = image_frame->image_data;
@@ -658,8 +658,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			frame_width * num_lines_per_subimage
 			* ( sizeof(uint16_t) / 2L );
 
-		bytes_per_half_image = image_frame->framesize[0]
-				* image_frame->framesize[1]
+		bytes_per_half_image = MXIF_ROW_FRAMESIZE(image_frame)
+				* MXIF_COLUMN_FRAMESIZE(image_frame)
 				* ( sizeof(uint16_t) / 2L );
 
 		MX_DEBUG(-2,("%s: num_lines_per_subimage = %ld",
@@ -1872,8 +1872,8 @@ mxd_pccd_170170_open( MX_RECORD *record )
 #endif
 
 	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					vinput_framesize,
+					vinput_framesize[0],
+					vinput_framesize[1],
 					ad->image_format,
 					ad->byte_order,
 					ad->bytes_per_pixel,

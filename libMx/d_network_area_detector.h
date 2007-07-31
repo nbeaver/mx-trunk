@@ -42,7 +42,9 @@ typedef struct {
 	MX_NETWORK_FIELD frame_filename_nf;
 	MX_NETWORK_FIELD image_format_name_nf;
 	MX_NETWORK_FIELD image_format_nf;
-	MX_NETWORK_FIELD image_frame_buffer_nf;
+	MX_NETWORK_FIELD image_frame_data_nf;
+	MX_NETWORK_FIELD image_frame_header_nf;
+	MX_NETWORK_FIELD image_frame_header_length_nf;
 	MX_NETWORK_FIELD last_frame_number_nf;
 	MX_NETWORK_FIELD load_frame_nf;
 	MX_NETWORK_FIELD maximum_frame_number_nf;

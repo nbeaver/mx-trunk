@@ -263,8 +263,8 @@ mx_image_get_format_name_from_type( long type,
 
 MX_EXPORT mx_status_type
 mx_image_alloc( MX_IMAGE_FRAME **frame,
-			long image_type,
-			long *framesize,
+			long row_framesize,
+			long column_framesize,
 			long image_format,
 			long byte_order,
 			double bytes_per_pixel,
@@ -279,10 +279,6 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		    "The MX_IMAGE_FRAME pointer to pointer passed was NULL.");
-	}
-	if ( framesize == (long *) NULL ) {
-		return mx_error( MXE_NULL_ARGUMENT, fname,
-			"The framesize pointer passed was NULL." );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -311,12 +307,20 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 	/* Fill in some parameters. */
 
-	(*frame)->image_type = image_type;
-	(*frame)->framesize[0] = framesize[0];
-	(*frame)->framesize[1] = framesize[1];
-	(*frame)->image_format = image_format;
-	(*frame)->byte_order = byte_order;
-	(*frame)->bytes_per_pixel = bytes_per_pixel;
+	MXIF_ROW_FRAMESIZE(*frame)    = row_framesize;
+	MXIF_COLUMN_FRAMESIZE(*frame) = column_framesize;
+	MXIF_IMAGE_FORMAT(*frame)     = image_format;
+	MXIF_BYTE_ORDER(*frame)       = byte_order;
+
+	MXIF_SET_BYTES_PER_PIXEL(*frame, bytes_per_pixel);
+
+	/* Make sure the requested header length is long enough to hold
+	 * the standard header fields.
+	 */
+
+	if ( header_length < MXT_IMAGE_HEADER_LENGTH_IN_BYTES ) {
+		header_length = MXT_IMAGE_HEADER_LENGTH_IN_BYTES;
+	}
 
 	/*** See if the header buffer is already big enough for the header. ***/
 
@@ -329,26 +333,7 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		(unsigned long) header_length));
 #endif
 
-	if ( header_length == 0 ) {
-#if MX_IMAGE_DEBUG
-		MX_DEBUG(-2,("%s: No header needed.", fname));
-#endif
-		(*frame)->header_length = 0;
-		(*frame)->allocated_header_length = 0;
-
-		if ( (*frame)->header_data != NULL ) {
-
-#if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: Freeing unneeded header buffer.", fname));
-#endif
-			free( (*frame)->header_data );
-		}
-
-		(*frame)->header_data = NULL;
-	} else
 	if ( (*frame)->header_data == NULL ) {
-
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,("%s: Allocating new %lu byte header.",
 			fname, (unsigned long) header_length ));
@@ -364,41 +349,40 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		(*frame)->header_length = header_length;
 		(*frame)->allocated_header_length = header_length;
-	} else {
-		if ( (*frame)->allocated_header_length >= header_length ) {
+	} else
+	if ( (*frame)->allocated_header_length >= header_length ) {
 #if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: The header buffer is already big enough.",fname));
+		MX_DEBUG(-2,
+		("%s: The header buffer is already big enough.",fname));
 #endif
-			(*frame)->header_length = header_length;
-		} else {
+		(*frame)->header_length = header_length;
+	} else {
 #if MX_IMAGE_DEBUG
-			MX_DEBUG(-2,
-			("%s: Allocating a new header buffer of %lu bytes.",
+		MX_DEBUG(-2,
+		("%s: Allocating a new header buffer of %lu bytes.",
 				fname, (unsigned long) header_length));
 #endif
-			if ( (*frame)->header_data != NULL ) {
-				free( (*frame)->header_data );
-			}
-
-			(*frame)->header_data = malloc( header_length );
-
-			if ( (*frame)->header_data == NULL ) {
-				return mx_error( MXE_OUT_OF_MEMORY, fname,
-				"Ran out of memory trying to allocate a "
-				"%lu byte header buffer for frame %p.",
-					(unsigned long) header_length, *frame );
-			}
-
-			(*frame)->header_length = header_length;
-			(*frame)->allocated_header_length = header_length;
+		if ( (*frame)->header_data != NULL ) {
+			free( (*frame)->header_data );
 		}
+
+		(*frame)->header_data = malloc( header_length );
+
+		if ( (*frame)->header_data == NULL ) {
+			return mx_error( MXE_OUT_OF_MEMORY, fname,
+			"Ran out of memory trying to allocate a "
+			"%lu byte header buffer for frame %p.",
+				(unsigned long) header_length, *frame );
+		}
+
+		(*frame)->header_length = header_length;
+		(*frame)->allocated_header_length = header_length;
 	}
 
 	/*** See if the image buffer is already big enough for the image. ***/
 
-	bytes_per_frame_as_double =
-	    bytes_per_pixel * ((double) framesize[0]) * ((double) framesize[1]);
+	bytes_per_frame_as_double = bytes_per_pixel
+		* ((double) row_framesize) * ((double) column_framesize);
 
 	bytes_per_frame = mx_round( bytes_per_frame_as_double );
 
@@ -536,8 +520,8 @@ mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 		"The exposure_time pointer passed was NULL." );
 	}
 
-	if ( (frame->exposure_time.tv_sec == 0)
-	  && (frame->exposure_time.tv_nsec == 0) )
+	if ( (MXIF_EXPOSURE_TIME_SEC(frame) == 0)
+	  && (MXIF_EXPOSURE_TIME_NSEC(frame) == 0) )
 	{
 		mx_warning(
 "%s: The header for image frame %p does not contain the exposure time.  "
@@ -545,8 +529,8 @@ mx_image_get_exposure_time( MX_IMAGE_FRAME *frame,
 
 		*exposure_time = 1.0;
 	} else {
-		*exposure_time = ((double) frame->exposure_time.tv_sec)
-			+ 1.0e-9 * ((double) frame->exposure_time.tv_nsec);
+		*exposure_time = ((double) MXIF_EXPOSURE_TIME_SEC(frame))
+			+ 1.0e-9 * ((double) MXIF_EXPOSURE_TIME_NSEC(frame));
 	}
 
 #if MX_IMAGE_DEBUG
@@ -582,50 +566,51 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 		 * image frame.
 		 */
 
-		if ( mask_frame->image_type != image_frame->image_type ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The mask frame has a different image type (%ld) "
-			"than the image frame (%ld).",
-				mask_frame->image_type,
-				image_frame->image_type );	
-		}
-		if ( ( mask_frame->framesize[0] != image_frame->framesize[0] )
-		  || ( mask_frame->framesize[1] != image_frame->framesize[1] ) )
+		if ( ( MXIF_ROW_FRAMESIZE(mask_frame)
+				!= MXIF_ROW_FRAMESIZE(image_frame) )
+		  || ( MXIF_COLUMN_FRAMESIZE(mask_frame)
+				!= MXIF_COLUMN_FRAMESIZE(image_frame) ) )
 		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The mask frame has different dimensions (%ld,%ld) "
 			"than the image frame (%ld,%ld).",
-				mask_frame->framesize[0],
-				mask_frame->framesize[1],
-				image_frame->framesize[0],
-				image_frame->framesize[1] );
+				(long) MXIF_ROW_FRAMESIZE(mask_frame),
+				(long) MXIF_COLUMN_FRAMESIZE(mask_frame),
+				(long) MXIF_ROW_FRAMESIZE(image_frame),
+				(long) MXIF_COLUMN_FRAMESIZE(image_frame) );
 		}
-		if ( mask_frame->image_format != image_frame->image_format ) {
+		if ( MXIF_IMAGE_FORMAT(mask_frame)
+			!= MXIF_IMAGE_FORMAT(image_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The mask frame has a different image format (%ld) "
 			"than the image frame (%ld).",
-				mask_frame->image_format,
-				image_frame->image_format );	
+				(long) MXIF_IMAGE_FORMAT(mask_frame),
+				(long) MXIF_IMAGE_FORMAT(image_frame) );	
 		}
-		if ( mask_frame->byte_order != image_frame->byte_order ) {
+		if ( MXIF_BYTE_ORDER(mask_frame)
+			!= MXIF_BYTE_ORDER(image_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The mask frame has a different byte order (%ld) "
 			"than the image frame (%ld).",
-				mask_frame->byte_order,
-				image_frame->byte_order );	
+				(long) MXIF_BYTE_ORDER(mask_frame),
+				(long) MXIF_BYTE_ORDER(image_frame) );
 		}
-		if (mask_frame->bytes_per_pixel != image_frame->bytes_per_pixel)
+		if ( MXIF_MICROBYTES_PER_PIXEL(mask_frame)
+			!= MXIF_MICROBYTES_PER_PIXEL(image_frame) )
 		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The mask frame has a different number "
 			"of bytes per pixel (%g) "
 			"than the image frame (%g).",
-				mask_frame->bytes_per_pixel,
-				image_frame->bytes_per_pixel );	
+				MXIF_BYTES_PER_PIXEL(mask_frame),
+				MXIF_BYTES_PER_PIXEL(image_frame) );	
 		}
 	}
 
-	num_pixels = image_frame->framesize[0] * image_frame->framesize[1];
+	num_pixels = MXIF_ROW_FRAMESIZE(image_frame)
+			* MXIF_COLUMN_FRAMESIZE(image_frame);
 
 	intensity_sum = 0.0;
 
@@ -698,15 +683,6 @@ mx_image_get_image_data_pointer( MX_IMAGE_FRAME *frame,
 		"The image_data_pointer argument passed was NULL." );
 	}
 
-	if ( frame->image_type != MXT_IMAGE_LOCAL_1D_ARRAY ) {
-		return mx_error( MXE_NOT_AVAILABLE, fname,
-		"Image frame %p is not an image of type "
-		"MXT_IMAGE_LOCAL_1D_ARRAY (%d).  Instead, it is of type %ld, "
-		"which means that the actual image data is not stored in "
-		"this data structure.", frame, MXT_IMAGE_LOCAL_1D_ARRAY,
-			frame->image_type );
-	}
-
 	if ( frame->image_data == NULL ) {
 		return mx_error( MXE_NOT_READY, fname,
 		"No image data has been read into image frame %p.", frame );
@@ -776,11 +752,11 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 	}
 
 	mx_status = mx_image_alloc( new_frame_ptr,
-				old_frame->image_type,
-				old_frame->framesize,
-				old_frame->image_format,
-				old_frame->byte_order,
-				old_frame->bytes_per_pixel,
+				MXIF_ROW_FRAMESIZE(old_frame),
+				MXIF_COLUMN_FRAMESIZE(old_frame),
+				MXIF_IMAGE_FORMAT(old_frame),
+				MXIF_BYTE_ORDER(old_frame),
+				MXIF_BYTES_PER_PIXEL(old_frame),
 				old_frame->header_length,
 				old_frame->image_length );
 
@@ -853,71 +829,71 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			"original frame array is NULL.", i );
 		}
 
-		if ( dz_frame->image_type != original_frame->image_type ) {
-			return mx_error( MXE_TYPE_MISMATCH, fname,
-			"The image type %ld of the dezingered frame "
-			"is different than the image type %ld "
-			"of element %lu in the original frame array.",
-				dz_frame->image_type,
-				original_frame->image_type, i );
-		}
-
-		if ( dz_frame->framesize[0] != original_frame->framesize[0] ) {
+		if ( MXIF_ROW_FRAMESIZE(dz_frame)
+			!= MXIF_ROW_FRAMESIZE(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The X framesize %ld of the dezingered frame "
 			"is different than the X framesize %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->framesize[0],
-				original_frame->framesize[0], i );
+				(long) MXIF_ROW_FRAMESIZE(dz_frame),
+				(long) MXIF_ROW_FRAMESIZE(original_frame), i );
 		}
 
-		if ( dz_frame->framesize[1] != original_frame->framesize[1] ) {
+		if ( MXIF_COLUMN_FRAMESIZE(dz_frame)
+			!= MXIF_COLUMN_FRAMESIZE(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The Y framesize %ld of the dezingered frame "
 			"is different than the Y framesize %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->framesize[1],
-				original_frame->framesize[1], i );
+				(long) MXIF_COLUMN_FRAMESIZE(dz_frame),
+			    (long) MXIF_COLUMN_FRAMESIZE(original_frame), i );
 		}
 
-		if ( dz_frame->image_format != original_frame->image_format ) {
+		if ( MXIF_IMAGE_FORMAT(dz_frame)
+			!= MXIF_IMAGE_FORMAT(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The image format %ld of the dezingered frame "
 			"is different than the image format %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->image_format,
-				original_frame->image_format, i );
+				(long) MXIF_IMAGE_FORMAT(dz_frame),
+				(long) MXIF_IMAGE_FORMAT(original_frame), i );
 		}
 
-		if ( dz_frame->byte_order != original_frame->byte_order ) {
+		if ( MXIF_BYTE_ORDER(dz_frame)
+			!= MXIF_BYTE_ORDER(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The byte order %ld of the dezingered frame "
 			"is different than the byte order %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->byte_order,
-				original_frame->byte_order, i );
+				(long) MXIF_BYTE_ORDER(dz_frame),
+				(long) MXIF_BYTE_ORDER(original_frame), i );
 		}
 
-		if ( dz_frame->byte_order != original_frame->byte_order ) {
+		if ( MXIF_BYTE_ORDER(dz_frame)
+			!= MXIF_BYTE_ORDER(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The byte order %ld of the dezingered frame "
 			"is different than the byte order %ld "
 			"of element %lu in the original frame array.",
-				dz_frame->byte_order,
-				original_frame->byte_order, i );
+				(long) MXIF_BYTE_ORDER(dz_frame),
+				(long) MXIF_BYTE_ORDER(original_frame), i );
 		}
 
-		diff = mx_difference( dz_frame->bytes_per_pixel,
-					original_frame->bytes_per_pixel );
-
-		if ( diff >= DBL_MIN ) {
+		if ( MXIF_MICROBYTES_PER_PIXEL(dz_frame)
+			!= MXIF_MICROBYTES_PER_PIXEL(original_frame) )
+		{
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The number of bytes per pixel (%g) of the "
 			"dezingered frame is different than the number "
 			"of bytes per pixel (%g) of element %lu in the "
 			"original frame array.",
-				dz_frame->bytes_per_pixel,
-				original_frame->bytes_per_pixel, i );
+				MXIF_BYTES_PER_PIXEL(dz_frame),
+				MXIF_BYTES_PER_PIXEL(original_frame), i );
 		}
 
 		if ( dz_frame->image_length != original_frame->image_length ) {
@@ -931,7 +907,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 		}
 	}
 
-	if ( dz_frame->image_format != MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( MXIF_IMAGE_FORMAT(dz_frame) != MXT_IMAGE_FORMAT_GREY16 ) {
 		return mx_error( MXE_NOT_YET_IMPLEMENTED, fname,
 		"Image dezingering is currently only supported for "
 		"16-bit greyscale images." );
@@ -1362,8 +1338,8 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	/* Change the size of the MX_IMAGE_FRAME to match the PNM file. */
 
 	mx_status = mx_image_alloc( frame,
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					framesize,
+					framesize[0],
+					framesize[1],
 					image_format,
 					MX_DATAFMT_BIG_ENDIAN,
 					(double) bytes_per_pixel,
@@ -1421,7 +1397,7 @@ mx_image_read_pnm_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
 		}
 
-		(*frame)->byte_order = MX_DATAFMT_LITTLE_ENDIAN;
+		MXIF_BYTE_ORDER(*frame) = MX_DATAFMT_LITTLE_ENDIAN;
 	}
 
 	/* We are done, so return. */
@@ -1460,18 +1436,19 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
 
-	MX_DEBUG(-2,("%s: image_type = %ld, width = %ld, height = %ld",
-		fname, frame->image_type,
-		frame->framesize[0], frame->framesize[1] ));
-	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld",
-		fname, frame->image_format, frame->byte_order));
+	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname,
+		(long) MXIF_ROW_FRAMESIZE(frame),
+		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld", fname,
+		(long) MXIF_IMAGE_FORMAT(frame),
+		(long) MXIF_BYTE_ORDER(frame)));
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
 #endif
 
 	byteorder = mx_native_byteorder();
 
-	switch( frame->image_format ) {
+	switch( MXIF_IMAGE_FORMAT(frame) ) {
 	case MXT_IMAGE_FORMAT_RGB565:
 		converter = mxp_rgb565_converter;
 		pnm_type = 6;
@@ -1501,7 +1478,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld requested for datafile '%s'.",
-			frame->image_format, datafile_name );
+			(long) MXIF_IMAGE_FORMAT(frame), datafile_name );
 	}
 
 #if MX_IMAGE_DEBUG
@@ -1541,7 +1518,9 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	fprintf( file, "P%d\n", pnm_type );
 	fprintf( file, "# %s\n", datafile_name );
-	fprintf( file, "%lu %lu\n", frame->framesize[0], frame->framesize[1] );
+	fprintf( file, "%lu %lu\n",
+		(unsigned long) MXIF_ROW_FRAMESIZE(frame),
+		(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
 	fprintf( file, "%u\n", maxint );
 
 	/* Loop through the image file. */
@@ -1559,7 +1538,7 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 		converter_fn( &src[i], dest );
 
-		switch( frame->image_format ) {
+		switch( MXIF_IMAGE_FORMAT(frame) ) {
 
 		case MXT_IMAGE_FORMAT_RGB565:
 		case MXT_IMAGE_FORMAT_RGB:
@@ -1592,7 +1571,8 @@ mx_image_write_pnm_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 			return mx_error( MXE_UNSUPPORTED, fname,
 				"Unsupported image format %ld requested "
 				"for datafile '%s'.",
-				frame->image_format, datafile_name );
+				(long) MXIF_IMAGE_FORMAT(frame),
+				datafile_name );
 		}
 	}
 
@@ -1824,8 +1804,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	/* Change the size of the MX_IMAGE_FRAME to match the SMV file. */
 
 	mx_status = mx_image_alloc( frame,
-					MXT_IMAGE_LOCAL_1D_ARRAY,
-					framesize,
+					framesize[0],
+					framesize[1],
 					image_format,
 					datafile_byteorder,
 					(double) bytes_per_pixel,
@@ -1895,7 +1875,7 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 			uint16_array[i] = mx_16bit_byteswap( uint16_array[i] );
 		}
 
-		(*frame)->byte_order = mx_native_byteorder();
+		MXIF_BYTE_ORDER(*frame) = mx_native_byteorder();
 	}
 
 	/* We are done, so return. */
@@ -1933,18 +1913,21 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,("%s invoked for datafile '%s'.",
 		fname, datafile_name ));
 
-	MX_DEBUG(-2,("%s: image_type = %ld, width = %ld, height = %ld",
-		fname, frame->image_type,
-		frame->framesize[0], frame->framesize[1] ));
-	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld",
-		fname, frame->image_format, frame->byte_order));
+	MX_DEBUG(-2,("%s: width = %ld, height = %ld", fname, 
+		(long) MXIF_ROW_FRAMESIZE(frame),
+		(long) MXIF_COLUMN_FRAMESIZE(frame) ));
+
+	MX_DEBUG(-2,("%s: image_format = %ld, byte_order = %ld", fname,
+		(long) MXIF_IMAGE_FORMAT(frame),
+		(long) MXIF_BYTE_ORDER(frame)));
+
 	MX_DEBUG(-2,("%s: image_length = %lu, image_data = %p",
 		fname, (unsigned long) frame->image_length, frame->image_data));
 #endif
 
 	byteorder = mx_native_byteorder();
 
-	switch( frame->image_format ) {
+	switch( MXIF_IMAGE_FORMAT(frame) ) {
 	case MXT_IMAGE_FORMAT_RGB565:
 		converter = mxp_rgb565_converter;
 		break;
@@ -1964,7 +1947,7 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"Unsupported image format %ld requested for datafile '%s'.",
-			frame->image_format, datafile_name );
+			(long) MXIF_IMAGE_FORMAT(frame), datafile_name );
 	}
 
 	src_step     = converter.num_source_bytes;
@@ -2037,15 +2020,18 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 
 	fprintf( file, "DIM=2;\n" );
 
-	if ( frame->image_format == MXT_IMAGE_FORMAT_GREY16 ) {
+	if ( MXIF_IMAGE_FORMAT(frame) == MXT_IMAGE_FORMAT_GREY16 ) {
 		fprintf( file, "TYPE=unsigned_short;\n" );
 	} else {
 		return mx_error( MXE_UNSUPPORTED, fname,
 		"8-bit file formats are not supported by SMV format files." );
 	}
 
-	fprintf( file, "SIZE1=%lu;\n", frame->framesize[0] );
-	fprintf( file, "SIZE2=%lu;\n", frame->framesize[1] );
+	fprintf( file, "SIZE1=%lu;\n",
+				(unsigned long) MXIF_ROW_FRAMESIZE(frame) );
+
+	fprintf( file, "SIZE2=%lu;\n",
+				(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
 
 	/* FIXME: We should add the binsize here.  Doing that requires
 	 *        one of the following:

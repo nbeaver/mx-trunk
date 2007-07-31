@@ -2100,6 +2100,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	unsigned long flags;
 	char *colorspace;
 	char error_message[80];
+	struct timespec image_timestamp;
 	mx_status_type mx_status;
 
 	uint16_t *image_data16;
@@ -2246,21 +2247,21 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Get the timestamp for the frame. */
 
-	frame->image_timestamp = mxi_epix_xclib_get_buffer_timestamp(
+	image_timestamp = mxi_epix_xclib_get_buffer_timestamp(
 						epix_xclib,
 						epix_xclib_vinput->unitmap,
 						epix_frame_number );
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: EPIX image timestamp = (%lu,%ld)", fname,
-		frame->image_timestamp.tv_sec, frame->image_timestamp.tv_nsec));
+		image_timestamp.tv_sec, image_timestamp.tv_nsec));
 #endif
 
 #if MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME
 	{
 		char buffer[80];
 
-		mx_os_time_string( frame->image_timestamp,
+		mx_os_time_string( image_timestamp,
 				buffer, sizeof(buffer) );
 
 		MX_DEBUG(-2,(" "));
@@ -2269,6 +2270,9 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 			mx_current_time_string(buffer, sizeof(buffer)) ));
 	}
 #endif
+
+	MXIF_TIMESTAMP_SEC(frame)  = image_timestamp.tv_sec;
+	MXIF_TIMESTAMP_NSEC(frame) = image_timestamp.tv_nsec;
 
 	/* If requested, byteswap the image. */
 

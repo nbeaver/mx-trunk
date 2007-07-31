@@ -491,7 +491,8 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 	/* Set the size of the image. */
 
-	frame->bytes_per_pixel = vinput->bytes_per_pixel;
+	MXIF_SET_BYTES_PER_PIXEL(frame, vinput->bytes_per_pixel);
+
 	frame->image_length    = vinput->bytes_per_frame;
 
 	/* Generate the frame for the MX_IMAGE_FRAME structure. */
@@ -667,8 +668,9 @@ mxd_soft_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 
 		default:
 			return mx_error( MXE_UNSUPPORTED, fname,
-			"Video input record '%s' does not support image format "
-			"%ld.", vinput->record->name, frame->image_format );
+			"Video input record '%s' does not support "
+			"image format %ld.", vinput->record->name,
+				(long) MXIF_IMAGE_FORMAT(frame) );
 		}
 		break;
 	default:

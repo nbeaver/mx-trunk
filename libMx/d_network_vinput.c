@@ -691,7 +691,7 @@ mxd_network_vinput_get_frame( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	frame->bytes_per_pixel = vinput->bytes_per_pixel;
+	MXIF_SET_BYTES_PER_PIXEL(frame, vinput->bytes_per_pixel);
 
 	/* Ask for the size of the image. */
 

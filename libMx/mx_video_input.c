@@ -1405,11 +1405,10 @@ mx_video_input_get_frame( MX_RECORD *record,
 
 	/* Fill in some parameters. */
 
-	(*frame)->image_type = MXT_IMAGE_LOCAL_1D_ARRAY;
-	(*frame)->framesize[0] = vinput->framesize[0];
-	(*frame)->framesize[1] = vinput->framesize[1];
-	(*frame)->image_format = vinput->image_format;
-	(*frame)->byte_order = vinput->byte_order;
+	MXIF_ROW_FRAMESIZE(*frame)    = vinput->framesize[0];
+	MXIF_COLUMN_FRAMESIZE(*frame) = vinput->framesize[1];
+	MXIF_IMAGE_FORMAT(*frame)     = vinput->image_format;
+	MXIF_BYTE_ORDER(*frame)       = vinput->byte_order;
 
 	/* See if the image buffer is already big enough for the image. */
 
@@ -1465,12 +1464,9 @@ mx_video_input_get_frame( MX_RECORD *record,
 #endif
 	}
 
-#if 0  /* FIXME!!! - This should not be present in the final version. */
-	memset( (*frame)->image_data, 0, 50 );
-#endif
+	MXIF_SET_BYTES_PER_PIXEL(*frame, vinput->bytes_per_pixel);
 
-	(*frame)->bytes_per_pixel = vinput->bytes_per_pixel;
-	(*frame)->image_length    = vinput->bytes_per_frame;
+	(*frame)->image_length = vinput->bytes_per_frame;
 
 	/* Now get the actual frame. */
 
