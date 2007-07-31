@@ -1683,9 +1683,11 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	char byte_order_buffer[40];
 	char *ptr;
 	int saved_errno, os_status, num_items;
-	long framesize[2];
+	long framesize[2], binsize[2];
 	long bytes_per_pixel, bytes_per_frame, bytes_read, image_format;
 	long header_length, datafile_byteorder, num_whitespace_chars;
+	double exposure_time;
+	struct timespec exposure_timespec;
 	mx_status_type mx_status;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
@@ -1816,6 +1818,29 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 					datafile_name, buffer );
 			}
 		} else
+		if ( strncmp( buffer, "BIN=", 4 ) == 0 ) {
+			num_items = sscanf(buffer, "BIN=%lux%lu",
+					&binsize[0], &binsize[1]);
+
+			if ( num_items != 2 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"BIN statement.",
+					datafile_name, buffer );
+			}
+		} else
+		if ( strncmp( buffer, "TIME=", 5 ) == 0 ) {
+			num_items = sscanf(buffer, "TIME=%lg", &exposure_time );
+
+			if ( num_items != 1 ) {
+				return mx_error( MXE_UNPARSEABLE_STRING, fname,
+				"Header line '%s' from data file '%s' "
+				"appears to contain an incorrectly formatted "
+				"TIME statement.",
+					datafile_name, buffer );
+			}
+		} else
 		if ( strncmp( buffer, "BYTE_ORDER=", 11 ) == 0 ) {
 
 			/* Look for the first non-whitespace character 
@@ -1856,6 +1881,8 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: datafile_byteorder = %ld, framesize = (%ld,%ld)",
 		fname, datafile_byteorder, framesize[0], framesize[1]));
+	MX_DEBUG(-2,("%s: binsize = (%ld,%ld), exposure time = %f",
+		fname, binsize[0], binsize[1], exposure_time));
 #endif
 
 	if ( datafile_byteorder < 0 ) {
@@ -1893,6 +1920,17 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Add more information to the MX_IMAGE_FRAME header. */
+
+	MXIF_ROW_BINSIZE(*frame)    = binsize[0];
+	MXIF_COLUMN_BINSIZE(*frame) = binsize[1];
+
+	exposure_timespec =
+		mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC(*frame)  = exposure_timespec.tv_sec;
+	MXIF_EXPOSURE_TIME_NSEC(*frame) = exposure_timespec.tv_nsec;
 
 	/* Move to the first byte after the header. */
 
@@ -1977,6 +2015,10 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	unsigned long byteorder;
 	unsigned char null_header_bytes[MXU_IMAGE_SMV_HEADER_LENGTH] = { 0 };
 	long i;
+	double exposure_time;
+	struct timespec exposure_timespec;
+	char timestamp[80];
+	struct timespec timestamp_timespec;
 
 	if ( frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -2112,13 +2154,26 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	fprintf( file, "SIZE2=%lu;\n",
 				(unsigned long) MXIF_COLUMN_FRAMESIZE(frame) );
 
-	/* FIXME: We should add the binsize here.  Doing that requires
-	 *        one of the following:
-	 * 
-	 *        1.  Add a pointer to the MX_AREA_DETECTOR structure as
-	 *            new argument to the list of arguments of this function.
-	 *        2.  Add a new binsize field to the MX_IMAGE_FRAME structure.
-	 */
+	fprintf( file, "BIN=%lux%lu;\n",
+				(unsigned long) MXIF_ROW_BINSIZE(frame),
+				(unsigned long) MXIF_COLUMN_BINSIZE(frame) );
+
+	exposure_timespec.tv_sec  = MXIF_EXPOSURE_TIME_SEC(frame);
+	exposure_timespec.tv_nsec = MXIF_EXPOSURE_TIME_NSEC(frame);
+
+	exposure_time =
+		mx_convert_high_resolution_time_to_seconds( exposure_timespec );
+
+	fprintf( file, "TIME=%.6f;\n", exposure_time );
+
+	/* Write the time of frame acquisition to the header. */
+
+	timestamp_timespec.tv_sec  = MXIF_TIMESTAMP_SEC(frame);
+	timestamp_timespec.tv_nsec = MXIF_TIMESTAMP_NSEC(frame);
+
+	mx_os_time_string( timestamp_timespec, timestamp, sizeof(timestamp) );
+
+	fprintf( file, "DATE=%s;\n", timestamp );
 
 	/* Terminate the part of the header block that we are using. */
 
