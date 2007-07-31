@@ -638,27 +638,28 @@ mxp_area_detector_update_frame_pointers( MX_AREA_DETECTOR *ad )
 		ad->image_frame_data          = NULL;
 	} else {
 		ad->image_frame_header_length = image_frame->header_length;
-		ad->image_frame_header        = image_frame->header_data;
+		ad->image_frame_header = (char *) image_frame->header_data;
 		ad->image_frame_data          = image_frame->image_data;
 	}
 
 	/* Modify the 'image_frame_header' record field to have
-	 * the correct number of uint32_t array elements.
+	 * the correct length in bytes.
 	 */
 
 	mx_status = mx_set_1d_field_array_length_by_name( ad->record,
 				"image_frame_header",
-				ad->image_frame_header_length / 4L );
+				ad->image_frame_header_length );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
 	/* Modify the 'image_frame_data' record field to have
-	 * the correct number of array elements.
+	 * the correct length in bytes.
 	 */
 
 	mx_status = mx_set_1d_field_array_length_by_name( ad->record,
-				"image_frame_data", ad->bytes_per_frame );
+				"image_frame_data",
+				ad->bytes_per_frame );
 
 	return mx_status;
 }

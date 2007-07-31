@@ -1801,13 +1801,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	/* Load the image correction files. */
-
-	mx_status = mx_area_detector_load_correction_files( record );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
 	/* Initialize area detector parameters. */
 
 	ad->byte_order = mx_native_byteorder();
@@ -1824,6 +1817,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 		return mx_status;
 
 	mx_status = mx_area_detector_get_bytes_per_frame( record, NULL );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mx_area_detector_get_bits_per_pixel( record, NULL );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -1883,10 +1881,21 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	MXIF_ROW_BINSIZE(pccd_170170->raw_frame) = 1;
+	MXIF_COLUMN_BINSIZE(pccd_170170->raw_frame) = 1;
+	MXIF_BITS_PER_PIXEL(pccd_170170->raw_frame) = ad->bits_per_pixel;
+
 	pccd_170170->old_framesize[0] = -1;
 	pccd_170170->old_framesize[1] = -1;
 
 	pccd_170170->sector_array = NULL;
+
+	/* Load the image correction files. */
+
+	mx_status = mx_area_detector_load_correction_files( record );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Initialize the detector to one-shot mode with an exposure time
 	 * of 1 second.
@@ -2388,6 +2397,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_PCCD_170170 *pccd_170170;
 	unsigned long flags;
 	size_t bytes_to_copy, raw_frame_length, image_length;
+	struct timespec exposure_timespec;
+	double exposure_time;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -2408,6 +2419,39 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Compute and add the exposure time to the image frame header. */
+
+	mx_status = mx_sequence_get_exposure_time( &(ad->sequence_parameters),
+							-1, &exposure_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	exposure_timespec =
+		mx_convert_seconds_to_high_resolution_time( exposure_time );
+
+	MXIF_EXPOSURE_TIME_SEC(pccd_170170->raw_frame)
+						= exposure_timespec.tv_sec;
+
+	MXIF_EXPOSURE_TIME_NSEC(pccd_170170->raw_frame)
+						= exposure_timespec.tv_nsec;
+
+	/* Copy the image header. */
+
+	mx_status = mx_image_copy_header( ad->image_frame,
+					pccd_170170->raw_frame );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Patch in the correct descrambled dimensions. */
+
+	MXIF_ROW_FRAMESIZE(ad->image_frame) =
+			MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame) / 4;
+
+	MXIF_COLUMN_FRAMESIZE(ad->image_frame) =
+			MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) * 4;
 
 	/* If required, we now descramble the image. */
 

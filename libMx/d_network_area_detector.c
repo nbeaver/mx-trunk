@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_AREA_DETECTOR_DEBUG		FALSE
+#define MXD_NETWORK_AREA_DETECTOR_DEBUG		TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -925,8 +925,8 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_NETWORK_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
-		fname, ad->record->name ));
+	MX_DEBUG(-2,("%s invoked for area detector '%s', transfer_frame = %ld.",
+		fname, ad->record->name, ad->transfer_frame ));
 #endif
 	destination_frame = ad->transfer_destination_frame;
 
@@ -950,6 +950,11 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: remote_frame_header_length = %lu",
+		fname, remote_frame_header_length));
+#endif
 
 	/* Make sure the array is big enough for the client's version
 	 * of MX.
@@ -1002,6 +1007,22 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_NETWORK_AREA_DETECTOR_DEBUG
+	{
+		uint32_t *uint32_header_data;
+		long n, num_header_words;
+
+		uint32_header_data = destination_frame->header_data;
+
+		num_header_words = local_frame_header_length / sizeof(uint32_t);
+
+		for ( n = 0; n < num_header_words; n++ ) {
+			MX_DEBUG(-2,("%s: uint32_header_data[%ld] = %lu",
+			fname, n, (unsigned long) uint32_header_data[n]));
+		}
+	}
+#endif
 
 	/* Copy the header values to the MX_AREA_DETECTOR structure. */
 
@@ -1056,11 +1077,9 @@ mxd_network_area_detector_transfer_frame( MX_AREA_DETECTOR *ad )
 
 	dimension[0] = destination_frame->image_length;
 
-#if 0
 	mx_status = mx_get_array(
-			&(network_area_detector->image_frame_buffer_nf),
+			&(network_area_detector->image_frame_data_nf),
 			MXFT_CHAR, 1, dimension, destination_frame->image_data);
-#endif
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

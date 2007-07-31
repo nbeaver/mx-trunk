@@ -273,7 +273,8 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 {
 	static const char fname[] = "mx_image_alloc()";
 
-	unsigned long bytes_per_frame;
+	char *ptr;
+	unsigned long bytes_per_frame, additional_length;
 	double bytes_per_frame_as_double;
 
 	if ( frame == (MX_IMAGE_FRAME **) NULL ) {
@@ -304,15 +305,6 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 		memset( *frame, 0, sizeof(MX_IMAGE_FRAME) );
 	}
-
-	/* Fill in some parameters. */
-
-	MXIF_ROW_FRAMESIZE(*frame)    = row_framesize;
-	MXIF_COLUMN_FRAMESIZE(*frame) = column_framesize;
-	MXIF_IMAGE_FORMAT(*frame)     = image_format;
-	MXIF_BYTE_ORDER(*frame)       = byte_order;
-
-	MXIF_SET_BYTES_PER_PIXEL(*frame, bytes_per_pixel);
 
 	/* Make sure the requested header length is long enough to hold
 	 * the standard header fields.
@@ -347,6 +339,12 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 				(unsigned long) header_length );
 		}
 
+		/* Initialize the header data to 0. */
+
+		memset( (*frame)->header_data, 0, header_length );
+
+		/* Save the length. */
+
 		(*frame)->header_length = header_length;
 		(*frame)->allocated_header_length = header_length;
 	} else
@@ -359,14 +357,15 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 	} else {
 #if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,
-		("%s: Allocating a new header buffer of %lu bytes.",
+		("%s: Changing header buffer to %lu bytes.",
 				fname, (unsigned long) header_length));
 #endif
 		if ( (*frame)->header_data != NULL ) {
 			free( (*frame)->header_data );
 		}
 
-		(*frame)->header_data = malloc( header_length );
+		(*frame)->header_data = realloc( (*frame)->header_data,
+							header_length );
 
 		if ( (*frame)->header_data == NULL ) {
 			return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -374,6 +373,16 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 			"%lu byte header buffer for frame %p.",
 				(unsigned long) header_length, *frame );
 		}
+
+		/* Initialize the additional part of the header to 0. */
+
+		ptr = (char *)((*frame)->header_data) + (*frame)->header_length;
+
+		additional_length = header_length - (*frame)->header_length;
+
+		memset( ptr, 0, additional_length );
+
+		/* Save the length. */
 
 		(*frame)->header_length = header_length;
 		(*frame)->allocated_header_length = header_length;
@@ -445,6 +454,16 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
 #endif
 	}
+
+	/* Fill in some parameters. */
+
+	MXIF_HEADER_BYTES(*frame)     = (*frame)->header_length;
+	MXIF_ROW_FRAMESIZE(*frame)    = row_framesize;
+	MXIF_COLUMN_FRAMESIZE(*frame) = column_framesize;
+	MXIF_IMAGE_FORMAT(*frame)     = image_format;
+	MXIF_BYTE_ORDER(*frame)       = byte_order;
+
+	MXIF_SET_BYTES_PER_PIXEL(*frame, bytes_per_pixel);
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -549,7 +568,7 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 
 	uint16_t *image_data, *mask_data;
 	unsigned long i, num_pixels, num_unmasked_pixels;
-	double intensity_sum;
+	double intensity_sum, diff;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -597,9 +616,11 @@ mx_image_get_average_intensity( MX_IMAGE_FRAME *image_frame,
 				(long) MXIF_BYTE_ORDER(mask_frame),
 				(long) MXIF_BYTE_ORDER(image_frame) );
 		}
-		if ( MXIF_MICROBYTES_PER_PIXEL(mask_frame)
-			!= MXIF_MICROBYTES_PER_PIXEL(image_frame) )
-		{
+
+		diff = mx_difference( MXIF_BYTES_PER_MILLION_PIXELS(mask_frame),
+				MXIF_BYTES_PER_MILLION_PIXELS(image_frame) );
+
+		if ( diff > 10.0 ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The mask frame has a different number "
 			"of bytes per pixel (%g) "
@@ -776,6 +797,63 @@ mx_image_copy_frame( MX_IMAGE_FRAME **new_frame_ptr,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
+			MX_IMAGE_FRAME *source_frame )
+{
+	static const char fname[] = "mx_image_copy_header()";
+
+	void *dest_header_ptr, *src_header_ptr;
+	void *dest_trailing_ptr;
+	size_t dest_header_length, src_header_length;
+	size_t dest_trailing_length;
+
+	if ( destination_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The destination frame pointer passed was NULL." );
+	}
+	if ( source_frame == (MX_IMAGE_FRAME *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The source frame pointer passed was NULL." );
+	}
+
+	dest_header_length = destination_frame->header_length;
+	dest_header_ptr    = destination_frame->header_data;
+
+	if ( dest_header_ptr == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The header_data array for the destination frame "
+		"has not been initialized." );
+	}
+
+	src_header_length = source_frame->header_length;
+	src_header_ptr    = source_frame->header_data;
+
+	if ( src_header_ptr == NULL ) {
+		return mx_error( MXE_INITIALIZATION_ERROR, fname,
+		"The header_data array for the source frame "
+		"has not been initialized." );
+	}
+
+	if ( dest_header_length <= src_header_length ) {
+		memcpy( dest_header_ptr, src_header_ptr, dest_header_length );
+	} else {
+		memcpy( dest_header_ptr, src_header_ptr, src_header_length );
+
+		/* Set the unused part of the header to 0. */
+
+		dest_trailing_length = dest_header_length - src_header_length;
+
+		dest_trailing_ptr = (char *)dest_header_ptr + src_header_length;
+
+		memset( dest_trailing_ptr, 0, dest_trailing_length );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /*--------------------------------------------------------------------------*/
 
 MX_EXPORT mx_status_type
@@ -884,9 +962,10 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 				(long) MXIF_BYTE_ORDER(original_frame), i );
 		}
 
-		if ( MXIF_MICROBYTES_PER_PIXEL(dz_frame)
-			!= MXIF_MICROBYTES_PER_PIXEL(original_frame) )
-		{
+		diff = mx_difference( MXIF_BYTES_PER_MILLION_PIXELS(dz_frame),
+				MXIF_BYTES_PER_MILLION_PIXELS(original_frame) );
+
+		if ( diff > 10.0 ) {
 			return mx_error( MXE_TYPE_MISMATCH, fname,
 			"The number of bytes per pixel (%g) of the "
 			"dezingered frame is different than the number "
@@ -2078,6 +2157,97 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	MX_DEBUG(-2,
 	("%s: SMV file '%s' successfully written.", fname, datafile_name ));
 #endif
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*--------------------------------------------------------------------------*/
+
+MX_EXPORT mx_status_type
+mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
+				long frame_number,
+				double *exposure_time )
+{
+	static const char fname[] = "mx_sequence_get_exposure_time()";
+
+	long i;
+	double multiplier;
+
+	if ( sp == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
+	}
+	if ( exposure_time == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The exposure_time pointer passed was NULL." );
+	}
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+		*exposure_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_STROBE:
+		*exposure_time = sp->parameter_array[1];
+		break;
+	case MXT_SQ_STREAK_CAMERA:
+		*exposure_time = sp->parameter_array[0]
+					* sp->parameter_array[1];
+		break;
+	case MXT_SQ_GEOMETRICAL:
+		*exposure_time = sp->parameter_array[1];
+
+		multiplier = sp->parameter_array[3];
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			(*exposure_time) *= multiplier;
+		}
+		break;
+	default:
+		*exposure_time = -1.0;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
+				long *num_frames )
+{
+	static const char fname[] = "mx_sequence_get_num_frames()";
+
+	if ( sp == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
+	}
+	if ( num_frames == (long *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The num_frames pointer passed was NULL." );
+	}
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+	case MXT_SQ_STREAK_CAMERA:
+	case MXT_SQ_SUBIMAGE:
+		*num_frames = 1;
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_STROBE:
+	case MXT_SQ_BULB:
+	case MXT_SQ_GEOMETRICAL:
+		*num_frames = mx_round( sp->parameter_array[0] );
+		break;
+	default:
+		*num_frames = -1;
+		break;
+	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

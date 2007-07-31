@@ -129,7 +129,7 @@ typedef struct mx_area_detector_type {
 	 */
 
 	unsigned long image_frame_header_length;
-	uint32_t *image_frame_header;
+	char *image_frame_header;
 	char *image_frame_data;
 
 	/* The individual bits in 'correction_flags' determine which
@@ -421,7 +421,7 @@ typedef struct mx_area_detector_type {
 	{0}, NULL, MXFF_READ_ONLY}, \
   \
   {MXLV_AD_IMAGE_FRAME_HEADER, -1, "image_frame_header", \
-						MXFT_ULONG, NULL, 1, {0}, \
+						MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, image_frame_header),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
   \

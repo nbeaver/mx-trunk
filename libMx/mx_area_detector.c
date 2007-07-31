@@ -2338,7 +2338,14 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 					ad->header_length,
 					ad->bytes_per_frame );
 
-	return mx_status;
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	MXIF_ROW_BINSIZE(*image_frame)    = ad->binsize[0];
+	MXIF_COLUMN_BINSIZE(*image_frame) = ad->binsize[1];
+	MXIF_BITS_PER_PIXEL(*image_frame) = ad->bits_per_pixel;
+
+	return MX_SUCCESSFUL_RESULT;
 }
 
 MX_EXPORT mx_status_type

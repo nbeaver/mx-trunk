@@ -57,26 +57,26 @@
 
 /*---- 32-bit image header definitions for the 'header_data' array. ----*/
 
-/* 'microbytes per pixel' is a way of representing an intrinsically
+/* 'bytes per million pixel' is a way of representing an intrinsically
  * floating point value as a 32-bit integer with reasonable accuracy.
  *
  * Image formats with a non-integer number of bytes per pixel are not
  * unprecedented.
  */
 
-#define MXT_IMAGE_HEADER_BYTES			0
-#define MXT_IMAGE_HEADER_ROW_FRAMESIZE		1
-#define MXT_IMAGE_HEADER_COLUMN_FRAMESIZE	2
-#define MXT_IMAGE_HEADER_ROW_BINSIZE		3
-#define MXT_IMAGE_HEADER_COLUMN_BINSIZE		4
-#define MXT_IMAGE_HEADER_IMAGE_FORMAT		5
-#define MXT_IMAGE_HEADER_BYTE_ORDER		6
-#define MXT_IMAGE_HEADER_MICROBYTES_PER_PIXEL	7	/* don't laugh */
-#define MXT_IMAGE_HEADER_BITS_PER_PIXEL		8
-#define MXT_IMAGE_HEADER_EXPOSURE_TIME_SEC	9
-#define MXT_IMAGE_HEADER_EXPOSURE_TIME_NSEC	10
-#define MXT_IMAGE_HEADER_TIMESTAMP_SEC		11
-#define MXT_IMAGE_HEADER_TIMESTAMP_NSEC		12
+#define MXT_IMAGE_HEADER_BYTES				0
+#define MXT_IMAGE_HEADER_ROW_FRAMESIZE			1
+#define MXT_IMAGE_HEADER_COLUMN_FRAMESIZE		2
+#define MXT_IMAGE_HEADER_ROW_BINSIZE			3
+#define MXT_IMAGE_HEADER_COLUMN_BINSIZE			4
+#define MXT_IMAGE_HEADER_IMAGE_FORMAT			5
+#define MXT_IMAGE_HEADER_BYTE_ORDER			6
+#define MXT_IMAGE_HEADER_BYTES_PER_MILLION_PIXELS	7
+#define MXT_IMAGE_HEADER_BITS_PER_PIXEL			8
+#define MXT_IMAGE_HEADER_EXPOSURE_TIME_SEC		9
+#define MXT_IMAGE_HEADER_EXPOSURE_TIME_NSEC		10
+#define MXT_IMAGE_HEADER_TIMESTAMP_SEC			11
+#define MXT_IMAGE_HEADER_TIMESTAMP_NSEC			12
 
 #define MXT_IMAGE_HEADER_LENGTH    (MXT_IMAGE_HEADER_TIMESTAMP_NSEC+1)
 
@@ -106,14 +106,14 @@
 #define MXIF_BYTE_ORDER(i) \
 			((i)->header_data[MXT_IMAGE_HEADER_BYTE_ORDER])
 
-#define MXIF_MICROBYTES_PER_PIXEL(i) \
-		((i)->header_data[MXT_IMAGE_HEADER_MICROBYTES_PER_PIXEL])
+#define MXIF_BYTES_PER_MILLION_PIXELS(i) \
+		((i)->header_data[MXT_IMAGE_HEADER_BYTES_PER_MILLION_PIXELS])
 
 #define MXIF_BYTES_PER_PIXEL(i) \
-  ( 1.0e-6 * (double)((i)->header_data[MXT_IMAGE_HEADER_MICROBYTES_PER_PIXEL]) )
+(1.0e-6 * (double)((i)->header_data[MXT_IMAGE_HEADER_BYTES_PER_MILLION_PIXELS]))
 
 #define MXIF_SET_BYTES_PER_PIXEL(i,b) \
-  ((i)->header_data[MXT_IMAGE_HEADER_MICROBYTES_PER_PIXEL] = 1.0e6 * (b))
+  ((i)->header_data[MXT_IMAGE_HEADER_BYTES_PER_MILLION_PIXELS] = 1.0e6 * (b))
 				
 
 #define MXIF_BITS_PER_PIXEL(i) \
@@ -216,6 +216,9 @@ MX_API mx_status_type mx_image_copy_1d_pixel_array( MX_IMAGE_FRAME *frame,
 MX_API mx_status_type mx_image_copy_frame( MX_IMAGE_FRAME **new_frame,
 					MX_IMAGE_FRAME *old_frame );
 
+MX_API mx_status_type mx_image_copy_header( MX_IMAGE_FRAME *destination_frame,
+					MX_IMAGE_FRAME *source_frame );
+
 /*----*/
 
 MX_API mx_status_type mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
@@ -248,6 +251,15 @@ MX_API mx_status_type mx_image_read_smv_file( MX_IMAGE_FRAME **frame,
 
 MX_API mx_status_type mx_image_write_smv_file( MX_IMAGE_FRAME *frame,
 						char *datafile_name );
+
+/*----*/
+
+MX_API mx_status_type mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
+							long frame_number,
+							double *exposure_time );
+
+MX_API mx_status_type mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
+							long *num_frames );
 
 #endif /* __MX_IMAGE_H__ */
 
