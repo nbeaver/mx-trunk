@@ -18,12 +18,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
+#include <time.h>
 
 #include "mxconfig.h"
 #include "mx_util.h"
 #include "mx_driver.h"
 #include "mx_record.h"
 #include "mx_hrt.h"
+#include "mx_hrt_debug.h"
 #include "mx_socket.h"
 #include "mx_image.h"
 #include "mx_area_detector.h"
@@ -51,9 +54,25 @@ mxp_area_detector_free_correction_struct( MX_AREA_DETECTOR *ad,
 	if ( corr == NULL ) {
 		return;
 	}
+
+#if MX_AREA_DETECTOR_USE_DEZINGER
+	if ( corr->dezinger_frame_array != (MX_IMAGE_FRAME **) NULL )
+	{
+		long n;
+
+		for ( n = 0; n < corr->num_exposures; n++ ) {
+			mx_image_free( corr->dezinger_frame_array[n] );
+		}
+
+		free( corr->dezinger_frame_array );
+	}
+#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
 	if ( corr->sum_array != NULL ) {
 		free( corr->sum_array );
 	}
+
+#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
 
 	if ( ad == NULL ) {
 		if ( corr->area_detector != NULL ) {
@@ -80,16 +99,24 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_AREA_DETECTOR *ad;
 	MX_IMAGE_FRAME *dest_frame;
-	void *void_image_data_pointer;
-	uint16_t *src_array, *dest_array;
-	double *sum_array;
-	double exposure_time, num_exposures_as_double, temp_double;
-	long i, num_exposures, pixels_per_frame;
+	long pixels_per_frame;
 	long last_frame_number, total_num_frames, num_frames_difference;
 	unsigned long ad_status, saved_correction_flags;
-	size_t image_length;
+	time_t time_buffer;
+	struct timespec exposure_timespec;
 	mx_bool_type sequence_complete;
 	mx_status_type mx_status, mx_status2;
+
+#if MX_AREA_DETECTOR_USE_DEZINGER
+	MX_HRT_TIMING measurement;
+#else
+	void *void_image_data_pointer;
+	double *sum_array;
+	uint16_t *src_array, *dest_array;
+	double num_exposures_as_double, temp_double;
+	long i;
+	size_t image_length;
+#endif
 
 	callback_message = cb_message_ptr;
 
@@ -102,10 +129,6 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 	ad = corr->area_detector;
 
 	pixels_per_frame = ad->framesize[0] * ad->framesize[1];
-
-	exposure_time = ad->correction_measurement_time;
-
-	num_exposures = ad->num_correction_measurements;
 
 	/* See if any new frames are ready to be read out. */
 
@@ -147,10 +170,10 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		/* Readout the frame into ad->image_frame. */
 
 		MX_DEBUG(-2,("%s: Reading frame %ld",
-				fname, corr->num_frames_summed));
+				fname, corr->num_frames_read));
 
 		mx_status = mx_area_detector_readout_frame(
-				ad->record, corr->num_frames_summed );
+				ad->record, corr->num_frames_read );
 
 		if ( mx_status.code != MXE_SUCCESS ) {
 			mxp_area_detector_free_correction_struct( ad, corr );
@@ -179,7 +202,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			}
 
 			MX_DEBUG(-2,("%s: Correcting frame %ld",
-					fname, corr->num_frames_summed));
+					fname, corr->num_frames_read));
 
 			MX_DEBUG(-2,
 		("%s: BEFORE correcting frame.  correction_flags = %#lx",
@@ -207,6 +230,20 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			}
 		}
 
+#if MX_AREA_DETECTOR_USE_DEZINGER
+		/* Save a copy of the frame in the dezinger frame array. */
+
+		mx_status = mx_image_copy_frame(
+			&(corr->dezinger_frame_array[ corr->num_frames_read ]),
+			ad->image_frame );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_free_correction_struct( ad, corr );
+			return mx_status;
+		}
+
+#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
 		/* Get the image data pointer for this image. */
 
 		mx_status = mx_image_get_image_data_pointer( ad->image_frame,
@@ -223,7 +260,7 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		/* Add the pixels in this image to the sum array. */
 
 		MX_DEBUG(-2,("%s: Adding frame %ld pixels to sum array.",
-			fname, corr->num_frames_summed));
+			fname, corr->num_frames_read));
 
 		sum_array = corr->sum_array;
 
@@ -231,10 +268,12 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			sum_array[i] += (double) src_array[i];
 		}
 
-		corr->num_frames_summed++;
+#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
+
+		corr->num_frames_read++;
 		corr->num_unread_frames--;
 
-		if (corr->num_frames_summed >= ad->num_correction_measurements)
+		if (corr->num_frames_read >= ad->num_correction_measurements)
 		{
 			sequence_complete = TRUE;
 			break;		/* Exit the while() loop. */
@@ -293,6 +332,27 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 				ad->record->name );
 		}
 
+#if MX_AREA_DETECTOR_USE_DEZINGER
+
+		MX_HRT_START( measurement );
+
+		mx_status = mx_image_dezinger( &(corr->destination_frame),
+					corr->num_exposures,
+					corr->dezinger_frame_array,
+					fabs( ad->dezinger_threshold ) );
+
+		MX_HRT_END( measurement );
+
+		MX_HRT_RESULTS( measurement, fname,
+			"Total image dezingering time." );
+
+		if ( mx_status.code != MXE_SUCCESS ) {
+			mxp_area_detector_free_correction_struct( ad, corr );
+			return mx_status;
+		}
+
+#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
 		/* Get a pointer to the destination array. */
 
 		mx_status = mx_image_get_image_data_pointer( dest_frame,
@@ -316,9 +376,29 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 			dest_array[i] = mx_round( temp_double );
 		}
 
-		mxp_area_detector_free_correction_struct( ad, corr );
+#endif /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
+		/* Set the image frame exposure time. */
+
+		exposure_timespec =
+	    mx_convert_seconds_to_high_resolution_time( corr->exposure_time );
+
+		MXIF_EXPOSURE_TIME_SEC(corr->destination_frame)
+						= exposure_timespec.tv_sec;
+
+		MXIF_EXPOSURE_TIME_NSEC(corr->destination_frame)
+						= exposure_timespec.tv_nsec;
+
+		/* Set the image frame timestamp to the current time. */
+
+		MXIF_TIMESTAMP_SEC(corr->destination_frame)
+						= time( &time_buffer );
+
+		MXIF_TIMESTAMP_NSEC(corr->destination_frame) = 0;
 
 		/* Return with the satisfaction of a job well done. */
+
+		mxp_area_detector_free_correction_struct( ad, corr );
 
 		MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
 		MX_DEBUG(-2,
@@ -340,11 +420,14 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	MX_AREA_DETECTOR_CORRECTION_MEASUREMENT *corr;
 	MX_LIST_HEAD *list_head;
 	MX_VIRTUAL_TIMER *oneshot_timer;
-	void *void_image_data_pointer;
-	double exposure_time, frame_time, detector_readout_time;
-	long num_exposures, pixels_per_frame;
-	size_t image_length;
+	double frame_time, detector_readout_time;
+	long pixels_per_frame;
 	mx_status_type mx_status;
+
+#if (MX_AREA_DETECTOR_USE_DEZINGER == FALSE )
+	void *void_image_data_pointer;
+	size_t image_length;
+#endif
 
 #if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
@@ -386,19 +469,6 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	 * by a callback.
 	 */
 
-	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
-
-	exposure_time = ad->correction_measurement_time;
-
-	num_exposures = ad->num_correction_measurements;
-
-	if ( num_exposures <= 0 ) {
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-		"Illegal number of exposures (%ld) requested for "
-		"area detector '%s'.  The minimum number of exposures "
-		"allowed is 1.",  num_exposures, record->name );
-	}
-
 	/* Allocate a structure to contain the current state of
 	 * the correction measurement process.
 	 */
@@ -415,6 +485,19 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 	memset( corr, 0, sizeof(MX_AREA_DETECTOR_CORRECTION_MEASUREMENT) );
 
 	corr->area_detector = ad;
+
+	corr->exposure_time = ad->correction_measurement_time;
+
+	corr->num_exposures = ad->num_correction_measurements;
+
+	if ( corr->num_exposures <= 0 ) {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Illegal number of exposures (%ld) requested for "
+		"area detector '%s'.  The minimum number of exposures "
+		"allowed is 1.",  corr->num_exposures, record->name );
+	}
+
+	pixels_per_frame = ad->framesize[0] * ad->framesize[1]; 
 
 	/* The correction frames will originally be read into the image frame.
 	 * We must make sure that the image frame is big enough to hold
@@ -464,6 +547,22 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
+#if MX_AREA_DETECTOR_USE_DEZINGER
+
+	corr->dezinger_frame_array =
+		calloc( corr->num_exposures, sizeof(MX_IMAGE_FRAME *) );
+
+	if ( corr->dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
+		mxp_area_detector_free_correction_struct( NULL, corr );
+
+		return mx_error( MXE_OUT_OF_MEMORY, fname,
+		"Ran out of memory trying to allocate "
+		"a %ld element array of MX_IMAGE_FRAME pointers.", 
+			corr->num_exposures );
+	}
+
+#else /* not MX_AREA_DETECTOR_USE_DEZINGER */
+
 	/* Get a pointer to the destination array. */
 
 	mx_status = mx_image_get_image_data_pointer( corr->destination_frame,
@@ -489,6 +588,8 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		"a %ld element array of doubles.", pixels_per_frame );
 	}
 
+#endif /* MX_AREA_DETECTOR_USE_DEZINGER */
+
 	/* Compute the time between the start of successive frames. */
 
 	mx_status = mx_area_detector_get_detector_readout_time( record,
@@ -499,15 +600,15 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-	frame_time = exposure_time + detector_readout_time;
+	frame_time = corr->exposure_time + detector_readout_time;
 
 	/* Setup a multiframe sequence that will acquire all of
 	 * the frames needed to compute the correction frame.
 	 */
 
 	mx_status = mx_area_detector_set_multiframe_mode( record,
-							num_exposures,
-							exposure_time,
+							corr->num_exposures,
+							corr->exposure_time,
 							frame_time );
 	if ( mx_status.code != MXE_SUCCESS ) {
 		mxp_area_detector_free_correction_struct( NULL, corr );
@@ -581,7 +682,7 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
-	corr->num_frames_summed = 0;
+	corr->num_frames_read = 0;
 	corr->num_unread_frames = 0;
 
 	/* Save the correction measurement structure in the

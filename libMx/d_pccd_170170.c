@@ -1664,6 +1664,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
 			fname, comm_fpga_version ));
 #endif
+	/* Insert 3 seconds between consecutive correction frame meaurements
+	 * in one-shot mode.
+	 */
+
+	ad->correction_frame_delay = 3.0;
 
 	/* The PCCD-170170 camera generates 16 bit per pixel images. */
 

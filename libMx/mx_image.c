@@ -865,7 +865,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 	static const char fname[] = "mx_image_dezinger()";
 
 	MX_IMAGE_FRAME *dz_frame, *original_frame;
-	unsigned long i;
+	unsigned long i, num_pixels;
 	double diff;
 
 	if ( original_frame_array == (MX_IMAGE_FRAME **) NULL ) {
@@ -992,7 +992,17 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 		"16-bit greyscale images." );
 	}
 
+	num_pixels = dz_frame->image_length / sizeof(uint16_t);
+
+#if 1
+	if (0) {
+#else
 	if ( num_original_frames == 2 ) {
+#endif
+		/* FIXME: It is more consistent to use the standard deviation
+		 * for 2 frames.
+		 */
+
 		/* This method checks to see if the relative difference
 		 * between the two original pixels is greater than the
 		 * specified threshold.  If so, then the smaller of the
@@ -1009,7 +1019,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 		original_image_data_0 = original_frame_array[0]->image_data;
 		original_image_data_1 = original_frame_array[1]->image_data;
 
-		for ( i = 0; i < dz_frame->image_length; i++ ) {
+		for ( i = 0; i < num_pixels; i++ ) {
 
 			pixel0 = original_image_data_0[i];
 			pixel1 = original_image_data_1[i];
@@ -1043,7 +1053,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 		dz_image_data = dz_frame->image_data;
 
-		for ( i = 0; i < dz_frame->image_length; i++ ) {
+		for ( i = 0; i < num_pixels; i++ ) {
 
 			/* First compute the mean. */
 
@@ -1052,7 +1062,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			for ( j = 0; j < num_original_frames; j++ ) {
 
 				original_image_data =
-					original_frame_array[i]->image_data;
+					original_frame_array[j]->image_data;
 
 				pixel = original_image_data[i];
 
@@ -1068,7 +1078,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			for ( j = 0; j < num_original_frames; j++ ) {
 
 				original_image_data =
-					original_frame_array[i]->image_data;
+					original_frame_array[j]->image_data;
 
 				pixel = original_image_data[i];
 
@@ -1085,28 +1095,33 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			 * left out of the sum.
 			 */
 
-			dz_sum = 0.0;
+			scaled_threshold = mx_multiply_safely( threshold,
+							standard_deviation );
 
-			dz_num_frames = 0;
+			if ( fabs(scaled_threshold) < 1.0e-30 ) {
+				dz_image_data[i] = (uint16_t) mx_round(mean);
+			} else {
+				dz_sum = 0.0;
 
-			scaled_threshold = threshold * standard_deviation;
+				dz_num_frames = 0;
 
-			for ( j = 0; j < num_original_frames; j++ ) {
+				for ( j = 0; j < num_original_frames; j++ ) {
 
-				original_image_data =
-					original_frame_array[i]->image_data;
+					original_image_data =
+					    original_frame_array[j]->image_data;
 
-				pixel = original_image_data[i];
+					pixel = original_image_data[i];
 
-				if ( (pixel - mean) < scaled_threshold ) {
-					dz_sum += pixel;
-					dz_num_frames += 1L;
+					if ((pixel - mean) < scaled_threshold) {
+						dz_sum += pixel;
+						dz_num_frames += 1L;
+					}
 				}
+
+				dz_mean = dz_sum / (double) dz_num_frames;
+
+				dz_image_data[i] = (uint16_t) mx_round(dz_mean);
 			}
-
-			dz_mean = dz_sum / (double) dz_num_frames;
-
-			dz_image_data[i] = (uint16_t) mx_round( dz_mean );
 		}
 	}
 
