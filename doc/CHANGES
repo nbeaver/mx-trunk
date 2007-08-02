@@ -1,3 +1,151 @@
+Version 1.5.0 (not yet released - changelog current as of SVN revision 853):
+	A major feature of this release is full functionality for the
+	PCCD-170170 area detector from Aviex LLC.  This has involved
+	upgrades to the 'pccd_170170' driver, the 'epix_xclib' related
+	drivers, and the 'network_area_detector' driver.  The detector
+	system now supports full framed and binned mode, multiframe
+	image capture sequences, streak camera sequences, and subimage
+	mode sequences.
+
+	[FIXME - Finish the description of PCCD-170170 related stuff later.]
+
+	New support has been added for event callbacks in MX servers.  For
+        this release, event callbacks are not enabled by default.  If you
+	want server callbacks, you must add the command line argument '-c'
+	to the 'mxserver' command line.  In later MX releases, event
+	callbacks will be enabled by default.
+
+	[FIXME - The value changed infrastructure is only partially complete.]
+
+	So far the following kinds of callbacks have been implemented:
+
+	    Value changed poll - This is a callback that periodically
+		reads values from MX server controlled hardware.  This
+		callback sends 'value changed' callbacks to MX clients
+		that have requested them.  The hardware is only polled
+		if a client has requested 'value changed' callbacks for
+		that device.  Otherwise the hardware is not polled.
+
+	    Backlash callback - If an MX client tells the MX server to
+		move a motor and the move will require backlash correction,
+		the MX server no longer blocks all MX clients until the
+		backlash correction is complete.  Instead, the MX server
+		starts the move to the backlash position and then schedules
+		a backlash callback to be invoked at a later date.
+
+		When the backlash callback is invoked, it checks to see
+		if the backlash move has completed.  If the move has
+		completed, the backlash callback starts the main move
+		and then exits.  If the move is _not_ complete, then
+		the backlash callback reschedules itself to be invoked
+		at a later date.
+
+	    Function callback - This is a relatively generic kind of
+		callback.  For this kind of callback, application code
+		must setup and start an MX virtual timer, with the
+		function mx_callback_standard_vtimer_handler() as the
+		callback function and a pointer to an MX_CALLBACK_MESSAGE
+		structure as the callback argument.  When invoked,
+		mx_callback_standard_vtimer_handler() will arrange for
+		the application code's callback function to be invoked.
+		If the application wants the callback to be invoked
+		periodically, then the application's callback function
+		is responsible for rescheduling the next invocation
+		of the callback.
+
+		At present, function callbacks are used by the new MX
+		area detector class to implement asynchronous dark
+		current and flood field measurements.  If asynchronous
+		messages of this sort are used, the area detector code
+		does not block until the dark current or flood field
+		measurement is complete.  Instead, it sets a bit in
+		the area detector's status word so that clients can
+		tell when the correction measurement sequence completes.
+
+	New MX device drivers:
+
+	    Camera Link drivers:
+		camera_link_api - This driver dynamically loads a vendor
+			supplied Camera Link DLL or shared library and
+			then exports it to MX clients using the MX
+			Camera Link API.
+
+		soft_camera_link - This driver provides a software
+			emulated Camera Link serial interface.
+
+	    Digital I/O drivers:
+		epix_xclib_dinput -
+		epix_xclib_doutput - These are digital I/O drivers for
+			digital input and output ports attached to video
+			imaging boards from EPIX, Inc.
+
+	    RS-232 driver:
+		edt_rs232 - This driver provides access to serial ports
+			on video imaging boards from EDT.
+
+		epix_rs232 - This driver provides access to serial ports
+			on video imaging boards from Epix, Inc.
+
+	    Video input driver:
+		file_vinput - This is a video input driver that reads
+			individual video frames from a set of image files
+			in a user specified directory.  The primary 
+			intended use for this driver is to provide frames
+			for a simulated area detector.
+
+	The 'mxsave' and 'mxrestore' scripts have been added.  These are
+	wrappers around the modern version of 'mxupdate' that allow the
+	user to manually save or restore user-specified groups of MX
+	database parameters.  This is in addition to mxupdate's normal
+	automatic save and restore functionality.
+
+	An /etc/init.d style 'pixci' script has been added to support
+	automatic loading of the EPIX 'pixci' module on systems with
+	EPIX, Inc. cameras installed.
+
+	Updates have been made to the EDT video input drivers.  However,
+	the current versions of the drivers are not yet fully functional.
+
+	Cross-platform support for anonymous pipes has been added.  See
+	"mx_pipe.h" for the details.  The new pipe functions are used by
+	the new event callback system described above.  On POSIX systems,
+	pipe writes are guaranteed to be atomic for writes of less than
+	or equal to PIPE_BUF bytes.  PIPE_BUF is guaranteed to have a 
+	value of 512 bytes or more.  On Linux, it is 4096.
+
+	Support has been added for implementing the POSIX style directory
+	interface (opendir, closedir, readdir, rewinddir) on non-POSIX
+	systems such as Microsoft Windows.  Portable programs should
+	include "mx_dirent.h" rather than <dirent.h>.
+
+	Cross-platform support has been added for dynamically loading 
+	DLLs and shared libraries.  You can access the new functions via
+	the "mx_dynamic_library.h".
+
+	A new set of generic linked list handling functions has been added.
+	The new functions are defined in "mx_list.h".
+
+	Added a new mx_get_system_boot_time() which reports the most recent
+	system boot time in a 'struct timespec' structure.  On some platforms,
+	this is used to help convert internal operating system times into
+	absolute times.
+
+	The mx_get_process_affinity_mask() and mx_set_process_affinity_mask()
+	functions have been added to control the binding of a process to
+	particular CPUs on multi-CPU systems.  The most common reason for
+	setting the processor affinity is to get monotonically increasing
+	CPU times on multi-CPU systems where the clocks on the various CPUs
+	are not guaranteed to have the same value.  This is an issue on
+	recent versions of 32-bit and 64-bit versions of x86 CPUs.  Process
+	affinity mask support has been added for Linux, Windows, Solaris,
+	and Irix.  Unfortunately, MacOS X does not appear to provide a way
+	of controlling the processor affinity.
+
+	Windows resource files for 'mxserver' and 'motor' have been added
+	that contain VERSIONINFO resources for the executable.  Typically,
+	some of these will show up in Process Explorer under the Description
+	and Company Name columns.
+
 Version 1.4.2 (07/27/07):
 	Fixed a bug that made it difficult to terminate running XAFS scans.
 

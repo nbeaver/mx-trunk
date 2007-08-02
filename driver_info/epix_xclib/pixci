@@ -24,7 +24,8 @@ modulename="pixci_i386"
 # by the PIXCI driver.
 
 #kbytes=65536
-kbytes=655360
+#kbytes=655360
+kbytes=2097152
 
 case $1 in
     'start' )

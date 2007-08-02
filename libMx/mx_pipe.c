@@ -456,6 +456,7 @@ mx_pipe_set_blocking_mode( MX_PIPE *mx_pipe,
 
 #elif defined(OS_UNIX) || defined(OS_CYGWIN)
 
+#include <limits.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 
@@ -674,6 +675,14 @@ mx_pipe_write( MX_PIPE *mx_pipe,
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	if ( bytes_to_write > PIPE_BUF ) {
+		mx_warning( "You have requested to write %ld bytes "
+		"to the pipe %p.  Writes of greater than %d (PIPE_BUF) bytes "
+		"are not guaranteed to be atomic and may be interleaved with "
+		"bytes from other processes, threads, or signal handlers.",
+			(long) bytes_to_write, mx_pipe, PIPE_BUF );
+	}
 
 	write_status = write( unix_pipe->write_fd, buffer, bytes_to_write );
 
