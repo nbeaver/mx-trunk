@@ -190,14 +190,6 @@ typedef struct mx_area_detector_type {
 	double correction_measurement_time;
 	long num_correction_measurements;
 
-	/* correction_frame_delay is a time interval that is inserted
-	 * between the measurement of successive correction frames.
-	 * This is for detectors that need some time interval between
-	 * the measurements.
-	 */
-
-	double correction_frame_delay;	/* in seconds */
-
 	/* dezinger_threshold is use to determine which pixels are to be
 	 * thrown away during dezingering.
 	 */
@@ -282,9 +274,8 @@ typedef struct mx_area_detector_type {
 #define MXLV_AD_CORRECTION_MEASUREMENT_TYPE	12044
 #define MXLV_AD_CORRECTION_MEASUREMENT_TIME	12045
 #define MXLV_AD_NUM_CORRECTION_MEASUREMENTS	12046
-#define MXLV_AD_CORRECTION_FRAME_DELAY		12047
-#define MXLV_AD_DEZINGER_THRESHOLD		12048
-#define MXLV_AD_USE_SCALED_DARK_CURRENT		12049
+#define MXLV_AD_DEZINGER_THRESHOLD		12047
+#define MXLV_AD_USE_SCALED_DARK_CURRENT		12048
 
 #define MXLV_AD_MASK_FILENAME			12101
 #define MXLV_AD_BIAS_FILENAME			12102
@@ -514,12 +505,6 @@ typedef struct mx_area_detector_type {
   {-1, -1, "bias_frame_buffer", MXFT_CHAR, NULL, 1, {0}, \
 	MXF_REC_CLASS_STRUCT, offsetof(MX_AREA_DETECTOR, bias_frame_buffer),\
 	{sizeof(char)}, NULL, (MXFF_READ_ONLY | MXFF_VARARGS)}, \
-  \
-  {MXLV_AD_CORRECTION_FRAME_DELAY, -1, "correction_frame_delay", \
-  						MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, \
-			offsetof(MX_AREA_DETECTOR, correction_frame_delay), \
-	{0}, NULL, 0}, \
   \
   {MXLV_AD_DEZINGER_THRESHOLD, -1, "dezinger_threshold", \
   						MXFT_DOUBLE, NULL, 0, {0}, \

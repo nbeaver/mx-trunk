@@ -216,7 +216,6 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->image_frame_data = NULL;
 
 	ad->transfer_destination_frame = NULL;
-	ad->correction_frame_delay = 0.0;
 	ad->dezinger_threshold = DBL_MAX;
 
 	ad->frame_filename[0] = '\0';
@@ -3680,7 +3679,6 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	double exposure_time;
 	struct timespec exposure_timespec;
 	long i, n, num_exposures, pixels_per_frame;
-	unsigned long delay_ms;
 	time_t time_buffer;
 	mx_bool_type busy;
 	mx_status_type mx_status, mx_status2;
@@ -3972,9 +3970,7 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		}
 #endif /* not MX_AREA_DETECTOR_USE_DEZINGER */
 
-		delay_ms = mx_round( 1000.0 * ad->correction_frame_delay );
-
-		mx_msleep(delay_ms);
+		mx_msleep(10);
 	}
 
 #if MX_AREA_DETECTOR_DEBUG

@@ -17,6 +17,8 @@
 
 #define MX_IMAGE_DEBUG		TRUE
 
+#define MX_IMAGE_TEST_DEZINGER	TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -1134,6 +1136,13 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 					if ((pixel - mean) < scaled_threshold) {
 						dz_sum += pixel;
 						dz_num_frames += 1L;
+#if MX_IMAGE_TEST_DEZINGER
+					MX_DEBUG(-2,(
+			"%s: Discarding pixel value %g at location %lu, "
+			"frame = %lu, mean = %g, scaled_threshold = %g",
+						fname, pixel, i, j,
+						mean, scaled_threshold));
+#endif
 					}
 				}
 

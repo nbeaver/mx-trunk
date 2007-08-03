@@ -24,6 +24,8 @@
 
 #define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
 
+#define MXD_PCCD_170170_TEST_DEZINGER			TRUE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1664,12 +1666,6 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: communications FPGA version = %lu",
 			fname, comm_fpga_version ));
 #endif
-	/* Insert 3 seconds between consecutive correction frame meaurements
-	 * in one-shot mode.
-	 */
-
-	ad->correction_frame_delay = 3.0;
-
 	/* The PCCD-170170 camera generates 16 bit per pixel images. */
 
 	vinput->bits_per_pixel = 16;
@@ -1910,6 +1906,24 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+#if MXD_PCCD_170170_TEST_DEZINGER
+	/* If we are doing a dezinger test, provide a seed value for the
+	 * random number generator.  The seed does not need to be very
+	 * random, so we just use the computer's high resolution clock
+	 * to generate the seed.
+	 */
+
+	{
+		struct timespec hrt;
+
+		hrt = mx_high_resolution_time();
+
+		srand( hrt.tv_sec );
+	}
+
+	ad->dezinger_threshold = 2.0;
+#endif
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -2492,6 +2506,30 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 							ad->image_frame,
 							pccd_170170->raw_frame);
 	}
+
+#if MXD_PCCD_170170_TEST_DEZINGER
+	/* If we are testing the dezingering logic, we potentially
+	 * introduce fake zingers here.
+	 */
+
+	{
+		uint16_t *image_data;
+		int i, num_random_values, random_location, random_value;
+
+		image_data = ad->image_frame->image_data;
+
+		num_random_values = rand() % 4;
+
+		for ( i = 0; i < num_random_values; i++ ) {
+			random_location = rand()
+			   % (ad->image_frame->image_length / sizeof(uint16_t));
+
+			random_value = rand() % 65536;
+
+			image_data[random_location] = random_value;
+		}
+	}
+#endif
 
 	return mx_status;
 }
