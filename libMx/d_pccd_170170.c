@@ -2527,6 +2527,10 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 			random_value = rand() % 65536;
 
 			image_data[random_location] = random_value;
+
+			MX_DEBUG(-2,("%s: Replaced pixel %d at location %d "
+			"with the value %d.", fname, random_location,
+				random_value));
 		}
 	}
 #endif
