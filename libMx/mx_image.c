@@ -867,6 +867,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 	MX_IMAGE_FRAME *dz_frame, *original_frame;
 	unsigned long i, num_pixels;
 	double diff;
+	mx_bool_type skip_dezinger;
 
 	if ( original_frame_array == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
@@ -888,6 +889,8 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 		"The number of original frames to be dezingered (%lu) "
 		"is less than the minimum value of 2.", num_original_frames );
 	}
+
+	threshold = fabs(threshold);
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for %lu image frames.",
@@ -994,6 +997,16 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 
 	num_pixels = dz_frame->image_length / sizeof(uint16_t);
 
+	/* If the dezinger threshold is very close to DBL_MAX, then we
+	 * do not dezinger the image.
+	 */
+
+	if ( threshold > (DBL_MAX / 1.01) ) {
+		skip_dezinger = TRUE;
+	} else {
+		skip_dezinger = FALSE;
+	}
+
 #if 1
 	if (0) {
 #else
@@ -1070,6 +1083,12 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 			}
 
 			mean = sum / (double) num_original_frames;
+
+			if ( skip_dezinger ) {
+				dz_image_data[i] = (uint16_t) mx_round(mean);
+
+				continue;  /* Go back to the top of the loop. */
+			}
 
 			/* Next compute the standard deviation. */
 
