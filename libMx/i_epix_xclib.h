@@ -18,6 +18,10 @@
 #ifndef __I_EPIX_XCLIB_H__
 #define __I_EPIX_XCLIB_H__
 
+/* An error message buffer length of 1024 is recommended by the XCLIB manual. */
+
+#define MXI_EPIX_ERROR_MESSAGE_LENGTH	1024
+
 /* Flag values for the 'epix_xclib_flags' field. */
 
 #define MXF_EPIX_USE_CLCCSE_REGISTER    0x1

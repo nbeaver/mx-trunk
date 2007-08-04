@@ -1985,7 +1985,7 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	int busy;
 	pxbuffer_t last_buffer;
 	int epix_status;
-	char error_message[1024];	/* 1024 is recommended by the manual. */
+	char error_message[MXI_EPIX_ERROR_MESSAGE_LENGTH+1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -2211,7 +2211,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 				checksum += image_data16[i];
 			}
 			MX_DEBUG(-2,("%s: Image checksum = %#x",
-				fname, (int) checksum));
+					fname, (int) checksum));
 		}
 #endif
 	} else {
@@ -2228,22 +2228,36 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	/* Was the read successful? */
 
 	if ( result < 0 ) {
+		/* Got an error return. */
+
 		mxi_epix_xclib_error_message( epix_xclib_vinput->unitmap,
-			result, error_message, sizeof(error_message) ); 
+				result, error_message, sizeof(error_message) ); 
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"An error occurred while reading a %lu byte image frame "
-		"from video input '%s'.  Error = '%s'.",
-			(unsigned long) frame->image_length,
-			vinput->record->name, error_message );
+			"An error occurred while reading a %lu byte image "
+			"frame from video input '%s'.  Error = '%s'.",
+				(unsigned long) frame->image_length,
+				vinput->record->name, error_message );
+	} else
+	if ( result == 0 ) {
+		/* Got no bytes back.  We will try again. */
+
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+			"No bytes were available to be read from the "
+			"imaging board for video input record '%s'.",
+				vinput->record->name );
 	} else
 	if ( result < frame->image_length ) {
+		/* Buffer underrun. */
+
 		return mx_error( MXE_UNEXPECTED_END_OF_DATA, fname,
-		"Read only %ld bytes from video input '%s' when we were "
-		"expecting to read %lu bytes.",
-			result, vinput->record->name,
-			(unsigned long) frame->image_length );
+			"Read only %ld bytes from video input '%s' when we "
+			"were expecting to read %lu bytes.",
+				result, vinput->record->name,
+				(unsigned long) frame->image_length );
 	}
+
+	/* If we get here, we successfully read the image data. */
 
 	/* Get the timestamp for the frame. */
 

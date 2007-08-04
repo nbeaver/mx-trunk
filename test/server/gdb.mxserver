@@ -1,0 +1,5 @@
+break main
+handle SIGUSR1 nostop
+run -p 9827 -f mpccd_170170_server.dat -C msoftsrv.acl -t -c -A
+break mx_area_detector_process_function
+continue

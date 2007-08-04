@@ -1016,11 +1016,21 @@ mxserver_main( int argc, char *argv[] )
 		saved_errno = errno;
 
 		if ( num_fds < 0 ) {
-			(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
-			"Error in select() while waiting for events.  "
-			"Errno = %d.  Error string = '%s'.",
-			saved_errno, strerror( saved_errno ) );
+			if ( saved_errno == EINTR ) {
+				MX_DEBUG(-2,("%s: EINTR returned by select()",
+					fname ));
 
+				/* Receiving an EINTR errno from select()
+				 * is normal.  It just means that a signal
+				 * handler fired while we were blocked in
+				 * the select() system call.
+				 */
+			} else {
+				(void) mx_error( MXE_NETWORK_IO_ERROR, fname,
+				"Error in select() while waiting for events.  "
+				"Errno = %d.  Error string = '%s'.",
+				saved_errno, strerror( saved_errno ) );
+			}
 		} else if ( num_fds == 0 ) {
 
 			/* Didn't get any events, so do nothing here. */

@@ -1631,7 +1631,7 @@ mxd_network_area_detector_set_parameter( MX_AREA_DETECTOR *ad )
 		break;
 	}
 
-	return MX_SUCCESSFUL_RESULT;
+	return mx_status;
 }
 
 MX_EXPORT mx_status_type

@@ -24,8 +24,6 @@
 
 #define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
 
-#define MXD_PCCD_170170_TEST_DEZINGER			TRUE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -1435,6 +1433,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	unsigned long control_register_value;
 	size_t array_size;
 	long master_clock;
+	struct timespec hrt;
 	mx_bool_type camera_is_master;
 	mx_status_type mx_status;
 
@@ -1907,23 +1906,22 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if MXD_PCCD_170170_TEST_DEZINGER
-	/* If we are doing a dezinger test, provide a seed value for the
-	 * random number generator.  The seed does not need to be very
-	 * random, so we just use the computer's high resolution clock
-	 * to generate the seed.
-	 */
+	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
 
-	{
-		struct timespec hrt;
-
+		/* If we are doing a dezinger test, provide a seed value for
+		 * the random number generator.  The seed does not need to be
+		 * very random, so we just use the computer's high resolution
+		 * clock to generate the seed.
+		 */
+#if 1
+		hrt.tv_sec = 1;
+#else
 		hrt = mx_high_resolution_time();
-
-		srand( hrt.tv_sec );
-	}
-
-	ad->dezinger_threshold = 2.0;
 #endif
+		srand( hrt.tv_sec );
+
+		ad->dezinger_threshold = 2.0;
+	}
 
 #if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s complete for record '%s'.", fname, record->name));
@@ -2507,12 +2505,12 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 							pccd_170170->raw_frame);
 	}
 
-#if MXD_PCCD_170170_TEST_DEZINGER
-	/* If we are testing the dezingering logic, we potentially
-	 * introduce fake zingers here.
-	 */
+	if ( flags & MXF_PCCD_170170_TEST_DEZINGER ) {
 
-	{
+		/* If we are testing the dezingering logic, we potentially
+		 * introduce fake zingers here.
+		 */
+
 		uint16_t *image_data;
 		int i, num_random_values, random_location, random_value;
 
@@ -2528,12 +2526,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 			image_data[random_location] = random_value;
 
-			MX_DEBUG(-2,("%s: Replaced pixel %d at location %d "
-			"with the value %d.", fname, random_location,
-				random_value));
+			MX_DEBUG(-2,
+			("%s: Replaced pixel %d with the zinger value %d.",
+				fname, random_location, random_value));
 		}
 	}
-#endif
 
 	return mx_status;
 }
@@ -2961,6 +2958,34 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		pccd_170170->sector_array = NULL;
 
+		/* Update the maximum frame number. */
+
+		mx_status = mx_video_input_get_maximum_frame_number(
+					pccd_170170->video_input_record,
+					&(ad->maximum_frame_number) );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* Get the number of frames requested by the sequence. */
+
+		sp = &(ad->sequence_parameters);
+
+		mx_status = mx_sequence_get_num_frames( sp, &num_frames );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		if ( num_frames > (ad->maximum_frame_number + 1) ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The sequence requested for area detector '%s' "
+			"would have more frames (%ld) than the maximum "
+			"available (%ld) from video input '%s'.",
+				ad->record->name, num_frames,
+				ad->maximum_frame_number + 1,
+				pccd_170170->video_input_record->name );
+		}
+
 		/* Get the old detector readout mode, since that will be
 		 * used by the following code.
 		 */
@@ -2981,8 +3006,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			fname, old_detector_readout_mode));
 #endif
 		/* Reprogram the detector head for the requested sequence. */
-
-		sp = &(ad->sequence_parameters);
 
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:

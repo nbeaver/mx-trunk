@@ -883,6 +883,7 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 		case MXLV_AD_STATUS:
 		case MXLV_AD_STOP:
 		case MXLV_AD_TOTAL_NUM_FRAMES:
+		case MXLV_AD_TOTAL_SEQUENCE_TIME:
 		case MXLV_AD_TRANSFER_FRAME:
 		case MXLV_AD_TRIGGER:
 		case MXLV_AD_TRIGGER_MODE:
@@ -1066,6 +1067,10 @@ mx_area_detector_process_function( void *record_ptr,
 				   ad->sequence_parameters.parameter_array[i]));
 			}
 #endif
+			break;
+		case MXLV_AD_TOTAL_SEQUENCE_TIME:
+			mx_status = mx_area_detector_get_total_sequence_time(
+								record, NULL );
 			break;
 		default:
 			MX_DEBUG(-1,(

@@ -1,0 +1,4 @@
+break main
+run -F ./mpccd_170170_client.dat -s ./spccd_170170_client.dat -i -A
+break motor_area_detector_fn
+continue

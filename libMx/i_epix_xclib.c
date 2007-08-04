@@ -771,33 +771,16 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 				0, unitmap, buffer_number, pxbstatus );
 
 	if ( epix_status != 0 ) {
-		/* Do not return just yet since we need to call
-		 * pxd_xclibEscaped() before returning.  Instead,
-		 * we save the MX status and return it at the
-		 * end of this function.
-		 */
-
-		mx_status = mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Error in xc->pxlib.goingBufStatus() for record '%s'.  "
-		"Error code = %d",
-			epix_xclib->record->name, epix_status );
-	}
-
-#if 0      /* WML - calling pxd_xclibEscaped() is not necessary
-            *       or useful here.
-            */
-
-	/* Return from the Structured Style Interface. */
-
-	epix_status = pxd_xclibEscaped(0, 0, 0);
-
-	if ( epix_status != 0 ) {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-		"Error in pxd_xclibEscaped() for record '%s'.  "
-		"Error code = %d",
-			epix_xclib->record->name, epix_status );
+			"Error in xc->pxlib.goingBufStatus() for record '%s'.  "
+			"Error code = %d, error message = '%s'.",
+			epix_xclib->record->name,
+			epix_status, pxd_mesgErrorCode( epix_status ) );
 	}
-#endif     /* WML */
+
+	/* Calling pxd_xclibEscaped() would abort an in-progress imaging
+	 * sequence, so we must not call it here.
+	 */
 
 #if 1
 	MX_DEBUG(-2,("%s: AFTER pxd_goneLive() = %d",
@@ -814,7 +797,7 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	MX_DEBUG(-2,("%s: captgpin = %d", fname, pxbstatus->captgpin));
 #endif
 
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 #endif /* HAVE_EPIX_XCLIB */

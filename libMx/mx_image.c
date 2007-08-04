@@ -1009,49 +1009,7 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 		skip_dezinger = FALSE;
 	}
 
-#if 1
-	if (0) {
-#else
-	if ( num_original_frames == 2 ) {
-#endif
-		/* FIXME: It is more consistent to use the standard deviation
-		 * for 2 frames.
-		 */
-
-		/* This method checks to see if the relative difference
-		 * between the two original pixels is greater than the
-		 * specified threshold.  If so, then the smaller of the
-		 * two is written to the dezingered array.  Otherwise,
-		 * the average of the two is written to the dezingered
-		 * array.
-		 */
-
-		uint16_t *dz_image_data;
-		uint16_t *original_image_data_0, *original_image_data_1;
-		double pixel0, pixel1;
-
-		dz_image_data = dz_frame->image_data;
-		original_image_data_0 = original_frame_array[0]->image_data;
-		original_image_data_1 = original_frame_array[1]->image_data;
-
-		for ( i = 0; i < num_pixels; i++ ) {
-
-			pixel0 = original_image_data_0[i];
-			pixel1 = original_image_data_1[i];
-
-			diff = mx_difference( pixel0, pixel1 );
-
-			if ( diff < threshold ) {
-				dz_image_data[i] = (uint16_t)
-					mx_round( (pixel0 + pixel1) / 2.0 );
-			} else
-			if ( pixel1 >= pixel0 ) {
-				dz_image_data[i] = original_image_data_0[i];
-			} else {
-				dz_image_data[i] = original_image_data_1[i];
-			}
-		}
-	} else {
+	if (1) {
 		/* num_original_frames > 2 */
 
 		/* For this case, we compute the standard deviation of
@@ -1137,11 +1095,11 @@ mx_image_dezinger( MX_IMAGE_FRAME **dezingered_frame,
 						dz_sum += pixel;
 						dz_num_frames += 1L;
 #if MX_IMAGE_TEST_DEZINGER
-					MX_DEBUG(-2,(
+						MX_DEBUG(-2,(
 			"%s: Discarding pixel value %g at location %lu, "
 			"frame = %lu, mean = %g, scaled_threshold = %g",
-						fname, pixel, i, j,
-						mean, scaled_threshold));
+							fname, pixel, i, j,
+							mean,scaled_threshold));
 #endif
 					}
 				}

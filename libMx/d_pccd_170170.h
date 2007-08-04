@@ -27,6 +27,7 @@
 #define MXF_PCCD_170170_NUM_FRAMES_KLUDGE		0x20
 #define MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE		0x40
 #define MXF_PCCD_170170_DARK_CURRENT_KLUDGE		0x80
+#define MXF_PCCD_170170_TEST_DEZINGER			0x100
 
 /* Scale factors for converting raw frame dimensions
  * into user frame dimensions.
