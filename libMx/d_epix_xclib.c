@@ -801,7 +801,7 @@ mxd_epix_xclib_write_test_image_to_device( MX_VIDEO_INPUT *vinput,
 		epix_xclib_vinput->write_test_value,
 		epix_xclib_vinput->num_write_test_array_bytes );
 
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: Writing a %lu byte array set to "
 		"the value %#x for record '%s'.",
 		fname, epix_xclib_vinput->num_write_test_array_bytes,
@@ -813,7 +813,7 @@ mxd_epix_xclib_write_test_image_to_device( MX_VIDEO_INPUT *vinput,
 				epix_xclib_vinput->write_test_array,
 		    epix_xclib_vinput->num_write_test_array_bytes / 2L,
 				"Grey" );
-#if 1
+#if 0
 	MX_DEBUG(-2,("%s: pxd_writeushort() epix_status = %d",
 		fname, epix_status));
 #endif
@@ -1913,18 +1913,21 @@ mxd_epix_xclib_get_last_frame_number( MX_VIDEO_INPUT *vinput )
 		if ( vinput->total_num_frames
 			== epix_xclib_vinput->old_total_num_frames )
 		{
+#if MXD_EPIX_XCLIB_DEBUG
 			MX_DEBUG(-2,("%s: MARKER 1", fname));
-
+#endif
 			vinput->last_frame_number = -1;
 		} else {
+#if MXD_EPIX_XCLIB_DEBUG
 			MX_DEBUG(-2,("%s: MARKER 2", fname));
-
+#endif
 			vinput->last_frame_number = captured_buffer - 1;
 			epix_xclib_vinput->new_sequence = FALSE;
 		}
 	} else {
+#if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: MARKER 3", fname));
-
+#endif
 		vinput->last_frame_number = captured_buffer - 1;
 	}
 
@@ -2665,7 +2668,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	case MXLV_VIN_FRAMESIZE:
 
-#if 1 || MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: setting '%s' framesize to (%lu, %lu)",
 			fname, vinput->record->name,
 			vinput->framesize[0], vinput->framesize[1]));
@@ -2729,7 +2732,7 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		}
 #endif   /* WML WML WML */
 
-#if 1 || MXD_EPIX_XCLIB_DEBUG
+#if MXD_EPIX_XCLIB_DEBUG
 		MX_DEBUG(-2,("%s: finished setting '%s' framesize.",
 			fname, vinput->record->name));
 #endif

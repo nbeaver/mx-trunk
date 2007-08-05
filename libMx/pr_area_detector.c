@@ -14,7 +14,7 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	FALSE
+#define PR_AREA_DETECTOR_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,9 +120,11 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 	callback_message = cb_message_ptr;
 
+#if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv"));
 	MX_DEBUG(-2,("%s invoked for callback message %p",
 		fname, callback_message));
+#endif
 
 	corr = callback_message->u.function.callback_args;
 
@@ -141,12 +143,14 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		return mx_status;
 	}
 
+#if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: last_frame_number = %ld, old_last_frame_number = %ld",
 		fname, last_frame_number, corr->old_last_frame_number));
 	MX_DEBUG(-2,("%s: total_num_frames = %ld, old_total_num_frames = %ld",
 		fname, total_num_frames, corr->old_total_num_frames));
 	MX_DEBUG(-2,("%s: ad_status = %#lx, old_status = %#lx",
 		fname, ad_status, corr->old_status));
+#endif
 
 	num_frames_difference = last_frame_number - corr->old_last_frame_number;
 
@@ -156,10 +160,12 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 		corr->num_unread_frames += num_frames_difference;
 	}
 
+#if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: num_frames_difference = %ld",
 		fname, num_frames_difference ));
 	MX_DEBUG(-2,("%s: num_unread_frames = %ld",
 		fname, corr->num_unread_frames ));
+#endif
 
 	/* Readout the frames and add them to sum_array. */
 
@@ -169,8 +175,10 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		/* Readout the frame into ad->image_frame. */
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Reading frame %ld",
 				fname, corr->num_frames_read));
+#endif
 
 		mx_status = mx_area_detector_readout_frame(
 				ad->record, corr->num_frames_read );
@@ -201,18 +209,12 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 				return mx_status;
 			}
 
+#if PR_AREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s: Correcting frame %ld",
 					fname, corr->num_frames_read));
-
-			MX_DEBUG(-2,
-		("%s: BEFORE correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
+#endif
 
 			mx_status = mx_area_detector_correct_frame(ad->record);
-
-			MX_DEBUG(-2,
-		("%s: AFTER correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
 
 			mx_status2 = mx_area_detector_set_correction_flags(
 					ad->record, saved_correction_flags );
@@ -259,8 +261,10 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		/* Add the pixels in this image to the sum array. */
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Adding frame %ld pixels to sum array.",
 			fname, corr->num_frames_read));
+#endif
 
 		sum_array = corr->sum_array;
 
@@ -305,9 +309,11 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		/* Return, knowing that we will be called again soon. */
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Callback virtual timer restarted.",fname));
 		MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+#endif
 
 		return mx_status;
 	} else {
@@ -400,9 +406,11 @@ mxp_area_detector_measure_correction_callback_function( void *cb_message_ptr )
 
 		mxp_area_detector_free_correction_struct( ad, corr );
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: Correction sequence complete.", fname));
 		MX_DEBUG(-2,
 		("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"));
+#endif
 
 		return MX_SUCCESSFUL_RESULT;;
 	}
@@ -454,8 +462,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		 * wait for the correction measurement to finish.
 		 */
 
+#if PR_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,
 	   ("%s: Performing synchronous correction frame measurement.", fname));
+#endif
 
 		mx_status = mx_area_detector_measure_correction_frame(
 				record, ad->correction_measurement_type,
@@ -717,8 +727,10 @@ mxp_area_detector_measure_correction_frame_handler( MX_RECORD *record,
 		return mx_status;
 	}
 
+#if PR_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: Callback virtual timer started.", fname));
 	MX_DEBUG(-2,("******************************************************"));
+#endif
 
 	return MX_SUCCESSFUL_RESULT;
 }
@@ -777,8 +789,10 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 	MX_IMAGE_FRAME *roi_frame;
 	mx_status_type mx_status;
 
-	MX_DEBUG( 2,("%s invoked for record '%s', field = '%s'",
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s', field = '%s'",
 			fname, record->name, record_field->name));
+#endif
 
 	/* Check to see if a full image frame has been read from 
 	 * the camera hardware yet.
@@ -808,10 +822,12 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 
 	ad->roi_frame_buffer = roi_frame->image_data;
 
-	MX_DEBUG( 2,("%s: roi_bytes_per_frame = %ld, roi_frame_buffer = %p",
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s: roi_bytes_per_frame = %ld, roi_frame_buffer = %p",
 		fname, ad->roi_bytes_per_frame, ad->roi_frame_buffer));
+#endif
 
-#if 0
+#if PR_AREA_DETECTOR_DEBUG
 	{
 		int i;
 		unsigned char c;
@@ -847,7 +863,9 @@ mx_setup_area_detector_process_functions( MX_RECORD *record )
 	MX_RECORD_FIELD *record_field_array;
 	long i;
 
-	MX_DEBUG( 2,("%s invoked.", fname));
+#if PR_AREA_DETECTOR_DEBUG
+	MX_DEBUG(-2,("%s invoked.", fname));
+#endif
 
 	record_field_array = record->record_field_array;
 
@@ -1073,7 +1091,7 @@ mx_area_detector_process_function( void *record_ptr,
 								record, NULL );
 			break;
 		default:
-			MX_DEBUG(-1,(
+			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_GET label value = %ld",
 				fname, record_field->label_value));
 			break;
@@ -1105,27 +1123,13 @@ mx_area_detector_process_function( void *record_ptr,
 			}
 			break;
 		case MXLV_AD_CORRECT_FRAME:
-			MX_DEBUG(-2,
-		("%s: BEFORE correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
-
 			mx_status = mx_area_detector_correct_frame( record );
-
-			MX_DEBUG(-2,
-		("%s: AFTER correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
 
 			break;
 		case MXLV_AD_CORRECTION_MEASUREMENT_TYPE:
-#if 0
-			mx_status = mx_area_detector_measure_correction_frame(
-					record, ad->correction_measurement_type,
-					ad->correction_measurement_time,
-					ad->num_correction_measurements );
-#else
 			mx_status =
 	    mxp_area_detector_measure_correction_frame_handler( record, ad );
-#endif
+
 			break;
 		case MXLV_AD_FRAMESIZE:
 			mx_status = mx_area_detector_set_framesize( record,
@@ -1237,7 +1241,7 @@ mx_area_detector_process_function( void *record_ptr,
 					record, &(ad->sequence_parameters) );
 			break;
 		default:
-			MX_DEBUG(-1,(
+			MX_DEBUG( 1,(
 			    "%s: *** Unknown MX_PROCESS_PUT label value = %ld",
 				fname, record_field->label_value));
 			break;

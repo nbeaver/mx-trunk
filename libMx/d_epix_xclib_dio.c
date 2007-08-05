@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_EPIX_XCLIB_DIO_DEBUG	TRUE
+#define MXD_EPIX_XCLIB_DIO_DEBUG	FALSE
 
 #include <stdio.h>
 

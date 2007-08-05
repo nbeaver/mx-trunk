@@ -1261,9 +1261,11 @@ mxd_network_area_detector_get_roi_frame( MX_AREA_DETECTOR *ad )
 			ad->record->name );
 	}
 
+#if 0
 	MXIF_SET_BYTES_PER_PIXEL(roi_frame, ad->bytes_per_pixel);
 
 	roi_frame->image_length    = ad->roi_bytes_per_frame;
+#endif
 
 	/* Now read the ROI frame into the MX_IMAGE_FRAME structure. */
 

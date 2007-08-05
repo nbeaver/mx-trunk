@@ -25,6 +25,7 @@
 #include "mx_util.h"
 #include "mx_record.h"
 #include "mx_driver.h"
+#include "mx_bit.h"
 #include "mx_hrt.h"
 #include "mx_hrt_debug.h"
 #include "mx_key.h"
@@ -198,6 +199,8 @@ mx_area_detector_finish_record_initialization( MX_RECORD *record )
 	ad->total_num_frames = -1;
 	ad->status = 0;
 	ad->extended_status[0] = '\0';
+
+	ad->byte_order = mx_native_byteorder();
 
 	ad->current_num_rois = ad->maximum_num_rois;
 	ad->roi_number = 0;
@@ -2659,8 +2662,6 @@ mx_area_detector_get_frame( MX_RECORD *record,
 			long frame_number,
 			MX_IMAGE_FRAME **image_frame )
 {
-	static const char fname[] = "mx_area_detector_get_frame()";
-
 	MX_AREA_DETECTOR *ad;
 	mx_status_type mx_status;
 
@@ -2676,13 +2677,7 @@ mx_area_detector_get_frame( MX_RECORD *record,
 
 	ad = record->record_class_struct;
 
-	MX_DEBUG(-2,("%s: BEFORE correcting frame.  correction_flags = %#lx",
-		fname, ad->correction_flags));
-
 	mx_status = mx_area_detector_correct_frame( record );
-
-	MX_DEBUG(-2,("%s: AFTER correcting frame.  correction_flags = %#lx",
-		fname, ad->correction_flags));
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -2820,8 +2815,10 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
 	mx_status_type ( *get_roi_frame_fn ) ( MX_AREA_DETECTOR * );
+	long row_framesize, column_framesize, image_format, byte_order;
+	double bytes_per_pixel;
 	unsigned long image_bytes_per_row;
-	unsigned long roi_bytes_per_frame, roi_bytes_per_row;
+	unsigned long roi_bytes_per_row;
 	unsigned long x_min, y_min, y, x_offset;
 	char *roi_row_ptr, *image_row_ptr, *roi_data_ptr, *image_data_ptr;
 	char *image_row_data_ptr;
@@ -2906,88 +2903,60 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* Fill in some parameters. */
 
-	MXIF_ROW_FRAMESIZE(*roi_frame) = ad->roi[1] - ad->roi[0] + 1;
-	MXIF_COLUMN_FRAMESIZE(*roi_frame) = ad->roi[3] - ad->roi[2] + 1;
+	row_framesize    = ad->roi[1] - ad->roi[0] + 1;
+	column_framesize = ad->roi[3] - ad->roi[2] + 1;
 
 	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
-	  MXIF_IMAGE_FORMAT(*roi_frame)    = ad->image_format;
-	  MXIF_BYTE_ORDER(*roi_frame)      = ad->byte_order;
-	  MXIF_SET_BYTES_PER_PIXEL(*roi_frame, ad->bytes_per_pixel);
+		image_format    = ad->image_format;
+		byte_order      = ad->byte_order;
+		bytes_per_pixel = ad->bytes_per_pixel;
 	} else {
-	  MXIF_IMAGE_FORMAT(*roi_frame)    = MXIF_IMAGE_FORMAT(image_frame);
-	  MXIF_BYTE_ORDER(*roi_frame)      = MXIF_BYTE_ORDER(image_frame);
-	  MXIF_SET_BYTES_PER_PIXEL(*roi_frame,
-				MXIF_BYTES_PER_PIXEL(image_frame));
+		image_format    = MXIF_IMAGE_FORMAT(image_frame);
+		byte_order      = MXIF_BYTE_ORDER(image_frame);
+		bytes_per_pixel = MXIF_BYTES_PER_PIXEL(image_frame);
 	}
 
-	roi_bytes_per_frame = MXIF_ROW_FRAMESIZE(*roi_frame)
-				* MXIF_COLUMN_FRAMESIZE(*roi_frame)
-				* MXIF_BYTES_PER_PIXEL(*roi_frame);
+	/* Make sure that the frame is big enough to hold the image data. */
 
-	/* See if the image buffer is already big enough for the image. */
+	mx_status = mx_image_alloc( roi_frame,
+				row_framesize,
+				column_framesize,
+				image_format,
+				byte_order,
+				bytes_per_pixel,
+				0, 0 );
 
-#if MX_AREA_DETECTOR_DEBUG
-	MX_DEBUG(-2,("%s: (*roi_frame)->image_data = %p",
-		fname, (*roi_frame)->image_data));
-	MX_DEBUG(-2,
-	("%s: (*roi_frame)->image_length = %lu, bytes_per_frame = %lu",
-		fname, (unsigned long) (*roi_frame)->image_length,
-		ad->bytes_per_frame));
-#endif
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
-	/* Setup the image data buffer. */
+	/* Fill in some more parameters. */
 
-	if ( ((*roi_frame)->image_length == 0) && (roi_bytes_per_frame == 0)) {
+	if ( image_frame == (MX_IMAGE_FRAME *) NULL ) {
+	    time_t time_buffer;
 
-		/* Zero length image buffers are not allowed. */
+	    MXIF_ROW_BINSIZE(*roi_frame)        = 1;
+	    MXIF_COLUMN_BINSIZE(*roi_frame)     = 1;
+	    MXIF_BITS_PER_PIXEL(*roi_frame)     = ad->bits_per_pixel;
+	    MXIF_EXPOSURE_TIME_SEC(*roi_frame)  = 0;
+	    MXIF_EXPOSURE_TIME_NSEC(*roi_frame) = 0;
+		
+	    /* Set the timestamp to the current time. */
 
-		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
-    "Area detector '%s' attempted to create a zero length ROI image buffer.",
-			record->name );
-
-	} else
-	if ( ( (*roi_frame)->image_data != NULL )
-	  && ( (*roi_frame)->image_length >= roi_bytes_per_frame ) )
-	{
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,
-		("%s: The image buffer is already big enough.", fname));
-#endif
+	    MXIF_TIMESTAMP_SEC(*roi_frame) = time( &time_buffer );
+	    MXIF_TIMESTAMP_NSEC(*roi_frame) = 0;
 	} else {
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: Allocating a new image buffer of %lu bytes.",
-			fname, roi_bytes_per_frame));
-#endif
-		/* If not, then allocate a new one. */
-
-		if ( (*roi_frame)->image_data != NULL ) {
-			free( (*roi_frame)->image_data );
-		}
-
-		(*roi_frame)->image_data = malloc( roi_bytes_per_frame );
-
-		if ( (*roi_frame)->image_data == NULL ) {
-			return mx_error( MXE_OUT_OF_MEMORY, fname,
-			"Cannot allocate a %ld byte ROI image buffer for "
-			"area detector '%s'.",
-				roi_bytes_per_frame, ad->record->name );
-		}
-
-#if MX_AREA_DETECTOR_DEBUG
-		MX_DEBUG(-2,("%s: allocated new frame buffer.", fname));
-#endif
+	    MXIF_ROW_BINSIZE(*roi_frame)     = MXIF_ROW_BINSIZE(image_frame);
+	    MXIF_COLUMN_BINSIZE(*roi_frame)  = MXIF_COLUMN_BINSIZE(image_frame);
+	    MXIF_BITS_PER_PIXEL(*roi_frame)  = MXIF_BITS_PER_PIXEL(image_frame);
+	    MXIF_EXPOSURE_TIME_SEC(*roi_frame)
+					= MXIF_EXPOSURE_TIME_SEC(image_frame);
+	    MXIF_EXPOSURE_TIME_NSEC(*roi_frame)
+					= MXIF_EXPOSURE_TIME_NSEC(image_frame);
+	    MXIF_TIMESTAMP_SEC(*roi_frame) = MXIF_TIMESTAMP_SEC(image_frame);
+	    MXIF_TIMESTAMP_NSEC(*roi_frame) = MXIF_TIMESTAMP_NSEC(image_frame);
 	}
 
-#if 1  /* FIXME!!! - This should not be present in the final version. */
-	memset( (*roi_frame)->image_data, 0, 50 );
-#endif
-
-	ad->roi_bytes_per_frame = roi_bytes_per_frame;
-
-	MXIF_SET_BYTES_PER_PIXEL(*roi_frame, ad->bytes_per_pixel);
-
-	(*roi_frame)->image_length = ad->roi_bytes_per_frame;
+	ad->roi_bytes_per_frame = (*roi_frame)->image_length;
 
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,
@@ -3149,7 +3118,7 @@ mx_area_detector_default_correct_frame( MX_AREA_DETECTOR *ad )
 				image_frame, mask_frame, bias_frame,
 				dark_current_frame, flood_field_frame );
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG
 	{
 		uint16_t *image_data_array;
 		long i;
@@ -3779,8 +3748,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 	dezinger_frame_array = calloc(num_exposures, sizeof(MX_IMAGE_FRAME *));
 
+#if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: dezinger_frame_array = %p",
 		fname, dezinger_frame_array));
+#endif
 
 	if ( dezinger_frame_array == (MX_IMAGE_FRAME **) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -3800,18 +3771,24 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#  if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: dest_frame = %p, void_image_data_pointer = %p",
 		fname, dest_frame, void_image_data_pointer));
+#  endif
 
 	dest_array = void_image_data_pointer;
 
+#  if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: dest_array = %p", fname, dest_array));
+#  endif
 
 	/* Allocate a double precision array to store intermediate sums. */
 
 	sum_array = calloc( pixels_per_frame, sizeof(double) );
 
+#  if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: sum_array = %p", fname, sum_array));
+#  endif
 
 	if ( sum_array == (double *) NULL ) {
 		return mx_error( MXE_OUT_OF_MEMORY, fname,
@@ -4003,7 +3980,8 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 		temp_double = sum_array[i] / num_exposures;
 
 		dest_array[i] = mx_round( temp_double );
-#  if 1
+
+#  if MX_AREA_DETECTOR_DEBUG
 		if ( i < 5 ) {
 			MX_DEBUG(-2,
 			("src_array[%ld] = %d, dest_array[%ld] = %d",
@@ -4244,15 +4222,7 @@ mx_area_detector_default_dezinger_correction( MX_AREA_DETECTOR *ad )
 				return mx_status;
 			}
 
-			MX_DEBUG(-2,
-		("%s: BEFORE correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
-
 			mx_status = mx_area_detector_correct_frame( ad->record);
-
-			MX_DEBUG(-2,
-		("%s: AFTER correcting frame.  correction_flags = %#lx",
-				fname, ad->correction_flags));
 
 			mx_status2 = mx_area_detector_set_correction_flags(
 					ad->record, saved_correction_flags );
@@ -4408,7 +4378,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			fname, dark_current_data_array));
 	MX_DEBUG(-2,("%s: flood_field_data_array = %p",
 			fname, flood_field_data_array));
-	MX_DEBUG(-10,("%s: ad->flood_field_average_intensity = %g",
+	MX_DEBUG(-2,("%s: ad->flood_field_average_intensity = %g",
 				fname, ad->flood_field_average_intensity ));
 #endif
 
@@ -4489,7 +4459,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			big_image_pixel = mx_round(
 			    flood_field_scale_factor * (double) image_pixel );
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG
 			if ( i < 10 ) {
 				MX_DEBUG(-10,
 ("%s: image_pixel = %d, flood_field_scale_factor = %g, big_image_pixel = %ld",

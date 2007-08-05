@@ -79,11 +79,7 @@ MX_AREA_DETECTOR_FUNCTION_LIST mxd_pccd_170170_function_list = {
 	NULL,
 	mxd_pccd_170170_get_parameter,
 	mxd_pccd_170170_set_parameter,
-#if 0
-	mxd_pccd_170170_measure_correction,
-#else
 	mx_area_detector_default_measure_correction
-#endif
 };
 
 MX_RECORD_FIELD_DEFAULTS mxd_pccd_170170_record_field_defaults[] = {
@@ -555,7 +551,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	if ( sp->sequence_type == MXT_SQ_STREAK_CAMERA ) {
 		mx_status = mxd_pccd_170170_descramble_streak_camera(
 				ad, pccd_170170, image_frame, raw_frame );
-#if 1
+
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,
 		("%s: Streak camera descrambling complete.", fname));
 #endif
@@ -585,7 +582,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		frame_data = image_frame->image_data;
 	}
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	{
 		long num_pixels;
 
@@ -662,6 +659,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 				* MXIF_COLUMN_FRAMESIZE(image_frame)
 				* ( sizeof(uint16_t) / 2L );
 
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 		MX_DEBUG(-2,("%s: num_lines_per_subimage = %ld",
 			fname, num_lines_per_subimage));
 		MX_DEBUG(-2,("%s: num_subimages = %ld", fname, num_subimages));
@@ -670,6 +668,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			fname, bytes_per_half_subimage));
 		MX_DEBUG(-2,("%s: bytes_per_half_image = %ld",
 			fname, bytes_per_half_image));
+#endif
 
 		for ( i = 0; i < num_subimages; i++ ) {
 			top_offset = bytes_per_half_image
@@ -696,7 +695,7 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		}
 	}
 
-#if 1
+#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	MX_DEBUG(-2,("%s: Image descrambling complete.", fname));
 #endif
 
@@ -1706,8 +1705,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: OLD control_register_value = %#lx",
 		fname, control_register_value));
+#endif
 
 	/* Put the detector head in full frame mode. */
 
@@ -1739,8 +1740,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Write out the new control register value. */
 
+#if MXD_PCCD_170170_DEBUG
 	MX_DEBUG(-2,("%s: NEW control_register_value = %#lx",
 		fname, control_register_value));
+#endif
 
 	mx_status = mxd_pccd_170170_write_register( pccd_170170,
 					MXLV_PCCD_170170_DH_CONTROL,
@@ -2202,8 +2205,10 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 
 			/* Set the output high. */
 
+#if MXD_PCCD_170170_DEBUG
 			MX_DEBUG(-2,
 				("%s: Sending trigger to camera head.", fname));
+#endif
 
 			mx_status = mx_digital_output_write(
 				pccd_170170->internal_trigger_record, 1 );
@@ -2701,8 +2706,11 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 				ad->record->name,
 				seq.sequence_type );
 		}
+
+#if MXD_PCCD_170170_DEBUG
 		MX_DEBUG(-2,("%s: ad->total_sequence_time = %g",
 			fname, ad->total_sequence_time));
+#endif
 		break;
 
 	case MXLV_AD_SEQUENCE_TYPE:
@@ -2844,9 +2852,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				saved_vert_binsize = 2;
 			}
 
+#if MXD_PCCD_170170_DEBUG
 			MX_DEBUG(-2,
 		("%s: saved_vert_binsize = %ld, saved_vert_framesize = %ld",
 			    fname, saved_vert_binsize, saved_vert_framesize));
+#endif
 
 			/* Allow the utility function to change the
 			 * X binning and framesize.
@@ -2999,7 +3009,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 		old_detector_readout_mode = 
 				(old_control_register_value >> 5) & 0x3;
-#if 1
+#if MXD_PCCD_170170_DEBUG
 		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
 		MX_DEBUG(-2,("%s: old_detector_readout_mode = %#lx",
@@ -3056,7 +3066,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 				new_control_register_value =
 					old_control_register_value & (~0x60);
-#if 1
+#if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 			("%s: (full frame) new_control_register_value = %#lx",
 					fname, new_control_register_value));
@@ -3122,6 +3132,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_time = frame_time - exposure_time
 						- ad->detector_readout_time;
 
+#if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,("%s: num_frames = %ld",
 					fname, num_frames));
 				MX_DEBUG(-2,("%s: exposure_time = %g",
@@ -3132,6 +3143,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					fname, ad->detector_readout_time));
 				MX_DEBUG(-2,("%s: gap_time = %g",
 					fname, gap_time));
+#endif
 
 			} else {
 				return mx_error( MXE_FUNCTION_FAILED, fname,
@@ -3168,9 +3180,11 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				gap_time = frame_time - exposure_time
 						- ad->detector_readout_time;
 
+#if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 				("%s: num_frames = %ld, gap_time = %g",
 					fname, num_frames, gap_time));
+#endif
 
 				if ( gap_time < 0.0 ) {
 					return mx_error(
@@ -3263,7 +3277,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 				new_control_register_value =
 					old_control_register_value | 0x60;
-#if 1
+#if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 		       ("%s: (streak camera) new_control_register_value = %#lx",
 					fname, new_control_register_value));
@@ -3338,7 +3352,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 					old_control_register_value & (~0x60);
 
 				new_control_register_value |= 0x20;
-#if 1
+#if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 			("%s: (sub-image) new_control_register_value = %#lx",
 					fname, new_control_register_value));
@@ -3634,160 +3648,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		mx_status = mx_area_detector_default_set_parameter_handler(ad);
 		break;
 	}
-
-	return mx_status;
-}
-
-MX_EXPORT mx_status_type
-mxd_pccd_170170_measure_correction( MX_AREA_DETECTOR *ad )
-{
-	static const char fname[] = "mxd_pccd_170170_measure_correction()";
-
-	mx_status_type mx_status;
-#if 0
-	MX_PCCD_170170 *pccd_170170;
-	long type;
-	unsigned long flags;
-	unsigned long saved_shutter_delay, saved_readout_delay;
-	double timeout_in_seconds;
-	MX_CLOCK_TICK timeout_ticks, finish_tick;
-	int comparison;
-	mx_bool_type busy;
-
-	MX_DEBUG(-2,("%s invoked for record '%s'", fname, ad->record->name ));
-
-	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
-
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
-
-	type = ad->correction_measurement_type;
-
-	flags = pccd_170170->pccd_170170_flags;
-
-	if ( (type & MXFT_AD_DARK_CURRENT_FRAME)
-	  && (flags & MXF_PCCD_170170_DARK_CURRENT_KLUDGE) )
-	{
-		/* FIXME: The following should not be necessary.
-		 *
-		 * Perform an extra throwaway measurement before doing the
-		 * real dark current measurement.  Use a zero-length
-		 * exposure time, but non-zero shutter delay and readout
-		 * delay times.
-		 */
-
-		/* Save the current values of the shutter delay and
-		 * the readout delay.
-		 */
-
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME,
-					&saved_shutter_delay );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxd_pccd_170170_read_register( pccd_170170,
-					MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
-					&saved_readout_delay );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Set the shutter and readout delay to fixed times. */
-
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-				MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME, 50000 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-				MXLV_PCCD_170170_DH_READOUT_DELAY_TIME, 50000 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Configure the detector to acquire a single frame for
-		 * an exposure time of 0 seconds.
-		 */
-
-		mx_status = mx_area_detector_set_one_shot_mode(
-							ad->record, 0.0 );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Start the detector. */
-
-		mx_status = mx_area_detector_start( ad->record );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		/* Wait up to 1 second for the measurement to complete. */
-
-		timeout_in_seconds = 1.0;
-
-		timeout_ticks =
-		    mx_convert_seconds_to_clock_ticks( timeout_in_seconds );
-
-		finish_tick = mx_add_clock_ticks( mx_current_clock_tick(),
-							timeout_ticks );
-
-		while (1) {
-			mx_status = mx_area_detector_is_busy(ad->record, &busy);
-
-			if ( mx_status.code != MXE_SUCCESS )
-				return mx_status;
-
-			/* If the detector has finished, then break out
-			 * of the loop.
-			 */
-
-			if ( busy == FALSE ) {
-				break;		/* Exit the while() loop. */
-			}
-
-			comparison = mx_compare_clock_ticks(
-					mx_current_clock_tick(), finish_tick );
-
-			if ( comparison >= 0 ) {
-				return mx_error( MXE_TIMED_OUT, fname,
-				"Timed out after waiting %g seconds for "
-				"detector '%s' to finish acquiring a "
-				"throwaway dark current frame.",
-					timeout_in_seconds, ad->record->name );
-			}
-
-			mx_msleep(1);	/* Sleep for 1 millisecond */
-		}
-
-		/* We do not need to readout the frame, since we are not
-		 * really interested in its contents.
-		 */
-
-		/* Restore the shutter and readout delay times. */
-
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_SHUTTER_DELAY_TIME,
-					saved_shutter_delay );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxd_pccd_170170_write_register( pccd_170170,
-					MXLV_PCCD_170170_DH_READOUT_DELAY_TIME,
-					saved_readout_delay );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
-#endif
-
-	mx_status = mx_area_detector_default_measure_correction( ad );
-
-	MX_DEBUG(-2,("%s complete.", fname));
 
 	return mx_status;
 }

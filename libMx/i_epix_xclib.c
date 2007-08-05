@@ -473,9 +473,6 @@ mxi_epix_xclib_error_message( int unitmap,
 	char fault_message[500];
 	int i, string_length, fault_string_length;
 
-	MX_DEBUG(-2,("debug: unitmap = %d, epix_error_code = %d",
-			unitmap, epix_error_code ));
-
 	if ( buffer == NULL )
 		return NULL;
 
@@ -483,40 +480,6 @@ mxi_epix_xclib_error_message( int unitmap,
 			epix_error_code, pxd_mesgErrorCode( epix_error_code ) );
 
 	string_length = strlen( buffer );
-
-	MX_DEBUG(-2,("debug: string_length = %d, buffer = %p, buffer = '%s'",
-			string_length, buffer, buffer));
-
-	return buffer;
-
-	pxd_mesgFaultText( unitmap, fault_message, sizeof(fault_message) );
-
-	MX_DEBUG(-2,("debug: fault_message #1 = '%s'", fault_message));
-
-	fault_string_length = strlen( fault_message );
-
-	MX_DEBUG(-2,("debug: fault_string_length #1 = %d",
-			fault_string_length));
-
-	if ( fault_message[fault_string_length - 1] == '\n' ) {
-		fault_message[fault_string_length - 1] = '\0';
-
-		fault_string_length--;
-	}
-
-	MX_DEBUG(-2,("debug: fault_message #2 = '%s'", fault_message));
-
-	MX_DEBUG(-2,("debug: fault_string_length #2 = %d",
-			fault_string_length));
-
-	for ( i = 0; i < fault_string_length; i++ ) {
-		if ( fault_message[i] == '\n' )
-			fault_message[i] = ' ';
-	}
-
-	MX_DEBUG(-2,("debug: fault_message #3 = '%s'", fault_message));
-
-	MX_DEBUG(-2,("debug: buffer = '%s'", buffer));
 
 	return buffer;
 }
