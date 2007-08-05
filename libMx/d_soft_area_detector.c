@@ -441,7 +441,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 	if ( busy ) {
-		ad->status |= MXSF_AD_IS_BUSY;
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 #endif
 
@@ -529,7 +529,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->total_num_frames  = 0;
 
-		ad->status |= MXSF_AD_IS_BUSY;
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 
 #if MXD_SOFT_AREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: (B) last_frame_number = %ld, "
@@ -582,7 +582,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->total_num_frames = total_num_frames;
 
-		ad->status |= MXSF_AD_IS_BUSY;
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	} else
 	if ( sequence_type == MXT_SQ_MULTIFRAME ) {
 
@@ -603,7 +603,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 			ad->total_num_frames  = total_num_frames;
 
-			ad->status |= MXSF_AD_IS_BUSY;
+			ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 		}
 	} else
 	if ( sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME ) {
@@ -622,7 +622,7 @@ mxd_soft_area_detector_get_extended_status( MX_AREA_DETECTOR *ad )
 
 		ad->total_num_frames  = total_num_frames;
 
-		ad->status |= MXSF_AD_IS_BUSY;
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	} else {
 		/* We should never get here. */
 

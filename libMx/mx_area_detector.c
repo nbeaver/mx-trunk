@@ -2046,7 +2046,7 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 
 	MX_AREA_DETECTOR *ad;
 	MX_AREA_DETECTOR_FUNCTION_LIST *flist;
-	unsigned long status_flags, mask;
+	unsigned long status_flags;
 	mx_status_type mx_status;
 
 	mx_status = mx_area_detector_get_pointers(record, &ad, &flist, fname);
@@ -2060,11 +2060,7 @@ mx_area_detector_is_busy( MX_RECORD *record, mx_bool_type *busy )
 		return mx_status;
 
 	if ( busy != NULL ) {
-		mask = MXSF_AD_IS_BUSY
-			| MXSF_AD_CORRECTION_IN_PROGRESS
-			| MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS;
-
-		if ( ad->status & mask ) {
+		if ( ad->status & MXSF_AD_IS_BUSY ) {
 			*busy = TRUE;
 		} else {
 			*busy = FALSE;

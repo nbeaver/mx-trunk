@@ -527,7 +527,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			old_last_frame_number = last_frame_number;
 			old_total_num_frames  = total_num_frames;
 
-			if ( ((ad_status & MXSF_AD_IS_BUSY) == FALSE )
+			if (((ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS) == FALSE)
 			  && (num_unread_frames <= 0) )
 			{
 

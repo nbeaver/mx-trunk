@@ -647,14 +647,14 @@ show_latex_field_table( MX_DRIVER **list_of_types,
 	/* Print out a header for the LaTeX table. */
 
 	printf( "\\begin{tabular}{|c|c|c|c|p{72mm}|}\n" );
-	printf( "\\hline\n" );
+	printf( "  \\hline\n" );
 	printf(
-	"\\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
+	"  \\MxTextFieldName & \\MxTextFieldType & \\MxTextNumDimensions\n" );
 	printf(
-	"          & \\MxTextSizes & \\MxTextDescriptions \\\\\n" );
-	printf( "\\hline\n" );
-	printf( "%%\\multicolumn{5}{|c|}{\\linkmotorfields} \\\\\n" );
-	printf( "%%\\hline\n" );
+	"          & \\MxTextSizes & \\MxTextDescription \\\\\n" );
+	printf( "  \\hline\n" );
+	printf( "  %%\\multicolumn{5}{|c|}{\\linkmotorfields} \\\\\n" );
+	printf( "  %%\\hline\n" );
 
 	/* Show the field list. */
 
@@ -707,7 +707,7 @@ show_latex_field( MX_DRIVER *driver,
 	}
 	buffer[j] = '\0';
 
-	printf( "\\textit{%s} & ", buffer );
+	printf( "  \\textit{%s} & ", buffer );
 
 	/* Print out the field datatype in lower case with the MXFT_ prefix
 	 * removed and with LaTeX escapes for underscores.
@@ -727,14 +727,14 @@ show_latex_field( MX_DRIVER *driver,
 	}
 	buffer[j] = '\0';
 
-	printf( "\\textit{%s} & ", buffer );
+	printf( "  \\textit{%s} & ", buffer );
 
 	/* Display the number of dimensions. */
 
 	if ( field_defaults->num_dimensions < 0 ) {
 		num_dimensions = MXU_FIELD_MAX_DIMENSIONS;
 
-		printf( "\\textit{%s} & ", find_varargs_field_name( driver,
+		printf( "  \\textit{%s} & ", find_varargs_field_name( driver,
 					field_defaults->num_dimensions,
 					debug ) );
 	} else {
@@ -767,7 +767,7 @@ show_latex_field( MX_DRIVER *driver,
 	}
 
 	printf( " & xxx \\\\\n" );
-	printf( "\\hline\n" );
+	printf( "  \\hline\n" );
 
 	return SUCCESS;
 }

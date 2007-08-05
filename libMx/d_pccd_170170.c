@@ -2405,7 +2405,7 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 	ad->status = 0;
 
 	if ( status_flags & MXSF_VIN_IS_BUSY ) {
-		ad->status |= MXSF_AD_IS_BUSY;
+		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
 	return MX_SUCCESSFUL_RESULT;

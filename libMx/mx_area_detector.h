@@ -26,9 +26,13 @@
 
 /* Status bit definitions for the 'status' field. */
 
-#define MXSF_AD_IS_BUSY					0x1
+#define MXSF_AD_ACQUISITION_IN_PROGRESS			0x1
 #define MXSF_AD_CORRECTION_IN_PROGRESS			0x2
 #define MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS	0x4
+
+#define MXSF_AD_IS_BUSY		( MXSF_AD_ACQUISITION_IN_PROGRESS \
+				| MXSF_AD_CORRECTION_IN_PROGRESS \
+				| MXSF_AD_CORRECTION_MEASUREMENT_IN_PROGRESS )
 
 /* Frame types for the 'correct_frame', 'transfer_frame', 'load_frame',
  * 'save_frame', and 'copy_frame' fields.
