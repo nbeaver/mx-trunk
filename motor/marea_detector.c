@@ -31,6 +31,14 @@
 #  include "mx_hrt_debug.h"
 #endif
 
+#define MAREA_BUFFER_OVERRUN_CHECK(s,r) \
+	do {                                                                 \
+	    if ( (s) & MXSF_AD_BUFFER_OVERRUN ) {                            \
+                mx_warning("Buffer overrun detected for area detector '%s'", \
+                        (r)->name );                                         \
+	    }                                                                \
+	} while (0)
+
 int
 motor_area_detector_fn( int argc, char *argv[] )
 {
@@ -388,6 +396,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
+
 #if MAREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: num_frames = %ld", cname, num_frames));
 
@@ -505,6 +515,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+			MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
 #if 0
 			num_frames_difference =
 				last_frame_number - old_last_frame_number;
@@ -1191,6 +1202,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			fprintf( output, "Area detector '%s': status = %#lx\n",
 						ad_record->name, ad_status );
+
+			MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
 		} else
 		if ( strncmp( "extended_status",
 					argv[4], strlen(argv[4]) ) == 0 )
@@ -1207,6 +1220,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		"total num frames = %ld, status = %#lx\n",
 				ad_record->name, last_frame_number,
 				total_num_frames, ad_status );
+
+			MAREA_BUFFER_OVERRUN_CHECK(ad_status, ad_record);
 		} else
 		if ( strncmp( "busy", argv[4], strlen(argv[4]) ) == 0 ) {
 

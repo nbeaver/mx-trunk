@@ -51,6 +51,8 @@ typedef struct {
 	unsigned long initial_trigger_mode;
 	unsigned long pccd_170170_flags;
 
+	mx_bool_type buffer_overrun;
+
 	long vinput_normal_framesize[2];
 	long normal_binsize[2];
 

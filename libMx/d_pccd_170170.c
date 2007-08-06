@@ -1066,6 +1066,10 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		/* Note: The scale factor for the gap time has changed. */
+
+				tbe = 10 * tbe;
+
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
 				&mtshut );
@@ -1548,6 +1552,10 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	/* Turn off the buffer overrun flag. */
+
+	pccd_170170->buffer_overrun = FALSE;
 
 	/* Initialize data structures used to specify attributes
 	 * of each detector head register.
@@ -2135,6 +2143,10 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 		mx_usleep(1000);
 	}
 
+	/* Turn off the buffer overrun flag. */
+
+	pccd_170170->buffer_overrun = FALSE;
+
 	/* Prepare the video input for the next trigger. */
 
 	if ( camera_is_master && external_trigger ) {
@@ -2510,6 +2522,10 @@ mxd_pccd_170170_get_extended_status( MX_AREA_DETECTOR *ad )
 		ad->status |= MXSF_AD_ACQUISITION_IN_PROGRESS;
 	}
 
+	if ( pccd_170170->buffer_overrun ) {
+		ad->status |= MXSF_AD_BUFFER_OVERRUN;
+	}
+
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -2581,6 +2597,8 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 			fname, num_times_looped));
 #endif
 		if ( num_times_looped > 0 ) {
+			pccd_170170->buffer_overrun = TRUE;
+
 			number_of_frame_that_overwrote_the_frame_we_want
 				= ad->readout_frame
 					+ num_times_looped * maximum_num_frames;
