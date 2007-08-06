@@ -903,7 +903,9 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	MX_VIDEO_INPUT *vinput;
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_EPIX_XCLIB *epix_xclib;
 	MX_RECORD *ready_for_trigger_record;
+	long unit_number;
 	mx_status_type mx_status;
 
 	if ( record == (MX_RECORD *) NULL ) {
@@ -914,7 +916,7 @@ mxd_epix_xclib_open( MX_RECORD *record )
 	vinput = (MX_VIDEO_INPUT *) record->record_class_struct;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
-					&epix_xclib_vinput, NULL, fname );
+				&epix_xclib_vinput, &epix_xclib, fname );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -922,10 +924,23 @@ mxd_epix_xclib_open( MX_RECORD *record )
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'", fname, record->name));
 #endif
+	unit_number = epix_xclib_vinput->unit_number;
 
-	epix_xclib_vinput->unitmap = 1 << (epix_xclib_vinput->unit_number - 1);
+	epix_xclib_vinput->unitmap = 1 << (unit_number - 1);
 
-	epix_xclib_vinput->pixel_clock_divisor = 512;
+	/* Register with the 'epix_xclib' record. */
+
+	if ( ( unit_number <= 0 )
+	  || ( unit_number >= MXI_EPIX_MAXIMUM_VIDEO_INPUTS ) )
+	{
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"The requested EPIX unit number %ld for record '%s' is "
+		"not valid.  The allowed range is from 1-%d.",
+			unit_number, record->name,
+			MXI_EPIX_MAXIMUM_VIDEO_INPUTS );
+	}
+
+	epix_xclib->video_input_record_array[unit_number - 1] = record;
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: board model = %#x",
@@ -938,6 +953,8 @@ mxd_epix_xclib_open( MX_RECORD *record )
 		fname, pxd_infoMemsize( epix_xclib_vinput->unitmap ) ));
 #endif
 	/* Initialize a bunch of driver parameters. */
+
+	epix_xclib_vinput->pixel_clock_divisor = 512;
 
 	vinput->parameter_type = -1;
 	vinput->frame_number   = -100;

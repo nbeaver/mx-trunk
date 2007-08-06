@@ -2261,8 +2261,172 @@ mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
 			(*exposure_time) *= multiplier;
 		}
 		break;
+	case MXT_SQ_SUBIMAGE:
+		*exposure_time = sp->parameter_array[2];
+
+		multiplier = sp->parameter_array[4];
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			(*exposure_time) *= multiplier;
+		}
+		break;
 	default:
 		*exposure_time = -1.0;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_sequence_get_frame_time( MX_SEQUENCE_PARAMETERS *sp,
+				long frame_number,
+				double *frame_time )
+{
+	static const char fname[] = "mx_sequence_get_frame_time()";
+
+	long i;
+	double exposure_time, gap_time;
+	double exposure_multiplier, gap_multiplier;
+
+	if ( sp == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
+	}
+	if ( frame_time == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The frame_time pointer passed was NULL." );
+	}
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+		*frame_time = sp->parameter_array[0];
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		*frame_time = sp->parameter_array[2];
+		break;
+	case MXT_SQ_STROBE:
+		*frame_time = sp->parameter_array[1];
+		break;
+	case MXT_SQ_STREAK_CAMERA:
+		*frame_time = sp->parameter_array[0]
+					* sp->parameter_array[1];
+		break;
+	case MXT_SQ_GEOMETRICAL:
+		exposure_time       = sp->parameter_array[1];
+		exposure_multiplier = sp->parameter_array[3];
+		gap_multiplier      = sp->parameter_array[4];
+
+		gap_time = sp->parameter_array[2] - exposure_time;
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			exposure_time *= exposure_multiplier;
+			gap_time      *= gap_multiplier;
+		}
+
+		*frame_time = exposure_time + gap_time;
+		break;
+	case MXT_SQ_SUBIMAGE:
+		exposure_time       = sp->parameter_array[2];
+		exposure_multiplier = sp->parameter_array[4];
+		gap_multiplier      = sp->parameter_array[5];
+
+		gap_time = sp->parameter_array[3] - exposure_time;
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			exposure_time *= exposure_multiplier;
+			gap_time      *= gap_multiplier;
+		}
+
+		*frame_time = exposure_time + gap_time;
+		break;
+	default:
+		*frame_time = -1.0;
+		break;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/*----*/
+
+MX_EXPORT mx_status_type
+mx_sequence_get_sequence_time( MX_SEQUENCE_PARAMETERS *sp,
+				long frame_number,
+				double *sequence_time )
+{
+	static const char fname[] = "mx_sequence_get_sequence_time()";
+
+	long i;
+	double exposure_time, gap_time;
+	double exposure_multiplier, gap_multiplier;
+	double num_frames;
+
+	if ( sp == (MX_SEQUENCE_PARAMETERS *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_SEQUENCE_PARAMETERS pointer passed was NULL." );
+	}
+	if ( sequence_time == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The sequence_time pointer passed was NULL." );
+	}
+
+	num_frames = 1.0 + (double) frame_number;
+
+	switch( sp->sequence_type ) {
+	case MXT_SQ_ONE_SHOT:
+	case MXT_SQ_CONTINUOUS:
+		*sequence_time = sp->parameter_array[0] * num_frames;
+		break;
+	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		*sequence_time = sp->parameter_array[2] * num_frames;
+		break;
+	case MXT_SQ_STROBE:
+		*sequence_time = sp->parameter_array[1] * num_frames;
+		break;
+	case MXT_SQ_STREAK_CAMERA:
+		*sequence_time = sp->parameter_array[0]
+					* sp->parameter_array[1];
+		break;
+	case MXT_SQ_GEOMETRICAL:
+		exposure_time       = sp->parameter_array[1];
+		exposure_multiplier = sp->parameter_array[3];
+		gap_multiplier      = sp->parameter_array[4];
+
+		gap_time = sp->parameter_array[2] - exposure_time;
+
+		*sequence_time = 0.0;
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			exposure_time *= exposure_multiplier;
+			gap_time      *= gap_multiplier;
+
+			*sequence_time += (exposure_time + gap_time);
+		}
+		break;
+	case MXT_SQ_SUBIMAGE:
+		exposure_time       = sp->parameter_array[2];
+		exposure_multiplier = sp->parameter_array[4];
+		gap_multiplier      = sp->parameter_array[5];
+
+		gap_time = sp->parameter_array[3] - exposure_time;
+
+		*sequence_time = 0.0;
+
+		for ( i = 1; i <= frame_number; i++ ) {
+			exposure_time *= exposure_multiplier;
+			gap_time      *= gap_multiplier;
+
+			*sequence_time += (exposure_time + gap_time);
+		}
+		break;
+	default:
+		*sequence_time = -1.0;
 		break;
 	}
 

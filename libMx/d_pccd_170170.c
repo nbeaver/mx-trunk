@@ -42,6 +42,8 @@
 #include "mx_video_input.h"
 #include "mx_camera_link.h"
 #include "mx_area_detector.h"
+#include "i_epix_xclib.h"
+#include "d_epix_xclib.h"
 #include "d_pccd_170170.h"
 
 /*---*/
@@ -882,6 +884,62 @@ mxd_pccd_170170_get_num_frames_in_sequence( MX_AREA_DETECTOR *ad,
 	*num_frames_in_sequence = num_frames;
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+static mx_status_type
+mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
+{
+	static const char fname[] =
+			"mxp_pccd_170170_epix_save_start_timespec()";
+
+	MX_EPIX_XCLIB *xclib;
+	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	struct timespec absolute_timespec, relative_timespec;
+	mx_status_type mx_status;
+
+	epix_xclib_vinput = pccd_170170->video_input_record->record_type_struct;
+
+	if ( epix_xclib_vinput == (MX_EPIX_XCLIB_VIDEO_INPUT *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EPIX_XCLIB_VIDEO_INPUT pointer "
+		"for record '%s' is NULL.",
+			pccd_170170->video_input_record->name );
+	}
+	if ( epix_xclib_vinput->xclib_record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The xclib_record pointer for record '%s' is NULL.",
+			epix_xclib_vinput->record->name );
+	}
+
+	xclib = epix_xclib_vinput->xclib_record->record_type_struct;
+
+	if ( xclib == (MX_EPIX_XCLIB *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"The MX_EPIX_XCLIB pointer for record '%s' is NULL.",
+			epix_xclib_vinput->xclib_record->name );
+	}
+
+	relative_timespec = mx_high_resolution_time();
+
+	absolute_timespec = mx_add_high_resolution_times(
+					xclib->system_boot_timespec,
+					relative_timespec );
+
+	xclib->sequence_start_timespec = absolute_timespec;
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s:\n"
+		"sequence_start_timespec = (%lu,%ld),\n"
+		"system_boot_timespec    = (%lu,%ld),\n"
+		"relative_timespec       = (%lu,%ld)",
+			fname, xclib->sequence_start_timespec.tv_sec,
+			xclib->sequence_start_timespec.tv_nsec,
+			xclib->system_boot_timespec.tv_sec,
+			xclib->system_boot_timespec.tv_nsec,
+			relative_timespec.tv_sec,
+			relative_timespec.tv_nsec));
+#endif
+	return mx_status;
 }
 
 /* PCCD-170170 detector readout time formula as of July 13, 2007. */
@@ -2090,6 +2148,14 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 					pccd_170170->video_input_record );
 	}
 
+	/* If we are using an EPIX PIXCI imaging board, record the time
+	 * that the sequence started in the 'epix_xclib' record.
+	 */
+
+	if ( pccd_170170->video_input_record->mx_type == MXT_VIN_EPIX_XCLIB ) {
+	    mx_status = mxp_pccd_170170_epix_save_start_timespec(pccd_170170);
+	}
+
 	return mx_status;
 }
 
@@ -3160,13 +3226,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.01 );
-			} else {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.001 );
-			}
+			exposure_steps = mx_round_down( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 					pccd_170170,
@@ -3198,8 +3258,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 						ad->record->name );
 				}
 
-				gap_steps =
-					mx_round_down( gap_time / 0.0001 );
+				gap_steps = mx_round_down( gap_time / 0.001 );
 
 				if ( gap_steps > 65535 ) {
 					return mx_error(
@@ -3318,13 +3377,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[1];
 
-			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.01 );
-			} else {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.001 );
-			}
+			exposure_steps = mx_round_down( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -3423,13 +3476,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			exposure_time = sp->parameter_array[2];
 
-			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.01 );
-			} else {
-			    exposure_steps =
-					mx_round_down( exposure_time / 0.001 );
-			}
+			exposure_steps = mx_round_down( exposure_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -3458,11 +3505,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 
 			/* Set the gap time. */
 
-			if ( flags & MXF_PCCD_170170_EXPOSURE_TIME_KLUDGE) {
-				gap_steps = mx_round_down( gap_time / 0.01 );
-			} else {
-				gap_steps = mx_round_down( gap_time / 0.001 );
-			}
+			gap_steps = mx_round_down( gap_time / 0.001 );
 
 			mx_status = mxd_pccd_170170_write_register(
 				pccd_170170,
@@ -3942,18 +3985,6 @@ mxd_pccd_170170_write_register( MX_PCCD_170170 *pccd_170170,
 	}
 
 	flags = pccd_170170->pccd_170170_flags;
-
-	if ( (register_address == MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE)
-	  && (flags & MXF_PCCD_170170_NUM_FRAMES_KLUDGE) )
-	{
-		mx_info(
-		"***********************************************************\n"
-		"* FIXME! Using PCCD-170170 num frames kludge!             *\n"
-		"* This must be removed from the software before shipping! *\n"
-		"***********************************************************");
-
-		register_value++;
-	}
 
 	if ( register_address >= MXLV_PCCD_170170_DH_BASE ) {
 		register_address -= MXLV_PCCD_170170_DH_BASE;

@@ -34,6 +34,8 @@
 #include "mx_unistd.h"
 #include "mx_hrt.h"
 #include "mx_inttypes.h"
+#include "mx_image.h"
+#include "mx_video_input.h"
 
 #if defined(OS_WIN32)
 #include <windows.h>
@@ -175,6 +177,14 @@ mxi_epix_xclib_open( MX_RECORD *record )
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s invoked for record '%s'.", fname, record->name ));
 #endif
+	/* Null out the array that contains pointers to
+	 * the child video input records.
+	 */
+
+	for ( i = 0; i < MXI_EPIX_MAXIMUM_VIDEO_INPUTS; i++ ) {
+		epix_xclib->video_input_record_array[i] = NULL;
+	}
+
 	/* Check to see if we are running on a supported operating system. */
 
 	mx_status = mx_get_os_version(&os_major, &os_minor, &os_update);
@@ -486,6 +496,99 @@ mxi_epix_xclib_error_message( int unitmap,
 
 /*---------------------------------------------------------------------------*/
 
+static struct timespec
+mxi_epix_xclib_estimate_buffer_timespec( MX_EPIX_XCLIB *epix_xclib,
+						long unitmap,
+						long buffer_number )
+{
+	static const char fname[] = "mxi_epix_xclib_estimate_buffer_timespec()";
+
+	MX_RECORD *video_input_record;
+	MX_VIDEO_INPUT *video_input;
+	MX_SEQUENCE_PARAMETERS *sp;
+	long i, unit_number, shifted_unitmap;
+	double sequence_time;
+	struct timespec result, zero;
+	struct timespec sequence_timespec, sequence_start_timespec;
+	mx_status_type mx_status;
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,
+	("%s invoked for record '%s', unitmap = %ld, buffer_number = %ld",
+		fname, epix_xclib->record->name, unitmap, buffer_number));
+#endif
+	zero.tv_sec = 0;
+	zero.tv_nsec = 0;
+
+	/* Compute the unit number from the unitmap.  If more than one bit
+	 * is set in the unitmap, the unit number will correspond to the
+	 * lowest order bit set.
+	 */
+
+	unit_number = 0;
+
+	shifted_unitmap = unitmap;
+
+	for ( i = 0; i < sizeof(long); i++ ) {
+		if ( (shifted_unitmap & 1) != 0 ) {
+			unit_number = i+1;
+			break;			/* Exit the for() loop. */
+		}
+		shifted_unitmap >>= 1;
+	}
+
+	if ( unit_number <= 0 ) {
+		(void) mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+			"Illegal unitmap %ld for record '%s'.",
+			unitmap, epix_xclib->record->name );
+
+		return zero;
+	}
+
+	video_input_record =
+		epix_xclib->video_input_record_array[unit_number - 1];
+
+	video_input = video_input_record->record_class_struct;
+
+	sp = &(video_input->sequence_parameters);
+
+	sequence_start_timespec = epix_xclib->sequence_start_timespec;
+
+	mx_status = mx_sequence_get_sequence_time( sp, buffer_number - 1,
+							&sequence_time );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return zero;
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: sequence start timespec = (%lu,%ld)",
+		fname, sequence_start_timespec.tv_sec,
+		sequence_start_timespec.tv_nsec));
+	MX_DEBUG(-2,("%s: sequence_time = %g", fname, sequence_time));
+#endif
+
+	sequence_timespec =
+		mx_convert_seconds_to_high_resolution_time( sequence_time );
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: sequence_timespec = (%lu,%ld)",
+		fname, sequence_timespec.tv_sec, sequence_timespec.tv_nsec));
+#endif
+
+	result = mx_add_high_resolution_times(
+				epix_xclib->sequence_start_timespec,
+				sequence_timespec );
+
+#if MXI_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: result = (%lu,%ld)",
+		fname, result.tv_sec, result.tv_nsec));
+#endif
+
+	return result;
+}
+
+/*---------------------------------------------------------------------------*/
+
 MX_EXPORT struct timespec
 mxi_epix_xclib_get_buffer_timestamp( MX_EPIX_XCLIB *epix_xclib,
 					long unitmap,
@@ -517,8 +620,27 @@ mxi_epix_xclib_get_buffer_timestamp( MX_EPIX_XCLIB *epix_xclib,
 	mx_status = mxi_epix_xclib_get_pxbufstatus( epix_xclib,
 						unitmap, buffer_number,
 						&pxbstatus );
-	if ( mx_status.code != MXE_SUCCESS )
+
+	if ( mx_status.code == MXE_SUCCESS ) {
+		/* Successfully read the buffer. */
+	} else
+	if ( mx_status.code == MXE_NOT_AVAILABLE ) {
+
+		/* We were unable to get the timespec from XCLIB,
+		 * so we must attempt to estimate the value ourself.
+		 */
+
+		result = mxi_epix_xclib_estimate_buffer_timespec(
+					epix_xclib, unitmap, buffer_number );
 		return result;
+	} else {
+		/* Some other error. */
+
+		result.tv_sec = 0;
+		result.tv_nsec = 0;
+
+		return result;
+	}
 
 	/* Use 64-bit integers to do the calculations. */
 
@@ -712,11 +834,6 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	pxbstatus->ddch.len = sizeof(struct pxbufstatus);
 	pxbstatus->ddch.mos = PXMOS_BUFSTATUS;
 
-#if 1
-	MX_DEBUG(-2,("%s: BEFORE pxd_goneLive() = %d",
-		fname, pxd_goneLive(1,0)));
-#endif
-
 	/* Escape to the Structured Style Interface. */
 
 	xc = pxd_xclibEscape(0, 0, 0);
@@ -733,7 +850,21 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	epix_status = xc->pxlib.goingBufStatus( &(xc->pxlib),
 				0, unitmap, buffer_number, pxbstatus );
 
-	if ( epix_status != 0 ) {
+	if ( epix_status == 0 ) {
+		/* Success */
+	} else
+	if ( epix_status == PXERNOMODE ) {
+
+#if MXI_EPIX_XCLIB_DEBUG
+		return mx_error( MXE_NOT_AVAILABLE, fname,
+#else
+		return mx_error( MXE_NOT_AVAILABLE | MXE_QUIET, fname,
+#endif
+			"Access to the buffer timestamp for record '%s', "
+			"buffer %ld is not currently available.",
+				epix_xclib->record->name,
+				buffer_number );
+	} else {
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Error in xc->pxlib.goingBufStatus() for record '%s'.  "
 			"Error code = %d, error message = '%s'.",
@@ -744,11 +875,6 @@ mxi_epix_xclib_get_pxbufstatus( MX_EPIX_XCLIB *epix_xclib,
 	/* Calling pxd_xclibEscaped() would abort an in-progress imaging
 	 * sequence, so we must not call it here.
 	 */
-
-#if 1
-	MX_DEBUG(-2,("%s: AFTER pxd_goneLive() = %d",
-		fname, pxd_goneLive(1,0)));
-#endif
 
 #if MXI_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: stateid = %d", fname, pxbstatus->stateid));

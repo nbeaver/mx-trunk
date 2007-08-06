@@ -258,6 +258,14 @@ MX_API mx_status_type mx_sequence_get_exposure_time( MX_SEQUENCE_PARAMETERS *sp,
 							long frame_number,
 							double *exposure_time );
 
+MX_API mx_status_type mx_sequence_get_frame_time( MX_SEQUENCE_PARAMETERS *sp,
+							long frame_number,
+							double *frame_time );
+
+MX_API mx_status_type mx_sequence_get_sequence_time( MX_SEQUENCE_PARAMETERS *sp,
+							long last_frame_number,
+							double *sequence_time );
+
 MX_API mx_status_type mx_sequence_get_num_frames( MX_SEQUENCE_PARAMETERS *sp,
 							long *num_frames );
 

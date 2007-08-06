@@ -14,6 +14,8 @@
  *
  */
 
+#define MAREA_DETECTOR_DEBUG		TRUE
+
 #define MAREA_DETECTOR_DEBUG_TIMING	FALSE
 
 #include <stdio.h>
@@ -55,7 +57,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long num_frames_difference;
 	long num_lines, num_lines_per_subimage, num_subimages;
 	size_t length;
-	unsigned long ad_status, roi_number;
+	unsigned long ad_status, roi_number, acquisition_in_progress;
 	unsigned long roi[4];
 	long long_parameter;
 	long correction_type, num_measurements;
@@ -384,6 +386,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+#if MAREA_DETECTOR_DEBUG
 		MX_DEBUG(-2,("%s: num_frames = %ld", cname, num_frames));
 
 		MX_DEBUG(-2,("%s: starting_last_frame_number = %ld",
@@ -391,6 +394,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_DEBUG(-2,("%s: starting_total_num_frames = %ld",
 			cname, starting_total_num_frames));
 		MX_DEBUG(-2,("%s: ad_status = %#lx", cname, ad_status));
+#endif
 
 		if ( starting_total_num_frames > (LONG_MAX - num_frames) ) {
 			fprintf( output,
@@ -455,9 +459,11 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
+#if MAREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("%s", mx_ctime_string() ));
 			MX_DEBUG(-2,
 			("Seq: n = %ld vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv",n));
+#endif
 
 			mx_status = mx_area_detector_get_extended_status(
 					ad_record,
@@ -477,6 +483,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				num_unread_frames += num_frames_difference;
 			}
 
+#if MAREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("n = %ld, last_frame_number = %ld, "
 			"old_last_frame_number = %ld, total_num_frames = %ld, "
 			"ad_status = %#lx",
@@ -488,6 +495,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 			MX_DEBUG(-2,("%s: num_unread_frames = %ld",
 				cname, num_unread_frames));
+#endif
 
 			if ( num_unread_frames > 0 ) {
 
@@ -527,15 +535,19 @@ motor_area_detector_fn( int argc, char *argv[] )
 			old_last_frame_number = last_frame_number;
 			old_total_num_frames  = total_num_frames;
 
-			if (((ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS) == FALSE)
+			acquisition_in_progress
+				= ad_status & MXSF_AD_ACQUISITION_IN_PROGRESS;
+
+			if ( (acquisition_in_progress == FALSE)
 			  && (num_unread_frames <= 0) )
 			{
-
 				break;		/* Exit the for() loop. */
 			}
 
+#if MAREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,
 			("Seq: n = %ld ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",n));
+#endif
 
 			mx_msleep(10);
 		}

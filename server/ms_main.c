@@ -14,6 +14,8 @@
  *
  */
 
+#define MS_MAIN_DEBUG_SIGNALS		TRUE
+
 #define MS_MAIN_DEBUG_MEMORY_LEAK	FALSE
 
 #include <stdio.h>
@@ -1017,8 +1019,11 @@ mxserver_main( int argc, char *argv[] )
 
 		if ( num_fds < 0 ) {
 			if ( saved_errno == EINTR ) {
+
+#if MS_MAIN_DEBUG_SIGNALS
 				MX_DEBUG(-2,("%s: EINTR returned by select()",
 					fname ));
+#endif
 
 				/* Receiving an EINTR errno from select()
 				 * is normal.  It just means that a signal

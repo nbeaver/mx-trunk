@@ -22,6 +22,8 @@
 
 #define MXI_EPIX_ERROR_MESSAGE_LENGTH	1024
 
+#define MXI_EPIX_MAXIMUM_VIDEO_INPUTS	16
+
 /* Flag values for the 'epix_xclib_flags' field. */
 
 #define MXF_EPIX_USE_CLCCSE_REGISTER    0x1
@@ -39,6 +41,10 @@ typedef struct {
 	struct timespec system_boot_timespec;	/* since Jan 1, 1970 */
 
 	unsigned long tick_frequency;		/* ticks per second */
+
+	struct timespec sequence_start_timespec;  /* since Jan 1, 1970 */
+
+	MX_RECORD *video_input_record_array[MXI_EPIX_MAXIMUM_VIDEO_INPUTS];
 } MX_EPIX_XCLIB;
 
 #define MXI_EPIX_XCLIB_STANDARD_FIELDS \
