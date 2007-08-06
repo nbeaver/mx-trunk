@@ -954,8 +954,6 @@ mxd_epix_xclib_open( MX_RECORD *record )
 #endif
 	/* Initialize a bunch of driver parameters. */
 
-	epix_xclib_vinput->pixel_clock_divisor = 512;
-
 	vinput->parameter_type = -1;
 	vinput->frame_number   = -100;
 	vinput->get_frame      = -100;
@@ -966,10 +964,16 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	vinput->maximum_frame_number = pxd_imageZdim() - 1;
 
-	epix_xclib_vinput->num_write_test_array_bytes = 0;
-	epix_xclib_vinput->write_test_array = NULL;
+	epix_xclib_vinput->pixel_clock_divisor = 512;
+
 	epix_xclib_vinput->sequence_in_progress = FALSE;
 	epix_xclib_vinput->new_sequence = FALSE;
+	epix_xclib_vinput->old_total_num_frames = 0;
+
+	epix_xclib_vinput->circular_frame_period = 0;
+
+	epix_xclib_vinput->num_write_test_array_bytes = 0;
+	epix_xclib_vinput->write_test_array = NULL;
 
 #if defined(OS_WIN32)
 	epix_xclib_vinput->captured_field_event = NULL;
@@ -1128,6 +1132,7 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	mx_bool_type continuous_select;
 	char error_message[80];
 	int epix_status;
+	long num_frames, maximum_buffer_number;
 	unsigned long flags;
 	mx_status_type mx_status;
 
@@ -1240,6 +1245,28 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 		trigger_time = epix_xclib_vinput->default_trigger_time;
 		break;
 
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
+		vinput->maximum_frame_number = pxd_imageZdim() - 1;
+
+		maximum_buffer_number = vinput->maximum_frame_number + 1;
+
+		num_frames = mx_round( sp->parameter_array[0] );
+
+		startbuf = 1;
+
+		if ( num_frames < maximum_buffer_number ) {
+			endbuf = num_frames;
+		} else {
+			endbuf = maximum_buffer_number;
+		}
+
+		numbuf = endbuf;
+
+		frame_time = sp->parameter_array[2];
+
+		trigger_time = epix_xclib_vinput->default_trigger_time;
+		break;
+
 	case MXT_SQ_STROBE:
 		startbuf = 1;
 		endbuf = mx_round( sp->parameter_array[0] );
@@ -1274,13 +1301,6 @@ mxd_epix_xclib_arm( MX_VIDEO_INPUT *vinput )
 	case MXT_SQ_CONTINUOUS:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Continuous sequences cannot be used with external "
-			"triggers for video input '%s'.",
-				vinput->record->name );
-		break;
-
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
-		return mx_error( MXE_UNSUPPORTED, fname,
-		"Circular multiframe sequences cannot be used with external "
 			"triggers for video input '%s'.",
 				vinput->record->name );
 		break;
@@ -1561,10 +1581,10 @@ mxd_epix_xclib_trigger( MX_VIDEO_INPUT *vinput )
 			    endbuf, vinput->record->name, pxd_imageZdim());
 		}
 
-		if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
-			numbuf = endbuf;
-		} else {
+		if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME ) {
 			numbuf = 0;
+		} else {
+			numbuf = endbuf;
 		}
 
 #if MXD_EPIX_XCLIB_DEBUG
@@ -1788,7 +1808,7 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	char error_message[80];
 	int epix_status;
-	long numbuf;
+	long numbuf, requested_num_frames;
 	mx_status_type mx_status;
 
 	mx_status = mxd_epix_xclib_get_pointers( vinput,
@@ -1803,20 +1823,42 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 
 	MX_DEBUG(-2,("%s: vinput->asynchronous_capture = %ld",
 		fname, vinput->asynchronous_capture));
+
+	MX_DEBUG(-2,("%s: vinput->asynchronous_circular = %d",
+		fname, (int) vinput->asynchronous_circular));
 #endif
-	if ( vinput->asynchronous_capture > pxd_imageZdim() ) {
-		return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-		"The requested number (%ld) of asynchronous capture frames "
-		"exceeds the maximum allowed value (%d) for video input '%s'.",
-			vinput->asynchronous_capture,
-			pxd_imageZdim(),
-			vinput->record->name );
-	}
+	requested_num_frames = vinput->asynchronous_capture;
 
 	if ( vinput->asynchronous_circular ) {
+		/* Circular sequences are not limited by the number of video
+		 * frame buffers, since they wrap back to buffer 1 at the end.
+		 */
+
 		numbuf = 0;
+
+		if ( requested_num_frames > pxd_imageZdim() ) {
+			requested_num_frames = pxd_imageZdim();
+		}
+
+		/* Save the number of frames actually requested. */
+
+		epix_xclib_vinput->circular_frame_period = requested_num_frames;
 	} else {
-		numbuf = vinput->asynchronous_capture;
+		/* Not a circular sequence. */
+
+		epix_xclib_vinput->circular_frame_period = 0;
+
+		if ( requested_num_frames > pxd_imageZdim() ) {
+			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+			"The requested number (%ld) of asynchronous capture "
+			"frames exceeds the maximum allowed value (%d) for "
+			"video input '%s'.",
+				requested_num_frames,
+				pxd_imageZdim(),
+				vinput->record->name );
+		}
+
+		numbuf = requested_num_frames;
 	}
 
 	/* Save the starting value of the total number of frames. */
@@ -1834,12 +1876,12 @@ mxd_epix_xclib_asynchronous_capture( MX_VIDEO_INPUT *vinput )
 	/* Start the sequence. */
 
 	epix_status = pxd_goLiveSeq( epix_xclib_vinput->unitmap,
-			1, vinput->asynchronous_capture, 1, numbuf, 1 );
+			1, requested_num_frames, 1, numbuf, 1 );
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: pxd_goLiveSeq( %ld, 1, %ld, 1, %ld, 1 ) = %d",
 		fname, epix_xclib_vinput->unitmap,
-		vinput->asynchronous_capture, numbuf, epix_status));
+		requested_num_frames, numbuf, epix_status));
 #endif
 
 	if ( epix_status != 0 ) {
@@ -1996,13 +2038,43 @@ mxd_epix_xclib_get_total_num_frames( MX_VIDEO_INPUT *vinput )
 	return MX_SUCCESSFUL_RESULT;
 }
 
+/*---*/
+
+static mx_status_type
+mxd_epix_xclib_terminate_sequence( MX_VIDEO_INPUT *vinput,
+				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput )
+{
+	mx_status_type mx_status;
+
+#if MXD_EPIX_XCLIB_DEBUG
+	static const char fname[] = "mxd_epix_xclib_terminate_sequence()";
+
+	MX_DEBUG(-2,("%s: Terminating sequence.", fname));
+#endif
+	epix_xclib_vinput->sequence_in_progress = FALSE;
+	vinput->asynchronous_circular = FALSE;
+
+	mx_status = mxd_epix_xclib_abort( vinput );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	mx_status = mxd_epix_xclib_set_ready_status( epix_xclib_vinput, FALSE );
+
+	return mx_status;
+}
+
+/*---*/
+
 MX_EXPORT mx_status_type
 mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 {
 	static const char fname[] = "mxd_epix_xclib_get_status()";
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
+	MX_SEQUENCE_PARAMETERS *sp;
 	int busy;
+	long sequence_num_frames, frames_difference;
 	pxbuffer_t last_buffer;
 	int epix_status;
 	char error_message[MXI_EPIX_ERROR_MESSAGE_LENGTH+1];
@@ -2014,12 +2086,8 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-#if 1
 	epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
 				error_message, sizeof(error_message) );
-#else
-	epix_status = pxd_mesgFault( epix_xclib_vinput->unitmap );
-#endif
 
 #if MXD_EPIX_XCLIB_DEBUG
 	MX_DEBUG(-2,("%s: sequence_in_progress = %d",
@@ -2037,6 +2105,102 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 
 	busy = pxd_goneLive( epix_xclib_vinput->unitmap, 0 );
 
+#if MXD_EPIX_XCLIB_DEBUG
+	MX_DEBUG(-2,("%s: pxd_goneLive() = %d", fname, busy ));
+
+	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
+		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
+
+	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
+		fname, pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
+#endif
+	/* Take care of a variety of special circumstances. */
+
+	if ( busy ) {
+		/* busy */
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: SIGN 1", fname));
+#endif
+		if ( vinput->asynchronous_circular ) {
+
+			sp = &(vinput->sequence_parameters);
+
+#if MXD_EPIX_XCLIB_DEBUG
+			MX_DEBUG(-2,("%s: SIGN 1.1", fname));
+#endif
+			if ( sp->sequence_type == MXT_SQ_CIRCULAR_MULTIFRAME )
+			{
+				/* See if the circular multiframe sequence
+				 * has reached its end.
+				 */
+
+#if MXD_EPIX_XCLIB_DEBUG
+				MX_DEBUG(-2,("%s: SIGN 1.1.1", fname));
+#endif
+				mx_status = mx_sequence_get_num_frames(
+						sp, &sequence_num_frames );
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				mx_status =
+				    mxd_epix_xclib_get_total_num_frames(vinput);
+
+				if ( mx_status.code != MXE_SUCCESS )
+					return mx_status;
+
+				frames_difference = vinput->total_num_frames
+				    - epix_xclib_vinput->old_total_num_frames;
+
+#if MXD_EPIX_XCLIB_DEBUG
+				MX_DEBUG(-2,
+		    ("%s: sequence_num_frames = %ld, total_num_frames = %ld",
+					fname, sequence_num_frames,
+					vinput->total_num_frames));
+				MX_DEBUG(-2,("%s: frames_difference = %ld",
+					fname, frames_difference));
+#endif
+
+				if ( frames_difference >= sequence_num_frames )
+				{
+#if MXD_EPIX_XCLIB_DEBUG
+					MX_DEBUG(-2,
+					("%s: Terminating sequence when busy.",
+						fname));
+#endif
+					mx_status =
+					    mxd_epix_xclib_terminate_sequence(
+						vinput, epix_xclib_vinput );
+
+					if ( mx_status.code != MXE_SUCCESS )
+						return mx_status;
+
+					busy = FALSE;
+				}
+			}
+		}
+	} else {
+		/* not busy */
+
+#if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: SIGN 2", fname));
+#endif
+		vinput->asynchronous_circular = FALSE;
+
+		if ( epix_xclib_vinput->sequence_in_progress ) {
+#if MXD_EPIX_XCLIB_DEBUG
+			MX_DEBUG(-2,("%s: Terminating sequence when not busy.",
+				fname));
+#endif
+			mx_status = mxd_epix_xclib_terminate_sequence(
+						vinput, epix_xclib_vinput );
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+		}
+	}
+
 	if ( busy ) {
 		vinput->busy = TRUE;
 
@@ -2048,36 +2212,8 @@ mxd_epix_xclib_get_status( MX_VIDEO_INPUT *vinput )
 	}
 
 #if MXD_EPIX_XCLIB_DEBUG
-	MX_DEBUG(-2,("%s: vinput->busy = %d, pxd_goneLive() = %d",
-		fname, vinput->busy, busy ));
-
-	MX_DEBUG(-2,("%s: pxd_videoFieldCount() = %lu",
-		fname, pxd_videoFieldCount( epix_xclib_vinput->unitmap ) ));
-
-	MX_DEBUG(-2,("%s: pxd_capturedFieldCount() = %ld",
-		fname, pxd_capturedFieldCount( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: vinput->busy = %d", fname, vinput->busy));
 #endif
-
-	if ( ( vinput->busy == FALSE )
-	  && ( epix_xclib_vinput->sequence_in_progress ) )
-	{
-
-		epix_xclib_vinput->sequence_in_progress = FALSE;
-
-#if MXD_EPIX_XCLIB_DEBUG
-		MX_DEBUG(-2,("%s: sequence_in_progress set to FALSE", fname));
-#endif
-		mx_status = mxd_epix_xclib_stop( vinput );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-
-		mx_status = mxd_epix_xclib_set_ready_status(
-					epix_xclib_vinput, FALSE );
-
-		if ( mx_status.code != MXE_SUCCESS )
-			return mx_status;
-	}
 
 	return MX_SUCCESSFUL_RESULT;
 }

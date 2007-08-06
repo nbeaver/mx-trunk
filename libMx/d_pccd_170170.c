@@ -853,6 +853,7 @@ mxd_pccd_170170_simulated_cl_command( MX_PCCD_170170 *pccd_170170,
 	return MX_SUCCESSFUL_RESULT;
 }
 
+#if 0
 static mx_status_type
 mxd_pccd_170170_get_num_frames_in_sequence( MX_AREA_DETECTOR *ad,
 					long *num_frames_in_sequence )
@@ -885,6 +886,7 @@ mxd_pccd_170170_get_num_frames_in_sequence( MX_AREA_DETECTOR *ad,
 
 	return MX_SUCCESSFUL_RESULT;
 }
+#endif
 
 static mx_status_type
 mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
@@ -2048,11 +2050,12 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	MX_VIDEO_INPUT *vinput;
+	MX_SEQUENCE_PARAMETERS *sp;
 	MX_CLOCK_TICK num_ticks_to_wait, finish_tick;
 	double timeout_in_seconds;
 	int comparison;
 	long num_frames_in_sequence;
-	mx_bool_type camera_is_master, external_trigger, busy;
+	mx_bool_type camera_is_master, external_trigger, busy, circular;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -2080,6 +2083,8 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'",
 		fname, ad->record->name ));
 #endif
+	sp = &(ad->sequence_parameters);
+
 	camera_is_master =
 	   (pccd_170170->pccd_170170_flags & MXF_PCCD_170170_CAMERA_IS_MASTER);
 
@@ -2134,15 +2139,30 @@ mxd_pccd_170170_arm( MX_AREA_DETECTOR *ad )
 	/* Prepare the video input for the next trigger. */
 
 	if ( camera_is_master && external_trigger ) {
+#if 0
 		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
 						ad, &num_frames_in_sequence );
-
+#else
+		mx_status = mx_sequence_get_num_frames(
+						&(ad->sequence_parameters),
+						&num_frames_in_sequence );
+#endif
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		switch( sp->sequence_type ) {
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			circular = TRUE;
+			break;
+		default:
+			circular = FALSE;
+			break;
+		}
+
 		mx_status = mx_video_input_asynchronous_capture(
 					pccd_170170->video_input_record,
-					num_frames_in_sequence, FALSE );
+					num_frames_in_sequence, circular );
 	} else {
 		mx_status = mx_video_input_arm(
 					pccd_170170->video_input_record );
@@ -2169,7 +2189,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	MX_SEQUENCE_PARAMETERS *sp;
 	long num_frames_in_sequence;
 	int i, num_triggers;
-	mx_bool_type camera_is_master, internal_trigger;
+	mx_bool_type camera_is_master, internal_trigger, circular;
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -2205,6 +2225,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 	switch( sp->sequence_type ) {
 	case MXT_SQ_ONE_SHOT:
 	case MXT_SQ_MULTIFRAME:
+	case MXT_SQ_CIRCULAR_MULTIFRAME:
 	case MXT_SQ_STROBE:
 	case MXT_SQ_GEOMETRICAL:
 	case MXT_SQ_SUBIMAGE:
@@ -2212,7 +2233,7 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 		break;
 
 	case MXT_SQ_CONTINUOUS:
-	case MXT_SQ_CIRCULAR_MULTIFRAME:
+	case MXT_SQ_BULB:
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
 			"Image sequence type %ld is not supported by "
@@ -2231,15 +2252,31 @@ mxd_pccd_170170_trigger( MX_AREA_DETECTOR *ad )
 #endif
 
 	if ( camera_is_master && internal_trigger ) {
+#if 0
 		mx_status = mxd_pccd_170170_get_num_frames_in_sequence(
 						ad, &num_frames_in_sequence );
+#else
+		mx_status = mx_sequence_get_num_frames(
+						&(ad->sequence_parameters),
+						&num_frames_in_sequence );
+#endif
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
+		switch( sp->sequence_type ) {
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			circular = TRUE;
+			break;
+		default:
+			circular = FALSE;
+			break;
+		}
+
 		mx_status = mx_video_input_asynchronous_capture(
 					pccd_170170->video_input_record,
-					num_frames_in_sequence, FALSE );
+					num_frames_in_sequence, circular );
 	} else {
 		/* Send the trigger request to the video input board. */
 
@@ -2484,6 +2521,9 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MX_PCCD_170170 *pccd_170170;
 	unsigned long flags;
+	long frame_number, maximum_num_frames, total_num_frames;
+	long frame_difference, num_times_looped;
+	long number_of_frame_that_overwrote_the_frame_we_want;
 	size_t bytes_to_copy, raw_frame_length, image_length;
 	struct timespec exposure_timespec;
 	double exposure_time;
@@ -2498,12 +2538,66 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	MX_DEBUG(-2,("%s invoked for area detector '%s'.",
 		fname, ad->record->name ));
 #endif
+	/* Compute the frame number modulo the maximum_number of frames.
+	 * The modulo part is for the sake of MXT_SQ_CIRCULAR_MULTIFRAME
+	 * and MXT_SQ_CONTINUOUS sequences.
+	 */
+
+	ad->parameter_type = MXLV_AD_MAXIMUM_FRAME_NUMBER;
+
+	mx_status = mxd_pccd_170170_get_parameter( ad );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	maximum_num_frames = ad->maximum_frame_number + 1;
+
+	frame_number = ad->readout_frame % maximum_num_frames;
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,("%s: Reading raw frame %ld", fname, frame_number));
+#endif
+	/* Has this frame already been overwritten? */
+
+	mx_status = mx_video_input_get_total_num_frames(
+						pccd_170170->video_input_record,
+						&total_num_frames );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	frame_difference = total_num_frames - ad->readout_frame;
+
+#if MXD_PCCD_170170_DEBUG
+	MX_DEBUG(-2,
+("%s: frame_difference = %ld, total_num_frames = %ld, ad->readout_frame = %ld",
+		fname, frame_difference, total_num_frames, ad->readout_frame));
+#endif
+
+	if ( frame_difference > 0 ) {
+		num_times_looped = frame_difference / maximum_num_frames;
+
+#if MXD_PCCD_170170_DEBUG
+		MX_DEBUG(-2,("%s: num_times_looped = %ld",
+			fname, num_times_looped));
+#endif
+		if ( num_times_looped > 0 ) {
+			number_of_frame_that_overwrote_the_frame_we_want
+				= ad->readout_frame
+					+ num_times_looped * maximum_num_frames;
+
+			mx_warning(
+		    "%s: Frame %ld has already been overwritten by frame %ld.",
+			fname, ad->readout_frame, 
+			number_of_frame_that_overwrote_the_frame_we_want );
+		}
+	}
 
 	/* Read in the raw image frame. */
 
 	mx_status = mx_video_input_get_frame(
 		pccd_170170->video_input_record,
-		ad->readout_frame, &(pccd_170170->raw_frame) );
+		frame_number, &(pccd_170170->raw_frame) );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
@@ -3052,14 +3146,26 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		if ( num_frames > (ad->maximum_frame_number + 1) ) {
-			return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
-			"The sequence requested for area detector '%s' "
-			"would have more frames (%ld) than the maximum "
-			"available (%ld) from video input '%s'.",
-				ad->record->name, num_frames,
-				ad->maximum_frame_number + 1,
-				pccd_170170->video_input_record->name );
+		switch( sp->sequence_type ) {
+		case MXT_SQ_CONTINUOUS:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
+			/* Continuous and circular scans are not limited
+			 * by the maximum number of frames that the video
+			 * card can handle, since they wrap back to the
+			 * first frame when they reach the last frame.
+			 */
+			break;
+		default:
+			if ( num_frames > (ad->maximum_frame_number + 1) ) {
+				return mx_error( MXE_WOULD_EXCEED_LIMIT, fname,
+				"The sequence requested for area detector '%s' "
+				"would have more frames (%ld) than the maximum "
+				"available (%ld) from video input '%s'.",
+					ad->record->name, num_frames,
+					ad->maximum_frame_number + 1,
+					pccd_170170->video_input_record->name );
+			}
+			break;
 		}
 
 		/* Get the old detector readout mode, since that will be
@@ -3086,6 +3192,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		switch( sp->sequence_type ) {
 		case MXT_SQ_ONE_SHOT:
 		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
 		case MXT_SQ_GEOMETRICAL:
 
@@ -3179,6 +3286,13 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				frame_time = exposure_time;
 
 			} else if ( sp->sequence_type == MXT_SQ_MULTIFRAME ) {
+				num_frames = mx_round( sp->parameter_array[0] );
+				exposure_time = sp->parameter_array[1];
+				frame_time = sp->parameter_array[2];
+
+			} else if ( sp->sequence_type
+					== MXT_SQ_CIRCULAR_MULTIFRAME )
+			{
 				num_frames = mx_round( sp->parameter_array[0] );
 				exposure_time = sp->parameter_array[1];
 				frame_time = sp->parameter_array[2];
@@ -3555,7 +3669,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 			break;
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
+		case MXT_SQ_BULB:
 			return mx_error( MXE_UNSUPPORTED, fname,
 			"Detector sequence type %lu is not supported "
 			"for detector '%s'.",
@@ -3591,6 +3705,7 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_GEOMETRICAL:
 		case MXT_SQ_STREAK_CAMERA:
 		case MXT_SQ_SUBIMAGE:
@@ -3601,7 +3716,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			break;
 
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_BULB:
 		default:
 			return mx_error( MXE_ILLEGAL_ARGUMENT, fname,

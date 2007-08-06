@@ -55,7 +55,9 @@ motor_area_detector_fn( int argc, char *argv[] )
 	long n, starting_total_num_frames, starting_last_frame_number;
 	long old_last_frame_number, old_total_num_frames, num_unread_frames;
 	long num_frames_difference;
-	long num_lines, num_lines_per_subimage, num_subimages;
+	long num_lines, num_lines_per_subimage, num_subimages, testvar;
+	int num_digits_in_filename;
+	char digits_format[40];
 	size_t length;
 	unsigned long ad_status, roi_number, acquisition_in_progress;
 	unsigned long roi[4];
@@ -346,6 +348,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			break;
 
 		case MXT_SQ_MULTIFRAME:
+		case MXT_SQ_CIRCULAR_MULTIFRAME:
 		case MXT_SQ_STROBE:
 		case MXT_SQ_BULB:
 		case MXT_SQ_GEOMETRICAL:
@@ -353,11 +356,10 @@ motor_area_detector_fn( int argc, char *argv[] )
 			break;
 
 		case MXT_SQ_CONTINUOUS:
-		case MXT_SQ_CIRCULAR_MULTIFRAME:
 			num_frames = 0;
 			fprintf( output,
 		"%s: Sequence support in motor has not yet been implemented\n"
-		"for continuous and circular multiframe sequences.\n",
+		"for continuous sequences.\n",
 				cname );
 			return FAILURE;
 			break;
@@ -434,6 +436,35 @@ motor_area_detector_fn( int argc, char *argv[] )
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
+		/* Construct the format string for the image files.  We want
+		 * all of the files to have the same number of digits in
+		 * their names.  So first we find out how many digits are
+		 * in the largest file number.
+		 */
+
+		num_digits_in_filename = 0;
+
+		testvar = num_frames - 1;
+
+		while(1) {
+			if ( testvar == 0 ) {
+				break;		/* Exit the while() loop. */
+			}
+			num_digits_in_filename++;
+			testvar /= 10;
+		}
+
+#if MAREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: num_digits_in_filename = %d",
+			cname, num_digits_in_filename));
+#endif
+		snprintf(digits_format, sizeof(digits_format),
+			"%%s%%0%dld.%%s", num_digits_in_filename );
+
+#if MAREA_DETECTOR_DEBUG
+		MX_DEBUG(-2,("%s: digits_format = '%s'",
+			cname, digits_format));
+#endif
 		/* Loop over the frames in the sequence.  Please note that
 		 * the final section of the for() statement is empty, since
 		 * 'n' does not get incremented on every pass through
@@ -474,6 +505,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
 
+#if 0
 			num_frames_difference =
 				last_frame_number - old_last_frame_number;
 
@@ -482,6 +514,12 @@ motor_area_detector_fn( int argc, char *argv[] )
 			} else {
 				num_unread_frames += num_frames_difference;
 			}
+#else
+			num_frames_difference =
+				total_num_frames - old_total_num_frames;
+
+			num_unread_frames += num_frames_difference;
+#endif
 
 #if MAREA_DETECTOR_DEBUG
 			MX_DEBUG(-2,("n = %ld, last_frame_number = %ld, "
@@ -508,7 +546,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 					return FAILURE;
 
 				snprintf(frame_filename, sizeof(frame_filename),
-					"%s%ld.%s",
+					digits_format,
 					filename_stem, n, filename_ext );
 
 				fprintf( output, "Writing image file '%s'.  ",

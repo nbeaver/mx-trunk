@@ -22,7 +22,12 @@
 
 #define MXI_EPIX_ERROR_MESSAGE_LENGTH	1024
 
-#define MXI_EPIX_MAXIMUM_VIDEO_INPUTS	16
+/* On x86, the PIXCI unitmap is a 32-bit integer, which limits us
+ * to 32 video input boards.  I haven't looked at 64-bit versions
+ * of the code yet.
+ */
+
+#define MXI_EPIX_MAXIMUM_VIDEO_INPUTS	32
 
 /* Flag values for the 'epix_xclib_flags' field. */
 

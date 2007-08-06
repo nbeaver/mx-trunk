@@ -41,6 +41,8 @@ typedef struct {
 	mx_bool_type new_sequence;
 	long old_total_num_frames;
 
+	long circular_frame_period;
+
 	unsigned long num_write_test_array_bytes;
 	uint16_t *write_test_array;
 
