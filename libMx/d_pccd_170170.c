@@ -897,7 +897,6 @@ mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
 	MX_EPIX_XCLIB *xclib;
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	struct timespec absolute_timespec, relative_timespec;
-	mx_status_type mx_status;
 
 	epix_xclib_vinput = pccd_170170->video_input_record->record_type_struct;
 
@@ -941,7 +940,7 @@ mxp_pccd_170170_epix_save_start_timespec( MX_PCCD_170170 *pccd_170170 )
 			relative_timespec.tv_sec,
 			relative_timespec.tv_nsec));
 #endif
-	return mx_status;
+	return MX_SUCCESSFUL_RESULT;
 }
 
 /* PCCD-170170 detector readout time formula as of July 13, 2007. */
