@@ -2255,6 +2255,7 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 	long words_to_read, result;
 	unsigned long flags;
 	char *colorspace;
+	int epix_status;
 	char error_message[80];
 	struct timespec image_timestamp;
 	mx_status_type mx_status;
@@ -2383,25 +2384,19 @@ mxd_epix_xclib_get_frame( MX_VIDEO_INPUT *vinput )
 #endif
 	/* Was the read successful? */
 
-	if ( result < 0 ) {
+	if ( result <= 0 ) {
 		/* Got an error return. */
 
-		mxi_epix_xclib_error_message( epix_xclib_vinput->unitmap,
-				result, error_message, sizeof(error_message) ); 
+		epix_status = pxd_mesgFaultText( epix_xclib_vinput->unitmap,
+				error_message, sizeof(error_message) );
 
 		return mx_error( MXE_DEVICE_IO_ERROR, fname,
-			"An error occurred while reading a %lu byte image "
+			"The value %ld was returned by pxd_readushort() "
+			"while attempting reading a %lu byte image "
 			"frame from video input '%s'.  Error = '%s'.",
+				result,
 				(unsigned long) frame->image_length,
 				vinput->record->name, error_message );
-	} else
-	if ( result == 0 ) {
-		/* Got no bytes back.  We will try again. */
-
-		return mx_error( MXE_NOT_AVAILABLE, fname,
-			"No bytes were available to be read from the "
-			"imaging board for video input record '%s'.",
-				vinput->record->name );
 	} else
 	if ( result < frame->image_length ) {
 		/* Buffer underrun. */
