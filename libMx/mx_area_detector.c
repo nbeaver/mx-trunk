@@ -4295,6 +4295,9 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	actual_dark_current = -1.0;
+	flood_field_scale_factor = -1.0;
+
 #if MX_AREA_DETECTOR_DEBUG
 	MX_DEBUG(-2,("%s: image_frame = %p", fname, image_frame));
 	MX_DEBUG(-2,("%s: mask_frame = %p", fname, mask_frame));
@@ -4470,7 +4473,7 @@ mx_area_detector_frame_correction( MX_RECORD *record,
 			}
 		}
 
-#if 1
+#if MX_AREA_DETECTOR_DEBUG
 		if ( i < 10 ) {
 			fprintf( stderr, "i = %ld, flags = %#lx, ", i, flags );
 
