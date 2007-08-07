@@ -33,7 +33,7 @@
 
 #define MAREA_BUFFER_OVERRUN_CHECK(s,r) \
 	do {                                                                 \
-	    if ( (s) & MXSF_AD_BUFFER_OVERRUN ) {                            \
+	    if ( 0 & (s) & MXSF_AD_BUFFER_OVERRUN ) {                            \
                 mx_warning("Buffer overrun detected for area detector '%s'", \
                         (r)->name );                                         \
 	    }                                                                \

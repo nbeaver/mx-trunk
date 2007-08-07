@@ -2607,10 +2607,12 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 				= ad->readout_frame
 					+ num_times_looped * maximum_num_frames;
 
+#if 0
 			mx_warning(
 		    "%s: Frame %ld has already been overwritten by frame %ld.",
 			fname, ad->readout_frame, 
 			number_of_frame_that_overwrote_the_frame_we_want );
+#endif
 		}
 	}
 
