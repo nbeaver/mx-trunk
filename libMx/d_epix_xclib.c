@@ -533,6 +533,23 @@ mxd_epix_xclib_destroy_captured_field_handler(
 
 /*---*/
 
+static void
+mxd_epix_xclib_report_faults( int unitmap,
+				char *label,
+				mx_bool_type always_display )
+{
+	int result;
+	char buffer[100];
+
+	result = pxd_mesgFaultText( unitmap, buffer, sizeof(buffer) );
+
+	if ( always_display || ( result != 0 ) ) {
+		mx_warning( "%s: '%s'", label, buffer );
+	}
+}
+
+/*---*/
+
 static mx_status_type
 mxd_epix_xclib_set_exsync_princ( MX_VIDEO_INPUT *vinput,
 				MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput,
@@ -2686,8 +2703,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 	MX_EPIX_XCLIB_VIDEO_INPUT *epix_xclib_vinput;
 	uint16 CLCCSE;
-	int epix_status;
+	int epix_status, mesg_status;
 	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+	char error_message[100];
 	mx_status_type mx_status;
 
 	struct xclibs *xc;
@@ -2825,6 +2843,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		xc = pxd_xclibEscape(0, 0, 0);
 
+		mxd_epix_xclib_report_faults( epix_xclib_vinput->unitmap,
+				"pxd_xclibEscape(0,0,0)", FALSE );
+
 		if ( xc == NULL ) {
 			return mx_error( MXE_INITIALIZATION_ERROR, fname,
 			"The XCLIB library has not yet been initialized "
@@ -2834,7 +2855,13 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		xclib_InitVidStateStructs(vidstate);
 
+		mxd_epix_xclib_report_faults( epix_xclib_vinput->unitmap,
+				"xclib_InitVidStateStructs()", FALSE );
+
 		xc->pxlib.getState( &(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
+
+		mxd_epix_xclib_report_faults( epix_xclib_vinput->unitmap,
+				"xc->pxlib.getState()", FALSE );
 
 		/* Change the necessary parameters. */
 
@@ -2860,6 +2887,9 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 		epix_status = xc->pxlib.defineState(
 				&(xc->pxlib), 0, PXMODE_DIGI, &vidstate );
 
+		mxd_epix_xclib_report_faults( epix_xclib_vinput->unitmap,
+				"xc->pxlib.defineState()", FALSE );
+
 		if ( epix_status != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
 			"Error in xc->pxlib.defineState() for record '%s'.  "
@@ -2869,8 +2899,10 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 
 		/* Leave the Structured Style Interface. */
 
-#if 1    /* WML WML WML */
 		epix_status = pxd_xclibEscaped(0, 0, 0);
+
+		mxd_epix_xclib_report_faults( epix_xclib_vinput->unitmap,
+				"pxd_xclibEscaped(0,0,0)", FALSE );
 
 		if ( epix_status != 0 ) {
 			return mx_error( MXE_DEVICE_IO_ERROR, fname,
@@ -2878,9 +2910,11 @@ mxd_epix_xclib_set_parameter( MX_VIDEO_INPUT *vinput )
 			"Error code = %d",
 				vinput->record->name, epix_status );
 		}
-#endif   /* WML WML WML */
 
 #if MXD_EPIX_XCLIB_DEBUG
+		MX_DEBUG(-2,("%s: pxd_imageXdim() = %d, pxd_imageYdim() = %d",
+			fname, pxd_imageXdim(), pxd_imageYdim() ));
+
 		MX_DEBUG(-2,("%s: finished setting '%s' framesize.",
 			fname, vinput->record->name));
 #endif

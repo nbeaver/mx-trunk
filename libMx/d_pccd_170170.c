@@ -1068,7 +1068,11 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 
 		/* Note: The scale factor for the gap time has changed. */
 
+#if 0
 				tbe = 10 * tbe;
+#else
+				tbe = tbe / 10;
+#endif
 
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
@@ -1612,7 +1616,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 					0,     FALSE, FALSE, 0,  65535 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_FRAMES_PER_SEQUENCE,
-					1,     FALSE, FALSE, 1,  128 );
+					1,     FALSE, FALSE, 1,  69999 );
 
 	INIT_REGISTER( MXLV_PCCD_170170_DH_GAP_TIME,
 					1,     FALSE, FALSE, 0,  65535 );
