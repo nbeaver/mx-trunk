@@ -15,7 +15,7 @@
  *
  */
 
-#define MXI_EPIX_RS232_DEBUG	TRUE
+#define MXI_EPIX_RS232_DEBUG	FALSE
 
 #include <stdio.h>
 

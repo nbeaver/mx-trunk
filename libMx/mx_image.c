@@ -15,9 +15,9 @@
  *
  */
 
-#define MX_IMAGE_DEBUG		TRUE
+#define MX_IMAGE_DEBUG		FALSE
 
-#define MX_IMAGE_TEST_DEZINGER	TRUE
+#define MX_IMAGE_TEST_DEZINGER	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

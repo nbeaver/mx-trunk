@@ -14,7 +14,7 @@
  *
  */
 
-#define PR_AREA_DETECTOR_DEBUG	TRUE
+#define PR_AREA_DETECTOR_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -856,8 +856,11 @@ mxp_area_detector_get_roi_frame_handler( MX_RECORD *record,
 mx_status_type
 mx_setup_area_detector_process_functions( MX_RECORD *record )
 {
+
+#if PR_AREA_DETECTOR_DEBUG
 	static const char fname[] =
 			"mx_setup_area_detector_process_functions()";
+#endif
 
 	MX_RECORD_FIELD *record_field;
 	MX_RECORD_FIELD *record_field_array;

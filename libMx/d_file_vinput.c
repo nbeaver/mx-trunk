@@ -15,7 +15,7 @@
  *
  */
 
-#define MXD_FILE_VINPUT_DEBUG	TRUE
+#define MXD_FILE_VINPUT_DEBUG	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_PCCD_170170_DEBUG				TRUE
+#define MXD_PCCD_170170_DEBUG				FALSE
 
 #define MXD_PCCD_170170_DEBUG_DESCRAMBLING		FALSE
 
@@ -22,7 +22,7 @@
 
 #define MXD_PCCD_170170_DEBUG_ALLOCATION_DETAILS	FALSE
 
-#define MXD_PCCD_170170_DEBUG_SERIAL			TRUE
+#define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2736,7 +2736,6 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 	long i, num_frames, num_subimages, num_lines_per_subimage;
 	double exposure_time, frame_time, gap_time, subimage_time;
 	double exposure_multiplier, gap_multiplier;
-	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	mx_status = mxd_pccd_170170_get_pointers( ad, &pccd_170170, fname );
@@ -2745,11 +2744,15 @@ mxd_pccd_170170_get_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
-		fname, ad->record->name,
-		mx_get_parameter_name_from_type(
-			ad->record, ad->parameter_type,
-			name_buffer, sizeof(name_buffer)) ));
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)) ));
+	}
 #endif
 	video_input_record = pccd_170170->video_input_record;
 
@@ -2981,7 +2984,6 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 	long exposure_multiplier_steps, gap_multiplier_steps;
 	double exposure_time, frame_time, gap_time, subimage_time;
 	double exposure_multiplier, gap_multiplier;
-	char name_buffer[MXU_FIELD_NAME_LENGTH+1];
 	mx_status_type mx_status;
 
 	static long allowed_binsize[] = { 1, 2, 4, 8, 16, 32, 64, 128 };
@@ -2995,11 +2997,15 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		return mx_status;
 
 #if MXD_PCCD_170170_DEBUG
-	MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
-		fname, ad->record->name,
-		mx_get_parameter_name_from_type(
-			ad->record, ad->parameter_type,
-			name_buffer, sizeof(name_buffer)) ));
+	{
+		char name_buffer[MXU_FIELD_NAME_LENGTH+1];
+
+		MX_DEBUG(-2,("%s: record '%s', parameter '%s'",
+			fname, ad->record->name,
+			mx_get_parameter_name_from_type(
+				ad->record, ad->parameter_type,
+				name_buffer, sizeof(name_buffer)) ));
+	}
 #endif
 	flags = pccd_170170->pccd_170170_flags;
 

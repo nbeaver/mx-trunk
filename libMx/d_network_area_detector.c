@@ -14,7 +14,7 @@
  *
  */
 
-#define MXD_NETWORK_AREA_DETECTOR_DEBUG		TRUE
+#define MXD_NETWORK_AREA_DETECTOR_DEBUG		FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

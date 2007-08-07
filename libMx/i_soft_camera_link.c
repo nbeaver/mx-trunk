@@ -14,7 +14,7 @@
  *
  */
 
-#define MXI_SOFT_CAMERA_LINK_DEBUG	TRUE
+#define MXI_SOFT_CAMERA_LINK_DEBUG	FALSE
 
 #ifndef IS_MX_DRIVER
 #define IS_MX_DRIVER  /* FIXME: It should not be necessary to have this here. */
@@ -224,8 +224,10 @@ MX_EXPORT INT32 MX_CLCALL
 mxi_soft_camera_link_get_num_bytes_avail( hSerRef serial_ref,
 					UINT32 *num_bytes )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] =
 		"mxi_soft_camera_link_get_num_bytes_avail()";
+#endif
 
 	MX_SOFT_CAMERA_LINK_PORT *port;
 
@@ -249,7 +251,9 @@ mxi_soft_camera_link_get_num_bytes_avail( hSerRef serial_ref,
 MX_EXPORT void MX_CLCALL
 mxi_soft_camera_link_serial_close( hSerRef serial_ref )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_serial_close()";
+#endif
 
 	MX_SOFT_CAMERA_LINK_PORT *port;
 
@@ -273,9 +277,9 @@ mxi_soft_camera_link_serial_close( hSerRef serial_ref )
 MX_EXPORT INT32 MX_CLCALL
 mxi_soft_camera_link_serial_init( UINT32 serial_index, hSerRef *serial_ref_ptr )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_serial_init()";
 
-#if MXI_SOFT_CAMERA_LINK_DEBUG
 	MX_DEBUG(-2,("%s invoked for serial index %lu.",
 		fname, (unsigned long) serial_index ));
 #endif
@@ -331,7 +335,9 @@ MX_EXPORT INT32 MX_CLCALL
 mxi_soft_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 				UINT32 *num_bytes, UINT32 serial_timeout )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_serial_write()";
+#endif
 
 	MX_SOFT_CAMERA_LINK_PORT *port;
 
@@ -361,7 +367,9 @@ mxi_soft_camera_link_serial_write( hSerRef serial_ref, INT8 *buffer,
 MX_EXPORT INT32 MX_CLCALL
 mxi_soft_camera_link_set_baud_rate( hSerRef serial_ref, UINT32 baud_rate )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_set_baud_rate()";
+#endif
 
 	MX_SOFT_CAMERA_LINK_PORT *port;
 
@@ -385,7 +393,9 @@ mxi_soft_camera_link_set_cc_line( hSerRef serial_ref,
 					UINT32 cc_line_number,
 					UINT32 cc_line_state )
 {
+#if MXI_SOFT_CAMERA_LINK_DEBUG
 	static const char fname[] = "mxi_soft_camera_link_set_cc_line()";
+#endif
 
 	MX_SOFT_CAMERA_LINK_PORT *port;
 
