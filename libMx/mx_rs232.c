@@ -654,7 +654,7 @@ mx_rs232_getline( MX_RECORD *record,
 		terminators_seen = 0;
 		start_of_terminator = INT_MAX;
 
-#if 1
+#if 0
 		MX_DEBUG(-2,("%s: do_timeout = %d, rs232->timeout = %g",
 			fname, do_timeout, rs232->timeout));
 #endif
@@ -689,7 +689,7 @@ mx_rs232_getline( MX_RECORD *record,
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
-#if 1
+#if 0
 				MX_DEBUG(-2,("%s: num_bytes_available = %ld",
 					fname, num_bytes_available));
 #endif
@@ -720,7 +720,7 @@ mx_rs232_getline( MX_RECORD *record,
 
 			mx_status = mx_rs232_getchar(record, &c, MXF_232_WAIT);
 
-#if 1
+#if 0
 			MX_DEBUG(-2,("%s: c = %#x '%c'", fname, c, c));
 #endif
 

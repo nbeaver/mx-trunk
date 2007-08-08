@@ -2107,7 +2107,9 @@ mx_image_write_smv_file( MX_IMAGE_FRAME *frame, char *datafile_name )
 	num_items_written = fwrite( null_header_bytes,
 				sizeof(null_header_bytes), 1, file );
 
+#if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s: num_items_written = %d", fname, num_items_written));
+#endif
 
 	/* Now go back to the start of the file. */
 

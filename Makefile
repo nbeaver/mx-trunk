@@ -49,7 +49,9 @@ MX_ARCH = linux
 
 #MX_INSTALL_DIR = /opt/mx
 
-MX_INSTALL_DIR = c:/opt/mx-2007-08-06
+MX_INSTALL_DIR = /opt/mx-2007-08-07
+
+#MX_INSTALL_DIR = c:/opt/mx-2007-08-07
 
 #MX_INSTALL_DIR = $(HOME)/mxtest
 
