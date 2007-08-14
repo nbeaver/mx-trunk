@@ -2543,6 +2543,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	long frame_number, maximum_num_frames, total_num_frames;
 	long frame_difference, num_times_looped;
 	long number_of_frame_that_overwrote_the_frame_we_want;
+	long row_framesize, column_framesize;
 	size_t bytes_to_copy, raw_frame_length, image_length;
 	struct timespec exposure_timespec;
 	double exposure_time;
@@ -2641,6 +2642,23 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	MXIF_EXPOSURE_TIME_NSEC(pccd_170170->raw_frame)
 						= exposure_timespec.tv_nsec;
+
+	/* Make sure that the image frame is the correct size. */
+
+	row_framesize    = MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame) / 4;
+	column_framesize = MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) * 4;
+
+	mx_status = mx_image_alloc( &(ad->image_frame),
+				row_framesize,
+				column_framesize,
+				MXIF_IMAGE_FORMAT(pccd_170170->raw_frame),
+				MXIF_BYTE_ORDER(pccd_170170->raw_frame),
+				MXIF_BYTES_PER_PIXEL(pccd_170170->raw_frame),
+				pccd_170170->raw_frame->header_length,
+				pccd_170170->raw_frame->image_length );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
 
 	/* Copy the image header. */
 

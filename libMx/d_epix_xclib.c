@@ -22,6 +22,8 @@
 
 #define MXD_EPIX_XCLIB_DEBUG_IMAGE_TIME		FALSE
 
+#define MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS	TRUE
+
 #define MXD_EPIX_XCLIB_DEBUG_FAKE_FRAME_NUMBERS	FALSE
 
 #include <stdio.h>
@@ -965,9 +967,15 @@ mxd_epix_xclib_open( MX_RECORD *record )
 
 	MX_DEBUG(-2,("%s: board submodel = %#x",
 		fname, pxd_infoSubmodel( epix_xclib_vinput->unitmap ) ));
+#endif
 
+#if MXD_EPIX_XCLIB_DEBUG_FRAME_BUFFERS
 	MX_DEBUG(-2,("%s: board memory = %lu bytes",
 		fname, pxd_infoMemsize( epix_xclib_vinput->unitmap ) ));
+	MX_DEBUG(-2,("%s: pxd_imageXdim() = %d, pxd_imageYdim() = %d",
+		fname, pxd_imageXdim(), pxd_imageYdim()));
+	MX_DEBUG(-2,("%s: pxd_imageZdim() = %d",
+		fname, pxd_imageZdim()));
 #endif
 	/* Initialize a bunch of driver parameters. */
 

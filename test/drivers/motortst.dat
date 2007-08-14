@@ -3,6 +3,7 @@ ring_energy                      variable inline double "" "" 1  1  7
 edge_energy                      variable inline double "" "" 1  1  8980
 d_spacing                        variable inline double "" "" 1  1  3.13555
 xoffset                          variable inline double "" "" 1  1  10
+scan_early_move                  variable inline ulong  "" "" 1  1  1
 xafs_header1                     variable inline string "" "" 1  81 "WML test XAFS scan"
 xafs_header2                     variable inline string "" "" 1  81 "Cu edge data"
 xafs_header3                     variable inline string "" "" 1  81 "Test line 3."
@@ -76,8 +77,9 @@ corr_roi0                        device analog_input mca_value "" "" 0 1 0 count
 real_time                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 real_time ""
 live_time                        device analog_input mca_value "" "" 0 1 0 counts 0x1 0 "" mca1 live_time ""
 mca_timer                        device timer mca_timer "" "" mca1 1
-mcs1                             device mcs soft_mcs "" "" 2 512 "" 0 0 timer2 8950 1  I0 I
+mcs1                             device mcs soft_mcs "" "" 3 512 "" 0 0 timer2 8950 1  I0 I I
 Io                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 0
 It                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 1
+If                               device scaler mcs_scaler "" "" 0 0 1 timer2 mcs1 2
 timer2                           device timer mcs_timer "" "" mcs1
 dark_timer                       device timer timer_fanout "" "" 2 timer1 timer2  
