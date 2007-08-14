@@ -278,6 +278,8 @@ mxd_gated_backlash_open( MX_RECORD *record )
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
+	motor->real_motor_record = gated_backlash->real_motor_record;
+
 	gated_backlash->gate_delay =
 		mx_convert_seconds_to_high_resolution_time( 0.1 );
 

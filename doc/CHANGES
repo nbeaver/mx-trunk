@@ -1,11 +1,11 @@
-Version 1.5.0 (not yet released - changelog current as of SVN revision 853):
+Version 1.5.0 (not yet released - changelog current as of SVN revision 874):
 	A major feature of this release is full functionality for the
 	PCCD-170170 area detector from Aviex LLC.  This has involved
 	upgrades to the 'pccd_170170' driver, the 'epix_xclib' related
 	drivers, and the 'network_area_detector' driver.  The detector
 	system now supports full framed and binned mode, multiframe
-	image capture sequences, streak camera sequences, and subimage
-	mode sequences.
+	sequences, circular multiframe sequences, streak camera sequences,
+	and subimage sequences.
 
 	[FIXME - Finish the description of PCCD-170170 related stuff later.]
 
@@ -145,6 +145,13 @@ Version 1.5.0 (not yet released - changelog current as of SVN revision 853):
 	that contain VERSIONINFO resources for the executable.  Typically,
 	some of these will show up in Process Explorer under the Description
 	and Company Name columns.
+
+Version 1.4.3 (08/14/07):
+        Fixed an XAFS scan bug.  If an XAFS scan was run with the 'early move'
+        flag set, the energy of the last measurement for each XAFS region was
+        written to the datafile incorrectly.  Specifically, the recorded
+        energy was set to the energy of the previous data point.  This is
+	now fixed.
 
 Version 1.4.2 (07/27/07):
 	Fixed a bug that made it difficult to terminate running XAFS scans.

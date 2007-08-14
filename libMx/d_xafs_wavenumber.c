@@ -16,7 +16,7 @@
  *
  *---------------------------------------------------------------------------
  *
- * Copyright 1999-2001, 2003, 2006 Illinois Institute of Technology
+ * Copyright 1999-2001, 2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -38,15 +38,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_xafswn_motor_record_function_list = {
-	mxd_xafswn_motor_initialize_type,
+	NULL,
 	mxd_xafswn_motor_create_record_structures,
 	mxd_xafswn_motor_finish_record_initialization,
-	mxd_xafswn_motor_delete_record,
-	mxd_xafswn_motor_print_structure,
-	mxd_xafswn_motor_read_parms_from_hardware,
-	mxd_xafswn_motor_write_parms_to_hardware,
-	mxd_xafswn_motor_open,
-	mxd_xafswn_motor_close
+	NULL,
+	mxd_xafswn_motor_print_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_xafswn_motor_motor_function_list = {
@@ -80,15 +76,10 @@ MX_RECORD_FIELD_DEFAULTS *mxd_xafswn_motor_rfield_def_ptr
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_xafswn_motor_initialize_type( long type )
-{
-		return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_xafswn_motor_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_xafswn_motor_create_record_structures()";
+	static const char fname[]
+		= "mxd_xafswn_motor_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_XAFS_WAVENUMBER_MOTOR *xafswn_motor;
@@ -131,6 +122,7 @@ MX_EXPORT mx_status_type
 mxd_xafswn_motor_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
+	MX_XAFS_WAVENUMBER_MOTOR *xafswn_motor;
 
 	mx_status_type mx_status;
 
@@ -143,25 +135,10 @@ mxd_xafswn_motor_finish_record_initialization( MX_RECORD *record )
 
 	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
 
-	return MX_SUCCESSFUL_RESULT;
-}
+	xafswn_motor = (MX_XAFS_WAVENUMBER_MOTOR *) record->record_type_struct;
 
-MX_EXPORT mx_status_type
-mxd_xafswn_motor_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
+	motor->real_motor_record = xafswn_motor->energy_motor_record;
 
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -230,42 +207,6 @@ mxd_xafswn_motor_print_structure( FILE *file, MX_RECORD *record )
 	fprintf(file,"  move deadband            = %g %s  (%g).\n\n",
 		move_deadband, motor->units,
 		motor->raw_move_deadband.analog );
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_xafswn_motor_read_parms_from_hardware( MX_RECORD *record )
-{
-	/* All saving of parameters is handled by the records that
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_xafswn_motor_write_parms_to_hardware( MX_RECORD *record )
-{
-	/* All setting of parameters is handled by the records that
-	 * this motor is derived from, so we need not do anything here.
-	 */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_xafswn_motor_open( MX_RECORD *record )
-{
-	/* Nothing to do. */
-
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_xafswn_motor_close( MX_RECORD *record )
-{
-	/* Nothing to do. */
 
 	return MX_SUCCESSFUL_RESULT;
 }

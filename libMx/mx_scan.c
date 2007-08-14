@@ -1592,6 +1592,60 @@ mx_scan_acquire_data( MX_SCAN *scan )
 
 /* --------------- */
 
+static mx_status_type
+mxp_scan_update_motor_destination( MX_RECORD *motor_record )
+{
+	static const char fname[] = "mxp_scan_update_motor_destination()";
+
+	MX_MOTOR *motor;
+	MX_RECORD *real_motor_record;
+	unsigned long flags;
+	mx_bool_type do_recursion;
+	mx_status_type mx_status;
+
+	motor = motor_record->record_class_struct;
+
+	if ( motor == (MX_MOTOR *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_MOTOR pointer for motor '%s' is NULL.",
+			motor_record->name );
+	}
+
+	motor->old_destination = motor->destination;
+
+	MX_DEBUG( 2,("%s: Set motor '%s' old destination to %g",
+		fname, motor_record->name, motor->old_destination));
+
+	flags = motor->motor_flags;
+
+	real_motor_record = motor->real_motor_record;
+
+	do_recursion = FALSE;
+
+	if ( flags & MXF_MTR_IS_PSEUDOMOTOR ) {
+		do_recursion = TRUE;
+	}
+	if ( flags & MXF_MTR_IS_REMOTE_MOTOR ) {
+		do_recursion = FALSE;
+	}
+	if ( flags & MXF_MTR_PSEUDOMOTOR_RECURSION_IS_NOT_NECESSARY ) {
+		do_recursion = FALSE;
+	}
+	if ( real_motor_record == (MX_RECORD *) NULL ) {
+		do_recursion = FALSE;
+	}
+
+	if ( do_recursion ) {
+		mx_status =
+			mxp_scan_update_motor_destination( real_motor_record );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
 /* After the last step of a scan with the 'early move' flag set, we must
  * update the values of the motor->old_destination fields with the value
  * from motor->destination so that the last step of the scan will have the
@@ -1605,7 +1659,6 @@ mx_scan_update_old_destinations( MX_SCAN *scan )
 
 	MX_RECORD **motor_record_array;
 	MX_RECORD *motor_record;
-	MX_MOTOR *motor;
 	long i;
 	mx_bool_type early_move_flag;
 	mx_status_type mx_status;
@@ -1645,17 +1698,11 @@ mx_scan_update_old_destinations( MX_SCAN *scan )
 				"by scan '%s' is NULL.", i, scan->record->name);
 			}
 
-			motor = (MX_MOTOR *) motor_record->record_class_struct;
+			mx_status =
+			    mxp_scan_update_motor_destination( motor_record );
 
-			if ( motor == (MX_MOTOR *) NULL ) {
-				return mx_error(
-					MXE_CORRUPT_DATA_STRUCTURE, fname,
-				"The MX_MOTOR pointer for motor '%s' used "
-				"by scan '%s' is NULL.",
-					motor_record->name, scan->record->name);
-			}
-
-			motor->old_destination = motor->destination;
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
 		}
 	}
 

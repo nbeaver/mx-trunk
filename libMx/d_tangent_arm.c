@@ -77,7 +77,7 @@
  *
  *----------------------------------------------------------------------------
  *
- * Copyright 2002-2003, 2006 Illinois Institute of Technology
+ * Copyright 2002-2003, 2006-2007 Illinois Institute of Technology
  *
  * See the file "LICENSE" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
@@ -98,15 +98,11 @@
 /* Initialize the motor driver jump table. */
 
 MX_RECORD_FUNCTION_LIST mxd_tangent_arm_record_function_list = {
-	mxd_tangent_arm_initialize_type,
+	NULL,
 	mxd_tangent_arm_create_record_structures,
 	mxd_tangent_arm_finish_record_initialization,
-	mxd_tangent_arm_delete_record,
-	mxd_tangent_arm_print_motor_structure,
-	mxd_tangent_arm_read_parms_from_hardware,
-	mxd_tangent_arm_write_parms_to_hardware,
-	mxd_tangent_arm_open,
-	mxd_tangent_arm_close
+	NULL,
+	mxd_tangent_arm_print_motor_structure
 };
 
 MX_MOTOR_FUNCTION_LIST mxd_tangent_arm_motor_function_list = {
@@ -206,15 +202,10 @@ mxd_tangent_arm_get_pointers( MX_MOTOR *motor,
 /* === */
 
 MX_EXPORT mx_status_type
-mxd_tangent_arm_initialize_type( long type )
-{
-		return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
 mxd_tangent_arm_create_record_structures( MX_RECORD *record )
 {
-	static const char fname[] = "mxd_tangent_arm_create_record_structures()";
+	static const char fname[]
+			= "mxd_tangent_arm_create_record_structures()";
 
 	MX_MOTOR *motor;
 	MX_TANGENT_ARM *tangent_arm;
@@ -256,6 +247,7 @@ MX_EXPORT mx_status_type
 mxd_tangent_arm_finish_record_initialization( MX_RECORD *record )
 {
 	MX_MOTOR *motor;
+	MX_TANGENT_ARM *tangent_arm;
 
 	mx_status_type mx_status;
 
@@ -268,25 +260,10 @@ mxd_tangent_arm_finish_record_initialization( MX_RECORD *record )
 
 	motor->motor_flags |= MXF_MTR_IS_PSEUDOMOTOR;
 
-	return MX_SUCCESSFUL_RESULT;
-}
+	tangent_arm = (MX_TANGENT_ARM *) record->record_type_struct;
 
-MX_EXPORT mx_status_type
-mxd_tangent_arm_delete_record( MX_RECORD *record )
-{
-	if ( record == NULL ) {
-		return MX_SUCCESSFUL_RESULT;
-	}
-	if ( record->record_type_struct != NULL ) {
-		free( record->record_type_struct );
+	motor->real_motor_record = tangent_arm->moving_motor_record;
 
-		record->record_type_struct = NULL;
-	}
-	if ( record->record_class_struct != NULL ) {
-		free( record->record_class_struct );
-
-		record->record_class_struct = NULL;
-	}
 	return MX_SUCCESSFUL_RESULT;
 }
 
@@ -367,30 +344,6 @@ mxd_tangent_arm_print_motor_structure( FILE *file, MX_RECORD *record )
 	fprintf(file, "  move deadband   = %g %s\n\n",
 		move_deadband, motor->units );
 
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_tangent_arm_read_parms_from_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_tangent_arm_write_parms_to_hardware( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_tangent_arm_open( MX_RECORD *record )
-{
-	return MX_SUCCESSFUL_RESULT;
-}
-
-MX_EXPORT mx_status_type
-mxd_tangent_arm_close( MX_RECORD *record )
-{
 	return MX_SUCCESSFUL_RESULT;
 }
 
