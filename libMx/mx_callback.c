@@ -14,7 +14,7 @@
  *
  */
 
-#define MX_CALLBACK_DEBUG	FALSE
+#define MX_CALLBACK_DEBUG	TRUE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -585,6 +585,7 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	MX_LIST *callback_list;
 	MX_LIST_ENTRY *list_start, *list_entry, *next_list_entry;
 	MX_CALLBACK *callback;
+	mx_bool_type get_new_value;
 	mx_status_type mx_status;
 
 	if ( field == (MX_RECORD_FIELD *) NULL ) {
@@ -596,10 +597,17 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 	MX_DEBUG(-2,("%s invoked for field '%s', callback_type = %lu",
 		fname, field->name, callback_type));
 #endif
+	if ( callback_type == MXCBT_POLL ) {
+		get_new_value = TRUE;
+	} else {
+		get_new_value = FALSE;
+	}
 
 	callback_list = field->callback_list;
 
 #if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s: get_new_value = %d",
+				fname, (int) get_new_value));
 	MX_DEBUG(-2,("%s: callback_list = %p", fname, callback_list));
 #endif
 
@@ -648,7 +656,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 			if ( callback->callback_function != NULL ) {
 				/* Invoke the callback. */
 
-				mx_status = mx_invoke_callback( callback );
+				mx_status = mx_invoke_callback( callback,
+								get_new_value );
 
 				/* If the callback is invalid, remove the
 				 * callback from the callback list.
@@ -692,7 +701,8 @@ mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 }
 
 MX_EXPORT mx_status_type
-mx_invoke_callback( MX_CALLBACK *callback )
+mx_invoke_callback( MX_CALLBACK *callback,
+		mx_bool_type get_new_value )
 {
 	mx_status_type (*function)( MX_CALLBACK *, void * );
 	void *argument;
@@ -707,6 +717,8 @@ mx_invoke_callback( MX_CALLBACK *callback )
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return MX_SUCCESSFUL_RESULT;
 	}
+
+	callback->get_new_value = get_new_value;
 
 	function = callback->callback_function;
 	argument = callback->callback_argument;

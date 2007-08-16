@@ -693,7 +693,7 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 			    		"for callback %#lx is NULL.",
 					(unsigned long) received_message_id );
 			} else {
-			    mx_status = mx_invoke_callback( callback ); 
+			    mx_status = mx_invoke_callback( callback, FALSE ); 
 			}
 
 			/* Go back to the top of the loop and look again

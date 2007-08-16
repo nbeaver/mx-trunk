@@ -37,7 +37,7 @@
 
 #define NETWORK_DEBUG_HEADER_LENGTH	FALSE
 
-#define NETWORK_DEBUG_CALLBACKS		FALSE
+#define NETWORK_DEBUG_CALLBACKS		TRUE
 
 #include <stdio.h>
 #include <string.h>
@@ -3394,9 +3394,9 @@ mxsrv_handle_set_option( MX_RECORD *record_list,
 }
 
 static mx_status_type
-mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
+mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 {
-	static const char fname[] = "mxsrv_poll_callback()";
+	static const char fname[] = "mxsrv_record_field_callback()";
 
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
@@ -3407,7 +3407,7 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 
 #if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s (%p): callback = %p, argument = %p",
-		fname, mxsrv_poll_callback, callback, argument));
+		fname, mxsrv_record_field_callback, callback, argument));
 #endif
 
 	if ( callback == (MX_CALLBACK *) NULL ) {
@@ -3460,19 +3460,27 @@ mxsrv_poll_callback( MX_CALLBACK *callback, void *argument )
 		"Field name = '%s'", record_field->name );
 	}
 
-	/* Process the record field. */
+	/* Do we need to get a new field value? */
+
+	if ( callback->get_new_value ) {
+		/* Process the record field to get the new value. */
 
 #if NETWORK_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s: Processing '%s.%s'",
-		fname, record->name, record_field->name));
+		MX_DEBUG(-2,("%s: Processing '%s.%s'",
+			fname, record->name, record_field->name));
 #endif
 
-	mx_status = mx_process_record_field( record, record_field,
+		mx_status = mx_process_record_field( record, record_field,
 						MX_PROCESS_GET,
 						&send_value_changed_callback );
 
-	if ( mx_status.code != MXE_SUCCESS )
-		return mx_status;
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	} else {
+		/* Send the current value of the field. */
+
+		send_value_changed_callback = TRUE;
+	}
 
 	/* If we get here, see if we should send a value changed callback
 	 * to the client.
@@ -3567,7 +3575,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	mx_status = mx_local_field_add_callback( field,
 					callback_type,
-					mxsrv_poll_callback,
+					mxsrv_record_field_callback,
 					socket_handler,
 					&callback_object );
 
@@ -3755,7 +3763,7 @@ mxsrv_process_callbacks( MX_LIST_HEAD *list_head,
 					callback->callback_function));
 #endif
 
-				mx_status = mx_invoke_callback( callback );
+				mx_status = mx_invoke_callback(callback, TRUE);
 			}
 		}
 		break;

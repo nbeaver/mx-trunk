@@ -39,6 +39,7 @@ typedef struct mx_callback_type {
 	unsigned long callback_type;
 	uint32_t callback_id;
 	mx_bool_type active;
+	mx_bool_type get_new_value;
 	mx_status_type ( *callback_function )
 				( struct mx_callback_type *, void * );
 	void *callback_argument;
@@ -101,7 +102,8 @@ MX_API mx_status_type mx_local_field_invoke_callback_list(
 						MX_RECORD_FIELD *field,
 						unsigned long callback_type );
 
-MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb );
+MX_API mx_status_type mx_invoke_callback( MX_CALLBACK *cb,
+					mx_bool_type get_new_field_value );
 
 /*---*/
 
