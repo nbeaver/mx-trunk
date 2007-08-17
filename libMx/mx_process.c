@@ -20,7 +20,7 @@
 
 #define PROCESS_DEBUG_QUEUEING	FALSE
 
-#define PROCESS_DEBUG_CALLBACKS	TRUE
+#define PROCESS_DEBUG_CALLBACKS	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>

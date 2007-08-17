@@ -1,0 +1,1 @@
+loadscan                         scan linear_scan input_scan "" "" 1 1 0  1  loadavg  0 0 preset_time "1 timer1" text junk.002 gnuplot $f[0]  0  1  100000

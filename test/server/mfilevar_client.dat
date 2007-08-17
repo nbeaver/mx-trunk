@@ -1,0 +1,7 @@
+serv       server network tcpip_server "" "" 0x20000000 127.0.0.1 9827
+uptime_str variable net_variable net_string "" "" serv uptime_str.value 1 40 ""
+uptime     variable net_variable net_double "" "" serv uptime.value 1 1 0
+idletime   variable net_variable net_double "" "" serv idletime.value 1 1 0
+memfree    variable net_variable net_long "" "" serv memfree.value 1 1 0
+loadavg    variable net_variable net_double "" "" serv loadavg.value 1 1 0
+timer1     device timer soft_timer "" ""

@@ -194,11 +194,31 @@ mxvp_file_variable_open_file( MX_FILE_VARIABLE *file_variable )
 {
 	static const char fname[] = "mxvp_file_variable_open_file()";
 
-	int os_status, saved_errno;
+	int saved_errno;
+	unsigned long flags;
+	char mode[5];
 
-	file_variable->file = fopen( file_variable->filename, "r" );
+	flags = file_variable->file_flags;
 
-	if ( os_status != 0 ) {
+	if ( flags & MXF_VFILE_READ ) {
+		if ( flags & MXF_VFILE_WRITE ) {
+			strlcpy( mode, "w+", sizeof(mode) );
+		} else {
+			strlcpy( mode, "r", sizeof(mode) );
+		}
+	} else
+	if ( flags & MXF_VFILE_WRITE ) {
+		strlcpy( mode, "w", sizeof(mode) );
+	} else {
+		return mx_error( MXE_ILLEGAL_ARGUMENT, fname,
+		"Neither the read bit (0x1) or the write bit (0x2) is set "
+		"in the 'file_flags' field (%#lx) for record '%s'",
+			flags, file_variable->record->name );
+	}
+
+	file_variable->file = fopen( file_variable->filename, mode );
+
+	if ( file_variable->file == NULL ) {
 		saved_errno = errno;
 
 		return mx_error( MXE_FILE_IO_ERROR, fname,

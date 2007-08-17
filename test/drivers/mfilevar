@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mfilevar.dat -s ./sfilevar.dat -i $*
+
