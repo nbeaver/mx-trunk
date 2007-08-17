@@ -523,6 +523,12 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 	/* Wait for messages.  We always go through the loop at least once. */
 
 	do {
+		/* Sleep for a moment to make sure that we do not
+		 * use up all available cpu time.
+		 */
+
+		mx_msleep(1);
+
 		/* Are any network messages available? */
 
 		mx_status = mx_network_message_is_available( server_record,
@@ -550,16 +556,6 @@ mx_network_wait_for_message_id( MX_RECORD *server_record,
 						(unsigned long) message_id,
 						server_record->name );
 				}
-			} else {
-				/* For most platforms, invoking the function
-				 * mx_current_clock_tick() causes a system
-				 * call to be made.  If we get here, then
-				 * no system call was performed, so we need
-				 * to sleep for a moment to give the CPU
-				 * a chance to service other tasks.
-				 */
-
-				mx_usleep(1);
 			}
 
 			/* Go back to the top of the loop and try again. */

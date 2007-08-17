@@ -229,6 +229,7 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	MX_NETWORK_SERVER *server;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	uint32_t *header, *uint32_message;
+	char *char_message;
 	unsigned long header_length, message_length, message_type, status_code;
 	unsigned long data_type, message_id, callback_id;
 	int new_handle_needed;
@@ -362,6 +363,9 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 	uint32_message = header
 		+ ( mx_remote_header_length(server) / sizeof(uint32_t) );
 
+	char_message = message_buffer->u.char_buffer
+				+ mx_remote_header_length(server);
+
 	/* Read the header of the returned message. */
 
 	header_length  = mx_ntohl( header[MX_NETWORK_HEADER_LENGTH] );
@@ -375,6 +379,14 @@ mx_remote_field_add_callback( MX_NETWORK_FIELD *nf,
 		"Instead it was of type = %#lx.",
 		    (unsigned long) mx_server_response(MX_NETMSG_ADD_CALLBACK),
 		    (unsigned long) message_type );
+	}
+
+	/* If we got an error status code from the server, return the
+	 * error message to the caller.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( status_code, fname, char_message );
 	}
 
 	/* If the header is not at least 28 bytes long, then the server

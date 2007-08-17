@@ -3525,7 +3525,7 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	static const char fname[] = "mxsrv_handle_add_callback()";
 
 	uint32_t *uint32_header, *uint32_message;
-	uint32_t message_id;
+	uint32_t message_id, message_type;
 	unsigned long header_length, message_length;
 	unsigned long record_handle, field_handle, callback_type;
 	MX_CALLBACK *callback_object;
@@ -3558,6 +3558,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 			(unsigned long) (3L * sizeof(uint32_t)) );
 	}
 
+	message_type = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_TYPE] );
+
 	message_id = mx_ntohl( uint32_header[MX_NETWORK_MESSAGE_ID] );
 
 	uint32_message = uint32_header + ( header_length / sizeof(uint32_t) );
@@ -3570,6 +3572,27 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	MX_DEBUG(-2,("%s: (%lu,%lu) callback_type = %lu",
 		fname, record_handle, field_handle, callback_type ));
 #endif
+	/* If callbacks are not currently enabled for this server,
+	 * send an error message to the client that tells it this.
+	 */
+
+	if ( socket_handler->list_head->master_timer == NULL ) {
+
+		mx_status = mx_error( MXE_NOT_VALID_FOR_CURRENT_STATE, fname,
+		"Callbacks are not currently enabled for this MX server.  "
+		"Check the configuration file 'mxserver.opt' to see "
+		"if the '-c' option is present there." );
+
+		(void) mx_network_socket_send_error_message(
+					socket_handler->synchronous_socket,
+					message_id,
+					socket_handler->remote_header_length,
+					socket_handler->network_debug,
+					mx_server_response( message_type ),
+					mx_status );
+
+		return mx_status;
+	}
 
 	/* Add the callback to the list of callbacks. */
 
