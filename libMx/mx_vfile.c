@@ -39,6 +39,7 @@ MX_RECORD_FUNCTION_LIST mxv_file_variable_record_function_list = {
 	NULL,
 	NULL,
 	NULL,
+	NULL,
 	mxv_file_variable_open,
 	mxv_file_variable_close
 };
