@@ -38,7 +38,7 @@ MX_CORE_SRCS = mx_amplifier.c mx_analog_input.c mx_analog_output.c \
 	mx_spec.c mx_stack.c mx_syslog.c \
 	mx_table.c mx_test.c mx_thread.c mx_timer.c \
 	mx_update.c mx_usb.c mx_user_interrupt.c mx_util.c mx_util_cfaqs.c \
-	mx_variable.c mx_vepics.c mx_version.c \
+	mx_variable.c mx_vepics.c mx_vfile.c mx_version.c \
 	mx_video_input.c mx_vinline.c \
 	mx_virtual_timer.c mx_vme.c mx_vnet.c mx_warning.c \
 	pr_amplifier.c pr_analog_input.c pr_analog_output.c \

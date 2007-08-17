@@ -152,6 +152,8 @@ MX_DRIVER mx_class_list[] = {
 				NULL, NULL, NULL, NULL, NULL},
 {"bluice_variable",0, MXV_BLUICE,         MXR_VARIABLE,
 				NULL, NULL, NULL, NULL, NULL},
+{"file",           0, MXV_FILE,           MXR_VARIABLE,
+				NULL, NULL, NULL, NULL, NULL},
 
   /* ================== Server classes ================== */
 

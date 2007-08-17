@@ -126,6 +126,7 @@
 #define MXV_PMAC			65
 #define MXV_SPEC			66
 #define MXV_BLUICE			67
+#define MXV_FILE			68
 
 /* --- Server classes --- */
 
@@ -743,6 +744,11 @@
 #define MXV_BLUICE_MASTER		506001
 #define MXV_BLUICE_COMMAND		506002
 #define MXV_BLUICE_STRING		506003
+
+#define MXV_FILE_STRING			507001
+#define MXV_FILE_LONG			507008
+#define MXV_FILE_ULONG			507009
+#define MXV_FILE_DOUBLE			507011
 
 /* --- Server types --- */
 

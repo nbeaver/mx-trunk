@@ -85,6 +85,7 @@
 #include "mx_vinline.h"
 #include "mx_vnet.h"
 #include "mx_vepics.h"
+#include "mx_vfile.h"
 
 #include "mx_bluice.h"
 
@@ -3796,6 +3797,36 @@ MX_DRIVER mx_type_list[] = {
 				NULL,
 				&mxv_bluice_string_num_record_fields,
 				&mxv_bluice_string_rfield_def_ptr},
+
+/*----*/
+
+{"file_string",    MXV_FILE_STRING,   MXV_FILE, MXR_VARIABLE,
+				&mxv_file_variable_record_function_list,
+				&mxv_file_variable_variable_function_list,
+				NULL,
+				&mxv_file_string_variable_num_record_fields,
+				&mxv_file_string_variable_dptr},
+
+{"file_long",      MXV_FILE_LONG,     MXV_FILE,   MXR_VARIABLE,
+				&mxv_file_variable_record_function_list,
+				&mxv_file_variable_variable_function_list,
+				NULL,
+				&mxv_file_long_variable_num_record_fields,
+				&mxv_file_long_variable_dptr},
+
+{"file_ulong",     MXV_FILE_ULONG,    MXV_FILE,   MXR_VARIABLE,
+				&mxv_file_variable_record_function_list,
+				&mxv_file_variable_variable_function_list,
+				NULL,
+				&mxv_file_ulong_variable_num_record_fields,
+				&mxv_file_ulong_variable_dptr},
+
+{"file_double",    MXV_FILE_DOUBLE,   MXV_FILE,   MXR_VARIABLE,
+				&mxv_file_variable_record_function_list,
+				&mxv_file_variable_variable_function_list,
+				NULL,
+				&mxv_file_double_variable_num_record_fields,
+				&mxv_file_double_variable_dptr},
 
   /* =================== Server types ================== */
 

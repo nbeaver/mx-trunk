@@ -1,0 +1,4 @@
+#! /bin/sh
+
+../../motor/motor.static -F ./mfile_double.dat -s ./sfile_double.dat -i $*
+
