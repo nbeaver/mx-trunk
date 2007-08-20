@@ -148,7 +148,7 @@
  * just use the 'dos_portio' driver.
  */
 
-#define HAVE_DRIVERLINX_PORTIO		0
+#define HAVE_DRIVERLINX_PORTIO		1
 
 /*****************************************************************************
  *

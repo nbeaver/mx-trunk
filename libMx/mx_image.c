@@ -1778,7 +1778,9 @@ mx_image_read_smv_file( MX_IMAGE_FRAME **frame, char *datafile_name )
 	for (;;)  {
 		ptr = fgets( buffer, sizeof(buffer), file );
 
+#if MX_IMAGE_DEBUG
 		MX_DEBUG(-2,("%s: buffer = '%s'", fname, buffer));
+#endif
 
 		if ( ptr == NULL ) {
 			saved_errno = errno;

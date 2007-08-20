@@ -1,12 +1,12 @@
 #
 # LPT records
 #
-###portio    interface generic dl_portio "" ""
-###lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
-###lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
+portio    interface generic dl_portio "" ""
+lpt1      interface generic lpt "" "" portio 0x378 SPP 0x1
+lpt1_data device digital_output lpt_out "" "" 0 lpt1 data
 #
-lpt1      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
-lpt1_data device digital_output linux_parport_out "" "" 0 lpt1 data
+###lpt1      interface generic linux_parport "" "" /dev/parport0 SPP 0x1
+###lpt1_data device digital_output linux_parport_out "" "" 0 lpt1 data
 #
 pin2      device digital_output bit_out "" "" 0 0 lpt1_data 0 1 lpt1_data 0 1
 pin3      device digital_output bit_out "" "" 0 0 lpt1_data 1 1 lpt1_data 1 1
@@ -21,7 +21,8 @@ ready      device digital_output bit_out "" "" 0 0 lpt1_data 7 1 lpt1_data 7 1
 #
 # EPIX records
 #
-xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v6.fmt 0x0
+xclib  interface generic epix_xclib "" "" c:/docume~1/lavender/epix/pccd_170170_v6.fmt 0x0
+###xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v6.fmt 0x0
 ###xclib  interface generic epix_xclib "" "" /home/lavender/epix/pccd_170170_v8_large.fmt 0x0
 port  interface camera_link epix_camera_link "" "" 9600 0.5 1
 rs232 interface rs232 camera_link_rs232 "" "" 9600 8 N 1 N 0x0 0x0 -1 0x0 port
