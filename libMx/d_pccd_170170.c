@@ -24,6 +24,8 @@
 
 #define MXD_PCCD_170170_DEBUG_SERIAL			FALSE
 
+#define MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -566,6 +568,12 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 	 */
 
 	if (sp->sequence_type == MXT_SQ_SUBIMAGE) {
+
+#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+		MX_DEBUG(-2,
+		("%s: Invoking mx_image_alloc() for pccd_170170->temp_frame",
+			fname ));
+#endif
 
 		mx_status = mx_image_alloc( &(pccd_170170->temp_frame),
 					MXIF_ROW_FRAMESIZE(image_frame),
@@ -1943,6 +1951,11 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	MX_DEBUG(-2,("%s: bytes_per_frame = %ld", fname, ad->bytes_per_frame));
 #endif
 
+#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,
+	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame", fname ));
+#endif
+
 	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
 					vinput_framesize[0],
 					vinput_framesize[1],
@@ -2617,6 +2630,24 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 		}
 	}
 
+	/* Make sure that the raw image frame is big enough. */
+
+#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,
+	("%s: Invoking mx_image_alloc() for pccd_170170->raw_frame", fname ));
+#endif
+
+	mx_status = mx_image_alloc( &(pccd_170170->raw_frame),
+				ad->framesize[0] * 4L,
+				ad->framesize[1] / 4L,
+				ad->image_format,
+				ad->byte_order,
+				ad->bytes_per_pixel,
+				0, 0 );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
 	/* Read in the raw image frame. */
 
 	mx_status = mx_video_input_get_frame(
@@ -2647,6 +2678,11 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 
 	row_framesize    = MXIF_ROW_FRAMESIZE(pccd_170170->raw_frame) / 4;
 	column_framesize = MXIF_COLUMN_FRAMESIZE(pccd_170170->raw_frame) * 4;
+
+#if MXD_PCCD_170170_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,
+	("%s: Invoking mx_image_alloc() for pccd_170170->image_frame", fname));
+#endif
 
 	mx_status = mx_image_alloc( &(ad->image_frame),
 				row_framesize,

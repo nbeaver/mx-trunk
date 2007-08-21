@@ -286,6 +286,12 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 #if MX_IMAGE_DEBUG
 	MX_DEBUG(-2,("%s invoked for *frame = %p", fname, *frame));
+
+	MX_DEBUG(-2,
+    ("%s: Invoked as mx_image_alloc( %p, %ld, %ld, %ld, %ld, %g, %ld, %ld )",
+		fname, frame, row_framesize, column_framesize,
+		image_format, byte_order, bytes_per_pixel,
+		header_length, image_length ));
 #endif
 
 	/* We either reuse an existing MX_IMAGE_FRAME or create a new one. */
@@ -467,6 +473,17 @@ mx_image_alloc( MX_IMAGE_FRAME **frame,
 
 	MXIF_SET_BYTES_PER_PIXEL(*frame, bytes_per_pixel);
 
+#if MX_IMAGE_DEBUG
+	MX_DEBUG(-2,
+("%s: (*frame) = %p, (*frame)->header_data = %p, (*frame)->image_data = %p",
+		fname, (*frame), (*frame)->header_data, (*frame)->image_data ));
+
+	MX_DEBUG(-2,("%s: header_length = %ld, allocated_header_length = %ld",
+	    fname, (*frame)->header_length, (*frame)->allocated_header_length));
+
+	MX_DEBUG(-2,("%s: image_length = %ld, allocated_image_length = %ld",
+	    fname, (*frame)->image_length, (*frame)->allocated_image_length));
+#endif
 	return MX_SUCCESSFUL_RESULT;
 }
 

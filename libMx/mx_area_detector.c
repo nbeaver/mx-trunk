@@ -14,7 +14,9 @@
  *
  */
 
-#define MX_AREA_DETECTOR_DEBUG    FALSE
+#define MX_AREA_DETECTOR_DEBUG    		FALSE
+
+#define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC	FALSE
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2335,6 +2337,10 @@ mx_area_detector_setup_frame( MX_RECORD *record,
 
 	/* Make sure the frame is big enough. */
 
+#if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for image_frame", fname));
+#endif
+
 	mx_status = mx_image_alloc( image_frame,
 					ad->framesize[0],
 					ad->framesize[1],
@@ -2914,6 +2920,10 @@ mx_area_detector_get_roi_frame( MX_RECORD *record,
 
 	/* Make sure that the frame is big enough to hold the image data. */
 
+#if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for roi_frame", fname));
+#endif
+
 	mx_status = mx_image_alloc( roi_frame,
 				row_framesize,
 				column_framesize,
@@ -3219,6 +3229,10 @@ mx_area_detector_default_load_frame( MX_AREA_DETECTOR *ad )
 		"Unsupported frame type %ld requested for area detector '%s'.",
 			ad->load_frame, ad->record->name );
 	}
+
+#if MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC
+	MX_DEBUG(-2,("%s: Invoking mx_image_alloc() for frame_ptr", fname));
+#endif
 
 	mx_status = mx_image_alloc( frame_ptr,
 					ad->framesize[0],
