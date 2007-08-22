@@ -1,5 +1,7 @@
 break main
 handle SIGUSR1 nostop
-run -p 9827 -f mpccd_170170_server.dat -C msoftsrv.acl -t -c -A
-break mx_area_detector_process_function
+run -p 9827 -f mfilevar_server.dat -C msoftsrv.acl -t -c -A
+break mxsrv_handle_add_callback
+break mxsrv_handle_delete_callback
+break mxsrv_record_field_callback
 continue

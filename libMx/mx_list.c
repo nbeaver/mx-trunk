@@ -18,6 +18,7 @@
 #include <stdlib.h>
 
 #include "mx_util.h"
+#include "mx_stdint.h"
 #include "mx_list.h"
 
 MX_EXPORT mx_status_type
@@ -282,5 +283,51 @@ mx_list_traverse( MX_LIST *list,
 	} while ( current_list_entry != list_start );
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+MX_EXPORT mx_status_type
+mx_list_find_list_entry( MX_LIST *list,
+			void *list_entry_data,
+			MX_LIST_ENTRY **list_entry )
+{
+	static const char fname[] = "mx_list_find_list_entry()";
+
+	MX_LIST_ENTRY *list_start, *list_entry_ptr;
+
+	if ( list == (MX_LIST *)NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LIST pointer passed was NULL." );
+	}
+	if ( list_entry_data == (void *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The list_entry_data pointer passed was NULL." );
+	}
+	if ( list_entry == (MX_LIST_ENTRY **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_LIST_ENTRY pointer passed was NULL." );
+	}
+
+	list_start = list->list_start;
+
+	list_entry_ptr = list_start;
+
+	do {
+		if ( list_entry_data == list_entry_ptr->list_entry_data ) {
+			*list_entry = list_entry_ptr;
+			return MX_SUCCESSFUL_RESULT;
+		}
+
+		list_entry_ptr = list_entry_ptr->next_list_entry;
+
+		if ( list_entry_ptr == (MX_LIST_ENTRY *) NULL ) {
+			return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+			"The MX_LIST contains a NULL MX_LIST_ENTRY pointer." );
+		}
+
+	} while ( list_entry_ptr != list_start );
+
+	return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+	"The list entry containing object %p was not found.",
+		list_entry_data );
 }
 

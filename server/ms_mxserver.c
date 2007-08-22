@@ -3398,6 +3398,8 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 {
 	static const char fname[] = "mxsrv_record_field_callback()";
 
+	MX_LIST *socket_handler_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
 	MX_SOCKET_HANDLER *socket_handler;
 	MX_NETWORK_MESSAGE_BUFFER *message_buffer;
 	MX_RECORD *record;
@@ -3405,29 +3407,22 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 	mx_bool_type send_value_changed_callback;
 	mx_status_type mx_status;
 
-#if NETWORK_DEBUG_CALLBACKS
-	MX_DEBUG(-2,("%s (%p): callback = %p, argument = %p",
-		fname, mxsrv_record_field_callback, callback, argument));
-#endif
-
 	if ( callback == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_NULL_ARGUMENT, fname,
 		"The MX_CALLBACK pointer passed was NULL." );
 	}
 
-	socket_handler = (MX_SOCKET_HANDLER *) argument;
+#if NETWORK_DEBUG_CALLBACKS
+	MX_DEBUG(-2,("%s (%p): callback = %p, id = %#lx, argument = %p",
+		fname, mxsrv_record_field_callback,
+		callback, (unsigned long) callback->callback_id, argument));
+#endif
 
-	if ( socket_handler == (MX_SOCKET_HANDLER *) NULL ) {
+	socket_handler_list = (MX_LIST *) argument;
+
+	if ( socket_handler_list == (MX_LIST *) NULL ) {
 		return mx_error( MXE_INVALID_CALLBACK, fname,
-		"The MX_SOCKET_HANDLER pointer passed was NULL." );
-	}
-
-	message_buffer = socket_handler->message_buffer;
-
-	if ( message_buffer == (MX_NETWORK_MESSAGE_BUFFER *) NULL ) {
-		return mx_error( MXE_INVALID_CALLBACK, fname,
-		"The MX_NETWORK_MESSAGE_BUFFER corresponding to "
-		"the socket handler passed is NULL." );
+		"The MX_LIST pointer passed was NULL." );
 	}
 
 	if ( callback->callback_class != MXCBC_FIELD ) {
@@ -3482,8 +3477,8 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 		send_value_changed_callback = TRUE;
 	}
 
-	/* If we get here, see if we should send a value changed callback
-	 * to the client.
+	/* If we get here, see if we should send value changed callbacks
+	 * to the clients.
 	 */
 
 #if NETWORK_DEBUG_CALLBACKS
@@ -3492,24 +3487,50 @@ mxsrv_record_field_callback( MX_CALLBACK *callback, void *argument )
 #endif
 
 	if ( send_value_changed_callback ) {
+		list_start = socket_handler_list->list_start;
+
+		list_entry = list_start;
+
+		do {
+			socket_handler = list_entry->list_entry_data;
+
+			if ( socket_handler == NULL ) {
+				return mx_error(
+				MXE_CORRUPT_DATA_STRUCTURE, fname,
+	      "An MX_SOCKET_HANDLER pointer for record field '%s.%s' is NULL.",
+					record->name, record_field->name );
+			}
 
 #if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,
-		("%s: invoking mxsrv_send_field_value_to_client for '%s.%s'",
-			fname, record->name, record_field->name ));
+			MX_DEBUG(-2,
+			("%s: sending field '%s.%s' to '%s', pid %lu",
+				fname, record->name, record_field->name,
+				socket_handler->client_address_string,
+				socket_handler->process_id));
 #endif
+			message_buffer = socket_handler->message_buffer;
 
-		mx_status = mxsrv_send_field_value_to_client( socket_handler,
+			if ( message_buffer ==  NULL ) {
+				return mx_error( MXE_INVALID_CALLBACK, fname,
+				"The MX_NETWORK_MESSAGE_BUFFER corresponding "
+				"to the socket handler passed is NULL." );
+			}
+
+			mx_status = mxsrv_send_field_value_to_client(
+						socket_handler,
 						record, record_field,
 						message_buffer,
 					mx_server_response(MX_NETMSG_CALLBACK),
 						callback->callback_id,
 						mx_status );
 #if NETWORK_DEBUG_CALLBACKS
-		MX_DEBUG(-2,
-		("%s: mxsrv_send_field_value_to_client status = %ld",
-			fname, mx_status.code));
+			MX_DEBUG(-2,
+			("%s: mxsrv_send_field_value_to_client status = %ld",
+				fname, mx_status.code));
 #endif
+			list_entry = list_entry->next_list_entry;
+
+		} while ( list_entry != list_start );
 	}
 
 	return mx_status;
@@ -3529,6 +3550,8 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 	unsigned long header_length, message_length;
 	unsigned long record_handle, field_handle, callback_type;
 	MX_CALLBACK *callback_object;
+	MX_LIST *socket_handler_list;
+	MX_LIST_ENTRY *list_entry;
 	mx_status_type mx_status;
 
 #if NETWORK_DEBUG_CALLBACKS
@@ -3594,23 +3617,172 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 		return mx_status;
 	}
 
-	/* Add the callback to the list of callbacks. */
+	/*------------------------------------------------------------*/
 
-	mx_status = mx_local_field_add_callback( field,
+	MX_DEBUG( 4,("%s: MARKER 0", fname));
+
+	/* See if a callback of this type already exists. */
+
+	mx_status = mx_local_field_find_callback( field,
 					callback_type,
 					mxsrv_record_field_callback,
-					socket_handler,
+					NULL,
 					&callback_object );
 
-	if ( mx_status.code != MXE_SUCCESS )
+	if ( mx_status.code == MXE_SUCCESS ) {
+
+		MX_DEBUG( 4,("%s: MARKER 1.1", fname));
+
+		/* mx_local_field_find_callback() successfully found
+		 * an existing callback.
+		 */
+
+		socket_handler_list = callback_object->callback_argument;
+
+		/* Is this socket handler already in the list? */
+
+		MX_DEBUG( 4,("%s: MARKER 1.2", fname));
+
+		mx_status = mx_list_find_list_entry( socket_handler_list,
+							socket_handler,
+							&list_entry );
+
+		MX_DEBUG( 4,("%s: MARKER 1.3", fname));
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: OLD callback: socket_handler_list = %p",
+			fname, socket_handler_list));
+		MX_DEBUG(-2,
+		("%s: OLD callback: list_entry = %p, socket_handler = %p",
+			fname, list_entry, socket_handler));
+#endif
+		MX_DEBUG( 4,("%s: MARKER 1.4", fname));
+
+		if ( mx_status.code == MXE_SUCCESS ) {
+			/* Do nothing. */
+
+			MX_DEBUG( 4,("%s: MARKER 1.5.1", fname));
+		} else
+		if ( mx_status.code == MXE_NOT_FOUND ) {
+			/* If the socket handler is not already in the list,
+			 * then add it to the list.
+			 */
+
+			MX_DEBUG( 4,("%s: MARKER 1.6.1", fname));
+
+			mx_status = mx_list_entry_create( &list_entry,
+						socket_handler, NULL );
+
+			MX_DEBUG( 4,("%s: MARKER 1.6.2", fname));
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			MX_DEBUG( 4,("%s: MARKER 1.6.3", fname));
+
+			mx_status = mx_list_add_entry( socket_handler_list,
+							list_entry );
+
+			MX_DEBUG( 4,("%s: MARKER 1.6.4", fname));
+
+			if ( mx_status.code != MXE_SUCCESS )
+				return mx_status;
+
+			MX_DEBUG( 4,("%s: MARKER 1.6.5", fname));
+		} else {
+			/* An unexpected error occurred. */
+
+			MX_DEBUG( 4,("%s: MARKER 1.7.1", fname));
+			return mx_status;
+		}
+
+		MX_DEBUG( 4,("%s: MARKER 1.8", fname));
+	} else
+	if ( mx_status.code == MXE_NOT_FOUND ) {
+		/* If an existing callback was not found,
+		 * then we must create a new one.
+		 */
+
+		/* Create a new list of socket handlers for this field
+		 * and add this socket handler to the list.
+		 */
+
+		MX_DEBUG( 4,("%s: MARKER 2.1", fname));
+
+		mx_status = mx_list_create( &socket_handler_list );
+
+		MX_DEBUG( 4,("%s: MARKER 2.2", fname));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG( 4,("%s: MARKER 2.3", fname));
+
+		mx_status = mx_list_entry_create( &list_entry,
+						socket_handler, NULL );
+
+		MX_DEBUG( 4,("%s: MARKER 2.4", fname));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG( 4,("%s: MARKER 2.5", fname));
+
+		mx_status = mx_list_add_entry(socket_handler_list, list_entry);
+
+		MX_DEBUG( 4,("%s: MARKER 2.6", fname));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG( 4,("%s: MARKER 2.7", fname));
+
+		/* Create the callback. */
+
+		mx_status = mx_local_field_add_callback( field,
+					callback_type,
+					mxsrv_record_field_callback,
+					socket_handler_list,
+					&callback_object );
+
+		MX_DEBUG( 4,("%s: MARKER 2.8", fname));
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		MX_DEBUG( 4,("%s: MARKER 2.9", fname));
+
+#if NETWORK_DEBUG_CALLBACKS
+		MX_DEBUG(-2,("%s: ADD callback: socket_handler_list = %p",
+			fname, socket_handler_list));
+		MX_DEBUG(-2,
+		("%s: ADD callback: list_entry = %p, socket_handler = %p",
+			fname, list_entry, socket_handler));
+#endif
+		MX_DEBUG( 4,("%s: MARKER 2.10", fname));
+	} else {
+		/* We got an unexpected error, so return that error
+		 * to the caller.
+		 */
+
+		MX_DEBUG( 4,("%s: MARKER 3.1", fname));
+
 		return mx_status;
+	}
+
+	MX_DEBUG( 4,("%s: MARKER 4", fname));
+
+	/*------------------------------------------------------------*/
 
 	if ( callback_object == (MX_CALLBACK *) NULL ) {
 		return mx_error( MXE_FUNCTION_FAILED, fname,
-		"For some reason, mx_field_add_callback() returned a NULL"
+		"For some reason, mx_record_field_add_callback() or "
+		"mx_record_field_find_callback() returned a NULL"
 		"MX_CALLBACK object in spite of the fact that it returned "
 		"an MXE_SUCCESS status code.  This should not happen." );
 	}
+
+	MX_DEBUG( 4,("%s: MARKER 5", fname));
 
 	/* Construct a message to send the callback id back to the client. */
 
@@ -3642,11 +3814,17 @@ mxsrv_handle_add_callback( MX_RECORD *record_list,
 
 	/* Send the message to the client. */
 
+	MX_DEBUG( 4,("%s: MARKER 6", fname));
+
 	mx_status = mx_network_socket_send_message(
 		socket_handler->synchronous_socket, -1.0, network_message );
 
+	MX_DEBUG( 4,("%s: MARKER 7", fname));
+
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
+
+	MX_DEBUG( 4,("%s: MARKER 8", fname));
 
 #if NETWORK_DEBUG_CALLBACKS
 	MX_DEBUG(-2,("%s complete.", fname));

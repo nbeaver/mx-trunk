@@ -589,6 +589,100 @@ mx_local_field_add_callback( MX_RECORD_FIELD *record_field,
 }
 
 MX_EXPORT mx_status_type
+mx_local_field_find_callback( MX_RECORD_FIELD *record_field,
+			unsigned long callback_type,
+			mx_status_type ( *callback_function )(
+						MX_CALLBACK *, void * ),
+			void *callback_argument,
+			MX_CALLBACK **callback_object )
+{
+	static const char fname[] = "mx_local_field_find_callback()";
+
+	MX_CALLBACK *callback_ptr;
+	MX_LIST *callback_list;
+	MX_LIST_ENTRY *list_start, *list_entry;
+	MX_RECORD *record;
+
+	if ( record_field == (MX_RECORD_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_RECORD_FIELD pointer passed was NULL." );
+	}
+	if ( callback_object == (MX_CALLBACK **) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_CALLBACK pointer passed was NULL." );
+	}
+
+	/* Get a pointer to the record list head struct so that we
+	 * can add the new callback there.
+	 */
+
+	record = record_field->record;
+
+	if ( record == (MX_RECORD *) NULL ) {
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"The MX_RECORD_FIELD passed has a NULL MX_RECORD pointer.  "
+		"This probably means that it is a temporary record field "
+		"object used by the MX networking code.  Callbacks are not "
+		"supported for such record fields." );
+	}
+
+#if MX_CALLBACK_DEBUG
+	MX_DEBUG(-2,("%s invoked for record '%s', field '%s'.",
+		fname, record->name, record_field->name ));
+#endif
+
+	callback_list = record_field->callback_list;
+
+	if ( callback_list == (MX_LIST *) NULL ) {
+		*callback_object = NULL;
+
+		return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+		"Record field '%s.%s' does not have any callbacks.",
+			record->name, record_field->name );
+	}
+
+	/* Go through the list looking for a matching list entry.
+	 *
+	 * Jump to the end of the loop using 'continue' if the
+	 * entry does not match.
+	 */
+
+	list_start = callback_list->list_start;
+
+	list_entry = list_start;
+
+	do {
+		callback_ptr = list_entry->list_entry_data;
+
+		if ( callback_ptr == NULL )
+			continue;
+
+		if ( callback_ptr->callback_type != callback_type )
+			continue;
+
+		if ( callback_function != NULL ) {
+		    if ( callback_function != callback_ptr->callback_function )
+			continue;
+		}
+
+		if ( callback_argument != NULL ) {
+		    if ( callback_argument != callback_ptr->callback_argument )
+			continue;
+		}
+
+		/* If we get here, we have a match. */
+
+		*callback_object = callback_ptr;
+
+		return MX_SUCCESSFUL_RESULT;
+
+	} while ( (list_entry = list_entry->next_list_entry) != list_start );
+
+	return mx_error( MXE_NOT_FOUND | MXE_QUIET, fname,
+		"Did not find the requested callback." );
+}
+
+MX_EXPORT mx_status_type
 mx_local_field_invoke_callback_list( MX_RECORD_FIELD *field,
 				unsigned long callback_type )
 {
@@ -752,6 +846,17 @@ mx_invoke_callback( MX_CALLBACK *callback,
 	MX_DEBUG(-2,("%s: callback->active = %d",
 			fname, (int)callback->active));
 #endif
+
+	/* If get_new_value is TRUE, then mx_process_record_field()
+	 * will be invoked for the field.  Then, if the new field
+	 * value triggers the value_changed threshold, then the
+	 * function mx_local_field_invoke_callback_list() will be
+	 * called to forward the change to all interested client
+	 * programs.  However, invoking the callback list leads us
+	 * back here to mx_invoke_callback(), so we must set an
+	 * 'active' flag to make sure that we do not cause an
+	 * infinite recursion.
+	 */
 
 	if ( callback->active ) {
 

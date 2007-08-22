@@ -58,5 +58,9 @@ MX_API mx_status_type mx_list_traverse( MX_LIST *list,
 			mx_status_type (*function)(MX_LIST_ENTRY *, void *),
 			void *argument );
 
+MX_API mx_status_type mx_list_find_list_entry( MX_LIST *list,
+					void *list_entry_data,
+					MX_LIST_ENTRY **list_entry );
+						
 #endif /* __MX_LIST_H__ */
 
