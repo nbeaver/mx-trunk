@@ -243,6 +243,9 @@ typedef struct {
 #define MX_NETMSG_GET_NETWORK_HANDLE	0x2001
 #define MX_NETMSG_GET_FIELD_TYPE	0x2005
 
+#define MX_NETMSG_GET_ATTRIBUTE		0x2101
+#define MX_NETMSG_SET_ATTRIBUTE		0x2102
+
 #define MX_NETMSG_SET_CLIENT_INFO	0x3001
 #define MX_NETMSG_GET_OPTION		0x3002
 #define MX_NETMSG_SET_OPTION		0x3003
@@ -270,6 +273,12 @@ typedef struct {
 #define MX_NETWORK_OPTION_DATAFMT		1
 #define MX_NETWORK_OPTION_NATIVE_DATAFMT	2
 #define MX_NETWORK_OPTION_64BIT_LONG		3
+
+/*---*/
+
+/* Attribute ids for MX network field. */
+
+#define MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD	1
 
 /*---*/
 
@@ -428,6 +437,14 @@ MX_API mx_status_type mx_network_get_option( MX_RECORD *server_record,
 MX_API mx_status_type mx_network_set_option( MX_RECORD *server_record,
 			unsigned long option_number,
 			unsigned long option_value );
+
+MX_API mx_status_type mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
+						unsigned long attribute_number,
+						double *attribute_value );
+
+MX_API mx_status_type mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
+						unsigned long attribute_number,
+						double attribute_value );
 
 MX_API mx_status_type mx_network_request_data_format(
 			MX_RECORD *server_record,

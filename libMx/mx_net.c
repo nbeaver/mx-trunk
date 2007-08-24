@@ -42,6 +42,10 @@
 #     define ntohl(x) (x)
 #endif
 
+#if HAVE_XDR
+#  include "mx_xdr.h"
+#endif
+
 #define NETWORK_DEBUG		TRUE	/* You should normally leave this on. */
 
 #define NETWORK_DEBUG_TIMING		FALSE
@@ -1217,6 +1221,8 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 	uint32_t record_handle, field_handle;
 	long i, data_type, field_type, num_dimensions, dimension_size;
 	unsigned long option_number, option_value;
+	unsigned long attribute_number;
+	double attribute_value;
 	unsigned long callback_type, callback_id;
 	const char *data_type_name;
 
@@ -1423,6 +1429,53 @@ mx_network_display_message( MX_NETWORK_MESSAGE_BUFFER *message_buffer )
 		} else {
 			fprintf( stderr,
 			"  SET_OPTION response: %s\n", char_message );
+		}
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_GET_ATTRIBUTE:
+		record_handle    = mx_ntohl( uint32_message[0] );
+		field_handle     = mx_ntohl( uint32_message[1] );
+		attribute_number = mx_ntohl( uint32_message[2] );
+
+		fprintf( stderr,
+		"  GET_ATTRIBUTE: (%lu,%lu) attribute number = %lu\n",
+				(unsigned long) record_handle,
+				(unsigned long) field_handle,
+				attribute_number );
+		break;
+
+	case mx_server_response(MX_NETMSG_GET_ATTRIBUTE):
+		attribute_value = *((double *) &(uint32_message[0]) );
+
+		fprintf( stderr,
+		"  GET_ATTRIBUTE: returned attribute value = %g\n",
+							attribute_value );
+		break;
+
+	/*-------------------------------------------------------------------*/
+
+	case MX_NETMSG_SET_ATTRIBUTE:
+		record_handle    = mx_ntohl( uint32_message[0] );
+		field_handle     = mx_ntohl( uint32_message[1] );
+		attribute_number = mx_ntohl( uint32_message[2] );
+		attribute_value  = *((double *) &uint32_message[3] );
+
+		fprintf( stderr,
+    "  SET_ATTRIBUTE: (%lu,%lu) attribute number = %lu, attribute value = %g\n",
+			(unsigned long) record_handle,
+			(unsigned long) field_handle,
+			attribute_number, attribute_value );
+		break;
+
+	case mx_server_response(MX_NETMSG_SET_ATTRIBUTE):
+		if ( char_message[0] == '\0' ) {
+			fprintf( stderr,
+		"  SET_ATTRIBUTE response: Attribute change accepted\n" );
+		} else {
+			fprintf( stderr,
+			"  SET_ATTRIBUTE response: %s\n", char_message );
 		}
 		break;
 
@@ -3656,6 +3709,409 @@ mx_network_set_option( MX_RECORD *server_record,
 
 		return mx_error( MXE_NETWORK_IO_ERROR, fname,
 "Message type for response was not MX_NETMSG_SET_OPTION.  "
+"Instead it was of type = %#lx", (unsigned long) message_type );
+	}
+
+	/* If the remote command failed, the message field will include
+	 * the text of the error message rather than the field type
+	 * data we requested.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( (long)status_code, fname, message );
+	}
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
+				unsigned long attribute_number,
+				double *attribute_value )
+{
+	static const char fname[] = "mx_network_field_get_attribute()";
+
+	MX_NETWORK_SERVER *server;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	uint32_t *header, *uint32_message;
+	char *buffer, *message;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
+	XDR xdrs;
+	int xdr_status;
+	mx_bool_type new_handle_needed;
+	mx_status_type mx_status;
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	MX_DEBUG(-2,("%s invoked, attribute_number = '%#lx'",
+			fname, attribute_number));
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+	if ( attribute_value == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"attribute_value pointer passed was NULL." );
+	}
+
+	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( new_handle_needed ) {
+		mx_status = mx_network_field_connect( nf );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	server = (MX_NETWORK_SERVER *) nf->server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			nf->server_record->name );
+	}
+
+	/************ Send the 'get attribute' message. *************/
+
+	aligned_buffer = server->message_buffer;
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length = mx_remote_header_length(server);
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_GET_ATTRIBUTE );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	uint32_message[0] = mx_htonl( nf->record_handle );
+	uint32_message[1] = mx_htonl( nf->field_handle );
+	uint32_message[2] = mx_htonl( attribute_number );
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( 3 * sizeof(uint32_t) );
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_DOUBLE );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_START( measurement );
+#endif
+
+	mx_status = mx_network_send_message(nf->server_record, aligned_buffer);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/************** Wait for the response. **************/
+
+	mx_status = mx_network_wait_for_message_id( nf->server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, " " );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_wait_for_message_id().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( message_type != mx_server_response( MX_NETMSG_GET_ATTRIBUTE ) ) {
+
+		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+
+			if ( status_code == MXE_NOT_YET_IMPLEMENTED ) {
+
+				/* The remote server is an old server that
+				 * does not implement the 'get attribute'
+				 * message.
+				 */
+
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+					"The MX 'get attribute' message type is "
+					"not implemented by server '%s'.",
+						nf->server_record->name );
+			} else {
+				/* Some other error occurred. */
+
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Unexpected server error for MX server '%s'.  "
+	"Server error was '%s -> %s'", nf->server_record->name,
+				mx_status_code_string((long) status_code ),
+					message );
+			}
+		}
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+"Message type for response was not MX_NETMSG_GET_ATTRIBUTE.  "
+"Instead it was of type = %#lx", (unsigned long) message_type );
+	}
+
+	/* If the remote command failed, the message field will include
+	 * the text of the error message rather than the field type
+	 * data we requested.
+	 */
+
+	if ( status_code != MXE_SUCCESS ) {
+		return mx_error( (long)status_code, fname, message );
+	}
+
+	if ( message_length < sizeof(double) ) {
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+			"Incomplete message received.  Message length = %ld",
+			(long) message_length );
+	}
+
+	message = buffer + header_length;
+
+	switch( server->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Message type MX_NETMSG_GET_ATTRIBUTE is not supported "
+			"for ASCII format network connections." );
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		*attribute_value = *((double *) message);
+		break;
+
+	case MX_NETWORK_DATAFMT_XDR:
+		xdrmem_create( &xdrs, message, message_length, XDR_DECODE);
+
+		xdr_status = xdr_double( &xdrs, attribute_value );
+
+		xdr_destroy( &xdrs );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported data format %ld requested for MX server '%s'.",
+			server->data_format, nf->server_record->name );
+		break;
+	}
+
+	MX_DEBUG(-2,("%s invoked, *attribute_value = '%g'",
+			fname, *attribute_value));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+MX_EXPORT mx_status_type
+mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
+				unsigned long attribute_number,
+				double attribute_value )
+{
+	static const char fname[] = "mx_network_field_set_attribute()";
+
+	MX_NETWORK_SERVER *server;
+	MX_NETWORK_MESSAGE_BUFFER *aligned_buffer;
+	uint32_t *header, *uint32_message;
+	char *buffer, *message;
+	uint32_t header_length, message_length;
+	uint32_t message_type, status_code;
+	XDR xdrs;
+	int xdr_status;
+	double *double_ptr;
+	mx_bool_type new_handle_needed;
+	mx_status_type mx_status;
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_TIMING measurement;
+#endif
+
+	MX_DEBUG(-2,
+	("%s invoked, attribute_number = '%#lx', attribute_value = '%g'",
+			fname, attribute_number, attribute_value));
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+
+	mx_status = mx_need_to_get_network_handle( nf, &new_handle_needed );
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	if ( new_handle_needed ) {
+		mx_status = mx_network_field_connect( nf );
+
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+	}
+
+	server = (MX_NETWORK_SERVER *) nf->server_record->record_class_struct;
+
+	if ( server == (MX_NETWORK_SERVER *) NULL ) {
+		return mx_error( MXE_CORRUPT_DATA_STRUCTURE, fname,
+		"MX_NETWORK_SERVER pointer for server record '%s' is NULL.",
+			nf->server_record->name );
+	}
+
+	/************ Send the 'set attribute' message. *************/
+
+	aligned_buffer = server->message_buffer;
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length = mx_remote_header_length(server);
+
+	header[MX_NETWORK_MAGIC]         = mx_htonl( MX_NETWORK_MAGIC_VALUE );
+	header[MX_NETWORK_HEADER_LENGTH] = mx_htonl( header_length );
+	header[MX_NETWORK_MESSAGE_TYPE]  = mx_htonl( MX_NETMSG_SET_ATTRIBUTE );
+	header[MX_NETWORK_STATUS_CODE]   = mx_htonl( MXE_SUCCESS );
+
+	message = buffer + header_length;
+	uint32_message = header + (header_length / sizeof(uint32_t));
+
+	uint32_message[0] = mx_htonl( nf->record_handle );
+	uint32_message[1] = mx_htonl( nf->field_handle );
+	uint32_message[2] = mx_htonl( attribute_number );
+
+	double_ptr = (double *) &(uint32_message[3]);
+
+	switch( server->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		return mx_error( MXE_UNSUPPORTED, fname,
+			"Message type MX_NETMSG_SET_ATTRIBUTE is not supported "
+			"for ASCII format network connections." );
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		*double_ptr = attribute_value;
+		break;
+
+	case MX_NETWORK_DATAFMT_XDR:
+		xdrmem_create( &xdrs, (void *)double_ptr, 8, XDR_ENCODE );
+
+		xdr_status = xdr_double( &xdrs, &attribute_value );
+
+		xdr_destroy( &xdrs );
+		break;
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Unsupported data format %ld requested for MX server '%s'.",
+			server->data_format, nf->server_record->name );
+		break;
+	}
+
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl(2 * sizeof(uint32_t) + 8);
+
+	if ( mx_server_supports_message_ids(server) ) {
+
+		header[MX_NETWORK_DATA_TYPE] = mx_htonl( MXFT_DOUBLE );
+
+		mx_network_update_message_id( &(server->last_rpc_message_id) );
+
+		header[MX_NETWORK_MESSAGE_ID] =
+				mx_htonl( server->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_START( measurement );
+#endif
+
+	mx_status = mx_network_send_message( nf->server_record, aligned_buffer);
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/************** Wait for the response. **************/
+
+	mx_status = mx_network_wait_for_message_id( nf->server_record,
+						aligned_buffer,
+						server->last_rpc_message_id,
+						server->timeout );
+#if NETWORK_DEBUG_TIMING
+	MX_HRT_END( measurement );
+
+	MX_HRT_RESULTS( measurement, fname, " " );
+#endif
+
+	if ( mx_status.code != MXE_SUCCESS )
+		return mx_status;
+
+	/* Update these pointers in case they were
+	 * changed by mx_reallocate_network_buffer()
+	 * in mx_network_wait_for_message_id().
+	 */
+
+	header = &(aligned_buffer->u.uint32_buffer[0]);
+	buffer = &(aligned_buffer->u.char_buffer[0]);
+
+	header_length  = mx_ntohl( header[ MX_NETWORK_HEADER_LENGTH ] );
+	message_length = mx_ntohl( header[ MX_NETWORK_MESSAGE_LENGTH ] );
+	message_type   = mx_ntohl( header[ MX_NETWORK_MESSAGE_TYPE ] );
+	status_code = mx_ntohl( header[ MX_NETWORK_STATUS_CODE ] );
+
+	if ( message_type != mx_server_response( MX_NETMSG_SET_ATTRIBUTE ) ) {
+
+		if ( message_type == MX_NETMSG_UNEXPECTED_ERROR ) {
+
+			if ( status_code == MXE_NOT_YET_IMPLEMENTED ) {
+
+				/* The remote server is an old server that
+				 * does not implement the 'set attribute'
+				 * message.
+				 */
+
+				return mx_error(
+				( status_code | MXE_QUIET ), fname,
+				"The MX 'set attribute' message type is "
+					"not implemented by server '%s'.",
+						nf->server_record->name );
+			} else {
+				/* Some other error occurred. */
+
+				return mx_error( MXE_NETWORK_IO_ERROR, fname,
+	"Unexpected server error for MX server '%s'.  "
+	"Server error was '%s -> %s'", nf->server_record->name,
+				mx_status_code_string((long) status_code ),
+					message );
+			}
+		}
+
+		return mx_error( MXE_NETWORK_IO_ERROR, fname,
+"Message type for response was not MX_NETMSG_SET_ATTRIBUTE.  "
 "Instead it was of type = %#lx", (unsigned long) message_type );
 	}
 
