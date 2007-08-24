@@ -3,6 +3,7 @@ MX_ARCH = linux
 MAKECMD = $(MAKE) MX_ARCH=$(MX_ARCH)
 
 all:
+	( cd attribute_test ; $(MAKECMD) )
 	( cd boot_test ; $(MAKECMD) )
 	( cd callback_test ; $(MAKECMD) )
 	( cd itimer_test ; $(MAKECMD) )
@@ -13,6 +14,7 @@ all:
 	( cd vtimer_test ; $(MAKECMD) )
 
 clean:
+	( cd attribute_test ; $(MAKECMD) clean )
 	( cd boot_test ; $(MAKECMD) clean )
 	( cd callback_test ; $(MAKECMD) clean )
 	( cd itimer_test ; $(MAKECMD) clean )
