@@ -125,7 +125,7 @@ typedef struct {
 		double analog;
 	} raw_set_position;
 
-	double value_changed_threshold;
+	double value_change_threshold;
 
 	double raw_minimum_speed_limit;
 	double raw_maximum_speed_limit;
@@ -326,9 +326,9 @@ typedef struct {
 	{0}, NULL, 0}
 
 #define MX_MOTOR_STANDARD_FIELDS \
-  {MXLV_MTR_VALUE_CHANGED_THRESHOLD, -1, "value_changed_threshold", \
+  {MXLV_MTR_VALUE_CHANGED_THRESHOLD, -1, "value_change_threshold", \
   						MXFT_DOUBLE, NULL, 0, {0}, \
-	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, value_changed_threshold),\
+	MXF_REC_CLASS_STRUCT, offsetof(MX_MOTOR, value_change_threshold),\
 	{0}, NULL, 0}, \
   \
   {-1, -1, "raw_minimum_speed_limit", MXFT_DOUBLE, NULL, 0, {0}, \

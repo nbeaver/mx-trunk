@@ -101,7 +101,7 @@ typedef struct {
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
 	long preferred_timer_interval;
-	double value_changed_threshold;
+	double value_change_threshold;
 } MX_RECORD_FIELD_DEFAULTS;
 
 typedef struct {
@@ -117,7 +117,7 @@ typedef struct {
 	mx_status_type (*process_function) (void *, void *, int);
 	long flags;
 	long preferred_timer_interval;
-	double value_changed_threshold;
+	double value_change_threshold;
 	double last_value;
 	void *callback_list;
 	void *application_ptr;

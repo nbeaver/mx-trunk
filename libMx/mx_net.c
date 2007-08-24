@@ -3910,6 +3910,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		*attribute_value = *((double *) message);
 		break;
 
+#if HAVE_XDR
 	case MX_NETWORK_DATAFMT_XDR:
 		xdrmem_create( &xdrs, message, message_length, XDR_DECODE);
 
@@ -3917,6 +3918,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 
 		xdr_destroy( &xdrs );
 		break;
+#endif /* HAVE_XDR */
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -4017,15 +4019,21 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 
 	case MX_NETWORK_DATAFMT_RAW:
 		*double_ptr = attribute_value;
+
+		message_length = 2 * sizeof(uint32_t) + sizeof(double);
 		break;
 
+#if HAVE_XDR
 	case MX_NETWORK_DATAFMT_XDR:
 		xdrmem_create( &xdrs, (void *)double_ptr, 8, XDR_ENCODE );
 
 		xdr_status = xdr_double( &xdrs, &attribute_value );
 
 		xdr_destroy( &xdrs );
+
+		message_length = 2 * sizeof(uint32_t) + 8;
 		break;
+#endif /* HAVE_XDR */
 
 	default:
 		return mx_error( MXE_UNSUPPORTED, fname,
@@ -4034,7 +4042,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 		break;
 	}
 
-	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl(2 * sizeof(uint32_t) + 8);
+	header[MX_NETWORK_MESSAGE_LENGTH] = mx_htonl( message_length );
 
 	if ( mx_server_supports_message_ids(server) ) {
 
@@ -4125,6 +4133,104 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	}
 
 	return MX_SUCCESSFUL_RESULT;
+}
+
+/* ====================================================================== */
+
+static struct {
+	unsigned long attribute_number;
+	char attribute_name[MXU_FIELD_NAME_LENGTH+1];
+} mxp_network_attribute_list[] = 
+{
+	{MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD, "value_change_threshold"},
+};
+
+static unsigned long mxp_num_network_attributes =
+			sizeof( mxp_network_attribute_list )
+			/ sizeof( mxp_network_attribute_list[0] );
+
+MX_EXPORT mx_status_type
+mx_network_field_get_attribute_by_name( MX_NETWORK_FIELD *nf,
+					char *attribute_name,
+					double *attribute_value )
+{
+	static const char fname[] = "mx_network_field_get_attribute_by_name()";
+
+	unsigned long i, attribute_number;
+	char *list_attribute_name;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked, attribute_name = '%s'",
+			fname, attribute_name));
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+	if ( attribute_value == (double *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"attribute_value pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < mxp_num_network_attributes; i++ ) {
+		list_attribute_name =
+			mxp_network_attribute_list[i].attribute_name;
+
+		if ( strcmp( attribute_name, list_attribute_name ) == 0 ) {
+
+			attribute_number =
+				mxp_network_attribute_list[i].attribute_number;
+
+			mx_status = mx_network_field_get_attribute( nf,
+							attribute_number,
+							attribute_value );
+
+			return mx_status;
+		}
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"Network field attribute '%s' does not exist.", attribute_name );
+}
+
+MX_EXPORT mx_status_type
+mx_network_field_set_attribute_by_name( MX_NETWORK_FIELD *nf,
+					char *attribute_name,
+					double attribute_value )
+{
+	static const char fname[] = "mx_network_field_set_attribute_by_name()";
+
+	unsigned long i, attribute_number;
+	char *list_attribute_name;
+	mx_status_type mx_status;
+
+	MX_DEBUG(-2,("%s invoked, attribute_name = '%s'",
+			fname, attribute_name));
+
+	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
+		return mx_error( MXE_NULL_ARGUMENT, fname,
+		"The MX_NETWORK_FIELD pointer passed was NULL." );
+	}
+
+	for ( i = 0; i < mxp_num_network_attributes; i++ ) {
+		list_attribute_name =
+			mxp_network_attribute_list[i].attribute_name;
+
+		if ( strcmp( attribute_name, list_attribute_name ) == 0 ) {
+
+			attribute_number =
+				mxp_network_attribute_list[i].attribute_number;
+
+			mx_status = mx_network_field_set_attribute( nf,
+							attribute_number,
+							attribute_value );
+
+			return mx_status;
+		}
+	}
+
+	return mx_error( MXE_NOT_FOUND, fname,
+	"Network field attribute '%s' does not exist.", attribute_name );
 }
 
 /* ====================================================================== */

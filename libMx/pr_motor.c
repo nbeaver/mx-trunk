@@ -774,8 +774,8 @@ mx_motor_process_function( void *record_ptr,
 				if ( mx_status.code != MXE_SUCCESS )
 					return mx_status;
 
-				position_field->value_changed_threshold
-					= motor->value_changed_threshold;
+				position_field->value_change_threshold
+					= motor->value_change_threshold;
 			}
 			break;
 		default:

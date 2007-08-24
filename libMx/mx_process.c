@@ -470,7 +470,7 @@ mx_test_for_value_changed( MX_RECORD_FIELD *record_field,
 	if ( value_changed == FALSE ) {
 		difference = fabs( new_value - record_field->last_value );
 
-		threshold = record_field->value_changed_threshold;
+		threshold = record_field->value_change_threshold;
 
 #if PROCESS_DEBUG_CALLBACKS
 		MX_DEBUG(-2,("%s: last_value = %g, new_value = %g",

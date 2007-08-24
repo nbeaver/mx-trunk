@@ -2011,8 +2011,8 @@ mx_copy_defaults_to_record_field( MX_RECORD_FIELD *field,
 	field->flags                = field_defaults->flags;
 	field->preferred_timer_interval
 				= field_defaults->preferred_timer_interval;
-	field->value_changed_threshold
-				= field_defaults->value_changed_threshold;
+	field->value_change_threshold
+				= field_defaults->value_change_threshold;
 	field->last_value           = 0.0;
 	field->callback_list        = NULL;
 	field->application_ptr      = NULL;

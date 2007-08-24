@@ -124,6 +124,20 @@ extern mx_status_type mxsrv_handle_get_field_type(
 			MX_RECORD_FIELD *record_field,
 			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
 
+extern mx_status_type mxsrv_handle_get_attribute(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
+extern mx_status_type mxsrv_handle_set_attribute(
+			MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *message_buffer );
+
 extern mx_status_type mxsrv_handle_set_client_info(
 			MX_RECORD *record_list,
 			MX_SOCKET_HANDLER *socket_handler,

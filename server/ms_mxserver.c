@@ -65,6 +65,10 @@
 #include "ms_mxserver.h"
 #include "ms_security.h"
 
+#if HAVE_XDR
+#  include "mx_xdr.h"
+#endif
+
 #if NETWORK_DEBUG_TIMING
 #  include "mx_hrt_debug.h"
 #endif
@@ -113,6 +117,8 @@ mxsrv_get_returning_message_type( uint32_t message_type )
 {MX_NETMSG_PUT_ARRAY_BY_HANDLE,
 			mx_server_response(MX_NETMSG_PUT_ARRAY_BY_HANDLE)},
 {MX_NETMSG_GET_FIELD_TYPE,    mx_server_response(MX_NETMSG_GET_FIELD_TYPE)},
+{MX_NETMSG_GET_ATTRIBUTE,     mx_server_response(MX_NETMSG_GET_ATTRIBUTE)},
+{MX_NETMSG_SET_ATTRIBUTE,     mx_server_response(MX_NETMSG_SET_ATTRIBUTE)},
 {MX_NETMSG_SET_CLIENT_INFO,   mx_server_response(MX_NETMSG_SET_CLIENT_INFO)},
 {MX_NETMSG_GET_OPTION,        mx_server_response(MX_NETMSG_GET_OPTION)},
 {MX_NETMSG_SET_OPTION,        mx_server_response(MX_NETMSG_SET_OPTION)},
@@ -1198,6 +1204,12 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		case MX_NETMSG_GET_FIELD_TYPE:
 			strcpy( message_type_string, "GET_FIELD_TYPE" );
 			break;
+		case MX_NETMSG_GET_ATTRIBUTE:
+			strcpy( message_type_string, "GET_ATTRIBUTE" );
+			break;
+		case MX_NETMSG_SET_ATTRIBUTE:
+			strcpy( message_type_string, "SET_ATTRIBUTE" );
+			break;
 		case MX_NETMSG_SET_CLIENT_INFO:
 			strcpy( message_type_string, "SET_CLIENT_INFO" );
 			break;
@@ -1260,6 +1272,8 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 
 	case MX_NETMSG_GET_ARRAY_BY_HANDLE:
 	case MX_NETMSG_PUT_ARRAY_BY_HANDLE:
+	case MX_NETMSG_GET_ATTRIBUTE:
+	case MX_NETMSG_SET_ATTRIBUTE:
 	case MX_NETMSG_ADD_CALLBACK:
 		value_at_message_start = MXS_START_RECORD_FIELD_HANDLE;
 		break;
@@ -1510,6 +1524,18 @@ mxsrv_mx_client_socket_process_event( MX_RECORD *record_list,
 		mx_status = mxsrv_handle_get_field_type( record_list,
 						socket_handler, client_socket,
 						record_field, received_message);
+		break;
+	case MX_NETMSG_GET_ATTRIBUTE:
+		mx_status = mxsrv_handle_get_attribute( record_list,
+						socket_handler,
+						record, record_field,
+						received_message );
+		break;
+	case MX_NETMSG_SET_ATTRIBUTE:
+		mx_status = mxsrv_handle_set_attribute( record_list,
+						socket_handler,
+						record, record_field,
+						received_message );
 		break;
 	case MX_NETMSG_SET_CLIENT_INFO:
 		mx_status = mxsrv_handle_set_client_info( record_list,
@@ -2890,6 +2916,321 @@ mxsrv_handle_get_field_type( MX_RECORD *record_list,
 	}
 
 	MX_DEBUG( 1,("***** %s successful *****", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mxsrv_handle_get_attribute( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
+{
+	static const char fname[] = "mxsrv_handle_get_attribute()";
+
+	char location[ sizeof(fname) + 40 ];
+	uint32_t *send_buffer_header, *send_buffer_message;
+	uint32_t send_buffer_header_length;
+	uint32_t *header, *message;
+	uint32_t attribute_number;
+	double attribute_value;
+	double *double_ptr;
+	XDR xdrs;
+	int xdr_status;
+	mx_bool_type illegal_attribute_number;
+	mx_status_type mx_status;
+
+	header = network_message->u.uint32_buffer;
+	message = header +
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
+
+	attribute_number = mx_ntohl( message[2] );
+
+	MX_DEBUG(-2,("%s: attribute_number = %#lx",
+		fname, (unsigned long) attribute_number));
+
+	/* Get the requested attribute value. */
+
+	illegal_attribute_number = FALSE;
+
+	switch( attribute_number ) {
+	case MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD:
+		attribute_value = record_field->value_change_threshold;
+		break;
+	default:
+		attribute_value = 0;
+		illegal_attribute_number = TRUE;
+		break;
+	}
+
+	/* Allocate a buffer to construct the message to be sent
+	 * back to the client.
+	 */
+
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
+
+	send_buffer_header = network_message->u.uint32_buffer;
+
+	send_buffer_message = send_buffer_header
+			+ ( send_buffer_header_length / sizeof(uint32_t) );
+
+	/* Construct the header of the message. */
+
+	send_buffer_header[ MX_NETWORK_MAGIC ]
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
+
+	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
+		= mx_htonl( mx_server_response(MX_NETMSG_GET_ATTRIBUTE) );
+
+	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
+				= mx_htonl( send_buffer_header_length );
+
+	/* Construct the body of the message. */
+
+	if ( illegal_attribute_number == FALSE ) {
+		double_ptr = (double *) send_buffer_message;
+
+		switch( socket_handler->data_format ) {
+		case MX_NETWORK_DATAFMT_ASCII:
+			return mx_error( MXE_UNSUPPORTED, fname,
+			    "Message type MX_NETMSG_GET_ATTRIBUTE is not "
+			    "supported for ASCII format network connections." );
+			break;
+
+		case MX_NETWORK_DATAFMT_RAW:
+			*double_ptr = attribute_value;
+
+			send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
+						= mx_htonl( sizeof(double) );
+			break;
+
+#if HAVE_XDR
+		case MX_NETWORK_DATAFMT_XDR:
+			xdrmem_create(&xdrs, (void *)double_ptr, 8, XDR_ENCODE);
+
+			xdr_status = xdr_double( &xdrs, &attribute_value );
+
+			xdr_destroy( &xdrs );
+
+			send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
+						= mx_htonl( 8 );
+			break;
+#endif /* HAVE_XDR */
+
+		default:
+			return mx_error( MXE_UNSUPPORTED, fname,
+        "Unsupported data format %ld requested by MX client '%s', process %lu.",
+				socket_handler->data_format,
+				socket_handler->client_address_string,
+				socket_handler->process_id );
+			break;
+		}
+
+		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
+				= mx_htonl( MXE_SUCCESS );
+	} else {
+		char *error_message;
+
+		error_message = (char *) send_buffer_message;
+
+		sprintf( error_message, "Illegal attribute number %#lx",
+					(unsigned long) attribute_number );
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
+				= mx_htonl( strlen(error_message) + 1 );
+
+		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
+				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
+	}
+
+	if ( mx_client_supports_message_ids(socket_handler) ) {
+
+		send_buffer_header[ MX_NETWORK_DATA_TYPE ]
+			= mx_htonl( MXFT_ULONG );
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
+			= mx_htonl( socket_handler->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_MESSAGES
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
+
+		mx_network_display_message( network_message );
+	}
+#endif
+
+	/* Send the attribute information back to the client. */
+
+	mx_status = mx_network_socket_send_message(
+		socket_handler->synchronous_socket, -1.0, network_message );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		sprintf( location, "%s to client socket %d",
+			fname, socket_handler->synchronous_socket->socket_fd );
+
+		return mx_error( mx_status.code, location, mx_status.message );
+	}
+
+	MX_DEBUG( 1,("***** %s successful *****", fname));
+
+	return MX_SUCCESSFUL_RESULT;
+}
+
+mx_status_type
+mxsrv_handle_set_attribute( MX_RECORD *record_list,
+			MX_SOCKET_HANDLER *socket_handler,
+			MX_RECORD *record,
+			MX_RECORD_FIELD *record_field,
+			MX_NETWORK_MESSAGE_BUFFER *network_message )
+{
+	static const char fname[] = "mxsrv_handle_set_attribute()";
+
+	char location[ sizeof(fname) + 40 ];
+	char *send_buffer_char_message;
+	uint32_t *send_buffer_header;
+	uint32_t send_buffer_header_length;
+	uint32_t *header, *message;
+	uint32_t attribute_number;
+	double attribute_value;
+	double *double_ptr;
+	XDR xdrs;
+	int xdr_status;
+	mx_bool_type illegal_attribute_number;
+	mx_status_type mx_status;
+
+	header = network_message->u.uint32_buffer;
+	message = header +
+		(mx_remote_header_length(socket_handler) / sizeof(uint32_t));
+
+	attribute_number = mx_ntohl( message[2] );
+
+	double_ptr = (double *) &(message[3]);
+
+	switch( socket_handler->data_format ) {
+	case MX_NETWORK_DATAFMT_ASCII:
+		return mx_error( MXE_UNSUPPORTED, fname,
+		"Message type MX_NETMSG_SET_ATTRIBUTE is not supported for "
+		"ASCII format network connections." );
+		break;
+
+	case MX_NETWORK_DATAFMT_RAW:
+		attribute_value = *double_ptr;
+		break;
+
+#if HAVE_XDR
+	case MX_NETWORK_DATAFMT_XDR:
+		xdrmem_create( &xdrs, (void *)double_ptr, 8, XDR_DECODE );
+
+		xdr_status = xdr_double( &xdrs, &attribute_value );
+
+		xdr_destroy( &xdrs );
+		break;
+#endif /* HAVE_XDR */
+
+	default:
+		return mx_error( MXE_UNSUPPORTED, fname,
+	"Unsupported data format %ld requested by MX client '%s', process %lu.",
+			socket_handler->data_format,
+			socket_handler->client_address_string,
+			socket_handler->process_id );
+		break;
+	}
+
+	MX_DEBUG(-2,
+	("%s: attribute_number = %#lx, attribute_value = %g", fname,
+		(unsigned long) attribute_number, attribute_value));
+
+	/* Set the requested attribute value. */
+
+	illegal_attribute_number = FALSE;
+
+	switch( attribute_number ) {
+	case MX_NETWORK_ATTRIBUTE_VALUE_CHANGE_THRESHOLD:
+		record_field->value_change_threshold = attribute_value;
+		break;
+
+	default:
+		illegal_attribute_number = TRUE;
+		break;
+	}
+
+	/* Allocate a buffer to construct the message to be sent
+	 * back to the client.
+	 */
+
+	send_buffer_header_length = mx_remote_header_length(socket_handler);
+
+	send_buffer_header = network_message->u.uint32_buffer;
+
+	send_buffer_char_message  = network_message->u.char_buffer;
+	send_buffer_char_message += send_buffer_header_length;
+
+	/* Construct the header of the message. */
+
+	send_buffer_header[ MX_NETWORK_MAGIC ]
+				= mx_htonl( MX_NETWORK_MAGIC_VALUE );
+
+	send_buffer_header[ MX_NETWORK_MESSAGE_TYPE ]
+		= mx_htonl( mx_server_response(MX_NETMSG_SET_ATTRIBUTE) );
+
+	send_buffer_header[ MX_NETWORK_HEADER_LENGTH ]
+				= mx_htonl( send_buffer_header_length );
+
+	/* Construct the body of the message. */
+
+	if ( illegal_attribute_number ) {
+		sprintf( send_buffer_char_message,
+				"Illegal attribute number %#lx",
+				(unsigned long) attribute_number );
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ]
+			= mx_htonl( strlen(send_buffer_char_message) + 1 );
+
+		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
+				= mx_htonl( MXE_ILLEGAL_ARGUMENT );
+	} else {
+		send_buffer_char_message[0] = '\0';
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_LENGTH ] = mx_htonl( 1 );
+
+		send_buffer_header[ MX_NETWORK_STATUS_CODE ]
+				= mx_htonl( MXE_SUCCESS );
+	}
+
+	if ( mx_client_supports_message_ids(socket_handler) ) {
+
+		send_buffer_header[ MX_NETWORK_DATA_TYPE ]
+			= mx_htonl( MXFT_ULONG );
+
+		send_buffer_header[ MX_NETWORK_MESSAGE_ID ]
+			= mx_htonl( socket_handler->last_rpc_message_id );
+	}
+
+#if NETWORK_DEBUG_MESSAGES
+	if ( socket_handler->network_debug ) {
+		fprintf( stderr, "\nMX NET: SERVER -> CLIENT (socket %d)\n",
+				socket_handler->synchronous_socket->socket_fd );
+
+		mx_network_display_message( network_message );
+	}
+#endif
+
+	/* Send the attribute information back to the client. */
+
+	mx_status = mx_network_socket_send_message(
+		socket_handler->synchronous_socket, -1.0, network_message );
+
+	if ( mx_status.code != MXE_SUCCESS ) {
+		sprintf( location, "%s to client socket %d",
+			fname, socket_handler->synchronous_socket->socket_fd );
+
+		return mx_error( mx_status.code, location, mx_status.message );
+	}
+
+	MX_DEBUG(-1,("***** %s successful *****", fname));
 
 	return MX_SUCCESSFUL_RESULT;
 }
