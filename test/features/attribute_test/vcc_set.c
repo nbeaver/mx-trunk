@@ -70,6 +70,7 @@ main( int argc, char *argv[] )
 
 	value_change_threshold = atof( argv[optind+1] );
 
+#if 0
 	MX_DEBUG(-2,("%s: server_name = '%s', server_arguments = '%s'",
 		fname, server_name, server_arguments));
 
@@ -78,6 +79,7 @@ main( int argc, char *argv[] )
 
 	MX_DEBUG(-2,("%s: value_change_threshold = %g",
 		fname, value_change_threshold));
+#endif
 
 	num_items = sscanf( server_arguments, "%d", &server_port );
 

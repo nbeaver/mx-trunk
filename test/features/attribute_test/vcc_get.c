@@ -67,11 +67,13 @@ main( int argc, char *argv[] )
 	if ( mx_status.code != MXE_SUCCESS )
 		exit( mx_status.code );
 
+#if 0
 	MX_DEBUG(-2,("%s: server_name = '%s', server_arguments = '%s'",
 		fname, server_name, server_arguments));
 
 	MX_DEBUG(-2,("%s: record_name = '%s', field_name = '%s'",
 		fname, record_name, field_name));
+#endif
 
 	num_items = sscanf( server_arguments, "%d", &server_port );
 

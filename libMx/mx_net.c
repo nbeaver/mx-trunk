@@ -3748,7 +3748,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 	MX_HRT_TIMING measurement;
 #endif
 
-	MX_DEBUG(-2,("%s invoked, attribute_number = '%#lx'",
+	MX_DEBUG( 2,("%s invoked, attribute_number = '%#lx'",
 			fname, attribute_number));
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -3927,7 +3927,7 @@ mx_network_field_get_attribute( MX_NETWORK_FIELD *nf,
 		break;
 	}
 
-	MX_DEBUG(-2,("%s invoked, *attribute_value = '%g'",
+	MX_DEBUG( 2,("%s invoked, *attribute_value = '%g'",
 			fname, *attribute_value));
 
 	return MX_SUCCESSFUL_RESULT;
@@ -3958,7 +3958,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	MX_HRT_TIMING measurement;
 #endif
 
-	MX_DEBUG(-2,
+	MX_DEBUG( 2,
 	("%s invoked, attribute_number = '%#lx', attribute_value = '%g'",
 			fname, attribute_number, attribute_value));
 
@@ -4020,7 +4020,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 	case MX_NETWORK_DATAFMT_RAW:
 		*double_ptr = attribute_value;
 
-		message_length = 2 * sizeof(uint32_t) + sizeof(double);
+		message_length = 3 * sizeof(uint32_t) + sizeof(double);
 		break;
 
 #if HAVE_XDR
@@ -4031,7 +4031,7 @@ mx_network_field_set_attribute( MX_NETWORK_FIELD *nf,
 
 		xdr_destroy( &xdrs );
 
-		message_length = 2 * sizeof(uint32_t) + 8;
+		message_length = 3 * sizeof(uint32_t) + 8;
 		break;
 #endif /* HAVE_XDR */
 
@@ -4160,7 +4160,7 @@ mx_network_field_get_attribute_by_name( MX_NETWORK_FIELD *nf,
 	char *list_attribute_name;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked, attribute_name = '%s'",
+	MX_DEBUG( 2,("%s invoked, attribute_name = '%s'",
 			fname, attribute_name));
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {
@@ -4204,7 +4204,7 @@ mx_network_field_set_attribute_by_name( MX_NETWORK_FIELD *nf,
 	char *list_attribute_name;
 	mx_status_type mx_status;
 
-	MX_DEBUG(-2,("%s invoked, attribute_name = '%s'",
+	MX_DEBUG( 2,("%s invoked, attribute_name = '%s'",
 			fname, attribute_name));
 
 	if ( nf == (MX_NETWORK_FIELD *) NULL ) {

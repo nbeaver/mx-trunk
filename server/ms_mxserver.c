@@ -2947,7 +2947,7 @@ mxsrv_handle_get_attribute( MX_RECORD *record_list,
 
 	attribute_number = mx_ntohl( message[2] );
 
-	MX_DEBUG(-2,("%s: attribute_number = %#lx",
+	MX_DEBUG( 2,("%s: attribute_number = %#lx",
 		fname, (unsigned long) attribute_number));
 
 	/* Get the requested attribute value. */
@@ -3139,7 +3139,7 @@ mxsrv_handle_set_attribute( MX_RECORD *record_list,
 		break;
 	}
 
-	MX_DEBUG(-2,
+	MX_DEBUG( 2,
 	("%s: attribute_number = %#lx, attribute_value = %g", fname,
 		(unsigned long) attribute_number, attribute_value));
 
