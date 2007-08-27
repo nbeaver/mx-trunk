@@ -405,14 +405,14 @@ mxd_pccd_170170_descramble_raw_data( uint16_t *raw_frame_data,
 				long i_framesize,
 				long j_framesize )
 {
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
 	static const char fname[] = "mxd_pccd_170170_descramble_raw_data()";
 #endif
 
 	long i, j;
 
-#if MXD_PCCD_170170_DEBUG_DESCRAMBLING
-	mxd_pccd_170170_display_ul_corners( image_sector_array, num_sectors );
+#if 0 && MXD_PCCD_170170_DEBUG_DESCRAMBLING
+	mxd_pccd_170170_display_ul_corners( image_sector_array, 16 );
 #endif
 
 	for ( i = 0; i < i_framesize; i++ ) {
@@ -997,7 +997,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;
 
-	if ( control_register & 0x2 ) {
+	if ( control_register & MXF_PCCD_170170_HIGH_SPEED ) {
 		high_speed = TRUE;
 	} else {
 		high_speed = FALSE;
@@ -1791,7 +1791,7 @@ mxd_pccd_170170_open( MX_RECORD *record )
 
 	/* Put the detector head in full frame mode. */
 
-	control_register_value &= (~0x60);
+	control_register_value &= (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
 
 	/* Turn on an initial runt Frame Valid pulse.  This is used to
 	 * work around a misfeature of the PIXCI E4 board.  The E4 board
@@ -1803,18 +1803,18 @@ mxd_pccd_170170_open( MX_RECORD *record )
 	 * that we do not want anyway.
 	 */
 
-	control_register_value |= 0x200;
+	control_register_value |= MXF_PCCD_170170_EXTRA_FRAME_VALID;
 
 	/* If requested, turn on the test mode pattern. */
 
 	if ( flags & MXF_PCCD_170170_USE_TEST_PATTERN ) {
-		control_register_value |= 0x1;
+		control_register_value |= MXF_PCCD_170170_TEST_MODE_ON;
 
 		mx_warning( "Area detector '%s' will return a test image "
 			"instead of taking a real image.",
 				record->name );
 	} else {
-		control_register_value &= (~0x1);
+		control_register_value &= (~MXF_PCCD_170170_TEST_MODE_ON);
 	}
 
 	/* Write out the new control register value. */
@@ -3262,8 +3262,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		old_detector_readout_mode = 
-				(old_control_register_value >> 5) & 0x3;
+		old_detector_readout_mode = old_control_register_value
+				& MXF_PCCD_170170_DETECTOR_READOUT_MASK;
+
 #if MXD_PCCD_170170_DEBUG
 		MX_DEBUG(-2,("%s: old_control_register_value = %#lx",
 			fname, old_control_register_value));
@@ -3321,7 +3322,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* We must switch to full frame mode. */
 
 				new_control_register_value =
-					old_control_register_value & (~0x60);
+					old_control_register_value &
+				    (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
 #if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 			("%s: (full frame) new_control_register_value = %#lx",
@@ -3340,7 +3342,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				 * board framesize.
 				 */
 
-				if ( old_detector_readout_mode == 0x3 ) {
+				if ( old_detector_readout_mode
+					== MXF_PCCD_170170_STREAK_CAMERA_MODE )
+				{
 				    mx_status = mx_video_input_set_framesize(
 					pccd_170170->video_input_record,
 					pccd_170170->vinput_normal_framesize[0],
@@ -3513,7 +3517,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 			if ( mx_status.code != MXE_SUCCESS )
 				return mx_status;
 
-			if ( old_detector_readout_mode != 0x3 ) {
+			if ( old_detector_readout_mode
+				!= MXF_PCCD_170170_STREAK_CAMERA_MODE )
+			{
 				/* Before switching to streak camera mode,
 				 * save the video board's current framesize
 				 * for later restoration.
@@ -3532,7 +3538,8 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				/* Now switch to streak camera mode. */
 
 				new_control_register_value =
-					old_control_register_value | 0x60;
+					old_control_register_value |
+					    MXF_PCCD_170170_STREAK_CAMERA_MODE;
 #if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 		       ("%s: (streak camera) new_control_register_value = %#lx",
@@ -3595,13 +3602,17 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				return mx_status;
 			break;
 		case MXT_SQ_SUBIMAGE:
-			if ( old_detector_readout_mode != 0x2 ) {
+			if ( old_detector_readout_mode
+				!= MXF_PCCD_170170_SUBIMAGE_MODE )
+			{
 				/* Switch to sub-image mode. */
 
 				new_control_register_value =
-					old_control_register_value & (~0x60);
+					old_control_register_value &
+				    (~MXF_PCCD_170170_DETECTOR_READOUT_MASK);
 
-				new_control_register_value |= 0x20;
+				new_control_register_value
+					|= MXF_PCCD_170170_SUBIMAGE_MODE;
 #if MXD_PCCD_170170_DEBUG
 				MX_DEBUG(-2,
 			("%s: (sub-image) new_control_register_value = %#lx",
@@ -3620,7 +3631,9 @@ mxd_pccd_170170_set_parameter( MX_AREA_DETECTOR *ad )
 				 * board framesize.
 				 */
 
-				if ( old_detector_readout_mode == 0x3 ) {
+				if ( old_detector_readout_mode
+					== MXF_PCCD_170170_STREAK_CAMERA_MODE )
+				{
 				    mx_status = mx_video_input_set_framesize(
 					pccd_170170->video_input_record,
 					pccd_170170->vinput_normal_framesize[0],

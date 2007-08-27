@@ -34,6 +34,58 @@
 #define MXF_PCCD_170170_HORIZ_SCALE	4
 #define MXF_PCCD_170170_VERT_SCALE	4
 
+/*-------------------------------------------------------------*/
+
+/* Control register bit definitions. */
+
+/* Test mode (bit 0) */
+
+#define MXF_PCCD_170170_TEST_MODE_ON			0x1
+
+/* Low noise-high speed (bit 1) */
+
+#define MXF_PCCD_170170_HIGH_SPEED			0x2
+
+/* Automatic offset correction (bit 2) */
+
+#define MXF_PCCD_170170_AUTOMATIC_OFFSET_CORRECTION_ON	0x4
+
+/* Exposure trigger mode (bits 3-4) */
+
+#define MXF_PCCD_170170_TRIGGER_MASK			0x18
+
+/*---- Soft trigger is bit 3 zero, bit 4 don't care. */
+
+#define MXF_PCCD_170170_EXTERNAL_EDGE_TRIGGER		0x08
+#define MXF_PCCD_170170_EXTERNAL_DURATION_TRIGGER	0x18
+
+/* Detector readout mode (bits 5-6) */
+
+#define MXF_PCCD_170170_DETECTOR_READOUT_MASK		0x60
+
+/*---- Full frame is both bits 0. */
+
+#define MXF_PCCD_170170_SUBIMAGE_MODE			0x20
+#define MXF_PCCD_170170_STREAK_CAMERA_MODE		0x60
+
+/* Linearization (bit 7) */
+
+#define MXF_PCCD_170170_LINEARIZATION_ON		0x80
+
+/* Offset correction mode (bit 8) */
+
+#define MXF_PCCD_170170_UNBINNED_PIXEL_AVERAGING	0x100
+
+/* Extra frame valid pulse (bit 9).
+ * The extra frame valid pulse is to work around a "feature"
+ * of the EPIX XCLIB cameras which ignore the first Frame Valid
+ * signal sent to them by default.
+ */
+
+#define MXF_PCCD_170170_EXTRA_FRAME_VALID		0x200
+
+/*-------------------------------------------------------------*/
+
 typedef struct {
 	unsigned long value;
 	mx_bool_type read_only;
