@@ -712,7 +712,8 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 		MXIF_ROW_FRAMESIZE(image_frame) =
 					num_subimages * num_lines_per_subimage;
 
-		image_frame->image_length = 2L * bytes_per_half_subimage;
+		image_frame->image_length =
+			num_subimages * bytes_per_half_subimage * 2L;
 #endif
 	}
 
@@ -1121,7 +1122,7 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 	hshiftbin = 300.0e-9;
 
 	/******************************************************************
-	 *                    ... Here Be Dragons ...                     *
+	 *           Detector readout time calculation formulas           *
 	 ******************************************************************/
 
 	t = 0.0;

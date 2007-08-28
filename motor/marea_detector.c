@@ -49,7 +49,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 	MX_RECORD *ad_record;
 	MX_AREA_DETECTOR *ad;
 	MX_SEQUENCE_PARAMETERS sp;
-	MX_IMAGE_FRAME *frame;
 	char *filename, *endptr;
 	char *filename_stem;
 	char filename_ext[20];
@@ -179,8 +178,6 @@ motor_area_detector_fn( int argc, char *argv[] )
 		return FAILURE;
 	}
 
-	frame = ad->image_frame;
-
 	if ( strncmp( "snap", argv[3], strlen(argv[3]) ) == 0 ) {
 
 		if ( argc < 6 ) {
@@ -277,7 +274,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		MX_HRT_START( measurement3 );
 #endif
 		mx_status = mx_area_detector_get_frame( ad_record,
-							-1, &frame );
+						-1, &(ad->image_frame) );
 
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement3 );
@@ -294,7 +291,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_START( measurement4 );
 #endif
-		mx_status = mx_image_write_file( frame,
+		mx_status = mx_image_write_file( ad->image_frame,
 						datafile_type, filename );
 #if MAREA_DETECTOR_DEBUG_TIMING
 		MX_HRT_END( measurement4 );
@@ -551,7 +548,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				fprintf( output, "Reading frame %ld.\n", n );
 
 				mx_status = mx_area_detector_get_frame(
-				    ad_record, n, &frame );
+				    ad_record, n, &(ad->image_frame) );
 
 				if ( mx_status.code != MXE_SUCCESS )
 					return FAILURE;
@@ -563,7 +560,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				fprintf( output, "Writing image file '%s'.  ",
 					frame_filename );
 
-				mx_status = mx_image_write_file( frame,
+				mx_status = mx_image_write_file(ad->image_frame,
 						datafile_type, frame_filename );
 
 				if ( mx_status.code != MXE_SUCCESS )
@@ -637,7 +634,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		mx_status = mx_area_detector_get_frame( ad_record,
-							-1, &frame );
+						-1, &(ad->image_frame) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -674,7 +671,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 
 		if ( strncmp( "frame", argv[4], strlen(argv[4]) ) == 0 ) {
 
-			if ( frame == NULL ) {
+			if ( ad->image_frame == NULL ) {
 				fprintf( output,
 		"%s: no area detector image frame has been taken yet.\n",
 					cname );
@@ -682,7 +679,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 				return FAILURE;
 			}
 
-			mx_status = mx_image_write_file( frame,
+			mx_status = mx_image_write_file( ad->image_frame,
 						datafile_type, filename );
 		} else
 		if ( strncmp( "roiframe", argv[4], strlen(argv[4]) ) == 0 ) {
@@ -784,7 +781,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 			return FAILURE;
 		}
 
-		mx_status = mx_area_detector_setup_frame( ad_record, &frame );
+		mx_status = mx_area_detector_setup_frame( ad_record,
+							&(ad->image_frame) );
 
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
@@ -1056,7 +1054,8 @@ motor_area_detector_fn( int argc, char *argv[] )
 		}
 
 		mx_status = mx_area_detector_get_frame( ad_record,
-							-1, &frame );
+						-1, &(ad->image_frame) );
+
 		if ( mx_status.code != MXE_SUCCESS )
 			return FAILURE;
 
@@ -1112,7 +1111,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_area_detector_get_frame( ad_record,
-							frame_number, &frame );
+					frame_number, &(ad->image_frame) );
 
 			if ( mx_status.code != MXE_SUCCESS )
 				return FAILURE;
@@ -1391,7 +1390,7 @@ motor_area_detector_fn( int argc, char *argv[] )
 			}
 
 			mx_status = mx_area_detector_get_roi_frame(
-						ad_record, frame,
+						ad_record, ad->image_frame,
 						roi_number, &roi_frame );
 
 			if ( mx_status.code != MXE_SUCCESS )
