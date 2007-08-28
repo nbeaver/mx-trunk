@@ -1085,14 +1085,6 @@ mxd_pccd_170170_compute_detector_readout_time( MX_AREA_DETECTOR *ad,
 		if ( mx_status.code != MXE_SUCCESS )
 			return mx_status;
 
-		/* Note: The scale factor for the gap time has changed. */
-
-#if 0
-				tbe = 10 * tbe;
-#else
-				tbe = tbe / 10;
-#endif
-
 		mx_status = mxd_pccd_170170_read_register( pccd_170170,
 				MXLV_PCCD_170170_DH_EXPOSURE_MULTIPLIER,
 				&mtshut );
