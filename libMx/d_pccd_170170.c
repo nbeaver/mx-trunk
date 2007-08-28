@@ -703,6 +703,17 @@ mxd_pccd_170170_descramble_image( MX_AREA_DETECTOR *ad,
 			memcpy( bottom_dest_ptr, bottom_src_ptr,
 					bytes_per_half_subimage );
 		}
+
+#if 1
+		/* Patch the row framesize and the image length so that
+		 * it matches the total size of the subimage frame.
+		 */
+
+		MXIF_ROW_FRAMESIZE(image_frame) =
+					num_subimages * num_lines_per_subimage;
+
+		image_frame->image_length = 2L * bytes_per_half_subimage;
+#endif
 	}
 
 #if MXD_PCCD_170170_DEBUG_DESCRAMBLING
@@ -2621,7 +2632,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 				= ad->readout_frame
 					+ num_times_looped * maximum_num_frames;
 
-#if 0
+#if 1
 			mx_warning(
 		    "%s: Frame %ld has already been overwritten by frame %ld.",
 			fname, ad->readout_frame, 
@@ -2660,7 +2671,7 @@ mxd_pccd_170170_readout_frame( MX_AREA_DETECTOR *ad )
 	/* Compute and add the exposure time to the image frame header. */
 
 	mx_status = mx_sequence_get_exposure_time( &(ad->sequence_parameters),
-							-1, &exposure_time );
+					ad->readout_frame, &exposure_time );
 
 	if ( mx_status.code != MXE_SUCCESS )
 		return mx_status;

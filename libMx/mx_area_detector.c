@@ -18,6 +18,8 @@
 
 #define MX_AREA_DETECTOR_DEBUG_MX_IMAGE_ALLOC	FALSE
 
+#define MX_AREA_DETECTOR_DEBUG_DEZINGER		FALSE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -2385,6 +2387,31 @@ mx_area_detector_readout_frame( MX_RECORD *record, long frame_number )
 			record->name );
 	}
 
+	/* If the frame number is (-1L), then the caller is asking for
+	 * the most recently acquired frame.
+	 */
+
+	if ( frame_number == (-1L) ) {
+		/* Find out the frame number of the most recently 
+		 * acquired frame.
+		 */
+
+		mx_status = mx_area_detector_get_last_frame_number( record,
+								&frame_number );
+		if ( mx_status.code != MXE_SUCCESS )
+			return mx_status;
+
+		/* If the frame number is _still_ (-1L), then no frames
+		 * have been captured yet by the detector.
+		 */
+
+		if ( frame_number == (-1L) ) {
+			return mx_error( MXE_TRY_AGAIN, fname,
+		    "No frames have been captured yet by area detector '%s'.",
+				record->name );
+		}
+	}
+
 	ad->frame_number  = frame_number;
 	ad->readout_frame = frame_number;
 
@@ -3664,7 +3691,10 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
 	MX_IMAGE_FRAME **dezinger_frame_array;
+
+#  if MX_AREA_DETECTOR_DEBUG_DEZINGER
 	MX_HRT_TIMING measurement;
+#  endif
 #else
 	void *void_image_data_pointer;
 	uint16_t *src_array, *dest_array;
@@ -3966,16 +3996,20 @@ mx_area_detector_default_measure_correction( MX_AREA_DETECTOR *ad )
 
 #if MX_AREA_DETECTOR_USE_DEZINGER
 
+#  if MX_AREA_DETECTOR_DEBUG_DEZINGER
 	MX_HRT_START( measurement );
+#  endif
 
 	mx_status = mx_image_dezinger( &dest_frame,
 					num_exposures,
 					dezinger_frame_array,
 					fabs(ad->dezinger_threshold) );
 
+#  if MX_AREA_DETECTOR_DEBUG_DEZINGER
 	MX_HRT_END( measurement );
 
 	MX_HRT_RESULTS( measurement, fname, "Total image dezingering time." );
+#  endif
 
 	MXP_AREA_DETECTOR_FREE_CORRECTION_ARRAYS;
 
